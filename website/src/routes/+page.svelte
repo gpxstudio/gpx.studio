@@ -1,2 +1,8 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script lang="ts">
+	import Map from '$lib/map/Map.svelte';
+</script>
+
+<div class="flex flex-col w-screen h-screen">
+	<Map class="grow" />
+	<div class="h-1/3">Test</div>
+</div>
