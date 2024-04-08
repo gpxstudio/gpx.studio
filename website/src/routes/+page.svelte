@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Map from '$lib/map/Map.svelte';
+	import Map from '$lib/components/Map.svelte';
 </script>
 
 <div class="flex flex-col w-screen h-screen">
