@@ -68,7 +68,8 @@
 
 		map.addControl(
 			new MaplibreGeocoder(geocoderApi, {
-				maplibregl
+				maplibregl,
+				collapsed: true
 			})
 		);
 
