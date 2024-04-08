@@ -72,8 +72,6 @@
 				collapsed: true
 			})
 		);
-
-		console.log(map);
 	});
 
 	onDestroy(() => {
