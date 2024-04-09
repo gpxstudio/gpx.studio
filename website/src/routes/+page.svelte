@@ -3,8 +3,10 @@
 	import Menu from '$lib/components/Menu.svelte';
 </script>
 
-<Menu />
 <div class="flex flex-col w-screen h-screen">
-	<Map class="grow" />
+	<div class="grow relative">
+		<Menu />
+		<Map class="h-full" />
+	</div>
 	<div class="h-1/3">Test</div>
 </div>

@@ -10,7 +10,7 @@
 	let showDirectionMarkers = false;
 </script>
 
-<div class="fixed top-2 left-0 right-0 z-10 flex flex-row justify-center pointer-events-none">
+<div class="absolute top-2 left-0 right-0 z-10 flex flex-row justify-center pointer-events-none">
 	<div class="w-fit flex flex-row items-center px-1 bg-background rounded-md pointer-events-auto">
 		<Logo class="h-5 mt-1 mx-2" />
 		<Menubar.Root class="border-none">
