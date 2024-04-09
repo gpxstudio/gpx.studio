@@ -2,6 +2,7 @@
 	import * as Menubar from '$lib/components/ui/menubar/index.js';
 	import { Button } from '$lib/components/ui/button';
 	import Logo from './Logo.svelte';
+	import { HeartHandshake } from 'lucide-svelte';
 
 	let distanceUnits = 'metric';
 	let velocityUnits = 'speed';
@@ -90,6 +91,13 @@
 			href="/about"
 			target="_blank"
 			class="cursor-default py-1.5 px-3 h-fit rounded-sm">About</Button
+		>
+		<Button
+			variant="ghost"
+			href="https://ko-fi.com/gpxstudio"
+			target="_blank"
+			class="cursor-default py-1.5 px-3 h-fit rounded-sm"
+			>Donate <HeartHandshake size="18" class="ml-1" /></Button
 		>
 	</div>
 </div>
