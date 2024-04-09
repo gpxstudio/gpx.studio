@@ -37,12 +37,15 @@
     },
     "type": "module",
     "dependencies": {
+        "@fortawesome/free-brands-svg-icons": "^6.5.2",
+        "@fortawesome/free-solid-svg-icons": "^6.5.2",
         "@maplibre/maplibre-gl-geocoder": "^1.5.0",
         "bits-ui": "^0.21.2",
         "clsx": "^2.1.0",
         "gpx": "file:../gpx",
         "lucide-svelte": "^0.365.0",
         "maplibre-gl": "^4.1.2",
+        "svelte-fa": "^4.0.2",
         "tailwind-merge": "^2.2.2",
         "tailwind-variants": "^0.2.1"
     }

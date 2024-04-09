@@ -11,9 +11,9 @@
 </script>
 
 <div class="absolute top-2 left-0 right-0 z-10 flex flex-row justify-center pointer-events-none">
-	<div class="w-fit flex flex-row items-center px-1 bg-background rounded-md pointer-events-auto">
-		<Logo class="h-5 mt-1 mx-2" />
-		<Menubar.Root class="border-none">
+	<div class="w-fit flex flex-row items-center p-1 bg-background rounded-md pointer-events-auto">
+		<Logo class="h-5 mt-0.5 mx-2" />
+		<Menubar.Root class="border-none h-fit p-0">
 			<Menubar.Menu>
 				<Menubar.Trigger>File</Menubar.Trigger>
 				<Menubar.Content>
@@ -86,20 +86,31 @@
 				</Menubar.Content>
 			</Menubar.Menu>
 		</Menubar.Root>
-		<div class="py-1 h-10">
-			<Button
-				variant="ghost"
-				href="/about"
-				target="_blank"
-				class="cursor-default py-1.5 px-3 h-fit rounded-sm">About</Button
+		<div class="h-fit flex flex-row items-center">
+			<Button variant="ghost" href="/about" target="_blank" class="cursor-default h-fit rounded-sm"
+				>About</Button
 			>
 			<Button
 				variant="ghost"
 				href="https://ko-fi.com/gpxstudio"
 				target="_blank"
-				class="cursor-default py-1.5 px-3 h-fit rounded-sm"
+				class="cursor-default h-fit rounded-sm"
 				>Donate <HeartHandshake size="18" class="ml-1" /></Button
 			>
 		</div>
 	</div>
 </div>
+
+<style lang="postcss">
+	div :global(button) {
+		@apply hover:bg-accent;
+		@apply px-3;
+		@apply py-0.5;
+	}
+
+	div :global(a) {
+		@apply hover:bg-accent;
+		@apply px-3;
+		@apply py-0.5;
+	}
+</style>
