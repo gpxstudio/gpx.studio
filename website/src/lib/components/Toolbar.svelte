@@ -19,7 +19,7 @@
 </script>
 
 <div class="absolute top-0 bottom-0 left-0 z-10 flex flex-col justify-center pointer-events-none">
-	<div class="flex flex-col p-1 space-y-1 bg-background rounded-md pointer-events-auto">
+	<div class="flex flex-col p-1 space-y-1 bg-background rounded-md pointer-events-auto shadow-md">
 		<ToolbarItem>
 			<Fa slot="icon" icon={faPencil} />
 			<span slot="tooltip">Edit the track points</span>

@@ -1,86 +1,103 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 
-	import maplibregl from 'maplibre-gl';
-	import 'maplibre-gl/dist/maplibre-gl.css';
+	import mapboxgl from 'mapbox-gl';
+	import 'mapbox-gl/dist/mapbox-gl.css';
 
-	import MaplibreGeocoder from '@maplibre/maplibre-gl-geocoder';
-	import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
+	import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
+	import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 
-	export let map: maplibregl.Map | null = null;
+	mapboxgl.accessToken =
+		'pk.eyJ1IjoiZ3B4c3R1ZGlvIiwiYSI6ImNrdHVoM2pjNTBodmUycG1yZTNwcnJ3MzkifQ.YZnNs9s9oCQPzoXAWs_SLg';
+
+	let map: mapboxgl.Map | null = null;
+
+	export let distanceUnits: 'metric' | 'imperial' = 'metric';
 
 	onMount(() => {
-		map = new maplibregl.Map({
+		map = new mapboxgl.Map({
 			container: 'map',
-			style: 'https://demotiles.maplibre.org/style.json'
+			style: 'mapbox://styles/mapbox/outdoors-v12',
+			projection: 'mercator',
+			hash: true,
+			language: 'auto',
+			attributionControl: false,
+			logoPosition: 'bottom-right'
 		});
 
 		map.addControl(
-			new maplibregl.NavigationControl({
-				showCompass: false
+			new mapboxgl.AttributionControl({
+				compact: true
 			})
 		);
 
-		map.addControl(
-			new maplibregl.GeolocateControl({
-				positionOptions: {
-					enableHighAccuracy: true
-				},
-				trackUserLocation: true
-			})
-		);
-
-		const geocoderApi = {
-			forwardGeocode: async (config) => {
-				const features = [];
-				try {
-					const request = `https://nominatim.openstreetmap.org/search?q=${config.query}&format=geojson&polygon_geojson=1&addressdetails=1`;
-					const response = await fetch(request);
-					const geojson = await response.json();
-					for (const feature of geojson.features) {
-						const center = [
-							feature.bbox[0] + (feature.bbox[2] - feature.bbox[0]) / 2,
-							feature.bbox[1] + (feature.bbox[3] - feature.bbox[1]) / 2
-						];
-						const point = {
-							type: 'Feature',
-							geometry: {
-								type: 'Point',
-								coordinates: center
-							},
-							place_name: feature.properties.display_name,
-							properties: feature.properties,
-							text: feature.properties.display_name,
-							place_type: ['place'],
-							center
-						};
-						features.push(point);
-					}
-				} catch (e) {
-					console.error(`Failed to forwardGeocode with error: ${e}`);
-				}
-
-				return {
-					features
-				};
-			}
-		};
+		map.addControl(new mapboxgl.NavigationControl());
 
 		map.addControl(
-			new MaplibreGeocoder(geocoderApi, {
-				maplibregl,
+			new MapboxGeocoder({
+				accessToken: mapboxgl.accessToken,
+				mapboxgl: mapboxgl,
 				collapsed: true
 			})
 		);
-	});
 
-	onDestroy(() => {
-		if (map) {
-			map.remove();
-		}
+		map.addControl(
+			new mapboxgl.GeolocateControl({
+				positionOptions: {
+					enableHighAccuracy: true
+				},
+				trackUserLocation: true,
+				showUserHeading: true
+			})
+		);
+
+		map.addControl(
+			new mapboxgl.ScaleControl({
+				unit: distanceUnits
+			})
+		);
 	});
 </script>
 
 <div {...$$restProps}>
 	<div id="map" class="h-full"></div>
 </div>
+
+<style lang="postcss">
+	div :global(.mapboxgl-ctrl) {
+		@apply shadow-md;
+	}
+
+	div :global(.mapboxgl-ctrl-geocoder) {
+		@apply flex;
+		@apply flex-row;
+		@apply w-fit;
+		@apply min-w-fit;
+		@apply items-center;
+		@apply shadow-md;
+	}
+
+	div :global(.suggestions) {
+		@apply shadow-md;
+	}
+
+	div :global(.mapboxgl-ctrl-geocoder--icon-search) {
+		@apply fill-inherit;
+		@apply relative;
+		@apply top-0;
+		@apply left-0;
+		@apply my-2;
+		@apply w-[29px];
+	}
+
+	div :global(.mapboxgl-ctrl-geocoder--input) {
+		@apply relative;
+		@apply py-0;
+		@apply pl-2;
+		@apply focus:outline-none;
+	}
+
+	div :global(.mapboxgl-ctrl-geocoder--collapsed .mapboxgl-ctrl-geocoder--input) {
+		@apply hidden;
+	}
+</style>
