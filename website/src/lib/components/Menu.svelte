@@ -88,7 +88,7 @@
 				</Menubar.Content>
 			</Menubar.Menu>
 		</Menubar.Root>
-		<div class="h-fit flex flex-row items-center">
+		<div class="h-fit flex flex-row items-center ml-1 space-x-1">
 			<Button variant="ghost" href="/about" target="_blank" class="cursor-default h-fit rounded-sm"
 				>About</Button
 			>
