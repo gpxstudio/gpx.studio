@@ -9,7 +9,7 @@
 	import * as RadioGroup from '$lib/components/ui/radio-group';
 	import { Checkbox } from '$lib/components/ui/checkbox';
 
-	import { basemaps, overlays } from '$lib/assets/layers';
+	import { basemaps, overlays, opacities } from '$lib/assets/layers';
 
 	export let map: mapboxgl.Map | null;
 
@@ -36,27 +36,35 @@
 				</div>
 			{/each}
 		</RadioGroup.Root>
-		<div>
+		<div class="flex flex-col">
 			{#each Object.keys(overlays) as id}
-				<Checkbox
-					{id}
-					onCheckedChange={(checked) => {
-						console.log('onCheckedChange', map?.isStyleLoaded());
-						if (checked) {
-							if (!map.getSource(id)) {
-								map.addSource(id, overlays[id]);
+				<div>
+					<Checkbox
+						{id}
+						onCheckedChange={(checked) => {
+							if (checked) {
+								if (!map.getSource(id)) {
+									map.addSource(id, overlays[id]);
+								}
+								map.addLayer({
+									id,
+									type: overlays[id].type === 'raster' ? 'raster' : 'line',
+									source: id,
+									paint: {
+										...(id in opacities
+											? overlays[id].type === 'raster'
+												? { 'raster-opacity': opacities[id] }
+												: { 'line-opacity': opacities[id] }
+											: {})
+									}
+								});
+							} else {
+								map.removeLayer(id);
 							}
-							map.addLayer({
-								id,
-								type: overlays[id].type === 'raster' ? 'raster' : 'line',
-								source: id
-							});
-						} else {
-							map.removeLayer(id);
-						}
-					}}
-				/>
-				<Label for={id}>{id}</Label>
+						}}
+					/>
+					<Label for={id}>{id}</Label>
+				</div>
 			{/each}
 		</div>
 	</div>
