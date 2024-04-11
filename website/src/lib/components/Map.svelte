@@ -6,6 +6,7 @@
 
 	import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 	import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
+	import LayerControl from './LayerControl.svelte';
 
 	mapboxgl.accessToken =
 		'pk.eyJ1IjoiZ3B4c3R1ZGlvIiwiYSI6ImNrdHVoM2pjNTBodmUycG1yZTNwcnJ3MzkifQ.YZnNs9s9oCQPzoXAWs_SLg';
@@ -17,7 +18,7 @@
 	onMount(() => {
 		map = new mapboxgl.Map({
 			container: 'map',
-			style: 'mapbox://styles/mapbox/outdoors-v12',
+			style: { version: 8, sources: {}, layers: [] },
 			projection: 'mercator',
 			hash: true,
 			language: 'auto',
@@ -57,10 +58,18 @@
 			})
 		);
 	});
+
+	onDestroy(() => {
+		if (map) {
+			map.remove();
+		}
+	});
 </script>
 
 <div {...$$restProps}>
-	<div id="map" class="h-full"></div>
+	<div id="map" class="h-full">
+		<LayerControl {map} />
+	</div>
 </div>
 
 <style lang="postcss">

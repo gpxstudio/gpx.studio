@@ -40,6 +40,8 @@
         "@fortawesome/free-brands-svg-icons": "^6.5.2",
         "@fortawesome/free-solid-svg-icons": "^6.5.2",
         "@mapbox/mapbox-gl-geocoder": "^5.0.2",
+        "@types/mapbox__mapbox-gl-geocoder": "^5.0.0",
+        "@types/mapbox-gl": "^3.1.0",
         "bits-ui": "^0.21.2",
         "clsx": "^2.1.0",
         "gpx": "file:../gpx",
