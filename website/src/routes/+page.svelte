@@ -10,5 +10,5 @@
 		<Toolbar />
 		<Map class="h-full" />
 	</div>
-	<div class="h-1/3">Test</div>
+	<div class="h-12">Test</div>
 </div>

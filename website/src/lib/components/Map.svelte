@@ -6,7 +6,7 @@
 
 	import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 	import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
-	import LayerControl from './LayerControl.svelte';
+	import LayerControl from '$lib/components/layer-control/LayerControl.svelte';
 
 	mapboxgl.accessToken =
 		'pk.eyJ1IjoiZ3B4c3R1ZGlvIiwiYSI6ImNrdHVoM2pjNTBodmUycG1yZTNwcnJ3MzkifQ.YZnNs9s9oCQPzoXAWs_SLg';

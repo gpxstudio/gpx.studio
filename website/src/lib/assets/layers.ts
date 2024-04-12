@@ -371,7 +371,9 @@ export const opacities: { [key: string]: number; } = {
     swisstopoSlope: 0.4,
 };
 
-export const basemapTree = {
+export type LayerTreeType = string[] | { [key: string]: LayerTreeType; };
+
+export const basemapTree: LayerTreeType = {
     world: ['mapboxOutdoors', 'mapboxSatellite', 'openStreetMap', 'openTopoMap', 'openHikingMap', 'cyclOSM'],
     countries: {
         bulgaria: ['bgMountains'],
@@ -387,7 +389,7 @@ export const basemapTree = {
     },
 }
 
-export const overlayTree = {
+export const overlayTree: LayerTreeType = {
     world: {
         cyclOSM: ['cyclOSMlite'],
         waymarkedTrails: ['waymarkedTrailsHiking', 'waymarkedTrailsCycling', 'waymarkedTrailsMTB', 'waymarkedTrailsSkating', 'waymarkedTrailsHorseRiding', 'waymarkedTrailsWinter']
