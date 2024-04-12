@@ -19,7 +19,7 @@
 		map = new mapboxgl.Map({
 			container: 'map',
 			style: { version: 8, sources: {}, layers: [] },
-			projection: 'mercator',
+			projection: { name: 'mercator' },
 			hash: true,
 			language: 'auto',
 			attributionControl: false,

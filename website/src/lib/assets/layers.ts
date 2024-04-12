@@ -370,3 +370,35 @@ export const opacities: { [key: string]: number; } = {
     ignSlope: 0.4,
     swisstopoSlope: 0.4,
 };
+
+export const basemapTree = {
+    world: ['mapboxOutdoors', 'mapboxSatellite', 'openStreetMap', 'openTopoMap', 'openHikingMap', 'cyclOSM'],
+    countries: {
+        bulgaria: ['bgMountains'],
+        finland: ['finlandTopo'],
+        france: ['ignPlanV2', 'ignFrScan25', 'ignSatellite'],
+        newZealand: ['linz', 'linzTopo'],
+        norway: ['norwayTopo'],
+        spain: ['ignEs'],
+        sweden: ['swedenTopo'],
+        switzerland: ['swisstopo'],
+        unitedKingdom: ['ordnanceSurvey'],
+        unitedStates: ['usgs'],
+    },
+}
+
+export const overlayTree = {
+    world: {
+        cyclOSM: ['cyclOSMlite'],
+        waymarkedTrails: ['waymarkedTrailsHiking', 'waymarkedTrailsCycling', 'waymarkedTrailsMTB', 'waymarkedTrailsSkating', 'waymarkedTrailsHorseRiding', 'waymarkedTrailsWinter']
+    },
+    countries: {
+        france: ['ignFrCadastre', 'ignSlope'],
+        switzerland: ['swisstopoSlope', 'swisstopoCycling', 'swisstopoMountainBike'],
+    },
+}
+
+export const defaultBasemap = 'mapboxOutdoors';
+
+export const defaultAvailableBasemaps = ['mapboxOutdoors', 'mapboxSatellite', 'openStreetMap', 'openTopoMap', 'openHikingMap', 'cyclOSM'];
+export const defaultAvailableOverlays = ['cyclOSMlite', 'waymarkedTrailsHiking', 'waymarkedTrailsCycling', 'waymarkedTrailsMTB', 'waymarkedTrailsSkating', 'waymarkedTrailsHorseRiding', 'waymarkedTrailsWinter'];
