@@ -101,13 +101,17 @@
 
 	div :global(.mapboxgl-ctrl-geocoder--input) {
 		@apply relative;
+		@apply w-64;
 		@apply py-0;
 		@apply pl-2;
 		@apply focus:outline-none;
+		@apply transition-[width];
+		@apply duration-200;
 	}
 
 	div :global(.mapboxgl-ctrl-geocoder--collapsed .mapboxgl-ctrl-geocoder--input) {
-		@apply hidden;
+		@apply w-0;
+		@apply p-0;
 	}
 
 	div :global(.mapboxgl-ctrl-top-right) {
