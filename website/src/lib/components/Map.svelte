@@ -109,4 +109,8 @@
 	div :global(.mapboxgl-ctrl-geocoder--collapsed .mapboxgl-ctrl-geocoder--input) {
 		@apply hidden;
 	}
+
+	div :global(.mapboxgl-ctrl-top-right) {
+		@apply z-10;
+	}
 </style>
