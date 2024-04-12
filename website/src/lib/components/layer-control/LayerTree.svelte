@@ -9,6 +9,6 @@
 	export let onValueChange: (id: string, checked: boolean) => void;
 </script>
 
-<fieldset class="min-w-52">
+<fieldset class="min-w-64">
 	<LayerTreeNode {name} node={layerTree} {multiple} {onValueChange} />
 </fieldset>

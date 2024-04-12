@@ -30,8 +30,8 @@
 	}
 </script>
 
-<div class="flex flex-col gap-1">
-	{#if Array.isArray(node)}
+{#if Array.isArray(node)}
+	<div class="flex flex-col gap-1 mt-1">
 		{#each node as id}
 			<div class="flex flex-row items-center gap-2">
 				{#if multiple}
@@ -59,7 +59,9 @@
 				<Label for={id}>{id}</Label>
 			</div>
 		{/each}
-	{:else}
+	</div>
+{:else}
+	<div class="flex flex-col gap-1">
 		{#each Object.keys(node) as id}
 			<Collapsible.Root bind:open={open[id]} class="ml-1">
 				<Collapsible.Trigger class="w-full"
@@ -75,13 +77,13 @@
 						{/if}
 					</Button></Collapsible.Trigger
 				>
-				<Collapsible.Content class="mt-1 ml-1">
+				<Collapsible.Content class="ml-1">
 					<svelte:self node={node[id]} {name} {multiple} {onValueChange} />
 				</Collapsible.Content>
 			</Collapsible.Root>
 		{/each}
-	{/if}
-</div>
+	</div>
+{/if}
 
 <style lang="postcss">
 	div :global(input[type='radio']) {
