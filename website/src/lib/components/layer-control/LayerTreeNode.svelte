@@ -5,7 +5,7 @@
 	import * as Collapsible from '$lib/components/ui/collapsible';
 
 	import Fa from 'svelte-fa';
-	import { faChevronDown, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
+	import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 
 	import { type LayerTreeType } from '$lib/assets/layers';
 
@@ -71,9 +71,9 @@
 					>
 						<span class="mr-2">{id}</span>
 						{#if open[id]}
-							<Fa icon={faChevronDown} size="xs" />
+							<Fa icon={faChevronUp} size="xs" />
 						{:else}
-							<Fa icon={faChevronLeft} size="xs" />
+							<Fa icon={faChevronDown} size="xs" />
 						{/if}
 					</Button></Collapsible.Trigger
 				>
