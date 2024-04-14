@@ -29,40 +29,40 @@
 		</Button>
 	</Sheet.Trigger>
 	<Sheet.Content>
-		<Sheet.Header>
+		<Sheet.Header class="h-full">
 			<Sheet.Title>Layer settings</Sheet.Title>
 			<Sheet.Description>
 				Select the map layers you want to show in the interface and adjust their settings.
 			</Sheet.Description>
+			<ScrollArea class="pr-4">
+				<div>
+					<LayerTree
+						layerTree={basemapTree}
+						label="Basemaps"
+						name="basemapSettings"
+						multiple={true}
+						onValueChange={(id) => {
+							// TODO
+						}}
+					/>
+				</div>
+			</ScrollArea>
+			<Separator class="my-2" />
+			<ScrollArea class="pr-4">
+				<div>
+					<LayerTree
+						layerTree={overlayTree}
+						label="Overlays"
+						name="overlaySettings"
+						multiple={true}
+						onValueChange={(id, checked) => {
+							// TODO
+						}}
+					/>
+				</div>
+			</ScrollArea>
+			<Separator class="my-2" />
+			<Button variant="secondary" class="w-full px-1 py-1.5">Add custom layer</Button>
 		</Sheet.Header>
-		<ScrollArea class="h-[35vh] pr-4">
-			<div>
-				<LayerTree
-					layerTree={basemapTree}
-					label="Basemaps"
-					name="basemapSettings"
-					multiple={true}
-					onValueChange={(id) => {
-						// TODO
-					}}
-				/>
-			</div>
-		</ScrollArea>
-		<Separator class="my-2" />
-		<ScrollArea class="h-[35vh] pr-4">
-			<div>
-				<LayerTree
-					layerTree={overlayTree}
-					label="Overlays"
-					name="overlaySettings"
-					multiple={true}
-					onValueChange={(id, checked) => {
-						// TODO
-					}}
-				/>
-			</div>
-		</ScrollArea>
-		<Separator class="my-2" />
-		<Button variant="secondary" class="w-full px-1 py-1.5">Add custom layer</Button>
 	</Sheet.Content>
 </Sheet.Root>
