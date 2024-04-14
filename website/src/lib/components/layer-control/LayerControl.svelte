@@ -3,8 +3,8 @@
 
 	import CustomControl from '$lib/components/custom-control/CustomControl.svelte';
 	import LayerTree from './LayerTree.svelte';
+	import LayerControlSettings from './LayerControlSettings.svelte';
 
-	import Label from '$lib/components/ui/label/label.svelte';
 	import { Separator } from '$lib/components/ui/separator';
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 
@@ -40,9 +40,9 @@
 			<ScrollArea>
 				<div class="h-fit max-h-[50vh]">
 					<div class="p-2">
-						<Label>Basemaps</Label>
 						<LayerTree
 							layerTree={basemapTree}
+							label="Basemaps"
 							name="basemaps"
 							onValueChange={(id) => {
 								if (map) {
@@ -53,9 +53,9 @@
 					</div>
 					<Separator class="w-full" />
 					<div class="p-2">
-						<Label>Overlays</Label>
 						<LayerTree
 							layerTree={overlayTree}
+							label="Overlays"
 							name="overlays"
 							multiple={true}
 							onValueChange={(id, checked) => {
@@ -84,7 +84,9 @@
 						/>
 					</div>
 					<Separator class="w-full" />
-					<div class="p-2">TODO: Add layer settings</div>
+					<div class="p-2">
+						<LayerControlSettings />
+					</div>
 				</div>
 			</ScrollArea>
 		</div>
