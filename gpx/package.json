@@ -1,0 +1,27 @@
+{
+    "name": "gpx",
+    "version": "1.0.0",
+    "main": "dist/src/index.js",
+    "types": "dist/src/index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/gpxstudio/gpx.studio.git",
+        "directory": "gpx"
+    },
+    "private": true,
+    "dependencies": {
+        "fast-xml-parser": "^4.3.6",
+        "ts-node": "^10.9.2"
+    },
+    "scripts": {
+        "build": "tsc",
+        "test": "jest"
+    },
+    "devDependencies": {
+        "@types/jest": "^29.5.12",
+        "@types/node": "^20.12.7",
+        "jest": "^29.7.0",
+        "ts-jest": "^29.1.2",
+        "typescript": "^5.4.5"
+    }
+}
