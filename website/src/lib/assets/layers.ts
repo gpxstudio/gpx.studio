@@ -372,31 +372,39 @@ export const opacities: { [key: string]: number; } = {
 };
 
 export type LayerTreeType = string[] | { [key: string]: LayerTreeType; };
+export type CollapsedInfoTreeType = {
+    self: boolean;
+    children: { [key: string]: CollapsedInfoTreeType; };
+};
 
 export const basemapTree: LayerTreeType = {
-    world: ['mapboxOutdoors', 'mapboxSatellite', 'openStreetMap', 'openTopoMap', 'openHikingMap', 'cyclOSM'],
-    countries: {
-        bulgaria: ['bgMountains'],
-        finland: ['finlandTopo'],
-        france: ['ignPlanV2', 'ignFrScan25', 'ignSatellite'],
-        newZealand: ['linz', 'linzTopo'],
-        norway: ['norwayTopo'],
-        spain: ['ignEs'],
-        sweden: ['swedenTopo'],
-        switzerland: ['swisstopo'],
-        unitedKingdom: ['ordnanceSurvey'],
-        unitedStates: ['usgs'],
+    basemaps: {
+        world: ['mapboxOutdoors', 'mapboxSatellite', 'openStreetMap', 'openTopoMap', 'openHikingMap', 'cyclOSM'],
+        countries: {
+            bulgaria: ['bgMountains'],
+            finland: ['finlandTopo'],
+            france: ['ignPlanV2', 'ignFrScan25', 'ignSatellite'],
+            newZealand: ['linz', 'linzTopo'],
+            norway: ['norwayTopo'],
+            spain: ['ignEs'],
+            sweden: ['swedenTopo'],
+            switzerland: ['swisstopo'],
+            unitedKingdom: ['ordnanceSurvey'],
+            unitedStates: ['usgs'],
+        },
     },
 }
 
 export const overlayTree: LayerTreeType = {
-    world: {
-        cyclOSM: ['cyclOSMlite'],
-        waymarkedTrails: ['waymarkedTrailsHiking', 'waymarkedTrailsCycling', 'waymarkedTrailsMTB', 'waymarkedTrailsSkating', 'waymarkedTrailsHorseRiding', 'waymarkedTrailsWinter']
-    },
-    countries: {
-        france: ['ignFrCadastre', 'ignSlope'],
-        switzerland: ['swisstopoSlope', 'swisstopoCycling', 'swisstopoMountainBike'],
+    overlays: {
+        world: {
+            cyclOSM: ['cyclOSMlite'],
+            waymarkedTrails: ['waymarkedTrailsHiking', 'waymarkedTrailsCycling', 'waymarkedTrailsMTB', 'waymarkedTrailsSkating', 'waymarkedTrailsHorseRiding', 'waymarkedTrailsWinter']
+        },
+        countries: {
+            france: ['ignFrCadastre', 'ignSlope'],
+            switzerland: ['swisstopoSlope', 'swisstopoCycling', 'swisstopoMountainBike'],
+        },
     },
 }
 

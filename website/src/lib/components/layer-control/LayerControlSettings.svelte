@@ -40,7 +40,6 @@
 						<ScrollArea class="py-2 pr-2">
 							<LayerTree
 								layerTree={basemapTree}
-								label="Basemaps"
 								name="basemapSettings"
 								multiple={true}
 								onValueChange={(id) => {
@@ -52,7 +51,6 @@
 						<ScrollArea class="py-2 pr-2">
 							<LayerTree
 								layerTree={overlayTree}
-								label="Overlays"
 								name="overlaySettings"
 								multiple={true}
 								onValueChange={(id, checked) => {

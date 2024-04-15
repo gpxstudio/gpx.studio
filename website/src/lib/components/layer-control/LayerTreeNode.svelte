@@ -6,7 +6,7 @@
 
 	import { ChevronDown, ChevronUp } from 'lucide-svelte';
 
-	import { type LayerTreeType } from '$lib/assets/layers';
+	import { type CollapsedInfoTreeType, type LayerTreeType } from '$lib/assets/layers';
 
 	export let name: string;
 	export let node: LayerTreeType;
@@ -21,10 +21,15 @@
 		});
 	}
 
-	let open: { [key: string]: boolean } = {};
+	export let open: CollapsedInfoTreeType;
 	if (!Array.isArray(node)) {
 		Object.keys(node).forEach((id) => {
-			open[id] = true;
+			if (!open.children.hasOwnProperty(id)) {
+				open.children[id] = {
+					self: true,
+					children: {}
+				};
+			}
 		});
 	}
 </script>
@@ -62,14 +67,14 @@
 {:else}
 	<div class="flex flex-col gap-1">
 		{#each Object.keys(node) as id}
-			<Collapsible.Root bind:open={open[id]} class="ml-1">
+			<Collapsible.Root bind:open={open.children[id].self} class="ml-1">
 				<Collapsible.Trigger class="w-full"
 					><Button
 						variant="ghost"
 						class="w-full flex flex-row justify-between py-0 px-1 h-fit hover:bg-background"
 					>
 						<span class="mr-2">{id}</span>
-						{#if open[id]}
+						{#if open.children[id].self}
 							<ChevronUp size="16" />
 						{:else}
 							<ChevronDown size="16" />
@@ -77,7 +82,13 @@
 					</Button></Collapsible.Trigger
 				>
 				<Collapsible.Content class="ml-1">
-					<svelte:self node={node[id]} {name} {multiple} {onValueChange} />
+					<svelte:self
+						node={node[id]}
+						{name}
+						{multiple}
+						{onValueChange}
+						bind:open={open.children[id]}
+					/>
 				</Collapsible.Content>
 			</Collapsible.Root>
 		{/each}

@@ -41,7 +41,6 @@
 					<div class="p-2">
 						<LayerTree
 							layerTree={basemapTree}
-							label="Basemaps"
 							name="basemaps"
 							onValueChange={(id) => {
 								if (map) {
@@ -54,7 +53,6 @@
 					<div class="p-2">
 						<LayerTree
 							layerTree={overlayTree}
-							label="Overlays"
 							name="overlays"
 							multiple={true}
 							onValueChange={(id, checked) => {
