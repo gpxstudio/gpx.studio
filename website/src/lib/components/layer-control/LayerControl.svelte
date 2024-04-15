@@ -8,8 +8,7 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 
-	import Fa from 'svelte-fa';
-	import { faLayerGroup } from '@fortawesome/free-solid-svg-icons';
+	import { Layers } from 'lucide-svelte';
 
 	import {
 		basemaps,
@@ -31,7 +30,7 @@
 	<div
 		class="flex flex-row justify-center items-center w-[29px] h-[29px] delay-100 transition-[opacity height] duration-0 group-hover:opacity-0 group-hover:h-0 group-hover:delay-0"
 	>
-		<Fa icon={faLayerGroup} size="1.4x" />
+		<Layers size="20" />
 	</div>
 	<div
 		class="transition-[grid-template-rows grid-template-cols] grid grid-rows-[0fr] grid-cols-[0fr] duration-150 group-hover:grid-rows-[1fr] group-hover:grid-cols-[1fr]"

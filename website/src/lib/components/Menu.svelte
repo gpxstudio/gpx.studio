@@ -2,7 +2,18 @@
 	import * as Menubar from '$lib/components/ui/menubar/index.js';
 	import { Button } from '$lib/components/ui/button';
 	import Logo from './Logo.svelte';
-	import { HeartHandshake } from 'lucide-svelte';
+	import {
+		Plus,
+		Upload,
+		Copy,
+		Download,
+		Undo2,
+		Redo2,
+		Trash2,
+		HeartHandshake
+	} from 'lucide-svelte';
+	import Fa from 'svelte-fa';
+	import { faGoogleDrive } from '@fortawesome/free-brands-svg-icons';
 
 	let distanceUnits = 'metric';
 	let velocityUnits = 'speed';
@@ -20,17 +31,29 @@
 				<Menubar.Trigger>File</Menubar.Trigger>
 				<Menubar.Content>
 					<Menubar.Item>
-						New GPX file <Menubar.Shortcut>⌘N</Menubar.Shortcut>
+						<Plus size="16" class="mr-1" /> New <Menubar.Shortcut>⌘N</Menubar.Shortcut>
 					</Menubar.Item>
 					<Menubar.Item>
-						Load GPX file(s)... <Menubar.Shortcut>⌘O</Menubar.Shortcut>
+						<Upload size="16" class="mr-1" /> Load from desktop... <Menubar.Shortcut
+							>⌘O</Menubar.Shortcut
+						>
+					</Menubar.Item>
+					<Menubar.Item>
+						<Fa icon={faGoogleDrive} class="h-4 w-4 mr-1" />
+						Load from Google Drive...</Menubar.Item
+					>
+					<Menubar.Separator />
+					<Menubar.Item>
+						<Copy size="16" class="mr-1" /> Duplicate <Menubar.Shortcut>⌘D</Menubar.Shortcut>
 					</Menubar.Item>
 					<Menubar.Separator />
 					<Menubar.Item>
-						Export... <Menubar.Shortcut>⌘S</Menubar.Shortcut>
+						<Download size="16" class="mr-1" /> Export... <Menubar.Shortcut>⌘S</Menubar.Shortcut>
 					</Menubar.Item>
 					<Menubar.Item>
-						Export all... <Menubar.Shortcut>⇧⌘S</Menubar.Shortcut>
+						<Download size="16" class="mr-1" /> Export all... <Menubar.Shortcut
+							>⇧⌘S</Menubar.Shortcut
+						>
 					</Menubar.Item>
 				</Menubar.Content>
 			</Menubar.Menu>
@@ -38,14 +61,20 @@
 				<Menubar.Trigger>Edit</Menubar.Trigger>
 				<Menubar.Content>
 					<Menubar.Item>
-						Undo <Menubar.Shortcut>⌘Z</Menubar.Shortcut>
+						<Undo2 size="16" class="mr-1" /> Undo <Menubar.Shortcut>⌘Z</Menubar.Shortcut>
 					</Menubar.Item>
 					<Menubar.Item>
-						Redo <Menubar.Shortcut>⇧⌘Z</Menubar.Shortcut>
+						<Redo2 size="16" class="mr-1" /> Redo <Menubar.Shortcut>⇧⌘Z</Menubar.Shortcut>
 					</Menubar.Item>
 					<Menubar.Separator />
-					<Menubar.Item>Delete <Menubar.Shortcut>⌘D</Menubar.Shortcut></Menubar.Item>
-					<Menubar.Item>Delete all<Menubar.Shortcut>⇧⌘D</Menubar.Shortcut></Menubar.Item>
+					<Menubar.Item
+						><Trash2 size="16" class="mr-1" /> Delete <Menubar.Shortcut>⌘K</Menubar.Shortcut
+						></Menubar.Item
+					>
+					<Menubar.Item class="text-destructive data-[highlighted]:text-destructive"
+						><Trash2 size="16" class="mr-1" /> Delete all<Menubar.Shortcut>⇧⌘K</Menubar.Shortcut
+						></Menubar.Item
+					>
 				</Menubar.Content>
 			</Menubar.Menu>
 			<Menubar.Menu>
@@ -97,7 +126,7 @@
 				href="https://ko-fi.com/gpxstudio"
 				target="_blank"
 				class="cursor-default h-fit rounded-sm"
-				>Donate <HeartHandshake size="18" class="ml-1" /></Button
+				>Donate <HeartHandshake size="16" class="ml-1" /></Button
 			>
 		</div>
 	</div>

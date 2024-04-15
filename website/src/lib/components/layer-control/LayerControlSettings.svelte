@@ -7,8 +7,7 @@
 	import * as Sheet from '$lib/components/ui/sheet';
 	import * as Accordion from '$lib/components/ui/accordion';
 
-	import Fa from 'svelte-fa';
-	import { faGear } from '@fortawesome/free-solid-svg-icons';
+	import { Settings } from 'lucide-svelte';
 
 	import {
 		basemaps,
@@ -22,8 +21,8 @@
 
 <Sheet.Root>
 	<Sheet.Trigger class="w-full">
-		<Button variant="secondary" class="w-full px-1 py-1.5">
-			<Fa icon={faGear} class="mr-2" />
+		<Button variant="ghost" class="w-full px-1 py-1.5">
+			<Settings size="18" class="mr-2" />
 			Manage layers
 		</Button>
 	</Sheet.Trigger>
@@ -31,13 +30,14 @@
 		<Sheet.Header class="h-full">
 			<Sheet.Title>Layer settings</Sheet.Title>
 			<Sheet.Description>
-				Select the map layers you want to show in the interface and adjust their settings.
+				Select the map layers you want to show in the interface, add custom ones, and adjust their
+				settings.
 			</Sheet.Description>
 			<Accordion.Root class="flex flex-col overflow-hidden">
 				<Accordion.Item value="item-1" class="flex flex-col overflow-hidden">
 					<Accordion.Trigger>Layer selection</Accordion.Trigger>
-					<Accordion.Content class="grow flex flex-col">
-						<ScrollArea class="pr-4">
+					<Accordion.Content class="grow flex flex-col border rounded">
+						<ScrollArea class="py-2 pr-2">
 							<LayerTree
 								layerTree={basemapTree}
 								label="Basemaps"
@@ -48,8 +48,8 @@
 								}}
 							/>
 						</ScrollArea>
-						<Separator class="my-2" />
-						<ScrollArea class="pr-4">
+						<Separator />
+						<ScrollArea class="py-2 pr-2">
 							<LayerTree
 								layerTree={overlayTree}
 								label="Overlays"
@@ -63,17 +63,17 @@
 					</Accordion.Content>
 				</Accordion.Item>
 				<Accordion.Item value="item-2">
-					<Accordion.Trigger>Custom layer</Accordion.Trigger>
+					<Accordion.Trigger>Custom layers</Accordion.Trigger>
 					<Accordion.Content>
-						<ScrollArea>TODO custom layer form</ScrollArea>
+						<ScrollArea>TODO custom layer list + new custom layer form</ScrollArea>
 					</Accordion.Content>
 				</Accordion.Item>
 				<Accordion.Item value="item-3">
-					<Accordion.Trigger>Heatmap settings</Accordion.Trigger>
+					<Accordion.Trigger>Heatmap</Accordion.Trigger>
 					<Accordion.Content></Accordion.Content>
 				</Accordion.Item>
 				<Accordion.Item value="item-4">
-					<Accordion.Trigger>POIs settings</Accordion.Trigger>
+					<Accordion.Trigger>Points of interest</Accordion.Trigger>
 					<Accordion.Content></Accordion.Content>
 				</Accordion.Item>
 			</Accordion.Root>
