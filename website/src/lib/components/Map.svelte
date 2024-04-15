@@ -116,5 +116,10 @@
 
 	div :global(.mapboxgl-ctrl-top-right) {
 		@apply z-10;
+		@apply flex;
+		@apply flex-col;
+		@apply items-end;
+		@apply h-full;
+		@apply overflow-hidden;
 	}
 </style>

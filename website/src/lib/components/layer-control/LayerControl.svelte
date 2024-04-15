@@ -26,66 +26,64 @@
 	}
 </script>
 
-<CustomControl {map} class="group min-w-[29px] min-h-[29px]">
+<CustomControl {map} class="group min-w-[29px] min-h-[29px] overflow-hidden">
 	<div
 		class="flex flex-row justify-center items-center w-[29px] h-[29px] delay-100 transition-[opacity height] duration-0 group-hover:opacity-0 group-hover:h-0 group-hover:delay-0"
 	>
 		<Layers size="20" />
 	</div>
 	<div
-		class="transition-[grid-template-rows grid-template-cols] grid grid-rows-[0fr] grid-cols-[0fr] duration-150 group-hover:grid-rows-[1fr] group-hover:grid-cols-[1fr]"
+		class="transition-[grid-template-rows grid-template-cols] grid grid-rows-[0fr] grid-cols-[0fr] duration-150 group-hover:grid-rows-[1fr] group-hover:grid-cols-[1fr] h-full"
 	>
-		<div class="overflow-hidden">
-			<ScrollArea>
-				<div class="h-fit max-h-[50vh]">
-					<div class="p-2">
-						<LayerTree
-							layerTree={basemapTree}
-							name="basemaps"
-							onValueChange={(id) => {
-								if (map) {
-									map.setStyle(basemaps[id]);
-								}
-							}}
-						/>
-					</div>
-					<Separator class="w-full" />
-					<div class="p-2">
-						<LayerTree
-							layerTree={overlayTree}
-							name="overlays"
-							multiple={true}
-							onValueChange={(id, checked) => {
-								if (map) {
-									if (checked) {
-										if (!map.getSource(id)) {
-											map.addSource(id, overlays[id]);
-										}
-										map.addLayer({
-											id,
-											type: overlays[id].type === 'raster' ? 'raster' : 'line',
-											source: id,
-											paint: {
-												...(id in opacities
-													? overlays[id].type === 'raster'
-														? { 'raster-opacity': opacities[id] }
-														: { 'line-opacity': opacities[id] }
-													: {})
-											}
-										});
-									} else {
-										map.removeLayer(id);
-									}
-								}
-							}}
-						/>
-					</div>
-					<Separator class="w-full" />
-					<div class="p-2">
-						<LayerControlSettings />
-					</div>
+		<ScrollArea>
+			<div class="h-fit">
+				<div class="p-2">
+					<LayerTree
+						layerTree={basemapTree}
+						name="basemaps"
+						onValueChange={(id) => {
+							if (map) {
+								map.setStyle(basemaps[id]);
+							}
+						}}
+					/>
 				</div>
-			</ScrollArea>
-		</div>
+				<Separator class="w-full" />
+				<div class="p-2">
+					<LayerTree
+						layerTree={overlayTree}
+						name="overlays"
+						multiple={true}
+						onValueChange={(id, checked) => {
+							if (map) {
+								if (checked) {
+									if (!map.getSource(id)) {
+										map.addSource(id, overlays[id]);
+									}
+									map.addLayer({
+										id,
+										type: overlays[id].type === 'raster' ? 'raster' : 'line',
+										source: id,
+										paint: {
+											...(id in opacities
+												? overlays[id].type === 'raster'
+													? { 'raster-opacity': opacities[id] }
+													: { 'line-opacity': opacities[id] }
+												: {})
+										}
+									});
+								} else {
+									map.removeLayer(id);
+								}
+							}
+						}}
+					/>
+				</div>
+				<Separator class="w-full" />
+				<div class="p-2">
+					<LayerControlSettings />
+				</div>
+			</div>
+		</ScrollArea>
 	</div>
 </CustomControl>
