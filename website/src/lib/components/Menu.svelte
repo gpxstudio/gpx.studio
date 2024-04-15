@@ -68,11 +68,11 @@
 					</Menubar.Item>
 					<Menubar.Separator />
 					<Menubar.Item
-						><Trash2 size="16" class="mr-1" /> Delete <Menubar.Shortcut>⌘K</Menubar.Shortcut
+						><Trash2 size="16" class="mr-1" /> Delete <Menubar.Shortcut>⌘⌫</Menubar.Shortcut
 						></Menubar.Item
 					>
 					<Menubar.Item class="text-destructive data-[highlighted]:text-destructive"
-						><Trash2 size="16" class="mr-1" /> Delete all<Menubar.Shortcut>⇧⌘K</Menubar.Shortcut
+						><Trash2 size="16" class="mr-1" /> Delete all<Menubar.Shortcut>⇧⌘⌫</Menubar.Shortcut
 						></Menubar.Item
 					>
 				</Menubar.Content>
