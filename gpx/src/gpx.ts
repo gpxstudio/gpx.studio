@@ -1,4 +1,4 @@
-import { GPXFileType, TrackSegmentType, TrackType } from "./types";
+import { GPXFileAttributes, GPXFileType, Link, Metadata, TrackExtensions, TrackPoint, TrackSegmentType, TrackType, Waypoint } from "./types";
 
 export class GPXFile {
     attributes: GPXFileAttributes;
@@ -65,85 +65,4 @@ export class TrackSegment {
     reverse(): void {
         this.trkpt.reverse();
     }
-};
-
-export type GPXFileAttributes = {
-    creator: string;
-    [key: string]: string;
-};
-
-export type Metadata = {
-    name?: string;
-    desc?: string;
-    author?: Author;
-    link?: Link;
-    time?: Date;
-};
-
-export type Link = {
-    attributes: LinkAttributes;
-    text?: string;
-    type?: string;
-};
-
-export type LinkAttributes = {
-    href: string;
-};
-
-export type Waypoint = {
-    attributes: Coordinates;
-    ele?: number;
-    time?: Date;
-    name?: string;
-    cmt?: string;
-    desc?: string;
-    link?: Link;
-    sym?: string;
-    type?: string;
-};
-
-export type Coordinates = {
-    lat: number;
-    lon: number;
-};
-
-export type TrackExtensions = {
-    'gpx_style:line'?: LineStyleExtension;
-};
-
-export type LineStyleExtension = {
-    color?: string;
-    opacity?: number;
-    weight?: number;
-};
-
-export type TrackPoint = {
-    attributes: Coordinates;
-    ele?: number;
-    time?: Date;
-    extensions?: TrackPointExtensions;
-};
-
-export type TrackPointExtensions = {
-    'gpxtpx:TrackPointExtension'?: TrackPointExtension;
-    'gpxpx:PowerExtension'?: PowerExtension;
-};
-
-export type TrackPointExtension = {
-    'gpxtpx:hr'?: number;
-    'gpxtpx:cad'?: number;
-    'gpxtpx:atemp'?: number;
-    'gpxtpx:Extensions'?: {
-        surface?: string;
-    };
-}
-
-export type PowerExtension = {
-    'gpxpx:PowerInWatts'?: number;
-}
-
-export type Author = {
-    name?: string;
-    email?: string;
-    link?: Link;
 };

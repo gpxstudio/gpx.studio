@@ -1,4 +1,4 @@
 export * from './gpx';
 
-export { parseGPX } from './io';
+export { parseGPX, buildGPX } from './io';
 
