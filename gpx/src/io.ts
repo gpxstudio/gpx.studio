@@ -1,5 +1,6 @@
 import { XMLParser, XMLBuilder } from "fast-xml-parser";
-import { GPXFile } from "./types";
+import { GPXFileType } from "./types";
+import { GPXFile } from "./gpx";
 
 export function parseGPX(gpxData: string): GPXFile {
     const parser = new XMLParser({
@@ -49,9 +50,9 @@ export function parseGPX(gpxData: string): GPXFile {
         },
     });
 
-    const parsed = parser.parse(gpxData);
+    const parsed: GPXFileType = parser.parse(gpxData).gpx;
 
-    return parsed.gpx;
+    return new GPXFile(parsed);
 }
 
 
