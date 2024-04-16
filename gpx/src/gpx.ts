@@ -10,6 +10,8 @@ abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
 
     abstract getStartTimestamp(): Date;
     abstract getEndTimestamp(): Date;
+
+    abstract toGeoJSON(): any;
 }
 
 // An abstract class that can be extended to facilitate functions working similarly with Tracks and TrackSegments
@@ -80,6 +82,13 @@ export class GPXFile extends GPXTreeNode<Track>{
     clone(): GPXFile {
         return new GPXFile(structuredClone(this));
     }
+
+    toGeoJSON(): any {
+        return {
+            type: "FeatureCollection",
+            features: this.getChildren().flatMap((child) => child.toGeoJSON())
+        };
+    }
 };
 
 // A class that represents a Track in a GPX file
@@ -111,6 +120,10 @@ export class Track extends GPXTreeNode<TrackSegment> {
 
     clone(): Track {
         return new Track(structuredClone(this));
+    }
+
+    toGeoJSON(): any {
+        return this.getChildren().map((child) => child.toGeoJSON());
     }
 };
 
@@ -148,6 +161,17 @@ export class TrackSegment extends GPXTreeLeaf {
 
     getEndTimestamp(): Date {
         return this.trkpt[this.trkpt.length - 1].time;
+    }
+
+    toGeoJSON(): any {
+        return {
+            type: "Feature",
+            geometry: {
+                type: "LineString",
+                coordinates: this.trkpt.map((point) => [point.attributes.lon, point.attributes.lat])
+            },
+            properties: {}
+        };
     }
 
     clone(): TrackSegment {

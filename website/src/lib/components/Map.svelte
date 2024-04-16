@@ -6,13 +6,11 @@
 
 	import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 	import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
-	import LayerControl from '$lib/components/layer-control/LayerControl.svelte';
 
 	mapboxgl.accessToken =
 		'pk.eyJ1IjoiZ3B4c3R1ZGlvIiwiYSI6ImNrdHVoM2pjNTBodmUycG1yZTNwcnJ3MzkifQ.YZnNs9s9oCQPzoXAWs_SLg';
 
-	let map: mapboxgl.Map | null = null;
-
+	export let map: mapboxgl.Map | null = null;
 	export let distanceUnits: 'metric' | 'imperial' = 'metric';
 
 	onMount(() => {
@@ -67,9 +65,7 @@
 </script>
 
 <div {...$$restProps}>
-	<div id="map" class="h-full">
-		<LayerControl {map} />
-	</div>
+	<div id="map" class="h-full"></div>
 </div>
 
 <style lang="postcss">
