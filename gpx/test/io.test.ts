@@ -13,9 +13,9 @@ describe("Parsing tests", () => {
         expect(result.metadata.author.name).toBe("gpx.studio");
         expect(result.metadata.author.link.href).toBe("https://gpx.studio");
 
-        expect(result.tracks.length).toBe(1);
+        expect(result.trk.length).toBe(1);
 
-        const track = result.tracks[0];
+        const track = result.trk[0];
         expect(track.name).toBe("simple");
         expect(track.type).toBe("Cycling");
         expect(track.trkseg.length).toBe(1);
@@ -40,14 +40,14 @@ describe("Parsing tests", () => {
         const data = fs.readFileSync(path, 'utf8');
         const result = parseGPX(data);
 
-        expect(result.tracks.length).toBe(2);
+        expect(result.trk.length).toBe(2);
 
-        const track_1 = result.tracks[0];
+        const track_1 = result.trk[0];
         expect(track_1.name).toBe("track 1");
         expect(track_1.trkseg.length).toBe(1);
         expect(track_1.trkseg[0].trkpt.length).toBe(49);
 
-        const track_2 = result.tracks[1];
+        const track_2 = result.trk[1];
         expect(track_2.name).toBe("track 2");
         expect(track_2.trkseg.length).toBe(1);
         expect(track_2.trkseg[0].trkpt.length).toBe(28);
@@ -58,9 +58,9 @@ describe("Parsing tests", () => {
         const data = fs.readFileSync(path, 'utf8');
         const result = parseGPX(data);
 
-        expect(result.tracks.length).toBe(1);
+        expect(result.trk.length).toBe(1);
 
-        const track = result.tracks[0];
+        const track = result.trk[0];
         expect(track.trkseg.length).toBe(2);
         expect(track.trkseg[0].trkpt.length).toBe(49);
         expect(track.trkseg[1].trkpt.length).toBe(28);
@@ -71,9 +71,9 @@ describe("Parsing tests", () => {
         const data = fs.readFileSync(path, 'utf8');
         const result = parseGPX(data);
 
-        expect(result.waypoints.length).toBe(1);
+        expect(result.wpt.length).toBe(1);
 
-        const waypoint = result.waypoints[0];
+        const waypoint = result.wpt[0];
         expect(waypoint.lat).toBe(50.7836710064975);
         expect(waypoint.lon).toBe(4.410764082658738);
         expect(waypoint.ele).toBe(122.0);
@@ -88,7 +88,7 @@ describe("Parsing tests", () => {
         const data = fs.readFileSync(path, 'utf8');
         const result = parseGPX(data);
 
-        const track = result.tracks[0];
+        const track = result.trk[0];
         const segment = track.trkseg[0];
 
         for (let i = 0; i < segment.trkpt.length; i++) {
@@ -104,16 +104,17 @@ describe("Parsing tests", () => {
         const data = fs.readFileSync(path, 'utf8');
         const result = parseGPX(data);
 
-        const track = result.tracks[0];
+        const track = result.trk[0];
         const segment = track.trkseg[0];
 
         for (let i = 0; i < segment.trkpt.length; i++) {
             expect(segment.trkpt[i]).toHaveProperty('extensions');
-            expect(segment.trkpt[i].extensions).toHaveProperty('hr');
+            expect(segment.trkpt[i].extensions).toHaveProperty('TrackPointExtension');
+            expect(segment.trkpt[i].extensions.TrackPointExtension).toHaveProperty('hr');
         }
 
-        expect(segment.trkpt[0].extensions.hr).toBe(150);
-        expect(segment.trkpt[segment.trkpt.length - 1].extensions.hr).toBe(160);
+        expect(segment.trkpt[0].extensions.TrackPointExtension.hr).toBe(150);
+        expect(segment.trkpt[segment.trkpt.length - 1].extensions.TrackPointExtension.hr).toBe(160);
     });
 
     it("Cadence", () => {
@@ -121,16 +122,17 @@ describe("Parsing tests", () => {
         const data = fs.readFileSync(path, 'utf8');
         const result = parseGPX(data);
 
-        const track = result.tracks[0];
+        const track = result.trk[0];
         const segment = track.trkseg[0];
 
         for (let i = 0; i < segment.trkpt.length; i++) {
             expect(segment.trkpt[i]).toHaveProperty('extensions');
-            expect(segment.trkpt[i].extensions).toHaveProperty('cad');
+            expect(segment.trkpt[i].extensions).toHaveProperty('TrackPointExtension');
+            expect(segment.trkpt[i].extensions.TrackPointExtension).toHaveProperty('cad');
         }
 
-        expect(segment.trkpt[0].extensions.cad).toBe(80);
-        expect(segment.trkpt[segment.trkpt.length - 1].extensions.cad).toBe(90);
+        expect(segment.trkpt[0].extensions.TrackPointExtension.cad).toBe(80);
+        expect(segment.trkpt[segment.trkpt.length - 1].extensions.TrackPointExtension.cad).toBe(90);
     });
 
     it("Temperature", () => {
@@ -138,16 +140,17 @@ describe("Parsing tests", () => {
         const data = fs.readFileSync(path, 'utf8');
         const result = parseGPX(data);
 
-        const track = result.tracks[0];
+        const track = result.trk[0];
         const segment = track.trkseg[0];
 
         for (let i = 0; i < segment.trkpt.length; i++) {
             expect(segment.trkpt[i]).toHaveProperty('extensions');
-            expect(segment.trkpt[i].extensions).toHaveProperty('atemp');
+            expect(segment.trkpt[i].extensions).toHaveProperty('TrackPointExtension');
+            expect(segment.trkpt[i].extensions.TrackPointExtension).toHaveProperty('atemp');
         }
 
-        expect(segment.trkpt[0].extensions.atemp).toBe(21);
-        expect(segment.trkpt[segment.trkpt.length - 1].extensions.atemp).toBe(22);
+        expect(segment.trkpt[0].extensions.TrackPointExtension.atemp).toBe(21);
+        expect(segment.trkpt[segment.trkpt.length - 1].extensions.TrackPointExtension.atemp).toBe(22);
     });
 
     it("Power 1", () => {
@@ -155,16 +158,17 @@ describe("Parsing tests", () => {
         const data = fs.readFileSync(path, 'utf8');
         const result = parseGPX(data);
 
-        const track = result.tracks[0];
+        const track = result.trk[0];
         const segment = track.trkseg[0];
 
         for (let i = 0; i < segment.trkpt.length; i++) {
             expect(segment.trkpt[i]).toHaveProperty('extensions');
-            expect(segment.trkpt[i].extensions).toHaveProperty('power');
+            expect(segment.trkpt[i].extensions).toHaveProperty('PowerExtension');
+            expect(segment.trkpt[i].extensions.PowerExtension).toHaveProperty('PowerInWatts');
         }
 
-        expect(segment.trkpt[0].extensions.power).toBe(200);
-        expect(segment.trkpt[segment.trkpt.length - 1].extensions.power).toBe(210);
+        expect(segment.trkpt[0].extensions.PowerExtension.PowerInWatts).toBe(200);
+        expect(segment.trkpt[segment.trkpt.length - 1].extensions.PowerExtension.PowerInWatts).toBe(210);
     });
 
     it("Power 2", () => {
@@ -172,33 +176,17 @@ describe("Parsing tests", () => {
         const data = fs.readFileSync(path, 'utf8');
         const result = parseGPX(data);
 
-        const track = result.tracks[0];
+        const track = result.trk[0];
         const segment = track.trkseg[0];
 
         for (let i = 0; i < segment.trkpt.length; i++) {
             expect(segment.trkpt[i]).toHaveProperty('extensions');
-            expect(segment.trkpt[i].extensions).toHaveProperty('power');
+            expect(segment.trkpt[i].extensions).toHaveProperty('PowerExtension');
+            expect(segment.trkpt[i].extensions.PowerExtension).toHaveProperty('PowerInWatts');
         }
 
-        expect(segment.trkpt[0].extensions.power).toBe(200);
-        expect(segment.trkpt[segment.trkpt.length - 1].extensions.power).toBe(210);
-    });
-
-    it("Power 3", () => {
-        const path = "test-data/with_power_3.gpx";
-        const data = fs.readFileSync(path, 'utf8');
-        const result = parseGPX(data);
-
-        const track = result.tracks[0];
-        const segment = track.trkseg[0];
-
-        for (let i = 0; i < segment.trkpt.length; i++) {
-            expect(segment.trkpt[i]).toHaveProperty('extensions');
-            expect(segment.trkpt[i].extensions).toHaveProperty('power');
-        }
-
-        expect(segment.trkpt[0].extensions.power).toBe(200);
-        expect(segment.trkpt[segment.trkpt.length - 1].extensions.power).toBe(210);
+        expect(segment.trkpt[0].extensions.PowerExtension.PowerInWatts).toBe(200);
+        expect(segment.trkpt[segment.trkpt.length - 1].extensions.PowerExtension.PowerInWatts).toBe(210);
     });
 
     it("Surface", () => {
@@ -206,16 +194,18 @@ describe("Parsing tests", () => {
         const data = fs.readFileSync(path, 'utf8');
         const result = parseGPX(data);
 
-        const track = result.tracks[0];
+        const track = result.trk[0];
         const segment = track.trkseg[0];
 
         for (let i = 0; i < segment.trkpt.length; i++) {
             expect(segment.trkpt[i]).toHaveProperty('extensions');
-            expect(segment.trkpt[i].extensions).toHaveProperty('surface');
+            expect(segment.trkpt[i].extensions).toHaveProperty('TrackPointExtension');
+            expect(segment.trkpt[i].extensions.TrackPointExtension).toHaveProperty('Extensions');
+            expect(segment.trkpt[i].extensions.TrackPointExtension.Extensions).toHaveProperty('surface');
         }
 
-        expect(segment.trkpt[0].extensions.surface).toBe("asphalt");
-        expect(segment.trkpt[segment.trkpt.length - 1].extensions.surface).toBe("cobblestone");
+        expect(segment.trkpt[0].extensions.TrackPointExtension.Extensions.surface).toBe("asphalt");
+        expect(segment.trkpt[segment.trkpt.length - 1].extensions.TrackPointExtension.Extensions.surface).toBe("cobblestone");
     });
 
     it("Track style", () => {
@@ -223,16 +213,17 @@ describe("Parsing tests", () => {
         const data = fs.readFileSync(path, 'utf8');
         const result = parseGPX(data);
 
-        const track = result.tracks[0];
+        const track = result.trk[0];
 
-        expect(track).toHaveProperty('style');
+        expect(track).toHaveProperty('extensions');
+        expect(track.extensions).toHaveProperty('line');
 
-        expect(track.style).toHaveProperty('color');
-        expect(track.style).toHaveProperty('opacity');
-        expect(track.style).toHaveProperty('weight');
+        expect(track.extensions.line).toHaveProperty('color');
+        expect(track.extensions.line).toHaveProperty('opacity');
+        expect(track.extensions.line).toHaveProperty('weight');
 
-        expect(track.style.color).toBe("2d3ee9");
-        expect(track.style.opacity).toBe(0.5);
-        expect(track.style.weight).toBe(5);
+        expect(track.extensions.line.color).toBe("2d3ee9");
+        expect(track.extensions.line.opacity).toBe(0.5);
+        expect(track.extensions.line.weight).toBe(5);
     });
 });

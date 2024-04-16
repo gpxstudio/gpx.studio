@@ -1,8 +1,8 @@
 export type GPXFile = {
     creator: string;
     metadata: Metadata;
-    waypoints: Waypoint[];
-    tracks: Track[];
+    wpt: Waypoint[];
+    trk: Track[];
 };
 
 export type Metadata = {
@@ -40,10 +40,14 @@ export type Track = {
     link?: Link;
     type?: string;
     trkseg: TrackSegment[];
-    style?: TrackStyleExtension;
+    extensions?: TrackExtensions;
 };
 
-export type TrackStyleExtension = {
+export type TrackExtensions = {
+    line?: LineStyleExtension;
+};
+
+export type LineStyleExtension = {
     color?: string;
     opacity?: number;
     weight?: number;
@@ -62,12 +66,22 @@ export type TrackPoint = {
 };
 
 export type TrackPointExtensions = {
+    TrackPointExtension?: TrackPointExtension;
+    PowerExtension?: PowerExtension;
+};
+
+export type TrackPointExtension = {
     hr?: number;
     cad?: number;
     atemp?: number;
-    power?: number;
-    surface?: string;
-};
+    Extensions?: {
+        surface?: string;
+    };
+}
+
+export type PowerExtension = {
+    PowerInWatts?: number;
+}
 
 export type Author = {
     name?: string;
