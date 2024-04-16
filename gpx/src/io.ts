@@ -1,5 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
-import { Author, GPXFile, Link, Metadata, Track, TrackPoint, TrackSegment, Waypoint } from "./types";
+import { Author, GPXFile, Link, Metadata, Track, TrackPoint, TrackPointExtensions, TrackSegment, TrackStyleExtension, Waypoint } from "./types";
+import { parse } from "path";
 
 const arrayTypes = ['trk', 'trkseg', 'trkpt', 'wpt'];
 
@@ -83,12 +84,12 @@ function parseLink(link: any): Link {
 
 function parseWaypoint(waypoint: any): Waypoint {
     const result: Waypoint = {
-        lat: waypoint.lat,
-        lon: waypoint.lon,
+        lat: parseFloat(waypoint.lat),
+        lon: parseFloat(waypoint.lon),
     };
 
     if (waypoint.ele) {
-        result.ele = waypoint.ele;
+        result.ele = parseFloat(waypoint.ele);
     }
 
     if (waypoint.time) {
@@ -151,6 +152,28 @@ function parseTrack(track: any): Track {
         result.type = track.type;
     }
 
+    if (track.extensions && track.extensions.hasOwnProperty('gpx_style:line')) {
+        result.style = parseTrackStyleExtension(track.extensions['gpx_style:line']);
+    }
+
+    return result;
+}
+
+function parseTrackStyleExtension(extensions: any): TrackStyleExtension {
+    const result: TrackStyleExtension = {};
+
+    if (extensions.color) {
+        result.color = extensions.color;
+    }
+
+    if (extensions.opacity) {
+        result.opacity = parseFloat(extensions.opacity);
+    }
+
+    if (extensions.weight) {
+        result.weight = parseFloat(extensions.weight);
+    }
+
     return result;
 }
 
@@ -162,21 +185,64 @@ function parseTrackSegment(segment: any): TrackSegment {
 
 function parseTrackPoint(point: any): TrackPoint {
     const result: TrackPoint = {
-        lat: point.lat,
-        lon: point.lon,
+        lat: parseFloat(point.lat),
+        lon: parseFloat(point.lon),
     };
 
     if (point.ele) {
-        result.ele = point.ele;
+        result.ele = parseFloat(point.ele);
     }
 
     if (point.time) {
         result.time = new Date(point.time);
     }
 
+    if (point.extensions) {
+        result.extensions = parseTrackPointExtensions(point.extensions);
+    }
+
     return result;
 }
 
-import * as fs from 'fs';
+function parseTrackPointExtensions(extensions: any): TrackPointExtensions {
+    const result: TrackPointExtensions = {};
 
-console.log(parseGPX(fs.readFileSync("test-data/simple.gpx", 'utf8')));
+    if (extensions.hasOwnProperty('gpxtpx:TrackPointExtension')) {
+        const gpxtpxExtensions = extensions['gpxtpx:TrackPointExtension'];
+
+        if (gpxtpxExtensions.hasOwnProperty('gpxtpx:hr')) {
+            result.hr = parseFloat(gpxtpxExtensions['gpxtpx:hr']);
+        }
+
+        if (gpxtpxExtensions.hasOwnProperty('gpxtpx:cad')) {
+            result.cad = parseFloat(gpxtpxExtensions['gpxtpx:cad']);
+        }
+
+        if (gpxtpxExtensions.hasOwnProperty('gpxtpx:atemp')) {
+            result.atemp = parseFloat(gpxtpxExtensions['gpxtpx:atemp']);
+        }
+
+        if (gpxtpxExtensions.hasOwnProperty('gpxtpx:Extensions')) {
+            const gpxtpxInnerExtensions = gpxtpxExtensions['gpxtpx:Extensions'];
+
+            if (gpxtpxInnerExtensions.surface) {
+                result.surface = gpxtpxInnerExtensions.surface;
+            }
+        }
+    }
+
+    if (extensions.power) {
+        result.power = parseFloat(extensions.power);
+    } else if (extensions.hasOwnProperty('gpxpx:PowerExtension')) {
+        const gpxpxExtensions = extensions['gpxpx:PowerExtension'];
+
+        if (gpxpxExtensions.hasOwnProperty('gpxpx:PowerInWatts')) {
+            result.power = parseFloat(gpxpxExtensions['gpxpx:PowerInWatts']);
+        }
+    } else if (extensions.hasOwnProperty('gpxpx:PowerInWatts')) {
+        result.power = parseFloat(extensions['gpxpx:PowerInWatts']);
+    }
+
+
+    return result;
+}

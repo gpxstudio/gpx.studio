@@ -40,6 +40,13 @@ export type Track = {
     link?: Link;
     type?: string;
     trkseg: TrackSegment[];
+    style?: TrackStyleExtension;
+};
+
+export type TrackStyleExtension = {
+    color?: string;
+    opacity?: number;
+    weight?: number;
 };
 
 export type TrackSegment = {
@@ -51,6 +58,15 @@ export type TrackPoint = {
     lon: number;
     ele?: number;
     time?: Date;
+    extensions?: TrackPointExtensions;
+};
+
+export type TrackPointExtensions = {
+    hr?: number;
+    cad?: number;
+    atemp?: number;
+    power?: number;
+    surface?: string;
 };
 
 export type Author = {
