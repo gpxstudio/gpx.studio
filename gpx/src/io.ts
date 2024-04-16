@@ -1,6 +1,5 @@
 import { XMLParser } from "fast-xml-parser";
 import { Author, GPXFile, Link, Metadata, Track, TrackPoint, TrackPointExtensions, TrackSegment, TrackStyleExtension, Waypoint } from "./types";
-import { parse } from "path";
 
 const arrayTypes = ['trk', 'trkseg', 'trkpt', 'wpt'];
 
