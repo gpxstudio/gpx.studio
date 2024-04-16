@@ -1,23 +1,80 @@
-import { GPXFileAttributes, GPXFileType, Link, Metadata, TrackExtensions, TrackPoint, TrackSegmentType, TrackType, Waypoint } from "./types";
+import { Coordinates, GPXFileAttributes, GPXFileType, Link, Metadata, TrackExtensions, TrackPointExtensions, TrackPointType, TrackSegmentType, TrackType, Waypoint } from "./types";
 
-export class GPXFile {
+// An abstract class that groups functions that need to be computed recursively in the GPX file hierarchy
+abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
+
+    abstract isLeaf(): boolean;
+    abstract getChildren(): T[];
+
+    abstract reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date): void;
+
+    abstract getStartTimestamp(): Date;
+    abstract getEndTimestamp(): Date;
+}
+
+// An abstract class that can be extended to facilitate functions working similarly with Tracks and TrackSegments
+abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement<T> {
+    isLeaf(): boolean {
+        return false;
+    }
+
+    reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date): void {
+        const children = this.getChildren();
+
+        if (!originalNextTimestamp && !newPreviousTimestamp) {
+            originalNextTimestamp = children[children.length - 1].getEndTimestamp();
+            newPreviousTimestamp = children[0].getStartTimestamp();
+        }
+
+        children.reverse();
+
+        for (let i = 0; i < children.length; i++) {
+            let originalStartTimestamp = children[i].getStartTimestamp();
+
+            children[i].reverse(originalNextTimestamp, newPreviousTimestamp);
+
+            originalNextTimestamp = originalStartTimestamp;
+            newPreviousTimestamp = children[i].getEndTimestamp();
+        }
+    }
+
+    getStartTimestamp(): Date {
+        return this.getChildren()[0].getStartTimestamp();
+    }
+
+    getEndTimestamp(): Date {
+        return this.getChildren()[this.getChildren().length - 1].getEndTimestamp();
+    }
+}
+
+// An abstract class that TrackSegment extends to implement the GPXTreeElement interface
+abstract class GPXTreeLeaf extends GPXTreeElement<GPXTreeLeaf> {
+    isLeaf(): boolean {
+        return true;
+    }
+
+    getChildren(): GPXTreeLeaf[] {
+        return [];
+    }
+}
+
+// A class that represents a GPX file
+export class GPXFile extends GPXTreeNode<Track>{
     attributes: GPXFileAttributes;
     metadata: Metadata;
     wpt: Waypoint[];
     trk: Track[];
 
     constructor(gpx: GPXFileType | GPXFile) {
+        super();
         this.attributes = gpx.attributes;
         this.metadata = gpx.metadata;
         this.wpt = gpx.wpt;
         this.trk = gpx.trk.map((track) => new Track(track));
     }
 
-    reverse(): void {
-        for (let i = 0; i < this.trk.length; i++) {
-            this.trk[i].reverse();
-        }
-        this.trk.reverse();
+    getChildren(): Track[] {
+        return this.trk;
     }
 
     clone(): GPXFile {
@@ -25,7 +82,8 @@ export class GPXFile {
     }
 };
 
-export class Track {
+// A class that represents a Track in a GPX file
+export class Track extends GPXTreeNode<TrackSegment> {
     name?: string;
     cmt?: string;
     desc?: string;
@@ -35,7 +93,8 @@ export class Track {
     trkseg: TrackSegment[];
     extensions?: TrackExtensions;
 
-    constructor(track: TrackType) {
+    constructor(track: TrackType | Track) {
+        super();
         this.name = track.name;
         this.cmt = track.cmt;
         this.desc = track.desc;
@@ -46,23 +105,68 @@ export class Track {
         this.extensions = track.extensions;
     }
 
-    reverse(): void {
-        for (let i = 0; i < this.trkseg.length; i++) {
-            this.trkseg[i].reverse();
-        }
-        this.trkseg.reverse();
+    getChildren(): TrackSegment[] {
+        return this.trkseg;
+    }
+
+    clone(): Track {
+        return new Track(structuredClone(this));
     }
 };
 
-
-export class TrackSegment {
+// A class that represents a TrackSegment in a GPX file
+export class TrackSegment extends GPXTreeLeaf {
     trkpt: TrackPoint[];
 
-    constructor(segment: TrackSegmentType) {
-        this.trkpt = segment.trkpt;
+    constructor(segment: TrackSegmentType | TrackSegment) {
+        super();
+        this.trkpt = segment.trkpt.map((point) => new TrackPoint(point));
     }
 
-    reverse(): void {
-        this.trkpt.reverse();
+    reverse(originalNextTimestamp: Date | undefined, newPreviousTimestamp: Date | undefined): void {
+        if (originalNextTimestamp !== undefined && newPreviousTimestamp !== undefined) {
+            let originalEndTimestamp = this.getEndTimestamp();
+            let newStartTimestamp = new Date(
+                newPreviousTimestamp.getTime() + originalNextTimestamp.getTime() - originalEndTimestamp.getTime()
+            );
+
+            this.trkpt.reverse();
+
+            for (let i = 0; i < this.trkpt.length; i++) {
+                this.trkpt[i].time = new Date(
+                    newStartTimestamp.getTime() + (originalEndTimestamp.getTime() - this.trkpt[i].time.getTime())
+                );
+            }
+        } else {
+            this.trkpt.reverse();
+        }
+    }
+
+    getStartTimestamp(): Date {
+        return this.trkpt[0].time;
+    }
+
+    getEndTimestamp(): Date {
+        return this.trkpt[this.trkpt.length - 1].time;
+    }
+
+    clone(): TrackSegment {
+        return new TrackSegment(structuredClone(this));
+    }
+};
+
+export class TrackPoint {
+    attributes: Coordinates;
+    ele?: number;
+    time?: Date;
+    extensions?: TrackPointExtensions;
+
+    constructor(point: TrackPointType | TrackPoint) {
+        this.attributes = point.attributes;
+        this.ele = point.ele;
+        if (point.time) {
+            this.time = new Date(point.time.getTime());
+        }
+        this.extensions = point.extensions;
     }
 };

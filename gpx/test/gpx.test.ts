@@ -26,6 +26,9 @@ describe('GPX operations', () => {
         let reversed = original.clone();
         reversed.reverse();
 
+        expect(original.getStartTimestamp().getTime()).toBe(reversed.getStartTimestamp().getTime());
+        expect(original.getEndTimestamp().getTime()).toBe(reversed.getEndTimestamp().getTime());
+
         expect(reversed.trk.length).toBe(original.trk.length);
 
         for (let i = 0; i < original.trk.length; i++) {
@@ -47,6 +50,8 @@ describe('GPX operations', () => {
                     expect(reversedPoint.attributes.lat).toBe(originalPoint.attributes.lat);
                     expect(reversedPoint.attributes.lon).toBe(originalPoint.attributes.lon);
                     expect(reversedPoint.ele).toBe(originalPoint.ele);
+
+                    expect(reversed.getEndTimestamp().getTime() - reversedPoint.time.getTime()).toBe(originalPoint.time.getTime() - original.getStartTimestamp().getTime());
                 }
             }
         }

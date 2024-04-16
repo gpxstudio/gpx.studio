@@ -67,10 +67,10 @@ export type LineStyleExtension = {
 };
 
 export type TrackSegmentType = {
-    trkpt: TrackPoint[];
+    trkpt: TrackPointType[];
 };
 
-export type TrackPoint = {
+export type TrackPointType = {
     attributes: Coordinates;
     ele?: number;
     time?: Date;
