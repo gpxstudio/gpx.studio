@@ -1,8 +1,13 @@
 export type GPXFile = {
-    creator: string;
+    attributes: GPXFileAttributes;
     metadata: Metadata;
     wpt: Waypoint[];
     trk: Track[];
+};
+
+export type GPXFileAttributes = {
+    creator: string;
+    [key: string]: string;
 };
 
 export type Metadata = {
@@ -14,14 +19,17 @@ export type Metadata = {
 };
 
 export type Link = {
-    href: string;
+    attributes: LinkAttributes;
     text?: string;
     type?: string;
 };
 
+export type LinkAttributes = {
+    href: string;
+};
+
 export type Waypoint = {
-    lat: number;
-    lon: number;
+    attributes: Coordinates;
     ele?: number;
     time?: Date;
     name?: string;
@@ -30,6 +38,11 @@ export type Waypoint = {
     link?: Link;
     sym?: string;
     type?: string;
+};
+
+export type Coordinates = {
+    lat: number;
+    lon: number;
 };
 
 export type Track = {
@@ -44,7 +57,7 @@ export type Track = {
 };
 
 export type TrackExtensions = {
-    line?: LineStyleExtension;
+    'gpx_style:line'?: LineStyleExtension;
 };
 
 export type LineStyleExtension = {
@@ -58,29 +71,28 @@ export type TrackSegment = {
 };
 
 export type TrackPoint = {
-    lat: number;
-    lon: number;
+    attributes: Coordinates;
     ele?: number;
     time?: Date;
     extensions?: TrackPointExtensions;
 };
 
 export type TrackPointExtensions = {
-    TrackPointExtension?: TrackPointExtension;
-    PowerExtension?: PowerExtension;
+    'gpxtpx:TrackPointExtension'?: TrackPointExtension;
+    'gpxpx:PowerExtension'?: PowerExtension;
 };
 
 export type TrackPointExtension = {
-    hr?: number;
-    cad?: number;
-    atemp?: number;
-    Extensions?: {
+    'gpxtpx:hr'?: number;
+    'gpxtpx:cad'?: number;
+    'gpxtpx:atemp'?: number;
+    'gpxtpx:Extensions'?: {
         surface?: string;
     };
 }
 
 export type PowerExtension = {
-    PowerInWatts?: number;
+    'gpxpx:PowerInWatts'?: number;
 }
 
 export type Author = {
