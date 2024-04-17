@@ -1,10 +1,6 @@
 <script lang="ts">
-	import mapboxgl from 'mapbox-gl';
-
 	import GPX from './GPX.svelte';
 	import { GPXFile, parseGPX } from 'gpx';
-
-	export let map: mapboxgl.Map | null;
 
 	let files: GPXFile[] = [
 		parseGPX(`<?xml version="1.0" encoding="UTF-8"?>
@@ -271,5 +267,5 @@
 </script>
 
 {#each files as file}
-	<GPX {map} {file} />
+	<GPX {file} />
 {/each}

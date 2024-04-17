@@ -1,18 +1,17 @@
 <script lang="ts">
-	import mapboxgl from 'mapbox-gl';
 	import { GPXFile } from 'gpx';
 
-	export let file: GPXFile;
-	export let map: mapboxgl.Map | null;
+	import { map } from '$lib/stores';
 
-	$: if (map) {
-		map.on('load', () => {
-			console.log(map?.isStyleLoaded());
-			map.addSource('gpx', {
+	export let file: GPXFile;
+
+	$: if ($map) {
+		$map.on('load', () => {
+			$map.addSource('gpx', {
 				type: 'geojson',
 				data: file.toGeoJSON()
 			});
-			map.addLayer({
+			$map.addLayer({
 				id: 'gpx',
 				type: 'line',
 				source: 'gpx',

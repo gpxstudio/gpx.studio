@@ -1,6 +1,4 @@
 <script lang="ts">
-	import mapboxgl from 'mapbox-gl';
-
 	import CustomControl from '$lib/components/custom-control/CustomControl.svelte';
 	import LayerTree from './LayerTree.svelte';
 	import LayerControlSettings from './LayerControlSettings.svelte';
@@ -19,14 +17,16 @@
 		defaultBasemap
 	} from '$lib/assets/layers';
 
-	export let map: mapboxgl.Map | null;
+	import { map } from '$lib/stores';
 
-	$: if (map) {
-		map?.setStyle(basemaps[defaultBasemap]);
+	$: if ($map) {
+		$map.on('load', () => {
+			$map.setStyle(basemaps[defaultBasemap]);
+		});
 	}
 </script>
 
-<CustomControl {map} class="group min-w-[29px] min-h-[29px] overflow-hidden">
+<CustomControl class="group min-w-[29px] min-h-[29px] overflow-hidden">
 	<div
 		class="flex flex-row justify-center items-center w-[29px] h-[29px] delay-100 transition-[opacity height] duration-0 group-hover:opacity-0 group-hover:h-0 group-hover:delay-0"
 	>
@@ -42,8 +42,8 @@
 						layerTree={basemapTree}
 						name="basemaps"
 						onValueChange={(id) => {
-							if (map) {
-								map.setStyle(basemaps[id]);
+							if ($map) {
+								$map.setStyle(basemaps[id]);
 							}
 						}}
 					/>
@@ -55,12 +55,12 @@
 						name="overlays"
 						multiple={true}
 						onValueChange={(id, checked) => {
-							if (map) {
+							if ($map) {
 								if (checked) {
-									if (!map.getSource(id)) {
-										map.addSource(id, overlays[id]);
+									if (!$map.getSource(id)) {
+										$map.addSource(id, overlays[id]);
 									}
-									map.addLayer({
+									$map.addLayer({
 										id,
 										type: overlays[id].type === 'raster' ? 'raster' : 'line',
 										source: id,
@@ -73,7 +73,7 @@
 										}
 									});
 								} else {
-									map.removeLayer(id);
+									$map.removeLayer(id);
 								}
 							}
 						}}
