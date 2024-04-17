@@ -2,18 +2,10 @@
 	import * as Menubar from '$lib/components/ui/menubar/index.js';
 	import { Button } from '$lib/components/ui/button';
 	import Logo from './Logo.svelte';
-	import {
-		Plus,
-		Upload,
-		Copy,
-		Download,
-		Undo2,
-		Redo2,
-		Trash2,
-		HeartHandshake
-	} from 'lucide-svelte';
+	import { Plus, Copy, Download, Undo2, Redo2, Trash2, HeartHandshake } from 'lucide-svelte';
 	import Fa from 'svelte-fa';
 	import { faGoogleDrive } from '@fortawesome/free-brands-svg-icons';
+	import Load from '$lib/components/tools/Load.svelte';
 
 	let distanceUnits = 'metric';
 	let velocityUnits = 'speed';
@@ -33,11 +25,7 @@
 					<Menubar.Item>
 						<Plus size="16" class="mr-1" /> New <Menubar.Shortcut>⌘N</Menubar.Shortcut>
 					</Menubar.Item>
-					<Menubar.Item>
-						<Upload size="16" class="mr-1" /> Load from desktop... <Menubar.Shortcut
-							>⌘O</Menubar.Shortcut
-						>
-					</Menubar.Item>
+					<Load />
 					<Menubar.Item>
 						<Fa icon={faGoogleDrive} class="h-4 w-4 mr-1" />
 						Load from Google Drive...</Menubar.Item

@@ -123,7 +123,21 @@ export class Track extends GPXTreeNode<TrackSegment> {
     }
 
     toGeoJSON(): any {
-        return this.getChildren().map((child) => child.toGeoJSON());
+        return this.getChildren().map((child) => {
+            let geoJSON = child.toGeoJSON();
+            if (this.extensions && this.extensions['gpx_style:line']) {
+                if (this.extensions['gpx_style:line'].color) {
+                    geoJSON.properties['color'] = this.extensions['gpx_style:line'].color;
+                }
+                if (this.extensions['gpx_style:line'].opacity) {
+                    geoJSON.properties['opacity'] = this.extensions['gpx_style:line'].opacity;
+                }
+                if (this.extensions['gpx_style:line'].weight) {
+                    geoJSON.properties['weight'] = this.extensions['gpx_style:line'].weight;
+                }
+            }
+            return geoJSON;
+        });
     }
 };
 
