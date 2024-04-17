@@ -24,6 +24,30 @@
 			$map.setStyle(basemaps[defaultBasemap]);
 		});
 	}
+
+	let addOverlayLayer: { [key: string]: () => void } = {};
+
+	function addOverlayLayerForId(id: string) {
+		return () => {
+			if ($map) {
+				if (!$map.getSource(id)) {
+					$map.addSource(id, overlays[id]);
+				}
+				$map.addLayer({
+					id,
+					type: overlays[id].type === 'raster' ? 'raster' : 'line',
+					source: id,
+					paint: {
+						...(id in opacities
+							? overlays[id].type === 'raster'
+								? { 'raster-opacity': opacities[id] }
+								: { 'line-opacity': opacities[id] }
+							: {})
+					}
+				});
+			}
+		};
+	}
 </script>
 
 <CustomControl class="group min-w-[29px] min-h-[29px] overflow-hidden">
@@ -43,7 +67,9 @@
 						name="basemaps"
 						onValueChange={(id) => {
 							if ($map) {
-								$map.setStyle(basemaps[id]);
+								$map.setStyle(basemaps[id], {
+									diff: false
+								});
 							}
 						}}
 					/>
@@ -55,25 +81,16 @@
 						name="overlays"
 						multiple={true}
 						onValueChange={(id, checked) => {
+							if (!addOverlayLayer.hasOwnProperty(id)) {
+								addOverlayLayer[id] = addOverlayLayerForId(id);
+							}
 							if ($map) {
 								if (checked) {
-									if (!$map.getSource(id)) {
-										$map.addSource(id, overlays[id]);
-									}
-									$map.addLayer({
-										id,
-										type: overlays[id].type === 'raster' ? 'raster' : 'line',
-										source: id,
-										paint: {
-											...(id in opacities
-												? overlays[id].type === 'raster'
-													? { 'raster-opacity': opacities[id] }
-													: { 'line-opacity': opacities[id] }
-												: {})
-										}
-									});
+									addOverlayLayer[id]();
+									$map.on('style.load', addOverlayLayer[id]);
 								} else {
 									$map.removeLayer(id);
+									$map.off('style.load', addOverlayLayer[id]);
 								}
 							}
 						}}
