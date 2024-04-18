@@ -156,7 +156,7 @@
 		} else if (e.key === 'd' && (e.metaKey || e.ctrlKey)) {
 			duplicateSelectedFiles();
 			e.preventDefault();
-		} else if (e.key === 's' && (e.metaKey || e.ctrlKey)) {
+		} else if ((e.key === 's' || e.key == 'S') && (e.metaKey || e.ctrlKey)) {
 			if (e.shiftKey) {
 				exportAllFiles();
 			} else {
@@ -165,7 +165,6 @@
 			e.preventDefault();
 		} else if ((e.key === 'Backspace' || e.key === 'Delete') && (e.metaKey || e.ctrlKey)) {
 			if (e.shiftKey) {
-				console.log('removeAllFiles');
 				removeAllFiles();
 			} else {
 				removeSelectedFiles();
