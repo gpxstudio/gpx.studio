@@ -91,8 +91,8 @@ export class GPXFile extends GPXTreeNode<Track>{
         super();
         this.attributes = cloneJSON(gpx.attributes);
         this.metadata = cloneJSON(gpx.metadata);
-        this.wpt = gpx.wpt.map((waypoint) => new Waypoint(waypoint));
-        this.trk = gpx.trk.map((track) => new Track(track));
+        this.wpt = gpx.wpt ? gpx.wpt.map((waypoint) => new Waypoint(waypoint)) : [];
+        this.trk = gpx.trk ? gpx.trk.map((track) => new Track(track)) : [];
 
         this.statistics = this.computeStatistics();
     }
@@ -132,7 +132,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
         this.src = track.src;
         this.link = cloneJSON(track.link);
         this.type = track.type;
-        this.trkseg = track.trkseg.map((seg) => new TrackSegment(seg));
+        this.trkseg = track.trkseg ? track.trkseg.map((seg) => new TrackSegment(seg)) : [];
         this.extensions = cloneJSON(track.extensions);
     }
 
@@ -261,6 +261,10 @@ export class TrackSegment extends GPXTreeLeaf {
                 let left = i - j, right = i + j + 1;
                 let contributed = false;
                 for (let k of [left, right]) {
+                    if (k < 0 || k >= points.length) {
+                        continue;
+                    }
+
                     let dist = distance(points[i].getCoordinates(), points[k].getCoordinates());
                     if (dist > ELEVATION_SMOOTHING_DISTANCE_THRESHOLD) {
                         break;
@@ -338,7 +342,7 @@ export class TrackSegment extends GPXTreeLeaf {
             type: "Feature",
             geometry: {
                 type: "LineString",
-                coordinates: this.trkpt.map((point) => [point.attributes.lng, point.attributes.lat])
+                coordinates: this.trkpt.map((point) => [point.attributes.lon, point.attributes.lat])
             },
             properties: {}
         };
@@ -464,7 +468,7 @@ function distance(coord1: Coordinates, coord2: Coordinates): number {
     const rad = Math.PI / 180;
     const lat1 = coord1.lat * rad;
     const lat2 = coord2.lat * rad;
-    const a = Math.sin(lat1) * Math.sin(lat2) + Math.cos(lat1) * Math.cos(lat2) * Math.cos((coord2.lng - coord1.lng) * rad);
+    const a = Math.sin(lat1) * Math.sin(lat2) + Math.cos(lat1) * Math.cos(lat2) * Math.cos((coord2.lon - coord1.lon) * rad);
     const maxMeters = earthRadius * Math.acos(Math.min(a, 1));
     return maxMeters;
 }
