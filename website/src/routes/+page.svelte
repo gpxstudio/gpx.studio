@@ -5,8 +5,6 @@
 	import Menu from '$lib/components/Menu.svelte';
 	import Toolbar from '$lib/components/Toolbar.svelte';
 	import LayerControl from '$lib/components/layer-control/LayerControl.svelte';
-
-	import { triggerFileInput } from '$lib/stores';
 </script>
 
 <div class="flex flex-col w-screen h-screen">
@@ -21,12 +19,3 @@
 		<FileList />
 	</div>
 </div>
-
-<svelte:window
-	on:keydown={(e) => {
-		if (e.key === 'o' && (e.metaKey || e.ctrlKey)) {
-			triggerFileInput();
-			e.preventDefault();
-		}
-	}}
-/>

@@ -15,7 +15,16 @@
 	import Fa from 'svelte-fa';
 	import { faGoogleDrive } from '@fortawesome/free-brands-svg-icons';
 
-	import { triggerFileInput } from '$lib/stores';
+	import {
+		files,
+		selectedFiles,
+		duplicateSelectedFiles,
+		exportAllFiles,
+		exportSelectedFiles,
+		removeAllFiles,
+		removeSelectedFiles,
+		triggerFileInput
+	} from '$lib/stores';
 
 	let distanceUnits = 'metric';
 	let velocityUnits = 'speed';
@@ -45,14 +54,14 @@
 						Load from Google Drive...</Menubar.Item
 					>
 					<Menubar.Separator />
-					<Menubar.Item>
+					<Menubar.Item on:click={duplicateSelectedFiles} disabled={$selectedFiles.size == 0}>
 						<Copy size="16" class="mr-1" /> Duplicate <Menubar.Shortcut>⌘D</Menubar.Shortcut>
 					</Menubar.Item>
 					<Menubar.Separator />
-					<Menubar.Item>
+					<Menubar.Item on:click={exportSelectedFiles} disabled={$selectedFiles.size == 0}>
 						<Download size="16" class="mr-1" /> Export... <Menubar.Shortcut>⌘S</Menubar.Shortcut>
 					</Menubar.Item>
-					<Menubar.Item>
+					<Menubar.Item on:click={exportAllFiles} disabled={$files.length == 0}>
 						<Download size="16" class="mr-1" /> Export all... <Menubar.Shortcut
 							>⇧⌘S</Menubar.Shortcut
 						>
@@ -69,12 +78,16 @@
 						<Redo2 size="16" class="mr-1" /> Redo <Menubar.Shortcut>⇧⌘Z</Menubar.Shortcut>
 					</Menubar.Item>
 					<Menubar.Separator />
-					<Menubar.Item
-						><Trash2 size="16" class="mr-1" /> Delete <Menubar.Shortcut>⌘⌫</Menubar.Shortcut
+					<Menubar.Item on:click={removeSelectedFiles} disabled={$selectedFiles.size == 0}>
+						<Trash2 size="16" class="mr-1" /> Delete <Menubar.Shortcut>⌘⌫</Menubar.Shortcut
 						></Menubar.Item
 					>
-					<Menubar.Item class="text-destructive data-[highlighted]:text-destructive"
-						><Trash2 size="16" class="mr-1" /> Delete all<Menubar.Shortcut>⇧⌘⌫</Menubar.Shortcut
+					<Menubar.Item
+						class="text-destructive data-[highlighted]:text-destructive"
+						on:click={removeAllFiles}
+						disabled={$files.length == 0}
+					>
+						<Trash2 size="16" class="mr-1" /> Delete all<Menubar.Shortcut>⇧⌘⌫</Menubar.Shortcut
 						></Menubar.Item
 					>
 				</Menubar.Content>
@@ -133,6 +146,34 @@
 		</div>
 	</div>
 </div>
+
+<svelte:window
+	on:keydown={(e) => {
+		e.stopImmediatePropagation();
+		if (e.key === 'o' && (e.metaKey || e.ctrlKey)) {
+			triggerFileInput();
+			e.preventDefault();
+		} else if (e.key === 'd' && (e.metaKey || e.ctrlKey)) {
+			duplicateSelectedFiles();
+			e.preventDefault();
+		} else if (e.key === 's' && (e.metaKey || e.ctrlKey)) {
+			if (e.shiftKey) {
+				exportAllFiles();
+			} else {
+				exportSelectedFiles();
+			}
+			e.preventDefault();
+		} else if ((e.key === 'Backspace' || e.key === 'Delete') && (e.metaKey || e.ctrlKey)) {
+			if (e.shiftKey) {
+				console.log('removeAllFiles');
+				removeAllFiles();
+			} else {
+				removeSelectedFiles();
+			}
+			e.preventDefault();
+		}
+	}}
+/>
 
 <style lang="postcss">
 	div :global(button) {

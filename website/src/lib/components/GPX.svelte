@@ -32,16 +32,41 @@
 		colorCount[color]++;
 		return color;
 	}
+
+	function decrementColor(color: string) {
+		colorCount[color]--;
+	}
 </script>
 
 <script lang="ts">
 	import { GPXFile } from 'gpx';
-	import { map } from '$lib/stores';
+	import { map, selectedFiles, addSelectFile, selectFile } from '$lib/stores';
+	import { onDestroy } from 'svelte';
 
 	export let file: GPXFile;
 
 	let layerId = getLayerId();
 	let layerColor = getColor();
+
+	function selectOnClick(e: any) {
+		if (e.originalEvent.shiftKey) {
+			addSelectFile(file);
+		} else {
+			selectFile(file);
+		}
+	}
+
+	function toPointerCursor() {
+		if ($map) {
+			$map.getCanvas().style.cursor = 'pointer';
+		}
+	}
+
+	function toDefaultCursor() {
+		if ($map) {
+			$map.getCanvas().style.cursor = '';
+		}
+	}
 
 	function addGPXLayer() {
 		if ($map) {
@@ -80,6 +105,10 @@
 						'line-opacity': ['get', 'opacity']
 					}
 				});
+
+				$map.on('click', layerId, selectOnClick);
+				$map.on('mouseenter', layerId, toPointerCursor);
+				$map.on('mouseleave', layerId, toDefaultCursor);
 			}
 		}
 	}
@@ -91,4 +120,22 @@
 			addGPXLayer();
 		});
 	}
+
+	$: if ($selectedFiles.has(file)) {
+		if ($map) {
+			$map.moveLayer(layerId);
+		}
+	}
+
+	onDestroy(() => {
+		if ($map) {
+			$map.off('click', layerId, selectOnClick);
+			$map.off('mouseenter', layerId, toPointerCursor);
+			$map.off('mouseleave', layerId, toDefaultCursor);
+
+			$map.removeLayer(layerId);
+			$map.removeSource(layerId);
+		}
+		decrementColor(layerColor);
+	});
 </script>

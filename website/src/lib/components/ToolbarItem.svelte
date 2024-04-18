@@ -1,11 +1,18 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+
+	import { selectedFiles } from '$lib/stores';
 </script>
 
-<Tooltip.Root openDelay="300">
+<Tooltip.Root openDelay={300}>
 	<Tooltip.Trigger asChild let:builder>
-		<Button builders={[builder]} variant="ghost" class="h-fit px-1 py-1.5">
+		<Button
+			builders={[builder]}
+			variant="ghost"
+			class="h-fit px-1 py-1.5"
+			disabled={$selectedFiles.size == 0}
+		>
 			<slot name="icon" />
 		</Button>
 	</Tooltip.Trigger>
