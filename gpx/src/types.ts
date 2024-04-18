@@ -42,7 +42,7 @@ export type WaypointType = {
 
 export type Coordinates = {
     lat: number;
-    lon: number;
+    lng: number;
 };
 
 export type TrackType = {

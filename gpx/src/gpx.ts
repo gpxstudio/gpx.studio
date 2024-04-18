@@ -13,6 +13,8 @@ abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
     abstract isLeaf(): boolean;
     abstract getChildren(): T[];
 
+    abstract computeStatistics(): GPXStatistics;
+
     abstract reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date): void;
 
     abstract getStartTimestamp(): Date;
@@ -25,6 +27,16 @@ abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
 abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement<T> {
     isLeaf(): boolean {
         return false;
+    }
+
+    computeStatistics(): GPXStatistics {
+        let statistics = new GPXStatistics();
+
+        for (let child of this.getChildren()) {
+            statistics.mergeWith(child.computeStatistics());
+        }
+
+        return statistics;
     }
 
     reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date): void {
@@ -73,6 +85,7 @@ export class GPXFile extends GPXTreeNode<Track>{
     metadata: Metadata;
     wpt: Waypoint[];
     trk: Track[];
+    statistics: GPXStatistics;
 
     constructor(gpx: GPXFileType | GPXFile) {
         super();
@@ -80,6 +93,8 @@ export class GPXFile extends GPXTreeNode<Track>{
         this.metadata = cloneJSON(gpx.metadata);
         this.wpt = gpx.wpt.map((waypoint) => new Waypoint(waypoint));
         this.trk = gpx.trk.map((track) => new Track(track));
+
+        this.statistics = this.computeStatistics();
     }
 
     getChildren(): Track[] {
@@ -151,10 +166,144 @@ export class Track extends GPXTreeNode<TrackSegment> {
 // A class that represents a TrackSegment in a GPX file
 export class TrackSegment extends GPXTreeLeaf {
     trkpt: TrackPoint[];
+    trkptStatistics: TrackPointStatistics;
 
     constructor(segment: TrackSegmentType | TrackSegment) {
         super();
         this.trkpt = segment.trkpt.map((point) => new TrackPoint(point));
+    }
+
+    computeStatistics(): GPXStatistics {
+        let statistics = new GPXStatistics();
+        let trkptStatistics: TrackPointStatistics = {
+            distance: [],
+            time: [],
+            speed: [],
+            elevation: {
+                smoothed: [],
+                gain: [],
+                loss: [],
+            },
+            slope: [],
+        };
+
+        trkptStatistics.elevation.smoothed = this.computeSmoothedElevation();
+        trkptStatistics.slope = this.computeSlope();
+
+        const points = this.trkpt;
+        for (let i = 0; i < points.length; i++) {
+
+            // distance
+            let dist = 0;
+            if (i > 0) {
+                dist = distance(points[i - 1].getCoordinates(), points[i].getCoordinates());
+
+                statistics.distance.total += dist;
+            }
+
+            trkptStatistics.distance.push(statistics.distance.total);
+
+            // elevation
+            if (i > 0) {
+                const ele = trkptStatistics.elevation.smoothed[i] - trkptStatistics.elevation.smoothed[i - 1];
+                if (ele > 0) {
+                    statistics.elevation.gain += ele;
+                } else {
+                    statistics.elevation.loss -= ele;
+                }
+            }
+
+            trkptStatistics.elevation.gain.push(statistics.elevation.gain);
+            trkptStatistics.elevation.loss.push(statistics.elevation.loss);
+
+            // time
+            if (points[0].time !== undefined && points[i].time !== undefined) {
+                const time = points[i].time.getTime() - points[0].time.getTime();
+
+                trkptStatistics.time.push(time);
+            }
+
+            // speed
+            let speed = 0;
+            if (i > 0 && points[i - 1].time !== undefined && points[i].time !== undefined) {
+                const time = points[i].time.getTime() - points[i - 1].time.getTime();
+                speed = dist / time;
+
+                if (speed > 0.1) {
+                    statistics.distance.moving += dist;
+                    statistics.time.moving += time;
+                }
+            }
+
+            trkptStatistics.speed.push(speed);
+        }
+
+        statistics.time.total = trkptStatistics.time[trkptStatistics.time.length - 1];
+        statistics.speed.total = statistics.distance.total / statistics.time.total;
+        statistics.speed.moving = statistics.distance.moving / statistics.time.moving;
+
+        this.trkptStatistics = trkptStatistics;
+
+        return statistics;
+    }
+
+    computeSmoothedElevation(): number[] {
+        const ELEVATION_SMOOTHING_DISTANCE_THRESHOLD = 100;
+
+        let smoothed = [];
+
+        const points = this.trkpt;
+        for (var i = 0; i < points.length; i++) {
+            let weightedSum = 0;
+            let totalWeight = 0;
+
+            for (let j = 0; ; j++) {
+                let left = i - j, right = i + j + 1;
+                let contributed = false;
+                for (let k of [left, right]) {
+                    let dist = distance(points[i].getCoordinates(), points[k].getCoordinates());
+                    if (dist > ELEVATION_SMOOTHING_DISTANCE_THRESHOLD) {
+                        break;
+                    }
+
+                    let weight = ELEVATION_SMOOTHING_DISTANCE_THRESHOLD - dist;
+                    weightedSum += points[j].ele * weight;
+                    totalWeight += weight;
+                    contributed = true;
+                }
+
+                if (!contributed) {
+                    break;
+                }
+            }
+
+            smoothed.push(weightedSum / totalWeight);
+        }
+
+        return smoothed;
+    }
+
+    computeSlope(): number[] {
+        let slope = [];
+
+        const SLOPE_DISTANCE_THRESHOLD = 100;
+
+        const points = this.trkpt;
+
+        let start = 0, end = 0, windowDistance = 0;
+        for (var i = 0; i < points.length; i++) {
+            while (start < i && distance(points[start].getCoordinates(), points[i].getCoordinates()) > SLOPE_DISTANCE_THRESHOLD) {
+                windowDistance -= distance(points[start].getCoordinates(), points[start + 1].getCoordinates());
+                start++;
+            }
+            while (end + 1 < points.length && distance(points[i].getCoordinates(), points[end + 1].getCoordinates()) <= SLOPE_DISTANCE_THRESHOLD) {
+                windowDistance += distance(points[end].getCoordinates(), points[end + 1].getCoordinates());
+                end++;
+            }
+            slope[i] = windowDistance > 1e-3 ? 100 * (points[end].ele - points[start].ele) / windowDistance : 0;
+        }
+
+        return slope;
     }
 
     reverse(originalNextTimestamp: Date | undefined, newPreviousTimestamp: Date | undefined): void {
@@ -189,7 +338,7 @@ export class TrackSegment extends GPXTreeLeaf {
             type: "Feature",
             geometry: {
                 type: "LineString",
-                coordinates: this.trkpt.map((point) => [point.attributes.lon, point.attributes.lat])
+                coordinates: this.trkpt.map((point) => [point.attributes.lng, point.attributes.lat])
             },
             properties: {}
         };
@@ -213,6 +362,10 @@ export class TrackPoint {
             this.time = new Date(point.time.getTime());
         }
         this.extensions = cloneJSON(point.extensions);
+    }
+
+    getCoordinates(): Coordinates {
+        return this.attributes;
     }
 };
 
@@ -240,4 +393,78 @@ export class Waypoint {
         this.sym = waypoint.sym;
         this.type = waypoint.type;
     }
+}
+
+class GPXStatistics {
+    distance: {
+        moving: number;
+        total: number;
+    };
+    time: {
+        moving: number;
+        total: number;
+    };
+    speed: {
+        moving: number;
+        total: number;
+    };
+    elevation: {
+        gain: number;
+        loss: number;
+    };
+
+    constructor() {
+        this.distance = {
+            moving: 0,
+            total: 0,
+        };
+        this.time = {
+            moving: 0,
+            total: 0,
+        };
+        this.speed = {
+            moving: 0,
+            total: 0,
+        };
+        this.elevation = {
+            gain: 0,
+            loss: 0,
+        };
+    }
+
+    mergeWith(other: GPXStatistics): void {
+        this.distance.total += other.distance.total;
+        this.distance.moving += other.distance.moving;
+
+        this.time.total += other.time.total;
+        this.time.moving += other.time.moving;
+
+        this.speed.moving = this.distance.moving / this.time.moving;
+        this.speed.total = this.distance.total / this.time.total;
+
+        this.elevation.gain += other.elevation.gain;
+        this.elevation.loss += other.elevation.loss;
+    }
+}
+
+type TrackPointStatistics = {
+    distance: number[],
+    time: number[],
+    speed: number[],
+    elevation: {
+        smoothed: number[],
+        gain: number[],
+        loss: number[],
+    },
+    slope: number[],
+}
+
+const earthRadius = 6371008.8;
+function distance(coord1: Coordinates, coord2: Coordinates): number {
+    const rad = Math.PI / 180;
+    const lat1 = coord1.lat * rad;
+    const lat2 = coord2.lat * rad;
+    const a = Math.sin(lat1) * Math.sin(lat2) + Math.cos(lat1) * Math.cos(lat2) * Math.cos((coord2.lng - coord1.lng) * rad);
+    const maxMeters = earthRadius * Math.acos(Math.min(a, 1));
+    return maxMeters;
 }

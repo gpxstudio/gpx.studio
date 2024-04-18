@@ -48,7 +48,7 @@ describe('GPX operations', () => {
                     const reversedPoint = reversedSegment.trkpt[originalSegment.trkpt.length - k - 1];
 
                     expect(reversedPoint.attributes.lat).toBe(originalPoint.attributes.lat);
-                    expect(reversedPoint.attributes.lon).toBe(originalPoint.attributes.lon);
+                    expect(reversedPoint.attributes.lng).toBe(originalPoint.attributes.lng);
                     expect(reversedPoint.ele).toBe(originalPoint.ele);
 
                     expect(reversed.getEndTimestamp().getTime() - reversedPoint.time.getTime()).toBe(originalPoint.time.getTime() - original.getStartTimestamp().getTime());

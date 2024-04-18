@@ -32,7 +32,7 @@ describe("Parsing", () => {
         }
 
         expect(segment.trkpt[0].attributes.lat).toBe(50.790867);
-        expect(segment.trkpt[0].attributes.lon).toBe(4.404968);
+        expect(segment.trkpt[0].attributes.lng).toBe(4.404968);
         expect(segment.trkpt[0].ele).toBe(109.0);
     });
 
@@ -76,7 +76,7 @@ describe("Parsing", () => {
 
         const waypoint = result.wpt[0];
         expect(waypoint.attributes.lat).toBe(50.7836710064975);
-        expect(waypoint.attributes.lon).toBe(4.410764082658738);
+        expect(waypoint.attributes.lng).toBe(4.410764082658738);
         expect(waypoint.ele).toBe(122.0);
         expect(waypoint.name).toBe("Waypoint");
         expect(waypoint.cmt).toBe("Comment");
