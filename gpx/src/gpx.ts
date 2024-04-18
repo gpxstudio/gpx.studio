@@ -1,4 +1,11 @@
-import { Coordinates, GPXFileAttributes, GPXFileType, Link, Metadata, TrackExtensions, TrackPointExtensions, TrackPointType, TrackSegmentType, TrackType, Waypoint } from "./types";
+import { Coordinates, GPXFileAttributes, GPXFileType, Link, Metadata, TrackExtensions, TrackPointExtensions, TrackPointType, TrackSegmentType, TrackType, WaypointType } from "./types";
+
+function cloneJSON<T>(obj: T): T {
+    if (obj === null || typeof obj !== 'object') {
+        return null;
+    }
+    return JSON.parse(JSON.stringify(obj));
+}
 
 // An abstract class that groups functions that need to be computed recursively in the GPX file hierarchy
 abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
@@ -69,9 +76,9 @@ export class GPXFile extends GPXTreeNode<Track>{
 
     constructor(gpx: GPXFileType | GPXFile) {
         super();
-        this.attributes = gpx.attributes;
-        this.metadata = gpx.metadata;
-        this.wpt = gpx.wpt;
+        this.attributes = cloneJSON(gpx.attributes);
+        this.metadata = cloneJSON(gpx.metadata);
+        this.wpt = gpx.wpt.map((waypoint) => new Waypoint(waypoint));
         this.trk = gpx.trk.map((track) => new Track(track));
     }
 
@@ -108,10 +115,10 @@ export class Track extends GPXTreeNode<TrackSegment> {
         this.cmt = track.cmt;
         this.desc = track.desc;
         this.src = track.src;
-        this.link = track.link;
+        this.link = cloneJSON(track.link);
         this.type = track.type;
         this.trkseg = track.trkseg.map((seg) => new TrackSegment(seg));
-        this.extensions = track.extensions;
+        this.extensions = cloneJSON(track.extensions);
     }
 
     getChildren(): TrackSegment[] {
@@ -200,11 +207,37 @@ export class TrackPoint {
     extensions?: TrackPointExtensions;
 
     constructor(point: TrackPointType | TrackPoint) {
-        this.attributes = point.attributes;
+        this.attributes = cloneJSON(point.attributes);
         this.ele = point.ele;
         if (point.time) {
             this.time = new Date(point.time.getTime());
         }
-        this.extensions = point.extensions;
+        this.extensions = cloneJSON(point.extensions);
     }
 };
+
+export class Waypoint {
+    attributes: Coordinates;
+    ele?: number;
+    time?: Date;
+    name?: string;
+    cmt?: string;
+    desc?: string;
+    link?: Link;
+    sym?: string;
+    type?: string;
+
+    constructor(waypoint: WaypointType | Waypoint) {
+        this.attributes = cloneJSON(waypoint.attributes);
+        this.ele = waypoint.ele;
+        if (waypoint.time) {
+            this.time = new Date(waypoint.time.getTime());
+        }
+        this.name = waypoint.name;
+        this.cmt = waypoint.cmt;
+        this.desc = waypoint.desc;
+        this.link = cloneJSON(waypoint.link);
+        this.sym = waypoint.sym;
+        this.type = waypoint.type;
+    }
+}

@@ -1,7 +1,7 @@
 export type GPXFileType = {
     attributes: GPXFileAttributes;
     metadata: Metadata;
-    wpt: Waypoint[];
+    wpt: WaypointType[];
     trk: TrackType[];
 };
 
@@ -28,7 +28,7 @@ export type LinkAttributes = {
     href: string;
 };
 
-export type Waypoint = {
+export type WaypointType = {
     attributes: Coordinates;
     ele?: number;
     time?: Date;
