@@ -6,7 +6,7 @@
 	import Toolbar from '$lib/components/Toolbar.svelte';
 	import LayerControl from '$lib/components/layer-control/LayerControl.svelte';
 
-	import { triggerFileInput } from '$lib/components/tools/tools';
+	import { triggerFileInput } from '$lib/stores';
 </script>
 
 <div class="flex flex-col w-screen h-screen">
