@@ -105,6 +105,10 @@ export function exportFile(file: GPXFile) {
     URL.revokeObjectURL(url);
 }
 
+export function reverseSelectedFiles() {
+    get(selectedFiles).forEach(file => file.reverse());
+}
+
 export function selectFile(file: GPXFile) {
     selectedFiles.update($selectedFiles => {
         $selectedFiles.clear();

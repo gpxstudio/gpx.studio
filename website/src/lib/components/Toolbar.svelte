@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { reverseSelectedFiles } from '$lib/stores';
 	import ToolbarItem from './ToolbarItem.svelte';
 	import {
 		ArrowRightLeft,
@@ -24,9 +25,9 @@
 			<CalendarClock slot="icon" size="18" />
 			<span slot="tooltip">Change time and speed data</span>
 		</ToolbarItem>
-		<ToolbarItem>
+		<ToolbarItem on:click={reverseSelectedFiles}>
 			<ArrowRightLeft slot="icon" size="18" />
-			<span slot="tooltip">Reverse the order of the track points</span>
+			<span slot="tooltip">Reverse the file</span>
 		</ToolbarItem>
 		<ToolbarItem>
 			<Group slot="icon" size="18" />
@@ -46,7 +47,9 @@
 		</ToolbarItem>
 		<ToolbarItem>
 			<SquareDashedMousePointer slot="icon" size="18" />
-			<span slot="tooltip">Clean track points and POIs with a rectangle selection</span>
+			<span slot="tooltip"
+				>Clean track points and points of interest with a rectangle selection</span
+			>
 		</ToolbarItem>
 		<ToolbarItem>
 			<Palette slot="icon" size="18" />

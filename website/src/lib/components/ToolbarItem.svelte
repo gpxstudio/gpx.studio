@@ -12,6 +12,7 @@
 			variant="ghost"
 			class="h-fit px-1 py-1.5"
 			disabled={$selectedFiles.size == 0}
+			on:click
 		>
 			<slot name="icon" />
 		</Button>
