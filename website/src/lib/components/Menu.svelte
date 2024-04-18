@@ -44,6 +44,7 @@
 					<Menubar.Item>
 						<Plus size="16" class="mr-1" /> New <Menubar.Shortcut>⌘N</Menubar.Shortcut>
 					</Menubar.Item>
+					<Menubar.Separator />
 					<Menubar.Item on:click={triggerFileInput}>
 						<Upload size="16" class="mr-1" /> Load from desktop... <Menubar.Shortcut
 							>⌘O</Menubar.Shortcut
