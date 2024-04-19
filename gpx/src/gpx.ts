@@ -221,7 +221,7 @@ export class TrackSegment extends GPXTreeLeaf {
             // distance
             let dist = 0;
             if (i > 0) {
-                dist = distance(points[i - 1].getCoordinates(), points[i].getCoordinates());
+                dist = distance(points[i - 1].getCoordinates(), points[i].getCoordinates()) / 1000;
 
                 statistics.distance.total += dist;
             }
@@ -243,7 +243,7 @@ export class TrackSegment extends GPXTreeLeaf {
 
             // time
             if (points[0].time !== undefined && points[i].time !== undefined) {
-                const time = points[i].time.getTime() - points[0].time.getTime();
+                const time = (points[i].time.getTime() - points[0].time.getTime()) / 1000;
 
                 trkptStatistics.time.push(time);
             }
@@ -251,10 +251,10 @@ export class TrackSegment extends GPXTreeLeaf {
             // speed
             let speed = 0;
             if (i > 0 && points[i - 1].time !== undefined && points[i].time !== undefined) {
-                const time = points[i].time.getTime() - points[i - 1].time.getTime();
-                speed = dist / time;
+                const time = (points[i].time.getTime() - points[i - 1].time.getTime()) / 1000;
+                speed = dist / (time / 3600);
 
-                if (speed > 0.1) {
+                if (speed >= 0.5) {
                     statistics.distance.moving += dist;
                     statistics.time.moving += time;
                 }
@@ -264,8 +264,8 @@ export class TrackSegment extends GPXTreeLeaf {
         }
 
         statistics.time.total = trkptStatistics.time[trkptStatistics.time.length - 1];
-        statistics.speed.total = statistics.distance.total / statistics.time.total;
-        statistics.speed.moving = statistics.distance.moving / statistics.time.moving;
+        statistics.speed.total = statistics.distance.total / (statistics.time.total / 3600);
+        statistics.speed.moving = statistics.distance.moving / (statistics.time.moving / 3600);
 
         this.trkptStatistics = trkptStatistics;
 
@@ -463,8 +463,8 @@ export class GPXStatistics {
         this.time.total += other.time.total;
         this.time.moving += other.time.moving;
 
-        this.speed.moving = this.distance.moving / this.time.moving;
-        this.speed.total = this.distance.total / this.time.total;
+        this.speed.moving = this.distance.moving / (this.time.moving / 3600);
+        this.speed.total = this.distance.total / (this.time.total / 3600);
 
         this.elevation.gain += other.elevation.gain;
         this.elevation.loss += other.elevation.loss;
