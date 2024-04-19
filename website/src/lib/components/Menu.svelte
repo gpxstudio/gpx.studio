@@ -10,10 +10,11 @@
 		Redo2,
 		Trash2,
 		HeartHandshake,
-		Upload
+		Upload,
+		CloudDownload,
+		CloudUpload,
+		Cloud
 	} from 'lucide-svelte';
-	import Fa from 'svelte-fa';
-	import { faGoogleDrive } from '@fortawesome/free-brands-svg-icons';
 
 	import {
 		files,
@@ -51,7 +52,7 @@
 						>
 					</Menubar.Item>
 					<Menubar.Item>
-						<Fa icon={faGoogleDrive} class="h-4 w-4 mr-1" />
+						<Cloud size="16" class="mr-1" />
 						Load from Google Drive...</Menubar.Item
 					>
 					<Menubar.Separator />

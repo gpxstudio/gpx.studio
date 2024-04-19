@@ -37,8 +37,6 @@
     },
     "type": "module",
     "dependencies": {
-        "@fortawesome/free-brands-svg-icons": "^6.5.2",
-        "@fortawesome/free-solid-svg-icons": "^6.5.2",
         "@mapbox/mapbox-gl-geocoder": "^5.0.2",
         "@types/mapbox__mapbox-gl-geocoder": "^5.0.0",
         "@types/mapbox-gl": "^3.1.0",
@@ -47,7 +45,6 @@
         "gpx": "file:../gpx",
         "lucide-svelte": "^0.365.0",
         "mapbox-gl": "^3.2.0",
-        "svelte-fa": "^4.0.2",
         "tailwind-merge": "^2.2.2",
         "tailwind-variants": "^0.2.1"
     }
