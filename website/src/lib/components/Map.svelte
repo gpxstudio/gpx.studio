@@ -113,4 +113,12 @@
 		@apply h-full;
 		@apply overflow-hidden;
 	}
+
+	div :global(.mapboxgl-ctrl-bottom-left) {
+		@apply bottom-10;
+	}
+
+	div :global(.mapboxgl-ctrl-bottom-right) {
+		@apply bottom-10;
+	}
 </style>

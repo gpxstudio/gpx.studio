@@ -2,18 +2,16 @@
 	import { files, selectedFiles, addSelectFile, selectFile } from '$lib/stores';
 
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
-	import { Button } from '$lib/components/ui/button';
-	import { Label } from '$lib/components/ui/label';
 </script>
 
-<div class="flex flex-col h-full w-full">
-	<Label class="w-full">Files</Label>
-	<ScrollArea class="w-full h-full">
-		<div class="flex flex-col">
+<div class="absolute h-10 -translate-y-10 w-fit max-w-full bg-secondary rounded-t px-1">
+	<ScrollArea orientation="horizontal" class="w-full h-full" scrollbarXClasses="h-2">
+		<div class="flex flex-row gap-1">
 			{#each $files as file}
-				<Button
-					variant={$selectedFiles.has(file) ? 'outline' : 'secondary'}
-					class="w-full {$selectedFiles.has(file) ? 'hover:bg-background' : 'hover:bg-secondary'}"
+				<button
+					class="my-1 px-1.5 py-1 rounded {$selectedFiles.has(file)
+						? 'bg-background shadow'
+						: 'bg-secondary'}"
 					on:click={(e) => {
 						if (e.shiftKey) {
 							addSelectFile(file);
@@ -23,7 +21,7 @@
 					}}
 				>
 					{file.metadata.name}
-				</Button>
+				</button>
 			{/each}
 		</div>
 	</ScrollArea>
