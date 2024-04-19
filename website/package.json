@@ -17,7 +17,10 @@
         "@sveltejs/vite-plugin-svelte": "^3.0.0",
         "@types/eslint": "^8.56.0",
         "@types/events": "^3.0.3",
+        "@types/mapbox__mapbox-gl-geocoder": "^5.0.0",
+        "@types/mapbox-gl": "^3.1.0",
         "@types/node": "^20.12.5",
+        "@types/sortablejs": "^1.15.8",
         "@typescript-eslint/eslint-plugin": "^7.0.0",
         "@typescript-eslint/parser": "^7.0.0",
         "autoprefixer": "^10.4.19",
@@ -38,13 +41,12 @@
     "type": "module",
     "dependencies": {
         "@mapbox/mapbox-gl-geocoder": "^5.0.2",
-        "@types/mapbox__mapbox-gl-geocoder": "^5.0.0",
-        "@types/mapbox-gl": "^3.1.0",
         "bits-ui": "^0.21.3",
         "clsx": "^2.1.0",
         "gpx": "file:../gpx",
         "lucide-svelte": "^0.365.0",
         "mapbox-gl": "^3.2.0",
+        "sortablejs": "^1.15.2",
         "tailwind-merge": "^2.2.2",
         "tailwind-variants": "^0.2.1"
     }
