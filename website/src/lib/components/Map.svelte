@@ -56,6 +56,26 @@
 				unit: distanceUnits
 			})
 		);
+
+		$map.on('style.load', () => {
+			if ($map) {
+				if (!$map.getLayer('mapbox-dem')) {
+					$map.addSource('mapbox-dem', {
+						type: 'raster-dem',
+						url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+						tileSize: 512,
+						maxzoom: 14
+					});
+				}
+				$map.setTerrain({ source: 'mapbox-dem', exaggeration: 1 });
+				$map.setFog({
+					color: 'rgb(186, 210, 235)',
+					'high-color': 'rgb(36, 92, 223)',
+					'horizon-blend': 0.1,
+					'space-color': 'rgb(156, 240, 255)'
+				});
+			}
+		});
 	});
 </script>
 
