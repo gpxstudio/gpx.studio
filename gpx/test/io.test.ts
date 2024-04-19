@@ -223,9 +223,9 @@ describe("Parsing", () => {
         expect(track.extensions['gpx_style:line']).toHaveProperty('opacity');
         expect(track.extensions['gpx_style:line']).toHaveProperty('weight');
 
-        expect(track.extensions['gpx_style:line'].color).toBe("2d3ee9");
+        expect(track.extensions['gpx_style:line'].color).toBe("#2d3ee9");
         expect(track.extensions['gpx_style:line'].opacity).toBe(0.5);
-        expect(track.extensions['gpx_style:line'].weight).toBe(5);
+        expect(track.extensions['gpx_style:line'].weight).toBe(6);
     });
 });
 

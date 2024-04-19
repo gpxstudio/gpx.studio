@@ -56,7 +56,9 @@ export function parseGPX(gpxData: string): GPXFile {
 }
 
 
-export function buildGPX(gpx: GPXFile): string {
+export function buildGPX(file: GPXFile): string {
+    const gpx = file.toGPXFileType();
+
     const builder = new XMLBuilder({
         format: true,
         ignoreAttributes: false,

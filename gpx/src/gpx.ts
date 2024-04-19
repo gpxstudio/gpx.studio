@@ -25,6 +25,8 @@ abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
 
 // An abstract class that can be extended to facilitate functions working similarly with Tracks and TrackSegments
 abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement<T> {
+    statistics: GPXStatistics;
+
     isLeaf(): boolean {
         return false;
     }
@@ -35,6 +37,8 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
         for (let child of this.getChildren()) {
             statistics.mergeWith(child.computeStatistics());
         }
+
+        this.statistics = statistics;
 
         return statistics;
     }
@@ -85,7 +89,6 @@ export class GPXFile extends GPXTreeNode<Track>{
     metadata: Metadata;
     wpt: Waypoint[];
     trk: Track[];
-    statistics: GPXStatistics;
 
     constructor(gpx: GPXFileType | GPXFile) {
         super();
@@ -94,7 +97,7 @@ export class GPXFile extends GPXTreeNode<Track>{
         this.wpt = gpx.wpt ? gpx.wpt.map((waypoint) => new Waypoint(waypoint)) : [];
         this.trk = gpx.trk ? gpx.trk.map((track) => new Track(track)) : [];
 
-        this.statistics = this.computeStatistics();
+        this.computeStatistics();
     }
 
     getChildren(): Track[] {
@@ -109,6 +112,15 @@ export class GPXFile extends GPXTreeNode<Track>{
         return {
             type: "FeatureCollection",
             features: this.getChildren().flatMap((child) => child.toGeoJSON())
+        };
+    }
+
+    toGPXFileType(): GPXFileType {
+        return {
+            attributes: this.attributes,
+            metadata: this.metadata,
+            wpt: this.wpt,
+            trk: this.trk.map((track) => track.toTrackType())
         };
     }
 };
@@ -140,10 +152,6 @@ export class Track extends GPXTreeNode<TrackSegment> {
         return this.trkseg;
     }
 
-    clone(): Track {
-        return new Track(structuredClone(this));
-    }
-
     toGeoJSON(): any {
         return this.getChildren().map((child) => {
             let geoJSON = child.toGeoJSON();
@@ -160,6 +168,23 @@ export class Track extends GPXTreeNode<TrackSegment> {
             }
             return geoJSON;
         });
+    }
+
+    toTrackType(): TrackType {
+        return {
+            name: this.name,
+            cmt: this.cmt,
+            desc: this.desc,
+            src: this.src,
+            link: this.link,
+            type: this.type,
+            trkseg: this.trkseg.map((seg) => seg.toTrackSegmentType()),
+            extensions: this.extensions,
+        };
+    }
+
+    clone(): Track {
+        return new Track(structuredClone(this));
     }
 };
 
@@ -345,6 +370,12 @@ export class TrackSegment extends GPXTreeLeaf {
                 coordinates: this.trkpt.map((point) => [point.attributes.lon, point.attributes.lat])
             },
             properties: {}
+        };
+    }
+
+    toTrackSegmentType(): TrackSegmentType {
+        return {
+            trkpt: this.trkpt
         };
     }
 
