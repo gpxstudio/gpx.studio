@@ -278,35 +278,24 @@ export class TrackSegment extends GPXTreeLeaf {
         let smoothed = [];
 
         const points = this.trkpt;
+
+        let start = 0, end = -1, cumul = 0;
         for (var i = 0; i < points.length; i++) {
-            let weightedSum = 0;
-            let totalWeight = 0;
-
-            for (let j = 0; ; j++) {
-                let left = i - j, right = i + j + 1;
-                let contributed = false;
-                for (let k of [left, right]) {
-                    if (k < 0 || k >= points.length) {
-                        continue;
-                    }
-
-                    let dist = distance(points[i].getCoordinates(), points[k].getCoordinates());
-                    if (dist > ELEVATION_SMOOTHING_DISTANCE_THRESHOLD) {
-                        break;
-                    }
-
-                    let weight = ELEVATION_SMOOTHING_DISTANCE_THRESHOLD - dist;
-                    weightedSum += points[j].ele * weight;
-                    totalWeight += weight;
-                    contributed = true;
-                }
-
-                if (!contributed) {
-                    break;
-                }
+            while (start < i && distance(points[start].getCoordinates(), points[i].getCoordinates()) > ELEVATION_SMOOTHING_DISTANCE_THRESHOLD) {
+                cumul -= points[start].ele;
+                start++;
+            }
+            while (end + 1 < points.length && distance(points[i].getCoordinates(), points[end + 1].getCoordinates()) <= ELEVATION_SMOOTHING_DISTANCE_THRESHOLD) {
+                cumul += points[end + 1].ele;
+                end++;
             }
 
-            smoothed.push(weightedSum / totalWeight);
+            smoothed.push(cumul / (end - start + 1));
+        }
+
+        if (points.length > 0) {
+            smoothed[0] = points[0].ele;
+            smoothed[points.length - 1] = points[points.length - 1].ele;
         }
 
         return smoothed;
@@ -430,7 +419,7 @@ export class Waypoint {
     }
 }
 
-class GPXStatistics {
+export class GPXStatistics {
     distance: {
         moving: number;
         total: number;
@@ -482,7 +471,7 @@ class GPXStatistics {
     }
 }
 
-type TrackPointStatistics = {
+export type TrackPointStatistics = {
     distance: number[],
     time: number[],
     speed: number[],
