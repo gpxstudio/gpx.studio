@@ -42,12 +42,19 @@
 			selectedClass: 'sortable-selected',
 			avoidImplicitDeselect: true,
 			onSelect: (e) => {
-				console.log('onSelect', e);
 				const index = parseInt(e.item.getAttribute('data-id'));
 				addSelectFile($files[index]);
+				if (!e.originalEvent.shiftKey && $selectedFiles.size > 1) {
+					$selectedFiles.forEach((file) => {
+						if (file !== $files[index]) {
+							deselectFile(file);
+							const index = $files.indexOf(file);
+							Sortable.utils.deselect(buttons[index]);
+						}
+					});
+				}
 			},
 			onDeselect: (e) => {
-				console.log('onDeselect');
 				const index = parseInt(e.item.getAttribute('data-id'));
 				deselectFile($files[index]);
 			}
@@ -57,7 +64,6 @@
 	selectFiles.update(() => {
 		return {
 			select: (file: GPXFile) => {
-				console.log('select');
 				buttons.forEach((button) => {
 					if (button) {
 						Sortable.utils.deselect(button);
@@ -68,13 +74,11 @@
 				selectFile(file);
 			},
 			addSelect: (file: GPXFile) => {
-				console.log('addSelect');
 				const index = $files.indexOf(file);
 				Sortable.utils.select(buttons[index]);
 				addSelectFile(file);
 			},
 			removeSelect: (file: GPXFile) => {
-				console.log('removeSelect');
 				const index = $files.indexOf(file);
 				Sortable.utils.deselect(buttons[index]);
 				deselectFile(file);
