@@ -123,3 +123,10 @@ export function addSelectFile(file: GPXFile) {
         return $selectedFiles;
     });
 }
+
+export function removeSelectFile(file: GPXFile) {
+    selectedFiles.update($selectedFiles => {
+        $selectedFiles.delete(file);
+        return $selectedFiles;
+    });
+}

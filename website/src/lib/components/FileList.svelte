@@ -1,17 +1,23 @@
 <script lang="ts">
-	import { files, selectedFiles, addSelectFile, selectFile } from '$lib/stores';
+	import { files, selectedFiles, addSelectFile, selectFile, removeSelectFile } from '$lib/stores';
 
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
-
-	import Sortable from 'sortablejs';
 
 	import { onMount } from 'svelte';
 
 	let tabs: HTMLDivElement;
 
-	onMount(() => {
+	onMount(async () => {
+		const sortablejs = await import('sortablejs');
+		const Sortable = sortablejs.default;
+		const MultiDrag = sortablejs.MultiDrag;
+
+		Sortable.mount(new MultiDrag());
+
 		Sortable.create(tabs, {
-			forceAutoScrollFallback: true
+			forceAutoScrollFallback: true,
+			multiDrag: true,
+			multiDragKey: 'shift'
 		});
 	});
 </script>
@@ -23,10 +29,14 @@
 				<button
 					class="my-1 px-1.5 py-1 rounded {$selectedFiles.has(file)
 						? 'bg-background shadow'
-						: 'bg-secondary'} first:ml-1 last:mr-1"
+						: 'bg-secondary hover:bg-gray-200'} first:ml-1 last:mr-1"
 					on:click={(e) => {
 						if (e.shiftKey) {
-							addSelectFile(file);
+							if ($selectedFiles.has(file)) {
+								removeSelectFile(file);
+							} else {
+								addSelectFile(file);
+							}
 						} else {
 							selectFile(file);
 						}
