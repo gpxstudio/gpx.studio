@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Data from '$lib/components/Data.svelte';
+	import ElevationProfile from '$lib/components/ElevationProfile.svelte';
 	import FileList from '$lib/components/FileList.svelte';
 	import GPXData from '$lib/components/GPXData.svelte';
 	import Map from '$lib/components/Map.svelte';
@@ -16,8 +17,9 @@
 		<LayerControl />
 		<Data />
 	</div>
-	<div class="h-60 flex flex-row">
+	<div class="h-60 flex flex-row overflow-hidden">
 		<FileList />
 		<GPXData />
+		<ElevationProfile />
 	</div>
 </div>

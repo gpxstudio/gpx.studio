@@ -35,7 +35,7 @@
 
 <div class="absolute top-2 left-0 right-0 z-10 flex flex-row justify-center pointer-events-none">
 	<div
-		class="w-fit flex flex-row items-center p-1 bg-background rounded-md pointer-events-auto shadow-md"
+		class="w-fit flex flex-row flex-wrap mx-16 items-center justify-center p-1 bg-background rounded-md pointer-events-auto shadow-md"
 	>
 		<Logo class="h-5 mt-0.5 mx-2" />
 		<Menubar.Root class="border-none h-fit p-0">

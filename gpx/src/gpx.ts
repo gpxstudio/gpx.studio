@@ -19,6 +19,7 @@ abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
 
     abstract getStartTimestamp(): Date;
     abstract getEndTimestamp(): Date;
+    abstract getTrackPointsAndStatistics(): { points: TrackPoint[], statistics: TrackPointStatistics };
 
     abstract toGeoJSON(): any;
 }
@@ -69,6 +70,35 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
 
     getEndTimestamp(): Date {
         return this.getChildren()[this.getChildren().length - 1].getEndTimestamp();
+    }
+
+    getTrackPointsAndStatistics(): { points: TrackPoint[]; statistics: TrackPointStatistics; } {
+        let points: TrackPoint[] = [];
+        let statistics: TrackPointStatistics = {
+            distance: [],
+            time: [],
+            speed: [],
+            elevation: {
+                smoothed: [],
+                gain: [],
+                loss: [],
+            },
+            slope: [],
+        };
+
+        for (let child of this.getChildren()) {
+            let childData = child.getTrackPointsAndStatistics();
+            points = points.concat(childData.points);
+            statistics.distance = statistics.distance.concat(childData.statistics.distance);
+            statistics.time = statistics.time.concat(childData.statistics.time);
+            statistics.speed = statistics.speed.concat(childData.statistics.speed);
+            statistics.elevation.smoothed = statistics.elevation.smoothed.concat(childData.statistics.elevation.smoothed);
+            statistics.elevation.gain = statistics.elevation.gain.concat(childData.statistics.elevation.gain);
+            statistics.elevation.loss = statistics.elevation.loss.concat(childData.statistics.elevation.loss);
+            statistics.slope = statistics.slope.concat(childData.statistics.slope);
+        }
+
+        return { points, statistics };
     }
 }
 
@@ -349,6 +379,13 @@ export class TrackSegment extends GPXTreeLeaf {
 
     getEndTimestamp(): Date {
         return this.trkpt[this.trkpt.length - 1].time;
+    }
+
+    getTrackPointsAndStatistics(): { points: TrackPoint[], statistics: TrackPointStatistics } {
+        return {
+            points: this.trkpt,
+            statistics: this.trkptStatistics
+        };
     }
 
     toGeoJSON(): any {
