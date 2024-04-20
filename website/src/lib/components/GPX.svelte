@@ -39,9 +39,10 @@
 </script>
 
 <script lang="ts">
-	import { GPXFile } from 'gpx';
-	import { map, selectedFiles, addSelectFile, selectFile } from '$lib/stores';
 	import { onDestroy } from 'svelte';
+	import { GPXFile } from 'gpx';
+	import { map, selectedFiles, selectFiles } from '$lib/stores';
+	import { get } from 'svelte/store';
 
 	export let file: GPXFile;
 
@@ -50,9 +51,9 @@
 
 	function selectOnClick(e: any) {
 		if (e.originalEvent.shiftKey) {
-			addSelectFile(file);
+			get(selectFiles).addSelect(file);
 		} else {
-			selectFile(file);
+			get(selectFiles).select(file);
 		}
 	}
 

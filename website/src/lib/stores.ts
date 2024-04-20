@@ -6,6 +6,7 @@ import { GPXFile, buildGPX, parseGPX } from 'gpx';
 export const map = writable<mapboxgl.Map | null>(null);
 export const files = writable<GPXFile[]>([]);
 export const selectedFiles = writable<Set<GPXFile>>(new Set());
+export const selectFiles = writable<{ [key: string]: (file: GPXFile) => void }>({});
 
 export function triggerFileInput() {
     const input = document.createElement('input');
@@ -21,26 +22,32 @@ export function triggerFileInput() {
     input.click();
 }
 
-export function loadFiles(files: FileList) {
-    for (let i = 0; i < files.length; i++) {
-        loadFile(files[i]);
+export async function loadFiles(list: FileList) {
+    for (let i = 0; i < list.length; i++) {
+        await loadFile(list[i]);
+        if (i == 0) {
+            get(selectFiles).select(get(files)[get(files).length - 1]);
+        }
     }
 }
 
-export function loadFile(file: File) {
-    const reader = new FileReader();
-    reader.onload = () => {
-        let data = reader.result?.toString() ?? null;
-        if (data) {
-            let gpx = parseGPX(data);
-            if (gpx.metadata.name === undefined) {
-                gpx.metadata['name'] = file.name.split('.').slice(0, -1).join('.');
+export async function loadFile(file: File) {
+    let result = await new Promise<void>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            let data = reader.result?.toString() ?? null;
+            if (data) {
+                let gpx = parseGPX(data);
+                if (gpx.metadata.name === undefined) {
+                    gpx.metadata['name'] = file.name.split('.').slice(0, -1).join('.');
+                }
+                files.update($files => [...$files, gpx]);
             }
-            files.update($files => [...$files, gpx]);
-            selectFile(gpx);
-        }
-    };
-    reader.readAsText(file);
+            resolve();
+        };
+        reader.readAsText(file);
+    });
+    return result;
 }
 
 export function duplicateSelectedFiles() {
@@ -52,7 +59,6 @@ export function duplicateSelectedFiles() {
 export function duplicateFile(file: GPXFile) {
     let clone = file.clone();
     files.update($files => [...$files, clone]);
-    selectFile(clone);
 }
 
 export function removeSelectedFiles() {
@@ -67,10 +73,7 @@ export function removeSelectedFiles() {
             index++;
         }
     }
-    selectedFiles.update($selectedFiles => {
-        $selectedFiles.clear();
-        return $selectedFiles;
-    });
+    get(selectedFiles).clear();
 }
 
 export function removeAllFiles() {
@@ -78,10 +81,7 @@ export function removeAllFiles() {
         $files.splice(0, $files.length);
         return $files;
     });
-    selectedFiles.update($selectedFiles => {
-        $selectedFiles.clear();
-        return $selectedFiles;
-    });
+    get(selectedFiles).clear();
 }
 
 export function exportSelectedFiles() {
@@ -107,26 +107,4 @@ export function exportFile(file: GPXFile) {
 
 export function reverseSelectedFiles() {
     get(selectedFiles).forEach(file => file.reverse());
-}
-
-export function selectFile(file: GPXFile) {
-    selectedFiles.update($selectedFiles => {
-        $selectedFiles.clear();
-        $selectedFiles.add(file);
-        return $selectedFiles;
-    });
-}
-
-export function addSelectFile(file: GPXFile) {
-    selectedFiles.update($selectedFiles => {
-        $selectedFiles.add(file);
-        return $selectedFiles;
-    });
-}
-
-export function removeSelectFile(file: GPXFile) {
-    selectedFiles.update($selectedFiles => {
-        $selectedFiles.delete(file);
-        return $selectedFiles;
-    });
 }

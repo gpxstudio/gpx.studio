@@ -22,7 +22,8 @@
 			hash: true,
 			language: 'auto',
 			attributionControl: false,
-			logoPosition: 'bottom-right'
+			logoPosition: 'bottom-right',
+			boxZoom: false
 		});
 
 		$map.addControl(
