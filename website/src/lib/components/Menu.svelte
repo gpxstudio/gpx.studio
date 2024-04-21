@@ -11,8 +11,6 @@
 		Trash2,
 		HeartHandshake,
 		Upload,
-		CloudDownload,
-		CloudUpload,
 		Cloud
 	} from 'lucide-svelte';
 

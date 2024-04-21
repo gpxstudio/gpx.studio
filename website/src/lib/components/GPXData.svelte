@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card';
-	import GPXDataItem from '$lib/components/GPXDataItem.svelte';
+	import Tooltip from '$lib/components/Tooltip.svelte';
 
 	import { GPXStatistics } from 'gpx';
 
@@ -30,14 +30,14 @@
 
 <Card.Root class="h-full overflow-hidden border-none">
 	<Card.Content class="h-full flex flex-col flex-wrap gap-4 justify-center">
-		<GPXDataItem>
+		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
 				<Ruler size="18" class="mr-1" />
 				{gpxData.distance.total.toFixed(2)} km
 			</span>
 			<span slot="tooltip">Distance</span>
-		</GPXDataItem>
-		<GPXDataItem>
+		</Tooltip>
+		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
 				<MoveUpRight size="18" class="mr-1" />
 				{gpxData.elevation.gain.toFixed(0)} m
@@ -45,20 +45,20 @@
 				{gpxData.elevation.loss.toFixed(0)} m
 			</span>
 			<span slot="tooltip">Elevation</span>
-		</GPXDataItem>
-		<GPXDataItem>
+		</Tooltip>
+		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
 				<Zap size="18" class="mr-1" />
 				{gpxData.speed.moving.toFixed(2)} km/h
 			</span>
 			<span slot="tooltip">Time</span>
-		</GPXDataItem>
-		<GPXDataItem>
+		</Tooltip>
+		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
 				<Timer size="18" class="mr-1" />
 				{toHHMMSS(gpxData.time.moving)} / {toHHMMSS(gpxData.time.total)}
 			</span>
 			<span slot="tooltip">Moving time / Total time</span>
-		</GPXDataItem>
+		</Tooltip>
 	</Card.Content>
 </Card.Root>
