@@ -25,14 +25,16 @@
 						type: 'linear',
 						title: {
 							display: true,
-							text: 'Distance (km)'
+							text: 'Distance (km)',
+							padding: 0
 						}
 					},
 					y: {
 						type: 'linear',
 						title: {
 							display: true,
-							text: 'Elevation (m)'
+							text: 'Elevation (m)',
+							padding: 0
 						}
 					},
 					y1: {
@@ -40,7 +42,8 @@
 						position: 'right',
 						title: {
 							display: true,
-							text: 'Speed (km/h)'
+							text: 'Speed (km/h)',
+							padding: 0
 						},
 						grid: {
 							display: false
@@ -51,7 +54,8 @@
 						position: 'right',
 						title: {
 							display: true,
-							text: 'Slope (%)'
+							text: 'Slope (%)',
+							padding: 0
 						},
 						grid: {
 							display: false
