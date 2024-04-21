@@ -34,25 +34,50 @@
 							display: true,
 							text: 'Elevation (m)'
 						}
+					},
+					y1: {
+						type: 'linear',
+						position: 'right',
+						title: {
+							display: true,
+							text: 'Speed (km/h)'
+						},
+						grid: {
+							display: false
+						}
+					},
+					y2: {
+						type: 'linear',
+						position: 'right',
+						title: {
+							display: true,
+							text: 'Slope (%)'
+						},
+						grid: {
+							display: false
+						}
 					}
 				},
 				datasets: {
 					line: {
-						pointRadius: 0
+						pointRadius: 0,
+						tension: 0.4
 					}
 				},
 				interaction: {
-					mode: 'index',
+					mode: 'nearest',
+					axis: 'x',
 					intersect: false
 				},
 				plugins: {
 					legend: {
-						position: 'right'
+						display: false
 					},
 					decimation: {
 						enabled: true
 					}
-				}
+				},
+				stacked: false
 			}
 		});
 	});
@@ -69,7 +94,30 @@
 							y: point.ele ? point.ele : 0
 						};
 					}),
-					normalized: true
+					normalized: true,
+					fill: true
+				};
+				chart.data.datasets[1] = {
+					label: 'Speed',
+					data: trackPointsAndStatistics.points.map((point, index) => {
+						return {
+							x: trackPointsAndStatistics.statistics.distance[index],
+							y: trackPointsAndStatistics.statistics.speed[index]
+						};
+					}),
+					normalized: true,
+					yAxisID: 'y1'
+				};
+				chart.data.datasets[2] = {
+					label: 'Slope',
+					data: trackPointsAndStatistics.points.map((point, index) => {
+						return {
+							x: trackPointsAndStatistics.statistics.distance[index],
+							y: trackPointsAndStatistics.statistics.slope[index]
+						};
+					}),
+					normalized: true,
+					yAxisID: 'y2'
 				};
 				chart.options.scales.x['min'] = 0;
 				chart.options.scales.x['max'] = file.statistics.distance.total;
@@ -79,6 +127,6 @@
 	}
 </script>
 
-<div class="h-full grow min-w-0 p-4">
+<div class="h-full grow min-w-0 py-4">
 	<canvas bind:this={canvas}> </canvas>
 </div>

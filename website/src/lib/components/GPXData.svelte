@@ -29,7 +29,7 @@
 </script>
 
 <Card.Root class="h-full overflow-hidden border-none">
-	<Card.Content class="h-full flex flex-col flex-wrap gap-4 p-4 justify-center">
+	<Card.Content class="h-full flex flex-col flex-wrap gap-4 justify-center">
 		<GPXDataItem>
 			<span slot="data" class="flex flex-row items-center">
 				<Ruler size="18" class="mr-1" />

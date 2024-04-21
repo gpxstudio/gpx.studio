@@ -297,31 +297,17 @@ export class TrackSegment extends GPXTreeLeaf {
         statistics.speed.total = statistics.distance.total / (statistics.time.total / 3600);
         statistics.speed.moving = statistics.distance.moving / (statistics.time.moving / 3600);
 
+        trkptStatistics.speed = distanceWindowSmoothingWithDistanceAccumulator(points, 200, (accumulated, start, end) => 3600 * accumulated / (points[end].time.getTime() - points[start].time.getTime()));
+
         this.trkptStatistics = trkptStatistics;
 
         return statistics;
     }
 
     computeSmoothedElevation(): number[] {
-        const ELEVATION_SMOOTHING_DISTANCE_THRESHOLD = 100;
-
-        let smoothed = [];
-
         const points = this.trkpt;
 
-        let start = 0, end = -1, cumul = 0;
-        for (var i = 0; i < points.length; i++) {
-            while (start < i && distance(points[start].getCoordinates(), points[i].getCoordinates()) > ELEVATION_SMOOTHING_DISTANCE_THRESHOLD) {
-                cumul -= points[start].ele;
-                start++;
-            }
-            while (end + 1 < points.length && distance(points[i].getCoordinates(), points[end + 1].getCoordinates()) <= ELEVATION_SMOOTHING_DISTANCE_THRESHOLD) {
-                cumul += points[end + 1].ele;
-                end++;
-            }
-
-            smoothed.push(cumul / (end - start + 1));
-        }
+        let smoothed = distanceWindowSmoothing(points, 100, (index) => points[index].ele, (accumulated, start, end) => accumulated / (end - start + 1));
 
         if (points.length > 0) {
             smoothed[0] = points[0].ele;
@@ -332,26 +318,9 @@ export class TrackSegment extends GPXTreeLeaf {
     }
 
     computeSlope(): number[] {
-        let slope = [];
-
-        const SLOPE_DISTANCE_THRESHOLD = 100;
-
         const points = this.trkpt;
 
-        let start = 0, end = 0, windowDistance = 0;
-        for (var i = 0; i < points.length; i++) {
-            while (start < i && distance(points[start].getCoordinates(), points[i].getCoordinates()) > SLOPE_DISTANCE_THRESHOLD) {
-                windowDistance -= distance(points[start].getCoordinates(), points[start + 1].getCoordinates());
-                start++;
-            }
-            while (end + 1 < points.length && distance(points[i].getCoordinates(), points[end + 1].getCoordinates()) <= SLOPE_DISTANCE_THRESHOLD) {
-                windowDistance += distance(points[end].getCoordinates(), points[end + 1].getCoordinates());
-                end++;
-            }
-            slope[i] = windowDistance > 1e-3 ? 100 * (points[end].ele - points[start].ele) / windowDistance : 0;
-        }
-
-        return slope;
+        return distanceWindowSmoothingWithDistanceAccumulator(points, 250, (accumulated, start, end) => accumulated > 1e-3 ? 100 * (points[end].ele - points[start].ele) / accumulated : 0);
     }
 
     reverse(originalNextTimestamp: Date | undefined, newPreviousTimestamp: Date | undefined): void {
@@ -528,4 +497,31 @@ function distance(coord1: Coordinates, coord2: Coordinates): number {
     const a = Math.sin(lat1) * Math.sin(lat2) + Math.cos(lat1) * Math.cos(lat2) * Math.cos((coord2.lon - coord1.lon) * rad);
     const maxMeters = earthRadius * Math.acos(Math.min(a, 1));
     return maxMeters;
+}
+
+function distanceWindowSmoothing(points: TrackPoint[], distanceWindow: number, accumulate: (index: number) => number, compute: (accumulated: number, start: number, end: number) => number, remove?: (index: number) => number): number[] {
+    let result = [];
+
+    let start = 0, end = 0, accumulated = 0;
+    for (var i = 0; i < points.length; i++) {
+        while (start < i && distance(points[start].getCoordinates(), points[i].getCoordinates()) > distanceWindow) {
+            if (remove) {
+                accumulated -= remove(start);
+            } else {
+                accumulated -= accumulate(start);
+            }
+            start++;
+        }
+        while (end < points.length && distance(points[i].getCoordinates(), points[end].getCoordinates()) <= distanceWindow) {
+            accumulated += accumulate(end);
+            end++;
+        }
+        result[i] = compute(accumulated, start, end - 1);
+    }
+
+    return result;
+}
+
+function distanceWindowSmoothingWithDistanceAccumulator(points: TrackPoint[], distanceWindow: number, compute: (accumulated: number, start: number, end: number) => number): number[] {
+    return distanceWindowSmoothing(points, distanceWindow, (index) => index > 0 ? distance(points[index - 1].getCoordinates(), points[index].getCoordinates()) : 0, compute, (index) => distance(points[index].getCoordinates(), points[index + 1].getCoordinates()));
 }
