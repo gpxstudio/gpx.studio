@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { fileOrder, files, selectedFiles, selectFiles } from '$lib/stores';
+	import { fileOrder, fileCollection, selectedFiles, selectFiles } from '$lib/stores';
 
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index';
 	import Sortable from 'sortablejs/Sortable';
@@ -30,7 +30,7 @@
 
 	function selectAllFiles() {
 		selectedFiles.update((selectedFiles) => {
-			get(files).forEach((file) => {
+			get(fileCollection).files.forEach((file) => {
 				selectedFiles.add(file);
 			});
 			return selectedFiles;
@@ -53,12 +53,12 @@
 			avoidImplicitDeselect: true,
 			onSelect: (e) => {
 				const index = parseInt(e.item.getAttribute('data-id'));
-				addSelectFile($files[index]);
+				addSelectFile($fileCollection.files[index]);
 				if (!e.originalEvent.shiftKey && $selectedFiles.size > 1) {
 					$selectedFiles.forEach((file) => {
-						if (file !== $files[index]) {
+						if (file !== $fileCollection.files[index]) {
 							deselectFile(file);
-							const index = $files.indexOf(file);
+							const index = $fileCollection.files.indexOf(file);
 							Sortable.utils.deselect(buttons[index]);
 						}
 					});
@@ -66,10 +66,12 @@
 			},
 			onDeselect: (e) => {
 				const index = parseInt(e.item.getAttribute('data-id'));
-				deselectFile($files[index]);
+				deselectFile($fileCollection.files[index]);
 			},
 			onSort: () => {
-				$fileOrder = sortable.toArray().map((index) => $files[parseInt(index)]);
+				$fileOrder = sortable
+					.toArray()
+					.map((index: string) => $fileCollection.files[parseInt(index)]);
 			}
 		});
 	});
@@ -82,23 +84,23 @@
 						Sortable.utils.deselect(button);
 					}
 				});
-				const index = $files.indexOf(file);
+				const index = $fileCollection.files.indexOf(file);
 				Sortable.utils.select(buttons[index]);
 				selectFile(file);
 			},
 			addSelect: (file: GPXFile) => {
-				const index = $files.indexOf(file);
+				const index = $fileCollection.files.indexOf(file);
 				Sortable.utils.select(buttons[index]);
 				addSelectFile(file);
 			},
 			selectAllFiles: () => {
-				$files.forEach((file, index) => {
+				$fileCollection.files.forEach((file, index) => {
 					Sortable.utils.select(buttons[index]);
 				});
 				selectAllFiles();
 			},
 			removeSelect: (file: GPXFile) => {
-				const index = $files.indexOf(file);
+				const index = $fileCollection.files.indexOf(file);
 				Sortable.utils.deselect(buttons[index]);
 				deselectFile(file);
 			}
@@ -109,7 +111,7 @@
 <div class="absolute h-10 -translate-y-10 w-fit max-w-full bg-secondary rounded-t">
 	<ScrollArea orientation="horizontal" class="w-full h-full" scrollbarXClasses="h-2">
 		<div bind:this={tabs} class="flex flex-row gap-1">
-			{#each $files as file, index}
+			{#each $fileCollection.files as file, index}
 				<button
 					bind:this={buttons[index]}
 					data-id={index}

@@ -1,13 +1,20 @@
 import { writable, get } from 'svelte/store';
 
 import mapboxgl from 'mapbox-gl';
-import { GPXFile, buildGPX, parseGPX } from 'gpx';
+import { GPXFile, GPXFiles, buildGPX, parseGPX } from 'gpx';
 
 export const map = writable<mapboxgl.Map | null>(null);
-export const files = writable<GPXFile[]>([]);
+export const fileCollection = writable<GPXFiles>(new GPXFiles([]));
 export const fileOrder = writable<GPXFile[]>([]);
 export const selectedFiles = writable<Set<GPXFile>>(new Set());
 export const selectFiles = writable<{ [key: string]: (file?: GPXFile) => void }>({});
+
+export function addFile(file: GPXFile) {
+    fileCollection.update($files => {
+        $files.files.push(file);
+        return $files;
+    });
+}
 
 export function triggerFileInput() {
     const input = document.createElement('input');
@@ -25,15 +32,15 @@ export function triggerFileInput() {
 
 export async function loadFiles(list: FileList) {
     for (let i = 0; i < list.length; i++) {
-        await loadFile(list[i]);
-        if (i == 0) {
-            get(selectFiles).select(get(files)[get(files).length - 1]);
+        let file = await loadFile(list[i]);
+        if (i == 0 && file) {
+            get(selectFiles).select(file);
         }
     }
 }
 
 export async function loadFile(file: File) {
-    let result = await new Promise<void>((resolve) => {
+    let result = await new Promise<GPXFile | null>((resolve) => {
         const reader = new FileReader();
         reader.onload = () => {
             let data = reader.result?.toString() ?? null;
@@ -42,9 +49,11 @@ export async function loadFile(file: File) {
                 if (gpx.metadata.name === undefined) {
                     gpx.metadata['name'] = file.name.split('.').slice(0, -1).join('.');
                 }
-                files.update($files => [...$files, gpx]);
+                addFile(gpx);
+                resolve(gpx);
+            } else {
+                resolve(null);
             }
-            resolve();
         };
         reader.readAsText(file);
     });
@@ -59,15 +68,15 @@ export function duplicateSelectedFiles() {
 
 export function duplicateFile(file: GPXFile) {
     let clone = file.clone();
-    files.update($files => [...$files, clone]);
+    addFile(clone);
 }
 
 export function removeSelectedFiles() {
     let index = 0;
-    while (index < get(files).length) {
-        if (get(selectedFiles).has(get(files)[index])) {
-            files.update($files => {
-                $files.splice(index, 1);
+    while (index < get(fileCollection).files.length) {
+        if (get(selectedFiles).has(get(fileCollection).files[index])) {
+            fileCollection.update($files => {
+                $files.files.splice(index, 1);
                 return $files;
             });
         } else {
@@ -78,8 +87,8 @@ export function removeSelectedFiles() {
 }
 
 export function removeAllFiles() {
-    files.update($files => {
-        $files.splice(0, $files.length);
+    fileCollection.update($files => {
+        $files.files.splice(0, $files.files.length);
         return $files;
     });
     get(selectedFiles).clear();
@@ -90,8 +99,8 @@ export function exportSelectedFiles() {
 }
 
 export async function exportAllFiles() {
-    for (let i = 0; i < get(files).length; i++) {
-        exportFile(get(files)[i]);
+    for (let file of get(fileCollection).files) {
+        exportFile(file);
         await new Promise(resolve => setTimeout(resolve, 200));
     }
 }

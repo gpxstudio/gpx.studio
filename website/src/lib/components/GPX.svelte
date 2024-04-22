@@ -41,7 +41,7 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 	import { GPXFile } from 'gpx';
-	import { map, selectedFiles, selectFiles, files } from '$lib/stores';
+	import { map, selectedFiles, selectFiles, fileCollection } from '$lib/stores';
 	import { get } from 'svelte/store';
 
 	export let file: GPXFile;
@@ -127,7 +127,7 @@
 	onMount(() => {
 		addGPXLayer();
 		if ($map) {
-			if ($files.length == 1) {
+			if ($fileCollection.files.length == 1) {
 				$map.fitBounds([file.statistics.bounds.southWest, file.statistics.bounds.northEast], {
 					padding: 60,
 					linear: true,

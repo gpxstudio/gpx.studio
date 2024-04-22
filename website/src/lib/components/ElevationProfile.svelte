@@ -6,7 +6,7 @@
 	import Chart from 'chart.js/auto';
 	import mapboxgl from 'mapbox-gl';
 
-	import { map, files, fileOrder, selectedFiles } from '$lib/stores';
+	import { map, fileCollection, fileOrder, selectedFiles } from '$lib/stores';
 
 	import { onDestroy, onMount } from 'svelte';
 	import {
@@ -75,10 +75,10 @@
 			},
 			tooltip: {
 				callbacks: {
-					title: function (context) {
+					title: function () {
 						return '';
 					},
-					label: function (context) {
+					label: function (context: Chart.TooltipContext) {
 						let point = context.raw;
 						if (context.datasetIndex === 0) {
 							let elevation = point.y.toFixed(0);
@@ -104,7 +104,7 @@
 							return `Power: ${power} W`;
 						}
 					},
-					afterBody: function (contexts) {
+					afterBody: function (contexts: Chart.TooltipContext[]) {
 						let context = contexts.filter((context) => context.datasetIndex === 0);
 						if (context.length === 0) return;
 						let point = context[0].raw;
@@ -124,7 +124,13 @@
 		stacked: false
 	};
 
-	let datasets = {
+	let datasets: {
+		[key: string]: {
+			id: string;
+			label: string;
+			units: string;
+		};
+	} = {
 		speed: {
 			id: 'speed',
 			label: 'Speed',
@@ -179,7 +185,7 @@
 				{
 					id: 'toggleMarker',
 					events: ['mouseout'],
-					afterEvent: function (chart, args) {
+					afterEvent: function (chart: Chart, args: { event: Chart.ChartEvent }) {
 						if (args.event.type === 'mouseout') {
 							if ($map && marker) {
 								marker.remove();
@@ -194,7 +200,7 @@
 
 	$: if (chart) {
 		let gpxFiles = new GPXFiles(Array.from($selectedFiles));
-		let order = $fileOrder.length == 0 ? $files : $fileOrder;
+		let order = $fileOrder.length == 0 ? $fileCollection.files : $fileOrder;
 		gpxFiles.files.sort(function (a, b) {
 			return order.indexOf(a) - order.indexOf(b);
 		});

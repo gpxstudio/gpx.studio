@@ -1,9 +1,9 @@
 <script lang="ts">
 	import GPX from './GPX.svelte';
 
-	import { files } from '$lib/stores';
+	import { fileCollection } from '$lib/stores';
 </script>
 
-{#each $files as file}
+{#each $fileCollection.files as file}
 	<GPX {file} />
 {/each}

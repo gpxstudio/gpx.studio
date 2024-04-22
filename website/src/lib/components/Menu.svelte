@@ -15,7 +15,7 @@
 	} from 'lucide-svelte';
 
 	import {
-		files,
+		fileCollection,
 		selectedFiles,
 		duplicateSelectedFiles,
 		exportAllFiles,
@@ -62,7 +62,7 @@
 					<Menubar.Item on:click={exportSelectedFiles} disabled={$selectedFiles.size == 0}>
 						<Download size="16" class="mr-1" /> Export... <Menubar.Shortcut>⌘S</Menubar.Shortcut>
 					</Menubar.Item>
-					<Menubar.Item on:click={exportAllFiles} disabled={$files.length == 0}>
+					<Menubar.Item on:click={exportAllFiles} disabled={$fileCollection.files.length == 0}>
 						<Download size="16" class="mr-1" /> Export all... <Menubar.Shortcut
 							>⇧⌘S</Menubar.Shortcut
 						>
@@ -86,7 +86,7 @@
 					<Menubar.Item
 						class="text-destructive data-[highlighted]:text-destructive"
 						on:click={removeAllFiles}
-						disabled={$files.length == 0}
+						disabled={$fileCollection.files.length == 0}
 					>
 						<Trash2 size="16" class="mr-1" /> Delete all<Menubar.Shortcut>⇧⌘⌫</Menubar.Shortcut
 						></Menubar.Item
