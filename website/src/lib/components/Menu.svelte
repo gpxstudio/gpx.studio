@@ -22,7 +22,8 @@
 		exportSelectedFiles,
 		removeAllFiles,
 		removeSelectedFiles,
-		triggerFileInput
+		triggerFileInput,
+		selectFiles
 	} from '$lib/stores';
 
 	let distanceUnits = 'metric';
@@ -169,6 +170,9 @@
 			} else {
 				removeSelectedFiles();
 			}
+			e.preventDefault();
+		} else if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {
+			$selectFiles.selectAllFiles();
 			e.preventDefault();
 		}
 	}}

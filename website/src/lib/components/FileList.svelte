@@ -2,11 +2,12 @@
 	import { fileOrder, files, selectedFiles, selectFiles } from '$lib/stores';
 
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index';
-
 	import Sortable from 'sortablejs/Sortable';
 
-	import { onMount, tick } from 'svelte';
 	import type { GPXFile } from 'gpx';
+
+	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
 
 	let tabs: HTMLDivElement;
 	let buttons: HTMLButtonElement[] = [];
@@ -23,6 +24,15 @@
 	function addSelectFile(file: GPXFile) {
 		selectedFiles.update((selectedFiles) => {
 			selectedFiles.add(file);
+			return selectedFiles;
+		});
+	}
+
+	function selectAllFiles() {
+		selectedFiles.update((selectedFiles) => {
+			get(files).forEach((file) => {
+				selectedFiles.add(file);
+			});
 			return selectedFiles;
 		});
 	}
@@ -80,6 +90,12 @@
 				const index = $files.indexOf(file);
 				Sortable.utils.select(buttons[index]);
 				addSelectFile(file);
+			},
+			selectAllFiles: () => {
+				$files.forEach((file, index) => {
+					Sortable.utils.select(buttons[index]);
+				});
+				selectAllFiles();
 			},
 			removeSelect: (file: GPXFile) => {
 				const index = $files.indexOf(file);

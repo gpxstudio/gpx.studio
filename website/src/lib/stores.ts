@@ -7,7 +7,7 @@ export const map = writable<mapboxgl.Map | null>(null);
 export const files = writable<GPXFile[]>([]);
 export const fileOrder = writable<GPXFile[]>([]);
 export const selectedFiles = writable<Set<GPXFile>>(new Set());
-export const selectFiles = writable<{ [key: string]: (file: GPXFile) => void }>({});
+export const selectFiles = writable<{ [key: string]: (file?: GPXFile) => void }>({});
 
 export function triggerFileInput() {
     const input = document.createElement('input');
