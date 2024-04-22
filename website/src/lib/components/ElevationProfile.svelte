@@ -4,8 +4,9 @@
 	import { Separator } from '$lib/components/ui/separator';
 
 	import Chart from 'chart.js/auto';
+	import mapboxgl from 'mapbox-gl';
 
-	import { files, fileOrder, selectedFiles } from '$lib/stores';
+	import { map, files, fileOrder, selectedFiles } from '$lib/stores';
 
 	import { onDestroy, onMount } from 'svelte';
 	import {
@@ -28,6 +29,8 @@
 
 	let elevationFill: string;
 	let additionalDatasets: string[];
+
+	let marker: mapboxgl.Marker | null = null;
 
 	let options = {
 		animation: false,
@@ -79,6 +82,10 @@
 						let point = context.raw;
 						if (context.datasetIndex === 0) {
 							let elevation = point.y.toFixed(0);
+							if ($map && marker) {
+								marker.addTo($map);
+								marker.setLngLat(point.coordinates);
+							}
 							return `Elevation: ${elevation} m`;
 						} else if (context.datasetIndex === 1) {
 							let speed = point.y.toFixed(2);
@@ -167,8 +174,22 @@
 			data: {
 				datasets: []
 			},
-			options
+			options,
+			plugins: [
+				{
+					id: 'toggleMarker',
+					events: ['mouseout'],
+					afterEvent: function (chart, args) {
+						if (args.event.type === 'mouseout') {
+							if ($map && marker) {
+								marker.remove();
+							}
+						}
+					}
+				}
+			]
 		});
+		marker = new mapboxgl.Marker();
 	});
 
 	$: if (chart) {
@@ -186,7 +207,8 @@
 					x: trackPointsAndStatistics.statistics.distance[index],
 					y: point.ele ? point.ele : 0,
 					slope: trackPointsAndStatistics.statistics.slope[index],
-					surface: point.getSurface()
+					surface: point.getSurface(),
+					coordinates: point.getCoordinates()
 				};
 			}),
 			normalized: true,
