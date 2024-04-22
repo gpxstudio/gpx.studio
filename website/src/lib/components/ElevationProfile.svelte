@@ -69,6 +69,49 @@
 			},
 			decimation: {
 				enabled: true
+			},
+			tooltip: {
+				callbacks: {
+					title: function (context) {
+						return '';
+					},
+					label: function (context) {
+						let point = context.raw;
+						if (context.datasetIndex === 0) {
+							let elevation = point.y.toFixed(0);
+							return `Elevation: ${elevation} m`;
+						} else if (context.datasetIndex === 1) {
+							let speed = point.y.toFixed(2);
+							return `Speed: ${speed} km/h`;
+						} else if (context.datasetIndex === 2) {
+							let hr = point.y;
+							return `Heart Rate: ${hr} bpm`;
+						} else if (context.datasetIndex === 3) {
+							let cad = point.y;
+							return `Cadence: ${cad} rpm`;
+						} else if (context.datasetIndex === 4) {
+							let atemp = point.y.toFixed(1);
+							return `Temperature: ${atemp} °C`;
+						} else if (context.datasetIndex === 5) {
+							let power = point.y;
+							return `Power: ${power} W`;
+						}
+					},
+					afterBody: function (contexts) {
+						let context = contexts.filter((context) => context.datasetIndex === 0);
+						if (context.length === 0) return;
+						let point = context[0].raw;
+						let distance = point.x.toFixed(2);
+						let slope = point.slope.toFixed(1);
+						let surface = point.surface ? point.surface : 'unknown';
+
+						return [
+							`    Distance: ${distance} km`,
+							`    Slope: ${slope} %`,
+							`    Surface: ${surface}`
+						];
+					}
+				}
 			}
 		},
 		stacked: false
