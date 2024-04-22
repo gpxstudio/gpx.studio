@@ -115,9 +115,7 @@
 	}
 
 	$: if ($map) {
-		$map.on('style.load', () => {
-			addGPXLayer();
-		});
+		$map.on('style.load', addGPXLayer);
 	}
 
 	$: if ($selectedFiles.has(file)) {
@@ -174,6 +172,7 @@
 			$map.off('click', layerId, selectOnClick);
 			$map.off('mouseenter', layerId, toPointerCursor);
 			$map.off('mouseleave', layerId, toDefaultCursor);
+			$map.off('style.load', addGPXLayer);
 
 			$map.removeLayer(layerId);
 			$map.removeSource(layerId);
