@@ -28,7 +28,7 @@
 	}
 </script>
 
-<Card.Root class="h-full overflow-hidden border-none">
+<Card.Root class="h-full overflow-hidden border-none min-w-60">
 	<Card.Content class="h-full flex flex-col flex-wrap gap-4 justify-center">
 		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">

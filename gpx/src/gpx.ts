@@ -349,7 +349,7 @@ export class TrackSegment extends GPXTreeLeaf {
     computeSlope(): number[] {
         const points = this.trkpt;
 
-        return distanceWindowSmoothingWithDistanceAccumulator(points, 250, (accumulated, start, end) => accumulated > 1e-3 ? 100 * (points[end].ele - points[start].ele) / accumulated : 0);
+        return distanceWindowSmoothingWithDistanceAccumulator(points, 50, (accumulated, start, end) => 100 * (points[end].ele - points[start].ele) / accumulated);
     }
 
     reverse(originalNextTimestamp: Date | undefined, newPreviousTimestamp: Date | undefined): void {
@@ -441,6 +441,10 @@ export class TrackPoint {
 
     getPower(): number {
         return this.extensions && this.extensions["gpxpx:PowerExtension"] && this.extensions["gpxpx:PowerExtension"]["gpxpx:PowerInWatts"] ? this.extensions["gpxpx:PowerExtension"]["gpxpx:PowerInWatts"] : undefined;
+    }
+
+    getSurface(): string {
+        return this.extensions && this.extensions["gpxtpx:TrackPointExtension"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"].surface ? this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"].surface : undefined;
     }
 };
 

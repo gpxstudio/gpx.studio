@@ -18,6 +18,7 @@
 		Zap
 	} from 'lucide-svelte';
 	import { GPXFiles } from 'gpx';
+	import { surfaceColors } from '$lib/assets/surfaces';
 
 	let canvas: HTMLCanvasElement;
 	let chart: Chart;
@@ -53,7 +54,8 @@
 		datasets: {
 			line: {
 				pointRadius: 0,
-				tension: 0.4
+				tension: 0.4,
+				borderWidth: 2
 			}
 		},
 		interaction: {
@@ -139,11 +141,14 @@
 			data: trackPointsAndStatistics.points.map((point, index) => {
 				return {
 					x: trackPointsAndStatistics.statistics.distance[index],
-					y: point.ele ? point.ele : 0
+					y: point.ele ? point.ele : 0,
+					slope: trackPointsAndStatistics.statistics.slope[index],
+					surface: point.getSurface()
 				};
 			}),
 			normalized: true,
-			fill: true
+			fill: true,
+			order: 1
 		};
 		chart.data.datasets[1] = {
 			label: datasets.speed.label,
@@ -210,7 +215,62 @@
 		chart.update();
 	}
 
-	$: console.log(elevationFill);
+	let slopeColors = [
+		'#046307',
+		'#028306',
+		'#2AA12E',
+		'#53BF56',
+		'#7BDD7E',
+		'#A4FBA6',
+		'#edf0bd',
+		'#ffcc99',
+		'#F29898',
+		'#E07575',
+		'#CF5352',
+		'#BE312F',
+		'#AD0F0C'
+	];
+
+	function slopeFillCallback(context) {
+		let slope = context.p0.raw.slope;
+		if (slope <= 1 && slope >= -1) return slopeColors[6];
+		else if (slope > 0) {
+			if (slope <= 3) return slopeColors[7];
+			else if (slope <= 5) return slopeColors[8];
+			else if (slope <= 7) return slopeColors[9];
+			else if (slope <= 10) return slopeColors[10];
+			else if (slope <= 15) return slopeColors[11];
+			else return slopeColors[12];
+		} else {
+			if (slope >= -3) return slopeColors[5];
+			else if (slope >= -5) return slopeColors[4];
+			else if (slope >= -7) return slopeColors[3];
+			else if (slope >= -10) return slopeColors[2];
+			else if (slope >= -15) return slopeColors[1];
+			else return slopeColors[0];
+		}
+	}
+
+	function surfaceFillCallback(context) {
+		let surface = context.p0.raw.surface;
+		return surfaceColors[surface] ? surfaceColors[surface] : surfaceColors.missing;
+	}
+
+	$: if (chart) {
+		if (elevationFill === 'slope') {
+			chart.data.datasets[0]['segment'] = {
+				backgroundColor: slopeFillCallback
+			};
+		} else if (elevationFill === 'surface') {
+			chart.data.datasets[0]['segment'] = {
+				backgroundColor: surfaceFillCallback
+			};
+		} else {
+			chart.data.datasets[0]['segment'] = {};
+		}
+		chart.update();
+	}
+
 	$: if (additionalDatasets && chart) {
 		let includeSpeed = additionalDatasets.includes('speed');
 		let includeHeartRate = additionalDatasets.includes('hr');
