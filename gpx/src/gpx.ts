@@ -291,6 +291,12 @@ export class TrackSegment extends GPXTreeLeaf {
             }
 
             trkptStatistics.speed.push(speed);
+
+            // bounds
+            statistics.bounds.southWest.lat = Math.min(statistics.bounds.southWest.lat, points[i].attributes.lat);
+            statistics.bounds.southWest.lon = Math.max(statistics.bounds.southWest.lon, points[i].attributes.lon);
+            statistics.bounds.northEast.lat = Math.max(statistics.bounds.northEast.lat, points[i].attributes.lat);
+            statistics.bounds.northEast.lon = Math.min(statistics.bounds.northEast.lon, points[i].attributes.lon);
         }
 
         statistics.time.total = trkptStatistics.time[trkptStatistics.time.length - 1];
@@ -458,6 +464,10 @@ export class GPXStatistics {
         gain: number;
         loss: number;
     };
+    bounds: {
+        southWest: Coordinates;
+        northEast: Coordinates;
+    }
 
     constructor() {
         this.distance = {
@@ -476,6 +486,16 @@ export class GPXStatistics {
             gain: 0,
             loss: 0,
         };
+        this.bounds = {
+            southWest: {
+                lat: 90,
+                lon: -180,
+            },
+            northEast: {
+                lat: -90,
+                lon: 180,
+            },
+        };
     }
 
     mergeWith(other: GPXStatistics): void {
@@ -490,6 +510,11 @@ export class GPXStatistics {
 
         this.elevation.gain += other.elevation.gain;
         this.elevation.loss += other.elevation.loss;
+
+        this.bounds.southWest.lat = Math.min(this.bounds.southWest.lat, other.bounds.southWest.lat);
+        this.bounds.southWest.lon = Math.max(this.bounds.southWest.lon, other.bounds.southWest.lon);
+        this.bounds.northEast.lat = Math.max(this.bounds.northEast.lat, other.bounds.northEast.lat);
+        this.bounds.northEast.lon = Math.min(this.bounds.northEast.lon, other.bounds.northEast.lon);
     }
 }
 

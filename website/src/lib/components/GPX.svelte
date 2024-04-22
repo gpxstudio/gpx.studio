@@ -39,9 +39,9 @@
 </script>
 
 <script lang="ts">
-	import { onDestroy } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { GPXFile } from 'gpx';
-	import { map, selectedFiles, selectFiles } from '$lib/stores';
+	import { map, selectedFiles, selectFiles, files } from '$lib/stores';
 	import { get } from 'svelte/store';
 
 	export let file: GPXFile;
@@ -114,8 +114,6 @@
 		}
 	}
 
-	addGPXLayer();
-
 	$: if ($map) {
 		$map.on('style.load', () => {
 			addGPXLayer();
@@ -127,6 +125,49 @@
 			$map.moveLayer(layerId);
 		}
 	}
+
+	onMount(() => {
+		addGPXLayer();
+		if ($map) {
+			if ($files.length == 1) {
+				$map.fitBounds([file.statistics.bounds.southWest, file.statistics.bounds.northEast], {
+					padding: 60,
+					linear: true,
+					easing: () => 1
+				});
+			} else {
+				let mapBounds = $map.getBounds();
+				if (
+					mapBounds.contains(file.statistics.bounds.southWest) &&
+					mapBounds.contains(file.statistics.bounds.northEast) &&
+					mapBounds.contains([
+						file.statistics.bounds.southWest.lon,
+						file.statistics.bounds.northEast.lat
+					]) &&
+					mapBounds.contains([
+						file.statistics.bounds.northEast.lon,
+						file.statistics.bounds.southWest.lat
+					])
+				) {
+					return;
+				}
+
+				$map.fitBounds(
+					$map
+						.getBounds()
+						.extend([
+							file.statistics.bounds.southWest.lon,
+							file.statistics.bounds.southWest.lat,
+							file.statistics.bounds.northEast.lon,
+							file.statistics.bounds.northEast.lat
+						]),
+					{
+						padding: 60
+					}
+				);
+			}
+		}
+	});
 
 	onDestroy(() => {
 		if ($map) {

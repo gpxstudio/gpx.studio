@@ -13,6 +13,11 @@
 		'pk.eyJ1IjoiZ3B4c3R1ZGlvIiwiYSI6ImNrdHVoM2pjNTBodmUycG1yZTNwcnJ3MzkifQ.YZnNs9s9oCQPzoXAWs_SLg';
 
 	export let distanceUnits: 'metric' | 'imperial' = 'metric';
+	let fitBoundsOptions: mapboxgl.FitBoundsOptions = {
+		maxZoom: 15,
+		linear: true,
+		easing: () => 1
+	};
 
 	onMount(() => {
 		$map = new mapboxgl.Map({
@@ -38,7 +43,8 @@
 			new MapboxGeocoder({
 				accessToken: mapboxgl.accessToken,
 				mapboxgl: mapboxgl,
-				collapsed: true
+				collapsed: true,
+				flyTo: fitBoundsOptions
 			})
 		);
 
@@ -47,6 +53,7 @@
 				positionOptions: {
 					enableHighAccuracy: true
 				},
+				fitBoundsOptions,
 				trackUserLocation: true,
 				showUserHeading: true
 			})

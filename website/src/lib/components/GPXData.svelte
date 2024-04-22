@@ -51,7 +51,7 @@
 				<Zap size="18" class="mr-1" />
 				{gpxData.speed.moving.toFixed(2)} km/h
 			</span>
-			<span slot="tooltip">Time</span>
+			<span slot="tooltip">Speed</span>
 		</Tooltip>
 		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
