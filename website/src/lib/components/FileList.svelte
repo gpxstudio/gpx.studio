@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { files, selectedFiles, selectFiles } from '$lib/stores';
+	import { fileOrder, files, selectedFiles, selectFiles } from '$lib/stores';
 
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index';
 
@@ -57,6 +57,9 @@
 			onDeselect: (e) => {
 				const index = parseInt(e.item.getAttribute('data-id'));
 				deselectFile($files[index]);
+			},
+			onSort: () => {
+				$fileOrder = sortable.toArray().map((index) => $files[parseInt(index)]);
 			}
 		});
 	});

@@ -9,6 +9,7 @@ function cloneJSON<T>(obj: T): T {
 
 // An abstract class that groups functions that need to be computed recursively in the GPX file hierarchy
 abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
+    statistics: GPXStatistics;
 
     abstract isLeaf(): boolean;
     abstract getChildren(): T[];
@@ -26,8 +27,6 @@ abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
 
 // An abstract class that can be extended to facilitate functions working similarly with Tracks and TrackSegments
 abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement<T> {
-    statistics: GPXStatistics;
-
     isLeaf(): boolean {
         return false;
     }
@@ -86,16 +85,21 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
             slope: [],
         };
 
+        let current = new GPXStatistics();
         for (let child of this.getChildren()) {
             let childData = child.getTrackPointsAndStatistics();
             points = points.concat(childData.points);
-            statistics.distance = statistics.distance.concat(childData.statistics.distance);
-            statistics.time = statistics.time.concat(childData.statistics.time);
+
+            statistics.distance = statistics.distance.concat(childData.statistics.distance.map((distance) => distance + current.distance.total));
+            statistics.time = statistics.time.concat(childData.statistics.time.map((time) => time + current.time.total));
+            statistics.elevation.gain = statistics.elevation.gain.concat(childData.statistics.elevation.gain.map((gain) => gain + current.elevation.gain));
+            statistics.elevation.loss = statistics.elevation.loss.concat(childData.statistics.elevation.loss.map((loss) => loss + current.elevation.loss));
+
             statistics.speed = statistics.speed.concat(childData.statistics.speed);
             statistics.elevation.smoothed = statistics.elevation.smoothed.concat(childData.statistics.elevation.smoothed);
-            statistics.elevation.gain = statistics.elevation.gain.concat(childData.statistics.elevation.gain);
-            statistics.elevation.loss = statistics.elevation.loss.concat(childData.statistics.elevation.loss);
             statistics.slope = statistics.slope.concat(childData.statistics.slope);
+
+            current.mergeWith(child.statistics);
         }
 
         return { points, statistics };
@@ -110,6 +114,26 @@ abstract class GPXTreeLeaf extends GPXTreeElement<GPXTreeLeaf> {
 
     getChildren(): GPXTreeLeaf[] {
         return [];
+    }
+}
+
+// A class that represents a set of GPX files
+export class GPXFiles extends GPXTreeNode<GPXFile> {
+    files: GPXFile[];
+
+    constructor(files: GPXFile[]) {
+        super();
+        this.files = files;
+
+        this.computeStatistics();
+    }
+
+    getChildren(): GPXFile[] {
+        return this.files;
+    }
+
+    toGeoJSON(): any {
+        return this.getChildren().map((child) => child.toGeoJSON());
     }
 }
 
@@ -305,6 +329,7 @@ export class TrackSegment extends GPXTreeLeaf {
 
         trkptStatistics.speed = distanceWindowSmoothingWithDistanceAccumulator(points, 200, (accumulated, start, end) => 3600 * accumulated / (points[end].time.getTime() - points[start].time.getTime()));
 
+        this.statistics = statistics;
         this.trkptStatistics = trkptStatistics;
 
         return statistics;

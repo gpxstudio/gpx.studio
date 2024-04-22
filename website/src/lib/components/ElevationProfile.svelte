@@ -5,7 +5,7 @@
 
 	import Chart from 'chart.js/auto';
 
-	import { selectedFiles } from '$lib/stores';
+	import { files, fileOrder, selectedFiles } from '$lib/stores';
 
 	import { onDestroy, onMount } from 'svelte';
 	import {
@@ -17,6 +17,7 @@
 		Thermometer,
 		Zap
 	} from 'lucide-svelte';
+	import { GPXFiles } from 'gpx';
 
 	let canvas: HTMLCanvasElement;
 	let chart: Chart;
@@ -125,86 +126,88 @@
 		});
 	});
 
-	$: {
-		if ($selectedFiles.size == 1) {
-			$selectedFiles.forEach((file) => {
-				const trackPointsAndStatistics = file.getTrackPointsAndStatistics();
-				chart.data.datasets[0] = {
-					label: 'Elevation',
-					data: trackPointsAndStatistics.points.map((point, index) => {
-						return {
-							x: trackPointsAndStatistics.statistics.distance[index],
-							y: point.ele ? point.ele : 0
-						};
-					}),
-					normalized: true,
-					fill: true
+	$: if (chart) {
+		let gpxFiles = new GPXFiles(Array.from($selectedFiles));
+		let order = $fileOrder.length == 0 ? $files : $fileOrder;
+		gpxFiles.files.sort(function (a, b) {
+			return order.indexOf(a) - order.indexOf(b);
+		});
+
+		let trackPointsAndStatistics = gpxFiles.getTrackPointsAndStatistics();
+		chart.data.datasets[0] = {
+			label: 'Elevation',
+			data: trackPointsAndStatistics.points.map((point, index) => {
+				return {
+					x: trackPointsAndStatistics.statistics.distance[index],
+					y: point.ele ? point.ele : 0
 				};
-				chart.data.datasets[1] = {
-					label: datasets.speed.label,
-					data: trackPointsAndStatistics.points.map((point, index) => {
-						return {
-							x: trackPointsAndStatistics.statistics.distance[index],
-							y: trackPointsAndStatistics.statistics.speed[index]
-						};
-					}),
-					normalized: true,
-					yAxisID: `y${datasets.speed.id}`,
-					hidden: true
+			}),
+			normalized: true,
+			fill: true
+		};
+		chart.data.datasets[1] = {
+			label: datasets.speed.label,
+			data: trackPointsAndStatistics.points.map((point, index) => {
+				return {
+					x: trackPointsAndStatistics.statistics.distance[index],
+					y: trackPointsAndStatistics.statistics.speed[index]
 				};
-				chart.data.datasets[2] = {
-					label: datasets.hr.label,
-					data: trackPointsAndStatistics.points.map((point, index) => {
-						return {
-							x: trackPointsAndStatistics.statistics.distance[index],
-							y: point.getHeartRate()
-						};
-					}),
-					normalized: true,
-					yAxisID: `y${datasets.hr.id}`,
-					hidden: true
+			}),
+			normalized: true,
+			yAxisID: `y${datasets.speed.id}`,
+			hidden: true
+		};
+		chart.data.datasets[2] = {
+			label: datasets.hr.label,
+			data: trackPointsAndStatistics.points.map((point, index) => {
+				return {
+					x: trackPointsAndStatistics.statistics.distance[index],
+					y: point.getHeartRate()
 				};
-				chart.data.datasets[3] = {
-					label: datasets.cad.label,
-					data: trackPointsAndStatistics.points.map((point, index) => {
-						return {
-							x: trackPointsAndStatistics.statistics.distance[index],
-							y: point.getCadence()
-						};
-					}),
-					normalized: true,
-					yAxisID: `y${datasets.cad.id}`,
-					hidden: true
+			}),
+			normalized: true,
+			yAxisID: `y${datasets.hr.id}`,
+			hidden: true
+		};
+		chart.data.datasets[3] = {
+			label: datasets.cad.label,
+			data: trackPointsAndStatistics.points.map((point, index) => {
+				return {
+					x: trackPointsAndStatistics.statistics.distance[index],
+					y: point.getCadence()
 				};
-				chart.data.datasets[4] = {
-					label: datasets.atemp.label,
-					data: trackPointsAndStatistics.points.map((point, index) => {
-						return {
-							x: trackPointsAndStatistics.statistics.distance[index],
-							y: point.getTemperature()
-						};
-					}),
-					normalized: true,
-					yAxisID: `y${datasets.atemp.id}`,
-					hidden: true
+			}),
+			normalized: true,
+			yAxisID: `y${datasets.cad.id}`,
+			hidden: true
+		};
+		chart.data.datasets[4] = {
+			label: datasets.atemp.label,
+			data: trackPointsAndStatistics.points.map((point, index) => {
+				return {
+					x: trackPointsAndStatistics.statistics.distance[index],
+					y: point.getTemperature()
 				};
-				chart.data.datasets[5] = {
-					label: datasets.power.label,
-					data: trackPointsAndStatistics.points.map((point, index) => {
-						return {
-							x: trackPointsAndStatistics.statistics.distance[index],
-							y: point.getPower()
-						};
-					}),
-					normalized: true,
-					yAxisID: `y${datasets.power.id}`,
-					hidden: true
+			}),
+			normalized: true,
+			yAxisID: `y${datasets.atemp.id}`,
+			hidden: true
+		};
+		chart.data.datasets[5] = {
+			label: datasets.power.label,
+			data: trackPointsAndStatistics.points.map((point, index) => {
+				return {
+					x: trackPointsAndStatistics.statistics.distance[index],
+					y: point.getPower()
 				};
-				chart.options.scales.x['min'] = 0;
-				chart.options.scales.x['max'] = file.statistics.distance.total;
-			});
-			chart.update();
-		}
+			}),
+			normalized: true,
+			yAxisID: `y${datasets.power.id}`,
+			hidden: true
+		};
+		chart.options.scales.x['min'] = 0;
+		chart.options.scales.x['max'] = gpxFiles.statistics.distance.total;
+		chart.update();
 	}
 
 	$: console.log(elevationFill);
