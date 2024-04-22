@@ -4,15 +4,17 @@
 
 	import { GPXStatistics } from 'gpx';
 
-	import { selectedFiles } from '$lib/stores';
+	import { fileCollection, selectedFiles } from '$lib/stores';
 	import { MoveDownRight, MoveUpRight, Ruler, Timer, Zap } from 'lucide-svelte';
 
 	let gpxData: GPXStatistics = new GPXStatistics();
 
 	$: {
 		gpxData = new GPXStatistics();
-		$selectedFiles.forEach((file) => {
-			gpxData.mergeWith(file.statistics);
+		$fileCollection.files.forEach((file) => {
+			if ($selectedFiles.has(file)) {
+				gpxData.mergeWith(file.statistics);
+			}
 		});
 	}
 

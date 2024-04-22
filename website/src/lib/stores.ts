@@ -72,26 +72,32 @@ export function duplicateFile(file: GPXFile) {
 }
 
 export function removeSelectedFiles() {
-    let index = 0;
-    while (index < get(fileCollection).files.length) {
-        if (get(selectedFiles).has(get(fileCollection).files[index])) {
-            fileCollection.update($files => {
-                $files.files.splice(index, 1);
-                return $files;
-            });
-        } else {
-            index++;
+    fileCollection.update($collection => {
+        let index = 0;
+        while (index < $collection.files.length) {
+            if (get(selectedFiles).has($collection.files[index])) {
+                $collection.files.splice(index, 1);
+            } else {
+                index++;
+            }
         }
-    }
-    get(selectedFiles).clear();
+        return $collection;
+    });
+    selectedFiles.update($selected => {
+        $selected.clear();
+        return $selected;
+    });
 }
 
 export function removeAllFiles() {
-    fileCollection.update($files => {
-        $files.files.splice(0, $files.files.length);
-        return $files;
+    fileCollection.update($collection => {
+        $collection.files.splice(0, $collection.files.length);
+        return $collection;
     });
-    get(selectedFiles).clear();
+    selectedFiles.update($selected => {
+        $selected.clear();
+        return $selected;
+    });
 }
 
 export function exportSelectedFiles() {
@@ -116,5 +122,12 @@ export function exportFile(file: GPXFile) {
 }
 
 export function reverseSelectedFiles() {
-    get(selectedFiles).forEach(file => file.reverse());
+    fileCollection.update($files => {
+        $files.files.forEach(file => {
+            if (get(selectedFiles).has(file)) {
+                file.reverse();
+            }
+        });
+        return $files;
+    });
 }
