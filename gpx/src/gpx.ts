@@ -314,8 +314,6 @@ export class TrackSegment extends GPXTreeLeaf {
                 }
             }
 
-            trkptStatistics.speed.push(speed);
-
             // bounds
             statistics.bounds.southWest.lat = Math.min(statistics.bounds.southWest.lat, points[i].attributes.lat);
             statistics.bounds.southWest.lon = Math.max(statistics.bounds.southWest.lon, points[i].attributes.lon);
@@ -327,7 +325,7 @@ export class TrackSegment extends GPXTreeLeaf {
         statistics.speed.total = statistics.distance.total / (statistics.time.total / 3600);
         statistics.speed.moving = statistics.distance.moving / (statistics.time.moving / 3600);
 
-        trkptStatistics.speed = distanceWindowSmoothingWithDistanceAccumulator(points, 200, (accumulated, start, end) => 3600 * accumulated / (points[end].time.getTime() - points[start].time.getTime()));
+        trkptStatistics.speed = distanceWindowSmoothingWithDistanceAccumulator(points, 200, (accumulated, start, end) => (points[start].time && points[end].time) ? 3600 * accumulated / (points[end].time.getTime() - points[start].time.getTime()) : undefined);
 
         this.statistics = statistics;
         this.trkptStatistics = trkptStatistics;
