@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { reverseSelectedFiles } from '$lib/stores';
-	import Routing from './Routing.svelte';
+	import Routing from './routing/Routing.svelte';
 	import ToolbarItem from './ToolbarItem.svelte';
 	import {
 		ArrowRightLeft,
@@ -16,6 +16,14 @@
 	} from 'lucide-svelte';
 
 	let currentTool: string | null = null;
+
+	function getToggleTool(tool: string) {
+		return () => toggleTool(tool);
+	}
+
+	function toggleTool(tool: string) {
+		currentTool = currentTool === tool ? null : tool;
+	}
 </script>
 
 <div class="absolute top-0 bottom-0 left-0 z-10 flex flex-col justify-center pointer-events-none">
@@ -23,11 +31,7 @@
 		<div
 			class="h-fit flex flex-col p-1 gap-1 bg-background rounded-md pointer-events-auto shadow-md border"
 		>
-			<ToolbarItem
-				on:click={() => {
-					currentTool = currentTool === 'routing' ? null : 'routing';
-				}}
-			>
+			<ToolbarItem on:click={getToggleTool('routing')}>
 				<Pencil slot="icon" size="18" />
 				<span slot="tooltip">Edit the track points</span>
 			</ToolbarItem>

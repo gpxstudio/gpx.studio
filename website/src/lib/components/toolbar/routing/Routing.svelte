@@ -1,13 +1,14 @@
 <script lang="ts">
-	import ToolbarItemMenu from './ToolbarItemMenu.svelte';
+	import ToolbarItemMenu from '../ToolbarItemMenu.svelte';
 	import * as Card from '$lib/components/ui/card';
 	import * as Select from '$lib/components/ui/select';
 	import { Switch } from '$lib/components/ui/switch';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as Alert from '$lib/components/ui/alert';
-
-	import { selectedFiles } from '$lib/stores';
 	import { CircleHelp } from 'lucide-svelte';
+
+	import { map, selectedFiles } from '$lib/stores';
+	import { AnchorPointHierarchy } from './routing';
 
 	let routingProfile = {
 		value: 'bike',
@@ -25,9 +26,10 @@
 	let routing = true;
 	let privateRoads = false;
 
-	$: if ($selectedFiles.size == 1) {
+	$: if ($selectedFiles.size == 1 && $map) {
 		let file = $selectedFiles.values().next().value;
-		console.log(file);
+		let anchorPoints = AnchorPointHierarchy.create(file);
+		anchorPoints.createMarkers($map);
 	}
 </script>
 

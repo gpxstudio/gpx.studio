@@ -427,6 +427,14 @@ export class TrackPoint {
         return this.attributes;
     }
 
+    getLatitude(): number {
+        return this.attributes.lat;
+    }
+
+    getLongitude(): number {
+        return this.attributes.lon;
+    }
+
     getHeartRate(): number {
         return this.extensions && this.extensions['gpxtpx:TrackPointExtension'] && this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:hr'] ? this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:hr'] : undefined;
     }
