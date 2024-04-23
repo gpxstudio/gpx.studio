@@ -5,31 +5,24 @@ export type TrackPointWithIndex = { point: TrackPoint, index: number };
 
 export class AnchorPointHierarchy {
     level: number;
+    lowestLevel: number;
     point: TrackPointWithIndex | null;
-    left: AnchorPointHierarchy[] | null;
-    right: AnchorPointHierarchy[] | null;
+    left: AnchorPointHierarchy[] | null = null;
+    right: AnchorPointHierarchy[] | null = null;
     leftParent: AnchorPointHierarchy | null = null;
     rightParent: AnchorPointHierarchy | null = null;
 
-    constructor(level: number, point: TrackPointWithIndex | null, left: AnchorPointHierarchy[] | null = null, right: AnchorPointHierarchy[] | null = null) {
+    constructor(level: number, point: TrackPointWithIndex | null) {
         this.level = level;
+        this.lowestLevel = level;
         this.point = point;
-        this.left = left;
-        this.right = right;
-    }
-
-    setLeftParent(parent: AnchorPointHierarchy) {
-        this.leftParent = parent;
-    }
-
-    setRightParent(parent: AnchorPointHierarchy) {
-        this.rightParent = parent;
     }
 
     createMarkers(map: mapboxgl.Map, last: boolean = true) {
         if (this.left == null && this.right == null && this.point) {
             let marker = new mapboxgl.Marker({
                 draggable: true,
+                scale: 3 / Math.sqrt(this.lowestLevel)
             }).setLngLat([this.point.point.getLongitude(), this.point.point.getLatitude()]).addTo(map);
         }
 
@@ -48,7 +41,7 @@ export class AnchorPointHierarchy {
             for (let segment of track.getChildren()) {
                 let points = segment.trkpt;
                 let hierarchy = new AnchorPointHierarchy(0, null);
-                hierarchy.right = AnchorPointHierarchy.createRecursive(1, points, initialEpsilon, minEpsilon);
+                hierarchy.right = AnchorPointHierarchy.createRecursive(1, 1, 1, points, initialEpsilon, minEpsilon);
                 hierarchies.push(hierarchy);
             }
         }
@@ -57,35 +50,30 @@ export class AnchorPointHierarchy {
         return hierarchy;
     }
 
-    static createRecursive(level: number, points: TrackPoint[], epsilon: number, minEpsilon: number, start: number = 0, end: number = points.length - 1): AnchorPointHierarchy[] {
+    static createRecursive(level: number, levelLeft: number, levelRight: number, points: TrackPoint[], epsilon: number, minEpsilon: number, start: number = 0, end: number = points.length - 1): AnchorPointHierarchy[] {
         if (start == end) {
-            return [new AnchorPointHierarchy(level, { point: points[start], index: start })];
+            return [new AnchorPointHierarchy(Math.min(levelLeft, levelRight), { point: points[start], index: start })];
         } else if (epsilon < minEpsilon || end - start == 1) {
-            return [new AnchorPointHierarchy(level, { point: points[start], index: start }), new AnchorPointHierarchy(level, { point: points[end], index: end })];
+            return [new AnchorPointHierarchy(levelLeft, { point: points[start], index: start }), new AnchorPointHierarchy(levelRight, { point: points[end], index: end })];
         }
 
         let simplified = ramerDouglasPeucker(points, epsilon, start, end);
 
-        let childHierarchies = [];
-
-        for (let i = 0; i < simplified.length - 1; i++) {
-            childHierarchies.push(AnchorPointHierarchy.createRecursive(level + 1, points, epsilon / 2, minEpsilon, simplified[i].index, simplified[i + 1].index));
-        }
-
         let hierarchy = [];
         for (let i = 0; i < simplified.length; i++) {
             hierarchy.push(new AnchorPointHierarchy(
-                level,
-                simplified[i],
-                i > 0 ? childHierarchies[i - 1] : null,
-                i < simplified.length - 1 ? childHierarchies[i] : null
+                i == 0 ? levelLeft : i == simplified.length - 1 ? levelRight : level,
+                simplified[i]
             ));
-            if (i > 0 && childHierarchies[i - 1].length > 0) {
-                childHierarchies[i - 1][childHierarchies[i - 1].length - 1].setRightParent(hierarchy[i]);
-            }
-            if (i < simplified.length - 1 && childHierarchies[i].length > 0) {
-                childHierarchies[i][0].setLeftParent(hierarchy[i]);
-            }
+        }
+
+        let childHierarchies = [];
+
+        for (let i = 0; i < simplified.length - 1; i++) {
+            childHierarchies.push(AnchorPointHierarchy.createRecursive(level + 1, i == 0 ? levelLeft : level, i == simplified.length - 2 ? levelRight : level, points, epsilon / 2, minEpsilon, simplified[i].index, simplified[i + 1].index));
+
+            hierarchy[i].right = childHierarchies[i];
+            hierarchy[i + 1].left = childHierarchies[i];
         }
 
         return hierarchy;
