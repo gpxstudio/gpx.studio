@@ -8,8 +8,12 @@
 	import { CircleHelp } from 'lucide-svelte';
 
 	import { map, selectedFiles } from '$lib/stores';
-	import { AnchorPointHierarchy } from './routing';
+	import { AnchorPointHierarchy, getMarker } from './routing';
 	import { onDestroy } from 'svelte';
+	import mapboxgl from 'mapbox-gl';
+	import KDBush from 'kdbush';
+
+	import type { GPXFile } from 'gpx';
 
 	let routingProfile = {
 		value: 'bike',
@@ -28,6 +32,8 @@
 	let privateRoads = false;
 
 	let markers: mapboxgl.Marker[] = [];
+	let file: GPXFile | null = null;
+	let kdbush: KDBush | null = null;
 
 	function addMarkersForZoomLevel() {
 		if ($map) {
@@ -42,6 +48,38 @@
 		}
 	}
 
+	function extendFile(e: mapboxgl.MapMouseEvent) {
+		console.log(e.lngLat);
+	}
+
+	let insertableMarker: mapboxgl.Marker | null = null;
+	function moveInsertableMarker(e: mapboxgl.MapMouseEvent) {
+		if (insertableMarker && kdbush && $map) {
+			let bounds = $map.getBounds();
+			let latLngDistance = Math.max(
+				Math.abs(bounds.getNorth() - bounds.getSouth()),
+				Math.abs(bounds.getEast() - bounds.getWest())
+			);
+			if (kdbush.within(e.lngLat.lng, e.lngLat.lat, latLngDistance / 200).length > 0) {
+				insertableMarker.setLngLat(e.lngLat);
+			} else {
+				insertableMarker.remove();
+				insertableMarker = null;
+				$map.off('mousemove', moveInsertableMarker);
+			}
+		}
+	}
+	function showInsertableMarker(e: mapboxgl.MapMouseEvent) {
+		if ($map && !insertableMarker) {
+			insertableMarker = getMarker({
+				lon: e.lngLat.lng,
+				lat: e.lngLat.lat
+			});
+			insertableMarker.addTo($map);
+			$map.on('mousemove', moveInsertableMarker);
+		}
+	}
+
 	function clean() {
 		markers.forEach((marker) => {
 			marker.remove();
@@ -49,16 +87,45 @@
 		markers = [];
 		if ($map) {
 			$map.off('zoom', addMarkersForZoomLevel);
+			$map.off('click', extendFile);
+			if (file) {
+				$map.off('mouseover', file.layerId, showInsertableMarker);
+			}
+			if (insertableMarker) {
+				insertableMarker.remove();
+			}
 		}
+		kdbush = null;
 	}
 
 	$: if ($selectedFiles.size == 1 && $map) {
-		let file = $selectedFiles.values().next().value;
+		clean();
+
+		file = $selectedFiles.values().next().value;
+		// record time
+		let start = performance.now();
 		let anchorPoints = AnchorPointHierarchy.create(file);
+		// record time
+		let end = performance.now();
+		console.log('Time to create anchor points: ' + (end - start) + 'ms');
+
 		markers = anchorPoints.getMarkers($map);
 
 		addMarkersForZoomLevel();
 		$map.on('zoom', addMarkersForZoomLevel);
+		$map.on('click', extendFile);
+		$map.on('mouseover', file.layerId, showInsertableMarker);
+
+		let points = file.getTrackPointsAndStatistics().points;
+
+		start = performance.now();
+		kdbush = new KDBush(points.length);
+		for (let i = 0; i < points.length; i++) {
+			kdbush.add(points[i].getLongitude(), points[i].getLatitude());
+		}
+		kdbush.finish();
+		end = performance.now();
+		console.log('Time to create kdbush: ' + (end - start) + 'ms');
 	} else {
 		clean();
 	}

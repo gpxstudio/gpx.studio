@@ -49,6 +49,11 @@
 	let layerId = getLayerId();
 	let layerColor = getColor();
 
+	Object.defineProperty(file, 'layerId', {
+		value: layerId,
+		writable: false
+	});
+
 	function selectOnClick(e: any) {
 		if (e.originalEvent.shiftKey) {
 			get(selectFiles).addSelect(file);

@@ -1,6 +1,15 @@
 import type { Coordinates, GPXFile, TrackPoint } from "gpx";
 import mapboxgl from "mapbox-gl";
 
+export function getMarker(coordinates: Coordinates, draggable: boolean = false, hidden: boolean = false): mapboxgl.Marker {
+    let element = document.createElement('div');
+    element.className = `${hidden ? 'hidden' : ''} h-3 w-3 rounded-full bg-background border-2 border-black cursor-pointer`;
+    return new mapboxgl.Marker({
+        draggable,
+        element
+    }).setLngLat(coordinates);
+}
+
 export type TrackPointWithIndex = { point: TrackPoint, index: number };
 
 export class AnchorPointHierarchy {
@@ -20,13 +29,7 @@ export class AnchorPointHierarchy {
 
     getMarkers(map: mapboxgl.Map, last: boolean = true, markers: mapboxgl.Marker[] = []): mapboxgl.Marker[] {
         if (this.left == null && this.right == null && this.point) {
-            let element = document.createElement('div');
-            element.className = 'hidden h-3 w-3 rounded-full bg-background border-2 border-black';
-            let marker = new mapboxgl.Marker({
-                draggable: true,
-                element
-            });
-            marker.setLngLat(this.point.point.getCoordinates());
+            let marker = getMarker(this.point.point.getCoordinates());
             marker.addTo(map);
             Object.defineProperty(marker, '_hierarchy', { value: this });
             markers.push(marker);
@@ -181,3 +184,19 @@ function bearing(latA: number, lonA: number, latB: number, lonB: number): number
         Math.cos(latA) * Math.sin(latB) - Math.sin(latA) * Math.cos(latB) * Math.cos(lonB - lonA));
 }
 
+export function route(points: TrackPoint[], brouterProfile: string, privateRoads: boolean, routing: boolean) {
+    if (routing) {
+        getRoute(points, brouterProfile, privateRoads).then(response => {
+            return response.json();
+        });
+    } else {
+        return new Promise((resolve) => {
+            resolve(points);
+        });
+    }
+}
+
+function getRoute(points: TrackPoint[], brouterProfile: string, privateRoads: boolean): Promise<Response> {
+    let url = `https://routing.gpx.studio?profile=${brouterProfile + privateRoads ? '-private' : ''}&lonlats=${points.map(point => `${point.getLongitude()},${point.getLatitude()}`).join('|')}&format=geojson&alternativeidx=0`;
+    return fetch(url);
+}
