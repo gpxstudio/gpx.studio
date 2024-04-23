@@ -9,6 +9,7 @@
 
 	import { map, selectedFiles } from '$lib/stores';
 	import { AnchorPointHierarchy } from './routing';
+	import { onDestroy } from 'svelte';
 
 	let routingProfile = {
 		value: 'bike',
@@ -26,11 +27,45 @@
 	let routing = true;
 	let privateRoads = false;
 
+	let markers: mapboxgl.Marker[] = [];
+
+	function addMarkersForZoomLevel() {
+		if ($map) {
+			let zoom = $map.getZoom();
+			markers.forEach((marker) => {
+				if (marker._hierarchy.lowestLevel <= zoom) {
+					marker.removeClassName('hidden');
+				} else {
+					marker.addClassName('hidden');
+				}
+			});
+		}
+	}
+
+	function clean() {
+		markers.forEach((marker) => {
+			marker.remove();
+		});
+		markers = [];
+		if ($map) {
+			$map.off('zoom', addMarkersForZoomLevel);
+		}
+	}
+
 	$: if ($selectedFiles.size == 1 && $map) {
 		let file = $selectedFiles.values().next().value;
 		let anchorPoints = AnchorPointHierarchy.create(file);
-		anchorPoints.createMarkers($map);
+		markers = anchorPoints.getMarkers($map);
+
+		addMarkersForZoomLevel();
+		$map.on('zoom', addMarkersForZoomLevel);
+	} else {
+		clean();
 	}
+
+	onDestroy(() => {
+		clean();
+	});
 </script>
 
 <ToolbarItemMenu>

@@ -18,24 +18,34 @@ export class AnchorPointHierarchy {
         this.point = point;
     }
 
-    createMarkers(map: mapboxgl.Map, last: boolean = true) {
+    getMarkers(map: mapboxgl.Map, last: boolean = true, markers: mapboxgl.Marker[] = []): mapboxgl.Marker[] {
         if (this.left == null && this.right == null && this.point) {
+            let element = document.createElement('div');
+            element.className = 'hidden h-3 w-3 rounded-full bg-background border-2 border-black';
             let marker = new mapboxgl.Marker({
                 draggable: true,
-                scale: 3 / Math.sqrt(this.lowestLevel)
-            }).setLngLat([this.point.point.getLongitude(), this.point.point.getLatitude()]).addTo(map);
+                element
+            });
+            marker.setLngLat(this.point.point.getCoordinates());
+            marker.addTo(map);
+            Object.defineProperty(marker, '_hierarchy', { value: this });
+            markers.push(marker);
         }
 
         if (this.right) {
             this.right.forEach((point, index) => {
                 if ((index < this.right.length - 1) || last) {
-                    point.createMarkers(map, (index >= this.right.length - 2) && last);
+                    // (index >= this.right.length - 2) because the last point must be drawn by the second to last AnchorPointHierarchy
+                    // because only the right children are drawn
+                    point.getMarkers(map, (index >= this.right.length - 2) && last, markers);
                 }
             });
         }
+
+        return markers;
     }
 
-    static create(file: GPXFile, initialEpsilon: number = 1000, minEpsilon: number = 50): AnchorPointHierarchy {
+    static create(file: GPXFile, initialEpsilon: number = 50000, minEpsilon: number = 50): AnchorPointHierarchy {
         let hierarchies = [];
         for (let track of file.getChildren()) {
             for (let segment of track.getChildren()) {
@@ -70,7 +80,7 @@ export class AnchorPointHierarchy {
         let childHierarchies = [];
 
         for (let i = 0; i < simplified.length - 1; i++) {
-            childHierarchies.push(AnchorPointHierarchy.createRecursive(level + 1, i == 0 ? levelLeft : level, i == simplified.length - 2 ? levelRight : level, points, epsilon / 2, minEpsilon, simplified[i].index, simplified[i + 1].index));
+            childHierarchies.push(AnchorPointHierarchy.createRecursive(level + 1, i == 0 ? levelLeft : level, i == simplified.length - 2 ? levelRight : level, points, epsilon / 1.54, minEpsilon, simplified[i].index, simplified[i + 1].index));
 
             hierarchy[i].right = childHierarchies[i];
             hierarchy[i + 1].left = childHierarchies[i];
