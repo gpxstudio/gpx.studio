@@ -35,14 +35,14 @@
 	let file: GPXFile | null = null;
 	let kdbush: KDBush | null = null;
 
-	function addMarkersForZoomLevel() {
+	function toggleMarkersForZoomLevelAndBounds() {
 		if ($map) {
 			let zoom = $map.getZoom();
 			markers.forEach((marker) => {
-				if (marker._hierarchy.lowestLevel <= zoom) {
-					marker.removeClassName('hidden');
+				if (marker._simplified.zoom <= zoom && $map.getBounds().contains(marker.getLngLat())) {
+					marker.addTo($map);
 				} else {
-					marker.addClassName('hidden');
+					marker.remove();
 				}
 			});
 		}
@@ -86,7 +86,8 @@
 		});
 		markers = [];
 		if ($map) {
-			$map.off('zoom', addMarkersForZoomLevel);
+			$map.off('zoom', toggleMarkersForZoomLevelAndBounds);
+			$map.off('move', toggleMarkersForZoomLevelAndBounds);
 			$map.off('click', extendFile);
 			if (file) {
 				$map.off('mouseover', file.layerId, showInsertableMarker);
@@ -109,14 +110,15 @@
 		let end = performance.now();
 		console.log('Time to create anchor points: ' + (end - start) + 'ms');
 
-		markers = anchorPoints.getMarkers($map);
+		markers = anchorPoints.getMarkers();
 
-		addMarkersForZoomLevel();
-		$map.on('zoom', addMarkersForZoomLevel);
+		toggleMarkersForZoomLevelAndBounds();
+		$map.on('zoom', toggleMarkersForZoomLevelAndBounds);
+		$map.on('move', toggleMarkersForZoomLevelAndBounds);
 		$map.on('click', extendFile);
 		$map.on('mouseover', file.layerId, showInsertableMarker);
 
-		let points = file.getTrackPointsAndStatistics().points;
+		let points = file.getTrackPoints();
 
 		start = performance.now();
 		kdbush = new KDBush(points.length);

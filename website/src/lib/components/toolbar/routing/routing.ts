@@ -1,102 +1,77 @@
 import type { Coordinates, GPXFile, TrackPoint } from "gpx";
 import mapboxgl from "mapbox-gl";
 
-export function getMarker(coordinates: Coordinates, draggable: boolean = false, hidden: boolean = false): mapboxgl.Marker {
+export function getMarker(coordinates: Coordinates, draggable: boolean = false): mapboxgl.Marker {
     let element = document.createElement('div');
-    element.className = `${hidden ? 'hidden' : ''} h-3 w-3 rounded-full bg-background border-2 border-black cursor-pointer`;
+    element.className = `h-3 w-3 rounded-full bg-background border-2 border-black cursor-pointer`;
     return new mapboxgl.Marker({
         draggable,
         element
     }).setLngLat(coordinates);
 }
 
-export type TrackPointWithIndex = { point: TrackPoint, index: number };
+export type SimplifiedTrackPoint = { point: TrackPoint, index: number, distance?: number, segment?: number, zoom?: number };
 
 export class AnchorPointHierarchy {
-    level: number;
-    lowestLevel: number;
-    point: TrackPointWithIndex | null;
-    left: AnchorPointHierarchy[] | null = null;
-    right: AnchorPointHierarchy[] | null = null;
-    leftParent: AnchorPointHierarchy | null = null;
-    rightParent: AnchorPointHierarchy | null = null;
+    points: SimplifiedTrackPoint[][];
 
-    constructor(level: number, point: TrackPointWithIndex | null) {
-        this.level = level;
-        this.lowestLevel = level;
-        this.point = point;
+    constructor() {
+        this.points = [];
+        for (let i = 0; i <= 20; i++) {
+            this.points.push([]);
+        }
     }
 
-    getMarkers(map: mapboxgl.Map, last: boolean = true, markers: mapboxgl.Marker[] = []): mapboxgl.Marker[] {
-        if (this.left == null && this.right == null && this.point) {
-            let marker = getMarker(this.point.point.getCoordinates());
-            marker.addTo(map);
-            Object.defineProperty(marker, '_hierarchy', { value: this });
-            markers.push(marker);
+    getMarkers(): mapboxgl.Marker[] {
+        let markers = [];
+        for (let points of this.points) {
+            for (let point of points) {
+                let marker = getMarker(point.point.getCoordinates(), true);
+                Object.defineProperty(marker, '_simplified', { value: point });
+                markers.push(marker);
+            }
         }
-
-        if (this.right) {
-            this.right.forEach((point, index) => {
-                if ((index < this.right.length - 1) || last) {
-                    // (index >= this.right.length - 2) because the last point must be drawn by the second to last AnchorPointHierarchy
-                    // because only the right children are drawn
-                    point.getMarkers(map, (index >= this.right.length - 2) && last, markers);
-                }
-            });
-        }
-
         return markers;
     }
 
-    static create(file: GPXFile, initialEpsilon: number = 50000, minEpsilon: number = 50): AnchorPointHierarchy {
-        let hierarchies = [];
+    static create(file: GPXFile, epsilon: number = 50): AnchorPointHierarchy {
+        let hierarchy = new AnchorPointHierarchy();
+
+        let s = 0;
         for (let track of file.getChildren()) {
             for (let segment of track.getChildren()) {
                 let points = segment.trkpt;
-                let hierarchy = new AnchorPointHierarchy(0, null);
-                hierarchy.right = AnchorPointHierarchy.createRecursive(1, 1, 1, points, initialEpsilon, minEpsilon);
-                hierarchies.push(hierarchy);
+                let simplified = ramerDouglasPeucker(points, epsilon);
+                // Assign segment number to each point
+                simplified.forEach((point) => {
+                    point.segment = s;
+                    point.zoom = getZoomLevelForDistance(point.point.getLatitude(), point.distance);
+                    hierarchy.points[point.zoom].push(point);
+                });
+                s++;
             }
-        }
-        let hierarchy = new AnchorPointHierarchy(0, null);
-        hierarchy.right = hierarchies;
-        return hierarchy;
-    }
-
-    static createRecursive(level: number, levelLeft: number, levelRight: number, points: TrackPoint[], epsilon: number, minEpsilon: number, start: number = 0, end: number = points.length - 1): AnchorPointHierarchy[] {
-        if (start == end) {
-            return [new AnchorPointHierarchy(Math.min(levelLeft, levelRight), { point: points[start], index: start })];
-        } else if (epsilon < minEpsilon || end - start == 1) {
-            return [new AnchorPointHierarchy(levelLeft, { point: points[start], index: start }), new AnchorPointHierarchy(levelRight, { point: points[end], index: end })];
-        }
-
-        let simplified = ramerDouglasPeucker(points, epsilon, start, end);
-
-        let hierarchy = [];
-        for (let i = 0; i < simplified.length; i++) {
-            hierarchy.push(new AnchorPointHierarchy(
-                i == 0 ? levelLeft : i == simplified.length - 1 ? levelRight : level,
-                simplified[i]
-            ));
-        }
-
-        let childHierarchies = [];
-
-        for (let i = 0; i < simplified.length - 1; i++) {
-            childHierarchies.push(AnchorPointHierarchy.createRecursive(level + 1, i == 0 ? levelLeft : level, i == simplified.length - 2 ? levelRight : level, points, epsilon / 1.54, minEpsilon, simplified[i].index, simplified[i + 1].index));
-
-            hierarchy[i].right = childHierarchies[i];
-            hierarchy[i + 1].left = childHierarchies[i];
         }
 
         return hierarchy;
     }
 }
 
-function ramerDouglasPeucker(points: TrackPoint[], epsilon: number, start: number = 0, end: number = points.length - 1): TrackPointWithIndex[] {
+function getZoomLevelForDistance(latitude: number, distance?: number): number {
+    if (distance === undefined) {
+        return 0;
+    }
+
+    const rad = Math.PI / 180;
+    const lat = latitude * rad;
+
+    return Math.min(20, Math.max(0, Math.floor(Math.log2((earthRadius * Math.cos(lat)) / distance))));
+}
+
+function ramerDouglasPeucker(points: TrackPoint[], epsilon: number, start: number = 0, end: number = points.length - 1): SimplifiedTrackPoint[] {
     let simplified = [{
         point: points[start],
-        index: start
+        index: start,
+
     }];
     ramerDouglasPeuckerRecursive(points, epsilon, start, end, simplified);
     simplified.push({
@@ -106,7 +81,7 @@ function ramerDouglasPeucker(points: TrackPoint[], epsilon: number, start: numbe
     return simplified;
 }
 
-function ramerDouglasPeuckerRecursive(points: TrackPoint[], epsilon: number, start: number, end: number, simplified: TrackPointWithIndex[]) {
+function ramerDouglasPeuckerRecursive(points: TrackPoint[], epsilon: number, start: number, end: number, simplified: SimplifiedTrackPoint[]) {
     let largest = {
         index: 0,
         distance: 0
@@ -122,11 +97,10 @@ function ramerDouglasPeuckerRecursive(points: TrackPoint[], epsilon: number, sta
 
     if (largest.distance > epsilon) {
         ramerDouglasPeuckerRecursive(points, epsilon, start, largest.index, simplified);
-        simplified.push({ point: points[largest.index], index: largest.index });
+        simplified.push({ point: points[largest.index], index: largest.index, distance: largest.distance });
         ramerDouglasPeuckerRecursive(points, epsilon, largest.index, end, simplified);
     }
 }
-
 
 const earthRadius = 6371008.8;
 

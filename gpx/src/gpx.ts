@@ -20,6 +20,7 @@ abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
 
     abstract getStartTimestamp(): Date;
     abstract getEndTimestamp(): Date;
+    abstract getTrackPoints(): TrackPoint[];
     abstract getTrackPointsAndStatistics(): { points: TrackPoint[], statistics: TrackPointStatistics };
 
     abstract toGeoJSON(): any;
@@ -69,6 +70,10 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
 
     getEndTimestamp(): Date {
         return this.getChildren()[this.getChildren().length - 1].getEndTimestamp();
+    }
+
+    getTrackPoints(): TrackPoint[] {
+        return this.getChildren().flatMap((child) => child.getTrackPoints());
     }
 
     getTrackPointsAndStatistics(): { points: TrackPoint[]; statistics: TrackPointStatistics; } {
@@ -377,6 +382,10 @@ export class TrackSegment extends GPXTreeLeaf {
 
     getEndTimestamp(): Date {
         return this.trkpt[this.trkpt.length - 1].time;
+    }
+
+    getTrackPoints(): TrackPoint[] {
+        return this.trkpt;
     }
 
     getTrackPointsAndStatistics(): { points: TrackPoint[], statistics: TrackPointStatistics } {
