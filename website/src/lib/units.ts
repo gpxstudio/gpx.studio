@@ -49,9 +49,9 @@ export function getVelocityWithUnits(value: number, convert: boolean = true) {
         }
     } else {
         if (convert) {
-            return secondsToHHMMSS(getConvertedVelocity(value));
+            return secondsToHHMMSS(getConvertedVelocity(value)) + ' ' + getVelocityUnits();
         } else {
-            return secondsToHHMMSS(value);
+            return secondsToHHMMSS(value) + ' ' + getVelocityUnits();
         }
     }
 }

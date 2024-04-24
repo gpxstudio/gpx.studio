@@ -40,7 +40,8 @@
 		getTemperatureUnits,
 		getTemperatureWithUnits,
 		getVelocityUnits,
-		getVelocityWithUnits
+		getVelocityWithUnits,
+		secondsToHHMMSS
 	} from '$lib/units';
 
 	let canvas: HTMLCanvasElement;
@@ -143,34 +144,35 @@
 	let datasets: {
 		[key: string]: {
 			id: string;
-			label: string;
-			units: string;
+			getLabel: () => string;
+			getUnits: () => string;
 		};
 	} = {
 		speed: {
 			id: 'speed',
-			label: $_('quantities.speed'),
-			units: getVelocityUnits()
+			getLabel: () =>
+				$settings.velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace'),
+			getUnits: () => getVelocityUnits()
 		},
 		hr: {
 			id: 'hr',
-			label: $_('quantities.heartrate'),
-			units: getHeartRateUnits()
+			getLabel: () => $_('quantities.heartrate'),
+			getUnits: () => getHeartRateUnits()
 		},
 		cad: {
 			id: 'cad',
-			label: $_('quantities.cadence'),
-			units: getCadenceUnits()
+			getLabel: () => $_('quantities.cadence'),
+			getUnits: () => getCadenceUnits()
 		},
 		atemp: {
 			id: 'atemp',
-			label: $_('quantities.temperature'),
-			units: getTemperatureUnits()
+			getLabel: () => $_('quantities.temperature'),
+			getUnits: () => getTemperatureUnits()
 		},
 		power: {
 			id: 'power',
-			label: $_('quantities.power'),
-			units: getPowerUnits()
+			getLabel: () => $_('quantities.power'),
+			getUnits: () => getPowerUnits()
 		}
 	};
 
@@ -180,7 +182,7 @@
 			position: 'right',
 			title: {
 				display: true,
-				text: dataset.label + ' (' + dataset.units + ')',
+				text: dataset.getLabel() + ' (' + dataset.getUnits() + ')',
 				padding: {
 					top: 6,
 					bottom: 0
@@ -192,6 +194,15 @@
 			display: false
 		};
 	}
+	options.scales.yspeed['ticks'] = {
+		callback: function (value) {
+			if ($settings.velocityUnits === 'speed') {
+				return value;
+			} else {
+				return secondsToHHMMSS(value);
+			}
+		}
+	};
 
 	onMount(() => {
 		chart = new Chart(canvas, {
@@ -217,13 +228,14 @@
 		marker = new mapboxgl.Marker();
 	});
 
-	$: if (chart) {
+	$: if (chart && $settings) {
 		let gpxFiles = new GPXFiles(Array.from($selectedFiles));
 		let order = $fileOrder.length == 0 ? $fileCollection.files : $fileOrder;
 		gpxFiles.files.sort(function (a, b) {
 			return order.indexOf(a) - order.indexOf(b);
 		});
 
+		// update data
 		let trackPointsAndStatistics = gpxFiles.getTrackPointsAndStatistics();
 		chart.data.datasets[0] = {
 			label: $_('quantities.elevation'),
@@ -241,7 +253,7 @@
 			order: 1
 		};
 		chart.data.datasets[1] = {
-			label: datasets.speed.label,
+			label: datasets.speed.getLabel(),
 			data: trackPointsAndStatistics.points.map((point, index) => {
 				return {
 					x: getConvertedDistance(trackPointsAndStatistics.statistics.distance[index]),
@@ -253,7 +265,7 @@
 			hidden: true
 		};
 		chart.data.datasets[2] = {
-			label: datasets.hr.label,
+			label: datasets.hr.getLabel(),
 			data: trackPointsAndStatistics.points.map((point, index) => {
 				return {
 					x: getConvertedDistance(trackPointsAndStatistics.statistics.distance[index]),
@@ -265,7 +277,7 @@
 			hidden: true
 		};
 		chart.data.datasets[3] = {
-			label: datasets.cad.label,
+			label: datasets.cad.getLabel(),
 			data: trackPointsAndStatistics.points.map((point, index) => {
 				return {
 					x: getConvertedDistance(trackPointsAndStatistics.statistics.distance[index]),
@@ -277,7 +289,7 @@
 			hidden: true
 		};
 		chart.data.datasets[4] = {
-			label: datasets.atemp.label,
+			label: datasets.atemp.getLabel(),
 			data: trackPointsAndStatistics.points.map((point, index) => {
 				return {
 					x: getConvertedDistance(trackPointsAndStatistics.statistics.distance[index]),
@@ -289,7 +301,7 @@
 			hidden: true
 		};
 		chart.data.datasets[5] = {
-			label: datasets.power.label,
+			label: datasets.power.getLabel(),
 			data: trackPointsAndStatistics.points.map((point, index) => {
 				return {
 					x: getConvertedDistance(trackPointsAndStatistics.statistics.distance[index]),
@@ -302,6 +314,14 @@
 		};
 		chart.options.scales.x['min'] = 0;
 		chart.options.scales.x['max'] = getConvertedDistance(gpxFiles.statistics.distance.total);
+
+		// update units
+		chart.options.scales.x.title.text = `${$_('quantities.distance')} (${getDistanceUnits()})`;
+		chart.options.scales.y.title.text = `${$_('quantities.elevation')} (${getElevationUnits()})`;
+		for (let [id, dataset] of Object.entries(datasets)) {
+			chart.options.scales[`y${id}`].title.text =
+				dataset.getLabel() + ' (' + dataset.getUnits() + ')';
+		}
 
 		chart.update();
 	}
