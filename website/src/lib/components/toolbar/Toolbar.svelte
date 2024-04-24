@@ -35,7 +35,7 @@
 		>
 			<ToolbarItem on:click={getToggleTool('routing')}>
 				<Pencil slot="icon" size="18" />
-				<span slot="tooltip">{$_('toolbar.routing_tooltip')}</span>
+				<span slot="tooltip">{$_('toolbar.routing.tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem>
 				<CalendarClock slot="icon" size="18" />

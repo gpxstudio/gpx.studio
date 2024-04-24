@@ -15,6 +15,8 @@
 
 	import type { GPXFile } from 'gpx';
 
+	import { _ } from 'svelte-i18n';
+
 	let routingProfile = {
 		value: 'bike',
 		label: 'bike'
@@ -139,13 +141,9 @@
 
 <ToolbarItemMenu>
 	<Card.Root>
-		<Card.Header class="p-4">
-			<Card.Title>Routing</Card.Title>
-		</Card.Header>
-
-		<Card.Content class="p-4 pt-0 flex flex-col gap-4">
+		<Card.Content class="p-4 flex flex-col gap-4">
 			<div class="w-full flex flex-row justify-between items-center gap-2">
-				<Label>Activity</Label>
+				<Label>{$_('toolbar.routing.activity')}</Label>
 				<Select.Root bind:selected={routingProfile}>
 					<Select.Trigger class="h-8 w-40">
 						<Select.Value />
@@ -154,18 +152,15 @@
 						{#each Object.keys(brouterProfiles) as profile}
 							<Select.Item value={profile}>{profile}</Select.Item>
 						{/each}
-						<!-- <Select.Item value="light">Light</Select.Item>
-					<Select.Item value="dark">Dark</Select.Item>
-					<Select.Item value="system">System</Select.Item> -->
 					</Select.Content>
 				</Select.Root>
 			</div>
 			<div class="w-full flex flex-row justify-between items-center gap-2">
-				<Label for="routing">Routing (follow roads)</Label>
+				<Label for="routing">{$_('toolbar.routing.use_routing')}</Label>
 				<Switch id="routing" class="scale-90" bind:checked={routing} />
 			</div>
 			<div class="w-full flex flex-row justify-between items-center gap-2">
-				<Label for="private">Allow private roads</Label>
+				<Label for="private">{$_('toolbar.routing.allow_private')}</Label>
 				<Switch id="private" class="scale-90" bind:checked={privateRoads} />
 			</div>
 			<Alert.Root class="max-w-64">
@@ -173,11 +168,11 @@
 				<!-- <Alert.Title>Heads up!</Alert.Title> -->
 				<Alert.Description>
 					{#if $selectedFiles.size > 1}
-						<div>Select a single file to use the routing tool</div>
+						<div>{$_('toolbar.routing.help_multiple_files')}</div>
 					{:else if $selectedFiles.size == 0}
-						<div>Select a file to use the routing tool, or create a new file from the menu</div>
+						<div>{$_('toolbar.routing.help_no_file')}</div>
 					{:else}
-						<div>Click on the map to plot a route</div>
+						<div>{$_('toolbar.routing.help')}</div>
 					{/if}
 				</Alert.Description>
 			</Alert.Root>
