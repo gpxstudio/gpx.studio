@@ -19,6 +19,32 @@
 		easing: () => 1
 	};
 
+	function toggleTerrain() {
+		if ($map) {
+			if ($map.getPitch() > 0) {
+				if (!$map.getSource('mapbox-dem')) {
+					$map.addSource('mapbox-dem', {
+						type: 'raster-dem',
+						url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+						tileSize: 512,
+						maxzoom: 14
+					});
+				}
+				if (!$map.getTerrain()) {
+					$map.setTerrain({ source: 'mapbox-dem', exaggeration: 1 });
+					$map.setFog({
+						color: 'rgb(186, 210, 235)',
+						'high-color': 'rgb(36, 92, 223)',
+						'horizon-blend': 0.1,
+						'space-color': 'rgb(156, 240, 255)'
+					});
+				}
+			} else {
+				$map.setTerrain(null);
+			}
+		}
+	}
+
 	onMount(() => {
 		$map = new mapboxgl.Map({
 			container: 'map',
@@ -65,25 +91,8 @@
 			})
 		);
 
-		$map.on('style.load', () => {
-			if ($map) {
-				if (!$map.getLayer('mapbox-dem')) {
-					$map.addSource('mapbox-dem', {
-						type: 'raster-dem',
-						url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-						tileSize: 512,
-						maxzoom: 14
-					});
-				}
-				$map.setTerrain({ source: 'mapbox-dem', exaggeration: 1 });
-				$map.setFog({
-					color: 'rgb(186, 210, 235)',
-					'high-color': 'rgb(36, 92, 223)',
-					'horizon-blend': 0.1,
-					'space-color': 'rgb(156, 240, 255)'
-				});
-			}
-		});
+		$map.on('style.load', toggleTerrain);
+		$map.on('pitchstart', toggleTerrain);
 	});
 </script>
 
