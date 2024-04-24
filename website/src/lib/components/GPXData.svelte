@@ -5,7 +5,7 @@
 
 	import { GPXStatistics } from 'gpx';
 
-	import { selectedFiles, settings } from '$lib/stores';
+	import { getFileStore, selectedFiles, settings } from '$lib/stores';
 	import { get } from 'svelte/store';
 
 	import { MoveDownRight, MoveUpRight, Ruler, Timer, Zap } from 'lucide-svelte';
@@ -14,11 +14,15 @@
 
 	let gpxData: GPXStatistics = new GPXStatistics();
 
-	$: {
+	function updateGPXData() {
 		gpxData = new GPXStatistics();
 		$selectedFiles.forEach((file) => {
-			gpxData.mergeWith(get(file).statistics);
+			gpxData.mergeWith(file.statistics);
 		});
+	}
+
+	$: if ($selectedFiles) {
+		updateGPXData();
 	}
 </script>
 

@@ -15,6 +15,7 @@ abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
     abstract getChildren(): T[];
 
     abstract computeStatistics(): GPXStatistics;
+    abstract refreshStatistics(): void;
 
     abstract append(points: TrackPoint[]): void;
     abstract reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date): void;
@@ -34,15 +35,19 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
     }
 
     computeStatistics(): GPXStatistics {
-        let statistics = new GPXStatistics();
-
         for (let child of this.getChildren()) {
-            statistics.mergeWith(child.computeStatistics());
+            child.computeStatistics();
         }
+        this.refreshStatistics();
+        return this.statistics;
+    }
 
-        this.statistics = statistics;
-
-        return statistics;
+    refreshStatistics(): void {
+        this.statistics = new GPXStatistics();
+        for (let child of this.getChildren()) {
+            child.refreshStatistics();
+            this.statistics.mergeWith(child.statistics);
+        }
     }
 
     append(points: TrackPoint[]): void {
@@ -53,6 +58,8 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
         }
 
         children[children.length - 1].append(points);
+
+        this.refreshStatistics();
     }
 
     reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date): void {
@@ -73,6 +80,8 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
             originalNextTimestamp = originalStartTimestamp;
             newPreviousTimestamp = children[i].getEndTimestamp();
         }
+
+        this.refreshStatistics();
     }
 
     getStartTimestamp(): Date {
@@ -352,6 +361,9 @@ export class TrackSegment extends GPXTreeLeaf {
         return statistics;
     }
 
+    // Do nothing, recompute statistics after modifying the segment only
+    refreshStatistics(): void { }
+
     computeSmoothedElevation(): number[] {
         const points = this.trkpt;
 
@@ -373,7 +385,7 @@ export class TrackSegment extends GPXTreeLeaf {
 
     append(points: TrackPoint[]): void {
         this.trkpt = this.trkpt.concat(points);
-        //this.computeStatistics();
+        this.computeStatistics();
     }
 
     reverse(originalNextTimestamp: Date | undefined, newPreviousTimestamp: Date | undefined): void {
@@ -393,6 +405,7 @@ export class TrackSegment extends GPXTreeLeaf {
         } else {
             this.trkpt.reverse();
         }
+        this.computeStatistics();
     }
 
     getStartTimestamp(): Date {

@@ -230,7 +230,7 @@
 	});
 
 	$: if (chart && $settings) {
-		let gpxFiles = new GPXFiles(Array.from($selectedFiles).map((file) => get(file)));
+		let gpxFiles = new GPXFiles(Array.from($selectedFiles));
 		gpxFiles.files.sort(function (a, b) {
 			return get(fileOrder).indexOf(a) - get(fileOrder).indexOf(b);
 		});

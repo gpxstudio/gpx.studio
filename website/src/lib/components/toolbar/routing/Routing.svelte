@@ -7,8 +7,7 @@
 	import * as Alert from '$lib/components/ui/alert';
 	import { CircleHelp } from 'lucide-svelte';
 
-	import { map, selectedFiles } from '$lib/stores';
-	import { get, type Writable } from 'svelte/store';
+	import { map, selectedFiles, getFileStore, applyToFile } from '$lib/stores';
 	import { AnchorPointHierarchy, getMarker, route } from './routing';
 	import { onDestroy } from 'svelte';
 	import mapboxgl from 'mapbox-gl';
@@ -36,7 +35,7 @@
 
 	let anchorPointHierarchy: AnchorPointHierarchy | null = null;
 	let markers: mapboxgl.Marker[] = [];
-	let file: Writable<GPXFile> | null = null;
+	let file: GPXFile | null = null;
 	let kdbush: KDBush | null = null;
 
 	function toggleMarkersForZoomLevelAndBounds() {
@@ -65,11 +64,7 @@
 				privateRoads,
 				routing
 			);
-			console.log(response);
-			file.update((file) => {
-				file.append(response);
-				return file;
-			});
+			applyToFile(file, (f) => f.append(response));
 		}
 	}
 
@@ -111,7 +106,7 @@
 			$map.off('move', toggleMarkersForZoomLevelAndBounds);
 			$map.off('click', extendFile);
 			if (file) {
-				$map.off('mouseover', get(file).layerId, showInsertableMarker);
+				$map.off('mouseover', file.layerId, showInsertableMarker);
 			}
 			if (insertableMarker) {
 				insertableMarker.remove();
@@ -127,7 +122,7 @@
 
 		// record time
 		let start = performance.now();
-		anchorPointHierarchy = AnchorPointHierarchy.create(get(file));
+		anchorPointHierarchy = AnchorPointHierarchy.create(file);
 		// record time
 		let end = performance.now();
 		console.log('Time to create anchor points: ' + (end - start) + 'ms');
@@ -138,9 +133,9 @@
 		$map.on('zoom', toggleMarkersForZoomLevelAndBounds);
 		$map.on('move', toggleMarkersForZoomLevelAndBounds);
 		$map.on('click', extendFile);
-		$map.on('mouseover', get(file).layerId, showInsertableMarker);
+		$map.on('mouseover', file.layerId, showInsertableMarker);
 
-		let points = get(file).getTrackPoints();
+		let points = file.getTrackPoints();
 
 		start = performance.now();
 		kdbush = new KDBush(points.length);

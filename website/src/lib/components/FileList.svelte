@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { fileOrder, files, selectedFiles, selectFiles } from '$lib/stores';
+	import { fileOrder, files, getFileIndex, selectedFiles, selectFiles } from '$lib/stores';
 
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index';
 	import Sortable from 'sortablejs/Sortable';
@@ -7,13 +7,13 @@
 	import type { GPXFile } from 'gpx';
 
 	import { onMount } from 'svelte';
-	import { get, type Writable } from 'svelte/store';
+	import { get } from 'svelte/store';
 
 	let tabs: HTMLDivElement;
 	let buttons: HTMLButtonElement[] = [];
 	let sortable: Sortable;
 
-	function selectFile(file: Writable<GPXFile>) {
+	function selectFile(file: GPXFile) {
 		selectedFiles.update((selectedFiles) => {
 			selectedFiles.clear();
 			selectedFiles.add(file);
@@ -21,7 +21,7 @@
 		});
 	}
 
-	function addSelectFile(file: Writable<GPXFile>) {
+	function addSelectFile(file: GPXFile) {
 		selectedFiles.update((selectedFiles) => {
 			selectedFiles.add(file);
 			return selectedFiles;
@@ -31,13 +31,13 @@
 	function selectAllFiles() {
 		selectedFiles.update((selectedFiles) => {
 			get(files).forEach((file) => {
-				selectedFiles.add(file);
+				selectedFiles.add(get(file));
 			});
 			return selectedFiles;
 		});
 	}
 
-	function deselectFile(file: Writable<GPXFile>) {
+	function deselectFile(file: GPXFile) {
 		selectedFiles.update((selectedFiles) => {
 			selectedFiles.delete(file);
 			return selectedFiles;
@@ -53,12 +53,12 @@
 			avoidImplicitDeselect: true,
 			onSelect: (e) => {
 				const index = parseInt(e.item.getAttribute('data-id'));
-				addSelectFile($files[index]);
+				addSelectFile(get($files[index]));
 				if (!e.originalEvent.shiftKey && $selectedFiles.size > 1) {
 					$selectedFiles.forEach((file) => {
-						if (file !== $files[index]) {
+						if (file !== get($files[index])) {
 							deselectFile(file);
-							const index = $files.indexOf(file);
+							const index = getFileIndex(file);
 							Sortable.utils.deselect(buttons[index]);
 						}
 					});
@@ -66,7 +66,7 @@
 			},
 			onDeselect: (e) => {
 				const index = parseInt(e.item.getAttribute('data-id'));
-				deselectFile($files[index]);
+				deselectFile(get($files[index]));
 			},
 			onSort: () => {
 				$fileOrder = sortable.toArray().map((index: string) => $files[parseInt(index)]);
@@ -76,18 +76,18 @@
 
 	selectFiles.update(() => {
 		return {
-			select: (file: Writable<GPXFile>) => {
+			select: (file: GPXFile) => {
 				buttons.forEach((button) => {
 					if (button) {
 						Sortable.utils.deselect(button);
 					}
 				});
-				const index = $files.indexOf(file);
+				const index = getFileIndex(file);
 				Sortable.utils.select(buttons[index]);
 				selectFile(file);
 			},
-			addSelect: (file: Writable<GPXFile>) => {
-				const index = $files.indexOf(file);
+			addSelect: (file: GPXFile) => {
+				const index = getFileIndex(file);
 				Sortable.utils.select(buttons[index]);
 				addSelectFile(file);
 			},
@@ -97,8 +97,8 @@
 				});
 				selectAllFiles();
 			},
-			removeSelect: (file: Writable<GPXFile>) => {
-				const index = $files.indexOf(file);
+			removeSelect: (file: GPXFile) => {
+				const index = getFileIndex(file);
 				Sortable.utils.deselect(buttons[index]);
 				deselectFile(file);
 			}

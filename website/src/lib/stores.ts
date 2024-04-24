@@ -5,14 +5,31 @@ import { GPXFile, buildGPX, parseGPX } from 'gpx';
 
 export const map = writable<mapboxgl.Map | null>(null);
 export const files = writable<Writable<GPXFile>[]>([]);
-export const fileOrder = writable<Writable<GPXFile>[]>([]);
-export const selectedFiles = writable<Set<Writable<GPXFile>>>(new Set());
-export const selectFiles = writable<{ [key: string]: (file?: Writable<GPXFile>) => void }>({});
+export const fileOrder = writable<GPXFile[]>([]);
+export const selectedFiles = writable<Set<GPXFile>>(new Set());
+export const selectFiles = writable<{ [key: string]: (file?: GPXFile) => void }>({});
 export const settings = writable<{ [key: string]: any }>({
     distanceUnits: 'metric',
     velocityUnits: 'speed',
     temperatureUnits: 'celsius',
 });
+
+export function getFileStore(file: GPXFile): Writable<GPXFile> {
+    return get(files).find(store => get(store) === file) ?? addFile(file);
+}
+
+export function getFileIndex(file: GPXFile): number {
+    return get(files).findIndex(store => get(store) === file);
+}
+
+export function applyToFile(file: GPXFile, callback: (file: GPXFile) => void) {
+    let store = getFileStore(file);
+    store.update($file => {
+        callback($file)
+        return $file;
+    });
+    selectedFiles.update($selected => $selected);
+}
 
 export function addFile(file: GPXFile): Writable<GPXFile> {
     let fileStore = writable(file);
@@ -41,7 +58,7 @@ export async function loadFiles(list: FileList) {
     for (let i = 0; i < list.length; i++) {
         let file = await loadFile(list[i]);
         if (i == 0 && file) {
-            get(selectFiles).select(file);
+            get(selectFiles).select(get(file));
         }
     }
 }
@@ -68,7 +85,7 @@ export async function loadFile(file: File) {
 
 export function duplicateSelectedFiles() {
     let selected: GPXFile[] = [];
-    get(selectedFiles).forEach(file => selected.push(get(file)));
+    get(selectedFiles).forEach(file => selected.push(file));
     selected.forEach(file => duplicateFile(file));
 }
 
@@ -81,7 +98,7 @@ export function removeSelectedFiles() {
     files.update($files => {
         let index = 0;
         while (index < $files.length) {
-            if (get(selectedFiles).has($files[index])) {
+            if (get(selectedFiles).has(get($files[index]))) {
                 $files.splice(index, 1);
             } else {
                 index++;
@@ -107,7 +124,7 @@ export function removeAllFiles() {
 }
 
 export function exportSelectedFiles() {
-    get(selectedFiles).forEach(file => exportFile(get(file)));
+    get(selectedFiles).forEach(file => exportFile(file));
 }
 
 export async function exportAllFiles() {
@@ -128,15 +145,5 @@ export function exportFile(file: GPXFile) {
 }
 
 export function reverseSelectedFiles() {
-    files.update($files => {
-        $files.forEach(file => {
-            if (get(selectedFiles).has(file)) {
-                file.update($file => {
-                    $file.reverse();
-                    return $file;
-                });
-            }
-        });
-        return $files;
-    });
+    get(selectedFiles).forEach(file => applyToFile(file, file => file.reverse()));
 }

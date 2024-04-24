@@ -59,9 +59,9 @@
 
 	function selectOnClick(e: any) {
 		if (e.originalEvent.shiftKey) {
-			get(selectFiles).addSelect(file);
+			get(selectFiles).addSelect(get(file));
 		} else {
-			get(selectFiles).select(file);
+			get(selectFiles).select(get(file));
 		}
 	}
 
@@ -125,13 +125,16 @@
 		}
 	}
 
-	$: if ($map) {
-		$map.on('style.load', addGPXLayer);
-	}
-
-	$: if ($selectedFiles.has(file)) {
+	$: if ($selectedFiles.has(get(file))) {
 		if ($map) {
 			$map.moveLayer(layerId);
+		}
+	}
+
+	$: if ($map) {
+		let source = $map.getSource(layerId);
+		if (source) {
+			source.setData(extendGeoJSON($file.toGeoJSON()));
 		}
 	}
 
@@ -178,15 +181,10 @@
 					}
 				);
 			}
+
+			$map.on('style.load', addGPXLayer);
 		}
 	});
-
-	$: if ($map) {
-		let source = $map.getSource(layerId);
-		if (source) {
-			source.setData(extendGeoJSON($file.toGeoJSON()));
-		}
-	}
 
 	onDestroy(() => {
 		if ($map) {
