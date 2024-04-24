@@ -42,7 +42,8 @@
 				title: {
 					display: true,
 					text: 'Distance (km)',
-					padding: 0
+					padding: 0,
+					align: 'end'
 				}
 			},
 			y: {
@@ -165,7 +166,10 @@
 			title: {
 				display: true,
 				text: dataset.label + ' (' + dataset.units + ')',
-				padding: 0
+				padding: {
+					top: 6,
+					bottom: 0
+				}
 			},
 			grid: {
 				display: false
@@ -370,53 +374,53 @@
 	});
 </script>
 
-<div class="h-full grow min-w-0 flex flex-row items-center">
-	<div class="h-full grow min-w-0 py-4">
-		<canvas bind:this={canvas}> </canvas>
+<div class="h-full grow min-w-0 flex flex-col items-center py-2 pr-4">
+	<div class="w-full grow min-h-0">
+		<canvas bind:this={canvas} class="w-full h-full"> </canvas>
 	</div>
-	<div class="h-fit flex flex-col m-2 border rounded">
-		<ToggleGroup.Root class="flex-col gap-0" type="single" bind:value={elevationFill}>
+	<div class="w-fit flex flex-row border rounded -mt-3.5">
+		<ToggleGroup.Root class="gap-0" type="single" bind:value={elevationFill}>
 			<ToggleGroup.Item class="p-0 w-8 h-8" value="slope">
-				<Tooltip side="left">
+				<Tooltip>
 					<TriangleRight slot="data" size="16" />
 					<span slot="tooltip">Show slope</span>
 				</Tooltip>
 			</ToggleGroup.Item>
 			<ToggleGroup.Item class="p-0 w-8 h-8" value="surface">
-				<Tooltip side="left">
+				<Tooltip>
 					<BrickWall slot="data" size="16" />
 					<span slot="tooltip">Show surface</span>
 				</Tooltip>
 			</ToggleGroup.Item>
 		</ToggleGroup.Root>
-		<Separator />
-		<ToggleGroup.Root class="flex-col gap-0" type="multiple" bind:value={additionalDatasets}>
+		<Separator orientation="vertical" />
+		<ToggleGroup.Root class="gap-0" type="multiple" bind:value={additionalDatasets}>
 			<ToggleGroup.Item class="p-0 w-8 h-8" value="speed">
-				<Tooltip side="left">
+				<Tooltip>
 					<Zap slot="data" size="16" />
 					<span slot="tooltip">Show speed</span>
 				</Tooltip>
 			</ToggleGroup.Item>
 			<ToggleGroup.Item class="p-0 w-8 h-8" value="hr">
-				<Tooltip side="left">
+				<Tooltip>
 					<HeartPulse slot="data" size="16" />
 					<span slot="tooltip">Show heart rate</span>
 				</Tooltip>
 			</ToggleGroup.Item>
 			<ToggleGroup.Item class="p-0 w-8 h-8" value="cad">
-				<Tooltip side="left">
+				<Tooltip>
 					<Orbit slot="data" size="16" />
 					<span slot="tooltip">Show cadence</span>
 				</Tooltip>
 			</ToggleGroup.Item>
 			<ToggleGroup.Item class="p-0 w-8 h-8" value="atemp">
-				<Tooltip side="left">
+				<Tooltip>
 					<Thermometer slot="data" size="16" />
 					<span slot="tooltip">Show temperature</span>
 				</Tooltip>
 			</ToggleGroup.Item>
 			<ToggleGroup.Item class="p-0 w-8 h-8" value="power">
-				<Tooltip side="left">
+				<Tooltip>
 					<SquareActivity slot="data" size="16" />
 					<span slot="tooltip">Show power</span>
 				</Tooltip>

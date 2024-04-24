@@ -17,7 +17,7 @@
 		<LayerControl />
 		<Data />
 	</div>
-	<div class="h-60 flex flex-row overflow-hidden border">
+	<div class="h-60 flex flex-row gap-2 overflow-hidden border">
 		<FileList />
 		<GPXData />
 		<ElevationProfile />
