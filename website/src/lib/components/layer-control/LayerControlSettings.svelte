@@ -17,25 +17,26 @@
 		opacities,
 		defaultBasemap
 	} from '$lib/assets/layers';
+
+	import { _ } from 'svelte-i18n';
 </script>
 
 <Sheet.Root>
 	<Sheet.Trigger class="w-full">
 		<Button variant="ghost" class="w-full px-1 py-1.5">
 			<Settings size="18" class="mr-2" />
-			Manage layers
+			{$_('layers.manage')}
 		</Button>
 	</Sheet.Trigger>
 	<Sheet.Content>
 		<Sheet.Header class="h-full">
-			<Sheet.Title>Layer settings</Sheet.Title>
+			<Sheet.Title>{$_('layers.settings')}</Sheet.Title>
 			<Sheet.Description>
-				Select the map layers you want to show in the interface, add custom ones, and adjust their
-				settings.
+				{$_('layers.settings_help')}
 			</Sheet.Description>
 			<Accordion.Root class="flex flex-col overflow-hidden">
 				<Accordion.Item value="item-1" class="flex flex-col overflow-hidden">
-					<Accordion.Trigger>Layer selection</Accordion.Trigger>
+					<Accordion.Trigger>{$_('layers.selection')}</Accordion.Trigger>
 					<Accordion.Content class="grow flex flex-col border rounded">
 						<ScrollArea class="py-2 pr-2">
 							<LayerTree
@@ -61,17 +62,17 @@
 					</Accordion.Content>
 				</Accordion.Item>
 				<Accordion.Item value="item-2">
-					<Accordion.Trigger>Custom layers</Accordion.Trigger>
+					<Accordion.Trigger>{$_('layers.custom_layers')}</Accordion.Trigger>
 					<Accordion.Content>
 						<ScrollArea>TODO custom layer list + new custom layer form</ScrollArea>
 					</Accordion.Content>
 				</Accordion.Item>
 				<Accordion.Item value="item-3">
-					<Accordion.Trigger>Heatmap</Accordion.Trigger>
+					<Accordion.Trigger>{$_('layers.heatmap')}</Accordion.Trigger>
 					<Accordion.Content></Accordion.Content>
 				</Accordion.Item>
 				<Accordion.Item value="item-4">
-					<Accordion.Trigger>Points of interest</Accordion.Trigger>
+					<Accordion.Trigger>{$_('layers.pois')}</Accordion.Trigger>
 					<Accordion.Content></Accordion.Content>
 				</Accordion.Item>
 			</Accordion.Root>

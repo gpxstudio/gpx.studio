@@ -8,6 +8,8 @@
 	import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 
 	import { map, settings } from '$lib/stores';
+	import { locale } from 'svelte-i18n';
+	import { get } from 'svelte/store';
 
 	mapboxgl.accessToken =
 		'pk.eyJ1IjoiZ3B4c3R1ZGlvIiwiYSI6ImNrdHVoM2pjNTBodmUycG1yZTNwcnJ3MzkifQ.YZnNs9s9oCQPzoXAWs_SLg';
@@ -54,7 +56,7 @@
 			style: { version: 8, sources: {}, layers: [] },
 			projection: { name: 'mercator' },
 			hash: true,
-			language: 'auto',
+			language: get(locale),
 			attributionControl: false,
 			logoPosition: 'bottom-right',
 			boxZoom: false
@@ -73,7 +75,8 @@
 				accessToken: mapboxgl.accessToken,
 				mapboxgl: mapboxgl,
 				collapsed: true,
-				flyTo: fitBoundsOptions
+				flyTo: fitBoundsOptions,
+				language: get(locale)
 			})
 		);
 

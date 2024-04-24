@@ -384,13 +384,13 @@ export const basemapTree: LayerTreeType = {
             bulgaria: ['bgMountains'],
             finland: ['finlandTopo'],
             france: ['ignPlanV2', 'ignFrScan25', 'ignSatellite'],
-            newZealand: ['linz', 'linzTopo'],
+            new_zealand: ['linz', 'linzTopo'],
             norway: ['norwayTopo'],
             spain: ['ignEs'],
             sweden: ['swedenTopo'],
             switzerland: ['swisstopo'],
-            unitedKingdom: ['ordnanceSurvey'],
-            unitedStates: ['usgs'],
+            united_kingdom: ['ordnanceSurvey'],
+            united_states: ['usgs'],
         },
     },
 }
@@ -399,7 +399,7 @@ export const overlayTree: LayerTreeType = {
     overlays: {
         world: {
             cyclOSM: ['cyclOSMlite'],
-            waymarkedTrails: ['waymarkedTrailsHiking', 'waymarkedTrailsCycling', 'waymarkedTrailsMTB', 'waymarkedTrailsSkating', 'waymarkedTrailsHorseRiding', 'waymarkedTrailsWinter']
+            waymarked_trails: ['waymarkedTrailsHiking', 'waymarkedTrailsCycling', 'waymarkedTrailsMTB', 'waymarkedTrailsSkating', 'waymarkedTrailsHorseRiding', 'waymarkedTrailsWinter']
         },
         countries: {
             france: ['ignFrCadastre', 'ignSlope'],

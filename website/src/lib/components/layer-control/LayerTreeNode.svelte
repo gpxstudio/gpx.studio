@@ -8,6 +8,8 @@
 
 	import { type CollapsedInfoTreeType, type LayerTreeType } from '$lib/assets/layers';
 
+	import { _ } from 'svelte-i18n';
+
 	export let name: string;
 	export let node: LayerTreeType;
 	export let multiple: boolean = false;
@@ -60,7 +62,7 @@
 						}}
 					/>
 				{/if}
-				<Label for={id}>{id}</Label>
+				<Label for={id}>{$_(`layers.label.${id}`)}</Label>
 			</div>
 		{/each}
 	</div>
@@ -73,7 +75,7 @@
 						variant="ghost"
 						class="w-full flex flex-row justify-between py-0 px-1 h-fit hover:bg-background"
 					>
-						<span class="mr-2">{id}</span>
+						<span class="mr-2">{$_(`layers.label.${id}`)}</span>
 						{#if open.children[id].self}
 							<ChevronUp size="16" />
 						{:else}

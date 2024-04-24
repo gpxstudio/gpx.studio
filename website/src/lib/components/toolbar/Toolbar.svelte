@@ -15,6 +15,8 @@
 		FolderTree
 	} from 'lucide-svelte';
 
+	import { _ } from 'svelte-i18n';
+
 	let currentTool: string | null = null;
 
 	function getToggleTool(tool: string) {
@@ -33,45 +35,43 @@
 		>
 			<ToolbarItem on:click={getToggleTool('routing')}>
 				<Pencil slot="icon" size="18" />
-				<span slot="tooltip">Edit the track points</span>
+				<span slot="tooltip">{$_('toolbar.routing_tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem>
 				<CalendarClock slot="icon" size="18" />
-				<span slot="tooltip">Change time and speed data</span>
+				<span slot="tooltip">{$_('toolbar.time_tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem on:click={reverseSelectedFiles}>
 				<ArrowRightLeft slot="icon" size="18" />
-				<span slot="tooltip">Reverse the file</span>
+				<span slot="tooltip">{$_('toolbar.reverse_tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem>
 				<Group slot="icon" size="18" />
-				<span slot="tooltip">Merge with another file</span>
+				<span slot="tooltip">{$_('toolbar.merge_tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem>
 				<Ungroup slot="icon" size="18" />
-				<span slot="tooltip">Extract the tracks or track segments to new files</span>
+				<span slot="tooltip">{$_('toolbar.extract_tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem>
 				<MapPin slot="icon" size="18" />
-				<span slot="tooltip">Create a new point of interest</span>
+				<span slot="tooltip">{$_('toolbar.waypoint_tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem>
 				<Shrink slot="icon" size="18" />
-				<span slot="tooltip">Reduce the number of track points</span>
+				<span slot="tooltip">{$_('toolbar.reduce_tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem>
 				<SquareDashedMousePointer slot="icon" size="18" />
-				<span slot="tooltip"
-					>Clean track points and points of interest with a rectangle selection</span
-				>
+				<span slot="tooltip">{$_('toolbar.clean_tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem>
 				<Palette slot="icon" size="18" />
-				<span slot="tooltip">Change the styling of the trace</span>
+				<span slot="tooltip">{$_('toolbar.style_tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem>
 				<FolderTree slot="icon" size="18" />
-				<span slot="tooltip">Manage the file structure</span>
+				<span slot="tooltip">{$_('toolbar.structure_tooltip')}</span>
 			</ToolbarItem>
 		</div>
 		{#if currentTool == 'routing'}
