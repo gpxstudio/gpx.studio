@@ -23,11 +23,12 @@
 		removeAllFiles,
 		removeSelectedFiles,
 		triggerFileInput,
-		selectFiles
+		selectFiles,
+		settings
 	} from '$lib/stores';
 
-	let distanceUnits = 'metric';
-	let velocityUnits = 'speed';
+	import { _ } from 'svelte-i18n';
+
 	let showDistanceMarkers = false;
 	let showDirectionMarkers = false;
 </script>
@@ -39,10 +40,12 @@
 		<Logo class="h-5 mt-0.5 mx-2" />
 		<Menubar.Root class="border-none h-fit p-0">
 			<Menubar.Menu>
-				<Menubar.Trigger>File</Menubar.Trigger>
+				<Menubar.Trigger>{$_('menu.file')}</Menubar.Trigger>
 				<Menubar.Content>
 					<Menubar.Item>
-						<Plus size="16" class="mr-1" /> New <Menubar.Shortcut>⌘N</Menubar.Shortcut>
+						<Plus size="16" class="mr-1" />
+						{$_('menu.new')}
+						<Menubar.Shortcut>⌘N</Menubar.Shortcut>
 					</Menubar.Item>
 					<Menubar.Separator />
 					<Menubar.Item on:click={triggerFileInput}>
@@ -108,7 +111,7 @@
 					><Menubar.Sub>
 						<Menubar.SubTrigger inset>Distance units</Menubar.SubTrigger>
 						<Menubar.SubContent>
-							<Menubar.RadioGroup bind:value={distanceUnits}>
+							<Menubar.RadioGroup bind:value={$settings.distanceUnits}>
 								<Menubar.RadioItem value="metric">Metric</Menubar.RadioItem>
 								<Menubar.RadioItem value="imperial">Imperial</Menubar.RadioItem>
 							</Menubar.RadioGroup>
@@ -117,9 +120,18 @@
 					<Menubar.Sub>
 						<Menubar.SubTrigger inset>Velocity units</Menubar.SubTrigger>
 						<Menubar.SubContent>
-							<Menubar.RadioGroup bind:value={velocityUnits}>
+							<Menubar.RadioGroup bind:value={$settings.velocityUnits}>
 								<Menubar.RadioItem value="speed">Speed</Menubar.RadioItem>
 								<Menubar.RadioItem value="pace">Pace</Menubar.RadioItem>
+							</Menubar.RadioGroup>
+						</Menubar.SubContent>
+					</Menubar.Sub>
+					<Menubar.Sub>
+						<Menubar.SubTrigger inset>Temperature units</Menubar.SubTrigger>
+						<Menubar.SubContent>
+							<Menubar.RadioGroup bind:value={$settings.temperatureUnits}>
+								<Menubar.RadioItem value="celsius">Celsius</Menubar.RadioItem>
+								<Menubar.RadioItem value="fahrenheit">Fahrenheit</Menubar.RadioItem>
 							</Menubar.RadioGroup>
 						</Menubar.SubContent>
 					</Menubar.Sub>

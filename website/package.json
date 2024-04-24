@@ -50,6 +50,7 @@
         "lucide-svelte": "^0.365.0",
         "mapbox-gl": "^3.2.0",
         "sortablejs": "^1.15.2",
+        "svelte-i18n": "^4.0.0",
         "tailwind-merge": "^2.2.2",
         "tailwind-variants": "^0.2.1"
     }

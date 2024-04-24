@@ -6,7 +6,7 @@
 	import Chart from 'chart.js/auto';
 	import mapboxgl from 'mapbox-gl';
 
-	import { map, fileCollection, fileOrder, selectedFiles } from '$lib/stores';
+	import { map, fileCollection, fileOrder, selectedFiles, settings } from '$lib/stores';
 
 	import { onDestroy, onMount } from 'svelte';
 	import {
@@ -20,6 +20,28 @@
 	} from 'lucide-svelte';
 	import { GPXFiles } from 'gpx';
 	import { surfaceColors } from '$lib/assets/surfaces';
+
+	import { _ } from 'svelte-i18n';
+	import {
+		getCadenceUnits,
+		getCadenceWithUnits,
+		getConvertedDistance,
+		getConvertedElevation,
+		getConvertedTemperature,
+		getConvertedVelocity,
+		getDistanceUnits,
+		getDistanceWithUnits,
+		getElevationUnits,
+		getElevationWithUnits,
+		getHeartRateUnits,
+		getHeartRateWithUnits,
+		getPowerUnits,
+		getPowerWithUnits,
+		getTemperatureUnits,
+		getTemperatureWithUnits,
+		getVelocityUnits,
+		getVelocityWithUnits
+	} from '$lib/units';
 
 	let canvas: HTMLCanvasElement;
 	let chart: Chart;
@@ -41,7 +63,7 @@
 				type: 'linear',
 				title: {
 					display: true,
-					text: 'Distance (km)',
+					text: `${$_('quantities.distance')} (${getDistanceUnits()})`,
 					padding: 0,
 					align: 'end'
 				}
@@ -50,7 +72,7 @@
 				type: 'linear',
 				title: {
 					display: true,
-					text: 'Elevation (m)',
+					text: `${$_('quantities.elevation')} (${getElevationUnits()})`,
 					padding: 0
 				}
 			}
@@ -82,41 +104,34 @@
 					label: function (context: Chart.TooltipContext) {
 						let point = context.raw;
 						if (context.datasetIndex === 0) {
-							let elevation = point.y.toFixed(0);
 							if ($map && marker) {
 								marker.addTo($map);
 								marker.setLngLat(point.coordinates);
 							}
-							return `Elevation: ${elevation} m`;
+							return `${$_('quantities.elevation')}: ${getElevationWithUnits(point.y, false)}`;
 						} else if (context.datasetIndex === 1) {
-							let speed = point.y.toFixed(2);
-							return `Speed: ${speed} km/h`;
+							return `${$settings.velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')}: ${getVelocityWithUnits(point.y, false)}`;
 						} else if (context.datasetIndex === 2) {
-							let hr = point.y;
-							return `Heart Rate: ${hr} bpm`;
+							return `${$_('quantities.heartrate')}: ${getHeartRateWithUnits(point.y)}`;
 						} else if (context.datasetIndex === 3) {
-							let cad = point.y;
-							return `Cadence: ${cad} rpm`;
+							return `${$_('quantities.cadence')}: ${getCadenceWithUnits(point.y)}`;
 						} else if (context.datasetIndex === 4) {
-							let atemp = point.y.toFixed(1);
-							return `Temperature: ${atemp} °C`;
+							return `${$_('quantities.temperature')}: ${getTemperatureWithUnits(point.y, false)}`;
 						} else if (context.datasetIndex === 5) {
-							let power = point.y;
-							return `Power: ${power} W`;
+							return `${$_('quantities.power')}: ${getPowerWithUnits(point.y)}`;
 						}
 					},
 					afterBody: function (contexts: Chart.TooltipContext[]) {
 						let context = contexts.filter((context) => context.datasetIndex === 0);
 						if (context.length === 0) return;
 						let point = context[0].raw;
-						let distance = point.x.toFixed(2);
 						let slope = point.slope.toFixed(1);
 						let surface = point.surface ? point.surface : 'unknown';
 
 						return [
-							`    Distance: ${distance} km`,
-							`    Slope: ${slope} %`,
-							`    Surface: ${surface}`
+							`    ${$_('quantities.distance')}: ${getDistanceWithUnits(point.x, false)}`,
+							`    ${$_('quantities.slope')}: ${slope} %`,
+							`    ${$_('quantities.surface')}: ${surface}`
 						];
 					}
 				}
@@ -134,28 +149,28 @@
 	} = {
 		speed: {
 			id: 'speed',
-			label: 'Speed',
-			units: 'km/h'
+			label: $_('quantities.speed'),
+			units: getVelocityUnits()
 		},
 		hr: {
 			id: 'hr',
-			label: 'Heart Rate',
-			units: 'bpm'
+			label: $_('quantities.heartrate'),
+			units: getHeartRateUnits()
 		},
 		cad: {
 			id: 'cad',
-			label: 'Cadence',
-			units: 'rpm'
+			label: $_('quantities.cadence'),
+			units: getCadenceUnits()
 		},
 		atemp: {
 			id: 'atemp',
-			label: 'Temperature',
-			units: '°C'
+			label: $_('quantities.temperature'),
+			units: getTemperatureUnits()
 		},
 		power: {
 			id: 'power',
-			label: 'Power',
-			units: 'W'
+			label: $_('quantities.power'),
+			units: getPowerUnits()
 		}
 	};
 
@@ -211,11 +226,11 @@
 
 		let trackPointsAndStatistics = gpxFiles.getTrackPointsAndStatistics();
 		chart.data.datasets[0] = {
-			label: 'Elevation',
+			label: $_('quantities.elevation'),
 			data: trackPointsAndStatistics.points.map((point, index) => {
 				return {
-					x: trackPointsAndStatistics.statistics.distance[index],
-					y: point.ele ? point.ele : 0,
+					x: getConvertedDistance(trackPointsAndStatistics.statistics.distance[index]),
+					y: point.ele ? getConvertedElevation(point.ele) : 0,
 					slope: trackPointsAndStatistics.statistics.slope[index],
 					surface: point.getSurface(),
 					coordinates: point.getCoordinates()
@@ -229,8 +244,8 @@
 			label: datasets.speed.label,
 			data: trackPointsAndStatistics.points.map((point, index) => {
 				return {
-					x: trackPointsAndStatistics.statistics.distance[index],
-					y: trackPointsAndStatistics.statistics.speed[index]
+					x: getConvertedDistance(trackPointsAndStatistics.statistics.distance[index]),
+					y: getConvertedVelocity(trackPointsAndStatistics.statistics.speed[index])
 				};
 			}),
 			normalized: true,
@@ -241,7 +256,7 @@
 			label: datasets.hr.label,
 			data: trackPointsAndStatistics.points.map((point, index) => {
 				return {
-					x: trackPointsAndStatistics.statistics.distance[index],
+					x: getConvertedDistance(trackPointsAndStatistics.statistics.distance[index]),
 					y: point.getHeartRate()
 				};
 			}),
@@ -253,7 +268,7 @@
 			label: datasets.cad.label,
 			data: trackPointsAndStatistics.points.map((point, index) => {
 				return {
-					x: trackPointsAndStatistics.statistics.distance[index],
+					x: getConvertedDistance(trackPointsAndStatistics.statistics.distance[index]),
 					y: point.getCadence()
 				};
 			}),
@@ -265,8 +280,8 @@
 			label: datasets.atemp.label,
 			data: trackPointsAndStatistics.points.map((point, index) => {
 				return {
-					x: trackPointsAndStatistics.statistics.distance[index],
-					y: point.getTemperature()
+					x: getConvertedDistance(trackPointsAndStatistics.statistics.distance[index]),
+					y: getConvertedTemperature(point.getTemperature())
 				};
 			}),
 			normalized: true,
@@ -277,7 +292,7 @@
 			label: datasets.power.label,
 			data: trackPointsAndStatistics.points.map((point, index) => {
 				return {
-					x: trackPointsAndStatistics.statistics.distance[index],
+					x: getConvertedDistance(trackPointsAndStatistics.statistics.distance[index]),
 					y: point.getPower()
 				};
 			}),
@@ -286,7 +301,8 @@
 			hidden: true
 		};
 		chart.options.scales.x['min'] = 0;
-		chart.options.scales.x['max'] = gpxFiles.statistics.distance.total;
+		chart.options.scales.x['max'] = getConvertedDistance(gpxFiles.statistics.distance.total);
+
 		chart.update();
 	}
 

@@ -1,0 +1,33 @@
+{
+    "menu": {
+        "file": "File",
+        "new": "New"
+    },
+    "quantities": {
+        "distance": "Distance",
+        "elevation": "Elevation",
+        "temperature": "Temperature",
+        "speed": "Speed",
+        "pace": "Pace",
+        "heartrate": "Heart rate",
+        "cadence": "Cadence",
+        "power": "Power",
+        "slope": "Slope",
+        "surface": "Surface"
+    },
+    "units": {
+        "meters": "m",
+        "feet": "ft",
+        "kilometers": "km",
+        "miles": "mi",
+        "celsius": "°C",
+        "fahrenheit": "°F",
+        "kilometers_per_hour": "km/h",
+        "miles_per_hour": "mph",
+        "minutes_per_kilometer": "min/km",
+        "minutes_per_mile": "min/mi",
+        "heartrate": "bpm",
+        "cadence": "rpm",
+        "power": "W"
+    }
+}

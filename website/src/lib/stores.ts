@@ -8,6 +8,11 @@ export const fileCollection = writable<GPXFiles>(new GPXFiles([]));
 export const fileOrder = writable<GPXFile[]>([]);
 export const selectedFiles = writable<Set<GPXFile>>(new Set());
 export const selectFiles = writable<{ [key: string]: (file?: GPXFile) => void }>({});
+export const settings = writable<{ [key: string]: any }>({
+    distanceUnits: 'metric',
+    velocityUnits: 'speed',
+    temperatureUnits: 'celsius',
+});
 
 export function addFile(file: GPXFile) {
     fileCollection.update($files => {
