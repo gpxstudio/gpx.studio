@@ -108,7 +108,7 @@
 	});
 </script>
 
-<div class="absolute h-10 -translate-y-10 w-fit max-w-full bg-secondary rounded-t">
+<div class="h-10 -translate-y-10 w-full">
 	<ScrollArea orientation="horizontal" class="w-full h-full" scrollbarXClasses="h-2">
 		<div bind:this={tabs} class="flex flex-row gap-1">
 			{#each $fileCollection.files as file, index}

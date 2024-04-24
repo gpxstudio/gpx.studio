@@ -101,7 +101,11 @@
 </div>
 
 <style lang="postcss">
-	div :global(.mapboxgl-ctrl) {
+	div :global(.mapboxgl-map) {
+		@apply font-sans;
+	}
+
+	div :global(.mapboxgl-ctrl-top-right > .mapboxgl-ctrl) {
 		@apply shadow-md;
 	}
 
@@ -152,10 +156,10 @@
 	}
 
 	div :global(.mapboxgl-ctrl-bottom-left) {
-		@apply bottom-10;
+		@apply bottom-9;
 	}
 
 	div :global(.mapboxgl-ctrl-bottom-right) {
-		@apply bottom-10;
+		@apply bottom-9;
 	}
 </style>
