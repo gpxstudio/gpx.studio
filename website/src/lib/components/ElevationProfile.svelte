@@ -419,13 +419,13 @@
 			<ToggleGroup.Item class="p-0 w-8 h-8" value="slope">
 				<Tooltip>
 					<TriangleRight slot="data" size="16" />
-					<span slot="tooltip">Show slope</span>
+					<span slot="tooltip">{$_('chart.show_slope')}</span>
 				</Tooltip>
 			</ToggleGroup.Item>
 			<ToggleGroup.Item class="p-0 w-8 h-8" value="surface">
 				<Tooltip>
 					<BrickWall slot="data" size="16" />
-					<span slot="tooltip">Show surface</span>
+					<span slot="tooltip">{$_('chart.show_surface')}</span>
 				</Tooltip>
 			</ToggleGroup.Item>
 		</ToggleGroup.Root>
@@ -434,31 +434,35 @@
 			<ToggleGroup.Item class="p-0 w-8 h-8" value="speed">
 				<Tooltip>
 					<Zap slot="data" size="16" />
-					<span slot="tooltip">Show speed</span>
+					<span slot="tooltip"
+						>{$settings.velocityUnits === 'speed'
+							? $_('chart.show_speed')
+							: $_('chart.show_pace')}</span
+					>
 				</Tooltip>
 			</ToggleGroup.Item>
 			<ToggleGroup.Item class="p-0 w-8 h-8" value="hr">
 				<Tooltip>
 					<HeartPulse slot="data" size="16" />
-					<span slot="tooltip">Show heart rate</span>
+					<span slot="tooltip">{$_('chart.show_heartrate')}</span>
 				</Tooltip>
 			</ToggleGroup.Item>
 			<ToggleGroup.Item class="p-0 w-8 h-8" value="cad">
 				<Tooltip>
 					<Orbit slot="data" size="16" />
-					<span slot="tooltip">Show cadence</span>
+					<span slot="tooltip">{$_('chart.show_cadence')}</span>
 				</Tooltip>
 			</ToggleGroup.Item>
 			<ToggleGroup.Item class="p-0 w-8 h-8" value="atemp">
 				<Tooltip>
 					<Thermometer slot="data" size="16" />
-					<span slot="tooltip">Show temperature</span>
+					<span slot="tooltip">{$_('chart.show_temperature')}</span>
 				</Tooltip>
 			</ToggleGroup.Item>
 			<ToggleGroup.Item class="p-0 w-8 h-8" value="power">
 				<Tooltip>
 					<SquareActivity slot="data" size="16" />
-					<span slot="tooltip">Show power</span>
+					<span slot="tooltip">{$_('chart.show_power')}</span>
 				</Tooltip>
 			</ToggleGroup.Item>
 		</ToggleGroup.Root>

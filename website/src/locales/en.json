@@ -94,6 +94,16 @@
             "waymarkedTrailsWinter": "Winter"
         }
     },
+    "chart": {
+        "show_slope": "Show slope",
+        "show_surface": "Show surface",
+        "show_speed": "Show speed",
+        "show_pace": "Show pace",
+        "show_heartrate": "Show heart rate",
+        "show_cadence": "Show cadence",
+        "show_temperature": "Show temperature",
+        "show_power": "Show power"
+    },
     "quantities": {
         "distance": "Distance",
         "elevation": "Elevation",
@@ -104,7 +114,10 @@
         "cadence": "Cadence",
         "power": "Power",
         "slope": "Slope",
-        "surface": "Surface"
+        "surface": "Surface",
+        "time": "Time",
+        "moving": "Moving",
+        "total": "Total"
     },
     "units": {
         "meters": "m",

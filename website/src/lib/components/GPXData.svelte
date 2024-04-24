@@ -5,8 +5,10 @@
 
 	import { GPXStatistics } from 'gpx';
 
-	import { fileCollection, selectedFiles } from '$lib/stores';
+	import { fileCollection, selectedFiles, settings } from '$lib/stores';
 	import { MoveDownRight, MoveUpRight, Ruler, Timer, Zap } from 'lucide-svelte';
+
+	import { _ } from 'svelte-i18n';
 
 	let gpxData: GPXStatistics = new GPXStatistics();
 
@@ -27,7 +29,7 @@
 				<Ruler size="18" class="mr-1" />
 				<WithUnits value={gpxData.distance.total} type="distance" />
 			</span>
-			<span slot="tooltip">Distance</span>
+			<span slot="tooltip">{$_('quantities.distance')}</span>
 		</Tooltip>
 		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
@@ -36,14 +38,19 @@
 				<MoveDownRight size="18" class="mx-1" />
 				<WithUnits value={gpxData.elevation.loss} type="elevation" />
 			</span>
-			<span slot="tooltip">Elevation</span>
+			<span slot="tooltip">{$_('quantities.elevation')}</span>
 		</Tooltip>
 		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
 				<Zap size="18" class="mr-1" />
-				<WithUnits value={gpxData.speed.moving} type="speed" />
+				<WithUnits value={gpxData.speed.moving} type="speed" showUnits={false} /> /
+				<WithUnits value={gpxData.speed.total} type="speed" />
 			</span>
-			<span slot="tooltip">Speed</span>
+			<span slot="tooltip"
+				>{$settings.velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')} ({$_(
+					'quantities.moving'
+				)} / {$_('quantities.total')})</span
+			>
 		</Tooltip>
 		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
@@ -52,7 +59,9 @@
 				<span class="mx-1">/</span>
 				<WithUnits value={gpxData.time.total} type="time" />
 			</span>
-			<span slot="tooltip">Moving time / Total time</span>
+			<span slot="tooltip"
+				>{$_('quantities.time')} ({$_('quantities.moving')} / {$_('quantities.total')})</span
+			>
 		</Tooltip>
 	</Card.Content>
 </Card.Root>
