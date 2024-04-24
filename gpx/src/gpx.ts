@@ -16,6 +16,7 @@ abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
 
     abstract computeStatistics(): GPXStatistics;
 
+    abstract append(points: TrackPoint[]): void;
     abstract reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date): void;
 
     abstract getStartTimestamp(): Date;
@@ -42,6 +43,16 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
         this.statistics = statistics;
 
         return statistics;
+    }
+
+    append(points: TrackPoint[]): void {
+        let children = this.getChildren();
+
+        if (children.length === 0) {
+            return;
+        }
+
+        children[children.length - 1].append(points);
     }
 
     reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date): void {
@@ -130,7 +141,10 @@ export class GPXFiles extends GPXTreeNode<GPXFile> {
         super();
         this.files = files;
 
-        this.computeStatistics();
+        this.statistics = new GPXStatistics();
+        for (let file of files) {
+            this.statistics.mergeWith(file.statistics);
+        }
     }
 
     getChildren(): GPXFile[] {
@@ -355,6 +369,11 @@ export class TrackSegment extends GPXTreeLeaf {
         const points = this.trkpt;
 
         return distanceWindowSmoothingWithDistanceAccumulator(points, 50, (accumulated, start, end) => 100 * (points[end].ele - points[start].ele) / accumulated);
+    }
+
+    append(points: TrackPoint[]): void {
+        this.trkpt = this.trkpt.concat(points);
+        //this.computeStatistics();
     }
 
     reverse(originalNextTimestamp: Date | undefined, newPreviousTimestamp: Date | undefined): void {

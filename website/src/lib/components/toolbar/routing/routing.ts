@@ -1,4 +1,5 @@
-import type { Coordinates, GPXFile, TrackPoint } from "gpx";
+import type { Coordinates, GPXFile } from "gpx";
+import { TrackPoint } from "gpx";
 import mapboxgl from "mapbox-gl";
 
 export function getMarker(coordinates: Coordinates, draggable: boolean = false): mapboxgl.Marker {
@@ -13,23 +14,18 @@ export function getMarker(coordinates: Coordinates, draggable: boolean = false):
 export type SimplifiedTrackPoint = { point: TrackPoint, index: number, distance?: number, segment?: number, zoom?: number };
 
 export class AnchorPointHierarchy {
-    points: SimplifiedTrackPoint[][];
+    points: SimplifiedTrackPoint[];
 
     constructor() {
         this.points = [];
-        for (let i = 0; i <= 20; i++) {
-            this.points.push([]);
-        }
     }
 
     getMarkers(): mapboxgl.Marker[] {
         let markers = [];
-        for (let points of this.points) {
-            for (let point of points) {
-                let marker = getMarker(point.point.getCoordinates(), true);
-                Object.defineProperty(marker, '_simplified', { value: point });
-                markers.push(marker);
-            }
+        for (let point of this.points) {
+            let marker = getMarker(point.point.getCoordinates(), true);
+            Object.defineProperty(marker, '_simplified', { value: point });
+            markers.push(marker);
         }
         return markers;
     }
@@ -46,7 +42,7 @@ export class AnchorPointHierarchy {
                 simplified.forEach((point) => {
                     point.segment = s;
                     point.zoom = getZoomLevelForDistance(point.point.getLatitude(), point.distance);
-                    hierarchy.points[point.zoom].push(point);
+                    hierarchy.points.push(point);
                 });
                 s++;
             }
@@ -158,19 +154,39 @@ function bearing(latA: number, lonA: number, latB: number, lonB: number): number
         Math.cos(latA) * Math.sin(latB) - Math.sin(latA) * Math.cos(latB) * Math.cos(lonB - lonA));
 }
 
-export function route(points: TrackPoint[], brouterProfile: string, privateRoads: boolean, routing: boolean) {
+export function route(points: Coordinates[], brouterProfile: string, privateRoads: boolean, routing: boolean): Promise<TrackPoint[]> {
     if (routing) {
-        getRoute(points, brouterProfile, privateRoads).then(response => {
-            return response.json();
-        });
+        return getRoute(points, brouterProfile, privateRoads);
     } else {
         return new Promise((resolve) => {
-            resolve(points);
+            resolve(points.map(point => new TrackPoint({
+                attributes: {
+                    lat: point.lat,
+                    lon: point.lon
+                }
+            })));
         });
     }
 }
 
-function getRoute(points: TrackPoint[], brouterProfile: string, privateRoads: boolean): Promise<Response> {
-    let url = `https://routing.gpx.studio?profile=${brouterProfile + privateRoads ? '-private' : ''}&lonlats=${points.map(point => `${point.getLongitude()},${point.getLatitude()}`).join('|')}&format=geojson&alternativeidx=0`;
-    return fetch(url);
+async function getRoute(points: Coordinates[], brouterProfile: string, privateRoads: boolean): Promise<TrackPoint[]> {
+    let url = `https://routing.gpx.studio?lonlats=${points.map(point => `${point.lon},${point.lat}`).join('|')}&profile=${brouterProfile + (privateRoads ? '-private' : '')}&format=geojson&alternativeidx=0`;
+
+    let response = await fetch(url);
+    let geojson = await response.json();
+
+    let route: TrackPoint[] = [];
+    let coordinates = geojson.features[0].geometry.coordinates;
+    for (let i = 0; i < coordinates.length; i++) {
+        let coord = coordinates[i];
+        route.push(new TrackPoint({
+            attributes: {
+                lat: coord[1],
+                lon: coord[0]
+            },
+            ele: coord[2] ?? undefined
+        }));
+    }
+
+    return route;
 }

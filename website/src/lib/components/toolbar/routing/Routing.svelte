@@ -7,8 +7,8 @@
 	import * as Alert from '$lib/components/ui/alert';
 	import { CircleHelp } from 'lucide-svelte';
 
-	import { map, selectedFiles } from '$lib/stores';
-	import { AnchorPointHierarchy, getMarker } from './routing';
+	import { map, selectedFiles, fileCollection } from '$lib/stores';
+	import { AnchorPointHierarchy, getMarker, route } from './routing';
 	import { onDestroy } from 'svelte';
 	import mapboxgl from 'mapbox-gl';
 	import KDBush from 'kdbush';
@@ -17,22 +17,23 @@
 
 	import { _ } from 'svelte-i18n';
 
-	let routingProfile = {
-		value: 'bike',
-		label: 'bike'
-	};
-	let brouterProfiles = {
+	let brouterProfiles: { [key: string]: string } = {
 		bike: 'Trekking-dry',
-		racingBike: 'fastbike',
-		mountainBike: 'MTB',
+		racing_bike: 'fastbike',
+		mountain_bike: 'MTB',
 		foot: 'Hiking-Alpine-SAC6',
 		motorcycle: 'Car-FastEco',
 		water: 'river',
 		railway: 'rail'
 	};
+	let routingProfile = {
+		value: 'bike',
+		label: $_('toolbar.routing.activities.bike')
+	};
 	let routing = true;
 	let privateRoads = false;
 
+	let anchorPointHierarchy: AnchorPointHierarchy | null = null;
 	let markers: mapboxgl.Marker[] = [];
 	let file: GPXFile | null = null;
 	let kdbush: KDBush | null = null;
@@ -50,8 +51,21 @@
 		}
 	}
 
-	function extendFile(e: mapboxgl.MapMouseEvent) {
-		console.log(e.lngLat);
+	async function extendFile(e: mapboxgl.MapMouseEvent) {
+		if (file && anchorPointHierarchy && anchorPointHierarchy.points.length > 0) {
+			let lastPoint = anchorPointHierarchy.points[anchorPointHierarchy.points.length - 1];
+			let newPoint = {
+				lon: e.lngLat.lng,
+				lat: e.lngLat.lat
+			};
+			let response = await route(
+				[lastPoint.point.getCoordinates(), newPoint],
+				brouterProfiles[routingProfile.value],
+				privateRoads,
+				routing
+			);
+			console.log(response);
+		}
 	}
 
 	let insertableMarker: mapboxgl.Marker | null = null;
@@ -107,12 +121,12 @@
 		file = $selectedFiles.values().next().value;
 		// record time
 		let start = performance.now();
-		let anchorPoints = AnchorPointHierarchy.create(file);
+		anchorPointHierarchy = AnchorPointHierarchy.create(file);
 		// record time
 		let end = performance.now();
 		console.log('Time to create anchor points: ' + (end - start) + 'ms');
 
-		markers = anchorPoints.getMarkers();
+		markers = anchorPointHierarchy.getMarkers();
 
 		toggleMarkersForZoomLevelAndBounds();
 		$map.on('zoom', toggleMarkersForZoomLevelAndBounds);
@@ -150,7 +164,9 @@
 					</Select.Trigger>
 					<Select.Content>
 						{#each Object.keys(brouterProfiles) as profile}
-							<Select.Item value={profile}>{profile}</Select.Item>
+							<Select.Item value={profile}
+								>{$_(`toolbar.routing.activities.${profile}`)}</Select.Item
+							>
 						{/each}
 					</Select.Content>
 				</Select.Root>

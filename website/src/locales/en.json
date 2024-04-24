@@ -33,7 +33,16 @@
             "allow_private": "Allow private roads",
             "help_no_file": "Select a file to use the routing tool, or create a new file from the menu",
             "help_multiple_files": "Select a single file to use the routing tool",
-            "help": "Click on the map to add a new point, or drag existing points to change the route"
+            "help": "Click on the map to add a new point, or drag existing points to change the route",
+            "activities": {
+                "bike": "Bike",
+                "racing_bike": "Racing bike",
+                "mountain_bike": "Mountain bike",
+                "foot": "Run/hike",
+                "motorcycle": "Motorcycle",
+                "water": "Water",
+                "railway": "Railway"
+            }
         },
         "time_tooltip": "Change the time and speed data",
         "reverse_tooltip": "Reverse the direction",

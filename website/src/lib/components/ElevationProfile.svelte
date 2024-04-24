@@ -6,7 +6,8 @@
 	import Chart from 'chart.js/auto';
 	import mapboxgl from 'mapbox-gl';
 
-	import { map, fileCollection, fileOrder, selectedFiles, settings } from '$lib/stores';
+	import { map, fileOrder, selectedFiles, settings } from '$lib/stores';
+	import { get } from 'svelte/store';
 
 	import { onDestroy, onMount } from 'svelte';
 	import {
@@ -230,9 +231,8 @@
 
 	$: if (chart && $settings) {
 		let gpxFiles = new GPXFiles(Array.from($selectedFiles));
-		let order = $fileOrder.length == 0 ? $fileCollection.files : $fileOrder;
 		gpxFiles.files.sort(function (a, b) {
-			return order.indexOf(a) - order.indexOf(b);
+			return get(fileOrder).indexOf(a) - get(fileOrder).indexOf(b);
 		});
 
 		// update data
