@@ -106,14 +106,14 @@
 	});
 </script>
 
-<div class="h-10 -translate-y-10 w-full">
+<div class="h-10 -translate-y-10 w-full pointer-events-none">
 	<ScrollArea orientation="horizontal" class="w-full h-full" scrollbarXClasses="h-2">
 		<div bind:this={tabs} class="flex flex-row gap-1">
 			{#each $files as file, index}
 				<button
 					bind:this={buttons[index]}
 					data-id={index}
-					class="my-1 px-1.5 py-1 rounded bg-secondary hover:bg-gray-200 shadow-none first:ml-1 last:mr-1"
+					class="my-1 px-1.5 py-1 rounded bg-secondary hover:bg-gray-200 shadow-none first:ml-1 last:mr-1 pointer-events-auto"
 				>
 					{get(file).metadata.name}
 				</button>
