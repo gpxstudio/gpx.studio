@@ -7,17 +7,20 @@
 	import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 	import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 
-	import { map } from '$lib/stores';
+	import { map, settings } from '$lib/stores';
 
 	mapboxgl.accessToken =
 		'pk.eyJ1IjoiZ3B4c3R1ZGlvIiwiYSI6ImNrdHVoM2pjNTBodmUycG1yZTNwcnJ3MzkifQ.YZnNs9s9oCQPzoXAWs_SLg';
 
-	export let distanceUnits: 'metric' | 'imperial' = 'metric';
 	let fitBoundsOptions: mapboxgl.FitBoundsOptions = {
 		maxZoom: 15,
 		linear: true,
 		easing: () => 1
 	};
+
+	let scaleControl = new mapboxgl.ScaleControl({
+		unit: $settings.distanceUnits
+	});
 
 	function toggleTerrain() {
 		if ($map) {
@@ -85,15 +88,15 @@
 			})
 		);
 
-		$map.addControl(
-			new mapboxgl.ScaleControl({
-				unit: distanceUnits
-			})
-		);
+		$map.addControl(scaleControl);
 
 		$map.on('style.load', toggleTerrain);
 		$map.on('pitchstart', toggleTerrain);
 	});
+
+	$: if ($map) {
+		scaleControl.setUnit($settings.distanceUnits);
+	}
 </script>
 
 <div {...$$restProps}>
