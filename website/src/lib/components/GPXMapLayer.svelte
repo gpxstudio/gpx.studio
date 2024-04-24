@@ -41,17 +41,20 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 	import { GPXFile } from 'gpx';
-	import { map, selectedFiles, selectFiles, fileCollection } from '$lib/stores';
-	import { get } from 'svelte/store';
+	import { map, selectedFiles, selectFiles, files } from '$lib/stores';
+	import { get, type Writable } from 'svelte/store';
 
-	export let file: GPXFile;
+	export let file: Writable<GPXFile>;
 
 	let layerId = getLayerId();
 	let layerColor = getColor();
 
-	Object.defineProperty(file, 'layerId', {
-		value: layerId,
-		writable: false
+	file.update((f) => {
+		Object.defineProperty(f, 'layerId', {
+			value: layerId,
+			writable: false
+		});
+		return f;
 	});
 
 	function selectOnClick(e: any) {
@@ -74,22 +77,25 @@
 		}
 	}
 
+	function extendGeoJSON(data: any) {
+		for (let feature of data.features) {
+			if (!feature.properties.color) {
+				feature.properties.color = layerColor;
+			}
+			if (!feature.properties.weight) {
+				feature.properties.weight = defaultWeight;
+			}
+			if (!feature.properties.opacity) {
+				feature.properties.opacity = defaultOpacity;
+			}
+		}
+		return data;
+	}
+
 	function addGPXLayer() {
 		if ($map) {
 			if (!$map.getSource(layerId)) {
-				let data = file.toGeoJSON();
-
-				for (let feature of data.features) {
-					if (!feature.properties.color) {
-						feature.properties.color = layerColor;
-					}
-					if (!feature.properties.weight) {
-						feature.properties.weight = defaultWeight;
-					}
-					if (!feature.properties.opacity) {
-						feature.properties.opacity = defaultOpacity;
-					}
-				}
+				let data = extendGeoJSON($file.toGeoJSON());
 
 				$map.addSource(layerId, {
 					type: 'geojson',
@@ -132,24 +138,27 @@
 	onMount(() => {
 		addGPXLayer();
 		if ($map) {
-			if ($fileCollection.files.length == 1) {
-				$map.fitBounds([file.statistics.bounds.southWest, file.statistics.bounds.northEast], {
-					padding: 60,
-					linear: true,
-					easing: () => 1
-				});
+			if ($files.length == 1) {
+				$map.fitBounds(
+					[get(file).statistics.bounds.southWest, get(file).statistics.bounds.northEast],
+					{
+						padding: 60,
+						linear: true,
+						easing: () => 1
+					}
+				);
 			} else {
 				let mapBounds = $map.getBounds();
 				if (
-					mapBounds.contains(file.statistics.bounds.southWest) &&
-					mapBounds.contains(file.statistics.bounds.northEast) &&
+					mapBounds.contains(get(file).statistics.bounds.southWest) &&
+					mapBounds.contains(get(file).statistics.bounds.northEast) &&
 					mapBounds.contains([
-						file.statistics.bounds.southWest.lon,
-						file.statistics.bounds.northEast.lat
+						get(file).statistics.bounds.southWest.lon,
+						get(file).statistics.bounds.northEast.lat
 					]) &&
 					mapBounds.contains([
-						file.statistics.bounds.northEast.lon,
-						file.statistics.bounds.southWest.lat
+						get(file).statistics.bounds.northEast.lon,
+						get(file).statistics.bounds.southWest.lat
 					])
 				) {
 					return;
@@ -159,10 +168,10 @@
 					$map
 						.getBounds()
 						.extend([
-							file.statistics.bounds.southWest.lon,
-							file.statistics.bounds.southWest.lat,
-							file.statistics.bounds.northEast.lon,
-							file.statistics.bounds.northEast.lat
+							get(file).statistics.bounds.southWest.lon,
+							get(file).statistics.bounds.southWest.lat,
+							get(file).statistics.bounds.northEast.lon,
+							get(file).statistics.bounds.northEast.lat
 						]),
 					{
 						padding: 60
@@ -171,6 +180,13 @@
 			}
 		}
 	});
+
+	$: if ($map) {
+		let source = $map.getSource(layerId);
+		if (source) {
+			source.setData(extendGeoJSON($file.toGeoJSON()));
+		}
+	}
 
 	onDestroy(() => {
 		if ($map) {

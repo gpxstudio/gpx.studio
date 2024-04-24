@@ -7,7 +7,8 @@
 	import * as Alert from '$lib/components/ui/alert';
 	import { CircleHelp } from 'lucide-svelte';
 
-	import { map, selectedFiles, fileCollection } from '$lib/stores';
+	import { map, selectedFiles } from '$lib/stores';
+	import { get, type Writable } from 'svelte/store';
 	import { AnchorPointHierarchy, getMarker, route } from './routing';
 	import { onDestroy } from 'svelte';
 	import mapboxgl from 'mapbox-gl';
@@ -35,7 +36,7 @@
 
 	let anchorPointHierarchy: AnchorPointHierarchy | null = null;
 	let markers: mapboxgl.Marker[] = [];
-	let file: GPXFile | null = null;
+	let file: Writable<GPXFile> | null = null;
 	let kdbush: KDBush | null = null;
 
 	function toggleMarkersForZoomLevelAndBounds() {
@@ -65,6 +66,10 @@
 				routing
 			);
 			console.log(response);
+			file.update((file) => {
+				file.append(response);
+				return file;
+			});
 		}
 	}
 
@@ -106,7 +111,7 @@
 			$map.off('move', toggleMarkersForZoomLevelAndBounds);
 			$map.off('click', extendFile);
 			if (file) {
-				$map.off('mouseover', file.layerId, showInsertableMarker);
+				$map.off('mouseover', get(file).layerId, showInsertableMarker);
 			}
 			if (insertableMarker) {
 				insertableMarker.remove();
@@ -119,9 +124,10 @@
 		clean();
 
 		file = $selectedFiles.values().next().value;
+
 		// record time
 		let start = performance.now();
-		anchorPointHierarchy = AnchorPointHierarchy.create(file);
+		anchorPointHierarchy = AnchorPointHierarchy.create(get(file));
 		// record time
 		let end = performance.now();
 		console.log('Time to create anchor points: ' + (end - start) + 'ms');
@@ -132,9 +138,9 @@
 		$map.on('zoom', toggleMarkersForZoomLevelAndBounds);
 		$map.on('move', toggleMarkersForZoomLevelAndBounds);
 		$map.on('click', extendFile);
-		$map.on('mouseover', file.layerId, showInsertableMarker);
+		$map.on('mouseover', get(file).layerId, showInsertableMarker);
 
-		let points = file.getTrackPoints();
+		let points = get(file).getTrackPoints();
 
 		start = performance.now();
 		kdbush = new KDBush(points.length);

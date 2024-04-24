@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { fileOrder, fileCollection, selectedFiles, selectFiles } from '$lib/stores';
+	import { fileOrder, files, selectedFiles, selectFiles } from '$lib/stores';
 
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index';
 	import Sortable from 'sortablejs/Sortable';
@@ -7,13 +7,13 @@
 	import type { GPXFile } from 'gpx';
 
 	import { onMount } from 'svelte';
-	import { get } from 'svelte/store';
+	import { get, type Writable } from 'svelte/store';
 
 	let tabs: HTMLDivElement;
 	let buttons: HTMLButtonElement[] = [];
 	let sortable: Sortable;
 
-	function selectFile(file: GPXFile) {
+	function selectFile(file: Writable<GPXFile>) {
 		selectedFiles.update((selectedFiles) => {
 			selectedFiles.clear();
 			selectedFiles.add(file);
@@ -21,7 +21,7 @@
 		});
 	}
 
-	function addSelectFile(file: GPXFile) {
+	function addSelectFile(file: Writable<GPXFile>) {
 		selectedFiles.update((selectedFiles) => {
 			selectedFiles.add(file);
 			return selectedFiles;
@@ -30,14 +30,14 @@
 
 	function selectAllFiles() {
 		selectedFiles.update((selectedFiles) => {
-			get(fileCollection).files.forEach((file) => {
+			get(files).forEach((file) => {
 				selectedFiles.add(file);
 			});
 			return selectedFiles;
 		});
 	}
 
-	function deselectFile(file: GPXFile) {
+	function deselectFile(file: Writable<GPXFile>) {
 		selectedFiles.update((selectedFiles) => {
 			selectedFiles.delete(file);
 			return selectedFiles;
@@ -53,12 +53,12 @@
 			avoidImplicitDeselect: true,
 			onSelect: (e) => {
 				const index = parseInt(e.item.getAttribute('data-id'));
-				addSelectFile($fileCollection.files[index]);
+				addSelectFile($files[index]);
 				if (!e.originalEvent.shiftKey && $selectedFiles.size > 1) {
 					$selectedFiles.forEach((file) => {
-						if (file !== $fileCollection.files[index]) {
+						if (file !== $files[index]) {
 							deselectFile(file);
-							const index = $fileCollection.files.indexOf(file);
+							const index = $files.indexOf(file);
 							Sortable.utils.deselect(buttons[index]);
 						}
 					});
@@ -66,41 +66,39 @@
 			},
 			onDeselect: (e) => {
 				const index = parseInt(e.item.getAttribute('data-id'));
-				deselectFile($fileCollection.files[index]);
+				deselectFile($files[index]);
 			},
 			onSort: () => {
-				$fileOrder = sortable
-					.toArray()
-					.map((index: string) => $fileCollection.files[parseInt(index)]);
+				$fileOrder = sortable.toArray().map((index: string) => $files[parseInt(index)]);
 			}
 		});
 	});
 
 	selectFiles.update(() => {
 		return {
-			select: (file: GPXFile) => {
+			select: (file: Writable<GPXFile>) => {
 				buttons.forEach((button) => {
 					if (button) {
 						Sortable.utils.deselect(button);
 					}
 				});
-				const index = $fileCollection.files.indexOf(file);
+				const index = $files.indexOf(file);
 				Sortable.utils.select(buttons[index]);
 				selectFile(file);
 			},
-			addSelect: (file: GPXFile) => {
-				const index = $fileCollection.files.indexOf(file);
+			addSelect: (file: Writable<GPXFile>) => {
+				const index = $files.indexOf(file);
 				Sortable.utils.select(buttons[index]);
 				addSelectFile(file);
 			},
 			selectAllFiles: () => {
-				$fileCollection.files.forEach((file, index) => {
+				$files.forEach((file, index) => {
 					Sortable.utils.select(buttons[index]);
 				});
 				selectAllFiles();
 			},
-			removeSelect: (file: GPXFile) => {
-				const index = $fileCollection.files.indexOf(file);
+			removeSelect: (file: Writable<GPXFile>) => {
+				const index = $files.indexOf(file);
 				Sortable.utils.deselect(buttons[index]);
 				deselectFile(file);
 			}
@@ -111,13 +109,13 @@
 <div class="h-10 -translate-y-10 w-full">
 	<ScrollArea orientation="horizontal" class="w-full h-full" scrollbarXClasses="h-2">
 		<div bind:this={tabs} class="flex flex-row gap-1">
-			{#each $fileCollection.files as file, index}
+			{#each $files as file, index}
 				<button
 					bind:this={buttons[index]}
 					data-id={index}
 					class="my-1 px-1.5 py-1 rounded bg-secondary hover:bg-gray-200 shadow-none first:ml-1 last:mr-1"
 				>
-					{file.metadata.name}
+					{get(file).metadata.name}
 				</button>
 			{/each}
 		</div>
