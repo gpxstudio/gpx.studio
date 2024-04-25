@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { map, files, selectedFiles, getFileStore } from '$lib/stores';
 	import type { GPXFile } from 'gpx';
-	import { GPXMapLayer } from './GPXMapLayers';
+	import { GPXLayer } from './GPXLayer';
 	import { get, type Writable } from 'svelte/store';
 
-	let gpxLayers: Map<Writable<GPXFile>, GPXMapLayer> = new Map();
+	let gpxLayers: Map<Writable<GPXFile>, GPXLayer> = new Map();
 
 	$: if ($map) {
 		gpxLayers.forEach((layer, file) => {
@@ -15,7 +15,7 @@
 		});
 		$files.forEach((file) => {
 			if (!gpxLayers.has(file)) {
-				gpxLayers.set(file, new GPXMapLayer(get(map), file));
+				gpxLayers.set(file, new GPXLayer(get(map), file));
 			}
 		});
 	}

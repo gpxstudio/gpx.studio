@@ -1,5 +1,5 @@
 <script lang="ts">
-	import GPXMapLayers from '$lib/components/gpx-layer/GPXMapLayers.svelte';
+	import GPXLayers from '$lib/components/gpx-layer/GPXLayers.svelte';
 	import ElevationProfile from '$lib/components/ElevationProfile.svelte';
 	import FileList from '$lib/components/FileList.svelte';
 	import GPXData from '$lib/components/GPXData.svelte';
@@ -15,7 +15,7 @@
 		<Toolbar />
 		<Map class="h-full" />
 		<LayerControl />
-		<GPXMapLayers />
+		<GPXLayers />
 		<FileList />
 	</div>
 	<div class="h-60 flex flex-row gap-2 overflow-hidden border">

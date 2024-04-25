@@ -41,7 +41,7 @@ function decrementColor(color: string) {
     colorCount[color]--;
 }
 
-export class GPXMapLayer {
+export class GPXLayer {
     map: mapboxgl.Map;
     file: Writable<GPXFile>;
     layerId: string;
