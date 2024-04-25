@@ -230,10 +230,7 @@
 	});
 
 	$: if (chart && $settings) {
-		let gpxFiles = new GPXFiles(Array.from($selectedFiles));
-		gpxFiles.files.sort(function (a, b) {
-			return get(fileOrder).indexOf(a) - get(fileOrder).indexOf(b);
-		});
+		let gpxFiles = new GPXFiles(get(fileOrder).filter((f) => $selectedFiles.has(f)));
 
 		// update data
 		let trackPointsAndStatistics = gpxFiles.getTrackPointsAndStatistics();

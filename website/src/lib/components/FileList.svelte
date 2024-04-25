@@ -6,7 +6,7 @@
 
 	import type { GPXFile } from 'gpx';
 
-	import { onMount } from 'svelte';
+	import { afterUpdate, onMount } from 'svelte';
 	import { get } from 'svelte/store';
 
 	let tabs: HTMLDivElement;
@@ -44,6 +44,21 @@
 		});
 	}
 
+	function updateFileOrder() {
+		let newFileOrder = sortable.toArray().map((index: string) => get(get(files)[parseInt(index)]));
+		if (newFileOrder.length !== get(fileOrder).length) {
+			fileOrder.set(newFileOrder);
+			return;
+		}
+
+		for (let i = 0; i < newFileOrder.length; i++) {
+			if (newFileOrder[i] !== get(fileOrder)[i]) {
+				fileOrder.set(newFileOrder);
+				return;
+			}
+		}
+	}
+
 	onMount(() => {
 		sortable = Sortable.create(tabs, {
 			forceAutoScrollFallback: true,
@@ -69,7 +84,7 @@
 				deselectFile(get($files[index]));
 			},
 			onSort: () => {
-				$fileOrder = sortable.toArray().map((index: string) => $files[parseInt(index)]);
+				updateFileOrder();
 			}
 		});
 	});
@@ -104,6 +119,8 @@
 			}
 		};
 	});
+
+	afterUpdate(updateFileOrder);
 </script>
 
 <div class="h-10 -translate-y-10 w-full pointer-events-none">

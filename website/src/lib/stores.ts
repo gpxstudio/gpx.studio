@@ -22,13 +22,26 @@ export function getFileIndex(file: GPXFile): number {
     return get(files).findIndex(store => get(store) === file);
 }
 
-export function applyToFile(file: GPXFile, callback: (file: GPXFile) => void) {
+export function applyToFile(file: GPXFile, callback: (file: GPXFile) => void, updateSelected: boolean) {
     let store = getFileStore(file);
     store.update($file => {
         callback($file)
         return $file;
     });
-    selectedFiles.update($selected => $selected);
+    if (updateSelected) {
+        selectedFiles.update($selected => $selected);
+    }
+}
+
+export function applyToSelectedFiles(callback: (file: GPXFile) => void, updateSelected: boolean) {
+    get(fileOrder).forEach(file => {
+        if (get(selectedFiles).has(file)) {
+            applyToFile(file, callback, false);
+        }
+    });
+    if (updateSelected) {
+        selectedFiles.update($selected => $selected);
+    }
 }
 
 export function addFile(file: GPXFile): Writable<GPXFile> {
@@ -84,14 +97,10 @@ export async function loadFile(file: File) {
 }
 
 export function duplicateSelectedFiles() {
-    let selected: GPXFile[] = [];
-    get(selectedFiles).forEach(file => selected.push(file));
-    selected.forEach(file => duplicateFile(file));
-}
-
-export function duplicateFile(file: GPXFile) {
-    let clone = file.clone();
-    addFile(clone);
+    applyToSelectedFiles(file => {
+        let clone = file.clone();
+        addFile(clone);
+    }, false);
 }
 
 export function removeSelectedFiles() {
@@ -145,5 +154,8 @@ export function exportFile(file: GPXFile) {
 }
 
 export function reverseSelectedFiles() {
-    get(selectedFiles).forEach(file => applyToFile(file, file => file.reverse()));
+    selectedFiles.update($selected => {
+        $selected.forEach(file => applyToFile(file, file => file.reverse(), false));
+        return $selected;
+    });
 }

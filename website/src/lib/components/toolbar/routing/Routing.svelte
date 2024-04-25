@@ -7,7 +7,7 @@
 	import * as Alert from '$lib/components/ui/alert';
 	import { CircleHelp } from 'lucide-svelte';
 
-	import { map, selectedFiles, getFileStore, applyToFile } from '$lib/stores';
+	import { map, selectedFiles, applyToFile } from '$lib/stores';
 	import { AnchorPointHierarchy, getMarker, route } from './routing';
 	import { onDestroy } from 'svelte';
 	import mapboxgl from 'mapbox-gl';
@@ -64,7 +64,7 @@
 				privateRoads,
 				routing
 			);
-			applyToFile(file, (f) => f.append(response));
+			applyToFile(file, (f) => f.append(response), true);
 		}
 	}
 
@@ -116,10 +116,17 @@
 	}
 
 	$: if ($selectedFiles.size == 1 && $map) {
-		clean();
+		let selectedFile = $selectedFiles.values().next().value;
 
-		file = $selectedFiles.values().next().value;
+		if (selectedFile !== file) {
+			clean();
+			file = selectedFile;
+		} else {
+			// update markers
+		}
+	}
 
+	$: if ($map && file) {
 		// record time
 		let start = performance.now();
 		anchorPointHierarchy = AnchorPointHierarchy.create(file);
