@@ -48,6 +48,9 @@ export class GPXLayer {
     layerColor: string;
     unsubscribe: () => void;
 
+    addBinded: () => void = this.add.bind(this);
+    selectOnClickBinded: (e: any) => void = this.selectOnClick.bind(this);
+
     constructor(map: mapboxgl.Map, file: Writable<GPXFile>) {
         this.map = map;
         this.file = file;
@@ -61,7 +64,7 @@ export class GPXLayer {
         };
 
         this.add();
-        this.map.on('style.load', this.add.bind(this));
+        this.map.on('style.load', this.addBinded);
     }
 
     add() {
@@ -90,7 +93,7 @@ export class GPXLayer {
                 }
             });
 
-            this.map.on('click', this.layerId, this.selectOnClick.bind(this));
+            this.map.on('click', this.layerId, this.selectOnClickBinded);
             this.map.on('mouseenter', this.layerId, toPointerCursor);
             this.map.on('mouseleave', this.layerId, toDefaultCursor);
         }
@@ -104,10 +107,10 @@ export class GPXLayer {
     }
 
     remove() {
-        this.map.off('click', this.layerId, this.selectOnClick.bind(this));
+        this.map.off('click', this.layerId, this.selectOnClickBinded);
         this.map.off('mouseenter', this.layerId, toPointerCursor);
         this.map.off('mouseleave', this.layerId, toDefaultCursor);
-        this.map.off('style.load', this.add.bind(this));
+        this.map.off('style.load', this.addBinded);
 
         this.map.removeLayer(this.layerId);
         this.map.removeSource(this.layerId);

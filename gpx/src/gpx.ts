@@ -22,6 +22,7 @@ abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
     abstract getStatistics(): GPXStatistics;
     abstract getTrackPoints(): TrackPoint[];
     abstract getTrackPointsAndStatistics(): { points: TrackPoint[], point_statistics: TrackPointStatistics, statistics: GPXStatistics };
+    abstract getSegments(): TrackSegment[];
 
     abstract toGeoJSON(): GeoJSON.Feature | GeoJSON.Feature[] | GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[];
 }
@@ -114,6 +115,10 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
         }
 
         return { points, point_statistics, statistics };
+    }
+
+    getSegments(): TrackSegment[] {
+        return this.getChildren().flatMap((child) => child.getSegments());
     }
 }
 
@@ -280,6 +285,7 @@ export class TrackSegment extends GPXTreeLeaf {
 
         const points = this.trkpt;
         for (let i = 0; i < points.length; i++) {
+            points[i]._data['index'] = i;
 
             // distance
             let dist = 0;
@@ -406,6 +412,10 @@ export class TrackSegment extends GPXTreeLeaf {
             point_statistics: this.trkptStatistics,
             statistics: this.statistics,
         };
+    }
+
+    getSegments(): TrackSegment[] {
+        return [this];
     }
 
     toGeoJSON(): GeoJSON.Feature {

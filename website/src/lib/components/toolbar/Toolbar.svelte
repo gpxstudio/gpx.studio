@@ -16,6 +16,7 @@
 	} from 'lucide-svelte';
 
 	import { _ } from 'svelte-i18n';
+	import { derived } from 'svelte/store';
 
 	function getToggleTool(tool: Tool) {
 		return () => toggleTool(tool);
@@ -72,8 +73,6 @@
 				<span slot="tooltip">{$_('toolbar.structure_tooltip')}</span>
 			</ToolbarItem>
 		</div>
-		{#if $currentTool === Tool.ROUTING}
-			<Routing />
-		{/if}
+		<Routing />
 	</div>
 </div>

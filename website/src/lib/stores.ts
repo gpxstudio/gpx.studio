@@ -28,6 +28,10 @@ export function getFileIndex(file: GPXFile): number {
 
 export function applyToFile(file: GPXFile, callback: (file: GPXFile) => void, updateSelected: boolean) {
     let store = getFileStore(file);
+    applyToFileStore(store, callback, updateSelected);
+}
+
+export function applyToFileStore(store: Writable<GPXFile>, callback: (file: GPXFile) => void, updateSelected: boolean) {
     store.update($file => {
         callback($file)
         return $file;
