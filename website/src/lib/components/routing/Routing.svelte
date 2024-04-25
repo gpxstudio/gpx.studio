@@ -8,10 +8,9 @@
 	import { CircleHelp } from 'lucide-svelte';
 
 	import { map, selectedFiles, applyToFile } from '$lib/stores';
-	import { AnchorPointHierarchy, getMarker, route } from './Routing';
+	import { AnchorPointHierarchy, route } from './Routing';
 	import { onDestroy } from 'svelte';
 	import mapboxgl from 'mapbox-gl';
-	import KDBush from 'kdbush';
 
 	import type { GPXFile } from 'gpx';
 
@@ -36,7 +35,6 @@
 	let anchorPointHierarchy: AnchorPointHierarchy | null = null;
 	let markers: mapboxgl.Marker[] = [];
 	let file: GPXFile | null = null;
-	let kdbush: KDBush | null = null;
 
 	function toggleMarkersForZoomLevelAndBounds() {
 		if ($map) {
@@ -68,34 +66,6 @@
 		}
 	}
 
-	let insertableMarker: mapboxgl.Marker | null = null;
-	function moveInsertableMarker(e: mapboxgl.MapMouseEvent) {
-		if (insertableMarker && kdbush && $map) {
-			let bounds = $map.getBounds();
-			let latLngDistance = Math.max(
-				Math.abs(bounds.getNorth() - bounds.getSouth()),
-				Math.abs(bounds.getEast() - bounds.getWest())
-			);
-			if (kdbush.within(e.lngLat.lng, e.lngLat.lat, latLngDistance / 200).length > 0) {
-				insertableMarker.setLngLat(e.lngLat);
-			} else {
-				insertableMarker.remove();
-				insertableMarker = null;
-				$map.off('mousemove', moveInsertableMarker);
-			}
-		}
-	}
-	function showInsertableMarker(e: mapboxgl.MapMouseEvent) {
-		if ($map && !insertableMarker) {
-			insertableMarker = getMarker({
-				lon: e.lngLat.lng,
-				lat: e.lngLat.lat
-			});
-			insertableMarker.addTo($map);
-			$map.on('mousemove', moveInsertableMarker);
-		}
-	}
-
 	function clean() {
 		markers.forEach((marker) => {
 			marker.remove();
@@ -105,14 +75,7 @@
 			$map.off('zoom', toggleMarkersForZoomLevelAndBounds);
 			$map.off('move', toggleMarkersForZoomLevelAndBounds);
 			$map.off('click', extendFile);
-			if (file) {
-				$map.off('mouseover', file._data.layerId, showInsertableMarker);
-			}
-			if (insertableMarker) {
-				insertableMarker.remove();
-			}
 		}
-		kdbush = null;
 	}
 
 	$: if ($selectedFiles.size == 1) {
@@ -143,18 +106,8 @@
 		$map.on('zoom', toggleMarkersForZoomLevelAndBounds);
 		$map.on('move', toggleMarkersForZoomLevelAndBounds);
 		$map.on('click', extendFile);
-		$map.on('mouseover', file._data.layerId, showInsertableMarker);
 
 		let points = file.getTrackPoints();
-
-		start = performance.now();
-		kdbush = new KDBush(points.length);
-		for (let i = 0; i < points.length; i++) {
-			kdbush.add(points[i].getLongitude(), points[i].getLatitude());
-		}
-		kdbush.finish();
-		end = performance.now();
-		console.log('Time to create kdbush: ' + (end - start) + 'ms');
 	}
 
 	onDestroy(() => {
