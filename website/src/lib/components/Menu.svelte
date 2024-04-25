@@ -2,17 +2,7 @@
 	import * as Menubar from '$lib/components/ui/menubar/index.js';
 	import { Button } from '$lib/components/ui/button';
 	import Logo from './Logo.svelte';
-	import {
-		Plus,
-		Copy,
-		Download,
-		Undo2,
-		Redo2,
-		Trash2,
-		HeartHandshake,
-		Upload,
-		Cloud
-	} from 'lucide-svelte';
+	import { Plus, Copy, Download, Undo2, Redo2, Trash2, Upload, Cloud, Heart } from 'lucide-svelte';
 
 	import {
 		files,
@@ -153,8 +143,8 @@
 				variant="ghost"
 				href="https://ko-fi.com/gpxstudio"
 				target="_blank"
-				class="cursor-default h-fit rounded-sm"
-				>{$_('menu.donate')} <HeartHandshake size="16" class="ml-1" /></Button
+				class="cursor-default h-fit rounded-sm font-bold text-support hover:text-support"
+				>{$_('menu.donate')} <Heart size="16" class="ml-1" fill="rgb(var(--support))" /></Button
 			>
 		</div>
 	</div>
