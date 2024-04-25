@@ -3,9 +3,9 @@
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import WithUnits from '$lib/components/WithUnits.svelte';
 
-	import { GPXStatistics } from 'gpx';
+	import { GPXFiles, GPXStatistics } from 'gpx';
 
-	import { getFileStore, selectedFiles, settings } from '$lib/stores';
+	import { selectedFiles, settings } from '$lib/stores';
 	import { get } from 'svelte/store';
 
 	import { MoveDownRight, MoveUpRight, Ruler, Timer, Zap } from 'lucide-svelte';
@@ -15,10 +15,7 @@
 	let gpxData: GPXStatistics = new GPXStatistics();
 
 	function updateGPXData() {
-		gpxData = new GPXStatistics();
-		$selectedFiles.forEach((file) => {
-			gpxData.mergeWith(file.statistics);
-		});
+		gpxData = new GPXFiles(Array.from(get(selectedFiles))).getStatistics();
 	}
 
 	$: if ($selectedFiles) {
@@ -47,24 +44,25 @@
 		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
 				<Zap size="18" class="mr-1" />
-				<WithUnits value={gpxData.speed.moving} type="speed" showUnits={false} /> /
-				<WithUnits value={gpxData.speed.total} type="speed" />
+				<WithUnits value={gpxData.speed.total} type="speed" showUnits={false} />
+				<span class="mx-1">/</span>
+				<WithUnits value={gpxData.speed.moving} type="speed" />
 			</span>
 			<span slot="tooltip"
 				>{$settings.velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')} ({$_(
-					'quantities.moving'
-				)} / {$_('quantities.total')})</span
+					'quantities.total'
+				)} / {$_('quantities.moving')})</span
 			>
 		</Tooltip>
 		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
 				<Timer size="18" class="mr-1" />
-				<WithUnits value={gpxData.time.moving} type="time" />
-				<span class="mx-1">/</span>
 				<WithUnits value={gpxData.time.total} type="time" />
+				<span class="mx-1">/</span>
+				<WithUnits value={gpxData.time.moving} type="time" />
 			</span>
 			<span slot="tooltip"
-				>{$_('quantities.time')} ({$_('quantities.moving')} / {$_('quantities.total')})</span
+				>{$_('quantities.time')} ({$_('quantities.total')} / {$_('quantities.moving')})</span
 			>
 		</Tooltip>
 	</Card.Content>

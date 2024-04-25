@@ -1,5 +1,5 @@
 <script lang="ts">
-	import GPXMapLayers from '$lib/components/GPXMapLayers.svelte';
+	import GPXMapLayers from '$lib/components/gpx-layer/GPXMapLayers.svelte';
 	import ElevationProfile from '$lib/components/ElevationProfile.svelte';
 	import FileList from '$lib/components/FileList.svelte';
 	import GPXData from '$lib/components/GPXData.svelte';

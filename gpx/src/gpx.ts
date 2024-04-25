@@ -9,45 +9,27 @@ function cloneJSON<T>(obj: T): T {
 
 // An abstract class that groups functions that need to be computed recursively in the GPX file hierarchy
 abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
-    statistics: GPXStatistics;
+    _data: { [key: string]: any } = {};
 
     abstract isLeaf(): boolean;
     abstract getChildren(): T[];
-
-    abstract computeStatistics(): GPXStatistics;
-    abstract refreshStatistics(): void;
 
     abstract append(points: TrackPoint[]): void;
     abstract reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date): void;
 
     abstract getStartTimestamp(): Date;
     abstract getEndTimestamp(): Date;
+    abstract getStatistics(): GPXStatistics;
     abstract getTrackPoints(): TrackPoint[];
-    abstract getTrackPointsAndStatistics(): { points: TrackPoint[], statistics: TrackPointStatistics };
+    abstract getTrackPointsAndStatistics(): { points: TrackPoint[], point_statistics: TrackPointStatistics, statistics: GPXStatistics };
 
-    abstract toGeoJSON(): any;
+    abstract toGeoJSON(): GeoJSON.Feature | GeoJSON.Feature[] | GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[];
 }
 
 // An abstract class that can be extended to facilitate functions working similarly with Tracks and TrackSegments
 abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement<T> {
     isLeaf(): boolean {
         return false;
-    }
-
-    computeStatistics(): GPXStatistics {
-        for (let child of this.getChildren()) {
-            child.computeStatistics();
-        }
-        this.refreshStatistics();
-        return this.statistics;
-    }
-
-    refreshStatistics(): void {
-        this.statistics = new GPXStatistics();
-        for (let child of this.getChildren()) {
-            child.refreshStatistics();
-            this.statistics.mergeWith(child.statistics);
-        }
     }
 
     append(points: TrackPoint[]): void {
@@ -58,8 +40,6 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
         }
 
         children[children.length - 1].append(points);
-
-        this.refreshStatistics();
     }
 
     reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date): void {
@@ -80,8 +60,6 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
             originalNextTimestamp = originalStartTimestamp;
             newPreviousTimestamp = children[i].getEndTimestamp();
         }
-
-        this.refreshStatistics();
     }
 
     getStartTimestamp(): Date {
@@ -96,9 +74,17 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
         return this.getChildren().flatMap((child) => child.getTrackPoints());
     }
 
-    getTrackPointsAndStatistics(): { points: TrackPoint[]; statistics: TrackPointStatistics; } {
+    getStatistics(): GPXStatistics {
+        let statistics = new GPXStatistics();
+        for (let child of this.getChildren()) {
+            statistics.mergeWith(child.getStatistics());
+        }
+        return statistics;
+    }
+
+    getTrackPointsAndStatistics(): { points: TrackPoint[], point_statistics: TrackPointStatistics, statistics: GPXStatistics } {
         let points: TrackPoint[] = [];
-        let statistics: TrackPointStatistics = {
+        let point_statistics: TrackPointStatistics = {
             distance: [],
             time: [],
             speed: [],
@@ -109,25 +95,25 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
             },
             slope: [],
         };
+        let statistics = new GPXStatistics();
 
-        let current = new GPXStatistics();
         for (let child of this.getChildren()) {
             let childData = child.getTrackPointsAndStatistics();
             points = points.concat(childData.points);
 
-            statistics.distance = statistics.distance.concat(childData.statistics.distance.map((distance) => distance + current.distance.total));
-            statistics.time = statistics.time.concat(childData.statistics.time.map((time) => time + current.time.total));
-            statistics.elevation.gain = statistics.elevation.gain.concat(childData.statistics.elevation.gain.map((gain) => gain + current.elevation.gain));
-            statistics.elevation.loss = statistics.elevation.loss.concat(childData.statistics.elevation.loss.map((loss) => loss + current.elevation.loss));
+            point_statistics.distance = point_statistics.distance.concat(childData.point_statistics.distance.map((distance) => distance + statistics.distance.total));
+            point_statistics.time = point_statistics.time.concat(childData.point_statistics.time.map((time) => time + statistics.time.total));
+            point_statistics.elevation.gain = point_statistics.elevation.gain.concat(childData.point_statistics.elevation.gain.map((gain) => gain + statistics.elevation.gain));
+            point_statistics.elevation.loss = point_statistics.elevation.loss.concat(childData.point_statistics.elevation.loss.map((loss) => loss + statistics.elevation.loss));
 
-            statistics.speed = statistics.speed.concat(childData.statistics.speed);
-            statistics.elevation.smoothed = statistics.elevation.smoothed.concat(childData.statistics.elevation.smoothed);
-            statistics.slope = statistics.slope.concat(childData.statistics.slope);
+            point_statistics.speed = point_statistics.speed.concat(childData.point_statistics.speed);
+            point_statistics.elevation.smoothed = point_statistics.elevation.smoothed.concat(childData.point_statistics.elevation.smoothed);
+            point_statistics.slope = point_statistics.slope.concat(childData.point_statistics.slope);
 
-            current.mergeWith(child.statistics);
+            statistics.mergeWith(childData.statistics);
         }
 
-        return { points, statistics };
+        return { points, point_statistics, statistics };
     }
 }
 
@@ -149,18 +135,13 @@ export class GPXFiles extends GPXTreeNode<GPXFile> {
     constructor(files: GPXFile[]) {
         super();
         this.files = files;
-
-        this.statistics = new GPXStatistics();
-        for (let file of files) {
-            this.statistics.mergeWith(file.statistics);
-        }
     }
 
     getChildren(): GPXFile[] {
         return this.files;
     }
 
-    toGeoJSON(): any {
+    toGeoJSON(): GeoJSON.FeatureCollection[] {
         return this.getChildren().map((child) => child.toGeoJSON());
     }
 }
@@ -178,8 +159,6 @@ export class GPXFile extends GPXTreeNode<Track>{
         this.metadata = cloneJSON(gpx.metadata);
         this.wpt = gpx.wpt ? gpx.wpt.map((waypoint) => new Waypoint(waypoint)) : [];
         this.trk = gpx.trk ? gpx.trk.map((track) => new Track(track)) : [];
-
-        this.computeStatistics();
     }
 
     getChildren(): Track[] {
@@ -190,7 +169,7 @@ export class GPXFile extends GPXTreeNode<Track>{
         return new GPXFile(structuredClone(this));
     }
 
-    toGeoJSON(): any {
+    toGeoJSON(): GeoJSON.FeatureCollection {
         return {
             type: "FeatureCollection",
             features: this.getChildren().flatMap((child) => child.toGeoJSON())
@@ -234,7 +213,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
         return this.trkseg;
     }
 
-    toGeoJSON(): any {
+    toGeoJSON(): GeoJSON.Feature[] {
         return this.getChildren().map((child) => {
             let geoJSON = child.toGeoJSON();
             if (this.extensions && this.extensions['gpx_style:line']) {
@@ -274,13 +253,15 @@ export class Track extends GPXTreeNode<TrackSegment> {
 export class TrackSegment extends GPXTreeLeaf {
     trkpt: TrackPoint[];
     trkptStatistics: TrackPointStatistics;
+    statistics: GPXStatistics;
 
     constructor(segment: TrackSegmentType | TrackSegment) {
         super();
         this.trkpt = segment.trkpt.map((point) => new TrackPoint(point));
+        this._computeStatistics();
     }
 
-    computeStatistics(): GPXStatistics {
+    _computeStatistics(): void {
         let statistics = new GPXStatistics();
         let trkptStatistics: TrackPointStatistics = {
             distance: [],
@@ -294,8 +275,8 @@ export class TrackSegment extends GPXTreeLeaf {
             slope: [],
         };
 
-        trkptStatistics.elevation.smoothed = this.computeSmoothedElevation();
-        trkptStatistics.slope = this.computeSlope();
+        trkptStatistics.elevation.smoothed = this._computeSmoothedElevation();
+        trkptStatistics.slope = this._computeSlope();
 
         const points = this.trkpt;
         for (let i = 0; i < points.length; i++) {
@@ -357,14 +338,9 @@ export class TrackSegment extends GPXTreeLeaf {
 
         this.statistics = statistics;
         this.trkptStatistics = trkptStatistics;
-
-        return statistics;
     }
 
-    // Do nothing, recompute statistics after modifying the segment only
-    refreshStatistics(): void { }
-
-    computeSmoothedElevation(): number[] {
+    _computeSmoothedElevation(): number[] {
         const points = this.trkpt;
 
         let smoothed = distanceWindowSmoothing(points, 100, (index) => points[index].ele, (accumulated, start, end) => accumulated / (end - start + 1));
@@ -377,7 +353,7 @@ export class TrackSegment extends GPXTreeLeaf {
         return smoothed;
     }
 
-    computeSlope(): number[] {
+    _computeSlope(): number[] {
         const points = this.trkpt;
 
         return distanceWindowSmoothingWithDistanceAccumulator(points, 50, (accumulated, start, end) => 100 * (points[end].ele - points[start].ele) / accumulated);
@@ -385,7 +361,7 @@ export class TrackSegment extends GPXTreeLeaf {
 
     append(points: TrackPoint[]): void {
         this.trkpt = this.trkpt.concat(points);
-        this.computeStatistics();
+        this._computeStatistics();
     }
 
     reverse(originalNextTimestamp: Date | undefined, newPreviousTimestamp: Date | undefined): void {
@@ -405,7 +381,7 @@ export class TrackSegment extends GPXTreeLeaf {
         } else {
             this.trkpt.reverse();
         }
-        this.computeStatistics();
+        this._computeStatistics();
     }
 
     getStartTimestamp(): Date {
@@ -420,14 +396,19 @@ export class TrackSegment extends GPXTreeLeaf {
         return this.trkpt;
     }
 
-    getTrackPointsAndStatistics(): { points: TrackPoint[], statistics: TrackPointStatistics } {
+    getStatistics(): GPXStatistics {
+        return this.statistics;
+    }
+
+    getTrackPointsAndStatistics(): { points: TrackPoint[], point_statistics: TrackPointStatistics, statistics: GPXStatistics } {
         return {
             points: this.trkpt,
-            statistics: this.trkptStatistics
+            point_statistics: this.trkptStatistics,
+            statistics: this.statistics,
         };
     }
 
-    toGeoJSON(): any {
+    toGeoJSON(): GeoJSON.Feature {
         return {
             type: "Feature",
             geometry: {
@@ -454,6 +435,7 @@ export class TrackPoint {
     ele?: number;
     time?: Date;
     extensions?: TrackPointExtensions;
+    _data: {} = {};
 
     constructor(point: TrackPointType | TrackPoint) {
         this.attributes = cloneJSON(point.attributes);

@@ -68,10 +68,32 @@ export function triggerFileInput() {
 }
 
 export async function loadFiles(list: FileList) {
+    let bounds = new mapboxgl.LngLatBounds();
+    let mapBounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
+    if (get(files).length > 0) {
+        mapBounds = get(map)?.getBounds() ?? mapBounds;
+        bounds.extend(mapBounds);
+    }
     for (let i = 0; i < list.length; i++) {
         let file = await loadFile(list[i]);
-        if (i == 0 && file) {
-            get(selectFiles).select(get(file));
+        if (file) {
+            if (i == 0) {
+                get(selectFiles).select(get(file));
+            }
+
+            let fileBounds = get(file).getStatistics().bounds;
+            bounds.extend(fileBounds.southWest);
+            bounds.extend(fileBounds.northEast);
+            bounds.extend([fileBounds.southWest.lon, fileBounds.northEast.lat]);
+            bounds.extend([fileBounds.northEast.lon, fileBounds.southWest.lat]);
+
+            if (!mapBounds.contains(bounds.getSouthWest()) || !mapBounds.contains(bounds.getNorthEast()) || !mapBounds.contains(bounds.getSouthEast()) || !mapBounds.contains(bounds.getNorthWest())) {
+                get(map)?.fitBounds(bounds, {
+                    padding: 80,
+                    linear: true,
+                    easing: () => 1
+                });
+            }
         }
     }
 }

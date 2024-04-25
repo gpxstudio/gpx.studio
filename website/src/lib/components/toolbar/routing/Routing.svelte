@@ -106,7 +106,7 @@
 			$map.off('move', toggleMarkersForZoomLevelAndBounds);
 			$map.off('click', extendFile);
 			if (file) {
-				$map.off('mouseover', file.layerId, showInsertableMarker);
+				$map.off('mouseover', file._data.layerId, showInsertableMarker);
 			}
 			if (insertableMarker) {
 				insertableMarker.remove();
@@ -115,7 +115,7 @@
 		kdbush = null;
 	}
 
-	$: if ($selectedFiles.size == 1 && $map) {
+	$: if ($selectedFiles.size == 1) {
 		let selectedFile = $selectedFiles.values().next().value;
 
 		if (selectedFile !== file) {
@@ -124,6 +124,9 @@
 		} else {
 			// update markers
 		}
+	} else {
+		clean();
+		file = null;
 	}
 
 	$: if ($map && file) {
@@ -140,7 +143,7 @@
 		$map.on('zoom', toggleMarkersForZoomLevelAndBounds);
 		$map.on('move', toggleMarkersForZoomLevelAndBounds);
 		$map.on('click', extendFile);
-		$map.on('mouseover', file.layerId, showInsertableMarker);
+		$map.on('mouseover', file._data.layerId, showInsertableMarker);
 
 		let points = file.getTrackPoints();
 
@@ -152,8 +155,6 @@
 		kdbush.finish();
 		end = performance.now();
 		console.log('Time to create kdbush: ' + (end - start) + 'ms');
-	} else {
-		clean();
 	}
 
 	onDestroy(() => {
