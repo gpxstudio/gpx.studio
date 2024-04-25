@@ -1,5 +1,5 @@
 import type { GPXFile } from "gpx";
-import { map, selectFiles } from "$lib/stores";
+import { map, selectFiles, currentTool, Tool } from "$lib/stores";
 import { get, type Writable } from "svelte/store";
 import type mapboxgl from "mapbox-gl";
 
@@ -122,6 +122,9 @@ export class GPXMapLayer {
     }
 
     selectOnClick(e: any) {
+        if (get(currentTool) === Tool.ROUTING) {
+            return;
+        }
         if (e.originalEvent.shiftKey) {
             get(selectFiles).addSelect(get(this.file));
         } else {

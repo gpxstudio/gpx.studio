@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { reverseSelectedFiles } from '$lib/stores';
+	import { currentTool, reverseSelectedFiles, Tool } from '$lib/stores';
 	import Routing from './routing/Routing.svelte';
 	import ToolbarItem from './ToolbarItem.svelte';
 	import {
@@ -17,14 +17,12 @@
 
 	import { _ } from 'svelte-i18n';
 
-	let currentTool: string | null = null;
-
-	function getToggleTool(tool: string) {
+	function getToggleTool(tool: Tool) {
 		return () => toggleTool(tool);
 	}
 
-	function toggleTool(tool: string) {
-		currentTool = currentTool === tool ? null : tool;
+	function toggleTool(tool: Tool) {
+		currentTool.update((current) => (current === tool ? null : tool));
 	}
 </script>
 
@@ -33,7 +31,7 @@
 		<div
 			class="h-fit flex flex-col p-1 gap-1 bg-background rounded-md pointer-events-auto shadow-md border"
 		>
-			<ToolbarItem on:click={getToggleTool('routing')}>
+			<ToolbarItem on:click={getToggleTool(Tool.ROUTING)}>
 				<Pencil slot="icon" size="18" />
 				<span slot="tooltip">{$_('toolbar.routing.tooltip')}</span>
 			</ToolbarItem>
@@ -74,7 +72,7 @@
 				<span slot="tooltip">{$_('toolbar.structure_tooltip')}</span>
 			</ToolbarItem>
 		</div>
-		{#if currentTool == 'routing'}
+		{#if $currentTool === Tool.ROUTING}
 			<Routing />
 		{/if}
 	</div>

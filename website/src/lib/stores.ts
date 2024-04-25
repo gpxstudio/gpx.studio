@@ -13,6 +13,10 @@ export const settings = writable<{ [key: string]: any }>({
     velocityUnits: 'speed',
     temperatureUnits: 'celsius',
 });
+export enum Tool {
+    ROUTING
+}
+export const currentTool = writable<Tool | null>(null);
 
 export function getFileStore(file: GPXFile): Writable<GPXFile> {
     return get(files).find(store => get(store) === file) ?? addFile(file);
