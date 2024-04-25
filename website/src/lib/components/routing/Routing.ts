@@ -35,7 +35,7 @@ export function route(points: Coordinates[]): Promise<TrackPoint[]> {
 }
 
 async function getRoute(points: Coordinates[], brouterProfile: string, privateRoads: boolean): Promise<TrackPoint[]> {
-    let url = `https://routing.gpx.studio?lonlats=${points.map(point => `${point.lon},${point.lat}`).join('|')}&profile=${brouterProfile + (privateRoads ? '-private' : '')}&format=geojson&alternativeidx=0`;
+    let url = `https://routing.gpx.studio?lonlats=${points.map(point => `${point.lon.toFixed(8)},${point.lat.toFixed(8)}`).join('|')}&profile=${brouterProfile + (privateRoads ? '-private' : '')}&format=geojson&alternativeidx=0`;
 
     let response = await fetch(url);
     let geojson = await response.json();

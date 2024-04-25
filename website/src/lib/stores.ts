@@ -1,7 +1,7 @@
 import { writable, get, type Writable } from 'svelte/store';
 
 import mapboxgl from 'mapbox-gl';
-import { GPXFile, buildGPX, parseGPX } from 'gpx';
+import { GPXFile, buildGPX, parseGPX, type AnyGPXTreeElement } from 'gpx';
 
 export const map = writable<mapboxgl.Map | null>(null);
 export const files = writable<Writable<GPXFile>[]>([]);
@@ -24,6 +24,16 @@ export function getFileStore(file: GPXFile): Writable<GPXFile> {
 
 export function getFileIndex(file: GPXFile): number {
     return get(files).findIndex(store => get(store) === file);
+}
+
+export function applyToFileElement<T extends AnyGPXTreeElement>(store: Writable<GPXFile>, element: T, callback: (element: T) => void, updateSelected: boolean) {
+    store.update($file => {
+        callback(element);
+        return $file;
+    });
+    if (updateSelected) {
+        selectedFiles.update($selected => $selected);
+    }
 }
 
 export function applyToFile(file: GPXFile, callback: (file: GPXFile) => void, updateSelected: boolean) {

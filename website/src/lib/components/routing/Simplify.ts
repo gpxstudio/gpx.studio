@@ -1,6 +1,6 @@
-import type { Coordinates, GPXFile, TrackPoint } from "gpx";
+import type { Coordinates, TrackPoint, TrackSegment } from "gpx";
 
-export type SimplifiedTrackPoint = { point: TrackPoint, distance?: number, zoom?: number };
+export type SimplifiedTrackPoint = { point: TrackPoint, distance?: number, zoom?: number, marker?: mapboxgl.Marker };
 
 const earthRadius = 6371008.8;
 
@@ -15,27 +15,22 @@ export function getZoomLevelForDistance(latitude: number, distance?: number): nu
     return Math.min(20, Math.max(0, Math.floor(Math.log2((earthRadius * Math.cos(lat)) / distance))));
 }
 
-export function computeAnchorPoints(file: GPXFile) {
-    for (let segment of file.getSegments()) {
-        let points = segment.trkpt;
-        let anchors = ramerDouglasPeucker(points);
-        anchors.forEach((point) => {
-            point.zoom = getZoomLevelForDistance(point.point.getLatitude(), point.distance);
-        });
-        segment._data['anchors'] = anchors;
-    }
+export function computeAnchorPoints(segment: TrackSegment) {
+    let points = segment.trkpt;
+    let anchors = ramerDouglasPeucker(points);
+    anchors.forEach((point) => {
+        point.zoom = getZoomLevelForDistance(point.point.getLatitude(), point.distance);
+    });
+    segment._data['anchors'] = anchors;
 }
 
 export function ramerDouglasPeucker(points: TrackPoint[], epsilon: number = 50, start: number = 0, end: number = points.length - 1): SimplifiedTrackPoint[] {
     let simplified = [{
-        point: points[start],
-        index: start,
-
+        point: points[start]
     }];
     ramerDouglasPeuckerRecursive(points, epsilon, start, end, simplified);
     simplified.push({
-        point: points[end],
-        index: end
+        point: points[end]
     });
     return simplified;
 }

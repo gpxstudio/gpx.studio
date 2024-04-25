@@ -8,7 +8,7 @@ function cloneJSON<T>(obj: T): T {
 }
 
 // An abstract class that groups functions that need to be computed recursively in the GPX file hierarchy
-abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
+export abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
     _data: { [key: string]: any } = {};
 
     abstract isLeaf(): boolean;
@@ -26,6 +26,8 @@ abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
 
     abstract toGeoJSON(): GeoJSON.Feature | GeoJSON.Feature[] | GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[];
 }
+
+export type AnyGPXTreeElement = GPXTreeElement<GPXTreeElement<any>>;
 
 // An abstract class that can be extended to facilitate functions working similarly with Tracks and TrackSegments
 abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement<T> {
@@ -286,6 +288,7 @@ export class TrackSegment extends GPXTreeLeaf {
         const points = this.trkpt;
         for (let i = 0; i < points.length; i++) {
             points[i]._data['index'] = i;
+            points[i]._data['segment'] = this;
 
             // distance
             let dist = 0;
@@ -367,6 +370,11 @@ export class TrackSegment extends GPXTreeLeaf {
 
     append(points: TrackPoint[]): void {
         this.trkpt = this.trkpt.concat(points);
+        this._computeStatistics();
+    }
+
+    replace(start: number, end: number, points: TrackPoint[]): void {
+        this.trkpt.splice(start, end - start + 1, ...points);
         this._computeStatistics();
     }
 
@@ -458,6 +466,10 @@ export class TrackPoint {
 
     getCoordinates(): Coordinates {
         return this.attributes;
+    }
+
+    setCoordinates(coordinates: Coordinates): void {
+        this.attributes = coordinates;
     }
 
     getLatitude(): number {
@@ -599,7 +611,7 @@ export type TrackPointStatistics = {
 }
 
 const earthRadius = 6371008.8;
-function distance(coord1: Coordinates, coord2: Coordinates): number {
+export function distance(coord1: Coordinates, coord2: Coordinates): number {
     const rad = Math.PI / 180;
     const lat1 = coord1.lat * rad;
     const lat2 = coord2.lat * rad;
