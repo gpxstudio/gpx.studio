@@ -170,14 +170,16 @@ export class RoutingControls {
                 // and transfer the marker to that point
                 if (previousAnchor && nextAnchor) {
                     let minDistance = Number.MAX_VALUE;
+                    let minIndex = 0;
                     for (let i = 1; i < response.length - 1; i++) {
-                        let dist = distance(response[i].getCoordinates(), anchor.point.getCoordinates());
+                        let dist = distance(response[i].getCoordinates(), coordinates);
                         if (dist < minDistance) {
                             minDistance = dist;
-                            anchor.zoom = 0;
-                            anchor.point = response[i];
+                            minIndex = i;
                         }
                     }
+                    anchor.zoom = 0;
+                    anchor.point = response[minIndex];
                 }
 
                 marker.setLngLat(anchor.point.getCoordinates());
