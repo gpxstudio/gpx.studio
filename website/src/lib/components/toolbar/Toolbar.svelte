@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { currentTool, reverseSelectedFiles, Tool } from '$lib/stores';
-	import Routing from './routing/Routing.svelte';
+	import Routing from '$lib/components/routing/Routing.svelte';
 	import ToolbarItem from './ToolbarItem.svelte';
 	import {
 		ArrowRightLeft,

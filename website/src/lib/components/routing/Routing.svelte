@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ToolbarItemMenu from '../ToolbarItemMenu.svelte';
+	import ToolbarItemMenu from '../toolbar/ToolbarItemMenu.svelte';
 	import * as Card from '$lib/components/ui/card';
 	import * as Select from '$lib/components/ui/select';
 	import { Switch } from '$lib/components/ui/switch';
@@ -8,7 +8,7 @@
 	import { CircleHelp } from 'lucide-svelte';
 
 	import { map, selectedFiles, applyToFile } from '$lib/stores';
-	import { AnchorPointHierarchy, getMarker, route } from './routing';
+	import { AnchorPointHierarchy, getMarker, route } from './Routing';
 	import { onDestroy } from 'svelte';
 	import mapboxgl from 'mapbox-gl';
 	import KDBush from 'kdbush';
