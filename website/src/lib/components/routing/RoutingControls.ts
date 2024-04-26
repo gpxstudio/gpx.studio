@@ -13,6 +13,7 @@ export class RoutingControls {
 
     toggleMarkersForZoomLevelAndBoundsBinded: () => void = this.toggleMarkersForZoomLevelAndBounds.bind(this);
     extendFileBinded: (e: mapboxgl.MapMouseEvent) => void = this.extendFile.bind(this);
+    busy: boolean = false;
 
     constructor(map: mapboxgl.Map, file: Writable<GPXFile>) {
         this.map = map;
@@ -42,9 +43,8 @@ export class RoutingControls {
                 let anchor = anchors[i];
                 if (anchor.point._data.index >= segment.trkpt.length || anchor.point !== segment.trkpt[anchor.point._data.index]) { // Point removed
                     anchors.splice(i, 1);
-                    let markerIndex = this.markers.findIndex(marker => marker._simplified === anchor);
-                    this.markers[markerIndex].remove();
-                    this.markers.splice(markerIndex, 1);
+                    this.markers[i].remove();
+                    this.markers.splice(i, 1);
                     continue;
                 }
                 i++;
@@ -93,23 +93,24 @@ export class RoutingControls {
     toggleMarkersForZoomLevelAndBounds() {
         let zoom = this.map.getZoom();
         this.markers.forEach((marker) => {
-            if (marker._simplified.zoom <= zoom && this.map.getBounds().contains(marker.getLngLat())) {
+            Object.defineProperty(marker, '_inZoom', {
+                value: marker._simplified.zoom <= zoom,
+                writable: true
+            });
+            if (marker._inZoom && this.map.getBounds().contains(marker.getLngLat())) {
                 marker.addTo(this.map);
-                Object.defineProperty(marker, '_inZoom', {
-                    value: true,
-                    writable: true
-                });
             } else {
                 marker.remove();
-                Object.defineProperty(marker, '_inZoom', {
-                    value: false,
-                    writable: true
-                });
             }
         });
     }
 
-    updateAnchor(e: any) {
+    async updateAnchor(e: any) {
+        if (this.busy) {
+            return;
+        }
+        this.busy = true;
+
         let marker = e.target;
         let anchor = marker._simplified;
 
@@ -126,11 +127,15 @@ export class RoutingControls {
         let nextAnchor: SimplifiedTrackPoint | null = null;
 
         for (let i = 0; i < anchors.length; i++) {
-            if (anchors[i].point._data.index < anchor.point._data.index && anchors[i].marker._inZoom) {
+            if (anchors[i].point._data.index < anchor.point._data.index &&
+                anchors[i].point._data.segment === anchor.point._data.segment &&
+                anchors[i].marker._inZoom) {
                 if (!previousAnchor || anchors[i].point._data.index > previousAnchor.point._data.index) {
                     previousAnchor = anchors[i];
                 }
-            } else if (anchors[i].point._data.index > anchor.point._data.index && anchors[i].marker._inZoom) {
+            } else if (anchors[i].point._data.index > anchor.point._data.index &&
+                anchors[i].point._data.segment === anchor.point._data.segment &&
+                anchors[i].marker._inZoom) {
                 if (!nextAnchor || anchors[i].point._data.index < nextAnchor.point._data.index) {
                     nextAnchor = anchors[i];
                 }
@@ -150,48 +155,54 @@ export class RoutingControls {
         let end = nextAnchor ? nextAnchor.point._data.index - 1 : anchor.point._data.index;
 
         if (routeCoordinates.length === 1) {
-            return;
+            anchor.point.setCoordinates(coordinates);
         } else {
-            route(routeCoordinates).then((response) => {
-                if (previousAnchor) {
-                    previousAnchor.zoom = 0;
-                } else {
-                    anchor.zoom = 0;
-                    anchor.point = response[0];
-                }
-                if (nextAnchor) {
-                    nextAnchor.zoom = 0;
-                } else {
-                    anchor.zoom = 0;
-                    anchor.point = response[response.length - 1];
-                }
+            let response = await route(routeCoordinates);
+            if (previousAnchor !== null) {
+                previousAnchor.zoom = 0;
+            } else {
+                anchor.zoom = 0;
+                anchor.point = response[0];
+            }
+            if (nextAnchor !== null) {
+                nextAnchor.zoom = 0;
+            } else {
+                anchor.zoom = 0;
+                anchor.point = response[response.length - 1];
+            }
 
-                // find closest point to the dragged marker
-                // and transfer the marker to that point
-                if (previousAnchor && nextAnchor) {
-                    let minDistance = Number.MAX_VALUE;
-                    let minIndex = 0;
-                    for (let i = 1; i < response.length - 1; i++) {
-                        let dist = distance(response[i].getCoordinates(), coordinates);
-                        if (dist < minDistance) {
-                            minDistance = dist;
-                            minIndex = i;
-                        }
+            // find closest point to the dragged marker
+            // and transfer the marker to that point
+            if (previousAnchor && nextAnchor) {
+                let minDistance = Number.MAX_VALUE;
+                let minIndex = 0;
+                for (let i = 1; i < response.length - 1; i++) {
+                    let dist = distance(response[i].getCoordinates(), coordinates);
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        minIndex = i;
                     }
-                    anchor.zoom = 0;
-                    anchor.point = response[minIndex];
                 }
+                anchor.zoom = 0;
+                anchor.point = response[minIndex];
+            }
 
-                marker.setLngLat(anchor.point.getCoordinates());
+            marker.setLngLat(anchor.point.getCoordinates());
 
-                applyToFileElement(this.file, segment, (segment) => {
-                    segment.replace(start, end, response);
-                }, true);
-            });
+            applyToFileElement(this.file, segment, (segment) => {
+                segment.replace(start, end, response);
+            }, true);
         }
+
+        this.busy = false;
     }
 
     async extendFile(e: mapboxgl.MapMouseEvent) {
+        if (this.busy) {
+            return;
+        }
+        this.busy = true;
+
         let segments = get(this.file).getSegments();
         if (segments.length === 0) {
             return;
@@ -216,5 +227,7 @@ export class RoutingControls {
         this.createMarker(anchor);
 
         applyToFileStore(this.file, (f) => f.append(response), true);
+
+        this.busy = false;
     }
 }
