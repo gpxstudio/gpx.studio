@@ -503,6 +503,19 @@ export class TrackPoint {
     getSurface(): string {
         return this.extensions && this.extensions["gpxtpx:TrackPointExtension"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"].surface ? this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"].surface : undefined;
     }
+
+    setSurface(surface: string): void {
+        if (!this.extensions) {
+            this.extensions = {};
+        }
+        if (!this.extensions["gpxtpx:TrackPointExtension"]) {
+            this.extensions["gpxtpx:TrackPointExtension"] = {};
+        }
+        if (!this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"]) {
+            this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"] = {};
+        }
+        this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"]["surface"] = surface;
+    }
 };
 
 export class Waypoint {

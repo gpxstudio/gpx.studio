@@ -42,6 +42,14 @@ async function getRoute(points: Coordinates[], brouterProfile: string, privateRo
 
     let route: TrackPoint[] = [];
     let coordinates = geojson.features[0].geometry.coordinates;
+    let messages = geojson.features[0].properties.messages;
+
+    const lngIdx = messages[0].indexOf("Longitude");
+    const latIdx = messages[0].indexOf("Latitude");
+    const tagIdx = messages[0].indexOf("WayTags");
+    let messageIdx = 1;
+    let surface = getSurface(messages[messageIdx][tagIdx]);
+
     for (let i = 0; i < coordinates.length; i++) {
         let coord = coordinates[i];
         route.push(new TrackPoint({
@@ -51,7 +59,25 @@ async function getRoute(points: Coordinates[], brouterProfile: string, privateRo
             },
             ele: coord[2] ?? undefined
         }));
+        route[route.length - 1].setSurface(surface)
+
+        if (messageIdx < messages.length &&
+            coordinates[i][0] == Number(messages[messageIdx][lngIdx]) / 1000000 &&
+            coordinates[i][1] == Number(messages[messageIdx][latIdx]) / 1000000) {
+            messageIdx++;
+
+            if (messageIdx == messages.length) surface = "missing";
+            else surface = getSurface(messages[messageIdx][tagIdx]);
+        }
     }
 
     return route;
 }
+
+function getSurface(message: string): string {
+    const fields = message.split(" ");
+    for (let i = 0; i < fields.length; i++) if (fields[i].startsWith("surface=")) {
+        return fields[i].substring(8);
+    }
+    return "unknown";
+};
