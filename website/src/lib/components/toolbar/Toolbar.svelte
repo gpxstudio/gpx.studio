@@ -16,7 +16,6 @@
 	} from 'lucide-svelte';
 
 	import { _ } from 'svelte-i18n';
-	import { derived } from 'svelte/store';
 
 	function getToggleTool(tool: Tool) {
 		return () => toggleTool(tool);
@@ -27,7 +26,7 @@
 	}
 </script>
 
-<div class="absolute top-0 bottom-0 left-0 z-10 flex flex-col justify-center pointer-events-none">
+<div class="absolute top-0 bottom-0 left-0 z-20 flex flex-col justify-center pointer-events-none">
 	<div class="flex flex-row w-screen items-center">
 		<div
 			class="h-fit flex flex-col p-1 gap-1 bg-background rounded-md pointer-events-auto shadow-md"

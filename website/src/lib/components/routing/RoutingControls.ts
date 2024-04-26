@@ -11,9 +11,12 @@ export class RoutingControls {
     markers: mapboxgl.Marker[] = [];
     popup: mapboxgl.Popup;
     popupElement: HTMLElement;
+    temporaryAnchor: SimplifiedTrackPoint;
     unsubscribe: () => void = () => { };
 
     toggleMarkersForZoomLevelAndBoundsBinded: () => void = this.toggleMarkersForZoomLevelAndBounds.bind(this);
+    showTemporaryAnchorBinded: (e: any) => void = this.showTemporaryAnchor.bind(this);
+    hideTemporaryAnchorBinded: (e: any) => void = this.hideTemporaryAnchor.bind(this);
     appendAnchorBinded: (e: mapboxgl.MapMouseEvent) => void = this.appendAnchor.bind(this);
 
     constructor(map: mapboxgl.Map, file: Writable<GPXFile>, popup: mapboxgl.Popup, popupElement: HTMLElement) {
@@ -22,6 +25,23 @@ export class RoutingControls {
         this.popup = popup;
         this.popupElement = popupElement;
 
+
+        this.temporaryAnchor = {
+            point: new TrackPoint({
+                attributes: {
+                    lon: 0,
+                    lat: 0
+                }
+            }),
+            zoom: 0
+        };
+        this.createMarker(this.temporaryAnchor);
+        let marker = this.markers.pop(); // Remove the temporary anchor from the markers list
+        marker.getElement().classList.add('z-0'); // Show below the other markers
+        Object.defineProperty(marker, '_temporary', {
+            value: true
+        });
+
         this.add();
     }
 
@@ -29,6 +49,8 @@ export class RoutingControls {
         this.map.on('zoom', this.toggleMarkersForZoomLevelAndBoundsBinded);
         this.map.on('move', this.toggleMarkersForZoomLevelAndBoundsBinded);
         this.map.on('click', this.appendAnchorBinded);
+        this.map.on('mousemove', get(this.file)._data.layerId, this.showTemporaryAnchorBinded);
+        this.map.on('mousemove', this.hideTemporaryAnchorBinded);
 
         this.unsubscribe = this.file.subscribe(this.updateControls.bind(this));
     }
@@ -64,6 +86,8 @@ export class RoutingControls {
         this.map.off('zoom', this.toggleMarkersForZoomLevelAndBoundsBinded);
         this.map.off('move', this.toggleMarkersForZoomLevelAndBoundsBinded);
         this.map.off('click', this.appendAnchorBinded);
+        this.map.off('mousemove', get(this.file)._data.layerId, this.showTemporaryAnchorBinded);
+        this.map.off('mousemove', this.hideTemporaryAnchorBinded);
 
         this.unsubscribe();
     }
@@ -80,6 +104,7 @@ export class RoutingControls {
 
         let marker = new mapboxgl.Marker({
             draggable: true,
+            className: 'z-10',
             element
         }).setLngLat(anchor.point.getCoordinates());
 
@@ -134,9 +159,33 @@ export class RoutingControls {
         });
     }
 
+    showTemporaryAnchor(e: any) {
+        this.temporaryAnchor.point.setCoordinates({
+            lat: e.lngLat.lat,
+            lon: e.lngLat.lng
+        });
+        this.temporaryAnchor.marker.setLngLat(this.temporaryAnchor.point.getCoordinates()).addTo(this.map);
+    }
+
+    hideTemporaryAnchor(e: any) {
+        if (this.temporaryAnchor.marker?.getElement().classList.contains('cursor-grabbing')) {
+            return;
+        }
+
+        if (e.point.dist(this.map.project(this.temporaryAnchor.marker?.getLngLat())) < 20) {
+            return;
+        }
+        this.temporaryAnchor.marker.remove();
+    }
+
     async moveAnchor(e: any) { // Move the anchor and update the route from and to the neighbouring anchors
         let marker = e.target;
         let anchor = marker._simplified;
+
+        if (marker._temporary) { // Temporary anchor, need to find the closest point of the segment and create an anchor for it
+            anchor = this.getPermanentAnchor(anchor);
+            marker = anchor.marker;
+        }
 
         let latlng = marker.getLngLat();
         let coordinates = {
@@ -163,6 +212,46 @@ export class RoutingControls {
         }
 
         await this.routeBetweenAnchors(anchors, targetCoordinates);
+    }
+
+    getPermanentAnchor(anchor: SimplifiedTrackPoint) {
+        // Find the closest point closest to the temporary anchor
+        let minDistance = Number.MAX_VALUE;
+        let minPoint: TrackPoint | null = null;
+        for (let segment of get(this.file).getSegments()) {
+            for (let point of segment.trkpt) {
+                let dist = distance(point.getCoordinates(), anchor.point.getCoordinates());
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    minPoint = point;
+                }
+            }
+        }
+
+        if (!minPoint) {
+            return anchor;
+        }
+
+        let segment = minPoint._data.segment;
+        let newAnchorIndex = segment._data.anchors.findIndex((a) => a.point._data.index >= minPoint._data.index);
+
+        if (segment._data.anchors[newAnchorIndex].point._data.index === minPoint._data.index) { // Anchor already exists for this point
+            return segment._data.anchors[newAnchorIndex];
+        }
+
+        let newAnchor = {
+            point: minPoint,
+            zoom: 0
+        };
+        this.createMarker(newAnchor);
+
+        let marker = this.markers.pop();
+        marker?.setLngLat(anchor.marker.getLngLat()).addTo(this.map);
+
+        segment._data.anchors.splice(newAnchorIndex, 0, newAnchor);
+        this.markers.splice(newAnchorIndex, 0, marker);
+
+        return newAnchor;
     }
 
     getDeleteAnchor(anchor: SimplifiedTrackPoint) {

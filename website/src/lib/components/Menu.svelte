@@ -23,7 +23,7 @@
 	let showDirectionMarkers = false;
 </script>
 
-<div class="absolute top-2 left-0 right-0 z-10 flex flex-row justify-center pointer-events-none">
+<div class="absolute top-2 left-0 right-0 z-20 flex flex-row justify-center pointer-events-none">
 	<div
 		class="w-fit flex flex-row flex-wrap mx-16 items-center justify-center p-1 bg-background rounded-md pointer-events-auto shadow-md"
 	>
