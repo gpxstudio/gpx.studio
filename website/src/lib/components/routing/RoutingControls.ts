@@ -1,4 +1,4 @@
-import { distance, type Coordinates, type GPXFile, type TrackSegment } from "gpx";
+import { distance, type Coordinates, type GPXFile, type TrackSegment, TrackPoint } from "gpx";
 import { get, type Writable } from "svelte/store";
 import { computeAnchorPoints, type SimplifiedTrackPoint } from "./Simplify";
 import mapboxgl from "mapbox-gl";
@@ -193,21 +193,22 @@ export class RoutingControls {
         let anchors = segment._data.anchors;
         let lastAnchor = anchors[anchors.length - 1];
 
-        let newPoint = {
-            lon: e.lngLat.lng,
-            lat: e.lngLat.lat
-        };
-
-        let response = await route([lastAnchor.point.getCoordinates(), newPoint]);
-
-        let anchor = {
-            point: response[response.length - 1],
+        let newPoint = new TrackPoint({
+            attributes: {
+                lon: e.lngLat.lng,
+                lat: e.lngLat.lat
+            }
+        });
+        newPoint._data.index = segment.trkpt.length - 1; // Do as if the point was the last point in the segment
+        newPoint._data.segment = segment;
+        let newAnchor = {
+            point: newPoint,
             zoom: 0
         };
-        segment._data.anchors.push(anchor);
-        this.createMarker(anchor);
+        this.createMarker(newAnchor);
+        segment._data.anchors.push(newAnchor);
 
-        applyToFileStore(this.file, (f) => f.append(response), true);
+        this.routeBetweenAnchors([lastAnchor, newAnchor], [lastAnchor.point.getCoordinates(), newAnchor.point.getCoordinates()]);
     }
 
     getNeighbouringAnchors(anchor: SimplifiedTrackPoint): [SimplifiedTrackPoint | null, SimplifiedTrackPoint | null] {
@@ -256,6 +257,7 @@ export class RoutingControls {
         if (anchors[anchors.length - 1].point._data.index === anchors[anchors.length - 1].point._data.segment.trkpt.length - 1) { // Last anchor is the last point of the segment
             anchors[anchors.length - 1].point = response[response.length - 1]; // Update the last anchor in case it was not on a road
             end++; // Remove the original last point
+            console.log('end', end);
         }
 
         for (let i = 1; i < anchors.length - 1; i++) {
