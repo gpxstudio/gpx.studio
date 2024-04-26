@@ -9,15 +9,20 @@ export class RoutingControls {
     map: mapboxgl.Map;
     file: Writable<GPXFile>;
     markers: mapboxgl.Marker[] = [];
+    popup: mapboxgl.Popup;
+    popupElement: HTMLElement;
     unsubscribe: () => void = () => { };
 
     toggleMarkersForZoomLevelAndBoundsBinded: () => void = this.toggleMarkersForZoomLevelAndBounds.bind(this);
     extendFileBinded: (e: mapboxgl.MapMouseEvent) => void = this.extendFile.bind(this);
     busy: boolean = false;
 
-    constructor(map: mapboxgl.Map, file: Writable<GPXFile>) {
+    constructor(map: mapboxgl.Map, file: Writable<GPXFile>, popup: mapboxgl.Popup, popupElement: HTMLElement) {
         this.map = map;
         this.file = file;
+        this.popup = popup;
+        this.popupElement = popupElement;
+
         this.add();
     }
 
@@ -85,7 +90,26 @@ export class RoutingControls {
         });
         anchor.marker = marker;
 
+        marker.on('dragstart', () => {
+            this.map.getCanvas().style.cursor = 'grabbing';
+            element.classList.add('cursor-grabbing');
+        });
+        marker.on('dragend', () => {
+            this.map.getCanvas().style.cursor = '';
+            element.classList.remove('cursor-grabbing');
+        });
         marker.on('dragend', this.updateAnchor.bind(this));
+        marker.getElement().addEventListener('click', (e) => {
+            marker.setPopup(this.popup);
+            marker.togglePopup();
+            e.stopPropagation();
+
+            let deleteThisAnchor = this.getDeleteAnchor(anchor);
+            this.popupElement.addEventListener('delete', deleteThisAnchor);
+            this.popup.once('close', () => {
+                this.popupElement.removeEventListener('delete', deleteThisAnchor);
+            });
+        });
 
         this.markers.push(marker);
     }
@@ -195,6 +219,14 @@ export class RoutingControls {
         }
 
         this.busy = false;
+    }
+
+    getDeleteAnchor(anchor: SimplifiedTrackPoint) {
+        return () => this.deleteAnchor(anchor);
+    }
+
+    async deleteAnchor(anchor: SimplifiedTrackPoint) {
+        console.log('delete', anchor);
     }
 
     async extendFile(e: mapboxgl.MapMouseEvent) {

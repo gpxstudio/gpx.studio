@@ -14,8 +14,13 @@
 	import { get, type Writable } from 'svelte/store';
 	import type { GPXFile } from 'gpx';
 	import { RoutingControls } from './RoutingControls';
+	import RoutingControlPopup from './RoutingControlPopup.svelte';
+	import { onMount } from 'svelte';
+	import mapboxgl from 'mapbox-gl';
 
 	let routingControls: Map<Writable<GPXFile>, RoutingControls> = new Map();
+	let popupElement: HTMLElement;
+	let popup: mapboxgl.Popup | null = null;
 	let selectedFile: Writable<GPXFile> | null = null;
 	let active = false;
 
@@ -52,11 +57,23 @@
 
 	$: if ($map && selectedFile) {
 		if (!routingControls.has(selectedFile)) {
-			routingControls.set(selectedFile, new RoutingControls(get(map), selectedFile));
+			routingControls.set(
+				selectedFile,
+				new RoutingControls(get(map), selectedFile, popup, popupElement)
+			);
 		} else {
 			routingControls.get(selectedFile)?.add();
 		}
 	}
+
+	onMount(() => {
+		popup = new mapboxgl.Popup({
+			closeButton: false,
+			maxWidth: undefined
+		});
+		popup.setDOMContent(popupElement);
+		popupElement.classList.remove('hidden');
+	});
 </script>
 
 {#if active}
@@ -103,3 +120,5 @@
 		</Card.Root>
 	</ToolbarItemMenu>
 {/if}
+
+<RoutingControlPopup bind:element={popupElement} />

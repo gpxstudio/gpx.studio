@@ -9,7 +9,11 @@ function cloneJSON<T>(obj: T): T {
 
 // An abstract class that groups functions that need to be computed recursively in the GPX file hierarchy
 export abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
-    _data: { [key: string]: any } = {};
+    _data: { [key: string]: any };
+
+    constructor() {
+        this._data = {};
+    }
 
     abstract isLeaf(): boolean;
     abstract getChildren(): T[];
@@ -173,7 +177,7 @@ export class GPXFile extends GPXTreeNode<Track>{
     }
 
     clone(): GPXFile {
-        return new GPXFile(structuredClone(this));
+        return new GPXFile(this);
     }
 
     toGeoJSON(): GeoJSON.FeatureCollection {
@@ -252,7 +256,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
     }
 
     clone(): Track {
-        return new Track(structuredClone(this));
+        return new Track(this);
     }
 };
 
@@ -444,7 +448,7 @@ export class TrackSegment extends GPXTreeLeaf {
     }
 
     clone(): TrackSegment {
-        return new TrackSegment(structuredClone(this));
+        return new TrackSegment(this);
     }
 };
 

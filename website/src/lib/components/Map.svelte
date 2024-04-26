@@ -168,4 +168,18 @@
 	div :global(.mapboxgl-ctrl-bottom-right) {
 		@apply bottom-9;
 	}
+
+	div :global(.mapboxgl-popup) {
+		@apply w-fit;
+	}
+
+	div :global(.mapboxgl-popup-content) {
+		@apply p-0;
+		@apply bg-transparent;
+		@apply shadow-none;
+	}
+
+	div :global(.mapboxgl-popup-tip) {
+		@apply drop-shadow-md;
+	}
 </style>
