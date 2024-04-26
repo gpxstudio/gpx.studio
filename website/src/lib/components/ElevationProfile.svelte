@@ -407,29 +407,29 @@
 	});
 </script>
 
-<div class="h-full grow min-w-0 flex flex-col items-center py-2 pr-4">
-	<div class="w-full grow min-h-0">
+<div class="h-full grow min-w-0 flex flex-row gap-4 items-center py-2 pr-4">
+	<div class="h-full grow min-w-0">
 		<canvas bind:this={canvas} class="w-full h-full"> </canvas>
 	</div>
-	<div class="w-fit flex flex-row border rounded -mt-3.5">
-		<ToggleGroup.Root class="gap-0" type="single" bind:value={elevationFill}>
-			<ToggleGroup.Item class="p-0 w-8 h-8" value="slope">
-				<Tooltip>
+	<div class="w-fit flex flex-col border rounded">
+		<ToggleGroup.Root class="flex-col gap-0" type="single" bind:value={elevationFill}>
+			<ToggleGroup.Item class="p-0 w-6 h-6" value="slope">
+				<Tooltip side="left">
 					<TriangleRight slot="data" size="16" />
 					<span slot="tooltip">{$_('chart.show_slope')}</span>
 				</Tooltip>
 			</ToggleGroup.Item>
-			<ToggleGroup.Item class="p-0 w-8 h-8" value="surface">
-				<Tooltip>
+			<ToggleGroup.Item class="p-0 w-6 h-6" value="surface">
+				<Tooltip side="left">
 					<BrickWall slot="data" size="16" />
 					<span slot="tooltip">{$_('chart.show_surface')}</span>
 				</Tooltip>
 			</ToggleGroup.Item>
 		</ToggleGroup.Root>
-		<Separator orientation="vertical" />
-		<ToggleGroup.Root class="gap-0" type="multiple" bind:value={additionalDatasets}>
-			<ToggleGroup.Item class="p-0 w-8 h-8" value="speed">
-				<Tooltip>
+		<Separator />
+		<ToggleGroup.Root class="flex-col gap-0" type="multiple" bind:value={additionalDatasets}>
+			<ToggleGroup.Item class="p-0 w-6 h-6" value="speed">
+				<Tooltip side="left">
 					<Zap slot="data" size="16" />
 					<span slot="tooltip"
 						>{$settings.velocityUnits === 'speed'
@@ -438,26 +438,26 @@
 					>
 				</Tooltip>
 			</ToggleGroup.Item>
-			<ToggleGroup.Item class="p-0 w-8 h-8" value="hr">
-				<Tooltip>
+			<ToggleGroup.Item class="p-0 w-6 h-6" value="hr">
+				<Tooltip side="left">
 					<HeartPulse slot="data" size="16" />
 					<span slot="tooltip">{$_('chart.show_heartrate')}</span>
 				</Tooltip>
 			</ToggleGroup.Item>
-			<ToggleGroup.Item class="p-0 w-8 h-8" value="cad">
-				<Tooltip>
+			<ToggleGroup.Item class="p-0 w-6 h-6" value="cad">
+				<Tooltip side="left">
 					<Orbit slot="data" size="16" />
 					<span slot="tooltip">{$_('chart.show_cadence')}</span>
 				</Tooltip>
 			</ToggleGroup.Item>
-			<ToggleGroup.Item class="p-0 w-8 h-8" value="atemp">
-				<Tooltip>
+			<ToggleGroup.Item class="p-0 w-6 h-6" value="atemp">
+				<Tooltip side="left">
 					<Thermometer slot="data" size="16" />
 					<span slot="tooltip">{$_('chart.show_temperature')}</span>
 				</Tooltip>
 			</ToggleGroup.Item>
-			<ToggleGroup.Item class="p-0 w-8 h-8" value="power">
-				<Tooltip>
+			<ToggleGroup.Item class="p-0 w-6 h-6" value="power">
+				<Tooltip side="left">
 					<SquareActivity slot="data" size="16" />
 					<span slot="tooltip">{$_('chart.show_power')}</span>
 				</Tooltip>

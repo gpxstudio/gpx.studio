@@ -23,7 +23,7 @@
 	}
 </script>
 
-<Card.Root class="h-full overflow-hidden border-none min-w-48 pl-4">
+<Card.Root class="h-full overflow-hidden border-none shadow-none min-w-48 pl-4">
 	<Card.Content class="h-full flex flex-col flex-wrap gap-4 justify-center p-0">
 		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
