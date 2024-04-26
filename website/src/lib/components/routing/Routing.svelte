@@ -61,7 +61,7 @@
 
 {#if active}
 	<ToolbarItemMenu>
-		<Card.Root>
+		<Card.Root class="border-none">
 			<Card.Content class="p-4 flex flex-col gap-4">
 				<div class="w-full flex flex-row justify-between items-center gap-2">
 					<Label>{$_('toolbar.routing.activity')}</Label>

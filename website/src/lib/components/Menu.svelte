@@ -31,7 +31,7 @@
 		<Menubar.Root class="border-none h-fit p-0">
 			<Menubar.Menu>
 				<Menubar.Trigger>{$_('menu.file')}</Menubar.Trigger>
-				<Menubar.Content>
+				<Menubar.Content class="border-none">
 					<Menubar.Item>
 						<Plus size="16" class="mr-1" />
 						{$_('menu.new')}
@@ -68,7 +68,7 @@
 			</Menubar.Menu>
 			<Menubar.Menu>
 				<Menubar.Trigger>{$_('menu.edit')}</Menubar.Trigger>
-				<Menubar.Content>
+				<Menubar.Content class="border-none">
 					<Menubar.Item>
 						<Undo2 size="16" class="mr-1" />
 						{$_('menu.undo')}
@@ -97,7 +97,7 @@
 			</Menubar.Menu>
 			<Menubar.Menu>
 				<Menubar.Trigger>{$_('menu.settings')}</Menubar.Trigger>
-				<Menubar.Content
+				<Menubar.Content class="border-none"
 					><Menubar.Sub>
 						<Menubar.SubTrigger inset>{$_('menu.distance_units')}</Menubar.SubTrigger>
 						<Menubar.SubContent>
