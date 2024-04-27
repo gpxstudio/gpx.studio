@@ -246,7 +246,7 @@
 				};
 			}),
 			normalized: true,
-			fill: true,
+			fill: 'start',
 			order: 1
 		};
 		chart.data.datasets[1] = {
