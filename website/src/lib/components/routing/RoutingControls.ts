@@ -246,7 +246,11 @@ export class RoutingControls {
             targetCoordinates.push(nextAnchor.point.getCoordinates());
         }
 
-        await this.routeBetweenAnchors(anchors, targetCoordinates);
+        let success = await this.routeBetweenAnchors(anchors, targetCoordinates);
+
+        if (!success) { // Route failed, revert the anchor to the previous position
+            marker.setLngLat(anchor.point.getCoordinates());
+        }
     }
 
     getPermanentAnchor(anchor: SimplifiedTrackPoint) {
@@ -331,7 +335,12 @@ export class RoutingControls {
         this.createMarker(newAnchor);
         segment._data.anchors.push(newAnchor);
 
-        this.routeBetweenAnchors([lastAnchor, newAnchor], [lastAnchor.point.getCoordinates(), newAnchor.point.getCoordinates()]);
+        let success = await this.routeBetweenAnchors([lastAnchor, newAnchor], [lastAnchor.point.getCoordinates(), newAnchor.point.getCoordinates()]);
+
+        if (!success) { // Route failed, remove the anchor
+            segment._data.anchors.pop();
+            this.markers.pop()?.remove();
+        }
     }
 
     getNeighbouringAnchors(anchor: SimplifiedTrackPoint): [SimplifiedTrackPoint | null, SimplifiedTrackPoint | null] {
@@ -359,15 +368,21 @@ export class RoutingControls {
         return [previousAnchor, nextAnchor];
     }
 
-    async routeBetweenAnchors(anchors: SimplifiedTrackPoint[], targetCoordinates: Coordinates[]) {
+    async routeBetweenAnchors(anchors: SimplifiedTrackPoint[], targetCoordinates: Coordinates[]): Promise<boolean> {
         if (anchors.length === 1) {
             anchors[0].point.setCoordinates(targetCoordinates[0]);
-            return;
+            return true;
         }
 
         let segment = anchors[0].point._data.segment;
 
-        let response = await route(targetCoordinates);
+        let response: TrackPoint[];
+        try {
+            response = await route(targetCoordinates);
+        } catch (e) {
+            console.error(e);
+            return false;
+        }
 
         let start = anchors[0].point._data.index + 1;
         let end = anchors[anchors.length - 1].point._data.index - 1;
@@ -405,5 +420,7 @@ export class RoutingControls {
         applyToFileElement(this.file, segment, (segment) => {
             segment.replace(start, end, response);
         }, true);
+
+        return true;
     }
 }
