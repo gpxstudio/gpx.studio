@@ -80,6 +80,7 @@
             },
             "error": {
                 "from": "The start point is too far from the nearest road",
+                "via": "The via point is too far from the nearest road",
                 "to": "The end point is too far from the nearest road"
             }
         },

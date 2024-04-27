@@ -384,9 +384,10 @@ export class RoutingControls {
         try {
             response = await route(targetCoordinates);
         } catch (e) {
-            console.log(e);
             if (e.message.includes('from-position not mapped in existing datafile')) {
                 toast.error(get(_)("toolbar.routing.error.from"));
+            } else if (e.message.includes('via1-position not mapped in existing datafile')) {
+                toast.error(get(_)("toolbar.routing.error.via"));
             } else if (e.message.includes('to-position not mapped in existing datafile')) {
                 toast.error(get(_)("toolbar.routing.error.to"));
             } else {
