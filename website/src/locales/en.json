@@ -2,6 +2,7 @@
     "menu": {
         "file": "File",
         "new": "New",
+        "new_filename": "new",
         "load_desktop": "Load from desktop...",
         "load_drive": "Load from Google Drive...",
         "duplicate": "Duplicate",

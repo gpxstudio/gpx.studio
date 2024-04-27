@@ -2,6 +2,8 @@ import { writable, get, type Writable } from 'svelte/store';
 
 import mapboxgl from 'mapbox-gl';
 import { GPXFile, buildGPX, parseGPX, type AnyGPXTreeElement } from 'gpx';
+import { tick } from 'svelte';
+import { _ } from 'svelte-i18n';
 
 export const map = writable<mapboxgl.Map | null>(null);
 export const files = writable<Writable<GPXFile>[]>([]);
@@ -69,6 +71,15 @@ export function addFile(file: GPXFile): Writable<GPXFile> {
         $files.push(fileStore);
         return $files;
     });
+    return fileStore;
+}
+
+export function createFile(): Writable<GPXFile> {
+    let file = new GPXFile();
+    file.metadata.name = get(_)("menu.new_filename");
+    let fileStore = addFile(file);
+    tick().then(() => get(selectFiles).select(file));
+    currentTool.set(Tool.ROUTING);
     return fileStore;
 }
 

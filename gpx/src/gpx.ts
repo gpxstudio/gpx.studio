@@ -164,12 +164,19 @@ export class GPXFile extends GPXTreeNode<Track>{
     wpt: Waypoint[];
     trk: Track[];
 
-    constructor(gpx: GPXFileType | GPXFile) {
+    constructor(gpx?: GPXFileType | GPXFile) {
         super();
-        this.attributes = cloneJSON(gpx.attributes);
-        this.metadata = cloneJSON(gpx.metadata);
-        this.wpt = gpx.wpt ? gpx.wpt.map((waypoint) => new Waypoint(waypoint)) : [];
-        this.trk = gpx.trk ? gpx.trk.map((track) => new Track(track)) : [];
+        if (gpx) {
+            this.attributes = cloneJSON(gpx.attributes);
+            this.metadata = cloneJSON(gpx.metadata);
+            this.wpt = gpx.wpt ? gpx.wpt.map((waypoint) => new Waypoint(waypoint)) : [];
+            this.trk = gpx.trk ? gpx.trk.map((track) => new Track(track)) : [];
+        } else {
+            this.attributes = {};
+            this.metadata = {};
+            this.wpt = [];
+            this.trk = [new Track()];
+        }
     }
 
     getChildren(): Track[] {
@@ -208,16 +215,20 @@ export class Track extends GPXTreeNode<TrackSegment> {
     trkseg: TrackSegment[];
     extensions?: TrackExtensions;
 
-    constructor(track: TrackType | Track) {
+    constructor(track?: TrackType | Track) {
         super();
-        this.name = track.name;
-        this.cmt = track.cmt;
-        this.desc = track.desc;
-        this.src = track.src;
-        this.link = cloneJSON(track.link);
-        this.type = track.type;
-        this.trkseg = track.trkseg ? track.trkseg.map((seg) => new TrackSegment(seg)) : [];
-        this.extensions = cloneJSON(track.extensions);
+        if (track) {
+            this.name = track.name;
+            this.cmt = track.cmt;
+            this.desc = track.desc;
+            this.src = track.src;
+            this.link = cloneJSON(track.link);
+            this.type = track.type;
+            this.trkseg = track.trkseg ? track.trkseg.map((seg) => new TrackSegment(seg)) : [];
+            this.extensions = cloneJSON(track.extensions);
+        } else {
+            this.trkseg = [new TrackSegment()];
+        }
     }
 
     getChildren(): TrackSegment[] {
@@ -266,9 +277,14 @@ export class TrackSegment extends GPXTreeLeaf {
     trkptStatistics: TrackPointStatistics;
     statistics: GPXStatistics;
 
-    constructor(segment: TrackSegmentType | TrackSegment) {
+    constructor(segment?: TrackSegmentType | TrackSegment) {
         super();
-        this.trkpt = segment.trkpt.map((point) => new TrackPoint(point));
+        if (segment) {
+            this.trkpt = segment.trkpt.map((point) => new TrackPoint(point));
+        } else {
+            this.trkpt = [];
+        }
+
         this._computeStatistics();
     }
 

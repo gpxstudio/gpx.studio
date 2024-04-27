@@ -14,7 +14,8 @@
 		removeSelectedFiles,
 		triggerFileInput,
 		selectFiles,
-		settings
+		settings,
+		createFile
 	} from '$lib/stores';
 
 	import { mode, resetMode, setMode } from 'mode-watcher';
@@ -51,7 +52,7 @@
 			<Menubar.Menu>
 				<Menubar.Trigger>{$_('menu.file')}</Menubar.Trigger>
 				<Menubar.Content class="border-none">
-					<Menubar.Item>
+					<Menubar.Item on:click={createFile}>
 						<Plus size="16" class="mr-1" />
 						{$_('menu.new')}
 						<Menubar.Shortcut>⌘N</Menubar.Shortcut>
@@ -183,7 +184,10 @@
 <svelte:window
 	on:keydown={(e) => {
 		e.stopImmediatePropagation();
-		if (e.key === 'o' && (e.metaKey || e.ctrlKey)) {
+		if (e.key === 'n' && (e.metaKey || e.ctrlKey)) {
+			createFile();
+			e.preventDefault();
+		} else if (e.key === 'o' && (e.metaKey || e.ctrlKey)) {
 			triggerFileInput();
 			e.preventDefault();
 		} else if (e.key === 'd' && (e.metaKey || e.ctrlKey)) {

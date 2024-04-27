@@ -339,6 +339,13 @@ export class RoutingControls {
         this.createMarker(newAnchor);
         segment._data.anchors.push(newAnchor);
 
+        if (!lastAnchor) {
+            applyToFileElement(this.file, segment, (segment) => {
+                segment.replace(0, 0, [newPoint]);
+            }, true);
+            return;
+        }
+
         let success = await this.routeBetweenAnchors([lastAnchor, newAnchor], [lastAnchor.point.getCoordinates(), newAnchor.point.getCoordinates()]);
 
         if (!success) { // Route failed, remove the anchor

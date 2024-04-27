@@ -6,7 +6,7 @@ export type GPXFileType = {
 };
 
 export type GPXFileAttributes = {
-    creator: string;
+    creator?: string;
     [key: string]: string;
 };
 

@@ -25,6 +25,14 @@ export function computeAnchorPoints(segment: TrackSegment) {
 }
 
 export function ramerDouglasPeucker(points: TrackPoint[], epsilon: number = 50, start: number = 0, end: number = points.length - 1): SimplifiedTrackPoint[] {
+    if (points.length == 0) {
+        return [];
+    } else if (points.length == 1) {
+        return [{
+            point: points[0]
+        }];
+    }
+
     let simplified = [{
         point: points[start]
     }];
