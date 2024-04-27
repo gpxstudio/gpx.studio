@@ -9,6 +9,7 @@ export class RoutingControls {
     map: mapboxgl.Map;
     file: Writable<GPXFile>;
     markers: mapboxgl.Marker[] = [];
+    shownMarkers: mapboxgl.Marker[] = [];
     popup: mapboxgl.Popup;
     popupElement: HTMLElement;
     temporaryAnchor: SimplifiedTrackPoint;
@@ -37,7 +38,7 @@ export class RoutingControls {
         };
         this.createMarker(this.temporaryAnchor);
         let marker = this.markers.pop(); // Remove the temporary anchor from the markers list
-        marker.getElement().classList.add('z-0'); // Show below the other markers
+        marker.getElement().classList.remove('z-10'); // Show below the other markers
         Object.defineProperty(marker, '_temporary', {
             value: true
         });
@@ -50,7 +51,6 @@ export class RoutingControls {
         this.map.on('move', this.toggleMarkersForZoomLevelAndBoundsBinded);
         this.map.on('click', this.appendAnchorBinded);
         this.map.on('mousemove', get(this.file)._data.layerId, this.showTemporaryAnchorBinded);
-        this.map.on('mousemove', this.hideTemporaryAnchorBinded);
 
         this.unsubscribe = this.file.subscribe(this.updateControls.bind(this));
     }
@@ -145,6 +145,8 @@ export class RoutingControls {
     }
 
     toggleMarkersForZoomLevelAndBounds() { // Show markers only if they are in the current zoom level and bounds
+        this.shownMarkers.splice(0, this.shownMarkers.length);
+
         let zoom = this.map.getZoom();
         this.markers.forEach((marker) => {
             Object.defineProperty(marker, '_inZoom', {
@@ -153,6 +155,7 @@ export class RoutingControls {
             });
             if (marker._inZoom && this.map.getBounds().contains(marker.getLngLat())) {
                 marker.addTo(this.map);
+                this.shownMarkers.push(marker);
             } else {
                 marker.remove();
             }
@@ -160,29 +163,61 @@ export class RoutingControls {
     }
 
     showTemporaryAnchor(e: any) {
+        if (!this.temporaryAnchor.marker) {
+            return;
+        }
+
+        if (this.temporaryAnchorCloseToOtherAnchor(e)) {
+            return;
+        }
+
         this.temporaryAnchor.point.setCoordinates({
             lat: e.lngLat.lat,
             lon: e.lngLat.lng
         });
         this.temporaryAnchor.marker.setLngLat(this.temporaryAnchor.point.getCoordinates()).addTo(this.map);
+
+        this.map.on('mousemove', this.hideTemporaryAnchorBinded);
     }
 
     hideTemporaryAnchor(e: any) {
-        if (this.temporaryAnchor.marker?.getElement().classList.contains('cursor-grabbing')) {
+        if (!this.temporaryAnchor.marker) {
             return;
         }
 
-        if (e.point.dist(this.map.project(this.temporaryAnchor.marker?.getLngLat())) < 20) {
+        if (this.temporaryAnchor.marker.getElement().classList.contains('cursor-grabbing')) { // Do not hide if it is being dragged, and stop listening for mousemove
+            this.map.off('mousemove', this.hideTemporaryAnchorBinded);
             return;
         }
-        this.temporaryAnchor.marker.remove();
+
+        if (e.point.dist(this.map.project(this.temporaryAnchor.point.getCoordinates())) > 20 || this.temporaryAnchorCloseToOtherAnchor(e)) { // Hide if too far from the layer
+            this.temporaryAnchor.marker.remove();
+            this.map.off('mousemove', this.hideTemporaryAnchorBinded);
+            return;
+        }
+
+        this.temporaryAnchor.marker.setLngLat(e.lngLat); // Update the position of the temporary anchor
     }
+
+    temporaryAnchorCloseToOtherAnchor(e: any) {
+        for (let marker of this.shownMarkers) {
+            if (marker === this.temporaryAnchor.marker) {
+                continue;
+            }
+            if (e.point.dist(this.map.project(marker.getLngLat())) < 10) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     async moveAnchor(e: any) { // Move the anchor and update the route from and to the neighbouring anchors
         let marker = e.target;
         let anchor = marker._simplified;
 
         if (marker._temporary) { // Temporary anchor, need to find the closest point of the segment and create an anchor for it
+            marker.remove();
             anchor = this.getPermanentAnchor(anchor);
             marker = anchor.marker;
         }
