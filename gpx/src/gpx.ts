@@ -443,7 +443,7 @@ export class TrackSegment extends GPXTreeLeaf {
 
     toTrackSegmentType(): TrackSegmentType {
         return {
-            trkpt: this.trkpt
+            trkpt: this.trkpt.map((point) => point.toTrackPointType())
         };
     }
 
@@ -515,6 +515,15 @@ export class TrackPoint {
             this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"] = {};
         }
         this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"]["surface"] = surface;
+    }
+
+    toTrackPointType(): TrackPointType {
+        return {
+            attributes: this.attributes,
+            ele: this.ele,
+            time: this.time,
+            extensions: this.extensions,
+        };
     }
 };
 
