@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { fileOrder, files, getFileIndex, selectedFiles, selectFiles } from '$lib/stores';
 
+	import { Button } from '$lib/components/ui/button';
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index';
 	import Sortable from 'sortablejs/Sortable';
 
@@ -9,8 +10,8 @@
 	import { afterUpdate, onMount } from 'svelte';
 	import { get } from 'svelte/store';
 
-	let tabs: HTMLDivElement;
-	let buttons: HTMLButtonElement[] = [];
+	let container: HTMLDivElement;
+	let buttons: HTMLDivElement[] = [];
 	let sortable: Sortable;
 
 	function selectFile(file: GPXFile) {
@@ -60,7 +61,7 @@
 	}
 
 	onMount(() => {
-		sortable = Sortable.create(tabs, {
+		sortable = Sortable.create(container, {
 			forceAutoScrollFallback: true,
 			multiDrag: true,
 			multiDragKey: 'shift',
@@ -125,22 +126,29 @@
 
 <div class="h-10 -translate-y-10 w-full pointer-events-none">
 	<ScrollArea orientation="horizontal" class="w-full h-full" scrollbarXClasses="h-2">
-		<div bind:this={tabs} class="flex flex-row gap-1">
+		<div bind:this={container} class="flex flex-row gap-1">
 			{#each $files as file, index}
-				<button
+				<div
 					bind:this={buttons[index]}
 					data-id={index}
-					class="my-1 px-1.5 py-1 rounded bg-secondary hover:bg-gray-200 shadow-none first:ml-1 last:mr-1 pointer-events-auto"
+					class="pointer-events-auto first:ml-1 last:mr-1 mb-1 bg-transparent"
 				>
-					{get(file).metadata.name}
-				</button>
+					<Button variant="outline" class="h-9 px-1.5 py-1 border-none shadow-md">
+						{get(file).metadata.name}
+					</Button>
+				</div>
 			{/each}
 		</div>
 	</ScrollArea>
 </div>
 
 <style lang="postcss">
-	div :global(.sortable-selected) {
-		@apply bg-background shadow;
+	div :global(button) {
+		@apply bg-accent;
+		@apply hover:bg-background;
+	}
+
+	div :global(.sortable-selected > button) {
+		@apply bg-background;
 	}
 </style>

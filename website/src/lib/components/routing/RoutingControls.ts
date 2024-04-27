@@ -3,7 +3,11 @@ import { get, type Writable } from "svelte/store";
 import { computeAnchorPoints, type SimplifiedTrackPoint } from "./Simplify";
 import mapboxgl from "mapbox-gl";
 import { route } from "./Routing";
-import { applyToFileElement, applyToFileStore } from "$lib/stores";
+import { applyToFileElement } from "$lib/stores";
+
+import { toast } from "svelte-sonner";
+
+import { _ } from "svelte-i18n";
 
 export class RoutingControls {
     map: mapboxgl.Map;
@@ -100,7 +104,7 @@ export class RoutingControls {
 
     createMarker(anchor: SimplifiedTrackPoint) {
         let element = document.createElement('div');
-        element.className = `h-3 w-3 rounded-full bg-background border-2 border-black cursor-pointer`;
+        element.className = `h-3 w-3 rounded-full bg-white border-2 border-black cursor-pointer`;
 
         let marker = new mapboxgl.Marker({
             draggable: true,
@@ -380,7 +384,14 @@ export class RoutingControls {
         try {
             response = await route(targetCoordinates);
         } catch (e) {
-            console.error(e);
+            console.log(e);
+            if (e.message.includes('from-position not mapped in existing datafile')) {
+                toast.error(get(_)("toolbar.routing.error.from"));
+            } else if (e.message.includes('to-position not mapped in existing datafile')) {
+                toast.error(get(_)("toolbar.routing.error.to"));
+            } else {
+                toast.error(e.message);
+            }
             return false;
         }
 

@@ -20,6 +20,10 @@
         "temperature_units": "Temperature units",
         "celsius": "Celsius",
         "fahrenheit": "Fahrenheit",
+        "mode": "Mode",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System",
         "distance_markers": "Show distance markers",
         "direction_markers": "Show direction markers",
         "about": "About",
@@ -42,6 +46,10 @@
                 "motorcycle": "Motorcycle",
                 "water": "Water",
                 "railway": "Railway"
+            },
+            "error": {
+                "from": "The start point is too far from the nearest road",
+                "to": "The end point is too far from the nearest road"
             }
         },
         "time_tooltip": "Change the time and speed data",

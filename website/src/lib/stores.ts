@@ -12,6 +12,7 @@ export const settings = writable<{ [key: string]: any }>({
     distanceUnits: 'metric',
     velocityUnits: 'speed',
     temperatureUnits: 'celsius',
+    mode: 'system'
 });
 export enum Tool {
     ROUTING

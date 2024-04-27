@@ -17,10 +17,29 @@
 		settings
 	} from '$lib/stores';
 
+	import { mode, resetMode, setMode } from 'mode-watcher';
+
 	import { _ } from 'svelte-i18n';
+	import { derived, get } from 'svelte/store';
 
 	let showDistanceMarkers = false;
 	let showDirectionMarkers = false;
+
+	let currentMode = derived(mode, ($mode) => {
+		if (!$mode) {
+			return 'system';
+		} else {
+			return $mode;
+		}
+	});
+
+	$: if ($settings.mode !== get(currentMode)) {
+		if ($settings.mode === 'system') {
+			resetMode();
+		} else {
+			setMode($settings.mode);
+		}
+	}
 </script>
 
 <div class="absolute top-2 left-0 right-0 z-20 flex flex-row justify-center pointer-events-none">
@@ -122,6 +141,17 @@
 							<Menubar.RadioGroup bind:value={$settings.temperatureUnits}>
 								<Menubar.RadioItem value="celsius">{$_('menu.celsius')}</Menubar.RadioItem>
 								<Menubar.RadioItem value="fahrenheit">{$_('menu.fahrenheit')}</Menubar.RadioItem>
+							</Menubar.RadioGroup>
+						</Menubar.SubContent>
+					</Menubar.Sub>
+					<Menubar.Separator />
+					<Menubar.Sub>
+						<Menubar.SubTrigger inset>{$_('menu.mode')}</Menubar.SubTrigger>
+						<Menubar.SubContent>
+							<Menubar.RadioGroup bind:value={$settings.mode}>
+								<Menubar.RadioItem value="light">{$_('menu.light')}</Menubar.RadioItem>
+								<Menubar.RadioItem value="dark">{$_('menu.dark')}</Menubar.RadioItem>
+								<Menubar.RadioItem value="system">{$_('menu.system')}</Menubar.RadioItem>
 							</Menubar.RadioGroup>
 						</Menubar.SubContent>
 					</Menubar.Sub>

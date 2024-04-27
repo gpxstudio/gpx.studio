@@ -162,11 +162,11 @@
 	}
 
 	div :global(.mapboxgl-ctrl-bottom-left) {
-		@apply bottom-9;
+		@apply bottom-[42px];
 	}
 
 	div :global(.mapboxgl-ctrl-bottom-right) {
-		@apply bottom-9;
+		@apply bottom-[42px];
 	}
 
 	div :global(.mapboxgl-popup) {

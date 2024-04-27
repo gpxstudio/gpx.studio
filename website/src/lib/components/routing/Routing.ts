@@ -38,6 +38,12 @@ async function getRoute(points: Coordinates[], brouterProfile: string, privateRo
     let url = `https://routing.gpx.studio?lonlats=${points.map(point => `${point.lon.toFixed(8)},${point.lat.toFixed(8)}`).join('|')}&profile=${brouterProfile + (privateRoads ? '-private' : '')}&format=geojson&alternativeidx=0`;
 
     let response = await fetch(url);
+
+    // Check if the response is ok
+    if (!response.ok) {
+        throw new Error(`${await response.text()}`);
+    }
+
     let geojson = await response.json();
 
     let route: TrackPoint[] = [];
@@ -66,7 +72,7 @@ async function getRoute(points: Coordinates[], brouterProfile: string, privateRo
             coordinates[i][1] == Number(messages[messageIdx][latIdx]) / 1000000) {
             messageIdx++;
 
-            if (messageIdx == messages.length) surface = "missing";
+            if (messageIdx == messages.length) surface = "unknown";
             else surface = getSurface(messages[messageIdx][tagIdx]);
         }
     }
