@@ -133,7 +133,7 @@
 						return [
 							`    ${$_('quantities.distance')}: ${getDistanceWithUnits(point.x, false)}`,
 							`    ${$_('quantities.slope')}: ${slope} %`,
-							`    ${$_('quantities.surface')}: ${surface}`
+							`    ${$_('quantities.surface')}: ${$_(`toolbar.routing.surface.${surface}`)}`
 						];
 					}
 				}
