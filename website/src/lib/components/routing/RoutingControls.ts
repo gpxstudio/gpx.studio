@@ -390,6 +390,8 @@ export class RoutingControls {
                 toast.error(get(_)("toolbar.routing.error.via"));
             } else if (e.message.includes('to-position not mapped in existing datafile')) {
                 toast.error(get(_)("toolbar.routing.error.to"));
+            } else if (e.message.includes('Time-out')) {
+                toast.error(get(_)("toolbar.routing.error.timeout"));
             } else {
                 toast.error(e.message);
             }
