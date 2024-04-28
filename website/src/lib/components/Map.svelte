@@ -113,6 +113,12 @@
 
 	div :global(.mapboxgl-ctrl-top-right > .mapboxgl-ctrl) {
 		@apply shadow-md;
+		@apply bg-background;
+		@apply text-foreground;
+	}
+
+	div :global(.mapboxgl-ctrl-icon) {
+		@apply dark:brightness-[4.7];
 	}
 
 	div :global(.mapboxgl-ctrl-geocoder) {
@@ -126,10 +132,31 @@
 
 	div :global(.suggestions) {
 		@apply shadow-md;
+		@apply bg-background;
+		@apply text-foreground;
+	}
+
+	div :global(.mapboxgl-ctrl-geocoder .suggestions > li > a) {
+		@apply text-foreground;
+		@apply hover:text-accent-foreground;
+		@apply hover:bg-accent;
+	}
+
+	div :global(.mapboxgl-ctrl-geocoder .suggestions > .active > a) {
+		@apply bg-background;
+	}
+
+	div :global(.mapboxgl-ctrl-geocoder--button) {
+		@apply bg-transparent;
+		@apply hover:bg-transparent;
+	}
+
+	div :global(.mapboxgl-ctrl-geocoder--icon) {
+		@apply fill-foreground;
+		@apply hover:fill-accent-foreground;
 	}
 
 	div :global(.mapboxgl-ctrl-geocoder--icon-search) {
-		@apply fill-inherit;
 		@apply relative;
 		@apply top-0;
 		@apply left-0;
@@ -145,6 +172,7 @@
 		@apply focus:outline-none;
 		@apply transition-[width];
 		@apply duration-200;
+		@apply text-foreground;
 	}
 
 	div :global(.mapboxgl-ctrl-geocoder--collapsed .mapboxgl-ctrl-geocoder--input) {
@@ -169,6 +197,26 @@
 		@apply bottom-[42px];
 	}
 
+	div :global(.mapboxgl-ctrl-attrib) {
+		@apply dark:bg-transparent;
+	}
+
+	div :global(.mapboxgl-compact-show.mapboxgl-ctrl-attrib) {
+		@apply dark:bg-background;
+	}
+
+	div :global(.mapboxgl-ctrl-attrib-button) {
+		@apply dark:bg-foreground;
+	}
+
+	div :global(.mapboxgl-compact-show .mapboxgl-ctrl-attrib-button) {
+		@apply dark:bg-foreground;
+	}
+
+	div :global(.mapboxgl-ctrl-attrib a) {
+		@apply text-foreground;
+	}
+
 	div :global(.mapboxgl-popup) {
 		@apply w-fit;
 		@apply z-20;
@@ -182,5 +230,6 @@
 
 	div :global(.mapboxgl-popup-tip) {
 		@apply drop-shadow-md;
+		@apply border-t-background;
 	}
 </style>
