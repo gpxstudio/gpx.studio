@@ -1,7 +1,7 @@
-import type { GPXFile } from "gpx";
+import type { GPXFile, Waypoint } from "gpx";
 import { map, selectFiles, currentTool, Tool } from "$lib/stores";
 import { get, type Writable } from "svelte/store";
-import type mapboxgl from "mapbox-gl";
+import mapboxgl from "mapbox-gl";
 
 let id = 0;
 function getLayerId() {
@@ -46,16 +46,21 @@ export class GPXLayer {
     file: Writable<GPXFile>;
     layerId: string;
     layerColor: string;
+    popup: mapboxgl.Popup;
+    popupElement: HTMLElement;
+    markers: mapboxgl.Marker[] = [];
     unsubscribe: () => void;
 
     addBinded: () => void = this.add.bind(this);
     selectOnClickBinded: (e: any) => void = this.selectOnClick.bind(this);
 
-    constructor(map: mapboxgl.Map, file: Writable<GPXFile>) {
+    constructor(map: mapboxgl.Map, file: Writable<GPXFile>, popup: mapboxgl.Popup, popupElement: HTMLElement) {
         this.map = map;
         this.file = file;
         this.layerId = getLayerId();
         this.layerColor = getColor();
+        this.popup = popup;
+        this.popupElement = popupElement;
         this.unsubscribe = file.subscribe(this.updateData.bind(this));
 
         get(this.file)._data = {
@@ -97,6 +102,23 @@ export class GPXLayer {
             this.map.on('mouseenter', this.layerId, toPointerCursor);
             this.map.on('mouseleave', this.layerId, toDefaultCursor);
         }
+
+        if (this.markers.length == 0) {
+            get(this.file).wpt.forEach((waypoint) => {
+                let marker = new mapboxgl.Marker().setLngLat(waypoint.getCoordinates());
+                marker.getElement().addEventListener('click', (e) => {
+                    marker.setPopup(this.popup);
+                    marker.togglePopup();
+                    e.stopPropagation();
+                });
+
+                this.markers.push(marker);
+            });
+        }
+
+        this.markers.forEach((marker) => {
+            marker.addTo(this.map);
+        });
     }
 
     updateData() {
@@ -114,6 +136,10 @@ export class GPXLayer {
 
         this.map.removeLayer(this.layerId);
         this.map.removeSource(this.layerId);
+
+        this.markers.forEach((marker) => {
+            marker.remove();
+        });
 
         this.unsubscribe();
 

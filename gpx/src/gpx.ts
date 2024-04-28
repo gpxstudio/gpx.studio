@@ -567,6 +567,14 @@ export class Waypoint {
         this.sym = waypoint.sym;
         this.type = waypoint.type;
     }
+
+    getCoordinates(): Coordinates {
+        return this.attributes;
+    }
+
+    setCoordinates(coordinates: Coordinates): void {
+        this.attributes = coordinates;
+    }
 }
 
 export class GPXStatistics {

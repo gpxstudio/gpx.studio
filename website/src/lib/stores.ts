@@ -4,6 +4,7 @@ import mapboxgl from 'mapbox-gl';
 import { GPXFile, buildGPX, parseGPX, type AnyGPXTreeElement } from 'gpx';
 import { tick } from 'svelte';
 import { _ } from 'svelte-i18n';
+import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
 
 export const map = writable<mapboxgl.Map | null>(null);
 export const files = writable<Writable<GPXFile>[]>([]);
@@ -16,8 +17,19 @@ export const settings = writable<{ [key: string]: any }>({
     temperatureUnits: 'celsius',
     mode: 'system'
 });
+export const gpxLayers: Writable<Map<Writable<GPXFile>, GPXLayer>> = writable(new Map());
+
 export enum Tool {
-    ROUTING
+    ROUTING,
+    TIME,
+    REVERSE,
+    MERGE,
+    EXTRACT,
+    WAYPOINT,
+    REDUCE,
+    CLEAN,
+    STYLE,
+    STRUCTURE
 }
 export const currentTool = writable<Tool | null>(null);
 
