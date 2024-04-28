@@ -226,7 +226,11 @@
 				}
 			]
 		});
-		marker = new mapboxgl.Marker();
+		let element = document.createElement('div');
+		element.className = 'h-4 w-4 rounded-full bg-cyan-500 border-2 border-white';
+		marker = new mapboxgl.Marker({
+			element
+		});
 	});
 
 	$: if (chart && $settings) {
