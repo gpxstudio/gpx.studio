@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ToolbarItemMenu from '../toolbar/ToolbarItemMenu.svelte';
+	import ToolbarItemMenu from '$lib/components/toolbar/ToolbarItemMenu.svelte';
 	import * as Card from '$lib/components/ui/card';
 	import * as Select from '$lib/components/ui/select';
 	import { Switch } from '$lib/components/ui/switch';
