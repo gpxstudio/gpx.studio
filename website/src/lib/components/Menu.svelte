@@ -2,6 +2,7 @@
 	import * as Menubar from '$lib/components/ui/menubar/index.js';
 	import { Button } from '$lib/components/ui/button';
 	import Logo from './Logo.svelte';
+	import Shortcut from './Shortcut.svelte';
 	import { Plus, Copy, Download, Undo2, Redo2, Trash2, Upload, Cloud, Heart } from 'lucide-svelte';
 
 	import {
@@ -55,13 +56,13 @@
 					<Menubar.Item on:click={createFile}>
 						<Plus size="16" class="mr-1" />
 						{$_('menu.new')}
-						<Menubar.Shortcut>⌘N</Menubar.Shortcut>
+						<Shortcut key="N" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Separator />
 					<Menubar.Item on:click={triggerFileInput}>
 						<Upload size="16" class="mr-1" />
 						{$_('menu.load_desktop')}
-						<Menubar.Shortcut>⌘O</Menubar.Shortcut>
+						<Shortcut key="O" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Item>
 						<Cloud size="16" class="mr-1" />
@@ -71,18 +72,18 @@
 					<Menubar.Item on:click={duplicateSelectedFiles} disabled={$selectedFiles.size == 0}>
 						<Copy size="16" class="mr-1" />
 						{$_('menu.duplicate')}
-						<Menubar.Shortcut>⌘D</Menubar.Shortcut>
+						<Shortcut key="D" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Separator />
 					<Menubar.Item on:click={exportSelectedFiles} disabled={$selectedFiles.size == 0}>
 						<Download size="16" class="mr-1" />
 						{$_('menu.export')}
-						<Menubar.Shortcut>⌘S</Menubar.Shortcut>
+						<Shortcut key="S" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Item on:click={exportAllFiles} disabled={$files.length == 0}>
 						<Download size="16" class="mr-1" />
 						{$_('menu.export_all')}
-						<Menubar.Shortcut>⇧⌘S</Menubar.Shortcut>
+						<Shortcut key="S" ctrl={true} shift={true} />
 					</Menubar.Item>
 				</Menubar.Content>
 			</Menubar.Menu>
@@ -92,27 +93,34 @@
 					<Menubar.Item>
 						<Undo2 size="16" class="mr-1" />
 						{$_('menu.undo')}
-						<Menubar.Shortcut>⌘Z</Menubar.Shortcut>
+						<Shortcut key="Z" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Item>
 						<Redo2 size="16" class="mr-1" />
 						{$_('menu.redo')}
-						<Menubar.Shortcut>⇧⌘Z</Menubar.Shortcut>
+						<Shortcut key="Z" ctrl={true} shift={true} />
+					</Menubar.Item>
+					<Menubar.Separator />
+					<Menubar.Item on:click={() => $selectFiles.selectAllFiles()}>
+						<span class="w-4 mr-1"></span>
+						{$_('menu.select_all')}
+						<Shortcut key="A" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Separator />
 					<Menubar.Item on:click={removeSelectedFiles} disabled={$selectedFiles.size == 0}>
 						<Trash2 size="16" class="mr-1" />
 						{$_('menu.delete')}
-						<Menubar.Shortcut>⌘⌫</Menubar.Shortcut></Menubar.Item
-					>
+						<Shortcut key="⌫" ctrl={true} />
+					</Menubar.Item>
 					<Menubar.Item
 						class="text-destructive data-[highlighted]:text-destructive"
 						on:click={removeAllFiles}
 						disabled={$files.length == 0}
 					>
 						<Trash2 size="16" class="mr-1" />
-						{$_('menu.delete_all')}<Menubar.Shortcut>⇧⌘⌫</Menubar.Shortcut></Menubar.Item
-					>
+						{$_('menu.delete_all')}
+						<Shortcut key="⌫" ctrl={true} shift={true} />
+					</Menubar.Item>
 				</Menubar.Content>
 			</Menubar.Menu>
 			<Menubar.Menu>

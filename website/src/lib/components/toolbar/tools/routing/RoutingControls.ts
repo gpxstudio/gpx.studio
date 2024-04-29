@@ -130,13 +130,19 @@ export class RoutingControls {
         });
         marker.on('dragend', this.moveAnchor.bind(this));
         marker.getElement().addEventListener('click', (e) => {
+            e.stopPropagation();
+
             if (Date.now() - lastDragEvent < 100) { // Prevent click event during drag
+                return;
+            }
+
+            if (e.shiftKey) {
+                this.deleteAnchor(anchor);
                 return;
             }
 
             marker.setPopup(this.popup);
             marker.togglePopup();
-            e.stopPropagation();
 
             let deleteThisAnchor = this.getDeleteAnchor(anchor);
             this.popupElement.addEventListener('delete', deleteThisAnchor); // Register the delete event for this anchor

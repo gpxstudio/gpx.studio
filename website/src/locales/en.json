@@ -13,6 +13,7 @@
         "redo": "Redo",
         "delete": "Delete",
         "delete_all": "Delete all",
+        "select_all": "Select all",
         "settings": "Settings",
         "distance_units": "Distance units",
         "metric": "Metric",
@@ -28,7 +29,9 @@
         "distance_markers": "Show distance markers",
         "direction_markers": "Show direction markers",
         "about": "About",
-        "donate": "Donate"
+        "donate": "Donate",
+        "ctrl": "Ctrl",
+        "click": "Click"
     },
     "toolbar": {
         "routing": {

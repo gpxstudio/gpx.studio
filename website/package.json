@@ -42,7 +42,7 @@
     "type": "module",
     "dependencies": {
         "@mapbox/mapbox-gl-geocoder": "^5.0.2",
-        "bits-ui": "^0.21.4",
+        "bits-ui": "^0.21.5",
         "chart.js": "^4.4.2",
         "clsx": "^2.1.0",
         "gpx": "file:../gpx",

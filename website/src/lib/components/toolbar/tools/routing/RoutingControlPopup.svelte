@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
+	import Shortcut from '$lib/components/Shortcut.svelte';
 	import { Trash2 } from 'lucide-svelte';
 
 	import { _ } from 'svelte-i18n';
@@ -15,8 +16,11 @@
 				class="w-full px-2 py-1 h-6 justify-start"
 				variant="ghost"
 				on:click={() => element.dispatchEvent(new CustomEvent('delete'))}
-				><Trash2 size="16" class="mr-1" /> {$_('menu.delete')}</Button
 			>
+				<Trash2 size="16" class="mr-1" />
+				{$_('menu.delete')}
+				<Shortcut key="" shift={true} click={true} />
+			</Button>
 		</Card.Content>
 	</Card.Root>
 </div>

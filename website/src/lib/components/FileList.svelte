@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { fileOrder, files, getFileIndex, selectedFiles, selectFiles } from '$lib/stores';
 
-	import { Button } from '$lib/components/ui/button';
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index';
 	import Sortable from 'sortablejs/Sortable';
 
@@ -9,6 +8,7 @@
 
 	import { afterUpdate, onMount } from 'svelte';
 	import { get } from 'svelte/store';
+	import FileListItem from './FileListItem.svelte';
 
 	let container: HTMLDivElement;
 	let buttons: HTMLDivElement[] = [];
@@ -133,9 +133,7 @@
 					data-id={index}
 					class="pointer-events-auto first:ml-1 last:mr-1 mb-1 bg-transparent"
 				>
-					<Button variant="outline" class="h-9 px-1.5 py-1 border-none shadow-md">
-						{get(file).metadata.name}
-					</Button>
+					<FileListItem {file} />
 				</div>
 			{/each}
 		</div>
@@ -148,7 +146,7 @@
 		@apply hover:bg-background;
 	}
 
-	div :global(.sortable-selected > button) {
+	div :global(.sortable-selected button) {
 		@apply bg-background;
 	}
 </style>
