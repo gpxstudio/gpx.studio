@@ -63,19 +63,21 @@
 		scales: {
 			x: {
 				type: 'linear',
-				title: {
-					display: true,
-					text: `${$_('quantities.distance')} (${getDistanceUnits()})`,
-					padding: 0,
-					align: 'end'
+				ticks: {
+					callback: function (value: number, index: number, ticks: { value: number }[]) {
+						if (index === ticks.length - 1) {
+							return `${value.toFixed(1).replace(/\.0+$/, '')}`;
+						}
+						return `${value.toFixed(1).replace(/\.0+$/, '')} ${getDistanceUnits()}`;
+					}
 				}
 			},
 			y: {
 				type: 'linear',
-				title: {
-					display: true,
-					text: `${$_('quantities.elevation')} (${getElevationUnits()})`,
-					padding: 0
+				ticks: {
+					callback: function (value: number) {
+						return getElevationWithUnits(value, false);
+					}
 				}
 			}
 		},
@@ -196,7 +198,7 @@
 		};
 	}
 	options.scales.yspeed['ticks'] = {
-		callback: function (value) {
+		callback: function (value: number) {
 			if ($settings.velocityUnits === 'speed') {
 				return value;
 			} else {
@@ -317,8 +319,6 @@
 		chart.options.scales.x['max'] = getConvertedDistance(data.statistics.distance.total);
 
 		// update units
-		chart.options.scales.x.title.text = `${$_('quantities.distance')} (${getDistanceUnits()})`;
-		chart.options.scales.y.title.text = `${$_('quantities.elevation')} (${getElevationUnits()})`;
 		for (let [id, dataset] of Object.entries(datasets)) {
 			chart.options.scales[`y${id}`].title.text =
 				dataset.getLabel() + ' (' + dataset.getUnits() + ')';
