@@ -66,12 +66,14 @@ export function createGPXFileStore(): GPXFileStore {
             if (patchIndex >= 0) {
                 applyPatch(patches[patchIndex].inversePatch, patches[patchIndex].global);
                 patchIndex--;
+                updateUndoRedo();
             }
         },
         redo: () => {
             if (patchIndex < patches.length - 1) {
                 patchIndex++;
                 applyPatch(patches[patchIndex].patch, patches[patchIndex].global);
+                updateUndoRedo();
             }
         },
     });
@@ -90,7 +92,6 @@ export function createGPXFileStore(): GPXFileStore {
         if (global) {
             notify();
         }
-        updateUndoRedo();
     }
 
     function applyToGlobalStore(callback: (files: Map<string, GPXFile>) => void) {
