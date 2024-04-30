@@ -1,52 +1,50 @@
 <script lang="ts">
-	import { fileOrder, files, getFileIndex, selectedFiles, selectFiles } from '$lib/stores';
+	import { filestore, fileOrder, selectedFiles, selectFiles } from '$lib/stores';
 
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index';
 	import Sortable from 'sortablejs/Sortable';
-
-	import type { GPXFile } from 'gpx';
 
 	import { afterUpdate, onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import FileListItem from './FileListItem.svelte';
 
 	let container: HTMLDivElement;
-	let buttons: HTMLDivElement[] = [];
+	let buttons: { [id: string]: HTMLElement } = {};
 	let sortable: Sortable;
 
-	function selectFile(file: GPXFile) {
+	function selectFile(fileId: string) {
 		selectedFiles.update((selectedFiles) => {
 			selectedFiles.clear();
-			selectedFiles.add(file);
+			selectedFiles.add(fileId);
 			return selectedFiles;
 		});
 	}
 
-	function addSelectFile(file: GPXFile) {
+	function addSelectFile(fileId: string) {
 		selectedFiles.update((selectedFiles) => {
-			selectedFiles.add(file);
+			selectedFiles.add(fileId);
 			return selectedFiles;
 		});
 	}
 
 	function selectAllFiles() {
 		selectedFiles.update((selectedFiles) => {
-			get(files).forEach((file) => {
-				selectedFiles.add(get(file));
+			get(filestore).forEach((file) => {
+				selectedFiles.add(file._data.id);
 			});
 			return selectedFiles;
 		});
 	}
 
-	function deselectFile(file: GPXFile) {
+	function deselectFile(fileId: string) {
 		selectedFiles.update((selectedFiles) => {
-			selectedFiles.delete(file);
+			selectedFiles.delete(fileId);
 			return selectedFiles;
 		});
 	}
 
 	function updateFileOrder() {
-		let newFileOrder = sortable.toArray().map((index: string) => get(get(files)[parseInt(index)]));
+		let newFileOrder = sortable.toArray();
 		if (newFileOrder.length !== get(fileOrder).length) {
 			fileOrder.set(newFileOrder);
 			return;
@@ -68,21 +66,19 @@
 			selectedClass: 'sortable-selected',
 			avoidImplicitDeselect: true,
 			onSelect: (e) => {
-				const index = parseInt(e.item.getAttribute('data-id'));
-				addSelectFile(get($files[index]));
+				let selectedId = e.item.getAttribute('data-id');
+				addSelectFile(selectedId);
 				if (!e.originalEvent.shiftKey && $selectedFiles.size > 1) {
-					$selectedFiles.forEach((file) => {
-						if (file !== get($files[index])) {
-							deselectFile(file);
-							const index = getFileIndex(file);
-							Sortable.utils.deselect(buttons[index]);
+					$selectedFiles.forEach((fileId) => {
+						if (fileId !== selectedId) {
+							deselectFile(fileId);
+							Sortable.utils.deselect(buttons[fileId]);
 						}
 					});
 				}
 			},
 			onDeselect: (e) => {
-				const index = parseInt(e.item.getAttribute('data-id'));
-				deselectFile(get($files[index]));
+				deselectFile(e.item.getAttribute('data-id'));
 			},
 			onSort: () => {
 				updateFileOrder();
@@ -92,48 +88,50 @@
 
 	selectFiles.update(() => {
 		return {
-			select: (file: GPXFile) => {
-				buttons.forEach((button) => {
-					if (button) {
-						Sortable.utils.deselect(button);
-					}
+			select: (fileId: string) => {
+				Object.values(buttons).forEach((button) => {
+					Sortable.utils.deselect(button);
 				});
-				const index = getFileIndex(file);
-				Sortable.utils.select(buttons[index]);
-				selectFile(file);
+				Sortable.utils.select(buttons[fileId]);
+				selectFile(fileId);
 			},
-			addSelect: (file: GPXFile) => {
-				const index = getFileIndex(file);
-				Sortable.utils.select(buttons[index]);
-				addSelectFile(file);
+			addSelect: (fileId: string) => {
+				Sortable.utils.select(buttons[fileId]);
+				addSelectFile(fileId);
 			},
 			selectAllFiles: () => {
-				$files.forEach((file, index) => {
-					Sortable.utils.select(buttons[index]);
+				Object.values(buttons).forEach((button) => {
+					Sortable.utils.select(button);
 				});
 				selectAllFiles();
 			},
-			removeSelect: (file: GPXFile) => {
-				const index = getFileIndex(file);
-				Sortable.utils.deselect(buttons[index]);
-				deselectFile(file);
+			removeSelect: (fileId: string) => {
+				Sortable.utils.deselect(buttons[fileId]);
+				deselectFile(fileId);
 			}
 		};
 	});
 
-	afterUpdate(updateFileOrder);
+	afterUpdate(() => {
+		updateFileOrder();
+		Object.keys(buttons).forEach((fileId) => {
+			if (!get(filestore).find((file) => file._data.id === fileId)) {
+				delete buttons[fileId];
+			}
+		});
+	});
 </script>
 
 <div class="h-10 -translate-y-10 w-full pointer-events-none">
 	<ScrollArea orientation="horizontal" class="w-full h-full" scrollbarXClasses="h-2">
 		<div bind:this={container} class="flex flex-row gap-1">
-			{#each $files as file, index}
+			{#each $filestore as file}
 				<div
-					bind:this={buttons[index]}
-					data-id={index}
+					bind:this={buttons[file._data.id]}
+					data-id={file._data.id}
 					class="pointer-events-auto first:ml-1 last:mr-1 mb-1 bg-transparent"
 				>
-					<FileListItem {file} />
+					<FileListItem file={filestore.getFileStore(file._data.id)} />
 				</div>
 			{/each}
 		</div>

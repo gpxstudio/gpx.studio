@@ -6,29 +6,28 @@
 	import * as Alert from '$lib/components/ui/alert';
 	import { CircleHelp } from 'lucide-svelte';
 
-	import { files, getFileStore, map, selectedFiles, Tool } from '$lib/stores';
+	import { filestore, map, selectedFiles, Tool } from '$lib/stores';
 	import { brouterProfiles, privateRoads, routing, routingProfile } from './Routing';
 
 	import { _ } from 'svelte-i18n';
-	import { get, type Writable } from 'svelte/store';
-	import type { GPXFile } from 'gpx';
+	import { get } from 'svelte/store';
 	import { RoutingControls } from './RoutingControls';
 	import RoutingControlPopup from './RoutingControlPopup.svelte';
 	import { onMount } from 'svelte';
 	import mapboxgl from 'mapbox-gl';
 
-	let routingControls: Map<Writable<GPXFile>, RoutingControls> = new Map();
+	let routingControls: Map<string, RoutingControls> = new Map();
 	let popupElement: HTMLElement;
 	let popup: mapboxgl.Popup | null = null;
-	let selectedFile: Writable<GPXFile> | null = null;
+	let selectedId: string | null = null;
 	let active = false;
 
-	$: if ($map && $files) {
+	$: if ($map && $filestore) {
 		// remove controls for deleted files
-		routingControls.forEach((controls, file) => {
-			if (!get(files).includes(file)) {
+		routingControls.forEach((controls, fileId) => {
+			if (!get(filestore).find((file) => file._data.id === fileId)) {
 				controls.remove();
-				routingControls.delete(file);
+				routingControls.delete(fileId);
 			}
 		});
 	}
@@ -36,30 +35,32 @@
 	$: if ($map && $selectedFiles) {
 		// update selected file
 		if ($selectedFiles.size == 0 || $selectedFiles.size > 1 || !active) {
-			if (selectedFile) {
-				routingControls.get(selectedFile)?.remove();
+			if (selectedId) {
+				routingControls.get(selectedId)?.remove();
 			}
-			selectedFile = null;
+			selectedId = null;
 		} else {
-			let newSelectedFile = get(selectedFiles).values().next().value;
-			let newSelectedFileStore = getFileStore(newSelectedFile);
-			if (selectedFile !== newSelectedFileStore) {
-				if (selectedFile) {
-					routingControls.get(selectedFile)?.remove();
+			let newSelectedId = get(selectedFiles).values().next().value;
+			if (selectedId !== newSelectedId) {
+				if (selectedId) {
+					routingControls.get(selectedId)?.remove();
 				}
-				selectedFile = newSelectedFileStore;
+				selectedId = newSelectedId;
 			}
 		}
 	}
 
-	$: if ($map && selectedFile) {
-		if (!routingControls.has(selectedFile)) {
-			routingControls.set(
-				selectedFile,
-				new RoutingControls(get(map), selectedFile, popup, popupElement)
-			);
+	$: if ($map && selectedId) {
+		if (!routingControls.has(selectedId)) {
+			let selectedFileStore = filestore.getFileStore(selectedId);
+			if (selectedFileStore) {
+				routingControls.set(
+					selectedId,
+					new RoutingControls(get(map), selectedFileStore, popup, popupElement)
+				);
+			}
 		} else {
-			routingControls.get(selectedFile)?.add();
+			routingControls.get(selectedId)?.add();
 		}
 	}
 

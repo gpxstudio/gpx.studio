@@ -6,8 +6,7 @@
 	import Chart from 'chart.js/auto';
 	import mapboxgl from 'mapbox-gl';
 
-	import { map, fileOrder, selectedFiles, settings } from '$lib/stores';
-	import { get } from 'svelte/store';
+	import { map, settings, gpxData } from '$lib/stores';
 
 	import { onDestroy, onMount } from 'svelte';
 	import {
@@ -19,7 +18,6 @@
 		Thermometer,
 		Zap
 	} from 'lucide-svelte';
-	import { GPXFiles } from 'gpx';
 	import { surfaceColors } from '$lib/assets/surfaces';
 
 	import { _ } from 'svelte-i18n';
@@ -32,7 +30,6 @@
 		getConvertedVelocity,
 		getDistanceUnits,
 		getDistanceWithUnits,
-		getElevationUnits,
 		getElevationWithUnits,
 		getHeartRateUnits,
 		getHeartRateWithUnits,
@@ -236,8 +233,7 @@
 	});
 
 	$: if (chart && $settings) {
-		let gpxFiles = new GPXFiles(get(fileOrder).filter((f) => $selectedFiles.has(f)));
-		let data = gpxFiles.getTrackPointsAndStatistics();
+		let data = $gpxData;
 
 		// update data
 		chart.data.datasets[0] = {

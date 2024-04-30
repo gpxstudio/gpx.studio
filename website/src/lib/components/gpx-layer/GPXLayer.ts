@@ -1,12 +1,7 @@
-import type { GPXFile, Waypoint } from "gpx";
+import type { GPXFile } from "gpx";
 import { map, selectFiles, currentTool, Tool } from "$lib/stores";
 import { get, type Writable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
-
-let id = 0;
-function getLayerId() {
-    return `gpx-${id++}`;
-}
 
 let defaultWeight = 6;
 let defaultOpacity = 1;
@@ -44,7 +39,7 @@ function decrementColor(color: string) {
 export class GPXLayer {
     map: mapboxgl.Map;
     file: Writable<GPXFile>;
-    layerId: string;
+    fileId: string;
     layerColor: string;
     popup: mapboxgl.Popup;
     popupElement: HTMLElement;
@@ -57,36 +52,33 @@ export class GPXLayer {
     constructor(map: mapboxgl.Map, file: Writable<GPXFile>, popup: mapboxgl.Popup, popupElement: HTMLElement) {
         this.map = map;
         this.file = file;
-        this.layerId = getLayerId();
+        this.fileId = get(file)._data.id;
         this.layerColor = getColor();
         this.popup = popup;
         this.popupElement = popupElement;
         this.unsubscribe = file.subscribe(this.updateData.bind(this));
 
-        get(this.file)._data = {
-            layerId: this.layerId,
-            layerColor: this.layerColor
-        };
+        get(this.file)._data.layerColor = this.layerColor;
 
         this.add();
         this.map.on('style.load', this.addBinded);
     }
 
     add() {
-        if (!this.map.getSource(this.layerId)) {
+        if (!this.map.getSource(this.fileId)) {
             let data = this.getGeoJSON();
 
-            this.map.addSource(this.layerId, {
+            this.map.addSource(this.fileId, {
                 type: 'geojson',
                 data
             });
         }
 
-        if (!this.map.getLayer(this.layerId)) {
+        if (!this.map.getLayer(this.fileId)) {
             this.map.addLayer({
-                id: this.layerId,
+                id: this.fileId,
                 type: 'line',
-                source: this.layerId,
+                source: this.fileId,
                 layout: {
                     'line-join': 'round',
                     'line-cap': 'round'
@@ -98,14 +90,14 @@ export class GPXLayer {
                 }
             });
 
-            this.map.on('click', this.layerId, this.selectOnClickBinded);
-            this.map.on('mouseenter', this.layerId, toPointerCursor);
-            this.map.on('mouseleave', this.layerId, toDefaultCursor);
+            this.map.on('click', this.fileId, this.selectOnClickBinded);
+            this.map.on('mouseenter', this.fileId, toPointerCursor);
+            this.map.on('mouseleave', this.fileId, toDefaultCursor);
         }
     }
 
     updateData() {
-        let source = this.map.getSource(this.layerId);
+        let source = this.map.getSource(this.fileId);
         if (source) {
             source.setData(this.getGeoJSON());
         }
@@ -137,13 +129,13 @@ export class GPXLayer {
     }
 
     remove() {
-        this.map.off('click', this.layerId, this.selectOnClickBinded);
-        this.map.off('mouseenter', this.layerId, toPointerCursor);
-        this.map.off('mouseleave', this.layerId, toDefaultCursor);
+        this.map.off('click', this.fileId, this.selectOnClickBinded);
+        this.map.off('mouseenter', this.fileId, toPointerCursor);
+        this.map.off('mouseleave', this.fileId, toDefaultCursor);
         this.map.off('style.load', this.addBinded);
 
-        this.map.removeLayer(this.layerId);
-        this.map.removeSource(this.layerId);
+        this.map.removeLayer(this.fileId);
+        this.map.removeSource(this.fileId);
 
         this.markers.forEach((marker) => {
             marker.remove();
@@ -155,7 +147,7 @@ export class GPXLayer {
     }
 
     moveToFront() {
-        this.map.moveLayer(this.layerId);
+        this.map.moveLayer(this.fileId);
     }
 
     selectOnClick(e: any) {
@@ -163,9 +155,9 @@ export class GPXLayer {
             return;
         }
         if (e.originalEvent.shiftKey) {
-            get(selectFiles).addSelect(get(this.file));
+            get(selectFiles).addSelect(this.fileId);
         } else {
-            get(selectFiles).select(get(this.file));
+            get(selectFiles).select(this.fileId);
         }
     }
 

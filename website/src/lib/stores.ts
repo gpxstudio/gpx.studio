@@ -1,23 +1,52 @@
-import { writable, get, type Writable } from 'svelte/store';
+import { writable, get, type Writable, derived } from 'svelte/store';
 
 import mapboxgl from 'mapbox-gl';
-import { GPXFile, buildGPX, parseGPX, type AnyGPXTreeElement } from 'gpx';
+import { GPXFile, buildGPX, parseGPX, type AnyGPXTreeElement, GPXFiles } from 'gpx';
 import { tick } from 'svelte';
 import { _ } from 'svelte-i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
+import { createGPXFileStore } from './filestore';
 
 export const map = writable<mapboxgl.Map | null>(null);
-export const files = writable<Writable<GPXFile>[]>([]);
-export const fileOrder = writable<GPXFile[]>([]);
-export const selectedFiles = writable<Set<GPXFile>>(new Set());
-export const selectFiles = writable<{ [key: string]: (file?: GPXFile) => void }>({});
+
+export const filestore = createGPXFileStore();
+export const fileOrder = writable<string[]>([]);
+export const selectedFiles = writable<Set<string>>(new Set());
+export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }>({});
+
+export const gpxData = writable(new GPXFiles([]).getTrackPointsAndStatistics());
+
+function updateGPXData() {
+    let fileIds: string[] = get(fileOrder).filter((f) => get(selectedFiles).has(f));
+    let files: GPXFile[] = fileIds
+        .map((id) => get(filestore).find((f) => f._data.id === id))
+        .filter((f) => f) as GPXFile[];
+    let gpxFiles = new GPXFiles(files);
+    gpxData.set(gpxFiles.getTrackPointsAndStatistics());
+}
+
+let selectedFilesUnsubscribe: Function[] = [];
+selectedFiles.subscribe((selectedFiles) => {
+    selectedFilesUnsubscribe.forEach((unsubscribe) => unsubscribe());
+    selectedFiles.forEach((fileId) => {
+        let fileStore = filestore.getFileStore(fileId);
+        if (fileStore) {
+            let unsubscribe = fileStore.subscribe(() => {
+                updateGPXData();
+            });
+            selectedFilesUnsubscribe.push(unsubscribe);
+        }
+    });
+    updateGPXData();
+});
+
 export const settings = writable<{ [key: string]: any }>({
     distanceUnits: 'metric',
     velocityUnits: 'speed',
     temperatureUnits: 'celsius',
     mode: 'system'
 });
-export const gpxLayers: Writable<Map<Writable<GPXFile>, GPXLayer>> = writable(new Map());
+export const gpxLayers: Writable<Map<string, GPXLayer>> = writable(new Map());
 
 export enum Tool {
     ROUTING,
@@ -33,66 +62,14 @@ export enum Tool {
 }
 export const currentTool = writable<Tool | null>(null);
 
-export function getFileStore(file: GPXFile): Writable<GPXFile> {
-    return get(files).find(store => get(store) === file) ?? addFile(file);
-}
-
-export function getFileIndex(file: GPXFile): number {
-    return get(files).findIndex(store => get(store) === file);
-}
-
-export function applyToFileElement<T extends AnyGPXTreeElement>(store: Writable<GPXFile>, element: T, callback: (element: T) => void, updateSelected: boolean) {
-    store.update($file => {
-        callback(element);
-        return $file;
-    });
-    if (updateSelected) {
-        selectedFiles.update($selected => $selected);
-    }
-}
-
-export function applyToFile(file: GPXFile, callback: (file: GPXFile) => void, updateSelected: boolean) {
-    let store = getFileStore(file);
-    applyToFileStore(store, callback, updateSelected);
-}
-
-export function applyToFileStore(store: Writable<GPXFile>, callback: (file: GPXFile) => void, updateSelected: boolean) {
-    store.update($file => {
-        callback($file)
-        return $file;
-    });
-    if (updateSelected) {
-        selectedFiles.update($selected => $selected);
-    }
-}
-
-export function applyToSelectedFiles(callback: (file: GPXFile) => void, updateSelected: boolean) {
-    get(fileOrder).forEach(file => {
-        if (get(selectedFiles).has(file)) {
-            applyToFile(file, callback, false);
-        }
-    });
-    if (updateSelected) {
-        selectedFiles.update($selected => $selected);
-    }
-}
-
-export function addFile(file: GPXFile): Writable<GPXFile> {
-    let fileStore = writable(file);
-    files.update($files => {
-        $files.push(fileStore);
-        return $files;
-    });
-    return fileStore;
-}
-
-export function createFile(): Writable<GPXFile> {
+export function createFile() {
     let file = new GPXFile();
     file.metadata.name = get(_)("menu.new_filename");
-    let fileStore = addFile(file);
-    tick().then(() => get(selectFiles).select(file));
+
+    filestore.add(file);
+
+    tick().then(() => get(selectFiles).select(file._data.id));
     currentTool.set(Tool.ROUTING);
-    return fileStore;
 }
 
 export function triggerFileInput() {
@@ -112,36 +89,43 @@ export function triggerFileInput() {
 export async function loadFiles(list: FileList) {
     let bounds = new mapboxgl.LngLatBounds();
     let mapBounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
-    if (get(files).length > 0) {
+    if (get(filestore).length > 0) {
         mapBounds = get(map)?.getBounds() ?? mapBounds;
         bounds.extend(mapBounds);
     }
+    let files = [];
     for (let i = 0; i < list.length; i++) {
         let file = await loadFile(list[i]);
         if (file) {
-            if (i == 0) {
-                get(selectFiles).select(get(file));
-            }
+            files.push(file);
 
-            let fileBounds = get(file).getStatistics().bounds;
+            let fileBounds = file.getStatistics().bounds;
             bounds.extend(fileBounds.southWest);
             bounds.extend(fileBounds.northEast);
             bounds.extend([fileBounds.southWest.lon, fileBounds.northEast.lat]);
             bounds.extend([fileBounds.northEast.lon, fileBounds.southWest.lat]);
-
-            if (!mapBounds.contains(bounds.getSouthWest()) || !mapBounds.contains(bounds.getNorthEast()) || !mapBounds.contains(bounds.getSouthEast()) || !mapBounds.contains(bounds.getNorthWest())) {
-                get(map)?.fitBounds(bounds, {
-                    padding: 80,
-                    linear: true,
-                    easing: () => 1
-                });
-            }
         }
+    }
+
+    filestore.addMultiple(files);
+
+    if (!mapBounds.contains(bounds.getSouthWest()) || !mapBounds.contains(bounds.getNorthEast()) || !mapBounds.contains(bounds.getSouthEast()) || !mapBounds.contains(bounds.getNorthWest())) {
+        get(map)?.fitBounds(bounds, {
+            padding: 80,
+            linear: true,
+            easing: () => 1
+        });
+    }
+
+    await tick();
+
+    if (files.length > 0) {
+        get(selectFiles).select(files[0]._data.id);
     }
 }
 
-export async function loadFile(file: File) {
-    let result = await new Promise<Writable<GPXFile> | null>((resolve) => {
+export async function loadFile(file: File): Promise<GPXFile | null> {
+    let result = await new Promise<GPXFile | null>((resolve) => {
         const reader = new FileReader();
         reader.onload = () => {
             let data = reader.result?.toString() ?? null;
@@ -150,7 +134,7 @@ export async function loadFile(file: File) {
                 if (gpx.metadata.name === undefined) {
                     gpx.metadata['name'] = file.name.split('.').slice(0, -1).join('.');
                 }
-                resolve(addFile(gpx));
+                resolve(gpx);
             } else {
                 resolve(null);
             }
@@ -160,49 +144,18 @@ export async function loadFile(file: File) {
     return result;
 }
 
-export function duplicateSelectedFiles() {
-    applyToSelectedFiles(file => {
-        let clone = file.clone();
-        addFile(clone);
-    }, false);
-}
-
-export function removeSelectedFiles() {
-    files.update($files => {
-        let index = 0;
-        while (index < $files.length) {
-            if (get(selectedFiles).has(get($files[index]))) {
-                $files.splice(index, 1);
-            } else {
-                index++;
-            }
+export async function exportSelectedFiles() {
+    for (let file of get(filestore)) {
+        if (get(selectedFiles).has(file._data.id)) {
+            exportFile(file);
+            await new Promise(resolve => setTimeout(resolve, 200));
         }
-        return $files;
-    });
-    selectedFiles.update($selected => {
-        $selected.clear();
-        return $selected;
-    });
-}
-
-export function removeAllFiles() {
-    files.update($files => {
-        $files.splice(0, $files.length);
-        return $files;
-    });
-    selectedFiles.update($selected => {
-        $selected.clear();
-        return $selected;
-    });
-}
-
-export function exportSelectedFiles() {
-    get(selectedFiles).forEach(file => exportFile(file));
+    }
 }
 
 export async function exportAllFiles() {
-    for (let file of get(files)) {
-        exportFile(get(file));
+    for (let file of get(filestore)) {
+        exportFile(file);
         await new Promise(resolve => setTimeout(resolve, 200));
     }
 }
@@ -215,11 +168,4 @@ export function exportFile(file: GPXFile) {
     a.download = file.metadata.name + '.gpx';
     a.click();
     URL.revokeObjectURL(url);
-}
-
-export function reverseSelectedFiles() {
-    selectedFiles.update($selected => {
-        $selected.forEach(file => applyToFile(file, file => file.reverse(), false));
-        return $selected;
-    });
 }

@@ -6,13 +6,10 @@
 	import { Plus, Copy, Download, Undo2, Redo2, Trash2, Upload, Cloud, Heart } from 'lucide-svelte';
 
 	import {
-		files,
+		filestore,
 		selectedFiles,
-		duplicateSelectedFiles,
 		exportAllFiles,
 		exportSelectedFiles,
-		removeAllFiles,
-		removeSelectedFiles,
 		triggerFileInput,
 		selectFiles,
 		settings,
@@ -69,7 +66,10 @@
 						{$_('menu.load_drive')}</Menubar.Item
 					>
 					<Menubar.Separator />
-					<Menubar.Item on:click={duplicateSelectedFiles} disabled={$selectedFiles.size == 0}>
+					<Menubar.Item
+						on:click={filestore.duplicateSelectedFiles}
+						disabled={$selectedFiles.size == 0}
+					>
 						<Copy size="16" class="mr-1" />
 						{$_('menu.duplicate')}
 						<Shortcut key="D" ctrl={true} />
@@ -80,7 +80,7 @@
 						{$_('menu.export')}
 						<Shortcut key="S" ctrl={true} />
 					</Menubar.Item>
-					<Menubar.Item on:click={exportAllFiles} disabled={$files.length == 0}>
+					<Menubar.Item on:click={exportAllFiles} disabled={$filestore.length == 0}>
 						<Download size="16" class="mr-1" />
 						{$_('menu.export_all')}
 						<Shortcut key="S" ctrl={true} shift={true} />
@@ -107,15 +107,18 @@
 						<Shortcut key="A" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Separator />
-					<Menubar.Item on:click={removeSelectedFiles} disabled={$selectedFiles.size == 0}>
+					<Menubar.Item
+						on:click={filestore.deleteSelectedFiles}
+						disabled={$selectedFiles.size == 0}
+					>
 						<Trash2 size="16" class="mr-1" />
 						{$_('menu.delete')}
 						<Shortcut key="⌫" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Item
 						class="text-destructive data-[highlighted]:text-destructive"
-						on:click={removeAllFiles}
-						disabled={$files.length == 0}
+						on:click={filestore.deleteAllFiles}
+						disabled={$filestore.length == 0}
 					>
 						<Trash2 size="16" class="mr-1" />
 						{$_('menu.delete_all')}
@@ -199,7 +202,7 @@
 			triggerFileInput();
 			e.preventDefault();
 		} else if (e.key === 'd' && (e.metaKey || e.ctrlKey)) {
-			duplicateSelectedFiles();
+			filestore.duplicateSelectedFiles();
 			e.preventDefault();
 		} else if ((e.key === 's' || e.key == 'S') && (e.metaKey || e.ctrlKey)) {
 			if (e.shiftKey) {
@@ -210,9 +213,9 @@
 			e.preventDefault();
 		} else if ((e.key === 'Backspace' || e.key === 'Delete') && (e.metaKey || e.ctrlKey)) {
 			if (e.shiftKey) {
-				removeAllFiles();
+				filestore.deleteAllFiles();
 			} else {
-				removeSelectedFiles();
+				filestore.deleteSelectedFiles();
 			}
 			e.preventDefault();
 		} else if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {

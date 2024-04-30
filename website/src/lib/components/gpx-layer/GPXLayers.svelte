@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { map, files, selectedFiles, getFileStore, gpxLayers } from '$lib/stores';
+	import { map, filestore, selectedFiles, gpxLayers } from '$lib/stores';
 	import { GPXLayer } from './GPXLayer';
 	import { get } from 'svelte/store';
 	import { onMount } from 'svelte';
@@ -12,26 +12,26 @@
 	$: if ($map) {
 		gpxLayers.update(($layers) => {
 			// remove layers for deleted files
-			$layers.forEach((layer, file) => {
-				if (!get(files).includes(file)) {
+			$layers.forEach((layer, fileId) => {
+				if (!get(filestore).find((file) => file._data.id === fileId)) {
 					layer.remove();
-					$layers.delete(file);
+					$layers.delete(fileId);
 				}
 			});
 			// add layers for new files
-			$files.forEach((file) => {
-				if (!$layers.has(file)) {
-					$layers.set(file, new GPXLayer(get(map), file, popup, popupElement));
+			$filestore.forEach((file) => {
+				if (!$layers.has(file._data.id)) {
+					let fileStore = filestore.getFileStore(file._data.id);
+					$layers.set(file._data.id, new GPXLayer(get(map), fileStore, popup, popupElement));
 				}
 			});
 			return $layers;
 		});
 	}
 
-	$: $selectedFiles.forEach((file) => {
-		let fileStore = getFileStore(file);
-		if ($gpxLayers.has(fileStore)) {
-			$gpxLayers.get(fileStore)?.moveToFront();
+	$: $selectedFiles.forEach((fileId) => {
+		if ($gpxLayers.has(fileId)) {
+			$gpxLayers.get(fileId)?.moveToFront();
 		}
 	});
 

@@ -3,11 +3,11 @@ import { get, type Writable } from "svelte/store";
 import { computeAnchorPoints } from "./Simplify";
 import mapboxgl from "mapbox-gl";
 import { route } from "./Routing";
-import { applyToFileElement } from "$lib/stores";
 
 import { toast } from "svelte-sonner";
 
 import { _ } from "svelte-i18n";
+import { filestore } from "$lib/stores";
 
 export class RoutingControls {
     map: mapboxgl.Map;
@@ -36,7 +36,7 @@ export class RoutingControls {
                 lon: 0
             }
         });
-        this.temporaryAnchor = this.createAnchor(point, new TrackSegment());
+        this.temporaryAnchor = this.createAnchor(point, new TrackSegment(), 0);
         this.temporaryAnchor.marker.getElement().classList.remove('z-10'); // Show below the other markers
 
         this.add();
@@ -46,14 +46,18 @@ export class RoutingControls {
         this.map.on('zoom', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         this.map.on('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         this.map.on('click', this.appendAnchorBinded);
-        this.map.on('mousemove', get(this.file)._data.layerId, this.showTemporaryAnchorBinded);
+        this.map.on('mousemove', get(this.file)._data.id, this.showTemporaryAnchorBinded);
 
         this.unsubscribe = this.file.subscribe(this.updateControls.bind(this));
     }
 
     updateControls() { // Update the markers when the file changes
+        let segments = get(this.file).getSegments();
+
         let anchorIndex = 0;
-        for (let segment of get(this.file).getSegments()) {
+        for (let segmentIndex = 0; segmentIndex < segments.length; segmentIndex++) {
+            let segment = segments[segmentIndex];
+
             if (segment.trkpt.length === 0) { // Empty segment, skip
                 continue;
             }
@@ -79,7 +83,7 @@ export class RoutingControls {
                         this.anchors[anchorIndex].segment = segment;
                         this.anchors[anchorIndex].marker.setLngLat(point.getCoordinates());
                     } else {
-                        this.anchors.push(this.createAnchor(point, segment));
+                        this.anchors.push(this.createAnchor(point, segment, segmentIndex));
                     }
                     anchorIndex++;
                 }
@@ -100,13 +104,13 @@ export class RoutingControls {
         this.map.off('zoom', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         this.map.off('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         this.map.off('click', this.appendAnchorBinded);
-        this.map.off('mousemove', get(this.file)._data.layerId, this.showTemporaryAnchorBinded);
+        this.map.off('mousemove', get(this.file)._data.id, this.showTemporaryAnchorBinded);
         this.map.off('mousemove', this.updateTemporaryAnchorBinded);
 
         this.unsubscribe();
     }
 
-    createAnchor(point: TrackPoint, segment: TrackSegment): AnchorWithMarker {
+    createAnchor(point: TrackPoint, segment: TrackSegment, segmentIndex: number): AnchorWithMarker {
         let element = document.createElement('div');
         element.className = `h-3 w-3 rounded-full bg-white border-2 border-black cursor-pointer`;
 
@@ -119,6 +123,7 @@ export class RoutingControls {
         let anchor = {
             point,
             segment,
+            segmentIndex,
             marker,
             inZoom: false
         };
@@ -254,28 +259,25 @@ export class RoutingControls {
 
     getPermanentAnchor(): Anchor {
         // Find the closest point closest to the temporary anchor
+        let segments = get(this.file).getSegments();
         let minDistance = Number.MAX_VALUE;
-        let minPoint: TrackPoint | null = null;
-        let minSegment: TrackSegment | null = null;
-        for (let segment of get(this.file).getSegments()) {
+        let minAnchor = this.temporaryAnchor as Anchor;
+        for (let segmentIndex = 0; segmentIndex < segments.length; segmentIndex++) {
+            let segment = segments[segmentIndex];
             for (let point of segment.trkpt) {
                 let dist = distance(point.getCoordinates(), this.temporaryAnchor.point.getCoordinates());
                 if (dist < minDistance) {
                     minDistance = dist;
-                    minPoint = point;
-                    minSegment = segment;
+                    minAnchor = {
+                        point,
+                        segment,
+                        segmentIndex,
+                    };
                 }
             }
         }
 
-        if (!minPoint || !minSegment) {
-            return this.temporaryAnchor;
-        }
-
-        return {
-            segment: minSegment,
-            point: minPoint,
-        };
+        return minAnchor;
     }
 
     getDeleteAnchor(anchor: Anchor) {
@@ -288,17 +290,20 @@ export class RoutingControls {
         let [previousAnchor, nextAnchor] = this.getNeighbouringAnchors(anchor);
 
         if (previousAnchor === null && nextAnchor === null) { // Only one point, remove it
-            applyToFileElement(this.file, anchor.segment, (segment) => {
+            filestore.applyToFile(get(this.file)._data.id, (file) => {
+                let segment = file.getSegments()[anchor.segmentIndex];
                 segment.replace(0, 0, []);
-            }, true);
+            });
         } else if (previousAnchor === null) { // First point, remove trackpoints until nextAnchor
-            applyToFileElement(this.file, anchor.segment, (segment) => {
+            filestore.applyToFile(get(this.file)._data.id, (file) => {
+                let segment = file.getSegments()[anchor.segmentIndex];
                 segment.replace(0, nextAnchor.point._data.index - 1, []);
-            }, true);
+            });
         } else if (nextAnchor === null) { // Last point, remove trackpoints from previousAnchor
-            applyToFileElement(this.file, anchor.segment, (segment) => {
+            filestore.applyToFile(get(this.file)._data.id, (file) => {
+                let segment = file.getSegments()[anchor.segmentIndex];
                 segment.replace(previousAnchor.point._data.index + 1, segment.trkpt.length - 1, []);
-            }, true);
+            });
         } else { // Route between previousAnchor and nextAnchor
             this.routeBetweenAnchors([previousAnchor, nextAnchor], [previousAnchor.point.getCoordinates(), nextAnchor.point.getCoordinates()]);
         }
@@ -318,16 +323,18 @@ export class RoutingControls {
 
         if (!lastAnchor) {
             // TODO, create segment if it does not exist
-            applyToFileElement(this.file, get(this.file).getSegments()[0], (segment) => {
+            filestore.applyToFile(get(this.file)._data.id, (file) => {
+                let segment = file.getSegments()[0];
                 segment.replace(0, 0, [newPoint]);
-            }, true);
+            });
             return;
         }
 
         newPoint._data.index = lastAnchor.segment.trkpt.length - 1; // Do as if the point was the last point in the segment
         let newAnchor = {
             point: newPoint,
-            segment: lastAnchor.segment
+            segment: lastAnchor.segment,
+            segmentIndex: lastAnchor.segmentIndex
         };
 
         await this.routeBetweenAnchors([lastAnchor, newAnchor], [lastAnchor.point.getCoordinates(), newAnchor.point.getCoordinates()]);
@@ -358,11 +365,12 @@ export class RoutingControls {
         let segment = anchors[0].segment;
 
         if (anchors.length === 1) { // Only one anchor, update the point in the segment
-            applyToFileElement(this.file, segment, (segment) => {
+            filestore.applyToFile(get(this.file)._data.id, (file) => {
+                let segment = file.getSegments()[anchors[0].segmentIndex];
                 segment.replace(0, 0, [new TrackPoint({
                     attributes: targetCoordinates[0],
                 })]);
-            }, true);
+            });
             return true;
         }
 
@@ -417,9 +425,10 @@ export class RoutingControls {
             anchor.point._data.zoom = 0; // Make these anchors permanent
         });
 
-        applyToFileElement(this.file, segment, (segment) => {
+        filestore.applyToFile(get(this.file)._data.id, (file) => {
+            let segment = file.getSegments()[anchors[0].segmentIndex];
             segment.replace(start, end, response);
-        }, true);
+        });
 
         return true;
     }
@@ -427,6 +436,7 @@ export class RoutingControls {
 
 type Anchor = {
     segment: TrackSegment;
+    segmentIndex: number;
     point: TrackPoint;
 };
 

@@ -3,24 +3,17 @@
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import WithUnits from '$lib/components/WithUnits.svelte';
 
-	import { GPXFiles, GPXStatistics } from 'gpx';
+	import { GPXStatistics } from 'gpx';
 
-	import { selectedFiles, settings } from '$lib/stores';
-	import { get } from 'svelte/store';
+	import { gpxData, settings } from '$lib/stores';
 
 	import { MoveDownRight, MoveUpRight, Ruler, Timer, Zap } from 'lucide-svelte';
 
 	import { _ } from 'svelte-i18n';
 
-	let gpxData: GPXStatistics = new GPXStatistics();
+	let data: GPXStatistics;
 
-	function updateGPXData() {
-		gpxData = new GPXFiles(Array.from(get(selectedFiles))).getStatistics();
-	}
-
-	$: if ($selectedFiles) {
-		updateGPXData();
-	}
+	$: data = $gpxData.statistics;
 </script>
 
 <Card.Root class="h-full overflow-hidden border-none shadow-none min-w-48 pl-4">
@@ -28,25 +21,25 @@
 		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
 				<Ruler size="18" class="mr-1" />
-				<WithUnits value={gpxData.distance.total} type="distance" />
+				<WithUnits value={data.distance.total} type="distance" />
 			</span>
 			<span slot="tooltip">{$_('quantities.distance')}</span>
 		</Tooltip>
 		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
 				<MoveUpRight size="18" class="mr-1" />
-				<WithUnits value={gpxData.elevation.gain} type="elevation" />
+				<WithUnits value={data.elevation.gain} type="elevation" />
 				<MoveDownRight size="18" class="mx-1" />
-				<WithUnits value={gpxData.elevation.loss} type="elevation" />
+				<WithUnits value={data.elevation.loss} type="elevation" />
 			</span>
 			<span slot="tooltip">{$_('quantities.elevation')}</span>
 		</Tooltip>
 		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
 				<Zap size="18" class="mr-1" />
-				<WithUnits value={gpxData.speed.total} type="speed" showUnits={false} />
+				<WithUnits value={data.speed.total} type="speed" showUnits={false} />
 				<span class="mx-1">/</span>
-				<WithUnits value={gpxData.speed.moving} type="speed" />
+				<WithUnits value={data.speed.moving} type="speed" />
 			</span>
 			<span slot="tooltip"
 				>{$settings.velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')} ({$_(
@@ -57,9 +50,9 @@
 		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
 				<Timer size="18" class="mr-1" />
-				<WithUnits value={gpxData.time.total} type="time" />
+				<WithUnits value={data.time.total} type="time" />
 				<span class="mx-1">/</span>
-				<WithUnits value={gpxData.time.moving} type="time" />
+				<WithUnits value={data.time.moving} type="time" />
 			</span>
 			<span slot="tooltip"
 				>{$_('quantities.time')} ({$_('quantities.total')} / {$_('quantities.moving')})</span

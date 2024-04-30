@@ -46,6 +46,7 @@
         "chart.js": "^4.4.2",
         "clsx": "^2.1.0",
         "gpx": "file:../gpx",
+        "immer": "^10.1.1",
         "lucide-svelte": "^0.365.0",
         "mapbox-gl": "^3.2.0",
         "mode-watcher": "^0.3.0",
