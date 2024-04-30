@@ -14,7 +14,7 @@ export const fileOrder = writable<string[]>([]);
 export const selectedFiles = writable<Set<string>>(new Set());
 export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }>({});
 
-filestore.subscribe((files) => { // Update selectedFiles if a file is deleted
+filestore.subscribe((files) => { // Update selectedFiles automatically when files are deleted (either by action or by undo-redo)
     let deletedFileIds: string[] = [];
     get(selectedFiles).forEach((fileId) => {
         if (!files.find((f) => f._data.id === fileId)) {

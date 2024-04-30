@@ -88,7 +88,6 @@ export function createGPXFileStore(): GPXFileStore {
             }
         }
         if (global) {
-            console.log("Global patch", patch);
             notify();
         }
         updateUndoRedo();
@@ -181,18 +180,10 @@ export function createGPXFileStore(): GPXFileStore {
                     draft.delete(fileId);
                 });
             });
-            selectedFiles.update($selected => {
-                $selected.clear();
-                return $selected;
-            });
         },
         deleteAllFiles: () => {
             applyToGlobalStore((draft) => {
                 draft.clear();
-            });
-            selectedFiles.update($selected => {
-                $selected.clear();
-                return $selected;
             });
         },
         getFileStore: (id: string) => {
