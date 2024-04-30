@@ -14,6 +14,22 @@ export const fileOrder = writable<string[]>([]);
 export const selectedFiles = writable<Set<string>>(new Set());
 export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }>({});
 
+filestore.subscribe((files) => { // Update selectedFiles if a file is deleted
+    let deletedFileIds: string[] = [];
+    get(selectedFiles).forEach((fileId) => {
+        if (!files.find((f) => f._data.id === fileId)) {
+            deletedFileIds.push(fileId);
+        }
+    });
+
+    if (deletedFileIds.length > 0) {
+        selectedFiles.update((selectedFiles) => {
+            deletedFileIds.forEach((fileId) => selectedFiles.delete(fileId));
+            return selectedFiles;
+        });
+    }
+});
+
 export const gpxData = writable(new GPXFiles([]).getTrackPointsAndStatistics());
 
 function updateGPXData() {

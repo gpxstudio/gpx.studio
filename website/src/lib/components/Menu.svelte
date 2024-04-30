@@ -39,6 +39,10 @@
 			setMode($settings.mode);
 		}
 	}
+
+	let undoRedo = filestore.undoRedo;
+	let undoDisabled = derived(undoRedo, ($undoRedo) => !$undoRedo.canUndo);
+	let redoDisabled = derived(undoRedo, ($undoRedo) => !$undoRedo.canRedo);
 </script>
 
 <div class="absolute top-2 left-0 right-0 z-20 flex flex-row justify-center pointer-events-none">
@@ -90,12 +94,12 @@
 			<Menubar.Menu>
 				<Menubar.Trigger>{$_('menu.edit')}</Menubar.Trigger>
 				<Menubar.Content class="border-none">
-					<Menubar.Item>
+					<Menubar.Item on:click={$undoRedo.undo} disabled={$undoDisabled}>
 						<Undo2 size="16" class="mr-1" />
 						{$_('menu.undo')}
 						<Shortcut key="Z" ctrl={true} />
 					</Menubar.Item>
-					<Menubar.Item>
+					<Menubar.Item on:click={$undoRedo.redo} disabled={$redoDisabled}>
 						<Redo2 size="16" class="mr-1" />
 						{$_('menu.redo')}
 						<Shortcut key="Z" ctrl={true} shift={true} />
@@ -211,6 +215,12 @@
 				exportSelectedFiles();
 			}
 			e.preventDefault();
+		} else if ((e.key === 'z' || e.key == 'Z') && (e.metaKey || e.ctrlKey)) {
+			if (e.shiftKey) {
+				$undoRedo.redo();
+			} else {
+				$undoRedo.undo();
+			}
 		} else if ((e.key === 'Backspace' || e.key === 'Delete') && (e.metaKey || e.ctrlKey)) {
 			if (e.shiftKey) {
 				filestore.deleteAllFiles();

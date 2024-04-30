@@ -9,9 +9,9 @@
 
 	import { _ } from 'svelte-i18n';
 	import type { GPXFile } from 'gpx';
-	import type { Immutable } from 'immer';
+	import type { FreezedObject } from 'structurajs';
 
-	export let file: Writable<Immutable<GPXFile>> | undefined;
+	export let file: Writable<FreezedObject<GPXFile>> | undefined;
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->

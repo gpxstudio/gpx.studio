@@ -1,12 +1,17 @@
 import { writable, get, type Readable, type Writable } from "svelte/store";
 import { GPXFile } from "gpx";
-import { produceWithPatches, enableMapSet, enablePatches, type Immutable } from "immer";
+import { produceWithPatches, type FreezedObject, type UnFreezedObject, applyPatches, type Patch } from "structurajs";
 import { fileOrder, selectedFiles } from "./stores";
 
-enableMapSet();
-enablePatches();
+export type UndoRedoStore = {
+    canUndo: boolean;
+    canRedo: boolean;
+    undo: () => void;
+    redo: () => void;
+}
 
 export type GPXFileStore = Readable<GPXFile[]> & {
+    undoRedo: Writable<UndoRedoStore>;
     add: (file: GPXFile) => void;
     addMultiple: (files: GPXFile[]) => void;
     applyToFile: (id: string, callback: (file: GPXFile) => void) => void;
@@ -14,16 +19,12 @@ export type GPXFileStore = Readable<GPXFile[]> & {
     duplicateSelectedFiles: () => void;
     deleteSelectedFiles: () => void;
     deleteAllFiles: () => void;
-    getFileStore: (id: string) => Writable<Immutable<GPXFile>> | undefined;
+    getFileStore: (id: string) => Writable<FreezedObject<GPXFile>> | undefined;
 }
 
 export function createGPXFileStore(): GPXFileStore {
-    let files: Immutable<Map<string, GPXFile>> = new Map();
+    let files: ReadonlyMap<string, FreezedObject<GPXFile>> = new Map();
     let subscribers: Set<Function> = new Set();
-
-    let filestores = new Map<string, Writable<Immutable<GPXFile>>>();
-
-    let patches = [];
 
     function notifySubscriber(run: Function) {
         run(Array.from(files.values()));
@@ -35,33 +36,79 @@ export function createGPXFileStore(): GPXFileStore {
         });
     }
 
+    let filestores = new Map<string, Writable<FreezedObject<GPXFile>>>();
+    let patches: { patch: Patch[], inversePatch: Patch[], global: boolean }[] = [];
+    let patchIndex = -1;
+
+    function updateUndoRedo() {
+        undoRedo.update($undoRedo => {
+            $undoRedo.canUndo = patchIndex >= 0;
+            $undoRedo.canRedo = patchIndex < patches.length - 1;
+            return $undoRedo;
+        });
+    }
+
+    function appendPatches(patch: Patch[], inversePatch: Patch[], global: boolean) {
+        patches = patches.slice(0, patchIndex + 1);
+        patches.push({
+            patch,
+            inversePatch,
+            global
+        });
+        patchIndex++;
+        updateUndoRedo();
+    }
+
+    let undoRedo: Writable<UndoRedoStore> = writable({
+        canUndo: false,
+        canRedo: false,
+        undo: () => {
+            if (patchIndex >= 0) {
+                applyPatch(patches[patchIndex].inversePatch, patches[patchIndex].global);
+                patchIndex--;
+            }
+        },
+        redo: () => {
+            if (patchIndex < patches.length - 1) {
+                patchIndex++;
+                applyPatch(patches[patchIndex].patch, patches[patchIndex].global);
+            }
+        },
+    });
+
+    function applyPatch(patch: Patch[], global: boolean) {
+        files = applyPatches(files, patch);
+        for (let p of patch) {
+            let fileId = p.p?.toString();
+            if (fileId) {
+                let filestore = filestores.get(fileId), newFile = files.get(fileId);
+                if (filestore && newFile) {
+                    filestore.set(newFile);
+                }
+            }
+        }
+        if (global) {
+            console.log("Global patch", patch);
+            notify();
+        }
+        updateUndoRedo();
+    }
+
     function applyToGlobalStore(callback: (files: Map<string, GPXFile>) => void) {
         const [newFiles, patch, inversePatch] = produceWithPatches(files, callback);
         files = newFiles;
-        patches.push({
-            patch,
-            inversePatch,
-            global: true
-        });
-        console.log(patches[patches.length - 1]);
+        appendPatches(patch, inversePatch, true);
         notify();
     }
 
-    function applyToFiles(fileIds: string[], callback: (file: GPXFile) => void) {
+    function applyToFiles(fileIds: string[], callback: (file: UnFreezedObject<FreezedObject<GPXFile>>) => void) {
         const [newFiles, patch, inversePatch] = produceWithPatches(files, (draft) => {
             fileIds.forEach((fileId) => {
-                if (draft.has(fileId)) {
-                    callback(draft.get(fileId));
-                }
+                callback(draft.get(fileId));
             });
         });
         files = newFiles;
-        patches.push({
-            patch,
-            inversePatch,
-            global: false
-        });
-        console.log(patches[patches.length - 1]);
+        appendPatches(patch, inversePatch, false);
         fileIds.forEach((fileId) => {
             let filestore = filestores.get(fileId), newFile = newFiles.get(fileId);
             if (filestore && newFile) {
@@ -93,6 +140,7 @@ export function createGPXFileStore(): GPXFileStore {
                 subscribers.delete(run);
             }
         },
+        undoRedo,
         add: (file: GPXFile) => {
             file._data.id = getLayerId();
             applyToGlobalStore((draft) => {

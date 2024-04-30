@@ -26,13 +26,19 @@
 		// remove controls for deleted files
 		routingControls.forEach((controls, fileId) => {
 			if (!get(filestore).find((file) => file._data.id === fileId)) {
+				console.log('remove controls for deleted file', fileId);
 				controls.remove();
 				routingControls.delete(fileId);
+
+				if (selectedId === fileId) {
+					selectedId = null;
+				}
 			}
 		});
 	}
 
 	$: if ($map && $selectedFiles) {
+		console.log('selectedFiles', $selectedFiles);
 		// update selected file
 		if ($selectedFiles.size == 0 || $selectedFiles.size > 1 || !active) {
 			if (selectedId) {
@@ -48,12 +54,14 @@
 				selectedId = newSelectedId;
 			}
 		}
+		console.log('selectedId', selectedId);
 	}
 
 	$: if ($map && selectedId) {
 		if (!routingControls.has(selectedId)) {
 			let selectedFileStore = filestore.getFileStore(selectedId);
 			if (selectedFileStore) {
+				console.log('add controls for selected file', selectedId);
 				routingControls.set(
 					selectedId,
 					new RoutingControls(get(map), selectedFileStore, popup, popupElement)
