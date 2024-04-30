@@ -1,6 +1,6 @@
 import type { Coordinates, TrackPoint, TrackSegment } from "gpx";
 
-export type SimplifiedTrackPoint = { point: TrackPoint, distance?: number, zoom?: number, marker?: mapboxgl.Marker };
+type SimplifiedTrackPoint = { point: TrackPoint, distance?: number };
 
 const earthRadius = 6371008.8;
 
@@ -18,10 +18,12 @@ export function getZoomLevelForDistance(latitude: number, distance?: number): nu
 export function computeAnchorPoints(segment: TrackSegment) {
     let points = segment.trkpt;
     let anchors = ramerDouglasPeucker(points);
-    anchors.forEach((point) => {
-        point.zoom = getZoomLevelForDistance(point.point.getLatitude(), point.distance);
+    anchors.forEach((anchor) => {
+        let point = anchor.point;
+        point._data.anchor = true;
+        point._data.zoom = getZoomLevelForDistance(point.getLatitude(), anchor.distance);
     });
-    segment._data['anchors'] = anchors;
+    segment._data.anchors = true;
 }
 
 export function ramerDouglasPeucker(points: TrackPoint[], epsilon: number = 50, start: number = 0, end: number = points.length - 1): SimplifiedTrackPoint[] {

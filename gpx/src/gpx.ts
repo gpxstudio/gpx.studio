@@ -9,11 +9,7 @@ function cloneJSON<T>(obj: T): T {
 
 // An abstract class that groups functions that need to be computed recursively in the GPX file hierarchy
 export abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
-    _data: { [key: string]: any };
-
-    constructor() {
-        this._data = {};
-    }
+    _data: { [key: string]: any } = {};
 
     abstract isLeaf(): boolean;
     abstract getChildren(): T[];
@@ -171,6 +167,9 @@ export class GPXFile extends GPXTreeNode<Track>{
             this.metadata = cloneJSON(gpx.metadata);
             this.wpt = gpx.wpt ? gpx.wpt.map((waypoint) => new Waypoint(waypoint)) : [];
             this.trk = gpx.trk ? gpx.trk.map((track) => new Track(track)) : [];
+            if (gpx instanceof GPXFile && gpx._data) {
+                this._data = cloneJSON(gpx._data);
+            }
         } else {
             this.attributes = {};
             this.metadata = {};
@@ -226,6 +225,9 @@ export class Track extends GPXTreeNode<TrackSegment> {
             this.type = track.type;
             this.trkseg = track.trkseg ? track.trkseg.map((seg) => new TrackSegment(seg)) : [];
             this.extensions = cloneJSON(track.extensions);
+            if (track instanceof Track && track._data) {
+                this._data = cloneJSON(track._data);
+            }
         } else {
             this.trkseg = [new TrackSegment()];
         }
@@ -281,6 +283,9 @@ export class TrackSegment extends GPXTreeLeaf {
         super();
         if (segment) {
             this.trkpt = segment.trkpt.map((point) => new TrackPoint(point));
+            if (segment instanceof TrackSegment && segment._data) {
+                this._data = cloneJSON(segment._data);
+            }
         } else {
             this.trkpt = [];
         }
@@ -308,7 +313,6 @@ export class TrackSegment extends GPXTreeLeaf {
         const points = this.trkpt;
         for (let i = 0; i < points.length; i++) {
             points[i]._data['index'] = i;
-            points[i]._data['segment'] = this;
 
             // distance
             let dist = 0;
@@ -473,7 +477,7 @@ export class TrackPoint {
     ele?: number;
     time?: Date;
     extensions?: TrackPointExtensions;
-    _data: {} = {};
+    _data: { [key: string]: any } = {};
 
     constructor(point: TrackPointType | TrackPoint) {
         this.attributes = cloneJSON(point.attributes);
@@ -482,6 +486,9 @@ export class TrackPoint {
             this.time = new Date(point.time.getTime());
         }
         this.extensions = cloneJSON(point.extensions);
+        if (point instanceof TrackPoint && point._data) {
+            this._data = cloneJSON(point._data);
+        }
     }
 
     getCoordinates(): Coordinates {
