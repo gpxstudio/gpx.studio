@@ -52,6 +52,7 @@ export class RoutingControls {
     }
 
     updateControls() { // Update the markers when the file changes
+        let anchorIndex = 0;
         for (let segment of get(this.file).getSegments()) {
             if (segment.trkpt.length === 0) { // Empty segment, skip
                 continue;
@@ -71,7 +72,6 @@ export class RoutingControls {
                 segment.trkpt[segment.trkpt.length - 1]._data.zoom = 0;
             }
 
-            let anchorIndex = 0;
             for (let point of segment.trkpt) { // Update the existing anchors (could be improved by matching the existing anchors with the new ones?)
                 if (point._data.anchor) {
                     if (anchorIndex < this.anchors.length) {
@@ -84,10 +84,10 @@ export class RoutingControls {
                     anchorIndex++;
                 }
             }
+        }
 
-            while (anchorIndex < this.anchors.length) { // Remove the extra anchors
-                this.anchors.pop()?.marker.remove();
-            }
+        while (anchorIndex < this.anchors.length) { // Remove the extra anchors
+            this.anchors.pop()?.marker.remove();
         }
 
         this.toggleAnchorsForZoomLevelAndBounds();
