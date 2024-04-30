@@ -102,9 +102,19 @@ export class GPXLayer {
             this.map.on('mouseenter', this.layerId, toPointerCursor);
             this.map.on('mouseleave', this.layerId, toDefaultCursor);
         }
+    }
 
-        if (this.markers.length == 0) {
-            get(this.file).wpt.forEach((waypoint) => {
+    updateData() {
+        let source = this.map.getSource(this.layerId);
+        if (source) {
+            source.setData(this.getGeoJSON());
+        }
+
+        let markerIndex = 0;
+        get(this.file).wpt.forEach((waypoint) => { // Update markers
+            if (markerIndex < this.markers.length) {
+                this.markers[markerIndex].setLngLat(waypoint.getCoordinates());
+            } else {
                 let marker = new mapboxgl.Marker().setLngLat(waypoint.getCoordinates());
                 marker.getElement().addEventListener('click', (e) => {
                     marker.setPopup(this.popup);
@@ -113,19 +123,17 @@ export class GPXLayer {
                 });
 
                 this.markers.push(marker);
-            });
+            }
+            markerIndex++;
+        });
+
+        while (markerIndex < this.markers.length) { // Remove extra markers
+            this.markers.pop()?.remove();
         }
 
         this.markers.forEach((marker) => {
             marker.addTo(this.map);
         });
-    }
-
-    updateData() {
-        let source = this.map.getSource(this.layerId);
-        if (source) {
-            source.setData(this.getGeoJSON());
-        }
     }
 
     remove() {
