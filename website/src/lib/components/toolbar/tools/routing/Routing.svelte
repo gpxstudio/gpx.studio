@@ -6,7 +6,7 @@
 	import * as Alert from '$lib/components/ui/alert';
 	import { CircleHelp } from 'lucide-svelte';
 
-	import { filestore, map, selectedFiles, Tool } from '$lib/stores';
+	import { map, selectedFiles, Tool } from '$lib/stores';
 	import { brouterProfiles, privateRoads, routing, routingProfile } from './Routing';
 
 	import { _ } from 'svelte-i18n';
@@ -15,6 +15,7 @@
 	import RoutingControlPopup from './RoutingControlPopup.svelte';
 	import { onMount } from 'svelte';
 	import mapboxgl from 'mapbox-gl';
+	import { fileObservers } from '$lib/db';
 
 	let routingControls: Map<string, RoutingControls> = new Map();
 	let popupElement: HTMLElement;
@@ -22,10 +23,10 @@
 	let selectedId: string | null = null;
 	let active = false;
 
-	$: if ($map && $filestore) {
+	$: if ($map) {
 		// remove controls for deleted files
 		routingControls.forEach((controls, fileId) => {
-			if (!get(filestore).find((file) => file._data.id === fileId)) {
+			if (!$fileObservers.has(fileId)) {
 				controls.remove();
 				routingControls.delete(fileId);
 
@@ -56,11 +57,11 @@
 
 	$: if ($map && selectedId) {
 		if (!routingControls.has(selectedId)) {
-			let selectedFileStore = filestore.getFileStore(selectedId);
-			if (selectedFileStore) {
+			let selectedFileObserver = get(fileObservers).get(selectedId);
+			if (selectedFileObserver) {
 				routingControls.set(
 					selectedId,
-					new RoutingControls(get(map), selectedFileStore, popup, popupElement)
+					new RoutingControls(get(map), selectedFileObserver, popup, popupElement)
 				);
 			}
 		} else {

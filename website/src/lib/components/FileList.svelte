@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { filestore, fileOrder, selectedFiles, selectFiles } from '$lib/stores';
+	import { fileOrder, selectedFiles, selectFiles } from '$lib/stores';
 
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index';
 	import Sortable from 'sortablejs/Sortable';
@@ -7,6 +7,7 @@
 	import { afterUpdate, onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import FileListItem from './FileListItem.svelte';
+	import { fileObservers } from '$lib/db';
 
 	let container: HTMLDivElement;
 	let buttons: { [id: string]: HTMLElement } = {};
@@ -29,8 +30,8 @@
 
 	function selectAllFiles() {
 		selectedFiles.update((selectedFiles) => {
-			get(filestore).forEach((file) => {
-				selectedFiles.add(file._data.id);
+			get(fileObservers).forEach((_, id) => {
+				selectedFiles.add(id);
 			});
 			return selectedFiles;
 		});
@@ -115,7 +116,7 @@
 	afterUpdate(() => {
 		updateFileOrder();
 		Object.keys(buttons).forEach((fileId) => {
-			if (!get(filestore).find((file) => file._data.id === fileId)) {
+			if (!get(fileObservers).has(fileId)) {
 				delete buttons[fileId];
 			}
 		});
@@ -125,15 +126,17 @@
 <div class="h-10 -translate-y-10 w-full pointer-events-none">
 	<ScrollArea orientation="horizontal" class="w-full h-full" scrollbarXClasses="h-2">
 		<div bind:this={container} class="flex flex-row gap-1">
-			{#each $filestore as file}
-				<div
-					bind:this={buttons[file._data.id]}
-					data-id={file._data.id}
-					class="pointer-events-auto first:ml-1 last:mr-1 mb-1 bg-transparent"
-				>
-					<FileListItem file={filestore.getFileStore(file._data.id)} />
-				</div>
-			{/each}
+			{#if $fileObservers}
+				{#each $fileObservers.values() as file}
+					<div
+						bind:this={buttons[get(file)._data.id]}
+						data-id={get(file)._data.id}
+						class="pointer-events-auto first:ml-1 last:mr-1 mb-1 bg-transparent"
+					>
+						<FileListItem {file} />
+					</div>
+				{/each}
+			{/if}
 		</div>
 	</ScrollArea>
 </div>

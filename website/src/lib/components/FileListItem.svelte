@@ -4,14 +4,15 @@
 	import Shortcut from './Shortcut.svelte';
 	import { Copy, Trash2 } from 'lucide-svelte';
 
-	import { get, type Writable } from 'svelte/store';
-	import { filestore, selectedFiles, selectFiles } from '$lib/stores';
+	import { get, type Readable, type Writable } from 'svelte/store';
+	import { selectedFiles, selectFiles } from '$lib/stores';
 
 	import { _ } from 'svelte-i18n';
 	import type { GPXFile } from 'gpx';
 	import type { FreezedObject } from 'structurajs';
+	import { dbUtils } from '$lib/db';
 
-	export let file: Writable<FreezedObject<GPXFile>> | undefined;
+	export let file: Readable<FreezedObject<GPXFile>> | undefined;
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -29,13 +30,13 @@
 			</Button>
 		</ContextMenu.Trigger>
 		<ContextMenu.Content>
-			<ContextMenu.Item on:click={filestore.duplicateSelectedFiles}>
+			<ContextMenu.Item on:click={dbUtils.duplicateSelectedFiles}>
 				<Copy size="16" class="mr-1" />
 				{$_('menu.duplicate')}
 				<Shortcut key="D" ctrl={true} /></ContextMenu.Item
 			>
 			<ContextMenu.Separator />
-			<ContextMenu.Item on:click={filestore.deleteSelectedFiles}
+			<ContextMenu.Item on:click={dbUtils.deleteSelectedFiles}
 				><Trash2 size="16" class="mr-1" />
 				{$_('menu.delete')}
 				<Shortcut key="⌫" ctrl={true} /></ContextMenu.Item

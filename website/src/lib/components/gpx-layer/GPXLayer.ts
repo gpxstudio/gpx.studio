@@ -1,7 +1,8 @@
 import type { GPXFile } from "gpx";
 import { map, selectFiles, currentTool, Tool } from "$lib/stores";
-import { get, type Writable } from "svelte/store";
+import { get, type Readable, type Writable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
+import type { FreezedObject } from "structurajs";
 
 let defaultWeight = 6;
 let defaultOpacity = 1;
@@ -38,7 +39,7 @@ function decrementColor(color: string) {
 
 export class GPXLayer {
     map: mapboxgl.Map;
-    file: Writable<GPXFile>;
+    file: Readable<FreezedObject<GPXFile>>;
     fileId: string;
     layerColor: string;
     popup: mapboxgl.Popup;
@@ -49,7 +50,7 @@ export class GPXLayer {
     addBinded: () => void = this.add.bind(this);
     selectOnClickBinded: (e: any) => void = this.selectOnClick.bind(this);
 
-    constructor(map: mapboxgl.Map, file: Writable<GPXFile>, popup: mapboxgl.Popup, popupElement: HTMLElement) {
+    constructor(map: mapboxgl.Map, file: Readable<FreezedObject<GPXFile>>, popup: mapboxgl.Popup, popupElement: HTMLElement) {
         this.map = map;
         this.file = file;
         this.fileId = get(file)._data.id;
@@ -57,8 +58,6 @@ export class GPXLayer {
         this.popup = popup;
         this.popupElement = popupElement;
         this.unsubscribe = file.subscribe(this.updateData.bind(this));
-
-        get(this.file)._data.layerColor = this.layerColor;
 
         this.add();
         this.map.on('style.load', this.addBinded);

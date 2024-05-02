@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Tool, filestore } from '$lib/stores';
+	import { Tool } from '$lib/stores';
+	import { dbUtils } from '$lib/db';
 	import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
 	import Waypoint from '$lib/components/toolbar/tools/waypoint/Waypoint.svelte';
 	import ToolbarItem from './ToolbarItem.svelte';
@@ -34,7 +35,7 @@
 			</ToolbarItem>
 			<ToolbarItem
 				tool={Tool.REVERSE}
-				on:click={() => filestore.applyToSelectedFiles((file) => file.reverse())}
+				on:click={() => dbUtils.applyToSelectedFiles((file) => file.reverse())}
 			>
 				<ArrowRightLeft slot="icon" size="18" />
 				<span slot="tooltip">{$_('toolbar.reverse_tooltip')}</span>

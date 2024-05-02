@@ -6,7 +6,6 @@
 	import { Plus, Copy, Download, Undo2, Redo2, Trash2, Upload, Cloud, Heart } from 'lucide-svelte';
 
 	import {
-		filestore,
 		selectedFiles,
 		exportAllFiles,
 		exportSelectedFiles,
@@ -20,6 +19,7 @@
 
 	import { _ } from 'svelte-i18n';
 	import { derived, get } from 'svelte/store';
+	import { canUndo, dbUtils, fileObservers, redo, undo } from '$lib/db';
 
 	let showDistanceMarkers = false;
 	let showDirectionMarkers = false;
@@ -40,9 +40,8 @@
 		}
 	}
 
-	let undoRedo = filestore.undoRedo;
-	let undoDisabled = derived(undoRedo, ($undoRedo) => !$undoRedo.canUndo);
-	let redoDisabled = derived(undoRedo, ($undoRedo) => !$undoRedo.canRedo);
+	let undoDisabled = derived(canUndo, ($canUndo) => !$canUndo);
+	let redoDisabled = derived(canUndo, ($canUndo) => !$canUndo);
 </script>
 
 <div class="absolute top-2 left-0 right-0 z-20 flex flex-row justify-center pointer-events-none">
@@ -71,7 +70,7 @@
 					>
 					<Menubar.Separator />
 					<Menubar.Item
-						on:click={filestore.duplicateSelectedFiles}
+						on:click={dbUtils.duplicateSelectedFiles}
 						disabled={$selectedFiles.size == 0}
 					>
 						<Copy size="16" class="mr-1" />
@@ -84,7 +83,7 @@
 						{$_('menu.export')}
 						<Shortcut key="S" ctrl={true} />
 					</Menubar.Item>
-					<Menubar.Item on:click={exportAllFiles} disabled={$filestore.length == 0}>
+					<Menubar.Item on:click={exportAllFiles} disabled={$fileObservers.size == 0}>
 						<Download size="16" class="mr-1" />
 						{$_('menu.export_all')}
 						<Shortcut key="S" ctrl={true} shift={true} />
@@ -94,12 +93,12 @@
 			<Menubar.Menu>
 				<Menubar.Trigger>{$_('menu.edit')}</Menubar.Trigger>
 				<Menubar.Content class="border-none">
-					<Menubar.Item on:click={$undoRedo.undo} disabled={$undoDisabled}>
+					<Menubar.Item on:click={undo} disabled={$undoDisabled}>
 						<Undo2 size="16" class="mr-1" />
 						{$_('menu.undo')}
 						<Shortcut key="Z" ctrl={true} />
 					</Menubar.Item>
-					<Menubar.Item on:click={$undoRedo.redo} disabled={$redoDisabled}>
+					<Menubar.Item on:click={redo} disabled={$redoDisabled}>
 						<Redo2 size="16" class="mr-1" />
 						{$_('menu.redo')}
 						<Shortcut key="Z" ctrl={true} shift={true} />
@@ -111,18 +110,15 @@
 						<Shortcut key="A" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Separator />
-					<Menubar.Item
-						on:click={filestore.deleteSelectedFiles}
-						disabled={$selectedFiles.size == 0}
-					>
+					<Menubar.Item on:click={dbUtils.deleteSelectedFiles} disabled={$selectedFiles.size == 0}>
 						<Trash2 size="16" class="mr-1" />
 						{$_('menu.delete')}
 						<Shortcut key="⌫" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Item
 						class="text-destructive data-[highlighted]:text-destructive"
-						on:click={filestore.deleteAllFiles}
-						disabled={$filestore.length == 0}
+						on:click={dbUtils.deleteAllFiles}
+						disabled={$fileObservers.size == 0}
 					>
 						<Trash2 size="16" class="mr-1" />
 						{$_('menu.delete_all')}
@@ -206,7 +202,7 @@
 			triggerFileInput();
 			e.preventDefault();
 		} else if (e.key === 'd' && (e.metaKey || e.ctrlKey)) {
-			filestore.duplicateSelectedFiles();
+			dbUtils.duplicateSelectedFiles();
 			e.preventDefault();
 		} else if ((e.key === 's' || e.key == 'S') && (e.metaKey || e.ctrlKey)) {
 			if (e.shiftKey) {
@@ -217,15 +213,15 @@
 			e.preventDefault();
 		} else if ((e.key === 'z' || e.key == 'Z') && (e.metaKey || e.ctrlKey)) {
 			if (e.shiftKey) {
-				$undoRedo.redo();
+				redo();
 			} else {
-				$undoRedo.undo();
+				undo();
 			}
 		} else if ((e.key === 'Backspace' || e.key === 'Delete') && (e.metaKey || e.ctrlKey)) {
 			if (e.shiftKey) {
-				filestore.deleteAllFiles();
+				dbUtils.deleteAllFiles();
 			} else {
-				filestore.deleteSelectedFiles();
+				dbUtils.deleteSelectedFiles();
 			}
 			e.preventDefault();
 		} else if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {

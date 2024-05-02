@@ -1,27 +1,25 @@
-import { writable, get, type Writable, derived } from 'svelte/store';
+import { writable, get, type Writable } from 'svelte/store';
 
 import mapboxgl from 'mapbox-gl';
-import { GPXFile, buildGPX, parseGPX, type AnyGPXTreeElement, GPXFiles } from 'gpx';
+import { GPXFile, buildGPX, parseGPX, GPXFiles } from 'gpx';
 import { tick } from 'svelte';
 import { _ } from 'svelte-i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
-import { createGPXFileStore } from './filestore';
+import { dbUtils, fileObservers, fileState } from './db';
 
 export const map = writable<mapboxgl.Map | null>(null);
 
-export const filestore = createGPXFileStore();
 export const fileOrder = writable<string[]>([]);
 export const selectedFiles = writable<Set<string>>(new Set());
 export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }>({});
 
-filestore.subscribe((files) => { // Update selectedFiles automatically when files are deleted (either by action or by undo-redo)
+fileObservers.subscribe((files) => { // Update selectedFiles automatically when files are deleted (either by action or by undo-redo)
     let deletedFileIds: string[] = [];
     get(selectedFiles).forEach((fileId) => {
-        if (!files.find((f) => f._data.id === fileId)) {
+        if (!files.has(fileId)) {
             deletedFileIds.push(fileId);
         }
     });
-
     if (deletedFileIds.length > 0) {
         selectedFiles.update((selectedFiles) => {
             deletedFileIds.forEach((fileId) => selectedFiles.delete(fileId));
@@ -35,7 +33,7 @@ export const gpxData = writable(new GPXFiles([]).getTrackPointsAndStatistics());
 function updateGPXData() {
     let fileIds: string[] = get(fileOrder).filter((f) => get(selectedFiles).has(f));
     let files: GPXFile[] = fileIds
-        .map((id) => get(filestore).find((f) => f._data.id === id))
+        .map((id) => fileState.get(id))
         .filter((f) => f) as GPXFile[];
     let gpxFiles = new GPXFiles(files);
     gpxData.set(gpxFiles.getTrackPointsAndStatistics());
@@ -45,9 +43,9 @@ let selectedFilesUnsubscribe: Function[] = [];
 selectedFiles.subscribe((selectedFiles) => {
     selectedFilesUnsubscribe.forEach((unsubscribe) => unsubscribe());
     selectedFiles.forEach((fileId) => {
-        let fileStore = filestore.getFileStore(fileId);
-        if (fileStore) {
-            let unsubscribe = fileStore.subscribe(() => {
+        let fileObserver = get(fileObservers).get(fileId);
+        if (fileObserver) {
+            let unsubscribe = fileObserver.subscribe(() => {
                 updateGPXData();
             });
             selectedFilesUnsubscribe.push(unsubscribe);
@@ -82,7 +80,7 @@ export function createFile() {
     let file = new GPXFile();
     file.metadata.name = get(_)("menu.new_filename");
 
-    filestore.add(file);
+    dbUtils.add(file);
 
     tick().then(() => get(selectFiles).select(file._data.id));
     currentTool.set(Tool.ROUTING);
@@ -105,7 +103,7 @@ export function triggerFileInput() {
 export async function loadFiles(list: FileList) {
     let bounds = new mapboxgl.LngLatBounds();
     let mapBounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
-    if (get(filestore).length > 0) {
+    if (fileState.size > 0) {
         mapBounds = get(map)?.getBounds() ?? mapBounds;
         bounds.extend(mapBounds);
     }
@@ -123,7 +121,7 @@ export async function loadFiles(list: FileList) {
         }
     }
 
-    filestore.addMultiple(files);
+    dbUtils.addMultiple(files);
 
     if (!mapBounds.contains(bounds.getSouthWest()) || !mapBounds.contains(bounds.getNorthEast()) || !mapBounds.contains(bounds.getSouthEast()) || !mapBounds.contains(bounds.getNorthWest())) {
         get(map)?.fitBounds(bounds, {
@@ -161,7 +159,7 @@ export async function loadFile(file: File): Promise<GPXFile | null> {
 }
 
 export async function exportSelectedFiles() {
-    for (let file of get(filestore)) {
+    for (let file of fileState.values()) {
         if (get(selectedFiles).has(file._data.id)) {
             exportFile(file);
             await new Promise(resolve => setTimeout(resolve, 200));
@@ -170,7 +168,7 @@ export async function exportSelectedFiles() {
 }
 
 export async function exportAllFiles() {
-    for (let file of get(filestore)) {
+    for (let file of fileState.values()) {
         exportFile(file);
         await new Promise(resolve => setTimeout(resolve, 200));
     }

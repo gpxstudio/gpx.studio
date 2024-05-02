@@ -7,7 +7,7 @@ import { route } from "./Routing";
 import { toast } from "svelte-sonner";
 
 import { _ } from "svelte-i18n";
-import { filestore } from "$lib/stores";
+import { dbUtils } from "$lib/db";
 
 export class RoutingControls {
     map: mapboxgl.Map;
@@ -290,17 +290,17 @@ export class RoutingControls {
         let [previousAnchor, nextAnchor] = this.getNeighbouringAnchors(anchor);
 
         if (previousAnchor === null && nextAnchor === null) { // Only one point, remove it
-            filestore.applyToFile(get(this.file)._data.id, (file) => {
+            dbUtils.applyToFile(get(this.file)._data.id, (file) => {
                 let segment = file.getSegments()[anchor.segmentIndex];
                 segment.replace(0, 0, []);
             });
         } else if (previousAnchor === null) { // First point, remove trackpoints until nextAnchor
-            filestore.applyToFile(get(this.file)._data.id, (file) => {
+            dbUtils.applyToFile(get(this.file)._data.id, (file) => {
                 let segment = file.getSegments()[anchor.segmentIndex];
                 segment.replace(0, nextAnchor.point._data.index - 1, []);
             });
         } else if (nextAnchor === null) { // Last point, remove trackpoints from previousAnchor
-            filestore.applyToFile(get(this.file)._data.id, (file) => {
+            dbUtils.applyToFile(get(this.file)._data.id, (file) => {
                 let segment = file.getSegments()[anchor.segmentIndex];
                 segment.replace(previousAnchor.point._data.index + 1, segment.trkpt.length - 1, []);
             });
@@ -323,7 +323,7 @@ export class RoutingControls {
 
         if (!lastAnchor) {
             // TODO, create segment if it does not exist
-            filestore.applyToFile(get(this.file)._data.id, (file) => {
+            dbUtils.applyToFile(get(this.file)._data.id, (file) => {
                 let segment = file.getSegments()[0];
                 segment.replace(0, 0, [newPoint]);
             });
@@ -365,7 +365,7 @@ export class RoutingControls {
         let segment = anchors[0].segment;
 
         if (anchors.length === 1) { // Only one anchor, update the point in the segment
-            filestore.applyToFile(get(this.file)._data.id, (file) => {
+            dbUtils.applyToFile(get(this.file)._data.id, (file) => {
                 let segment = file.getSegments()[anchors[0].segmentIndex];
                 segment.replace(0, 0, [new TrackPoint({
                     attributes: targetCoordinates[0],
@@ -425,7 +425,7 @@ export class RoutingControls {
             anchor.point._data.zoom = 0; // Make these anchors permanent
         });
 
-        filestore.applyToFile(get(this.file)._data.id, (file) => {
+        dbUtils.applyToFile(get(this.file)._data.id, (file) => {
             let segment = file.getSegments()[anchors[0].segmentIndex];
             segment.replace(start, end, response);
         });
