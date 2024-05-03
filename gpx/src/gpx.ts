@@ -163,12 +163,17 @@ export class GPXFile extends GPXTreeNode<Track>{
     constructor(gpx?: GPXFileType | GPXFile) {
         super();
         if (gpx) {
-            this.attributes = cloneJSON(gpx.attributes);
-            this.metadata = cloneJSON(gpx.metadata);
-            this.wpt = gpx.wpt ? gpx.wpt.map((waypoint) => new Waypoint(waypoint)) : [];
-            this.trk = gpx.trk ? gpx.trk.map((track) => new Track(track)) : [];
-            if (gpx instanceof GPXFile && gpx._data) {
-                this._data = cloneJSON(gpx._data);
+            this.attributes = gpx.attributes
+            this.metadata = gpx.metadata;
+            if (gpx instanceof GPXFile) {
+                this.wpt = gpx.wpt;
+                this.trk = gpx.trk;
+            } else {
+                this.wpt = gpx.wpt ? gpx.wpt.map((waypoint) => new Waypoint(waypoint)) : [];
+                this.trk = gpx.trk ? gpx.trk.map((track) => new Track(track)) : [];
+            }
+            if (gpx.hasOwnProperty('_data')) {
+                this._data = gpx._data;
             }
         } else {
             this.attributes = {};
@@ -183,7 +188,13 @@ export class GPXFile extends GPXTreeNode<Track>{
     }
 
     clone(): GPXFile {
-        return new GPXFile(this);
+        return new GPXFile({
+            attributes: cloneJSON(this.attributes),
+            metadata: cloneJSON(this.metadata),
+            wpt: this.wpt.map((waypoint) => waypoint.clone()),
+            trk: this.trk.map((track) => track.clone()),
+            _data: cloneJSON(this._data),
+        });
     }
 
     toGeoJSON(): GeoJSON.FeatureCollection {
@@ -221,11 +232,15 @@ export class Track extends GPXTreeNode<TrackSegment> {
             this.cmt = track.cmt;
             this.desc = track.desc;
             this.src = track.src;
-            this.link = cloneJSON(track.link);
+            this.link = track.link;
             this.type = track.type;
-            this.trkseg = track.trkseg ? track.trkseg.map((seg) => new TrackSegment(seg)) : [];
+            if (track instanceof Track) {
+                this.trkseg = track.trkseg;
+            } else {
+                this.trkseg = track.trkseg ? track.trkseg.map((seg) => new TrackSegment(seg)) : [];
+            }
             this.extensions = cloneJSON(track.extensions);
-            if (track instanceof Track && track._data) {
+            if (track.hasOwnProperty('_data')) {
                 this._data = cloneJSON(track._data);
             }
         } else {
@@ -235,6 +250,20 @@ export class Track extends GPXTreeNode<TrackSegment> {
 
     getChildren(): TrackSegment[] {
         return this.trkseg;
+    }
+
+    clone(): Track {
+        return new Track({
+            name: this.name,
+            cmt: this.cmt,
+            desc: this.desc,
+            src: this.src,
+            link: cloneJSON(this.link),
+            type: this.type,
+            trkseg: this.trkseg.map((seg) => seg.clone()),
+            extensions: cloneJSON(this.extensions),
+            _data: cloneJSON(this._data),
+        });
     }
 
     toGeoJSON(): GeoJSON.Feature[] {
@@ -267,10 +296,6 @@ export class Track extends GPXTreeNode<TrackSegment> {
             extensions: this.extensions,
         };
     }
-
-    clone(): Track {
-        return new Track(this);
-    }
 };
 
 // A class that represents a TrackSegment in a GPX file
@@ -282,15 +307,27 @@ export class TrackSegment extends GPXTreeLeaf {
     constructor(segment?: TrackSegmentType | TrackSegment) {
         super();
         if (segment) {
-            this.trkpt = segment.trkpt.map((point) => new TrackPoint(point));
-            if (segment instanceof TrackSegment && segment._data) {
+            if (segment instanceof TrackSegment) {
+                this.trkpt = segment.trkpt;
+                this.statistics = segment.statistics;
+                this.trkptStatistics = segment.trkptStatistics;
+            } else {
+                this.trkpt = segment.trkpt.map((point) => new TrackPoint(point));
+                if (segment.hasOwnProperty('statistics') && segment.hasOwnProperty('trkptStatistics')) {
+                    this.statistics = segment.statistics;
+                    this.trkptStatistics = segment.trkptStatistics;
+                }
+            }
+            if (segment.hasOwnProperty('_data')) {
                 this._data = cloneJSON(segment._data);
             }
         } else {
             this.trkpt = [];
         }
 
-        this._computeStatistics();
+        if (!this.statistics) {
+            this._computeStatistics();
+        }
     }
 
     _computeStatistics(): void {
@@ -468,7 +505,10 @@ export class TrackSegment extends GPXTreeLeaf {
     }
 
     clone(): TrackSegment {
-        return new TrackSegment(this);
+        return new TrackSegment({
+            trkpt: this.trkpt.map((point) => point.clone()),
+            _data: cloneJSON(this._data),
+        });
     }
 };
 
@@ -480,14 +520,13 @@ export class TrackPoint {
     _data: { [key: string]: any } = {};
 
     constructor(point: TrackPointType | TrackPoint) {
-        this.attributes = cloneJSON(point.attributes);
+        this.attributes = point.attributes;
+        this.attributes = point.attributes;
         this.ele = point.ele;
-        if (point.time) {
-            this.time = new Date(point.time.getTime());
-        }
-        this.extensions = cloneJSON(point.extensions);
-        if (point instanceof TrackPoint && point._data) {
-            this._data = cloneJSON(point._data);
+        this.time = point.time;
+        this.extensions = point.extensions;
+        if (point.hasOwnProperty('_data')) {
+            this._data = point._data;
         }
     }
 
@@ -548,6 +587,16 @@ export class TrackPoint {
             extensions: this.extensions,
         };
     }
+
+    clone(): TrackPoint {
+        return new TrackPoint({
+            attributes: cloneJSON(this.attributes),
+            ele: this.ele,
+            time: this.time ? new Date(this.time.getTime()) : undefined,
+            extensions: cloneJSON(this.extensions),
+            _data: cloneJSON(this._data),
+        });
+    }
 };
 
 export class Waypoint {
@@ -562,7 +611,7 @@ export class Waypoint {
     type?: string;
 
     constructor(waypoint: WaypointType | Waypoint) {
-        this.attributes = cloneJSON(waypoint.attributes);
+        this.attributes = waypoint.attributes;
         this.ele = waypoint.ele;
         if (waypoint.time) {
             this.time = new Date(waypoint.time.getTime());
@@ -570,7 +619,7 @@ export class Waypoint {
         this.name = waypoint.name;
         this.cmt = waypoint.cmt;
         this.desc = waypoint.desc;
-        this.link = cloneJSON(waypoint.link);
+        this.link = waypoint.link;
         this.sym = waypoint.sym;
         this.type = waypoint.type;
     }
@@ -581,6 +630,20 @@ export class Waypoint {
 
     setCoordinates(coordinates: Coordinates): void {
         this.attributes = coordinates;
+    }
+
+    clone(): Waypoint {
+        return new Waypoint({
+            attributes: cloneJSON(this.attributes),
+            ele: this.ele,
+            time: this.time ? new Date(this.time.getTime()) : undefined,
+            name: this.name,
+            cmt: this.cmt,
+            desc: this.desc,
+            link: cloneJSON(this.link),
+            sym: this.sym,
+            type: this.type,
+        });
     }
 }
 

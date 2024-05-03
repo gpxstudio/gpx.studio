@@ -19,7 +19,7 @@
 
 	import { _ } from 'svelte-i18n';
 	import { derived, get } from 'svelte/store';
-	import { canUndo, dbUtils, fileObservers, redo, undo } from '$lib/db';
+	import { canUndo, canRedo, dbUtils, fileObservers, redo, undo } from '$lib/db';
 
 	let showDistanceMarkers = false;
 	let showDirectionMarkers = false;
@@ -41,7 +41,7 @@
 	}
 
 	let undoDisabled = derived(canUndo, ($canUndo) => !$canUndo);
-	let redoDisabled = derived(canUndo, ($canUndo) => !$canUndo);
+	let redoDisabled = derived(canRedo, ($canRedo) => !$canRedo);
 </script>
 
 <div class="absolute top-2 left-0 right-0 z-20 flex flex-row justify-center pointer-events-none">

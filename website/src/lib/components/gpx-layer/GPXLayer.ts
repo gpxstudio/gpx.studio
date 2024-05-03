@@ -39,31 +39,36 @@ function decrementColor(color: string) {
 
 export class GPXLayer {
     map: mapboxgl.Map;
-    file: Readable<FreezedObject<GPXFile>>;
     fileId: string;
+    file: Readable<FreezedObject<GPXFile> | undefined>;
     layerColor: string;
     popup: mapboxgl.Popup;
     popupElement: HTMLElement;
     markers: mapboxgl.Marker[] = [];
     unsubscribe: () => void;
 
-    addBinded: () => void = this.add.bind(this);
+    updateBinded: () => void = this.update.bind(this);
     selectOnClickBinded: (e: any) => void = this.selectOnClick.bind(this);
 
-    constructor(map: mapboxgl.Map, file: Readable<FreezedObject<GPXFile>>, popup: mapboxgl.Popup, popupElement: HTMLElement) {
+    constructor(map: mapboxgl.Map, fileId: string, file: Readable<FreezedObject<GPXFile> | undefined>, popup: mapboxgl.Popup, popupElement: HTMLElement) {
         this.map = map;
-        this.file = file;
-        this.fileId = get(file)._data.id;
+        this.fileId = fileId;
+        this.file = file
         this.layerColor = getColor();
         this.popup = popup;
         this.popupElement = popupElement;
-        this.unsubscribe = file.subscribe(this.updateData.bind(this));
+        this.unsubscribe = file.subscribe(this.update.bind(this));
 
-        this.add();
-        this.map.on('style.load', this.addBinded);
+        this.map.on('style.load', this.updateBinded);
     }
 
-    add() {
+    update() {
+        let file = get(this.file);
+        if (!file) {
+            return;
+        }
+
+        let addedSource = false;
         if (!this.map.getSource(this.fileId)) {
             let data = this.getGeoJSON();
 
@@ -71,6 +76,7 @@ export class GPXLayer {
                 type: 'geojson',
                 data
             });
+            addedSource = true;
         }
 
         if (!this.map.getLayer(this.fileId)) {
@@ -93,16 +99,16 @@ export class GPXLayer {
             this.map.on('mouseenter', this.fileId, toPointerCursor);
             this.map.on('mouseleave', this.fileId, toDefaultCursor);
         }
-    }
 
-    updateData() {
-        let source = this.map.getSource(this.fileId);
-        if (source) {
-            source.setData(this.getGeoJSON());
+        if (!addedSource) {
+            let source = this.map.getSource(this.fileId);
+            if (source) {
+                source.setData(this.getGeoJSON());
+            }
         }
 
         let markerIndex = 0;
-        get(this.file).wpt.forEach((waypoint) => { // Update markers
+        file.wpt.forEach((waypoint) => { // Update markers
             if (markerIndex < this.markers.length) {
                 this.markers[markerIndex].setLngLat(waypoint.getCoordinates());
             } else {
@@ -131,7 +137,7 @@ export class GPXLayer {
         this.map.off('click', this.fileId, this.selectOnClickBinded);
         this.map.off('mouseenter', this.fileId, toPointerCursor);
         this.map.off('mouseleave', this.fileId, toDefaultCursor);
-        this.map.off('style.load', this.addBinded);
+        this.map.off('style.load', this.updateBinded);
 
         this.map.removeLayer(this.fileId);
         this.map.removeSource(this.fileId);
@@ -146,7 +152,9 @@ export class GPXLayer {
     }
 
     moveToFront() {
-        this.map.moveLayer(this.fileId);
+        if (this.map.getLayer(this.fileId)) {
+            this.map.moveLayer(this.fileId);
+        }
     }
 
     selectOnClick(e: any) {
@@ -161,7 +169,15 @@ export class GPXLayer {
     }
 
     getGeoJSON(): GeoJSON.FeatureCollection {
-        let data = get(this.file).toGeoJSON();
+        let file = get(this.file);
+        if (!file) {
+            return {
+                type: 'FeatureCollection',
+                features: []
+            };
+        }
+
+        let data = file.toGeoJSON();
         for (let feature of data.features) {
             if (!feature.properties) {
                 feature.properties = {};

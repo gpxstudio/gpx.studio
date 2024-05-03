@@ -61,7 +61,7 @@
 			if (selectedFileObserver) {
 				routingControls.set(
 					selectedId,
-					new RoutingControls(get(map), selectedFileObserver, popup, popupElement)
+					new RoutingControls(get(map), selectedId, selectedFileObserver, popup, popupElement)
 				);
 			}
 		} else {

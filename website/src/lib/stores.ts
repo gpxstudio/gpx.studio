@@ -5,7 +5,7 @@ import { GPXFile, buildGPX, parseGPX, GPXFiles } from 'gpx';
 import { tick } from 'svelte';
 import { _ } from 'svelte-i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
-import { dbUtils, fileObservers, fileState } from './db';
+import { dbUtils, fileObservers } from './db';
 
 export const map = writable<mapboxgl.Map | null>(null);
 
@@ -33,7 +33,10 @@ export const gpxData = writable(new GPXFiles([]).getTrackPointsAndStatistics());
 function updateGPXData() {
     let fileIds: string[] = get(fileOrder).filter((f) => get(selectedFiles).has(f));
     let files: GPXFile[] = fileIds
-        .map((id) => fileState.get(id))
+        .map((id) => {
+            let fileObserver = get(fileObservers).get(id);
+            return fileObserver ? get(fileObserver) : null;
+        })
         .filter((f) => f) as GPXFile[];
     let gpxFiles = new GPXFiles(files);
     gpxData.set(gpxFiles.getTrackPointsAndStatistics());
@@ -82,8 +85,7 @@ export function createFile() {
 
     dbUtils.add(file);
 
-    tick().then(() => get(selectFiles).select(file._data.id));
-    currentTool.set(Tool.ROUTING);
+    selectFileWhenLoaded(file._data.id);
 }
 
 export function triggerFileInput() {
@@ -103,7 +105,7 @@ export function triggerFileInput() {
 export async function loadFiles(list: FileList) {
     let bounds = new mapboxgl.LngLatBounds();
     let mapBounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
-    if (fileState.size > 0) {
+    if (get(fileObservers).size > 0) {
         mapBounds = get(map)?.getBounds() ?? mapBounds;
         bounds.extend(mapBounds);
     }
@@ -121,7 +123,10 @@ export async function loadFiles(list: FileList) {
         }
     }
 
-    dbUtils.addMultiple(files);
+    console.log('loadFiles', files);
+
+    let result = dbUtils.addMultiple(files);
+    console.log('addMultiple', result);
 
     if (!mapBounds.contains(bounds.getSouthWest()) || !mapBounds.contains(bounds.getNorthEast()) || !mapBounds.contains(bounds.getSouthEast()) || !mapBounds.contains(bounds.getNorthWest())) {
         get(map)?.fitBounds(bounds, {
@@ -131,11 +136,7 @@ export async function loadFiles(list: FileList) {
         });
     }
 
-    await tick();
-
-    if (files.length > 0) {
-        get(selectFiles).select(files[0]._data.id);
-    }
+    selectFileWhenLoaded(files[0]._data.id);
 }
 
 export async function loadFile(file: File): Promise<GPXFile | null> {
@@ -158,20 +159,37 @@ export async function loadFile(file: File): Promise<GPXFile | null> {
     return result;
 }
 
-export async function exportSelectedFiles() {
-    for (let file of fileState.values()) {
-        if (get(selectedFiles).has(file._data.id)) {
-            exportFile(file);
-            await new Promise(resolve => setTimeout(resolve, 200));
+function selectFileWhenLoaded(fileId: string) {
+    const unsubscribe = fileObservers.subscribe((files) => {
+        if (files.has(fileId)) {
+            tick().then(() => {
+                get(selectFiles).select(fileId);
+            });
+            unsubscribe();
         }
-    }
+    });
 }
 
-export async function exportAllFiles() {
-    for (let file of fileState.values()) {
-        exportFile(file);
-        await new Promise(resolve => setTimeout(resolve, 200));
-    }
+export function exportSelectedFiles() {
+    get(fileObservers).forEach(async (file, fileId) => {
+        if (get(selectedFiles).has(fileId)) {
+            let f = get(file);
+            if (f) {
+                exportFile(f);
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+        }
+    });
+}
+
+export function exportAllFiles() {
+    get(fileObservers).forEach(async (file) => {
+        let f = get(file);
+        if (f) {
+            exportFile(f);
+            await new Promise(resolve => setTimeout(resolve, 200));
+        }
+    });
 }
 
 export function exportFile(file: GPXFile) {

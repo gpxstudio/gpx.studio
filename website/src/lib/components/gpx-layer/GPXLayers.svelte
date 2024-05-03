@@ -22,7 +22,7 @@
 			// add layers for new files
 			$fileObservers.forEach((file, fileId) => {
 				if (!$layers.has(fileId)) {
-					$layers.set(fileId, new GPXLayer(get(map), file, popup, popupElement));
+					$layers.set(fileId, new GPXLayer(get(map), fileId, file, popup, popupElement));
 				}
 			});
 			return $layers;

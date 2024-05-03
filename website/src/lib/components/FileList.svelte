@@ -123,14 +123,14 @@
 	});
 </script>
 
-<div class="h-10 -translate-y-10 w-full pointer-events-none">
+<div class="h-10 -translate-y-10 w-full pointer-events-none absolute z-30">
 	<ScrollArea orientation="horizontal" class="w-full h-full" scrollbarXClasses="h-2">
 		<div bind:this={container} class="flex flex-row gap-1">
 			{#if $fileObservers}
-				{#each $fileObservers.values() as file}
+				{#each $fileObservers.entries() as [fileId, file]}
 					<div
-						bind:this={buttons[get(file)._data.id]}
-						data-id={get(file)._data.id}
+						bind:this={buttons[fileId]}
+						data-id={fileId}
 						class="pointer-events-auto first:ml-1 last:mr-1 mb-1 bg-transparent"
 					>
 						<FileListItem {file} />
