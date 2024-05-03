@@ -309,14 +309,8 @@ export class TrackSegment extends GPXTreeLeaf {
         if (segment) {
             if (segment instanceof TrackSegment) {
                 this.trkpt = segment.trkpt;
-                this.statistics = segment.statistics;
-                this.trkptStatistics = segment.trkptStatistics;
             } else {
                 this.trkpt = segment.trkpt.map((point) => new TrackPoint(point));
-                if (segment.hasOwnProperty('statistics') && segment.hasOwnProperty('trkptStatistics')) {
-                    this.statistics = segment.statistics;
-                    this.trkptStatistics = segment.trkptStatistics;
-                }
             }
             if (segment.hasOwnProperty('_data')) {
                 this._data = cloneJSON(segment._data);
@@ -325,9 +319,7 @@ export class TrackSegment extends GPXTreeLeaf {
             this.trkpt = [];
         }
 
-        if (!this.statistics) {
-            this._computeStatistics();
-        }
+        this._computeStatistics();
     }
 
     _computeStatistics(): void {
@@ -431,12 +423,10 @@ export class TrackSegment extends GPXTreeLeaf {
 
     append(points: TrackPoint[]): void {
         this.trkpt = this.trkpt.concat(points);
-        this._computeStatistics();
     }
 
     replace(start: number, end: number, points: TrackPoint[]): void {
         this.trkpt.splice(start, end - start + 1, ...points);
-        this._computeStatistics();
     }
 
     reverse(originalNextTimestamp: Date | undefined, newPreviousTimestamp: Date | undefined): void {
@@ -456,7 +446,6 @@ export class TrackSegment extends GPXTreeLeaf {
         } else {
             this.trkpt.reverse();
         }
-        this._computeStatistics();
     }
 
     getStartTimestamp(): Date {

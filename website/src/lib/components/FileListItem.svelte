@@ -10,9 +10,8 @@
 
 	import { _ } from 'svelte-i18n';
 	import type { GPXFile } from 'gpx';
-	import type { FreezedObject } from 'structurajs';
 
-	export let file: Readable<FreezedObject<GPXFile> | undefined>;
+	export let file: Readable<GPXFile | undefined>;
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->

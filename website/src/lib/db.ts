@@ -1,6 +1,6 @@
 import Dexie, { liveQuery } from 'dexie';
 import { GPXFile } from 'gpx';
-import { type FreezedObject, type Patch, produceWithPatches, applyPatches, freeze } from 'structurajs';
+import { type FreezedObject, type Patch, produceWithPatches, applyPatches } from 'structurajs';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
 import { fileOrder, selectedFiles } from './stores';
 
@@ -27,19 +27,17 @@ class Database extends Dexie {
 
 const db = new Database();
 
-function dexieFileStore(querier: () => FreezedObject<GPXFile> | undefined | Promise<FreezedObject<GPXFile> | undefined>): Writable<FreezedObject<GPXFile>> {
-    let store = writable<FreezedObject<GPXFile>>(undefined);
+function dexieFileStore(querier: () => FreezedObject<GPXFile> | undefined | Promise<FreezedObject<GPXFile> | undefined>): Readable<GPXFile> {
+    let store = writable<GPXFile>(undefined);
     liveQuery(querier).subscribe(value => {
         if (value !== undefined) {
-            let gpx = freeze(new GPXFile(value));
+            let gpx = new GPXFile(value);
             fileState.set(gpx._data.id, gpx);
             store.set(gpx);
         }
     });
     return {
-        subscribe: store.subscribe,
-        update: store.update,
-        set: store.set
+        subscribe: store.subscribe
     };
 }
 
@@ -85,8 +83,8 @@ function commitFileStateChange(newFileState: ReadonlyMap<string, FreezedObject<G
     }
 }
 
-export const fileObservers: Writable<Map<string, Writable<FreezedObject<GPXFile> | undefined>>> = writable(new Map());
-const fileState: Map<string, FreezedObject<GPXFile>> = new Map(); // Used to generate patches
+export const fileObservers: Writable<Map<string, Readable<GPXFile | undefined>>> = writable(new Map());
+const fileState: Map<string, GPXFile> = new Map(); // Used to generate patches
 
 liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
     // Find new files to observe

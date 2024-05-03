@@ -8,12 +8,11 @@ import { toast } from "svelte-sonner";
 
 import { _ } from "svelte-i18n";
 import { dbUtils } from "$lib/db";
-import type { FreezedObject } from "structurajs";
 
 export class RoutingControls {
     map: mapboxgl.Map;
     fileId: string = '';
-    file: Readable<FreezedObject<GPXFile> | undefined>;
+    file: Readable<GPXFile | undefined>;
     anchors: AnchorWithMarker[] = [];
     shownAnchors: AnchorWithMarker[] = [];
     popup: mapboxgl.Popup;
@@ -26,7 +25,7 @@ export class RoutingControls {
     updateTemporaryAnchorBinded: (e: any) => void = this.updateTemporaryAnchor.bind(this);
     appendAnchorBinded: (e: mapboxgl.MapMouseEvent) => void = this.appendAnchor.bind(this);
 
-    constructor(map: mapboxgl.Map, fileId: string, file: Writable<GPXFile>, popup: mapboxgl.Popup, popupElement: HTMLElement) {
+    constructor(map: mapboxgl.Map, fileId: string, file: Readable<GPXFile | undefined>, popup: mapboxgl.Popup, popupElement: HTMLElement) {
         this.map = map;
         this.fileId = fileId;
         this.file = file;

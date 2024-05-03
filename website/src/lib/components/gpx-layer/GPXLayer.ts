@@ -40,7 +40,7 @@ function decrementColor(color: string) {
 export class GPXLayer {
     map: mapboxgl.Map;
     fileId: string;
-    file: Readable<FreezedObject<GPXFile> | undefined>;
+    file: Readable<GPXFile | undefined>;
     layerColor: string;
     popup: mapboxgl.Popup;
     popupElement: HTMLElement;
@@ -50,7 +50,7 @@ export class GPXLayer {
     updateBinded: () => void = this.update.bind(this);
     selectOnClickBinded: (e: any) => void = this.selectOnClick.bind(this);
 
-    constructor(map: mapboxgl.Map, fileId: string, file: Readable<FreezedObject<GPXFile> | undefined>, popup: mapboxgl.Popup, popupElement: HTMLElement) {
+    constructor(map: mapboxgl.Map, fileId: string, file: Readable<GPXFile | undefined>, popup: mapboxgl.Popup, popupElement: HTMLElement) {
         this.map = map;
         this.fileId = fileId;
         this.file = file
