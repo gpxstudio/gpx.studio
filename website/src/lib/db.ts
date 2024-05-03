@@ -114,7 +114,7 @@ export const canRedo: Readable<boolean> = derived([patchIndex, patches], ([$patc
 export function applyGlobal(callback: (files: Map<string, GPXFile>) => void) {
     const [newFileState, patch, inversePatch] = produceWithPatches(fileState, callback);
 
-    appendPatches(patch, inversePatch, true);
+    appendPatches(patch, inversePatch);
 
     return commitFileStateChange(newFileState, patch);
 }
@@ -129,12 +129,12 @@ function applyToFiles(fileIds: string[], callback: (file: GPXFile) => void) {
         });
     });
 
-    appendPatches(patch, inversePatch, false);
+    appendPatches(patch, inversePatch);
 
     return commitFileStateChange(newFileState, patch);
 }
 
-async function appendPatches(patch: Patch[], inversePatch: Patch[], global: boolean) {
+async function appendPatches(patch: Patch[], inversePatch: Patch[]) {
     if (get(patchIndex) !== undefined) {
         db.patches.where(':id').above(get(patchIndex)).delete();
     }
