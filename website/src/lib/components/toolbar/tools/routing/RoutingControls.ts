@@ -8,11 +8,12 @@ import { toast } from "svelte-sonner";
 
 import { _ } from "svelte-i18n";
 import { dbUtils } from "$lib/db";
+import type { FreezedObject } from "structurajs";
 
 export class RoutingControls {
     map: mapboxgl.Map;
     fileId: string = '';
-    file: Readable<GPXFile | undefined>;
+    file: Readable<FreezedObject<GPXFile> | undefined>;
     anchors: AnchorWithMarker[] = [];
     shownAnchors: AnchorWithMarker[] = [];
     popup: mapboxgl.Popup;

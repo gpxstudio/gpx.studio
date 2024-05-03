@@ -6,6 +6,7 @@ import { tick } from 'svelte';
 import { _ } from 'svelte-i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
 import { dbUtils, fileObservers } from './db';
+import type { FreezedObject } from 'structurajs';
 
 export const map = writable<mapboxgl.Map | null>(null);
 
@@ -192,7 +193,7 @@ export function exportAllFiles() {
     });
 }
 
-export function exportFile(file: GPXFile) {
+export function exportFile(file: FreezedObject<GPXFile>) {
     let blob = new Blob([buildGPX(file)], { type: 'application/gpx+xml' });
     let url = URL.createObjectURL(blob);
     let a = document.createElement('a');
