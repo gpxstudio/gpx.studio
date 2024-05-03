@@ -124,10 +124,7 @@ export async function loadFiles(list: FileList) {
         }
     }
 
-    console.log('loadFiles', files);
-
-    let result = dbUtils.addMultiple(files);
-    console.log('addMultiple', result);
+    dbUtils.addMultiple(files);
 
     if (!mapBounds.contains(bounds.getSouthWest()) || !mapBounds.contains(bounds.getNorthEast()) || !mapBounds.contains(bounds.getSouthEast()) || !mapBounds.contains(bounds.getNorthWest())) {
         get(map)?.fitBounds(bounds, {
