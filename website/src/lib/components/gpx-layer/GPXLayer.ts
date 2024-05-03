@@ -1,8 +1,7 @@
 import type { GPXFile } from "gpx";
 import { map, selectFiles, currentTool, Tool } from "$lib/stores";
-import { get, type Readable, type Writable } from "svelte/store";
+import { get, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
-import type { FreezedObject } from "structurajs";
 
 let defaultWeight = 6;
 let defaultOpacity = 1;

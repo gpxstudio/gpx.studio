@@ -1,12 +1,11 @@
 import { writable, get, type Writable } from 'svelte/store';
 
 import mapboxgl from 'mapbox-gl';
-import { GPXFile, buildGPX, parseGPX, GPXFiles } from 'gpx';
+import { GPXFile, buildGPX, parseGPX, GPXStatistics } from 'gpx';
 import { tick } from 'svelte';
 import { _ } from 'svelte-i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
 import { dbUtils, fileObservers } from './db';
-import type { FreezedObject } from 'structurajs';
 
 export const map = writable<mapboxgl.Map | null>(null);
 
@@ -29,18 +28,15 @@ fileObservers.subscribe((files) => { // Update selectedFiles automatically when 
     }
 });
 
-export const gpxData = writable(new GPXFiles([]).getTrackPointsAndStatistics());
+const fileStatistics: Map<string, GPXStatistics> = new Map();
+export const gpxStatistics: Writable<GPXStatistics> = writable(new GPXStatistics());
 
 function updateGPXData() {
-    let fileIds: string[] = get(fileOrder).filter((f) => get(selectedFiles).has(f));
-    let files: GPXFile[] = fileIds
-        .map((id) => {
-            let fileObserver = get(fileObservers).get(id);
-            return fileObserver ? get(fileObserver) : null;
-        })
-        .filter((f) => f) as GPXFile[];
-    let gpxFiles = new GPXFiles(files);
-    gpxData.set(gpxFiles.getTrackPointsAndStatistics());
+    let fileIds: string[] = get(fileOrder).filter((f) => fileStatistics.has(f) && get(selectedFiles).has(f));
+    gpxStatistics.set(fileIds.reduce((stats: GPXStatistics, fileId: string) => {
+        stats.mergeWith(fileStatistics.get(fileId) ?? new GPXStatistics());
+        return stats;
+    }, new GPXStatistics()));
 }
 
 let selectedFilesUnsubscribe: Function[] = [];
@@ -49,8 +45,11 @@ selectedFiles.subscribe((selectedFiles) => {
     selectedFiles.forEach((fileId) => {
         let fileObserver = get(fileObservers).get(fileId);
         if (fileObserver) {
-            let unsubscribe = fileObserver.subscribe(() => {
-                updateGPXData();
+            let unsubscribe = fileObserver.subscribe((file) => {
+                if (file) {
+                    fileStatistics.set(fileId, file.getStatistics());
+                    updateGPXData();
+                }
             });
             selectedFilesUnsubscribe.push(unsubscribe);
         }
@@ -116,23 +115,23 @@ export async function loadFiles(list: FileList) {
         if (file) {
             files.push(file);
 
-            let fileBounds = file.getStatistics().bounds;
+            /*let fileBounds = file.getStatistics().bounds;
             bounds.extend(fileBounds.southWest);
             bounds.extend(fileBounds.northEast);
             bounds.extend([fileBounds.southWest.lon, fileBounds.northEast.lat]);
-            bounds.extend([fileBounds.northEast.lon, fileBounds.southWest.lat]);
+            bounds.extend([fileBounds.northEast.lon, fileBounds.southWest.lat]);*/
         }
     }
 
     dbUtils.addMultiple(files);
 
-    if (!mapBounds.contains(bounds.getSouthWest()) || !mapBounds.contains(bounds.getNorthEast()) || !mapBounds.contains(bounds.getSouthEast()) || !mapBounds.contains(bounds.getNorthWest())) {
+    /*if (!mapBounds.contains(bounds.getSouthWest()) || !mapBounds.contains(bounds.getNorthEast()) || !mapBounds.contains(bounds.getSouthEast()) || !mapBounds.contains(bounds.getNorthWest())) {
         get(map)?.fitBounds(bounds, {
             padding: 80,
             linear: true,
             easing: () => 1
         });
-    }
+    }*/
 
     selectFileWhenLoaded(files[0]._data.id);
 }
@@ -190,7 +189,7 @@ export function exportAllFiles() {
     });
 }
 
-export function exportFile(file: FreezedObject<GPXFile>) {
+export function exportFile(file: GPXFile) {
     let blob = new Blob([buildGPX(file)], { type: 'application/gpx+xml' });
     let url = URL.createObjectURL(blob);
     let a = document.createElement('a');

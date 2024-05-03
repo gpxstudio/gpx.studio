@@ -19,9 +19,8 @@ export abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
 
     abstract getStartTimestamp(): Date;
     abstract getEndTimestamp(): Date;
-    abstract getStatistics(): GPXStatistics;
     abstract getTrackPoints(): TrackPoint[];
-    abstract getTrackPointsAndStatistics(): { points: TrackPoint[], point_statistics: TrackPointStatistics, statistics: GPXStatistics };
+    abstract getStatistics(): GPXStatistics;
     abstract getSegments(): TrackSegment[];
 
     abstract toGeoJSON(): GeoJSON.Feature | GeoJSON.Feature[] | GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[];
@@ -85,40 +84,6 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
         return statistics;
     }
 
-    getTrackPointsAndStatistics(): { points: TrackPoint[], point_statistics: TrackPointStatistics, statistics: GPXStatistics } {
-        let points: TrackPoint[] = [];
-        let point_statistics: TrackPointStatistics = {
-            distance: [],
-            time: [],
-            speed: [],
-            elevation: {
-                smoothed: [],
-                gain: [],
-                loss: [],
-            },
-            slope: [],
-        };
-        let statistics = new GPXStatistics();
-
-        for (let child of this.getChildren()) {
-            let childData = child.getTrackPointsAndStatistics();
-            points = points.concat(childData.points);
-
-            point_statistics.distance = point_statistics.distance.concat(childData.point_statistics.distance.map((distance) => distance + statistics.distance.total));
-            point_statistics.time = point_statistics.time.concat(childData.point_statistics.time.map((time) => time + statistics.time.total));
-            point_statistics.elevation.gain = point_statistics.elevation.gain.concat(childData.point_statistics.elevation.gain.map((gain) => gain + statistics.elevation.gain));
-            point_statistics.elevation.loss = point_statistics.elevation.loss.concat(childData.point_statistics.elevation.loss.map((loss) => loss + statistics.elevation.loss));
-
-            point_statistics.speed = point_statistics.speed.concat(childData.point_statistics.speed);
-            point_statistics.elevation.smoothed = point_statistics.elevation.smoothed.concat(childData.point_statistics.elevation.smoothed);
-            point_statistics.slope = point_statistics.slope.concat(childData.point_statistics.slope);
-
-            statistics.mergeWith(childData.statistics);
-        }
-
-        return { points, point_statistics, statistics };
-    }
-
     getSegments(): TrackSegment[] {
         return this.getChildren().flatMap((child) => child.getSegments());
     }
@@ -165,13 +130,8 @@ export class GPXFile extends GPXTreeNode<Track>{
         if (gpx) {
             this.attributes = gpx.attributes
             this.metadata = gpx.metadata;
-            if (gpx instanceof GPXFile) {
-                this.wpt = gpx.wpt;
-                this.trk = gpx.trk;
-            } else {
-                this.wpt = gpx.wpt ? gpx.wpt.map((waypoint) => new Waypoint(waypoint)) : [];
-                this.trk = gpx.trk ? gpx.trk.map((track) => new Track(track)) : [];
-            }
+            this.wpt = gpx.wpt ? gpx.wpt.map((waypoint) => new Waypoint(waypoint)) : [];
+            this.trk = gpx.trk ? gpx.trk.map((track) => new Track(track)) : [];
             if (gpx.hasOwnProperty('_data')) {
                 this._data = gpx._data;
             }
@@ -234,11 +194,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
             this.src = track.src;
             this.link = track.link;
             this.type = track.type;
-            if (track instanceof Track) {
-                this.trkseg = track.trkseg;
-            } else {
-                this.trkseg = track.trkseg ? track.trkseg.map((seg) => new TrackSegment(seg)) : [];
-            }
+            this.trkseg = track.trkseg ? track.trkseg.map((seg) => new TrackSegment(seg)) : [];
             this.extensions = cloneJSON(track.extensions);
             if (track.hasOwnProperty('_data')) {
                 this._data = cloneJSON(track._data);
@@ -301,43 +257,26 @@ export class Track extends GPXTreeNode<TrackSegment> {
 // A class that represents a TrackSegment in a GPX file
 export class TrackSegment extends GPXTreeLeaf {
     trkpt: TrackPoint[];
-    trkptStatistics: TrackPointStatistics;
-    statistics: GPXStatistics;
 
     constructor(segment?: TrackSegmentType | TrackSegment) {
         super();
         if (segment) {
-            if (segment instanceof TrackSegment) {
-                this.trkpt = segment.trkpt;
-            } else {
-                this.trkpt = segment.trkpt.map((point) => new TrackPoint(point));
-            }
+            this.trkpt = segment.trkpt.map((point) => new TrackPoint(point));
             if (segment.hasOwnProperty('_data')) {
                 this._data = cloneJSON(segment._data);
             }
         } else {
             this.trkpt = [];
         }
-
-        this._computeStatistics();
     }
 
-    _computeStatistics(): void {
+    _computeStatistics(): GPXStatistics {
         let statistics = new GPXStatistics();
-        let trkptStatistics: TrackPointStatistics = {
-            distance: [],
-            time: [],
-            speed: [],
-            elevation: {
-                smoothed: [],
-                gain: [],
-                loss: [],
-            },
-            slope: [],
-        };
 
-        trkptStatistics.elevation.smoothed = this._computeSmoothedElevation();
-        trkptStatistics.slope = this._computeSlope();
+        statistics.local.points = this.trkpt;
+
+        statistics.local.elevation.smoothed = this._computeSmoothedElevation();
+        statistics.local.slope = this._computeSlope();
 
         const points = this.trkpt;
         for (let i = 0; i < points.length; i++) {
@@ -348,29 +287,29 @@ export class TrackSegment extends GPXTreeLeaf {
             if (i > 0) {
                 dist = distance(points[i - 1].getCoordinates(), points[i].getCoordinates()) / 1000;
 
-                statistics.distance.total += dist;
+                statistics.global.distance.total += dist;
             }
 
-            trkptStatistics.distance.push(statistics.distance.total);
+            statistics.local.distance.push(statistics.global.distance.total);
 
             // elevation
             if (i > 0) {
-                const ele = trkptStatistics.elevation.smoothed[i] - trkptStatistics.elevation.smoothed[i - 1];
+                const ele = statistics.local.elevation.smoothed[i] - statistics.local.elevation.smoothed[i - 1];
                 if (ele > 0) {
-                    statistics.elevation.gain += ele;
+                    statistics.global.elevation.gain += ele;
                 } else {
-                    statistics.elevation.loss -= ele;
+                    statistics.global.elevation.loss -= ele;
                 }
             }
 
-            trkptStatistics.elevation.gain.push(statistics.elevation.gain);
-            trkptStatistics.elevation.loss.push(statistics.elevation.loss);
+            statistics.local.elevation.gain.push(statistics.global.elevation.gain);
+            statistics.local.elevation.loss.push(statistics.global.elevation.loss);
 
             // time
             if (points[0].time !== undefined && points[i].time !== undefined) {
                 const time = (points[i].time.getTime() - points[0].time.getTime()) / 1000;
 
-                trkptStatistics.time.push(time);
+                statistics.local.time.push(time);
             }
 
             // speed
@@ -380,26 +319,25 @@ export class TrackSegment extends GPXTreeLeaf {
                 speed = dist / (time / 3600);
 
                 if (speed >= 0.5) {
-                    statistics.distance.moving += dist;
-                    statistics.time.moving += time;
+                    statistics.global.distance.moving += dist;
+                    statistics.global.time.moving += time;
                 }
             }
 
             // bounds
-            statistics.bounds.southWest.lat = Math.min(statistics.bounds.southWest.lat, points[i].attributes.lat);
-            statistics.bounds.southWest.lon = Math.max(statistics.bounds.southWest.lon, points[i].attributes.lon);
-            statistics.bounds.northEast.lat = Math.max(statistics.bounds.northEast.lat, points[i].attributes.lat);
-            statistics.bounds.northEast.lon = Math.min(statistics.bounds.northEast.lon, points[i].attributes.lon);
+            statistics.global.bounds.southWest.lat = Math.min(statistics.global.bounds.southWest.lat, points[i].attributes.lat);
+            statistics.global.bounds.southWest.lon = Math.max(statistics.global.bounds.southWest.lon, points[i].attributes.lon);
+            statistics.global.bounds.northEast.lat = Math.max(statistics.global.bounds.northEast.lat, points[i].attributes.lat);
+            statistics.global.bounds.northEast.lon = Math.min(statistics.global.bounds.northEast.lon, points[i].attributes.lon);
         }
 
-        statistics.time.total = trkptStatistics.time[trkptStatistics.time.length - 1];
-        statistics.speed.total = statistics.distance.total / (statistics.time.total / 3600);
-        statistics.speed.moving = statistics.distance.moving / (statistics.time.moving / 3600);
+        statistics.global.time.total = statistics.local.time[statistics.local.time.length - 1];
+        statistics.global.speed.total = statistics.global.distance.total / (statistics.global.time.total / 3600);
+        statistics.global.speed.moving = statistics.global.distance.moving / (statistics.global.time.moving / 3600);
 
-        trkptStatistics.speed = distanceWindowSmoothingWithDistanceAccumulator(points, 200, (accumulated, start, end) => (points[start].time && points[end].time) ? 3600 * accumulated / (points[end].time.getTime() - points[start].time.getTime()) : undefined);
+        statistics.local.speed = distanceWindowSmoothingWithDistanceAccumulator(points, 200, (accumulated, start, end) => (points[start].time && points[end].time) ? 3600 * accumulated / (points[end].time.getTime() - points[start].time.getTime()) : undefined);
 
-        this.statistics = statistics;
-        this.trkptStatistics = trkptStatistics;
+        return statistics;
     }
 
     _computeSmoothedElevation(): number[] {
@@ -461,15 +399,7 @@ export class TrackSegment extends GPXTreeLeaf {
     }
 
     getStatistics(): GPXStatistics {
-        return this.statistics;
-    }
-
-    getTrackPointsAndStatistics(): { points: TrackPoint[], point_statistics: TrackPointStatistics, statistics: GPXStatistics } {
-        return {
-            points: this.trkpt,
-            point_statistics: this.trkptStatistics,
-            statistics: this.statistics,
-        };
+        return this._computeStatistics();
     }
 
     getSegments(): TrackSegment[] {
@@ -509,7 +439,6 @@ export class TrackPoint {
     _data: { [key: string]: any } = {};
 
     constructor(point: TrackPointType | TrackPoint) {
-        this.attributes = point.attributes;
         this.attributes = point.attributes;
         this.ele = point.ele;
         this.time = point.time;
@@ -602,9 +531,7 @@ export class Waypoint {
     constructor(waypoint: WaypointType | Waypoint) {
         this.attributes = waypoint.attributes;
         this.ele = waypoint.ele;
-        if (waypoint.time) {
-            this.time = new Date(waypoint.time.getTime());
-        }
+        this.time = waypoint.time;
         this.name = waypoint.name;
         this.cmt = waypoint.cmt;
         this.desc = waypoint.desc;
@@ -637,86 +564,114 @@ export class Waypoint {
 }
 
 export class GPXStatistics {
-    distance: {
-        moving: number;
-        total: number;
+    global: {
+        distance: {
+            moving: number,
+            total: number,
+        },
+        time: {
+            moving: number,
+            total: number,
+        },
+        speed: {
+            moving: number,
+            total: number,
+        },
+        elevation: {
+            gain: number,
+            loss: number,
+        },
+        bounds: {
+            southWest: Coordinates,
+            northEast: Coordinates,
+        },
     };
-    time: {
-        moving: number;
-        total: number;
+    local: {
+        points: TrackPoint[],
+        distance: number[],
+        time: number[],
+        speed: number[],
+        elevation: {
+            smoothed: number[],
+            gain: number[],
+            loss: number[],
+        },
+        slope: number[],
     };
-    speed: {
-        moving: number;
-        total: number;
-    };
-    elevation: {
-        gain: number;
-        loss: number;
-    };
-    bounds: {
-        southWest: Coordinates;
-        northEast: Coordinates;
-    }
 
     constructor() {
-        this.distance = {
-            moving: 0,
-            total: 0,
-        };
-        this.time = {
-            moving: 0,
-            total: 0,
-        };
-        this.speed = {
-            moving: 0,
-            total: 0,
-        };
-        this.elevation = {
-            gain: 0,
-            loss: 0,
-        };
-        this.bounds = {
-            southWest: {
-                lat: 90,
-                lon: -180,
+        this.global = {
+            distance: {
+                moving: 0,
+                total: 0,
             },
-            northEast: {
-                lat: -90,
-                lon: 180,
+            time: {
+                moving: 0,
+                total: 0,
             },
+            speed: {
+                moving: 0,
+                total: 0,
+            },
+            elevation: {
+                gain: 0,
+                loss: 0,
+            },
+            bounds: {
+                southWest: {
+                    lat: 90,
+                    lon: -180,
+                },
+                northEast: {
+                    lat: -90,
+                    lon: 180,
+                },
+            },
+        };
+        this.local = {
+            points: [],
+            distance: [],
+            time: [],
+            speed: [],
+            elevation: {
+                smoothed: [],
+                gain: [],
+                loss: [],
+            },
+            slope: [],
         };
     }
 
     mergeWith(other: GPXStatistics): void {
-        this.distance.total += other.distance.total;
-        this.distance.moving += other.distance.moving;
 
-        this.time.total += other.time.total;
-        this.time.moving += other.time.moving;
+        this.local.points = this.local.points.concat(other.local.points);
 
-        this.speed.moving = this.distance.moving / (this.time.moving / 3600);
-        this.speed.total = this.distance.total / (this.time.total / 3600);
+        this.local.distance = this.local.distance.concat(other.local.distance.map((distance) => distance + this.global.distance.total));
+        this.local.time = this.local.time.concat(other.local.time.map((time) => time + this.global.time.total));
+        this.local.elevation.gain = this.local.elevation.gain.concat(other.local.elevation.gain.map((gain) => gain + this.global.elevation.gain));
+        this.local.elevation.loss = this.local.elevation.loss.concat(other.local.elevation.loss.map((loss) => loss + this.global.elevation.loss));
 
-        this.elevation.gain += other.elevation.gain;
-        this.elevation.loss += other.elevation.loss;
+        this.local.speed = this.local.speed.concat(other.local.speed);
+        this.local.elevation.smoothed = this.local.elevation.smoothed.concat(other.local.elevation.smoothed);
+        this.local.slope = this.local.slope.concat(other.local.slope);
 
-        this.bounds.southWest.lat = Math.min(this.bounds.southWest.lat, other.bounds.southWest.lat);
-        this.bounds.southWest.lon = Math.max(this.bounds.southWest.lon, other.bounds.southWest.lon);
-        this.bounds.northEast.lat = Math.max(this.bounds.northEast.lat, other.bounds.northEast.lat);
-        this.bounds.northEast.lon = Math.min(this.bounds.northEast.lon, other.bounds.northEast.lon);
+        this.global.distance.total += other.global.distance.total;
+        this.global.distance.moving += other.global.distance.moving;
+
+        this.global.time.total += other.global.time.total;
+        this.global.time.moving += other.global.time.moving;
+
+        this.global.speed.moving = this.global.distance.moving / (this.global.time.moving / 3600);
+        this.global.speed.total = this.global.distance.total / (this.global.time.total / 3600);
+
+        this.global.elevation.gain += other.global.elevation.gain;
+        this.global.elevation.loss += other.global.elevation.loss;
+
+        this.global.bounds.southWest.lat = Math.min(this.global.bounds.southWest.lat, other.global.bounds.southWest.lat);
+        this.global.bounds.southWest.lon = Math.max(this.global.bounds.southWest.lon, other.global.bounds.southWest.lon);
+        this.global.bounds.northEast.lat = Math.max(this.global.bounds.northEast.lat, other.global.bounds.northEast.lat);
+        this.global.bounds.northEast.lon = Math.min(this.global.bounds.northEast.lon, other.global.bounds.northEast.lon);
     }
-}
-
-export type TrackPointStatistics = {
-    distance: number[],
-    time: number[],
-    speed: number[],
-    elevation: {
-        smoothed: number[],
-        gain: number[],
-        loss: number[],
-    },
-    slope: number[],
 }
 
 const earthRadius = 6371008.8;

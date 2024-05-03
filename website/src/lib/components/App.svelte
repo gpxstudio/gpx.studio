@@ -2,7 +2,7 @@
 	import GPXLayers from '$lib/components/gpx-layer/GPXLayers.svelte';
 	import ElevationProfile from '$lib/components/ElevationProfile.svelte';
 	import FileList from '$lib/components/FileList.svelte';
-	import GPXData from '$lib/components/GPXData.svelte';
+	import GPXStatistics from '$lib/components/GPXStatistics.svelte';
 	import Map from '$lib/components/Map.svelte';
 	import Menu from '$lib/components/Menu.svelte';
 	import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
@@ -21,7 +21,7 @@
 		<Toaster richColors />
 	</div>
 	<div class="h-48 flex flex-row gap-2 overflow-hidden">
-		<GPXData />
+		<GPXStatistics />
 		<ElevationProfile />
 	</div>
 </div>

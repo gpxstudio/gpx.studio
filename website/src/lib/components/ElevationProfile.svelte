@@ -6,7 +6,7 @@
 	import Chart from 'chart.js/auto';
 	import mapboxgl from 'mapbox-gl';
 
-	import { map, settings, gpxData } from '$lib/stores';
+	import { map, settings, gpxStatistics } from '$lib/stores';
 
 	import { onDestroy, onMount } from 'svelte';
 	import {
@@ -233,16 +233,16 @@
 	});
 
 	$: if (chart && $settings) {
-		let data = $gpxData;
+		let data = $gpxStatistics;
 
 		// update data
 		chart.data.datasets[0] = {
 			label: $_('quantities.elevation'),
-			data: data.points.map((point, index) => {
+			data: data.local.points.map((point, index) => {
 				return {
-					x: getConvertedDistance(data.point_statistics.distance[index]),
+					x: getConvertedDistance(data.local.distance[index]),
 					y: point.ele ? getConvertedElevation(point.ele) : 0,
-					slope: data.point_statistics.slope[index],
+					slope: data.local.slope[index],
 					surface: point.getSurface(),
 					coordinates: point.getCoordinates()
 				};
@@ -253,10 +253,10 @@
 		};
 		chart.data.datasets[1] = {
 			label: datasets.speed.getLabel(),
-			data: data.points.map((point, index) => {
+			data: data.local.points.map((point, index) => {
 				return {
-					x: getConvertedDistance(data.point_statistics.distance[index]),
-					y: getConvertedVelocity(data.point_statistics.speed[index])
+					x: getConvertedDistance(data.local.distance[index]),
+					y: getConvertedVelocity(data.local.speed[index])
 				};
 			}),
 			normalized: true,
@@ -265,9 +265,9 @@
 		};
 		chart.data.datasets[2] = {
 			label: datasets.hr.getLabel(),
-			data: data.points.map((point, index) => {
+			data: data.local.points.map((point, index) => {
 				return {
-					x: getConvertedDistance(data.point_statistics.distance[index]),
+					x: getConvertedDistance(data.local.distance[index]),
 					y: point.getHeartRate()
 				};
 			}),
@@ -277,9 +277,9 @@
 		};
 		chart.data.datasets[3] = {
 			label: datasets.cad.getLabel(),
-			data: data.points.map((point, index) => {
+			data: data.local.points.map((point, index) => {
 				return {
-					x: getConvertedDistance(data.point_statistics.distance[index]),
+					x: getConvertedDistance(data.local.distance[index]),
 					y: point.getCadence()
 				};
 			}),
@@ -289,9 +289,9 @@
 		};
 		chart.data.datasets[4] = {
 			label: datasets.atemp.getLabel(),
-			data: data.points.map((point, index) => {
+			data: data.local.points.map((point, index) => {
 				return {
-					x: getConvertedDistance(data.point_statistics.distance[index]),
+					x: getConvertedDistance(data.local.distance[index]),
 					y: getConvertedTemperature(point.getTemperature())
 				};
 			}),
@@ -301,9 +301,9 @@
 		};
 		chart.data.datasets[5] = {
 			label: datasets.power.getLabel(),
-			data: data.points.map((point, index) => {
+			data: data.local.points.map((point, index) => {
 				return {
-					x: getConvertedDistance(data.point_statistics.distance[index]),
+					x: getConvertedDistance(data.local.distance[index]),
 					y: point.getPower()
 				};
 			}),
@@ -312,7 +312,7 @@
 			hidden: true
 		};
 		chart.options.scales.x['min'] = 0;
-		chart.options.scales.x['max'] = getConvertedDistance(data.statistics.distance.total);
+		chart.options.scales.x['max'] = getConvertedDistance(data.global.distance.total);
 
 		// update units
 		for (let [id, dataset] of Object.entries(datasets)) {
