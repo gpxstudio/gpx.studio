@@ -195,9 +195,9 @@ export class Track extends GPXTreeNode<TrackSegment> {
             this.link = track.link;
             this.type = track.type;
             this.trkseg = track.trkseg ? track.trkseg.map((seg) => new TrackSegment(seg)) : [];
-            this.extensions = cloneJSON(track.extensions);
+            this.extensions = track.extensions;
             if (track.hasOwnProperty('_data')) {
-                this._data = cloneJSON(track._data);
+                this._data = track._data;
             }
         } else {
             this.trkseg = [new TrackSegment()];
@@ -263,7 +263,7 @@ export class TrackSegment extends GPXTreeLeaf {
         if (segment) {
             this.trkpt = segment.trkpt.map((point) => new TrackPoint(point));
             if (segment.hasOwnProperty('_data')) {
-                this._data = cloneJSON(segment._data);
+                this._data = segment._data;
             }
         } else {
             this.trkpt = [];

@@ -65,22 +65,20 @@ export class RoutingControls {
         for (let segmentIndex = 0; segmentIndex < segments.length; segmentIndex++) {
             let segment = segments[segmentIndex];
 
-            if (segment.trkpt.length === 0) { // Empty segment, skip
-                continue;
-            }
-
             if (!segment._data.anchors) { // New segment, compute anchor points for it
                 computeAnchorPoints(segment);
             }
 
-            if (!segment.trkpt[0]._data.anchor) { // First point is not an anchor, make it one
-                segment.trkpt[0]._data.anchor = true;
-                segment.trkpt[0]._data.zoom = 0;
-            }
+            if (segment.trkpt.length > 0) {
+                if (!segment.trkpt[0]._data.anchor) { // First point is not an anchor, make it one
+                    segment.trkpt[0]._data.anchor = true;
+                    segment.trkpt[0]._data.zoom = 0;
+                }
 
-            if (!segment.trkpt[segment.trkpt.length - 1]._data.anchor) { // Last point is not an anchor, make it one
-                segment.trkpt[segment.trkpt.length - 1]._data.anchor = true;
-                segment.trkpt[segment.trkpt.length - 1]._data.zoom = 0;
+                if (!segment.trkpt[segment.trkpt.length - 1]._data.anchor) { // Last point is not an anchor, make it one
+                    segment.trkpt[segment.trkpt.length - 1]._data.anchor = true;
+                    segment.trkpt[segment.trkpt.length - 1]._data.zoom = 0;
+                }
             }
 
             for (let point of segment.trkpt) { // Update the existing anchors (could be improved by matching the existing anchors with the new ones?)
