@@ -107,9 +107,9 @@ liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
 });
 
 const patchIndex: Readable<number> = dexieStore(() => db.settings.get('patchIndex'), -1);
-const patches: Readable<{ patch: Patch[], inversePatch: Patch[] }[]> = dexieStore(() => db.patches.toArray(), []);
+const patchCount: Readable<number> = dexieStore(() => db.patches.count(), 0);
 export const canUndo: Readable<boolean> = derived(patchIndex, ($patchIndex) => $patchIndex >= 0);
-export const canRedo: Readable<boolean> = derived([patchIndex, patches], ([$patchIndex, $patches]) => $patchIndex < $patches.length - 1);
+export const canRedo: Readable<boolean> = derived([patchIndex, patchCount], ([$patchIndex, $patchCount]) => $patchIndex < $patchCount - 1);
 
 export function applyGlobal(callback: (files: Map<string, GPXFile>) => void) {
     const [newFileState, patch, inversePatch] = produceWithPatches(fileState, callback);
@@ -177,16 +177,24 @@ function getFileIds(n: number) {
 export function undo() {
     if (get(canUndo)) {
         let index = get(patchIndex);
-        applyPatch(get(patches)[index].inversePatch);
-        db.settings.put(index - 1, 'patchIndex');
+        db.patches.get(index).then(patch => {
+            if (patch) {
+                applyPatch(patch.inversePatch);
+                db.settings.put(index - 1, 'patchIndex');
+            }
+        });
     }
 }
 
 export function redo() {
     if (get(canRedo)) {
         let index = get(patchIndex) + 1;
-        applyPatch(get(patches)[index].patch);
-        db.settings.put(index, 'patchIndex');
+        db.patches.get(index).then(patch => {
+            if (patch) {
+                applyPatch(patch.patch);
+                db.settings.put(index, 'patchIndex');
+            }
+        });
     }
 }
 
