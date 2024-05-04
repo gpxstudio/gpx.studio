@@ -27,7 +27,21 @@ class Database extends Dexie {
 
 const db = new Database();
 
-function dexieFileStore(querier: () => FreezedObject<GPXFile> | undefined | Promise<FreezedObject<GPXFile> | undefined>): Readable<GPXFile> {
+// Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber
+function dexieStore<T>(querier: () => T | Promise<T>, initial?: T): Readable<T> {
+    let store = writable<T>(initial);
+    liveQuery(querier).subscribe(value => {
+        if (value !== undefined) {
+            store.set(value);
+        }
+    });
+    return {
+        subscribe: store.subscribe,
+    };
+}
+
+// Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber, also takes care of the conversion to a GPXFile object
+function dexieGPXFileStore(querier: () => FreezedObject<GPXFile> | undefined | Promise<FreezedObject<GPXFile> | undefined>): Readable<GPXFile> {
     let store = writable<GPXFile>(undefined);
     liveQuery(querier).subscribe(value => {
         if (value !== undefined) {
@@ -41,19 +55,8 @@ function dexieFileStore(querier: () => FreezedObject<GPXFile> | undefined | Prom
     };
 }
 
-function dexieStore<T>(querier: () => T | Promise<T>, initial?: T): Readable<T> {
-    let store = writable<T>(initial);
-    liveQuery(querier).subscribe(value => {
-        if (value !== undefined) {
-            store.set(value);
-        }
-    });
-    return {
-        subscribe: store.subscribe,
-    };
-}
-
-function updateFiles(files: (FreezedObject<GPXFile> | undefined)[], add: boolean = false) {
+// Add/update the files to the database
+function updateDbFiles(files: (FreezedObject<GPXFile> | undefined)[], add: boolean = false) {
     let filteredFiles = files.filter(file => file !== undefined) as FreezedObject<GPXFile>[];
     let fileIds = filteredFiles.map(file => file._data.id);
     if (add) {
@@ -66,26 +69,29 @@ function updateFiles(files: (FreezedObject<GPXFile> | undefined)[], add: boolean
     }
 }
 
-function deleteFiles(fileIds: string[]) {
+// Delete the files with the given ids from the database
+function deleteDbFiles(fileIds: string[]) {
     return db.transaction('rw', db.fileids, db.files, async () => {
         await db.fileids.bulkDelete(fileIds);
         await db.files.bulkDelete(fileIds);
     });
 }
 
+// Commit the changes to the file state to the database
 function commitFileStateChange(newFileState: ReadonlyMap<string, FreezedObject<GPXFile>>, patch: Patch[]) {
     if (newFileState.size > fileState.size) {
-        return updateFiles(getChangedFileIds(patch).map((fileId) => newFileState.get(fileId)), true);
+        return updateDbFiles(getChangedFileIds(patch).map((fileId) => newFileState.get(fileId)), true);
     } else if (newFileState.size === fileState.size) {
-        return updateFiles(getChangedFileIds(patch).map((fileId) => newFileState.get(fileId)));
+        return updateDbFiles(getChangedFileIds(patch).map((fileId) => newFileState.get(fileId)));
     } else {
-        return deleteFiles(getChangedFileIds(patch));
+        return deleteDbFiles(getChangedFileIds(patch));
     }
 }
 
 export const fileObservers: Writable<Map<string, Readable<GPXFile | undefined>>> = writable(new Map());
 const fileState: Map<string, GPXFile> = new Map(); // Used to generate patches
 
+// Observe the file ids in the database, and maintain a map of file observers for the corresponding files
 liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
     // Find new files to observe
     let newFiles = dbFileIds.filter(id => !get(fileObservers).has(id));
@@ -95,7 +101,7 @@ liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
     if (newFiles.length > 0 || deletedFiles.length > 0) {
         fileObservers.update($files => {
             newFiles.forEach(id => {
-                $files.set(id, dexieFileStore(() => db.files.get(id)));
+                $files.set(id, dexieGPXFileStore(() => db.files.get(id)));
             });
             deletedFiles.forEach(id => {
                 $files.delete(id);
@@ -111,14 +117,16 @@ const patchCount: Readable<number> = dexieStore(() => db.patches.count(), 0);
 export const canUndo: Readable<boolean> = derived(patchIndex, ($patchIndex) => $patchIndex >= 0);
 export const canRedo: Readable<boolean> = derived([patchIndex, patchCount], ([$patchIndex, $patchCount]) => $patchIndex < $patchCount - 1);
 
-export function applyGlobal(callback: (files: Map<string, GPXFile>) => void) {
+// Helper function to apply a callback to the global file state
+function applyGlobal(callback: (files: Map<string, GPXFile>) => void) {
     const [newFileState, patch, inversePatch] = produceWithPatches(fileState, callback);
 
-    appendPatches(patch, inversePatch);
+    storePatches(patch, inversePatch);
 
     return commitFileStateChange(newFileState, patch);
 }
 
+// Helper function to apply a callback to multiple files
 function applyToFiles(fileIds: string[], callback: (file: GPXFile) => void) {
     const [newFileState, patch, inversePatch] = produceWithPatches(fileState, (draft) => {
         fileIds.forEach((fileId) => {
@@ -129,12 +137,13 @@ function applyToFiles(fileIds: string[], callback: (file: GPXFile) => void) {
         });
     });
 
-    appendPatches(patch, inversePatch);
+    storePatches(patch, inversePatch);
 
     return commitFileStateChange(newFileState, patch);
 }
 
-async function appendPatches(patch: Patch[], inversePatch: Patch[]) {
+// Store the new patches in the database
+async function storePatches(patch: Patch[], inversePatch: Patch[]) {
     if (get(patchIndex) !== undefined) {
         db.patches.where(':id').above(get(patchIndex)).delete();
     }
@@ -147,11 +156,13 @@ async function appendPatches(patch: Patch[], inversePatch: Patch[]) {
     });
 }
 
+// Apply a patch to the file state
 function applyPatch(patch: Patch[]) {
     let newFileState = applyPatches(fileState, patch);
     return commitFileStateChange(newFileState, patch);
 }
 
+// Get the file ids of the files that have changed in the patch
 function getChangedFileIds(patch: Patch[]) {
     let changedFileIds = [];
     for (let p of patch) {
@@ -163,6 +174,7 @@ function getChangedFileIds(patch: Patch[]) {
     return changedFileIds;
 }
 
+// Generate unique file ids, different from the ones in the database
 function getFileIds(n: number) {
     let ids = [];
     for (let index = 0; ids.length < n; index++) {
@@ -174,30 +186,7 @@ function getFileIds(n: number) {
     return ids;
 }
 
-export function undo() {
-    if (get(canUndo)) {
-        let index = get(patchIndex);
-        db.patches.get(index).then(patch => {
-            if (patch) {
-                applyPatch(patch.inversePatch);
-                db.settings.put(index - 1, 'patchIndex');
-            }
-        });
-    }
-}
-
-export function redo() {
-    if (get(canRedo)) {
-        let index = get(patchIndex) + 1;
-        db.patches.get(index).then(patch => {
-            if (patch) {
-                applyPatch(patch.patch);
-                db.settings.put(index, 'patchIndex');
-            }
-        });
-    }
-}
-
+// Helper functions for file operations
 export const dbUtils = {
     add: (file: GPXFile) => {
         file._data.id = getFileIds(1)[0];
@@ -247,4 +236,27 @@ export const dbUtils = {
             draft.clear();
         });
     },
+    // undo-redo
+    undo: () => {
+        if (get(canUndo)) {
+            let index = get(patchIndex);
+            db.patches.get(index).then(patch => {
+                if (patch) {
+                    applyPatch(patch.inversePatch);
+                    db.settings.put(index - 1, 'patchIndex');
+                }
+            });
+        }
+    },
+    redo: () => {
+        if (get(canRedo)) {
+            let index = get(patchIndex) + 1;
+            db.patches.get(index).then(patch => {
+                if (patch) {
+                    applyPatch(patch.patch);
+                    db.settings.put(index, 'patchIndex');
+                }
+            });
+        }
+    }
 }

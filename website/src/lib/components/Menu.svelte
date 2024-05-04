@@ -19,7 +19,7 @@
 
 	import { _ } from 'svelte-i18n';
 	import { derived, get } from 'svelte/store';
-	import { canUndo, canRedo, dbUtils, fileObservers, redo, undo } from '$lib/db';
+	import { canUndo, canRedo, dbUtils, fileObservers } from '$lib/db';
 
 	let showDistanceMarkers = false;
 	let showDirectionMarkers = false;
@@ -93,12 +93,12 @@
 			<Menubar.Menu>
 				<Menubar.Trigger>{$_('menu.edit')}</Menubar.Trigger>
 				<Menubar.Content class="border-none">
-					<Menubar.Item on:click={undo} disabled={$undoDisabled}>
+					<Menubar.Item on:click={dbUtils.undo} disabled={$undoDisabled}>
 						<Undo2 size="16" class="mr-1" />
 						{$_('menu.undo')}
 						<Shortcut key="Z" ctrl={true} />
 					</Menubar.Item>
-					<Menubar.Item on:click={redo} disabled={$redoDisabled}>
+					<Menubar.Item on:click={dbUtils.redo} disabled={$redoDisabled}>
 						<Redo2 size="16" class="mr-1" />
 						{$_('menu.redo')}
 						<Shortcut key="Z" ctrl={true} shift={true} />
@@ -213,9 +213,9 @@
 			e.preventDefault();
 		} else if ((e.key === 'z' || e.key == 'Z') && (e.metaKey || e.ctrlKey)) {
 			if (e.shiftKey) {
-				redo();
+				dbUtils.redo();
 			} else {
-				undo();
+				dbUtils.undo();
 			}
 		} else if ((e.key === 'Backspace' || e.key === 'Delete') && (e.metaKey || e.ctrlKey)) {
 			if (e.shiftKey) {
