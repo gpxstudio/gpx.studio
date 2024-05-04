@@ -36,7 +36,7 @@ routingProfileSelectItem.subscribe((item) => {
 
 export function route(points: Coordinates[]): Promise<TrackPoint[]> {
     if (get(routing)) {
-        return getRoute(points, brouterProfiles[get(routingProfile).value], get(privateRoads));
+        return getRoute(points, brouterProfiles[get(routingProfile)], get(privateRoads));
     } else {
         return new Promise((resolve) => {
             resolve(points.map(point => new TrackPoint({
