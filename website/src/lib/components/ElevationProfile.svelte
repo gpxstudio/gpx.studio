@@ -6,7 +6,8 @@
 	import Chart from 'chart.js/auto';
 	import mapboxgl from 'mapbox-gl';
 
-	import { map, settings, gpxStatistics } from '$lib/stores';
+	import { map, gpxStatistics } from '$lib/stores';
+	import { settings } from '$lib/db';
 
 	import { onDestroy, onMount } from 'svelte';
 	import {
@@ -52,6 +53,8 @@
 	let additionalDatasets: string[];
 
 	let marker: mapboxgl.Marker | null = null;
+
+	let { distanceUnits, velocityUnits, temperatureUnits } = settings;
 
 	let options = {
 		animation: false,
@@ -111,7 +114,7 @@
 							}
 							return `${$_('quantities.elevation')}: ${getElevationWithUnits(point.y, false)}`;
 						} else if (context.datasetIndex === 1) {
-							return `${$settings.velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')}: ${getVelocityWithUnits(point.y, false)}`;
+							return `${$velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')}: ${getVelocityWithUnits(point.y, false)}`;
 						} else if (context.datasetIndex === 2) {
 							return `${$_('quantities.heartrate')}: ${getHeartRateWithUnits(point.y)}`;
 						} else if (context.datasetIndex === 3) {
@@ -150,8 +153,7 @@
 	} = {
 		speed: {
 			id: 'speed',
-			getLabel: () =>
-				$settings.velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace'),
+			getLabel: () => ($velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')),
 			getUnits: () => getVelocityUnits()
 		},
 		hr: {
@@ -196,7 +198,7 @@
 	}
 	options.scales.yspeed['ticks'] = {
 		callback: function (value: number) {
-			if ($settings.velocityUnits === 'speed') {
+			if ($velocityUnits === 'speed') {
 				return value;
 			} else {
 				return secondsToHHMMSS(value);
@@ -232,7 +234,7 @@
 		});
 	});
 
-	$: if (chart && $settings) {
+	$: if (chart && $distanceUnits && $velocityUnits && $temperatureUnits) {
 		let data = $gpxStatistics;
 
 		// update data
@@ -432,9 +434,7 @@
 				<Tooltip side="left">
 					<Zap slot="data" size="16" />
 					<span slot="tooltip"
-						>{$settings.velocityUnits === 'speed'
-							? $_('chart.show_speed')
-							: $_('chart.show_pace')}</span
+						>{$velocityUnits === 'speed' ? $_('chart.show_speed') : $_('chart.show_pace')}</span
 					>
 				</Tooltip>
 			</ToggleGroup.Item>

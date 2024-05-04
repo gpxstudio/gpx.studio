@@ -57,12 +57,6 @@ selectedFiles.subscribe((selectedFiles) => {
     updateGPXData();
 });
 
-export const settings = writable<{ [key: string]: any }>({
-    distanceUnits: 'metric',
-    velocityUnits: 'speed',
-    temperatureUnits: 'celsius',
-    mode: 'system'
-});
 export const gpxLayers: Writable<Map<string, GPXLayer>> = writable(new Map());
 
 export enum Tool {

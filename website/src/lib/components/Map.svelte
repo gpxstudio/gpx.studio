@@ -7,7 +7,8 @@
 	import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 	import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 
-	import { map, settings } from '$lib/stores';
+	import { map } from '$lib/stores';
+	import { settings } from '$lib/db';
 	import { locale } from 'svelte-i18n';
 	import { get } from 'svelte/store';
 
@@ -20,8 +21,9 @@
 		easing: () => 1
 	};
 
+	const { distanceUnits } = settings;
 	let scaleControl = new mapboxgl.ScaleControl({
-		unit: $settings.distanceUnits
+		unit: $distanceUnits
 	});
 
 	function toggleTerrain() {
@@ -98,7 +100,7 @@
 	});
 
 	$: if ($map) {
-		scaleControl.setUnit($settings.distanceUnits);
+		scaleControl.setUnit($distanceUnits);
 	}
 </script>
 

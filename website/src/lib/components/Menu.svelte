@@ -11,33 +11,23 @@
 		exportSelectedFiles,
 		triggerFileInput,
 		selectFiles,
-		settings,
 		createFile
 	} from '$lib/stores';
+	import { derived } from 'svelte/store';
+	import { canUndo, canRedo, dbUtils, fileObservers, settings } from '$lib/db';
 
-	import { mode, resetMode, setMode } from 'mode-watcher';
+	import { resetMode, setMode } from 'mode-watcher';
 
 	import { _ } from 'svelte-i18n';
-	import { derived, get } from 'svelte/store';
-	import { canUndo, canRedo, dbUtils, fileObservers } from '$lib/db';
 
 	let showDistanceMarkers = false;
 	let showDirectionMarkers = false;
 
-	let currentMode = derived(mode, ($mode) => {
-		if (!$mode) {
-			return 'system';
-		} else {
-			return $mode;
-		}
-	});
-
-	$: if ($settings.mode !== get(currentMode)) {
-		if ($settings.mode === 'system') {
-			resetMode();
-		} else {
-			setMode($settings.mode);
-		}
+	const { distanceUnits, velocityUnits, temperatureUnits, mode } = settings;
+	$: if ($mode === 'system') {
+		resetMode();
+	} else {
+		setMode($mode);
 	}
 
 	let undoDisabled = derived(canUndo, ($canUndo) => !$canUndo);
@@ -132,7 +122,7 @@
 					><Menubar.Sub>
 						<Menubar.SubTrigger inset>{$_('menu.distance_units')}</Menubar.SubTrigger>
 						<Menubar.SubContent>
-							<Menubar.RadioGroup bind:value={$settings.distanceUnits}>
+							<Menubar.RadioGroup bind:value={$distanceUnits}>
 								<Menubar.RadioItem value="metric">{$_('menu.metric')}</Menubar.RadioItem>
 								<Menubar.RadioItem value="imperial">{$_('menu.imperial')}</Menubar.RadioItem>
 							</Menubar.RadioGroup>
@@ -141,7 +131,7 @@
 					<Menubar.Sub>
 						<Menubar.SubTrigger inset>{$_('menu.velocity_units')}</Menubar.SubTrigger>
 						<Menubar.SubContent>
-							<Menubar.RadioGroup bind:value={$settings.velocityUnits}>
+							<Menubar.RadioGroup bind:value={$velocityUnits}>
 								<Menubar.RadioItem value="speed">{$_('quantities.speed')}</Menubar.RadioItem>
 								<Menubar.RadioItem value="pace">{$_('quantities.pace')}</Menubar.RadioItem>
 							</Menubar.RadioGroup>
@@ -150,7 +140,7 @@
 					<Menubar.Sub>
 						<Menubar.SubTrigger inset>{$_('menu.temperature_units')}</Menubar.SubTrigger>
 						<Menubar.SubContent>
-							<Menubar.RadioGroup bind:value={$settings.temperatureUnits}>
+							<Menubar.RadioGroup bind:value={$temperatureUnits}>
 								<Menubar.RadioItem value="celsius">{$_('menu.celsius')}</Menubar.RadioItem>
 								<Menubar.RadioItem value="fahrenheit">{$_('menu.fahrenheit')}</Menubar.RadioItem>
 							</Menubar.RadioGroup>
@@ -160,7 +150,7 @@
 					<Menubar.Sub>
 						<Menubar.SubTrigger inset>{$_('menu.mode')}</Menubar.SubTrigger>
 						<Menubar.SubContent>
-							<Menubar.RadioGroup bind:value={$settings.mode}>
+							<Menubar.RadioGroup bind:value={$mode}>
 								<Menubar.RadioItem value="light">{$_('menu.light')}</Menubar.RadioItem>
 								<Menubar.RadioItem value="dark">{$_('menu.dark')}</Menubar.RadioItem>
 								<Menubar.RadioItem value="system">{$_('menu.system')}</Menubar.RadioItem>

@@ -1,7 +1,10 @@
 import type { Coordinates } from "gpx";
 import { TrackPoint } from "gpx";
 import { get, writable } from "svelte/store";
+import { settings } from "$lib/db";
 import { _ } from "svelte-i18n";
+
+const { routing, routingProfile, privateRoads } = settings;
 
 export const brouterProfiles: { [key: string]: string } = {
     bike: 'Trekking-dry',
@@ -12,12 +15,24 @@ export const brouterProfiles: { [key: string]: string } = {
     water: 'river',
     railway: 'rail'
 };
-export const routingProfile = writable({
+export const routingProfileSelectItem = writable({
     value: 'bike',
     label: get(_)('toolbar.routing.activities.bike')
 });
-export const routing = writable(true);
-export const privateRoads = writable(false);
+routingProfile.subscribe((value) => {
+    if (value !== get(routingProfileSelectItem).value) {
+        routingProfileSelectItem.update((item) => {
+            item.value = value;
+            item.label = get(_)(`toolbar.routing.activities.${value}`);
+            return item;
+        });
+    }
+});
+routingProfileSelectItem.subscribe((item) => {
+    if (item.value !== get(routingProfile)) {
+        routingProfile.set(item.value);
+    }
+});
 
 export function route(points: Coordinates[]): Promise<TrackPoint[]> {
     if (get(routing)) {

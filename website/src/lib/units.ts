@@ -1,6 +1,8 @@
 import { get } from 'svelte/store';
-import { settings } from './stores';
+import { settings } from '$lib/db';
 import { _ } from 'svelte-i18n';
+
+const { distanceUnits, velocityUnits, temperatureUnits } = settings;
 
 export function kilometersToMiles(value: number) {
     return value * 0.621371;
@@ -39,9 +41,7 @@ export function getDistanceWithUnits(value: number, convert: boolean = true) {
 }
 
 export function getVelocityWithUnits(value: number, convert: boolean = true) {
-    const velocityUnits = get(settings).velocityUnits;
-    const distanceUnits = get(settings).distanceUnits;
-    if (velocityUnits === 'speed') {
+    if (get(velocityUnits) === 'speed') {
         if (convert) {
             return getConvertedVelocity(value).toFixed(2) + ' ' + getVelocityUnits();
         } else {
@@ -86,22 +86,20 @@ export function getTemperatureWithUnits(value: number, convert: boolean = true) 
 
 // Get the units
 export function getDistanceUnits() {
-    return get(settings).distanceUnits === 'metric' ? get(_)('units.kilometers') : get(_)('units.miles');
+    return get(distanceUnits) === 'metric' ? get(_)('units.kilometers') : get(_)('units.miles');
 }
 
 export function getVelocityUnits() {
-    const velocityUnits = get(settings).velocityUnits;
-    const distanceUnits = get(settings).distanceUnits;
-    if (velocityUnits === 'speed') {
-        return distanceUnits === 'metric' ? get(_)('units.kilometers_per_hour') : get(_)('units.miles_per_hour');
+    if (get(velocityUnits) === 'speed') {
+        return get(distanceUnits) === 'metric' ? get(_)('units.kilometers_per_hour') : get(_)('units.miles_per_hour');
     } else {
-        return distanceUnits === 'metric' ? get(_)('units.minutes_per_kilometer') : get(_)('units.minutes_per_mile');
+        return get(distanceUnits) === 'metric' ? get(_)('units.minutes_per_kilometer') : get(_)('units.minutes_per_mile');
 
     }
 }
 
 export function getElevationUnits() {
-    return get(settings).distanceUnits === 'metric' ? get(_)('units.meters') : get(_)('units.feet');
+    return get(distanceUnits) === 'metric' ? get(_)('units.meters') : get(_)('units.feet');
 }
 
 export function getHeartRateUnits() {
@@ -117,28 +115,26 @@ export function getPowerUnits() {
 }
 
 export function getTemperatureUnits() {
-    return get(settings).temperatureUnits === 'celsius' ? get(_)('units.celsius') : get(_)('units.fahrenheit');
+    return get(temperatureUnits) === 'celsius' ? get(_)('units.celsius') : get(_)('units.fahrenheit');
 }
 
 // Convert only the value
 export function getConvertedDistance(value: number) {
-    return get(settings).distanceUnits === 'metric' ? value : kilometersToMiles(value);
+    return get(distanceUnits) === 'metric' ? value : kilometersToMiles(value);
 }
 
 export function getConvertedElevation(value: number) {
-    return get(settings).distanceUnits === 'metric' ? value : metersToFeet(value);
+    return get(distanceUnits) === 'metric' ? value : metersToFeet(value);
 }
 
 export function getConvertedVelocity(value: number) {
-    const velocityUnits = get(settings).velocityUnits;
-    const distanceUnits = get(settings).distanceUnits;
-    if (velocityUnits === 'speed') {
-        return distanceUnits === 'metric' ? value : kilometersToMiles(value);
+    if (get(velocityUnits) === 'speed') {
+        return get(distanceUnits) === 'metric' ? value : kilometersToMiles(value);
     } else {
-        return distanceUnits === 'metric' ? distancePerHourToSecondsPerDistance(value) : distancePerHourToSecondsPerDistance(kilometersToMiles(value));
+        return get(distanceUnits) === 'metric' ? distancePerHourToSecondsPerDistance(value) : distancePerHourToSecondsPerDistance(kilometersToMiles(value));
     }
 }
 
 export function getConvertedTemperature(value: number) {
-    return get(settings).temperatureUnits === 'celsius' ? value : celsiusToFahrenheit(value);
+    return get(temperatureUnits) === 'celsius' ? value : celsiusToFahrenheit(value);
 }

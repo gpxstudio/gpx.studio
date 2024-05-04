@@ -3,11 +3,14 @@
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import WithUnits from '$lib/components/WithUnits.svelte';
 
-	import { gpxStatistics, settings } from '$lib/stores';
+	import { gpxStatistics } from '$lib/stores';
+	import { settings } from '$lib/db';
 
 	import { MoveDownRight, MoveUpRight, Ruler, Timer, Zap } from 'lucide-svelte';
 
 	import { _ } from 'svelte-i18n';
+
+	const { velocityUnits } = settings;
 </script>
 
 <Card.Root class="h-full overflow-hidden border-none shadow-none min-w-48 pl-4">
@@ -36,7 +39,7 @@
 				<WithUnits value={$gpxStatistics.global.speed.moving} type="speed" />
 			</span>
 			<span slot="tooltip"
-				>{$settings.velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')} ({$_(
+				>{$velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')} ({$_(
 					'quantities.total'
 				)} / {$_('quantities.moving')})</span
 			>

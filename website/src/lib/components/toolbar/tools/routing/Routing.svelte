@@ -7,7 +7,8 @@
 	import { CircleHelp } from 'lucide-svelte';
 
 	import { map, selectedFiles, Tool } from '$lib/stores';
-	import { brouterProfiles, privateRoads, routing, routingProfile } from './Routing';
+	import { settings } from '$lib/db';
+	import { brouterProfiles, routingProfileSelectItem } from './Routing';
 
 	import { _ } from 'svelte-i18n';
 	import { get } from 'svelte/store';
@@ -22,6 +23,8 @@
 	let popup: mapboxgl.Popup | null = null;
 	let selectedId: string | null = null;
 	let active = false;
+
+	const { privateRoads, routing } = settings;
 
 	$: if ($map) {
 		// remove controls for deleted files
@@ -82,7 +85,7 @@
 <ToolbarItemMenu tool={Tool.ROUTING} bind:active>
 	<div class="w-full flex flex-row justify-between items-center gap-2">
 		<Label>{$_('toolbar.routing.activity')}</Label>
-		<Select.Root bind:selected={$routingProfile}>
+		<Select.Root bind:selected={$routingProfileSelectItem}>
 			<Select.Trigger class="h-8 w-40">
 				<Select.Value />
 			</Select.Trigger>

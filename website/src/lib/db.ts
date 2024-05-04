@@ -3,6 +3,7 @@ import { GPXFile } from 'gpx';
 import { type FreezedObject, type Patch, produceWithPatches, applyPatches } from 'structurajs';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
 import { fileOrder, selectedFiles } from './stores';
+import { mode } from 'mode-watcher';
 
 class Database extends Dexie {
 
@@ -260,3 +261,36 @@ export const dbUtils = {
         }
     }
 }
+
+function dexieSettingStore(setting: string, initial: any): Writable<any> {
+    let store = writable(initial);
+    liveQuery(() => db.settings.get(setting)).subscribe(value => {
+        if (value !== undefined) {
+            store.set(value);
+        }
+    });
+    return {
+        subscribe: store.subscribe,
+        set: (value: any) => db.settings.put(value, setting),
+        update: (callback: (value: any) => any) => {
+            let newValue = callback(get(store));
+            db.settings.put(newValue, setting);
+        }
+    };
+}
+
+export const settings = {
+    distanceUnits: dexieSettingStore('distanceUnits', 'metric'),
+    velocityUnits: dexieSettingStore('velocityUnits', 'speed'),
+    temperatureUnits: dexieSettingStore('temperatureUnits', 'celsius'),
+    mode: dexieSettingStore('mode', (() => {
+        let currentMode: string | undefined = get(mode);
+        if (currentMode === undefined) {
+            currentMode = 'system';
+        }
+        return currentMode;
+    })()),
+    routing: dexieSettingStore('routing', true),
+    routingProfile: dexieSettingStore('routingProfile', 'bike'),
+    privateRoads: dexieSettingStore('privateRoads', false),
+};
