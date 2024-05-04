@@ -4,6 +4,7 @@ import { type FreezedObject, type Patch, produceWithPatches, applyPatches } from
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
 import { fileOrder, selectedFiles } from './stores';
 import { mode } from 'mode-watcher';
+import { defaultBasemap, defaultBasemapTree, defaultOverlayTree } from './assets/layers';
 
 class Database extends Dexie {
 
@@ -266,6 +267,7 @@ function dexieSettingStore(setting: string, initial: any): Writable<any> {
     let store = writable(initial);
     liveQuery(() => db.settings.get(setting)).subscribe(value => {
         if (value !== undefined) {
+            console.log('setting', setting, 'changed to', value);
             store.set(value);
         }
     });
@@ -293,4 +295,10 @@ export const settings = {
     routing: dexieSettingStore('routing', true),
     routingProfile: dexieSettingStore('routingProfile', 'bike'),
     privateRoads: dexieSettingStore('privateRoads', false),
+    currentBasemap: dexieSettingStore('currentBasemap', defaultBasemap),
+    previousBasemap: dexieSettingStore('previousBasemap', defaultBasemap),
+    selectedBasemapTree: dexieSettingStore('selectedBasemapTree', defaultBasemapTree),
+    currentOverlays: dexieSettingStore('currentOverlays', {}),
+    previousOverlays: dexieSettingStore('previousOverlays', {}),
+    selectedOverlayTree: dexieSettingStore('selectedOverlayTree', defaultOverlayTree),
 };

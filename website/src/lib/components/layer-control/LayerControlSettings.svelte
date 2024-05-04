@@ -9,16 +9,21 @@
 
 	import { Settings } from 'lucide-svelte';
 
-	import {
-		basemaps,
-		basemapTree,
-		overlays,
-		overlayTree,
-		opacities,
-		defaultBasemap
-	} from '$lib/assets/layers';
+	import { basemapTree, overlayTree, type CollapsedInfoTreeType } from '$lib/assets/layers';
+	import { settings } from '$lib/db';
 
 	import { _ } from 'svelte-i18n';
+
+	const { selectedBasemapTree, selectedOverlayTree } = settings;
+
+	let checkedBasemaps: CollapsedInfoTreeType<{ [key: string]: boolean }> = {
+		self: {},
+		children: {}
+	};
+	let checkedOverlays: CollapsedInfoTreeType<{ [key: string]: boolean }> = {
+		self: {},
+		children: {}
+	};
 </script>
 
 <Sheet.Root>
@@ -43,9 +48,10 @@
 								layerTree={basemapTree}
 								name="basemapSettings"
 								multiple={true}
-								onValueChange={(id) => {
-									// TODO
+								onValueChange={(id, checked) => {
+									console.log('basemap', id, checked);
 								}}
+								bind:checked={checkedBasemaps}
 							/>
 						</ScrollArea>
 						<Separator />
@@ -55,8 +61,9 @@
 								name="overlaySettings"
 								multiple={true}
 								onValueChange={(id, checked) => {
-									// TODO
+									console.log('overlay', id, checked);
 								}}
+								bind:checked={checkedOverlays}
 							/>
 						</ScrollArea>
 					</Accordion.Content>

@@ -53,7 +53,7 @@
 	}
 
 	onMount(() => {
-		$map = new mapboxgl.Map({
+		let newMap = new mapboxgl.Map({
 			container: 'map',
 			style: { version: 8, sources: {}, layers: [] },
 			projection: { name: 'mercator' },
@@ -63,16 +63,19 @@
 			logoPosition: 'bottom-right',
 			boxZoom: false
 		});
+		newMap.on('load', () => {
+			$map = newMap; // only set the store after the map has loaded
+		});
 
-		$map.addControl(
+		newMap.addControl(
 			new mapboxgl.AttributionControl({
 				compact: true
 			})
 		);
 
-		$map.addControl(new mapboxgl.NavigationControl());
+		newMap.addControl(new mapboxgl.NavigationControl());
 
-		$map.addControl(
+		newMap.addControl(
 			new MapboxGeocoder({
 				accessToken: mapboxgl.accessToken,
 				mapboxgl: mapboxgl,
@@ -82,7 +85,7 @@
 			})
 		);
 
-		$map.addControl(
+		newMap.addControl(
 			new mapboxgl.GeolocateControl({
 				positionOptions: {
 					enableHighAccuracy: true
@@ -93,10 +96,10 @@
 			})
 		);
 
-		$map.addControl(scaleControl);
+		newMap.addControl(scaleControl);
 
-		$map.on('style.load', toggleTerrain);
-		$map.on('pitchstart', toggleTerrain);
+		newMap.on('style.load', toggleTerrain);
+		newMap.on('pitchstart', toggleTerrain);
 	});
 
 	$: if ($map) {

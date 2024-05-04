@@ -23,7 +23,16 @@
 	let showDistanceMarkers = false;
 	let showDirectionMarkers = false;
 
-	const { distanceUnits, velocityUnits, temperatureUnits, mode } = settings;
+	const {
+		distanceUnits,
+		velocityUnits,
+		temperatureUnits,
+		mode,
+		currentBasemap,
+		previousBasemap,
+		currentOverlays,
+		previousOverlays
+	} = settings;
 	$: if ($mode === 'system') {
 		resetMode();
 	} else {
@@ -184,7 +193,6 @@
 
 <svelte:window
 	on:keydown={(e) => {
-		e.stopImmediatePropagation();
 		if (e.key === 'n' && (e.metaKey || e.ctrlKey)) {
 			createFile();
 			e.preventDefault();
@@ -216,6 +224,16 @@
 			e.preventDefault();
 		} else if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {
 			$selectFiles.selectAllFiles();
+			e.preventDefault();
+		} else if (e.key === 'F1') {
+			[$currentBasemap, $previousBasemap] = [$previousBasemap, $currentBasemap];
+			e.preventDefault();
+		} else if (e.key === 'F2') {
+			if ($currentOverlays.length > 0) {
+				[$currentOverlays, $previousOverlays] = [[], $currentOverlays];
+			} else {
+				[$currentOverlays, $previousOverlays] = [$previousOverlays, []];
+			}
 			e.preventDefault();
 		}
 	}}

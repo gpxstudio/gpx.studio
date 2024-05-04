@@ -6,24 +6,20 @@
 
 	import { ChevronDown, ChevronUp } from 'lucide-svelte';
 
-	import { type CollapsedInfoTreeType, type LayerTreeType } from '$lib/assets/layers';
+	import {
+		type CheckedInfoTreeType,
+		type CollapsedInfoTreeType,
+		type LayerTreeType
+	} from '$lib/assets/layers';
 
 	import { _ } from 'svelte-i18n';
 
 	export let name: string;
 	export let node: LayerTreeType;
+	export let selected: string | undefined = undefined;
 	export let multiple: boolean = false;
 
-	export let onValueChange: (id: string, checked: boolean) => void;
-
-	let checked: { [key: string]: boolean } = {};
-	if (multiple && Array.isArray(node)) {
-		node.forEach((id) => {
-			checked[id] = false;
-		});
-	}
-
-	export let open: CollapsedInfoTreeType;
+	export let open: CollapsedInfoTreeType<boolean>;
 	if (!Array.isArray(node)) {
 		Object.keys(node).forEach((id) => {
 			if (!open.children.hasOwnProperty(id)) {
@@ -31,6 +27,23 @@
 					self: true,
 					children: {}
 				};
+			}
+		});
+	}
+
+	export let checked: CheckedInfoTreeType;
+	if (Array.isArray(node)) {
+		if (multiple) {
+			node.forEach((id) => {
+				if (!checked.hasOwnProperty(id)) {
+					checked[id] = false;
+				}
+			});
+		}
+	} else {
+		Object.keys(node).forEach((id) => {
+			if (!checked.hasOwnProperty(id)) {
+				checked[id] = {};
 			}
 		});
 	}
@@ -42,27 +55,18 @@
 			<div class="flex flex-row items-center gap-2">
 				{#if multiple}
 					<Checkbox
-						{id}
+						id="{name}-{id}"
 						{name}
 						value={id}
 						bind:checked={checked[id]}
-						on:click={() => {
-							onValueChange(id, !checked[id]);
-						}}
 						class="scale-90"
 					/>
 				{:else}
-					<input
-						type="radio"
-						{id}
-						{name}
-						value={id}
-						on:change={() => {
-							onValueChange(id, true);
-						}}
-					/>
+					<input id="{name}-{id}" type="radio" {name} value={id} bind:group={selected} />
 				{/if}
-				<Label for={id}>{$_(`layers.label.${id}`)}</Label>
+				<Label for="{name}-{id}" class="flex flex-row items-center gap-1"
+					>{$_(`layers.label.${id}`)}</Label
+				>
 			</div>
 		{/each}
 	</div>
@@ -87,9 +91,10 @@
 					<svelte:self
 						node={node[id]}
 						{name}
+						bind:selected
 						{multiple}
-						{onValueChange}
 						bind:open={open.children[id]}
+						bind:checked={checked[id]}
 					/>
 				</Collapsible.Content>
 			</Collapsible.Root>

@@ -8,43 +8,93 @@
 
 	import { Layers } from 'lucide-svelte';
 
-	import {
-		basemaps,
-		basemapTree,
-		overlays,
-		overlayTree,
-		opacities,
-		defaultBasemap
-	} from '$lib/assets/layers';
-
+	import { basemaps, overlays, opacities } from '$lib/assets/layers';
+	import { settings } from '$lib/db';
 	import { map } from '$lib/stores';
+	import { get, writable } from 'svelte/store';
+
+	const {
+		currentBasemap,
+		previousBasemap,
+		currentOverlays,
+		selectedBasemapTree,
+		selectedOverlayTree
+	} = settings;
 
 	$: if ($map) {
-		$map.on('load', () => {
-			$map.setStyle(basemaps[defaultBasemap]);
+		// Set style depending on the current basemap
+		$map.setStyle(basemaps[$currentBasemap], {
+			diff: false
 		});
 	}
 
-	let addOverlayLayer: { [key: string]: () => void } = {};
+	$: if ($map) {
+		// Add or remove overlay layers depending on the current overlays
+		// Object.keys(overlays).forEach((id) => {
+		// 	if ($currentOverlays.includes(id)) {
+		// 		if (!addOverlayLayer.hasOwnProperty(id)) {
+		// 			addOverlayLayer[id] = addOverlayLayerForId(id);
+		// 		}
+		// 		if (!$map.getLayer(id)) {
+		// 			addOverlayLayer[id]();
+		// 			$map.on('style.load', addOverlayLayer[id]);
+		// 		}
+		// 	} else if ($map.getLayer(id)) {
+		// 		$map.removeLayer(id);
+		// 		$map.off('style.load', addOverlayLayer[id]);
+		// 	}
+		// });
+		console.log($currentOverlays);
+	}
 
+	let selectedBasemap = writable(get(currentBasemap));
+	selectedBasemap.subscribe((value) => {
+		// Updates coming from radio buttons
+		if (value !== get(currentBasemap)) {
+			previousBasemap.set(get(currentBasemap));
+			currentBasemap.set(value);
+		}
+	});
+	currentBasemap.subscribe((value) => {
+		// Updates coming from the database, or from the user swapping basemaps
+		selectedBasemap.set(value);
+	});
+
+	let selectedOverlays = writable(get(currentOverlays));
+	selectedOverlays.subscribe((value) => {
+		// Updates coming from checkboxes
+		if (value != get(currentOverlays)) {
+			currentOverlays.set(value);
+		}
+	});
+	currentOverlays.subscribe((value) => {
+		// Updates coming from the database, or from the user toggling overlays
+		selectedOverlays.set(value);
+	});
+
+	let addOverlayLayer: { [key: string]: () => void } = {};
 	function addOverlayLayerForId(id: string) {
 		return () => {
 			if ($map) {
-				if (!$map.getSource(id)) {
-					$map.addSource(id, overlays[id]);
-				}
-				$map.addLayer({
-					id,
-					type: overlays[id].type === 'raster' ? 'raster' : 'line',
-					source: id,
-					paint: {
-						...(id in opacities
-							? overlays[id].type === 'raster'
-								? { 'raster-opacity': opacities[id] }
-								: { 'line-opacity': opacities[id] }
-							: {})
+				try {
+					if (!$map.getSource(id)) {
+						$map.addSource(id, overlays[id]);
 					}
-				});
+					$map.addLayer({
+						id,
+						type: overlays[id].type === 'raster' ? 'raster' : 'line',
+						source: id,
+						paint: {
+							...(id in opacities
+								? overlays[id].type === 'raster'
+									? { 'raster-opacity': opacities[id] }
+									: { 'line-opacity': opacities[id] }
+								: {})
+						}
+					});
+				} catch (e) {
+					// No reliable way to check if the map is ready to add sources and layers
+				}
 			}
 		};
 	}
@@ -63,37 +113,18 @@
 			<div class="h-fit">
 				<div class="p-2">
 					<LayerTree
-						layerTree={basemapTree}
+						layerTree={$selectedBasemapTree}
 						name="basemaps"
-						onValueChange={(id) => {
-							if ($map) {
-								$map.setStyle(basemaps[id], {
-									diff: false
-								});
-							}
-						}}
+						bind:selected={$selectedBasemap}
 					/>
 				</div>
 				<Separator class="w-full" />
 				<div class="p-2">
 					<LayerTree
-						layerTree={overlayTree}
+						layerTree={$selectedOverlayTree}
 						name="overlays"
 						multiple={true}
-						onValueChange={(id, checked) => {
-							if (!addOverlayLayer.hasOwnProperty(id)) {
-								addOverlayLayer[id] = addOverlayLayerForId(id);
-							}
-							if ($map) {
-								if (checked) {
-									addOverlayLayer[id]();
-									$map.on('style.load', addOverlayLayer[id]);
-								} else {
-									$map.removeLayer(id);
-									$map.off('style.load', addOverlayLayer[id]);
-								}
-							}
-						}}
+						bind:checked={$selectedOverlays}
 					/>
 				</div>
 				<Separator class="w-full" />

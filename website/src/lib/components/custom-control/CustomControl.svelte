@@ -8,15 +8,11 @@
 	let container: HTMLDivElement | null = null;
 
 	$: if ($map && container) {
-		$map.on('load', () => {
-			if ($map && container) {
-				if (position.includes('right')) container.classList.add('float-right');
-				else container.classList.add('float-left');
-				container.classList.remove('hidden');
-				let control = new CustomControl(container);
-				$map.addControl(control, position);
-			}
-		});
+		if (position.includes('right')) container.classList.add('float-right');
+		else container.classList.add('float-left');
+		container.classList.remove('hidden');
+		let control = new CustomControl(container);
+		$map.addControl(control, position);
 	}
 </script>
 

@@ -68,35 +68,39 @@ export class GPXLayer {
         }
 
         let addedSource = false;
-        if (!this.map.getSource(this.fileId)) {
-            let data = this.getGeoJSON();
+        try {
+            if (!this.map.getSource(this.fileId)) {
+                let data = this.getGeoJSON();
 
-            this.map.addSource(this.fileId, {
-                type: 'geojson',
-                data
-            });
-            addedSource = true;
-        }
+                this.map.addSource(this.fileId, {
+                    type: 'geojson',
+                    data
+                });
+                addedSource = true;
+            }
 
-        if (!this.map.getLayer(this.fileId)) {
-            this.map.addLayer({
-                id: this.fileId,
-                type: 'line',
-                source: this.fileId,
-                layout: {
-                    'line-join': 'round',
-                    'line-cap': 'round'
-                },
-                paint: {
-                    'line-color': ['get', 'color'],
-                    'line-width': ['get', 'weight'],
-                    'line-opacity': ['get', 'opacity']
-                }
-            });
+            if (!this.map.getLayer(this.fileId)) {
+                this.map.addLayer({
+                    id: this.fileId,
+                    type: 'line',
+                    source: this.fileId,
+                    layout: {
+                        'line-join': 'round',
+                        'line-cap': 'round'
+                    },
+                    paint: {
+                        'line-color': ['get', 'color'],
+                        'line-width': ['get', 'weight'],
+                        'line-opacity': ['get', 'opacity']
+                    }
+                });
 
-            this.map.on('click', this.fileId, this.selectOnClickBinded);
-            this.map.on('mouseenter', this.fileId, toPointerCursor);
-            this.map.on('mouseleave', this.fileId, toDefaultCursor);
+                this.map.on('click', this.fileId, this.selectOnClickBinded);
+                this.map.on('mouseenter', this.fileId, toPointerCursor);
+                this.map.on('mouseleave', this.fileId, toDefaultCursor);
+            }
+        } catch (e) { // No reliable way to check if the map is ready to add sources and layers
+            return;
         }
 
         if (!addedSource) {
@@ -138,8 +142,12 @@ export class GPXLayer {
         this.map.off('mouseleave', this.fileId, toDefaultCursor);
         this.map.off('style.load', this.updateBinded);
 
-        this.map.removeLayer(this.fileId);
-        this.map.removeSource(this.fileId);
+        if (this.map.getLayer(this.fileId)) {
+            this.map.removeLayer(this.fileId);
+        }
+        if (this.map.getSource(this.fileId)) {
+            this.map.removeSource(this.fileId);
+        }
 
         this.markers.forEach((marker) => {
             marker.remove();
