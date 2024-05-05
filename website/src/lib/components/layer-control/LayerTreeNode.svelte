@@ -6,11 +6,8 @@
 
 	import { ChevronDown, ChevronUp } from 'lucide-svelte';
 
-	import {
-		type CheckedInfoTreeType,
-		type CollapsedInfoTreeType,
-		type LayerTreeType
-	} from '$lib/assets/layers';
+	import { type CollapsedInfoTreeType, type LayerTreeType } from '$lib/assets/layers';
+	import { anySelectedLayer } from './utils';
 
 	import { _ } from 'svelte-i18n';
 
@@ -31,48 +28,40 @@
 		});
 	}
 
-	export let checked: CheckedInfoTreeType;
-	if (Array.isArray(node)) {
-		if (multiple) {
-			node.forEach((id) => {
-				if (!checked.hasOwnProperty(id)) {
-					checked[id] = false;
-				}
-			});
-		}
-	} else {
-		Object.keys(node).forEach((id) => {
-			if (!checked.hasOwnProperty(id)) {
+	export let checked: LayerTreeType;
+	Object.keys(node).forEach((id) => {
+		if (!checked.hasOwnProperty(id)) {
+			if (typeof node[id] == 'boolean') {
+				checked[id] = false;
+			} else {
 				checked[id] = {};
 			}
-		});
-	}
+		}
+	});
 </script>
 
-{#if Array.isArray(node)}
-	<div class="flex flex-col gap-1 mt-1">
-		{#each node as id}
-			<div class="flex flex-row items-center gap-2">
-				{#if multiple}
-					<Checkbox
-						id="{name}-{id}"
-						{name}
-						value={id}
-						bind:checked={checked[id]}
-						class="scale-90"
-					/>
-				{:else}
-					<input id="{name}-{id}" type="radio" {name} value={id} bind:group={selected} />
-				{/if}
-				<Label for="{name}-{id}" class="flex flex-row items-center gap-1"
-					>{$_(`layers.label.${id}`)}</Label
-				>
-			</div>
-		{/each}
-	</div>
-{:else}
-	<div class="flex flex-col gap-1">
-		{#each Object.keys(node) as id}
+<div class="flex flex-col gap-1">
+	{#each Object.keys(node) as id}
+		{#if typeof node[id] == 'boolean'}
+			{#if node[id]}
+				<div class="flex flex-row items-center gap-2 first:mt-1">
+					{#if multiple}
+						<Checkbox
+							id="{name}-{id}"
+							{name}
+							value={id}
+							bind:checked={checked[id]}
+							class="scale-90"
+						/>
+					{:else}
+						<input id="{name}-{id}" type="radio" {name} value={id} bind:group={selected} />
+					{/if}
+					<Label for="{name}-{id}" class="flex flex-row items-center gap-1"
+						>{$_(`layers.label.${id}`)}</Label
+					>
+				</div>
+			{/if}
+		{:else if anySelectedLayer(node[id])}
 			<Collapsible.Root bind:open={open.children[id].self} class="ml-1">
 				<Collapsible.Trigger class="w-full"
 					><Button
@@ -98,9 +87,9 @@
 					/>
 				</Collapsible.Content>
 			</Collapsible.Root>
-		{/each}
-	</div>
-{/if}
+		{/if}
+	{/each}
+</div>
 
 <style lang="postcss">
 	div :global(input[type='radio']) {

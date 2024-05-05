@@ -19,6 +19,8 @@
 	import { resetMode, setMode } from 'mode-watcher';
 
 	import { _ } from 'svelte-i18n';
+	import { anySelectedLayer } from './layer-control/utils';
+	import { defaultOverlays } from '$lib/assets/layers';
 
 	let showDistanceMarkers = false;
 	let showDirectionMarkers = false;
@@ -229,10 +231,10 @@
 			[$currentBasemap, $previousBasemap] = [$previousBasemap, $currentBasemap];
 			e.preventDefault();
 		} else if (e.key === 'F2') {
-			if ($currentOverlays.length > 0) {
-				[$currentOverlays, $previousOverlays] = [[], $currentOverlays];
+			if (anySelectedLayer($currentOverlays)) {
+				[$currentOverlays, $previousOverlays] = [defaultOverlays, $currentOverlays];
 			} else {
-				[$currentOverlays, $previousOverlays] = [$previousOverlays, []];
+				[$currentOverlays, $previousOverlays] = [$previousOverlays, defaultOverlays];
 			}
 			e.preventDefault();
 		}

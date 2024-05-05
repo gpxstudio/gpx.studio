@@ -4,7 +4,7 @@ import { type FreezedObject, type Patch, produceWithPatches, applyPatches } from
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
 import { fileOrder, selectedFiles } from './stores';
 import { mode } from 'mode-watcher';
-import { defaultBasemap, defaultBasemapTree, defaultOverlayTree } from './assets/layers';
+import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays } from './assets/layers';
 
 class Database extends Dexie {
 
@@ -28,6 +28,46 @@ class Database extends Dexie {
 }
 
 const db = new Database();
+
+// Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber, and updates to the store are pushed to the DB
+function dexieSettingStore(setting: string, initial: any): Writable<any> {
+    let store = writable(initial);
+    liveQuery(() => db.settings.get(setting)).subscribe(value => {
+        if (value !== undefined) {
+            store.set(value);
+        }
+    });
+    return {
+        subscribe: store.subscribe,
+        set: (value: any) => db.settings.put(value, setting),
+        update: (callback: (value: any) => any) => {
+            let newValue = callback(get(store));
+            db.settings.put(newValue, setting);
+        }
+    };
+}
+
+export const settings = {
+    distanceUnits: dexieSettingStore('distanceUnits', 'metric'),
+    velocityUnits: dexieSettingStore('velocityUnits', 'speed'),
+    temperatureUnits: dexieSettingStore('temperatureUnits', 'celsius'),
+    mode: dexieSettingStore('mode', (() => {
+        let currentMode: string | undefined = get(mode);
+        if (currentMode === undefined) {
+            currentMode = 'system';
+        }
+        return currentMode;
+    })()),
+    routing: dexieSettingStore('routing', true),
+    routingProfile: dexieSettingStore('routingProfile', 'bike'),
+    privateRoads: dexieSettingStore('privateRoads', false),
+    currentBasemap: dexieSettingStore('currentBasemap', defaultBasemap),
+    previousBasemap: dexieSettingStore('previousBasemap', defaultBasemap),
+    selectedBasemapTree: dexieSettingStore('selectedBasemapTree', defaultBasemapTree),
+    currentOverlays: dexieSettingStore('currentOverlays', defaultOverlays),
+    previousOverlays: dexieSettingStore('previousOverlays', defaultOverlays),
+    selectedOverlayTree: dexieSettingStore('selectedOverlayTree', defaultOverlayTree),
+};
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber
 function dexieStore<T>(querier: () => T | Promise<T>, initial?: T): Readable<T> {
@@ -262,43 +302,3 @@ export const dbUtils = {
         }
     }
 }
-
-function dexieSettingStore(setting: string, initial: any): Writable<any> {
-    let store = writable(initial);
-    liveQuery(() => db.settings.get(setting)).subscribe(value => {
-        if (value !== undefined) {
-            console.log('setting', setting, 'changed to', value);
-            store.set(value);
-        }
-    });
-    return {
-        subscribe: store.subscribe,
-        set: (value: any) => db.settings.put(value, setting),
-        update: (callback: (value: any) => any) => {
-            let newValue = callback(get(store));
-            db.settings.put(newValue, setting);
-        }
-    };
-}
-
-export const settings = {
-    distanceUnits: dexieSettingStore('distanceUnits', 'metric'),
-    velocityUnits: dexieSettingStore('velocityUnits', 'speed'),
-    temperatureUnits: dexieSettingStore('temperatureUnits', 'celsius'),
-    mode: dexieSettingStore('mode', (() => {
-        let currentMode: string | undefined = get(mode);
-        if (currentMode === undefined) {
-            currentMode = 'system';
-        }
-        return currentMode;
-    })()),
-    routing: dexieSettingStore('routing', true),
-    routingProfile: dexieSettingStore('routingProfile', 'bike'),
-    privateRoads: dexieSettingStore('privateRoads', false),
-    currentBasemap: dexieSettingStore('currentBasemap', defaultBasemap),
-    previousBasemap: dexieSettingStore('previousBasemap', defaultBasemap),
-    selectedBasemapTree: dexieSettingStore('selectedBasemapTree', defaultBasemapTree),
-    currentOverlays: dexieSettingStore('currentOverlays', {}),
-    previousOverlays: dexieSettingStore('previousOverlays', {}),
-    selectedOverlayTree: dexieSettingStore('selectedOverlayTree', defaultOverlayTree),
-};

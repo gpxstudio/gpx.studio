@@ -1,10 +1,6 @@
 <script lang="ts">
 	import LayerTreeNode from './LayerTreeNode.svelte';
-	import {
-		type CheckedInfoTreeType,
-		type CollapsedInfoTreeType,
-		type LayerTreeType
-	} from '$lib/assets/layers';
+	import { type CollapsedInfoTreeType, type LayerTreeType } from '$lib/assets/layers';
 
 	export let layerTree: LayerTreeType;
 	export let name: string;
@@ -15,7 +11,7 @@
 		self: true,
 		children: {}
 	};
-	export let checked: CheckedInfoTreeType = {};
+	export let checked: LayerTreeType = {};
 </script>
 
 <form>

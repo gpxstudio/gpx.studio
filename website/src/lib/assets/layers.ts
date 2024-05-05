@@ -371,89 +371,199 @@ export const opacities: { [key: string]: number; } = {
     swisstopoSlope: 0.4,
 };
 
-export type LayerTreeType = string[] | { [key: string]: LayerTreeType; };
+export type LayerTreeType = { [key: string]: LayerTreeType | boolean; };
 export type CollapsedInfoTreeType<T> = {
     self: T;
     children: { [key: string]: CollapsedInfoTreeType<T>; };
 };
-export type CheckedInfoTreeType = { [key: string]: boolean | CheckedInfoTreeType };
 
+// Hierarchy containing all basemaps
 export const basemapTree: LayerTreeType = {
     basemaps: {
-        world: ['mapboxOutdoors', 'mapboxSatellite', 'openStreetMap', 'openTopoMap', 'openHikingMap', 'cyclOSM'],
+        world: {
+            mapboxOutdoors: true,
+            mapboxSatellite: true,
+            openStreetMap: true,
+            openTopoMap: true,
+            openHikingMap: true,
+            cyclOSM: true
+        },
         countries: {
-            bulgaria: ['bgMountains'],
-            finland: ['finlandTopo'],
-            france: ['ignPlanV2', 'ignFrScan25', 'ignSatellite'],
-            new_zealand: ['linz', 'linzTopo'],
-            norway: ['norwayTopo'],
-            spain: ['ignEs'],
-            sweden: ['swedenTopo'],
-            switzerland: ['swisstopo'],
-            united_kingdom: ['ordnanceSurvey'],
-            united_states: ['usgs'],
+            bulgaria: {
+                bgMountains: true,
+            },
+            finland: {
+                finlandTopo: true,
+            },
+            france: {
+                ignPlanV2: true,
+                ignFrScan25: true,
+                ignSatellite: true
+            },
+            new_zealand: {
+                linz: true,
+                linzTopo: true,
+            },
+            norway: {
+                norwayTopo: true,
+            },
+            spain: {
+                ignEs: true,
+            },
+            sweden: {
+                swedenTopo: true,
+            },
+            switzerland: {
+                swisstopo: true,
+            },
+            united_kingdom: {
+                ordnanceSurvey: true,
+            },
+            united_states: {
+                usgs: true,
+            }
         },
     },
 }
 
+// Hierarchy containing all overlays
 export const overlayTree: LayerTreeType = {
     overlays: {
         world: {
-            cyclOSM: ['cyclOSMlite'],
-            waymarked_trails: ['waymarkedTrailsHiking', 'waymarkedTrailsCycling', 'waymarkedTrailsMTB', 'waymarkedTrailsSkating', 'waymarkedTrailsHorseRiding', 'waymarkedTrailsWinter']
+            cyclOSM: {
+                cyclOSMlite: true,
+            },
+            waymarked_trails: {
+                waymarkedTrailsHiking: true,
+                waymarkedTrailsCycling: true,
+                waymarkedTrailsMTB: true,
+                waymarkedTrailsSkating: true,
+                waymarkedTrailsHorseRiding: true,
+                waymarkedTrailsWinter: true,
+            }
         },
         countries: {
-            france: ['ignFrCadastre', 'ignSlope'],
-            switzerland: ['swisstopoSlope', 'swisstopoCycling', 'swisstopoMountainBike'],
+            france: {
+                ignFrCadastre: true,
+                ignSlope: true,
+            },
+            switzerland: {
+                swisstopoSlope: true,
+                swisstopoCycling: true,
+                swisstopoMountainBike: true,
+            }
         },
     },
 }
 
-export const layerKeys: { [key: string]: string[]; } = {
-    mapboxOutdoors: ['basemaps', 'world'],
-    mapboxSatellite: ['basemaps', 'world'],
-    openStreetMap: ['basemaps', 'world'],
-    openTopoMap: ['basemaps', 'world'],
-    openHikingMap: ['basemaps', 'world'],
-    cyclOSM: ['basemaps', 'world'],
-    cyclOSMlite: ['overlays', 'world', 'cyclOSM'],
-    waymarkedTrailsHiking: ['overlays', 'world', 'waymarked_trails'],
-    waymarkedTrailsCycling: ['overlays', 'world', 'waymarked_trails'],
-    waymarkedTrailsMTB: ['overlays', 'world', 'waymarked_trails'],
-    waymarkedTrailsSkating: ['overlays', 'world', 'waymarked_trails'],
-    waymarkedTrailsHorseRiding: ['overlays', 'world', 'waymarked_trails'],
-    waymarkedTrailsWinter: ['overlays', 'world', 'waymarked_trails'],
-    bgMountains: ['basemaps', 'countries', 'bulgaria'],
-    finlandTopo: ['basemaps', 'countries', 'finland'],
-    ignPlanV2: ['basemaps', 'countries', 'france'],
-    ignFrScan25: ['basemaps', 'countries', 'france'],
-    ignSatellite: ['basemaps', 'countries', 'france'],
-    ignFrCadastre: ['overlays', 'countries', 'france'],
-    ignSlope: ['overlays', 'countries', 'france'],
-    linz: ['basemaps', 'countries', 'new_zealand'],
-    linzTopo: ['basemaps', 'countries', 'new_zealand'],
-    norwayTopo: ['basemaps', 'countries', 'norway'],
-    swisstopo: ['basemaps', 'countries', 'switzerland'],
-    swisstopoSlope: ['overlays', 'countries', 'switzerland'],
-    swisstopoCycling: ['overlays', 'countries', 'switzerland'],
-    swisstopoMountainBike: ['overlays', 'countries', 'switzerland'],
-    swedenTopo: ['basemaps', 'countries', 'sweden'],
-    ordnanceSurvey: ['basemaps', 'countries', 'united_kingdom'],
-    usgs: ['basemaps', 'countries', 'united_states'],
-};
-
+// Default basemap used
 export const defaultBasemap = 'mapboxOutdoors';
 
+// Default overlays used (none)
+export const defaultOverlays = {
+    overlays: {
+        world: {
+            cyclOSM: {
+                cyclOSMlite: false,
+            },
+            waymarked_trails: {
+                waymarkedTrailsHiking: false,
+                waymarkedTrailsCycling: false,
+                waymarkedTrailsMTB: false,
+                waymarkedTrailsSkating: false,
+                waymarkedTrailsHorseRiding: false,
+                waymarkedTrailsWinter: false,
+            }
+        },
+        countries: {
+            france: {
+                ignFrCadastre: false,
+                ignSlope: false,
+            },
+            switzerland: {
+                swisstopoSlope: false,
+                swisstopoCycling: false,
+                swisstopoMountainBike: false,
+            }
+        },
+    },
+};
+
+// Default basemaps shown in the layer menu
 export const defaultBasemapTree: LayerTreeType = {
     basemaps: {
-        world: ['mapboxOutdoors', 'mapboxSatellite', 'openStreetMap', 'openTopoMap', 'openHikingMap', 'cyclOSM']
+        world: {
+            mapboxOutdoors: true,
+            mapboxSatellite: true,
+            openStreetMap: true,
+            openTopoMap: true,
+            openHikingMap: true,
+            cyclOSM: true
+        },
+        countries: {
+            bulgaria: {
+                bgMountains: false,
+            },
+            finland: {
+                finlandTopo: false,
+            },
+            france: {
+                ignPlanV2: false,
+                ignFrScan25: false,
+                ignSatellite: false
+            },
+            new_zealand: {
+                linz: false,
+                linzTopo: false,
+            },
+            norway: {
+                norwayTopo: false,
+            },
+            spain: {
+                ignEs: false,
+            },
+            sweden: {
+                swedenTopo: false,
+            },
+            switzerland: {
+                swisstopo: false,
+            },
+            united_kingdom: {
+                ordnanceSurvey: false,
+            },
+            united_states: {
+                usgs: false,
+            }
+        },
     }
 };
+
+// Default overlays shown in the layer menu
 export const defaultOverlayTree: LayerTreeType = {
     overlays: {
         world: {
-            cyclOSM: ['cyclOSMlite'],
-            waymarked_trails: ['waymarkedTrailsHiking', 'waymarkedTrailsCycling', 'waymarkedTrailsMTB']
-        }
+            cyclOSM: {
+                cyclOSMlite: true,
+            },
+            waymarked_trails: {
+                waymarkedTrailsHiking: true,
+                waymarkedTrailsCycling: true,
+                waymarkedTrailsMTB: true,
+                waymarkedTrailsSkating: false,
+                waymarkedTrailsHorseRiding: false,
+                waymarkedTrailsWinter: false,
+            }
+        },
+        countries: {
+            france: {
+                ignFrCadastre: false,
+                ignSlope: false,
+            },
+            switzerland: {
+                swisstopoSlope: false,
+                swisstopoCycling: false,
+                swisstopoMountainBike: false,
+            }
+        },
     }
 }
