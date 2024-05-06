@@ -27,9 +27,20 @@
 			<ContextMenu.Trigger>
 				<Button
 					variant="outline"
-					class="h-9 px-1.5 py-1 border-none shadow-md focus-visible:ring-0 focus-visible:ring-offset-0"
+					class="h-9 p-0 border-none shadow-md focus-visible:ring-0 focus-visible:ring-offset-0"
 				>
-					{$file.metadata.name}
+					<span
+						class="w-full h-full px-1.5 py-2"
+						on:contextmenu={(e) => {
+							if (e.ctrlKey) {
+								get(selectFiles).addSelect($file._data.id);
+								e.stopPropagation();
+								e.preventDefault();
+							}
+						}}
+					>
+						{$file.metadata.name}
+					</span>
 				</Button>
 			</ContextMenu.Trigger>
 			<ContextMenu.Content>

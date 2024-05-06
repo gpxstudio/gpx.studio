@@ -63,13 +63,16 @@
 		sortable = Sortable.create(container, {
 			forceAutoScrollFallback: true,
 			multiDrag: true,
-			multiDragKey: 'shift',
+			multiDragKey: 'Meta',
 			selectedClass: 'sortable-selected',
 			avoidImplicitDeselect: true,
 			onSelect: (e) => {
 				let selectedId = e.item.getAttribute('data-id');
 				addSelectFile(selectedId);
-				if (!e.originalEvent.shiftKey && $selectedFiles.size > 1) {
+				if (
+					!(e.originalEvent.shiftKey || e.originalEvent.ctrlKey || e.originalEvent.metaKey) &&
+					$selectedFiles.size > 1
+				) {
 					$selectedFiles.forEach((fileId) => {
 						if (fileId !== selectedId) {
 							deselectFile(fileId);
