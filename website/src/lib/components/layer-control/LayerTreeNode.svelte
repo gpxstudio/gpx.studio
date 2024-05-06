@@ -17,6 +17,8 @@
 	export let multiple: boolean = false;
 
 	export let open: CollapsedInfoTreeType<boolean>;
+	export let checked: LayerTreeType;
+
 	if (!Array.isArray(node)) {
 		Object.keys(node).forEach((id) => {
 			if (!open.children.hasOwnProperty(id)) {
@@ -27,8 +29,6 @@
 			}
 		});
 	}
-
-	export let checked: LayerTreeType;
 	Object.keys(node).forEach((id) => {
 		if (!checked.hasOwnProperty(id)) {
 			if (typeof node[id] == 'boolean') {

@@ -43,6 +43,18 @@
 
 	let undoDisabled = derived(canUndo, ($canUndo) => !$canUndo);
 	let redoDisabled = derived(canRedo, ($canRedo) => !$canRedo);
+
+	function switchBasemaps() {
+		[$currentBasemap, $previousBasemap] = [$previousBasemap, $currentBasemap];
+	}
+
+	function toggleOverlays() {
+		if (anySelectedLayer($currentOverlays)) {
+			[$currentOverlays, $previousOverlays] = [defaultOverlays, $currentOverlays];
+		} else {
+			[$currentOverlays, $previousOverlays] = [$previousOverlays, defaultOverlays];
+		}
+	}
 </script>
 
 <div class="absolute top-2 left-0 right-0 z-20 flex flex-row justify-center pointer-events-none">
@@ -125,6 +137,17 @@
 						{$_('menu.delete_all')}
 						<Shortcut key="⌫" ctrl={true} shift={true} />
 					</Menubar.Item>
+				</Menubar.Content>
+			</Menubar.Menu>
+			<Menubar.Menu>
+				<Menubar.Trigger>{$_('menu.view')}</Menubar.Trigger>
+				<Menubar.Content class="border-none">
+					<Menubar.Item on:click={switchBasemaps}
+						>{$_('menu.switch_basemap')}<Shortcut key="F1" /></Menubar.Item
+					>
+					<Menubar.Item on:click={toggleOverlays}
+						>{$_('menu.toggle_overlays')}<Shortcut key="F2" /></Menubar.Item
+					>
 				</Menubar.Content>
 			</Menubar.Menu>
 			<Menubar.Menu>
@@ -228,14 +251,10 @@
 			$selectFiles.selectAllFiles();
 			e.preventDefault();
 		} else if (e.key === 'F1') {
-			[$currentBasemap, $previousBasemap] = [$previousBasemap, $currentBasemap];
+			switchBasemaps();
 			e.preventDefault();
 		} else if (e.key === 'F2') {
-			if (anySelectedLayer($currentOverlays)) {
-				[$currentOverlays, $previousOverlays] = [defaultOverlays, $currentOverlays];
-			} else {
-				[$currentOverlays, $previousOverlays] = [$previousOverlays, defaultOverlays];
-			}
+			toggleOverlays();
 			e.preventDefault();
 		}
 	}}

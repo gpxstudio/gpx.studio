@@ -47,6 +47,26 @@ function dexieSettingStore(setting: string, initial: any): Writable<any> {
     };
 }
 
+// Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber, and updates to the store are pushed to the DB
+function dexieUninitializedSettingStore(setting: string, initial: any): Writable<any> {
+    let store = writable(undefined);
+    liveQuery(() => db.settings.get(setting)).subscribe(value => {
+        if (value !== undefined) {
+            store.set(value);
+        } else {
+            store.set(initial);
+        }
+    });
+    return {
+        subscribe: store.subscribe,
+        set: (value: any) => db.settings.put(value, setting),
+        update: (callback: (value: any) => any) => {
+            let newValue = callback(get(store));
+            db.settings.put(newValue, setting);
+        }
+    };
+}
+
 export const settings = {
     distanceUnits: dexieSettingStore('distanceUnits', 'metric'),
     velocityUnits: dexieSettingStore('velocityUnits', 'speed'),
@@ -64,7 +84,7 @@ export const settings = {
     currentBasemap: dexieSettingStore('currentBasemap', defaultBasemap),
     previousBasemap: dexieSettingStore('previousBasemap', defaultBasemap),
     selectedBasemapTree: dexieSettingStore('selectedBasemapTree', defaultBasemapTree),
-    currentOverlays: dexieSettingStore('currentOverlays', defaultOverlays),
+    currentOverlays: dexieUninitializedSettingStore('currentOverlays', defaultOverlays),
     previousOverlays: dexieSettingStore('previousOverlays', defaultOverlays),
     selectedOverlayTree: dexieSettingStore('selectedOverlayTree', defaultOverlayTree),
 };

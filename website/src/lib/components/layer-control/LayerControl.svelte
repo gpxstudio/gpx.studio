@@ -29,7 +29,7 @@
 		});
 	}
 
-	$: if ($map) {
+	$: if ($map && $currentOverlays) {
 		// Add or remove overlay layers depending on the current overlays
 		let overlayLayers = getLayers($currentOverlays);
 		Object.keys(overlayLayers).forEach((id) => {
@@ -109,12 +109,14 @@
 				</div>
 				<Separator class="w-full" />
 				<div class="p-2">
-					<LayerTree
-						layerTree={$selectedOverlayTree}
-						name="overlays"
-						multiple={true}
-						bind:checked={$currentOverlays}
-					/>
+					{#if $currentOverlays}
+						<LayerTree
+							layerTree={$selectedOverlayTree}
+							name="overlays"
+							multiple={true}
+							bind:checked={$currentOverlays}
+						/>
+					{/if}
 				</div>
 				<Separator class="w-full" />
 				<div class="p-2">
