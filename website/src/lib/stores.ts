@@ -80,6 +80,7 @@ export function createFile() {
     dbUtils.add(file);
 
     selectFileWhenLoaded(file._data.id);
+    currentTool.set(Tool.ROUTING);
 }
 
 export function triggerFileInput() {
