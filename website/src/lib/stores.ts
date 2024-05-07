@@ -28,6 +28,7 @@ fileObservers.subscribe((files) => { // Update selectedFiles automatically when 
     }
 });
 
+const targetMapBounds = writable(new mapboxgl.LngLatBounds([180, 90, -180, -90]));
 const fileStatistics: Map<string, Writable<GPXStatistics>> = new Map();
 const fileUnsubscribe: Map<string, Function> = new Map();
 export const gpxStatistics: Writable<GPXStatistics> = writable(new GPXStatistics());
@@ -54,22 +55,50 @@ fileObservers.subscribe((files) => { // Maintain up-to-date statistics
     });
     files.forEach((fileObserver, fileId) => {
         if (!fileStatistics.has(fileId)) {
-            fileStatistics.set(fileId, writable(new GPXStatistics()));
+            let statisticsStore = writable(new GPXStatistics());
+            fileStatistics.set(fileId, statisticsStore);
             let unsubscribe = fileObserver.subscribe((file) => {
                 if (file) {
-                    fileStatistics.get(fileId)?.set(file.getStatistics());
+                    statisticsStore.set(file.getStatistics());
                     if (get(selectedFiles).has(fileId)) {
                         updateGPXData();
                     }
                 }
             });
             fileUnsubscribe.set(fileId, unsubscribe);
+
+            let boundsUnsubscribe = statisticsStore.subscribe((stats) => {
+                let fileBounds = stats.global.bounds;
+                if (fileBounds.southWest.lat == 90 && fileBounds.southWest.lon == 180 && fileBounds.northEast.lat == -90 && fileBounds.northEast.lon == -180) {
+                    return;
+                }
+                targetMapBounds.update((bounds) => {
+                    bounds.extend(fileBounds.southWest);
+                    bounds.extend(fileBounds.northEast);
+                    bounds.extend([fileBounds.southWest.lon, fileBounds.northEast.lat]);
+                    bounds.extend([fileBounds.northEast.lon, fileBounds.southWest.lat]);
+                    return bounds;
+                });
+                boundsUnsubscribe();
+            })
         }
     });
 });
 
 selectedFiles.subscribe((selectedFiles) => { // Maintain up-to-date statistics for the current selection
     updateGPXData();
+});
+
+targetMapBounds.subscribe((bounds) => {
+    if (bounds.getSouth() == 90 && bounds.getWest() == 180 && bounds.getNorth() == -90 && bounds.getEast() == -180) {
+        return;
+    }
+
+    get(map)?.fitBounds(bounds, {
+        padding: 80,
+        linear: true,
+        easing: () => 1
+    });
 });
 
 export const gpxLayers: Writable<Map<string, GPXLayer>> = writable(new Map());
@@ -113,35 +142,23 @@ export function triggerFileInput() {
 }
 
 export async function loadFiles(list: FileList) {
-    let bounds = new mapboxgl.LngLatBounds();
-    let mapBounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
-    if (get(fileObservers).size > 0) {
-        mapBounds = get(map)?.getBounds() ?? mapBounds;
-        bounds.extend(mapBounds);
-    }
     let files = [];
     for (let i = 0; i < list.length; i++) {
         let file = await loadFile(list[i]);
         if (file) {
             files.push(file);
-
-            /*let fileBounds = file.getStatistics().bounds;
-            bounds.extend(fileBounds.southWest);
-            bounds.extend(fileBounds.northEast);
-            bounds.extend([fileBounds.southWest.lon, fileBounds.northEast.lat]);
-            bounds.extend([fileBounds.northEast.lon, fileBounds.southWest.lat]);*/
         }
     }
 
-    dbUtils.addMultiple(files);
+    let bounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
+    let mapBounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
+    if (get(fileObservers).size > 0) {
+        mapBounds = get(map)?.getBounds() ?? mapBounds;
+        bounds.extend(mapBounds);
+    }
+    targetMapBounds.set(bounds);
 
-    /*if (!mapBounds.contains(bounds.getSouthWest()) || !mapBounds.contains(bounds.getNorthEast()) || !mapBounds.contains(bounds.getSouthEast()) || !mapBounds.contains(bounds.getNorthWest())) {
-        get(map)?.fitBounds(bounds, {
-            padding: 80,
-            linear: true,
-            easing: () => 1
-        });
-    }*/
+    dbUtils.addMultiple(files);
 
     selectFileWhenLoaded(files[0]._data.id);
 }

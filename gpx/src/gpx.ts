@@ -326,9 +326,9 @@ export class TrackSegment extends GPXTreeLeaf {
 
             // bounds
             statistics.global.bounds.southWest.lat = Math.min(statistics.global.bounds.southWest.lat, points[i].attributes.lat);
-            statistics.global.bounds.southWest.lon = Math.max(statistics.global.bounds.southWest.lon, points[i].attributes.lon);
+            statistics.global.bounds.southWest.lon = Math.min(statistics.global.bounds.southWest.lon, points[i].attributes.lon);
             statistics.global.bounds.northEast.lat = Math.max(statistics.global.bounds.northEast.lat, points[i].attributes.lat);
-            statistics.global.bounds.northEast.lon = Math.min(statistics.global.bounds.northEast.lon, points[i].attributes.lon);
+            statistics.global.bounds.northEast.lon = Math.max(statistics.global.bounds.northEast.lon, points[i].attributes.lon);
         }
 
         statistics.global.time.total = statistics.local.time[statistics.local.time.length - 1];
@@ -620,11 +620,11 @@ export class GPXStatistics {
             bounds: {
                 southWest: {
                     lat: 90,
-                    lon: -180,
+                    lon: 180,
                 },
                 northEast: {
                     lat: -90,
-                    lon: 180,
+                    lon: -180,
                 },
             },
         };
@@ -668,9 +668,9 @@ export class GPXStatistics {
         this.global.elevation.loss += other.global.elevation.loss;
 
         this.global.bounds.southWest.lat = Math.min(this.global.bounds.southWest.lat, other.global.bounds.southWest.lat);
-        this.global.bounds.southWest.lon = Math.max(this.global.bounds.southWest.lon, other.global.bounds.southWest.lon);
+        this.global.bounds.southWest.lon = Math.min(this.global.bounds.southWest.lon, other.global.bounds.southWest.lon);
         this.global.bounds.northEast.lat = Math.max(this.global.bounds.northEast.lat, other.global.bounds.northEast.lat);
-        this.global.bounds.northEast.lon = Math.min(this.global.bounds.northEast.lon, other.global.bounds.northEast.lon);
+        this.global.bounds.northEast.lon = Math.max(this.global.bounds.northEast.lon, other.global.bounds.northEast.lon);
     }
 }
 
