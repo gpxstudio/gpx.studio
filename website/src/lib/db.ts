@@ -1,15 +1,18 @@
 import Dexie, { liveQuery } from 'dexie';
 import { GPXFile } from 'gpx';
-import { type FreezedObject, type Patch, produceWithPatches, applyPatches } from 'structurajs';
+import { enableMapSet, enablePatches, produceWithPatches, applyPatches, type Patch } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
 import { fileOrder, selectedFiles } from './stores';
 import { mode } from 'mode-watcher';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays } from './assets/layers';
 
+enableMapSet();
+enablePatches();
+
 class Database extends Dexie {
 
     fileids!: Dexie.Table<string, string>;
-    files!: Dexie.Table<FreezedObject<GPXFile>, string>;
+    files!: Dexie.Table<GPXFile, string>;
     patches!: Dexie.Table<{ patch: Patch[], inversePatch: Patch[], index: number }, number>;
     settings!: Dexie.Table<any, string>;
 
@@ -103,7 +106,7 @@ function dexieStore<T>(querier: () => T | Promise<T>, initial?: T): Readable<T> 
 }
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber, also takes care of the conversion to a GPXFile object
-function dexieGPXFileStore(querier: () => FreezedObject<GPXFile> | undefined | Promise<FreezedObject<GPXFile> | undefined>): Readable<GPXFile> {
+function dexieGPXFileStore(querier: () => GPXFile | undefined | Promise<GPXFile | undefined>): Readable<GPXFile> {
     let store = writable<GPXFile>(undefined);
     liveQuery(querier).subscribe(value => {
         if (value !== undefined) {
@@ -118,8 +121,8 @@ function dexieGPXFileStore(querier: () => FreezedObject<GPXFile> | undefined | P
 }
 
 // Add/update the files to the database
-function updateDbFiles(files: (FreezedObject<GPXFile> | undefined)[], add: boolean = false) {
-    let filteredFiles = files.filter(file => file !== undefined) as FreezedObject<GPXFile>[];
+function updateDbFiles(files: (GPXFile | undefined)[], add: boolean = false) {
+    let filteredFiles = files.filter(file => file !== undefined) as GPXFile[];
     let fileIds = filteredFiles.map(file => file._data.id);
     if (add) {
         return db.transaction('rw', db.fileids, db.files, async () => {
@@ -140,7 +143,7 @@ function deleteDbFiles(fileIds: string[]) {
 }
 
 // Commit the changes to the file state to the database
-function commitFileStateChange(newFileState: ReadonlyMap<string, FreezedObject<GPXFile>>, patch: Patch[]) {
+function commitFileStateChange(newFileState: ReadonlyMap<string, GPXFile>, patch: Patch[]) {
     if (newFileState.size > fileState.size) {
         return updateDbFiles(getChangedFileIds(patch).map((fileId) => newFileState.get(fileId)), true);
     } else if (newFileState.size === fileState.size) {
@@ -238,15 +241,12 @@ function applyPatch(patch: Patch[]) {
 }
 
 // Get the file ids of the files that have changed in the patch
-function getChangedFileIds(patch: Patch[]) {
-    let changedFileIds = [];
+function getChangedFileIds(patch: Patch[]): string[] {
+    let changedFileIds = new Set();
     for (let p of patch) {
-        let fileId = p.p?.toString();
-        if (fileId) {
-            changedFileIds.push(fileId);
-        }
+        changedFileIds.add(p.path[0]);
     }
-    return changedFileIds;
+    return Array.from(changedFileIds);
 }
 
 // Generate unique file ids, different from the ones in the database

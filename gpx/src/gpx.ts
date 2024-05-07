@@ -1,4 +1,5 @@
 import { Coordinates, GPXFileAttributes, GPXFileType, Link, Metadata, TrackExtensions, TrackPointExtensions, TrackPointType, TrackSegmentType, TrackType, WaypointType } from "./types";
+import { immerable } from "immer";
 
 function cloneJSON<T>(obj: T): T {
     if (obj === null || typeof obj !== 'object') {
@@ -120,6 +121,8 @@ export class GPXFiles extends GPXTreeNode<GPXFile> {
 
 // A class that represents a GPX file
 export class GPXFile extends GPXTreeNode<Track>{
+    [immerable] = true;
+
     attributes: GPXFileAttributes;
     metadata: Metadata;
     wpt: Waypoint[];
@@ -176,6 +179,8 @@ export class GPXFile extends GPXTreeNode<Track>{
 
 // A class that represents a Track in a GPX file
 export class Track extends GPXTreeNode<TrackSegment> {
+    [immerable] = true;
+
     name?: string;
     cmt?: string;
     desc?: string;
@@ -256,6 +261,8 @@ export class Track extends GPXTreeNode<TrackSegment> {
 
 // A class that represents a TrackSegment in a GPX file
 export class TrackSegment extends GPXTreeLeaf {
+    [immerable] = true;
+
     trkpt: TrackPoint[];
 
     constructor(segment?: TrackSegmentType | TrackSegment) {
@@ -432,6 +439,8 @@ export class TrackSegment extends GPXTreeLeaf {
 };
 
 export class TrackPoint {
+    [immerable] = true;
+
     attributes: Coordinates;
     ele?: number;
     time?: Date;
