@@ -28,32 +28,47 @@ fileObservers.subscribe((files) => { // Update selectedFiles automatically when 
     }
 });
 
-const fileStatistics: Map<string, GPXStatistics> = new Map();
+const fileStatistics: Map<string, Writable<GPXStatistics>> = new Map();
+const fileUnsubscribe: Map<string, Function> = new Map();
 export const gpxStatistics: Writable<GPXStatistics> = writable(new GPXStatistics());
 
 function updateGPXData() {
     let fileIds: string[] = get(fileOrder).filter((f) => fileStatistics.has(f) && get(selectedFiles).has(f));
     gpxStatistics.set(fileIds.reduce((stats: GPXStatistics, fileId: string) => {
-        stats.mergeWith(fileStatistics.get(fileId) ?? new GPXStatistics());
+        let statisticsStore = fileStatistics.get(fileId);
+        if (statisticsStore) {
+            stats.mergeWith(get(statisticsStore));
+        }
         return stats;
     }, new GPXStatistics()));
 }
 
-let selectedFilesUnsubscribe: Function[] = [];
-selectedFiles.subscribe((selectedFiles) => {
-    selectedFilesUnsubscribe.forEach((unsubscribe) => unsubscribe());
-    selectedFiles.forEach((fileId) => {
-        let fileObserver = get(fileObservers).get(fileId);
-        if (fileObserver) {
-            let unsubscribe = fileObserver.subscribe((file) => {
-                if (file) {
-                    fileStatistics.set(fileId, file.getStatistics());
-                    updateGPXData();
-                }
-            });
-            selectedFilesUnsubscribe.push(unsubscribe);
+fileObservers.subscribe((files) => { // Maintain up-to-date statistics
+    fileStatistics.forEach((stats, fileId) => {
+        if (!files.has(fileId)) {
+            fileStatistics.delete(fileId);
+            let unsubscribe = fileUnsubscribe.get(fileId);
+            if (unsubscribe) unsubscribe();
+            fileUnsubscribe.delete(fileId);
         }
     });
+    files.forEach((fileObserver, fileId) => {
+        if (!fileStatistics.has(fileId)) {
+            fileStatistics.set(fileId, writable(new GPXStatistics()));
+            let unsubscribe = fileObserver.subscribe((file) => {
+                if (file) {
+                    fileStatistics.get(fileId)?.set(file.getStatistics());
+                    if (get(selectedFiles).has(fileId)) {
+                        updateGPXData();
+                    }
+                }
+            });
+            fileUnsubscribe.set(fileId, unsubscribe);
+        }
+    });
+});
+
+selectedFiles.subscribe((selectedFiles) => { // Maintain up-to-date statistics for the current selection
     updateGPXData();
 });
 
