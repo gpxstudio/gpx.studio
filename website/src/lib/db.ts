@@ -156,7 +156,7 @@ const fileState: Map<string, GPXFile> = new Map(); // Used to generate patches
 // Observe the file ids in the database, and maintain a map of file observers for the corresponding files
 liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
     // Find new files to observe
-    let newFiles = dbFileIds.filter(id => !get(fileObservers).has(id));
+    let newFiles = dbFileIds.filter(id => !get(fileObservers).has(id)).sort((a, b) => parseInt(a.split('-')[1]) - parseInt(b.split('-')[1]));
     // Find deleted files to stop observing
     let deletedFiles = Array.from(get(fileObservers).keys()).filter(id => !dbFileIds.find(fileId => fileId === id));
     // Update the store
