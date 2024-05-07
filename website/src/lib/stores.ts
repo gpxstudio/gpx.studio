@@ -28,7 +28,10 @@ fileObservers.subscribe((files) => { // Update selectedFiles automatically when 
     }
 });
 
-const targetMapBounds = writable(new mapboxgl.LngLatBounds([180, 90, -180, -90]));
+const targetMapBounds = writable({
+    bounds: new mapboxgl.LngLatBounds([180, 90, -180, -90]),
+    initial: true
+});
 const fileStatistics: Map<string, Writable<GPXStatistics>> = new Map();
 const fileUnsubscribe: Map<string, Function> = new Map();
 export const gpxStatistics: Writable<GPXStatistics> = writable(new GPXStatistics());
@@ -52,7 +55,10 @@ fileObservers.subscribe((files) => { // Maintain up-to-date statistics
             mapBounds = get(map)?.getBounds() ?? mapBounds;
             bounds.extend(mapBounds);
         }
-        targetMapBounds.set(bounds);
+        targetMapBounds.set({
+            bounds: bounds,
+            initial: true
+        });
     }
 
     fileStatistics.forEach((stats, fileId) => {
@@ -79,16 +85,19 @@ fileObservers.subscribe((files) => { // Maintain up-to-date statistics
 
             let boundsUnsubscribe = statisticsStore.subscribe((stats) => {
                 let fileBounds = stats.global.bounds;
-                if (fileBounds.southWest.lat == 90 && fileBounds.southWest.lon == 180 && fileBounds.northEast.lat == -90 && fileBounds.northEast.lon == -180) {
+                if (fileBounds.southWest.lat == 90 && fileBounds.southWest.lon == 180 && fileBounds.northEast.lat == -90 && fileBounds.northEast.lon == -180) { // Stats are not yet calculated
                     return;
                 }
-                targetMapBounds.update((bounds) => {
-                    bounds.extend(fileBounds.southWest);
-                    bounds.extend(fileBounds.northEast);
-                    bounds.extend([fileBounds.southWest.lon, fileBounds.northEast.lat]);
-                    bounds.extend([fileBounds.northEast.lon, fileBounds.southWest.lat]);
-                    return bounds;
-                });
+                if (fileBounds.southWest.lat != fileBounds.northEast.lat || fileBounds.southWest.lon != fileBounds.northEast.lon) { // Avoid update for new files
+                    targetMapBounds.update((target) => {
+                        target.bounds.extend(fileBounds.southWest);
+                        target.bounds.extend(fileBounds.northEast);
+                        target.bounds.extend([fileBounds.southWest.lon, fileBounds.northEast.lat]);
+                        target.bounds.extend([fileBounds.northEast.lon, fileBounds.southWest.lat]);
+                        target.initial = false;
+                        return target;
+                    });
+                }
                 boundsUnsubscribe();
             })
         }
@@ -100,11 +109,11 @@ selectedFiles.subscribe((selectedFiles) => { // Maintain up-to-date statistics f
 });
 
 targetMapBounds.subscribe((bounds) => {
-    if (bounds.getSouth() == 90 && bounds.getWest() == 180 && bounds.getNorth() == -90 && bounds.getEast() == -180) {
+    if (bounds.initial) {
         return;
     }
 
-    get(map)?.fitBounds(bounds, {
+    get(map)?.fitBounds(bounds.bounds, {
         padding: 80,
         linear: true,
         easing: () => 1
