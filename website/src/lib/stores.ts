@@ -45,6 +45,16 @@ function updateGPXData() {
 }
 
 fileObservers.subscribe((files) => { // Maintain up-to-date statistics
+    if (files.size > fileStatistics.size) { // Files are added
+        let bounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
+        let mapBounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
+        if (fileStatistics.size > 0) { // Some files are already loaded
+            mapBounds = get(map)?.getBounds() ?? mapBounds;
+            bounds.extend(mapBounds);
+        }
+        targetMapBounds.set(bounds);
+    }
+
     fileStatistics.forEach((stats, fileId) => {
         if (!files.has(fileId)) {
             fileStatistics.delete(fileId);
@@ -149,14 +159,6 @@ export async function loadFiles(list: FileList) {
             files.push(file);
         }
     }
-
-    let bounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
-    let mapBounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
-    if (get(fileObservers).size > 0) {
-        mapBounds = get(map)?.getBounds() ?? mapBounds;
-        bounds.extend(mapBounds);
-    }
-    targetMapBounds.set(bounds);
 
     dbUtils.addMultiple(files);
 
