@@ -175,19 +175,15 @@ liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
 });
 
 const patchIndex: Readable<number> = dexieStore(() => db.settings.get('patchIndex'), -1);
-const patchMinMaxIndex: Readable<{ min: number, max: number }> = dexieStore(() => {
-    let ordered = db.patches.orderBy(':id');
-    return Promise.all([ordered.first(), ordered.last()]).then(([first, last]) => {
-        return {
-            min: first?.index ?? 0,
-            max: (last?.index ?? -1) + 1
-        };
-    });
-}, { min: 0, max: 0 });
+const patchMinMaxIndex: Readable<{ min: number, max: number }> = dexieStore(() => db.patches.orderBy(':id').keys().then(keys => {
+    if (keys.length === 0) {
+        return { min: 0, max: 0 };
+    } else {
+        return { min: keys[0], max: keys[keys.length - 1] + 1 };
+    }
+}), { min: 0, max: 0 });
 export const canUndo: Readable<boolean> = derived([patchIndex, patchMinMaxIndex], ([$patchIndex, $patchMinMaxIndex]) => $patchIndex >= $patchMinMaxIndex.min);
-export const canRedo: Readable<boolean> = derived([patchIndex, patchMinMaxIndex], ([$patchIndex, $patchMinMaxIndex]) => {
-    return $patchIndex < $patchMinMaxIndex.max - 1;
-});
+export const canRedo: Readable<boolean> = derived([patchIndex, patchMinMaxIndex], ([$patchIndex, $patchMinMaxIndex]) => $patchIndex < $patchMinMaxIndex.max - 1);
 
 // Helper function to apply a callback to the global file state
 function applyGlobal(callback: (files: Map<string, GPXFile>) => void) {
@@ -214,11 +210,15 @@ function applyToFiles(fileIds: string[], callback: (file: GPXFile) => void) {
     return commitFileStateChange(newFileState, patch);
 }
 
+const MAX_PATCHES = 100;
 // Store the new patches in the database
 async function storePatches(patch: Patch[], inversePatch: Patch[]) {
     if (get(patchIndex) !== undefined) {
         db.patches.where(':id').above(get(patchIndex)).delete(); // Delete all patches after the current patch to avoid redoing them
-        db.patches.where(':id').below(get(patchMinMaxIndex).max - 50).delete(); // Keep only the last 50 patches
+        let minmax = get(patchMinMaxIndex);
+        if (minmax.max - minmax.min + 1 > MAX_PATCHES) {
+            db.patches.where(':id').belowOrEqual(get(patchMinMaxIndex).max - MAX_PATCHES).delete();
+        }
     }
     db.transaction('rw', db.patches, db.settings, async () => {
         let index = get(patchIndex) + 1;
