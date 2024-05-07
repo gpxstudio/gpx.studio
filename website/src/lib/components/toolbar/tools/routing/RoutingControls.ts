@@ -315,13 +315,17 @@ export class RoutingControls {
     }
 
     async appendAnchor(e: mapboxgl.MapMouseEvent) { // Add a new anchor to the end of the last segment
+        this.appendAnchorWithCoordinates({
+            lat: e.lngLat.lat,
+            lon: e.lngLat.lng
+        });
+    }
+
+    async appendAnchorWithCoordinates(coordinates: Coordinates) { // Add a new anchor to the end of the last segment
         let lastAnchor = this.anchors[this.anchors.length - 1];
 
         let newPoint = new TrackPoint({
-            attributes: {
-                lat: e.lngLat.lat,
-                lon: e.lngLat.lng
-            }
+            attributes: coordinates
         });
         newPoint._data.anchor = true;
         newPoint._data.zoom = 0;
@@ -343,6 +347,36 @@ export class RoutingControls {
         };
 
         await this.routeBetweenAnchors([lastAnchor, newAnchor], [lastAnchor.point.getCoordinates(), newAnchor.point.getCoordinates()]);
+    }
+
+    routeToStart() {
+        let segments = get(this.file).getSegments();
+        if (segments.length === 0) {
+            return;
+        }
+
+        let segment = segments[segments.length - 1];
+        let firstAnchor = this.anchors.find((anchor) => anchor.segment === segment);
+
+        if (!firstAnchor) {
+            return;
+        }
+
+        this.appendAnchorWithCoordinates(firstAnchor.point.getCoordinates());
+    }
+
+    createRoundTrip() {
+        let segments = get(this.file).getSegments();
+        if (segments.length === 0) {
+            return;
+        }
+
+        dbUtils.applyToFile(this.fileId, (file) => {
+            let segment = file.getSegments()[segments.length - 1];
+            let newSegment = segment.clone();
+            newSegment.reverse(undefined, undefined);
+            segment.replace(segment.trkpt.length, segment.trkpt.length, newSegment.trkpt);
+        });
     }
 
     getNeighbouringAnchors(anchor: Anchor): [Anchor | null, Anchor | null] {

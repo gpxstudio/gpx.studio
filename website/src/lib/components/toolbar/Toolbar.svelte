@@ -1,11 +1,9 @@
 <script lang="ts">
 	import { Tool } from '$lib/stores';
-	import { dbUtils } from '$lib/db';
 	import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
 	import Waypoint from '$lib/components/toolbar/tools/waypoint/Waypoint.svelte';
 	import ToolbarItem from './ToolbarItem.svelte';
 	import {
-		ArrowRightLeft,
 		Group,
 		CalendarClock,
 		Pencil,
@@ -32,13 +30,6 @@
 			<ToolbarItem tool={Tool.TIME}>
 				<CalendarClock slot="icon" size="18" />
 				<span slot="tooltip">{$_('toolbar.time_tooltip')}</span>
-			</ToolbarItem>
-			<ToolbarItem
-				tool={Tool.REVERSE}
-				on:click={() => dbUtils.applyToSelectedFiles((file) => file.reverse())}
-			>
-				<ArrowRightLeft slot="icon" size="18" />
-				<span slot="tooltip">{$_('toolbar.reverse_tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.MERGE}>
 				<Group slot="icon" size="18" />

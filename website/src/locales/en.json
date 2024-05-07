@@ -40,8 +40,12 @@
         "routing": {
             "tooltip": "Edit the route",
             "activity": "Activity",
-            "use_routing": "Routing (follow roads)",
+            "use_routing": "Routing",
+            "use_routing_tooltip": "Connect anchor points through the road network. Disable to draw straight lines.",
             "allow_private": "Allow private roads",
+            "reverse_tooltip": "Reverse the direction",
+            "route_back_to_start_tooltip": "Route back to start",
+            "round_trip_tooltip": "Create round trip",
             "help_no_file": "Select a file to use the routing tool, or create a new file from the menu",
             "help_multiple_files": "Select a single file to use the routing tool",
             "help": "Click on the map to add a new point, or drag existing points to change the route",
@@ -93,7 +97,6 @@
             }
         },
         "time_tooltip": "Change the time and speed data",
-        "reverse_tooltip": "Reverse the direction",
         "merge_tooltip": "Merge files together",
         "extract_tooltip": "Extract inner tracks or segments",
         "waypoint_tooltip": "Create a new point of interest",

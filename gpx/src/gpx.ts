@@ -367,7 +367,7 @@ export class TrackSegment extends GPXTreeLeaf {
         this.trkpt.splice(start, end - start + 1, ...points);
     }
 
-    reverse(originalNextTimestamp: Date | undefined, newPreviousTimestamp: Date | undefined): void {
+    reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date): void {
         if (originalNextTimestamp !== undefined && newPreviousTimestamp !== undefined) {
             let originalEndTimestamp = this.getEndTimestamp();
             let newStartTimestamp = new Date(
