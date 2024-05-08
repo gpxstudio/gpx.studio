@@ -69,18 +69,21 @@
 					if (!$map.getSource(id)) {
 						$map.addSource(id, overlays[id]);
 					}
-					$map.addLayer({
-						id,
-						type: overlays[id].type === 'raster' ? 'raster' : 'line',
-						source: id,
-						paint: {
-							...(id in opacities
-								? overlays[id].type === 'raster'
-									? { 'raster-opacity': opacities[id] }
-									: { 'line-opacity': opacities[id] }
-								: {})
-						}
-					});
+					$map.addLayer(
+						{
+							id,
+							type: overlays[id].type === 'raster' ? 'raster' : 'line',
+							source: id,
+							paint: {
+								...(id in opacities
+									? overlays[id].type === 'raster'
+										? { 'raster-opacity': opacities[id] }
+										: { 'line-opacity': opacities[id] }
+									: {})
+							}
+						},
+						'overlays'
+					);
 				} catch (e) {
 					// No reliable way to check if the map is ready to add sources and layers
 				}

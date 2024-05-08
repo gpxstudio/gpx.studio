@@ -100,6 +100,17 @@
 
 		newMap.on('style.load', toggleTerrain);
 		newMap.on('pitch', toggleTerrain);
+
+		newMap.on('style.load', () => {
+			// add dummy layer to place the overlay layers below
+			newMap.addLayer({
+				id: 'overlays',
+				type: 'background',
+				paint: {
+					'background-color': 'rgba(0, 0, 0, 0)'
+				}
+			});
+		});
 	});
 
 	$: if ($map) {
