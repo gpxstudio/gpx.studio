@@ -1,8 +1,9 @@
 import type { Coordinates } from "gpx";
-import { TrackPoint } from "gpx";
+import { TrackPoint, distance } from "gpx";
 import { get, writable } from "svelte/store";
 import { settings } from "$lib/db";
 import { _ } from "svelte-i18n";
+import { map } from "$lib/stores";
 
 const { routing, routingProfile, privateRoads } = settings;
 
@@ -38,14 +39,7 @@ export function route(points: Coordinates[]): Promise<TrackPoint[]> {
     if (get(routing)) {
         return getRoute(points, brouterProfiles[get(routingProfile)], get(privateRoads));
     } else {
-        return new Promise((resolve) => {
-            resolve(points.map(point => new TrackPoint({
-                attributes: {
-                    lat: point.lat,
-                    lon: point.lon
-                }
-            })));
-        });
+        return getIntermediatePoints(points);
     }
 }
 
@@ -102,3 +96,36 @@ function getSurface(message: string): string {
     }
     return "unknown";
 };
+
+function getIntermediatePoints(points: Coordinates[]): Promise<TrackPoint[]> {
+    let route: TrackPoint[] = [];
+    let step = 0.05;
+
+    for (let i = 0; i < points.length - 1; i++) { // Add intermediate points between each pair of points
+        let dist = distance(points[i], points[i + 1]) / 1000;
+        for (let d = 0; d < dist; d += step) {
+            let lat = points[i].lat + d / dist * (points[i + 1].lat - points[i].lat);
+            let lon = points[i].lon + d / dist * (points[i + 1].lon - points[i].lon);
+            route.push(new TrackPoint({
+                attributes: {
+                    lat: lat,
+                    lon: lon
+                }
+            }));
+        }
+    }
+
+    route.push(new TrackPoint({
+        attributes: {
+            lat: points[points.length - 1].lat,
+            lon: points[points.length - 1].lon
+        }
+    }));
+
+    route.forEach((point) => {
+        point.setSurface("unknown");
+        point.ele = get(map)?.queryTerrainElevation(point.getCoordinates()) ?? undefined;
+    });
+
+    return new Promise((resolve) => resolve(route));
+}

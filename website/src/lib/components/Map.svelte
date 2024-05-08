@@ -26,32 +26,6 @@
 		unit: $distanceUnits
 	});
 
-	function toggleTerrain() {
-		if ($map) {
-			if ($map.getPitch() > 0) {
-				if (!$map.getSource('mapbox-dem')) {
-					$map.addSource('mapbox-dem', {
-						type: 'raster-dem',
-						url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-						tileSize: 512,
-						maxzoom: 14
-					});
-				}
-				if (!$map.getTerrain()) {
-					$map.setTerrain({ source: 'mapbox-dem', exaggeration: 1 });
-					$map.setFog({
-						color: 'rgb(186, 210, 235)',
-						'high-color': 'rgb(36, 92, 223)',
-						'horizon-blend': 0.1,
-						'space-color': 'rgb(156, 240, 255)'
-					});
-				}
-			} else {
-				$map.setTerrain(null);
-			}
-		}
-	}
-
 	onMount(() => {
 		let newMap = new mapboxgl.Map({
 			container: 'map',
@@ -98,10 +72,20 @@
 
 		newMap.addControl(scaleControl);
 
-		newMap.on('style.load', toggleTerrain);
-		newMap.on('pitch', toggleTerrain);
-
 		newMap.on('style.load', () => {
+			newMap.addSource('mapbox-dem', {
+				type: 'raster-dem',
+				url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+				tileSize: 512,
+				maxzoom: 14
+			});
+			newMap.setTerrain({ source: 'mapbox-dem' });
+			newMap.setFog({
+				color: 'rgb(186, 210, 235)',
+				'high-color': 'rgb(36, 92, 223)',
+				'horizon-blend': 0.1,
+				'space-color': 'rgb(156, 240, 255)'
+			});
 			// add dummy layer to place the overlay layers below
 			newMap.addLayer({
 				id: 'overlays',

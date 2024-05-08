@@ -110,9 +110,9 @@ function dexieStore<T>(querier: () => T | Promise<T>, initial?: T): Readable<T> 
 export type GPXFileWithStatistics = { file: GPXFile, statistics: GPXStatistics };
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber, also takes care of the conversion to a GPXFile object
-function dexieGPXFileStore(querier: () => GPXFile | undefined | Promise<GPXFile | undefined>): Readable<GPXFileWithStatistics> {
+function dexieGPXFileStore(querier: () => GPXFile | undefined | Promise<GPXFile | undefined>): Readable<GPXFileWithStatistics> & { destroy: () => void } {
     let store = writable<GPXFileWithStatistics>(undefined);
-    liveQuery(querier).subscribe(value => {
+    let query = liveQuery(querier).subscribe(value => {
         if (value !== undefined) {
             let gpx = new GPXFile(value);
             let statistics = gpx.getStatistics();
@@ -127,7 +127,8 @@ function dexieGPXFileStore(querier: () => GPXFile | undefined | Promise<GPXFile 
         }
     });
     return {
-        subscribe: store.subscribe
+        subscribe: store.subscribe,
+        destroy: query.unsubscribe
     };
 }
 
@@ -164,7 +165,7 @@ function commitFileStateChange(newFileState: ReadonlyMap<string, GPXFile>, patch
     }
 }
 
-export const fileObservers: Writable<Map<string, Readable<GPXFileWithStatistics | undefined>>> = writable(new Map());
+export const fileObservers: Writable<Map<string, Readable<GPXFileWithStatistics | undefined> & { destroy: () => void }>> = writable(new Map());
 const fileState: Map<string, GPXFile> = new Map(); // Used to generate patches
 
 // Observe the file ids in the database, and maintain a map of file observers for the corresponding files
@@ -185,6 +186,7 @@ liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
                 $files.set(id, dexieGPXFileStore(() => db.files.get(id)));
             });
             deletedFiles.forEach(id => {
+                $files.get(id)?.destroy();
                 $files.delete(id);
                 fileState.delete(id);
             });
