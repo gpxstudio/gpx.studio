@@ -44,8 +44,24 @@ function updateGPXData() {
     }, new GPXStatistics()));
 }
 
+let unsubscribes: Function[] = [];
 selectedFiles.subscribe((selectedFiles) => { // Maintain up-to-date statistics for the current selection
     updateGPXData();
+
+    while (unsubscribes.length > 0) {
+        unsubscribes.pop()();
+    }
+
+    selectedFiles.forEach((fileId) => {
+        let fileObserver = get(fileObservers).get(fileId);
+        if (fileObserver) {
+            let first = true;
+            unsubscribes.push(fileObserver.subscribe(() => {
+                if (first) first = false;
+                else updateGPXData();
+            }));
+        }
+    });
 });
 
 const targetMapBounds = writable({
@@ -156,7 +172,9 @@ export async function loadFile(file: File): Promise<GPXFile | null> {
             let data = reader.result?.toString() ?? null;
             if (data) {
                 let gpx = parseGPX(data);
-                if (gpx.metadata.name === undefined) {
+                if (gpx.metadata === undefined) {
+                    gpx.metadata = { name: file.name.split('.').slice(0, -1).join('.') };
+                } else if (gpx.metadata.name === undefined) {
                     gpx.metadata['name'] = file.name.split('.').slice(0, -1).join('.');
                 }
                 resolve(gpx);
