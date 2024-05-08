@@ -1,6 +1,5 @@
-import type { GPXFile } from "gpx";
 import { map, selectFiles, currentTool, Tool } from "$lib/stores";
-import { settings } from "$lib/db";
+import { settings, type GPXFileWithStatistics } from "$lib/db";
 import { get, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
 
@@ -37,12 +36,12 @@ function decrementColor(color: string) {
     colorCount[color]--;
 }
 
-const { directionMarkers } = settings;
+const { directionMarkers, distanceMarkers, distanceUnits } = settings;
 
 export class GPXLayer {
     map: mapboxgl.Map;
     fileId: string;
-    file: Readable<GPXFile | undefined>;
+    file: Readable<GPXFileWithStatistics | undefined>;
     layerColor: string;
     popup: mapboxgl.Popup;
     popupElement: HTMLElement;
@@ -52,35 +51,41 @@ export class GPXLayer {
     updateBinded: () => void = this.update.bind(this);
     selectOnClickBinded: (e: any) => void = this.selectOnClick.bind(this);
 
-    constructor(map: mapboxgl.Map, fileId: string, file: Readable<GPXFile | undefined>, popup: mapboxgl.Popup, popupElement: HTMLElement) {
+    constructor(map: mapboxgl.Map, fileId: string, file: Readable<GPXFileWithStatistics | undefined>, popup: mapboxgl.Popup, popupElement: HTMLElement) {
         this.map = map;
         this.fileId = fileId;
-        this.file = file
+        this.file = file;
         this.layerColor = getColor();
         this.popup = popup;
         this.popupElement = popupElement;
         this.unsubscribe.push(file.subscribe(this.updateBinded));
         this.unsubscribe.push(directionMarkers.subscribe(this.updateBinded));
+        this.unsubscribe.push(distanceMarkers.subscribe(this.updateBinded));
+        this.unsubscribe.push(distanceUnits.subscribe(() => {
+            if (get(distanceMarkers)) {
+                this.update();
+            }
+        }));
 
         this.map.on('style.load', this.updateBinded);
     }
 
     update() {
-        let file = get(this.file);
+        let file = get(this.file)?.file;
         if (!file) {
             return;
         }
 
-        let addedSource = false;
         try {
-            if (!this.map.getSource(this.fileId)) {
-                let data = this.getGeoJSON();
 
+            let source = this.map.getSource(this.fileId);
+            if (source) {
+                source.setData(this.getGeoJSON());
+            } else {
                 this.map.addSource(this.fileId, {
                     type: 'geojson',
-                    data
+                    data: this.getGeoJSON()
                 });
-                addedSource = true;
             }
 
             if (!this.map.getLayer(this.fileId)) {
@@ -104,7 +109,6 @@ export class GPXLayer {
                 this.map.on('mouseleave', this.fileId, toDefaultCursor);
             }
 
-
             if (get(directionMarkers)) {
                 if (!this.map.getLayer(this.fileId + '-direction')) {
                     this.map.addLayer({
@@ -115,6 +119,7 @@ export class GPXLayer {
                             'text-field': '>',
                             'text-keep-upright': false,
                             'text-max-angle': 361,
+                            'text-allow-overlap': true,
                             'symbol-placement': 'line',
                             'symbol-spacing': 25,
                         },
@@ -130,15 +135,45 @@ export class GPXLayer {
                     this.map.removeLayer(this.fileId + '-direction');
                 }
             }
+
+            if (get(distanceMarkers)) {
+                let distanceSource = this.map.getSource(this.fileId + '-distance');
+                if (distanceSource) {
+                    distanceSource.setData(this.getDistanceMarkersGeoJSON());
+                } else {
+                    this.map.addSource(this.fileId + '-distance', {
+                        type: 'geojson',
+                        data: this.getDistanceMarkersGeoJSON()
+                    });
+                }
+                if (!this.map.getLayer(this.fileId + '-distance')) {
+                    this.map.addLayer({
+                        id: this.fileId + '-distance',
+                        type: 'symbol',
+                        source: this.fileId + '-distance',
+                        layout: {
+                            'text-field': ['get', 'distance'],
+                            'text-size': 12,
+                            'text-font': ['Open Sans Regular'],
+                            'icon-image': ['get', 'icon'],
+                            'icon-padding': 50,
+                            'icon-allow-overlap': true,
+                        },
+                        paint: {
+                            'text-halo-width': 0.1,
+                            'text-halo-color': 'black'
+                        }
+                    });
+                } else {
+                    this.map.moveLayer(this.fileId + '-distance');
+                }
+            } else {
+                if (this.map.getLayer(this.fileId + '-distance')) {
+                    this.map.removeLayer(this.fileId + '-distance');
+                }
+            }
         } catch (e) { // No reliable way to check if the map is ready to add sources and layers
             return;
-        }
-
-        if (!addedSource) {
-            let source = this.map.getSource(this.fileId);
-            if (source) {
-                source.setData(this.getGeoJSON());
-            }
         }
 
         let markerIndex = 0;
@@ -176,6 +211,9 @@ export class GPXLayer {
         if (this.map.getLayer(this.fileId + '-direction')) {
             this.map.removeLayer(this.fileId + '-direction');
         }
+        if (this.map.getLayer(this.fileId + '-distance')) {
+            this.map.removeLayer(this.fileId + '-distance');
+        }
         if (this.map.getLayer(this.fileId)) {
             this.map.removeLayer(this.fileId);
         }
@@ -199,6 +237,9 @@ export class GPXLayer {
         if (this.map.getLayer(this.fileId + '-direction')) {
             this.map.moveLayer(this.fileId + '-direction');
         }
+        if (this.map.getLayer(this.fileId + '-distance')) {
+            this.map.moveLayer(this.fileId + '-distance');
+        }
     }
 
     selectOnClick(e: any) {
@@ -213,7 +254,7 @@ export class GPXLayer {
     }
 
     getGeoJSON(): GeoJSON.FeatureCollection {
-        let file = get(this.file);
+        let file = get(this.file)?.file;
         if (!file) {
             return {
                 type: 'FeatureCollection',
@@ -237,6 +278,41 @@ export class GPXLayer {
             }
         }
         return data;
+    }
+
+    getDistanceMarkersGeoJSON(): GeoJSON.FeatureCollection {
+        let statistics = get(this.file)?.statistics;
+        if (!statistics) {
+            return {
+                type: 'FeatureCollection',
+                features: []
+            };
+        }
+
+        let features = [];
+        let currentTargetDistance = 1;
+        for (let i = 0; i < statistics.local.distance.length; i++) {
+            if (statistics.local.distance[i] >= currentTargetDistance * (get(distanceUnits) === 'metric' ? 1 : 1.60934)) {
+                let distance = currentTargetDistance.toFixed(0);
+                features.push({
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [statistics.local.points[i].getLongitude(), statistics.local.points[i].getLatitude()]
+                    },
+                    properties: {
+                        distance,
+                        icon: distance.length < 3 ? 'circle-white-2' : 'circle-white-3'
+                    }
+                } as GeoJSON.Feature);
+                currentTargetDistance += 1;
+            }
+        }
+
+        return {
+            type: 'FeatureCollection',
+            features
+        };
     }
 }
 

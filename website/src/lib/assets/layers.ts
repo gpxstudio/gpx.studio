@@ -1,8 +1,10 @@
 import { type AnySourceData, type Style } from 'mapbox-gl';
 
+export const mapboxAccessToken = 'pk.eyJ1IjoiZ3B4c3R1ZGlvIiwiYSI6ImNrdHVoM2pjNTBodmUycG1yZTNwcnJ3MzkifQ.YZnNs9s9oCQPzoXAWs_SLg';
+
 export const basemaps: { [key: string]: string | Style; } = {
     mapboxOutdoors: 'mapbox://styles/mapbox/outdoors-v12',
-    mapboxSatellite: 'mapbox://styles/mapbox/satellite-v9',
+    mapboxSatellite: 'mapbox://styles/mapbox/satellite-streets-v12',
     openStreetMap: {
         version: 8,
         sources: {
@@ -281,6 +283,7 @@ export const basemaps: { [key: string]: string | Style; } = {
 Object.values(basemaps).forEach((basemap) => {
     if (typeof basemap === 'object') {
         basemap["glyphs"] = "mapbox://fonts/mapbox/{fontstack}/{range}.pbf";
+        basemap["sprite"] = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/sprite?access_token=${mapboxAccessToken}`;
     }
 });
 

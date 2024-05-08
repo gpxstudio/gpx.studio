@@ -6,20 +6,19 @@
 
 	import { get, type Readable } from 'svelte/store';
 	import { selectedFiles, selectFiles } from '$lib/stores';
-	import { dbUtils } from '$lib/db';
+	import { dbUtils, type GPXFileWithStatistics } from '$lib/db';
 
 	import { _ } from 'svelte-i18n';
-	import type { GPXFile } from 'gpx';
 
-	export let file: Readable<GPXFile | undefined>;
+	export let file: Readable<GPXFileWithStatistics | undefined>;
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 {#if $file}
 	<div
 		on:contextmenu={() => {
-			if (!get(selectedFiles).has($file._data.id)) {
-				get(selectFiles).select($file._data.id);
+			if (!get(selectedFiles).has($file.file._data.id)) {
+				get(selectFiles).select($file.file._data.id);
 			}
 		}}
 	>
@@ -33,13 +32,13 @@
 						class="w-full h-full px-1.5 py-2"
 						on:contextmenu={(e) => {
 							if (e.ctrlKey) {
-								get(selectFiles).addSelect($file._data.id);
+								get(selectFiles).addSelect($file.file._data.id);
 								e.stopPropagation();
 								e.preventDefault();
 							}
 						}}
 					>
-						{$file.metadata.name}
+						{$file.file.metadata.name}
 					</span>
 				</Button>
 			</ContextMenu.Trigger>

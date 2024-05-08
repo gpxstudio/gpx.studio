@@ -1,8 +1,8 @@
 import Dexie, { liveQuery } from 'dexie';
-import { GPXFile } from 'gpx';
+import { GPXFile, GPXStatistics } from 'gpx';
 import { enableMapSet, enablePatches, produceWithPatches, applyPatches, type Patch } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
-import { fileOrder, selectedFiles } from './stores';
+import { fileOrder, initTargetMapBounds, selectedFiles, updateTargetMapBounds } from './stores';
 import { mode } from 'mode-watcher';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays } from './assets/layers';
 
@@ -107,14 +107,23 @@ function dexieStore<T>(querier: () => T | Promise<T>, initial?: T): Readable<T> 
     };
 }
 
+export type GPXFileWithStatistics = { file: GPXFile, statistics: GPXStatistics };
+
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber, also takes care of the conversion to a GPXFile object
-function dexieGPXFileStore(querier: () => GPXFile | undefined | Promise<GPXFile | undefined>): Readable<GPXFile> {
-    let store = writable<GPXFile>(undefined);
+function dexieGPXFileStore(querier: () => GPXFile | undefined | Promise<GPXFile | undefined>): Readable<GPXFileWithStatistics> {
+    let store = writable<GPXFileWithStatistics>(undefined);
     liveQuery(querier).subscribe(value => {
         if (value !== undefined) {
             let gpx = new GPXFile(value);
+            let statistics = gpx.getStatistics();
+            if (!fileState.has(gpx._data.id)) { // Update the map bounds for new files
+                updateTargetMapBounds(statistics.global.bounds);
+            }
             fileState.set(gpx._data.id, gpx);
-            store.set(gpx);
+            store.set({
+                file: gpx,
+                statistics
+            });
         }
     });
     return {
@@ -155,7 +164,7 @@ function commitFileStateChange(newFileState: ReadonlyMap<string, GPXFile>, patch
     }
 }
 
-export const fileObservers: Writable<Map<string, Readable<GPXFile | undefined>>> = writable(new Map());
+export const fileObservers: Writable<Map<string, Readable<GPXFileWithStatistics | undefined>>> = writable(new Map());
 const fileState: Map<string, GPXFile> = new Map(); // Used to generate patches
 
 // Observe the file ids in the database, and maintain a map of file observers for the corresponding files
@@ -164,6 +173,11 @@ liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
     let newFiles = dbFileIds.filter(id => !get(fileObservers).has(id)).sort((a, b) => parseInt(a.split('-')[1]) - parseInt(b.split('-')[1]));
     // Find deleted files to stop observing
     let deletedFiles = Array.from(get(fileObservers).keys()).filter(id => !dbFileIds.find(fileId => fileId === id));
+
+    if (newFiles.length > 0) { // Reset the target map bounds when new files are added
+        initTargetMapBounds(fileState.size === 0);
+    }
+
     // Update the store
     if (newFiles.length > 0 || deletedFiles.length > 0) {
         fileObservers.update($files => {

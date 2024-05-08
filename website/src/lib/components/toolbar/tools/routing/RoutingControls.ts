@@ -1,5 +1,5 @@
-import { distance, type Coordinates, type GPXFile, TrackPoint, TrackSegment } from "gpx";
-import { get, type Readable, type Writable } from "svelte/store";
+import { distance, type Coordinates, TrackPoint, TrackSegment } from "gpx";
+import { get, type Readable } from "svelte/store";
 import { computeAnchorPoints } from "./Simplify";
 import mapboxgl from "mapbox-gl";
 import { route } from "./Routing";
@@ -7,12 +7,12 @@ import { route } from "./Routing";
 import { toast } from "svelte-sonner";
 
 import { _ } from "svelte-i18n";
-import { dbUtils } from "$lib/db";
+import { dbUtils, type GPXFileWithStatistics } from "$lib/db";
 
 export class RoutingControls {
     map: mapboxgl.Map;
     fileId: string = '';
-    file: Readable<GPXFile | undefined>;
+    file: Readable<GPXFileWithStatistics | undefined>;
     anchors: AnchorWithMarker[] = [];
     shownAnchors: AnchorWithMarker[] = [];
     popup: mapboxgl.Popup;
@@ -25,7 +25,7 @@ export class RoutingControls {
     updateTemporaryAnchorBinded: (e: any) => void = this.updateTemporaryAnchor.bind(this);
     appendAnchorBinded: (e: mapboxgl.MapMouseEvent) => void = this.appendAnchor.bind(this);
 
-    constructor(map: mapboxgl.Map, fileId: string, file: Readable<GPXFile | undefined>, popup: mapboxgl.Popup, popupElement: HTMLElement) {
+    constructor(map: mapboxgl.Map, fileId: string, file: Readable<GPXFileWithStatistics | undefined>, popup: mapboxgl.Popup, popupElement: HTMLElement) {
         this.map = map;
         this.fileId = fileId;
         this.file = file;
@@ -54,7 +54,7 @@ export class RoutingControls {
     }
 
     updateControls() { // Update the markers when the file changes
-        let file = get(this.file);
+        let file = get(this.file)?.file;
         if (!file) {
             return;
         }
@@ -263,8 +263,10 @@ export class RoutingControls {
     }
 
     getPermanentAnchor(): Anchor {
+        let file = get(this.file)?.file;
+
         // Find the closest point closest to the temporary anchor
-        let segments = get(this.file).getSegments();
+        let segments = file.getSegments();
         let minDistance = Number.MAX_VALUE;
         let minAnchor = this.temporaryAnchor as Anchor;
         for (let segmentIndex = 0; segmentIndex < segments.length; segmentIndex++) {
@@ -350,7 +352,12 @@ export class RoutingControls {
     }
 
     routeToStart() {
-        let segments = get(this.file).getSegments();
+        let file = get(this.file)?.file;
+        if (!file) {
+            return;
+        }
+
+        let segments = file.getSegments();
         if (segments.length === 0) {
             return;
         }
@@ -366,7 +373,12 @@ export class RoutingControls {
     }
 
     createRoundTrip() {
-        let segments = get(this.file).getSegments();
+        let file = get(this.file)?.file;
+        if (!file) {
+            return;
+        }
+
+        let segments = file.getSegments();
         if (segments.length === 0) {
             return;
         }

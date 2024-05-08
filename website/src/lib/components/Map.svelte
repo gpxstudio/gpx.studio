@@ -11,9 +11,9 @@
 	import { settings } from '$lib/db';
 	import { locale } from 'svelte-i18n';
 	import { get } from 'svelte/store';
+	import { mapboxAccessToken } from '$lib/assets/layers';
 
-	mapboxgl.accessToken =
-		'pk.eyJ1IjoiZ3B4c3R1ZGlvIiwiYSI6ImNrdHVoM2pjNTBodmUycG1yZTNwcnJ3MzkifQ.YZnNs9s9oCQPzoXAWs_SLg';
+	mapboxgl.accessToken = mapboxAccessToken;
 
 	let fitBoundsOptions: mapboxgl.FitBoundsOptions = {
 		maxZoom: 15,

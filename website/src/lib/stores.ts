@@ -1,7 +1,7 @@
 import { writable, get, type Writable } from 'svelte/store';
 
 import mapboxgl from 'mapbox-gl';
-import { GPXFile, buildGPX, parseGPX, GPXStatistics } from 'gpx';
+import { GPXFile, buildGPX, parseGPX, GPXStatistics, type Coordinates } from 'gpx';
 import { tick } from 'svelte';
 import { _ } from 'svelte-i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
@@ -28,84 +28,29 @@ fileObservers.subscribe((files) => { // Update selectedFiles automatically when 
     }
 });
 
-const targetMapBounds = writable({
-    bounds: new mapboxgl.LngLatBounds([180, 90, -180, -90]),
-    initial: true
-});
-const fileStatistics: Map<string, Writable<GPXStatistics>> = new Map();
-const fileUnsubscribe: Map<string, Function> = new Map();
 export const gpxStatistics: Writable<GPXStatistics> = writable(new GPXStatistics());
 
 function updateGPXData() {
-    let fileIds: string[] = get(fileOrder).filter((f) => fileStatistics.has(f) && get(selectedFiles).has(f));
+    let fileIds: string[] = get(fileOrder).filter((f) => get(selectedFiles).has(f));
     gpxStatistics.set(fileIds.reduce((stats: GPXStatistics, fileId: string) => {
-        let statisticsStore = fileStatistics.get(fileId);
-        if (statisticsStore) {
-            stats.mergeWith(get(statisticsStore));
+        let fileStore = get(fileObservers).get(fileId);
+        if (fileStore) {
+            let statistics = get(fileStore)?.statistics;
+            if (statistics) {
+                stats.mergeWith(statistics);
+            }
         }
         return stats;
     }, new GPXStatistics()));
 }
 
-fileObservers.subscribe((files) => { // Maintain up-to-date statistics
-    if (files.size > fileStatistics.size) { // Files are added
-        let bounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
-        let mapBounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
-        if (fileStatistics.size > 0) { // Some files are already loaded
-            mapBounds = get(map)?.getBounds() ?? mapBounds;
-            bounds.extend(mapBounds);
-        }
-        targetMapBounds.set({
-            bounds: bounds,
-            initial: true
-        });
-    }
-
-    fileStatistics.forEach((stats, fileId) => {
-        if (!files.has(fileId)) {
-            fileStatistics.delete(fileId);
-            let unsubscribe = fileUnsubscribe.get(fileId);
-            if (unsubscribe) unsubscribe();
-            fileUnsubscribe.delete(fileId);
-        }
-    });
-    files.forEach((fileObserver, fileId) => {
-        if (!fileStatistics.has(fileId)) {
-            let statisticsStore = writable(new GPXStatistics());
-            fileStatistics.set(fileId, statisticsStore);
-            let unsubscribe = fileObserver.subscribe((file) => {
-                if (file) {
-                    statisticsStore.set(file.getStatistics());
-                    if (get(selectedFiles).has(fileId)) {
-                        updateGPXData();
-                    }
-                }
-            });
-            fileUnsubscribe.set(fileId, unsubscribe);
-
-            let boundsUnsubscribe = statisticsStore.subscribe((stats) => {
-                let fileBounds = stats.global.bounds;
-                if (fileBounds.southWest.lat == 90 && fileBounds.southWest.lon == 180 && fileBounds.northEast.lat == -90 && fileBounds.northEast.lon == -180) { // Stats are not yet calculated
-                    return;
-                }
-                if (fileBounds.southWest.lat != fileBounds.northEast.lat || fileBounds.southWest.lon != fileBounds.northEast.lon) { // Avoid update for new files
-                    targetMapBounds.update((target) => {
-                        target.bounds.extend(fileBounds.southWest);
-                        target.bounds.extend(fileBounds.northEast);
-                        target.bounds.extend([fileBounds.southWest.lon, fileBounds.northEast.lat]);
-                        target.bounds.extend([fileBounds.northEast.lon, fileBounds.southWest.lat]);
-                        target.initial = false;
-                        return target;
-                    });
-                }
-                boundsUnsubscribe();
-            })
-        }
-    });
-});
-
 selectedFiles.subscribe((selectedFiles) => { // Maintain up-to-date statistics for the current selection
     updateGPXData();
+});
+
+const targetMapBounds = writable({
+    bounds: new mapboxgl.LngLatBounds([180, 90, -180, -90]),
+    initial: true
 });
 
 targetMapBounds.subscribe((bounds) => {
@@ -119,6 +64,36 @@ targetMapBounds.subscribe((bounds) => {
         easing: () => 1
     });
 });
+
+
+export function initTargetMapBounds(first: boolean) {
+    let bounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
+    let mapBounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
+    if (!first) { // Some files are already loaded
+        mapBounds = get(map)?.getBounds() ?? mapBounds;
+        bounds.extend(mapBounds);
+    }
+    targetMapBounds.set({
+        bounds: bounds,
+        initial: true
+    });
+}
+
+export function updateTargetMapBounds(bounds: {
+    southWest: Coordinates,
+    northEast: Coordinates
+}) {
+    if (bounds.southWest.lat == 90 && bounds.southWest.lon == 180 && bounds.northEast.lat == -90 && bounds.northEast.lon == -180) { // Avoid update for empty (new) files
+        return;
+    }
+
+    targetMapBounds.update((target) => {
+        target.bounds.extend(bounds.southWest);
+        target.bounds.extend(bounds.northEast);
+        target.initial = false;
+        return target;
+    });
+}
 
 export const gpxLayers: Writable<Map<string, GPXLayer>> = writable(new Map());
 
