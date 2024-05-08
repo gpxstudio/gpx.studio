@@ -90,6 +90,8 @@ export const settings = {
     currentOverlays: dexieUninitializedSettingStore('currentOverlays', defaultOverlays),
     previousOverlays: dexieSettingStore('previousOverlays', defaultOverlays),
     selectedOverlayTree: dexieSettingStore('selectedOverlayTree', defaultOverlayTree),
+    directionMarkers: dexieSettingStore('directionMarkers', false),
+    distanceMarkers: dexieSettingStore('distanceMarkers', false),
 };
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber

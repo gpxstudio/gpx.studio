@@ -15,7 +15,14 @@
 		Heart,
 		Map,
 		Layers2,
-		Box
+		Box,
+		Milestone,
+		Coins,
+		Ruler,
+		Zap,
+		Thermometer,
+		Sun,
+		Moon
 	} from 'lucide-svelte';
 
 	import {
@@ -30,14 +37,11 @@
 	import { derived } from 'svelte/store';
 	import { canUndo, canRedo, dbUtils, fileObservers, settings } from '$lib/db';
 
-	import { resetMode, setMode } from 'mode-watcher';
+	import { resetMode, setMode, systemPrefersMode } from 'mode-watcher';
 
 	import { _ } from 'svelte-i18n';
 	import { anySelectedLayer } from './layer-control/utils';
 	import { defaultOverlays } from '$lib/assets/layers';
-
-	let showDistanceMarkers = false;
-	let showDirectionMarkers = false;
 
 	const {
 		distanceUnits,
@@ -47,8 +51,11 @@
 		currentBasemap,
 		previousBasemap,
 		currentOverlays,
-		previousOverlays
+		previousOverlays,
+		distanceMarkers,
+		directionMarkers
 	} = settings;
+
 	$: if ($mode === 'system') {
 		resetMode();
 	} else {
@@ -166,29 +173,38 @@
 			<Menubar.Menu>
 				<Menubar.Trigger>{$_('menu.view')}</Menubar.Trigger>
 				<Menubar.Content class="border-none">
-					<Menubar.Item on:click={switchBasemaps}
+					<Menubar.Item inset on:click={switchBasemaps}
 						><Map size="16" class="mr-1" />{$_('menu.switch_basemap')}<Shortcut
 							key="F1"
 						/></Menubar.Item
 					>
-					<Menubar.Item on:click={toggleOverlays}
+					<Menubar.Item inset on:click={toggleOverlays}
 						><Layers2 size="16" class="mr-1" />{$_('menu.toggle_overlays')}<Shortcut
 							key="F2"
 						/></Menubar.Item
 					>
 					<Menubar.Separator />
-					<Menubar.Item on:click={toggle3D}
+					<Menubar.Item inset on:click={toggle3D}
 						><Box size="16" class="mr-1" />{$_('menu.toggle_3d')}<Shortcut
 							key="{$_('menu.ctrl')}+{$_('menu.drag')}"
 						/></Menubar.Item
 					>
+					<Menubar.Separator />
+					<Menubar.CheckboxItem bind:checked={$distanceMarkers}>
+						<Coins size="16" class="mr-1" />{$_('menu.distance_markers')}
+					</Menubar.CheckboxItem>
+					<Menubar.CheckboxItem bind:checked={$directionMarkers}>
+						<Milestone size="16" class="mr-1" />{$_('menu.direction_markers')}
+					</Menubar.CheckboxItem>
 				</Menubar.Content>
 			</Menubar.Menu>
 			<Menubar.Menu>
 				<Menubar.Trigger>{$_('menu.settings')}</Menubar.Trigger>
 				<Menubar.Content class="border-none"
 					><Menubar.Sub>
-						<Menubar.SubTrigger inset>{$_('menu.distance_units')}</Menubar.SubTrigger>
+						<Menubar.SubTrigger
+							><Ruler size="16" class="mr-1" />{$_('menu.distance_units')}</Menubar.SubTrigger
+						>
 						<Menubar.SubContent>
 							<Menubar.RadioGroup bind:value={$distanceUnits}>
 								<Menubar.RadioItem value="metric">{$_('menu.metric')}</Menubar.RadioItem>
@@ -197,7 +213,9 @@
 						</Menubar.SubContent>
 					</Menubar.Sub>
 					<Menubar.Sub>
-						<Menubar.SubTrigger inset>{$_('menu.velocity_units')}</Menubar.SubTrigger>
+						<Menubar.SubTrigger
+							><Zap size="16" class="mr-1" />{$_('menu.velocity_units')}</Menubar.SubTrigger
+						>
 						<Menubar.SubContent>
 							<Menubar.RadioGroup bind:value={$velocityUnits}>
 								<Menubar.RadioItem value="speed">{$_('quantities.speed')}</Menubar.RadioItem>
@@ -206,7 +224,11 @@
 						</Menubar.SubContent>
 					</Menubar.Sub>
 					<Menubar.Sub>
-						<Menubar.SubTrigger inset>{$_('menu.temperature_units')}</Menubar.SubTrigger>
+						<Menubar.SubTrigger
+							><Thermometer size="16" class="mr-1" />{$_(
+								'menu.temperature_units'
+							)}</Menubar.SubTrigger
+						>
 						<Menubar.SubContent>
 							<Menubar.RadioGroup bind:value={$temperatureUnits}>
 								<Menubar.RadioItem value="celsius">{$_('menu.celsius')}</Menubar.RadioItem>
@@ -216,7 +238,22 @@
 					</Menubar.Sub>
 					<Menubar.Separator />
 					<Menubar.Sub>
-						<Menubar.SubTrigger inset>{$_('menu.mode')}</Menubar.SubTrigger>
+						<Menubar.SubTrigger>
+							{#if $mode === 'system'}
+								{#if $systemPrefersMode === 'light'}
+									<Sun size="16" class="mr-1" />
+								{:else if $systemPrefersMode === 'dark'}
+									<Moon size="16" class="mr-1" />
+								{:else}
+									<Sun size="16" class="mr-1" />
+								{/if}
+							{:else if $mode === 'light'}
+								<Sun size="16" class="mr-1" />
+							{:else if $mode === 'dark'}
+								<Moon size="16" class="mr-1" />
+							{/if}
+							{$_('menu.mode')}
+						</Menubar.SubTrigger>
 						<Menubar.SubContent>
 							<Menubar.RadioGroup bind:value={$mode}>
 								<Menubar.RadioItem value="light">{$_('menu.light')}</Menubar.RadioItem>
@@ -225,13 +262,6 @@
 							</Menubar.RadioGroup>
 						</Menubar.SubContent>
 					</Menubar.Sub>
-					<Menubar.Separator />
-					<Menubar.CheckboxItem bind:checked={showDistanceMarkers}>
-						{$_('menu.distance_markers')}
-					</Menubar.CheckboxItem>
-					<Menubar.CheckboxItem bind:checked={showDirectionMarkers}>
-						{$_('menu.direction_markers')}
-					</Menubar.CheckboxItem>
 				</Menubar.Content>
 			</Menubar.Menu>
 		</Menubar.Root>
