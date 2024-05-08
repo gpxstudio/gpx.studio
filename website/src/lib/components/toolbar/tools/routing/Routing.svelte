@@ -14,7 +14,8 @@
 		Route,
 		TriangleAlert,
 		ArrowRightLeft,
-		Home
+		Home,
+		RouteOff
 	} from 'lucide-svelte';
 
 	import { map, selectedFiles, Tool } from '$lib/stores';
@@ -97,8 +98,13 @@
 <ToolbarItemMenu tool={Tool.ROUTING} bind:active>
 	<Tooltip>
 		<div slot="data" class="w-full flex flex-row justify-between items-center gap-2">
-			<Label for="routing" class="flex flex-row gap-1"
-				><Route size="16" />{$_('toolbar.routing.use_routing')}</Label
+			<Label for="routing" class="flex flex-row gap-1">
+				{#if $routing}
+					<Route size="16" />
+				{:else}
+					<RouteOff size="16" />
+				{/if}
+				{$_('toolbar.routing.use_routing')}</Label
 			>
 			<Switch id="routing" class="scale-90" bind:checked={$routing} />
 		</div>
