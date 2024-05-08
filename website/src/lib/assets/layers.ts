@@ -278,6 +278,12 @@ export const basemaps: { [key: string]: string | Style; } = {
     },
 };
 
+Object.values(basemaps).forEach((basemap) => {
+    if (typeof basemap === 'object') {
+        basemap["glyphs"] = "mapbox://fonts/mapbox/{fontstack}/{range}.pbf";
+    }
+});
+
 export const overlays: { [key: string]: AnySourceData; } = {
     cyclOSMlite: {
         type: 'raster',

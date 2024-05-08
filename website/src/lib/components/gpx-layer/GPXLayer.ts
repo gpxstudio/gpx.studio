@@ -1,5 +1,6 @@
 import type { GPXFile } from "gpx";
 import { map, selectFiles, currentTool, Tool } from "$lib/stores";
+import { settings } from "$lib/db";
 import { get, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
 
@@ -36,6 +37,8 @@ function decrementColor(color: string) {
     colorCount[color]--;
 }
 
+const { directionMarkers } = settings;
+
 export class GPXLayer {
     map: mapboxgl.Map;
     fileId: string;
@@ -44,7 +47,7 @@ export class GPXLayer {
     popup: mapboxgl.Popup;
     popupElement: HTMLElement;
     markers: mapboxgl.Marker[] = [];
-    unsubscribe: () => void;
+    unsubscribe: Function[] = [];
 
     updateBinded: () => void = this.update.bind(this);
     selectOnClickBinded: (e: any) => void = this.selectOnClick.bind(this);
@@ -56,7 +59,8 @@ export class GPXLayer {
         this.layerColor = getColor();
         this.popup = popup;
         this.popupElement = popupElement;
-        this.unsubscribe = file.subscribe(this.update.bind(this));
+        this.unsubscribe.push(file.subscribe(this.updateBinded));
+        this.unsubscribe.push(directionMarkers.subscribe(this.updateBinded));
 
         this.map.on('style.load', this.updateBinded);
     }
@@ -98,6 +102,33 @@ export class GPXLayer {
                 this.map.on('click', this.fileId, this.selectOnClickBinded);
                 this.map.on('mouseenter', this.fileId, toPointerCursor);
                 this.map.on('mouseleave', this.fileId, toDefaultCursor);
+            }
+
+
+            if (get(directionMarkers)) {
+                if (!this.map.getLayer(this.fileId + '-direction')) {
+                    this.map.addLayer({
+                        id: this.fileId + '-direction',
+                        type: 'symbol',
+                        source: this.fileId,
+                        layout: {
+                            'text-field': '>',
+                            'text-keep-upright': false,
+                            'text-max-angle': 361,
+                            'symbol-placement': 'line',
+                            'symbol-spacing': 25,
+                        },
+                        paint: {
+                            'text-color': 'white',
+                            'text-halo-width': 0.5,
+                            'text-halo-color': 'white'
+                        }
+                    });
+                }
+            } else {
+                if (this.map.getLayer(this.fileId + '-direction')) {
+                    this.map.removeLayer(this.fileId + '-direction');
+                }
             }
         } catch (e) { // No reliable way to check if the map is ready to add sources and layers
             return;
@@ -142,6 +173,9 @@ export class GPXLayer {
         this.map.off('mouseleave', this.fileId, toDefaultCursor);
         this.map.off('style.load', this.updateBinded);
 
+        if (this.map.getLayer(this.fileId + '-direction')) {
+            this.map.removeLayer(this.fileId + '-direction');
+        }
         if (this.map.getLayer(this.fileId)) {
             this.map.removeLayer(this.fileId);
         }
@@ -153,7 +187,7 @@ export class GPXLayer {
             marker.remove();
         });
 
-        this.unsubscribe();
+        this.unsubscribe.forEach((unsubscribe) => unsubscribe());
 
         decrementColor(this.layerColor);
     }
@@ -161,6 +195,9 @@ export class GPXLayer {
     moveToFront() {
         if (this.map.getLayer(this.fileId)) {
             this.map.moveLayer(this.fileId);
+        }
+        if (this.map.getLayer(this.fileId + '-direction')) {
+            this.map.moveLayer(this.fileId + '-direction');
         }
     }
 
