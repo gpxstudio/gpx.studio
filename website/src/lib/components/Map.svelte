@@ -99,7 +99,7 @@
 		newMap.addControl(scaleControl);
 
 		newMap.on('style.load', toggleTerrain);
-		newMap.on('pitchstart', toggleTerrain);
+		newMap.on('pitch', toggleTerrain);
 	});
 
 	$: if ($map) {

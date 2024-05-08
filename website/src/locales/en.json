@@ -17,6 +17,7 @@
         "view": "View",
         "switch_basemap": "Switch to previous basemap",
         "toggle_overlays": "Toggle overlays",
+        "toggle_3d": "Toggle 3D",
         "settings": "Settings",
         "distance_units": "Distance units",
         "metric": "Metric",
@@ -34,7 +35,8 @@
         "about": "About",
         "donate": "Donate",
         "ctrl": "Ctrl",
-        "click": "Click"
+        "click": "Click",
+        "drag": "Drag"
     },
     "toolbar": {
         "routing": {

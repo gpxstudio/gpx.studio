@@ -3,9 +3,23 @@
 	import { Button } from '$lib/components/ui/button';
 	import Logo from './Logo.svelte';
 	import Shortcut from './Shortcut.svelte';
-	import { Plus, Copy, Download, Undo2, Redo2, Trash2, Upload, Cloud, Heart } from 'lucide-svelte';
+	import {
+		Plus,
+		Copy,
+		Download,
+		Undo2,
+		Redo2,
+		Trash2,
+		Upload,
+		Cloud,
+		Heart,
+		Map,
+		Layers2,
+		Box
+	} from 'lucide-svelte';
 
 	import {
+		map,
 		selectedFiles,
 		exportAllFiles,
 		exportSelectedFiles,
@@ -53,6 +67,16 @@
 			[$currentOverlays, $previousOverlays] = [defaultOverlays, $currentOverlays];
 		} else {
 			[$currentOverlays, $previousOverlays] = [$previousOverlays, defaultOverlays];
+		}
+	}
+
+	function toggle3D() {
+		if ($map) {
+			if ($map.getPitch() === 0) {
+				$map.easeTo({ pitch: 70 });
+			} else {
+				$map.easeTo({ pitch: 0 });
+			}
 		}
 	}
 </script>
@@ -143,10 +167,20 @@
 				<Menubar.Trigger>{$_('menu.view')}</Menubar.Trigger>
 				<Menubar.Content class="border-none">
 					<Menubar.Item on:click={switchBasemaps}
-						>{$_('menu.switch_basemap')}<Shortcut key="F1" /></Menubar.Item
+						><Map size="16" class="mr-1" />{$_('menu.switch_basemap')}<Shortcut
+							key="F1"
+						/></Menubar.Item
 					>
 					<Menubar.Item on:click={toggleOverlays}
-						>{$_('menu.toggle_overlays')}<Shortcut key="F2" /></Menubar.Item
+						><Layers2 size="16" class="mr-1" />{$_('menu.toggle_overlays')}<Shortcut
+							key="F2"
+						/></Menubar.Item
+					>
+					<Menubar.Separator />
+					<Menubar.Item on:click={toggle3D}
+						><Box size="16" class="mr-1" />{$_('menu.toggle_3d')}<Shortcut
+							key="{$_('menu.ctrl')}+{$_('menu.drag')}"
+						/></Menubar.Item
 					>
 				</Menubar.Content>
 			</Menubar.Menu>
