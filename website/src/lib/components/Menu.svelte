@@ -184,18 +184,18 @@
 						/></Menubar.Item
 					>
 					<Menubar.Separator />
-					<Menubar.Item inset on:click={toggle3D}
-						><Box size="16" class="mr-1" />{$_('menu.toggle_3d')}<Shortcut
-							key="{$_('menu.ctrl')}+{$_('menu.drag')}"
-						/></Menubar.Item
-					>
-					<Menubar.Separator />
 					<Menubar.CheckboxItem bind:checked={$distanceMarkers}>
 						<Coins size="16" class="mr-1" />{$_('menu.distance_markers')}
 					</Menubar.CheckboxItem>
 					<Menubar.CheckboxItem bind:checked={$directionMarkers}>
 						<Milestone size="16" class="mr-1" />{$_('menu.direction_markers')}
 					</Menubar.CheckboxItem>
+					<Menubar.Separator />
+					<Menubar.Item inset on:click={toggle3D}
+						><Box size="16" class="mr-1" />{$_('menu.toggle_3d')}<Shortcut
+							key="{$_('menu.ctrl')}+{$_('menu.drag')}"
+						/></Menubar.Item
+					>
 				</Menubar.Content>
 			</Menubar.Menu>
 			<Menubar.Menu>
