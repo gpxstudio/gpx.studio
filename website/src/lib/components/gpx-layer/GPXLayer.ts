@@ -2,6 +2,7 @@ import { map, selectFiles, currentTool, Tool } from "$lib/stores";
 import { settings, type GPXFileWithStatistics } from "$lib/db";
 import { get, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
+import { currentWaypoint, waypointPopup } from "./WaypointPopup";
 
 let defaultWeight = 6;
 let defaultOpacity = 1;
@@ -43,21 +44,17 @@ export class GPXLayer {
     fileId: string;
     file: Readable<GPXFileWithStatistics | undefined>;
     layerColor: string;
-    popup: mapboxgl.Popup;
-    popupElement: HTMLElement;
     markers: mapboxgl.Marker[] = [];
     unsubscribe: Function[] = [];
 
     updateBinded: () => void = this.update.bind(this);
     selectOnClickBinded: (e: any) => void = this.selectOnClick.bind(this);
 
-    constructor(map: mapboxgl.Map, fileId: string, file: Readable<GPXFileWithStatistics | undefined>, popup: mapboxgl.Popup, popupElement: HTMLElement) {
+    constructor(map: mapboxgl.Map, fileId: string, file: Readable<GPXFileWithStatistics | undefined>) {
         this.map = map;
         this.fileId = fileId;
         this.file = file;
         this.layerColor = getColor();
-        this.popup = popup;
-        this.popupElement = popupElement;
         this.unsubscribe.push(file.subscribe(this.updateBinded));
         this.unsubscribe.push(directionMarkers.subscribe(this.updateBinded));
         this.unsubscribe.push(distanceMarkers.subscribe(this.updateBinded));
@@ -182,10 +179,14 @@ export class GPXLayer {
                 this.markers[markerIndex].setLngLat(waypoint.getCoordinates());
             } else {
                 let marker = new mapboxgl.Marker().setLngLat(waypoint.getCoordinates());
-                marker.getElement().addEventListener('click', (e) => {
-                    marker.setPopup(this.popup);
+                marker.getElement().addEventListener('mouseover', (e) => {
+                    currentWaypoint.set(waypoint);
+                    marker.setPopup(waypointPopup);
                     marker.togglePopup();
                     e.stopPropagation();
+                });
+                marker.getElement().addEventListener('mouseout', () => {
+                    marker.togglePopup();
                 });
 
                 this.markers.push(marker);

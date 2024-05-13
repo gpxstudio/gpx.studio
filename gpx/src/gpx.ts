@@ -557,6 +557,14 @@ export class Waypoint {
         this.attributes = coordinates;
     }
 
+    getLatitude(): number {
+        return this.attributes.lat;
+    }
+
+    getLongitude(): number {
+        return this.attributes.lon;
+    }
+
     clone(): Waypoint {
         return new Waypoint({
             attributes: cloneJSON(this.attributes),
