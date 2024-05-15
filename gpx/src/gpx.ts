@@ -1,5 +1,5 @@
 import { Coordinates, GPXFileAttributes, GPXFileType, Link, Metadata, TrackExtensions, TrackPointExtensions, TrackPointType, TrackSegmentType, TrackType, WaypointType } from "./types";
-import { Draft, castDraft, immerable, produce } from "immer";
+import { Draft, immerable, produce } from "immer";
 
 function cloneJSON<T>(obj: T): T {
     if (obj === null || typeof obj !== 'object') {
@@ -13,7 +13,7 @@ export abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
     _data: { [key: string]: any } = {};
 
     abstract isLeaf(): boolean;
-    abstract getChildren(): ReadonlyArray<T>;
+    abstract get children(): ReadonlyArray<T>;
 
     abstract getStartTimestamp(): Date;
     abstract getEndTimestamp(): Date;
@@ -36,34 +36,33 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
     }
 
     getStartTimestamp(): Date {
-        return this.getChildren()[0].getStartTimestamp();
+        return this.children[0].getStartTimestamp();
     }
 
     getEndTimestamp(): Date {
-        return this.getChildren()[this.getChildren().length - 1].getEndTimestamp();
+        return this.children[this.children.length - 1].getEndTimestamp();
     }
 
     getStatistics(): GPXStatistics {
         let statistics = new GPXStatistics();
-        for (let child of this.getChildren()) {
+        for (let child of this.children) {
             statistics.mergeWith(child.getStatistics());
         }
         return statistics;
     }
 
     getSegments(): TrackSegment[] {
-        return this.getChildren().flatMap((child) => child.getSegments());
+        return this.children.flatMap((child) => child.getSegments());
     }
 
     // Producers
     replace(segment: number, start: number, end: number, points: TrackPoint[]) {
         return produce(this, (draft: Draft<GPXTreeNode<T>>) => {
-            let children = castDraft(draft.getChildren());
             let cumul = 0;
-            for (let i = 0; i < children.length; i++) {
-                let childSegments = children[i].getSegments();
+            for (let i = 0; i < draft.children.length; i++) {
+                let childSegments = draft.children[i].getSegments();
                 if (segment < cumul + childSegments.length) {
-                    children[i] = children[i].replace(segment - cumul, start, end, points);
+                    draft.children[i] = draft.children[i].replace(segment - cumul, start, end, points);
                     break;
                 }
                 cumul += childSegments.length;
@@ -73,22 +72,20 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
 
     reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date) {
         return produce(this, (draft: Draft<GPXTreeNode<T>>) => {
-            const children = castDraft(draft.getChildren());
-
             if (!originalNextTimestamp && !newPreviousTimestamp) {
-                originalNextTimestamp = children[children.length - 1].getEndTimestamp();
-                newPreviousTimestamp = children[0].getStartTimestamp();
+                originalNextTimestamp = draft.children[draft.children.length - 1].getEndTimestamp();
+                newPreviousTimestamp = draft.children[0].getStartTimestamp();
             }
 
-            children.reverse();
+            draft.children.reverse();
 
-            for (let i = 0; i < children.length; i++) {
-                let originalStartTimestamp = children[i].getStartTimestamp();
+            for (let i = 0; i < draft.children.length; i++) {
+                let originalStartTimestamp = draft.children[i].getStartTimestamp();
 
-                children[i] = children[i].reverse(originalNextTimestamp, newPreviousTimestamp);
+                draft.children[i] = draft.children[i].reverse(originalNextTimestamp, newPreviousTimestamp);
 
                 originalNextTimestamp = originalStartTimestamp;
-                newPreviousTimestamp = children[i].getEndTimestamp();
+                newPreviousTimestamp = draft.children[i].getEndTimestamp();
             }
         });
     }
@@ -100,7 +97,7 @@ abstract class GPXTreeLeaf extends GPXTreeElement<GPXTreeLeaf> {
         return true;
     }
 
-    getChildren(): ReadonlyArray<GPXTreeLeaf> {
+    get children(): ReadonlyArray<GPXTreeLeaf> {
         return [];
     }
 }
@@ -114,12 +111,12 @@ export class GPXFiles extends GPXTreeNode<GPXFile> {
         this.files = files;
     }
 
-    getChildren(): ReadonlyArray<GPXFile> {
+    get children(): ReadonlyArray<GPXFile> {
         return this.files;
     }
 
     toGeoJSON(): GeoJSON.FeatureCollection[] {
-        return this.getChildren().map((child) => child.toGeoJSON());
+        return this.children.map((child) => child.toGeoJSON());
     }
 }
 
@@ -150,7 +147,7 @@ export class GPXFile extends GPXTreeNode<Track>{
         }
     }
 
-    getChildren(): ReadonlyArray<Track> {
+    get children(): ReadonlyArray<Track> {
         return this.trk;
     }
 
@@ -167,7 +164,7 @@ export class GPXFile extends GPXTreeNode<Track>{
     toGeoJSON(): GeoJSON.FeatureCollection {
         return {
             type: "FeatureCollection",
-            features: this.getChildren().flatMap((child) => child.toGeoJSON())
+            features: this.children.flatMap((child) => child.toGeoJSON())
         };
     }
 
@@ -213,7 +210,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
         }
     }
 
-    getChildren(): ReadonlyArray<TrackSegment> {
+    get children(): ReadonlyArray<TrackSegment> {
         return this.trkseg;
     }
 
@@ -232,7 +229,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
     }
 
     toGeoJSON(): GeoJSON.Feature[] {
-        return this.getChildren().map((child) => {
+        return this.children.map((child) => {
             let geoJSON = child.toGeoJSON();
             if (this.extensions && this.extensions['gpx_style:line']) {
                 if (this.extensions['gpx_style:line'].color) {
