@@ -1,8 +1,8 @@
 export type GPXFileType = {
     attributes: GPXFileAttributes;
     metadata: Metadata;
-    wpt: WaypointType[];
-    trk: TrackType[];
+    wpt: ReadonlyArray<WaypointType>;
+    trk: ReadonlyArray<TrackType>;
 };
 
 export type GPXFileAttributes = {
@@ -52,7 +52,7 @@ export type TrackType = {
     src?: string;
     link?: Link;
     type?: string;
-    trkseg: TrackSegmentType[];
+    trkseg: ReadonlyArray<TrackSegmentType>;
     extensions?: TrackExtensions;
 };
 
@@ -67,7 +67,7 @@ export type LineStyleExtension = {
 };
 
 export type TrackSegmentType = {
-    trkpt: TrackPointType[];
+    trkpt: ReadonlyArray<TrackPointType>;
 };
 
 export type TrackPointType = {

@@ -1,5 +1,5 @@
 import { Coordinates, GPXFileAttributes, GPXFileType, Link, Metadata, TrackExtensions, TrackPointExtensions, TrackPointType, TrackSegmentType, TrackType, WaypointType } from "./types";
-import { immerable } from "immer";
+import { Draft, castDraft, immerable, produce } from "immer";
 
 function cloneJSON<T>(obj: T): T {
     if (obj === null || typeof obj !== 'object') {
@@ -13,18 +13,18 @@ export abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
     _data: { [key: string]: any } = {};
 
     abstract isLeaf(): boolean;
-    abstract getChildren(): T[];
-
-    abstract append(points: TrackPoint[]): void;
-    abstract reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date): void;
+    abstract getChildren(): ReadonlyArray<T>;
 
     abstract getStartTimestamp(): Date;
     abstract getEndTimestamp(): Date;
-    abstract getTrackPoints(): TrackPoint[];
     abstract getStatistics(): GPXStatistics;
     abstract getSegments(): TrackSegment[];
 
     abstract toGeoJSON(): GeoJSON.Feature | GeoJSON.Feature[] | GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[];
+
+    // Producers
+    abstract replace(segment: number, start: number, end: number, points: TrackPoint[]);
+    abstract reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date);
 }
 
 export type AnyGPXTreeElement = GPXTreeElement<GPXTreeElement<any>>;
@@ -35,46 +35,12 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
         return false;
     }
 
-    append(points: TrackPoint[]): void {
-        let children = this.getChildren();
-
-        if (children.length === 0) {
-            return;
-        }
-
-        children[children.length - 1].append(points);
-    }
-
-    reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date): void {
-        const children = this.getChildren();
-
-        if (!originalNextTimestamp && !newPreviousTimestamp) {
-            originalNextTimestamp = children[children.length - 1].getEndTimestamp();
-            newPreviousTimestamp = children[0].getStartTimestamp();
-        }
-
-        children.reverse();
-
-        for (let i = 0; i < children.length; i++) {
-            let originalStartTimestamp = children[i].getStartTimestamp();
-
-            children[i].reverse(originalNextTimestamp, newPreviousTimestamp);
-
-            originalNextTimestamp = originalStartTimestamp;
-            newPreviousTimestamp = children[i].getEndTimestamp();
-        }
-    }
-
     getStartTimestamp(): Date {
         return this.getChildren()[0].getStartTimestamp();
     }
 
     getEndTimestamp(): Date {
         return this.getChildren()[this.getChildren().length - 1].getEndTimestamp();
-    }
-
-    getTrackPoints(): TrackPoint[] {
-        return this.getChildren().flatMap((child) => child.getTrackPoints());
     }
 
     getStatistics(): GPXStatistics {
@@ -88,6 +54,44 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
     getSegments(): TrackSegment[] {
         return this.getChildren().flatMap((child) => child.getSegments());
     }
+
+    // Producers
+    replace(segment: number, start: number, end: number, points: TrackPoint[]) {
+        return produce(this, (draft: Draft<GPXTreeNode<T>>) => {
+            let children = castDraft(draft.getChildren());
+            let cumul = 0;
+            for (let i = 0; i < children.length; i++) {
+                let childSegments = children[i].getSegments();
+                if (segment < cumul + childSegments.length) {
+                    children[i] = children[i].replace(segment - cumul, start, end, points);
+                    break;
+                }
+                cumul += childSegments.length;
+            }
+        });
+    }
+
+    reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date) {
+        return produce(this, (draft: Draft<GPXTreeNode<T>>) => {
+            const children = castDraft(draft.getChildren());
+
+            if (!originalNextTimestamp && !newPreviousTimestamp) {
+                originalNextTimestamp = children[children.length - 1].getEndTimestamp();
+                newPreviousTimestamp = children[0].getStartTimestamp();
+            }
+
+            children.reverse();
+
+            for (let i = 0; i < children.length; i++) {
+                let originalStartTimestamp = children[i].getStartTimestamp();
+
+                children[i] = children[i].reverse(originalNextTimestamp, newPreviousTimestamp);
+
+                originalNextTimestamp = originalStartTimestamp;
+                newPreviousTimestamp = children[i].getEndTimestamp();
+            }
+        });
+    }
 }
 
 // An abstract class that TrackSegment extends to implement the GPXTreeElement interface
@@ -96,21 +100,21 @@ abstract class GPXTreeLeaf extends GPXTreeElement<GPXTreeLeaf> {
         return true;
     }
 
-    getChildren(): GPXTreeLeaf[] {
+    getChildren(): ReadonlyArray<GPXTreeLeaf> {
         return [];
     }
 }
 
 // A class that represents a set of GPX files
 export class GPXFiles extends GPXTreeNode<GPXFile> {
-    files: GPXFile[];
+    readonly files: ReadonlyArray<GPXFile>;
 
     constructor(files: GPXFile[]) {
         super();
         this.files = files;
     }
 
-    getChildren(): GPXFile[] {
+    getChildren(): ReadonlyArray<GPXFile> {
         return this.files;
     }
 
@@ -123,12 +127,12 @@ export class GPXFiles extends GPXTreeNode<GPXFile> {
 export class GPXFile extends GPXTreeNode<Track>{
     [immerable] = true;
 
-    attributes: GPXFileAttributes;
-    metadata: Metadata;
-    wpt: Waypoint[];
-    trk: Track[];
+    readonly attributes: GPXFileAttributes;
+    readonly metadata: Metadata;
+    readonly wpt: ReadonlyArray<Readonly<Waypoint>>;
+    readonly trk: ReadonlyArray<Track>;
 
-    constructor(gpx?: GPXFileType | GPXFile) {
+    constructor(gpx?: GPXFileType & { _data?: any } | GPXFile) {
         super();
         if (gpx) {
             this.attributes = gpx.attributes
@@ -146,7 +150,7 @@ export class GPXFile extends GPXTreeNode<Track>{
         }
     }
 
-    getChildren(): Track[] {
+    getChildren(): ReadonlyArray<Track> {
         return this.trk;
     }
 
@@ -181,16 +185,16 @@ export class GPXFile extends GPXTreeNode<Track>{
 export class Track extends GPXTreeNode<TrackSegment> {
     [immerable] = true;
 
-    name?: string;
-    cmt?: string;
-    desc?: string;
-    src?: string;
-    link?: Link;
-    type?: string;
-    trkseg: TrackSegment[];
-    extensions?: TrackExtensions;
+    readonly name?: string;
+    readonly cmt?: string;
+    readonly desc?: string;
+    readonly src?: string;
+    readonly link?: Link;
+    readonly type?: string;
+    readonly trkseg: ReadonlyArray<TrackSegment>;
+    readonly extensions?: TrackExtensions;
 
-    constructor(track?: TrackType | Track) {
+    constructor(track?: TrackType & { _data?: any } | Track) {
         super();
         if (track) {
             this.name = track.name;
@@ -209,7 +213,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
         }
     }
 
-    getChildren(): TrackSegment[] {
+    getChildren(): ReadonlyArray<TrackSegment> {
         return this.trkseg;
     }
 
@@ -263,9 +267,9 @@ export class Track extends GPXTreeNode<TrackSegment> {
 export class TrackSegment extends GPXTreeLeaf {
     [immerable] = true;
 
-    trkpt: TrackPoint[];
+    readonly trkpt: ReadonlyArray<Readonly<TrackPoint>>;
 
-    constructor(segment?: TrackSegmentType | TrackSegment) {
+    constructor(segment?: TrackSegmentType & { _data?: any } | TrackSegment) {
         super();
         if (segment) {
             this.trkpt = segment.trkpt.map((point) => new TrackPoint(point));
@@ -280,7 +284,7 @@ export class TrackSegment extends GPXTreeLeaf {
     _computeStatistics(): GPXStatistics {
         let statistics = new GPXStatistics();
 
-        statistics.local.points = this.trkpt;
+        statistics.local.points = this.trkpt.map((point) => point);
 
         statistics.local.elevation.smoothed = this._computeSmoothedElevation();
         statistics.local.slope = this._computeSlope();
@@ -366,43 +370,12 @@ export class TrackSegment extends GPXTreeLeaf {
         return distanceWindowSmoothingWithDistanceAccumulator(points, 50, (accumulated, start, end) => 100 * (points[end].ele - points[start].ele) / accumulated);
     }
 
-    append(points: TrackPoint[]): void {
-        this.trkpt = this.trkpt.concat(points);
-    }
-
-    replace(start: number, end: number, points: TrackPoint[]): void {
-        this.trkpt.splice(start, end - start + 1, ...points);
-    }
-
-    reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date): void {
-        if (originalNextTimestamp !== undefined && newPreviousTimestamp !== undefined) {
-            let originalEndTimestamp = this.getEndTimestamp();
-            let newStartTimestamp = new Date(
-                newPreviousTimestamp.getTime() + originalNextTimestamp.getTime() - originalEndTimestamp.getTime()
-            );
-
-            this.trkpt.reverse();
-
-            for (let i = 0; i < this.trkpt.length; i++) {
-                this.trkpt[i].time = new Date(
-                    newStartTimestamp.getTime() + (originalEndTimestamp.getTime() - this.trkpt[i].time.getTime())
-                );
-            }
-        } else {
-            this.trkpt.reverse();
-        }
-    }
-
     getStartTimestamp(): Date {
         return this.trkpt[0].time;
     }
 
     getEndTimestamp(): Date {
         return this.trkpt[this.trkpt.length - 1].time;
-    }
-
-    getTrackPoints(): TrackPoint[] {
-        return this.trkpt;
     }
 
     getStatistics(): GPXStatistics {
@@ -436,6 +409,31 @@ export class TrackSegment extends GPXTreeLeaf {
             _data: cloneJSON(this._data),
         });
     }
+
+    // Producers
+    replace(segment: number, start: number, end: number, points: TrackPoint[]) {
+        return produce(this, (draft) => {
+            draft.trkpt.splice(start, end - start + 1, ...points);
+        });
+    }
+
+    reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date) {
+        return produce(this, (draft) => {
+            if (originalNextTimestamp !== undefined && newPreviousTimestamp !== undefined) {
+                let originalEndTimestamp = draft.getEndTimestamp();
+                let newStartTimestamp = new Date(
+                    newPreviousTimestamp.getTime() + originalNextTimestamp.getTime() - originalEndTimestamp.getTime()
+                );
+
+                for (let i = 0; i < draft.trkpt.length; i++) {
+                    draft.trkpt[i].time = new Date(
+                        newStartTimestamp.getTime() + (originalEndTimestamp.getTime() - draft.trkpt[i].time.getTime())
+                    );
+                }
+            }
+            draft.trkpt.reverse();
+        });
+    }
 };
 
 export class TrackPoint {
@@ -447,7 +445,7 @@ export class TrackPoint {
     extensions?: TrackPointExtensions;
     _data: { [key: string]: any } = {};
 
-    constructor(point: TrackPointType | TrackPoint) {
+    constructor(point: TrackPointType & { _data?: any } | TrackPoint) {
         this.attributes = point.attributes;
         this.ele = point.ele;
         this.time = point.time;
@@ -701,7 +699,7 @@ export function distance(coord1: Coordinates, coord2: Coordinates): number {
     return maxMeters;
 }
 
-function distanceWindowSmoothing(points: TrackPoint[], distanceWindow: number, accumulate: (index: number) => number, compute: (accumulated: number, start: number, end: number) => number, remove?: (index: number) => number): number[] {
+function distanceWindowSmoothing(points: ReadonlyArray<Readonly<TrackPoint>>, distanceWindow: number, accumulate: (index: number) => number, compute: (accumulated: number, start: number, end: number) => number, remove?: (index: number) => number): number[] {
     let result = [];
 
     let start = 0, end = 0, accumulated = 0;
@@ -724,6 +722,6 @@ function distanceWindowSmoothing(points: TrackPoint[], distanceWindow: number, a
     return result;
 }
 
-function distanceWindowSmoothingWithDistanceAccumulator(points: TrackPoint[], distanceWindow: number, compute: (accumulated: number, start: number, end: number) => number): number[] {
+function distanceWindowSmoothingWithDistanceAccumulator(points: ReadonlyArray<Readonly<TrackPoint>>, distanceWindow: number, compute: (accumulated: number, start: number, end: number) => number): number[] {
     return distanceWindowSmoothing(points, distanceWindow, (index) => index > 0 ? distance(points[index - 1].getCoordinates(), points[index].getCoordinates()) : 0, compute, (index) => distance(points[index].getCoordinates(), points[index + 1].getCoordinates()));
 }

@@ -1,4 +1,5 @@
 import { distance, type Coordinates, TrackPoint, TrackSegment } from "gpx";
+import { original } from "immer";
 import { get, type Readable } from "svelte/store";
 import { computeAnchorPoints } from "./Simplify";
 import mapboxgl from "mapbox-gl";
@@ -297,19 +298,13 @@ export class RoutingControls {
         let [previousAnchor, nextAnchor] = this.getNeighbouringAnchors(anchor);
 
         if (previousAnchor === null && nextAnchor === null) { // Only one point, remove it
-            dbUtils.applyToFile(this.fileId, (file) => {
-                let segment = file.getSegments()[anchor.segmentIndex];
-                segment.replace(0, 0, []);
-            });
+            dbUtils.applyToFile(this.fileId, (file) => file.replace(anchor.segmentIndex, 0, 0, []));
         } else if (previousAnchor === null) { // First point, remove trackpoints until nextAnchor
-            dbUtils.applyToFile(this.fileId, (file) => {
-                let segment = file.getSegments()[anchor.segmentIndex];
-                segment.replace(0, nextAnchor.point._data.index - 1, []);
-            });
+            dbUtils.applyToFile(this.fileId, (file) => file.replace(anchor.segmentIndex, 0, nextAnchor.point._data.index - 1, []));
         } else if (nextAnchor === null) { // Last point, remove trackpoints from previousAnchor
             dbUtils.applyToFile(this.fileId, (file) => {
                 let segment = file.getSegments()[anchor.segmentIndex];
-                segment.replace(previousAnchor.point._data.index + 1, segment.trkpt.length - 1, []);
+                return file.replace(anchor.segmentIndex, previousAnchor.point._data.index + 1, segment.trkpt.length - 1, []);
             });
         } else { // Route between previousAnchor and nextAnchor
             this.routeBetweenAnchors([previousAnchor, nextAnchor], [previousAnchor.point.getCoordinates(), nextAnchor.point.getCoordinates()]);
@@ -334,10 +329,7 @@ export class RoutingControls {
 
         if (!lastAnchor) {
             // TODO, create segment if it does not exist
-            dbUtils.applyToFile(this.fileId, (file) => {
-                let segment = file.getSegments()[0];
-                segment.replace(0, 0, [newPoint]);
-            });
+            dbUtils.applyToFile(this.fileId, (file) => file.replace(0, 0, 0, [newPoint]));
             return;
         }
 
@@ -384,10 +376,10 @@ export class RoutingControls {
         }
 
         dbUtils.applyToFile(this.fileId, (file) => {
-            let segment = file.getSegments()[segments.length - 1];
+            let segment = original(file).getSegments()[segments.length - 1];
             let newSegment = segment.clone();
-            newSegment.reverse(undefined, undefined);
-            segment.replace(segment.trkpt.length, segment.trkpt.length, newSegment.trkpt);
+            newSegment = newSegment.reverse(segment.getEndTimestamp(), segment.getEndTimestamp());
+            return file.replace(segments.length - 1, segment.trkpt.length, segment.trkpt.length, newSegment.trkpt.map((point) => point));
         });
     }
 
@@ -416,12 +408,9 @@ export class RoutingControls {
         let segment = anchors[0].segment;
 
         if (anchors.length === 1) { // Only one anchor, update the point in the segment
-            dbUtils.applyToFile(this.fileId, (file) => {
-                let segment = file.getSegments()[anchors[0].segmentIndex];
-                segment.replace(0, 0, [new TrackPoint({
-                    attributes: targetCoordinates[0],
-                })]);
-            });
+            dbUtils.applyToFile(this.fileId, (file) => file.replace(anchors[0].segmentIndex, 0, 0, [new TrackPoint({
+                attributes: targetCoordinates[0],
+            })]));
             return true;
         }
 
@@ -476,10 +465,7 @@ export class RoutingControls {
             anchor.point._data.zoom = 0; // Make these anchors permanent
         });
 
-        dbUtils.applyToFile(this.fileId, (file) => {
-            let segment = file.getSegments()[anchors[0].segmentIndex];
-            segment.replace(start, end, response);
-        });
+        dbUtils.applyToFile(this.fileId, (file) => file.replace(anchors[0].segmentIndex, start, end, response));
 
         return true;
     }

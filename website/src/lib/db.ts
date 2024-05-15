@@ -1,6 +1,6 @@
 import Dexie, { liveQuery } from 'dexie';
 import { GPXFile, GPXStatistics } from 'gpx';
-import { enableMapSet, enablePatches, produceWithPatches, applyPatches, type Patch } from 'immer';
+import { enableMapSet, enablePatches, produceWithPatches, applyPatches, type Patch, type WritableDraft, castDraft } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
 import { fileOrder, initTargetMapBounds, selectedFiles, updateTargetMapBounds } from './stores';
 import { mode } from 'mode-watcher';
@@ -218,12 +218,12 @@ function applyGlobal(callback: (files: Map<string, GPXFile>) => void) {
 }
 
 // Helper function to apply a callback to multiple files
-function applyToFiles(fileIds: string[], callback: (file: GPXFile) => void) {
+function applyToFiles(fileIds: string[], callback: (file: WritableDraft<GPXFile>) => GPXFile) {
     const [newFileState, patch, inversePatch] = produceWithPatches(fileState, (draft) => {
         fileIds.forEach((fileId) => {
             let file = draft.get(fileId);
             if (file) {
-                callback(file);
+                draft.set(fileId, castDraft(callback(file)));
             }
         });
     });
@@ -298,10 +298,10 @@ export const dbUtils = {
             });
         });
     },
-    applyToFile: (id: string, callback: (file: GPXFile) => void) => {
+    applyToFile: (id: string, callback: (file: WritableDraft<GPXFile>) => GPXFile) => {
         applyToFiles([id], callback);
     },
-    applyToSelectedFiles: (callback: (file: GPXFile) => void) => {
+    applyToSelectedFiles: (callback: (file: WritableDraft<GPXFile>) => GPXFile) => {
         applyToFiles(get(fileOrder).filter(fileId => get(selectedFiles).has(fileId)), callback);
     },
     duplicateSelectedFiles: () => {

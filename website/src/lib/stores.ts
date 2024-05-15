@@ -203,7 +203,7 @@ export function exportSelectedFiles() {
         if (get(selectedFiles).has(fileId)) {
             let f = get(file);
             if (f) {
-                exportFile(f);
+                exportFile(f.file);
                 await new Promise(resolve => setTimeout(resolve, 200));
             }
         }
@@ -214,7 +214,7 @@ export function exportAllFiles() {
     get(fileObservers).forEach(async (file) => {
         let f = get(file);
         if (f) {
-            exportFile(f);
+            exportFile(f.file);
             await new Promise(resolve => setTimeout(resolve, 200));
         }
     });
