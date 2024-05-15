@@ -110,16 +110,16 @@ function dexieStore<T>(querier: () => T | Promise<T>, initial?: T): Readable<T> 
 export type GPXFileWithStatistics = { file: GPXFile, statistics: GPXStatistics };
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber, also takes care of the conversion to a GPXFile object
-function dexieGPXFileStore(querier: () => GPXFile | undefined | Promise<GPXFile | undefined>): Readable<GPXFileWithStatistics> & { destroy: () => void } {
+function dexieGPXFileStore(id: string): Readable<GPXFileWithStatistics> & { destroy: () => void } {
     let store = writable<GPXFileWithStatistics>(undefined);
-    let query = liveQuery(querier).subscribe(value => {
+    let query = liveQuery(() => db.files.get(id)).subscribe(value => {
         if (value !== undefined) {
             let gpx = new GPXFile(value);
             let statistics = gpx.getStatistics();
-            if (!fileState.has(gpx._data.id)) { // Update the map bounds for new files
+            if (!fileState.has(id)) { // Update the map bounds for new files
                 updateTargetMapBounds(statistics.global.bounds);
             }
-            fileState.set(gpx._data.id, gpx);
+            fileState.set(id, gpx);
             store.set({
                 file: gpx,
                 statistics
@@ -128,7 +128,10 @@ function dexieGPXFileStore(querier: () => GPXFile | undefined | Promise<GPXFile 
     });
     return {
         subscribe: store.subscribe,
-        destroy: query.unsubscribe
+        destroy: () => {
+            fileState.delete(id);
+            query.unsubscribe();
+        }
     };
 }
 
@@ -183,12 +186,11 @@ liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
     if (newFiles.length > 0 || deletedFiles.length > 0) {
         fileObservers.update($files => {
             newFiles.forEach(id => {
-                $files.set(id, dexieGPXFileStore(() => db.files.get(id)));
+                $files.set(id, dexieGPXFileStore(id));
             });
             deletedFiles.forEach(id => {
                 $files.get(id)?.destroy();
                 $files.delete(id);
-                fileState.delete(id);
             });
             return $files;
         });
@@ -260,7 +262,7 @@ function applyPatch(patch: Patch[]) {
 
 // Get the file ids of the files that have changed in the patch
 function getChangedFileIds(patch: Patch[]): string[] {
-    let changedFileIds = new Set();
+    let changedFileIds = new Set<string>();
     for (let p of patch) {
         changedFileIds.add(p.path[0]);
     }
