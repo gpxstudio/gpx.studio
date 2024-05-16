@@ -26,7 +26,7 @@ export function computeAnchorPoints(segment: TrackSegment) {
     segment._data.anchors = true;
 }
 
-export function ramerDouglasPeucker(points: TrackPoint[], epsilon: number = 50, start: number = 0, end: number = points.length - 1): SimplifiedTrackPoint[] {
+export function ramerDouglasPeucker(points: readonly TrackPoint[], epsilon: number = 50, start: number = 0, end: number = points.length - 1): SimplifiedTrackPoint[] {
     if (points.length == 0) {
         return [];
     } else if (points.length == 1) {
@@ -45,7 +45,7 @@ export function ramerDouglasPeucker(points: TrackPoint[], epsilon: number = 50, 
     return simplified;
 }
 
-function ramerDouglasPeuckerRecursive(points: TrackPoint[], epsilon: number, start: number, end: number, simplified: SimplifiedTrackPoint[]) {
+function ramerDouglasPeuckerRecursive(points: readonly TrackPoint[], epsilon: number, start: number, end: number, simplified: SimplifiedTrackPoint[]) {
     let largest = {
         index: 0,
         distance: 0

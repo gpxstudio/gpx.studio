@@ -412,10 +412,10 @@ export class TrackSegment extends GPXTreeLeaf {
     // Producers
     replace(segment: number, start: number, end: number, points: TrackPoint[]) {
         return produce(this, (draft) => {
-            let og = getOriginal(draft);
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
             let trkpt = og.trkpt.slice();
             trkpt.splice(start, end - start + 1, ...points);
-            draft.trkpt = freeze(trkpt);
+            draft.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
         });
     }
 

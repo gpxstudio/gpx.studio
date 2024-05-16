@@ -432,17 +432,18 @@ export class RoutingControls {
             return false;
         }
 
-        let start = anchors[0].point._data.index + 1;
-        let end = anchors[anchors.length - 1].point._data.index - 1;
-
         if (anchors[0].point._data.index === 0) { // First anchor is the first point of the segment
-            anchors[0].point = response[0]; // Update the first anchor in case it was not on a road
-            start--; // Remove the original first point
+            anchors[0].point = response[0]; // Update the first anchor
+            anchors[0].point._data.index = 0;
+        } else {
+            response.splice(0, 0, anchors[0].point); // Keep the original start point
         }
 
         if (anchors[anchors.length - 1].point._data.index === segment.trkpt.length - 1) { // Last anchor is the last point of the segment
-            anchors[anchors.length - 1].point = response[response.length - 1]; // Update the last anchor in case it was not on a road
-            end++; // Remove the original last point
+            anchors[anchors.length - 1].point = response[response.length - 1]; // Update the last anchor
+            anchors[anchors.length - 1].point._data.index = segment.trkpt.length - 1;
+        } else {
+            response.push(anchors[anchors.length - 1].point); // Keep the original end point
         }
 
         for (let i = 1; i < anchors.length - 1; i++) {
@@ -465,7 +466,7 @@ export class RoutingControls {
             anchor.point._data.zoom = 0; // Make these anchors permanent
         });
 
-        dbUtils.applyToFile(this.fileId, (file) => file.replace(anchors[0].segmentIndex, start, end, response));
+        dbUtils.applyToFile(this.fileId, (file) => file.replace(anchors[0].segmentIndex, anchors[0].point._data.index, anchors[anchors.length - 1].point._data.index, response));
 
         return true;
     }

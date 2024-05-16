@@ -1,6 +1,6 @@
 import Dexie, { liveQuery } from 'dexie';
 import { GPXFile, GPXStatistics } from 'gpx';
-import { enableMapSet, enablePatches, produceWithPatches, applyPatches, type Patch, type WritableDraft, castDraft } from 'immer';
+import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, castDraft, Immer } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
 import { fileOrder, initTargetMapBounds, selectedFiles, updateTargetMapBounds } from './stores';
 import { mode } from 'mode-watcher';
@@ -8,6 +8,8 @@ import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays
 
 enableMapSet();
 enablePatches();
+
+const noFreezeImmer = new Immer({ autoFreeze: false }); // Do not freeze files that are not concerned by an update, otherwise cannot assign anchors for them
 
 class Database extends Dexie {
 
@@ -210,7 +212,7 @@ export const canRedo: Readable<boolean> = derived([patchIndex, patchMinMaxIndex]
 
 // Helper function to apply a callback to the global file state
 function applyGlobal(callback: (files: Map<string, GPXFile>) => void) {
-    const [newFileState, patch, inversePatch] = produceWithPatches(fileState, callback);
+    const [newFileState, patch, inversePatch] = noFreezeImmer.produceWithPatches(fileState, callback);
 
     storePatches(patch, inversePatch);
 
@@ -219,7 +221,7 @@ function applyGlobal(callback: (files: Map<string, GPXFile>) => void) {
 
 // Helper function to apply a callback to multiple files
 function applyToFiles(fileIds: string[], callback: (file: WritableDraft<GPXFile>) => GPXFile) {
-    const [newFileState, patch, inversePatch] = produceWithPatches(fileState, (draft) => {
+    const [newFileState, patch, inversePatch] = noFreezeImmer.produceWithPatches(fileState, (draft) => {
         fileIds.forEach((fileId) => {
             let file = draft.get(fileId);
             if (file) {
