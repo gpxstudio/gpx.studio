@@ -1,12 +1,9 @@
 <script lang="ts">
 	import { Label } from '$lib/components/ui/label';
 	import { Checkbox } from '$lib/components/ui/checkbox';
-	import { Button } from '$lib/components/ui/button';
-	import * as Collapsible from '$lib/components/ui/collapsible';
+	import CollapsibleTreeNode from '../collapsible-tree/CollapsibleTreeNode.svelte';
 
-	import { ChevronDown, ChevronUp } from 'lucide-svelte';
-
-	import { type CollapsedInfoTreeType, type LayerTreeType } from '$lib/assets/layers';
+	import { type LayerTreeType } from '$lib/assets/layers';
 	import { anySelectedLayer } from './utils';
 
 	import { _ } from 'svelte-i18n';
@@ -16,19 +13,8 @@
 	export let selected: string | undefined = undefined;
 	export let multiple: boolean = false;
 
-	export let open: CollapsedInfoTreeType<boolean>;
 	export let checked: LayerTreeType;
 
-	if (!Array.isArray(node)) {
-		Object.keys(node).forEach((id) => {
-			if (!open.children.hasOwnProperty(id)) {
-				open.children[id] = {
-					self: true,
-					children: {}
-				};
-			}
-		});
-	}
 	Object.keys(node).forEach((id) => {
 		if (!checked.hasOwnProperty(id)) {
 			if (typeof node[id] == 'boolean') {
@@ -40,7 +26,7 @@
 	});
 </script>
 
-<div class="flex flex-col gap-1">
+<div class="flex flex-col gap-0.5">
 	{#each Object.keys(node) as id}
 		{#if typeof node[id] == 'boolean'}
 			{#if node[id]}
@@ -62,31 +48,12 @@
 				</div>
 			{/if}
 		{:else if anySelectedLayer(node[id])}
-			<Collapsible.Root bind:open={open.children[id].self} class="ml-1">
-				<Collapsible.Trigger class="w-full"
-					><Button
-						variant="ghost"
-						class="w-full flex flex-row justify-between py-0 px-1 h-fit hover:bg-background"
-					>
-						<span class="mr-2">{$_(`layers.label.${id}`)}</span>
-						{#if open.children[id].self}
-							<ChevronUp size="16" />
-						{:else}
-							<ChevronDown size="16" />
-						{/if}
-					</Button></Collapsible.Trigger
-				>
-				<Collapsible.Content class="ml-1">
-					<svelte:self
-						node={node[id]}
-						{name}
-						bind:selected
-						{multiple}
-						bind:open={open.children[id]}
-						bind:checked={checked[id]}
-					/>
-				</Collapsible.Content>
-			</Collapsible.Root>
+			<CollapsibleTreeNode {id}>
+				<span slot="trigger">{$_(`layers.label.${id}`)}</span>
+				<div slot="content">
+					<svelte:self node={node[id]} {name} bind:selected {multiple} bind:checked={checked[id]} />
+				</div>
+			</CollapsibleTreeNode>
 		{/if}
 	{/each}
 </div>

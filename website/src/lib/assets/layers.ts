@@ -381,10 +381,6 @@ export const opacities: { [key: string]: number; } = {
 };
 
 export type LayerTreeType = { [key: string]: LayerTreeType | boolean; };
-export type CollapsedInfoTreeType<T> = {
-    self: T;
-    children: { [key: string]: CollapsedInfoTreeType<T>; };
-};
 
 // Hierarchy containing all basemaps
 export const basemapTree: LayerTreeType = {
