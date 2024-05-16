@@ -58,9 +58,10 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
     // Producers
     replace(segment: number, start: number, end: number, points: TrackPoint[]) {
         return produce(this, (draft: Draft<GPXTreeNode<T>>) => {
+            let og = getOriginal(draft);
             let cumul = 0;
-            for (let i = 0; i < draft.children.length; i++) {
-                let childSegments = draft.children[i].getSegments();
+            for (let i = 0; i < og.children.length; i++) {
+                let childSegments = og.children[i].getSegments();
                 if (segment < cumul + childSegments.length) {
                     draft.children[i] = draft.children[i].replace(segment - cumul, start, end, points);
                     break;
@@ -411,7 +412,10 @@ export class TrackSegment extends GPXTreeLeaf {
     // Producers
     replace(segment: number, start: number, end: number, points: TrackPoint[]) {
         return produce(this, (draft) => {
-            draft.trkpt.splice(start, end - start + 1, ...points);
+            let og = getOriginal(draft);
+            let trkpt = og.trkpt.slice();
+            trkpt.splice(start, end - start + 1, ...points);
+            draft.trkpt = freeze(trkpt);
         });
     }
 
