@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Collapsible from '$lib/components/ui/collapsible';
 	import { Button } from '$lib/components/ui/button';
-	import { ChevronDown, ChevronUp } from 'lucide-svelte';
+	import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-svelte';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
 
@@ -9,6 +9,8 @@
 
 	let open = getContext<Writable<Record<string, boolean>>>('collapsible-tree-state');
 	let side = getContext<'left' | 'right'>('collapsible-tree-side');
+	let margin = getContext<number>('collapsible-tree-margin');
+	let nohover = getContext<boolean>('collapsible-tree-nohover');
 
 	open.update((value) => {
 		if (!value.hasOwnProperty(id)) {
@@ -18,28 +20,32 @@
 	});
 </script>
 
-<Collapsible.Root bind:open={$open[id]}>
+<Collapsible.Root bind:open={$open[id]} class={$$props.class ?? ''}>
 	<Collapsible.Trigger class="w-full">
 		<Button
 			variant="ghost"
 			class="w-full flex flex-row {side === 'right'
 				? 'justify-between'
-				: 'justify-start'} py-0 px-1 h-fit hover:bg-background"
+				: 'justify-start'} py-0 px-1 h-fit {nohover ? 'hover:bg-background' : ''}"
 		>
-			{#if side === 'right'}
-				<slot name="trigger" />
-			{/if}
-			{#if $open[id]}
-				<ChevronUp size="16" />
-			{:else}
-				<ChevronDown size="16" />
-			{/if}
 			{#if side === 'left'}
-				<slot name="trigger" />
+				{#if $open[id]}
+					<ChevronDown size="16" class="shrink-0" />
+				{:else}
+					<ChevronRight size="16" class="shrink-0" />
+				{/if}
+			{/if}
+			<slot name="trigger" />
+			{#if side === 'right'}
+				{#if $open[id]}
+					<ChevronDown size="16" class="shrink-0" />
+				{:else}
+					<ChevronLeft size="16" class="shrink-0" />
+				{/if}
 			{/if}
 		</Button>
 	</Collapsible.Trigger>
-	<Collapsible.Content class="ml-1">
+	<Collapsible.Content class="ml-{margin}">
 		<slot name="content" />
 	</Collapsible.Content>
 </Collapsible.Root>

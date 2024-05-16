@@ -6,7 +6,7 @@
 </script>
 
 <ScrollArea class="w-fit p-1 pr-4">
-	<div class="w-60">
+	<div class="w-60 flex flex-col gap-1">
 		{#each Array.from($fileObservers.values()) as file}
 			<FileListItem {file} />
 		{/each}

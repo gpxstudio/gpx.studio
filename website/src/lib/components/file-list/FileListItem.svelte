@@ -9,7 +9,7 @@
 </script>
 
 {#if $file}
-	<CollapsibleTree side="left">
+	<CollapsibleTree side="left" margin={4}>
 		<FileListNode node={$file.file} id={$file.file._data.id} />
 	</CollapsibleTree>
 {/if}
