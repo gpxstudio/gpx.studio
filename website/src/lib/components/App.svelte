@@ -8,22 +8,26 @@
 	import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
 	import LayerControl from '$lib/components/layer-control/LayerControl.svelte';
 	import { Toaster } from '$lib/components/ui/sonner';
+	import FileList2 from './file-list/FileList2.svelte';
 </script>
 
-<div class="flex flex-col w-screen h-screen">
-	<div class="grow relative">
-		<Menu />
-		<Toolbar />
-		<Map class="h-full" />
-		<LayerControl />
-		<GPXLayers />
-		<FileList />
-		<Toaster richColors />
+<div class="flex flex-row w-screen h-screen">
+	<div class="flex flex-col grow h-full min-w-0">
+		<div class="grow relative">
+			<Menu />
+			<Toolbar />
+			<Map class="h-full" />
+			<LayerControl />
+			<GPXLayers />
+			<FileList />
+			<Toaster richColors />
+		</div>
+		<div class="h-48 flex flex-row gap-2 overflow-hidden">
+			<GPXStatistics />
+			<ElevationProfile />
+		</div>
 	</div>
-	<div class="h-48 flex flex-row gap-2 overflow-hidden">
-		<GPXStatistics />
-		<ElevationProfile />
-	</div>
+	<FileList2 />
 </div>
 
 <style lang="postcss">
