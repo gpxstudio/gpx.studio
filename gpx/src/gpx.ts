@@ -1,5 +1,5 @@
 import { Coordinates, GPXFileAttributes, GPXFileType, Link, Metadata, TrackExtensions, TrackPointExtensions, TrackPointType, TrackSegmentType, TrackType, WaypointType } from "./types";
-import { Draft, immerable, produce } from "immer";
+import { Draft, immerable, isDraft, original, produce, freeze } from "immer";
 
 function cloneJSON<T>(obj: T): T {
     if (obj === null || typeof obj !== 'object') {
@@ -72,15 +72,16 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
 
     reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date) {
         return produce(this, (draft: Draft<GPXTreeNode<T>>) => {
+            let og = getOriginal(draft);
             if (!originalNextTimestamp && !newPreviousTimestamp) {
-                originalNextTimestamp = draft.children[draft.children.length - 1].getEndTimestamp();
-                newPreviousTimestamp = draft.children[0].getStartTimestamp();
+                originalNextTimestamp = og.children[og.children.length - 1].getEndTimestamp();
+                newPreviousTimestamp = og.children[0].getStartTimestamp();
             }
 
             draft.children.reverse();
 
-            for (let i = 0; i < draft.children.length; i++) {
-                let originalStartTimestamp = draft.children[i].getStartTimestamp();
+            for (let i = 0; i < og.children.length; i++) {
+                let originalStartTimestamp = og.children[og.children.length - i - 1].getStartTimestamp();
 
                 draft.children[i] = draft.children[i].reverse(originalNextTimestamp, newPreviousTimestamp);
 
@@ -417,18 +418,29 @@ export class TrackSegment extends GPXTreeLeaf {
     reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date) {
         return produce(this, (draft) => {
             if (originalNextTimestamp !== undefined && newPreviousTimestamp !== undefined) {
-                let originalEndTimestamp = draft.getEndTimestamp();
+                let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+
+                let originalEndTimestamp = og.getEndTimestamp();
                 let newStartTimestamp = new Date(
                     newPreviousTimestamp.getTime() + originalNextTimestamp.getTime() - originalEndTimestamp.getTime()
                 );
 
-                for (let i = 0; i < draft.trkpt.length; i++) {
-                    draft.trkpt[i].time = new Date(
-                        newStartTimestamp.getTime() + (originalEndTimestamp.getTime() - draft.trkpt[i].time.getTime())
-                    );
-                }
+                let trkpt = og.trkpt.map((point, i) => new TrackPoint({
+                    attributes: cloneJSON(point.attributes),
+                    ele: point.ele,
+                    time: new Date(
+                        newStartTimestamp.getTime() + (originalEndTimestamp.getTime() - og.trkpt[i].time.getTime())
+                    ),
+                    extensions: cloneJSON(point.extensions),
+                    _data: cloneJSON(point._data),
+                }));
+
+                trkpt.reverse();
+
+                draft.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+            } else {
+                draft.trkpt.reverse();
             }
-            draft.trkpt.reverse();
         });
     }
 };
@@ -721,4 +733,11 @@ function distanceWindowSmoothing(points: ReadonlyArray<Readonly<TrackPoint>>, di
 
 function distanceWindowSmoothingWithDistanceAccumulator(points: ReadonlyArray<Readonly<TrackPoint>>, distanceWindow: number, compute: (accumulated: number, start: number, end: number) => number): number[] {
     return distanceWindowSmoothing(points, distanceWindow, (index) => index > 0 ? distance(points[index - 1].getCoordinates(), points[index].getCoordinates()) : 0, compute, (index) => distance(points[index].getCoordinates(), points[index + 1].getCoordinates()));
+}
+
+function getOriginal(obj: any): any {
+    while (isDraft(obj)) {
+        obj = original(obj);
+    }
+    return obj;
 }
