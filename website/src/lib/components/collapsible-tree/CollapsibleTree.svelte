@@ -2,7 +2,7 @@
 	import { setContext } from 'svelte';
 	import { writable } from 'svelte/store';
 
-	export let defaultState: 'open' | 'closed' = 'closed';
+	export let defaultState: 'open' | 'closed' = 'open';
 	export let side: 'left' | 'right' = 'right';
 	export let margin: number = 1;
 	export let nohover: boolean = false;
