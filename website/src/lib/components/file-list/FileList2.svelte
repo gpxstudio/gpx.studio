@@ -1,14 +1,12 @@
 <script lang="ts">
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index';
-	import FileListItem from '$lib/components/file-list/FileListItem.svelte';
+	import FileListNode from './FileListNode.svelte';
 
 	import { fileObservers } from '$lib/db';
 </script>
 
-<ScrollArea class="w-fit p-1 pr-4">
+<ScrollArea class="w-fit p-1 pr-4 border">
 	<div class="w-60 flex flex-col gap-1">
-		{#each Array.from($fileObservers.values()) as file}
-			<FileListItem {file} />
-		{/each}
+		<FileListNode node={$fileObservers} id="root" />
 	</div>
 </ScrollArea>

@@ -19,7 +19,6 @@
 			<Map class="h-full" />
 			<LayerControl />
 			<GPXLayers />
-			<FileList />
 			<Toaster richColors />
 		</div>
 		<div class="h-48 flex flex-row gap-2 overflow-hidden">
