@@ -81,7 +81,7 @@
 			});
 			newMap.setTerrain({
 				source: 'mapbox-dem',
-				exaggeration: 0
+				exaggeration: newMap.getPitch() > 0 ? 1 : 0
 			});
 			newMap.setFog({
 				color: 'rgb(186, 210, 235)',
