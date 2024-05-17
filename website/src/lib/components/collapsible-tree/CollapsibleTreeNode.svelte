@@ -7,6 +7,7 @@
 
 	export let id: string;
 
+	let defaultState = getContext<'open' | 'closed'>('collapsible-tree-default-state');
 	let open = getContext<Writable<Record<string, boolean>>>('collapsible-tree-state');
 	let side = getContext<'left' | 'right'>('collapsible-tree-side');
 	let margin = getContext<number>('collapsible-tree-margin');
@@ -14,7 +15,7 @@
 
 	open.update((value) => {
 		if (!value.hasOwnProperty(id)) {
-			value[id] = true;
+			value[id] = defaultState === 'open';
 		}
 		return value;
 	});
