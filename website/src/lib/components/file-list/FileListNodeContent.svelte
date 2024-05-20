@@ -23,11 +23,19 @@
 				: node instanceof Track
 					? 'segment'
 					: 'waypoint';
+	let pull: Record<string, string[]> = {
+		file: ['file', 'track'],
+		track: ['file', 'track'],
+		segment: ['file', 'track', 'segment'],
+		waypoint: ['waypoint']
+	};
 	let sortable: Sortable;
 
 	onMount(() => {
 		sortable = Sortable.create(container, {
-			group: sortableLevel,
+			group: {
+				name: sortableLevel
+			},
 			forceAutoScrollFallback: true,
 			multiDrag: true,
 			multiDragKey: 'Meta',
@@ -60,36 +68,38 @@
 			</div>
 		{/each}
 		{#if node.wpt.length > 0}
-			<div>
-				<FileListNode node={node.wpt} id={`${id}-wpt`} on:click={(e) => handleClick(e.detail.id)} />
-			</div>
+			<FileListNode node={node.wpt} id={`${id}-wpt`} on:click={(e) => handleClick(e.detail.id)} />
 		{/if}
 	{:else if node instanceof Track}
 		{#each node.children as child, i}
 			<div>
-				<Button
-					variant="ghost"
-					class="ml-1 truncate flex flex-row justify-start py-0 px-1 h-fit"
-					on:click={() => handleClick(`${id}-seg-${i + 1}`)}>{`Segment ${i + 1}`}</Button
-				>
+				<div>
+					<Button
+						variant="ghost"
+						class="ml-1 truncate flex flex-row justify-start py-0 px-1 h-fit"
+						on:click={() => handleClick(`${id}-seg-${i + 1}`)}>{`Segment ${i + 1}`}</Button
+					>
+				</div>
 			</div>
 		{/each}
 	{:else if Array.isArray(node) && node.length > 0 && node[0] instanceof Waypoint}
 		{#each node as wpt, i}
 			<div>
-				<Button
-					variant="ghost"
-					class="ml-1 flex flex-row justify-start py-0 px-1 h-fit"
-					on:click={() => handleClick(`${id}-${i + 1}`)}
-					><span class="truncate">{wpt.name ?? `Waypoint ${i + 1}`}</span></Button
-				>
+				<div>
+					<Button
+						variant="ghost"
+						class="ml-1 flex flex-row justify-start py-0 px-1 h-fit"
+						on:click={() => handleClick(`${id}-${i + 1}`)}
+						><span class="truncate">{wpt.name ?? `Waypoint ${i + 1}`}</span></Button
+					>
+				</div>
 			</div>
 		{/each}
 	{/if}
 </div>
 
 <style lang="postcss">
-	div :global(.sortable-selected) {
+	div :global(.sortable-selected > * > button) {
 		@apply bg-accent;
 	}
 </style>
