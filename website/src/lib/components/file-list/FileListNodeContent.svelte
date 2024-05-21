@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { GPXFile, Track, Waypoint, type AnyGPXTreeElement, type GPXTreeElement } from 'gpx';
-	import { getContext, onDestroy, onMount } from 'svelte';
+	import { afterUpdate, getContext, onDestroy, onMount } from 'svelte';
 	import Sortable from 'sortablejs/Sortable';
-	import type { GPXFileWithStatistics } from '$lib/db';
-	import type { Readable, Writable } from 'svelte/store';
+	import { settings, type GPXFileWithStatistics } from '$lib/db';
+	import { get, type Readable, type Writable } from 'svelte/store';
 	import FileListNodeStore from './FileListNodeStore.svelte';
 	import FileListNode from './FileListNode.svelte';
 	import FileListNodeLabel from './FileListNodeLabel.svelte';
@@ -50,6 +50,25 @@
 		});
 	}
 
+	function syncFileOrder() {
+		if (sortableLevel !== 'file') {
+			return;
+		}
+		const currentOrder = sortable.toArray();
+		if (currentOrder.length !== $fileOrder.length) {
+			sortable.sort($fileOrder);
+		} else {
+			for (let i = 0; i < currentOrder.length; i++) {
+				if (currentOrder[i] !== $fileOrder[i]) {
+					sortable.sort($fileOrder);
+					break;
+				}
+			}
+		}
+	}
+
+	const { fileOrder } = settings;
+
 	onMount(() => {
 		sortable = Sortable.create(container, {
 			group: {
@@ -61,8 +80,34 @@
 			avoidImplicitDeselect: true,
 			onSelect: onSelectChange,
 			onDeselect: onSelectChange,
-			sort: sortableLevel !== 'waypoint'
+			sort: sortableLevel !== 'waypoint',
+			onSort: () => {
+				if (sortableLevel !== 'file') {
+					return;
+				}
+
+				let newFileOrder = sortable.toArray();
+				if (newFileOrder.length !== get(fileOrder).length) {
+					fileOrder.set(newFileOrder);
+					return;
+				}
+
+				for (let i = 0; i < newFileOrder.length; i++) {
+					if (newFileOrder[i] !== get(fileOrder)[i]) {
+						fileOrder.set(newFileOrder);
+						return;
+					}
+				}
+			}
 		});
+	});
+
+	$: if ($fileOrder && sortable) {
+		syncFileOrder();
+	}
+
+	afterUpdate(() => {
+		syncFileOrder();
 	});
 
 	const unsubscribe = selected.subscribe(($selected) => {
@@ -98,7 +143,7 @@
 >
 	{#if node instanceof Map}
 		{#each node as [fileId, file]}
-			<div bind:this={items[fileId]}>
+			<div bind:this={items[fileId]} data-id={fileId}>
 				<FileListNodeStore {file} />
 			</div>
 		{/each}

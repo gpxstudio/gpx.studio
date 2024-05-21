@@ -2,7 +2,7 @@ import Dexie, { liveQuery } from 'dexie';
 import { GPXFile, GPXStatistics } from 'gpx';
 import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, castDraft, Immer } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
-import { fileOrder, initTargetMapBounds, selectedFiles, updateTargetMapBounds } from './stores';
+import { initTargetMapBounds, selectedFiles, updateTargetMapBounds } from './stores';
 import { mode } from 'mode-watcher';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays } from './assets/layers';
 
@@ -35,7 +35,7 @@ class Database extends Dexie {
 const db = new Database();
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber, and updates to the store are pushed to the DB
-function dexieSettingStore(setting: string, initial: any): Writable<any> {
+function dexieSettingStore<T>(setting: string, initial: T): Writable<T> {
     let store = writable(initial);
     liveQuery(() => db.settings.get(setting)).subscribe(value => {
         if (value !== undefined) {
@@ -94,6 +94,7 @@ export const settings = {
     selectedOverlayTree: dexieSettingStore('selectedOverlayTree', defaultOverlayTree),
     directionMarkers: dexieSettingStore('directionMarkers', false),
     distanceMarkers: dexieSettingStore('distanceMarkers', false),
+    fileOrder: dexieSettingStore<string[]>('fileOrder', []),
 };
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber
@@ -304,12 +305,12 @@ export const dbUtils = {
         applyToFiles([id], callback);
     },
     applyToSelectedFiles: (callback: (file: WritableDraft<GPXFile>) => GPXFile) => {
-        applyToFiles(get(fileOrder).filter(fileId => get(selectedFiles).has(fileId)), callback);
+        applyToFiles(get(settings.fileOrder).filter(fileId => get(selectedFiles).has(fileId)), callback);
     },
     duplicateSelectedFiles: () => {
         applyGlobal((draft) => {
-            let ids = getFileIds(get(fileOrder).length);
-            get(fileOrder).forEach((fileId, index) => {
+            let ids = getFileIds(get(settings.fileOrder).length);
+            get(settings.fileOrder).forEach((fileId, index) => {
                 if (get(selectedFiles).has(fileId)) {
                     let file = draft.get(fileId);
                     if (file) {

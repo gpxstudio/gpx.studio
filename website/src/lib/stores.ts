@@ -5,13 +5,13 @@ import { GPXFile, buildGPX, parseGPX, GPXStatistics, type Coordinates } from 'gp
 import { tick } from 'svelte';
 import { _ } from 'svelte-i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
-import { dbUtils, fileObservers } from './db';
+import { dbUtils, fileObservers, settings } from './db';
 
 export const map = writable<mapboxgl.Map | null>(null);
-
-export const fileOrder = writable<string[]>([]);
 export const selectedFiles = writable<Set<string>>(new Set());
 export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }>({});
+
+const { fileOrder } = settings;
 
 fileObservers.subscribe((files) => { // Update selectedFiles automatically when files are deleted (either by action or by undo-redo)
     let deletedFileIds: string[] = [];
