@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { GPXFile, Track, Waypoint, type AnyGPXTreeElement, type GPXTreeElement } from 'gpx';
-	import { Button } from '$lib/components/ui/button';
 	import { getContext, onDestroy, onMount } from 'svelte';
 	import Sortable from 'sortablejs/Sortable';
 	import type { GPXFileWithStatistics } from '$lib/db';
@@ -36,6 +35,7 @@
 	};
 	let sortable: Sortable;
 
+	let orientation = getContext<'vertical' | 'horizontal'>('orientation');
 	let selected = getContext<Writable<Set<string>>>('selected');
 
 	function onSelectChange() {
@@ -65,10 +65,6 @@
 		});
 	});
 
-	function handleClick(id: string) {
-		//console.log('handle click for', id);
-	}
-
 	const unsubscribe = selected.subscribe(($selected) => {
 		Object.entries(items).forEach(([id, item]) => {
 			if ($selected.has(id) && !item.classList.contains('sortable-selected')) {
@@ -96,61 +92,43 @@
 	}
 </script>
 
-<div bind:this={container} class="sortable flex flex-col">
+<div
+	bind:this={container}
+	class="sortable {orientation} flex {orientation === 'vertical' ? 'flex-col' : 'flex-row gap-1'}"
+>
 	{#if node instanceof Map}
 		{#each node as [fileId, file]}
 			<div bind:this={items[fileId]}>
-				<FileListNodeStore {file} on:click={(e) => handleClick(e.detail.id)} />
+				<FileListNodeStore {file} />
 			</div>
 		{/each}
 	{:else if node instanceof GPXFile}
 		{#if waypointRoot}
 			{#if node.wpt.length > 0}
 				<div bind:this={items[`${id}-wpt`]}>
-					<FileListNode
-						node={node.wpt}
-						id={`${id}-wpt`}
-						on:click={(e) => handleClick(e.detail.id)}
-					/>
+					<FileListNode node={node.wpt} id={`${id}-wpt`} />
 				</div>
 			{/if}
 		{:else}
 			{#each node.children as child, i}
 				<div bind:this={items[getChildId(i)]}>
-					<FileListNode
-						node={child}
-						id={getChildId(i)}
-						index={i}
-						on:click={(e) => handleClick(e.detail.id)}
-					/>
+					<FileListNode node={child} id={getChildId(i)} index={i} />
 				</div>
 			{/each}
 		{/if}
 	{:else if node instanceof Track}
 		{#each node.children as child, i}
-			<div bind:this={items[getChildId(i)]}>
+			<div bind:this={items[getChildId(i)]} class="ml-1">
 				<div>
-					<Button
-						variant="ghost"
-						class="p-0 px-1 h-fit w-full"
-						on:click={() => handleClick(getChildId(i))}
-					>
-						<FileListNodeLabel id={getChildId(i)} label={`Segment ${i + 1}`} />
-					</Button>
+					<FileListNodeLabel id={getChildId(i)} label={`Segment ${i + 1}`} />
 				</div>
 			</div>
 		{/each}
 	{:else if Array.isArray(node) && node.length > 0 && node[0] instanceof Waypoint}
 		{#each node as wpt, i}
-			<div bind:this={items[getChildId(i)]}>
+			<div bind:this={items[getChildId(i)]} class="ml-1">
 				<div>
-					<Button
-						variant="ghost"
-						class="p-0 px-1 h-fit w-full"
-						on:click={() => handleClick(getChildId(i))}
-					>
-						<FileListNodeLabel id={getChildId(i)} label={wpt.name ?? `Waypoint ${i + 1}`} />
-					</Button>
+					<FileListNodeLabel id={getChildId(i)} label={wpt.name ?? `Waypoint ${i + 1}`} />
 				</div>
 			</div>
 		{/each}
@@ -170,7 +148,16 @@
 		@apply leading-none;
 	}
 
-	div :global(.sortable-selected) {
+	.vertical :global(.sortable-selected) {
 		@apply bg-accent;
+	}
+
+	.horizontal :global(button) {
+		@apply bg-accent;
+		@apply hover:bg-background;
+	}
+
+	.horizontal :global(.sortable-selected button) {
+		@apply bg-background;
 	}
 </style>

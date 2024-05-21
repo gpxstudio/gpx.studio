@@ -3,20 +3,20 @@
 	import FileListNode from '$lib/components/file-list/FileListNode.svelte';
 
 	import type { GPXFileWithStatistics } from '$lib/db';
-	import { createEventDispatcher } from 'svelte';
+	import { getContext } from 'svelte';
 	import type { Readable } from 'svelte/store';
 
 	export let file: Readable<GPXFileWithStatistics | undefined>;
 
-	const dispatch = createEventDispatcher();
-
-	function forwardId() {
-		dispatch('click', { id: $file?.file._data.id });
-	}
+	let recursive = getContext<boolean>('recursive');
 </script>
 
 {#if $file}
-	<CollapsibleTree side="left" margin={4} defaultState="closed">
-		<FileListNode node={$file.file} id={$file.file._data.id} on:click={forwardId} />
-	</CollapsibleTree>
+	{#if recursive}
+		<CollapsibleTree side="left" margin={4} defaultState="closed">
+			<FileListNode node={$file.file} id={$file.file._data.id} />
+		</CollapsibleTree>
+	{:else}
+		<FileListNode node={$file.file} id={$file.file._data.id} />
+	{/if}
 {/if}

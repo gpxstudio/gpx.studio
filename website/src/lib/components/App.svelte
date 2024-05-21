@@ -19,13 +19,16 @@
 			<LayerControl />
 			<GPXLayers />
 			<Toaster richColors />
+			<div class="h-10 -translate-y-10 w-full pointer-events-none absolute z-30">
+				<FileList orientation="horizontal" class="pointer-events-auto" />
+			</div>
 		</div>
 		<div class="h-48 flex flex-row gap-2 overflow-hidden">
 			<GPXStatistics />
 			<ElevationProfile />
 		</div>
 	</div>
-	<FileList />
+	<FileList orientation="vertical" recursive={true} class="w-60" />
 </div>
 
 <style lang="postcss">

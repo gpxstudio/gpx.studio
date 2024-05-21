@@ -28,7 +28,6 @@
 			class="w-full flex flex-row {side === 'right'
 				? 'justify-between'
 				: 'justify-start'} py-0 px-1 h-fit {nohover ? 'hover:bg-background' : ''}"
-			on:click
 		>
 			{#if side === 'left'}
 				{#if $open[id]}
