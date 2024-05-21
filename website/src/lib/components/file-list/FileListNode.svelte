@@ -5,6 +5,7 @@
 	import type { Readable } from 'svelte/store';
 	import FileListNodeContent from './FileListNodeContent.svelte';
 	import { createEventDispatcher } from 'svelte';
+	import FileListNodeLabel from './FileListNodeLabel.svelte';
 
 	export let node:
 		| Map<string, Readable<GPXFileWithStatistics | undefined>>
@@ -24,15 +25,17 @@
 	<FileListNodeContent {node} {id} />
 {:else}
 	<CollapsibleTreeNode {id} on:click={forwardId}>
-		<span slot="trigger" class="truncate">
-			{#if node instanceof GPXFile}
-				{node.metadata.name}
-			{:else if node instanceof Track}
-				{node.name ?? `Track ${index + 1}`}
-			{:else if Array.isArray(node) && node.length > 0 && node[0] instanceof Waypoint}
-				Waypoints
-			{/if}
-		</span>
+		<FileListNodeLabel
+			{id}
+			label={node instanceof GPXFile
+				? node.metadata.name
+				: node instanceof Track
+					? node.name ?? `Track ${index + 1}`
+					: Array.isArray(node) && node.length > 0 && node[0] instanceof Waypoint
+						? 'Waypoints'
+						: ''}
+			slot="trigger"
+		/>
 		<div slot="content">
 			<FileListNodeContent {node} {id} />
 		</div>
