@@ -10,9 +10,9 @@
 		SquareDashedMousePointer,
 		Ungroup,
 		MapPin,
-		Shrink,
 		Palette,
-		FolderTree
+		FolderTree,
+		Filter
 	} from 'lucide-svelte';
 
 	import { _ } from 'svelte-i18n';
@@ -44,7 +44,7 @@
 				<span slot="tooltip">{$_('toolbar.waypoint_tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.REDUCE}>
-				<Shrink slot="icon" size="18" />
+				<Filter slot="icon" size="18" />
 				<span slot="tooltip">{$_('toolbar.reduce_tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.CLEAN}>
