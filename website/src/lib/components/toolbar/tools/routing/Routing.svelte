@@ -18,7 +18,7 @@
 		RouteOff
 	} from 'lucide-svelte';
 
-	import { map, selectedFiles, Tool } from '$lib/stores';
+	import { map, Tool } from '$lib/stores';
 	import { dbUtils, settings } from '$lib/db';
 	import { brouterProfiles, routingProfileSelectItem } from './Routing';
 
@@ -30,11 +30,13 @@
 	import mapboxgl from 'mapbox-gl';
 	import { fileObservers } from '$lib/db';
 	import { slide } from 'svelte/transition';
+	import { selection } from '$lib/components/file-list/Selection';
+	import type { ListItem } from '$lib/components/file-list/FileList';
 
 	let routingControls: Map<string, RoutingControls> = new Map();
 	let popupElement: HTMLElement;
 	let popup: mapboxgl.Popup | null = null;
-	let selectedId: string | null = null;
+	let selectedItem: ListItem | null = null;
 	let active = false;
 
 	const { privateRoads, routing } = settings;
@@ -46,42 +48,43 @@
 				controls.remove();
 				routingControls.delete(fileId);
 
-				if (selectedId === fileId) {
-					selectedId = null;
+				if (selectedItem && selectedItem.getFileId() === fileId) {
+					selectedItem = null;
 				}
 			}
 		});
 	}
 
-	$: if ($map && $selectedFiles) {
+	$: if ($map && $selection) {
 		// update selected file
-		if ($selectedFiles.size == 0 || $selectedFiles.size > 1 || !active) {
-			if (selectedId) {
-				routingControls.get(selectedId)?.remove();
+		if ($selection.size == 0 || $selection.size > 1 || !active) {
+			if (selectedItem) {
+				routingControls.get(selectedItem.getFileId())?.remove();
 			}
-			selectedId = null;
+			selectedItem = null;
 		} else {
-			let newSelectedId = get(selectedFiles).values().next().value;
-			if (selectedId !== newSelectedId) {
-				if (selectedId) {
-					routingControls.get(selectedId)?.remove();
+			let newSelectedItem = get(selection).getSelected()[0];
+			if (selectedItem !== newSelectedItem) {
+				if (selectedItem) {
+					routingControls.get(selectedItem.getFileId())?.remove();
 				}
-				selectedId = newSelectedId;
+				selectedItem = newSelectedItem;
 			}
 		}
 	}
 
-	$: if ($map && selectedId) {
-		if (!routingControls.has(selectedId)) {
-			let selectedFileObserver = get(fileObservers).get(selectedId);
+	$: if ($map && selectedItem) {
+		let fileId = selectedItem.getFileId();
+		if (!routingControls.has(fileId)) {
+			let selectedFileObserver = get(fileObservers).get(fileId);
 			if (selectedFileObserver) {
 				routingControls.set(
-					selectedId,
-					new RoutingControls(get(map), selectedId, selectedFileObserver, popup, popupElement)
+					fileId,
+					new RoutingControls(get(map), fileId, selectedFileObserver, popup, popupElement)
 				);
 			}
 		} else {
-			routingControls.get(selectedId)?.add();
+			routingControls.get(fileId)?.add();
 		}
 	}
 
@@ -151,7 +154,7 @@
 			<Button
 				slot="data"
 				variant="outline"
-				on:click={() => dbUtils.applyToSelectedFiles((file) => file.reverse())}
+				on:click={() => dbUtils.applyToSelection((file) => file.reverse())}
 			>
 				<ArrowRightLeft size="16" />
 			</Button>
@@ -161,9 +164,9 @@
 			<Button
 				slot="data"
 				variant="outline"
-				disabled={$selectedFiles.size != 1}
+				disabled={$selection.size != 1}
 				on:click={() => {
-					const fileId = get(selectedFiles).values().next().value;
+					const fileId = get(selection).getSelected()[0].getFileId();
 					routingControls.get(fileId)?.routeToStart();
 				}}
 			>
@@ -175,9 +178,9 @@
 			<Button
 				slot="data"
 				variant="outline"
-				disabled={$selectedFiles.size != 1}
+				disabled={$selection.size != 1}
 				on:click={() => {
-					const fileId = get(selectedFiles).values().next().value;
+					const fileId = get(selection).getSelected()[0].getFileId();
 					routingControls.get(fileId)?.createRoundTrip();
 				}}
 			>
@@ -187,9 +190,9 @@
 		</Tooltip>
 	</div>
 	<Help class="max-w-60">
-		{#if $selectedFiles.size > 1}
+		{#if $selection.size > 1}
 			<div>{$_('toolbar.routing.help_multiple_files')}</div>
-		{:else if $selectedFiles.size == 0}
+		{:else if $selection.size == 0}
 			<div>{$_('toolbar.routing.help_no_file')}</div>
 		{:else}
 			<div>{$_('toolbar.routing.help')}</div>

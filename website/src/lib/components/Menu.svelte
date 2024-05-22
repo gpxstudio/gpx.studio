@@ -22,18 +22,19 @@
 		Zap,
 		Thermometer,
 		Sun,
-		Moon
+		Moon,
+		Rows3
 	} from 'lucide-svelte';
 
 	import {
 		map,
-		selectedFiles,
 		exportAllFiles,
 		exportSelectedFiles,
 		triggerFileInput,
 		selectFiles,
 		createFile
 	} from '$lib/stores';
+	import { selection } from '$lib/components/file-list/Selection';
 	import { derived } from 'svelte/store';
 	import { canUndo, canRedo, dbUtils, fileObservers, settings } from '$lib/db';
 
@@ -47,6 +48,7 @@
 		distanceUnits,
 		velocityUnits,
 		temperatureUnits,
+		verticalFileView,
 		mode,
 		currentBasemap,
 		previousBasemap,
@@ -113,16 +115,13 @@
 						{$_('menu.load_drive')}</Menubar.Item
 					>
 					<Menubar.Separator />
-					<Menubar.Item
-						on:click={dbUtils.duplicateSelectedFiles}
-						disabled={$selectedFiles.size == 0}
-					>
+					<Menubar.Item on:click={dbUtils.duplicateSelection} disabled={$selection.size == 0}>
 						<Copy size="16" class="mr-1" />
 						{$_('menu.duplicate')}
 						<Shortcut key="D" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Separator />
-					<Menubar.Item on:click={exportSelectedFiles} disabled={$selectedFiles.size == 0}>
+					<Menubar.Item on:click={exportSelectedFiles} disabled={$selection.size == 0}>
 						<Download size="16" class="mr-1" />
 						{$_('menu.export')}
 						<Shortcut key="S" ctrl={true} />
@@ -154,7 +153,7 @@
 						<Shortcut key="A" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Separator />
-					<Menubar.Item on:click={dbUtils.deleteSelectedFiles} disabled={$selectedFiles.size == 0}>
+					<Menubar.Item on:click={dbUtils.deleteSelection} disabled={$selection.size == 0}>
 						<Trash2 size="16" class="mr-1" />
 						{$_('menu.delete')}
 						<Shortcut key="⌫" ctrl={true} />
@@ -173,6 +172,10 @@
 			<Menubar.Menu>
 				<Menubar.Trigger>{$_('menu.view')}</Menubar.Trigger>
 				<Menubar.Content class="border-none">
+					<Menubar.CheckboxItem bind:checked={$verticalFileView}>
+						<Rows3 size="16" class="mr-1" />{$_('menu.vertical_file_view')}
+					</Menubar.CheckboxItem>
+					<Menubar.Separator />
 					<Menubar.Item inset on:click={switchBasemaps}
 						><Map size="16" class="mr-1" />{$_('menu.switch_basemap')}<Shortcut
 							key="F1"
@@ -289,7 +292,7 @@
 			triggerFileInput();
 			e.preventDefault();
 		} else if (e.key === 'd' && (e.metaKey || e.ctrlKey)) {
-			dbUtils.duplicateSelectedFiles();
+			dbUtils.duplicateSelection();
 			e.preventDefault();
 		} else if ((e.key === 's' || e.key == 'S') && (e.metaKey || e.ctrlKey)) {
 			if (e.shiftKey) {
@@ -308,7 +311,7 @@
 			if (e.shiftKey) {
 				dbUtils.deleteAllFiles();
 			} else {
-				dbUtils.deleteSelectedFiles();
+				dbUtils.deleteSelection();
 			}
 			e.preventDefault();
 		} else if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {

@@ -15,6 +15,7 @@
         "delete_all": "Delete all",
         "select_all": "Select all",
         "view": "View",
+        "vertical_file_view": "Show vertical file list",
         "switch_basemap": "Switch to previous basemap",
         "toggle_overlays": "Toggle overlays",
         "toggle_3d": "Toggle 3D",

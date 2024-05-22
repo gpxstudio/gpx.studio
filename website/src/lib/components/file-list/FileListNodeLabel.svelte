@@ -4,16 +4,14 @@
 	import Shortcut from '$lib/components/Shortcut.svelte';
 	import { dbUtils } from '$lib/db';
 	import { Copy, Trash2 } from 'lucide-svelte';
-
+	import { type ListItem } from './FileList';
+	import { selection } from './Selection';
 	import { _ } from 'svelte-i18n';
-
 	import { getContext } from 'svelte';
-	import { type Writable } from 'svelte/store';
 
-	export let id: string;
+	export let item: ListItem;
 	export let label: string | undefined;
 
-	let selected = getContext<Writable<Set<string>>>('selected');
 	let orientation = getContext<'vertical' | 'horizontal'>('orientation');
 </script>
 
@@ -38,14 +36,7 @@
 						// Add to selection instead of opening context menu
 						e.preventDefault();
 						e.stopPropagation();
-						selected.update((value) => {
-							if (value.has(id)) {
-								value.delete(id);
-							} else {
-								value.add(id);
-							}
-							return value;
-						});
+						$selection.toggle(item);
 					}
 				}}
 			>
@@ -54,13 +45,13 @@
 		</Button>
 	</ContextMenu.Trigger>
 	<ContextMenu.Content>
-		<ContextMenu.Item on:click={dbUtils.duplicateSelectedFiles}>
+		<ContextMenu.Item on:click={dbUtils.duplicateSelection}>
 			<Copy size="16" class="mr-1" />
 			{$_('menu.duplicate')}
 			<Shortcut key="D" ctrl={true} /></ContextMenu.Item
 		>
 		<ContextMenu.Separator />
-		<ContextMenu.Item on:click={dbUtils.deleteSelectedFiles}
+		<ContextMenu.Item on:click={dbUtils.deleteSelection}
 			><Trash2 size="16" class="mr-1" />
 			{$_('menu.delete')}
 			<Shortcut key="⌫" ctrl={true} /></ContextMenu.Item

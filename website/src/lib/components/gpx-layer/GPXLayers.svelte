@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { map, selectedFiles, gpxLayers } from '$lib/stores';
+	import { map, gpxLayers } from '$lib/stores';
 	import { GPXLayer } from './GPXLayer';
 	import { get } from 'svelte/store';
 	import WaypointPopup from './WaypointPopup.svelte';
 	import { fileObservers } from '$lib/db';
+	import { selection } from '$lib/components/file-list/Selection';
 
 	$: if ($map && $fileObservers) {
 		gpxLayers.update(($layers) => {
@@ -24,7 +25,9 @@
 		});
 	}
 
-	$: $selectedFiles.forEach((fileId) => {
+	$: $selection.forEach((item) => {
+		let fileId = item.getFileId();
+		// TODO move more precise selection to front?
 		if ($gpxLayers.has(fileId)) {
 			$gpxLayers.get(fileId)?.moveToFront();
 		}

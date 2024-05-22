@@ -5,6 +5,7 @@
 	import type { GPXFileWithStatistics } from '$lib/db';
 	import { getContext } from 'svelte';
 	import type { Readable } from 'svelte/store';
+	import { ListFileItem } from './FileList';
 
 	export let file: Readable<GPXFileWithStatistics | undefined>;
 
@@ -14,9 +15,9 @@
 {#if $file}
 	{#if recursive}
 		<CollapsibleTree side="left" margin={4} defaultState="closed">
-			<FileListNode node={$file.file} id={$file.file._data.id} />
+			<FileListNode node={$file.file} item={new ListFileItem($file.file._data.id)} />
 		</CollapsibleTree>
 	{:else}
-		<FileListNode node={$file.file} id={$file.file._data.id} />
+		<FileListNode node={$file.file} item={new ListFileItem($file.file._data.id)} />
 	{/if}
 {/if}

@@ -6,13 +6,13 @@
 	import FileListNodeContent from './FileListNodeContent.svelte';
 	import FileListNodeLabel from './FileListNodeLabel.svelte';
 	import { getContext } from 'svelte';
+	import { type ListItem, type ListTrackItem } from './FileList';
 
 	export let node:
 		| Map<string, Readable<GPXFileWithStatistics | undefined>>
 		| GPXTreeElement<AnyGPXTreeElement>
 		| ReadonlyArray<Readonly<Waypoint>>;
-	export let id: string;
-	export let index: number = 0;
+	export let item: ListItem;
 
 	let recursive = getContext<boolean>('recursive');
 
@@ -20,21 +20,21 @@
 		node instanceof GPXFile
 			? node.metadata.name
 			: node instanceof Track
-				? node.name ?? `Track ${index + 1}`
+				? node.name ?? `Track ${(item as ListTrackItem).trackIndex + 1}`
 				: Array.isArray(node) && node.length > 0 && node[0] instanceof Waypoint
 					? 'Waypoints'
 					: '';
 </script>
 
 {#if node instanceof Map}
-	<FileListNodeContent {node} {id} />
+	<FileListNodeContent {node} {item} />
 {:else if recursive}
-	<CollapsibleTreeNode {id}>
-		<FileListNodeLabel {id} {label} slot="trigger" />
+	<CollapsibleTreeNode id={item.getId()}>
+		<FileListNodeLabel {item} {label} slot="trigger" />
 		<div slot="content">
-			<FileListNodeContent {node} {id} />
+			<FileListNodeContent {node} {item} />
 		</div>
 	</CollapsibleTreeNode>
 {:else}
-	<FileListNodeLabel {id} {label} />
+	<FileListNodeLabel {item} {label} />
 {/if}

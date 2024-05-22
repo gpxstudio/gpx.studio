@@ -8,6 +8,10 @@
 	import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
 	import LayerControl from '$lib/components/layer-control/LayerControl.svelte';
 	import { Toaster } from '$lib/components/ui/sonner';
+
+	import { settings } from '$lib/db';
+
+	const { verticalFileView } = settings;
 </script>
 
 <div class="flex flex-row w-screen h-screen">
@@ -19,16 +23,20 @@
 			<LayerControl />
 			<GPXLayers />
 			<Toaster richColors />
-			<div class="h-10 -translate-y-10 w-full pointer-events-none absolute z-30">
-				<FileList orientation="horizontal" class="pointer-events-auto" />
-			</div>
+			{#if !$verticalFileView}
+				<div class="h-10 -translate-y-10 w-full pointer-events-none absolute z-30">
+					<FileList orientation="horizontal" class="pointer-events-auto" />
+				</div>
+			{/if}
 		</div>
 		<div class="h-48 flex flex-row gap-2 overflow-hidden">
 			<GPXStatistics />
 			<ElevationProfile />
 		</div>
 	</div>
-	<FileList orientation="vertical" recursive={true} class="w-60" />
+	{#if $verticalFileView}
+		<FileList orientation="vertical" recursive={true} class="w-60" />
+	{/if}
 </div>
 
 <style lang="postcss">

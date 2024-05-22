@@ -2,12 +2,12 @@
 	import ToolbarItemMenu from '$lib/components/toolbar/ToolbarItemMenu.svelte';
 	import * as Alert from '$lib/components/ui/alert';
 	import { CircleHelp } from 'lucide-svelte';
-
-	import { Tool, selectedFiles } from '$lib/stores';
+	import { selection } from '$lib/components/file-list/Selection';
+	import { Tool } from '$lib/stores';
 
 	import { _ } from 'svelte-i18n';
 
-	$: $selectedFiles.forEach((file) => {
+	$: $selection.forEach((item) => {
 		// todo
 	});
 </script>

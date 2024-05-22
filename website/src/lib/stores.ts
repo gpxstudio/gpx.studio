@@ -5,61 +5,58 @@ import { GPXFile, buildGPX, parseGPX, GPXStatistics, type Coordinates } from 'gp
 import { tick } from 'svelte';
 import { _ } from 'svelte-i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
-import { dbUtils, fileObservers, settings } from './db';
+import { settings, dbUtils, fileObservers } from './db';
+import { selection } from '$lib/components/file-list/Selection';
+import { ListFileItem, ListWaypointItem, type ListItem } from '$lib/components/file-list/FileList';
 
 export const map = writable<mapboxgl.Map | null>(null);
-export const selectedFiles = writable<Set<string>>(new Set());
 export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }>({});
-
-const { fileOrder } = settings;
-
-fileObservers.subscribe((files) => { // Update selectedFiles automatically when files are deleted (either by action or by undo-redo)
-    let deletedFileIds: string[] = [];
-    get(selectedFiles).forEach((fileId) => {
-        if (!files.has(fileId)) {
-            deletedFileIds.push(fileId);
-        }
-    });
-    if (deletedFileIds.length > 0) {
-        selectedFiles.update((selectedFiles) => {
-            deletedFileIds.forEach((fileId) => selectedFiles.delete(fileId));
-            return selectedFiles;
-        });
-    }
-});
 
 export const gpxStatistics: Writable<GPXStatistics> = writable(new GPXStatistics());
 
+const { fileOrder } = settings;
+
 function updateGPXData() {
-    let fileIds: string[] = get(fileOrder).filter((f) => get(selectedFiles).has(f));
-    gpxStatistics.set(fileIds.reduce((stats: GPXStatistics, fileId: string) => {
+    let statistics = new GPXStatistics();
+    get(fileOrder).forEach((fileId) => { // Get statistics in the order of the file list
         let fileStore = get(fileObservers).get(fileId);
         if (fileStore) {
-            let statistics = get(fileStore)?.statistics;
-            if (statistics) {
-                stats.mergeWith(statistics);
+            let stats = get(fileStore)?.statistics;
+            if (stats !== undefined) {
+                let first = true;
+                get(selection).getChild(fileId)?.getSelected().forEach((item) => { // Get statistics for selected items within the file
+                    if (!(item instanceof ListWaypointItem) || first) {
+                        statistics.mergeWith(stats.getStatisticsFor(item));
+                        first = false;
+                    }
+                });
             }
         }
-        return stats;
-    }, new GPXStatistics()));
+    });
+    gpxStatistics.set(statistics);
 }
 
-let unsubscribes: Function[] = [];
-selectedFiles.subscribe((selectedFiles) => { // Maintain up-to-date statistics for the current selection
+let unsubscribes: Map<string, () => void> = new Map();
+selection.subscribe(($selection) => { // Maintain up-to-date statistics for the current selection
     updateGPXData();
 
-    while (unsubscribes.length > 0) {
-        unsubscribes.pop()();
+    while (unsubscribes.size > 0) {
+        let [fileId, unsubscribe] = unsubscribes.entries().next().value;
+        unsubscribe();
+        unsubscribes.delete(fileId);
     }
 
-    selectedFiles.forEach((fileId) => {
-        let fileObserver = get(fileObservers).get(fileId);
-        if (fileObserver) {
-            let first = true;
-            unsubscribes.push(fileObserver.subscribe(() => {
-                if (first) first = false;
-                else updateGPXData();
-            }));
+    $selection.forEach((item) => {
+        let fileId = item.getFileId();
+        if (!unsubscribes.has(fileId)) {
+            let fileObserver = get(fileObservers).get(fileId);
+            if (fileObserver) {
+                let first = true;
+                unsubscribes.set(fileId, fileObserver.subscribe(() => {
+                    if (first) first = false;
+                    else updateGPXData();
+                }));
+            }
         }
     });
 });
@@ -191,7 +188,11 @@ function selectFileWhenLoaded(fileId: string) {
     const unsubscribe = fileObservers.subscribe((files) => {
         if (files.has(fileId)) {
             tick().then(() => {
-                get(selectFiles).select(fileId);
+                selection.update(($selection) => {
+                    $selection.clear();
+                    $selection.toggle(new ListFileItem(fileId));
+                    return $selection;
+                });
             });
             unsubscribe();
         }
@@ -200,7 +201,7 @@ function selectFileWhenLoaded(fileId: string) {
 
 export function exportSelectedFiles() {
     get(fileObservers).forEach(async (file, fileId) => {
-        if (get(selectedFiles).has(fileId)) {
+        if (get(selection).has(fileId)) {
             let f = get(file);
             if (f) {
                 exportFile(f.file);

@@ -14,6 +14,7 @@
 	setContext('collapsible-tree-side', side);
 	setContext('collapsible-tree-margin', margin);
 	setContext('collapsible-tree-nohover', nohover);
+	setContext('collapsible-tree-parent-id', 'root');
 </script>
 
 <slot />

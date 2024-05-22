@@ -1,10 +1,12 @@
 import Dexie, { liveQuery } from 'dexie';
-import { GPXFile, GPXStatistics } from 'gpx';
+import { GPXFile, GPXStatistics, Track } from 'gpx';
 import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, castDraft, Immer } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
-import { initTargetMapBounds, selectedFiles, updateTargetMapBounds } from './stores';
+import { initTargetMapBounds, updateTargetMapBounds } from './stores';
 import { mode } from 'mode-watcher';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays } from './assets/layers';
+import { selection } from '$lib/components/file-list/Selection';
+import { ListFileItem, ListItem, type ListLevel } from '$lib/components/file-list/FileList';
 
 enableMapSet();
 enablePatches();
@@ -73,9 +75,10 @@ function dexieUninitializedSettingStore(setting: string, initial: any): Writable
 }
 
 export const settings = {
-    distanceUnits: dexieSettingStore('distanceUnits', 'metric'),
+    distanceUnits: dexieSettingStore<'metric' | 'imperial'>('distanceUnits', 'metric'),
     velocityUnits: dexieSettingStore('velocityUnits', 'speed'),
     temperatureUnits: dexieSettingStore('temperatureUnits', 'celsius'),
+    verticalFileView: dexieSettingStore<boolean>('fileView', false),
     mode: dexieSettingStore('mode', (() => {
         let currentMode: string | undefined = get(mode);
         if (currentMode === undefined) {
@@ -110,7 +113,49 @@ function dexieStore<T>(querier: () => T | Promise<T>, initial?: T): Readable<T> 
     };
 }
 
-export type GPXFileWithStatistics = { file: GPXFile, statistics: GPXStatistics };
+export class GPXStatisticsTree {
+    level: ListLevel;
+    statistics: {
+        [key: number]: GPXStatisticsTree | GPXStatistics;
+    } = {};
+
+    constructor(element: GPXFile | Track) {
+        if (element instanceof GPXFile) {
+            this.level = 'file';
+            element.children.forEach((child, index) => {
+                this.statistics[index] = new GPXStatisticsTree(child);
+            });
+        } else {
+            this.level = 'track';
+            element.children.forEach((child, index) => {
+                this.statistics[index] = child.getStatistics();
+            });
+        }
+    }
+
+    getStatisticsFor(item: ListItem): GPXStatistics {
+        let statistics = new GPXStatistics();
+        let id = item.getIdAtLevel(this.level);
+        if (id === undefined || id === 'waypoints') {
+            Object.keys(this.statistics).forEach(key => {
+                if (this.statistics[key] instanceof GPXStatistics) {
+                    statistics.mergeWith(this.statistics[key]);
+                } else {
+                    statistics.mergeWith(this.statistics[key].getStatisticsFor(item));
+                }
+            });
+        } else {
+            let child = this.statistics[id];
+            if (child instanceof GPXStatistics) {
+                statistics.mergeWith(child);
+            } else if (child !== undefined) {
+                statistics.mergeWith(child.getStatisticsFor(item));
+            }
+        }
+        return statistics;
+    }
+};
+export type GPXFileWithStatistics = { file: GPXFile, statistics: GPXStatisticsTree };
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber, also takes care of the conversion to a GPXFile object
 function dexieGPXFileStore(id: string): Readable<GPXFileWithStatistics> & { destroy: () => void } {
@@ -118,10 +163,12 @@ function dexieGPXFileStore(id: string): Readable<GPXFileWithStatistics> & { dest
     let query = liveQuery(() => db.files.get(id)).subscribe(value => {
         if (value !== undefined) {
             let gpx = new GPXFile(value);
-            let statistics = gpx.getStatistics();
+
+            let statistics = new GPXStatisticsTree(gpx);
             if (!fileState.has(id)) { // Update the map bounds for new files
-                updateTargetMapBounds(statistics.global.bounds);
+                updateTargetMapBounds(statistics.getStatisticsFor(new ListFileItem(id)).global.bounds);
             }
+
             fileState.set(id, gpx);
             store.set({
                 file: gpx,
@@ -304,14 +351,14 @@ export const dbUtils = {
     applyToFile: (id: string, callback: (file: WritableDraft<GPXFile>) => GPXFile) => {
         applyToFiles([id], callback);
     },
-    applyToSelectedFiles: (callback: (file: WritableDraft<GPXFile>) => GPXFile) => {
-        applyToFiles(get(settings.fileOrder).filter(fileId => get(selectedFiles).has(fileId)), callback);
+    applyToSelection: (callback: (file: WritableDraft<GPXFile>) => GPXFile) => {
+        applyToFiles(get(selection).forEach(fileId), callback);
     },
-    duplicateSelectedFiles: () => {
+    duplicateSelection: () => {
         applyGlobal((draft) => {
             let ids = getFileIds(get(settings.fileOrder).length);
             get(settings.fileOrder).forEach((fileId, index) => {
-                if (get(selectedFiles).has(fileId)) {
+                if (get(selection).has(fileId)) {
                     let file = draft.get(fileId);
                     if (file) {
                         let clone = file.clone();
@@ -322,10 +369,13 @@ export const dbUtils = {
             });
         });
     },
-    deleteSelectedFiles: () => {
+    deleteSelection: () => {
         applyGlobal((draft) => {
-            get(selectedFiles).forEach((fileId) => {
-                draft.delete(fileId);
+            get(selection).forEach((item) => {
+                if (item instanceof ListFileItem) {
+                    draft.delete(item.getId());
+                }
+                // TODO: Implement deletion of tracks, segments, waypoints
             });
         });
     },
