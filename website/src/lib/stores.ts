@@ -71,6 +71,11 @@ targetMapBounds.subscribe((bounds) => {
         return;
     }
 
+    let currentBounds = get(map)?.getBounds();
+    if (currentBounds && currentBounds.contains(bounds.bounds.getSouthEast()) && currentBounds.contains(bounds.bounds.getNorthWest())) {
+        return;
+    }
+
     get(map)?.fitBounds(bounds.bounds, {
         padding: 80,
         linear: true,

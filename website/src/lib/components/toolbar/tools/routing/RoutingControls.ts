@@ -1,7 +1,6 @@
 import { distance, type Coordinates, TrackPoint, TrackSegment } from "gpx";
 import { original } from "immer";
 import { get, type Readable } from "svelte/store";
-import { computeAnchorPoints } from "./Simplify";
 import mapboxgl from "mapbox-gl";
 import { route } from "./Routing";
 
@@ -65,22 +64,6 @@ export class RoutingControls {
         let anchorIndex = 0;
         for (let segmentIndex = 0; segmentIndex < segments.length; segmentIndex++) {
             let segment = segments[segmentIndex];
-
-            if (!segment._data.anchors) { // New segment, compute anchor points for it
-                computeAnchorPoints(segment);
-            }
-
-            if (segment.trkpt.length > 0) {
-                if (!segment.trkpt[0]._data.anchor) { // First point is not an anchor, make it one
-                    segment.trkpt[0]._data.anchor = true;
-                    segment.trkpt[0]._data.zoom = 0;
-                }
-
-                if (!segment.trkpt[segment.trkpt.length - 1]._data.anchor) { // Last point is not an anchor, make it one
-                    segment.trkpt[segment.trkpt.length - 1]._data.anchor = true;
-                    segment.trkpt[segment.trkpt.length - 1]._data.zoom = 0;
-                }
-            }
 
             for (let point of segment.trkpt) { // Update the existing anchors (could be improved by matching the existing anchors with the new ones?)
                 if (point._data.anchor) {
@@ -433,17 +416,19 @@ export class RoutingControls {
         }
 
         if (anchors[0].point._data.index === 0) { // First anchor is the first point of the segment
-            anchors[0].point = response[0]; // Update the first anchor
+            anchors[0].point = response[0]; // Replace the first anchor
             anchors[0].point._data.index = 0;
         } else {
-            response.splice(0, 0, anchors[0].point); // Keep the original start point
+            anchors[0].point = anchors[0].point.clone(); // Clone the anchor to assign new properties
+            response.splice(0, 0, anchors[0].point); // Insert it in the response to keep it
         }
 
         if (anchors[anchors.length - 1].point._data.index === segment.trkpt.length - 1) { // Last anchor is the last point of the segment
-            anchors[anchors.length - 1].point = response[response.length - 1]; // Update the last anchor
+            anchors[anchors.length - 1].point = response[response.length - 1]; // Replace the last anchor
             anchors[anchors.length - 1].point._data.index = segment.trkpt.length - 1;
         } else {
-            response.push(anchors[anchors.length - 1].point); // Keep the original end point
+            anchors[anchors.length - 1].point = anchors[anchors.length - 1].point.clone(); // Clone the anchor to assign new properties
+            response.push(anchors[anchors.length - 1].point); // Insert it in the response to keep it
         }
 
         for (let i = 1; i < anchors.length - 1; i++) {

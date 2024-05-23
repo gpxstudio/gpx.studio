@@ -1,17 +1,17 @@
 import Dexie, { liveQuery } from 'dexie';
 import { GPXFile, GPXStatistics, Track } from 'gpx';
-import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, castDraft, Immer } from 'immer';
+import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, castDraft, freeze, produceWithPatches, original } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
 import { initTargetMapBounds, updateTargetMapBounds } from './stores';
 import { mode } from 'mode-watcher';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays } from './assets/layers';
 import { selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListItem, type ListLevel } from '$lib/components/file-list/FileList';
+import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
 
 enableMapSet();
 enablePatches();
 
-const noFreezeImmer = new Immer({ autoFreeze: false }); // Do not freeze files that are not concerned by an update, otherwise cannot assign anchors for them
 
 class Database extends Dexie {
 
@@ -163,6 +163,7 @@ function dexieGPXFileStore(id: string): Readable<GPXFileWithStatistics> & { dest
     let query = liveQuery(() => db.files.get(id)).subscribe(value => {
         if (value !== undefined) {
             let gpx = new GPXFile(value);
+            updateAnchorPoints(gpx);
 
             let statistics = new GPXStatisticsTree(gpx);
             if (!fileState.has(id)) { // Update the map bounds for new files
@@ -260,7 +261,7 @@ export const canRedo: Readable<boolean> = derived([patchIndex, patchMinMaxIndex]
 
 // Helper function to apply a callback to the global file state
 function applyGlobal(callback: (files: Map<string, GPXFile>) => void) {
-    const [newFileState, patch, inversePatch] = noFreezeImmer.produceWithPatches(fileState, callback);
+    const [newFileState, patch, inversePatch] = produceWithPatches(fileState, callback);
 
     storePatches(patch, inversePatch);
 
@@ -269,7 +270,7 @@ function applyGlobal(callback: (files: Map<string, GPXFile>) => void) {
 
 // Helper function to apply a callback to multiple files
 function applyToFiles(fileIds: string[], callback: (file: WritableDraft<GPXFile>) => GPXFile) {
-    const [newFileState, patch, inversePatch] = noFreezeImmer.produceWithPatches(fileState, (draft) => {
+    const [newFileState, patch, inversePatch] = produceWithPatches(fileState, (draft) => {
         fileIds.forEach((fileId) => {
             let file = draft.get(fileId);
             if (file) {
@@ -336,7 +337,7 @@ export const dbUtils = {
     add: (file: GPXFile) => {
         file._data.id = getFileIds(1)[0];
         return applyGlobal((draft) => {
-            draft.set(file._data.id, file);
+            draft.set(file._data.id, freeze(file));
         });
     },
     addMultiple: (files: GPXFile[]) => {
@@ -344,7 +345,7 @@ export const dbUtils = {
             let ids = getFileIds(files.length);
             files.forEach((file, index) => {
                 file._data.id = ids[index];
-                draft.set(file._data.id, file);
+                draft.set(file._data.id, freeze(file));
             });
         });
     },
@@ -360,12 +361,12 @@ export const dbUtils = {
             // TODO
             let ids = getFileIds(get(settings.fileOrder).length);
             get(settings.fileOrder).forEach((fileId, index) => {
-                if (get(selection).has(fileId)) {
-                    let file = draft.get(fileId);
+                if (get(selection).has(new ListFileItem(fileId))) {
+                    let file = original(draft)?.get(fileId);
                     if (file) {
                         let clone = file.clone();
                         clone._data.id = ids[index];
-                        draft.set(clone._data.id, clone);
+                        draft.set(clone._data.id, freeze(clone));
                     }
                 }
             });

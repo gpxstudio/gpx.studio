@@ -34,11 +34,9 @@
 			<ElevationProfile />
 		</div>
 	</div>
-	<div class="shrink-0">
-		{#if $verticalFileView}
-			<FileList orientation="vertical" recursive={true} class="w-60" />
-		{/if}
-	</div>
+	{#if $verticalFileView}
+		<FileList orientation="vertical" recursive={true} class="w-60" />
+	{/if}
 </div>
 
 <style lang="postcss">

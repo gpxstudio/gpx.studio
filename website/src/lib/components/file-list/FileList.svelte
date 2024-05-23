@@ -14,7 +14,7 @@
 </script>
 
 <ScrollArea
-	class={orientation === 'vertical' ? 'p-1 pr-3' : 'h-10 px-1'}
+	class="shrink-0 {orientation === 'vertical' ? 'p-1 pr-3' : 'h-10 px-1'}"
 	{orientation}
 	scrollbarXClasses={orientation === 'vertical' ? '' : 'mt-1 h-2'}
 	scrollbarYClasses={orientation === 'vertical' ? '' : ''}

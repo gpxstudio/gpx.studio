@@ -1,4 +1,4 @@
-import type { Coordinates, TrackPoint, TrackSegment } from "gpx";
+import type { Coordinates, GPXFile, TrackPoint, TrackSegment } from "gpx";
 
 type SimplifiedTrackPoint = { point: TrackPoint, distance?: number };
 
@@ -15,7 +15,32 @@ export function getZoomLevelForDistance(latitude: number, distance?: number): nu
     return Math.min(20, Math.max(0, Math.floor(Math.log2((earthRadius * Math.cos(lat)) / distance))));
 }
 
-export function computeAnchorPoints(segment: TrackSegment) {
+export function updateAnchorPoints(file: GPXFile) {
+    let segments = file.getSegments();
+
+    for (let segmentIndex = 0; segmentIndex < segments.length; segmentIndex++) {
+        let segment = segments[segmentIndex];
+
+        if (!segment._data.anchors) { // New segment, compute anchor points for it
+            computeAnchorPoints(segment);
+            continue;
+        }
+
+        if (segment.trkpt.length > 0) {
+            if (!segment.trkpt[0]._data.anchor) { // First point is not an anchor, make it one
+                segment.trkpt[0]._data.anchor = true;
+                segment.trkpt[0]._data.zoom = 0;
+            }
+
+            if (!segment.trkpt[segment.trkpt.length - 1]._data.anchor) { // Last point is not an anchor, make it one
+                segment.trkpt[segment.trkpt.length - 1]._data.anchor = true;
+                segment.trkpt[segment.trkpt.length - 1]._data.zoom = 0;
+            }
+        }
+    }
+}
+
+function computeAnchorPoints(segment: TrackSegment) {
     let points = segment.trkpt;
     let anchors = ramerDouglasPeucker(points);
     anchors.forEach((anchor) => {

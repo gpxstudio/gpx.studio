@@ -58,7 +58,21 @@
 
 		if ($fileOrder.length !== $fileObservers.size) {
 			// Files were added or removed
-			fileOrder.set(sortable.toArray());
+			fileOrder.update((order) => {
+				for (let i = 0; i < order.length; ) {
+					if (!$fileObservers.has(order[i])) {
+						order.splice(i, 1);
+					} else {
+						i++;
+					}
+				}
+				for (let id of $fileObservers.keys()) {
+					if (!order.includes(id)) {
+						order.push(id);
+					}
+				}
+				return order;
+			});
 			return;
 		}
 
