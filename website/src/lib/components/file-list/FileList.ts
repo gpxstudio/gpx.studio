@@ -189,12 +189,16 @@ export class ListTrackItem extends ListItem {
         return this.fileId;
     }
 
-    extend(id: number): ListSegmentItem {
-        return new ListSegmentItem(this.fileId, this.trackIndex, id);
+    getTrackIndex(): number {
+        return this.trackIndex;
+    }
+
+    extend(id: number): ListTrackSegmentItem {
+        return new ListTrackSegmentItem(this.fileId, this.trackIndex, id);
     }
 }
 
-export class ListSegmentItem extends ListItem {
+export class ListTrackSegmentItem extends ListItem {
     fileId: string;
     trackIndex: number;
     segmentIndex: number;
@@ -227,7 +231,15 @@ export class ListSegmentItem extends ListItem {
         return this.fileId;
     }
 
-    extend(): ListSegmentItem {
+    getTrackIndex(): number {
+        return this.trackIndex;
+    }
+
+    getSegmentIndex(): number {
+        return this.segmentIndex;
+    }
+
+    extend(): ListTrackSegmentItem {
         return this;
     }
 }
@@ -293,6 +305,10 @@ export class ListWaypointItem extends ListItem {
 
     getFileId(): string {
         return this.fileId;
+    }
+
+    getWaypointIndex(): number {
+        return this.waypointIndex;
     }
 
     extend(): ListWaypointItem {

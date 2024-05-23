@@ -23,7 +23,7 @@ export abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
     abstract toGeoJSON(): GeoJSON.Feature | GeoJSON.Feature[] | GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[];
 
     // Producers
-    abstract replace(segment: number, start: number, end: number, points: TrackPoint[]);
+    abstract replaceTrackPoints(segment: number, start: number, end: number, points: TrackPoint[]);
     abstract reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date);
 }
 
@@ -56,14 +56,14 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
     }
 
     // Producers
-    replace(segment: number, start: number, end: number, points: TrackPoint[]) {
+    replaceTrackPoints(segment: number, start: number, end: number, points: TrackPoint[]) {
         return produce(this, (draft: Draft<GPXTreeNode<T>>) => {
             let og = getOriginal(draft);
             let cumul = 0;
             for (let i = 0; i < og.children.length; i++) {
                 let childSegments = og.children[i].getSegments();
                 if (segment < cumul + childSegments.length) {
-                    draft.children[i] = draft.children[i].replace(segment - cumul, start, end, points);
+                    draft.children[i] = draft.children[i].replaceTrackPoints(segment - cumul, start, end, points);
                     break;
                 }
                 cumul += childSegments.length;
@@ -178,6 +178,34 @@ export class GPXFile extends GPXTreeNode<Track>{
             trk: this.trk.map((track) => track.toTrackType())
         };
     }
+
+    // Producers
+    replaceTracks(start: number, end: number, tracks: Track[]) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let trk = og.trk.slice();
+            trk.splice(start, end - start + 1, ...tracks);
+            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
+        });
+    }
+
+    replaceTrackSegments(trackIndex: number, start: number, end: number, segments: TrackSegment[]) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let trk = og.trk.slice();
+            trk[trackIndex] = trk[trackIndex].replaceTrackSegments(start, end, segments);
+            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
+        });
+    }
+
+    replaceWaypoints(start: number, end: number, waypoints: Waypoint[]) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let wpt = og.wpt.slice();
+            wpt.splice(start, end - start + 1, ...waypoints);
+            draft.wpt = freeze(wpt); // Pre-freeze the array, faster as well
+        });
+    }
 };
 
 // A class that represents a Track in a GPX file
@@ -259,6 +287,16 @@ export class Track extends GPXTreeNode<TrackSegment> {
             trkseg: this.trkseg.map((seg) => seg.toTrackSegmentType()),
             extensions: this.extensions,
         };
+    }
+
+    // Producers
+    replaceTrackSegments(start: number, end: number, segments: TrackSegment[]) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let trkseg = og.trkseg.slice();
+            trkseg.splice(start, end - start + 1, ...segments);
+            draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
+        });
     }
 };
 
@@ -410,7 +448,7 @@ export class TrackSegment extends GPXTreeLeaf {
     }
 
     // Producers
-    replace(segment: number, start: number, end: number, points: TrackPoint[]) {
+    replaceTrackPoints(segment: number, start: number, end: number, points: TrackPoint[]) {
         return produce(this, (draft) => {
             let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
             let trkpt = og.trkpt.slice();

@@ -6,7 +6,7 @@ import { initTargetMapBounds, updateTargetMapBounds } from './stores';
 import { mode } from 'mode-watcher';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays } from './assets/layers';
 import { selection } from '$lib/components/file-list/Selection';
-import { ListFileItem, ListItem, type ListLevel } from '$lib/components/file-list/FileList';
+import { ListFileItem, ListItem, ListTrackItem, type ListLevel, ListTrackSegmentItem, ListWaypointItem } from '$lib/components/file-list/FileList';
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
 
 enableMapSet();
@@ -358,16 +358,62 @@ export const dbUtils = {
     },
     duplicateSelection: () => {
         applyGlobal((draft) => {
-            // TODO
             let ids = getFileIds(get(settings.fileOrder).length);
             get(settings.fileOrder).forEach((fileId, index) => {
-                if (get(selection).has(new ListFileItem(fileId))) {
-                    let file = original(draft)?.get(fileId);
-                    if (file) {
-                        let clone = file.clone();
-                        clone._data.id = ids[index];
-                        draft.set(clone._data.id, freeze(clone));
+                let file = original(draft)?.get(fileId);
+                if (file) {
+                    let level: ListLevel | undefined = undefined;
+                    let items: ListItem[] = [];
+                    get(selection).forEach((item) => {
+                        if (item.getFileId() === fileId) {
+                            if (item instanceof ListFileItem) {
+                                level = 'file';
+                            } else if (item instanceof ListTrackItem) {
+                                level = 'track';
+                                items.push(item);
+                            } else if (item instanceof ListTrackSegmentItem) {
+                                level = 'segment';
+                                items.push(item);
+                            } else if (item instanceof ListWaypointItem) {
+                                level = 'waypoint';
+                                items.push(item);
+                            }
+                        }
+                    });
+
+                    items.sort((a, b) => { // Process the items in reverse order to avoid index conflicts
+                        if (a instanceof ListTrackItem && b instanceof ListTrackItem) {
+                            return b.getTrackIndex() - a.getTrackIndex();
+                        } else if (a instanceof ListTrackSegmentItem && b instanceof ListTrackSegmentItem) {
+                            return b.getSegmentIndex() - a.getSegmentIndex();
+                        } else if (a instanceof ListWaypointItem && b instanceof ListWaypointItem) {
+                            return b.getWaypointIndex() - a.getWaypointIndex();
+                        }
+                        return 0;
+                    });
+
+                    let newFile = file;
+                    if (level === 'file') {
+                        newFile = file.clone();
+                        newFile._data.id = ids[index];
+                    } else if (level === 'track') {
+                        for (let item of items) {
+                            let trackIndex = (item as ListTrackItem).getTrackIndex();
+                            newFile = newFile.replaceTracks(trackIndex + 1, trackIndex, [file.trk[trackIndex].clone()]);
+                        }
+                    } else if (level === 'segment') {
+                        for (let item of items) {
+                            let trackIndex = (item as ListTrackSegmentItem).getTrackIndex();
+                            let segmentIndex = (item as ListTrackSegmentItem).getSegmentIndex();
+                            newFile = newFile.replaceTrackSegments(trackIndex, segmentIndex + 1, segmentIndex, [file.trk[trackIndex].trkseg[segmentIndex].clone()]);
+                        }
+                    } else if (level === 'waypoint') {
+                        for (let item of items) {
+                            let waypointIndex = (item as ListWaypointItem).getWaypointIndex();
+                            newFile = newFile.replaceWaypoints(waypointIndex + 1, waypointIndex, [file.wpt[waypointIndex].clone()]);
+                        }
                     }
+                    draft.set(fileId, freeze(newFile));
                 }
             });
         });

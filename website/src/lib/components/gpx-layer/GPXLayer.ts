@@ -3,8 +3,8 @@ import { settings, type GPXFileWithStatistics } from "$lib/db";
 import { get, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
 import { currentWaypoint, waypointPopup } from "./WaypointPopup";
-import { addSelect, select, selection } from "$lib/components/file-list/Selection";
-import { ListSegmentItem, type ListItem, ListFileItem, ListTrackItem } from "$lib/components/file-list/FileList";
+import { addSelect, selectFile, selection } from "$lib/components/file-list/Selection";
+import { ListTrackSegmentItem, type ListItem, ListFileItem, ListTrackItem } from "$lib/components/file-list/FileList";
 
 let defaultWeight = 5;
 let defaultOpacity = 1;
@@ -213,7 +213,7 @@ export class GPXLayer {
         if (e.originalEvent.shiftKey) {
             addSelect(this.fileId);
         } else {
-            select(this.fileId);
+            selectFile(this.fileId);
         }
     }
 
@@ -242,7 +242,7 @@ export class GPXLayer {
             if (!feature.properties.opacity) {
                 feature.properties.opacity = defaultOpacity;
             }
-            if (get(selection).has(new ListFileItem(this.fileId)) || get(selection).has(new ListTrackItem(this.fileId, trackIndex)) || get(selection).has(new ListSegmentItem(this.fileId, trackIndex, segmentIndex))) {
+            if (get(selection).has(new ListFileItem(this.fileId)) || get(selection).has(new ListTrackItem(this.fileId, trackIndex)) || get(selection).has(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex))) {
                 feature.properties.weight = feature.properties.weight + 2;
             }
 

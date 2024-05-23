@@ -281,13 +281,13 @@ export class RoutingControls {
         let [previousAnchor, nextAnchor] = this.getNeighbouringAnchors(anchor);
 
         if (previousAnchor === null && nextAnchor === null) { // Only one point, remove it
-            dbUtils.applyToFile(this.fileId, (file) => file.replace(anchor.segmentIndex, 0, 0, []));
+            dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(anchor.segmentIndex, 0, 0, []));
         } else if (previousAnchor === null) { // First point, remove trackpoints until nextAnchor
-            dbUtils.applyToFile(this.fileId, (file) => file.replace(anchor.segmentIndex, 0, nextAnchor.point._data.index - 1, []));
+            dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(anchor.segmentIndex, 0, nextAnchor.point._data.index - 1, []));
         } else if (nextAnchor === null) { // Last point, remove trackpoints from previousAnchor
             dbUtils.applyToFile(this.fileId, (file) => {
                 let segment = file.getSegments()[anchor.segmentIndex];
-                return file.replace(anchor.segmentIndex, previousAnchor.point._data.index + 1, segment.trkpt.length - 1, []);
+                return file.replaceTrackPoints(anchor.segmentIndex, previousAnchor.point._data.index + 1, segment.trkpt.length - 1, []);
             });
         } else { // Route between previousAnchor and nextAnchor
             this.routeBetweenAnchors([previousAnchor, nextAnchor], [previousAnchor.point.getCoordinates(), nextAnchor.point.getCoordinates()]);
@@ -312,7 +312,7 @@ export class RoutingControls {
 
         if (!lastAnchor) {
             // TODO, create segment if it does not exist
-            dbUtils.applyToFile(this.fileId, (file) => file.replace(0, 0, 0, [newPoint]));
+            dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(0, 0, 0, [newPoint]));
             return;
         }
 
@@ -362,7 +362,7 @@ export class RoutingControls {
             let segment = original(file).getSegments()[segments.length - 1];
             let newSegment = segment.clone();
             newSegment = newSegment.reverse(segment.getEndTimestamp(), segment.getEndTimestamp());
-            return file.replace(segments.length - 1, segment.trkpt.length, segment.trkpt.length, newSegment.trkpt.map((point) => point));
+            return file.replaceTrackPoints(segments.length - 1, segment.trkpt.length, segment.trkpt.length, newSegment.trkpt.map((point) => point));
         });
     }
 
@@ -391,7 +391,7 @@ export class RoutingControls {
         let segment = anchors[0].segment;
 
         if (anchors.length === 1) { // Only one anchor, update the point in the segment
-            dbUtils.applyToFile(this.fileId, (file) => file.replace(anchors[0].segmentIndex, 0, 0, [new TrackPoint({
+            dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(anchors[0].segmentIndex, 0, 0, [new TrackPoint({
                 attributes: targetCoordinates[0],
             })]));
             return true;
@@ -416,7 +416,7 @@ export class RoutingControls {
         }
 
         if (anchors[0].point._data.index === 0) { // First anchor is the first point of the segment
-            anchors[0].point = response[0]; // Replace the first anchor
+            anchors[0].point = response[0]; // replaceTrackPoints the first anchor
             anchors[0].point._data.index = 0;
         } else {
             anchors[0].point = anchors[0].point.clone(); // Clone the anchor to assign new properties
@@ -424,7 +424,7 @@ export class RoutingControls {
         }
 
         if (anchors[anchors.length - 1].point._data.index === segment.trkpt.length - 1) { // Last anchor is the last point of the segment
-            anchors[anchors.length - 1].point = response[response.length - 1]; // Replace the last anchor
+            anchors[anchors.length - 1].point = response[response.length - 1]; // replaceTrackPoints the last anchor
             anchors[anchors.length - 1].point._data.index = segment.trkpt.length - 1;
         } else {
             anchors[anchors.length - 1].point = anchors[anchors.length - 1].point.clone(); // Clone the anchor to assign new properties
@@ -451,7 +451,7 @@ export class RoutingControls {
             anchor.point._data.zoom = 0; // Make these anchors permanent
         });
 
-        dbUtils.applyToFile(this.fileId, (file) => file.replace(anchors[0].segmentIndex, anchors[0].point._data.index, anchors[anchors.length - 1].point._data.index, response));
+        dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(anchors[0].segmentIndex, anchors[0].point._data.index, anchors[anchors.length - 1].point._data.index, response));
 
         return true;
     }

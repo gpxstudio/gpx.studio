@@ -1,15 +1,19 @@
 import { get, writable } from "svelte/store";
-import { ListFileItem, ListRootItem, SelectionTreeType } from "./FileList";
+import { ListFileItem, ListItem, ListRootItem, SelectionTreeType } from "./FileList";
 import { fileObservers } from "$lib/db";
 
 export const selection = writable<SelectionTreeType>(new SelectionTreeType(new ListRootItem()));
 
-export function select(fileId: string) {
+export function selectItem(item: ListItem) {
     selection.update(($selection) => {
         $selection.clear();
-        $selection.set(new ListFileItem(fileId), true);
+        $selection.set(item, true);
         return $selection;
     });
+}
+
+export function selectFile(fileId: string) {
+    selectItem(new ListFileItem(fileId));
 }
 
 export function addSelect(fileId: string) {

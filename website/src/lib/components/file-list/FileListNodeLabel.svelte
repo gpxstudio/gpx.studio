@@ -5,9 +5,10 @@
 	import { dbUtils } from '$lib/db';
 	import { Copy, Trash2 } from 'lucide-svelte';
 	import { type ListItem } from './FileList';
-	import { selection } from './Selection';
+	import { selectItem, selection } from './Selection';
 	import { _ } from 'svelte-i18n';
 	import { getContext } from 'svelte';
+	import { get } from 'svelte/store';
 
 	export let item: ListItem;
 	export let label: string | undefined;
@@ -17,7 +18,13 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<ContextMenu.Root>
+<ContextMenu.Root
+	onOpenChange={(open) => {
+		if (open && !get(selection).has(item)) {
+			selectItem(item);
+		}
+	}}
+>
 	<ContextMenu.Trigger class="grow truncate">
 		<Button
 			variant="ghost"
@@ -45,12 +52,14 @@
 		</Button>
 	</ContextMenu.Trigger>
 	<ContextMenu.Content>
-		<ContextMenu.Item on:click={dbUtils.duplicateSelection}>
-			<Copy size="16" class="mr-1" />
-			{$_('menu.duplicate')}
-			<Shortcut key="D" ctrl={true} /></ContextMenu.Item
-		>
-		<ContextMenu.Separator />
+		{#if item.level !== 'waypoints'}
+			<ContextMenu.Item on:click={dbUtils.duplicateSelection}>
+				<Copy size="16" class="mr-1" />
+				{$_('menu.duplicate')}
+				<Shortcut key="D" ctrl={true} /></ContextMenu.Item
+			>
+			<ContextMenu.Separator />
+		{/if}
 		<ContextMenu.Item on:click={dbUtils.deleteSelection}
 			><Trash2 size="16" class="mr-1" />
 			{$_('menu.delete')}
