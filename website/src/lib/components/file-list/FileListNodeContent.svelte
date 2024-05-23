@@ -127,11 +127,23 @@
 	}
 
 	afterUpdate(() => {
+		syncFileOrder();
 		if (sortableLevel === 'file') {
-			syncFileOrder();
 			Object.keys(elements).forEach((fileId) => {
 				if (!get(fileObservers).has(fileId)) {
 					delete elements[fileId];
+				}
+			});
+		} else if (sortableLevel === 'waypoints') {
+			if (node.wpt.length === 0) {
+				delete elements['waypoints'];
+			}
+		} else {
+			Object.keys(elements).forEach((index) => {
+				if ((node instanceof GPXFile || node instanceof Track) && node.children.length <= index) {
+					delete elements[index];
+				} else if (Array.isArray(node) && node.length <= index) {
+					delete elements[index];
 				}
 			});
 		}

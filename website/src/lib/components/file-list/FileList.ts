@@ -80,6 +80,10 @@ export class SelectionTreeType {
         return this.children[id];
     }
 
+    deleteChild(id: string | number) {
+        delete this.children[id];
+    }
+
     get size(): number {
         let size = this.selected ? 1 : 0;
         for (let key in this.children) {

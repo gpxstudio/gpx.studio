@@ -5,7 +5,7 @@ import { writable, get, derived, type Readable, type Writable } from 'svelte/sto
 import { initTargetMapBounds, updateTargetMapBounds } from './stores';
 import { mode } from 'mode-watcher';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays } from './assets/layers';
-import { selection } from '$lib/components/file-list/Selection';
+import { applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListItem, ListTrackItem, type ListLevel, ListTrackSegmentItem, ListWaypointItem } from '$lib/components/file-list/FileList';
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
 
@@ -229,13 +229,12 @@ liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
     // Find deleted files to stop observing
     let deletedFiles = Array.from(get(fileObservers).keys()).filter(id => !dbFileIds.find(fileId => fileId === id));
 
-    if (newFiles.length > 0) { // Reset the target map bounds when new files are added
-        initTargetMapBounds(fileState.size === 0);
-    }
-
     // Update the store
     if (newFiles.length > 0 || deletedFiles.length > 0) {
         fileObservers.update($files => {
+            if (newFiles.length > 0) { // Reset the target map bounds when new files are added
+                initTargetMapBounds($files.size === 0);
+            }
             newFiles.forEach(id => {
                 $files.set(id, dexieGPXFileStore(id));
             });
@@ -245,6 +244,14 @@ liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
             });
             return $files;
         });
+        if (deletedFiles.length > 0) {
+            selection.update(($selection) => {
+                deletedFiles.forEach((fileId) => {
+                    $selection.deleteChild(fileId);
+                });
+                return $selection;
+            });
+        }
     }
 });
 
@@ -357,45 +364,19 @@ export const dbUtils = {
         applyToFiles(get(selection).forEach(fileId), callback);
     },
     duplicateSelection: () => {
+        if (get(selection).size === 0) {
+            return;
+        }
         applyGlobal((draft) => {
             let ids = getFileIds(get(settings.fileOrder).length);
-            get(settings.fileOrder).forEach((fileId, index) => {
+            let index = 0;
+            applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
                 let file = original(draft)?.get(fileId);
                 if (file) {
-                    let level: ListLevel | undefined = undefined;
-                    let items: ListItem[] = [];
-                    get(selection).forEach((item) => {
-                        if (item.getFileId() === fileId) {
-                            if (item instanceof ListFileItem) {
-                                level = 'file';
-                            } else if (item instanceof ListTrackItem) {
-                                level = 'track';
-                                items.push(item);
-                            } else if (item instanceof ListTrackSegmentItem) {
-                                level = 'segment';
-                                items.push(item);
-                            } else if (item instanceof ListWaypointItem) {
-                                level = 'waypoint';
-                                items.push(item);
-                            }
-                        }
-                    });
-
-                    items.sort((a, b) => { // Process the items in reverse order to avoid index conflicts
-                        if (a instanceof ListTrackItem && b instanceof ListTrackItem) {
-                            return b.getTrackIndex() - a.getTrackIndex();
-                        } else if (a instanceof ListTrackSegmentItem && b instanceof ListTrackSegmentItem) {
-                            return b.getSegmentIndex() - a.getSegmentIndex();
-                        } else if (a instanceof ListWaypointItem && b instanceof ListWaypointItem) {
-                            return b.getWaypointIndex() - a.getWaypointIndex();
-                        }
-                        return 0;
-                    });
-
                     let newFile = file;
                     if (level === 'file') {
                         newFile = file.clone();
-                        newFile._data.id = ids[index];
+                        newFile._data.id = ids[index++];
                     } else if (level === 'track') {
                         for (let item of items) {
                             let trackIndex = (item as ListTrackItem).getTrackIndex();
@@ -413,22 +394,45 @@ export const dbUtils = {
                             newFile = newFile.replaceWaypoints(waypointIndex + 1, waypointIndex, [file.wpt[waypointIndex].clone()]);
                         }
                     }
-                    draft.set(fileId, freeze(newFile));
+                    draft.set(newFile._data.id, freeze(newFile));
                 }
             });
         });
     },
     deleteSelection: () => {
+        if (get(selection).size === 0) {
+            return;
+        }
         applyGlobal((draft) => {
-            selection.update(($selection) => {
-                $selection.forEach((item) => {
-                    if (item instanceof ListFileItem) {
-                        draft.delete(item.getId());
+            applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+                if (level === 'file') {
+                    draft.delete(fileId);
+                } else {
+                    let file = original(draft)?.get(fileId);
+                    if (file) {
+                        let newFile = file;
+                        if (level === 'track') {
+                            for (let item of items) {
+                                let trackIndex = (item as ListTrackItem).getTrackIndex();
+                                newFile = newFile.replaceTracks(trackIndex, trackIndex, []);
+                            }
+                        } else if (level === 'segment') {
+                            for (let item of items) {
+                                let trackIndex = (item as ListTrackSegmentItem).getTrackIndex();
+                                let segmentIndex = (item as ListTrackSegmentItem).getSegmentIndex();
+                                newFile = newFile.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex, []);
+                            }
+                        } else if (level === 'waypoints') {
+                            newFile = newFile.replaceWaypoints(0, newFile.wpt.length - 1, []);
+                        } else if (level === 'waypoint') {
+                            for (let item of items) {
+                                let waypointIndex = (item as ListWaypointItem).getWaypointIndex();
+                                newFile = newFile.replaceWaypoints(waypointIndex, waypointIndex, []);
+                            }
+                        }
+                        draft.set(newFile._data.id, freeze(newFile));
                     }
-                    // TODO: Implement deletion of tracks, segments, waypoints
-                });
-                $selection.clear();
-                return $selection;
+                }
             });
         });
     },

@@ -1,6 +1,6 @@
 import { get, writable } from "svelte/store";
-import { ListFileItem, ListItem, ListRootItem, ListTrackItem, ListTrackSegmentItem, ListWaypointItem, SelectionTreeType } from "./FileList";
-import { fileObservers } from "$lib/db";
+import { ListFileItem, ListItem, ListRootItem, ListTrackItem, ListTrackSegmentItem, ListWaypointItem, SelectionTreeType, type ListLevel } from "./FileList";
+import { fileObservers, settings } from "$lib/db";
 
 export const selection = writable<SelectionTreeType>(new SelectionTreeType(new ListRootItem()));
 
@@ -59,5 +59,33 @@ export function selectAll() {
         }
 
         return $selection;
+    });
+}
+
+export function applyToOrderedSelectedItemsFromFile(callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void) {
+    get(settings.fileOrder).forEach((fileId) => {
+        let level: ListLevel | undefined = undefined;
+        let items: ListItem[] = [];
+        get(selection).forEach((item) => {
+            if (item.getFileId() === fileId) {
+                level = item.level;
+                if (item instanceof ListTrackItem || item instanceof ListTrackSegmentItem || item instanceof ListWaypointItem) {
+                    items.push(item);
+                }
+            }
+        });
+
+        items.sort((a, b) => { // Process the items in reverse order to avoid index conflicts
+            if (a instanceof ListTrackItem && b instanceof ListTrackItem) {
+                return b.getTrackIndex() - a.getTrackIndex();
+            } else if (a instanceof ListTrackSegmentItem && b instanceof ListTrackSegmentItem) {
+                return b.getSegmentIndex() - a.getSegmentIndex();
+            } else if (a instanceof ListWaypointItem && b instanceof ListWaypointItem) {
+                return b.getWaypointIndex() - a.getWaypointIndex();
+            }
+            return 0;
+        });
+
+        callback(fileId, level, items);
     });
 }
