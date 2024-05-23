@@ -2,7 +2,7 @@
 	import { GPXFile, Track, Waypoint, type AnyGPXTreeElement, type GPXTreeElement } from 'gpx';
 	import { afterUpdate, getContext, onDestroy, onMount } from 'svelte';
 	import Sortable from 'sortablejs/Sortable';
-	import { settings, type GPXFileWithStatistics } from '$lib/db';
+	import { fileObservers, settings, type GPXFileWithStatistics } from '$lib/db';
 	import { get, type Readable } from 'svelte/store';
 	import FileListNodeStore from './FileListNodeStore.svelte';
 	import FileListNode from './FileListNode.svelte';
@@ -50,16 +50,17 @@
 		});
 	}
 
+	const { fileOrder } = settings;
 	function syncFileOrder() {
-		if (sortableLevel !== 'file') {
+		if (!sortable || sortableLevel !== 'file') {
 			return;
 		}
 
-		/*Object.keys(buttons).forEach((fileId) => {
-			if (!get(fileObservers).has(fileId)) {
-				delete buttons[fileId];
-			}
-		});*/
+		if ($fileOrder.length !== $fileObservers.size) {
+			// Files were added or removed
+			fileOrder.set(sortable.toArray());
+			return;
+		}
 
 		const currentOrder = sortable.toArray();
 		if (currentOrder.length !== $fileOrder.length) {
@@ -73,8 +74,6 @@
 			}
 		}
 	}
-
-	const { fileOrder } = settings;
 
 	onMount(() => {
 		sortable = Sortable.create(container, {
@@ -109,13 +108,19 @@
 		});
 	});
 
-	$: if ($fileOrder && sortable) {
+	$: if ($fileOrder) {
 		syncFileOrder();
 	}
 
 	afterUpdate(() => {
-		syncFileOrder();
-		// TODO: update selection if files are removed
+		if (sortableLevel === 'file') {
+			syncFileOrder();
+			Object.keys(elements).forEach((fileId) => {
+				if (!get(fileObservers).has(fileId)) {
+					delete elements[fileId];
+				}
+			});
+		}
 	});
 
 	const unsubscribe = selection.subscribe(($selection) => {

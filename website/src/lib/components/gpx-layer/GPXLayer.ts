@@ -1,10 +1,12 @@
-import { map, selectFiles, currentTool, Tool } from "$lib/stores";
+import { map, currentTool, Tool } from "$lib/stores";
 import { settings, type GPXFileWithStatistics } from "$lib/db";
 import { get, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
 import { currentWaypoint, waypointPopup } from "./WaypointPopup";
+import { addSelect, select, selection } from "$lib/components/file-list/Selection";
+import { ListSegmentItem, type ListItem, ListFileItem, ListTrackItem } from "$lib/components/file-list/FileList";
 
-let defaultWeight = 6;
+let defaultWeight = 5;
 let defaultOpacity = 1;
 
 const colors = [
@@ -37,7 +39,7 @@ function decrementColor(color: string) {
     colorCount[color]--;
 }
 
-const { directionMarkers, distanceMarkers, distanceUnits } = settings;
+const { directionMarkers } = settings;
 
 export class GPXLayer {
     map: mapboxgl.Map;
@@ -45,6 +47,7 @@ export class GPXLayer {
     file: Readable<GPXFileWithStatistics | undefined>;
     layerColor: string;
     markers: mapboxgl.Marker[] = [];
+    selected: ListItem[] = [];
     unsubscribe: Function[] = [];
 
     updateBinded: () => void = this.update.bind(this);
@@ -56,13 +59,17 @@ export class GPXLayer {
         this.file = file;
         this.layerColor = getColor();
         this.unsubscribe.push(file.subscribe(this.updateBinded));
-        this.unsubscribe.push(directionMarkers.subscribe(this.updateBinded));
-        this.unsubscribe.push(distanceMarkers.subscribe(this.updateBinded));
-        this.unsubscribe.push(distanceUnits.subscribe(() => {
-            if (get(distanceMarkers)) {
+        this.unsubscribe.push(selection.subscribe($selection => {
+            let selected = $selection.getChild(fileId)?.getSelected() || [];
+            if (selected.length !== this.selected.length || selected.some((item, index) => item !== this.selected[index])) {
+                this.selected = selected;
                 this.update();
+                if (this.selected.length > 0) {
+                    this.moveToFront();
+                }
             }
         }));
+        this.unsubscribe.push(directionMarkers.subscribe(this.updateBinded));
 
         this.map.on('style.load', this.updateBinded);
     }
@@ -74,7 +81,6 @@ export class GPXLayer {
         }
 
         try {
-
             let source = this.map.getSource(this.fileId);
             if (source) {
                 source.setData(this.getGeoJSON());
@@ -132,43 +138,6 @@ export class GPXLayer {
                     this.map.removeLayer(this.fileId + '-direction');
                 }
             }
-
-            if (get(distanceMarkers)) {
-                let distanceSource = this.map.getSource(this.fileId + '-distance');
-                if (distanceSource) {
-                    distanceSource.setData(this.getDistanceMarkersGeoJSON());
-                } else {
-                    this.map.addSource(this.fileId + '-distance', {
-                        type: 'geojson',
-                        data: this.getDistanceMarkersGeoJSON()
-                    });
-                }
-                if (!this.map.getLayer(this.fileId + '-distance')) {
-                    this.map.addLayer({
-                        id: this.fileId + '-distance',
-                        type: 'symbol',
-                        source: this.fileId + '-distance',
-                        layout: {
-                            'text-field': ['get', 'distance'],
-                            'text-size': 12,
-                            'text-font': ['Open Sans Regular'],
-                            'icon-image': ['get', 'icon'],
-                            'icon-padding': 50,
-                            'icon-allow-overlap': true,
-                        },
-                        paint: {
-                            'text-halo-width': 0.1,
-                            'text-halo-color': 'black'
-                        }
-                    });
-                } else {
-                    this.map.moveLayer(this.fileId + '-distance');
-                }
-            } else {
-                if (this.map.getLayer(this.fileId + '-distance')) {
-                    this.map.removeLayer(this.fileId + '-distance');
-                }
-            }
         } catch (e) { // No reliable way to check if the map is ready to add sources and layers
             return;
         }
@@ -212,9 +181,6 @@ export class GPXLayer {
         if (this.map.getLayer(this.fileId + '-direction')) {
             this.map.removeLayer(this.fileId + '-direction');
         }
-        if (this.map.getLayer(this.fileId + '-distance')) {
-            this.map.removeLayer(this.fileId + '-distance');
-        }
         if (this.map.getLayer(this.fileId)) {
             this.map.removeLayer(this.fileId);
         }
@@ -238,9 +204,6 @@ export class GPXLayer {
         if (this.map.getLayer(this.fileId + '-direction')) {
             this.map.moveLayer(this.fileId + '-direction');
         }
-        if (this.map.getLayer(this.fileId + '-distance')) {
-            this.map.moveLayer(this.fileId + '-distance');
-        }
     }
 
     selectOnClick(e: any) {
@@ -248,9 +211,9 @@ export class GPXLayer {
             return;
         }
         if (e.originalEvent.shiftKey) {
-            get(selectFiles).addSelect(this.fileId);
+            addSelect(this.fileId);
         } else {
-            get(selectFiles).select(this.fileId);
+            select(this.fileId);
         }
     }
 
@@ -264,6 +227,8 @@ export class GPXLayer {
         }
 
         let data = file.toGeoJSON();
+
+        let trackIndex = 0, segmentIndex = 0;
         for (let feature of data.features) {
             if (!feature.properties) {
                 feature.properties = {};
@@ -277,43 +242,17 @@ export class GPXLayer {
             if (!feature.properties.opacity) {
                 feature.properties.opacity = defaultOpacity;
             }
-        }
-        return data;
-    }
+            if (get(selection).has(new ListFileItem(this.fileId)) || get(selection).has(new ListTrackItem(this.fileId, trackIndex)) || get(selection).has(new ListSegmentItem(this.fileId, trackIndex, segmentIndex))) {
+                feature.properties.weight = feature.properties.weight + 2;
+            }
 
-    getDistanceMarkersGeoJSON(): GeoJSON.FeatureCollection {
-        let statistics = get(this.file)?.statistics;
-        if (!statistics) {
-            return {
-                type: 'FeatureCollection',
-                features: []
-            };
-        }
-
-        let features = [];
-        let currentTargetDistance = 1;
-        for (let i = 0; i < statistics.local.distance.length; i++) {
-            if (statistics.local.distance[i] >= currentTargetDistance * (get(distanceUnits) === 'metric' ? 1 : 1.60934)) {
-                let distance = currentTargetDistance.toFixed(0);
-                features.push({
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Point',
-                        coordinates: [statistics.local.points[i].getLongitude(), statistics.local.points[i].getLatitude()]
-                    },
-                    properties: {
-                        distance,
-                        icon: distance.length < 3 ? 'circle-white-2' : 'circle-white-3'
-                    }
-                } as GeoJSON.Feature);
-                currentTargetDistance += 1;
+            segmentIndex++;
+            if (segmentIndex >= file.trk[trackIndex].trkseg.length) {
+                segmentIndex = 0;
+                trackIndex++;
             }
         }
-
-        return {
-            type: 'FeatureCollection',
-            features
-        };
+        return data;
     }
 }
 

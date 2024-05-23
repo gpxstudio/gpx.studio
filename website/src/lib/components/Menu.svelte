@@ -23,7 +23,8 @@
 		Thermometer,
 		Sun,
 		Moon,
-		Rows3
+		Rows3,
+		Layers3
 	} from 'lucide-svelte';
 
 	import {
@@ -31,18 +32,18 @@
 		exportAllFiles,
 		exportSelectedFiles,
 		triggerFileInput,
-		selectFiles,
 		createFile
 	} from '$lib/stores';
-	import { selection } from '$lib/components/file-list/Selection';
+	import { selectAll, selection } from '$lib/components/file-list/Selection';
 	import { derived } from 'svelte/store';
 	import { canUndo, canRedo, dbUtils, fileObservers, settings } from '$lib/db';
+	import { anySelectedLayer } from '$lib/components/layer-control/utils';
+	import { defaultOverlays } from '$lib/assets/layers';
+	import LayerControlSettings from '$lib/components/layer-control/LayerControlSettings.svelte';
 
 	import { resetMode, setMode, systemPrefersMode } from 'mode-watcher';
 
 	import { _ } from 'svelte-i18n';
-	import { anySelectedLayer } from './layer-control/utils';
-	import { defaultOverlays } from '$lib/assets/layers';
 
 	const {
 		distanceUnits,
@@ -88,6 +89,8 @@
 			}
 		}
 	}
+
+	let layerSettingsOpen = false;
 </script>
 
 <div class="absolute top-2 left-0 right-0 z-20 flex flex-row justify-center pointer-events-none">
@@ -147,7 +150,7 @@
 						<Shortcut key="Z" ctrl={true} shift={true} />
 					</Menubar.Item>
 					<Menubar.Separator />
-					<Menubar.Item on:click={() => $selectFiles.selectAllFiles()}>
+					<Menubar.Item on:click={selectAll}>
 						<span class="w-4 mr-1"></span>
 						{$_('menu.select_all')}
 						<Shortcut key="A" ctrl={true} />
@@ -265,6 +268,11 @@
 							</Menubar.RadioGroup>
 						</Menubar.SubContent>
 					</Menubar.Sub>
+					<Menubar.Separator />
+					<Menubar.Item on:click={() => (layerSettingsOpen = true)}>
+						<Layers3 size="16" class="mr-1" />
+						{$_('menu.layers')}
+					</Menubar.Item>
 				</Menubar.Content>
 			</Menubar.Menu>
 		</Menubar.Root>
@@ -282,6 +290,8 @@
 		</div>
 	</div>
 </div>
+
+<LayerControlSettings bind:open={layerSettingsOpen} />
 
 <svelte:window
 	on:keydown={(e) => {
@@ -315,7 +325,7 @@
 			}
 			e.preventDefault();
 		} else if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {
-			$selectFiles.selectAllFiles();
+			selectAll();
 			e.preventDefault();
 		} else if (e.key === 'F1') {
 			switchBasemaps();

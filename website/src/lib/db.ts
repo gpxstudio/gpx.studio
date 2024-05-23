@@ -352,10 +352,12 @@ export const dbUtils = {
         applyToFiles([id], callback);
     },
     applyToSelection: (callback: (file: WritableDraft<GPXFile>) => GPXFile) => {
+        // TODO
         applyToFiles(get(selection).forEach(fileId), callback);
     },
     duplicateSelection: () => {
         applyGlobal((draft) => {
+            // TODO
             let ids = getFileIds(get(settings.fileOrder).length);
             get(settings.fileOrder).forEach((fileId, index) => {
                 if (get(selection).has(fileId)) {
@@ -371,11 +373,15 @@ export const dbUtils = {
     },
     deleteSelection: () => {
         applyGlobal((draft) => {
-            get(selection).forEach((item) => {
-                if (item instanceof ListFileItem) {
-                    draft.delete(item.getId());
-                }
-                // TODO: Implement deletion of tracks, segments, waypoints
+            selection.update(($selection) => {
+                $selection.forEach((item) => {
+                    if (item instanceof ListFileItem) {
+                        draft.delete(item.getId());
+                    }
+                    // TODO: Implement deletion of tracks, segments, waypoints
+                });
+                $selection.clear();
+                return $selection;
             });
         });
     },

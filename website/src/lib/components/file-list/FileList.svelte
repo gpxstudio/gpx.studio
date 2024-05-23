@@ -20,6 +20,6 @@
 	scrollbarYClasses={orientation === 'vertical' ? '' : ''}
 >
 	<div class="flex {orientation === 'vertical' ? 'flex-col' : 'flex-row'} {$$props.class ?? ''}">
-		<FileListNode node={$fileObservers} item={new ListRootItem()} />
+		<FileListNode bind:node={$fileObservers} item={new ListRootItem()} />
 	</div>
 </ScrollArea>

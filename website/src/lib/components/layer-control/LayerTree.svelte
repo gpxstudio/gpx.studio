@@ -12,7 +12,7 @@
 </script>
 
 <form>
-	<fieldset class="min-w-64">
+	<fieldset class="min-w-64 mb-1">
 		<CollapsibleTree nohover={true}>
 			<LayerTreeNode {name} node={layerTree} bind:selected {multiple} bind:checked />
 		</CollapsibleTree>

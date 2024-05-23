@@ -5,7 +5,7 @@
 	import type { Readable } from 'svelte/store';
 	import FileListNodeContent from './FileListNodeContent.svelte';
 	import FileListNodeLabel from './FileListNodeLabel.svelte';
-	import { getContext } from 'svelte';
+	import { afterUpdate, getContext } from 'svelte';
 	import { type ListItem, type ListTrackItem } from './FileList';
 
 	export let node:
@@ -16,7 +16,7 @@
 
 	let recursive = getContext<boolean>('recursive');
 
-	let label =
+	$: label =
 		node instanceof GPXFile
 			? node.metadata.name
 			: node instanceof Track

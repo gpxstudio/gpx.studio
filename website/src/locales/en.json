@@ -31,6 +31,7 @@
         "light": "Light",
         "dark": "Dark",
         "system": "System",
+        "layers": "Map layers...",
         "distance_markers": "Show distance markers",
         "direction_markers": "Show direction markers",
         "about": "About",
@@ -109,7 +110,6 @@
         "structure_tooltip": "Manage the file structure"
     },
     "layers": {
-        "manage": "Manage layers",
         "settings": "Layer settings",
         "settings_help": "Select the map layers you want to show in the interface, add custom ones, and adjust their settings.",
         "selection": "Layer selection",

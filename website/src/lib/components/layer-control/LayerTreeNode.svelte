@@ -26,11 +26,11 @@
 	});
 </script>
 
-<div class="flex flex-col gap-0.5">
+<div class="flex flex-col gap-[3px]">
 	{#each Object.keys(node) as id}
 		{#if typeof node[id] == 'boolean'}
 			{#if node[id]}
-				<div class="flex flex-row items-center gap-2 first:mt-1">
+				<div class="flex flex-row items-center gap-2 first:mt-0.5 h-4">
 					{#if multiple}
 						<Checkbox
 							id="{name}-{id}"

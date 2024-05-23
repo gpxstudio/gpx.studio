@@ -1,7 +1,6 @@
 <script lang="ts">
 	import CustomControl from '$lib/components/custom-control/CustomControl.svelte';
 	import LayerTree from './LayerTree.svelte';
-	import LayerControlSettings from './LayerControlSettings.svelte';
 
 	import { Separator } from '$lib/components/ui/separator';
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
@@ -120,10 +119,6 @@
 							bind:checked={$currentOverlays}
 						/>
 					{/if}
-				</div>
-				<Separator class="w-full" />
-				<div class="p-2">
-					<LayerControlSettings />
 				</div>
 			</div>
 		</ScrollArea>

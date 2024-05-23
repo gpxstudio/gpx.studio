@@ -1,13 +1,10 @@
 <script lang="ts">
 	import LayerTree from './LayerTree.svelte';
 
-	import { Button } from '$lib/components/ui/button';
 	import { Separator } from '$lib/components/ui/separator';
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 	import * as Sheet from '$lib/components/ui/sheet';
 	import * as Accordion from '$lib/components/ui/accordion';
-
-	import { Settings } from 'lucide-svelte';
 
 	import { basemapTree, overlayTree } from '$lib/assets/layers';
 	import { settings } from '$lib/db';
@@ -15,15 +12,12 @@
 	import { _ } from 'svelte-i18n';
 
 	const { selectedBasemapTree, selectedOverlayTree } = settings;
+
+	export let open: boolean;
 </script>
 
-<Sheet.Root>
-	<Sheet.Trigger class="w-full">
-		<Button variant="ghost" class="w-full px-1 py-1.5">
-			<Settings size="18" class="mr-2" />
-			{$_('layers.manage')}
-		</Button>
-	</Sheet.Trigger>
+<Sheet.Root bind:open>
+	<Sheet.Trigger class="hidden" />
 	<Sheet.Content>
 		<Sheet.Header class="h-full">
 			<Sheet.Title>{$_('layers.settings')}</Sheet.Title>

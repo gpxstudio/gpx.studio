@@ -21,7 +21,7 @@
 		easing: () => 1
 	};
 
-	const { distanceUnits } = settings;
+	const { distanceUnits, verticalFileView } = settings;
 	let scaleControl = new mapboxgl.ScaleControl({
 		unit: $distanceUnits
 	});
@@ -116,6 +116,10 @@
 	$: if ($map) {
 		scaleControl.setUnit($distanceUnits);
 	}
+
+	$: if ($map && !$verticalFileView) {
+		$map.resize();
+	}
 </script>
 
 <div {...$$restProps}>
@@ -205,11 +209,11 @@
 		@apply overflow-hidden;
 	}
 
-	div :global(.mapboxgl-ctrl-bottom-left) {
+	.horizontal :global(.mapboxgl-ctrl-bottom-left) {
 		@apply bottom-[42px];
 	}
 
-	div :global(.mapboxgl-ctrl-bottom-right) {
+	.horizontal :global(.mapboxgl-ctrl-bottom-right) {
 		@apply bottom-[42px];
 	}
 

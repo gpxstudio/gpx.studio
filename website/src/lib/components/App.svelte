@@ -19,7 +19,7 @@
 		<div class="grow relative">
 			<Menu />
 			<Toolbar />
-			<Map class="h-full" />
+			<Map class="h-full {$verticalFileView ? '' : 'horizontal'}" />
 			<LayerControl />
 			<GPXLayers />
 			<Toaster richColors />
@@ -34,9 +34,11 @@
 			<ElevationProfile />
 		</div>
 	</div>
-	{#if $verticalFileView}
-		<FileList orientation="vertical" recursive={true} class="w-60" />
-	{/if}
+	<div class="shrink-0">
+		{#if $verticalFileView}
+			<FileList orientation="vertical" recursive={true} class="w-60" />
+		{/if}
+	</div>
 </div>
 
 <style lang="postcss">
