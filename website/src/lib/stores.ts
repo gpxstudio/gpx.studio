@@ -205,12 +205,15 @@ function selectFileWhenLoaded(fileId: string) {
 }
 
 export function exportSelectedFiles() {
-    get(fileObservers).forEach(async (file, fileId) => {
-        if (get(selection).has(fileId)) {
-            let f = get(file);
-            if (f) {
-                exportFile(f.file);
-                await new Promise(resolve => setTimeout(resolve, 200));
+    get(selection).forEach(async (item) => {
+        if (item instanceof ListFileItem) {
+            let fileStore = get(fileObservers).get(item.getFileId());
+            if (fileStore) {
+                let file = get(fileStore)?.file;
+                if (file) {
+                    exportFile(file);
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
             }
         }
     });
