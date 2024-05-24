@@ -31,7 +31,7 @@
 	import { fileObservers } from '$lib/db';
 	import { slide } from 'svelte/transition';
 	import { selection } from '$lib/components/file-list/Selection';
-	import type { ListItem } from '$lib/components/file-list/FileList';
+	import { ListRootItem, type ListItem } from '$lib/components/file-list/FileList';
 
 	let routingControls: Map<string, RoutingControls> = new Map();
 	let popupElement: HTMLElement;
@@ -45,7 +45,7 @@
 		// remove controls for deleted files
 		routingControls.forEach((controls, fileId) => {
 			if (!$fileObservers.has(fileId)) {
-				controls.remove();
+				controls.destroy();
 				routingControls.delete(fileId);
 
 				if (selectedItem && selectedItem.getFileId() === fileId) {
@@ -53,40 +53,18 @@
 				}
 			}
 		});
-	}
-
-	$: if ($map && $selection) {
-		// update selected file
-		if ($selection.size == 0 || $selection.size > 1 || !active) {
-			if (selectedItem) {
-				routingControls.get(selectedItem.getFileId())?.remove();
-			}
-			selectedItem = null;
-		} else {
-			let newSelectedItem = get(selection).getSelected()[0];
-			if (selectedItem !== newSelectedItem) {
-				if (selectedItem) {
-					routingControls.get(selectedItem.getFileId())?.remove();
-				}
-				selectedItem = newSelectedItem;
-			}
-		}
-	}
-
-	$: if ($map && selectedItem) {
-		let fileId = selectedItem.getFileId();
-		if (!routingControls.has(fileId)) {
-			let selectedFileObserver = get(fileObservers).get(fileId);
-			if (selectedFileObserver) {
+		// add controls for new files
+		$fileObservers.forEach((file, fileId) => {
+			if (!routingControls.has(fileId)) {
 				routingControls.set(
 					fileId,
-					new RoutingControls(get(map), fileId, selectedFileObserver, popup, popupElement)
+					new RoutingControls(get(map), fileId, file, popup, popupElement)
 				);
 			}
-		} else {
-			routingControls.get(fileId)?.add();
-		}
+		});
 	}
+
+	$: validSelection = $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints']);
 
 	onMount(() => {
 		popup = new mapboxgl.Popup({
@@ -154,7 +132,8 @@
 			<Button
 				slot="data"
 				variant="outline"
-				on:click={() => dbUtils.applyToSelection((file) => file.reverse())}
+				disabled={!validSelection}
+				on:click={dbUtils.reverseSelection}
 			>
 				<ArrowRightLeft size="16" />
 			</Button>
@@ -164,7 +143,7 @@
 			<Button
 				slot="data"
 				variant="outline"
-				disabled={$selection.size != 1}
+				disabled={$selection.size != 1 || !validSelection}
 				on:click={() => {
 					const fileId = get(selection).getSelected()[0].getFileId();
 					routingControls.get(fileId)?.routeToStart();
@@ -178,7 +157,7 @@
 			<Button
 				slot="data"
 				variant="outline"
-				disabled={$selection.size != 1}
+				disabled={$selection.size != 1 || !validSelection}
 				on:click={() => {
 					const fileId = get(selection).getSelected()[0].getFileId();
 					routingControls.get(fileId)?.createRoundTrip();
@@ -192,7 +171,7 @@
 	<Help class="max-w-60">
 		{#if $selection.size > 1}
 			<div>{$_('toolbar.routing.help_multiple_files')}</div>
-		{:else if $selection.size == 0}
+		{:else if $selection.size == 0 || !validSelection}
 			<div>{$_('toolbar.routing.help_no_file')}</div>
 		{:else}
 			<div>{$_('toolbar.routing.help')}</div>

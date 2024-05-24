@@ -18,9 +18,7 @@ export function getZoomLevelForDistance(latitude: number, distance?: number): nu
 export function updateAnchorPoints(file: GPXFile) {
     let segments = file.getSegments();
 
-    for (let segmentIndex = 0; segmentIndex < segments.length; segmentIndex++) {
-        let segment = segments[segmentIndex];
-
+    for (let segment of segments) {
         if (!segment._data.anchors) { // New segment, compute anchor points for it
             computeAnchorPoints(segment);
             continue;

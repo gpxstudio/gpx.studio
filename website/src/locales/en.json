@@ -50,8 +50,8 @@
             "reverse_tooltip": "Reverse the direction",
             "route_back_to_start_tooltip": "Route back to start",
             "round_trip_tooltip": "Create round trip",
-            "help_no_file": "Select a file to use the routing tool, or create a new file from the menu",
-            "help_multiple_files": "Select a single file to use the routing tool",
+            "help_no_file": "Select a file element to use the routing tool, or create a new file from the menu",
+            "help_multiple_files": "Select a single file element to use the routing tool",
             "help": "Click on the map to add a new point, or drag existing points to change the route",
             "activities": {
                 "bike": "Bike",

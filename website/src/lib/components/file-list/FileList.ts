@@ -4,6 +4,7 @@ export class SelectionTreeType {
     children: {
         [key: string | number]: SelectionTreeType
     };
+    size: number = 0;
 
     constructor(item: ListItem) {
         this.item = item;
@@ -16,18 +17,25 @@ export class SelectionTreeType {
         for (let key in this.children) {
             this.children[key].clear();
         }
+        this.size = 0;
     }
 
     _setOrToggle(item: ListItem, value?: boolean) {
         if (item.level === this.item.level) {
-            this.selected = value === undefined ? !this.selected : value;
+            let newSelected = value === undefined ? !this.selected : value;
+            if (this.selected !== newSelected) {
+                this.selected = newSelected;
+                this.size += this.selected ? 1 : -1;
+            }
         } else {
             let id = item.getIdAtLevel(this.item.level);
             if (id !== undefined) {
                 if (!this.children.hasOwnProperty(id)) {
                     this.children[id] = new SelectionTreeType(this.item.extend(id));
                 }
+                this.size -= this.children[id].size;
                 this.children[id]._setOrToggle(item, value);
+                this.size += this.children[id].size;
             }
         }
     }
@@ -67,19 +75,23 @@ export class SelectionTreeType {
         return false;
     }
 
-    hasAnyChildren(item: ListItem, self: boolean = true): boolean {
+    hasAnyChildren(item: ListItem, self: boolean = true, ignoreIds?: (string | number)[]): boolean {
         if (this.selected && this.item.level >= item.level && (self || this.item.level > item.level)) {
             return this.selected;
         }
         let id = item.getIdAtLevel(this.item.level);
         if (id !== undefined) {
-            if (this.children.hasOwnProperty(id)) {
-                return this.children[id].hasAnyChildren(item, self);
+            if (ignoreIds === undefined || ignoreIds.indexOf(id) === -1) {
+                if (this.children.hasOwnProperty(id)) {
+                    return this.children[id].hasAnyChildren(item, self, ignoreIds);
+                }
             }
         } else {
             for (let key in this.children) {
-                if (this.children[key].hasAnyChildren(item, self)) {
-                    return true;
+                if (ignoreIds === undefined || ignoreIds.indexOf(key) === -1) {
+                    if (this.children[key].hasAnyChildren(item, self, ignoreIds)) {
+                        return true;
+                    }
                 }
             }
         }
@@ -113,15 +125,8 @@ export class SelectionTreeType {
     }
 
     deleteChild(id: string | number) {
+        this.size -= this.children[id].size;
         delete this.children[id];
-    }
-
-    get size(): number {
-        let size = this.selected ? 1 : 0;
-        for (let key in this.children) {
-            size += this.children[key].size;
-        }
-        return size;
     }
 };
 

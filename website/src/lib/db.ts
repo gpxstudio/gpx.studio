@@ -1,12 +1,12 @@
 import Dexie, { liveQuery } from 'dexie';
-import { GPXFile, GPXStatistics, Track } from 'gpx';
-import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, castDraft, freeze, produceWithPatches, original } from 'immer';
+import { GPXFile, GPXStatistics, Track, type AnyGPXTreeElement } from 'gpx';
+import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, castDraft, freeze, produceWithPatches, original, produce } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
 import { initTargetMapBounds, updateTargetMapBounds } from './stores';
 import { mode } from 'mode-watcher';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays } from './assets/layers';
 import { applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
-import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem } from '$lib/components/file-list/FileList';
+import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem, ListRootItem } from '$lib/components/file-list/FileList';
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
 
 enableMapSet();
@@ -359,39 +359,56 @@ export const dbUtils = {
     applyToFile: (id: string, callback: (file: WritableDraft<GPXFile>) => GPXFile) => {
         applyToFiles([id], callback);
     },
-    applyToSelection: (callback: (file: WritableDraft<GPXFile>) => GPXFile) => {
-        // TODO
-        applyToFiles(get(selection).forEach(fileId), callback);
-    },
-    duplicateSelection: () => {
+    applyToSelection: (callback: (file: WritableDraft<AnyGPXTreeElement>) => AnyGPXTreeElement) => {
         if (get(selection).size === 0) {
             return;
         }
         applyGlobal((draft) => {
-            let ids = getFileIds(get(settings.fileOrder).length);
-            let index = 0;
+            applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+                let file = draft.get(fileId);
+                if (file) {
+                    for (let item of items) {
+                        if (item instanceof ListFileItem) {
+                            callback(castDraft(file));
+                        } else if (item instanceof ListTrackItem) {
+                            let trackIndex = item.getTrackIndex();
+                            file = produce(file, (fileDraft) => {
+                                callback(fileDraft.trk[trackIndex]);
+                            });
+                        } else if (item instanceof ListTrackSegmentItem) {
+                            let trackIndex = item.getTrackIndex();
+                            let segmentIndex = item.getSegmentIndex();
+                            file = produce(file, (fileDraft) => {
+                                callback(fileDraft.trk[trackIndex].trkseg[segmentIndex]);
+                            });
+                        }
+                    }
+                    draft.set(fileId, freeze(file));
+                }
+            });
+        });
+    },
+    reverseSelection: () => {
+        if (!get(selection).hasAnyChildren(new ListRootItem(), true, ['waypoints'])) {
+            return;
+        }
+        applyGlobal((draft) => {
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
                 let file = original(draft)?.get(fileId);
                 if (file) {
                     let newFile = file;
                     if (level === ListLevel.FILE) {
-                        newFile = file.clone();
-                        newFile._data.id = ids[index++];
+                        newFile = file.reverse();
                     } else if (level === ListLevel.TRACK) {
                         for (let item of items) {
                             let trackIndex = (item as ListTrackItem).getTrackIndex();
-                            newFile = newFile.replaceTracks(trackIndex + 1, trackIndex, [file.trk[trackIndex].clone()]);
+                            newFile = newFile.reverseTrack(trackIndex);
                         }
                     } else if (level === ListLevel.SEGMENT) {
                         for (let item of items) {
                             let trackIndex = (item as ListTrackSegmentItem).getTrackIndex();
                             let segmentIndex = (item as ListTrackSegmentItem).getSegmentIndex();
-                            newFile = newFile.replaceTrackSegments(trackIndex, segmentIndex + 1, segmentIndex, [file.trk[trackIndex].trkseg[segmentIndex].clone()]);
-                        }
-                    } else if (level === ListLevel.WAYPOINT) {
-                        for (let item of items) {
-                            let waypointIndex = (item as ListWaypointItem).getWaypointIndex();
-                            newFile = newFile.replaceWaypoints(waypointIndex + 1, waypointIndex, [file.wpt[waypointIndex].clone()]);
+                            newFile = newFile.reverseTrackSegment(trackIndex, segmentIndex);
                         }
                     }
                     draft.set(newFile._data.id, freeze(newFile));

@@ -4,7 +4,7 @@ import { get, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
 import { currentWaypoint, waypointPopup } from "./WaypointPopup";
 import { addSelectItem, selectItem, selection } from "$lib/components/file-list/Selection";
-import { ListTrackSegmentItem, type ListItem, ListWaypointItem, ListWaypointsItem, ListTrackItem, ListFileItem } from "$lib/components/file-list/FileList";
+import { ListTrackSegmentItem, type ListItem, ListWaypointItem, ListWaypointsItem, ListTrackItem, ListFileItem, ListRootItem } from "$lib/components/file-list/FileList";
 import type { Waypoint } from "gpx";
 
 let defaultWeight = 5;
@@ -213,7 +213,7 @@ export class GPXLayer {
     }
 
     selectOnClick(e: any) {
-        if (get(currentTool) === Tool.ROUTING) {
+        if (get(currentTool) === Tool.ROUTING && get(selection).hasAnyChildren(new ListRootItem(), true, ['waypoints'])) {
             return;
         }
 

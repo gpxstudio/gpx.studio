@@ -8,8 +8,12 @@ import { toast } from "svelte-sonner";
 
 import { _ } from "svelte-i18n";
 import { dbUtils, type GPXFileWithStatistics } from "$lib/db";
+import { selection } from "$lib/components/file-list/Selection";
+import { ListFileItem, ListTrackSegmentItem } from "$lib/components/file-list/FileList";
+import { currentTool, Tool } from "$lib/stores";
 
 export class RoutingControls {
+    active: boolean = false;
     map: mapboxgl.Map;
     fileId: string = '';
     file: Readable<GPXFileWithStatistics | undefined>;
@@ -18,7 +22,8 @@ export class RoutingControls {
     popup: mapboxgl.Popup;
     popupElement: HTMLElement;
     temporaryAnchor: AnchorWithMarker;
-    unsubscribe: () => void = () => { };
+    fileUnsubscribe: () => void = () => { };
+    unsubscribes: Function[] = [];
 
     toggleAnchorsForZoomLevelAndBoundsBinded: () => void = this.toggleAnchorsForZoomLevelAndBounds.bind(this);
     showTemporaryAnchorBinded: (e: any) => void = this.showTemporaryAnchor.bind(this);
@@ -38,19 +43,39 @@ export class RoutingControls {
                 lon: 0
             }
         });
-        this.temporaryAnchor = this.createAnchor(point, new TrackSegment(), 0);
+        this.temporaryAnchor = this.createAnchor(point, new TrackSegment(), 0, 0);
         this.temporaryAnchor.marker.getElement().classList.remove('z-10'); // Show below the other markers
 
-        this.add();
+        this.unsubscribes.push(selection.subscribe(this.addIfNeeded.bind(this)));
+        this.unsubscribes.push(currentTool.subscribe(this.addIfNeeded.bind(this)));
+    }
+
+    addIfNeeded() {
+        let routing = get(currentTool) === Tool.ROUTING;
+        if (!routing) {
+            if (this.active) {
+                this.remove();
+            }
+            return;
+        }
+
+        let selected = get(selection).hasAnyChildren(new ListFileItem(this.fileId), true, ['waypoints']);
+        if (selected) {
+            this.add();
+        } else if (!selected && this.active) {
+            this.remove();
+        }
     }
 
     add() {
+        this.active = true;
+
         this.map.on('zoom', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         this.map.on('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         this.map.on('click', this.appendAnchorBinded);
         this.map.on('mousemove', this.fileId, this.showTemporaryAnchorBinded);
 
-        this.unsubscribe = this.file.subscribe(this.updateControls.bind(this));
+        this.fileUnsubscribe = this.file.subscribe(this.updateControls.bind(this));
     }
 
     updateControls() { // Update the markers when the file changes
@@ -59,25 +84,25 @@ export class RoutingControls {
             return;
         }
 
-        let segments = file.getSegments();
-
         let anchorIndex = 0;
-        for (let segmentIndex = 0; segmentIndex < segments.length; segmentIndex++) {
-            let segment = segments[segmentIndex];
-
-            for (let point of segment.trkpt) { // Update the existing anchors (could be improved by matching the existing anchors with the new ones?)
-                if (point._data.anchor) {
-                    if (anchorIndex < this.anchors.length) {
-                        this.anchors[anchorIndex].point = point;
-                        this.anchors[anchorIndex].segment = segment;
-                        this.anchors[anchorIndex].marker.setLngLat(point.getCoordinates());
-                    } else {
-                        this.anchors.push(this.createAnchor(point, segment, segmentIndex));
+        file.forEachSegment((segment, trackIndex, segmentIndex) => {
+            if (get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex))) {
+                for (let point of segment.trkpt) { // Update the existing anchors (could be improved by matching the existing anchors with the new ones?)
+                    if (point._data.anchor) {
+                        if (anchorIndex < this.anchors.length) {
+                            this.anchors[anchorIndex].point = point;
+                            this.anchors[anchorIndex].segment = segment;
+                            this.anchors[anchorIndex].trackIndex = trackIndex;
+                            this.anchors[anchorIndex].segmentIndex = segmentIndex;
+                            this.anchors[anchorIndex].marker.setLngLat(point.getCoordinates());
+                        } else {
+                            this.anchors.push(this.createAnchor(point, segment, trackIndex, segmentIndex));
+                        }
+                        anchorIndex++;
                     }
-                    anchorIndex++;
                 }
             }
-        }
+        });
 
         while (anchorIndex < this.anchors.length) { // Remove the extra anchors
             this.anchors.pop()?.marker.remove();
@@ -87,6 +112,8 @@ export class RoutingControls {
     }
 
     remove() {
+        this.active = false;
+
         for (let anchor of this.anchors) {
             anchor.marker.remove();
         }
@@ -96,10 +123,10 @@ export class RoutingControls {
         this.map.off('mousemove', this.fileId, this.showTemporaryAnchorBinded);
         this.map.off('mousemove', this.updateTemporaryAnchorBinded);
 
-        this.unsubscribe();
+        this.fileUnsubscribe();
     }
 
-    createAnchor(point: TrackPoint, segment: TrackSegment, segmentIndex: number): AnchorWithMarker {
+    createAnchor(point: TrackPoint, segment: TrackSegment, trackIndex: number, segmentIndex: number): AnchorWithMarker {
         let element = document.createElement('div');
         element.className = `h-3 w-3 rounded-full bg-white border-2 border-black cursor-pointer`;
 
@@ -112,6 +139,7 @@ export class RoutingControls {
         let anchor = {
             point,
             segment,
+            trackIndex,
             segmentIndex,
             marker,
             inZoom: false
@@ -172,6 +200,10 @@ export class RoutingControls {
     }
 
     showTemporaryAnchor(e: any) {
+        if (!get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, e.features[0].properties.trackIndex, e.features[0].properties.segmentIndex))) {
+            return;
+        }
+
         if (this.temporaryAnchorCloseToOtherAnchor(e)) {
             return;
         }
@@ -250,23 +282,24 @@ export class RoutingControls {
         let file = get(this.file)?.file;
 
         // Find the closest point closest to the temporary anchor
-        let segments = file.getSegments();
         let minDistance = Number.MAX_VALUE;
         let minAnchor = this.temporaryAnchor as Anchor;
-        for (let segmentIndex = 0; segmentIndex < segments.length; segmentIndex++) {
-            let segment = segments[segmentIndex];
-            for (let point of segment.trkpt) {
-                let dist = distance(point.getCoordinates(), this.temporaryAnchor.point.getCoordinates());
-                if (dist < minDistance) {
-                    minDistance = dist;
-                    minAnchor = {
-                        point,
-                        segment,
-                        segmentIndex,
-                    };
+        file?.forEachSegment((segment, trackIndex, segmentIndex) => {
+            if (get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex))) {
+                for (let point of segment.trkpt) {
+                    let dist = distance(point.getCoordinates(), this.temporaryAnchor.point.getCoordinates());
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        minAnchor = {
+                            point,
+                            segment,
+                            trackIndex,
+                            segmentIndex,
+                        };
+                    }
                 }
             }
-        }
+        });
 
         return minAnchor;
     }
@@ -281,13 +314,13 @@ export class RoutingControls {
         let [previousAnchor, nextAnchor] = this.getNeighbouringAnchors(anchor);
 
         if (previousAnchor === null && nextAnchor === null) { // Only one point, remove it
-            dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(anchor.segmentIndex, 0, 0, []));
+            dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(anchor.trackIndex, anchor.segmentIndex, 0, 0, []));
         } else if (previousAnchor === null) { // First point, remove trackpoints until nextAnchor
-            dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(anchor.segmentIndex, 0, nextAnchor.point._data.index - 1, []));
+            dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(anchor.trackIndex, anchor.segmentIndex, 0, nextAnchor.point._data.index - 1, []));
         } else if (nextAnchor === null) { // Last point, remove trackpoints from previousAnchor
             dbUtils.applyToFile(this.fileId, (file) => {
-                let segment = file.getSegments()[anchor.segmentIndex];
-                return file.replaceTrackPoints(anchor.segmentIndex, previousAnchor.point._data.index + 1, segment.trkpt.length - 1, []);
+                let segment = file.getSegment(anchor.trackIndex, anchor.segmentIndex);
+                return file.replaceTrackPoints(anchor.trackIndex, anchor.segmentIndex, previousAnchor.point._data.index + 1, segment.trkpt.length - 1, []);
             });
         } else { // Route between previousAnchor and nextAnchor
             this.routeBetweenAnchors([previousAnchor, nextAnchor], [previousAnchor.point.getCoordinates(), nextAnchor.point.getCoordinates()]);
@@ -312,14 +345,15 @@ export class RoutingControls {
 
         if (!lastAnchor) {
             // TODO, create segment if it does not exist
-            dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(0, 0, 0, [newPoint]));
+            dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(0, 0, 0, 0, [newPoint]));
             return;
         }
 
-        newPoint._data.index = lastAnchor.segment.trkpt.length - 1; // Do as if the point was the last point in the segment
+        newPoint._data.index = lastAnchor.segment.trkpt.length; // Do as if the point was the last point in the segment
         let newAnchor = {
             point: newPoint,
             segment: lastAnchor.segment,
+            trackIndex: lastAnchor.trackIndex,
             segmentIndex: lastAnchor.segmentIndex
         };
 
@@ -332,13 +366,12 @@ export class RoutingControls {
             return;
         }
 
-        let segments = file.getSegments();
-        if (segments.length === 0) {
+        if (this.anchors.length === 0) {
             return;
         }
 
-        let segment = segments[segments.length - 1];
-        let firstAnchor = this.anchors.find((anchor) => anchor.segment === segment);
+        let lastAnchor = this.anchors[this.anchors.length - 1];
+        let firstAnchor = this.anchors.find((anchor) => anchor.segment === lastAnchor.segment);
 
         if (!firstAnchor) {
             return;
@@ -353,16 +386,17 @@ export class RoutingControls {
             return;
         }
 
-        let segments = file.getSegments();
-        if (segments.length === 0) {
+        if (this.anchors.length === 0) {
             return;
         }
 
+        let lastAnchor = this.anchors[this.anchors.length - 1];
+
         dbUtils.applyToFile(this.fileId, (file) => {
-            let segment = original(file).getSegments()[segments.length - 1];
+            let segment = original(file).getSegment(lastAnchor.trackIndex, lastAnchor.segmentIndex);
             let newSegment = segment.clone();
             newSegment = newSegment.reverse(segment.getEndTimestamp(), segment.getEndTimestamp());
-            return file.replaceTrackPoints(segments.length - 1, segment.trkpt.length, segment.trkpt.length, newSegment.trkpt.map((point) => point));
+            return file.replaceTrackPoints(lastAnchor.trackIndex, lastAnchor.segmentIndex, segment.trkpt.length, segment.trkpt.length, newSegment.trkpt.map((point) => point));
         });
     }
 
@@ -391,7 +425,7 @@ export class RoutingControls {
         let segment = anchors[0].segment;
 
         if (anchors.length === 1) { // Only one anchor, update the point in the segment
-            dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(anchors[0].segmentIndex, 0, 0, [new TrackPoint({
+            dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(anchors[0].trackIndex, anchors[0].segmentIndex, 0, 0, [new TrackPoint({
                 attributes: targetCoordinates[0],
             })]));
             return true;
@@ -451,14 +485,20 @@ export class RoutingControls {
             anchor.point._data.zoom = 0; // Make these anchors permanent
         });
 
-        dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(anchors[0].segmentIndex, anchors[0].point._data.index, anchors[anchors.length - 1].point._data.index, response));
+        dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(anchors[0].trackIndex, anchors[0].segmentIndex, anchors[0].point._data.index, anchors[anchors.length - 1].point._data.index, response));
 
         return true;
+    }
+
+    destroy() {
+        this.remove();
+        this.unsubscribes.forEach((unsubscribe) => unsubscribe());
     }
 }
 
 type Anchor = {
     segment: TrackSegment;
+    trackIndex: number;
     segmentIndex: number;
     point: TrackPoint;
 };

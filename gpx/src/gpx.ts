@@ -23,8 +23,7 @@ export abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
     abstract toGeoJSON(): GeoJSON.Feature | GeoJSON.Feature[] | GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[];
 
     // Producers
-    abstract replaceTrackPoints(segment: number, start: number, end: number, points: TrackPoint[]);
-    abstract reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date);
+    abstract _reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date);
 }
 
 export type AnyGPXTreeElement = GPXTreeElement<GPXTreeElement<any>>;
@@ -56,22 +55,7 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
     }
 
     // Producers
-    replaceTrackPoints(segment: number, start: number, end: number, points: TrackPoint[]) {
-        return produce(this, (draft: Draft<GPXTreeNode<T>>) => {
-            let og = getOriginal(draft);
-            let cumul = 0;
-            for (let i = 0; i < og.children.length; i++) {
-                let childSegments = og.children[i].getSegments();
-                if (segment < cumul + childSegments.length) {
-                    draft.children[i] = draft.children[i].replaceTrackPoints(segment - cumul, start, end, points);
-                    break;
-                }
-                cumul += childSegments.length;
-            }
-        });
-    }
-
-    reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date) {
+    _reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date) {
         return produce(this, (draft: Draft<GPXTreeNode<T>>) => {
             let og = getOriginal(draft);
             if (!originalNextTimestamp && !newPreviousTimestamp) {
@@ -84,7 +68,7 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
             for (let i = 0; i < og.children.length; i++) {
                 let originalStartTimestamp = og.children[og.children.length - i - 1].getStartTimestamp();
 
-                draft.children[i] = draft.children[i].reverse(originalNextTimestamp, newPreviousTimestamp);
+                draft.children[i] = draft.children[i]._reverse(originalNextTimestamp, newPreviousTimestamp);
 
                 originalNextTimestamp = originalStartTimestamp;
                 newPreviousTimestamp = draft.children[i].getEndTimestamp();
@@ -153,6 +137,18 @@ export class GPXFile extends GPXTreeNode<Track>{
         return this.trk;
     }
 
+    getSegment(trackIndex: number, segmentIndex: number): TrackSegment {
+        return this.trk[trackIndex].children[segmentIndex];
+    }
+
+    forEachSegment(callback: (segment: TrackSegment, trackIndex: number, segmentIndex: number) => void) {
+        this.trk.forEach((track, trackIndex) => {
+            track.children.forEach((segment, segmentIndex) => {
+                callback(segment, trackIndex, segmentIndex);
+            });
+        });
+    }
+
     clone(): GPXFile {
         return new GPXFile({
             attributes: cloneJSON(this.attributes),
@@ -198,12 +194,43 @@ export class GPXFile extends GPXTreeNode<Track>{
         });
     }
 
+    replaceTrackPoints(trackIndex: number, segmentIndex: number, start: number, end: number, points: TrackPoint[]) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let trk = og.trk.slice();
+            trk[trackIndex] = trk[trackIndex].replaceTrackPoints(segmentIndex, start, end, points);
+            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
+        });
+    }
+
     replaceWaypoints(start: number, end: number, waypoints: Waypoint[]) {
         return produce(this, (draft) => {
             let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
             let wpt = og.wpt.slice();
             wpt.splice(start, end - start + 1, ...waypoints);
             draft.wpt = freeze(wpt); // Pre-freeze the array, faster as well
+        });
+    }
+
+    reverse() {
+        return this._reverse();
+    }
+
+    reverseTrack(trackIndex: number) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let trk = og.trk.slice();
+            trk[trackIndex] = trk[trackIndex]._reverse();
+            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
+        });
+    }
+
+    reverseTrackSegment(trackIndex: number, segmentIndex: number) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let trk = og.trk.slice();
+            trk[trackIndex] = trk[trackIndex].reverseTrackSegment(segmentIndex);
+            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
         });
     }
 };
@@ -295,6 +322,24 @@ export class Track extends GPXTreeNode<TrackSegment> {
             let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
             let trkseg = og.trkseg.slice();
             trkseg.splice(start, end - start + 1, ...segments);
+            draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
+        });
+    }
+
+    replaceTrackPoints(segmentIndex: number, start: number, end: number, points: TrackPoint[]) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let trkseg = og.trkseg.slice();
+            trkseg[segmentIndex] = trkseg[segmentIndex].replaceTrackPoints(start, end, points);
+            draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
+        });
+    }
+
+    reverseTrackSegment(segmentIndex: number) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let trkseg = og.trkseg.slice();
+            trkseg[segmentIndex] = trkseg[segmentIndex]._reverse();
             draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
         });
     }
@@ -448,7 +493,7 @@ export class TrackSegment extends GPXTreeLeaf {
     }
 
     // Producers
-    replaceTrackPoints(segment: number, start: number, end: number, points: TrackPoint[]) {
+    replaceTrackPoints(start: number, end: number, points: TrackPoint[]) {
         return produce(this, (draft) => {
             let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
             let trkpt = og.trkpt.slice();
@@ -457,7 +502,7 @@ export class TrackSegment extends GPXTreeLeaf {
         });
     }
 
-    reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date) {
+    _reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date) {
         return produce(this, (draft) => {
             if (originalNextTimestamp !== undefined && newPreviousTimestamp !== undefined) {
                 let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
