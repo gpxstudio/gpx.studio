@@ -106,7 +106,7 @@
         "waypoint_tooltip": "Create a new point of interest",
         "reduce_tooltip": "Reduce the number of points",
         "clean_tooltip": "Clean track points and points of interest with a rectangle selection",
-        "style_tooltip": "Change the style of the route",
+        "style_tooltip": "Change the style of the route"
     },
     "layers": {
         "settings": "Layer settings",
