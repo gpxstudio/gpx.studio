@@ -1,5 +1,4 @@
 <script lang="ts">
-	import ToolbarItemMenu from '$lib/components/toolbar/ToolbarItemMenu.svelte';
 	import * as Select from '$lib/components/ui/select';
 	import { Switch } from '$lib/components/ui/switch';
 	import { Label } from '$lib/components/ui/label/index.js';
@@ -18,26 +17,22 @@
 		RouteOff
 	} from 'lucide-svelte';
 
-	import { map, Tool } from '$lib/stores';
+	import { map, routingControls } from '$lib/stores';
 	import { dbUtils, settings } from '$lib/db';
 	import { brouterProfiles, routingProfileSelectItem } from './Routing';
 
 	import { _ } from 'svelte-i18n';
 	import { get } from 'svelte/store';
 	import { RoutingControls } from './RoutingControls';
-	import RoutingControlPopup from './RoutingControlPopup.svelte';
-	import { onMount } from 'svelte';
 	import mapboxgl from 'mapbox-gl';
 	import { fileObservers } from '$lib/db';
 	import { slide } from 'svelte/transition';
 	import { selection } from '$lib/components/file-list/Selection';
 	import { ListRootItem, type ListItem } from '$lib/components/file-list/FileList';
 
-	let routingControls: Map<string, RoutingControls> = new Map();
-	let popupElement: HTMLElement;
-	let popup: mapboxgl.Popup | null = null;
+	export let popup: mapboxgl.Popup;
+	export let popupElement: HTMLElement;
 	let selectedItem: ListItem | null = null;
-	let active = false;
 
 	const { privateRoads, routing } = settings;
 
@@ -65,18 +60,9 @@
 	}
 
 	$: validSelection = $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints']);
-
-	onMount(() => {
-		popup = new mapboxgl.Popup({
-			closeButton: false,
-			maxWidth: undefined
-		});
-		popup.setDOMContent(popupElement);
-		popupElement.classList.remove('hidden');
-	});
 </script>
 
-<ToolbarItemMenu tool={Tool.ROUTING} bind:active>
+<div class=" flex flex-col gap-3">
 	<Tooltip>
 		<div slot="data" class="w-full flex flex-row justify-between items-center gap-2">
 			<Label for="routing" class="flex flex-row gap-1">
@@ -91,6 +77,7 @@
 		</div>
 		<span slot="tooltip">{$_('toolbar.routing.use_routing_tooltip')}</span>
 	</Tooltip>
+
 	{#if $routing}
 		<div class="flex flex-col gap-3" in:slide>
 			<div class="w-full flex flex-row justify-between items-center gap-2">
@@ -177,6 +164,4 @@
 			<div>{$_('toolbar.routing.help')}</div>
 		{/if}
 	</Help>
-</ToolbarItemMenu>
-
-<RoutingControlPopup bind:element={popupElement} />
+</div>

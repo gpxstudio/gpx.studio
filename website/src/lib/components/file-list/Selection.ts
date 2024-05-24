@@ -87,7 +87,7 @@ export function applyToOrderedSelectedItemsFromFile(callback: (fileId: string, l
             } else if (a instanceof ListWaypointItem && b instanceof ListWaypointItem) {
                 return b.getWaypointIndex() - a.getWaypointIndex();
             }
-            return 0;
+            return b.level - a.level;
         });
 
         callback(fileId, level, items);

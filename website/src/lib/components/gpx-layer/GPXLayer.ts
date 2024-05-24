@@ -1,14 +1,15 @@
 import { map, currentTool, Tool } from "$lib/stores";
-import { settings, type GPXFileWithStatistics } from "$lib/db";
+import { settings, type GPXFileWithStatistics, dbUtils } from "$lib/db";
 import { get, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
 import { currentWaypoint, waypointPopup } from "./WaypointPopup";
 import { addSelectItem, selectItem, selection } from "$lib/components/file-list/Selection";
 import { ListTrackSegmentItem, type ListItem, ListWaypointItem, ListWaypointsItem, ListTrackItem, ListFileItem, ListRootItem } from "$lib/components/file-list/FileList";
 import type { Waypoint } from "gpx";
+import { produce } from "immer";
 
 let defaultWeight = 5;
-let defaultOpacity = 0.7;
+let defaultOpacity = 0.6;
 
 const colors = [
     '#ff0000',
@@ -48,7 +49,8 @@ export class GPXLayer {
     file: Readable<GPXFileWithStatistics | undefined>;
     layerColor: string;
     markers: mapboxgl.Marker[] = [];
-    selected: ListItem[] = [];
+    selected: boolean = false;
+    draggable: boolean;
     unsubscribe: Function[] = [];
 
     updateBinded: () => void = this.update.bind(this);
@@ -61,16 +63,26 @@ export class GPXLayer {
         this.layerColor = getColor();
         this.unsubscribe.push(file.subscribe(this.updateBinded));
         this.unsubscribe.push(selection.subscribe($selection => {
-            let selected = $selection.getChild(fileId)?.getSelected() || [];
-            if (selected.length !== this.selected.length || selected.some((item, index) => item !== this.selected[index])) {
-                this.selected = selected;
+            let newSelected = $selection.hasAnyChildren(new ListFileItem(this.fileId));
+            if (this.selected || newSelected) {
+                this.selected = newSelected;
                 this.update();
-                if (this.selected.length > 0) {
-                    this.moveToFront();
-                }
+            }
+            if (newSelected) {
+                this.moveToFront();
             }
         }));
         this.unsubscribe.push(directionMarkers.subscribe(this.updateBinded));
+        this.unsubscribe.push(currentTool.subscribe(tool => {
+            if (tool === Tool.WAYPOINT && !this.draggable) {
+                this.draggable = true;
+                this.markers.forEach(marker => marker.setDraggable(true));
+            } else if (tool !== Tool.WAYPOINT && this.draggable) {
+                this.draggable = false;
+                this.markers.forEach(marker => marker.setDraggable(false));
+            }
+        }));
+        this.draggable = get(currentTool) === Tool.WAYPOINT;
 
         this.map.on('style.load', this.updateBinded);
     }
@@ -144,30 +156,67 @@ export class GPXLayer {
         }
 
         let markerIndex = 0;
-        file.wpt.forEach((waypoint) => { // Update markers
-            if (markerIndex < this.markers.length) {
-                this.markers[markerIndex].setLngLat(waypoint.getCoordinates());
-                Object.defineProperty(this.markers[markerIndex], '_waypoint', { value: waypoint, writable: true });
-            } else {
-                let marker = new mapboxgl.Marker().setLngLat(waypoint.getCoordinates());
-                Object.defineProperty(marker, '_waypoint', { value: waypoint, writable: true });
-                marker.getElement().addEventListener('mouseover', (e) => {
-                    this.showWaypointPopup(marker._waypoint);
-                    e.stopPropagation();
-                });
-                marker.getElement().addEventListener('mouseout', () => {
-                    this.hideWaypointPopup();
-                });
-                marker.getElement().addEventListener('click', (e) => {
-                    if (get(verticalFileView)) {
-                        selectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
+
+        if (get(selection).hasAnyChildren(new ListFileItem(this.fileId))) {
+            file.wpt.forEach((waypoint) => { // Update markers
+                if (markerIndex < this.markers.length) {
+                    this.markers[markerIndex].setLngLat(waypoint.getCoordinates());
+                    Object.defineProperty(this.markers[markerIndex], '_waypoint', { value: waypoint, writable: true });
+                } else {
+                    let marker = new mapboxgl.Marker({
+                        draggable: this.draggable
+                    }).setLngLat(waypoint.getCoordinates());
+                    Object.defineProperty(marker, '_waypoint', { value: waypoint, writable: true });
+                    let dragEndTimestamp = 0;
+                    marker.getElement().addEventListener('mouseover', (e) => {
+                        if (marker._isDragging) {
+                            return;
+                        }
+                        this.showWaypointPopup(marker._waypoint);
                         e.stopPropagation();
-                    }
-                });
-                this.markers.push(marker);
-            }
-            markerIndex++;
-        });
+                    });
+                    marker.getElement().addEventListener('mouseout', () => {
+                        this.hideWaypointPopup();
+                    });
+                    marker.getElement().addEventListener('click', (e) => {
+                        if (dragEndTimestamp && Date.now() - dragEndTimestamp < 1000) {
+                            return;
+                        }
+
+                        if ((e.shiftKey || e.ctrlKey || e.metaKey) && get(selection).hasAnyChildren(new ListWaypointsItem(this.fileId), false)) {
+                            addSelectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
+                        } else {
+                            selectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
+                        }
+                        if (!get(verticalFileView) && !get(selection).has(new ListFileItem(this.fileId))) {
+                            addSelectItem(new ListFileItem(this.fileId));
+                        }
+                        e.stopPropagation();
+                    });
+                    marker.on('dragstart', () => {
+                        this.map.getCanvas().style.cursor = 'grabbing';
+                        marker.getElement().style.cursor = 'grabbing';
+                        this.hideWaypointPopup();
+                    });
+                    marker.on('dragend', (e) => {
+                        this.map.getCanvas().style.cursor = '';
+                        marker.getElement().style.cursor = '';
+                        dbUtils.applyToFile(this.fileId, (file) => {
+                            return produce(file, (draft) => {
+                                let latLng = marker.getLngLat();
+                                draft.wpt[marker._waypoint._data.index].setCoordinates({
+                                    lat: latLng.lat,
+                                    lon: latLng.lng
+                                });
+                            });
+                        });
+                        dragEndTimestamp = Date.now()
+                    });
+                    this.markers.push(marker);
+                }
+                markerIndex++;
+            });
+        }
 
         while (markerIndex < this.markers.length) { // Remove extra markers
             this.markers.pop()?.remove();
@@ -249,7 +298,7 @@ export class GPXLayer {
         let waypoint = get(currentWaypoint);
         if (waypoint) {
             let marker = this.markers[waypoint._data.index];
-            marker.togglePopup();
+            marker.getPopup()?.remove();
         }
     }
 
@@ -281,7 +330,7 @@ export class GPXLayer {
             }
             if (get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)) || get(selection).hasAnyChildren(new ListWaypointsItem(this.fileId), true)) {
                 feature.properties.weight = feature.properties.weight + 2;
-                feature.properties.opacity = (feature.properties.opacity + 1) / 2;
+                feature.properties.opacity = (feature.properties.opacity + 2) / 3;
             }
             feature.properties.trackIndex = trackIndex;
             feature.properties.segmentIndex = segmentIndex;

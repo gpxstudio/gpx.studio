@@ -1,20 +1,39 @@
 <script lang="ts">
-	import { type Tool, currentTool } from '$lib/stores';
+	import { Tool, currentTool } from '$lib/stores';
 	import { flyAndScale } from '$lib/utils';
 	import * as Card from '$lib/components/ui/card';
+	import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
+	import Waypoint from '$lib/components/toolbar/tools/waypoint/Waypoint.svelte';
+	import RoutingControlPopup from '$lib/components/toolbar/tools/routing/RoutingControlPopup.svelte';
+	import { onMount } from 'svelte';
+	import mapboxgl from 'mapbox-gl';
 
-	export let tool: Tool;
-	export let active = false;
+	let popupElement: HTMLElement;
+	let popup: mapboxgl.Popup;
 
-	$: active = $currentTool === tool;
+	onMount(() => {
+		popup = new mapboxgl.Popup({
+			closeButton: false,
+			maxWidth: undefined
+		});
+		popup.setDOMContent(popupElement);
+		popupElement.classList.remove('hidden');
+	});
 </script>
 
-{#if active}
-	<div in:flyAndScale={{ x: -2, y: 0, duration: 100 }} class="translate-x-1 h-full">
+{#if $currentTool !== null}
+	<div
+		in:flyAndScale={{ x: -2, y: 0, duration: 100 }}
+		class="translate-x-1 h-full {$$props.class ?? ''}"
+	>
 		<div class="rounded-md shadow-md pointer-events-auto">
 			<Card.Root class="border-none">
-				<Card.Content class="p-3 flex flex-col gap-3">
-					<slot />
+				<Card.Content class="p-3">
+					{#if $currentTool === Tool.ROUTING}
+						<Routing {popup} {popupElement} />
+					{:else if $currentTool === Tool.WAYPOINT}
+						<Waypoint />
+					{/if}
 				</Card.Content>
 			</Card.Root>
 		</div>
@@ -23,8 +42,10 @@
 
 <svelte:window
 	on:keydown={(e) => {
-		if (active && e.key === 'Escape') {
+		if ($currentTool && e.key === 'Escape') {
 			currentTool.set(null);
 		}
 	}}
 />
+
+<RoutingControlPopup bind:element={popupElement} />

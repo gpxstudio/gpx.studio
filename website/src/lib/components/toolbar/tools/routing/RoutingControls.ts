@@ -165,6 +165,9 @@ export class RoutingControls {
         });
         marker.getElement().addEventListener('click', (e) => {
             e.stopPropagation();
+            if (marker === this.temporaryAnchor.marker) {
+                return;
+            }
 
             if (Date.now() - lastDragEvent < 100) { // Prevent click event during drag
                 return;

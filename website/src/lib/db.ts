@@ -488,10 +488,6 @@ export const dbUtils = {
                 }
             });
         });
-        selection.update(($selection) => {
-            $selection.clear();
-            return $selection;
-        });
     },
     deleteAllFiles: () => {
         applyGlobal((draft) => {

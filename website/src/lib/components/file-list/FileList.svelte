@@ -2,15 +2,41 @@
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index';
 	import FileListNode from './FileListNode.svelte';
 
-	import { fileObservers } from '$lib/db';
+	import { fileObservers, settings } from '$lib/db';
 	import { setContext } from 'svelte';
-	import { ListRootItem } from './FileList';
+	import { ListFileItem, ListRootItem } from './FileList';
+	import { selection } from './Selection';
 
 	export let orientation: 'vertical' | 'horizontal';
 	export let recursive = false;
 
 	setContext('orientation', orientation);
 	setContext('recursive', recursive);
+
+	const { verticalFileView } = settings;
+
+	verticalFileView.subscribe(($vertical) => {
+		if ($vertical) {
+			selection.update(($selection) => {
+				$selection.forEach((item) => {
+					if ($selection.hasAnyChildren(item, false)) {
+						$selection.toggle(item);
+					}
+				});
+				return $selection;
+			});
+		} else {
+			selection.update(($selection) => {
+				$selection.forEach((item) => {
+					if (!(item instanceof ListFileItem)) {
+						$selection.toggle(item);
+						$selection.set(new ListFileItem(item.getFileId()), true);
+					}
+				});
+				return $selection;
+			});
+		}
+	});
 </script>
 
 <ScrollArea

@@ -6,8 +6,9 @@ import { tick } from 'svelte';
 import { _ } from 'svelte-i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
 import { settings, dbUtils, fileObservers } from './db';
-import { selection } from '$lib/components/file-list/Selection';
+import { selectFile, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListWaypointItem } from '$lib/components/file-list/FileList';
+import type { RoutingControls } from '$lib/components/toolbar/tools/routing/RoutingControls';
 
 export const map = writable<mapboxgl.Map | null>(null);
 export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }>({});
@@ -113,15 +114,15 @@ export function updateTargetMapBounds(bounds: {
     });
 }
 
-export const gpxLayers: Writable<Map<string, GPXLayer>> = writable(new Map());
+export const gpxLayers: Map<string, GPXLayer> = new Map();
+export const routingControls: Map<string, RoutingControls> = new Map();
 
 export enum Tool {
     ROUTING,
+    WAYPOINT,
     TIME,
-    REVERSE,
     MERGE,
     EXTRACT,
-    WAYPOINT,
     REDUCE,
     CLEAN,
     STYLE
@@ -192,11 +193,7 @@ function selectFileWhenLoaded(fileId: string) {
     const unsubscribe = fileObservers.subscribe((files) => {
         if (files.has(fileId)) {
             tick().then(() => {
-                selection.update(($selection) => {
-                    $selection.clear();
-                    $selection.toggle(new ListFileItem(fileId));
-                    return $selection;
-                });
+                selectFile(fileId);
             });
             unsubscribe();
         }

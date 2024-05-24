@@ -9,21 +9,18 @@
 	let distanceMarkers: DistanceMarkers;
 
 	$: if ($map && $fileObservers) {
-		gpxLayers.update(($layers) => {
-			// remove layers for deleted files
-			$layers.forEach((layer, fileId) => {
-				if (!$fileObservers.has(fileId)) {
-					layer.remove();
-					$layers.delete(fileId);
-				}
-			});
-			// add layers for new files
-			$fileObservers.forEach((file, fileId) => {
-				if (!$layers.has(fileId)) {
-					$layers.set(fileId, new GPXLayer(get(map), fileId, file));
-				}
-			});
-			return $layers;
+		// remove layers for deleted files
+		gpxLayers.forEach((layer, fileId) => {
+			if (!$fileObservers.has(fileId)) {
+				layer.remove();
+				gpxLayers.delete(fileId);
+			}
+		});
+		// add layers for new files
+		$fileObservers.forEach((file, fileId) => {
+			if (!gpxLayers.has(fileId)) {
+				gpxLayers.set(fileId, new GPXLayer(get(map), fileId, file));
+			}
 		});
 	}
 

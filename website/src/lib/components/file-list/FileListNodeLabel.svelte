@@ -49,7 +49,7 @@
 				}}
 				on:mouseenter={() => {
 					if (item instanceof ListWaypointItem) {
-						let layer = get(gpxLayers).get(item.getFileId());
+						let layer = gpxLayers.get(item.getFileId());
 						let fileStore = get(fileObservers).get(item.getFileId());
 						if (layer && fileStore) {
 							let waypoint = get(fileStore)?.file.wpt[item.getWaypointIndex()];
@@ -61,7 +61,7 @@
 				}}
 				on:mouseleave={() => {
 					if (item instanceof ListWaypointItem) {
-						let layer = get(gpxLayers).get(item.getFileId());
+						let layer = gpxLayers.get(item.getFileId());
 						if (layer) {
 							layer.hideWaypointPopup();
 						}

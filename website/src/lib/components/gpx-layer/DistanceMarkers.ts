@@ -14,11 +14,7 @@ export class DistanceMarkers {
 
         gpxStatistics.subscribe(this.updateBinded);
         distanceMarkers.subscribe(this.updateBinded);
-        distanceUnits.subscribe(() => {
-            if (get(distanceMarkers)) {
-                this.update();
-            }
-        });
+        distanceUnits.subscribe(this.updateBinded);
     }
 
     update() {

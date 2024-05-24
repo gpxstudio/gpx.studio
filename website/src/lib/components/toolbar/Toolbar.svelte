@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { Tool } from '$lib/stores';
-	import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
-	import Waypoint from '$lib/components/toolbar/tools/waypoint/Waypoint.svelte';
 	import ToolbarItem from './ToolbarItem.svelte';
 	import {
 		Group,
@@ -11,11 +9,11 @@
 		Ungroup,
 		MapPin,
 		Palette,
-		FolderTree,
 		Filter
 	} from 'lucide-svelte';
 
 	import { _ } from 'svelte-i18n';
+	import ToolbarItemMenu from './ToolbarItemMenu.svelte';
 </script>
 
 <div class="absolute top-0 bottom-0 left-0 z-20 flex flex-col justify-center pointer-events-none">
@@ -26,6 +24,10 @@
 			<ToolbarItem tool={Tool.ROUTING}>
 				<Pencil slot="icon" size="18" />
 				<span slot="tooltip">{$_('toolbar.routing.tooltip')}</span>
+			</ToolbarItem>
+			<ToolbarItem tool={Tool.WAYPOINT}>
+				<MapPin slot="icon" size="18" />
+				<span slot="tooltip">{$_('toolbar.waypoint_tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.TIME}>
 				<CalendarClock slot="icon" size="18" />
@@ -38,10 +40,6 @@
 			<ToolbarItem tool={Tool.EXTRACT}>
 				<Ungroup slot="icon" size="18" />
 				<span slot="tooltip">{$_('toolbar.extract_tooltip')}</span>
-			</ToolbarItem>
-			<ToolbarItem tool={Tool.WAYPOINT}>
-				<MapPin slot="icon" size="18" />
-				<span slot="tooltip">{$_('toolbar.waypoint_tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.REDUCE}>
 				<Filter slot="icon" size="18" />
@@ -56,7 +54,6 @@
 				<span slot="tooltip">{$_('toolbar.style_tooltip')}</span>
 			</ToolbarItem>
 		</div>
-		<Routing />
-		<Waypoint />
+		<ToolbarItemMenu />
 	</div>
 </div>
