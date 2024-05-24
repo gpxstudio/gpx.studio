@@ -3,7 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-svelte';
 	import { getContext, setContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
+	import { get, type Writable } from 'svelte/store';
 
 	export let id: string | number;
 
@@ -23,6 +23,14 @@
 		}
 		return value;
 	});
+
+	export function openNode() {
+		if (get(open)[fullId]) return;
+		open.update((value) => {
+			value[fullId] = true;
+			return value;
+		});
+	}
 </script>
 
 <Collapsible.Root bind:open={$open[fullId]} class={$$props.class ?? ''}>

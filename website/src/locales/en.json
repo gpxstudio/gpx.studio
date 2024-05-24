@@ -204,5 +204,11 @@
         "heartrate": "bpm",
         "cadence": "rpm",
         "power": "W"
+    },
+    "gpx": {
+        "track": "Track",
+        "segment": "Segment",
+        "waypoint": "Waypoint",
+        "waypoints": "Waypoints"
     }
 }

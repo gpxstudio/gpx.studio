@@ -136,7 +136,7 @@ export class GPXFile extends GPXTreeNode<Track>{
         if (gpx) {
             this.attributes = gpx.attributes
             this.metadata = gpx.metadata;
-            this.wpt = gpx.wpt ? gpx.wpt.map((waypoint) => new Waypoint(waypoint)) : [];
+            this.wpt = gpx.wpt ? gpx.wpt.map((waypoint, index) => new Waypoint(waypoint, index)) : [];
             this.trk = gpx.trk ? gpx.trk.map((track) => new Track(track)) : [];
             if (gpx.hasOwnProperty('_data')) {
                 this._data = gpx._data;
@@ -576,6 +576,8 @@ export class TrackPoint {
 };
 
 export class Waypoint {
+    [immerable] = true;
+
     attributes: Coordinates;
     ele?: number;
     time?: Date;
@@ -585,8 +587,9 @@ export class Waypoint {
     link?: Link;
     sym?: string;
     type?: string;
+    _data: { [key: string]: any } = {};
 
-    constructor(waypoint: WaypointType | Waypoint) {
+    constructor(waypoint: WaypointType & { _data?: any } | Waypoint, index?: number) {
         this.attributes = waypoint.attributes;
         this.ele = waypoint.ele;
         this.time = waypoint.time;
@@ -596,6 +599,12 @@ export class Waypoint {
         this.link = waypoint.link;
         this.sym = waypoint.sym;
         this.type = waypoint.type;
+        if (waypoint.hasOwnProperty('_data')) {
+            this._data = waypoint._data;
+        }
+        if (index !== undefined) {
+            this._data['index'] = index;
+        }
     }
 
     getCoordinates(): Coordinates {

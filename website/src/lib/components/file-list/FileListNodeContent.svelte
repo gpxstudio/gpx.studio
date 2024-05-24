@@ -7,8 +7,9 @@
 	import FileListNodeStore from './FileListNodeStore.svelte';
 	import FileListNode from './FileListNode.svelte';
 	import FileListNodeLabel from './FileListNodeLabel.svelte';
-	import { type ListItem } from './FileList';
+	import { ListLevel, type ListItem } from './FileList';
 	import { selection } from './Selection';
+	import { _ } from 'svelte-i18n';
 
 	export let node:
 		| Map<string, Readable<GPXFileWithStatistics | undefined>>
@@ -19,16 +20,16 @@
 
 	let container: HTMLElement;
 	let elements: { [id: string | number]: HTMLElement } = {};
-	let sortableLevel =
+	let sortableLevel: ListLevel =
 		node instanceof Map
-			? 'file'
+			? ListLevel.FILE
 			: node instanceof GPXFile
 				? waypointRoot
-					? 'waypoints'
-					: 'track'
+					? ListLevel.WAYPOINTS
+					: ListLevel.TRACK
 				: node instanceof Track
-					? 'segment'
-					: 'waypoint';
+					? ListLevel.SEGMENT
+					: ListLevel.WAYPOINT;
 	let pull: Record<string, string[]> = {
 		file: ['file', 'track'],
 		track: ['file', 'track'],
@@ -36,23 +37,28 @@
 		waypoint: ['waypoint']
 	};
 	let sortable: Sortable;
-
 	let orientation = getContext<'vertical' | 'horizontal'>('orientation');
 
 	function onSelectChange() {
-		selection.update(($selection) => {
-			$selection.clear();
-			Object.entries(elements).forEach(([id, element]) => {
-				let realId = sortableLevel === 'file' || sortableLevel === 'waypoints' ? id : parseInt(id);
-				$selection.set(item.extend(realId), element.classList.contains('sortable-selected'));
+		let changed = getChangedIds();
+		if (changed.length > 0) {
+			selection.update(($selection) => {
+				$selection.clear();
+				Object.entries(elements).forEach(([id, element]) => {
+					let realId =
+						sortableLevel === ListLevel.FILE || sortableLevel === ListLevel.WAYPOINTS
+							? id
+							: parseInt(id);
+					$selection.set(item.extend(realId), element.classList.contains('sortable-selected'));
+				});
+				return $selection;
 			});
-			return $selection;
-		});
+		}
 	}
 
 	const { fileOrder } = settings;
 	function syncFileOrder() {
-		if (!sortable || sortableLevel !== 'file') {
+		if (!sortable || sortableLevel !== ListLevel.FILE) {
 			return;
 		}
 
@@ -100,9 +106,9 @@
 			avoidImplicitDeselect: true,
 			onSelect: onSelectChange,
 			onDeselect: onSelectChange,
-			sort: sortableLevel !== 'waypoint',
+			sort: sortableLevel !== ListLevel.WAYPOINT,
 			onSort: () => {
-				if (sortableLevel !== 'file') {
+				if (sortableLevel !== ListLevel.FILE) {
 					return;
 				}
 
@@ -120,6 +126,7 @@
 				}
 			}
 		});
+		selection.set(get(selection));
 	});
 
 	$: if ($fileOrder) {
@@ -128,13 +135,13 @@
 
 	afterUpdate(() => {
 		syncFileOrder();
-		if (sortableLevel === 'file') {
+		if (sortableLevel === ListLevel.FILE) {
 			Object.keys(elements).forEach((fileId) => {
 				if (!get(fileObservers).has(fileId)) {
 					delete elements[fileId];
 				}
 			});
-		} else if (sortableLevel === 'waypoints') {
+		} else if (sortableLevel === ListLevel.WAYPOINTS) {
 			if (node.wpt.length === 0) {
 				delete elements['waypoints'];
 			}
@@ -150,17 +157,39 @@
 	});
 
 	const unsubscribe = selection.subscribe(($selection) => {
+		let changed = getChangedIds();
+		for (let id of changed) {
+			let element = elements[id];
+			if (element) {
+				if ($selection.has(item.extend(id))) {
+					Sortable.utils.select(element);
+				} else {
+					Sortable.utils.deselect(element);
+				}
+			}
+		}
+	});
+
+	function getChangedIds() {
+		let changed: (string | number)[] = [];
 		Object.entries(elements).forEach(([id, element]) => {
-			let realId = sortableLevel === 'file' || sortableLevel === 'waypoints' ? id : parseInt(id);
-			let inSelection = $selection.has(item.extend(realId));
+			if (element === null) {
+				console.log('element is null', orientation, sortableLevel, id);
+				return;
+			}
+			let realId =
+				sortableLevel === ListLevel.FILE || sortableLevel === ListLevel.WAYPOINTS
+					? id
+					: parseInt(id);
+			let realItem = item.extend(realId);
+			let inSelection = get(selection).has(realItem);
 			let isSelected = element.classList.contains('sortable-selected');
-			if (inSelection && !isSelected) {
-				Sortable.utils.select(element);
-			} else if (!inSelection && isSelected) {
-				Sortable.utils.deselect(element);
+			if (inSelection !== isSelected) {
+				changed.push(realId);
 			}
 		});
-	});
+		return changed;
+	}
 
 	onDestroy(() => {
 		unsubscribe();
@@ -194,13 +223,16 @@
 	{:else if node instanceof Track}
 		{#each node.children as child, i}
 			<div bind:this={elements[i]} class="ml-1">
-				<FileListNodeLabel item={item.extend(i)} label={`Segment ${i + 1}`} />
+				<FileListNodeLabel item={item.extend(i)} label={`${$_('gpx.segment')} ${i + 1}`} />
 			</div>
 		{/each}
 	{:else if Array.isArray(node) && node.length > 0 && node[0] instanceof Waypoint}
 		{#each node as wpt, i}
 			<div bind:this={elements[i]} class="ml-1">
-				<FileListNodeLabel item={item.extend(i)} label={wpt.name ?? `Waypoint ${i + 1}`} />
+				<FileListNodeLabel
+					item={item.extend(i)}
+					label={wpt.name ?? `${$_('gpx.waypoint')} ${i + 1}`}
+				/>
 			</div>
 		{/each}
 	{/if}

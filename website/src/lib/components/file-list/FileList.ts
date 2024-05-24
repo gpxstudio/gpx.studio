@@ -54,6 +54,38 @@ export class SelectionTreeType {
         return false;
     }
 
+    hasAnyParent(item: ListItem, self: boolean = true): boolean {
+        if (this.selected && this.item.level <= item.level && (self || this.item.level < item.level)) {
+            return this.selected;
+        }
+        let id = item.getIdAtLevel(this.item.level);
+        if (id !== undefined) {
+            if (this.children.hasOwnProperty(id)) {
+                return this.children[id].hasAnyParent(item, self);
+            }
+        }
+        return false;
+    }
+
+    hasAnyChildren(item: ListItem, self: boolean = true): boolean {
+        if (this.selected && this.item.level >= item.level && (self || this.item.level > item.level)) {
+            return this.selected;
+        }
+        let id = item.getIdAtLevel(this.item.level);
+        if (id !== undefined) {
+            if (this.children.hasOwnProperty(id)) {
+                return this.children[id].hasAnyChildren(item, self);
+            }
+        } else {
+            for (let key in this.children) {
+                if (this.children[key].hasAnyChildren(item, self)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     getSelected(selection?: ListItem[]): ListItem[] {
         if (selection === undefined) {
             selection = [];
@@ -93,7 +125,14 @@ export class SelectionTreeType {
     }
 };
 
-export type ListLevel = 'root' | 'file' | 'track' | 'segment' | 'waypoints' | 'waypoint';
+export enum ListLevel {
+    ROOT,
+    FILE,
+    TRACK,
+    SEGMENT,
+    WAYPOINTS,
+    WAYPOINT
+}
 
 export abstract class ListItem {
     level: ListLevel;
@@ -110,7 +149,7 @@ export abstract class ListItem {
 
 export class ListRootItem extends ListItem {
     constructor() {
-        super('root');
+        super(ListLevel.ROOT);
     }
 
     getId(): string {
@@ -134,7 +173,7 @@ export class ListFileItem extends ListItem {
     fileId: string;
 
     constructor(fileId: string) {
-        super('file');
+        super(ListLevel.FILE);
         this.fileId = fileId;
     }
 
@@ -144,7 +183,7 @@ export class ListFileItem extends ListItem {
 
     getIdAtLevel(level: ListLevel): string | number | undefined {
         switch (level) {
-            case 'root':
+            case ListLevel.ROOT:
                 return this.fileId;
             default:
                 return undefined;
@@ -169,7 +208,7 @@ export class ListTrackItem extends ListItem {
     trackIndex: number;
 
     constructor(fileId: string, trackIndex: number) {
-        super('track');
+        super(ListLevel.TRACK);
         this.fileId = fileId;
         this.trackIndex = trackIndex;
     }
@@ -180,9 +219,9 @@ export class ListTrackItem extends ListItem {
 
     getIdAtLevel(level: ListLevel): string | number | undefined {
         switch (level) {
-            case 'root':
+            case ListLevel.ROOT:
                 return this.fileId;
-            case 'file':
+            case ListLevel.FILE:
                 return this.trackIndex;
             default:
                 return undefined;
@@ -208,7 +247,7 @@ export class ListTrackSegmentItem extends ListItem {
     segmentIndex: number;
 
     constructor(fileId: string, trackIndex: number, segmentIndex: number) {
-        super('segment');
+        super(ListLevel.SEGMENT);
         this.fileId = fileId;
         this.trackIndex = trackIndex;
         this.segmentIndex = segmentIndex;
@@ -220,11 +259,11 @@ export class ListTrackSegmentItem extends ListItem {
 
     getIdAtLevel(level: ListLevel): string | number | undefined {
         switch (level) {
-            case 'root':
+            case ListLevel.ROOT:
                 return this.fileId;
-            case 'file':
+            case ListLevel.FILE:
                 return this.trackIndex;
-            case 'track':
+            case ListLevel.TRACK:
                 return this.segmentIndex;
             default:
                 return undefined;
@@ -252,7 +291,7 @@ export class ListWaypointsItem extends ListItem {
     fileId: string;
 
     constructor(fileId: string) {
-        super('waypoints');
+        super(ListLevel.WAYPOINTS);
         this.fileId = fileId;
     }
 
@@ -262,9 +301,9 @@ export class ListWaypointsItem extends ListItem {
 
     getIdAtLevel(level: ListLevel): string | number | undefined {
         switch (level) {
-            case 'root':
+            case ListLevel.ROOT:
                 return this.fileId;
-            case 'file':
+            case ListLevel.FILE:
                 return 'waypoints';
             default:
                 return undefined;
@@ -285,7 +324,7 @@ export class ListWaypointItem extends ListItem {
     waypointIndex: number;
 
     constructor(fileId: string, waypointIndex: number) {
-        super('waypoint');
+        super(ListLevel.WAYPOINT);
         this.fileId = fileId;
         this.waypointIndex = waypointIndex;
     }
@@ -296,11 +335,11 @@ export class ListWaypointItem extends ListItem {
 
     getIdAtLevel(level: ListLevel): string | number | undefined {
         switch (level) {
-            case 'root':
+            case ListLevel.ROOT:
                 return this.fileId;
-            case 'file':
+            case ListLevel.FILE:
                 return 'waypoints';
-            case 'waypoints':
+            case ListLevel.WAYPOINTS:
                 return this.waypointIndex;
             default:
                 return undefined;

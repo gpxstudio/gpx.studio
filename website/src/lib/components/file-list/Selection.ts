@@ -16,11 +16,15 @@ export function selectFile(fileId: string) {
     selectItem(new ListFileItem(fileId));
 }
 
-export function addSelect(fileId: string) {
+export function addSelectItem(item: ListItem) {
     selection.update(($selection) => {
-        $selection.toggle(new ListFileItem(fileId));
+        $selection.toggle(item);
         return $selection;
     });
+}
+
+export function addSelectFile(fileId: string) {
+    addSelectItem(new ListFileItem(fileId));
 }
 
 export function selectAll() {

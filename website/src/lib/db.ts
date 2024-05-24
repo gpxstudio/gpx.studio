@@ -6,7 +6,7 @@ import { initTargetMapBounds, updateTargetMapBounds } from './stores';
 import { mode } from 'mode-watcher';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays } from './assets/layers';
 import { applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
-import { ListFileItem, ListItem, ListTrackItem, type ListLevel, ListTrackSegmentItem, ListWaypointItem } from '$lib/components/file-list/FileList';
+import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem } from '$lib/components/file-list/FileList';
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
 
 enableMapSet();
@@ -121,12 +121,12 @@ export class GPXStatisticsTree {
 
     constructor(element: GPXFile | Track) {
         if (element instanceof GPXFile) {
-            this.level = 'file';
+            this.level = ListLevel.FILE;
             element.children.forEach((child, index) => {
                 this.statistics[index] = new GPXStatisticsTree(child);
             });
         } else {
-            this.level = 'track';
+            this.level = ListLevel.TRACK;
             element.children.forEach((child, index) => {
                 this.statistics[index] = child.getStatistics();
             });
@@ -374,21 +374,21 @@ export const dbUtils = {
                 let file = original(draft)?.get(fileId);
                 if (file) {
                     let newFile = file;
-                    if (level === 'file') {
+                    if (level === ListLevel.FILE) {
                         newFile = file.clone();
                         newFile._data.id = ids[index++];
-                    } else if (level === 'track') {
+                    } else if (level === ListLevel.TRACK) {
                         for (let item of items) {
                             let trackIndex = (item as ListTrackItem).getTrackIndex();
                             newFile = newFile.replaceTracks(trackIndex + 1, trackIndex, [file.trk[trackIndex].clone()]);
                         }
-                    } else if (level === 'segment') {
+                    } else if (level === ListLevel.SEGMENT) {
                         for (let item of items) {
                             let trackIndex = (item as ListTrackSegmentItem).getTrackIndex();
                             let segmentIndex = (item as ListTrackSegmentItem).getSegmentIndex();
                             newFile = newFile.replaceTrackSegments(trackIndex, segmentIndex + 1, segmentIndex, [file.trk[trackIndex].trkseg[segmentIndex].clone()]);
                         }
-                    } else if (level === 'waypoint') {
+                    } else if (level === ListLevel.WAYPOINT) {
                         for (let item of items) {
                             let waypointIndex = (item as ListWaypointItem).getWaypointIndex();
                             newFile = newFile.replaceWaypoints(waypointIndex + 1, waypointIndex, [file.wpt[waypointIndex].clone()]);
@@ -405,26 +405,26 @@ export const dbUtils = {
         }
         applyGlobal((draft) => {
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                if (level === 'file') {
+                if (level === ListLevel.FILE) {
                     draft.delete(fileId);
                 } else {
                     let file = original(draft)?.get(fileId);
                     if (file) {
                         let newFile = file;
-                        if (level === 'track') {
+                        if (level === ListLevel.TRACK) {
                             for (let item of items) {
                                 let trackIndex = (item as ListTrackItem).getTrackIndex();
                                 newFile = newFile.replaceTracks(trackIndex, trackIndex, []);
                             }
-                        } else if (level === 'segment') {
+                        } else if (level === ListLevel.SEGMENT) {
                             for (let item of items) {
                                 let trackIndex = (item as ListTrackSegmentItem).getTrackIndex();
                                 let segmentIndex = (item as ListTrackSegmentItem).getSegmentIndex();
                                 newFile = newFile.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex, []);
                             }
-                        } else if (level === 'waypoints') {
+                        } else if (level === ListLevel.WAYPOINTS) {
                             newFile = newFile.replaceWaypoints(0, newFile.wpt.length - 1, []);
-                        } else if (level === 'waypoint') {
+                        } else if (level === ListLevel.WAYPOINT) {
                             for (let item of items) {
                                 let waypointIndex = (item as ListWaypointItem).getWaypointIndex();
                                 newFile = newFile.replaceWaypoints(waypointIndex, waypointIndex, []);

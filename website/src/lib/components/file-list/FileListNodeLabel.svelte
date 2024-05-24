@@ -2,13 +2,14 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as ContextMenu from '$lib/components/ui/context-menu';
 	import Shortcut from '$lib/components/Shortcut.svelte';
-	import { dbUtils } from '$lib/db';
-	import { Copy, Trash2 } from 'lucide-svelte';
-	import { type ListItem } from './FileList';
+	import { dbUtils, fileObservers } from '$lib/db';
+	import { Copy, MapPin, Trash2, Waypoints } from 'lucide-svelte';
+	import { ListLevel, ListWaypointItem, type ListItem } from './FileList';
 	import { selectItem, selection } from './Selection';
 	import { _ } from 'svelte-i18n';
 	import { getContext } from 'svelte';
 	import { get } from 'svelte/store';
+	import { gpxLayers } from '$lib/stores';
 
 	export let item: ListItem;
 	export let label: string | undefined;
@@ -34,7 +35,7 @@
 				: 'h-9 px-1.5 shadow-md'}"
 		>
 			<span
-				class="w-full text-left truncate py-1"
+				class="w-full text-left truncate py-1 flex flex-row items-center"
 				on:click={(e) => {
 					e.stopPropagation(); // Avoid toggling the collapsible element
 				}}
@@ -46,13 +47,40 @@
 						$selection.toggle(item);
 					}
 				}}
+				on:mouseenter={() => {
+					if (item instanceof ListWaypointItem) {
+						let layer = get(gpxLayers).get(item.getFileId());
+						let fileStore = get(fileObservers).get(item.getFileId());
+						if (layer && fileStore) {
+							let waypoint = get(fileStore)?.file.wpt[item.getWaypointIndex()];
+							if (waypoint) {
+								layer.showWaypointPopup(waypoint);
+							}
+						}
+					}
+				}}
+				on:mouseleave={() => {
+					if (item instanceof ListWaypointItem) {
+						let layer = get(gpxLayers).get(item.getFileId());
+						if (layer) {
+							layer.hideWaypointPopup();
+						}
+					}
+				}}
 			>
-				{label}
+				{#if item.level === ListLevel.SEGMENT}
+					<Waypoints size="16" class="mr-1 shrink-0" />
+				{:else if item.level === ListLevel.WAYPOINT}
+					<MapPin size="16" class="mr-1 shrink-0" />
+				{/if}
+				<span class="grow truncate">
+					{label}
+				</span>
 			</span>
 		</Button>
 	</ContextMenu.Trigger>
 	<ContextMenu.Content>
-		{#if item.level !== 'waypoints'}
+		{#if item.level !== ListLevel.WAYPOINTS}
 			<ContextMenu.Item on:click={dbUtils.duplicateSelection}>
 				<Copy size="16" class="mr-1" />
 				{$_('menu.duplicate')}

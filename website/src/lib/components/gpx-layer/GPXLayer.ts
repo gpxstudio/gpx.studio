@@ -3,8 +3,9 @@ import { settings, type GPXFileWithStatistics } from "$lib/db";
 import { get, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
 import { currentWaypoint, waypointPopup } from "./WaypointPopup";
-import { addSelect, selectFile, selection } from "$lib/components/file-list/Selection";
-import { ListTrackSegmentItem, type ListItem, ListFileItem, ListTrackItem } from "$lib/components/file-list/FileList";
+import { addSelectItem, selectItem, selection } from "$lib/components/file-list/Selection";
+import { ListTrackSegmentItem, type ListItem, ListWaypointItem, ListWaypointsItem, ListTrackItem, ListFileItem } from "$lib/components/file-list/FileList";
+import type { Waypoint } from "gpx";
 
 let defaultWeight = 5;
 let defaultOpacity = 1;
@@ -39,7 +40,7 @@ function decrementColor(color: string) {
     colorCount[color]--;
 }
 
-const { directionMarkers } = settings;
+const { directionMarkers, verticalFileView } = settings;
 
 export class GPXLayer {
     map: mapboxgl.Map;
@@ -146,18 +147,23 @@ export class GPXLayer {
         file.wpt.forEach((waypoint) => { // Update markers
             if (markerIndex < this.markers.length) {
                 this.markers[markerIndex].setLngLat(waypoint.getCoordinates());
+                Object.defineProperty(this.markers[markerIndex], '_waypoint', { value: waypoint, writable: true });
             } else {
                 let marker = new mapboxgl.Marker().setLngLat(waypoint.getCoordinates());
+                Object.defineProperty(marker, '_waypoint', { value: waypoint, writable: true });
                 marker.getElement().addEventListener('mouseover', (e) => {
-                    currentWaypoint.set(waypoint);
-                    marker.setPopup(waypointPopup);
-                    marker.togglePopup();
+                    this.showWaypointPopup(marker._waypoint);
                     e.stopPropagation();
                 });
                 marker.getElement().addEventListener('mouseout', () => {
-                    marker.togglePopup();
+                    this.hideWaypointPopup();
                 });
-
+                marker.getElement().addEventListener('click', (e) => {
+                    if (get(verticalFileView)) {
+                        selectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
+                        e.stopPropagation();
+                    }
+                });
                 this.markers.push(marker);
             }
             markerIndex++;
@@ -210,12 +216,43 @@ export class GPXLayer {
         if (get(currentTool) === Tool.ROUTING) {
             return;
         }
-        if (e.originalEvent.shiftKey) {
-            addSelect(this.fileId);
+
+        let file = get(this.file)?.file;
+        if (!file) {
+            return;
+        }
+
+        let item = undefined;
+        if (get(verticalFileView) && file.children.length > 1) { // Select inner item
+            let trackIndex = e.features[0].properties.trackIndex;
+            let segmentIndex = e.features[0].properties.segmentIndex;
+            item = file.children[trackIndex].children.length > 1 ? new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex) : new ListTrackItem(this.fileId, trackIndex);
         } else {
-            selectFile(this.fileId);
+            item = new ListFileItem(this.fileId);
+        }
+
+        if (e.originalEvent.shiftKey || e.originalEvent.ctrlKey || e.originalEvent.metaKey) {
+            addSelectItem(item);
+        } else {
+            selectItem(item);
         }
     }
+
+    showWaypointPopup(waypoint: Waypoint) {
+        let marker = this.markers[waypoint._data.index];
+        currentWaypoint.set(waypoint);
+        marker.setPopup(waypointPopup);
+        marker.togglePopup();
+    }
+
+    hideWaypointPopup() {
+        let waypoint = get(currentWaypoint);
+        if (waypoint) {
+            let marker = this.markers[waypoint._data.index];
+            marker.togglePopup();
+        }
+    }
+
 
     getGeoJSON(): GeoJSON.FeatureCollection {
         let file = get(this.file)?.file;
@@ -242,9 +279,11 @@ export class GPXLayer {
             if (!feature.properties.opacity) {
                 feature.properties.opacity = defaultOpacity;
             }
-            if (get(selection).has(new ListFileItem(this.fileId)) || get(selection).has(new ListTrackItem(this.fileId, trackIndex)) || get(selection).has(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex))) {
+            if (get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)) || get(selection).hasAnyChildren(new ListWaypointsItem(this.fileId), true)) {
                 feature.properties.weight = feature.properties.weight + 2;
             }
+            feature.properties.trackIndex = trackIndex;
+            feature.properties.segmentIndex = segmentIndex;
 
             segmentIndex++;
             if (segmentIndex >= file.trk[trackIndex].trkseg.length) {
