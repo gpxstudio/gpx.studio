@@ -388,6 +388,42 @@ export const dbUtils = {
             });
         });
     },
+    duplicateSelection: () => {
+        if (get(selection).size === 0) {
+            return;
+        }
+        applyGlobal((draft) => {
+            let ids = getFileIds(get(settings.fileOrder).length);
+            let index = 0;
+            applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+                let file = original(draft)?.get(fileId);
+                if (file) {
+                    let newFile = file;
+                    if (level === ListLevel.FILE) {
+                        newFile = file.clone();
+                        newFile._data.id = ids[index++];
+                    } else if (level === ListLevel.TRACK) {
+                        for (let item of items) {
+                            let trackIndex = (item as ListTrackItem).getTrackIndex();
+                            newFile = newFile.replaceTracks(trackIndex + 1, trackIndex, [file.trk[trackIndex].clone()]);
+                        }
+                    } else if (level === ListLevel.SEGMENT) {
+                        for (let item of items) {
+                            let trackIndex = (item as ListTrackSegmentItem).getTrackIndex();
+                            let segmentIndex = (item as ListTrackSegmentItem).getSegmentIndex();
+                            newFile = newFile.replaceTrackSegments(trackIndex, segmentIndex + 1, segmentIndex, [file.trk[trackIndex].trkseg[segmentIndex].clone()]);
+                        }
+                    } else if (level === ListLevel.WAYPOINT) {
+                        for (let item of items) {
+                            let waypointIndex = (item as ListWaypointItem).getWaypointIndex();
+                            newFile = newFile.replaceWaypoints(waypointIndex + 1, waypointIndex, [file.wpt[waypointIndex].clone()]);
+                        }
+                    }
+                    draft.set(newFile._data.id, freeze(newFile));
+                }
+            });
+        });
+    },
     reverseSelection: () => {
         if (!get(selection).hasAnyChildren(new ListRootItem(), true, ['waypoints'])) {
             return;
@@ -451,6 +487,10 @@ export const dbUtils = {
                     }
                 }
             });
+        });
+        selection.update(($selection) => {
+            $selection.clear();
+            return $selection;
         });
     },
     deleteAllFiles: () => {
