@@ -59,10 +59,14 @@ export class RoutingControls {
             return;
         }
 
-        let selected = get(selection).hasAnyChildren(new ListFileItem(this.fileId), true, ['waypoints']);
+        let selected = get(selection).hasAnyChildren(new ListFileItem(this.fileId), true, ['waypoints']) && get(selection).size == 1;
         if (selected) {
-            this.add();
-        } else if (!selected && this.active) {
+            if (this.active) {
+                this.updateControls();
+            } else {
+                this.add();
+            }
+        } else if (this.active) {
             this.remove();
         }
     }
