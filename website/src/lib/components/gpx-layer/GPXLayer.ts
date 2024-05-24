@@ -8,7 +8,7 @@ import { ListTrackSegmentItem, type ListItem, ListWaypointItem, ListWaypointsIte
 import type { Waypoint } from "gpx";
 
 let defaultWeight = 5;
-let defaultOpacity = 1;
+let defaultOpacity = 0.7;
 
 const colors = [
     '#ff0000',
@@ -281,6 +281,7 @@ export class GPXLayer {
             }
             if (get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)) || get(selection).hasAnyChildren(new ListWaypointsItem(this.fileId), true)) {
                 feature.properties.weight = feature.properties.weight + 2;
+                feature.properties.opacity = (feature.properties.opacity + 1) / 2;
             }
             feature.properties.trackIndex = trackIndex;
             feature.properties.segmentIndex = segmentIndex;

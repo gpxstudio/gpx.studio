@@ -174,7 +174,6 @@
 		let changed: (string | number)[] = [];
 		Object.entries(elements).forEach(([id, element]) => {
 			if (element === null) {
-				console.log('element is null', orientation, sortableLevel, id);
 				return;
 			}
 			let realId =
