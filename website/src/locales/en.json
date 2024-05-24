@@ -107,7 +107,6 @@
         "reduce_tooltip": "Reduce the number of points",
         "clean_tooltip": "Clean track points and points of interest with a rectangle selection",
         "style_tooltip": "Change the style of the route",
-        "structure_tooltip": "Manage the file structure"
     },
     "layers": {
         "settings": "Layer settings",
