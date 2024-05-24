@@ -55,10 +55,6 @@
 				<Palette slot="icon" size="18" />
 				<span slot="tooltip">{$_('toolbar.style_tooltip')}</span>
 			</ToolbarItem>
-			<ToolbarItem tool={Tool.STRUCTURE}>
-				<FolderTree slot="icon" size="18" />
-				<span slot="tooltip">{$_('toolbar.structure_tooltip')}</span>
-			</ToolbarItem>
 		</div>
 		<Routing />
 		<Waypoint />

@@ -7,7 +7,7 @@ import { _ } from 'svelte-i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
 import { settings, dbUtils, fileObservers } from './db';
 import { selection } from '$lib/components/file-list/Selection';
-import { ListFileItem, ListWaypointItem, type ListItem } from '$lib/components/file-list/FileList';
+import { ListFileItem, ListWaypointItem } from '$lib/components/file-list/FileList';
 
 export const map = writable<mapboxgl.Map | null>(null);
 export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }>({});
@@ -124,8 +124,7 @@ export enum Tool {
     WAYPOINT,
     REDUCE,
     CLEAN,
-    STYLE,
-    STRUCTURE
+    STYLE
 }
 export const currentTool = writable<Tool | null>(null);
 
