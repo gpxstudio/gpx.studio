@@ -66,30 +66,34 @@ export function selectAll() {
     });
 }
 
-export function applyToOrderedSelectedItemsFromFile(callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void) {
+export function applyToOrderedSelectedItemsFromFile(callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void, reverse: boolean = true) {
     get(settings.fileOrder).forEach((fileId) => {
         let level: ListLevel | undefined = undefined;
         let items: ListItem[] = [];
         get(selection).forEach((item) => {
             if (item.getFileId() === fileId) {
                 level = item.level;
-                if (item instanceof ListTrackItem || item instanceof ListTrackSegmentItem || item instanceof ListWaypointItem) {
+                if (item instanceof ListFileItem || item instanceof ListTrackItem || item instanceof ListTrackSegmentItem || item instanceof ListWaypointItem) {
                     items.push(item);
                 }
             }
         });
 
-        items.sort((a, b) => { // Process the items in reverse order to avoid index conflicts
-            if (a instanceof ListTrackItem && b instanceof ListTrackItem) {
-                return b.getTrackIndex() - a.getTrackIndex();
-            } else if (a instanceof ListTrackSegmentItem && b instanceof ListTrackSegmentItem) {
-                return b.getSegmentIndex() - a.getSegmentIndex();
-            } else if (a instanceof ListWaypointItem && b instanceof ListWaypointItem) {
-                return b.getWaypointIndex() - a.getWaypointIndex();
+        if (items.length > 0) {
+            if (reverse) {
+                items.sort((a, b) => { // Process the items in reverse order to avoid index conflicts
+                    if (a instanceof ListTrackItem && b instanceof ListTrackItem) {
+                        return b.getTrackIndex() - a.getTrackIndex();
+                    } else if (a instanceof ListTrackSegmentItem && b instanceof ListTrackSegmentItem) {
+                        return b.getSegmentIndex() - a.getSegmentIndex();
+                    } else if (a instanceof ListWaypointItem && b instanceof ListWaypointItem) {
+                        return b.getWaypointIndex() - a.getWaypointIndex();
+                    }
+                    return b.level - a.level;
+                });
             }
-            return b.level - a.level;
-        });
 
-        callback(fileId, level, items);
+            callback(fileId, level, items);
+        }
     });
 }

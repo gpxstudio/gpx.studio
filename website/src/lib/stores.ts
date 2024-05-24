@@ -5,8 +5,8 @@ import { GPXFile, buildGPX, parseGPX, GPXStatistics, type Coordinates } from 'gp
 import { tick } from 'svelte';
 import { _ } from 'svelte-i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
-import { settings, dbUtils, fileObservers } from './db';
-import { selectFile, selection } from '$lib/components/file-list/Selection';
+import { dbUtils, fileObservers } from './db';
+import { applyToOrderedSelectedItemsFromFile, selectFile, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListWaypointItem } from '$lib/components/file-list/FileList';
 import type { RoutingControls } from '$lib/components/toolbar/tools/routing/RoutingControls';
 
@@ -15,17 +15,15 @@ export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }
 
 export const gpxStatistics: Writable<GPXStatistics> = writable(new GPXStatistics());
 
-const { fileOrder } = settings;
-
 function updateGPXData() {
     let statistics = new GPXStatistics();
-    get(fileOrder).forEach((fileId) => { // Get statistics in the order of the file list
+    applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
         let fileStore = get(fileObservers).get(fileId);
         if (fileStore) {
             let stats = get(fileStore)?.statistics;
-            if (stats !== undefined) {
+            if (stats) {
                 let first = true;
-                get(selection).getChild(fileId)?.getSelected().forEach((item) => { // Get statistics for selected items within the file
+                items.forEach((item) => {
                     if (!(item instanceof ListWaypointItem) || first) {
                         statistics.mergeWith(stats.getStatisticsFor(item));
                         first = false;
@@ -33,7 +31,7 @@ function updateGPXData() {
                 });
             }
         }
-    });
+    }, false);
     gpxStatistics.set(statistics);
 }
 

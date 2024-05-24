@@ -110,8 +110,8 @@ export class GPXFiles extends GPXTreeNode<GPXFile> {
 export class GPXFile extends GPXTreeNode<Track>{
     [immerable] = true;
 
-    readonly attributes: GPXFileAttributes;
-    readonly metadata: Metadata;
+    attributes: GPXFileAttributes;
+    metadata: Metadata;
     readonly wpt: ReadonlyArray<Readonly<Waypoint>>;
     readonly trk: ReadonlyArray<Track>;
 

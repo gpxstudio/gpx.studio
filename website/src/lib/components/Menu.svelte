@@ -95,7 +95,7 @@
 
 <div class="absolute top-2 left-0 right-0 z-20 flex flex-row justify-center pointer-events-none">
 	<div
-		class="w-fit flex flex-row flex-wrap mx-16 items-center justify-center p-1 bg-background rounded-md pointer-events-auto shadow-md"
+		class="w-fit flex flex-row mx-16 items-center justify-center p-1 bg-background rounded-md pointer-events-auto shadow-md"
 	>
 		<Logo class="h-5 mt-0.5 mx-2" />
 		<Menubar.Root class="border-none h-fit p-0">
@@ -104,8 +104,8 @@
 				<Menubar.Content class="border-none">
 					<Menubar.Item on:click={createFile}>
 						<Plus size="16" class="mr-1" />
-						{$_('menu.new')}
-						<Shortcut key="N" ctrl={true} />
+						{$_('menu.create')}
+						<Shortcut key="C" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Separator />
 					<Menubar.Item on:click={triggerFileInput}>
@@ -295,7 +295,7 @@
 
 <svelte:window
 	on:keydown={(e) => {
-		if (e.key === 'n' && (e.metaKey || e.ctrlKey)) {
+		if (e.key === 'c' && (e.metaKey || e.ctrlKey)) {
 			createFile();
 			e.preventDefault();
 		} else if (e.key === 'o' && (e.metaKey || e.ctrlKey)) {
