@@ -163,6 +163,10 @@
 			if (element) {
 				if ($selection.has(item.extend(id))) {
 					Sortable.utils.select(element);
+					element.scrollIntoView({
+						behavior: 'smooth',
+						block: 'nearest'
+					});
 				} else {
 					Sortable.utils.deselect(element);
 				}
