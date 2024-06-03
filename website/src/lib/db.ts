@@ -359,6 +359,9 @@ export const dbUtils = {
     applyToFile: (id: string, callback: (file: WritableDraft<GPXFile>) => GPXFile) => {
         applyToFiles([id], callback);
     },
+    applyToFiles: (ids: string[], callback: (file: WritableDraft<GPXFile>) => GPXFile) => {
+        applyToFiles(ids, callback);
+    },
     applyToSelection: (callback: (file: WritableDraft<AnyGPXTreeElement>) => AnyGPXTreeElement) => {
         if (get(selection).size === 0) {
             return;
