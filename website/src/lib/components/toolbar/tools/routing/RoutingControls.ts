@@ -356,7 +356,7 @@ export class RoutingControls {
             return;
         }
 
-        newPoint._data.index = lastAnchor.segment.trkpt.length; // Do as if the point was the last point in the segment
+        newPoint._data.index = lastAnchor.segment.trkpt.length - 1; // Do as if the point was the last point in the segment
         let newAnchor = {
             point: newPoint,
             segment: lastAnchor.segment,
@@ -457,7 +457,7 @@ export class RoutingControls {
         }
 
         if (anchors[0].point._data.index === 0) { // First anchor is the first point of the segment
-            anchors[0].point = response[0]; // replaceTrackPoints the first anchor
+            anchors[0].point = response[0]; // replace the first anchor
             anchors[0].point._data.index = 0;
         } else {
             anchors[0].point = anchors[0].point.clone(); // Clone the anchor to assign new properties
@@ -465,7 +465,8 @@ export class RoutingControls {
         }
 
         if (anchors[anchors.length - 1].point._data.index === segment.trkpt.length - 1) { // Last anchor is the last point of the segment
-            anchors[anchors.length - 1].point = response[response.length - 1]; // replaceTrackPoints the last anchor
+            console.log('last anchor');
+            anchors[anchors.length - 1].point = response[response.length - 1]; // replace the last anchor
             anchors[anchors.length - 1].point._data.index = segment.trkpt.length - 1;
         } else {
             anchors[anchors.length - 1].point = anchors[anchors.length - 1].point.clone(); // Clone the anchor to assign new properties
