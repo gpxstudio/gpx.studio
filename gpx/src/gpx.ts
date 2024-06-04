@@ -176,43 +176,28 @@ export class GPXFile extends GPXTreeNode<Track>{
     }
 
     // Producers
-    replaceTracks(start: number, end: number, tracks: Track[]) {
-        return produce(this, (draft) => {
+    replaceTracks(start: number, end: number, tracks: Track[]): [GPXFile, Track[]] {
+        let removed = [];
+        let result = produce(this, (draft) => {
             let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
             let trk = og.trk.slice();
-            trk.splice(start, end - start + 1, ...tracks);
+            removed = trk.splice(start, end - start + 1, ...tracks);
             draft.trk = freeze(trk); // Pre-freeze the array, faster as well
         });
+        return [result, removed];
     }
 
-    moveTracks(indices: number[], dest: number) {
-        return produce(this, (draft) => {
+    replaceTrackSegments(trackIndex: number, start: number, end: number, segments: TrackSegment[]): [GPXFile, TrackSegment[]] {
+        let removed = [];
+        let result = produce(this, (draft) => {
             let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
             let trk = og.trk.slice();
-            let tracks = indices.map((index) => trk[index]);
-            indices.sort((a, b) => b - a);
-            indices.forEach((index) => trk.splice(index, 1));
-            trk.splice(dest, 0, ...tracks);
+            let [result, rmv] = trk[trackIndex].replaceTrackSegments(start, end, segments);
+            trk[trackIndex] = result;
+            removed = rmv;
             draft.trk = freeze(trk); // Pre-freeze the array, faster as well
         });
-    }
-
-    replaceTrackSegments(trackIndex: number, start: number, end: number, segments: TrackSegment[]) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trk = og.trk.slice();
-            trk[trackIndex] = trk[trackIndex].replaceTrackSegments(start, end, segments);
-            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
-        });
-    }
-
-    moveTrackSegments(trackIndex: number, indices: number[], dest: number) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trk = og.trk.slice();
-            trk[trackIndex] = trk[trackIndex].moveTrackSegments(indices, dest);
-            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
-        });
+        return [result, removed];
     }
 
     replaceTrackPoints(trackIndex: number, segmentIndex: number, start: number, end: number, points: TrackPoint[]) {
@@ -224,25 +209,15 @@ export class GPXFile extends GPXTreeNode<Track>{
         });
     }
 
-    replaceWaypoints(start: number, end: number, waypoints: Waypoint[]) {
-        return produce(this, (draft) => {
+    replaceWaypoints(start: number, end: number, waypoints: Waypoint[]): [GPXFile, Waypoint[]] {
+        let removed = [];
+        let result = produce(this, (draft) => {
             let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
             let wpt = og.wpt.slice();
-            wpt.splice(start, end - start + 1, ...waypoints);
+            removed = wpt.splice(start, end - start + 1, ...waypoints);
             draft.wpt = freeze(wpt); // Pre-freeze the array, faster as well
         });
-    }
-
-    moveWaypoints(indices: number[], dest: number) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let wpt = og.wpt.slice();
-            let waypoints = indices.map((index) => wpt[index]);
-            indices.sort((a, b) => b - a);
-            indices.forEach((index) => wpt.splice(index, 1));
-            wpt.splice(dest, 0, ...waypoints);
-            draft.wpt = freeze(wpt); // Pre-freeze the array, faster as well
-        });
+        return [result, removed];
     }
 
     reverse() {
@@ -350,25 +325,15 @@ export class Track extends GPXTreeNode<TrackSegment> {
     }
 
     // Producers
-    replaceTrackSegments(start: number, end: number, segments: TrackSegment[]) {
-        return produce(this, (draft) => {
+    replaceTrackSegments(start: number, end: number, segments: TrackSegment[]): [Track, TrackSegment[]] {
+        let removed = [];
+        let result = produce(this, (draft) => {
             let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
             let trkseg = og.trkseg.slice();
-            trkseg.splice(start, end - start + 1, ...segments);
+            removed = trkseg.splice(start, end - start + 1, ...segments);
             draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
         });
-    }
-
-    moveTrackSegments(indices: number[], dest: number) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trkseg = og.trkseg.slice();
-            let segments = indices.map((index) => trkseg[index]);
-            indices.sort((a, b) => b - a);
-            indices.forEach((index) => trkseg.splice(index, 1));
-            trkseg.splice(dest, 0, ...segments);
-            draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
-        });
+        return [result, removed];
     }
 
     replaceTrackPoints(segmentIndex: number, start: number, end: number, points: TrackPoint[]) {

@@ -1,134 +1,8 @@
-export class SelectionTreeType {
-    item: ListItem;
-    selected: boolean;
-    children: {
-        [key: string | number]: SelectionTreeType
-    };
-    size: number = 0;
-
-    constructor(item: ListItem) {
-        this.item = item;
-        this.selected = false;
-        this.children = {};
-    }
-
-    clear() {
-        this.selected = false;
-        for (let key in this.children) {
-            this.children[key].clear();
-        }
-        this.size = 0;
-    }
-
-    _setOrToggle(item: ListItem, value?: boolean) {
-        if (item.level === this.item.level) {
-            let newSelected = value === undefined ? !this.selected : value;
-            if (this.selected !== newSelected) {
-                this.selected = newSelected;
-                this.size += this.selected ? 1 : -1;
-            }
-        } else {
-            let id = item.getIdAtLevel(this.item.level);
-            if (id !== undefined) {
-                if (!this.children.hasOwnProperty(id)) {
-                    this.children[id] = new SelectionTreeType(this.item.extend(id));
-                }
-                this.size -= this.children[id].size;
-                this.children[id]._setOrToggle(item, value);
-                this.size += this.children[id].size;
-            }
-        }
-    }
-
-    set(item: ListItem, value: boolean) {
-        this._setOrToggle(item, value);
-    }
-
-    toggle(item: ListItem) {
-        this._setOrToggle(item);
-    }
-
-    has(item: ListItem): boolean {
-        if (item.level === this.item.level) {
-            return this.selected;
-        } else {
-            let id = item.getIdAtLevel(this.item.level);
-            if (id !== undefined) {
-                if (this.children.hasOwnProperty(id)) {
-                    return this.children[id].has(item);
-                }
-            }
-        }
-        return false;
-    }
-
-    hasAnyParent(item: ListItem, self: boolean = true): boolean {
-        if (this.selected && this.item.level <= item.level && (self || this.item.level < item.level)) {
-            return this.selected;
-        }
-        let id = item.getIdAtLevel(this.item.level);
-        if (id !== undefined) {
-            if (this.children.hasOwnProperty(id)) {
-                return this.children[id].hasAnyParent(item, self);
-            }
-        }
-        return false;
-    }
-
-    hasAnyChildren(item: ListItem, self: boolean = true, ignoreIds?: (string | number)[]): boolean {
-        if (this.selected && this.item.level >= item.level && (self || this.item.level > item.level)) {
-            return this.selected;
-        }
-        let id = item.getIdAtLevel(this.item.level);
-        if (id !== undefined) {
-            if (ignoreIds === undefined || ignoreIds.indexOf(id) === -1) {
-                if (this.children.hasOwnProperty(id)) {
-                    return this.children[id].hasAnyChildren(item, self, ignoreIds);
-                }
-            }
-        } else {
-            for (let key in this.children) {
-                if (ignoreIds === undefined || ignoreIds.indexOf(key) === -1) {
-                    if (this.children[key].hasAnyChildren(item, self, ignoreIds)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    getSelected(selection?: ListItem[]): ListItem[] {
-        if (selection === undefined) {
-            selection = [];
-        }
-        if (this.selected) {
-            selection.push(this.item);
-        }
-        for (let key in this.children) {
-            this.children[key].getSelected(selection);
-        }
-        return selection;
-    }
-
-    forEach(callback: (item: ListItem) => void) {
-        if (this.selected) {
-            callback(this.item);
-        }
-        for (let key in this.children) {
-            this.children[key].forEach(callback);
-        }
-    }
-
-    getChild(id: string | number): SelectionTreeType | undefined {
-        return this.children[id];
-    }
-
-    deleteChild(id: string | number) {
-        this.size -= this.children[id].size;
-        delete this.children[id];
-    }
-};
+import { dbUtils, fileObservers } from "$lib/db";
+import { castDraft } from "immer";
+import { Track, TrackSegment, Waypoint } from "gpx";
+import { selection } from "./Selection";
+import { get } from "svelte/store";
 
 export enum ListLevel {
     ROOT,
@@ -362,4 +236,86 @@ export class ListWaypointItem extends ListItem {
     extend(): ListWaypointItem {
         return this;
     }
+}
+
+export function sortItems(items: ListItem[], reverse: boolean = false) {
+    items.sort((a, b) => {
+        if (a instanceof ListTrackItem && b instanceof ListTrackItem) {
+            return a.getTrackIndex() - b.getTrackIndex();
+        } else if (a instanceof ListTrackSegmentItem && b instanceof ListTrackSegmentItem) {
+            return a.getSegmentIndex() - b.getSegmentIndex();
+        } else if (a instanceof ListWaypointItem && b instanceof ListWaypointItem) {
+            return a.getWaypointIndex() - b.getWaypointIndex();
+        }
+        return a.level - b.level;
+    });
+    if (reverse) {
+        items.reverse();
+    }
+}
+
+export function moveItems(fromParent: ListItem, toParent: ListItem, fromItems: ListItem[], toItems: ListItem[]) {
+    sortItems(fromItems, true);
+    sortItems(toItems, false);
+
+    let toFileObserver = get(fileObservers).get(toParent.getFileId());
+    let first = true;
+    toFileObserver?.subscribe(() => { // Update selection when the target file has been updated
+        if (first) first = false;
+        else {
+            selection.update(($selection) => {
+                $selection.clear();
+                toItems.forEach((item) => {
+                    $selection.set(item, true);
+                });
+                return $selection;
+            });
+        }
+    });
+
+    dbUtils.applyEachToFiles([fromParent.getFileId(), toParent.getFileId()], [
+        (file, context: (Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
+            let newFile = file;
+            fromItems.forEach((item) => {
+                if (item instanceof ListTrackItem) {
+                    let [result, removed] = newFile.replaceTracks(item.getTrackIndex(), item.getTrackIndex(), []);
+                    newFile = castDraft(result);
+                    context.push(...removed);
+                } else if (item instanceof ListTrackSegmentItem) {
+                    let [result, removed] = newFile.replaceTrackSegments(item.getTrackIndex(), item.getSegmentIndex(), item.getSegmentIndex(), []);
+                    newFile = castDraft(result);
+                    context.push(...removed);
+                } else if (item instanceof ListWaypointsItem) {
+                    let [result, removed] = newFile.replaceWaypoints(0, newFile.wpt.length - 1, []);
+                    newFile = castDraft(result);
+                    context.push(removed);
+                } else if (item instanceof ListWaypointItem) {
+                    let [result, removed] = newFile.replaceWaypoints(item.getWaypointIndex(), item.getWaypointIndex(), []);
+                    newFile = castDraft(result);
+                    context.push(...removed);
+                }
+            });
+            context.reverse();
+            return newFile;
+        },
+        (file, context: (Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
+            let newFile = file;
+            toItems.forEach((item, i) => {
+                if (item instanceof ListTrackItem && context[i] instanceof Track) {
+                    let [result, _removed] = newFile.replaceTracks(item.getTrackIndex(), item.getTrackIndex() - 1, [context[i]]);
+                    newFile = castDraft(result);
+                } else if (item instanceof ListTrackSegmentItem && context[i] instanceof TrackSegment) {
+                    let [result, _removed] = newFile.replaceTrackSegments(item.getTrackIndex(), item.getSegmentIndex(), item.getSegmentIndex() - 1, [context[i]]);
+                    newFile = castDraft(result);
+                } else if (item instanceof ListWaypointsItem && Array.isArray(context[i]) && context[i].length > 0 && context[i][0] instanceof Waypoint) {
+                    let [result, _removed] = newFile.replaceWaypoints(0, -1, context[i]);
+                    newFile = castDraft(result);
+                } else if (item instanceof ListWaypointItem && context[i] instanceof Waypoint) {
+                    let [result, _removed] = newFile.replaceWaypoints(item.getWaypointIndex(), item.getWaypointIndex() - 1, [context[i]]);
+                    newFile = castDraft(result);
+                }
+            });
+            return newFile;
+        }
+    ], []);
 }

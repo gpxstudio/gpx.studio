@@ -2,12 +2,12 @@
 	import { GPXFile, Track, Waypoint, type AnyGPXTreeElement, type GPXTreeElement } from 'gpx';
 	import { afterUpdate, getContext, onDestroy, onMount } from 'svelte';
 	import Sortable from 'sortablejs/Sortable';
-	import { dbUtils, fileObservers, settings, type GPXFileWithStatistics } from '$lib/db';
+	import { fileObservers, settings, type GPXFileWithStatistics } from '$lib/db';
 	import { get, type Readable } from 'svelte/store';
 	import FileListNodeStore from './FileListNodeStore.svelte';
 	import FileListNode from './FileListNode.svelte';
 	import FileListNodeLabel from './FileListNodeLabel.svelte';
-	import { ListLevel, ListTrackItem, type ListItem } from './FileList';
+	import { ListLevel, moveItems, type ListItem } from './FileList';
 	import { selection } from './Selection';
 	import { _ } from 'svelte-i18n';
 
@@ -123,47 +123,35 @@
 				} else {
 					let fromItem = Sortable.get(e.from)._item;
 					let toItem = Sortable.get(e.to)._item;
-					let oldIndices =
-						e.oldIndicies.length > 0 ? e.oldIndicies.map((i) => i.index) : [e.oldIndex];
-					let newIndices =
-						e.newIndicies.length > 0 ? e.newIndicies.map((i) => i.index) : [e.newIndex];
-					oldIndices.sort((a, b) => a - b);
-					newIndices.sort((a, b) => a - b);
 
-					let oldItems = oldIndices.map((i) => item.extend(i));
-					let newItems = newIndices.map((i) => item.extend(i));
+					if (item === toItem) {
+						// Event is triggered on source and destination list, only handle it once
+						let fromItems = [];
+						let toItems = [];
 
-					if (fromItem === toItem) {
-						if (sortableLevel === ListLevel.TRACK) {
-							dbUtils.applyToFile(item.getFileId(), (draft) =>
-								draft.moveTracks(oldIndices, newIndices[0])
-							);
-						} else if (item instanceof ListTrackItem) {
-							dbUtils.applyToFile(item.getFileId(), (draft) =>
-								draft.moveTrackSegments(item.getTrackIndex(), oldIndices, newIndices[0])
-							);
-						} else if (sortableLevel === ListLevel.WAYPOINT) {
-							dbUtils.applyToFile(item.getFileId(), (draft) =>
-								draft.moveWaypoints(oldIndices, newIndices[0])
-							);
+						if (waypointRoot) {
+							fromItems = [fromItem.extend('waypoints')];
+							toItems = [toItem.extend('waypoints')];
+						} else {
+							let oldIndices =
+								e.oldIndicies.length > 0 ? e.oldIndicies.map((i) => i.index) : [e.oldIndex];
+							let newIndices =
+								e.newIndicies.length > 0 ? e.newIndicies.map((i) => i.index) : [e.newIndex];
+							oldIndices.sort((a, b) => a - b);
+							newIndices.sort((a, b) => a - b);
+
+							fromItems = oldIndices.map((i) => fromItem.extend(i));
+							toItems = newIndices.map((i) => toItem.extend(i));
 						}
-						selection.update(($selection) => {
-							$selection.clear();
-							newItems.forEach((newItem) => {
-								console.log('newItem', newItem);
-								$selection.set(newItem, true);
-							});
-							return $selection;
-						});
-					} else if (item === toItem) {
-						// Move between lists
-						console.log('Move between lists');
+
+						moveItems(fromItem, toItem, fromItems, toItems);
 					}
 				}
 			}
 		});
 		Object.defineProperty(sortable, '_item', {
-			value: item
+			value: item,
+			writable: true
 		});
 		selection.set(get(selection));
 	});
