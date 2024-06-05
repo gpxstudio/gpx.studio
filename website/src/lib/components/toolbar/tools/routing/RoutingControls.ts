@@ -465,7 +465,6 @@ export class RoutingControls {
         }
 
         if (anchors[anchors.length - 1].point._data.index === segment.trkpt.length - 1) { // Last anchor is the last point of the segment
-            console.log('last anchor');
             anchors[anchors.length - 1].point = response[response.length - 1]; // replace the last anchor
             anchors[anchors.length - 1].point._data.index = segment.trkpt.length - 1;
         } else {
