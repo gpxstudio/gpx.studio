@@ -127,9 +127,14 @@ export enum Tool {
 }
 export const currentTool = writable<Tool | null>(null);
 
-export function createFile() {
+export function newGPXFile() {
     let file = new GPXFile();
     file.metadata.name = get(_)("menu.new_filename");
+    return file;
+}
+
+export function createFile() {
+    let file = newGPXFile();
 
     dbUtils.add(file);
 

@@ -1,12 +1,25 @@
+<script lang="ts" context="module">
+	let pull: Record<ListLevel, ListLevel[]> = {
+		[ListLevel.ROOT]: [],
+		[ListLevel.FILE]: [ListLevel.FILE],
+		[ListLevel.TRACK]: [ListLevel.FILE, ListLevel.TRACK],
+		[ListLevel.SEGMENT]: [ListLevel.FILE, ListLevel.TRACK, ListLevel.SEGMENT],
+		[ListLevel.WAYPOINTS]: [ListLevel.WAYPOINTS],
+		[ListLevel.WAYPOINT]: [ListLevel.WAYPOINTS, ListLevel.WAYPOINT]
+	};
+
+	let dragging: Writable<ListLevel | null> = writable(null);
+</script>
+
 <script lang="ts">
 	import { GPXFile, Track, Waypoint, type AnyGPXTreeElement, type GPXTreeElement } from 'gpx';
 	import { afterUpdate, getContext, onMount } from 'svelte';
 	import Sortable from 'sortablejs/Sortable';
-	import { fileObservers, settings, type GPXFileWithStatistics } from '$lib/db';
-	import { get, type Readable } from 'svelte/store';
+	import { fileObservers, getFileIds, settings, type GPXFileWithStatistics } from '$lib/db';
+	import { get, writable, type Readable, type Writable } from 'svelte/store';
 	import FileListNodeStore from './FileListNodeStore.svelte';
 	import FileListNode from './FileListNode.svelte';
-	import { ListLevel, moveItems, type ListItem } from './FileList';
+	import { ListLevel, ListRootItem, moveItems, type ListItem } from './FileList';
 	import { selection } from './Selection';
 	import { _ } from 'svelte-i18n';
 
@@ -29,12 +42,6 @@
 				: node instanceof Track
 					? ListLevel.SEGMENT
 					: ListLevel.WAYPOINT;
-	let pull: Record<string, string[]> = {
-		file: ['file', 'track'],
-		track: ['file', 'track'],
-		segment: ['file', 'track', 'segment'],
-		waypoint: ['waypoint']
-	};
 	let sortable: Sortable;
 	let orientation = getContext<'vertical' | 'horizontal'>('orientation');
 
@@ -84,26 +91,6 @@
 			return;
 		}
 
-		if ($fileOrder.length !== $fileObservers.size) {
-			// Files were added or removed
-			fileOrder.update((order) => {
-				for (let i = 0; i < order.length; ) {
-					if (!$fileObservers.has(order[i])) {
-						order.splice(i, 1);
-					} else {
-						i++;
-					}
-				}
-				for (let id of $fileObservers.keys()) {
-					if (!order.includes(id)) {
-						order.push(id);
-					}
-				}
-				return order;
-			});
-			return;
-		}
-
 		const currentOrder = sortable.toArray();
 		if (currentOrder.length !== $fileOrder.length) {
 			sortable.sort($fileOrder);
@@ -124,7 +111,9 @@
 	function createSortable() {
 		sortable = Sortable.create(container, {
 			group: {
-				name: sortableLevel
+				name: sortableLevel,
+				pull: pull[sortableLevel],
+				put: true
 			},
 			direction: orientation,
 			forceAutoScrollFallback: true,
@@ -133,51 +122,75 @@
 			avoidImplicitDeselect: true,
 			onSelect: updateToSelection,
 			onDeselect: updateToSelection,
+			onStart: () => {
+				dragging.set(sortableLevel);
+			},
+			onEnd: () => {
+				dragging.set(null);
+			},
 			onSort: (e) => {
 				if (sortableLevel === ListLevel.FILE) {
 					let newFileOrder = sortable.toArray();
 					if (newFileOrder.length !== get(fileOrder).length) {
 						fileOrder.set(newFileOrder);
-						return;
-					}
-
-					for (let i = 0; i < newFileOrder.length; i++) {
-						if (newFileOrder[i] !== get(fileOrder)[i]) {
-							fileOrder.set(newFileOrder);
-							return;
+					} else {
+						for (let i = 0; i < newFileOrder.length; i++) {
+							if (newFileOrder[i] !== get(fileOrder)[i]) {
+								fileOrder.set(newFileOrder);
+								break;
+							}
 						}
 					}
-				} else {
-					let fromItem = Sortable.get(e.from)._item;
-					let toItem = Sortable.get(e.to)._item;
+				}
 
-					if (item === toItem) {
-						// Event is triggered on source and destination list, only handle it once
-						let fromItems = [];
-						let toItems = [];
+				let fromItem = Sortable.get(e.from)._item;
+				let toItem = Sortable.get(e.to)._item;
 
-						if (waypointRoot) {
-							fromItems = [fromItem.extend('waypoints')];
-							toItems = [toItem.extend('waypoints')];
+				if (item === toItem && !(fromItem instanceof ListRootItem)) {
+					// Event is triggered on source and destination list, only handle it once
+					let fromItems = [];
+					let toItems = [];
+
+					if (Sortable.get(e.from)._waypointRoot) {
+						fromItems = [fromItem.extend('waypoints')];
+					} else {
+						let oldIndices =
+							e.oldIndicies.length > 0 ? e.oldIndicies.map((i) => i.index) : [e.oldIndex];
+						oldIndices.sort((a, b) => a - b);
+
+						fromItems = oldIndices.map((i) => fromItem.extend(i));
+					}
+
+					if (Sortable.get(e.from)._waypointRoot && Sortable.get(e.to)._waypointRoot) {
+						toItems = [toItem.extend('waypoints')];
+					} else {
+						if (Sortable.get(e.to)._waypointRoot) {
+							toItem = toItem.extend('waypoints');
+						}
+
+						let newIndices =
+							e.newIndicies.length > 0 ? e.newIndicies.map((i) => i.index) : [e.newIndex];
+						newIndices.sort((a, b) => a - b);
+
+						if (toItem instanceof ListRootItem) {
+							let newFileIds = getFileIds(newIndices.length);
+							toItems = newIndices.map((_i, index) => item.extend(newFileIds[index]));
 						} else {
-							let oldIndices =
-								e.oldIndicies.length > 0 ? e.oldIndicies.map((i) => i.index) : [e.oldIndex];
-							let newIndices =
-								e.newIndicies.length > 0 ? e.newIndicies.map((i) => i.index) : [e.newIndex];
-							oldIndices.sort((a, b) => a - b);
-							newIndices.sort((a, b) => a - b);
-
-							fromItems = oldIndices.map((i) => fromItem.extend(i));
 							toItems = newIndices.map((i) => toItem.extend(i));
 						}
-
-						moveItems(fromItem, toItem, fromItems, toItems);
 					}
+
+					moveItems(fromItem, toItem, fromItems, toItems);
 				}
 			}
 		});
 		Object.defineProperty(sortable, '_item', {
 			value: item,
+			writable: true
+		});
+
+		Object.defineProperty(sortable, '_waypointRoot', {
+			value: waypointRoot,
 			writable: true
 		});
 	}
@@ -220,11 +233,15 @@
 			? id
 			: parseInt(id);
 	}
+
+	$: canDrop = $dragging !== null && pull[$dragging].includes(sortableLevel);
 </script>
 
 <div
 	bind:this={container}
-	class="sortable {orientation} flex {orientation === 'vertical' ? 'flex-col' : 'flex-row gap-1'}"
+	class="sortable {orientation} flex {orientation === 'vertical'
+		? 'flex-col'
+		: 'flex-row gap-1'} {canDrop ? 'p-b-5' : ''}"
 >
 	{#if node instanceof Map}
 		{#each node as [fileId, file] (fileId)}

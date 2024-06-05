@@ -1,8 +1,9 @@
 import { dbUtils, fileObservers } from "$lib/db";
-import { castDraft } from "immer";
+import { castDraft, freeze } from "immer";
 import { Track, TrackSegment, Waypoint } from "gpx";
 import { selection } from "./Selection";
 import { get } from "svelte/store";
+import { newGPXFile } from "$lib/stores";
 
 export enum ListLevel {
     ROOT,
@@ -273,7 +274,7 @@ export function moveItems(fromParent: ListItem, toParent: ListItem, fromItems: L
         }
     });
 
-    dbUtils.applyEachToFiles([fromParent.getFileId(), toParent.getFileId()], [
+    dbUtils.applyEachToFilesAndGlobal([fromParent.getFileId(), toParent.getFileId()], [
         (file, context: (Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
             let newFile = file;
             fromItems.forEach((item) => {
@@ -301,15 +302,27 @@ export function moveItems(fromParent: ListItem, toParent: ListItem, fromItems: L
         (file, context: (Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
             let newFile = file;
             toItems.forEach((item, i) => {
-                if (item instanceof ListTrackItem && context[i] instanceof Track) {
-                    let [result, _removed] = newFile.replaceTracks(item.getTrackIndex(), item.getTrackIndex() - 1, [context[i]]);
-                    newFile = castDraft(result);
+                if (item instanceof ListTrackItem) {
+                    if (context[i] instanceof Track) {
+                        let [result, _removed] = newFile.replaceTracks(item.getTrackIndex(), item.getTrackIndex() - 1, [context[i]]);
+                        newFile = castDraft(result);
+                    } else if (context[i] instanceof TrackSegment) {
+                        let [result, _removed] = newFile.replaceTracks(item.getTrackIndex(), item.getTrackIndex() - 1, [new Track({
+                            trkseg: [context[i]]
+                        })]);
+                        newFile = castDraft(result);
+                    }
                 } else if (item instanceof ListTrackSegmentItem && context[i] instanceof TrackSegment) {
                     let [result, _removed] = newFile.replaceTrackSegments(item.getTrackIndex(), item.getSegmentIndex(), item.getSegmentIndex() - 1, [context[i]]);
                     newFile = castDraft(result);
-                } else if (item instanceof ListWaypointsItem && Array.isArray(context[i]) && context[i].length > 0 && context[i][0] instanceof Waypoint) {
-                    let [result, _removed] = newFile.replaceWaypoints(newFile.wpt.length, newFile.wpt.length - 1, context[i]);
-                    newFile = castDraft(result);
+                } else if (item instanceof ListWaypointsItem) {
+                    if (Array.isArray(context[i]) && context[i].length > 0 && context[i][0] instanceof Waypoint) {
+                        let [result, _removed] = newFile.replaceWaypoints(newFile.wpt.length, newFile.wpt.length - 1, context[i]);
+                        newFile = castDraft(result);
+                    } else if (context[i] instanceof Waypoint) {
+                        let [result, _removed] = newFile.replaceWaypoints(newFile.wpt.length, newFile.wpt.length - 1, [context[i]]);
+                        newFile = castDraft(result);
+                    }
                 } else if (item instanceof ListWaypointItem && context[i] instanceof Waypoint) {
                     let [result, _removed] = newFile.replaceWaypoints(item.getWaypointIndex(), item.getWaypointIndex() - 1, [context[i]]);
                     newFile = castDraft(result);
@@ -317,13 +330,26 @@ export function moveItems(fromParent: ListItem, toParent: ListItem, fromItems: L
             });
             return newFile;
         }
-    ], []);
-
-    selection.update(($selection) => {
-        $selection.clear();
-        toItems.forEach((item) => {
-            $selection.set(item, true);
+    ], (files, context: (Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
+        toItems.forEach((item, i) => {
+            if (item instanceof ListFileItem) {
+                if (context[i] instanceof Track) {
+                    let newFile = newGPXFile();
+                    newFile._data.id = item.getFileId();
+                    if (context[i].name) {
+                        newFile.metadata.name = context[i].name;
+                    }
+                    newFile = newFile.replaceTracks(0, 0, [context[i]])[0];
+                    files.set(item.getFileId(), freeze(newFile));
+                } else if (context[i] instanceof TrackSegment) {
+                    let newFile = newGPXFile();
+                    newFile._data.id = item.getFileId();
+                    newFile = newFile.replaceTracks(0, 0, [new Track({
+                        trkseg: [context[i]]
+                    })])[0];
+                    files.set(item.getFileId(), freeze(newFile));
+                }
+            }
         });
-        return $selection;
-    });
+    }, []);
 }

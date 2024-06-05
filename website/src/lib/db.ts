@@ -187,17 +187,13 @@ function dexieGPXFileStore(id: string): Readable<GPXFileWithStatistics> & { dest
 }
 
 // Add/update the files to the database
-function updateDbFiles(files: (GPXFile | undefined)[], add: boolean = false) {
+function updateDbFiles(files: (GPXFile | undefined)[]) {
     let filteredFiles = files.filter(file => file !== undefined) as GPXFile[];
     let fileIds = filteredFiles.map(file => file._data.id);
-    if (add) {
-        return db.transaction('rw', db.fileids, db.files, async () => {
-            await db.fileids.bulkAdd(fileIds, fileIds);
-            await db.files.bulkAdd(filteredFiles, fileIds);
-        });
-    } else {
-        return db.files.bulkPut(filteredFiles, fileIds);
-    }
+    return db.transaction('rw', db.fileids, db.files, async () => {
+        await db.fileids.bulkPut(fileIds, fileIds);
+        await db.files.bulkPut(filteredFiles, fileIds);
+    });
 }
 
 // Delete the files with the given ids from the database
@@ -210,9 +206,7 @@ function deleteDbFiles(fileIds: string[]) {
 
 // Commit the changes to the file state to the database
 function commitFileStateChange(newFileState: ReadonlyMap<string, GPXFile>, patch: Patch[]) {
-    if (newFileState.size > fileState.size) {
-        return updateDbFiles(getChangedFileIds(patch).map((fileId) => newFileState.get(fileId)), true);
-    } else if (newFileState.size === fileState.size) {
+    if (newFileState.size >= fileState.size) {
         return updateDbFiles(getChangedFileIds(patch).map((fileId) => newFileState.get(fileId)));
     } else {
         return deleteDbFiles(getChangedFileIds(patch));
@@ -252,6 +246,20 @@ liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
                 return $selection;
             });
         }
+        settings.fileOrder.update((order) => {
+            newFiles.forEach((fileId) => {
+                if (!order.includes(fileId)) {
+                    order.push(fileId);
+                }
+            });
+            deletedFiles.forEach((fileId) => {
+                let index = order.indexOf(fileId);
+                if (index !== -1) {
+                    order.splice(index, 1);
+                }
+            });
+            return order;
+        });
     }
 });
 
@@ -292,7 +300,7 @@ function applyToFiles(fileIds: string[], callback: (file: WritableDraft<GPXFile>
 }
 
 // Helper function to apply different callbacks to multiple files
-function applyEachToFiles(fileIds: string[], callbacks: ((file: WritableDraft<GPXFile>, context?: any) => GPXFile)[], context?: any) {
+function applyEachToFilesAndGlobal(fileIds: string[], callbacks: ((file: WritableDraft<GPXFile>, context?: any) => GPXFile)[], globalCallback: (files: Map<string, GPXFile>, context?: any) => void, context?: any) {
     const [newFileState, patch, inversePatch] = produceWithPatches(fileState, (draft) => {
         fileIds.forEach((fileId, index) => {
             let file = draft.get(fileId);
@@ -300,6 +308,7 @@ function applyEachToFiles(fileIds: string[], callbacks: ((file: WritableDraft<GP
                 draft.set(fileId, castDraft(callbacks[index](file, context)));
             }
         });
+        globalCallback(draft, context);
     });
 
     storePatches(patch, inversePatch);
@@ -344,7 +353,7 @@ function getChangedFileIds(patch: Patch[]): string[] {
 }
 
 // Generate unique file ids, different from the ones in the database
-function getFileIds(n: number) {
+export function getFileIds(n: number) {
     let ids = [];
     for (let index = 0; ids.length < n; index++) {
         let id = `gpx-${index}`;
@@ -378,8 +387,8 @@ export const dbUtils = {
     applyToFiles: (ids: string[], callback: (file: WritableDraft<GPXFile>) => GPXFile) => {
         applyToFiles(ids, callback);
     },
-    applyEachToFiles: (ids: string[], callbacks: ((file: WritableDraft<GPXFile>, context?: any) => GPXFile)[], context?: any) => {
-        applyEachToFiles(ids, callbacks, context);
+    applyEachToFilesAndGlobal: (ids: string[], callbacks: ((file: WritableDraft<GPXFile>, context?: any) => GPXFile)[], globalCallback: (files: Map<string, GPXFile>, context?: any) => void, context?: any) => {
+        applyEachToFilesAndGlobal(ids, callbacks, globalCallback, context);
     },
     applyToSelection: (callback: (file: WritableDraft<AnyGPXTreeElement>) => AnyGPXTreeElement) => {
         if (get(selection).size === 0) {

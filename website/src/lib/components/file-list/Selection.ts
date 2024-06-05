@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { ListFileItem, ListItem, ListRootItem, ListTrackItem, ListTrackSegmentItem, ListWaypointItem, type ListLevel, sortItems } from "./FileList";
+import { ListFileItem, ListItem, ListRootItem, ListTrackItem, ListTrackSegmentItem, ListWaypointItem, type ListLevel, sortItems, ListWaypointsItem } from "./FileList";
 import { fileObservers, settings } from "$lib/db";
 
 export class SelectionTreeType {
@@ -205,7 +205,7 @@ export function applyToOrderedSelectedItemsFromFile(callback: (fileId: string, l
         get(selection).forEach((item) => {
             if (item.getFileId() === fileId) {
                 level = item.level;
-                if (item instanceof ListFileItem || item instanceof ListTrackItem || item instanceof ListTrackSegmentItem || item instanceof ListWaypointItem) {
+                if (item instanceof ListFileItem || item instanceof ListTrackItem || item instanceof ListTrackSegmentItem || item instanceof ListWaypointsItem || item instanceof ListWaypointItem) {
                     items.push(item);
                 }
             }
