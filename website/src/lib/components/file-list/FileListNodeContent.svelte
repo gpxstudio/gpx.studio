@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { GPXFile, Track, Waypoint, type AnyGPXTreeElement, type GPXTreeElement } from 'gpx';
-	import { afterUpdate, getContext, onDestroy, onMount } from 'svelte';
+	import { afterUpdate, getContext, onMount } from 'svelte';
 	import Sortable from 'sortablejs/Sortable';
 	import { fileObservers, settings, type GPXFileWithStatistics } from '$lib/db';
 	import { get, type Readable } from 'svelte/store';
@@ -18,7 +18,7 @@
 	export let waypointRoot: boolean = false;
 
 	let container: HTMLElement;
-	let elements: { [id: string | number]: HTMLElement } = {};
+	let elements: { [id: string]: HTMLElement } = {};
 	let sortableLevel: ListLevel =
 		node instanceof Map
 			? ListLevel.FILE
@@ -38,7 +38,8 @@
 	let sortable: Sortable;
 	let orientation = getContext<'vertical' | 'horizontal'>('orientation');
 
-	function onSelectChange() {
+	function updateToSelection() {
+		// Sortable updates selection
 		let changed = getChangedIds();
 		if (changed.length > 0) {
 			selection.update(($selection) => {
@@ -52,6 +53,29 @@
 				return $selection;
 			});
 		}
+	}
+
+	async function updateFromSelection() {
+		// Selection updates sortable
+		let changed = getChangedIds();
+		for (let id of changed) {
+			let element = elements[id];
+			if (element) {
+				if ($selection.has(item.extend(id))) {
+					Sortable.utils.select(element);
+					element.scrollIntoView({
+						behavior: 'smooth',
+						block: 'nearest'
+					});
+				} else {
+					Sortable.utils.deselect(element);
+				}
+			}
+		}
+	}
+
+	$: if ($selection) {
+		updateFromSelection();
 	}
 
 	const { fileOrder } = settings;
@@ -93,7 +117,11 @@
 		}
 	}
 
-	onMount(() => {
+	$: if ($fileOrder) {
+		syncFileOrder();
+	}
+
+	function createSortable() {
 		sortable = Sortable.create(container, {
 			group: {
 				name: sortableLevel
@@ -103,8 +131,8 @@
 			multiDrag: true,
 			multiDragKey: 'Meta',
 			avoidImplicitDeselect: true,
-			onSelect: onSelectChange,
-			onDeselect: onSelectChange,
+			onSelect: updateToSelection,
+			onDeselect: updateToSelection,
 			onSort: (e) => {
 				if (sortableLevel === ListLevel.FILE) {
 					let newFileOrder = sortable.toArray();
@@ -152,79 +180,30 @@
 			value: item,
 			writable: true
 		});
-		selection.set(get(selection));
-	});
-
-	$: if ($fileOrder) {
-		syncFileOrder();
 	}
 
-	afterUpdate(() => {
-		syncFileOrder();
-		if (sortableLevel === ListLevel.FILE) {
-			Object.keys(elements).forEach((fileId) => {
-				if (!get(fileObservers).has(fileId)) {
-					if (elements[fileId]) {
-						Sortable.utils.deselect(elements[fileId]);
-					}
-					delete elements[fileId];
-				}
-			});
-		} else if (sortableLevel === ListLevel.WAYPOINTS) {
-			if (node.wpt.length === 0) {
-				if (elements['waypoints']) {
-					Sortable.utils.deselect(elements['waypoints']);
-				}
-				delete elements['waypoints'];
-			}
-		} else {
-			Object.keys(elements).forEach((index) => {
-				if ((node instanceof GPXFile || node instanceof Track) && node.children.length <= index) {
-					if (elements[index]) {
-						Sortable.utils.deselect(elements[index]);
-					}
-					delete elements[index];
-				} else if (Array.isArray(node) && node.length <= index) {
-					if (elements[index]) {
-						Sortable.utils.deselect(elements[index]);
-					}
-					delete elements[index];
-				}
-			});
-		}
-		if (sortableLevel !== ListLevel.FILE) {
-			sortable.sort(Object.keys(elements));
-		}
-		Object.defineProperty(sortable, '_item', {
-			value: item,
-			writable: true
-		});
+	onMount(() => {
+		createSortable();
 	});
 
-	const unsubscribe = selection.subscribe(($selection) => {
-		let changed = getChangedIds();
-		for (let id of changed) {
-			let element = elements[id];
-			if (element) {
-				if ($selection.has(item.extend(id))) {
-					Sortable.utils.select(element);
-					element.scrollIntoView({
-						behavior: 'smooth',
-						block: 'nearest'
-					});
-				} else {
-					Sortable.utils.deselect(element);
+	afterUpdate(() => {
+		elements = {};
+		container.childNodes.forEach((node) => {
+			if (node instanceof HTMLElement) {
+				let attr = node.getAttribute('data-id');
+				if (attr) {
+					elements[attr] = node;
 				}
 			}
-		}
+		});
+
+		syncFileOrder();
+		updateFromSelection();
 	});
 
 	function getChangedIds() {
 		let changed: (string | number)[] = [];
 		Object.entries(elements).forEach(([id, element]) => {
-			if (element === null) {
-				return;
-			}
 			let realId = getRealId(id);
 			let realItem = item.extend(realId);
 			let inSelection = get(selection).has(realItem);
@@ -241,10 +220,6 @@
 			? id
 			: parseInt(id);
 	}
-
-	onDestroy(() => {
-		unsubscribe();
-	});
 </script>
 
 <div
@@ -253,33 +228,33 @@
 >
 	{#if node instanceof Map}
 		{#each node as [fileId, file] (fileId)}
-			<div bind:this={elements[fileId]} data-id={fileId}>
+			<div data-id={fileId}>
 				<FileListNodeStore {file} />
 			</div>
 		{/each}
 	{:else if node instanceof GPXFile}
 		{#if waypointRoot}
 			{#if node.wpt.length > 0}
-				<div bind:this={elements['waypoints']} data-id="waypoints">
+				<div data-id="waypoints">
 					<FileListNode node={node.wpt} item={item.extend('waypoints')} />
 				</div>
 			{/if}
 		{:else}
 			{#each node.children as child, i (child)}
-				<div bind:this={elements[i]} data-id={i}>
+				<div data-id={i}>
 					<FileListNode node={child} item={item.extend(i)} />
 				</div>
 			{/each}
 		{/if}
 	{:else if node instanceof Track}
 		{#each node.children as child, i (child)}
-			<div bind:this={elements[i]} data-id={i} class="ml-1">
+			<div data-id={i} class="ml-1">
 				<FileListNode node={child} item={item.extend(i)} />
 			</div>
 		{/each}
 	{:else if Array.isArray(node) && node.length > 0 && node[0] instanceof Waypoint}
 		{#each node as wpt, i (wpt)}
-			<div bind:this={elements[i]} data-id={i} class="ml-1">
+			<div data-id={i} class="ml-1">
 				<FileListNode node={wpt} item={item.extend(i)} />
 			</div>
 		{/each}

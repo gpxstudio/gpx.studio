@@ -308,7 +308,7 @@ export function moveItems(fromParent: ListItem, toParent: ListItem, fromItems: L
                     let [result, _removed] = newFile.replaceTrackSegments(item.getTrackIndex(), item.getSegmentIndex(), item.getSegmentIndex() - 1, [context[i]]);
                     newFile = castDraft(result);
                 } else if (item instanceof ListWaypointsItem && Array.isArray(context[i]) && context[i].length > 0 && context[i][0] instanceof Waypoint) {
-                    let [result, _removed] = newFile.replaceWaypoints(0, -1, context[i]);
+                    let [result, _removed] = newFile.replaceWaypoints(newFile.wpt.length, newFile.wpt.length - 1, context[i]);
                     newFile = castDraft(result);
                 } else if (item instanceof ListWaypointItem && context[i] instanceof Waypoint) {
                     let [result, _removed] = newFile.replaceWaypoints(item.getWaypointIndex(), item.getWaypointIndex() - 1, [context[i]]);
@@ -318,4 +318,12 @@ export function moveItems(fromParent: ListItem, toParent: ListItem, fromItems: L
             return newFile;
         }
     ], []);
+
+    selection.update(($selection) => {
+        $selection.clear();
+        toItems.forEach((item) => {
+            $selection.set(item, true);
+        });
+        return $selection;
+    });
 }

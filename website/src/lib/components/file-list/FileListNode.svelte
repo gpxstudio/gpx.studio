@@ -67,7 +67,9 @@
 	<CollapsibleTreeNode id={item.getId()} bind:this={collapsible}>
 		<FileListNodeLabel {item} {label} slot="trigger" />
 		<div slot="content">
-			<FileListNodeContent {node} {item} />
+			{#key node}
+				<FileListNodeContent {node} {item} />
+			{/key}
 		</div>
 	</CollapsibleTreeNode>
 {:else}
