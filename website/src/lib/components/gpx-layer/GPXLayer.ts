@@ -289,16 +289,18 @@ export class GPXLayer {
 
     showWaypointPopup(waypoint: Waypoint) {
         let marker = this.markers[waypoint._data.index];
-        currentWaypoint.set(waypoint);
-        marker.setPopup(waypointPopup);
-        marker.togglePopup();
+        if (marker) {
+            currentWaypoint.set(waypoint);
+            marker.setPopup(waypointPopup);
+            marker.togglePopup();
+        }
     }
 
     hideWaypointPopup() {
         let waypoint = get(currentWaypoint);
         if (waypoint) {
             let marker = this.markers[waypoint._data.index];
-            marker.getPopup()?.remove();
+            marker?.getPopup()?.remove();
         }
     }
 

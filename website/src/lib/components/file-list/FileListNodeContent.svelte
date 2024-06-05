@@ -164,18 +164,30 @@
 		if (sortableLevel === ListLevel.FILE) {
 			Object.keys(elements).forEach((fileId) => {
 				if (!get(fileObservers).has(fileId)) {
+					if (elements[fileId]) {
+						Sortable.utils.deselect(elements[fileId]);
+					}
 					delete elements[fileId];
 				}
 			});
 		} else if (sortableLevel === ListLevel.WAYPOINTS) {
 			if (node.wpt.length === 0) {
+				if (elements['waypoints']) {
+					Sortable.utils.deselect(elements['waypoints']);
+				}
 				delete elements['waypoints'];
 			}
 		} else {
 			Object.keys(elements).forEach((index) => {
 				if ((node instanceof GPXFile || node instanceof Track) && node.children.length <= index) {
+					if (elements[index]) {
+						Sortable.utils.deselect(elements[index]);
+					}
 					delete elements[index];
 				} else if (Array.isArray(node) && node.length <= index) {
+					if (elements[index]) {
+						Sortable.utils.deselect(elements[index]);
+					}
 					delete elements[index];
 				}
 			});
@@ -183,6 +195,10 @@
 		if (sortableLevel !== ListLevel.FILE) {
 			sortable.sort(Object.keys(elements));
 		}
+		Object.defineProperty(sortable, '_item', {
+			value: item,
+			writable: true
+		});
 	});
 
 	const unsubscribe = selection.subscribe(($selection) => {
