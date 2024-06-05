@@ -207,7 +207,7 @@
     "gpx": {
         "track": "Track",
         "segment": "Segment",
-        "waypoint": "Waypoint",
-        "waypoints": "Waypoints"
+        "waypoint": "Point of interest",
+        "waypoints": "Points of interest"
     }
 }
