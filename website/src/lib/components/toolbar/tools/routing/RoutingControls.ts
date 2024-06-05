@@ -402,7 +402,7 @@ export class RoutingControls {
         dbUtils.applyToFile(this.fileId, (file) => {
             let segment = original(file).getSegment(lastAnchor.trackIndex, lastAnchor.segmentIndex);
             let newSegment = segment.clone();
-            newSegment = newSegment.reverse(segment.getEndTimestamp(), segment.getEndTimestamp());
+            newSegment = newSegment._reverse(segment.getEndTimestamp(), segment.getEndTimestamp());
             return file.replaceTrackPoints(lastAnchor.trackIndex, lastAnchor.segmentIndex, segment.trkpt.length, segment.trkpt.length, newSegment.trkpt.map((point) => point));
         });
     }

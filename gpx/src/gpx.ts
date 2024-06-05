@@ -221,7 +221,7 @@ export class GPXFile extends GPXTreeNode<Track>{
     }
 
     reverse() {
-        return this._reverse();
+        return this._reverse(this.getEndTimestamp(), this.getStartTimestamp());
     }
 
     reverseTrack(trackIndex: number) {
@@ -349,7 +349,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
         return produce(this, (draft) => {
             let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
             let trkseg = og.trkseg.slice();
-            trkseg[segmentIndex] = trkseg[segmentIndex]._reverse();
+            trkseg[segmentIndex] = trkseg[segmentIndex]._reverse(trkseg[segmentIndex].getEndTimestamp(), trkseg[segmentIndex].getStartTimestamp());
             draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
         });
     }

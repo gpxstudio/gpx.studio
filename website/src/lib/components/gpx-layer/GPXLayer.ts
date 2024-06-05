@@ -272,7 +272,7 @@ export class GPXLayer {
         }
 
         let item = undefined;
-        if (get(verticalFileView) && file.children.length > 1) { // Select inner item
+        if (get(verticalFileView) && file.getSegments().length > 1) { // Select inner item
             let trackIndex = e.features[0].properties.trackIndex;
             let segmentIndex = e.features[0].properties.segmentIndex;
             item = file.children[trackIndex].children.length > 1 ? new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex) : new ListTrackItem(this.fileId, trackIndex);

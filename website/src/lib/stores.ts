@@ -7,7 +7,7 @@ import { _ } from 'svelte-i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
 import { dbUtils, fileObservers } from './db';
 import { applyToOrderedSelectedItemsFromFile, selectFile, selection } from '$lib/components/file-list/Selection';
-import { ListFileItem, ListWaypointItem } from '$lib/components/file-list/FileList';
+import { ListFileItem, ListWaypointItem, ListWaypointsItem } from '$lib/components/file-list/FileList';
 import type { RoutingControls } from '$lib/components/toolbar/tools/routing/RoutingControls';
 
 export const map = writable<mapboxgl.Map | null>(null);
@@ -24,7 +24,7 @@ function updateGPXData() {
             if (stats) {
                 let first = true;
                 items.forEach((item) => {
-                    if (!(item instanceof ListWaypointItem) || first) {
+                    if (!(item instanceof ListWaypointItem || item instanceof ListWaypointsItem) || first) {
                         statistics.mergeWith(stats.getStatisticsFor(item));
                         first = false;
                     }

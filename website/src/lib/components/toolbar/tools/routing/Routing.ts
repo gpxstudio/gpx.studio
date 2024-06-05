@@ -63,7 +63,7 @@ async function getRoute(points: Coordinates[], brouterProfile: string, privateRo
     const latIdx = messages[0].indexOf("Latitude");
     const tagIdx = messages[0].indexOf("WayTags");
     let messageIdx = 1;
-    let surface = getSurface(messages[messageIdx][tagIdx]);
+    let surface = messageIdx < messages.length ? getSurface(messages[messageIdx][tagIdx]) : "unknown";
 
     for (let i = 0; i < coordinates.length; i++) {
         let coord = coordinates[i];

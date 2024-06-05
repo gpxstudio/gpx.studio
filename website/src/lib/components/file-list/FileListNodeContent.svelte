@@ -9,13 +9,15 @@
 	};
 
 	let dragging: Writable<ListLevel | null> = writable(null);
+
+	let updating = false;
 </script>
 
 <script lang="ts">
 	import { GPXFile, Track, Waypoint, type AnyGPXTreeElement, type GPXTreeElement } from 'gpx';
 	import { afterUpdate, getContext, onMount } from 'svelte';
 	import Sortable from 'sortablejs/Sortable';
-	import { fileObservers, getFileIds, settings, type GPXFileWithStatistics } from '$lib/db';
+	import { getFileIds, settings, type GPXFileWithStatistics } from '$lib/db';
 	import { get, writable, type Readable, type Writable } from 'svelte/store';
 	import FileListNodeStore from './FileListNodeStore.svelte';
 	import FileListNode from './FileListNode.svelte';
@@ -46,6 +48,8 @@
 	let orientation = getContext<'vertical' | 'horizontal'>('orientation');
 
 	function updateToSelection() {
+		if (updating) return;
+		updating = true;
 		// Sortable updates selection
 		let changed = getChangedIds();
 		if (changed.length > 0) {
@@ -60,9 +64,12 @@
 				return $selection;
 			});
 		}
+		updating = false;
 	}
 
-	async function updateFromSelection() {
+	function updateFromSelection() {
+		if (updating) return;
+		updating = true;
 		// Selection updates sortable
 		let changed = getChangedIds();
 		for (let id of changed) {
@@ -79,6 +86,7 @@
 				}
 			}
 		}
+		updating = false;
 	}
 
 	$: if ($selection) {
@@ -198,10 +206,8 @@
 		});
 	}
 
-	let firstUpdateAfterMount = false;
 	onMount(() => {
 		createSortable();
-		firstUpdateAfterMount = true;
 	});
 
 	afterUpdate(() => {
@@ -220,10 +226,7 @@
 		});
 
 		syncFileOrder();
-		if (firstUpdateAfterMount) {
-			firstUpdateAfterMount = false;
-			updateFromSelection();
-		}
+		updateFromSelection();
 	});
 
 	function getChangedIds() {

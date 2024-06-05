@@ -2,7 +2,7 @@
 	import * as Collapsible from '$lib/components/ui/collapsible';
 	import { Button } from '$lib/components/ui/button';
 	import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-svelte';
-	import { getContext, setContext } from 'svelte';
+	import { getContext, onMount, setContext } from 'svelte';
 	import { get, type Writable } from 'svelte/store';
 
 	export let id: string | number;
@@ -18,15 +18,16 @@
 	let fullId = `${parentId}.${id}`;
 	setContext('collapsible-tree-parent-id', fullId);
 
-	open.update((value) => {
-		if (!value.hasOwnProperty(fullId)) {
-			value[fullId] = defaultState === 'open';
+	onMount(() => {
+		if (!get(open).hasOwnProperty(fullId)) {
+			open.update((value) => {
+				value[fullId] = defaultState === 'open';
+				return value;
+			});
 		}
-		return value;
 	});
 
 	export function openNode() {
-		if (get(open)[fullId]) return;
 		open.update((value) => {
 			value[fullId] = true;
 			return value;
