@@ -36,9 +36,6 @@
 		>
 			<span
 				class="w-full text-left truncate py-1 flex flex-row items-center"
-				on:click={(e) => {
-					e.stopPropagation(); // Avoid toggling the collapsible element
-				}}
 				on:contextmenu={(e) => {
 					if (e.ctrlKey) {
 						// Add to selection instead of opening context menu

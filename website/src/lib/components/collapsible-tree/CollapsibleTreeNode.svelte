@@ -12,6 +12,7 @@
 	let side = getContext<'left' | 'right'>('collapsible-tree-side');
 	let margin = getContext<number>('collapsible-tree-margin');
 	let nohover = getContext<boolean>('collapsible-tree-nohover');
+	let slotInsideTrigger = getContext<boolean>('collapsible-tree-slot-inside-trigger');
 	let parentId = getContext<string>('collapsible-tree-parent-id');
 
 	let fullId = `${parentId}.${id}`;
@@ -34,7 +35,32 @@
 </script>
 
 <Collapsible.Root bind:open={$open[fullId]} class={$$props.class ?? ''}>
-	<Collapsible.Trigger class="w-full">
+	{#if slotInsideTrigger}
+		<Collapsible.Trigger class="w-full">
+			<Button
+				variant="ghost"
+				class="w-full flex flex-row {side === 'right'
+					? 'justify-between'
+					: 'justify-start'} py-0 px-1 h-fit {nohover ? 'hover:bg-background' : ''}"
+			>
+				{#if side === 'left'}
+					{#if $open[fullId]}
+						<ChevronDown size="16" class="shrink-0" />
+					{:else}
+						<ChevronRight size="16" class="shrink-0" />
+					{/if}
+				{/if}
+				<slot name="trigger" />
+				{#if side === 'right'}
+					{#if $open[fullId]}
+						<ChevronDown size="16" class="shrink-0" />
+					{:else}
+						<ChevronLeft size="16" class="shrink-0" />
+					{/if}
+				{/if}
+			</Button>
+		</Collapsible.Trigger>
+	{:else}
 		<Button
 			variant="ghost"
 			class="w-full flex flex-row {side === 'right'
@@ -42,23 +68,28 @@
 				: 'justify-start'} py-0 px-1 h-fit {nohover ? 'hover:bg-background' : ''}"
 		>
 			{#if side === 'left'}
-				{#if $open[fullId]}
-					<ChevronDown size="16" class="shrink-0" />
-				{:else}
-					<ChevronRight size="16" class="shrink-0" />
-				{/if}
+				<Collapsible.Trigger>
+					{#if $open[fullId]}
+						<ChevronDown size="16" class="shrink-0" />
+					{:else}
+						<ChevronRight size="16" class="shrink-0" />
+					{/if}
+				</Collapsible.Trigger>
 			{/if}
 			<slot name="trigger" />
 			{#if side === 'right'}
-				{#if $open[fullId]}
-					<ChevronDown size="16" class="shrink-0" />
-				{:else}
-					<ChevronLeft size="16" class="shrink-0" />
-				{/if}
+				<Collapsible.Trigger>
+					{#if $open[fullId]}
+						<ChevronDown size="16" class="shrink-0" />
+					{:else}
+						<ChevronLeft size="16" class="shrink-0" />
+					{/if}
+				</Collapsible.Trigger>
 			{/if}
 		</Button>
-	</Collapsible.Trigger>
-	<Collapsible.Content class="ml-{margin}">
+	{/if}
+
+	<Collapsible.Content class="ml-{margin} pl-{margin}">
 		<slot name="content" />
 	</Collapsible.Content>
 </Collapsible.Root>

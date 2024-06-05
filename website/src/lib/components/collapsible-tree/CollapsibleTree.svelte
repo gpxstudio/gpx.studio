@@ -6,6 +6,7 @@
 	export let side: 'left' | 'right' = 'right';
 	export let margin: number = 1;
 	export let nohover: boolean = false;
+	export let slotInsideTrigger: boolean = true;
 
 	let open = writable<Record<string, boolean>>({});
 
@@ -15,6 +16,7 @@
 	setContext('collapsible-tree-margin', margin);
 	setContext('collapsible-tree-nohover', nohover);
 	setContext('collapsible-tree-parent-id', 'root');
+	setContext('collapsible-tree-slot-inside-trigger', slotInsideTrigger);
 </script>
 
 <slot />

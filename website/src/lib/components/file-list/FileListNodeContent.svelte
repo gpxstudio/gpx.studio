@@ -6,7 +6,6 @@
 	import { get, type Readable } from 'svelte/store';
 	import FileListNodeStore from './FileListNodeStore.svelte';
 	import FileListNode from './FileListNode.svelte';
-	import FileListNodeLabel from './FileListNodeLabel.svelte';
 	import { ListLevel, moveItems, type ListItem } from './FileList';
 	import { selection } from './Selection';
 	import { _ } from 'svelte-i18n';
@@ -237,7 +236,7 @@
 	class="sortable {orientation} flex {orientation === 'vertical' ? 'flex-col' : 'flex-row gap-1'}"
 >
 	{#if node instanceof Map}
-		{#each node as [fileId, file]}
+		{#each node as [fileId, file] (fileId)}
 			<div bind:this={elements[fileId]} data-id={fileId}>
 				<FileListNodeStore {file} />
 			</div>
@@ -250,25 +249,22 @@
 				</div>
 			{/if}
 		{:else}
-			{#each node.children as child, i}
+			{#each node.children as child, i (child)}
 				<div bind:this={elements[i]} data-id={i}>
 					<FileListNode node={child} item={item.extend(i)} />
 				</div>
 			{/each}
 		{/if}
 	{:else if node instanceof Track}
-		{#each node.children as child, i}
+		{#each node.children as child, i (child)}
 			<div bind:this={elements[i]} data-id={i} class="ml-1">
-				<FileListNodeLabel item={item.extend(i)} label={`${$_('gpx.segment')} ${i + 1}`} />
+				<FileListNode node={child} item={item.extend(i)} />
 			</div>
 		{/each}
 	{:else if Array.isArray(node) && node.length > 0 && node[0] instanceof Waypoint}
-		{#each node as wpt, i}
+		{#each node as wpt, i (wpt)}
 			<div bind:this={elements[i]} data-id={i} class="ml-1">
-				<FileListNodeLabel
-					item={item.extend(i)}
-					label={wpt.name ?? `${$_('gpx.waypoint')} ${i + 1}`}
-				/>
+				<FileListNode node={wpt} item={item.extend(i)} />
 			</div>
 		{/each}
 	{/if}

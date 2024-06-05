@@ -1,12 +1,24 @@
 <script lang="ts">
-	import { GPXFile, Track, Waypoint, type AnyGPXTreeElement, type GPXTreeElement } from 'gpx';
+	import {
+		GPXFile,
+		Track,
+		TrackSegment,
+		Waypoint,
+		type AnyGPXTreeElement,
+		type GPXTreeElement
+	} from 'gpx';
 	import { CollapsibleTreeNode } from '$lib/components/collapsible-tree/index';
 	import { settings, type GPXFileWithStatistics } from '$lib/db';
 	import { get, type Readable } from 'svelte/store';
 	import FileListNodeContent from './FileListNodeContent.svelte';
 	import FileListNodeLabel from './FileListNodeLabel.svelte';
 	import { getContext, onDestroy } from 'svelte';
-	import { type ListItem, type ListTrackItem } from './FileList';
+	import {
+		ListTrackSegmentItem,
+		ListWaypointItem,
+		type ListItem,
+		type ListTrackItem
+	} from './FileList';
 	import { _ } from 'svelte-i18n';
 	import { selection } from './Selection';
 
@@ -25,9 +37,13 @@
 			? node.metadata.name
 			: node instanceof Track
 				? node.name ?? `${$_('gpx.track')} ${(item as ListTrackItem).trackIndex + 1}`
-				: Array.isArray(node) && node.length > 0 && node[0] instanceof Waypoint
-					? $_('gpx.waypoints')
-					: '';
+				: node instanceof TrackSegment
+					? `${$_('gpx.segment')} ${(item as ListTrackSegmentItem).segmentIndex + 1}`
+					: node instanceof Waypoint
+						? node.name ?? `${$_('gpx.waypoint')} ${(item as ListWaypointItem).waypointIndex + 1}`
+						: Array.isArray(node) && node.length > 0 && node[0] instanceof Waypoint
+							? $_('gpx.waypoints')
+							: '';
 
 	const { verticalFileView } = settings;
 	const unsubscribe = selection.subscribe(($selection) => {
@@ -43,6 +59,10 @@
 
 {#if node instanceof Map}
 	<FileListNodeContent {node} {item} />
+{:else if node instanceof TrackSegment}
+	<FileListNodeLabel {item} {label} />
+{:else if node instanceof Waypoint}
+	<FileListNodeLabel {item} {label} />
 {:else if recursive}
 	<CollapsibleTreeNode id={item.getId()} bind:this={collapsible}>
 		<FileListNodeLabel {item} {label} slot="trigger" />
