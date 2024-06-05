@@ -174,7 +174,10 @@
 
 						if (toItem instanceof ListRootItem) {
 							let newFileIds = getFileIds(newIndices.length);
-							toItems = newIndices.map((_i, index) => item.extend(newFileIds[index]));
+							toItems = newIndices.map((i, index) => {
+								$fileOrder.splice(i, 0, newFileIds[index]);
+								return item.extend(newFileIds[index]);
+							});
 						} else {
 							toItems = newIndices.map((i) => toItem.extend(i));
 						}
@@ -201,11 +204,15 @@
 
 	afterUpdate(() => {
 		elements = {};
-		container.childNodes.forEach((node) => {
-			if (node instanceof HTMLElement) {
-				let attr = node.getAttribute('data-id');
+		container.childNodes.forEach((element) => {
+			if (element instanceof HTMLElement) {
+				let attr = element.getAttribute('data-id');
 				if (attr) {
-					elements[attr] = node;
+					if (node instanceof Map && !node.has(attr)) {
+						element.remove();
+					} else {
+						elements[attr] = element;
+					}
 				}
 			}
 		});
@@ -241,7 +248,7 @@
 	bind:this={container}
 	class="sortable {orientation} flex {orientation === 'vertical'
 		? 'flex-col'
-		: 'flex-row gap-1'} {canDrop ? 'p-b-5' : ''}"
+		: 'flex-row gap-1'} {canDrop ? 'min-h-5' : ''}"
 >
 	{#if node instanceof Map}
 		{#each node as [fileId, file] (fileId)}

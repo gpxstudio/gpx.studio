@@ -259,21 +259,6 @@ export function moveItems(fromParent: ListItem, toParent: ListItem, fromItems: L
     sortItems(fromItems, true);
     sortItems(toItems, false);
 
-    let toFileObserver = get(fileObservers).get(toParent.getFileId());
-    let first = true;
-    toFileObserver?.subscribe(() => { // Update selection when the target file has been updated
-        if (first) first = false;
-        else {
-            selection.update(($selection) => {
-                $selection.clear();
-                toItems.forEach((item) => {
-                    $selection.set(item, true);
-                });
-                return $selection;
-            });
-        }
-    });
-
     dbUtils.applyEachToFilesAndGlobal([fromParent.getFileId(), toParent.getFileId()], [
         (file, context: (Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
             let newFile = file;
@@ -352,4 +337,12 @@ export function moveItems(fromParent: ListItem, toParent: ListItem, fromItems: L
             }
         });
     }, []);
+
+    selection.update(($selection) => {
+        $selection.clear();
+        toItems.forEach((item) => {
+            $selection.set(item, true);
+        });
+        return $selection;
+    });
 }
