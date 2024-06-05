@@ -198,8 +198,10 @@
 		});
 	}
 
+	let firstUpdateAfterMount = false;
 	onMount(() => {
 		createSortable();
+		firstUpdateAfterMount = true;
 	});
 
 	afterUpdate(() => {
@@ -218,7 +220,10 @@
 		});
 
 		syncFileOrder();
-		updateFromSelection();
+		if (firstUpdateAfterMount) {
+			firstUpdateAfterMount = false;
+			updateFromSelection();
+		}
 	});
 
 	function getChangedIds() {

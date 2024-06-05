@@ -12,7 +12,7 @@
 	import { get, type Readable } from 'svelte/store';
 	import FileListNodeContent from './FileListNodeContent.svelte';
 	import FileListNodeLabel from './FileListNodeLabel.svelte';
-	import { getContext, onDestroy } from 'svelte';
+	import { afterUpdate, getContext } from 'svelte';
 	import {
 		ListTrackSegmentItem,
 		ListWaypointItem,
@@ -46,15 +46,18 @@
 							: '';
 
 	const { verticalFileView } = settings;
-	const unsubscribe = selection.subscribe(($selection) => {
+
+	function openIfSelectedChild() {
 		if (collapsible && get(verticalFileView) && $selection.hasAnyChildren(item, false)) {
 			collapsible.openNode();
 		}
-	});
+	}
 
-	onDestroy(() => {
-		unsubscribe();
-	});
+	if ($selection) {
+		openIfSelectedChild();
+	}
+
+	afterUpdate(openIfSelectedChild);
 </script>
 
 {#if node instanceof Map}
