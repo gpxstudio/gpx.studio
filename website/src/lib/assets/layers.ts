@@ -330,6 +330,13 @@ export const overlays: { [key: string]: AnySourceData; } = {
         maxzoom: 17,
         attribution: 'IGN-F/Géoportail'
     },
+    ignSkiTouring: {
+        type: 'raster',
+        tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TileMatrixSet=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&Layer=TRACES.RANDO.HIVERNALE&FORMAT=image/png&Style=normal'],
+        tileSize: 256,
+        maxzoom: 16,
+        attribution: 'IGN-F/Géoportail'
+    },
     waymarkedTrailsHiking: {
         type: 'raster',
         tiles: ['https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png'],
@@ -451,6 +458,7 @@ export const overlayTree: LayerTreeType = {
             france: {
                 ignFrCadastre: true,
                 ignSlope: true,
+                ignSkiTouring: true,
             },
             switzerland: {
                 swisstopoSlope: true,
@@ -484,6 +492,7 @@ export const defaultOverlays = {
             france: {
                 ignFrCadastre: false,
                 ignSlope: false,
+                ignSkiTouring: false,
             },
             switzerland: {
                 swisstopoSlope: false,
@@ -563,6 +572,7 @@ export const defaultOverlayTree: LayerTreeType = {
             france: {
                 ignFrCadastre: false,
                 ignSlope: false,
+                ignSkiTouring: false,
             },
             switzerland: {
                 swisstopoSlope: false,
