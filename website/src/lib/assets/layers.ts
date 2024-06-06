@@ -316,6 +316,13 @@ export const overlays: { [key: string]: AnySourceData; } = {
         maxzoom: 18,
         attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
     },
+    swisstopoSkiTouring: {
+        type: 'raster',
+        tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.swisstopo-karto.skitouren/default/current/3857/{z}/{x}/{y}.png'],
+        tileSize: 256,
+        maxzoom: 17,
+        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+    },
     ignFrCadastre: {
         type: 'raster',
         tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TILEMATRIXSET=PM&TILEMATRIX={z}&TILECOL={x}&TILEROW={y}&LAYER=CADASTRALPARCELS.PARCELS&FORMAT=image/png&STYLE=normal'],
@@ -464,6 +471,7 @@ export const overlayTree: LayerTreeType = {
                 swisstopoSlope: true,
                 swisstopoCycling: true,
                 swisstopoMountainBike: true,
+                swisstopoSkiTouring: true,
             }
         },
     },
@@ -498,6 +506,7 @@ export const defaultOverlays = {
                 swisstopoSlope: false,
                 swisstopoCycling: false,
                 swisstopoMountainBike: false,
+                swisstopoSkiTouring: false,
             }
         },
     },
@@ -578,6 +587,7 @@ export const defaultOverlayTree: LayerTreeType = {
                 swisstopoSlope: false,
                 swisstopoCycling: false,
                 swisstopoMountainBike: false,
+                swisstopoSkiTouring: false,
             }
         },
     }
