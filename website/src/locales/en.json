@@ -15,7 +15,7 @@
         "delete_all": "Delete all",
         "select_all": "Select all",
         "view": "View",
-        "vertical_file_view": "Show vertical file list",
+        "vertical_file_view": "Vertical file list",
         "switch_basemap": "Switch to previous basemap",
         "toggle_overlays": "Toggle overlays",
         "toggle_3d": "Toggle 3D",
@@ -32,8 +32,8 @@
         "dark": "Dark",
         "system": "System",
         "layers": "Map layers...",
-        "distance_markers": "Show distance markers",
-        "direction_markers": "Show direction markers",
+        "distance_markers": "Distance markers",
+        "direction_markers": "Direction markers",
         "about": "About",
         "donate": "Donate",
         "ctrl": "Ctrl",
@@ -100,12 +100,15 @@
                 "timeout": "The routing request took too long, try adding points closer"
             }
         },
-        "time_tooltip": "Change the time and speed data",
-        "merge_tooltip": "Merge files together",
+        "scissors": {
+            "tooltip": "Trim or split routes"
+        },
+        "time_tooltip": "Manage time and speed data",
+        "merge_tooltip": "Merge file elements together",
         "extract_tooltip": "Extract inner tracks or segments",
-        "waypoint_tooltip": "Create a new point of interest",
-        "reduce_tooltip": "Reduce the number of points",
-        "clean_tooltip": "Clean track points and points of interest with a rectangle selection",
+        "waypoint_tooltip": "Create and edit points of interest",
+        "reduce_tooltip": "Reduce the number of GPS points",
+        "clean_tooltip": "Clean GPS points and points of interest with a rectangle selection",
         "style_tooltip": "Change the style of the route"
     },
     "layers": {
@@ -165,14 +168,14 @@
         }
     },
     "chart": {
-        "show_slope": "Show slope",
-        "show_surface": "Show surface",
-        "show_speed": "Show speed",
-        "show_pace": "Show pace",
-        "show_heartrate": "Show heart rate",
-        "show_cadence": "Show cadence",
-        "show_temperature": "Show temperature",
-        "show_power": "Show power"
+        "show_slope": "Show slope data",
+        "show_surface": "Show surface data",
+        "show_speed": "Show speed data",
+        "show_pace": "Show pace data",
+        "show_heartrate": "Show heart rate data",
+        "show_cadence": "Show cadence data",
+        "show_temperature": "Show temperature data",
+        "show_power": "Show power data"
     },
     "quantities": {
         "distance": "Distance",

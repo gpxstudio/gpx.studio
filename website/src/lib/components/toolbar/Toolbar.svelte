@@ -9,7 +9,8 @@
 		Ungroup,
 		MapPin,
 		Palette,
-		Filter
+		Filter,
+		Scissors
 	} from 'lucide-svelte';
 
 	import { _ } from 'svelte-i18n';
@@ -24,6 +25,10 @@
 			<ToolbarItem tool={Tool.ROUTING}>
 				<Pencil slot="icon" size="18" />
 				<span slot="tooltip">{$_('toolbar.routing.tooltip')}</span>
+			</ToolbarItem>
+			<ToolbarItem tool={Tool.SCISSORS}>
+				<Scissors slot="icon" size="18" />
+				<span slot="tooltip">{$_('toolbar.scissors.tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.WAYPOINT}>
 				<MapPin slot="icon" size="18" />

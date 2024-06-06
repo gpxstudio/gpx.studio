@@ -3,7 +3,8 @@
 	import { flyAndScale } from '$lib/utils';
 	import * as Card from '$lib/components/ui/card';
 	import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
-	import Waypoint from '$lib/components/toolbar/tools/waypoint/Waypoint.svelte';
+	import Scissors from '$lib/components/toolbar/tools/Scissors.svelte';
+	import Waypoint from '$lib/components/toolbar/tools/Waypoint.svelte';
 	import RoutingControlPopup from '$lib/components/toolbar/tools/routing/RoutingControlPopup.svelte';
 	import { onMount } from 'svelte';
 	import mapboxgl from 'mapbox-gl';
@@ -31,6 +32,8 @@
 				<Card.Content class="p-3">
 					{#if $currentTool === Tool.ROUTING}
 						<Routing {popup} {popupElement} />
+					{:else if $currentTool === Tool.SCISSORS}
+						<Scissors />
 					{:else if $currentTool === Tool.WAYPOINT}
 						<Waypoint />
 					{/if}
