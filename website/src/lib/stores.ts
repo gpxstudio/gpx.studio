@@ -5,10 +5,11 @@ import { GPXFile, buildGPX, parseGPX, GPXStatistics, type Coordinates } from 'gp
 import { tick } from 'svelte';
 import { _ } from 'svelte-i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
-import { dbUtils, fileObservers } from './db';
+import { dbUtils, fileObservers, settings } from './db';
 import { applyToOrderedSelectedItemsFromFile, selectFile, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListWaypointItem, ListWaypointsItem } from '$lib/components/file-list/FileList';
 import type { RoutingControls } from '$lib/components/toolbar/tools/routing/RoutingControls';
+import { overlayTree, overlays, stravaHeatmapActivityIds, stravaHeatmapServers } from '$lib/assets/layers';
 
 export const map = writable<mapboxgl.Map | null>(null);
 export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }>({});
@@ -237,4 +238,44 @@ export function exportFile(file: GPXFile) {
     a.download = file.metadata.name + '.gpx';
     a.click();
     URL.revokeObjectURL(url);
+}
+
+let stravaCookies: any = null;
+function refreshStravaCookies() {
+    if (stravaCookies === null) {
+        return fetch('https://s.gpx.studio')
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Failed to fetch Strava cookies');
+                }
+            })
+            .then(data => {
+                stravaCookies = data;
+                console.log('Strava cookies:', stravaCookies);
+            });
+    } else {
+        return Promise.resolve();
+    }
+}
+
+export function setStravaHeatmapURLs() {
+    refreshStravaCookies().then(() => {
+        overlays.stravaHeatmapRun.tiles = [];
+        overlays.stravaHeatmapTrailRun.tiles = [];
+        overlays.stravaHeatmapHike.tiles = [];
+        overlays.stravaHeatmapRide.tiles = [];
+        overlays.stravaHeatmapGravel.tiles = [];
+        overlays.stravaHeatmapMTB.tiles = [];
+        overlays.stravaHeatmapWater.tiles = [];
+        overlays.stravaHeatmapWinter.tiles = [];
+
+        for (let activity of Object.keys(overlayTree.overlays.world.strava)) {
+            overlays[activity].tiles = [];
+            for (let server of stravaHeatmapServers) {
+                overlays[activity].tiles.push(`${server}/${stravaHeatmapActivityIds[activity]}/${get(settings.stravaHeatmapColor)}/{z}/{x}/{y}@2x.png?Signature=${stravaCookies['CloudFront-Signature']}&Key-Pair-Id=${stravaCookies['CloudFront-Key-Pair-Id']}&Policy=${stravaCookies['CloudFront-Policy']}`);
+            }
+        }
+    });
 }

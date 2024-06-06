@@ -5,15 +5,75 @@
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 	import * as Sheet from '$lib/components/ui/sheet';
 	import * as Accordion from '$lib/components/ui/accordion';
+	import { Label } from '$lib/components/ui/label';
+	import * as Select from '$lib/components/ui/select';
 
 	import { basemapTree, overlayTree } from '$lib/assets/layers';
 	import { settings } from '$lib/db';
 
 	import { _ } from 'svelte-i18n';
+	import { writable, get } from 'svelte/store';
+	import { map, setStravaHeatmapURLs } from '$lib/stores';
 
-	const { selectedBasemapTree, selectedOverlayTree } = settings;
+	const { selectedBasemapTree, selectedOverlayTree, stravaHeatmapColor, currentOverlays } =
+		settings;
 
 	export let open: boolean;
+
+	const heatmapColors = [
+		{ value: '', label: '' },
+		{ value: 'blue', label: $_('layers.color.blue') },
+		{ value: 'bluered', label: $_('layers.color.bluered') },
+		{ value: 'gray', label: $_('layers.color.gray') },
+		{ value: 'hot', label: $_('layers.color.hot') },
+		{ value: 'orange', label: $_('layers.color.orange') },
+		{ value: 'purple', label: $_('layers.color.purple') }
+	];
+
+	let selectedHeatmapColor = writable(heatmapColors[0]);
+
+	$: if ($selectedHeatmapColor !== heatmapColors[0]) {
+		stravaHeatmapColor.set($selectedHeatmapColor.value);
+
+		// remove and add the heatmap layers
+		let m = get(map);
+		if (m) {
+			let currentStravaLayers = [];
+			for (let layer of Object.keys(overlayTree.overlays.world.strava)) {
+				if (m.getLayer(layer)) {
+					m.removeLayer(layer);
+					currentStravaLayers.push(layer);
+				}
+				if (m.getSource(layer)) {
+					m.removeSource(layer);
+				}
+			}
+			if (currentStravaLayers.length > 0) {
+				currentOverlays.update(($currentOverlays) => {
+					for (let layer of currentStravaLayers) {
+						$currentOverlays.overlays.world.strava[layer] = false;
+					}
+					return $currentOverlays;
+				});
+				currentOverlays.update(($currentOverlays) => {
+					for (let layer of currentStravaLayers) {
+						$currentOverlays.overlays.world.strava[layer] = true;
+					}
+					return $currentOverlays;
+				});
+			}
+		}
+	}
+
+	$: if ($stravaHeatmapColor) {
+		setStravaHeatmapURLs();
+		if ($stravaHeatmapColor !== get(selectedHeatmapColor).value) {
+			let toSelect = heatmapColors.find(({ value }) => value === $stravaHeatmapColor);
+			if (toSelect) {
+				selectedHeatmapColor.set(toSelect);
+			}
+		}
+	}
 </script>
 
 <Sheet.Root bind:open>
@@ -55,7 +115,21 @@
 				</Accordion.Item>
 				<Accordion.Item value="item-3">
 					<Accordion.Trigger>{$_('layers.heatmap')}</Accordion.Trigger>
-					<Accordion.Content></Accordion.Content>
+					<Accordion.Content>
+						<div class="flex flex-row items-center justify-between gap-4">
+							<Label>{$_('menu.color')}</Label>
+							<Select.Root bind:selected={$selectedHeatmapColor} class="grow">
+								<Select.Trigger class="w-full">
+									<Select.Value placeholder="Theme" />
+								</Select.Trigger>
+								<Select.Content>
+									{#each heatmapColors as { value, label }}
+										<Select.Item {value}>{label}</Select.Item>
+									{/each}
+								</Select.Content>
+							</Select.Root>
+						</div>
+					</Accordion.Content>
 				</Accordion.Item>
 				<Accordion.Item value="item-4">
 					<Accordion.Trigger>{$_('layers.pois')}</Accordion.Trigger>

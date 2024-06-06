@@ -16,7 +16,7 @@ export function anySelectedLayer(node: LayerTreeType) {
 }
 
 export function getLayers(node: LayerTreeType, layers: { [key: string]: boolean } = {}): { [key: string]: boolean } {
-    Object.keys(node).find((id) => {
+    Object.keys(node).forEach((id) => {
         if (typeof node[id] == "boolean") {
             layers[id] = node[id];
         } else {

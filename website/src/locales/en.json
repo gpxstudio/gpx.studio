@@ -38,7 +38,8 @@
         "donate": "Donate",
         "ctrl": "Ctrl",
         "click": "Click",
-        "drag": "Drag"
+        "drag": "Drag",
+        "color": "Color"
     },
     "toolbar": {
         "routing": {
@@ -116,7 +117,7 @@
         "settings_help": "Select the map layers you want to show in the interface, add custom ones, and adjust their settings.",
         "selection": "Layer selection",
         "custom_layers": "Custom layers",
-        "heatmap": "Heatmap",
+        "heatmap": "Strava Heatmap",
         "pois": "Points of interest",
         "label": {
             "basemaps": "Basemaps",
@@ -160,6 +161,15 @@
             "ignFrCadastre": "IGN Cadastre",
             "ignSlope": "IGN Slope",
             "ignSkiTouring": "IGN Ski Touring",
+            "strava": "Strava",
+            "stravaHeatmapRun": "Running",
+            "stravaHeatmapTrailRun": "Trail Running",
+            "stravaHeatmapHike": "Hiking",
+            "stravaHeatmapRide": "Cycling",
+            "stravaHeatmapGravel": "Gravel Cycling",
+            "stravaHeatmapMTB": "MTB",
+            "stravaHeatmapWater": "Water",
+            "stravaHeatmapWinter": "Winter",
             "waymarked_trails": "Waymarked Trails",
             "waymarkedTrailsHiking": "Hiking",
             "waymarkedTrailsCycling": "Cycling",
@@ -167,6 +177,14 @@
             "waymarkedTrailsSkating": "Skating",
             "waymarkedTrailsHorseRiding": "Horse Riding",
             "waymarkedTrailsWinter": "Winter"
+        },
+        "color": {
+            "blue": "Blue",
+            "bluered": "Blue Red",
+            "gray": "Gray",
+            "hot": "Hot",
+            "purple": "Purple",
+            "orange": "Orange"
         }
     },
     "chart": {

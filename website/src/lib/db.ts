@@ -97,6 +97,7 @@ export const settings = {
     selectedOverlayTree: dexieSettingStore('selectedOverlayTree', defaultOverlayTree),
     directionMarkers: dexieSettingStore('directionMarkers', false),
     distanceMarkers: dexieSettingStore('distanceMarkers', false),
+    stravaHeatmapColor: dexieSettingStore('stravaHeatmapColor', 'bluered'),
     fileOrder: dexieSettingStore<string[]>('fileOrder', []),
 };
 
