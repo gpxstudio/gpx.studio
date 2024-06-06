@@ -14,6 +14,7 @@
 	import { _ } from 'svelte-i18n';
 	import { writable, get } from 'svelte/store';
 	import { map, setStravaHeatmapURLs } from '$lib/stores';
+	import { browser } from '$app/environment';
 
 	const { selectedBasemapTree, selectedOverlayTree, stravaHeatmapColor, currentOverlays } =
 		settings;
@@ -65,7 +66,7 @@
 		}
 	}
 
-	$: if ($stravaHeatmapColor) {
+	$: if ($stravaHeatmapColor && browser) {
 		setStravaHeatmapURLs();
 		if ($stravaHeatmapColor !== get(selectedHeatmapColor).value) {
 			let toSelect = heatmapColors.find(({ value }) => value === $stravaHeatmapColor);

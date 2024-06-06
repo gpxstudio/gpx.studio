@@ -242,6 +242,8 @@ export function exportFile(file: GPXFile) {
 
 let stravaCookies: any = null;
 function refreshStravaCookies() {
+    /*
+    TODO
     if (stravaCookies === null) {
         return fetch('https://s.gpx.studio')
             .then(response => {
@@ -258,6 +260,8 @@ function refreshStravaCookies() {
     } else {
         return Promise.resolve();
     }
+    */
+    return Promise.resolve();
 }
 
 export function setStravaHeatmapURLs() {
@@ -274,7 +278,7 @@ export function setStravaHeatmapURLs() {
         for (let activity of Object.keys(overlayTree.overlays.world.strava)) {
             overlays[activity].tiles = [];
             for (let server of stravaHeatmapServers) {
-                overlays[activity].tiles.push(`${server}/${stravaHeatmapActivityIds[activity]}/${get(settings.stravaHeatmapColor)}/{z}/{x}/{y}@2x.png?Signature=${stravaCookies['CloudFront-Signature']}&Key-Pair-Id=${stravaCookies['CloudFront-Key-Pair-Id']}&Policy=${stravaCookies['CloudFront-Policy']}`);
+                overlays[activity].tiles.push(`${server}/${stravaHeatmapActivityIds[activity]}/${get(settings.stravaHeatmapColor)}/{z}/{x}/{y}@2x.png`); //?Signature=${stravaCookies['CloudFront-Signature']}&Key-Pair-Id=${stravaCookies['CloudFront-Key-Pair-Id']}&Policy=${stravaCookies['CloudFront-Policy']}`);
             }
         }
     });
