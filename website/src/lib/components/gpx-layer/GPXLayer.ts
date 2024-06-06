@@ -7,6 +7,7 @@ import { addSelectItem, selectItem, selection } from "$lib/components/file-list/
 import { ListTrackSegmentItem, type ListItem, ListWaypointItem, ListWaypointsItem, ListTrackItem, ListFileItem, ListRootItem } from "$lib/components/file-list/FileList";
 import type { Waypoint } from "gpx";
 import { produce } from "immer";
+import { resetCursor, setGrabbingCursor, setPointerCursor } from "$lib/utils";
 
 let defaultWeight = 5;
 let defaultOpacity = 0.6;
@@ -121,8 +122,8 @@ export class GPXLayer {
                 });
 
                 this.map.on('click', this.fileId, this.selectOnClickBinded);
-                this.map.on('mouseenter', this.fileId, toPointerCursor);
-                this.map.on('mouseleave', this.fileId, toDefaultCursor);
+                this.map.on('mouseenter', this.fileId, setPointerCursor);
+                this.map.on('mouseleave', this.fileId, resetCursor);
             }
 
             if (get(directionMarkers)) {
@@ -194,12 +195,12 @@ export class GPXLayer {
                         e.stopPropagation();
                     });
                     marker.on('dragstart', () => {
-                        this.map.getCanvas().style.cursor = 'grabbing';
+                        setGrabbingCursor();
                         marker.getElement().style.cursor = 'grabbing';
                         this.hideWaypointPopup();
                     });
                     marker.on('dragend', (e) => {
-                        this.map.getCanvas().style.cursor = '';
+                        resetCursor();
                         marker.getElement().style.cursor = '';
                         dbUtils.applyToFile(this.fileId, (file) => {
                             return produce(file, (draft) => {
@@ -229,8 +230,8 @@ export class GPXLayer {
 
     remove() {
         this.map.off('click', this.fileId, this.selectOnClickBinded);
-        this.map.off('mouseenter', this.fileId, toPointerCursor);
-        this.map.off('mouseleave', this.fileId, toDefaultCursor);
+        this.map.off('mouseenter', this.fileId, setPointerCursor);
+        this.map.off('mouseleave', this.fileId, resetCursor);
         this.map.off('style.load', this.updateBinded);
 
         if (this.map.getLayer(this.fileId + '-direction')) {
@@ -345,12 +346,4 @@ export class GPXLayer {
         }
         return data;
     }
-}
-
-function toPointerCursor() {
-    get(map).getCanvas().style.cursor = 'pointer';
-}
-
-function toDefaultCursor() {
-    get(map).getCanvas().style.cursor = '';
 }

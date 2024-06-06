@@ -11,6 +11,7 @@ import { dbUtils, type GPXFileWithStatistics } from "$lib/db";
 import { selection } from "$lib/components/file-list/Selection";
 import { ListFileItem, ListTrackSegmentItem } from "$lib/components/file-list/FileList";
 import { currentTool, Tool } from "$lib/stores";
+import { resetCursor, setCrosshairCursor, setGrabbingCursor } from "$lib/utils";
 
 export class RoutingControls {
     active: boolean = false;
@@ -78,6 +79,7 @@ export class RoutingControls {
         this.map.on('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         this.map.on('click', this.appendAnchorBinded);
         this.map.on('mousemove', this.fileId, this.showTemporaryAnchorBinded);
+        setCrosshairCursor();
 
         this.fileUnsubscribe = this.file.subscribe(this.updateControls.bind(this));
     }
@@ -126,6 +128,7 @@ export class RoutingControls {
         this.map.off('click', this.appendAnchorBinded);
         this.map.off('mousemove', this.fileId, this.showTemporaryAnchorBinded);
         this.map.off('mousemove', this.updateTemporaryAnchorBinded);
+        resetCursor();
 
         this.fileUnsubscribe();
     }
@@ -152,13 +155,13 @@ export class RoutingControls {
         let lastDragEvent = 0;
         marker.on('dragstart', (e) => {
             lastDragEvent = Date.now();
-            this.map.getCanvas().style.cursor = 'grabbing';
+            setGrabbingCursor();
             element.classList.remove('cursor-pointer');
             element.classList.add('cursor-grabbing');
         });
         marker.on('dragend', (e) => {
             lastDragEvent = Date.now();
-            this.map.getCanvas().style.cursor = '';
+            resetCursor();
             element.classList.remove('cursor-grabbing');
             element.classList.add('cursor-pointer');
             this.moveAnchor(anchor);
