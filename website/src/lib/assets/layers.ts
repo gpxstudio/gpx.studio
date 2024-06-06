@@ -130,7 +130,7 @@ export const basemaps: { [key: string]: string | Style; } = {
         sources: {
             ignFrScan25: {
                 type: 'raster',
-                tiles: ['https://wxs.ign.fr/ifj1o8jmglxpfn6p1tn4b3g1/geoportail/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&TILEMATRIXSET=PM&TILEMATRIX={z}&TILECOL={x}&TILEROW={y}&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN25TOUR&FORMAT=image/jpeg&STYLE=normal'],
+                tiles: ['https://wxs.ign.fr/ifj1o8jmglxpfn6p1tn4b3g1/geoportail/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&TILEMATRIXSET=PM&TILEMATRIX={z}&TILECOL={x}&TILEROW={y}&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN25TOUR&FORMAT=image/jpeg&STYLE=normal'], // new url https://data.geopf.fr/private/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TILEMATRIXSET=PM&TILEMATRIX={z}&TILECOL={x}&TILEROW={y}&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN25TOUR&FORMAT=image/jpeg&STYLE=normal&apikey=ign_scan_ws
                 tileSize: 256,
                 maxzoom: 16,
                 attribution: 'IGN-F/Géoportail'
