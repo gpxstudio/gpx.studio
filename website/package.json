@@ -49,7 +49,7 @@
         "gpx": "file:../gpx",
         "immer": "^10.1.1",
         "lucide-svelte": "^0.365.0",
-        "mapbox-gl": "^3.2.0",
+        "mapbox-gl": "^3.4.0",
         "mode-watcher": "^0.3.0",
         "sortablejs": "^1.15.2",
         "svelte-i18n": "^4.0.0",

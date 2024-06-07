@@ -108,29 +108,13 @@ export const basemaps: { [key: string]: string | Style; } = {
             source: 'linzTopo',
         }],
     },
-    ignPlanV2: {
-        version: 8,
-        sources: {
-            ignPlanV2: {
-                type: 'raster',
-                tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}'],
-                tileSize: 256,
-                maxzoom: 18,
-                attribution: 'IGN-F/Géoportail'
-            }
-        },
-        layers: [{
-            id: 'ignPlanV2',
-            type: 'raster',
-            source: 'ignPlanV2',
-        }],
-    },
+    ignFrPlan: 'https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/classique.json',
     ignFrScan25: {
         version: 8,
         sources: {
             ignFrScan25: {
                 type: 'raster',
-                tiles: ['https://wxs.ign.fr/ifj1o8jmglxpfn6p1tn4b3g1/geoportail/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&TILEMATRIXSET=PM&TILEMATRIX={z}&TILECOL={x}&TILEROW={y}&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN25TOUR&FORMAT=image/jpeg&STYLE=normal'], // new url https://data.geopf.fr/private/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TILEMATRIXSET=PM&TILEMATRIX={z}&TILECOL={x}&TILEROW={y}&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN25TOUR&FORMAT=image/jpeg&STYLE=normal&apikey=ign_scan_ws
+                tiles: ['https://data.geopf.fr/private/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TILEMATRIXSET=PM&TILEMATRIX={z}&TILECOL={x}&TILEROW={y}&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN25TOUR&FORMAT=image/jpeg&STYLE=normal&apikey=ign_scan_ws'],
                 tileSize: 256,
                 maxzoom: 16,
                 attribution: 'IGN-F/Géoportail'
@@ -142,10 +126,10 @@ export const basemaps: { [key: string]: string | Style; } = {
             source: 'ignFrScan25',
         }],
     },
-    ignSatellite: {
+    ignFrSatellite: {
         version: 8,
         sources: {
-            ignSatellite: {
+            ignFrSatellite: {
                 type: 'raster',
                 tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/jpeg&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}'],
                 tileSize: 256,
@@ -154,9 +138,9 @@ export const basemaps: { [key: string]: string | Style; } = {
             }
         },
         layers: [{
-            id: 'ignSatellite',
+            id: 'ignFrSatellite',
             type: 'raster',
-            source: 'ignSatellite',
+            source: 'ignFrSatellite',
         }],
     },
     ignEs: {
@@ -471,9 +455,9 @@ export const basemapTree: LayerTreeType = {
                 finlandTopo: true,
             },
             france: {
-                ignPlanV2: true,
+                ignFrPlan: true,
                 ignFrScan25: true,
-                ignSatellite: true
+                ignFrSatellite: true,
             },
             new_zealand: {
                 linz: true,
@@ -607,9 +591,9 @@ export const defaultBasemapTree: LayerTreeType = {
                 finlandTopo: false,
             },
             france: {
-                ignPlanV2: false,
+                ignFrPlan: false,
                 ignFrScan25: false,
-                ignSatellite: false
+                ignFrSatellite: false,
             },
             new_zealand: {
                 linz: false,
