@@ -143,6 +143,7 @@
             "linz": "LINZ Topo",
             "linzTopo": "LINZ Topo50",
             "swisstopo": "swisstopo",
+            "swisstopoSatellite": "swisstopo Satellite",
             "ignFrPlan": "IGN Plan",
             "ignFrScan25": "IGN SCAN25",
             "ignFrSatellite": "IGN Satellite",

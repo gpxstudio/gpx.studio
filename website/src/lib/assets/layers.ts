@@ -74,23 +74,8 @@ export const basemaps: { [key: string]: string | Style; } = {
         }],
     },
     linz: 'https://basemaps.linz.govt.nz/v1/tiles/topographic/EPSG:3857/style/topographic.json?api=d01fbtg0ar23gctac5m0jgyy2ds',
-    swisstopo: {
-        version: 8,
-        sources: {
-            swisstopo: {
-                type: 'raster',
-                tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg'],
-                tileSize: 256,
-                maxzoom: 18,
-                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
-            }
-        },
-        layers: [{
-            id: 'swisstopo',
-            type: 'raster',
-            source: 'swisstopo',
-        }],
-    },
+    swisstopo: 'https://vectortiles.geo.admin.ch/styles/ch.swisstopo.basemap.vt/style.json',
+    swisstopoSatellite: 'https://vectortiles.geo.admin.ch/styles/ch.swisstopo.imagerybasemap.vt/style.json',
     linzTopo: {
         version: 8,
         sources: {
@@ -474,6 +459,7 @@ export const basemapTree: LayerTreeType = {
             },
             switzerland: {
                 swisstopo: true,
+                swisstopoSatellite: true,
             },
             united_kingdom: {
                 ordnanceSurvey: true,
@@ -610,6 +596,7 @@ export const defaultBasemapTree: LayerTreeType = {
             },
             switzerland: {
                 swisstopo: false,
+                swisstopoSatellite: false,
             },
             united_kingdom: {
                 ordnanceSurvey: false,
