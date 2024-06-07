@@ -1,13 +1,14 @@
-import { map, currentTool, Tool } from "$lib/stores";
+import { currentTool, Tool } from "$lib/stores";
 import { settings, type GPXFileWithStatistics, dbUtils } from "$lib/db";
 import { get, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
 import { currentWaypoint, waypointPopup } from "./WaypointPopup";
 import { addSelectItem, selectItem, selection } from "$lib/components/file-list/Selection";
-import { ListTrackSegmentItem, type ListItem, ListWaypointItem, ListWaypointsItem, ListTrackItem, ListFileItem, ListRootItem } from "$lib/components/file-list/FileList";
+import { ListTrackSegmentItem, ListWaypointItem, ListWaypointsItem, ListTrackItem, ListFileItem, ListRootItem } from "$lib/components/file-list/FileList";
 import type { Waypoint } from "gpx";
 import { produce } from "immer";
 import { resetCursor, setGrabbingCursor, setPointerCursor } from "$lib/utils";
+import { font } from "$lib/assets/layers";
 
 let defaultWeight = 5;
 let defaultOpacity = 0.6;
@@ -42,7 +43,7 @@ function decrementColor(color: string) {
     colorCount[color]--;
 }
 
-const { directionMarkers, verticalFileView } = settings;
+const { directionMarkers, verticalFileView, currentBasemap } = settings;
 
 export class GPXLayer {
     map: mapboxgl.Map;
@@ -137,6 +138,7 @@ export class GPXLayer {
                             'text-keep-upright': false,
                             'text-max-angle': 361,
                             'text-allow-overlap': true,
+                            'text-font': [font[get(currentBasemap)] ?? 'Open Sans Bold'],
                             'symbol-placement': 'line',
                             'symbol-spacing': 25,
                         },
@@ -145,7 +147,7 @@ export class GPXLayer {
                             'text-halo-width': 0.5,
                             'text-halo-color': 'white'
                         }
-                    });
+                    }, this.map.getLayer('distance-markers') ? 'distance-markers' : undefined);
                 }
             } else {
                 if (this.map.getLayer(this.fileId + '-direction')) {
@@ -258,7 +260,7 @@ export class GPXLayer {
             this.map.moveLayer(this.fileId);
         }
         if (this.map.getLayer(this.fileId + '-direction')) {
-            this.map.moveLayer(this.fileId + '-direction');
+            this.map.moveLayer(this.fileId + '-direction', this.map.getLayer('distance-markers') ? 'distance-markers' : undefined);
         }
     }
 

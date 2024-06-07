@@ -73,9 +73,9 @@ export const basemaps: { [key: string]: string | Style; } = {
             source: 'cyclOSM',
         }],
     },
-    linz: 'https://basemaps.linz.govt.nz/v1/tiles/topographic/EPSG:3857/style/topographic.json?api=d01fbtg0ar23gctac5m0jgyy2ds',
     swisstopo: 'https://vectortiles.geo.admin.ch/styles/ch.swisstopo.basemap.vt/style.json',
     swisstopoSatellite: 'https://vectortiles.geo.admin.ch/styles/ch.swisstopo.imagerybasemap.vt/style.json',
+    linz: 'https://basemaps.linz.govt.nz/v1/tiles/topographic/EPSG:3857/style/topographic.json?api=d01fbtg0ar23gctac5m0jgyy2ds',
     linzTopo: {
         version: 8,
         sources: {
@@ -255,6 +255,11 @@ Object.values(basemaps).forEach((basemap) => {
         basemap["sprite"] = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/sprite?access_token=${mapboxAccessToken}`;
     }
 });
+
+export const font: { [key: string]: string; } = {
+    swisstopo: 'Frutiger Neue Condensed Regular',
+    swisstopoSatellite: 'Frutiger Neue Condensed Regular',
+};
 
 export const overlays: { [key: string]: AnySourceData; } = {
     cyclOSMlite: {

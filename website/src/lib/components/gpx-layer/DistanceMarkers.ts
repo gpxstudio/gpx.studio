@@ -1,9 +1,10 @@
 
+import { font } from "$lib/assets/layers";
 import { settings } from "$lib/db";
 import { gpxStatistics } from "$lib/stores";
 import { get } from "svelte/store";
 
-const { distanceMarkers, distanceUnits } = settings;
+const { distanceMarkers, distanceUnits, currentBasemap } = settings;
 
 export class DistanceMarkers {
     map: mapboxgl.Map;
@@ -15,6 +16,7 @@ export class DistanceMarkers {
         gpxStatistics.subscribe(this.updateBinded);
         distanceMarkers.subscribe(this.updateBinded);
         distanceUnits.subscribe(this.updateBinded);
+        this.map.on('style.load', this.updateBinded);
     }
 
     update() {
@@ -36,15 +38,14 @@ export class DistanceMarkers {
                         source: 'distance-markers',
                         layout: {
                             'text-field': ['get', 'distance'],
-                            'text-size': 12,
-                            'text-font': ['Open Sans Regular'],
-                            'icon-image': ['get', 'icon'],
-                            'icon-padding': 50,
-                            'icon-allow-overlap': true,
+                            'text-size': 14,
+                            'text-font': [font[get(currentBasemap)] ?? 'Open Sans Bold'],
+                            'text-padding': 20,
                         },
                         paint: {
-                            'text-halo-width': 0.1,
-                            'text-halo-color': 'black'
+                            'text-color': 'black',
+                            'text-halo-width': 2,
+                            'text-halo-color': 'white',
                         }
                     });
                 } else {
@@ -76,7 +77,6 @@ export class DistanceMarkers {
                     },
                     properties: {
                         distance,
-                        icon: distance.length < 3 ? 'circle-white-2' : 'circle-white-3'
                     }
                 } as GeoJSON.Feature);
                 currentTargetDistance += 1;
