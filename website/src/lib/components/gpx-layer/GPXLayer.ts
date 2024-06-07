@@ -140,11 +140,12 @@ export class GPXLayer {
                             'text-allow-overlap': true,
                             'text-font': [font[get(currentBasemap)] ?? 'Open Sans Bold'],
                             'symbol-placement': 'line',
-                            'symbol-spacing': 25,
+                            'symbol-spacing': 20,
                         },
                         paint: {
                             'text-color': 'white',
-                            'text-halo-width': 0.5,
+                            'text-opacity': 0.6,
+                            'text-halo-width': 0.2,
                             'text-halo-color': 'white'
                         }
                     }, this.map.getLayer('distance-markers') ? 'distance-markers' : undefined);
