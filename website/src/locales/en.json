@@ -105,7 +105,16 @@
             "tooltip": "Trim or split routes"
         },
         "time_tooltip": "Manage time and speed data",
-        "merge_tooltip": "Merge file elements together",
+        "merge": {
+            "merge_traces": "Connect the traces",
+            "merge_contents": "Merge the contents and keep the traces disconnected",
+            "merge_selection": "Merge selection",
+            "tooltip": "Merge file elements together",
+            "help_merge_traces": "Connecting the selected traces will result in a single file containing a single continuous trace",
+            "help_cannot_merge_traces": "Your selection needs to contain several traces to connect them",
+            "help_merge_contents": "Merging the contents of the selected file elements will group all the contents inside the first file element",
+            "help_cannot_merge_contents": "Your selection needs to contain several file elements to merge their contents"
+        },
         "extract_tooltip": "Extract inner tracks or segments",
         "waypoint_tooltip": "Create and edit points of interest",
         "reduce_tooltip": "Reduce the number of GPS points",

@@ -5,6 +5,7 @@
 	import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
 	import Scissors from '$lib/components/toolbar/tools/Scissors.svelte';
 	import Waypoint from '$lib/components/toolbar/tools/Waypoint.svelte';
+	import Merge from '$lib/components/toolbar/tools/Merge.svelte';
 	import RoutingControlPopup from '$lib/components/toolbar/tools/routing/RoutingControlPopup.svelte';
 	import { onMount } from 'svelte';
 	import mapboxgl from 'mapbox-gl';
@@ -36,6 +37,8 @@
 						<Scissors />
 					{:else if $currentTool === Tool.WAYPOINT}
 						<Waypoint />
+					{:else if $currentTool === Tool.MERGE}
+						<Merge />
 					{/if}
 				</Card.Content>
 			</Card.Root>

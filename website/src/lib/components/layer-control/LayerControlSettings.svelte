@@ -120,7 +120,7 @@
 						<div class="flex flex-row items-center justify-between gap-4">
 							<Label>{$_('menu.color')}</Label>
 							<Select.Root bind:selected={$selectedHeatmapColor} class="grow">
-								<Select.Trigger class="w-full">
+								<Select.Trigger class="w-full h-8">
 									<Select.Value placeholder="Theme" />
 								</Select.Trigger>
 								<Select.Content>

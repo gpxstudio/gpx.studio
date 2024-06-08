@@ -1,5 +1,5 @@
 import Dexie, { liveQuery } from 'dexie';
-import { GPXFile, GPXStatistics, Track, type AnyGPXTreeElement } from 'gpx';
+import { GPXFile, GPXStatistics, Track, type AnyGPXTreeElement, TrackSegment, Waypoint, TrackPoint } from 'gpx';
 import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, castDraft, freeze, produceWithPatches, original, produce } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
 import { initTargetMapBounds, updateTargetMapBounds } from './stores';
@@ -187,31 +187,31 @@ function dexieGPXFileStore(id: string): Readable<GPXFileWithStatistics> & { dest
     };
 }
 
-// Add/update the files to the database
-function updateDbFiles(files: (GPXFile | undefined)[]) {
-    let filteredFiles = files.filter(file => file !== undefined) as GPXFile[];
-    let fileIds = filteredFiles.map(file => file._data.id);
-    return db.transaction('rw', db.fileids, db.files, async () => {
-        await db.fileids.bulkPut(fileIds, fileIds);
-        await db.files.bulkPut(filteredFiles, fileIds);
-    });
-}
-
-// Delete the files with the given ids from the database
-function deleteDbFiles(fileIds: string[]) {
-    return db.transaction('rw', db.fileids, db.files, async () => {
-        await db.fileids.bulkDelete(fileIds);
-        await db.files.bulkDelete(fileIds);
-    });
-}
-
 // Commit the changes to the file state to the database
 function commitFileStateChange(newFileState: ReadonlyMap<string, GPXFile>, patch: Patch[]) {
-    if (newFileState.size >= fileState.size) {
-        return updateDbFiles(getChangedFileIds(patch).map((fileId) => newFileState.get(fileId)));
-    } else {
-        return deleteDbFiles(getChangedFileIds(patch));
-    }
+    let changedFileIds = getChangedFileIds(patch);
+    let updatedFileIds: string[] = [], deletedFileIds: string[] = [];
+    changedFileIds.forEach(id => {
+        if (newFileState.has(id)) {
+            updatedFileIds.push(id);
+        } else {
+            deletedFileIds.push(id);
+        }
+    });
+
+    let updatedFiles = updatedFileIds.map(id => newFileState.get(id)).filter(file => file !== undefined) as GPXFile[];
+    updatedFileIds = updatedFiles.map(file => file._data.id);
+
+    return db.transaction('rw', db.fileids, db.files, async () => {
+        if (updatedFileIds.length > 0) {
+            await db.fileids.bulkPut(updatedFileIds, updatedFileIds);
+            await db.files.bulkPut(updatedFiles, updatedFileIds);
+        }
+        if (deletedFileIds.length > 0) {
+            await db.fileids.bulkDelete(deletedFileIds);
+            await db.files.bulkDelete(deletedFileIds);
+        }
+    });
 }
 
 export const fileObservers: Writable<Map<string, Readable<GPXFileWithStatistics | undefined> & { destroy: () => void }>> = writable(new Map());
@@ -485,6 +485,118 @@ export const dbUtils = {
                     draft.set(newFile._data.id, freeze(newFile));
                 }
             });
+        });
+    },
+    mergeSelection: (mergeTraces: boolean) => {
+        applyGlobal((draft) => {
+            let first = true;
+            let target: ListItem = new ListRootItem();
+            let targetFile: GPXFile | undefined = undefined;
+            let toMerge: {
+                trk: Track[],
+                trkseg: TrackSegment[],
+                wpt: Waypoint[]
+            } = {
+                trk: [],
+                trkseg: [],
+                wpt: []
+            };
+            applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+                let file = original(draft)?.get(fileId);
+                if (file) {
+                    let newFile = file;
+                    if (level === ListLevel.FILE) {
+                        {
+                            let [result, removed] = newFile.replaceTracks(0, newFile.trk.length - 1, []);
+                            toMerge.trk.push(...removed);
+                            newFile = result;
+                        }
+                        {
+                            let [result, removed] = newFile.replaceWaypoints(0, newFile.wpt.length - 1, []);
+                            toMerge.wpt.push(...removed);
+                            newFile = result;
+                        }
+                        if (first) {
+                            target = items[0];
+                            targetFile = newFile;
+                        } else {
+                            draft.delete(fileId);
+                        }
+                    } else {
+                        if (level === ListLevel.TRACK) {
+                            items.forEach((item, index) => {
+                                let trackIndex = (item as ListTrackItem).getTrackIndex();
+                                if (index === items.length - 1) { // Order is reversed, so the last track is the first one and the one to keep
+                                    let [result, removed] = newFile.replaceTrackSegments(trackIndex, 0, newFile.trk[trackIndex].trkseg.length - 1, []);
+                                    toMerge.trkseg.splice(0, 0, ...removed);
+                                    newFile = result;
+                                    target = item;
+                                } else {
+                                    let [result, removed] = newFile.replaceTracks(trackIndex, trackIndex, []);
+                                    toMerge.trkseg.push(...removed[0].trkseg);
+                                    newFile = result;
+                                }
+                            });
+                        } else if (level === ListLevel.SEGMENT) {
+                            items.forEach((item, index) => {
+                                let trackIndex = (item as ListTrackSegmentItem).getTrackIndex();
+                                let segmentIndex = (item as ListTrackSegmentItem).getSegmentIndex();
+                                if (index === items.length - 1) { // Order is reversed, so the last segment is the first one and the one to keep
+                                    target = item;
+                                }
+                                let [result, removed] = newFile.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex, []);
+                                toMerge.trkseg.splice(0, 0, ...removed);
+                                newFile = result;
+                            });
+                        }
+                        if (first) {
+                            targetFile = newFile;
+                        } else {
+                            draft.set(fileId, freeze(newFile));
+                        }
+                    }
+                    first = false;
+                }
+            });
+
+            if (mergeTraces) {
+                if (toMerge.trk.length > 0) {
+                    let trackPoints: TrackPoint[] = [];
+                    toMerge.trk.forEach((track) => {
+                        track.trkseg.forEach((segment) => {
+                            trackPoints = trackPoints.concat(segment.trkpt.slice());
+                        });
+                    });
+                    // TODO adapt timestamps of trackPoints
+                    toMerge.trk[0] = toMerge.trk[0].replaceTrackPoints(0, 0, toMerge.trk[0].trkseg[0].trkpt.length - 1, trackPoints);
+                    toMerge.trk[0] = toMerge.trk[0].replaceTrackSegments(1, toMerge.trk[0].trkseg.length - 1, [])[0];
+                    toMerge.trk = toMerge.trk.slice(0, 1);
+                }
+                if (toMerge.trkseg.length > 0) {
+                    let trackPoints: TrackPoint[] = [];
+                    toMerge.trkseg.forEach((segment) => {
+                        trackPoints = trackPoints.concat(segment.trkpt.slice());
+                    });
+                    // TODO adapt timestamps of trackPoints
+                    toMerge.trkseg[0] = toMerge.trkseg[0].replaceTrackPoints(0, toMerge.trkseg[0].trkpt.length - 1, trackPoints);
+                    toMerge.trkseg = toMerge.trkseg.slice(0, 1);
+                }
+            }
+
+            if (targetFile) {
+                if (target instanceof ListFileItem) {
+                    targetFile = targetFile.replaceTracks(0, targetFile.trk.length - 1, toMerge.trk)[0];
+                    targetFile = targetFile.replaceWaypoints(0, targetFile.wpt.length - 1, toMerge.wpt)[0];
+                } else if (target instanceof ListTrackItem) {
+                    let trackIndex = target.getTrackIndex();
+                    targetFile = targetFile.replaceTrackSegments(trackIndex, 0, -1, toMerge.trkseg)[0];
+                } else if (target instanceof ListTrackSegmentItem) {
+                    let trackIndex = target.getTrackIndex();
+                    let segmentIndex = target.getSegmentIndex();
+                    targetFile = targetFile.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex - 1, toMerge.trkseg)[0];
+                }
+                draft.set(targetFile._data.id, freeze(targetFile));
+            }
         });
     },
     deleteSelection: () => {

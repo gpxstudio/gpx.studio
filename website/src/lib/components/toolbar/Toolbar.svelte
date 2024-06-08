@@ -40,7 +40,7 @@
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.MERGE}>
 				<Group slot="icon" size="18" />
-				<span slot="tooltip">{$_('toolbar.merge_tooltip')}</span>
+				<span slot="tooltip">{$_('toolbar.merge.tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.EXTRACT}>
 				<Ungroup slot="icon" size="18" />
