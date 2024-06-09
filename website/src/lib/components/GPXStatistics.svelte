@@ -10,11 +10,19 @@
 
 	import { _ } from 'svelte-i18n';
 
-	const { velocityUnits } = settings;
+	const { velocityUnits, elevationProfile } = settings;
 </script>
 
-<Card.Root class="h-full overflow-hidden border-none shadow-none min-w-48 pl-4">
-	<Card.Content class="h-full flex flex-col flex-wrap gap-4 justify-center p-0">
+<Card.Root
+	class="h-full {$elevationProfile
+		? ''
+		: 'w-full pr-4'} overflow-hidden border-none shadow-none min-w-48 pl-4"
+>
+	<Card.Content
+		class="h-full flex {$elevationProfile
+			? 'flex-col justify-center'
+			: 'flex-row w-full justify-between'} flex-wrap gap-4  p-0"
+	>
 		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
 				<Ruler size="18" class="mr-1" />

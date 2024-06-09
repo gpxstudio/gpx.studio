@@ -78,6 +78,7 @@ export const settings = {
     distanceUnits: dexieSettingStore<'metric' | 'imperial'>('distanceUnits', 'metric'),
     velocityUnits: dexieSettingStore('velocityUnits', 'speed'),
     temperatureUnits: dexieSettingStore('temperatureUnits', 'celsius'),
+    elevationProfile: dexieSettingStore('elevationProfile', true),
     verticalFileView: dexieSettingStore<boolean>('fileView', false),
     mode: dexieSettingStore('mode', (() => {
         let currentMode: string | undefined = get(mode);

@@ -11,7 +11,7 @@
 
 	import { settings } from '$lib/db';
 
-	const { verticalFileView } = settings;
+	const { verticalFileView, elevationProfile } = settings;
 </script>
 
 <div class="flex flex-row w-screen h-screen">
@@ -29,9 +29,11 @@
 				</div>
 			{/if}
 		</div>
-		<div class="h-48 flex flex-row gap-2 overflow-hidden">
+		<div class="{$elevationProfile ? 'h-48' : 'h-10'} flex flex-row gap-2 overflow-hidden">
 			<GPXStatistics />
-			<ElevationProfile />
+			{#if $elevationProfile}
+				<ElevationProfile />
+			{/if}
 		</div>
 	</div>
 	{#if $verticalFileView}
