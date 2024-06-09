@@ -93,6 +93,23 @@ export const basemaps: { [key: string]: string | Style; } = {
             source: 'linzTopo',
         }],
     },
+    ignBe: {
+        version: 8,
+        sources: {
+            ignBe: {
+                type: 'raster',
+                tiles: ['https://cartoweb.wmts.ngi.be/1.0.0/topo/default/3857/{z}/{y}/{x}.png'],
+                tileSize: 256,
+                maxzoom: 17,
+                attribution: '© <a href="https://www.ngi.be/" target="_blank">IGN/NGI</a>'
+            }
+        },
+        layers: [{
+            id: 'ignBe',
+            type: 'raster',
+            source: 'ignBe',
+        }],
+    },
     ignFrPlan: 'https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/classique.json',
     ignFrScan25: {
         version: 8,
@@ -438,6 +455,9 @@ export const basemapTree: LayerTreeType = {
             cyclOSM: true
         },
         countries: {
+            belgium: {
+                ignBe: true,
+            },
             bulgaria: {
                 bgMountains: true,
             },
@@ -575,6 +595,9 @@ export const defaultBasemapTree: LayerTreeType = {
             cyclOSM: true
         },
         countries: {
+            belgium: {
+                ignBe: false,
+            },
             bulgaria: {
                 bgMountains: false,
             },
