@@ -16,8 +16,8 @@
 		Home,
 		RouteOff,
 		Repeat,
-		Maximize2,
-		Minimize2
+		SquareArrowUpLeft,
+		SquareArrowOutDownRight
 	} from 'lucide-svelte';
 
 	import { map, routingControls } from '$lib/stores';
@@ -69,68 +69,63 @@
 {#if $minimizeRoutingMenu}
 	<div class="-m-1.5 -mb-2">
 		<Button variant="ghost" class="px-1 h-[26px]" on:click={() => ($minimizeRoutingMenu = false)}>
-			<Maximize2 size="18" />
+			<SquareArrowOutDownRight size="18" />
 		</Button>
 	</div>
 {:else}
 	<div class="flex flex-col gap-3 max-w-80" in:flyAndScale={{ x: -2, y: 0, duration: 50 }}>
-		<div class="w-full flex flex-row gap-2 justify-between">
-			<div class="grow flex flex-col gap-3">
-				<Tooltip>
-					<Label slot="data" class="w-full flex flex-row justify-between items-center gap-2">
-						<span class="flex flex-row gap-1">
-							{#if $routing}
-								<Route size="16" />
-							{:else}
-								<RouteOff size="16" />
-							{/if}
-							{$_('toolbar.routing.use_routing')}
-						</span>
+		<div class="grow flex flex-col gap-3">
+			<Tooltip>
+				<Label slot="data" class="w-full flex flex-row justify-between items-center gap-2">
+					<span class="flex flex-row gap-1">
+						{#if $routing}
+							<Route size="16" />
+						{:else}
+							<RouteOff size="16" />
+						{/if}
+						{$_('toolbar.routing.use_routing')}
+					</span>
 
-						<Switch class="scale-90" bind:checked={$routing} />
+					<Switch class="scale-90" bind:checked={$routing} />
+				</Label>
+				<span slot="tooltip">{$_('toolbar.routing.use_routing_tooltip')}</span>
+			</Tooltip>
+			{#if $routing}
+				<div class="flex flex-col gap-3" in:slide>
+					<Label class="w-full flex flex-row justify-between items-center gap-2">
+						<span class="shrink-0 flex flex-row items-center gap-1">
+							{#if $routingProfileSelectItem.value.includes('bike') || $routingProfileSelectItem.value.includes('motorcycle')}
+								<Bike size="16" />
+							{:else if $routingProfileSelectItem.value.includes('foot')}
+								<Footprints size="16" />
+							{:else if $routingProfileSelectItem.value.includes('water')}
+								<Waves size="16" />
+							{:else if $routingProfileSelectItem.value.includes('railway')}
+								<TrainFront size="16" />
+							{/if}
+							{$_('toolbar.routing.activity')}
+						</span>
+						<Select.Root bind:selected={$routingProfileSelectItem}>
+							<Select.Trigger class="h-8 grow">
+								<Select.Value />
+							</Select.Trigger>
+							<Select.Content>
+								{#each Object.keys(brouterProfiles) as profile}
+									<Select.Item value={profile}
+										>{$_(`toolbar.routing.activities.${profile}`)}</Select.Item
+									>
+								{/each}
+							</Select.Content>
+						</Select.Root>
 					</Label>
-					<span slot="tooltip">{$_('toolbar.routing.use_routing_tooltip')}</span>
-				</Tooltip>
-				{#if $routing}
-					<div class="flex flex-col gap-3" in:slide>
-						<Label class="w-full flex flex-row justify-between items-center gap-2">
-							<span class="shrink-0 flex flex-row items-center gap-1">
-								{#if $routingProfileSelectItem.value.includes('bike') || $routingProfileSelectItem.value.includes('motorcycle')}
-									<Bike size="16" />
-								{:else if $routingProfileSelectItem.value.includes('foot')}
-									<Footprints size="16" />
-								{:else if $routingProfileSelectItem.value.includes('water')}
-									<Waves size="16" />
-								{:else if $routingProfileSelectItem.value.includes('railway')}
-									<TrainFront size="16" />
-								{/if}
-								{$_('toolbar.routing.activity')}
-							</span>
-							<Select.Root bind:selected={$routingProfileSelectItem}>
-								<Select.Trigger class="h-8 grow">
-									<Select.Value />
-								</Select.Trigger>
-								<Select.Content>
-									{#each Object.keys(brouterProfiles) as profile}
-										<Select.Item value={profile}
-											>{$_(`toolbar.routing.activities.${profile}`)}</Select.Item
-										>
-									{/each}
-								</Select.Content>
-							</Select.Root>
-						</Label>
-						<Label class="w-full flex flex-row justify-between items-center gap-2">
-							<span class="flex flex-row gap-1"
-								><TriangleAlert size="16" />{$_('toolbar.routing.allow_private')}</span
-							>
-							<Switch class="scale-90" bind:checked={$privateRoads} />
-						</Label>
-					</div>
-				{/if}
-			</div>
-			<Button variant="ghost" class="px-1 h-6" on:click={() => ($minimizeRoutingMenu = true)}>
-				<Minimize2 size="14" />
-			</Button>
+					<Label class="w-full flex flex-row justify-between items-center gap-2">
+						<span class="flex flex-row gap-1"
+							><TriangleAlert size="16" />{$_('toolbar.routing.allow_private')}</span
+						>
+						<Switch class="scale-90" bind:checked={$privateRoads} />
+					</Label>
+				</div>
+			{/if}
 		</div>
 		<div class="flex flex-row flex-wrap justify-center gap-1">
 			<Tooltip>
@@ -176,14 +171,19 @@
 				<span slot="tooltip">{$_('toolbar.routing.round_trip.tooltip')}</span>
 			</Tooltip>
 		</div>
-		<Help>
-			{#if $selection.size > 1}
-				<div>{$_('toolbar.routing.help_multiple_files')}</div>
-			{:else if $selection.size == 0 || !validSelection}
-				<div>{$_('toolbar.routing.help_no_file')}</div>
-			{:else}
-				<div>{$_('toolbar.routing.help')}</div>
-			{/if}
-		</Help>
+		<div class="w-full flex flex-row gap-2 items-end justify-between">
+			<Help>
+				{#if $selection.size > 1}
+					<div>{$_('toolbar.routing.help_multiple_files')}</div>
+				{:else if $selection.size == 0 || !validSelection}
+					<div>{$_('toolbar.routing.help_no_file')}</div>
+				{:else}
+					<div>{$_('toolbar.routing.help')}</div>
+				{/if}
+			</Help>
+			<Button variant="ghost" class="px-1 h-6" on:click={() => ($minimizeRoutingMenu = true)}>
+				<SquareArrowUpLeft size="18" />
+			</Button>
+		</div>
 	</div>
 {/if}
