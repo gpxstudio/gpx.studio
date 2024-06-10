@@ -5,8 +5,10 @@
 	import WaypointPopup from './WaypointPopup.svelte';
 	import { fileObservers } from '$lib/db';
 	import { DistanceMarkers } from './DistanceMarkers';
+	import { StartEndMarkers } from './StartEndMarkers';
 
 	let distanceMarkers: DistanceMarkers;
+	let startEndMarkers: StartEndMarkers;
 
 	$: if ($map && $fileObservers) {
 		// remove layers for deleted files
@@ -26,6 +28,7 @@
 
 	$: if ($map) {
 		distanceMarkers = new DistanceMarkers(get(map));
+		startEndMarkers = new StartEndMarkers(get(map));
 	}
 </script>
 
