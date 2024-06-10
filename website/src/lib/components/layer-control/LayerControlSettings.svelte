@@ -116,11 +116,11 @@
 				</Accordion.Item>
 				<Accordion.Item value="item-3">
 					<Accordion.Trigger>{$_('layers.heatmap')}</Accordion.Trigger>
-					<Accordion.Content>
-						<div class="flex flex-row items-center justify-between gap-4">
-							<Label>{$_('menu.color')}</Label>
-							<Select.Root bind:selected={$selectedHeatmapColor} class="grow">
-								<Select.Trigger class="w-full h-8">
+					<Accordion.Content class="overflow-visible">
+						<Label class="flex flex-row items-center justify-between gap-4"
+							>{$_('menu.color')}
+							<Select.Root bind:selected={$selectedHeatmapColor}>
+								<Select.Trigger class="h-8 mr-1">
 									<Select.Value placeholder="Theme" />
 								</Select.Trigger>
 								<Select.Content>
@@ -129,7 +129,7 @@
 									{/each}
 								</Select.Content>
 							</Select.Root>
-						</div>
+						</Label>
 					</Accordion.Content>
 				</Accordion.Item>
 				<Accordion.Item value="item-4">
