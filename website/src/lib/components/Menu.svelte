@@ -102,7 +102,7 @@
 		<Logo class="h-5 mt-0.5 mx-2" />
 		<Menubar.Root class="border-none h-fit p-0">
 			<Menubar.Menu>
-				<Menubar.Trigger>{$_('menu.file')}</Menubar.Trigger>
+				<Menubar.Trigger>{$_('gpx.file')}</Menubar.Trigger>
 				<Menubar.Content class="border-none">
 					<Menubar.Item on:click={createFile}>
 						<Plus size="16" class="mr-1" />

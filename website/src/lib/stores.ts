@@ -10,11 +10,13 @@ import { applyToOrderedSelectedItemsFromFile, selectFile, selection } from '$lib
 import { ListFileItem, ListWaypointItem, ListWaypointsItem } from '$lib/components/file-list/FileList';
 import type { RoutingControls } from '$lib/components/toolbar/tools/routing/RoutingControls';
 import { overlayTree, overlays, stravaHeatmapActivityIds, stravaHeatmapServers } from '$lib/assets/layers';
+import { SplitType } from '$lib/components/toolbar/tools/Scissors.svelte';
 
 export const map = writable<mapboxgl.Map | null>(null);
 export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }>({});
 
 export const gpxStatistics: Writable<GPXStatistics> = writable(new GPXStatistics());
+export const slicedGPXStatistics: Writable<GPXStatistics> = writable(new GPXStatistics());
 
 function updateGPXData() {
     let statistics = new GPXStatistics();
@@ -128,6 +130,7 @@ export enum Tool {
     STYLE
 }
 export const currentTool = writable<Tool | null>(null);
+export const splitAs = writable(SplitType.FILES);
 
 export function newGPXFile() {
     let file = new GPXFile();

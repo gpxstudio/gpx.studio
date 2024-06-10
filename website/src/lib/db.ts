@@ -1,13 +1,14 @@
 import Dexie, { liveQuery } from 'dexie';
-import { GPXFile, GPXStatistics, Track, type AnyGPXTreeElement, TrackSegment, Waypoint, TrackPoint } from 'gpx';
+import { GPXFile, GPXStatistics, Track, type AnyGPXTreeElement, TrackSegment, Waypoint, TrackPoint, type Coordinates, distance } from 'gpx';
 import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, castDraft, freeze, produceWithPatches, original, produce } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
-import { initTargetMapBounds, updateTargetMapBounds } from './stores';
+import { initTargetMapBounds, splitAs, updateTargetMapBounds } from './stores';
 import { mode } from 'mode-watcher';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays } from './assets/layers';
 import { applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem, ListRootItem } from '$lib/components/file-list/FileList';
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
+import { SplitType } from '$lib/components/toolbar/tools/Scissors.svelte';
 
 enableMapSet();
 enablePatches();
@@ -393,35 +394,6 @@ export const dbUtils = {
     applyEachToFilesAndGlobal: (ids: string[], callbacks: ((file: WritableDraft<GPXFile>, context?: any) => GPXFile)[], globalCallback: (files: Map<string, GPXFile>, context?: any) => void, context?: any) => {
         applyEachToFilesAndGlobal(ids, callbacks, globalCallback, context);
     },
-    applyToSelection: (callback: (file: WritableDraft<AnyGPXTreeElement>) => AnyGPXTreeElement) => {
-        if (get(selection).size === 0) {
-            return;
-        }
-        applyGlobal((draft) => {
-            applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = draft.get(fileId);
-                if (file) {
-                    for (let item of items) {
-                        if (item instanceof ListFileItem) {
-                            callback(castDraft(file));
-                        } else if (item instanceof ListTrackItem) {
-                            let trackIndex = item.getTrackIndex();
-                            file = produce(file, (fileDraft) => {
-                                callback(fileDraft.trk[trackIndex]);
-                            });
-                        } else if (item instanceof ListTrackSegmentItem) {
-                            let trackIndex = item.getTrackIndex();
-                            let segmentIndex = item.getSegmentIndex();
-                            file = produce(file, (fileDraft) => {
-                                callback(fileDraft.trk[trackIndex].trkseg[segmentIndex]);
-                            });
-                        }
-                    }
-                    draft.set(fileId, freeze(file));
-                }
-            });
-        });
-    },
     duplicateSelection: () => {
         if (get(selection).size === 0) {
             return;
@@ -598,6 +570,80 @@ export const dbUtils = {
                     targetFile = targetFile.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex - 1, toMerge.trkseg)[0];
                 }
                 draft.set(targetFile._data.id, freeze(targetFile));
+            }
+        });
+    },
+    cropSelection: (start: number, end: number) => {
+        if (get(selection).size === 0) {
+            return;
+        }
+        applyGlobal((draft) => {
+            applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+                let file = original(draft)?.get(fileId);
+                if (file) {
+                    if (level === ListLevel.FILE) {
+                        let length = file.getNumberOfTrackPoints();
+                        if (start >= length || end < 0) {
+                            draft.delete(fileId);
+                        } else if (start > 0 || end < length - 1) {
+                            let newFile = file.crop(Math.max(0, start), Math.min(length - 1, end));
+                            draft.set(newFile._data.id, freeze(newFile));
+                        }
+                        start -= length;
+                        end -= length;
+                    } else if (level === ListLevel.TRACK) {
+                        let trackIndices = items.map((item) => (item as ListTrackItem).getTrackIndex());
+                        let newFile = file.crop(start, end, trackIndices);
+                        draft.set(newFile._data.id, freeze(newFile));
+                    } else if (level === ListLevel.SEGMENT) {
+                        let trackIndices = [(items[0] as ListTrackSegmentItem).getTrackIndex()];
+                        let segmentIndices = items.map((item) => (item as ListTrackSegmentItem).getSegmentIndex());
+                        let newFile = file.crop(start, end, trackIndices, segmentIndices);
+                        draft.set(newFile._data.id, freeze(newFile));
+                    }
+                }
+            }, false);
+        });
+    },
+    split(fileId: string, trackIndex: number, segmentIndex: number, coordinates: Coordinates) {
+        let splitType = get(splitAs);
+        return applyGlobal((draft) => {
+            let file = original(draft)?.get(fileId);
+            if (file) {
+                let segment = file.trk[trackIndex].trkseg[segmentIndex];
+
+                // Find the point closest to split
+                let minDistance = Number.MAX_VALUE;
+                let minIndex = 0;
+                for (let i = 0; i < segment.trkpt.length; i++) {
+                    let dist = distance(segment.trkpt[i].getCoordinates(), coordinates);
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        minIndex = i;
+                    }
+                }
+
+                let absoluteIndex = minIndex;
+                file.forEachSegment((seg, trkIndex, segIndex) => {
+                    if ((trkIndex < trackIndex && splitType === SplitType.FILES) || (trkIndex === trackIndex && segIndex < segmentIndex)) {
+                        absoluteIndex += seg.trkpt.length;
+                    }
+                });
+
+                if (splitType === SplitType.FILES) {
+                    let newFile = file.crop(0, absoluteIndex);
+                    draft.set(newFile._data.id, freeze(newFile));
+                    let newFile2 = file.clone();
+                    newFile2._data.id = getFileIds(1)[0];
+                    newFile2 = newFile2.crop(absoluteIndex, file.getNumberOfTrackPoints() - 1);
+                    draft.set(newFile2._data.id, freeze(newFile2));
+                } else if (splitType === SplitType.TRACKS) {
+                    let newFile = file.replaceTracks(trackIndex, trackIndex, [file.trk[trackIndex].crop(0, absoluteIndex), file.trk[trackIndex].crop(absoluteIndex, file.trk[trackIndex].getNumberOfTrackPoints() - 1)])[0];
+                    draft.set(newFile._data.id, freeze(newFile));
+                } else if (splitType === SplitType.SEGMENTS) {
+                    let newFile = file.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex, [segment.crop(0, minIndex), segment.crop(minIndex, segment.trkpt.length - 1)])[0];
+                    draft.set(newFile._data.id, freeze(newFile));
+                }
             }
         });
     },

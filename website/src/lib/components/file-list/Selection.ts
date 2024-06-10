@@ -129,8 +129,10 @@ export class SelectionTreeType {
     }
 
     deleteChild(id: string | number) {
-        this.size -= this.children[id].size;
-        delete this.children[id];
+        if (this.children.hasOwnProperty(id)) {
+            this.size -= this.children[id].size;
+            delete this.children[id];
+        }
     }
 };
 

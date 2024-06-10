@@ -291,7 +291,7 @@ export class RoutingControls {
     getPermanentAnchor(): Anchor {
         let file = get(this.file)?.file;
 
-        // Find the closest point closest to the temporary anchor
+        // Find the point closest to the temporary anchor
         let minDistance = Number.MAX_VALUE;
         let minAnchor = this.temporaryAnchor as Anchor;
         file?.forEachSegment((segment, trackIndex, segmentIndex) => {

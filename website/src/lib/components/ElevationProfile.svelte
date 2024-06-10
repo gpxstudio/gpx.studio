@@ -242,7 +242,7 @@
 			label: $_('quantities.elevation'),
 			data: data.local.points.map((point, index) => {
 				return {
-					x: getConvertedDistance(data.local.distance[index]),
+					x: getConvertedDistance(data.local.distance.total[index]),
 					y: point.ele ? getConvertedElevation(point.ele) : 0,
 					slope: data.local.slope[index],
 					surface: point.getSurface(),
@@ -257,7 +257,7 @@
 			label: datasets.speed.getLabel(),
 			data: data.local.points.map((point, index) => {
 				return {
-					x: getConvertedDistance(data.local.distance[index]),
+					x: getConvertedDistance(data.local.distance.total[index]),
 					y: getConvertedVelocity(data.local.speed[index])
 				};
 			}),
@@ -269,7 +269,7 @@
 			label: datasets.hr.getLabel(),
 			data: data.local.points.map((point, index) => {
 				return {
-					x: getConvertedDistance(data.local.distance[index]),
+					x: getConvertedDistance(data.local.distance.total[index]),
 					y: point.getHeartRate()
 				};
 			}),
@@ -281,7 +281,7 @@
 			label: datasets.cad.getLabel(),
 			data: data.local.points.map((point, index) => {
 				return {
-					x: getConvertedDistance(data.local.distance[index]),
+					x: getConvertedDistance(data.local.distance.total[index]),
 					y: point.getCadence()
 				};
 			}),
@@ -293,7 +293,7 @@
 			label: datasets.atemp.getLabel(),
 			data: data.local.points.map((point, index) => {
 				return {
-					x: getConvertedDistance(data.local.distance[index]),
+					x: getConvertedDistance(data.local.distance.total[index]),
 					y: getConvertedTemperature(point.getTemperature())
 				};
 			}),
@@ -305,7 +305,7 @@
 			label: datasets.power.getLabel(),
 			data: data.local.points.map((point, index) => {
 				return {
-					x: getConvertedDistance(data.local.distance[index]),
+					x: getConvertedDistance(data.local.distance.total[index]),
 					y: point.getPower()
 				};
 			}),

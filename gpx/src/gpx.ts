@@ -15,6 +15,7 @@ export abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
     abstract isLeaf(): boolean;
     abstract get children(): ReadonlyArray<T>;
 
+    abstract getNumberOfTrackPoints(): number;
     abstract getStartTimestamp(): Date;
     abstract getEndTimestamp(): Date;
     abstract getStatistics(): GPXStatistics;
@@ -32,6 +33,10 @@ export type AnyGPXTreeElement = GPXTreeElement<GPXTreeElement<any>>;
 abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement<T> {
     isLeaf(): boolean {
         return false;
+    }
+
+    getNumberOfTrackPoints(): number {
+        return this.children.reduce((acc, child) => acc + child.getNumberOfTrackPoints(), 0);
     }
 
     getStartTimestamp(): Date {
@@ -241,6 +246,34 @@ export class GPXFile extends GPXTreeNode<Track>{
             draft.trk = freeze(trk); // Pre-freeze the array, faster as well
         });
     }
+
+    crop(start: number, end: number, trackIndices?: number[], segmentIndices?: number[]) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let trk = og.trk.slice();
+            let i = 0;
+            let trackIndex = 0;
+            while (i < trk.length) {
+                let length = trk[i].getNumberOfTrackPoints();
+                if (trackIndices === undefined || trackIndices.includes(trackIndex)) {
+                    if (start >= length || end < 0) {
+                        trk.splice(i, 1);
+                    } else {
+                        if (start > 0 || end < length - 1) {
+                            trk[i] = trk[i].crop(Math.max(0, start), Math.min(length - 1, end), segmentIndices);
+                        }
+                        i++;
+                    }
+                    start -= length;
+                    end -= length;
+                } else {
+                    i++;
+                }
+                trackIndex++;
+            }
+            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
+        });
+    }
 };
 
 // A class that represents a Track in a GPX file
@@ -353,6 +386,34 @@ export class Track extends GPXTreeNode<TrackSegment> {
             draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
         });
     }
+
+    crop(start: number, end: number, segmentIndices?: number[]) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let trkseg = og.trkseg.slice();
+            let i = 0;
+            let segmentIndex = 0;
+            while (i < trkseg.length) {
+                let length = trkseg[i].getNumberOfTrackPoints();
+                if (segmentIndices === undefined || segmentIndices.includes(segmentIndex)) {
+                    if (start >= length || end < 0) {
+                        trkseg.splice(i, 1);
+                    } else {
+                        if (start > 0 || end < length - 1) {
+                            trkseg[i] = trkseg[i].crop(Math.max(0, start), Math.min(length - 1, end));
+                        }
+                        i++;
+                    }
+                    start -= length;
+                    end -= length;
+                } else {
+                    i++;
+                }
+                segmentIndex++;
+            }
+            draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
+        });
+    }
 };
 
 // A class that represents a TrackSegment in a GPX file
@@ -393,14 +454,14 @@ export class TrackSegment extends GPXTreeLeaf {
                 statistics.global.distance.total += dist;
             }
 
-            statistics.local.distance.push(statistics.global.distance.total);
+            statistics.local.distance.total.push(statistics.global.distance.total);
 
             // elevation
             if (i > 0) {
                 const ele = statistics.local.elevation.smoothed[i] - statistics.local.elevation.smoothed[i - 1];
                 if (ele > 0) {
                     statistics.global.elevation.gain += ele;
-                } else {
+                } else if (ele < 0) {
                     statistics.global.elevation.loss -= ele;
                 }
             }
@@ -410,9 +471,9 @@ export class TrackSegment extends GPXTreeLeaf {
 
             // time
             if (points[0].time !== undefined && points[i].time !== undefined) {
-                const time = (points[i].time.getTime() - points[0].time.getTime()) / 1000;
-
-                statistics.local.time.push(time);
+                statistics.local.time.total.push((points[i].time.getTime() - points[0].time.getTime()) / 1000);
+            } else {
+                statistics.local.time.total.push(undefined);
             }
 
             // speed
@@ -427,6 +488,9 @@ export class TrackSegment extends GPXTreeLeaf {
                 }
             }
 
+            statistics.local.distance.moving.push(statistics.global.distance.moving);
+            statistics.local.time.moving.push(statistics.global.time.moving);
+
             // bounds
             statistics.global.bounds.southWest.lat = Math.min(statistics.global.bounds.southWest.lat, points[i].attributes.lat);
             statistics.global.bounds.southWest.lon = Math.min(statistics.global.bounds.southWest.lon, points[i].attributes.lon);
@@ -434,9 +498,9 @@ export class TrackSegment extends GPXTreeLeaf {
             statistics.global.bounds.northEast.lon = Math.max(statistics.global.bounds.northEast.lon, points[i].attributes.lon);
         }
 
-        statistics.global.time.total = statistics.local.time[statistics.local.time.length - 1];
-        statistics.global.speed.total = statistics.global.distance.total / (statistics.global.time.total / 3600);
-        statistics.global.speed.moving = statistics.global.distance.moving / (statistics.global.time.moving / 3600);
+        statistics.global.time.total = statistics.local.time.total[statistics.local.time.total.length - 1] ?? 0;
+        statistics.global.speed.total = statistics.global.time.total > 0 ? statistics.global.distance.total / (statistics.global.time.total / 3600) : 0;
+        statistics.global.speed.moving = statistics.global.time.moving > 0 ? statistics.global.distance.moving / (statistics.global.time.moving / 3600) : 0;
 
         statistics.local.speed = distanceWindowSmoothingWithDistanceAccumulator(points, 200, (accumulated, start, end) => (points[start].time && points[end].time) ? 3600 * accumulated / (points[end].time.getTime() - points[start].time.getTime()) : undefined);
 
@@ -460,6 +524,10 @@ export class TrackSegment extends GPXTreeLeaf {
         const points = this.trkpt;
 
         return distanceWindowSmoothingWithDistanceAccumulator(points, 50, (accumulated, start, end) => 100 * (points[end].ele - points[start].ele) / accumulated);
+    }
+
+    getNumberOfTrackPoints(): number {
+        return this.trkpt.length;
     }
 
     getStartTimestamp(): Date {
@@ -538,6 +606,14 @@ export class TrackSegment extends GPXTreeLeaf {
             } else {
                 draft.trkpt.reverse();
             }
+        });
+    }
+
+    crop(start: number, end: number) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let trkpt = og.trkpt.slice(start, end + 1);
+            draft.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
         });
     }
 };
@@ -718,8 +794,14 @@ export class GPXStatistics {
     };
     local: {
         points: TrackPoint[],
-        distance: number[],
-        time: number[],
+        distance: {
+            moving: number[],
+            total: number[],
+        },
+        time: {
+            moving: number[],
+            total: number[],
+        },
         speed: number[],
         elevation: {
             smoothed: number[],
@@ -760,8 +842,14 @@ export class GPXStatistics {
         };
         this.local = {
             points: [],
-            distance: [],
-            time: [],
+            distance: {
+                moving: [],
+                total: [],
+            },
+            time: {
+                moving: [],
+                total: [],
+            },
             speed: [],
             elevation: {
                 smoothed: [],
@@ -773,11 +861,12 @@ export class GPXStatistics {
     }
 
     mergeWith(other: GPXStatistics): void {
-
         this.local.points = this.local.points.concat(other.local.points);
 
-        this.local.distance = this.local.distance.concat(other.local.distance.map((distance) => distance + this.global.distance.total));
-        this.local.time = this.local.time.concat(other.local.time.map((time) => time + this.global.time.total));
+        this.local.distance.total = this.local.distance.total.concat(other.local.distance.total.map((distance) => distance + this.global.distance.total));
+        this.local.distance.moving = this.local.distance.moving.concat(other.local.distance.moving.map((distance) => distance + this.global.distance.moving));
+        this.local.time.total = this.local.time.total.concat(other.local.time.total.map((time) => time + this.global.time.total));
+        this.local.time.moving = this.local.time.moving.concat(other.local.time.moving.map((time) => time + this.global.time.moving));
         this.local.elevation.gain = this.local.elevation.gain.concat(other.local.elevation.gain.map((gain) => gain + this.global.elevation.gain));
         this.local.elevation.loss = this.local.elevation.loss.concat(other.local.elevation.loss.map((loss) => loss + this.global.elevation.loss));
 
@@ -791,8 +880,8 @@ export class GPXStatistics {
         this.global.time.total += other.global.time.total;
         this.global.time.moving += other.global.time.moving;
 
-        this.global.speed.moving = this.global.distance.moving / (this.global.time.moving / 3600);
-        this.global.speed.total = this.global.distance.total / (this.global.time.total / 3600);
+        this.global.speed.moving = this.global.time.moving > 0 ? this.global.distance.moving / (this.global.time.moving / 3600) : 0;
+        this.global.speed.total = this.global.time.total > 0 ? this.global.distance.total / (this.global.time.total / 3600) : 0;
 
         this.global.elevation.gain += other.global.elevation.gain;
         this.global.elevation.loss += other.global.elevation.loss;
@@ -801,6 +890,31 @@ export class GPXStatistics {
         this.global.bounds.southWest.lon = Math.min(this.global.bounds.southWest.lon, other.global.bounds.southWest.lon);
         this.global.bounds.northEast.lat = Math.max(this.global.bounds.northEast.lat, other.global.bounds.northEast.lat);
         this.global.bounds.northEast.lon = Math.max(this.global.bounds.northEast.lon, other.global.bounds.northEast.lon);
+    }
+
+    slice(start: number, end: number): GPXStatistics {
+        let statistics = new GPXStatistics();
+
+        statistics.local.points = this.local.points.slice(start, end);
+
+        statistics.global.distance.total = this.local.distance.total[end - 1] - this.local.distance.total[start];
+        statistics.global.distance.moving = this.local.distance.moving[end - 1] - this.local.distance.moving[start];
+
+        statistics.global.time.total = this.local.time.total[end - 1] - this.local.time.total[start];
+        statistics.global.time.moving = this.local.time.moving[end - 1] - this.local.time.moving[start];
+
+        statistics.global.speed.moving = statistics.global.time.moving > 0 ? statistics.global.distance.moving / (statistics.global.time.moving / 3600) : 0;
+        statistics.global.speed.total = statistics.global.time.total > 0 ? statistics.global.distance.total / (statistics.global.time.total / 3600) : 0;
+
+        statistics.global.elevation.gain = this.local.elevation.gain[end - 1] - this.local.elevation.gain[start];
+        statistics.global.elevation.loss = this.local.elevation.loss[end - 1] - this.local.elevation.loss[start];
+
+        statistics.global.bounds.southWest.lat = this.global.bounds.southWest.lat;
+        statistics.global.bounds.southWest.lon = this.global.bounds.southWest.lon;
+        statistics.global.bounds.northEast.lat = this.global.bounds.northEast.lat;
+        statistics.global.bounds.northEast.lon = this.global.bounds.northEast.lon;
+
+        return statistics;
     }
 }
 

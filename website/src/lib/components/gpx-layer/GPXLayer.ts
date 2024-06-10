@@ -7,7 +7,7 @@ import { addSelectItem, selectItem, selection } from "$lib/components/file-list/
 import { ListTrackSegmentItem, ListWaypointItem, ListWaypointsItem, ListTrackItem, ListFileItem, ListRootItem } from "$lib/components/file-list/FileList";
 import type { Waypoint } from "gpx";
 import { produce } from "immer";
-import { resetCursor, setGrabbingCursor, setPointerCursor } from "$lib/utils";
+import { resetCursor, setCursor, setGrabbingCursor, setPointerCursor } from "$lib/utils";
 import { font } from "$lib/assets/layers";
 
 let defaultWeight = 5;
@@ -56,7 +56,9 @@ export class GPXLayer {
     unsubscribe: Function[] = [];
 
     updateBinded: () => void = this.update.bind(this);
-    selectOnClickBinded: (e: any) => void = this.selectOnClick.bind(this);
+    layerOnMouseEnterBinded: () => void = this.layerOnMouseEnter.bind(this);
+    layerOnMouseLeaveBinded: () => void = this.layerOnMouseLeave.bind(this);
+    layerOnClickBinded: (e: any) => void = this.layerOnClick.bind(this);
 
     constructor(map: mapboxgl.Map, fileId: string, file: Readable<GPXFileWithStatistics | undefined>) {
         this.map = map;
@@ -122,9 +124,9 @@ export class GPXLayer {
                     }
                 });
 
-                this.map.on('click', this.fileId, this.selectOnClickBinded);
-                this.map.on('mouseenter', this.fileId, setPointerCursor);
-                this.map.on('mouseleave', this.fileId, resetCursor);
+                this.map.on('click', this.fileId, this.layerOnClickBinded);
+                this.map.on('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
+                this.map.on('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
             }
 
             if (get(directionMarkers)) {
@@ -232,9 +234,9 @@ export class GPXLayer {
     }
 
     remove() {
-        this.map.off('click', this.fileId, this.selectOnClickBinded);
-        this.map.off('mouseenter', this.fileId, setPointerCursor);
-        this.map.off('mouseleave', this.fileId, resetCursor);
+        this.map.off('click', this.fileId, this.layerOnClickBinded);
+        this.map.off('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
+        this.map.off('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
         this.map.off('style.load', this.updateBinded);
 
         if (this.map.getLayer(this.fileId + '-direction')) {
@@ -265,8 +267,31 @@ export class GPXLayer {
         }
     }
 
-    selectOnClick(e: any) {
+    layerOnMouseEnter(e: any) {
+        let trackIndex = e.features[0].properties.trackIndex;
+        let segmentIndex = e.features[0].properties.segmentIndex;
+
+        if (get(currentTool) === Tool.SCISSORS && get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex))) {
+            setCursor(`url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" version="1.1"><path d="M 3.200 3.200 C 0.441 5.959, 2.384 9.516, 7 10.154 C 10.466 10.634, 10.187 13.359, 6.607 13.990 C 2.934 14.637, 1.078 17.314, 2.612 19.750 C 4.899 23.380, 10 21.935, 10 17.657 C 10 16.445, 12.405 13.128, 15.693 9.805 C 18.824 6.641, 21.066 3.732, 20.674 3.341 C 20.283 2.950, 18.212 4.340, 16.072 6.430 C 12.019 10.388, 10 10.458, 10 6.641 C 10 2.602, 5.882 0.518, 3.200 3.200 M 4.446 5.087 C 3.416 6.755, 5.733 8.667, 7.113 7.287 C 8.267 6.133, 7.545 4, 6 4 C 5.515 4, 4.816 4.489, 4.446 5.087 M 14 14.813 C 14 16.187, 19.935 21.398, 20.667 20.667 C 21.045 20.289, 20.065 18.634, 18.490 16.990 C 15.661 14.036, 14 13.231, 14 14.813 M 4.446 17.087 C 3.416 18.755, 5.733 20.667, 7.113 19.287 C 8.267 18.133, 7.545 16, 6 16 C 5.515 16, 4.816 16.489, 4.446 17.087" stroke="black" stroke-width="1.2" fill="white" fill-rule="evenodd"/></svg>') 12 12, auto`);
+        } else {
+            setPointerCursor();
+        }
+    }
+
+    layerOnMouseLeave() {
+        resetCursor();
+    }
+
+    layerOnClick(e: any) {
         if (get(currentTool) === Tool.ROUTING && get(selection).hasAnyChildren(new ListRootItem(), true, ['waypoints'])) {
+            return;
+        }
+
+        let trackIndex = e.features[0].properties.trackIndex;
+        let segmentIndex = e.features[0].properties.segmentIndex;
+
+        if (get(currentTool) === Tool.SCISSORS && get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex))) {
+            dbUtils.split(this.fileId, trackIndex, segmentIndex, { lat: e.lngLat.lat, lon: e.lngLat.lng });
             return;
         }
 
@@ -277,8 +302,6 @@ export class GPXLayer {
 
         let item = undefined;
         if (get(verticalFileView) && file.getSegments().length > 1) { // Select inner item
-            let trackIndex = e.features[0].properties.trackIndex;
-            let segmentIndex = e.features[0].properties.segmentIndex;
             item = file.children[trackIndex].children.length > 1 ? new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex) : new ListTrackItem(this.fileId, trackIndex);
         } else {
             item = new ListFileItem(this.fileId);
