@@ -3,7 +3,7 @@
         "file": "File",
         "create": "Create",
         "new_filename": "new",
-        "load_desktop": "Load from desktop...",
+        "load_desktop": "Load...",
         "load_drive": "Load from Google Drive...",
         "duplicate": "Duplicate",
         "export": "Export...",
@@ -47,14 +47,23 @@
             "tooltip": "Edit the route",
             "activity": "Activity",
             "use_routing": "Routing",
-            "use_routing_tooltip": "Connect anchor points through the road network. Disable to draw straight lines.",
+            "use_routing_tooltip": "Connect anchor points via road network or with straight lines when disabled",
             "allow_private": "Allow private roads",
-            "reverse_tooltip": "Reverse the direction",
-            "route_back_to_start_tooltip": "Route back to start",
-            "round_trip_tooltip": "Create round trip",
+            "reverse": {
+                "button": "Reverse",
+                "tooltip": "Reverse the direction of the route"
+            },
+            "route_back_to_start": {
+                "button": "Back to start",
+                "tooltip": "Connect the last point of the route with the starting point"
+            },
+            "round_trip": {
+                "button": "Round trip",
+                "tooltip": "Return to the starting point by the same route"
+            },
             "help_no_file": "Select a file element to use the routing tool, or create a new file from the menu",
             "help_multiple_files": "Select a single file element to use the routing tool",
-            "help": "Click on the map to add a new point, or drag existing points to change the route",
+            "help": "Click on the map to add a new anchor point, or drag existing ones to change the route",
             "activities": {
                 "bike": "Bike",
                 "racing_bike": "Racing bike",

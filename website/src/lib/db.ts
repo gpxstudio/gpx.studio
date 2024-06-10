@@ -87,6 +87,7 @@ export const settings = {
         }
         return currentMode;
     })()),
+    minimizeRoutingMenu: dexieSettingStore('minimizeRoutingMenu', false),
     routing: dexieSettingStore('routing', true),
     routingProfile: dexieSettingStore('routingProfile', 'bike'),
     privateRoads: dexieSettingStore('privateRoads', false),

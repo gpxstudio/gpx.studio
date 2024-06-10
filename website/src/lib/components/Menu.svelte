@@ -23,9 +23,9 @@
 		Thermometer,
 		Sun,
 		Moon,
-		Rows3,
 		Layers3,
-		MountainSnow
+		MountainSnow,
+		GalleryVertical
 	} from 'lucide-svelte';
 
 	import {
@@ -181,7 +181,7 @@
 						<MountainSnow size="16" class="mr-1" />{$_('menu.elevation_profile')}
 					</Menubar.CheckboxItem>
 					<Menubar.CheckboxItem bind:checked={$verticalFileView}>
-						<Rows3 size="16" class="mr-1" />{$_('menu.vertical_file_view')}
+						<GalleryVertical size="16" class="mr-1" />{$_('menu.vertical_file_view')}
 					</Menubar.CheckboxItem>
 					<Menubar.Separator />
 					<Menubar.Item inset on:click={switchBasemaps}

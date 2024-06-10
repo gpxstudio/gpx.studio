@@ -15,7 +15,7 @@
 		<Button
 			builders={[builder]}
 			variant="ghost"
-			class="h-fit px-1 py-1.5 {$currentTool === tool ? 'bg-accent' : ''}"
+			class="h-[26px] px-1 py-1.5 {$currentTool === tool ? 'bg-accent' : ''}"
 			on:click={toggleTool}
 		>
 			<slot name="icon" />
