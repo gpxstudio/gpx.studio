@@ -66,8 +66,8 @@ export class DistanceMarkers {
 
         let features = [];
         let currentTargetDistance = 1;
-        for (let i = 0; i < statistics.local.distance.length; i++) {
-            if (statistics.local.distance[i] >= currentTargetDistance * (get(distanceUnits) === 'metric' ? 1 : 1.60934)) {
+        for (let i = 0; i < statistics.local.distance.total.length; i++) {
+            if (statistics.local.distance.total[i] >= currentTargetDistance * (get(distanceUnits) === 'metric' ? 1 : 1.60934)) {
                 let distance = currentTargetDistance.toFixed(0);
                 features.push({
                     type: 'Feature',
