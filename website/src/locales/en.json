@@ -60,8 +60,8 @@
                 "button": "Round trip",
                 "tooltip": "Return to the starting point by the same route"
             },
-            "help_no_file": "Select a file element to use the routing tool, or create a new file from the menu",
-            "help_multiple_files": "Select a single file element to use the routing tool",
+            "help_no_file": "Select a file item to use the routing tool, or create a new file from the menu",
+            "help_multiple_files": "Select a single file item to use the routing tool",
             "help": "Click on the map to add a new anchor point, or drag existing ones to change the route",
             "activities": {
                 "bike": "Bike",
@@ -114,7 +114,7 @@
             "tooltip": "Crop or split traces",
             "crop": "Crop",
             "split_as": "Split the trace into",
-            "help_invalid_selection": "Select a file element to crop or split",
+            "help_invalid_selection": "Select a file item to crop or split",
             "help": "Use the slider to crop the trace, or click on the map to split it at the selected point"
         },
         "time_tooltip": "Manage time and speed data",
@@ -122,15 +122,22 @@
             "merge_traces": "Connect the traces",
             "merge_contents": "Merge the contents and keep the traces disconnected",
             "merge_selection": "Merge selection",
-            "tooltip": "Merge file elements together",
-            "help_merge_traces": "Connecting the selected traces will result in a single file containing a single continuous trace",
+            "tooltip": "Merge file items together",
+            "help_merge_traces": "Connecting the selected traces will create a single file containing a single continuous trace",
             "help_cannot_merge_traces": "Your selection needs to contain several traces to connect them",
-            "help_merge_contents": "Merging the contents of the selected file elements will group all the contents inside the first file element",
-            "help_cannot_merge_contents": "Your selection needs to contain several file elements to merge their contents"
+            "help_merge_contents": "Merging the contents of the selected file items will group all the contents inside the first file item",
+            "help_cannot_merge_contents": "Your selection needs to contain several file items to merge their contents"
         },
         "extract_tooltip": "Extract inner tracks or segments",
         "waypoint_tooltip": "Create and edit points of interest",
-        "reduce_tooltip": "Reduce the number of GPS points",
+        "reduce": {
+            "tooltip": "Reduce the number of GPS points",
+            "tolerance": "Tolerance",
+            "number_of_points": "Number of GPS points",
+            "button": "Reduce",
+            "help": "Use the slider to choose the number of GPS points to keep",
+            "help_no_selection": "Select a file item to reduce the number of its GPS points"
+        },
         "clean": {
             "tooltip": "Clean GPS points and points of interest with a rectangle selection",
             "delete_trackpoints": "Delete GPS points",
@@ -139,7 +146,7 @@
             "delete_outside": "Delete outside selection",
             "button": "Delete",
             "help": "Select a rectangle area on the map to remove GPS points and points of interest",
-            "help_no_selection": "Select a file element to use the tool"
+            "help_no_selection": "Select a file item to clean GPS points and points of interest"
         },
         "style_tooltip": "Change the style of the trace"
     },

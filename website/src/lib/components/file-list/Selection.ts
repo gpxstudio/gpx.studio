@@ -200,11 +200,11 @@ export function selectAll() {
     });
 }
 
-export function applyToOrderedSelectedItemsFromFile(callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void, reverse: boolean = true) {
+export function applyToOrderedItemsFromFile(selectedItems: ListItem[], callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void, reverse: boolean = true) {
     get(settings.fileOrder).forEach((fileId) => {
         let level: ListLevel | undefined = undefined;
         let items: ListItem[] = [];
-        get(selection).forEach((item) => {
+        selectedItems.forEach((item) => {
             if (item.getFileId() === fileId) {
                 level = item.level;
                 if (item instanceof ListFileItem || item instanceof ListTrackItem || item instanceof ListTrackSegmentItem || item instanceof ListWaypointsItem || item instanceof ListWaypointItem) {
@@ -218,4 +218,8 @@ export function applyToOrderedSelectedItemsFromFile(callback: (fileId: string, l
             callback(fileId, level, items);
         }
     });
+}
+
+export function applyToOrderedSelectedItemsFromFile(callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void, reverse: boolean = true) {
+    applyToOrderedItemsFromFile(get(selection).getSelected(), callback, reverse);
 }

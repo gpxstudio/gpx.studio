@@ -13,6 +13,7 @@
 	export let value: number;
 	export let type: 'distance' | 'elevation' | 'speed' | 'temperature' | 'time';
 	export let showUnits: boolean = true;
+	export let decimals: number | undefined = undefined;
 
 	const { distanceUnits, velocityUnits, temperatureUnits } = settings;
 </script>
@@ -20,26 +21,27 @@
 <span class={$$props.class}>
 	{#if type === 'distance'}
 		{#if $distanceUnits === 'metric'}
-			{value.toFixed(2)} {showUnits ? $_('units.kilometers') : ''}
+			{value.toFixed(decimals ?? 2)} {showUnits ? $_('units.kilometers') : ''}
 		{:else}
-			{kilometersToMiles(value).toFixed(2)} {showUnits ? $_('units.miles') : ''}
+			{kilometersToMiles(value).toFixed(decimals ?? 2)} {showUnits ? $_('units.miles') : ''}
 		{/if}
 	{:else if type === 'elevation'}
 		{#if $distanceUnits === 'metric'}
-			{value.toFixed(0)} {showUnits ? $_('units.meters') : ''}
+			{value.toFixed(decimals ?? 0)} {showUnits ? $_('units.meters') : ''}
 		{:else}
-			{metersToFeet(value).toFixed(0)} {showUnits ? $_('units.feet') : ''}
+			{metersToFeet(value).toFixed(decimals ?? 0)} {showUnits ? $_('units.feet') : ''}
 		{/if}
 	{:else if type === 'speed'}
 		{#if $distanceUnits === 'metric'}
 			{#if $velocityUnits === 'speed'}
-				{value.toFixed(2)} {showUnits ? $_('units.kilometers_per_hour') : ''}
+				{value.toFixed(decimals ?? 2)} {showUnits ? $_('units.kilometers_per_hour') : ''}
 			{:else}
 				{secondsToHHMMSS(distancePerHourToSecondsPerDistance(value))}
 				{showUnits ? $_('units.minutes_per_kilometer') : ''}
 			{/if}
 		{:else if $velocityUnits === 'speed'}
-			{kilometersToMiles(value).toFixed(2)} {showUnits ? $_('units.miles_per_hour') : ''}
+			{kilometersToMiles(value).toFixed(decimals ?? 2)}
+			{showUnits ? $_('units.miles_per_hour') : ''}
 		{:else}
 			{secondsToHHMMSS(distancePerHourToSecondsPerDistance(kilometersToMiles(value)))}
 			{showUnits ? $_('units.minutes_per_mile') : ''}

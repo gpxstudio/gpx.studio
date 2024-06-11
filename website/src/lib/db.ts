@@ -5,7 +5,7 @@ import { writable, get, derived, type Readable, type Writable } from 'svelte/sto
 import { initTargetMapBounds, splitAs, updateTargetMapBounds } from './stores';
 import { mode } from 'mode-watcher';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays } from './assets/layers';
-import { applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
+import { applyToOrderedItemsFromFile, applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem, ListRootItem } from '$lib/components/file-list/FileList';
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
 import { SplitType } from '$lib/components/toolbar/tools/Scissors.svelte';
@@ -670,6 +670,31 @@ export const dbUtils = {
                     } else if (level === ListLevel.WAYPOINT) {
                         let waypointIndices = items.map((item) => (item as ListWaypointItem).getWaypointIndex());
                         newFile = newFile.clean(bounds, inside, false, deleteWaypoints, [], [], waypointIndices);
+                    }
+                    draft.set(newFile._data.id, freeze(newFile));
+                }
+            });
+        });
+    },
+    reduce: (itemsAndPoints: Map<ListItem, TrackPoint[]>) => {
+        if (itemsAndPoints.size === 0) {
+            return;
+        }
+        applyGlobal((draft) => {
+            let allItems = Array.from(itemsAndPoints.keys());
+            applyToOrderedItemsFromFile(allItems, (fileId, level, items) => {
+                let file = original(draft)?.get(fileId);
+                if (file) {
+                    let newFile = file;
+                    for (let item of items) {
+                        if (item instanceof ListTrackSegmentItem) {
+                            let trackIndex = item.getTrackIndex();
+                            let segmentIndex = item.getSegmentIndex();
+                            let points = itemsAndPoints.get(item);
+                            if (points) {
+                                newFile = newFile.replaceTrackPoints(trackIndex, segmentIndex, 0, file.trk[trackIndex].trkseg[segmentIndex].getNumberOfTrackPoints() - 1, points);
+                            }
+                        }
                     }
                     draft.set(newFile._data.id, freeze(newFile));
                 }

@@ -1,8 +1,7 @@
-import { dbUtils, fileObservers } from "$lib/db";
+import { dbUtils } from "$lib/db";
 import { castDraft, freeze } from "immer";
 import { Track, TrackSegment, Waypoint } from "gpx";
 import { selection } from "./Selection";
-import { get } from "svelte/store";
 import { newGPXFile } from "$lib/stores";
 
 export enum ListLevel {
@@ -22,6 +21,7 @@ export abstract class ListItem {
     }
 
     abstract getId(): string | number;
+    abstract getFullId(): string;
     abstract getIdAtLevel(level: ListLevel): string | number | undefined;
     abstract getFileId(): string;
     abstract extend(id: string | number): ListItem;
@@ -33,6 +33,10 @@ export class ListRootItem extends ListItem {
     }
 
     getId(): string {
+        return 'root';
+    }
+
+    getFullId(): string {
         return 'root';
     }
 
@@ -58,6 +62,10 @@ export class ListFileItem extends ListItem {
     }
 
     getId(): string {
+        return this.fileId;
+    }
+
+    getFullId(): string {
         return this.fileId;
     }
 
@@ -95,6 +103,10 @@ export class ListTrackItem extends ListItem {
 
     getId(): number {
         return this.trackIndex;
+    }
+
+    getFullId(): string {
+        return `${this.fileId}-track-${this.trackIndex}`;
     }
 
     getIdAtLevel(level: ListLevel): string | number | undefined {
@@ -135,6 +147,10 @@ export class ListTrackSegmentItem extends ListItem {
 
     getId(): number {
         return this.segmentIndex;
+    }
+
+    getFullId(): string {
+        return `${this.fileId}-track-${this.trackIndex}--${this.segmentIndex}`;
     }
 
     getIdAtLevel(level: ListLevel): string | number | undefined {
@@ -179,6 +195,10 @@ export class ListWaypointsItem extends ListItem {
         return 'waypoints';
     }
 
+    getFullId(): string {
+        return `${this.fileId}-waypoints`;
+    }
+
     getIdAtLevel(level: ListLevel): string | number | undefined {
         switch (level) {
             case ListLevel.ROOT:
@@ -211,6 +231,10 @@ export class ListWaypointItem extends ListItem {
 
     getId(): number {
         return this.waypointIndex;
+    }
+
+    getFullId(): string {
+        return `${this.fileId}-waypoint-${this.waypointIndex}`;
     }
 
     getIdAtLevel(level: ListLevel): string | number | undefined {

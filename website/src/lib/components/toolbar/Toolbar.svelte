@@ -48,7 +48,7 @@
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.REDUCE}>
 				<Filter slot="icon" size="18" />
-				<span slot="tooltip">{$_('toolbar.reduce_tooltip')}</span>
+				<span slot="tooltip">{$_('toolbar.reduce.tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.CLEAN}>
 				<SquareDashedMousePointer slot="icon" size="18" />
