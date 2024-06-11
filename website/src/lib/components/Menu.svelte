@@ -33,7 +33,8 @@
 		exportAllFiles,
 		exportSelectedFiles,
 		triggerFileInput,
-		createFile
+		createFile,
+		loadFiles
 	} from '$lib/stores';
 	import { selectAll, selection } from '$lib/components/file-list/Selection';
 	import { derived } from 'svelte/store';
@@ -338,6 +339,13 @@
 		} else if (e.key === 'F2') {
 			toggleOverlays();
 			e.preventDefault();
+		}
+	}}
+	on:dragover={(e) => e.preventDefault()}
+	on:drop={(e) => {
+		e.preventDefault();
+		if (e.dataTransfer.files.length > 0) {
+			loadFiles(e.dataTransfer.files);
 		}
 	}}
 />
