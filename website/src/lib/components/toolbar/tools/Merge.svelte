@@ -65,16 +65,16 @@
 	let mergeType = MergeType.TRACES;
 </script>
 
-<div class="flex flex-col gap-3 max-w-96">
+<div class="flex flex-col gap-3 max-w-80">
 	<RadioGroup.Root bind:value={mergeType}>
-		<div class="flex flex-row items-center gap-2">
-			<RadioGroup.Item value={MergeType.TRACES} id={MergeType.TRACES} />
-			<Label for={MergeType.TRACES}>{$_('toolbar.merge.merge_traces')}</Label>
-		</div>
-		<div class="flex flex-row items-center gap-2">
-			<RadioGroup.Item value={MergeType.CONTENTS} id={MergeType.CONTENTS} />
-			<Label for={MergeType.CONTENTS}>{$_('toolbar.merge.merge_contents')}</Label>
-		</div>
+		<Label class="flex flex-row items-center gap-2 leading-5">
+			<RadioGroup.Item value={MergeType.TRACES} />
+			{$_('toolbar.merge.merge_traces')}
+		</Label>
+		<Label class="flex flex-row items-center gap-2 leading-5">
+			<RadioGroup.Item value={MergeType.CONTENTS} />
+			{$_('toolbar.merge.merge_contents')}
+		</Label>
 	</RadioGroup.Root>
 	<Button
 		variant="outline"
