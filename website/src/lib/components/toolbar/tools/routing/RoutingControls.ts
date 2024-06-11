@@ -128,6 +128,7 @@ export class RoutingControls {
         this.map.off('click', this.appendAnchorBinded);
         this.map.off('mousemove', this.fileId, this.showTemporaryAnchorBinded);
         this.map.off('mousemove', this.updateTemporaryAnchorBinded);
+        this.temporaryAnchor.marker.remove();
         resetCursor();
 
         this.fileUnsubscribe();
