@@ -43,7 +43,7 @@
 			let fileStore = $fileObservers.get(fileId);
 			if (fileStore) {
 				let file = get(fileStore)?.file;
-				if (file) {
+				if (file && trackIndex < file.trk.length) {
 					canMergeTraces = file.trk[trackIndex].getSegments().length > 1;
 				} else {
 					canMergeTraces = false;
