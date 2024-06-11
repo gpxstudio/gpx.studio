@@ -15,6 +15,7 @@
 	import { _ } from 'svelte-i18n';
 	import { dbUtils, fileObservers } from '$lib/db';
 	import { get } from 'svelte/store';
+	import { Group } from 'lucide-svelte';
 
 	let canMergeTraces = false;
 	let canMergeContents = false;
@@ -79,11 +80,11 @@
 		variant="outline"
 		disabled={(mergeType === MergeType.TRACES && !canMergeTraces) ||
 			(mergeType === MergeType.CONTENTS && !canMergeContents)}
-		class="w-full"
 		on:click={() => {
 			dbUtils.mergeSelection(mergeType === MergeType.TRACES);
 		}}
 	>
+		<Group size="16" class="mr-1" />
 		{$_('toolbar.merge.merge_selection')}
 	</Button>
 	<Help>
