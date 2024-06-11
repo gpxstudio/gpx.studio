@@ -54,7 +54,7 @@
 
 <svelte:window
 	on:keydown={(e) => {
-		if ($currentTool && e.key === 'Escape') {
+		if ($currentTool !== null && e.key === 'Escape') {
 			currentTool.set(null);
 		}
 	}}
