@@ -131,7 +131,16 @@
         "extract_tooltip": "Extract inner tracks or segments",
         "waypoint_tooltip": "Create and edit points of interest",
         "reduce_tooltip": "Reduce the number of GPS points",
-        "clean_tooltip": "Clean GPS points and points of interest with a rectangle selection",
+        "clean": {
+            "tooltip": "Clean GPS points and points of interest with a rectangle selection",
+            "delete_trackpoints": "Delete GPS points",
+            "delete_waypoints": "Delete points of interest",
+            "delete_inside": "Delete inside selection",
+            "delete_outside": "Delete outside selection",
+            "button": "Delete",
+            "help": "Select a rectangle area on the map to remove GPS points and points of interest",
+            "help_no_selection": "Select a file element to use the tool"
+        },
         "style_tooltip": "Change the style of the trace"
     },
     "layers": {

@@ -647,6 +647,35 @@ export const dbUtils = {
             }
         });
     },
+    cleanSelection: (bounds: [Coordinates, Coordinates], inside: boolean, deleteTrackPoints: boolean, deleteWaypoints: boolean) => {
+        if (get(selection).size === 0) {
+            return;
+        }
+        applyGlobal((draft) => {
+            applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+                let file = original(draft)?.get(fileId);
+                if (file) {
+                    let newFile = file;
+                    if (level === ListLevel.FILE) {
+                        newFile = file.clean(bounds, inside, deleteTrackPoints, deleteWaypoints);
+                    } else if (level === ListLevel.TRACK) {
+                        let trackIndices = items.map((item) => (item as ListTrackItem).getTrackIndex());
+                        newFile = newFile.clean(bounds, inside, deleteTrackPoints, false, trackIndices);
+                    } else if (level === ListLevel.SEGMENT) {
+                        let trackIndices = [(items[0] as ListTrackSegmentItem).getTrackIndex()];
+                        let segmentIndices = items.map((item) => (item as ListTrackSegmentItem).getSegmentIndex());
+                        newFile = newFile.clean(bounds, inside, deleteTrackPoints, false, trackIndices, segmentIndices);
+                    } else if (level === ListLevel.WAYPOINTS) {
+                        newFile = newFile.clean(bounds, inside, false, deleteWaypoints);
+                    } else if (level === ListLevel.WAYPOINT) {
+                        let waypointIndices = items.map((item) => (item as ListWaypointItem).getWaypointIndex());
+                        newFile = newFile.clean(bounds, inside, false, deleteWaypoints, [], [], waypointIndices);
+                    }
+                    draft.set(newFile._data.id, freeze(newFile));
+                }
+            });
+        });
+    },
     deleteSelection: () => {
         if (get(selection).size === 0) {
             return;

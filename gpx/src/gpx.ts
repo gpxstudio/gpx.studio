@@ -274,6 +274,42 @@ export class GPXFile extends GPXTreeNode<Track>{
             draft.trk = freeze(trk); // Pre-freeze the array, faster as well
         });
     }
+
+    clean(bounds: [Coordinates, Coordinates], inside: boolean, deleteTrackPoints: boolean, deleteWaypoints: boolean, trackIndices?: number[], segmentIndices?: number[], waypointIndices?: number[]) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            if (deleteTrackPoints) {
+                let trk = og.trk.slice();
+                let i = 0;
+                let trackIndex = 0;
+                while (i < trk.length) {
+                    if (trackIndices === undefined || trackIndices.includes(trackIndex)) {
+                        trk[i] = trk[i].clean(bounds, inside, segmentIndices);
+                        if (trk[i].getNumberOfTrackPoints() === 0) {
+                            trk.splice(i, 1);
+                        } else {
+                            i++;
+                        }
+                    } else {
+                        i++;
+                    }
+                    trackIndex++;
+                }
+                draft.trk = freeze(trk); // Pre-freeze the array, faster as well
+            }
+            if (deleteWaypoints) {
+                let wpt = og.wpt.filter((point, waypointIndex) => {
+                    if (waypointIndices === undefined || waypointIndices.includes(waypointIndex)) {
+                        let inBounds = point.attributes.lat >= bounds[0].lat && point.attributes.lat <= bounds[1].lat && point.attributes.lon >= bounds[0].lon && point.attributes.lon <= bounds[1].lon;
+                        return inBounds !== inside;
+                    } else {
+                        return true;
+                    }
+                });
+                draft.wpt = freeze(wpt); // Pre-freeze the array, faster as well
+            }
+        });
+    }
 };
 
 // A class that represents a Track in a GPX file
@@ -406,6 +442,29 @@ export class Track extends GPXTreeNode<TrackSegment> {
                     }
                     start -= length;
                     end -= length;
+                } else {
+                    i++;
+                }
+                segmentIndex++;
+            }
+            draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
+        });
+    }
+
+    clean(bounds: [Coordinates, Coordinates], inside: boolean, segmentIndices?: number[]) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let trkseg = og.trkseg.slice();
+            let i = 0;
+            let segmentIndex = 0;
+            while (i < trkseg.length) {
+                if (segmentIndices === undefined || segmentIndices.includes(segmentIndex)) {
+                    trkseg[i] = trkseg[i].clean(bounds, inside);
+                    if (trkseg[i].getNumberOfTrackPoints() === 0) {
+                        trkseg.splice(i, 1);
+                    } else {
+                        i++;
+                    }
                 } else {
                     i++;
                 }
@@ -613,6 +672,17 @@ export class TrackSegment extends GPXTreeLeaf {
         return produce(this, (draft) => {
             let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
             let trkpt = og.trkpt.slice(start, end + 1);
+            draft.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+        });
+    }
+
+    clean(bounds: [Coordinates, Coordinates], inside: boolean) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let trkpt = og.trkpt.filter((point) => {
+                let inBounds = point.attributes.lat >= bounds[0].lat && point.attributes.lat <= bounds[1].lat && point.attributes.lon >= bounds[0].lon && point.attributes.lon <= bounds[1].lon;
+                return inBounds !== inside;
+            });
             draft.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
         });
     }

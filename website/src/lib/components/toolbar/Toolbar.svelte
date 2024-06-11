@@ -52,7 +52,7 @@
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.CLEAN}>
 				<SquareDashedMousePointer slot="icon" size="18" />
-				<span slot="tooltip">{$_('toolbar.clean_tooltip')}</span>
+				<span slot="tooltip">{$_('toolbar.clean.tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.STYLE}>
 				<Palette slot="icon" size="18" />
