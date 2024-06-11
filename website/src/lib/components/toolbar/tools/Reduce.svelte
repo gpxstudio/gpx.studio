@@ -130,6 +130,8 @@
 				$map.removeSource('simplified');
 			}
 		}
+		unsubscribes.forEach((unsubscribe) => unsubscribe());
+		simplified.clear();
 	});
 
 	function reduce() {
