@@ -8,7 +8,6 @@
 		SquareDashedMousePointer,
 		Ungroup,
 		MapPin,
-		Palette,
 		Filter,
 		Scissors
 	} from 'lucide-svelte';
@@ -28,7 +27,7 @@
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.WAYPOINT}>
 				<MapPin slot="icon" size="18" />
-				<span slot="tooltip">{$_('toolbar.waypoint_tooltip')}</span>
+				<span slot="tooltip">{$_('toolbar.waypoint.tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.SCISSORS}>
 				<Scissors slot="icon" size="18" />

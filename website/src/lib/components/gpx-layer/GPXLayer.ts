@@ -2,13 +2,14 @@ import { currentTool, Tool } from "$lib/stores";
 import { settings, type GPXFileWithStatistics, dbUtils } from "$lib/db";
 import { get, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
-import { currentWaypoint, waypointPopup } from "./WaypointPopup";
+import { currentPopupWaypoint, waypointPopup } from "./WaypointPopup";
 import { addSelectItem, selectItem, selection } from "$lib/components/file-list/Selection";
 import { ListTrackSegmentItem, ListWaypointItem, ListWaypointsItem, ListTrackItem, ListFileItem, ListRootItem } from "$lib/components/file-list/FileList";
 import type { Waypoint } from "gpx";
 import { produce } from "immer";
 import { resetCursor, setCursor, setGrabbingCursor, setPointerCursor } from "$lib/utils";
 import { font } from "$lib/assets/layers";
+import { selectedWaypoint } from "$lib/components/toolbar/tools/Waypoint.svelte";
 
 let defaultWeight = 5;
 let defaultOpacity = 0.6;
@@ -190,13 +191,14 @@ export class GPXLayer {
                             return;
                         }
 
-                        if ((e.shiftKey || e.ctrlKey || e.metaKey) && get(selection).hasAnyChildren(new ListWaypointsItem(this.fileId), false)) {
-                            addSelectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
+                        if (get(verticalFileView)) {
+                            if ((e.shiftKey || e.ctrlKey || e.metaKey) && get(selection).hasAnyChildren(new ListWaypointsItem(this.fileId), false)) {
+                                addSelectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
+                            } else {
+                                selectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
+                            }
                         } else {
-                            selectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
-                        }
-                        if (!get(verticalFileView) && !get(selection).has(new ListFileItem(this.fileId))) {
-                            addSelectItem(new ListFileItem(this.fileId));
+                            selectedWaypoint.set([marker._waypoint, this.fileId]);
                         }
                         e.stopPropagation();
                     });
@@ -318,14 +320,14 @@ export class GPXLayer {
     showWaypointPopup(waypoint: Waypoint) {
         let marker = this.markers[waypoint._data.index];
         if (marker) {
-            currentWaypoint.set(waypoint);
+            currentPopupWaypoint.set(waypoint);
             marker.setPopup(waypointPopup);
             marker.togglePopup();
         }
     }
 
     hideWaypointPopup() {
-        let waypoint = get(currentWaypoint);
+        let waypoint = get(currentPopupWaypoint);
         if (waypoint) {
             let marker = this.markers[waypoint._data.index];
             marker?.getPopup()?.remove();

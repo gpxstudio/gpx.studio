@@ -85,7 +85,6 @@
 						{/if}
 						{$_('toolbar.routing.use_routing')}
 					</span>
-
 					<Switch class="scale-90" bind:checked={$routing} />
 				</Label>
 				<span slot="tooltip">{$_('toolbar.routing.use_routing_tooltip')}</span>

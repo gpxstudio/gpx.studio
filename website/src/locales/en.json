@@ -130,7 +130,18 @@
             "help_cannot_merge_contents": "Your selection needs to contain several file items to merge their contents"
         },
         "extract_tooltip": "Extract contents",
-        "waypoint_tooltip": "Create and edit points of interest",
+        "waypoint": {
+            "tooltip": "Create and edit points of interest",
+            "name": "Name",
+            "description": "Description",
+            "comment": "Comment",
+            "longitude": "Longitude",
+            "latitude": "Latitude",
+            "create": "Create",
+            "update": "Update",
+            "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
+            "help_no_selection": "Select a file item to create or edit points of interest"
+        },
         "reduce": {
             "tooltip": "Reduce the number of GPS points",
             "tolerance": "Tolerance",
