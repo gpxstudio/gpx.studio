@@ -47,7 +47,7 @@
 	let sortable: Sortable;
 	let orientation = getContext<'vertical' | 'horizontal'>('orientation');
 
-	function updateToSelection() {
+	function updateToSelection(e) {
 		if (updating) return;
 		updating = true;
 		// Sortable updates selection
@@ -61,6 +61,13 @@
 						element.classList.contains('sortable-selected')
 					);
 				});
+
+				if ($selection.size > 1 && !(e.ctrlKey || e.metaKey || e.shiftKey)) {
+					// Fix bug that sometimes causes a single select to be treated as a multi-select
+					$selection.clear();
+					$selection.set(item.extend(getRealId(changed[0])), true);
+				}
+
 				return $selection;
 			});
 		}
