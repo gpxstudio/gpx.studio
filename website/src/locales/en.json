@@ -1,6 +1,6 @@
 {
     "menu": {
-        "create": "Create",
+        "new": "New",
         "new_filename": "new",
         "load_desktop": "Load...",
         "load_drive": "Load from Google Drive...",

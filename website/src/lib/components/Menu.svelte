@@ -107,8 +107,8 @@
 				<Menubar.Content class="border-none">
 					<Menubar.Item on:click={createFile}>
 						<Plus size="16" class="mr-1" />
-						{$_('menu.create')}
-						<Shortcut key="C" ctrl={true} />
+						{$_('menu.new')}
+						<Shortcut key="+" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Separator />
 					<Menubar.Item on:click={triggerFileInput}>
@@ -301,7 +301,7 @@
 
 <svelte:window
 	on:keydown={(e) => {
-		if (e.key === 'c' && (e.metaKey || e.ctrlKey)) {
+		if (e.key === '+' && (e.metaKey || e.ctrlKey)) {
 			createFile();
 			e.preventDefault();
 		} else if (e.key === 'o' && (e.metaKey || e.ctrlKey)) {
