@@ -51,25 +51,25 @@
 		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
 				<Zap size="18" class="mr-1" />
-				<WithUnits value={statistics.global.speed.total} type="speed" showUnits={false} />
+				<WithUnits value={statistics.global.speed.moving} type="speed" showUnits={false} />
 				<span class="mx-1">/</span>
-				<WithUnits value={statistics.global.speed.moving} type="speed" />
+				<WithUnits value={statistics.global.speed.total} type="speed" />
 			</span>
 			<span slot="tooltip"
 				>{$velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')} ({$_(
-					'quantities.total'
-				)} / {$_('quantities.moving')})</span
+					'quantities.moving'
+				)} / {$_('quantities.total')})</span
 			>
 		</Tooltip>
 		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
 				<Timer size="18" class="mr-1" />
-				<WithUnits value={statistics.global.time.total} type="time" />
-				<span class="mx-1">/</span>
 				<WithUnits value={statistics.global.time.moving} type="time" />
+				<span class="mx-1">/</span>
+				<WithUnits value={statistics.global.time.total} type="time" />
 			</span>
 			<span slot="tooltip"
-				>{$_('quantities.time')} ({$_('quantities.total')} / {$_('quantities.moving')})</span
+				>{$_('quantities.time')} ({$_('quantities.moving')} / {$_('quantities.total')})</span
 			>
 		</Tooltip>
 	</Card.Content>
