@@ -142,8 +142,8 @@
 	}
 
 	function setCoordinates(e: any) {
-		latitude = e.lngLat.lat;
-		longitude = e.lngLat.lng;
+		latitude = e.lngLat.lat.toFixed(6);
+		longitude = e.lngLat.lng.toFixed(6);
 	}
 
 	onMount(() => {
