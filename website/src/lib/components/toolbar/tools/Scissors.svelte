@@ -27,8 +27,10 @@
 	let maxSliderValue = 100;
 	let sliderValues = [0, 100];
 
+	$: canCrop = sliderValues[0] != 0 || sliderValues[1] != maxSliderValue;
+
 	function updateSlicedGPXStatistics() {
-		if (validSelection && (sliderValues[0] != 0 || sliderValues[1] != maxSliderValue)) {
+		if (validSelection && canCrop) {
 			slicedGPXStatistics.set([
 				get(gpxStatistics).slice(sliderValues[0], sliderValues[1]),
 				sliderValues[0],
@@ -40,7 +42,7 @@
 	}
 
 	async function updateSliderLimits() {
-		if (validSelection) {
+		if (validSelection && $gpxStatistics.local.points.length > 0) {
 			maxSliderValue = $gpxStatistics.local.points.length - 1;
 		} else {
 			maxSliderValue = 100;
@@ -78,7 +80,7 @@
 	</div>
 	<Button
 		variant="outline"
-		disabled={!validSelection}
+		disabled={!validSelection || !canCrop}
 		on:click={() => dbUtils.cropSelection(sliderValues[0], sliderValues[1])}
 		><Crop size="16" class="mr-1" />{$_('toolbar.scissors.crop')}</Button
 	>
