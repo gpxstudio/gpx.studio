@@ -251,18 +251,9 @@
 		overlay.width = canvas.width;
 		overlay.height = canvas.height;
 
-		let selectionContext = overlay.getContext('2d');
-		let selectionRect = {
-			w: 0,
-			startX: 0,
-			startY: 0
-		};
-		let startIndex = 0,
-			endIndex = 0;
-		canvas.addEventListener('pointerdown', (evt) => {
-			dragging = true;
-			canvas.style.cursor = 'col-resize';
-
+		let startIndex = 0;
+		let endIndex = 0;
+		function getIndex(evt) {
 			const points = chart.getElementsAtEventForMode(
 				evt,
 				'index',
@@ -271,67 +262,38 @@
 				},
 				true
 			);
-			startIndex = points.find((point) => point.datasetIndex === 0)?.element.raw.index ?? 0;
-
 			const rect = canvas.getBoundingClientRect();
-			selectionRect.startX = Math.min(
-				Math.max(evt.clientX - rect.left, chart.chartArea.left),
-				chart.chartArea.right
+			return (
+				points.find((point) => point.datasetIndex === 0)?.element.raw.index ??
+				(evt.x - rect.left <= chart.chartArea.left ? 0 : get(gpxStatistics).local.points.length - 1)
 			);
-			selectionRect.startY = chart.chartArea.top;
+		}
+		canvas.addEventListener('pointerdown', (evt) => {
+			dragging = true;
+			canvas.style.cursor = 'col-resize';
+			startIndex = getIndex(evt);
 		});
 		canvas.addEventListener('pointermove', (evt) => {
 			if (dragging) {
-				const rect = canvas.getBoundingClientRect();
-				selectionRect.w =
-					Math.min(Math.max(evt.clientX - rect.left, chart.chartArea.left), chart.chartArea.right) -
-					selectionRect.startX;
-				if (selectionContext) {
-					selectionContext.globalAlpha = 0.2;
-					selectionContext.clearRect(0, 0, canvas.width, canvas.height);
-					selectionContext.fillRect(
-						Math.max(selectionRect.startX, chart.chartArea.left),
-						selectionRect.startY,
-						selectionRect.w,
-						chart.chartArea.bottom - chart.chartArea.top
-					);
-				}
-
-				const points = chart.getElementsAtEventForMode(
-					evt,
-					'index',
-					{
-						intersect: false
-					},
-					true
-				);
-				endIndex = points.find((point) => point.datasetIndex === 0)?.element.raw.index ?? 0;
-
+				endIndex = getIndex(evt);
 				if (startIndex !== endIndex) {
-					slicedGPXStatistics.set(
-						get(gpxStatistics).slice(Math.min(startIndex, endIndex), Math.max(startIndex, endIndex))
-					);
+					slicedGPXStatistics.set([
+						get(gpxStatistics).slice(
+							Math.min(startIndex, endIndex),
+							Math.max(startIndex, endIndex)
+						),
+						Math.min(startIndex, endIndex),
+						Math.max(startIndex, endIndex)
+					]);
 				}
 			}
 		});
 		canvas.addEventListener('pointerup', (evt) => {
 			dragging = false;
 			canvas.style.cursor = '';
-
-			const points = chart.getElementsAtEventForMode(
-				evt,
-				'index',
-				{
-					intersect: false
-				},
-				true
-			);
-			endIndex = points.find((point) => point.datasetIndex === 0)?.element.raw.index ?? 0;
-
+			endIndex = getIndex(evt);
 			if (startIndex === endIndex) {
-				if (selectionContext) {
-					selectionContext.clearRect(0, 0, canvas.width, canvas.height);
-				}
+				slicedGPXStatistics.set(undefined);
 			}
 		});
 	});
@@ -506,6 +468,34 @@
 	}
 
 	$: if ($slicedGPXStatistics) {
+		let startIndex = $slicedGPXStatistics[1];
+		let endIndex = $slicedGPXStatistics[2];
+
+		// Draw selection rectangle
+		let selectionContext = overlay.getContext('2d');
+		if (selectionContext) {
+			selectionContext.globalAlpha = 0.1;
+			selectionContext.clearRect(0, 0, overlay.width, overlay.height);
+
+			let startPixel = chart.scales.x.getPixelForValue(
+				getConvertedDistance(get(gpxStatistics).local.distance.total[startIndex])
+			);
+			let endPixel = chart.scales.x.getPixelForValue(
+				getConvertedDistance(get(gpxStatistics).local.distance.total[endIndex])
+			);
+
+			selectionContext.fillRect(
+				startPixel,
+				chart.chartArea.top,
+				endPixel - startPixel,
+				chart.chartArea.bottom - chart.chartArea.top
+			);
+		}
+	} else if (overlay) {
+		let selectionContext = overlay.getContext('2d');
+		if (selectionContext) {
+			selectionContext.clearRect(0, 0, overlay.width, overlay.height);
+		}
 	}
 
 	onDestroy(() => {

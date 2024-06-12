@@ -28,16 +28,20 @@
 	let sliderValues = [0, 100];
 
 	function updateSlicedGPXStatistics() {
-		if (validSelection) {
-			slicedGPXStatistics.set(get(gpxStatistics).slice(sliderValues[0], sliderValues[1]));
+		if (validSelection && (sliderValues[0] != 0 || sliderValues[1] != maxSliderValue)) {
+			slicedGPXStatistics.set([
+				get(gpxStatistics).slice(sliderValues[0], sliderValues[1]),
+				sliderValues[0],
+				sliderValues[1]
+			]);
 		} else {
-			slicedGPXStatistics.set(get(gpxStatistics));
+			slicedGPXStatistics.set(undefined);
 		}
 	}
 
 	async function updateSliderLimits() {
 		if (validSelection) {
-			maxSliderValue = $gpxStatistics.local.points.length;
+			maxSliderValue = $gpxStatistics.local.points.length - 1;
 		} else {
 			maxSliderValue = 100;
 		}
@@ -45,7 +49,7 @@
 		sliderValues = [0, maxSliderValue];
 	}
 
-	$: if ($gpxStatistics.local.points.length != maxSliderValue) {
+	$: if ($gpxStatistics.local.points.length - 1 != maxSliderValue) {
 		updateSliderLimits();
 	}
 

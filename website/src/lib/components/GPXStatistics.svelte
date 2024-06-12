@@ -16,7 +16,7 @@
 	let statistics: GPXStatistics;
 
 	$: if ($slicedGPXStatistics !== undefined) {
-		statistics = $slicedGPXStatistics;
+		statistics = $slicedGPXStatistics[0];
 	} else {
 		statistics = $gpxStatistics;
 	}
