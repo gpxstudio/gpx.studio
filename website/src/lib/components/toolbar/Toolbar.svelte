@@ -26,13 +26,13 @@
 				<Pencil slot="icon" size="18" class="h-" />
 				<span slot="tooltip">{$_('toolbar.routing.tooltip')}</span>
 			</ToolbarItem>
-			<ToolbarItem tool={Tool.SCISSORS}>
-				<Scissors slot="icon" size="18" />
-				<span slot="tooltip">{$_('toolbar.scissors.tooltip')}</span>
-			</ToolbarItem>
 			<ToolbarItem tool={Tool.WAYPOINT}>
 				<MapPin slot="icon" size="18" />
 				<span slot="tooltip">{$_('toolbar.waypoint_tooltip')}</span>
+			</ToolbarItem>
+			<ToolbarItem tool={Tool.SCISSORS}>
+				<Scissors slot="icon" size="18" />
+				<span slot="tooltip">{$_('toolbar.scissors.tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.TIME}>
 				<CalendarClock slot="icon" size="18" />
