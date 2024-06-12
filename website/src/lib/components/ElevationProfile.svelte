@@ -6,7 +6,7 @@
 	import Chart from 'chart.js/auto';
 	import mapboxgl from 'mapbox-gl';
 
-	import { map, gpxStatistics } from '$lib/stores';
+	import { map, gpxStatistics, slicedGPXStatistics } from '$lib/stores';
 	import { settings } from '$lib/db';
 
 	import { onDestroy, onMount } from 'svelte';
@@ -42,8 +42,10 @@
 		getVelocityWithUnits,
 		secondsToHHMMSS
 	} from '$lib/units';
+	import { get } from 'svelte/store';
 
 	let canvas: HTMLCanvasElement;
+	let overlay: HTMLCanvasElement;
 	let chart: Chart;
 
 	Chart.defaults.font.family =
@@ -53,6 +55,7 @@
 	let additionalDatasets: string[];
 
 	let marker: mapboxgl.Marker | null = null;
+	let dragging = false;
 
 	let { distanceUnits, velocityUnits, temperatureUnits } = settings;
 
@@ -101,6 +104,7 @@
 				enabled: true
 			},
 			tooltip: {
+				enabled: () => !dragging,
 				callbacks: {
 					title: function () {
 						return '';
@@ -109,8 +113,12 @@
 						let point = context.raw;
 						if (context.datasetIndex === 0) {
 							if ($map && marker) {
-								marker.addTo($map);
-								marker.setLngLat(point.coordinates);
+								if (dragging) {
+									marker.remove();
+								} else {
+									marker.addTo($map);
+									marker.setLngLat(point.coordinates);
+								}
 							}
 							return `${$_('quantities.elevation')}: ${getElevationWithUnits(point.y, false)}`;
 						} else if (context.datasetIndex === 1) {
@@ -141,7 +149,11 @@
 				}
 			}
 		},
-		stacked: false
+		stacked: false,
+		onResize: function (chart, size) {
+			overlay.width = size.width;
+			overlay.height = size.height;
+		}
 	};
 
 	let datasets: {
@@ -227,10 +239,100 @@
 				}
 			]
 		});
+
+		// Map marker to show on hover
 		let element = document.createElement('div');
 		element.className = 'h-4 w-4 rounded-full bg-cyan-500 border-2 border-white';
 		marker = new mapboxgl.Marker({
 			element
+		});
+
+		// Overlay canvas to create a selection rectangle
+		overlay.width = canvas.width;
+		overlay.height = canvas.height;
+
+		let selectionContext = overlay.getContext('2d');
+		let selectionRect = {
+			w: 0,
+			startX: 0,
+			startY: 0
+		};
+		let startIndex = 0,
+			endIndex = 0;
+		canvas.addEventListener('pointerdown', (evt) => {
+			dragging = true;
+			canvas.style.cursor = 'col-resize';
+
+			const points = chart.getElementsAtEventForMode(
+				evt,
+				'index',
+				{
+					intersect: false
+				},
+				true
+			);
+			startIndex = points.find((point) => point.datasetIndex === 0)?.element.raw.index ?? 0;
+
+			const rect = canvas.getBoundingClientRect();
+			selectionRect.startX = Math.min(
+				Math.max(evt.clientX - rect.left, chart.chartArea.left),
+				chart.chartArea.right
+			);
+			selectionRect.startY = chart.chartArea.top;
+		});
+		canvas.addEventListener('pointermove', (evt) => {
+			if (dragging) {
+				const rect = canvas.getBoundingClientRect();
+				selectionRect.w =
+					Math.min(Math.max(evt.clientX - rect.left, chart.chartArea.left), chart.chartArea.right) -
+					selectionRect.startX;
+				if (selectionContext) {
+					selectionContext.globalAlpha = 0.2;
+					selectionContext.clearRect(0, 0, canvas.width, canvas.height);
+					selectionContext.fillRect(
+						Math.max(selectionRect.startX, chart.chartArea.left),
+						selectionRect.startY,
+						selectionRect.w,
+						chart.chartArea.bottom - chart.chartArea.top
+					);
+				}
+
+				const points = chart.getElementsAtEventForMode(
+					evt,
+					'index',
+					{
+						intersect: false
+					},
+					true
+				);
+				endIndex = points.find((point) => point.datasetIndex === 0)?.element.raw.index ?? 0;
+
+				if (startIndex !== endIndex) {
+					slicedGPXStatistics.set(
+						get(gpxStatistics).slice(Math.min(startIndex, endIndex), Math.max(startIndex, endIndex))
+					);
+				}
+			}
+		});
+		canvas.addEventListener('pointerup', (evt) => {
+			dragging = false;
+			canvas.style.cursor = '';
+
+			const points = chart.getElementsAtEventForMode(
+				evt,
+				'index',
+				{
+					intersect: false
+				},
+				true
+			);
+			endIndex = points.find((point) => point.datasetIndex === 0)?.element.raw.index ?? 0;
+
+			if (startIndex === endIndex) {
+				if (selectionContext) {
+					selectionContext.clearRect(0, 0, canvas.width, canvas.height);
+				}
+			}
 		});
 	});
 
@@ -246,7 +348,8 @@
 					y: point.ele ? getConvertedElevation(point.ele) : 0,
 					slope: data.local.slope[index],
 					surface: point.getSurface(),
-					coordinates: point.getCoordinates()
+					coordinates: point.getCoordinates(),
+					index: index
 				};
 			}),
 			normalized: true,
@@ -402,6 +505,9 @@
 		chart.update();
 	}
 
+	$: if ($slicedGPXStatistics) {
+	}
+
 	onDestroy(() => {
 		if (chart) {
 			chart.destroy();
@@ -411,7 +517,8 @@
 
 <div class="h-full grow min-w-0 flex flex-row gap-4 items-center py-2 pr-4">
 	<div class="h-full grow min-w-0">
-		<canvas bind:this={canvas} class="w-full h-full"> </canvas>
+		<canvas bind:this={overlay} class="absolute pointer-events-none"></canvas>
+		<canvas bind:this={canvas} class="w-full h-full"></canvas>
 	</div>
 	<div class="w-fit flex flex-col border rounded">
 		<ToggleGroup.Root class="flex-col gap-0" type="single" bind:value={elevationFill}>

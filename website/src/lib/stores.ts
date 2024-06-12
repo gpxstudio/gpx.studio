@@ -16,7 +16,7 @@ export const map = writable<mapboxgl.Map | null>(null);
 export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }>({});
 
 export const gpxStatistics: Writable<GPXStatistics> = writable(new GPXStatistics());
-export const slicedGPXStatistics: Writable<GPXStatistics> = writable(new GPXStatistics());
+export const slicedGPXStatistics: Writable<GPXStatistics | undefined> = writable(undefined);
 
 function updateGPXData() {
     let statistics = new GPXStatistics();

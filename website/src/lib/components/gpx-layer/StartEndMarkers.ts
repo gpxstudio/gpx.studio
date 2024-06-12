@@ -27,7 +27,7 @@ export class StartEndMarkers {
 
     update() {
         let tool = get(currentTool);
-        let statistics = tool === Tool.SCISSORS ? get(slicedGPXStatistics) : get(gpxStatistics);
+        let statistics = get(slicedGPXStatistics) ?? get(gpxStatistics);
         if (statistics.local.points.length > 0 && tool !== Tool.ROUTING) {
             this.start.setLngLat(statistics.local.points[0].getCoordinates()).addTo(this.map);
             this.end.setLngLat(statistics.local.points[statistics.local.points.length - 1].getCoordinates()).addTo(this.map);

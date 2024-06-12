@@ -18,7 +18,7 @@
 	import { gpxStatistics, slicedGPXStatistics, splitAs } from '$lib/stores';
 	import { get } from 'svelte/store';
 	import { _ } from 'svelte-i18n';
-	import { tick } from 'svelte';
+	import { onDestroy, tick } from 'svelte';
 	import { Crop } from 'lucide-svelte';
 	import { dbUtils } from '$lib/db';
 
@@ -62,6 +62,10 @@
 	let splitType = splitTypes[0];
 
 	$: splitAs.set(splitType.value);
+
+	onDestroy(() => {
+		slicedGPXStatistics.set(undefined);
+	});
 </script>
 
 <div class="flex flex-col gap-3 max-w-80">

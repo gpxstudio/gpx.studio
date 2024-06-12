@@ -15,7 +15,7 @@
 
 	let statistics: GPXStatistics;
 
-	$: if ($currentTool === Tool.SCISSORS) {
+	$: if ($slicedGPXStatistics !== undefined) {
 		statistics = $slicedGPXStatistics;
 	} else {
 		statistics = $gpxStatistics;
