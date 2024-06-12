@@ -62,7 +62,11 @@
 					);
 				});
 
-				if ($selection.size > 1 && !(e.ctrlKey || e.metaKey || e.shiftKey)) {
+				if (
+					e.originalEvent &&
+					$selection.size > 1 &&
+					!(e.originalEvent.ctrlKey || e.originalEvent.metaKey || e.originalEvent.shiftKey)
+				) {
 					// Fix bug that sometimes causes a single select to be treated as a multi-select
 					$selection.clear();
 					$selection.set(item.extend(getRealId(changed[0])), true);
