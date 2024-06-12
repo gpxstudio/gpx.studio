@@ -1,6 +1,6 @@
 import { distance, type Coordinates, TrackPoint, TrackSegment } from "gpx";
 import { original } from "immer";
-import { get, type Readable } from "svelte/store";
+import { get, writable, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
 import { route } from "./Routing";
 
@@ -12,6 +12,8 @@ import { selection } from "$lib/components/file-list/Selection";
 import { ListFileItem, ListTrackSegmentItem } from "$lib/components/file-list/FileList";
 import { currentTool, Tool } from "$lib/stores";
 import { resetCursor, setCrosshairCursor, setGrabbingCursor } from "$lib/utils";
+
+export const canChangeStart = writable(false);
 
 export class RoutingControls {
     active: boolean = false;
@@ -182,13 +184,27 @@ export class RoutingControls {
                 return;
             }
 
+            canChangeStart.update(() => {
+                if (anchor.point._data.index === 0) {
+                    return false;
+                }
+                let segment = anchor.segment;
+                if (distance(segment.trkpt[0].getCoordinates(), segment.trkpt[segment.trkpt.length - 1].getCoordinates()) > 1000) {
+                    return false;
+                }
+                return true;
+            });
+
             marker.setPopup(this.popup);
             marker.togglePopup();
 
             let deleteThisAnchor = this.getDeleteAnchor(anchor);
             this.popupElement.addEventListener('delete', deleteThisAnchor); // Register the delete event for this anchor
+            let startLoopAtThisAnchor = this.getStartLoopAtAnchor(anchor);
+            this.popupElement.addEventListener('change-start', startLoopAtThisAnchor); // Register the start loop event for this anchor
             this.popup.once('close', () => {
                 this.popupElement.removeEventListener('delete', deleteThisAnchor);
+                this.popupElement.removeEventListener('change-start', startLoopAtThisAnchor);
             });
         });
 
@@ -338,6 +354,25 @@ export class RoutingControls {
         }
     }
 
+    getStartLoopAtAnchor(anchor: Anchor) {
+        return () => this.startLoopAtAnchor(anchor);
+    }
+
+    startLoopAtAnchor(anchor: Anchor) {
+        this.popup.remove();
+
+        let file = get(this.file)?.file;
+        if (!file) {
+            return;
+        }
+
+        let segment = anchor.segment;
+        dbUtils.applyToFile(this.fileId, (file) => {
+            let newFile = file.replaceTrackPoints(anchor.trackIndex, anchor.segmentIndex, segment.trkpt.length, segment.trkpt.length - 1, segment.trkpt.slice(0, anchor.point._data.index));
+            return newFile.replaceTrackPoints(anchor.trackIndex, anchor.segmentIndex, 0, anchor.point._data.index - 1, []);
+        });
+    }
+
     async appendAnchor(e: mapboxgl.MapMouseEvent) { // Add a new anchor to the end of the last segment
         this.appendAnchorWithCoordinates({
             lat: e.lngLat.lat,
@@ -372,11 +407,6 @@ export class RoutingControls {
     }
 
     routeToStart() {
-        let file = get(this.file)?.file;
-        if (!file) {
-            return;
-        }
-
         if (this.anchors.length === 0) {
             return;
         }
@@ -392,11 +422,6 @@ export class RoutingControls {
     }
 
     createRoundTrip() {
-        let file = get(this.file)?.file;
-        if (!file) {
-            return;
-        }
-
         if (this.anchors.length === 0) {
             return;
         }

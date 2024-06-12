@@ -60,6 +60,7 @@
                 "button": "Round trip",
                 "tooltip": "Return to the starting point by the same route"
             },
+            "start_loop_here": "Start loop here",
             "help_no_file": "Select a file item to use the routing tool, or create a new file from the menu",
             "help_multiple_files": "Select a single file item to use the routing tool",
             "help": "Click on the map to add a new anchor point, or drag existing ones to change the route",
@@ -128,7 +129,7 @@
             "help_merge_contents": "Merging the contents of the selected file items will group all the contents inside the first file item",
             "help_cannot_merge_contents": "Your selection needs to contain several file items to merge their contents"
         },
-        "extract_tooltip": "Extract inner tracks or segments",
+        "extract_tooltip": "Extract contents",
         "waypoint_tooltip": "Create and edit points of interest",
         "reduce": {
             "tooltip": "Reduce the number of GPS points",
