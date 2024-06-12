@@ -54,10 +54,6 @@
 				<SquareDashedMousePointer slot="icon" size="18" />
 				<span slot="tooltip">{$_('toolbar.clean.tooltip')}</span>
 			</ToolbarItem>
-			<ToolbarItem tool={Tool.STYLE}>
-				<Palette slot="icon" size="18" />
-				<span slot="tooltip">{$_('toolbar.style_tooltip')}</span>
-			</ToolbarItem>
 		</div>
 		<ToolbarItemMenu />
 	</div>

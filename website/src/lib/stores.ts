@@ -126,8 +126,7 @@ export enum Tool {
     MERGE,
     EXTRACT,
     REDUCE,
-    CLEAN,
-    STYLE
+    CLEAN
 }
 export const currentTool = writable<Tool | null>(null);
 export const splitAs = writable(SplitType.FILES);

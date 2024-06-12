@@ -148,8 +148,7 @@
             "button": "Delete",
             "help": "Select a rectangle area on the map to remove GPS points and points of interest",
             "help_no_selection": "Select a file item to clean GPS points and points of interest"
-        },
-        "style_tooltip": "Change the style of the trace"
+        }
     },
     "layers": {
         "settings": "Layer settings",
