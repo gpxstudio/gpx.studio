@@ -131,7 +131,8 @@
 					lon: longitude
 				}
 			});
-			// TODO get elevation for waypoint
+			waypoint.ele =
+				get(map)?.queryTerrainElevation([longitude, latitude], { exaggerated: false }) ?? 0;
 			dbUtils.applyToFiles(
 				Array.from(fileIds),
 				(file) => file.replaceWaypoints(file.wpt.length, file.wpt.length, [waypoint])[0]
