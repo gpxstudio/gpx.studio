@@ -2,7 +2,7 @@ import { currentTool, Tool } from "$lib/stores";
 import { settings, type GPXFileWithStatistics, dbUtils } from "$lib/db";
 import { get, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
-import { currentPopupWaypoint, waypointPopup } from "./WaypointPopup";
+import { currentPopupWaypoint, deleteWaypoint, waypointPopup } from "./WaypointPopup";
 import { addSelectItem, selectItem, selection } from "$lib/components/file-list/Selection";
 import { ListTrackSegmentItem, ListWaypointItem, ListWaypointsItem, ListTrackItem, ListFileItem, ListRootItem } from "$lib/components/file-list/FileList";
 import type { Waypoint } from "gpx";
@@ -57,9 +57,10 @@ export class GPXLayer {
     unsubscribe: Function[] = [];
 
     updateBinded: () => void = this.update.bind(this);
-    layerOnMouseEnterBinded: () => void = this.layerOnMouseEnter.bind(this);
+    layerOnMouseEnterBinded: (e: any) => void = this.layerOnMouseEnter.bind(this);
     layerOnMouseLeaveBinded: () => void = this.layerOnMouseLeave.bind(this);
     layerOnClickBinded: (e: any) => void = this.layerOnClick.bind(this);
+    maybeHideWaypointPopupBinded: (e: any) => void = this.maybeHideWaypointPopup.bind(this);
 
     constructor(map: mapboxgl.Map, fileId: string, file: Readable<GPXFileWithStatistics | undefined>) {
         this.map = map;
@@ -183,16 +184,19 @@ export class GPXLayer {
                         this.showWaypointPopup(marker._waypoint);
                         e.stopPropagation();
                     });
-                    marker.getElement().addEventListener('mouseout', () => {
-                        this.hideWaypointPopup();
-                    });
                     marker.getElement().addEventListener('click', (e) => {
                         if (dragEndTimestamp && Date.now() - dragEndTimestamp < 1000) {
                             return;
                         }
 
+                        if (get(currentTool) === Tool.WAYPOINT && e.shiftKey) {
+                            deleteWaypoint(this.fileId, marker._waypoint._data.index);
+                            e.stopPropagation();
+                            return;
+                        }
+
                         if (get(verticalFileView)) {
-                            if ((e.shiftKey || e.ctrlKey || e.metaKey) && get(selection).hasAnyChildren(new ListWaypointsItem(this.fileId), false)) {
+                            if ((e.ctrlKey || e.metaKey) && get(selection).hasAnyChildren(new ListWaypointsItem(this.fileId), false)) {
                                 addSelectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
                             } else {
                                 selectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
@@ -310,7 +314,7 @@ export class GPXLayer {
             item = new ListFileItem(this.fileId);
         }
 
-        if (e.originalEvent.shiftKey || e.originalEvent.ctrlKey || e.originalEvent.metaKey) {
+        if (e.originalEvent.ctrlKey || e.originalEvent.metaKey) {
             addSelectItem(item);
         } else {
             selectItem(item);
@@ -318,19 +322,35 @@ export class GPXLayer {
     }
 
     showWaypointPopup(waypoint: Waypoint) {
+        if (get(currentPopupWaypoint) !== null) {
+            this.hideWaypointPopup();
+        }
         let marker = this.markers[waypoint._data.index];
         if (marker) {
-            currentPopupWaypoint.set(waypoint);
+            currentPopupWaypoint.set([waypoint, this.fileId]);
             marker.setPopup(waypointPopup);
             marker.togglePopup();
+            this.map.on('mousemove', this.maybeHideWaypointPopupBinded);
+        }
+    }
+
+    maybeHideWaypointPopup(e: any) {
+        let waypoint = get(currentPopupWaypoint)?.[0];
+        if (waypoint) {
+            let marker = this.markers[waypoint._data.index];
+            if (this.map.project(marker.getLngLat()).dist(this.map.project(e.lngLat)) > 100) {
+                this.hideWaypointPopup();
+            }
         }
     }
 
     hideWaypointPopup() {
-        let waypoint = get(currentPopupWaypoint);
+        let waypoint = get(currentPopupWaypoint)?.[0];
         if (waypoint) {
             let marker = this.markers[waypoint._data.index];
             marker?.getPopup()?.remove();
+            currentPopupWaypoint.set(null);
+            this.map.off('mousemove', this.maybeHideWaypointPopupBinded);
         }
     }
 
