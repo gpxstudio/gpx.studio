@@ -1,4 +1,4 @@
-import { distance, type Coordinates, TrackPoint, TrackSegment } from "gpx";
+import { distance, type Coordinates, TrackPoint, TrackSegment, Track } from "gpx";
 import { original } from "immer";
 import { get, writable, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
@@ -390,8 +390,19 @@ export class RoutingControls {
         newPoint._data.zoom = 0;
 
         if (!lastAnchor) {
-            // TODO, create segment if it does not exist
-            dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(0, 0, 0, 0, [newPoint]));
+            dbUtils.applyToFile(this.fileId, (file) => {
+                if (file.trk.length === 0) {
+                    let track = new Track();
+                    track = track.replaceTrackPoints(0, 0, 0, [newPoint]);
+                    return file.replaceTracks(0, 0, [track])[0];
+                } else if (file.trk[0].trkseg.length === 0) {
+                    let segment = new TrackSegment();
+                    segment = segment.replaceTrackPoints(0, 0, [newPoint]);
+                    return file.replaceTrackSegments(0, 0, 0, [segment])[0];
+                } else {
+                    return file.replaceTrackPoints(0, 0, 0, 0, [newPoint]);
+                }
+            });
             return;
         }
 
