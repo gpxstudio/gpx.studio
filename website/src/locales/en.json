@@ -2,6 +2,8 @@
     "menu": {
         "new": "New",
         "new_filename": "new",
+        "new_track": "New track",
+        "new_segment": "New segment",
         "load_desktop": "Load...",
         "load_drive": "Load from Google Drive...",
         "duplicate": "Duplicate",

@@ -9,7 +9,7 @@ import { toast } from "svelte-sonner";
 import { _ } from "svelte-i18n";
 import { dbUtils, type GPXFileWithStatistics } from "$lib/db";
 import { selection } from "$lib/components/file-list/Selection";
-import { ListFileItem, ListTrackSegmentItem } from "$lib/components/file-list/FileList";
+import { ListFileItem, ListTrackItem, ListTrackSegmentItem } from "$lib/components/file-list/FileList";
 import { currentTool, Tool } from "$lib/stores";
 import { resetCursor, setCrosshairCursor, setGrabbingCursor } from "$lib/utils";
 
@@ -391,16 +391,25 @@ export class RoutingControls {
 
         if (!lastAnchor) {
             dbUtils.applyToFile(this.fileId, (file) => {
+                let item = get(selection).getSelected()[0];
+                let trackIndex = file.trk.length > 0 ? file.trk.length - 1 : 0;
+                if (item instanceof ListTrackItem || item instanceof ListTrackSegmentItem) {
+                    trackIndex = item.getTrackIndex();
+                }
+                let segmentIndex = file.trk[trackIndex].trkseg.length > 0 ? file.trk[trackIndex].trkseg.length - 1 : 0;
+                if (item instanceof ListTrackSegmentItem) {
+                    segmentIndex = item.getSegmentIndex();
+                }
                 if (file.trk.length === 0) {
                     let track = new Track();
                     track = track.replaceTrackPoints(0, 0, 0, [newPoint]);
                     return file.replaceTracks(0, 0, [track])[0];
-                } else if (file.trk[0].trkseg.length === 0) {
+                } else if (file.trk[trackIndex].trkseg.length === 0) {
                     let segment = new TrackSegment();
                     segment = segment.replaceTrackPoints(0, 0, [newPoint]);
-                    return file.replaceTrackSegments(0, 0, 0, [segment])[0];
+                    return file.replaceTrackSegments(trackIndex, 0, 0, [segment])[0];
                 } else {
-                    return file.replaceTrackPoints(0, 0, 0, 0, [newPoint]);
+                    return file.replaceTrackPoints(trackIndex, segmentIndex, 0, 0, [newPoint]);
                 }
             });
             return;

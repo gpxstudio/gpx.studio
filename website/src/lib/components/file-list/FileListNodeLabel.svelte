@@ -2,19 +2,28 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as ContextMenu from '$lib/components/ui/context-menu';
 	import Shortcut from '$lib/components/Shortcut.svelte';
-	import { dbUtils, fileObservers } from '$lib/db';
-	import { Copy, MapPin, Trash2, Waypoints } from 'lucide-svelte';
-	import { ListLevel, ListWaypointItem, type ListItem } from './FileList';
+	import { dbUtils, fileObservers, settings } from '$lib/db';
+	import { Copy, MapPin, Plus, Trash2, Waypoints } from 'lucide-svelte';
+	import {
+		ListFileItem,
+		ListLevel,
+		ListTrackItem,
+		ListWaypointItem,
+		type ListItem
+	} from './FileList';
 	import { selectItem, selection } from './Selection';
 	import { _ } from 'svelte-i18n';
 	import { getContext } from 'svelte';
 	import { get } from 'svelte/store';
 	import { gpxLayers } from '$lib/stores';
+	import { Track, TrackSegment } from 'gpx';
 
 	export let item: ListItem;
 	export let label: string | undefined;
 
 	let orientation = getContext<'vertical' | 'horizontal'>('orientation');
+
+	const { verticalFileView } = settings;
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -77,6 +86,41 @@
 		</Button>
 	</ContextMenu.Trigger>
 	<ContextMenu.Content>
+		{#if $verticalFileView && $selection.size === 1}
+			{#if item instanceof ListFileItem}
+				<ContextMenu.Item
+					on:click={() =>
+						dbUtils.applyToFile(
+							item.getFileId(),
+							(file) => file.replaceTracks(file.trk.length, file.trk.length, [new Track()])[0]
+						)}
+				>
+					<Plus size="16" class="mr-1" />
+					{$_('menu.new_track')}
+				</ContextMenu.Item>
+				<ContextMenu.Separator />
+			{:else if item instanceof ListTrackItem}
+				<ContextMenu.Item
+					on:click={() => {
+						let trackIndex = item.getTrackIndex();
+						dbUtils.applyToFile(
+							item.getFileId(),
+							(file) =>
+								file.replaceTrackSegments(
+									trackIndex,
+									file.trk[trackIndex].trkseg.length,
+									file.trk[trackIndex].trkseg.length,
+									[new TrackSegment()]
+								)[0]
+						);
+					}}
+				>
+					<Plus size="16" class="mr-1" />
+					{$_('menu.new_segment')}
+				</ContextMenu.Item>
+				<ContextMenu.Separator />
+			{/if}
+		{/if}
 		{#if item.level !== ListLevel.WAYPOINTS}
 			<ContextMenu.Item on:click={dbUtils.duplicateSelection}>
 				<Copy size="16" class="mr-1" />
