@@ -660,11 +660,11 @@ export const dbUtils = {
                         newFile = file.clean(bounds, inside, deleteTrackPoints, deleteWaypoints);
                     } else if (level === ListLevel.TRACK) {
                         let trackIndices = items.map((item) => (item as ListTrackItem).getTrackIndex());
-                        newFile = newFile.clean(bounds, inside, deleteTrackPoints, false, trackIndices);
+                        newFile = newFile.clean(bounds, inside, deleteTrackPoints, deleteWaypoints, trackIndices);
                     } else if (level === ListLevel.SEGMENT) {
                         let trackIndices = [(items[0] as ListTrackSegmentItem).getTrackIndex()];
                         let segmentIndices = items.map((item) => (item as ListTrackSegmentItem).getSegmentIndex());
-                        newFile = newFile.clean(bounds, inside, deleteTrackPoints, false, trackIndices, segmentIndices);
+                        newFile = newFile.clean(bounds, inside, deleteTrackPoints, deleteWaypoints, trackIndices, segmentIndices);
                     } else if (level === ListLevel.WAYPOINTS) {
                         newFile = newFile.clean(bounds, inside, false, deleteWaypoints);
                     } else if (level === ListLevel.WAYPOINT) {
