@@ -42,15 +42,32 @@
 		}
 		seconds = (rounded % 60).toString().padStart(2, '0');
 	}
+
+	let container: HTMLDivElement;
+	let countKeyPress = 0;
+	function onKeyPress(e) {
+		if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
+			countKeyPress++;
+			if (countKeyPress === 2) {
+				if (e.target.id === 'hours') {
+					container.querySelector('#minutes')?.focus();
+				} else if (e.target.id === 'minutes') {
+					container.querySelector('#seconds')?.focus();
+				}
+			}
+		}
+	}
 </script>
 
 <div
-	class="flex flex-row items-center w-fit border rounded-md px-3 {disabled
+	bind:this={container}
+	class="flex flex-row items-center w-fit border rounded-md px-3 focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 {disabled
 		? 'opacity-50 cursor-not-allowed'
 		: ''}"
 >
 	{#if showHours}
 		<TimeComponentInput
+			id="hours"
 			bind:value={hours}
 			{disabled}
 			class="w-[30px]"
@@ -65,11 +82,16 @@
 					hours = 0;
 				}
 			}}
+			on:keypress={onKeyPress}
+			on:focusin={() => {
+				countKeyPress = 0;
+			}}
 			on:change
 		/>
 		<span class="text-sm">:</span>
 	{/if}
 	<TimeComponentInput
+		id="minutes"
 		bind:value={minutes}
 		{disabled}
 		on:input={() => {
@@ -86,10 +108,15 @@
 			}
 			minutes = minutes.toString().padStart(showHours ? 2 : 1, '0');
 		}}
+		on:keypress={onKeyPress}
+		on:focusin={() => {
+			countKeyPress = 0;
+		}}
 		on:change
 	/>
 	<span class="text-sm">:</span>
 	<TimeComponentInput
+		id="seconds"
 		bind:value={seconds}
 		{disabled}
 		on:input={() => {
@@ -105,6 +132,10 @@
 				seconds = 0;
 			}
 			seconds = seconds.toString().padStart(2, '0');
+		}}
+		on:keypress={onKeyPress}
+		on:focusin={() => {
+			countKeyPress = 0;
 		}}
 		on:change
 	/>
