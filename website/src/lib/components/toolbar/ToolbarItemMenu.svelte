@@ -5,6 +5,7 @@
 	import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
 	import Scissors from '$lib/components/toolbar/tools/Scissors.svelte';
 	import Waypoint from '$lib/components/toolbar/tools/Waypoint.svelte';
+	import Time from '$lib/components/toolbar/tools/Time.svelte';
 	import Merge from '$lib/components/toolbar/tools/Merge.svelte';
 	import Clean from '$lib/components/toolbar/tools/Clean.svelte';
 	import Reduce from '$lib/components/toolbar/tools/Reduce.svelte';
@@ -39,6 +40,8 @@
 						<Scissors />
 					{:else if $currentTool === Tool.WAYPOINT}
 						<Waypoint />
+					{:else if $currentTool === Tool.TIME}
+						<Time />
 					{:else if $currentTool === Tool.MERGE}
 						<Merge />
 					{:else if $currentTool === Tool.CLEAN}

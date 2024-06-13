@@ -8,6 +8,10 @@ export function kilometersToMiles(value: number) {
     return value * 0.621371;
 }
 
+export function milesToKilometers(value: number) {
+    return value * 1.60934;
+}
+
 export function metersToFeet(value: number) {
     return value * 3.28084;
 }
@@ -17,6 +21,9 @@ export function celsiusToFahrenheit(value: number) {
 }
 
 export function distancePerHourToSecondsPerDistance(value: number) {
+    if (value === 0) {
+        return 0;
+    }
     return 3600 / value;
 }
 

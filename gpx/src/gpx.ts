@@ -529,10 +529,14 @@ export class TrackSegment extends GPXTreeLeaf {
             statistics.local.elevation.loss.push(statistics.global.elevation.loss);
 
             // time
-            if (points[0].time !== undefined && points[i].time !== undefined) {
-                statistics.local.time.total.push((points[i].time.getTime() - points[0].time.getTime()) / 1000);
-            } else {
+            if (points[i].time === undefined) {
                 statistics.local.time.total.push(undefined);
+            } else {
+                if (statistics.global.time.start === undefined) {
+                    statistics.global.time.start = points[i].time;
+                }
+                statistics.global.time.end = points[i].time;
+                statistics.local.time.total.push((points[i].time.getTime() - statistics.global.time.start.getTime()) / 1000);
             }
 
             // speed
@@ -557,7 +561,7 @@ export class TrackSegment extends GPXTreeLeaf {
             statistics.global.bounds.northEast.lon = Math.max(statistics.global.bounds.northEast.lon, points[i].attributes.lon);
         }
 
-        statistics.global.time.total = statistics.local.time.total[statistics.local.time.total.length - 1] ?? 0;
+        statistics.global.time.total = statistics.global.time.start && statistics.global.time.end ? (statistics.global.time.end.getTime() - statistics.global.time.start.getTime()) / 1000 : 0;
         statistics.global.speed.total = statistics.global.time.total > 0 ? statistics.global.distance.total / (statistics.global.time.total / 3600) : 0;
         statistics.global.speed.moving = statistics.global.time.moving > 0 ? statistics.global.distance.moving / (statistics.global.time.moving / 3600) : 0;
 
@@ -846,6 +850,8 @@ export class GPXStatistics {
             total: number,
         },
         time: {
+            start: Date | undefined,
+            end: Date | undefined,
             moving: number,
             total: number,
         },
@@ -888,6 +894,8 @@ export class GPXStatistics {
                 total: 0,
             },
             time: {
+                start: undefined,
+                end: undefined,
                 moving: 0,
                 total: 0,
             },
@@ -947,6 +955,9 @@ export class GPXStatistics {
         this.global.distance.total += other.global.distance.total;
         this.global.distance.moving += other.global.distance.moving;
 
+        this.global.time.start = this.global.time.start !== undefined && other.global.time.start !== undefined ? new Date(Math.min(this.global.time.start.getTime(), other.global.time.start.getTime())) : this.global.time.start ?? other.global.time.start;
+        this.global.time.end = this.global.time.end !== undefined && other.global.time.end !== undefined ? new Date(Math.max(this.global.time.end.getTime(), other.global.time.end.getTime())) : this.global.time.end ?? other.global.time.end;
+
         this.global.time.total += other.global.time.total;
         this.global.time.moving += other.global.time.moving;
 
@@ -969,6 +980,9 @@ export class GPXStatistics {
 
         statistics.global.distance.total = this.local.distance.total[end - 1] - this.local.distance.total[start];
         statistics.global.distance.moving = this.local.distance.moving[end - 1] - this.local.distance.moving[start];
+
+        statistics.global.time.start = this.local.points[start].time;
+        statistics.global.time.end = this.local.points[end - 1].time;
 
         statistics.global.time.total = this.local.time.total[end - 1] - this.local.time.total[start];
         statistics.global.time.moving = this.local.time.moving[end - 1] - this.local.time.moving[start];

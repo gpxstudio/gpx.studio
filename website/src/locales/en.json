@@ -118,7 +118,17 @@
             "help_invalid_selection": "Select a file item to crop or split",
             "help": "Use the slider to crop the trace, or click on the map to split it at the selected point"
         },
-        "time_tooltip": "Manage time and speed data",
+        "time": {
+            "tooltip": "Manage time data",
+            "start": "Start",
+            "end": "End",
+            "total_time": "Total time",
+            "pick_date": "Pick a date",
+            "artificial": "Create realistic time data",
+            "update": "Update time data",
+            "help": "",
+            "help_invalid_selection": "Select a single file item to manage its time data"
+        },
         "merge": {
             "merge_traces": "Connect the traces",
             "merge_contents": "Merge the contents and keep the traces disconnected",
@@ -137,8 +147,8 @@
             "comment": "Comment",
             "longitude": "Longitude",
             "latitude": "Latitude",
-            "create": "Create",
-            "update": "Update",
+            "create": "Create point of interest",
+            "update": "Update point of interest",
             "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
             "help_no_selection": "Select a file item to create or edit points of interest"
         },

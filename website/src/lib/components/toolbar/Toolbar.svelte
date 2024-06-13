@@ -35,7 +35,7 @@
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.TIME}>
 				<CalendarClock slot="icon" size="18" />
-				<span slot="tooltip">{$_('toolbar.time_tooltip')}</span>
+				<span slot="tooltip">{$_('toolbar.time.tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.MERGE}>
 				<Group slot="icon" size="18" />
