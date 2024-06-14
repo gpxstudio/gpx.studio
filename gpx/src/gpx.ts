@@ -976,22 +976,22 @@ export class GPXStatistics {
     slice(start: number, end: number): GPXStatistics {
         let statistics = new GPXStatistics();
 
-        statistics.local.points = this.local.points.slice(start, end);
+        statistics.local.points = this.local.points.slice(start, end + 1);
 
-        statistics.global.distance.total = this.local.distance.total[end - 1] - this.local.distance.total[start];
-        statistics.global.distance.moving = this.local.distance.moving[end - 1] - this.local.distance.moving[start];
+        statistics.global.distance.total = this.local.distance.total[end] - this.local.distance.total[start];
+        statistics.global.distance.moving = this.local.distance.moving[end] - this.local.distance.moving[start];
 
         statistics.global.time.start = this.local.points[start].time;
-        statistics.global.time.end = this.local.points[end - 1].time;
+        statistics.global.time.end = this.local.points[end].time;
 
-        statistics.global.time.total = this.local.time.total[end - 1] - this.local.time.total[start];
-        statistics.global.time.moving = this.local.time.moving[end - 1] - this.local.time.moving[start];
+        statistics.global.time.total = this.local.time.total[end] - this.local.time.total[start];
+        statistics.global.time.moving = this.local.time.moving[end] - this.local.time.moving[start];
 
         statistics.global.speed.moving = statistics.global.time.moving > 0 ? statistics.global.distance.moving / (statistics.global.time.moving / 3600) : 0;
         statistics.global.speed.total = statistics.global.time.total > 0 ? statistics.global.distance.total / (statistics.global.time.total / 3600) : 0;
 
-        statistics.global.elevation.gain = this.local.elevation.gain[end - 1] - this.local.elevation.gain[start];
-        statistics.global.elevation.loss = this.local.elevation.loss[end - 1] - this.local.elevation.loss[start];
+        statistics.global.elevation.gain = this.local.elevation.gain[end] - this.local.elevation.gain[start];
+        statistics.global.elevation.loss = this.local.elevation.loss[end] - this.local.elevation.loss[start];
 
         statistics.global.bounds.southWest.lat = this.global.bounds.southWest.lat;
         statistics.global.bounds.southWest.lon = this.global.bounds.southWest.lon;
