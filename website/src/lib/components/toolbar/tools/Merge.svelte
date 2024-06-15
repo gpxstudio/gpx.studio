@@ -13,8 +13,7 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as RadioGroup from '$lib/components/ui/radio-group';
 	import { _ } from 'svelte-i18n';
-	import { dbUtils, fileObservers } from '$lib/db';
-	import { get } from 'svelte/store';
+	import { dbUtils, getFile } from '$lib/db';
 	import { Group } from 'lucide-svelte';
 
 	let canMergeTraces = false;
@@ -25,29 +24,17 @@
 	} else if ($selection.size === 1) {
 		let selected = $selection.getSelected()[0];
 		if (selected instanceof ListFileItem) {
-			let fileId = selected.getFileId();
-			let fileStore = $fileObservers.get(fileId);
-			if (fileStore) {
-				let file = get(fileStore)?.file;
-				if (file) {
-					canMergeTraces = file.getSegments().length > 1;
-				} else {
-					canMergeTraces = false;
-				}
+			let file = getFile(selected.getFileId());
+			if (file) {
+				canMergeTraces = file.getSegments().length > 1;
 			} else {
 				canMergeTraces = false;
 			}
 		} else if (selected instanceof ListTrackItem) {
-			let fileId = selected.getFileId();
 			let trackIndex = selected.getTrackIndex();
-			let fileStore = $fileObservers.get(fileId);
-			if (fileStore) {
-				let file = get(fileStore)?.file;
-				if (file && trackIndex < file.trk.length) {
-					canMergeTraces = file.trk[trackIndex].getSegments().length > 1;
-				} else {
-					canMergeTraces = false;
-				}
+			let file = getFile(selected.getFileId());
+			if (file && trackIndex < file.trk.length) {
+				canMergeTraces = file.trk[trackIndex].getSegments().length > 1;
 			} else {
 				canMergeTraces = false;
 			}

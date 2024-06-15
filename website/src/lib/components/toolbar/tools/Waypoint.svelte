@@ -13,7 +13,7 @@
 	import { Waypoint } from 'gpx';
 	import { _ } from 'svelte-i18n';
 	import { ListWaypointItem } from '$lib/components/file-list/FileList';
-	import { dbUtils, fileObservers, settings, type GPXFileWithStatistics } from '$lib/db';
+	import { dbUtils, fileObservers, getFile, settings, type GPXFileWithStatistics } from '$lib/db';
 	import { get } from 'svelte/store';
 	import Help from '$lib/components/Help.svelte';
 	import { onDestroy, onMount } from 'svelte';
@@ -36,12 +36,10 @@
 			if ($selection.size === 1) {
 				let item = $selection.getSelected()[0];
 				if (item instanceof ListWaypointItem) {
-					let fileStore = get(fileObservers).get(item.getFileId());
-					if (fileStore) {
-						let waypoint = get(fileStore)?.file.wpt[item.getWaypointIndex()];
-						if (waypoint) {
-							return [waypoint, item.getFileId()];
-						}
+					let file = getFile(item.getFileId());
+					let waypoint = file?.wpt[item.getWaypointIndex()];
+					if (waypoint) {
+						return [waypoint, item.getFileId()];
 					}
 				}
 			}

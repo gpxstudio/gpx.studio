@@ -1,6 +1,6 @@
 import { get, writable } from "svelte/store";
 import { ListFileItem, ListItem, ListRootItem, ListTrackItem, ListTrackSegmentItem, ListWaypointItem, type ListLevel, sortItems, ListWaypointsItem } from "./FileList";
-import { fileObservers, settings } from "$lib/db";
+import { fileObservers, getFile, settings } from "$lib/db";
 
 export class SelectionTreeType {
     item: ListItem;
@@ -174,23 +174,23 @@ export function selectAll() {
                 $selection.set(new ListFileItem(fileId), true);
             });
         } else if (item instanceof ListTrackItem) {
-            let fileStore = get(fileObservers).get(item.getFileId());
-            if (fileStore) {
-                get(fileStore)?.file.trk.forEach((_track, trackId) => {
+            let file = getFile(item.getFileId());
+            if (file) {
+                file.trk.forEach((_track, trackId) => {
                     $selection.set(new ListTrackItem(item.getFileId(), trackId), true);
                 });
             }
         } else if (item instanceof ListTrackSegmentItem) {
-            let fileStore = get(fileObservers).get(item.getFileId());
-            if (fileStore) {
-                get(fileStore)?.file.trk[item.getTrackIndex()].trkseg.forEach((_segment, segmentId) => {
+            let file = getFile(item.getFileId());
+            if (file) {
+                file.trk[item.getTrackIndex()].trkseg.forEach((_segment, segmentId) => {
                     $selection.set(new ListTrackSegmentItem(item.getFileId(), item.getTrackIndex(), segmentId), true);
                 });
             }
         } else if (item instanceof ListWaypointItem) {
-            let fileStore = get(fileObservers).get(item.getFileId());
-            if (fileStore) {
-                get(fileStore)?.file.wpt.forEach((_waypoint, waypointId) => {
+            let file = getFile(item.getFileId());
+            if (file) {
+                file.wpt.forEach((_waypoint, waypointId) => {
                     $selection.set(new ListWaypointItem(item.getFileId(), waypointId), true);
                 });
             }

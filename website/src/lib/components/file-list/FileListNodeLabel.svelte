@@ -2,7 +2,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as ContextMenu from '$lib/components/ui/context-menu';
 	import Shortcut from '$lib/components/Shortcut.svelte';
-	import { dbUtils, fileObservers, settings } from '$lib/db';
+	import { dbUtils, getFile, settings } from '$lib/db';
 	import { Copy, MapPin, Plus, Trash2, Waypoints } from 'lucide-svelte';
 	import {
 		ListFileItem,
@@ -56,9 +56,9 @@
 				on:mouseenter={() => {
 					if (item instanceof ListWaypointItem) {
 						let layer = gpxLayers.get(item.getFileId());
-						let fileStore = get(fileObservers).get(item.getFileId());
-						if (layer && fileStore) {
-							let waypoint = get(fileStore)?.file.wpt[item.getWaypointIndex()];
+						let file = getFile(item.getFileId());
+						if (layer && file) {
+							let waypoint = file.wpt[item.getWaypointIndex()];
 							if (waypoint) {
 								layer.showWaypointPopup(waypoint);
 							}

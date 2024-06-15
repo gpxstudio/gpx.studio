@@ -1,5 +1,5 @@
 import Dexie, { liveQuery } from 'dexie';
-import { GPXFile, GPXStatistics, Track, type AnyGPXTreeElement, TrackSegment, Waypoint, TrackPoint, type Coordinates, distance } from 'gpx';
+import { GPXFile, GPXStatistics, Track, TrackSegment, Waypoint, TrackPoint, type Coordinates, distance } from 'gpx';
 import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, castDraft, freeze, produceWithPatches, original, produce } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
 import { initTargetMapBounds, splitAs, updateTargetMapBounds } from './stores';
@@ -266,6 +266,16 @@ liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
         });
     }
 });
+
+export function getFile(fileId: string): GPXFile | undefined {
+    let fileStore = get(fileObservers).get(fileId);
+    return fileStore ? get(fileStore)?.file : undefined;
+}
+
+export function getStatistics(fileId: string): GPXStatisticsTree | undefined {
+    let fileStore = get(fileObservers).get(fileId);
+    return fileStore ? get(fileStore)?.statistics : undefined;
+}
 
 const patchIndex: Readable<number> = dexieStore(() => db.settings.get('patchIndex'), -1);
 const patchMinMaxIndex: Readable<{ min: number, max: number }> = dexieStore(() => db.patches.orderBy(':id').keys().then(keys => {
@@ -603,6 +613,111 @@ export const dbUtils = {
                     }
                 }
             }, false);
+        });
+    },
+    extractSelection: () => {
+        return applyGlobal((draft) => {
+            applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+                let file = original(draft)?.get(fileId);
+                if (file) {
+                    if (level === ListLevel.FILE) {
+                        if (file.trk.length > 1) {
+                            let fileIds = getFileIds(file.trk.length);
+
+                            let closest = file.wpt.map((wpt, wptIndex) => {
+                                return {
+                                    wptIndex: wptIndex,
+                                    index: [0],
+                                    distance: Number.MAX_VALUE
+                                };
+                            })
+                            file.trk.forEach((track, index) => {
+                                track.getSegments().forEach((segment) => {
+                                    segment.trkpt.forEach((point) => {
+                                        file.wpt.forEach((wpt, wptIndex) => {
+                                            let dist = distance(point.getCoordinates(), wpt.getCoordinates());
+                                            if (dist < closest[wptIndex].distance) {
+                                                closest[wptIndex].distance = dist;
+                                                closest[wptIndex].index = [index];
+                                            } else if (dist === closest[wptIndex].distance) {
+                                                closest[wptIndex].index.push(index);
+                                            }
+                                        });
+                                    })
+                                });
+                            });
+
+                            file.trk.forEach((track, index) => {
+                                let tracks = track.trkseg.map((segment, segmentIndex) => {
+                                    let t = track.replaceTrackSegments(0, track.trkseg.length - 1, [segment])[0];
+                                    if (track.name) {
+                                        t.name = `${track.name} (${segmentIndex + 1})`;
+                                    }
+                                    return t;
+                                });
+                                let newFile = file.replaceTracks(0, file.trk.length - 1, tracks)[0];
+                                newFile = newFile.replaceWaypoints(0, file.wpt.length - 1, closest.filter((c) => c.index.includes(index)).map((c) => file.wpt[c.wptIndex]))[0];
+                                newFile = produce(newFile, (f) => {
+                                    f._data.id = fileIds[index];
+                                    f.metadata.name = track.name ?? `${file.metadata.name} (${index + 1})`;
+                                });
+                                draft.set(newFile._data.id, freeze(newFile));
+                            });
+                        } else if (file.trk.length === 1) {
+                            let fileIds = getFileIds(file.trk[0].trkseg.length);
+
+
+                            let closest = file.wpt.map((wpt, wptIndex) => {
+                                return {
+                                    wptIndex: wptIndex,
+                                    index: [0],
+                                    distance: Number.MAX_VALUE
+                                };
+                            })
+                            file.trk[0].trkseg.forEach((segment, index) => {
+                                segment.trkpt.forEach((point) => {
+                                    file.wpt.forEach((wpt, wptIndex) => {
+                                        let dist = distance(point.getCoordinates(), wpt.getCoordinates());
+                                        if (dist < closest[wptIndex].distance) {
+                                            closest[wptIndex].distance = dist;
+                                            closest[wptIndex].index = [index];
+                                        } else if (dist === closest[wptIndex].distance) {
+                                            closest[wptIndex].index.push(index);
+                                        }
+                                    });
+                                });
+                            });
+
+                            file.trk[0].trkseg.forEach((segment, index) => {
+                                let newFile = file.replaceTrackSegments(0, 0, file.trk[0].trkseg.length - 1, [segment])[0];
+                                newFile = newFile.replaceWaypoints(0, file.wpt.length - 1, closest.filter((c) => c.index.includes(index)).map((c) => file.wpt[c.wptIndex]))[0];
+                                newFile = produce(newFile, (f) => {
+                                    f._data.id = fileIds[index];
+                                    f.metadata.name = `${file.trk[0].name ?? file.metadata.name} (${index + 1})`;
+                                });
+                                draft.set(newFile._data.id, freeze(newFile));
+                            });
+                        }
+                        // TODO waypoints
+                        draft.delete(fileId);
+                    } else if (level === ListLevel.TRACK) {
+                        let newFile = file;
+                        for (let item of items) {
+                            let trackIndex = (item as ListTrackItem).getTrackIndex();
+                            let track = file.trk[trackIndex];
+                            let tracks = track.trkseg.map((segment, segmentIndex) => {
+                                let t = track.clone().replaceTrackSegments(0, track.trkseg.length - 1, [segment])[0];
+                                if (track.name) {
+                                    t.name = `${track.name} (${segmentIndex + 1})`;
+                                }
+                                return t;
+                            });
+                            newFile = newFile.replaceTracks(trackIndex, trackIndex, tracks)[0];
+                        }
+                        draft.set(newFile._data.id, freeze(newFile));
+                    }
+                }
+            });
         });
     },
     split(fileId: string, trackIndex: number, segmentIndex: number, coordinates: Coordinates) {

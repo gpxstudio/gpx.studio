@@ -43,7 +43,7 @@
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.EXTRACT}>
 				<Ungroup slot="icon" size="18" />
-				<span slot="tooltip">{$_('toolbar.extract_tooltip')}</span>
+				<span slot="tooltip">{$_('toolbar.extract.tooltip')}</span>
 			</ToolbarItem>
 			<ToolbarItem tool={Tool.REDUCE}>
 				<Filter slot="icon" size="18" />

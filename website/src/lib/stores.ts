@@ -5,7 +5,7 @@ import { GPXFile, buildGPX, parseGPX, GPXStatistics, type Coordinates } from 'gp
 import { tick } from 'svelte';
 import { _ } from 'svelte-i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
-import { dbUtils, fileObservers, settings } from './db';
+import { dbUtils, fileObservers, getFile, getStatistics, settings } from './db';
 import { applyToOrderedSelectedItemsFromFile, selectFile, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListWaypointItem, ListWaypointsItem } from '$lib/components/file-list/FileList';
 import type { RoutingControls } from '$lib/components/toolbar/tools/routing/RoutingControls';
@@ -21,18 +21,15 @@ export const slicedGPXStatistics: Writable<[GPXStatistics, number, number] | und
 function updateGPXData() {
     let statistics = new GPXStatistics();
     applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-        let fileStore = get(fileObservers).get(fileId);
-        if (fileStore) {
-            let stats = get(fileStore)?.statistics;
-            if (stats) {
-                let first = true;
-                items.forEach((item) => {
-                    if (!(item instanceof ListWaypointItem || item instanceof ListWaypointsItem) || first) {
-                        statistics.mergeWith(stats.getStatisticsFor(item));
-                        first = false;
-                    }
-                });
-            }
+        let stats = getStatistics(fileId);
+        if (stats) {
+            let first = true;
+            items.forEach((item) => {
+                if (!(item instanceof ListWaypointItem || item instanceof ListWaypointsItem) || first) {
+                    statistics.mergeWith(stats.getStatisticsFor(item));
+                    first = false;
+                }
+            });
         }
     }, false);
     gpxStatistics.set(statistics);
@@ -210,13 +207,10 @@ function selectFileWhenLoaded(fileId: string) {
 export function exportSelectedFiles() {
     get(selection).forEach(async (item) => {
         if (item instanceof ListFileItem) {
-            let fileStore = get(fileObservers).get(item.getFileId());
-            if (fileStore) {
-                let file = get(fileStore)?.file;
-                if (file) {
-                    exportFile(file);
-                    await new Promise(resolve => setTimeout(resolve, 200));
-                }
+            let file = getFile(item.getFileId());
+            if (file) {
+                exportFile(file);
+                await new Promise(resolve => setTimeout(resolve, 200));
             }
         }
     });

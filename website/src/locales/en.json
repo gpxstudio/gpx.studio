@@ -141,7 +141,12 @@
             "help_merge_contents": "Merging the contents of the selected file items will group all the contents inside the first file item",
             "help_cannot_merge_contents": "Your selection needs to contain several file items to merge their contents"
         },
-        "extract_tooltip": "Extract contents",
+        "extract": {
+            "tooltip": "Extract contents to separate file items",
+            "button": "Extract",
+            "help": "Extracting the contents of the selected file items will create a separate file item for each of their contents",
+            "help_invalid_selection": "Your selection needs to contain file items with multiple traces to extract them"
+        },
         "waypoint": {
             "tooltip": "Create and edit points of interest",
             "name": "Name",
