@@ -381,7 +381,9 @@ export function getFileIds(n: number) {
 // Helper functions for file operations
 export const dbUtils = {
     add: (file: GPXFile) => {
-        file._data.id = getFileIds(1)[0];
+        if (file._data.id === undefined) {
+            file._data.id = getFileIds(1)[0];
+        }
         return applyGlobal((draft) => {
             draft.set(file._data.id, freeze(file));
         });

@@ -193,7 +193,7 @@ export async function loadFile(file: File): Promise<GPXFile | null> {
     return result;
 }
 
-function selectFileWhenLoaded(fileId: string) {
+export function selectFileWhenLoaded(fileId: string) {
     const unsubscribe = fileObservers.subscribe((files) => {
         if (files.has(fileId)) {
             tick().then(() => {

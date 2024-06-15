@@ -20,8 +20,8 @@
 		SquareArrowOutDownRight
 	} from 'lucide-svelte';
 
-	import { map, routingControls } from '$lib/stores';
-	import { dbUtils, settings } from '$lib/db';
+	import { map, newGPXFile, routingControls, selectFileWhenLoaded } from '$lib/stores';
+	import { dbUtils, getFileIds, settings } from '$lib/db';
 	import { brouterProfiles, routingProfileSelectItem } from './Routing';
 
 	import { _ } from 'svelte-i18n';
@@ -33,6 +33,9 @@
 	import { selection } from '$lib/components/file-list/Selection';
 	import { ListRootItem, type ListItem } from '$lib/components/file-list/FileList';
 	import { flyAndScale } from '$lib/utils';
+	import { onDestroy, onMount } from 'svelte';
+	import { TrackPoint } from 'gpx';
+	import { produce } from 'immer';
 
 	export let popup: mapboxgl.Popup;
 	export let popupElement: HTMLElement;
@@ -64,6 +67,33 @@
 	}
 
 	$: validSelection = $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints']);
+
+	function createFileWithPoint(e: any) {
+		if ($selection.size === 0) {
+			let file = newGPXFile();
+			file = file.replaceTrackPoints(0, 0, 0, 0, [
+				new TrackPoint({
+					attributes: {
+						lat: e.lngLat.lat,
+						lon: e.lngLat.lng
+					}
+				})
+			]);
+			file = produce(file, (draft) => {
+				draft._data.id = getFileIds(1)[0];
+			});
+			dbUtils.add(file);
+			selectFileWhenLoaded(file._data.id);
+		}
+	}
+
+	onMount(() => {
+		$map?.on('click', createFileWithPoint);
+	});
+
+	onDestroy(() => {
+		$map?.off('click', createFileWithPoint);
+	});
 </script>
 
 {#if $minimizeRoutingMenu}
