@@ -547,25 +547,20 @@ export const dbUtils = {
 
             if (mergeTraces) {
                 if (toMerge.trk.length > 0) {
-                    let trackPoints: TrackPoint[] = [];
-                    toMerge.trk.forEach((track) => {
+                    let s = new TrackSegment();
+                    toMerge.trk.map((track) => {
                         track.trkseg.forEach((segment) => {
-                            trackPoints = trackPoints.concat(segment.trkpt.slice());
+                            s = s.replaceTrackPoints(s.trkpt.length, s.trkpt.length, segment.trkpt.slice());
                         });
                     });
-                    // TODO adapt timestamps of trackPoints
-                    toMerge.trk[0] = toMerge.trk[0].replaceTrackPoints(0, 0, toMerge.trk[0].trkseg[0].trkpt.length - 1, trackPoints);
-                    toMerge.trk[0] = toMerge.trk[0].replaceTrackSegments(1, toMerge.trk[0].trkseg.length - 1, [])[0];
-                    toMerge.trk = toMerge.trk.slice(0, 1);
+                    toMerge.trk = [toMerge.trk[0].replaceTrackSegments(0, toMerge.trk[0].trkseg.length - 1, [s])[0]];
                 }
                 if (toMerge.trkseg.length > 0) {
-                    let trackPoints: TrackPoint[] = [];
+                    let s = new TrackSegment();
                     toMerge.trkseg.forEach((segment) => {
-                        trackPoints = trackPoints.concat(segment.trkpt.slice());
+                        s = s.replaceTrackPoints(s.trkpt.length, s.trkpt.length, segment.trkpt.slice());
                     });
-                    // TODO adapt timestamps of trackPoints
-                    toMerge.trkseg[0] = toMerge.trkseg[0].replaceTrackPoints(0, toMerge.trkseg[0].trkpt.length - 1, trackPoints);
-                    toMerge.trkseg = toMerge.trkseg.slice(0, 1);
+                    toMerge.trkseg = [s];
                 }
             }
 
@@ -700,7 +695,6 @@ export const dbUtils = {
                                 draft.set(newFile._data.id, freeze(newFile));
                             });
                         }
-                        // TODO waypoints
                         draft.delete(fileId);
                     } else if (level === ListLevel.TRACK) {
                         let newFile = file;
