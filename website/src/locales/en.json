@@ -151,7 +151,6 @@
             "tooltip": "Create and edit points of interest",
             "name": "Name",
             "description": "Description",
-            "comment": "Comment",
             "longitude": "Longitude",
             "latitude": "Latitude",
             "create": "Create point of interest",

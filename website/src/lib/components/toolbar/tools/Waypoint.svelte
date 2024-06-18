@@ -23,7 +23,6 @@
 
 	let name: string;
 	let description: string;
-	let comment: string;
 	let longitude: number;
 	let latitude: number;
 
@@ -55,7 +54,12 @@
 					$selectedWaypoint[0] = fileStore.file.wpt[$selectedWaypoint[0]._data.index];
 					name = $selectedWaypoint[0].name ?? '';
 					description = $selectedWaypoint[0].desc ?? '';
-					comment = $selectedWaypoint[0].cmt ?? '';
+					if (
+						$selectedWaypoint[0].cmt !== undefined &&
+						$selectedWaypoint[0].cmt !== $selectedWaypoint[0].desc
+					) {
+						description += '\n\n' + $selectedWaypoint[0].cmt;
+					}
 					longitude = $selectedWaypoint[0].getLongitude();
 					latitude = $selectedWaypoint[0].getLatitude();
 				} else {
@@ -70,7 +74,6 @@
 	function resetWaypointData() {
 		name = '';
 		description = '';
-		comment = '';
 		longitude = 0;
 		latitude = 0;
 	}
@@ -104,7 +107,7 @@
 				let waypoint = $selectedWaypoint[0].clone();
 				waypoint.name = name;
 				waypoint.desc = description;
-				waypoint.cmt = comment;
+				waypoint.cmt = description;
 				waypoint.setCoordinates({
 					lat: latitude,
 					lon: longitude
@@ -123,7 +126,7 @@
 			let waypoint = new Waypoint({
 				name,
 				desc: description,
-				cmt: comment,
+				cmt: description,
 				attributes: {
 					lat: latitude,
 					lon: longitude
@@ -169,8 +172,6 @@
 		<Input bind:value={name} id="name" class="font-semibold h-8" />
 		<Label for="description">{$_('toolbar.waypoint.description')}</Label>
 		<Textarea bind:value={description} id="description" />
-		<Label for="comment">{$_('toolbar.waypoint.comment')}</Label>
-		<Textarea bind:value={comment} id="comment" />
 		<div class="flex flex-row gap-2">
 			<div>
 				<Label for="latitude">{$_('toolbar.waypoint.latitude')}</Label>

@@ -36,7 +36,7 @@
 				{#if $currentPopupWaypoint[0].desc}
 					<span>{$currentPopupWaypoint[0].desc}</span>
 				{/if}
-				{#if $currentPopupWaypoint[0].cmt}
+				{#if $currentPopupWaypoint[0].cmt && $currentPopupWaypoint[0].cmt !== $currentPopupWaypoint[0].desc}
 					<span>{$currentPopupWaypoint[0].cmt}</span>
 				{/if}
 				{#if $currentTool === Tool.WAYPOINT}
