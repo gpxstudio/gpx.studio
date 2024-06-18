@@ -40,13 +40,15 @@
 		let m = get(map);
 		if (m) {
 			let currentStravaLayers = [];
-			for (let layer of Object.keys(overlayTree.overlays.world.strava)) {
-				if (m.getLayer(layer)) {
-					m.removeLayer(layer);
-					currentStravaLayers.push(layer);
-				}
-				if (m.getSource(layer)) {
-					m.removeSource(layer);
+			if (overlayTree.overlays.world.strava) {
+				for (let layer of Object.keys(overlayTree.overlays.world.strava)) {
+					if (m.getLayer(layer)) {
+						m.removeLayer(layer);
+						currentStravaLayers.push(layer);
+					}
+					if (m.getSource(layer)) {
+						m.removeSource(layer);
+					}
 				}
 			}
 			if (currentStravaLayers.length > 0) {

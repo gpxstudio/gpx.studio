@@ -503,7 +503,7 @@ export const overlayTree: LayerTreeType = {
             cyclOSM: {
                 cyclOSMlite: true,
             },
-            strava: {
+            /*strava: {
                 stravaHeatmapRun: true,
                 stravaHeatmapTrailRun: true,
                 stravaHeatmapHike: true,
@@ -512,7 +512,7 @@ export const overlayTree: LayerTreeType = {
                 stravaHeatmapMTB: true,
                 stravaHeatmapWater: true,
                 stravaHeatmapWinter: true,
-            },
+            },*/
             waymarked_trails: {
                 waymarkedTrailsHiking: true,
                 waymarkedTrailsCycling: true,
@@ -548,7 +548,7 @@ export const defaultOverlays = {
             cyclOSM: {
                 cyclOSMlite: false,
             },
-            strava: {
+            /*strava: {
                 stravaHeatmapRun: false,
                 stravaHeatmapTrailRun: false,
                 stravaHeatmapHike: false,
@@ -557,7 +557,7 @@ export const defaultOverlays = {
                 stravaHeatmapMTB: false,
                 stravaHeatmapWater: false,
                 stravaHeatmapWinter: false,
-            },
+            },*/
             waymarked_trails: {
                 waymarkedTrailsHiking: false,
                 waymarkedTrailsCycling: false,
@@ -643,7 +643,7 @@ export const defaultOverlayTree: LayerTreeType = {
             cyclOSM: {
                 cyclOSMlite: true,
             },
-            strava: {
+            /*strava: {
                 stravaHeatmapRun: true,
                 stravaHeatmapTrailRun: true,
                 stravaHeatmapHike: true,
@@ -652,7 +652,7 @@ export const defaultOverlayTree: LayerTreeType = {
                 stravaHeatmapMTB: true,
                 stravaHeatmapWater: true,
                 stravaHeatmapWinter: true,
-            },
+            },*/
             waymarked_trails: {
                 waymarkedTrailsHiking: true,
                 waymarkedTrailsCycling: true,
@@ -678,7 +678,7 @@ export const defaultOverlayTree: LayerTreeType = {
     }
 }
 
-export const stravaHeatmapServers = ['https://proxy.nakarte.me/https/heatmap-external-a.strava.com/tiles-auth']; //['https://heatmap-external-a.strava.com/tiles-auth', 'https://heatmap-external-b.strava.com/tiles-auth', 'https://heatmap-external-c.strava.com/tiles-auth'];
+export const stravaHeatmapServers = ['https://heatmap-external-a.strava.com/tiles-auth', 'https://heatmap-external-b.strava.com/tiles-auth', 'https://heatmap-external-c.strava.com/tiles-auth'];
 export const stravaHeatmapActivityIds: { [key: string]: string } = {
     stravaHeatmapRun: 'sport_Run',
     stravaHeatmapTrailRun: 'sport_TrailRun',

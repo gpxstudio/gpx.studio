@@ -265,7 +265,7 @@ function refreshStravaCookies() {
 }
 
 export function setStravaHeatmapURLs() {
-    refreshStravaCookies().then(() => {
+    /*refreshStravaCookies().then(() => {
         overlays.stravaHeatmapRun.tiles = [];
         overlays.stravaHeatmapTrailRun.tiles = [];
         overlays.stravaHeatmapHike.tiles = [];
@@ -281,5 +281,5 @@ export function setStravaHeatmapURLs() {
                 overlays[activity].tiles.push(`${server}/${stravaHeatmapActivityIds[activity]}/${get(settings.stravaHeatmapColor)}/{z}/{x}/{y}@2x.png`); //?Signature=${stravaCookies['CloudFront-Signature']}&Key-Pair-Id=${stravaCookies['CloudFront-Key-Pair-Id']}&Policy=${stravaCookies['CloudFront-Policy']}`);
             }
         }
-    });
+    });*/
 }
