@@ -2,7 +2,7 @@ import Dexie, { liveQuery } from 'dexie';
 import { GPXFile, GPXStatistics, Track, TrackSegment, Waypoint, TrackPoint, type Coordinates, distance } from 'gpx';
 import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, castDraft, freeze, produceWithPatches, original, produce } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
-import { initTargetMapBounds, splitAs, updateTargetMapBounds } from './stores';
+import { gpxStatistics, initTargetMapBounds, splitAs, updateTargetMapBounds } from './stores';
 import { mode } from 'mode-watcher';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays } from './assets/layers';
 import { applyToOrderedItemsFromFile, applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
@@ -546,11 +546,25 @@ export const dbUtils = {
             });
 
             if (mergeTraces) {
+                let statistics = get(gpxStatistics);
+                let speed = statistics.global.speed.moving > 0 ? statistics.global.speed.moving : undefined;
+                let startTime: Date | undefined = undefined;
+                if (speed !== undefined) {
+                    if (statistics.local.points.length > 0 && statistics.local.points[0].time !== undefined) {
+                        startTime = statistics.local.points[0].time;
+                    } else {
+                        let index = statistics.local.points.findIndex((point) => point.time !== undefined);
+                        if (index !== -1) {
+                            startTime = new Date(statistics.local.points[index].time.getTime() - 1000 * 3600 * statistics.local.distance.total[index] / speed);
+                        }
+                    }
+                }
+
                 if (toMerge.trk.length > 0) {
                     let s = new TrackSegment();
                     toMerge.trk.map((track) => {
                         track.trkseg.forEach((segment) => {
-                            s = s.replaceTrackPoints(s.trkpt.length, s.trkpt.length, segment.trkpt.slice());
+                            s = s.replaceTrackPoints(s.trkpt.length, s.trkpt.length, segment.trkpt.slice(), speed, startTime);
                         });
                     });
                     toMerge.trk = [toMerge.trk[0].replaceTrackSegments(0, toMerge.trk[0].trkseg.length - 1, [s])[0]];
@@ -558,7 +572,7 @@ export const dbUtils = {
                 if (toMerge.trkseg.length > 0) {
                     let s = new TrackSegment();
                     toMerge.trkseg.forEach((segment) => {
-                        s = s.replaceTrackPoints(s.trkpt.length, s.trkpt.length, segment.trkpt.slice());
+                        s = s.replaceTrackPoints(s.trkpt.length, s.trkpt.length, segment.trkpt.slice(), speed, startTime);
                     });
                     toMerge.trkseg = [s];
                 }

@@ -361,14 +361,16 @@ export class RoutingControls {
     startLoopAtAnchor(anchor: Anchor) {
         this.popup.remove();
 
-        let file = get(this.file)?.file;
-        if (!file) {
+        let fileWithStats = get(this.file);
+        if (!fileWithStats) {
             return;
         }
 
+        let speed = fileWithStats.statistics.getStatisticsFor(new ListTrackSegmentItem(this.fileId, anchor.trackIndex, anchor.segmentIndex)).global.speed.moving;
+
         let segment = anchor.segment;
         dbUtils.applyToFile(this.fileId, (file) => {
-            let newFile = file.replaceTrackPoints(anchor.trackIndex, anchor.segmentIndex, segment.trkpt.length, segment.trkpt.length - 1, segment.trkpt.slice(0, anchor.point._data.index));
+            let newFile = file.replaceTrackPoints(anchor.trackIndex, anchor.segmentIndex, segment.trkpt.length, segment.trkpt.length - 1, segment.trkpt.slice(0, anchor.point._data.index), speed > 0 ? speed : undefined);
             return newFile.replaceTrackPoints(anchor.trackIndex, anchor.segmentIndex, 0, anchor.point._data.index - 1, []);
         });
     }
@@ -480,6 +482,11 @@ export class RoutingControls {
     async routeBetweenAnchors(anchors: Anchor[], targetCoordinates: Coordinates[]): Promise<boolean> {
         let segment = anchors[0].segment;
 
+        let fileWithStats = get(this.file);
+        if (!fileWithStats) {
+            return false;
+        }
+
         if (anchors.length === 1) { // Only one anchor, update the point in the segment
             dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(anchors[0].trackIndex, anchors[0].segmentIndex, 0, 0, [new TrackPoint({
                 attributes: targetCoordinates[0],
@@ -541,7 +548,27 @@ export class RoutingControls {
             anchor.point._data.zoom = 0; // Make these anchors permanent
         });
 
-        dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(anchors[0].trackIndex, anchors[0].segmentIndex, anchors[0].point._data.index, anchors[anchors.length - 1].point._data.index, response));
+        let stats = fileWithStats.statistics.getStatisticsFor(new ListTrackSegmentItem(this.fileId, anchors[0].trackIndex, anchors[0].segmentIndex));
+        let speed: number | undefined = undefined;
+        let startTime = anchors[0].point.time;
+
+        if (stats.global.speed.moving > 0) {
+            let replacingDistance = 0;
+            for (let i = 1; i < response.length; i++) {
+                replacingDistance += distance(response[i - 1].getCoordinates(), response[i].getCoordinates()) / 1000;
+            }
+            let replacedDistance = stats.local.distance.moving[anchors[anchors.length - 1].point._data.index] - stats.local.distance.moving[anchors[0].point._data.index];
+
+            let newDistance = stats.global.distance.moving + replacingDistance - replacedDistance;
+            let newTime = newDistance / stats.global.speed.moving * 3600;
+
+            let remainingTime = stats.global.time.moving - (stats.local.time.moving[anchors[anchors.length - 1].point._data.index] - stats.local.time.moving[anchors[0].point._data.index]);
+            let replacingTime = newTime - remainingTime;
+
+            speed = replacingDistance / replacingTime * 3600;
+        }
+
+        dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(anchors[0].trackIndex, anchors[0].segmentIndex, anchors[0].point._data.index, anchors[anchors.length - 1].point._data.index, response, speed, startTime));
 
         return true;
     }

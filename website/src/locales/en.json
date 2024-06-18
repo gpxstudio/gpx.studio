@@ -124,11 +124,11 @@
             "tooltip": "Manage time data",
             "start": "Start",
             "end": "End",
-            "total_time": "Total time",
+            "total_time": "Moving time",
             "pick_date": "Pick a date",
             "artificial": "Create realistic time data",
             "update": "Update time data",
-            "help": "",
+            "help": "Use the form to set new time data",
             "help_invalid_selection": "Select a single file item to manage its time data"
         },
         "merge": {

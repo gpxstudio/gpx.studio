@@ -60,6 +60,10 @@ selection.subscribe(($selection) => { // Maintain up-to-date statistics for the 
     });
 });
 
+gpxStatistics.subscribe(() => {
+    slicedGPXStatistics.set(undefined);
+});
+
 const targetMapBounds = writable({
     bounds: new mapboxgl.LngLatBounds([180, 90, -180, -90]),
     initial: true

@@ -205,6 +205,7 @@
 			grid: {
 				display: false
 			},
+			reverse: () => id === 'speed' && $velocityUnits === 'pace',
 			display: false
 		};
 	}
@@ -256,17 +257,26 @@
 		function getIndex(evt) {
 			const points = chart.getElementsAtEventForMode(
 				evt,
-				'index',
+				'x',
 				{
 					intersect: false
 				},
 				true
 			);
 			const rect = canvas.getBoundingClientRect();
-			return (
-				points.find((point) => point.datasetIndex === 0)?.element.raw.index ??
-				(evt.x - rect.left <= chart.chartArea.left ? 0 : get(gpxStatistics).local.points.length - 1)
-			);
+
+			if (points.length === 0) {
+				return evt.x - rect.left <= chart.chartArea.left
+					? 0
+					: get(gpxStatistics).local.points.length - 1;
+			}
+			let point = points.find((point) => point.element.raw);
+			if (point) {
+				return point.element.raw.index;
+			} else {
+				console.log(points);
+				return points[0].index;
+			}
 		}
 		canvas.addEventListener('pointerdown', (evt) => {
 			dragging = true;
@@ -323,7 +333,8 @@
 			data: data.local.points.map((point, index) => {
 				return {
 					x: getConvertedDistance(data.local.distance.total[index]),
-					y: getConvertedVelocity(data.local.speed[index])
+					y: getConvertedVelocity(data.local.speed[index]),
+					index: index
 				};
 			}),
 			normalized: true,
@@ -335,7 +346,8 @@
 			data: data.local.points.map((point, index) => {
 				return {
 					x: getConvertedDistance(data.local.distance.total[index]),
-					y: point.getHeartRate()
+					y: point.getHeartRate(),
+					index: index
 				};
 			}),
 			normalized: true,
@@ -347,7 +359,8 @@
 			data: data.local.points.map((point, index) => {
 				return {
 					x: getConvertedDistance(data.local.distance.total[index]),
-					y: point.getCadence()
+					y: point.getCadence(),
+					index: index
 				};
 			}),
 			normalized: true,
@@ -359,7 +372,8 @@
 			data: data.local.points.map((point, index) => {
 				return {
 					x: getConvertedDistance(data.local.distance.total[index]),
-					y: getConvertedTemperature(point.getTemperature())
+					y: getConvertedTemperature(point.getTemperature()),
+					index: index
 				};
 			}),
 			normalized: true,
@@ -371,7 +385,8 @@
 			data: data.local.points.map((point, index) => {
 				return {
 					x: getConvertedDistance(data.local.distance.total[index]),
-					y: point.getPower()
+					y: point.getPower(),
+					index: index
 				};
 			}),
 			normalized: true,

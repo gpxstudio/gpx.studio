@@ -5,7 +5,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import TimePicker from '$lib/components/ui/time-picker/TimePicker.svelte';
-	import { settings } from '$lib/db';
+	import { dbUtils, settings } from '$lib/db';
 	import { gpxStatistics } from '$lib/stores';
 	import {
 		distancePerHourToSecondsPerDistance,
@@ -13,19 +13,24 @@
 		kilometersToMiles
 	} from '$lib/units';
 	import { CalendarDate, type DateValue } from '@internationalized/date';
-	import { CirclePlay, CircleStop, CircleX, RefreshCw, Timer, Zap } from 'lucide-svelte';
+	import { CalendarClock, CirclePlay, CircleStop, CircleX, Timer, Zap } from 'lucide-svelte';
 	import { tick } from 'svelte';
 	import { _, locale } from 'svelte-i18n';
 	import { get } from 'svelte/store';
 	import { selection } from '$lib/components/file-list/Selection';
-	import { ListRootItem } from '$lib/components/file-list/FileList';
+	import {
+		ListFileItem,
+		ListRootItem,
+		ListTrackItem,
+		ListTrackSegmentItem
+	} from '$lib/components/file-list/FileList';
 	import Help from '$lib/components/Help.svelte';
 
 	let startDate: DateValue | undefined = undefined;
 	let startTime: string | undefined = undefined;
 	let endDate: DateValue | undefined = undefined;
 	let endTime: string | undefined = undefined;
-	let totalTime: number | undefined = undefined;
+	let movingTime: number | undefined = undefined;
 	let speed: number | undefined = undefined;
 
 	function toCalendarDate(date: Date): CalendarDate {
@@ -57,13 +62,13 @@
 			endDate = undefined;
 			endTime = undefined;
 		}
-		if ($gpxStatistics.global.time.total) {
-			totalTime = $gpxStatistics.global.time.total;
+		if ($gpxStatistics.global.time.moving) {
+			movingTime = $gpxStatistics.global.time.moving;
 		} else {
-			totalTime = undefined;
+			movingTime = undefined;
 		}
-		if ($gpxStatistics.global.speed.total) {
-			setSpeed($gpxStatistics.global.speed.total);
+		if ($gpxStatistics.global.speed.moving) {
+			setSpeed($gpxStatistics.global.speed.moving);
 		} else {
 			speed = undefined;
 		}
@@ -82,32 +87,40 @@
 	}
 
 	function updateEnd() {
-		if (startDate && totalTime !== undefined) {
+		if (startDate && movingTime !== undefined) {
 			if (startTime === undefined) {
 				startTime = '00:00:00';
 			}
 			let start = getDate(startDate, startTime);
-			let end = new Date(start.getTime() + totalTime * 1000);
+			let ratio =
+				$gpxStatistics.global.time.moving > 0
+					? $gpxStatistics.global.time.total / $gpxStatistics.global.time.moving
+					: 1;
+			let end = new Date(start.getTime() + ratio * movingTime * 1000);
 			endDate = toCalendarDate(end);
 			endTime = end.toLocaleTimeString();
 		}
 	}
 
 	function updateStart() {
-		if (endDate && totalTime !== undefined) {
+		if (endDate && movingTime !== undefined) {
 			if (endTime === undefined) {
 				endTime = '00:00:00';
 			}
 			let end = getDate(endDate, endTime);
-			let start = new Date(end.getTime() - totalTime * 1000);
+			let ratio =
+				$gpxStatistics.global.time.moving > 0
+					? $gpxStatistics.global.time.total / $gpxStatistics.global.time.moving
+					: 1;
+			let start = new Date(end.getTime() - ratio * movingTime * 1000);
 			startDate = toCalendarDate(start);
 			startTime = start.toLocaleTimeString();
 		}
 	}
 
-	function updateDataFromSpeed() {
+	function getSpeed() {
 		if (speed === undefined) {
-			return;
+			return undefined;
 		}
 
 		let speedValue = speed;
@@ -117,17 +130,29 @@
 		if ($distanceUnits === 'imperial') {
 			speedValue = kilometersToMiles(speedValue);
 		}
+		return speedValue;
+	}
 
-		totalTime = ($gpxStatistics.global.distance.total / speedValue) * 3600;
+	function updateDataFromSpeed() {
+		let speedValue = getSpeed();
+		if (speedValue === undefined) {
+			return;
+		}
+
+		let distance =
+			$gpxStatistics.global.distance.moving > 0
+				? $gpxStatistics.global.distance.moving
+				: $gpxStatistics.global.distance.total;
+		movingTime = (distance / speedValue) * 3600;
 
 		updateEnd();
 	}
 
 	function updateDataFromTotalTime() {
-		if (totalTime === undefined) {
+		if (movingTime === undefined) {
 			return;
 		}
-		setSpeed($gpxStatistics.global.distance.total / (totalTime / 3600));
+		setSpeed($gpxStatistics.global.distance.moving / (movingTime / 3600));
 		updateEnd();
 	}
 
@@ -153,7 +178,7 @@
 							id="speed"
 							type="number"
 							step={0.01}
-							min={0}
+							min={0.01}
 							disabled={!canUpdate}
 							bind:value={speed}
 							on:change={updateDataFromSpeed}
@@ -188,7 +213,7 @@
 					{$_('toolbar.time.total_time')}
 				</Label>
 				<TimePicker
-					bind:value={totalTime}
+					bind:value={movingTime}
 					disabled={!canUpdate}
 					on:change={updateDataFromTotalTime}
 				/>
@@ -244,7 +269,7 @@
 				on:change={updateStart}
 			/>
 		</div>
-		{#if $gpxStatistics.global.time.total === 0 || $gpxStatistics.global.time.total === undefined}
+		{#if $gpxStatistics.global.time.moving === 0 || $gpxStatistics.global.time.moving === undefined}
 			<Label class="mt-0.5 flex flex-row gap-1 items-center">
 				<Checkbox disabled={!canUpdate} />
 				{$_('toolbar.time.artificial')}
@@ -252,8 +277,53 @@
 		{/if}
 	</fieldset>
 	<div class="flex flex-row gap-2">
-		<Button variant="outline" disabled={!canUpdate} class="grow" on:click={() => {}}>
-			<RefreshCw size="16" class="mr-1" />
+		<Button
+			variant="outline"
+			disabled={!canUpdate}
+			class="grow"
+			on:click={() => {
+				let effectiveSpeed = getSpeed();
+				if (startDate === undefined || startTime === undefined || effectiveSpeed === undefined) {
+					return;
+				}
+
+				if (Math.abs(effectiveSpeed - $gpxStatistics.global.speed.moving) < 0.01) {
+					effectiveSpeed = $gpxStatistics.global.speed.moving;
+				}
+
+				let ratio = 1;
+				if (
+					$gpxStatistics.global.speed.moving > 0 &&
+					$gpxStatistics.global.speed.moving !== effectiveSpeed
+				) {
+					ratio = $gpxStatistics.global.speed.moving / effectiveSpeed;
+				}
+
+				let item = $selection.getSelected()[0];
+				let fileId = item.getFileId();
+				dbUtils.applyToFile(fileId, (file) => {
+					if (item instanceof ListFileItem) {
+						return file.changeTimestamps(getDate(startDate, startTime), effectiveSpeed, ratio);
+					} else if (item instanceof ListTrackItem) {
+						return file.changeTimestamps(
+							getDate(startDate, startTime),
+							effectiveSpeed,
+							ratio,
+							item.getTrackIndex()
+						);
+					} else if (item instanceof ListTrackSegmentItem) {
+						return file.changeTimestamps(
+							getDate(startDate, startTime),
+							effectiveSpeed,
+							ratio,
+							item.getTrackIndex(),
+							item.getSegmentIndex()
+						);
+					}
+				});
+			}}
+		>
+			<CalendarClock size="16" class="mr-1" />
 			{$_('toolbar.time.update')}
 		</Button>
 		<Button variant="outline" on:click={setGPXData}>

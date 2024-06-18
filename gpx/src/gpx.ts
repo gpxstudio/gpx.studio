@@ -205,11 +205,11 @@ export class GPXFile extends GPXTreeNode<Track>{
         return [result, removed];
     }
 
-    replaceTrackPoints(trackIndex: number, segmentIndex: number, start: number, end: number, points: TrackPoint[]) {
+    replaceTrackPoints(trackIndex: number, segmentIndex: number, start: number, end: number, points: TrackPoint[], speed?: number, startTime?: Date) {
         return produce(this, (draft) => {
             let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
             let trk = og.trk.slice();
-            trk[trackIndex] = trk[trackIndex].replaceTrackPoints(segmentIndex, start, end, points);
+            trk[trackIndex] = trk[trackIndex].replaceTrackPoints(segmentIndex, start, end, points, speed, startTime);
             draft.trk = freeze(trk); // Pre-freeze the array, faster as well
         });
     }
@@ -310,6 +310,21 @@ export class GPXFile extends GPXTreeNode<Track>{
             }
         });
     }
+
+    changeTimestamps(startTime: Date, speed: number, ratio: number, trackIndex?: number, segmentIndex?: number) {
+        let lastPoint = undefined;
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let trk = og.trk.map((track, index) => {
+                if (trackIndex === undefined || trackIndex === index) {
+                    return track.changeTimestamps(startTime, speed, ratio, lastPoint, segmentIndex);
+                } else {
+                    return track;
+                }
+            });
+            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
+        });
+    }
 };
 
 // A class that represents a Track in a GPX file
@@ -405,11 +420,11 @@ export class Track extends GPXTreeNode<TrackSegment> {
         return [result, removed];
     }
 
-    replaceTrackPoints(segmentIndex: number, start: number, end: number, points: TrackPoint[]) {
+    replaceTrackPoints(segmentIndex: number, start: number, end: number, points: TrackPoint[], speed?: number, startTime?: Date) {
         return produce(this, (draft) => {
             let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
             let trkseg = og.trkseg.slice();
-            trkseg[segmentIndex] = trkseg[segmentIndex].replaceTrackPoints(start, end, points);
+            trkseg[segmentIndex] = trkseg[segmentIndex].replaceTrackPoints(start, end, points, speed, startTime);
             draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
         });
     }
@@ -470,6 +485,25 @@ export class Track extends GPXTreeNode<TrackSegment> {
                 }
                 segmentIndex++;
             }
+            draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
+        });
+    }
+
+    changeTimestamps(startTime: Date, speed: number, ratio: number, lastPoint?: TrackPoint, segmentIndex?: number) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let trkseg = og.trkseg.slice();
+            trkseg = trkseg.map((segment, index) => {
+                if (segmentIndex === undefined || segmentIndex === index) {
+                    let seg = segment.changeTimestamps(startTime, speed, ratio, lastPoint);
+                    if (seg.trkpt.length > 0) {
+                        lastPoint = seg.trkpt[seg.trkpt.length - 1];
+                    }
+                    return seg;
+                } else {
+                    return segment;
+                }
+            });
             draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
         });
     }
@@ -634,10 +668,33 @@ export class TrackSegment extends GPXTreeLeaf {
     }
 
     // Producers
-    replaceTrackPoints(start: number, end: number, points: TrackPoint[]) {
+    replaceTrackPoints(start: number, end: number, points: TrackPoint[], speed?: number, startTime?: Date) {
         return produce(this, (draft) => {
             let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
             let trkpt = og.trkpt.slice();
+
+            if (speed !== undefined || (trkpt.length > 0 && trkpt[0].time !== undefined)) {
+                if (start > 0 && trkpt[0].time === undefined) {
+                    trkpt.splice(0, 0, withTimestamps(trkpt.splice(0, start), speed, undefined, startTime));
+                }
+                if (points.length > 0) {
+                    let last = start > 0 ? trkpt[start - 1] : undefined;
+                    if (points[0].time === undefined || (points.length > 1 && points[1].time === undefined)) {
+                        points = withTimestamps(points, speed, last, startTime);
+                    } else if (last !== undefined && points[0].time < last.time) {
+                        points = withShiftedAndCompressedTimestamps(points, speed, 1, last);
+                    }
+                }
+                if (end < trkpt.length - 1) {
+                    let last = points.length > 0 ? points[points.length - 1] : start > 0 ? trkpt[start - 1] : undefined;
+                    if (trkpt[end + 1].time === undefined) {
+                        trkpt.splice(end + 1, 0, withTimestamps(trkpt.splice(end + 1), speed, last, startTime));
+                    } else if (last !== undefined && trkpt[end + 1].time < last.time) {
+                        points = withShiftedAndCompressedTimestamps(points, speed, 1, last);
+                    }
+                }
+            }
+
             trkpt.splice(start, end - start + 1, ...points);
             draft.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
         });
@@ -688,6 +745,23 @@ export class TrackSegment extends GPXTreeLeaf {
                 return inBounds !== inside;
             });
             draft.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+        });
+    }
+
+    changeTimestamps(startTime: Date, speed: number, ratio: number, lastPoint?: TrackPoint) {
+        if (lastPoint === undefined && this.trkpt.length > 0) {
+            lastPoint = this.trkpt[0].clone();
+            lastPoint.time = startTime;
+        }
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            if (og.trkpt.length > 0 && og.trkpt[0].time === undefined) {
+                let trkpt = withTimestamps(og.trkpt, speed, lastPoint, startTime);
+                draft.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+            } else {
+                let trkpt = withShiftedAndCompressedTimestamps(og.trkpt, speed, ratio, lastPoint);
+                draft.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+            }
         });
     }
 };
@@ -1037,6 +1111,34 @@ function distanceWindowSmoothing(points: ReadonlyArray<Readonly<TrackPoint>>, di
 
 function distanceWindowSmoothingWithDistanceAccumulator(points: ReadonlyArray<Readonly<TrackPoint>>, distanceWindow: number, compute: (accumulated: number, start: number, end: number) => number): number[] {
     return distanceWindowSmoothing(points, distanceWindow, (index) => index > 0 ? distance(points[index - 1].getCoordinates(), points[index].getCoordinates()) : 0, compute, (index) => distance(points[index].getCoordinates(), points[index + 1].getCoordinates()));
+}
+
+function withTimestamps(points: TrackPoint[], speed: number, lastPoint: TrackPoint | undefined, startTime?: Date): TrackPoint[] {
+    let last = lastPoint;
+    if (last === undefined) {
+        last = points[0].clone();
+        last.time = startTime;
+    }
+    return points.map((point) => {
+        let time = getTimestamp(last, point, speed);
+        last = point.clone();
+        last.time = time;
+        return last;
+    });
+}
+
+function withShiftedAndCompressedTimestamps(points: TrackPoint[], speed: number, ratio: number, lastPoint: TrackPoint): TrackPoint[] {
+    let start = getTimestamp(lastPoint, points[0], speed);
+    return points.map((point) => {
+        let pt = point.clone();
+        pt.time = new Date(start.getTime() + ratio * (point.time.getTime() - points[0].time.getTime()));
+        return pt;
+    });
+}
+
+function getTimestamp(a: TrackPoint, b: TrackPoint, speed: number): Date {
+    let dist = distance(a.getCoordinates(), b.getCoordinates()) / 1000;
+    return new Date(a.time.getTime() + 1000 * 3600 * dist / speed);
 }
 
 function getOriginal(obj: any): any {

@@ -3,7 +3,7 @@
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import WithUnits from '$lib/components/WithUnits.svelte';
 
-	import { gpxStatistics, slicedGPXStatistics, currentTool, Tool } from '$lib/stores';
+	import { gpxStatistics, slicedGPXStatistics } from '$lib/stores';
 	import { settings } from '$lib/db';
 
 	import { MoveDownRight, MoveUpRight, Ruler, Timer, Zap } from 'lucide-svelte';
@@ -25,7 +25,7 @@
 <Card.Root
 	class="h-full {$elevationProfile
 		? ''
-		: 'w-full pr-4'} overflow-hidden border-none shadow-none min-w-48 pl-4"
+		: 'w-full pr-4'} overflow-hidden border-none shadow-none min-w-52 pl-4"
 >
 	<Card.Content
 		class="h-full flex {$elevationProfile

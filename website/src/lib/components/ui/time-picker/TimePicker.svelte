@@ -17,7 +17,10 @@
 	}
 
 	function computeValue() {
-		return maybeParseInt(hours) * 3600 + maybeParseInt(minutes) * 60 + maybeParseInt(seconds);
+		return Math.max(
+			maybeParseInt(hours) * 3600 + maybeParseInt(minutes) * 60 + maybeParseInt(seconds),
+			1
+		);
 	}
 
 	function updateValue() {
@@ -31,7 +34,7 @@
 		minutes = '--';
 		seconds = '--';
 	} else if (value !== computeValue()) {
-		let rounded = Math.round(value);
+		let rounded = Math.max(Math.round(value), 1);
 		if (showHours) {
 			hours = Math.floor(rounded / 3600);
 			minutes = Math.floor((rounded % 3600) / 60)
