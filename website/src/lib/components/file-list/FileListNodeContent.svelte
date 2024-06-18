@@ -28,7 +28,8 @@
 	export let node:
 		| Map<string, Readable<GPXFileWithStatistics | undefined>>
 		| GPXTreeElement<AnyGPXTreeElement>
-		| ReadonlyArray<Readonly<Waypoint>>;
+		| ReadonlyArray<Readonly<Waypoint>>
+		| Readonly<Waypoint>;
 	export let item: ListItem;
 	export let waypointRoot: boolean = false;
 

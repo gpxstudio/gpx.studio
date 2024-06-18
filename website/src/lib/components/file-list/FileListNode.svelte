@@ -25,7 +25,8 @@
 	export let node:
 		| Map<string, Readable<GPXFileWithStatistics | undefined>>
 		| GPXTreeElement<AnyGPXTreeElement>
-		| ReadonlyArray<Readonly<Waypoint>>;
+		| ReadonlyArray<Readonly<Waypoint>>
+		| Readonly<Waypoint>;
 	export let item: ListItem;
 
 	let recursive = getContext<boolean>('recursive');
@@ -63,12 +64,12 @@
 {#if node instanceof Map}
 	<FileListNodeContent {node} {item} />
 {:else if node instanceof TrackSegment}
-	<FileListNodeLabel {item} {label} />
+	<FileListNodeLabel {node} {item} {label} />
 {:else if node instanceof Waypoint}
-	<FileListNodeLabel {item} {label} />
+	<FileListNodeLabel {node} {item} {label} />
 {:else if recursive}
 	<CollapsibleTreeNode id={item.getId()} bind:this={collapsible}>
-		<FileListNodeLabel {item} {label} slot="trigger" />
+		<FileListNodeLabel {node} {item} {label} slot="trigger" />
 		<div slot="content">
 			{#key node}
 				<FileListNodeContent {node} {item} />
@@ -76,5 +77,5 @@
 		</div>
 	</CollapsibleTreeNode>
 {:else}
-	<FileListNodeLabel {item} {label} />
+	<FileListNodeLabel {node} {item} {label} />
 {/if}

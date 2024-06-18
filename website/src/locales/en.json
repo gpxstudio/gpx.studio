@@ -4,6 +4,12 @@
         "new_filename": "new",
         "new_track": "New track",
         "new_segment": "New segment",
+        "metadata": {
+            "button": "Edit info",
+            "name": "Name",
+            "description": "Description",
+            "save": "Save"
+        },
         "load_desktop": "Load...",
         "load_drive": "Load from Google Drive...",
         "duplicate": "Duplicate",
@@ -149,12 +155,9 @@
         },
         "waypoint": {
             "tooltip": "Create and edit points of interest",
-            "name": "Name",
-            "description": "Description",
             "longitude": "Longitude",
             "latitude": "Latitude",
             "create": "Create point of interest",
-            "update": "Update point of interest",
             "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
             "help_no_selection": "Select a file item to create or edit points of interest"
         },

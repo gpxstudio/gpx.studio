@@ -19,7 +19,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { map } from '$lib/stores';
 	import { resetCursor, setCrosshairCursor } from '$lib/utils';
-	import { CirclePlus, CircleX, RefreshCw } from 'lucide-svelte';
+	import { CirclePlus, CircleX, Save } from 'lucide-svelte';
 
 	let name: string;
 	let description: string;
@@ -168,9 +168,9 @@
 
 <div class="flex flex-col gap-3 w-96">
 	<fieldset class="flex flex-col gap-2">
-		<Label for="name">{$_('toolbar.waypoint.name')}</Label>
+		<Label for="name">{$_('menu.metadata.name')}</Label>
 		<Input bind:value={name} id="name" class="font-semibold h-8" />
-		<Label for="description">{$_('toolbar.waypoint.description')}</Label>
+		<Label for="description">{$_('menu.metadata.description')}</Label>
 		<Textarea bind:value={description} id="description" />
 		<div class="flex flex-row gap-2">
 			<div>
@@ -207,8 +207,8 @@
 			on:click={createOrUpdateWaypoint}
 		>
 			{#if $selectedWaypoint}
-				<RefreshCw size="16" class="mr-1" />
-				{$_('toolbar.waypoint.update')}
+				<Save size="16" class="mr-1" />
+				{$_('menu.metadata.save')}
 			{:else}
 				<CirclePlus size="16" class="mr-1" />
 				{$_('toolbar.waypoint.create')}
