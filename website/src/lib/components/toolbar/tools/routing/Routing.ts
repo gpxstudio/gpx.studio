@@ -1,8 +1,8 @@
 import type { Coordinates } from "gpx";
 import { TrackPoint, distance } from "gpx";
-import { get, writable } from "svelte/store";
+import { derived, get, writable } from "svelte/store";
 import { settings } from "$lib/db";
-import { _ } from "svelte-i18n";
+import { _, locale } from "svelte-i18n";
 import { map } from "$lib/stores";
 
 const { routing, routingProfile, privateRoads } = settings;
@@ -20,11 +20,13 @@ export const routingProfileSelectItem = writable({
     value: '',
     label: ''
 });
-routingProfile.subscribe((value) => {
-    if (value !== get(routingProfileSelectItem).value) {
+
+derived([routingProfile, locale], ([profile, l]) => [profile, l]).subscribe(([profile, l]) => {
+    console.log(profile, l);
+    if (profile !== get(routingProfileSelectItem).value && l !== null) {
         routingProfileSelectItem.update((item) => {
-            item.value = value;
-            item.label = get(_)(`toolbar.routing.activities.${value}`);
+            item.value = profile;
+            item.label = get(_)(`toolbar.routing.activities.${profile}`);
             return item;
         });
     }

@@ -40,7 +40,7 @@
 		updateSelectionFromKey
 	} from '$lib/stores';
 	import { selectAll, selection } from '$lib/components/file-list/Selection';
-	import { derived, get } from 'svelte/store';
+	import { derived } from 'svelte/store';
 	import { canUndo, canRedo, dbUtils, fileObservers, settings } from '$lib/db';
 	import { anySelectedLayer } from '$lib/components/layer-control/utils';
 	import { defaultOverlays } from '$lib/assets/layers';
