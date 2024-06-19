@@ -60,8 +60,8 @@
 					) {
 						description += '\n\n' + $selectedWaypoint[0].cmt;
 					}
-					longitude = $selectedWaypoint[0].getLongitude();
-					latitude = $selectedWaypoint[0].getLatitude();
+					longitude = parseFloat($selectedWaypoint[0].getLongitude().toFixed(6));
+					latitude = parseFloat($selectedWaypoint[0].getLatitude().toFixed(6));
 				} else {
 					selectedWaypoint.set(undefined);
 				}
