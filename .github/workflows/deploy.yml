@@ -3,6 +3,10 @@ on:
   push:
     branches: 'main'
 
+defaults:
+  run:
+    working-directory: website
+
 jobs:
   build_site:
     runs-on: ubuntu-latest
@@ -46,7 +50,3 @@ jobs:
     - name: Deploy
       id: deployment
       uses: actions/deploy-pages@v4
-  
-  defaults:
-    run:
-      working-directory: website
