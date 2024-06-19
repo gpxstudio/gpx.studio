@@ -51,6 +51,7 @@
 	import { _, locale } from 'svelte-i18n';
 	import { languages } from '$lib/languages';
 	import { goto } from '$app/navigation';
+	import { base } from '$app/paths';
 
 	const {
 		distanceUnits,
@@ -262,7 +263,7 @@
 								bind:value={$locale}
 								onValueChange={(value) => {
 									if (value) {
-										goto('/' + (value === 'en' ? '' : value));
+										goto(base + '/' + (value === 'en' ? '' : value));
 									}
 								}}
 							>
@@ -306,8 +307,11 @@
 			</Menubar.Menu>
 		</Menubar.Root>
 		<div class="h-fit flex flex-row items-center ml-1 gap-1">
-			<Button variant="ghost" href="/about" target="_blank" class="cursor-default h-fit rounded-sm"
-				>{$_('menu.about')}</Button
+			<Button
+				variant="ghost"
+				href="{base}/about"
+				target="_blank"
+				class="cursor-default h-fit rounded-sm">{$_('menu.about')}</Button
 			>
 			<Button
 				variant="ghost"
