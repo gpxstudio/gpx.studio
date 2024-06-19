@@ -22,7 +22,6 @@ export const routingProfileSelectItem = writable({
 });
 
 derived([routingProfile, locale], ([profile, l]) => [profile, l]).subscribe(([profile, l]) => {
-    console.log(profile, l);
     if (profile !== get(routingProfileSelectItem).value && l !== null) {
         routingProfileSelectItem.update((item) => {
             item.value = profile;
