@@ -50,6 +50,7 @@ export class GPXLayer {
     fileId: string;
     file: Readable<GPXFileWithStatistics | undefined>;
     layerColor: string;
+    hidden: boolean = false;
     markers: mapboxgl.Marker[] = [];
     selected: boolean = false;
     draggable: boolean;
@@ -359,6 +360,17 @@ export class GPXLayer {
             marker?.getPopup()?.remove();
             currentPopupWaypoint.set(null);
             this.map.off('mousemove', this.maybeHideWaypointPopupBinded);
+        }
+    }
+
+    toggleVisibility() {
+        this.hidden = !this.hidden;
+        if (this.hidden) {
+            this.map.setLayoutProperty(this.fileId, 'visibility', 'none');
+            this.markers.forEach(marker => marker.remove());
+        } else {
+            this.map.setLayoutProperty(this.fileId, 'visibility', 'visible');
+            this.markers.forEach(marker => marker.addTo(this.map));
         }
     }
 

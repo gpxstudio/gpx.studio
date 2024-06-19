@@ -34,7 +34,8 @@
 		exportSelectedFiles,
 		triggerFileInput,
 		createFile,
-		loadFiles
+		loadFiles,
+		toggleSelectionVisibility
 	} from '$lib/stores';
 	import { selectAll, selection } from '$lib/components/file-list/Selection';
 	import { derived } from 'svelte/store';
@@ -336,6 +337,9 @@
 			e.preventDefault();
 		} else if (e.key === 'l' && (e.metaKey || e.ctrlKey)) {
 			$verticalFileView = !$verticalFileView;
+			e.preventDefault();
+		} else if (e.key === 'h' && (e.metaKey || e.ctrlKey)) {
+			toggleSelectionVisibility();
 			e.preventDefault();
 		} else if (e.key === 'F1') {
 			switchBasemaps();

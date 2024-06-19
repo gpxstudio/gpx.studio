@@ -8,7 +8,18 @@
 	import * as Popover from '$lib/components/ui/popover';
 	import Shortcut from '$lib/components/Shortcut.svelte';
 	import { dbUtils, getFile, settings } from '$lib/db';
-	import { Copy, Info, MapPin, PaintBucket, Plus, Save, Trash2, Waypoints } from 'lucide-svelte';
+	import {
+		Copy,
+		Info,
+		MapPin,
+		PaintBucket,
+		Plus,
+		Save,
+		Trash2,
+		Waypoints,
+		Eye,
+		EyeOff
+	} from 'lucide-svelte';
 	import {
 		ListFileItem,
 		ListLevel,
@@ -19,7 +30,7 @@
 	import { selectItem, selection } from './Selection';
 	import { getContext } from 'svelte';
 	import { get } from 'svelte/store';
-	import { gpxLayers, map } from '$lib/stores';
+	import { gpxLayers, map, toggleSelectionVisibility } from '$lib/stores';
 	import {
 		GPXTreeElement,
 		Track,
@@ -37,6 +48,7 @@
 	export let item: ListItem;
 	export let label: string | undefined;
 	let nodeColors: string[] = [];
+	let hidden = false;
 
 	let orientation = getContext<'vertical' | 'horizontal'>('orientation');
 
@@ -169,8 +181,14 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <ContextMenu.Root
 	onOpenChange={(open) => {
-		if (open && !get(selection).has(item)) {
-			selectItem(item);
+		if (open) {
+			if (!get(selection).has(item)) {
+				selectItem(item);
+			}
+			let layer = gpxLayers.get(item.getFileId());
+			if (layer) {
+				hidden = layer.hidden;
+			}
 		}
 	}}
 >
@@ -347,6 +365,18 @@
 				<PaintBucket size="16" class="mr-1" />
 				{$_('menu.style.button')}
 			</ContextMenu.Item>
+			{#if item instanceof ListFileItem}
+				<ContextMenu.Item on:click={toggleSelectionVisibility}>
+					{#if hidden}
+						<Eye size="16" class="mr-1" />
+						{$_('menu.unhide')}
+					{:else}
+						<EyeOff size="16" class="mr-1" />
+						{$_('menu.hide')}
+					{/if}
+					<Shortcut key="H" ctrl={true} />
+				</ContextMenu.Item>
+			{/if}
 			<ContextMenu.Separator />
 		{/if}
 		{#if $verticalFileView}
@@ -394,10 +424,10 @@
 			>
 			<ContextMenu.Separator />
 		{/if}
-		<ContextMenu.Item on:click={dbUtils.deleteSelection}
-			><Trash2 size="16" class="mr-1" />
+		<ContextMenu.Item on:click={dbUtils.deleteSelection}>
+			<Trash2 size="16" class="mr-1" />
 			{$_('menu.delete')}
-			<Shortcut key="⌫" ctrl={true} /></ContextMenu.Item
-		>
+			<Shortcut key="⌫" ctrl={true} />
+		</ContextMenu.Item>
 	</ContextMenu.Content>
 </ContextMenu.Root>

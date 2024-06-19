@@ -52,7 +52,9 @@
             "color": "Color",
             "opacity": "Opacity",
             "weight": "Weight"
-        }
+        },
+        "hide": "Hide",
+        "unhide": "Unhide"
     },
     "toolbar": {
         "routing": {
