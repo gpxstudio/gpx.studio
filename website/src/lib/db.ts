@@ -1,5 +1,5 @@
 import Dexie, { liveQuery } from 'dexie';
-import { GPXFile, GPXStatistics, Track, TrackSegment, Waypoint, TrackPoint, type Coordinates, distance } from 'gpx';
+import { GPXFile, GPXStatistics, Track, TrackSegment, Waypoint, TrackPoint, type Coordinates, distance, type LineStyleExtension } from 'gpx';
 import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, castDraft, freeze, produceWithPatches, original, produce } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
 import { gpxStatistics, initTargetMapBounds, splitAs, updateTargetMapBounds } from './stores';
@@ -102,6 +102,8 @@ export const settings = {
     distanceMarkers: dexieSettingStore('distanceMarkers', false),
     stravaHeatmapColor: dexieSettingStore('stravaHeatmapColor', 'bluered'),
     fileOrder: dexieSettingStore<string[]>('fileOrder', []),
+    defaultOpacity: dexieSettingStore('defaultOpacity', 0.6),
+    defaultWeight: dexieSettingStore('defaultWeight', 5),
 };
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber
@@ -819,6 +821,31 @@ export const dbUtils = {
                             if (points) {
                                 newFile = newFile.replaceTrackPoints(trackIndex, segmentIndex, 0, file.trk[trackIndex].trkseg[segmentIndex].getNumberOfTrackPoints() - 1, points);
                             }
+                        }
+                    }
+                    draft.set(newFile._data.id, freeze(newFile));
+                }
+            });
+        });
+    },
+    setStyleToSelection: (style: LineStyleExtension) => {
+        if (get(selection).size === 0) {
+            return;
+        }
+        applyGlobal((draft) => {
+            applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+                let file = original(draft)?.get(fileId);
+                if (file) {
+                    let newFile = file;
+                    if (level === ListLevel.FILE) {
+                        newFile = file.setStyle(style);
+                    } else if (level === ListLevel.TRACK) {
+                        for (let item of items) {
+                            let trackIndex = (item as ListTrackItem).getTrackIndex();
+                            newFile = newFile.replaceTracks(trackIndex, trackIndex, [file.trk[trackIndex].setStyle(style)])[0];
+                        }
+                        if (items.length === file.trk.length) {
+                            newFile = newFile.setStyle(style);
                         }
                     }
                     draft.set(newFile._data.id, freeze(newFile));

@@ -133,8 +133,23 @@ export const currentTool = writable<Tool | null>(null);
 export const splitAs = writable(SplitType.FILES);
 
 export function newGPXFile() {
+    const newFileName = get(_)("menu.new_filename");
+
     let file = new GPXFile();
-    file.metadata.name = get(_)("menu.new_filename");
+
+    let maxNewFileNumber = 0;
+    get(fileObservers).forEach((f) => {
+        let file = get(f)?.file;
+        if (file && file.metadata.name.startsWith(newFileName)) {
+            let number = parseInt(file.metadata.name.split(' ').pop() ?? '0');
+            if (!isNaN(number) && number > maxNewFileNumber) {
+                maxNewFileNumber = number;
+            }
+        }
+    });
+
+    file.metadata.name = `${newFileName} ${maxNewFileNumber + 1}`;
+
     return file;
 }
 

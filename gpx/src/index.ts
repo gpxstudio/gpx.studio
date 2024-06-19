@@ -1,5 +1,5 @@
 export * from './gpx';
-export { Coordinates } from './types';
+export { Coordinates, LineStyleExtension } from './types';
 
 export { parseGPX, buildGPX } from './io';
 

@@ -3,11 +3,12 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import { Slider } from '$lib/components/ui/slider';
 	import * as ContextMenu from '$lib/components/ui/context-menu';
 	import * as Popover from '$lib/components/ui/popover';
 	import Shortcut from '$lib/components/Shortcut.svelte';
 	import { dbUtils, getFile, settings } from '$lib/db';
-	import { Copy, Info, MapPin, Plus, Save, Trash2, Waypoints } from 'lucide-svelte';
+	import { Copy, Info, MapPin, PaintBucket, Plus, Save, Trash2, Waypoints } from 'lucide-svelte';
 	import {
 		ListFileItem,
 		ListLevel,
@@ -16,10 +17,9 @@
 		type ListItem
 	} from './FileList';
 	import { selectItem, selection } from './Selection';
-	import { _ } from 'svelte-i18n';
-	import { getContext, onMount } from 'svelte';
+	import { getContext } from 'svelte';
 	import { get } from 'svelte/store';
-	import { gpxLayers } from '$lib/stores';
+	import { gpxLayers, map } from '$lib/stores';
 	import {
 		GPXTreeElement,
 		Track,
@@ -28,6 +28,7 @@
 		Waypoint,
 		GPXFile
 	} from 'gpx';
+	import { _ } from 'svelte-i18n';
 
 	export let node:
 		| GPXTreeElement<AnyGPXTreeElement>
@@ -35,14 +36,16 @@
 		| Readonly<Waypoint>;
 	export let item: ListItem;
 	export let label: string | undefined;
+	let nodeColors: string[] = [];
 
 	let orientation = getContext<'vertical' | 'horizontal'>('orientation');
 
-	const { verticalFileView } = settings;
+	const { verticalFileView, defaultOpacity, defaultWeight } = settings;
 
 	$: singleSelection = $selection.size === 1;
 
 	let openEditMetadata: boolean = false;
+	let openEditStyle: boolean = false;
 	let name: string =
 		node instanceof GPXFile
 			? node.metadata.name ?? ''
@@ -55,6 +58,111 @@
 			: node instanceof Track
 				? node.desc ?? ''
 				: '';
+	let colors: string[] = [];
+	let color: string | undefined = undefined;
+	let opacity: number[] = [];
+	let weight: number[] = [];
+	let colorChanged = false;
+	let opacityChanged = false;
+	let weightChanged = false;
+
+	$: if (node && $map) {
+		nodeColors = [];
+
+		if (node instanceof GPXFile) {
+			let style = node.getStyle();
+
+			let layer = gpxLayers.get(item.getFileId());
+			if (layer) {
+				style.color.push(layer.layerColor);
+			}
+
+			style.color.forEach((c) => {
+				if (!nodeColors.includes(c)) {
+					nodeColors.push(c);
+				}
+			});
+		} else if (node instanceof Track) {
+			let style = node.getStyle();
+			if (style) {
+				if (style.color && !nodeColors.includes(style.color)) {
+					nodeColors.push(style.color);
+				}
+			}
+			if (nodeColors.length === 0) {
+				let layer = gpxLayers.get(item.getFileId());
+				if (layer) {
+					nodeColors.push(layer.layerColor);
+				}
+			}
+		}
+	}
+
+	function setStyleInputs() {
+		colors = [];
+		opacity = [];
+		weight = [];
+
+		$selection.forEach((item) => {
+			if (item instanceof ListFileItem) {
+				let file = getFile(item.getFileId());
+				let layer = gpxLayers.get(item.getFileId());
+				if (file && layer) {
+					let style = file.getStyle();
+					style.color.push(layer.layerColor);
+
+					style.color.forEach((c) => {
+						if (!colors.includes(c)) {
+							colors.push(c);
+						}
+					});
+					style.opacity.forEach((o) => {
+						if (!opacity.includes(o)) {
+							opacity.push(o);
+						}
+					});
+					style.weight.forEach((w) => {
+						if (!weight.includes(w)) {
+							weight.push(w);
+						}
+					});
+				}
+			} else if (item instanceof ListTrackItem) {
+				let file = getFile(item.getFileId());
+				let layer = gpxLayers.get(item.getFileId());
+				if (file && layer) {
+					let track = file.trk[item.getTrackIndex()];
+					let style = track.getStyle();
+					if (style) {
+						if (style.color && !colors.includes(style.color)) {
+							colors.push(style.color);
+						}
+						if (style.opacity && !opacity.includes(style.opacity)) {
+							opacity.push(style.opacity);
+						}
+						if (style.weight && !weight.includes(style.weight)) {
+							weight.push(style.weight);
+						}
+					}
+					if (!colors.includes(layer.layerColor)) {
+						colors.push(layer.layerColor);
+					}
+				}
+			}
+		});
+
+		color = colors[0];
+		opacity = [opacity[0] ?? $defaultOpacity];
+		weight = [weight[0] ?? $defaultWeight];
+
+		colorChanged = false;
+		opacityChanged = false;
+		weightChanged = false;
+	}
+
+	$: if ($selection && openEditStyle) {
+		setStyleInputs();
+	}
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -103,6 +211,76 @@
 						</Button>
 					</Popover.Content>
 				</Popover.Root>
+				<Popover.Root bind:open={openEditStyle}>
+					<Popover.Trigger />
+					<Popover.Content side="top" sideOffset={22} class="flex flex-col gap-3">
+						<Label class="flex flex-row gap-2 items-center justify-between">
+							{$_('menu.style.color')}
+							<Input
+								bind:value={color}
+								type="color"
+								class="p-0 h-6 w-40"
+								on:change={() => (colorChanged = true)}
+							/>
+						</Label>
+						<Label class="flex flex-row gap-2 items-center justify-between">
+							{$_('menu.style.opacity')}
+							<div class="w-40 p-2">
+								<Slider
+									bind:value={opacity}
+									min={0.3}
+									max={1}
+									step={0.1}
+									onValueChange={() => (opacityChanged = true)}
+								/>
+							</div>
+						</Label>
+						<Label class="flex flex-row gap-2 items-center justify-between">
+							{$_('menu.style.weight')}
+							<div class="w-40 p-2">
+								<Slider
+									bind:value={weight}
+									id="weight"
+									min={1}
+									max={10}
+									step={1}
+									onValueChange={() => (weightChanged = true)}
+								/>
+							</div>
+						</Label>
+						<Button
+							variant="outline"
+							disabled={!colorChanged && !opacityChanged && !weightChanged}
+							on:click={() => {
+								let style = {};
+								if (colorChanged) {
+									style.color = color;
+								}
+								if (opacityChanged) {
+									style.opacity = opacity[0];
+								}
+								if (weightChanged) {
+									style.weight = weight[0];
+								}
+								dbUtils.setStyleToSelection(style);
+
+								if (item instanceof ListFileItem && $selection.size === gpxLayers.size) {
+									if (style.opacity) {
+										$defaultOpacity = style.opacity;
+									}
+									if (style.weight) {
+										$defaultWeight = style.weight;
+									}
+								}
+
+								openEditStyle = false;
+							}}
+						>
+							<Save size="16" class="mr-1" />
+							{$_('menu.metadata.save')}
+						</Button>
+					</Popover.Content>
+				</Popover.Root>
 			{/if}
 			<span
 				class="w-full text-left truncate py-1 flex flex-row items-center"
@@ -135,7 +313,19 @@
 					}
 				}}
 			>
-				{#if item.level === ListLevel.SEGMENT}
+				{#if item.level === ListLevel.FILE}
+					<div
+						class="h-[10px] w-[10px] rounded-[3px] mr-1 mt-[1px]"
+						style="background:conic-gradient({nodeColors
+							.map(
+								(c, i) =>
+									`${c} ${(360 * i) / nodeColors.length}deg, ${c} ${(360 * (i + 1)) / nodeColors.length}deg`
+							)
+							.join(',')})"
+					/>
+				{:else if item.level === ListLevel.TRACK}
+					<div class="h-[10px] w-[10px] rounded-[3px] mr-1" style="background:{nodeColors[0]}" />
+				{:else if item.level === ListLevel.SEGMENT}
 					<Waypoints size="16" class="mr-1 shrink-0" />
 				{:else if item.level === ListLevel.WAYPOINT}
 					<MapPin size="16" class="mr-1 shrink-0" />
@@ -147,6 +337,17 @@
 		</Button>
 	</ContextMenu.Trigger>
 	<ContextMenu.Content>
+		{#if item instanceof ListFileItem || item instanceof ListTrackItem}
+			<ContextMenu.Item disabled={!singleSelection} on:click={() => (openEditMetadata = true)}>
+				<Info size="16" class="mr-1" />
+				{$_('menu.metadata.button')}
+			</ContextMenu.Item>
+			<ContextMenu.Item on:click={() => (openEditStyle = true)}>
+				<PaintBucket size="16" class="mr-1" />
+				{$_('menu.style.button')}
+			</ContextMenu.Item>
+			<ContextMenu.Separator />
+		{/if}
 		{#if $verticalFileView}
 			{#if item instanceof ListFileItem}
 				<ContextMenu.Item
@@ -160,6 +361,7 @@
 					<Plus size="16" class="mr-1" />
 					{$_('menu.new_track')}
 				</ContextMenu.Item>
+				<ContextMenu.Separator />
 			{:else if item instanceof ListTrackItem}
 				<ContextMenu.Item
 					disabled={!singleSelection}
@@ -180,14 +382,8 @@
 					<Plus size="16" class="mr-1" />
 					{$_('menu.new_segment')}
 				</ContextMenu.Item>
+				<ContextMenu.Separator />
 			{/if}
-		{/if}
-		{#if item instanceof ListFileItem || item instanceof ListTrackItem}
-			<ContextMenu.Item disabled={!singleSelection} on:click={() => (openEditMetadata = true)}>
-				<Info size="16" class="mr-1" />
-				{$_('menu.metadata.button')}
-			</ContextMenu.Item>
-			<ContextMenu.Separator />
 		{/if}
 		{#if item.level !== ListLevel.WAYPOINTS}
 			<ContextMenu.Item on:click={dbUtils.duplicateSelection}>

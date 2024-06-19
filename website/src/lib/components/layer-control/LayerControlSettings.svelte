@@ -120,7 +120,7 @@
 					<Accordion.Trigger>{$_('layers.heatmap')}</Accordion.Trigger>
 					<Accordion.Content class="overflow-visible">
 						<Label class="flex flex-row items-center justify-between gap-4"
-							>{$_('menu.color')}
+							>{$_('menu.style.color')}
 							<Select.Root bind:selected={$selectedHeatmapColor}>
 								<Select.Trigger class="h-8 mr-1">
 									<Select.Value placeholder="Theme" />

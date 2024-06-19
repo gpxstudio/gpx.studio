@@ -1,15 +1,9 @@
 {
     "menu": {
         "new": "New",
-        "new_filename": "new",
+        "new_filename": "New file",
         "new_track": "New track",
         "new_segment": "New segment",
-        "metadata": {
-            "button": "Edit info",
-            "name": "Name",
-            "description": "Description",
-            "save": "Save"
-        },
         "load_desktop": "Load...",
         "load_drive": "Load from Google Drive...",
         "duplicate": "Duplicate",
@@ -47,7 +41,18 @@
         "ctrl": "Ctrl",
         "click": "Click",
         "drag": "Drag",
-        "color": "Color"
+        "metadata": {
+            "button": "Edit info",
+            "name": "Name",
+            "description": "Description",
+            "save": "Save"
+        },
+        "style": {
+            "button": "Change style",
+            "color": "Color",
+            "opacity": "Opacity",
+            "weight": "Weight"
+        }
     },
     "toolbar": {
         "routing": {

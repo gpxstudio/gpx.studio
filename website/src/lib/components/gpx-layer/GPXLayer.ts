@@ -11,9 +11,6 @@ import { resetCursor, setCursor, setGrabbingCursor, setPointerCursor } from "$li
 import { font } from "$lib/assets/layers";
 import { selectedWaypoint } from "$lib/components/toolbar/tools/Waypoint.svelte";
 
-let defaultWeight = 5;
-let defaultOpacity = 0.6;
-
 const colors = [
     '#ff0000',
     '#0000ff',
@@ -41,10 +38,12 @@ function getColor() {
 }
 
 function decrementColor(color: string) {
-    colorCount[color]--;
+    if (colorCount.hasOwnProperty(color)) {
+        colorCount[color]--;
+    }
 }
 
-const { directionMarkers, verticalFileView, currentBasemap } = settings;
+const { directionMarkers, verticalFileView, currentBasemap, defaultOpacity, defaultWeight } = settings;
 
 export class GPXLayer {
     map: mapboxgl.Map;
@@ -97,6 +96,11 @@ export class GPXLayer {
         let file = get(this.file)?.file;
         if (!file) {
             return;
+        }
+
+        if (file._data.style && file._data.style.color && this.layerColor !== file._data.style.color) {
+            decrementColor(this.layerColor);
+            this.layerColor = file._data.style.color;
         }
 
         try {
@@ -358,7 +362,6 @@ export class GPXLayer {
         }
     }
 
-
     getGeoJSON(): GeoJSON.FeatureCollection {
         let file = get(this.file)?.file;
         if (!file) {
@@ -379,14 +382,14 @@ export class GPXLayer {
                 feature.properties.color = this.layerColor;
             }
             if (!feature.properties.weight) {
-                feature.properties.weight = defaultWeight;
+                feature.properties.weight = get(defaultWeight);
             }
             if (!feature.properties.opacity) {
-                feature.properties.opacity = defaultOpacity;
+                feature.properties.opacity = get(defaultOpacity);
             }
             if (get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)) || get(selection).hasAnyChildren(new ListWaypointsItem(this.fileId), true)) {
                 feature.properties.weight = feature.properties.weight + 2;
-                feature.properties.opacity = (feature.properties.opacity + 2) / 3;
+                feature.properties.opacity = Math.min(1, feature.properties.opacity + 0.1);
             }
             feature.properties.trackIndex = trackIndex;
             feature.properties.segmentIndex = segmentIndex;

@@ -1,4 +1,4 @@
-import { Coordinates, GPXFileAttributes, GPXFileType, Link, Metadata, TrackExtensions, TrackPointExtensions, TrackPointType, TrackSegmentType, TrackType, WaypointType } from "./types";
+import { Coordinates, GPXFileAttributes, GPXFileType, LineStyleExtension, Link, Metadata, TrackExtensions, TrackPointExtensions, TrackPointType, TrackSegmentType, TrackType, WaypointType } from "./types";
 import { Draft, immerable, isDraft, original, produce, freeze } from "immer";
 
 function cloneJSON<T>(obj: T): T {
@@ -154,6 +154,27 @@ export class GPXFile extends GPXTreeNode<Track>{
         });
     }
 
+    getStyle(): MergedLineStyles {
+        return this.trk.map((track) => track.getStyle()).reduce((acc, style) => {
+            if (style) {
+                if (style.color && !acc.color.includes(style.color)) {
+                    acc.color.push(style.color);
+                }
+                if (style.opacity && !acc.opacity.includes(style.opacity)) {
+                    acc.opacity.push(style.opacity);
+                }
+                if (style.weight && !acc.weight.includes(style.weight)) {
+                    acc.weight.push(style.weight);
+                }
+            }
+            return acc;
+        }, {
+            color: [],
+            opacity: [],
+            weight: []
+        });
+    }
+
     clone(): GPXFile {
         return new GPXFile({
             attributes: cloneJSON(this.attributes),
@@ -185,6 +206,9 @@ export class GPXFile extends GPXTreeNode<Track>{
         let removed = [];
         let result = produce(this, (draft) => {
             let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            if (og._data.style) {
+                tracks = tracks.map((track) => track.setStyle(og._data.style, false));
+            }
             let trk = og.trk.slice();
             removed = trk.splice(start, end - start + 1, ...tracks);
             draft.trk = freeze(trk); // Pre-freeze the array, faster as well
@@ -325,6 +349,26 @@ export class GPXFile extends GPXTreeNode<Track>{
             draft.trk = freeze(trk); // Pre-freeze the array, faster as well
         });
     }
+
+    setStyle(style: LineStyleExtension) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let trk = og.trk.map((track) => track.setStyle(style));
+            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
+            if (!draft._data.style) {
+                draft._data.style = {};
+            }
+            if (style.color) {
+                draft._data.style.color = style.color;
+            }
+            if (style.opacity) {
+                draft._data.style.opacity = style.opacity;
+            }
+            if (style.weight) {
+                draft._data.style.weight = style.weight;
+            }
+        });
+    }
 };
 
 // A class that represents a Track in a GPX file
@@ -375,6 +419,10 @@ export class Track extends GPXTreeNode<TrackSegment> {
             extensions: cloneJSON(this.extensions),
             _data: cloneJSON(this._data),
         });
+    }
+
+    getStyle(): LineStyleExtension | undefined {
+        return this.extensions && this.extensions['gpx_style:line'];
     }
 
     toGeoJSON(): GeoJSON.Feature[] {
@@ -505,6 +553,26 @@ export class Track extends GPXTreeNode<TrackSegment> {
                 }
             });
             draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
+        });
+    }
+
+    setStyle(style: LineStyleExtension, force: boolean = true) {
+        return produce(this, (draft) => {
+            if (!draft.extensions) {
+                draft.extensions = {};
+            }
+            if (!draft.extensions['gpx_style:line']) {
+                draft.extensions['gpx_style:line'] = {};
+            }
+            if (style.color !== undefined && (force || draft.extensions['gpx_style:line'].color === undefined)) {
+                draft.extensions['gpx_style:line'].color = style.color;
+            }
+            if (style.opacity !== undefined && (force || draft.extensions['gpx_style:line'].opacity === undefined)) {
+                draft.extensions['gpx_style:line'].opacity = style.opacity;
+            }
+            if (style.weight !== undefined && (force || draft.extensions['gpx_style:line'].weight === undefined)) {
+                draft.extensions['gpx_style:line'].weight = style.weight;
+            }
         });
     }
 };
@@ -1147,3 +1215,9 @@ function getOriginal(obj: any): any {
     }
     return obj;
 }
+
+export type MergedLineStyles = {
+    color: string[]
+    opacity: number[],
+    weight: number[],
+};
