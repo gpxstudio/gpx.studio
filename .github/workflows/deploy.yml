@@ -17,18 +17,18 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install --prefix website
+        run: npm install
 
       - name: build
         env:
           BASE_PATH: '/${{ github.event.repository.name }}'
         run: |
-          npm run --prefix website build
+          npm run build
 
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'website/build/'
+          path: 'build/'
 
   deploy:
     needs: build_site
@@ -46,3 +46,7 @@ jobs:
     - name: Deploy
       id: deployment
       uses: actions/deploy-pages@v4
+  
+  defaults:
+    run:
+      working-directory: website
