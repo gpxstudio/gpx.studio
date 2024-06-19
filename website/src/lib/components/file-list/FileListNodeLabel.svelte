@@ -177,7 +177,7 @@
 	<ContextMenu.Trigger class="grow truncate">
 		<Button
 			variant="ghost"
-			class="w-full p-0 px-1 border-none focus-visible:ring-0 focus-visible:ring-offset-0 {orientation ===
+			class="relative w-full p-0 px-1 border-none overflow-hidden focus-visible:ring-0 focus-visible:ring-offset-0 {orientation ===
 			'vertical'
 				? 'h-fit'
 				: 'h-9 px-1.5 shadow-md'}"
@@ -282,6 +282,19 @@
 					</Popover.Content>
 				</Popover.Root>
 			{/if}
+			{#if item.level === ListLevel.FILE || item.level === ListLevel.TRACK}
+				<div
+					class="absolute {$verticalFileView
+						? 'top-0 bottom-0 right-1 w-1'
+						: 'top-0 h-1 left-0 right-0'}"
+					style="background:linear-gradient(to {$verticalFileView ? 'bottom' : 'right'},{nodeColors
+						.map(
+							(c, i) =>
+								`${c} ${Math.floor((100 * i) / nodeColors.length)}% ${Math.floor((100 * (i + 1)) / nodeColors.length)}%`
+						)
+						.join(',')})"
+				/>
+			{/if}
 			<span
 				class="w-full text-left truncate py-1 flex flex-row items-center"
 				on:contextmenu={(e) => {
@@ -313,19 +326,7 @@
 					}
 				}}
 			>
-				{#if item.level === ListLevel.FILE}
-					<div
-						class="h-[10px] w-[10px] rounded-[3px] mr-1 mt-[1px]"
-						style="background:conic-gradient({nodeColors
-							.map(
-								(c, i) =>
-									`${c} ${(360 * i) / nodeColors.length}deg, ${c} ${(360 * (i + 1)) / nodeColors.length}deg`
-							)
-							.join(',')})"
-					/>
-				{:else if item.level === ListLevel.TRACK}
-					<div class="h-[10px] w-[10px] rounded-[3px] mr-1" style="background:{nodeColors[0]}" />
-				{:else if item.level === ListLevel.SEGMENT}
+				{#if item.level === ListLevel.SEGMENT}
 					<Waypoints size="16" class="mr-1 shrink-0" />
 				{:else if item.level === ListLevel.WAYPOINT}
 					<MapPin size="16" class="mr-1 shrink-0" />
