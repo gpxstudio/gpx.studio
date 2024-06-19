@@ -5,7 +5,7 @@ on:
 
 defaults:
   run:
-    working-directory: website
+    working-directory: ./website
 
 jobs:
   build_site:
