@@ -25,7 +25,8 @@
 		Moon,
 		Layers3,
 		MountainSnow,
-		GalleryVertical
+		GalleryVertical,
+		Languages
 	} from 'lucide-svelte';
 
 	import {
@@ -39,7 +40,7 @@
 		updateSelectionFromKey
 	} from '$lib/stores';
 	import { selectAll, selection } from '$lib/components/file-list/Selection';
-	import { derived } from 'svelte/store';
+	import { derived, get } from 'svelte/store';
 	import { canUndo, canRedo, dbUtils, fileObservers, settings } from '$lib/db';
 	import { anySelectedLayer } from '$lib/components/layer-control/utils';
 	import { defaultOverlays } from '$lib/assets/layers';
@@ -47,7 +48,9 @@
 
 	import { resetMode, setMode, systemPrefersMode } from 'mode-watcher';
 
-	import { _ } from 'svelte-i18n';
+	import { _, locale } from 'svelte-i18n';
+	import { languages } from '$lib/languages';
+	import { goto } from '$app/navigation';
 
 	const {
 		distanceUnits,
@@ -249,6 +252,26 @@
 						</Menubar.SubContent>
 					</Menubar.Sub>
 					<Menubar.Separator />
+					<Menubar.Sub>
+						<Menubar.SubTrigger>
+							<Languages size="16" class="mr-1" />
+							{$_('menu.language')}
+						</Menubar.SubTrigger>
+						<Menubar.SubContent>
+							<Menubar.RadioGroup
+								bind:value={$locale}
+								onValueChange={(value) => {
+									if (value) {
+										goto('/' + (value === 'en' ? '' : value));
+									}
+								}}
+							>
+								{#each Object.entries(languages) as [code, name]}
+									<Menubar.RadioItem value={code}>{name}</Menubar.RadioItem>
+								{/each}
+							</Menubar.RadioGroup>
+						</Menubar.SubContent>
+					</Menubar.Sub>
 					<Menubar.Sub>
 						<Menubar.SubTrigger>
 							{#if $mode === 'system'}

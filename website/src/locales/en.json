@@ -29,6 +29,7 @@
         "temperature_units": "Temperature units",
         "celsius": "Celsius",
         "fahrenheit": "Fahrenheit",
+        "language": "Language",
         "mode": "Mode",
         "light": "Light",
         "dark": "Dark",
