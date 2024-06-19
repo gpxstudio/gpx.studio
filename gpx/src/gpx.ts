@@ -632,7 +632,7 @@ export class TrackSegment extends GPXTreeLeaf {
 
             // time
             if (points[i].time === undefined) {
-                statistics.local.time.total.push(undefined);
+                statistics.local.time.total.push(0);
             } else {
                 if (statistics.global.time.start === undefined) {
                     statistics.global.time.start = points[i].time;
