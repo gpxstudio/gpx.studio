@@ -1,6 +1,6 @@
 import { type AnySourceData, type Style } from 'mapbox-gl';
 
-export const mapboxAccessToken = 'pk.eyJ1IjoiZ3B4c3R1ZGlvIiwiYSI6ImNrdHVoM2pjNTBodmUycG1yZTNwcnJ3MzkifQ.YZnNs9s9oCQPzoXAWs_SLg';
+export const mapboxAccessToken = 'pk.eyJ1IjoidmNvcHBlIiwiYSI6ImNseG0zNHpwdTA1NXUycXF4ejJyODc0NWQifQ.4tiCPQ1SxnYl4o7aQc89VA';
 
 export const basemaps: { [key: string]: string | Style; } = {
     mapboxOutdoors: 'mapbox://styles/mapbox/outdoors-v12',
