@@ -4,7 +4,9 @@
 	import { locale } from 'svelte-i18n';
 	import { page } from '$app/stores';
 
-	locale.set($page.params.language);
+	if ($page.params.language) {
+		locale.set($page.params.language);
+	}
 </script>
 
 <App />
