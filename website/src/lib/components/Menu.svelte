@@ -179,44 +179,44 @@
 				<Menubar.Trigger>{$_('menu.view')}</Menubar.Trigger>
 				<Menubar.Content class="border-none">
 					<Menubar.CheckboxItem bind:checked={$elevationProfile}>
-						<MountainSnow size="16" class="mr-1" />{$_('menu.elevation_profile')}
+						<MountainSnow size="16" class="mr-1" />
+						{$_('menu.elevation_profile')}
+						<Shortcut key="P" ctrl={true} />
 					</Menubar.CheckboxItem>
 					<Menubar.CheckboxItem bind:checked={$verticalFileView}>
-						<GalleryVertical size="16" class="mr-1" />{$_('menu.vertical_file_view')}
+						<GalleryVertical size="16" class="mr-1" />
+						{$_('menu.vertical_file_view')}
+						<Shortcut key="L" ctrl={true} />
 					</Menubar.CheckboxItem>
 					<Menubar.Separator />
-					<Menubar.Item inset on:click={switchBasemaps}
-						><Map size="16" class="mr-1" />{$_('menu.switch_basemap')}<Shortcut
-							key="F1"
-						/></Menubar.Item
-					>
-					<Menubar.Item inset on:click={toggleOverlays}
-						><Layers2 size="16" class="mr-1" />{$_('menu.toggle_overlays')}<Shortcut
-							key="F2"
-						/></Menubar.Item
-					>
+					<Menubar.Item inset on:click={switchBasemaps}>
+						<Map size="16" class="mr-1" />{$_('menu.switch_basemap')}<Shortcut key="F1" />
+					</Menubar.Item>
+					<Menubar.Item inset on:click={toggleOverlays}>
+						<Layers2 size="16" class="mr-1" />{$_('menu.toggle_overlays')}<Shortcut key="F2" />
+					</Menubar.Item>
 					<Menubar.Separator />
 					<Menubar.CheckboxItem bind:checked={$distanceMarkers}>
-						<Coins size="16" class="mr-1" />{$_('menu.distance_markers')}
+						<Coins size="16" class="mr-1" />{$_('menu.distance_markers')}<Shortcut key="F3" />
 					</Menubar.CheckboxItem>
 					<Menubar.CheckboxItem bind:checked={$directionMarkers}>
-						<Milestone size="16" class="mr-1" />{$_('menu.direction_markers')}
+						<Milestone size="16" class="mr-1" />{$_('menu.direction_markers')}<Shortcut key="F4" />
 					</Menubar.CheckboxItem>
 					<Menubar.Separator />
-					<Menubar.Item inset on:click={toggle3D}
-						><Box size="16" class="mr-1" />{$_('menu.toggle_3d')}<Shortcut
-							key="{$_('menu.ctrl')}+{$_('menu.drag')}"
-						/></Menubar.Item
-					>
+					<Menubar.Item inset on:click={toggle3D}>
+						<Box size="16" class="mr-1" />
+						{$_('menu.toggle_3d')}
+						<Shortcut key="{$_('menu.ctrl')}+{$_('menu.drag')}" />
+					</Menubar.Item>
 				</Menubar.Content>
 			</Menubar.Menu>
 			<Menubar.Menu>
 				<Menubar.Trigger>{$_('menu.settings')}</Menubar.Trigger>
 				<Menubar.Content class="border-none"
 					><Menubar.Sub>
-						<Menubar.SubTrigger
-							><Ruler size="16" class="mr-1" />{$_('menu.distance_units')}</Menubar.SubTrigger
-						>
+						<Menubar.SubTrigger>
+							<Ruler size="16" class="mr-1" />{$_('menu.distance_units')}
+						</Menubar.SubTrigger>
 						<Menubar.SubContent>
 							<Menubar.RadioGroup bind:value={$distanceUnits}>
 								<Menubar.RadioItem value="metric">{$_('menu.metric')}</Menubar.RadioItem>
@@ -236,11 +236,9 @@
 						</Menubar.SubContent>
 					</Menubar.Sub>
 					<Menubar.Sub>
-						<Menubar.SubTrigger
-							><Thermometer size="16" class="mr-1" />{$_(
-								'menu.temperature_units'
-							)}</Menubar.SubTrigger
-						>
+						<Menubar.SubTrigger>
+							<Thermometer size="16" class="mr-1" />{$_('menu.temperature_units')}
+						</Menubar.SubTrigger>
 						<Menubar.SubContent>
 							<Menubar.RadioGroup bind:value={$temperatureUnits}>
 								<Menubar.RadioItem value="celsius">{$_('menu.celsius')}</Menubar.RadioItem>
@@ -333,11 +331,23 @@
 		} else if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {
 			selectAll();
 			e.preventDefault();
+		} else if (e.key === 'p' && (e.metaKey || e.ctrlKey)) {
+			$elevationProfile = !$elevationProfile;
+			e.preventDefault();
+		} else if (e.key === 'l' && (e.metaKey || e.ctrlKey)) {
+			$verticalFileView = !$verticalFileView;
+			e.preventDefault();
 		} else if (e.key === 'F1') {
 			switchBasemaps();
 			e.preventDefault();
 		} else if (e.key === 'F2') {
 			toggleOverlays();
+			e.preventDefault();
+		} else if (e.key === 'F3') {
+			$distanceMarkers = !$distanceMarkers;
+			e.preventDefault();
+		} else if (e.key === 'F4') {
+			$directionMarkers = !$directionMarkers;
 			e.preventDefault();
 		}
 	}}
