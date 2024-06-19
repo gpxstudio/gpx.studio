@@ -3,10 +3,6 @@ on:
   push:
     branches: 'main'
 
-defaults:
-  run:
-    working-directory: website
-
 jobs:
   build_site:
     runs-on: ubuntu-latest
@@ -20,20 +16,26 @@ jobs:
           node-version: 20
           cache: npm
           cache-dependency-path: website/package-lock.json
+      
+      - name: Install dependencies for gpx
+        run: npm install --prefix gpx
 
-      - name: Install dependencies
-        run: npm install
+      - name: Build gpx
+        run: npm run build --prefix gpx
 
-      - name: build
+      - name: Install dependencies for website
+        run: npm install --prefix website
+
+      - name: Build website
         env:
           BASE_PATH: '/${{ github.event.repository.name }}'
         run: |
-          npm run build
+          npm run build --prefix website
 
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'build/'
+          path: 'build/website'
 
   deploy:
     needs: build_site
