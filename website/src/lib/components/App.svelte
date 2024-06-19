@@ -14,7 +14,7 @@
 	const { verticalFileView, elevationProfile } = settings;
 </script>
 
-<div class="flex flex-row w-screen h-screen">
+<div class="fixed flex flex-row w-screen h-screen">
 	<div class="flex flex-col grow h-full min-w-0">
 		<div class="grow relative">
 			<Menu />

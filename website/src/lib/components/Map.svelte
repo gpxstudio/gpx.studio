@@ -111,8 +111,6 @@
 				}
 			});
 		});
-
-		newMap.resize();
 	});
 
 	$: if ($map) {

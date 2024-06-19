@@ -274,7 +274,6 @@
 			if (point) {
 				return point.element.raw.index;
 			} else {
-				console.log(points);
 				return points[0].index;
 			}
 		}
