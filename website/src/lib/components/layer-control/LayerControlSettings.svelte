@@ -113,7 +113,7 @@
 				<Accordion.Item value="item-2">
 					<Accordion.Trigger>{$_('layers.custom_layers')}</Accordion.Trigger>
 					<Accordion.Content>
-						<ScrollArea>TODO custom layer list + new custom layer form</ScrollArea>
+						<ScrollArea></ScrollArea>
 					</Accordion.Content>
 				</Accordion.Item>
 				<Accordion.Item value="item-3">
