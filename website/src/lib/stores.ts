@@ -6,11 +6,12 @@ import { tick } from 'svelte';
 import { _ } from 'svelte-i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
 import { dbUtils, fileObservers, getFile, getStatistics, settings } from './db';
-import { applyToOrderedSelectedItemsFromFile, selectFile, selection } from '$lib/components/file-list/Selection';
-import { ListFileItem, ListWaypointItem, ListWaypointsItem } from '$lib/components/file-list/FileList';
+import { addSelectItem, applyToOrderedSelectedItemsFromFile, selectFile, selectItem, selection } from '$lib/components/file-list/Selection';
+import { ListFileItem, ListItem, ListTrackItem, ListTrackSegmentItem, ListWaypointItem, ListWaypointsItem } from '$lib/components/file-list/FileList';
 import type { RoutingControls } from '$lib/components/toolbar/tools/routing/RoutingControls';
-import { overlayTree, overlays, stravaHeatmapActivityIds, stravaHeatmapServers } from '$lib/assets/layers';
 import { SplitType } from '$lib/components/toolbar/tools/Scissors.svelte';
+
+const { fileOrder } = settings;
 
 export const map = writable<mapboxgl.Map | null>(null);
 export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }>({});
@@ -223,6 +224,93 @@ export function selectFileWhenLoaded(fileId: string) {
     });
 }
 
+export function updateSelectionFromKey(down: boolean, shift: boolean) {
+    let selected = get(selection).getSelected();
+    if (selected.length === 0) {
+        return;
+    }
+
+    let next: ListItem | undefined = undefined;
+    if (selected[0] instanceof ListFileItem) {
+        let order = get(fileOrder);
+        let limitIndex: number | undefined = undefined;
+        selected.forEach((item) => {
+            let index = order.indexOf(item.getFileId());
+            if (limitIndex === undefined || (down && index > limitIndex) || (!down && index < limitIndex)) {
+                limitIndex = index;
+            }
+        });
+
+        if (limitIndex !== undefined) {
+            let nextIndex = down ? limitIndex + 1 : limitIndex - 1;
+
+            while (true) {
+                if (nextIndex < 0) {
+                    nextIndex = order.length - 1;
+                } else if (nextIndex >= order.length) {
+                    nextIndex = 0;
+                }
+
+                if (nextIndex === limitIndex) {
+                    break;
+                }
+
+                next = new ListFileItem(order[nextIndex]);
+                if (!get(selection).has(next)) {
+                    break;
+                }
+
+                nextIndex += down ? 1 : -1;
+            }
+        }
+    } else if (selected[0] instanceof ListTrackItem && selected[selected.length - 1] instanceof ListTrackItem) {
+        let fileId = selected[0].getFileId();
+        let file = getFile(fileId);
+        if (file) {
+            let numberOfTracks = file.trk.length;
+            let trackIndex = down ? selected[selected.length - 1].getTrackIndex() : selected[0].getTrackIndex();
+            if (down && trackIndex < numberOfTracks - 1) {
+                next = new ListTrackItem(fileId, trackIndex + 1);
+            } else if (!down && trackIndex > 0) {
+                next = new ListTrackItem(fileId, trackIndex - 1);
+            }
+        }
+    } else if (selected[0] instanceof ListTrackSegmentItem && selected[selected.length - 1] instanceof ListTrackSegmentItem) {
+        let fileId = selected[0].getFileId();
+        let file = getFile(fileId);
+        if (file) {
+            let trackIndex = selected[0].getTrackIndex();
+            let numberOfSegments = file.trk[trackIndex].trkseg.length;
+            let segmentIndex = down ? selected[selected.length - 1].getSegmentIndex() : selected[0].getSegmentIndex();
+            if (down && segmentIndex < numberOfSegments - 1) {
+                next = new ListTrackSegmentItem(fileId, trackIndex, segmentIndex + 1);
+            } else if (!down && segmentIndex > 0) {
+                next = new ListTrackSegmentItem(fileId, trackIndex, segmentIndex - 1);
+            }
+        }
+    } else if (selected[0] instanceof ListWaypointItem && selected[selected.length - 1] instanceof ListWaypointItem) {
+        let fileId = selected[0].getFileId();
+        let file = getFile(fileId);
+        if (file) {
+            let numberOfWaypoints = file.wpt.length;
+            let waypointIndex = down ? selected[selected.length - 1].getWaypointIndex() : selected[0].getWaypointIndex();
+            if (down && waypointIndex < numberOfWaypoints - 1) {
+                next = new ListWaypointItem(fileId, waypointIndex + 1);
+            } else if (!down && waypointIndex > 0) {
+                next = new ListWaypointItem(fileId, waypointIndex - 1);
+            }
+        }
+    }
+
+    if (next && (!get(selection).has(next) || !shift)) {
+        if (shift) {
+            addSelectItem(next);
+        } else {
+            selectItem(next);
+        }
+    }
+}
+
 export function exportSelectedFiles() {
     get(selection).forEach(async (item) => {
         if (item instanceof ListFileItem) {
@@ -302,7 +390,7 @@ export function setStravaHeatmapURLs() {
         overlays.stravaHeatmapMTB.tiles = [];
         overlays.stravaHeatmapWater.tiles = [];
         overlays.stravaHeatmapWinter.tiles = [];
-
+ 
         for (let activity of Object.keys(overlayTree.overlays.world.strava)) {
             overlays[activity].tiles = [];
             for (let server of stravaHeatmapServers) {

@@ -35,7 +35,8 @@
 		triggerFileInput,
 		createFile,
 		loadFiles,
-		toggleSelectionVisibility
+		toggleSelectionVisibility,
+		updateSelectionFromKey
 	} from '$lib/stores';
 	import { selectAll, selection } from '$lib/components/file-list/Selection';
 	import { derived } from 'svelte/store';
@@ -352,6 +353,14 @@
 			e.preventDefault();
 		} else if (e.key === 'F4') {
 			$directionMarkers = !$directionMarkers;
+			e.preventDefault();
+		} else if (
+			e.key === 'ArrowRight' ||
+			e.key === 'ArrowDown' ||
+			e.key === 'ArrowLeft' ||
+			e.key === 'ArrowUp'
+		) {
+			updateSelectionFromKey(e.key === 'ArrowRight' || e.key === 'ArrowDown', e.shiftKey);
 			e.preventDefault();
 		}
 	}}
