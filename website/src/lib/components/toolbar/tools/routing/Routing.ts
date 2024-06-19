@@ -17,8 +17,8 @@ export const brouterProfiles: { [key: string]: string } = {
     railway: 'rail'
 };
 export const routingProfileSelectItem = writable({
-    value: 'bike',
-    label: get(_)('toolbar.routing.activities.bike')
+    value: '',
+    label: ''
 });
 routingProfile.subscribe((value) => {
     if (value !== get(routingProfileSelectItem).value) {
