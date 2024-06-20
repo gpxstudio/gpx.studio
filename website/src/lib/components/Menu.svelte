@@ -26,7 +26,13 @@
 		Layers3,
 		MountainSnow,
 		GalleryVertical,
-		Languages
+		Languages,
+		Settings,
+		Info,
+		File,
+		View,
+		FilePen,
+		HeartHandshake
 	} from 'lucide-svelte';
 
 	import {
@@ -102,14 +108,18 @@
 	let layerSettingsOpen = false;
 </script>
 
-<div class="absolute top-2 left-0 right-0 z-20 flex flex-row justify-center pointer-events-none">
+<div class="absolute md:top-2 left-0 right-0 z-20 flex flex-row justify-center pointer-events-none">
 	<div
-		class="w-fit flex flex-row mx-16 items-center justify-center p-1 bg-background rounded-md pointer-events-auto shadow-md"
+		class="w-fit flex flex-row items-center justify-center p-1 bg-background rounded-b-md md:rounded-md pointer-events-auto shadow-md"
 	>
-		<Logo class="h-5 mt-0.5 mx-2" />
+		<Logo class="h-5 mt-0.5 mx-2 md:hidden" iconOnly={true} />
+		<Logo class="h-5 mt-0.5 mx-2 hidden md:block" />
 		<Menubar.Root class="border-none h-fit p-0">
 			<Menubar.Menu>
-				<Menubar.Trigger>{$_('gpx.file')}</Menubar.Trigger>
+				<Menubar.Trigger>
+					<File size="18" class="md:hidden" />
+					<span class="hidden md:block">{$_('gpx.file')}</span>
+				</Menubar.Trigger>
 				<Menubar.Content class="border-none">
 					<Menubar.Item on:click={createFile}>
 						<Plus size="16" class="mr-1" />
@@ -146,7 +156,10 @@
 				</Menubar.Content>
 			</Menubar.Menu>
 			<Menubar.Menu>
-				<Menubar.Trigger>{$_('menu.edit')}</Menubar.Trigger>
+				<Menubar.Trigger>
+					<FilePen size="18" class="md:hidden" />
+					<span class="hidden md:block">{$_('menu.edit')}</span>
+				</Menubar.Trigger>
 				<Menubar.Content class="border-none">
 					<Menubar.Item on:click={dbUtils.undo} disabled={$undoDisabled}>
 						<Undo2 size="16" class="mr-1" />
@@ -182,7 +195,10 @@
 				</Menubar.Content>
 			</Menubar.Menu>
 			<Menubar.Menu>
-				<Menubar.Trigger>{$_('menu.view')}</Menubar.Trigger>
+				<Menubar.Trigger>
+					<View size="18" class="md:hidden" />
+					<span class="hidden md:block">{$_('menu.view')}</span>
+				</Menubar.Trigger>
 				<Menubar.Content class="border-none">
 					<Menubar.CheckboxItem bind:checked={$elevationProfile}>
 						<MountainSnow size="16" class="mr-1" />
@@ -217,7 +233,12 @@
 				</Menubar.Content>
 			</Menubar.Menu>
 			<Menubar.Menu>
-				<Menubar.Trigger>{$_('menu.settings')}</Menubar.Trigger>
+				<Menubar.Trigger>
+					<Settings size="18" class="md:hidden" />
+					<span class="hidden md:block">
+						{$_('menu.settings')}
+					</span>
+				</Menubar.Trigger>
 				<Menubar.Content class="border-none"
 					><Menubar.Sub>
 						<Menubar.SubTrigger>
@@ -307,16 +328,29 @@
 			</Menubar.Menu>
 		</Menubar.Root>
 		<div class="h-fit flex flex-row items-center ml-1 gap-1">
-			<Button variant="ghost" href="./about" target="_blank" class="cursor-default h-fit rounded-sm"
-				>{$_('menu.about')}</Button
+			<Button
+				variant="ghost"
+				href="./about"
+				target="_blank"
+				class="cursor-default h-fit rounded-sm"
 			>
+				<Info size="18" class="md:hidden" />
+				<span class="hidden md:block">
+					{$_('menu.about')}
+				</span>
+			</Button>
 			<Button
 				variant="ghost"
 				href="https://ko-fi.com/gpxstudio"
 				target="_blank"
 				class="cursor-default h-fit rounded-sm font-bold text-support hover:text-support"
-				>{$_('menu.donate')} <Heart size="16" class="ml-1" fill="rgb(var(--support))" /></Button
 			>
+				<HeartHandshake size="18" class="md:hidden" />
+				<span class="hidden md:flex flex-row items-center">
+					{$_('menu.donate')}
+					<Heart size="16" class="ml-1" fill="rgb(var(--support))" />
+				</span>
+			</Button>
 		</div>
 	</div>
 </div>

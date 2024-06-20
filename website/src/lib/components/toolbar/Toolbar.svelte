@@ -19,7 +19,7 @@
 <div class="absolute top-0 bottom-0 left-0 z-20 flex flex-col justify-center pointer-events-none">
 	<div class="flex flex-row w-screen items-center">
 		<div
-			class="h-fit flex flex-col p-1 gap-1.5 bg-background rounded-md pointer-events-auto shadow-md"
+			class="h-fit flex flex-col p-1 gap-1.5 bg-background rounded-r-md pointer-events-auto shadow-md"
 		>
 			<ToolbarItem tool={Tool.ROUTING}>
 				<Pencil slot="icon" size="18" class="h-" />

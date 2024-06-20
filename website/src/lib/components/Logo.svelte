@@ -2,10 +2,12 @@
 	import { base } from '$app/paths';
 
 	import { mode } from 'mode-watcher';
+
+	export let iconOnly = false;
 </script>
 
 <img
-	src="{base}/logo{$mode === 'dark' ? '-dark' : ''}.svg"
+	src="{base}/{iconOnly ? 'icon' : 'logo'}{$mode === 'dark' ? '-dark' : ''}.svg"
 	alt="Logo of gpx.studio."
 	{...$$restProps}
 />
