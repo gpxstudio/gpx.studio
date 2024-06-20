@@ -102,7 +102,7 @@ export const settings = {
     distanceMarkers: dexieSettingStore('distanceMarkers', false),
     stravaHeatmapColor: dexieSettingStore('stravaHeatmapColor', 'bluered'),
     fileOrder: dexieSettingStore<string[]>('fileOrder', []),
-    defaultOpacity: dexieSettingStore('defaultOpacity', 0.6),
+    defaultOpacity: dexieSettingStore('defaultOpacity', 0.7),
     defaultWeight: dexieSettingStore('defaultWeight', 5),
 };
 

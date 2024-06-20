@@ -1,12 +1,15 @@
 {
     "menu": {
         "new": "New",
-        "new_filename": "New file",
+        "new_file": "New file",
         "new_track": "New track",
         "new_segment": "New segment",
         "load_desktop": "Load...",
         "load_drive": "Load from Google Drive...",
         "duplicate": "Duplicate",
+        "copy": "Copy",
+        "paste": "Paste",
+        "cut": "Cut",
         "export": "Export...",
         "export_all": "Export all...",
         "edit": "Edit",

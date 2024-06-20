@@ -25,7 +25,7 @@
 			<Toaster richColors />
 			{#if !$verticalFileView}
 				<div class="h-10 -translate-y-10 w-full pointer-events-none absolute z-30">
-					<FileList orientation="horizontal" class="pointer-events-auto" />
+					<FileList orientation="horizontal" />
 				</div>
 			{/if}
 		</div>

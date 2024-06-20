@@ -45,7 +45,13 @@
 		toggleSelectionVisibility,
 		updateSelectionFromKey
 	} from '$lib/stores';
-	import { selectAll, selection } from '$lib/components/file-list/Selection';
+	import {
+		copySelection,
+		cutSelection,
+		pasteSelection,
+		selectAll,
+		selection
+	} from '$lib/components/file-list/Selection';
 	import { derived } from 'svelte/store';
 	import { canUndo, canRedo, dbUtils, fileObservers, settings } from '$lib/db';
 	import { anySelectedLayer } from '$lib/components/layer-control/utils';
@@ -367,6 +373,15 @@
 			e.preventDefault();
 		} else if (e.key === 'd' && (e.metaKey || e.ctrlKey)) {
 			dbUtils.duplicateSelection();
+			e.preventDefault();
+		} else if (e.key === 'c' && (e.metaKey || e.ctrlKey)) {
+			copySelection();
+			e.preventDefault();
+		} else if (e.key === 'x' && (e.metaKey || e.ctrlKey)) {
+			cutSelection();
+			e.preventDefault();
+		} else if (e.key === 'v' && (e.metaKey || e.ctrlKey)) {
+			pasteSelection();
 			e.preventDefault();
 		} else if ((e.key === 's' || e.key == 'S') && (e.metaKey || e.ctrlKey)) {
 			if (e.shiftKey) {

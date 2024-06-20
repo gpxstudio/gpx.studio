@@ -1,13 +1,4 @@
 <script lang="ts" context="module">
-	let pull: Record<ListLevel, ListLevel[]> = {
-		[ListLevel.ROOT]: [],
-		[ListLevel.FILE]: [ListLevel.FILE],
-		[ListLevel.TRACK]: [ListLevel.FILE, ListLevel.TRACK],
-		[ListLevel.SEGMENT]: [ListLevel.FILE, ListLevel.TRACK, ListLevel.SEGMENT],
-		[ListLevel.WAYPOINTS]: [ListLevel.WAYPOINTS],
-		[ListLevel.WAYPOINT]: [ListLevel.WAYPOINTS, ListLevel.WAYPOINT]
-	};
-
 	let dragging: Writable<ListLevel | null> = writable(null);
 
 	let updating = false;
@@ -21,7 +12,7 @@
 	import { get, writable, type Readable, type Writable } from 'svelte/store';
 	import FileListNodeStore from './FileListNodeStore.svelte';
 	import FileListNode from './FileListNode.svelte';
-	import { ListLevel, ListRootItem, moveItems, type ListItem } from './FileList';
+	import { ListLevel, ListRootItem, allowedMoves, moveItems, type ListItem } from './FileList';
 	import { selection } from './Selection';
 	import { _ } from 'svelte-i18n';
 
@@ -132,7 +123,7 @@
 		sortable = Sortable.create(container, {
 			group: {
 				name: sortableLevel,
-				pull: pull[sortableLevel],
+				pull: allowedMoves[sortableLevel],
 				put: true
 			},
 			direction: orientation,
@@ -261,7 +252,7 @@
 			: parseInt(id);
 	}
 
-	$: canDrop = $dragging !== null && pull[$dragging].includes(sortableLevel);
+	$: canDrop = $dragging !== null && allowedMoves[$dragging].includes(sortableLevel);
 </script>
 
 <div

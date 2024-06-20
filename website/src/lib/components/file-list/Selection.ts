@@ -1,6 +1,6 @@
 import { get, writable } from "svelte/store";
-import { ListFileItem, ListItem, ListRootItem, ListTrackItem, ListTrackSegmentItem, ListWaypointItem, type ListLevel, sortItems, ListWaypointsItem } from "./FileList";
-import { fileObservers, getFile, settings } from "$lib/db";
+import { ListFileItem, ListItem, ListRootItem, ListTrackItem, ListTrackSegmentItem, ListWaypointItem, ListLevel, sortItems, ListWaypointsItem, moveItems } from "./FileList";
+import { fileObservers, getFile, getFileIds, settings } from "$lib/db";
 
 export class SelectionTreeType {
     item: ListItem;
@@ -222,4 +222,89 @@ export function applyToOrderedItemsFromFile(selectedItems: ListItem[], callback:
 
 export function applyToOrderedSelectedItemsFromFile(callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void, reverse: boolean = true) {
     applyToOrderedItemsFromFile(get(selection).getSelected(), callback, reverse);
+}
+
+export const copied = writable<ListItem[] | undefined>(undefined);
+const cut = writable(false);
+
+export function copySelection(): boolean {
+    let selected = get(selection).getSelected();
+    if (selected.length > 0) {
+        copied.set(selected);
+        cut.set(false);
+        return true;
+    }
+    return false;
+}
+
+export function cutSelection() {
+    if (copySelection()) {
+        cut.set(true);
+    }
+}
+
+function resetCopied() {
+    copied.set(undefined);
+    cut.set(false);
+}
+
+export function pasteSelection() {
+    let fromItems = get(copied);
+    if (fromItems === undefined || fromItems.length === 0) {
+        return;
+    }
+
+    let selected = get(selection).getSelected();
+    if (selected.length === 0) {
+        selected = [new ListRootItem()];
+    }
+
+    let fromParent = fromItems[0].getParent();
+    let toParent = selected[selected.length - 1];
+
+    let startIndex: number | undefined = undefined;
+
+    if (fromItems[0].level === toParent.level) {
+        if (toParent instanceof ListTrackItem || toParent instanceof ListTrackSegmentItem || toParent instanceof ListWaypointItem) {
+            startIndex = toParent.getId() + 1;
+        }
+        toParent = toParent.getParent();
+    }
+
+    let toItems: ListItem[] = [];
+    if (toParent.level === ListLevel.ROOT) {
+        let fileIds = getFileIds(fromItems.length);
+        fileIds.forEach((fileId) => {
+            toItems.push(new ListFileItem(fileId));
+        });
+    } else {
+        let toFile = getFile(toParent.getFileId());
+        if (toFile) {
+            fromItems.forEach((item, index) => {
+                if (toParent instanceof ListFileItem) {
+                    if (item instanceof ListTrackItem || item instanceof ListTrackSegmentItem) {
+                        toItems.push(new ListTrackItem(toParent.getFileId(), (startIndex ?? toFile.trk.length) + index));
+                    } else if (item instanceof ListWaypointsItem) {
+                        toItems.push(new ListWaypointsItem(toParent.getFileId()));
+                    } else if (item instanceof ListWaypointItem) {
+                        toItems.push(new ListWaypointItem(toParent.getFileId(), (startIndex ?? toFile.wpt.length) + index));
+                    }
+                } else if (toParent instanceof ListTrackItem) {
+                    if (item instanceof ListTrackSegmentItem) {
+                        let toTrackIndex = toParent.getTrackIndex();
+                        toItems.push(new ListTrackSegmentItem(toParent.getFileId(), toTrackIndex, (startIndex ?? toFile.trk[toTrackIndex].trkseg.length) + index));
+                    }
+                } else if (toParent instanceof ListWaypointsItem) {
+                    if (item instanceof ListWaypointItem) {
+                        toItems.push(new ListWaypointItem(toParent.getFileId(), (startIndex ?? toFile.wpt.length) + index));
+                    }
+                }
+            });
+        }
+    }
+
+    if (fromItems.length === toItems.length) {
+        moveItems(fromParent, toParent, fromItems, toItems, get(cut));
+        resetCopied();
+    }
 }

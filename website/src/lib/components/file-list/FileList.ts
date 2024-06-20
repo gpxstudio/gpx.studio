@@ -1,6 +1,6 @@
-import { dbUtils } from "$lib/db";
+import { dbUtils, getFile, getFileIds } from "$lib/db";
 import { castDraft, freeze } from "immer";
-import { Track, TrackSegment, Waypoint } from "gpx";
+import { GPXFile, Track, TrackSegment, Waypoint } from "gpx";
 import { selection } from "./Selection";
 import { newGPXFile } from "$lib/stores";
 
@@ -13,6 +13,24 @@ export enum ListLevel {
     WAYPOINT
 }
 
+export const allowedMoves: Record<ListLevel, ListLevel[]> = {
+    [ListLevel.ROOT]: [],
+    [ListLevel.FILE]: [ListLevel.FILE],
+    [ListLevel.TRACK]: [ListLevel.FILE, ListLevel.TRACK],
+    [ListLevel.SEGMENT]: [ListLevel.FILE, ListLevel.TRACK, ListLevel.SEGMENT],
+    [ListLevel.WAYPOINTS]: [ListLevel.WAYPOINTS],
+    [ListLevel.WAYPOINT]: [ListLevel.WAYPOINTS, ListLevel.WAYPOINT]
+};
+
+export const allowedPastes: Record<ListLevel, ListLevel[]> = {
+    [ListLevel.ROOT]: [],
+    [ListLevel.FILE]: [ListLevel.ROOT, ListLevel.FILE],
+    [ListLevel.TRACK]: [ListLevel.ROOT, ListLevel.FILE, ListLevel.TRACK],
+    [ListLevel.SEGMENT]: [ListLevel.ROOT, ListLevel.FILE, ListLevel.TRACK, ListLevel.SEGMENT],
+    [ListLevel.WAYPOINTS]: [ListLevel.FILE, ListLevel.WAYPOINTS, ListLevel.WAYPOINT],
+    [ListLevel.WAYPOINT]: [ListLevel.FILE, ListLevel.WAYPOINTS, ListLevel.WAYPOINT]
+};
+
 export abstract class ListItem {
     level: ListLevel;
 
@@ -24,6 +42,7 @@ export abstract class ListItem {
     abstract getFullId(): string;
     abstract getIdAtLevel(level: ListLevel): string | number | undefined;
     abstract getFileId(): string;
+    abstract getParent(): ListItem;
     abstract extend(id: string | number): ListItem;
 }
 
@@ -46,6 +65,10 @@ export class ListRootItem extends ListItem {
 
     getFileId(): string {
         return '';
+    }
+
+    getParent(): ListItem {
+        return this;
     }
 
     extend(id: string): ListFileItem {
@@ -80,6 +103,10 @@ export class ListFileItem extends ListItem {
 
     getFileId(): string {
         return this.fileId;
+    }
+
+    getParent(): ListItem {
+        return new ListRootItem();
     }
 
     extend(id: number | 'waypoints'): ListTrackItem | ListWaypointsItem {
@@ -126,6 +153,10 @@ export class ListTrackItem extends ListItem {
 
     getTrackIndex(): number {
         return this.trackIndex;
+    }
+
+    getParent(): ListItem {
+        return new ListFileItem(this.fileId);
     }
 
     extend(id: number): ListTrackSegmentItem {
@@ -178,6 +209,10 @@ export class ListTrackSegmentItem extends ListItem {
         return this.segmentIndex;
     }
 
+    getParent(): ListItem {
+        return new ListTrackItem(this.fileId, this.trackIndex);
+    }
+
     extend(): ListTrackSegmentItem {
         return this;
     }
@@ -212,6 +247,10 @@ export class ListWaypointsItem extends ListItem {
 
     getFileId(): string {
         return this.fileId;
+    }
+
+    getParent(): ListItem {
+        return new ListFileItem(this.fileId);
     }
 
     extend(id: number): ListWaypointItem {
@@ -258,6 +297,10 @@ export class ListWaypointItem extends ListItem {
         return this.waypointIndex;
     }
 
+    getParent(): ListItem {
+        return new ListWaypointsItem(this.fileId);
+    }
+
     extend(): ListWaypointItem {
         return this;
     }
@@ -279,12 +322,37 @@ export function sortItems(items: ListItem[], reverse: boolean = false) {
     }
 }
 
-export function moveItems(fromParent: ListItem, toParent: ListItem, fromItems: ListItem[], toItems: ListItem[]) {
-    sortItems(fromItems, true);
+export function moveItems(fromParent: ListItem, toParent: ListItem, fromItems: ListItem[], toItems: ListItem[], remove: boolean = true) {
+    if (fromItems.length === 0) {
+        return;
+    }
+
+    sortItems(fromItems, remove && !(fromParent instanceof ListRootItem));
     sortItems(toItems, false);
 
-    dbUtils.applyEachToFilesAndGlobal([fromParent.getFileId(), toParent.getFileId()], [
-        (file, context: (Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
+    let context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[] = [];
+    if (!remove || fromParent instanceof ListRootItem) {
+        fromItems.forEach((item) => {
+            let file = getFile(item.getFileId());
+            if (file) {
+                if (item instanceof ListFileItem) {
+                    context.push(file.clone());
+                } else if (item instanceof ListTrackItem && item.getTrackIndex() < file.trk.length) {
+                    context.push(file.trk[item.getTrackIndex()].clone());
+                } else if (item instanceof ListTrackSegmentItem && item.getTrackIndex() < file.trk.length && item.getSegmentIndex() < file.trk[item.getTrackIndex()].trkseg.length) {
+                    context.push(file.trk[item.getTrackIndex()].trkseg[item.getSegmentIndex()].clone());
+                } else if (item instanceof ListWaypointsItem) {
+                    context.push(file.wpt.map((wpt) => wpt.clone()));
+                } else if (item instanceof ListWaypointItem && item.getWaypointIndex() < file.wpt.length) {
+                    context.push(file.wpt[item.getWaypointIndex()].clone());
+                }
+            }
+        });
+    }
+
+    let files = [fromParent.getFileId(), toParent.getFileId()];
+    let callbacks = [
+        (file, context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
             let newFile = file;
             fromItems.forEach((item) => {
                 if (item instanceof ListTrackItem) {
@@ -308,7 +376,7 @@ export function moveItems(fromParent: ListItem, toParent: ListItem, fromItems: L
             context.reverse();
             return newFile;
         },
-        (file, context: (Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
+        (file, context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
             let newFile = file;
             toItems.forEach((item, i) => {
                 if (item instanceof ListTrackItem) {
@@ -339,10 +407,27 @@ export function moveItems(fromParent: ListItem, toParent: ListItem, fromItems: L
             });
             return newFile;
         }
-    ], (files, context: (Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
+    ];
+
+    if (fromParent instanceof ListRootItem) {
+        files = [];
+        callbacks = [];
+    } else if (!remove) {
+        files.splice(0, 1);
+        callbacks.splice(0, 1);
+    }
+
+    dbUtils.applyEachToFilesAndGlobal(files, callbacks, (files, context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
         toItems.forEach((item, i) => {
             if (item instanceof ListFileItem) {
-                if (context[i] instanceof Track) {
+                if (context[i] instanceof GPXFile) {
+                    let newFile = context[i];
+                    if (remove) {
+                        files.delete(newFile._data.id);
+                    }
+                    newFile._data.id = item.getFileId();
+                    files.set(item.getFileId(), freeze(newFile));
+                } else if (context[i] instanceof Track) {
                     let newFile = newGPXFile();
                     newFile._data.id = item.getFileId();
                     if (context[i].name) {
@@ -360,7 +445,7 @@ export function moveItems(fromParent: ListItem, toParent: ListItem, fromItems: L
                 }
             }
         });
-    }, []);
+    }, context);
 
     selection.update(($selection) => {
         $selection.clear();
