@@ -248,8 +248,38 @@
 		@apply shadow-none;
 	}
 
-	div :global(.mapboxgl-popup-tip) {
-		@apply drop-shadow-md;
+	div :global(.mapboxgl-popup-anchor-top .mapboxgl-popup-tip) {
+		@apply border-b-background;
+	}
+
+	div :global(.mapboxgl-popup-anchor-top-left .mapboxgl-popup-tip) {
+		@apply border-b-background;
+	}
+
+	div :global(.mapboxgl-popup-anchor-top-right .mapboxgl-popup-tip) {
+		@apply border-b-background;
+	}
+
+	div :global(.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip) {
 		@apply border-t-background;
+		@apply drop-shadow-md;
+	}
+
+	div :global(.mapboxgl-popup-anchor-bottom-left .mapboxgl-popup-tip) {
+		@apply border-t-background;
+		@apply drop-shadow-md;
+	}
+
+	div :global(.mapboxgl-popup-anchor-bottom-right .mapboxgl-popup-tip) {
+		@apply border-t-background;
+		@apply drop-shadow-md;
+	}
+
+	div :global(.mapboxgl-popup-anchor-left .mapboxgl-popup-tip) {
+		@apply border-r-background;
+	}
+
+	div :global(.mapboxgl-popup-anchor-right .mapboxgl-popup-tip) {
+		@apply border-l-background;
 	}
 </style>

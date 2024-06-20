@@ -178,7 +178,8 @@ export class GPXLayer {
                     Object.defineProperty(this.markers[markerIndex], '_waypoint', { value: waypoint, writable: true });
                 } else {
                     let marker = new mapboxgl.Marker({
-                        draggable: this.draggable
+                        draggable: this.draggable,
+                        scale: 0.8
                     }).setLngLat(waypoint.getCoordinates());
                     Object.defineProperty(marker, '_waypoint', { value: waypoint, writable: true });
                     let dragEndTimestamp = 0;
