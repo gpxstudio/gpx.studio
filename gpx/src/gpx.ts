@@ -688,7 +688,7 @@ export class TrackSegment extends GPXTreeLeaf {
     _computeSlope(): number[] {
         const points = this.trkpt;
 
-        return distanceWindowSmoothingWithDistanceAccumulator(points, 50, (accumulated, start, end) => 100 * (points[end].ele - points[start].ele) / accumulated);
+        return distanceWindowSmoothingWithDistanceAccumulator(points, 50, (accumulated, start, end) => 100 * ((points[end].ele ?? 0) - (points[start].ele ?? 0)) / (accumulated > 0 ? accumulated : 1));
     }
 
     getNumberOfTrackPoints(): number {
@@ -1159,7 +1159,7 @@ function distanceWindowSmoothing(points: ReadonlyArray<Readonly<TrackPoint>>, di
 
     let start = 0, end = 0, accumulated = 0;
     for (var i = 0; i < points.length; i++) {
-        while (start < i && distance(points[start].getCoordinates(), points[i].getCoordinates()) > distanceWindow) {
+        while (start + 1 < i && distance(points[start].getCoordinates(), points[i].getCoordinates()) > distanceWindow) {
             if (remove) {
                 accumulated -= remove(start);
             } else {
