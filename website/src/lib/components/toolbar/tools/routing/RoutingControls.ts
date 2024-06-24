@@ -10,7 +10,7 @@ import { _ } from "svelte-i18n";
 import { dbUtils, type GPXFileWithStatistics } from "$lib/db";
 import { selection } from "$lib/components/file-list/Selection";
 import { ListFileItem, ListTrackItem, ListTrackSegmentItem } from "$lib/components/file-list/FileList";
-import { currentTool, Tool } from "$lib/stores";
+import { currentTool, streetViewEnabled, Tool } from "$lib/stores";
 import { resetCursor, setCrosshairCursor, setGrabbingCursor } from "$lib/utils";
 
 export const canChangeStart = writable(false);
@@ -227,6 +227,10 @@ export class RoutingControls {
     }
 
     showTemporaryAnchor(e: any) {
+        if (get(streetViewEnabled)) {
+            return;
+        }
+
         if (!get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, e.features[0].properties.trackIndex, e.features[0].properties.segmentIndex))) {
             return;
         }
@@ -376,6 +380,10 @@ export class RoutingControls {
     }
 
     async appendAnchor(e: mapboxgl.MapMouseEvent) { // Add a new anchor to the end of the last segment
+        if (get(streetViewEnabled)) {
+            return;
+        }
+
         this.appendAnchorWithCoordinates({
             lat: e.lngLat.lat,
             lon: e.lngLat.lng

@@ -32,7 +32,8 @@
 		File,
 		View,
 		FilePen,
-		HeartHandshake
+		HeartHandshake,
+		PersonStanding
 	} from 'lucide-svelte';
 
 	import {
@@ -77,7 +78,8 @@
 		currentOverlays,
 		previousOverlays,
 		distanceMarkers,
-		directionMarkers
+		directionMarkers,
+		streetViewSource
 	} = settings;
 
 	$: if ($mode === 'system') {
@@ -326,6 +328,18 @@
 						</Menubar.SubContent>
 					</Menubar.Sub>
 					<Menubar.Separator />
+					<Menubar.Sub>
+						<Menubar.SubTrigger>
+							<PersonStanding size="16" class="mr-1" />
+							{$_('menu.street_view_source')}
+						</Menubar.SubTrigger>
+						<Menubar.SubContent>
+							<Menubar.RadioGroup bind:value={$streetViewSource}>
+								<Menubar.RadioItem value="mapillary">{$_('menu.mapillary')}</Menubar.RadioItem>
+								<Menubar.RadioItem value="google">{$_('menu.google')}</Menubar.RadioItem>
+							</Menubar.RadioGroup>
+						</Menubar.SubContent>
+					</Menubar.Sub>
 					<Menubar.Item on:click={() => (layerSettingsOpen = true)}>
 						<Layers3 size="16" class="mr-1" />
 						{$_('menu.layers')}

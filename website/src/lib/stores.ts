@@ -132,6 +132,7 @@ export enum Tool {
 }
 export const currentTool = writable<Tool | null>(null);
 export const splitAs = writable(SplitType.FILES);
+export const streetViewEnabled = writable(false);
 
 export function newGPXFile() {
     const newFileName = get(_)("menu.new_file");

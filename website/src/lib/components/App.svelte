@@ -6,6 +6,7 @@
 	import Map from '$lib/components/Map.svelte';
 	import Menu from '$lib/components/Menu.svelte';
 	import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
+	import StreetViewControl from '$lib/components/street-view-control/StreetViewControl.svelte';
 	import LayerControl from '$lib/components/layer-control/LayerControl.svelte';
 	import { Toaster } from '$lib/components/ui/sonner';
 
@@ -20,6 +21,7 @@
 			<Menu />
 			<Toolbar />
 			<Map class="h-full {$verticalFileView ? '' : 'horizontal'}" />
+			<StreetViewControl />
 			<LayerControl />
 			<GPXLayers />
 			<Toaster richColors />
