@@ -11,7 +11,7 @@
 	import { _ } from 'svelte-i18n';
 	import type { GPXStatistics } from 'gpx';
 
-	const { velocityUnits, elevationProfile } = settings;
+	const { velocityUnits, elevationProfile, bottomPanelSize } = settings;
 
 	let statistics: GPXStatistics;
 
@@ -48,29 +48,33 @@
 			</span>
 			<span slot="tooltip">{$_('quantities.elevation')}</span>
 		</Tooltip>
-		<Tooltip>
-			<span slot="data" class="flex flex-row items-center">
-				<Zap size="18" class="mr-1" />
-				<WithUnits value={statistics.global.speed.moving} type="speed" showUnits={false} />
-				<span class="mx-1">/</span>
-				<WithUnits value={statistics.global.speed.total} type="speed" />
-			</span>
-			<span slot="tooltip"
-				>{$velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')} ({$_(
-					'quantities.moving'
-				)} / {$_('quantities.total')})</span
-			>
-		</Tooltip>
-		<Tooltip>
-			<span slot="data" class="flex flex-row items-center">
-				<Timer size="18" class="mr-1" />
-				<WithUnits value={statistics.global.time.moving} type="time" />
-				<span class="mx-1">/</span>
-				<WithUnits value={statistics.global.time.total} type="time" />
-			</span>
-			<span slot="tooltip"
-				>{$_('quantities.time')} ({$_('quantities.moving')} / {$_('quantities.total')})</span
-			>
-		</Tooltip>
+		{#if $bottomPanelSize > 120 || !$elevationProfile}
+			<Tooltip>
+				<span slot="data" class="flex flex-row items-center">
+					<Zap size="18" class="mr-1" />
+					<WithUnits value={statistics.global.speed.moving} type="speed" showUnits={false} />
+					<span class="mx-1">/</span>
+					<WithUnits value={statistics.global.speed.total} type="speed" />
+				</span>
+				<span slot="tooltip"
+					>{$velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')} ({$_(
+						'quantities.moving'
+					)} / {$_('quantities.total')})</span
+				>
+			</Tooltip>
+		{/if}
+		{#if $bottomPanelSize > 160 || !$elevationProfile}
+			<Tooltip>
+				<span slot="data" class="flex flex-row items-center">
+					<Timer size="18" class="mr-1" />
+					<WithUnits value={statistics.global.time.moving} type="time" />
+					<span class="mx-1">/</span>
+					<WithUnits value={statistics.global.time.total} type="time" />
+				</span>
+				<span slot="tooltip"
+					>{$_('quantities.time')} ({$_('quantities.moving')} / {$_('quantities.total')})</span
+				>
+			</Tooltip>
+		{/if}
 	</Card.Content>
 </Card.Root>

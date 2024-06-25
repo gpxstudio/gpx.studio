@@ -21,7 +21,8 @@
 		easing: () => 1
 	};
 
-	const { distanceUnits, elevationProfile, verticalFileView } = settings;
+	const { distanceUnits, elevationProfile, verticalFileView, bottomPanelSize, rightPanelSize } =
+		settings;
 	let scaleControl = new mapboxgl.ScaleControl({
 		unit: $distanceUnits
 	});
@@ -117,7 +118,10 @@
 		scaleControl.setUnit($distanceUnits);
 	}
 
-	$: if ($map && (!$verticalFileView || !$elevationProfile)) {
+	$: if (
+		$map &&
+		(!$verticalFileView || !$elevationProfile || $bottomPanelSize || $rightPanelSize)
+	) {
 		$map.resize();
 	}
 </script>

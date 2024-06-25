@@ -8,11 +8,12 @@
 	import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
 	import StreetViewControl from '$lib/components/street-view-control/StreetViewControl.svelte';
 	import LayerControl from '$lib/components/layer-control/LayerControl.svelte';
+	import Resizer from '$lib/components/Resizer.svelte';
 	import { Toaster } from '$lib/components/ui/sonner';
 
 	import { settings } from '$lib/db';
 
-	const { verticalFileView, elevationProfile } = settings;
+	const { verticalFileView, elevationProfile, bottomPanelSize, rightPanelSize } = settings;
 </script>
 
 <div class="fixed flex flex-row w-screen h-screen">
@@ -31,7 +32,13 @@
 				</div>
 			{/if}
 		</div>
-		<div class="{$elevationProfile ? 'h-48' : 'h-10'} flex flex-row gap-2 overflow-hidden">
+		{#if $elevationProfile}
+			<Resizer orientation="row" bind:after={$bottomPanelSize} minAfter={100} maxAfter={300} />
+		{/if}
+		<div
+			class="{$elevationProfile ? '' : 'h-10'} flex flex-row gap-2"
+			style={$elevationProfile ? `height: ${$bottomPanelSize}px` : ''}
+		>
 			<GPXStatistics />
 			{#if $elevationProfile}
 				<ElevationProfile />
@@ -39,7 +46,8 @@
 		</div>
 	</div>
 	{#if $verticalFileView}
-		<FileList orientation="vertical" recursive={true} class="w-60" />
+		<Resizer orientation="col" bind:after={$rightPanelSize} minAfter={100} maxAfter={400} />
+		<FileList orientation="vertical" recursive={true} style="width: {$rightPanelSize}px" />
 	{/if}
 </div>
 

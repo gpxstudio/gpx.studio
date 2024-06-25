@@ -53,6 +53,7 @@
 		class="flex {orientation === 'vertical'
 			? 'flex-col py-1 pl-1 min-h-screen'
 			: 'flex-row'} {$$props.class ?? ''}"
+		{...$$restProps}
 	>
 		<FileListNode bind:node={$fileObservers} item={new ListRootItem()} />
 		{#if orientation === 'vertical'}

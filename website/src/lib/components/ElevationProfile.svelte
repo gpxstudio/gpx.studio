@@ -57,7 +57,7 @@
 	let marker: mapboxgl.Marker | null = null;
 	let dragging = false;
 
-	let { distanceUnits, velocityUnits, temperatureUnits } = settings;
+	let { distanceUnits, velocityUnits, temperatureUnits, bottomPanelSize } = settings;
 
 	let options = {
 		animation: false,
@@ -116,8 +116,8 @@
 								if (dragging) {
 									marker.remove();
 								} else {
-									marker.addTo($map);
 									marker.setLngLat(point.coordinates);
+									marker.addTo($map);
 								}
 							}
 							return `${$_('quantities.elevation')}: ${getElevationWithUnits(point.y, false)}`;
@@ -520,12 +520,16 @@
 </script>
 
 <div class="h-full grow min-w-0 flex flex-row gap-4 items-center py-2 pr-4">
-	<div class="h-full grow min-w-0">
+	<div class="grow h-full min-w-0">
 		<canvas bind:this={overlay} class="absolute pointer-events-none"></canvas>
 		<canvas bind:this={canvas} class="w-full h-full"></canvas>
 	</div>
-	<div class="w-fit flex flex-col border rounded">
-		<ToggleGroup.Root class="flex-col gap-0" type="single" bind:value={elevationFill}>
+	<div class="h-full flex flex-col justify-center">
+		<ToggleGroup.Root
+			class="flex-col flex-wrap gap-0 min-h-0 content-center border rounded-t"
+			type="single"
+			bind:value={elevationFill}
+		>
 			<ToggleGroup.Item class="p-0 w-6 h-6" value="slope">
 				<Tooltip side="left">
 					<TriangleRight slot="data" size="16" />
@@ -539,8 +543,11 @@
 				</Tooltip>
 			</ToggleGroup.Item>
 		</ToggleGroup.Root>
-		<Separator />
-		<ToggleGroup.Root class="flex-col gap-0" type="multiple" bind:value={additionalDatasets}>
+		<ToggleGroup.Root
+			class="flex-col flex-wrap gap-0 min-h-0 content-center border rounded-b -mt-[1px]"
+			type="multiple"
+			bind:value={additionalDatasets}
+		>
 			<ToggleGroup.Item class="p-0 w-6 h-6" value="speed">
 				<Tooltip side="left">
 					<Zap slot="data" size="16" />

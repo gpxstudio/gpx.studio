@@ -47,10 +47,16 @@ function dexieSettingStore<T>(setting: string, initial: T): Writable<T> {
     });
     return {
         subscribe: store.subscribe,
-        set: (value: any) => db.settings.put(value, setting),
+        set: (value: any) => {
+            if (value !== get(store)) {
+                db.settings.put(value, setting);
+            }
+        },
         update: (callback: (value: any) => any) => {
             let newValue = callback(get(store));
-            db.settings.put(newValue, setting);
+            if (newValue !== get(store)) {
+                db.settings.put(newValue, setting);
+            }
         }
     };
 }
@@ -105,6 +111,8 @@ export const settings = {
     fileOrder: dexieSettingStore<string[]>('fileOrder', []),
     defaultOpacity: dexieSettingStore('defaultOpacity', 0.7),
     defaultWeight: dexieSettingStore('defaultWeight', 5),
+    bottomPanelSize: dexieSettingStore('bottomPanelSize', 192),
+    rightPanelSize: dexieSettingStore('rightPanelSize', 240),
 };
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber
