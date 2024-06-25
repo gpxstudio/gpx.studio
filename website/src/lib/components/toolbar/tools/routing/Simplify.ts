@@ -1,5 +1,6 @@
-import { earthRadius, ramerDouglasPeucker } from "$lib/simplify";
-import type { GPXFile, TrackSegment } from "gpx";
+import { ramerDouglasPeucker, type GPXFile, type TrackSegment } from "gpx";
+
+const earthRadius = 6371008.8;
 
 export function getZoomLevelForDistance(latitude: number, distance?: number): number {
     if (distance === undefined) {

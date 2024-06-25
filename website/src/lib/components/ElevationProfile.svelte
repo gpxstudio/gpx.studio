@@ -137,12 +137,16 @@
 						let context = contexts.filter((context) => context.datasetIndex === 0);
 						if (context.length === 0) return;
 						let point = context[0].raw;
-						let slope = point.slope.toFixed(1);
+						let slope = {
+							at: point.slope.at.toFixed(1),
+							segment: point.slope.segment.toFixed(1),
+							length: getDistanceWithUnits(point.slope.length)
+						};
 						let surface = point.surface ? point.surface : 'unknown';
 
 						return [
 							`    ${$_('quantities.distance')}: ${getDistanceWithUnits(point.x, false)}`,
-							`    ${$_('quantities.slope')}: ${slope} %`,
+							`    ${$_('quantities.slope')}: ${slope.at} %${elevationFill === 'slope' ? ` (${slope.length} @${slope.segment} %)` : ''}`,
 							`    ${$_('quantities.surface')}: ${$_(`toolbar.routing.surface.${surface}`)}`
 						];
 					}
@@ -317,7 +321,11 @@
 				return {
 					x: getConvertedDistance(data.local.distance.total[index]),
 					y: point.ele ? getConvertedElevation(point.ele) : 0,
-					slope: data.local.slope[index],
+					slope: {
+						at: data.local.slope.at[index],
+						segment: data.local.slope.segment[index],
+						length: data.local.slope.length[index]
+					},
 					surface: point.getSurface(),
 					coordinates: point.getCoordinates(),
 					index: index
@@ -421,7 +429,7 @@
 	];
 
 	function slopeFillCallback(context) {
-		let slope = context.p0.raw.slope;
+		let slope = context.p0.raw.slope.segment;
 		if (slope <= 1 && slope >= -1) return slopeColors[6];
 		else if (slope > 0) {
 			if (slope <= 3) return slopeColors[7];

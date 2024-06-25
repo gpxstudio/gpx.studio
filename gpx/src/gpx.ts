@@ -1,3 +1,4 @@
+import { ramerDouglasPeucker } from "./simplify";
 import { Coordinates, GPXFileAttributes, GPXFileType, LineStyleExtension, Link, Metadata, TrackExtensions, TrackPointExtensions, TrackPointType, TrackSegmentType, TrackType, WaypointType } from "./types";
 import { Draft, immerable, isDraft, original, produce, freeze } from "immer";
 
@@ -601,7 +602,7 @@ export class TrackSegment extends GPXTreeLeaf {
         statistics.local.points = this.trkpt.map((point) => point);
 
         statistics.local.elevation.smoothed = this._computeSmoothedElevation();
-        statistics.local.slope = this._computeSlope();
+        statistics.local.slope.at = this._computeSlope();
 
         const points = this.trkpt;
         for (let i = 0; i < points.length; i++) {
@@ -663,6 +664,8 @@ export class TrackSegment extends GPXTreeLeaf {
             statistics.global.bounds.northEast.lon = Math.max(statistics.global.bounds.northEast.lon, points[i].attributes.lon);
         }
 
+        [statistics.local.slope.segment, statistics.local.slope.length] = this._computeSlopeSegments(statistics);
+
         statistics.global.time.total = statistics.global.time.start && statistics.global.time.end ? (statistics.global.time.end.getTime() - statistics.global.time.start.getTime()) / 1000 : 0;
         statistics.global.speed.total = statistics.global.time.total > 0 ? statistics.global.distance.total / (statistics.global.time.total / 3600) : 0;
         statistics.global.speed.moving = statistics.global.time.moving > 0 ? statistics.global.distance.moving / (statistics.global.time.moving / 3600) : 0;
@@ -689,6 +692,53 @@ export class TrackSegment extends GPXTreeLeaf {
         const points = this.trkpt;
 
         return distanceWindowSmoothingWithDistanceAccumulator(points, 50, (accumulated, start, end) => 100 * ((points[end].ele ?? 0) - (points[start].ele ?? 0)) / (accumulated > 0 ? accumulated : 1));
+    }
+
+    _computeSlopeSegments(statistics: GPXStatistics): [number[], number[]] {
+        function canSplit(point1: TrackPoint, point2: TrackPoint, point3: TrackPoint): boolean {
+            return statistics.local.distance.total[point3._data.index] - statistics.local.distance.total[point1._data.index] >= 0.5 && statistics.local.distance.total[point2._data.index] - statistics.local.distance.total[point3._data.index] >= 0.5;
+        }
+
+        // x-coordinates are given by: statistics.local.distance.total[point._data.index] * 1000
+        // y-coordinates are given by: point.ele
+        // Compute the distance between point3 and the line defined by point1 and point2
+        function elevationDistance(point1: TrackPoint, point2: TrackPoint, point3: TrackPoint): number {
+            if (point1.ele === undefined || point2.ele === undefined || point3.ele === undefined) {
+                return 0;
+            }
+            let x1 = statistics.local.distance.total[point1._data.index] * 1000;
+            let x2 = statistics.local.distance.total[point2._data.index] * 1000;
+            let x3 = statistics.local.distance.total[point3._data.index] * 1000;
+            let y1 = point1.ele;
+            let y2 = point2.ele;
+            let y3 = point3.ele;
+
+            let dist = Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
+            if (dist === 0) {
+                return Math.sqrt(Math.pow(x3 - x1, 2) + Math.pow(y3 - y1, 2));
+            }
+
+            return Math.abs((y2 - y1) * x3 - (x2 - x1) * y3 + x2 * y1 - y2 * x1) / dist;
+        }
+
+        let simplified = ramerDouglasPeucker(this.trkpt, 25, elevationDistance, canSplit);
+
+        let slope = [];
+        let length = [];
+
+        for (let i = 0; i < simplified.length - 1; i++) {
+            let start = simplified[i].point._data.index;
+            let end = simplified[i + 1].point._data.index;
+            let dist = statistics.local.distance.total[end] - statistics.local.distance.total[start];
+            let ele = simplified[i + 1].point.ele - simplified[i].point.ele;
+
+            for (let j = start; j < end + (i + 1 === simplified.length - 1 ? 1 : 0); j++) {
+                slope.push(0.1 * ele / dist);
+                length.push(dist);
+            }
+        }
+
+        return [slope, length];
     }
 
     getNumberOfTrackPoints(): number {
@@ -1026,7 +1076,11 @@ export class GPXStatistics {
             gain: number[],
             loss: number[],
         },
-        slope: number[],
+        slope: {
+            at: number[],
+            segment: number[],
+            length: number[],
+        }
     };
 
     constructor() {
@@ -1076,7 +1130,11 @@ export class GPXStatistics {
                 gain: [],
                 loss: [],
             },
-            slope: [],
+            slope: {
+                at: [],
+                segment: [],
+                length: [],
+            }
         };
     }
 
@@ -1092,7 +1150,9 @@ export class GPXStatistics {
 
         this.local.speed = this.local.speed.concat(other.local.speed);
         this.local.elevation.smoothed = this.local.elevation.smoothed.concat(other.local.elevation.smoothed);
-        this.local.slope = this.local.slope.concat(other.local.slope);
+        this.local.slope.at = this.local.slope.at.concat(other.local.slope.at);
+        this.local.slope.segment = this.local.slope.segment.concat(other.local.slope.segment);
+        this.local.slope.length = this.local.slope.length.concat(other.local.slope.length);
 
         this.global.distance.total += other.global.distance.total;
         this.global.distance.moving += other.global.distance.moving;

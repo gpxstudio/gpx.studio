@@ -8,11 +8,10 @@
 	import { Filter } from 'lucide-svelte';
 	import { _ } from 'svelte-i18n';
 	import WithUnits from '$lib/components/WithUnits.svelte';
-	import { ramerDouglasPeucker, type SimplifiedTrackPoint } from '$lib/simplify';
 	import { dbUtils, fileObservers } from '$lib/db';
 	import { map } from '$lib/stores';
 	import { onDestroy } from 'svelte';
-	import { TrackPoint } from 'gpx';
+	import { ramerDouglasPeucker, TrackPoint, type SimplifiedTrackPoint } from 'gpx';
 	import { derived } from 'svelte/store';
 
 	let sliderValue = [50];

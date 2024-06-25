@@ -1,10 +1,11 @@
-import type { Coordinates, TrackPoint } from "gpx";
+import { TrackPoint } from "./gpx";
+import { Coordinates } from "./types";
 
 export type SimplifiedTrackPoint = { point: TrackPoint, distance?: number };
 
-export const earthRadius = 6371008.8;
+const earthRadius = 6371008.8;
 
-export function ramerDouglasPeucker(points: readonly TrackPoint[], epsilon: number = 50, start: number = 0, end: number = points.length - 1): SimplifiedTrackPoint[] {
+export function ramerDouglasPeucker(points: readonly TrackPoint[], epsilon: number = 50, measure: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => number = computeCrossarc, canSplit: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => boolean = () => true): SimplifiedTrackPoint[] {
     if (points.length == 0) {
         return [];
     } else if (points.length == 1) {
@@ -14,34 +15,40 @@ export function ramerDouglasPeucker(points: readonly TrackPoint[], epsilon: numb
     }
 
     let simplified = [{
-        point: points[start]
+        point: points[0]
     }];
-    ramerDouglasPeuckerRecursive(points, epsilon, start, end, simplified);
+    ramerDouglasPeuckerRecursive(points, epsilon, measure, canSplit, 0, points.length - 1, simplified);
     simplified.push({
-        point: points[end]
+        point: points[points.length - 1]
     });
     return simplified;
 }
 
-function ramerDouglasPeuckerRecursive(points: readonly TrackPoint[], epsilon: number, start: number, end: number, simplified: SimplifiedTrackPoint[]) {
+function ramerDouglasPeuckerRecursive(points: readonly TrackPoint[], epsilon: number, measure: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => number, canSplit: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => boolean, start: number, end: number, simplified: SimplifiedTrackPoint[]) {
     let largest = {
         index: 0,
         distance: 0
     };
 
     for (let i = start + 1; i < end; i++) {
-        let distance = crossarc(points[start].getCoordinates(), points[end].getCoordinates(), points[i].getCoordinates());
-        if (distance > largest.distance) {
-            largest.index = i;
-            largest.distance = distance;
+        if (canSplit(points[start], points[end], points[i])) {
+            let distance = measure(points[start], points[end], points[i]);
+            if (distance > largest.distance) {
+                largest.index = i;
+                largest.distance = distance;
+            }
         }
     }
 
     if (largest.distance > epsilon && largest.index != 0) {
-        ramerDouglasPeuckerRecursive(points, epsilon, start, largest.index, simplified);
+        ramerDouglasPeuckerRecursive(points, epsilon, measure, canSplit, start, largest.index, simplified);
         simplified.push({ point: points[largest.index], distance: largest.distance });
-        ramerDouglasPeuckerRecursive(points, epsilon, largest.index, end, simplified);
+        ramerDouglasPeuckerRecursive(points, epsilon, measure, canSplit, largest.index, end, simplified);
     }
+}
+
+function computeCrossarc(point1: TrackPoint, point2: TrackPoint, point3: TrackPoint): number {
+    return crossarc(point1.getCoordinates(), point2.getCoordinates(), point3.getCoordinates());
 }
 
 function crossarc(coord1: Coordinates, coord2: Coordinates, coord3: Coordinates): number {
