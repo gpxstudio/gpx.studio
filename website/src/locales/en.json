@@ -1,4 +1,9 @@
 {
+    "metadata": {
+        "app_title": "the online GPX file editor",
+        "about_title": "about",
+        "description": "View, edit and create GPX files online with advanced route planning capabilities, file processing tools and beautiful maps."
+    },
     "menu": {
         "new": "New",
         "new_file": "New file",
