@@ -34,7 +34,6 @@
 	}
 
 	$: if ($map && $currentOverlays) {
-		console.log($currentOverlays);
 		// Add or remove overlay layers depending on the current overlays
 		let overlayLayers = getLayers($currentOverlays);
 		Object.keys(overlayLayers).forEach((id) => {
