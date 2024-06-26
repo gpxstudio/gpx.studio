@@ -207,7 +207,12 @@
 			<Label for="url">{$_('layers.custom_layers.urls')}</Label>
 			{#each tileUrls as url, i}
 				<div class="flex flex-row gap-2">
-					<Input bind:value={tileUrls[i]} id="url" class="h-8" />
+					<Input
+						bind:value={tileUrls[i]}
+						id="url"
+						class="h-8"
+						placeholder={$_('layers.custom_layers.url_placeholder')}
+					/>
 					{#if tileUrls.length > 1}
 						<Button
 							on:click={() => (tileUrls = tileUrls.filter((_, index) => index !== i))}

@@ -203,6 +203,7 @@
             "new": "New custom layer",
             "edit": "Edit custom layer",
             "urls": "URL(s)",
+            "url_placeholder": "WMTS, WMS or Mapbox style JSON",
             "max_zoom": "Max zoom",
             "layer_type": "Layer type",
             "basemap": "Basemap",
