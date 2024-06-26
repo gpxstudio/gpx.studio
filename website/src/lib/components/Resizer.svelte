@@ -32,6 +32,7 @@
 	}
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
 	class="{orientation === 'col'
 		? 'w-1 h-full cursor-col-resize'
