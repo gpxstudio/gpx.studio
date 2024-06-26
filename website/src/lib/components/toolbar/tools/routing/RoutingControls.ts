@@ -406,7 +406,7 @@ export class RoutingControls {
                 if (item instanceof ListTrackItem || item instanceof ListTrackSegmentItem) {
                     trackIndex = item.getTrackIndex();
                 }
-                let segmentIndex = file.trk[trackIndex].trkseg.length > 0 ? file.trk[trackIndex].trkseg.length - 1 : 0;
+                let segmentIndex = (file.trk.length > 0 && file.trk[trackIndex].trkseg.length > 0) ? file.trk[trackIndex].trkseg.length - 1 : 0;
                 if (item instanceof ListTrackSegmentItem) {
                     segmentIndex = item.getSegmentIndex();
                 }
