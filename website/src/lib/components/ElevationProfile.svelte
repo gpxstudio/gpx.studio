@@ -412,40 +412,23 @@
 		chart.update();
 	}
 
-	let slopeColors = [
-		'#046307',
-		'#028306',
-		'#2AA12E',
-		'#53BF56',
-		'#7BDD7E',
-		'#A4FBA6',
-		'#edf0bd',
-		'#ffcc99',
-		'#F29898',
-		'#E07575',
-		'#CF5352',
-		'#BE312F',
-		'#AD0F0C'
-	];
-
+	let maxSlope = 20;
 	function slopeFillCallback(context) {
 		let slope = context.p0.raw.slope.segment;
-		if (slope <= 1 && slope >= -1) return slopeColors[6];
-		else if (slope > 0) {
-			if (slope <= 3) return slopeColors[7];
-			else if (slope <= 5) return slopeColors[8];
-			else if (slope <= 7) return slopeColors[9];
-			else if (slope <= 10) return slopeColors[10];
-			else if (slope <= 15) return slopeColors[11];
-			else return slopeColors[12];
-		} else {
-			if (slope >= -3) return slopeColors[5];
-			else if (slope >= -5) return slopeColors[4];
-			else if (slope >= -7) return slopeColors[3];
-			else if (slope >= -10) return slopeColors[2];
-			else if (slope >= -15) return slopeColors[1];
-			else return slopeColors[0];
+		if (slope > maxSlope) {
+			slope = maxSlope;
+		} else if (slope < -maxSlope) {
+			slope = -maxSlope;
 		}
+
+		let v = slope / maxSlope;
+		v = 1 / (1 + Math.exp(-6 * v));
+		v = v - 0.5;
+
+		let hue = ((0.5 - v) * 120).toString(10);
+		let lightness = 90 - Math.abs(v) * 70;
+
+		return ['hsl(', hue, ',60%,', lightness, '%)'].join('');
 	}
 
 	function surfaceFillCallback(context) {
