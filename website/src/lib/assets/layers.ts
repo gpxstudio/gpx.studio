@@ -438,7 +438,7 @@ export const overlays: { [key: string]: AnySourceData; } = {
     },
 };
 
-export const opacities: { [key: string]: number; } = {
+export const defaultOpacities: { [key: string]: number; } = {
     ignFrCadastre: 0.5,
     ignSlope: 0.4,
     swisstopoSlope: 0.4,

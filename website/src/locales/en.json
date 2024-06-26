@@ -211,6 +211,7 @@
             "create": "Create layer",
             "update": "Update layer"
         },
+        "opacity": "Overlay opacity",
         "heatmap": "Strava Heatmap",
         "pois": "Points of interest",
         "label": {

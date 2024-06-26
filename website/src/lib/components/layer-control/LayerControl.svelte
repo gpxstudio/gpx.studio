@@ -7,7 +7,7 @@
 
 	import { Layers } from 'lucide-svelte';
 
-	import { basemaps, overlays, opacities } from '$lib/assets/layers';
+	import { basemaps, overlays } from '$lib/assets/layers';
 	import { settings } from '$lib/db';
 	import { map } from '$lib/stores';
 	import { get, writable } from 'svelte/store';
@@ -19,7 +19,8 @@
 		currentOverlays,
 		selectedBasemapTree,
 		selectedOverlayTree,
-		customLayers
+		customLayers,
+		opacities
 	} = settings;
 
 	$: if ($map) {
@@ -33,6 +34,7 @@
 	}
 
 	$: if ($map && $currentOverlays) {
+		console.log($currentOverlays);
 		// Add or remove overlay layers depending on the current overlays
 		let overlayLayers = getLayers($currentOverlays);
 		Object.keys(overlayLayers).forEach((id) => {
@@ -79,10 +81,10 @@
 							type: overlay.type === 'raster' ? 'raster' : 'line',
 							source: id,
 							paint: {
-								...(id in opacities
+								...(id in $opacities
 									? overlay.type === 'raster'
-										? { 'raster-opacity': opacities[id] }
-										: { 'line-opacity': opacities[id] }
+										? { 'raster-opacity': $opacities[id] }
+										: { 'line-opacity': $opacities[id] }
 									: {})
 							}
 						},

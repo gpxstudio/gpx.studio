@@ -4,7 +4,7 @@ import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDra
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
 import { gpxStatistics, initTargetMapBounds, splitAs, updateTargetMapBounds } from './stores';
 import { mode } from 'mode-watcher';
-import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays, type CustomLayer } from './assets/layers';
+import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays, type CustomLayer, defaultOpacities } from './assets/layers';
 import { applyToOrderedItemsFromFile, applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem, ListRootItem } from '$lib/components/file-list/FileList';
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
@@ -104,6 +104,7 @@ export const settings = {
     currentOverlays: dexieUninitializedSettingStore('currentOverlays', defaultOverlays),
     previousOverlays: dexieSettingStore('previousOverlays', defaultOverlays),
     selectedOverlayTree: dexieSettingStore('selectedOverlayTree', defaultOverlayTree),
+    opacities: dexieSettingStore('opacities', defaultOpacities),
     customLayers: dexieSettingStore<Record<string, CustomLayer>>('customLayers', {}),
     directionMarkers: dexieSettingStore('directionMarkers', false),
     distanceMarkers: dexieSettingStore('distanceMarkers', false),

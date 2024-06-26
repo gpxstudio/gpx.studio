@@ -25,3 +25,15 @@ export function getLayers(node: LayerTreeType, layers: { [key: string]: boolean 
     });
     return layers;
 }
+
+export function isSelected(node: LayerTreeType, id: string) {
+    return Object.keys(node).some((key) => {
+        if (key === id) {
+            return node[key];
+        }
+        if (typeof node[key] !== "boolean" && isSelected(node[key], id)) {
+            return true;
+        }
+        return false;
+    });
+}
