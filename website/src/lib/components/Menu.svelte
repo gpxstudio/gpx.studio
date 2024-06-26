@@ -395,8 +395,10 @@
 			cutSelection();
 			e.preventDefault();
 		} else if (e.key === 'v' && (e.metaKey || e.ctrlKey)) {
-			pasteSelection();
-			e.preventDefault();
+			if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+				pasteSelection();
+				e.preventDefault();
+			}
 		} else if ((e.key === 's' || e.key == 'S') && (e.metaKey || e.ctrlKey)) {
 			if (e.shiftKey) {
 				exportAllFiles();

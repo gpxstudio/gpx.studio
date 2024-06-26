@@ -15,6 +15,7 @@
 	import { writable, get } from 'svelte/store';
 	import { map, setStravaHeatmapURLs } from '$lib/stores';
 	import { browser } from '$app/environment';
+	import CustomLayers from './CustomLayers.svelte';
 
 	const { selectedBasemapTree, selectedOverlayTree, stravaHeatmapColor, currentOverlays } =
 		settings;
@@ -111,9 +112,11 @@
 					</Accordion.Content>
 				</Accordion.Item>
 				<Accordion.Item value="item-2">
-					<Accordion.Trigger>{$_('layers.custom_layers')}</Accordion.Trigger>
+					<Accordion.Trigger>{$_('layers.custom_layers.title')}</Accordion.Trigger>
 					<Accordion.Content>
-						<ScrollArea></ScrollArea>
+						<ScrollArea>
+							<CustomLayers />
+						</ScrollArea>
 					</Accordion.Content>
 				</Accordion.Item>
 				<Accordion.Item value="item-3">

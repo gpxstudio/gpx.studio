@@ -7,6 +7,7 @@
 	import { anySelectedLayer } from './utils';
 
 	import { _ } from 'svelte-i18n';
+	import { settings } from '$lib/db';
 
 	export let name: string;
 	export let node: LayerTreeType;
@@ -15,15 +16,19 @@
 
 	export let checked: LayerTreeType;
 
-	Object.keys(node).forEach((id) => {
-		if (!checked.hasOwnProperty(id)) {
-			if (typeof node[id] == 'boolean') {
-				checked[id] = false;
-			} else {
-				checked[id] = {};
+	const { customLayers } = settings;
+
+	$: if (checked !== undefined) {
+		Object.keys(node).forEach((id) => {
+			if (!checked.hasOwnProperty(id)) {
+				if (typeof node[id] == 'boolean') {
+					checked[id] = false;
+				} else {
+					checked[id] = {};
+				}
 			}
-		}
-	});
+		});
+	}
 </script>
 
 <div class="flex flex-col gap-[3px]">
@@ -42,9 +47,13 @@
 					{:else}
 						<input id="{name}-{id}" type="radio" {name} value={id} bind:group={selected} />
 					{/if}
-					<Label for="{name}-{id}" class="flex flex-row items-center gap-1"
-						>{$_(`layers.label.${id}`)}</Label
-					>
+					<Label for="{name}-{id}" class="flex flex-row items-center gap-1">
+						{#if $customLayers.hasOwnProperty(id)}
+							{$customLayers[id].name}
+						{:else}
+							{$_(`layers.label.${id}`)}
+						{/if}
+					</Label>
 				</div>
 			{/if}
 		{:else if anySelectedLayer(node[id])}

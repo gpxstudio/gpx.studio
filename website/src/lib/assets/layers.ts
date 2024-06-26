@@ -266,12 +266,15 @@ export const basemaps: { [key: string]: string | Style; } = {
     },
 };
 
-Object.values(basemaps).forEach((basemap) => {
+export function extendBasemap(basemap: string | Style): string | Style {
     if (typeof basemap === 'object') {
         basemap["glyphs"] = "mapbox://fonts/mapbox/{fontstack}/{range}.pbf";
         basemap["sprite"] = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/sprite?access_token=${mapboxAccessToken}`;
     }
-});
+    return basemap;
+}
+
+Object.values(basemaps).forEach(extendBasemap);
 
 export const font: { [key: string]: string; } = {
     swisstopo: 'Frutiger Neue Condensed Regular',
@@ -677,6 +680,16 @@ export const defaultOverlayTree: LayerTreeType = {
         },
     }
 }
+
+export type CustomLayer = {
+    id: string,
+    name: string,
+    tileUrls: string[],
+    maxZoom: number,
+    layerType: 'basemap' | 'overlay',
+    resourceType: 'raster' | 'vector',
+    value: string | {},
+};
 
 export const stravaHeatmapServers = ['https://heatmap-external-a.strava.com/tiles-auth', 'https://heatmap-external-b.strava.com/tiles-auth', 'https://heatmap-external-c.strava.com/tiles-auth'];
 export const stravaHeatmapActivityIds: { [key: string]: string } = {

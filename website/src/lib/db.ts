@@ -4,7 +4,7 @@ import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDra
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
 import { gpxStatistics, initTargetMapBounds, splitAs, updateTargetMapBounds } from './stores';
 import { mode } from 'mode-watcher';
-import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays } from './assets/layers';
+import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays, type CustomLayer } from './assets/layers';
 import { applyToOrderedItemsFromFile, applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem, ListRootItem } from '$lib/components/file-list/FileList';
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
@@ -48,13 +48,13 @@ function dexieSettingStore<T>(setting: string, initial: T): Writable<T> {
     return {
         subscribe: store.subscribe,
         set: (value: any) => {
-            if (value !== get(store)) {
+            if (typeof value === 'object' || value !== get(store)) {
                 db.settings.put(value, setting);
             }
         },
         update: (callback: (value: any) => any) => {
             let newValue = callback(get(store));
-            if (newValue !== get(store)) {
+            if (typeof newValue === 'object' || newValue !== get(store)) {
                 db.settings.put(newValue, setting);
             }
         }
@@ -104,6 +104,7 @@ export const settings = {
     currentOverlays: dexieUninitializedSettingStore('currentOverlays', defaultOverlays),
     previousOverlays: dexieSettingStore('previousOverlays', defaultOverlays),
     selectedOverlayTree: dexieSettingStore('selectedOverlayTree', defaultOverlayTree),
+    customLayers: dexieSettingStore<Record<string, CustomLayer>>('customLayers', {}),
     directionMarkers: dexieSettingStore('directionMarkers', false),
     distanceMarkers: dexieSettingStore('distanceMarkers', false),
     stravaHeatmapColor: dexieSettingStore('stravaHeatmapColor', 'bluered'),

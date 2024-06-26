@@ -18,12 +18,16 @@
 		previousBasemap,
 		currentOverlays,
 		selectedBasemapTree,
-		selectedOverlayTree
+		selectedOverlayTree,
+		customLayers
 	} = settings;
 
 	$: if ($map) {
 		// Set style depending on the current basemap
-		$map.setStyle(basemaps[$currentBasemap], {
+		let basemap = basemaps.hasOwnProperty($currentBasemap)
+			? basemaps[$currentBasemap]
+			: $customLayers[$currentBasemap].value;
+		$map.setStyle(basemap, {
 			diff: false
 		});
 	}
@@ -65,17 +69,18 @@
 		return () => {
 			if ($map) {
 				try {
+					let overlay = $customLayers.hasOwnProperty(id) ? $customLayers[id].value : overlays[id];
 					if (!$map.getSource(id)) {
-						$map.addSource(id, overlays[id]);
+						$map.addSource(id, overlay);
 					}
 					$map.addLayer(
 						{
 							id,
-							type: overlays[id].type === 'raster' ? 'raster' : 'line',
+							type: overlay.type === 'raster' ? 'raster' : 'line',
 							source: id,
 							paint: {
 								...(id in opacities
-									? overlays[id].type === 'raster'
+									? overlay.type === 'raster'
 										? { 'raster-opacity': opacities[id] }
 										: { 'line-opacity': opacities[id] }
 									: {})
