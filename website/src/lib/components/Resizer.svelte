@@ -5,12 +5,12 @@
 	export let minAfter: number = 0;
 	export let maxAfter: number = Number.MAX_SAFE_INTEGER;
 
-	function handleMouseDown(event: MouseEvent) {
+	function handleMouseDown(event: PointerEvent) {
 		const startX = event.clientX;
 		const startY = event.clientY;
 		const startAfter = after;
 
-		const handleMouseMove = (event: MouseEvent) => {
+		const handleMouseMove = (event: PointerEvent) => {
 			const newAfter =
 				startAfter + (orientation === 'col' ? startX - event.clientX : startY - event.clientY);
 			if (newAfter >= minAfter && newAfter <= maxAfter) {
@@ -23,12 +23,12 @@
 		};
 
 		const handleMouseUp = () => {
-			window.removeEventListener('mousemove', handleMouseMove);
-			window.removeEventListener('mouseup', handleMouseUp);
+			window.removeEventListener('pointermove', handleMouseMove);
+			window.removeEventListener('pointerup', handleMouseUp);
 		};
 
-		window.addEventListener('mousemove', handleMouseMove);
-		window.addEventListener('mouseup', handleMouseUp);
+		window.addEventListener('pointermove', handleMouseMove);
+		window.addEventListener('pointerup', handleMouseUp);
 	}
 </script>
 
@@ -37,5 +37,5 @@
 	class="{orientation === 'col'
 		? 'w-1 h-full cursor-col-resize'
 		: 'w-full h-1 cursor-row-resize'} {orientation}"
-	on:mousedown={handleMouseDown}
+	on:pointerdown={handleMouseDown}
 />

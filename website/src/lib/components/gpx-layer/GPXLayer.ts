@@ -207,8 +207,10 @@ export class GPXLayer {
                             } else {
                                 selectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
                             }
-                        } else {
+                        } else if (get(currentTool) === Tool.WAYPOINT) {
                             selectedWaypoint.set([marker._waypoint, this.fileId]);
+                        } else {
+                            this.showWaypointPopup(marker._waypoint);
                         }
                         e.stopPropagation();
                     });

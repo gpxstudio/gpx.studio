@@ -332,6 +332,7 @@
 						e.preventDefault();
 						e.stopPropagation();
 						$selection.toggle(item);
+						$selection = $selection;
 					}
 				}}
 				on:mouseenter={() => {
@@ -360,7 +361,7 @@
 				{:else if item.level === ListLevel.WAYPOINT}
 					<MapPin size="16" class="mr-1 shrink-0" />
 				{/if}
-				<span class="grow truncate {$verticalFileView ? 'mr-2' : ''}">
+				<span class="grow select-none truncate {$verticalFileView ? 'mr-2' : ''}">
 					{label}
 				</span>
 			</span>

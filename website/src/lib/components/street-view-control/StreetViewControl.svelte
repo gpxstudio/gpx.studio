@@ -36,7 +36,7 @@
 	}
 </script>
 
-<CustomControl class="w-[29px] h-[29px]">
+<CustomControl class="w-[29px] h-[29px] shrink-0">
 	<Toggle bind:pressed={$streetViewEnabled} class="w-full h-full rounded p-0">
 		<PersonStanding size="22" />
 	</Toggle>

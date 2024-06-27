@@ -42,7 +42,9 @@
 				variant="ghost"
 				class="w-full flex flex-row {side === 'right'
 					? 'justify-between'
-					: 'justify-start'} py-0 px-1 h-fit {nohover ? 'hover:bg-background' : ''}"
+					: 'justify-start'} py-0 px-1 h-fit {nohover
+					? 'hover:bg-background'
+					: ''} pointer-events-none"
 			>
 				{#if side === 'left'}
 					{#if $open[fullId]}

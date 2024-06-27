@@ -33,7 +33,7 @@
 <div
 	bind:this={container}
 	class="{$$props.class ||
-		''} clear-both translate-0 m-[10px] mb-0 pointer-events-auto bg-background rounded shadow-md hidden"
+		''} clear-both translate-0 m-[10px] mb-0 last:mb-[10px] pointer-events-auto bg-background rounded shadow-md hidden"
 >
 	<slot />
 </div>

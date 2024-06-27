@@ -1,7 +1,6 @@
 <script lang="ts">
 	import * as ToggleGroup from '$lib/components/ui/toggle-group';
 	import Tooltip from '$lib/components/Tooltip.svelte';
-	import { Separator } from '$lib/components/ui/separator';
 
 	import Chart from 'chart.js/auto';
 	import mapboxgl from 'mapbox-gl';
@@ -281,13 +280,16 @@
 				return points[0].index;
 			}
 		}
-		canvas.addEventListener('pointerdown', (evt) => {
-			dragging = true;
+
+		let dragStarted = false;
+		function onMouseDown(evt) {
+			dragStarted = true;
 			canvas.style.cursor = 'col-resize';
 			startIndex = getIndex(evt);
-		});
-		canvas.addEventListener('pointermove', (evt) => {
-			if (dragging) {
+		}
+		function onMouseMove(evt) {
+			if (dragStarted) {
+				dragging = true;
 				endIndex = getIndex(evt);
 				if (startIndex !== endIndex) {
 					slicedGPXStatistics.set([
@@ -300,15 +302,19 @@
 					]);
 				}
 			}
-		});
-		canvas.addEventListener('pointerup', (evt) => {
+		}
+		function onMouseUp(evt) {
+			dragStarted = false;
 			dragging = false;
 			canvas.style.cursor = '';
 			endIndex = getIndex(evt);
 			if (startIndex === endIndex) {
 				slicedGPXStatistics.set(undefined);
 			}
-		});
+		}
+		canvas.addEventListener('pointerdown', onMouseDown);
+		canvas.addEventListener('pointermove', onMouseMove);
+		canvas.addEventListener('pointerup', onMouseUp);
 	});
 
 	$: if (chart && $distanceUnits && $velocityUnits && $temperatureUnits) {

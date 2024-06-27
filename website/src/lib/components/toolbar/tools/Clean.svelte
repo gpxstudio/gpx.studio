@@ -98,6 +98,9 @@
 		$map.on('mousedown', onMouseDown);
 		$map.on('mousemove', onMouseMove);
 		$map.on('mouseup', onMouseUp);
+		$map.on('touchstart', onMouseDown);
+		$map.on('touchmove', onMouseMove);
+		$map.on('touchend', onMouseUp);
 		$map.dragPan.disable();
 	}
 
@@ -107,6 +110,9 @@
 			$map.off('mousedown', onMouseDown);
 			$map.off('mousemove', onMouseMove);
 			$map.off('mouseup', onMouseUp);
+			$map.off('touchstart', onMouseDown);
+			$map.off('touchmove', onMouseMove);
+			$map.off('touchend', onMouseUp);
 			$map.dragPan.enable();
 
 			if ($map.getLayer('rectangle')) {

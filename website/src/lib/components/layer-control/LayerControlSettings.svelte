@@ -120,7 +120,7 @@
 				<Accordion.Item value="item-1" class="flex flex-col overflow-hidden">
 					<Accordion.Trigger>{$_('layers.selection')}</Accordion.Trigger>
 					<Accordion.Content class="grow flex flex-col border rounded">
-						<ScrollArea class="py-2 pr-2">
+						<ScrollArea class="py-2 pl-1 pr-2 min-h-9">
 							<LayerTree
 								layerTree={basemapTree}
 								name="basemapSettings"
@@ -129,7 +129,7 @@
 							/>
 						</ScrollArea>
 						<Separator />
-						<ScrollArea class="py-2 pr-2">
+						<ScrollArea class="py-2 pl-1 pr-2 min-h-9">
 							<LayerTree
 								layerTree={overlayTree}
 								name="overlaySettings"

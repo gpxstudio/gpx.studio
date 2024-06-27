@@ -13,6 +13,8 @@
 	import { get, writable } from 'svelte/store';
 	import { getLayers } from './utils';
 
+	let container: HTMLDivElement;
+
 	const {
 		currentBasemap,
 		previousBasemap,
@@ -95,38 +97,76 @@
 			}
 		};
 	}
+
+	let open = false;
+	function openLayerControl() {
+		open = true;
+	}
+	function closeLayerControl() {
+		open = false;
+	}
+	let cancelEvents = false;
 </script>
 
 <CustomControl class="group min-w-[29px] min-h-[29px] overflow-hidden">
+	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div
-		class="flex flex-row justify-center items-center w-[29px] h-[29px] delay-100 transition-[opacity height] duration-0 group-hover:opacity-0 group-hover:h-0 group-hover:delay-0"
+		bind:this={container}
+		class="h-full w-full"
+		on:mouseenter={openLayerControl}
+		on:mouseleave={closeLayerControl}
+		on:pointerenter={() => {
+			if (!open) {
+				cancelEvents = true;
+				openLayerControl();
+				setTimeout(() => {
+					cancelEvents = false;
+				}, 500);
+			}
+		}}
 	>
-		<Layers size="20" />
-	</div>
-	<div
-		class="transition-[grid-template-rows grid-template-cols] grid grid-rows-[0fr] grid-cols-[0fr] duration-150 group-hover:grid-rows-[1fr] group-hover:grid-cols-[1fr] h-full"
-	>
-		<ScrollArea>
-			<div class="h-fit">
-				<div class="p-2">
-					<LayerTree
-						layerTree={$selectedBasemapTree}
-						name="basemaps"
-						bind:selected={$selectedBasemap}
-					/>
-				</div>
-				<Separator class="w-full" />
-				<div class="p-2">
-					{#if $currentOverlays}
+		<div
+			class="flex flex-row justify-center items-center delay-100 transition-[opacity] duration-0 {open
+				? 'opacity-0 w-0 h-0 delay-0'
+				: 'w-[29px] h-[29px]'}"
+		>
+			<Layers size="20" />
+		</div>
+		<div
+			class="transition-[grid-template-rows grid-template-cols] grid grid-rows-[0fr] grid-cols-[0fr] duration-150 h-full {open
+				? 'grid-rows-[1fr] grid-cols-[1fr]'
+				: ''} {cancelEvents ? 'pointer-events-none' : ''}"
+		>
+			<ScrollArea>
+				<div class="h-fit">
+					<div class="p-2">
 						<LayerTree
-							layerTree={$selectedOverlayTree}
-							name="overlays"
-							multiple={true}
-							bind:checked={$currentOverlays}
+							layerTree={$selectedBasemapTree}
+							name="basemaps"
+							bind:selected={$selectedBasemap}
 						/>
-					{/if}
+					</div>
+					<Separator class="w-full" />
+					<div class="p-2">
+						{#if $currentOverlays}
+							<LayerTree
+								layerTree={$selectedOverlayTree}
+								name="overlays"
+								multiple={true}
+								bind:checked={$currentOverlays}
+							/>
+						{/if}
+					</div>
 				</div>
-			</div>
-		</ScrollArea>
+			</ScrollArea>
+		</div>
 	</div>
 </CustomControl>
+
+<svelte:window
+	on:click={(e) => {
+		if (open && !cancelEvents && !container.contains(e.target)) {
+			closeLayerControl();
+		}
+	}}
+/>
