@@ -214,7 +214,7 @@
 			{#if item instanceof ListFileItem || item instanceof ListTrackItem}
 				<Popover.Root bind:open={openEditMetadata}>
 					<Popover.Trigger />
-					<Popover.Content side="top" sideOffset={22} class="flex flex-col gap-3">
+					<Popover.Content side="top" sideOffset={22} alignOffset={30} class="flex flex-col gap-3">
 						<Label for="name">{$_('menu.metadata.name')}</Label>
 						<Input bind:value={name} id="name" class="font-semibold h-8" />
 						<Label for="description">{$_('menu.metadata.description')}</Label>
@@ -242,7 +242,7 @@
 				</Popover.Root>
 				<Popover.Root bind:open={openEditStyle}>
 					<Popover.Trigger />
-					<Popover.Content side="top" sideOffset={22} class="flex flex-col gap-3">
+					<Popover.Content side="top" sideOffset={22} alignOffset={30} class="flex flex-col gap-3">
 						<Label class="flex flex-row gap-2 items-center justify-between">
 							{$_('menu.style.color')}
 							<Input
