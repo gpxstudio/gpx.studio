@@ -357,6 +357,32 @@ export function toggleSelectionVisibility() {
     });
 }
 
+export function hideSelection() {
+    let files = new Set<string>();
+    get(selection).forEach((item) => {
+        files.add(item.getFileId());
+    });
+    files.forEach((fileId) => {
+        let layer = gpxLayers.get(fileId);
+        if (layer && !layer.hidden) {
+            layer.toggleVisibility();
+        }
+    });
+}
+
+export function showSelection() {
+    let files = new Set<string>();
+    get(selection).forEach((item) => {
+        files.add(item.getFileId());
+    });
+    files.forEach((fileId) => {
+        let layer = gpxLayers.get(fileId);
+        if (layer && layer.hidden) {
+            layer.toggleVisibility();
+        }
+    });
+}
+
 let stravaCookies: any = null;
 function refreshStravaCookies() {
     /*

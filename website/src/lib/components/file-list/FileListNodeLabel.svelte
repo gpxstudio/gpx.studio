@@ -1,11 +1,6 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Textarea } from '$lib/components/ui/textarea';
-	import { Label } from '$lib/components/ui/label/index.js';
-	import { Slider } from '$lib/components/ui/slider';
 	import * as ContextMenu from '$lib/components/ui/context-menu';
-	import * as Popover from '$lib/components/ui/popover';
 	import Shortcut from '$lib/components/Shortcut.svelte';
 	import { dbUtils, getFile, settings } from '$lib/db';
 	import {
@@ -14,7 +9,6 @@
 		MapPin,
 		PaintBucket,
 		Plus,
-		Save,
 		Trash2,
 		Waypoints,
 		Eye,
@@ -41,7 +35,7 @@
 	} from './Selection';
 	import { getContext } from 'svelte';
 	import { get } from 'svelte/store';
-	import { gpxLayers, map, toggleSelectionVisibility } from '$lib/stores';
+	import { gpxLayers, hideSelection, map, showSelection } from '$lib/stores';
 	import {
 		GPXTreeElement,
 		Track,
@@ -51,6 +45,8 @@
 		GPXFile
 	} from 'gpx';
 	import { _ } from 'svelte-i18n';
+	import MetadataDialog from './MetadataDialog.svelte';
+	import StyleDialog from './StyleDialog.svelte';
 
 	export let node:
 		| GPXTreeElement<AnyGPXTreeElement>
@@ -58,36 +54,18 @@
 		| Readonly<Waypoint>;
 	export let item: ListItem;
 	export let label: string | undefined;
-	let nodeColors: string[] = [];
 	let hidden = false;
 
 	let orientation = getContext<'vertical' | 'horizontal'>('orientation');
 
-	const { verticalFileView, defaultOpacity, defaultWeight } = settings;
+	const { verticalFileView } = settings;
 
 	$: singleSelection = $selection.size === 1;
 
 	let openEditMetadata: boolean = false;
 	let openEditStyle: boolean = false;
-	let name: string =
-		node instanceof GPXFile
-			? node.metadata.name ?? ''
-			: node instanceof Track
-				? node.name ?? ''
-				: '';
-	let description: string =
-		node instanceof GPXFile
-			? node.metadata.desc ?? ''
-			: node instanceof Track
-				? node.desc ?? ''
-				: '';
-	let colors: string[] = [];
-	let color: string | undefined = undefined;
-	let opacity: number[] = [];
-	let weight: number[] = [];
-	let colorChanged = false;
-	let opacityChanged = false;
-	let weightChanged = false;
+
+	let nodeColors: string[] = [];
 
 	$: if (node && $map) {
 		nodeColors = [];
@@ -120,72 +98,6 @@
 			}
 		}
 	}
-
-	function setStyleInputs() {
-		colors = [];
-		opacity = [];
-		weight = [];
-
-		$selection.forEach((item) => {
-			if (item instanceof ListFileItem) {
-				let file = getFile(item.getFileId());
-				let layer = gpxLayers.get(item.getFileId());
-				if (file && layer) {
-					let style = file.getStyle();
-					style.color.push(layer.layerColor);
-
-					style.color.forEach((c) => {
-						if (!colors.includes(c)) {
-							colors.push(c);
-						}
-					});
-					style.opacity.forEach((o) => {
-						if (!opacity.includes(o)) {
-							opacity.push(o);
-						}
-					});
-					style.weight.forEach((w) => {
-						if (!weight.includes(w)) {
-							weight.push(w);
-						}
-					});
-				}
-			} else if (item instanceof ListTrackItem) {
-				let file = getFile(item.getFileId());
-				let layer = gpxLayers.get(item.getFileId());
-				if (file && layer) {
-					let track = file.trk[item.getTrackIndex()];
-					let style = track.getStyle();
-					if (style) {
-						if (style.color && !colors.includes(style.color)) {
-							colors.push(style.color);
-						}
-						if (style.opacity && !opacity.includes(style.opacity)) {
-							opacity.push(style.opacity);
-						}
-						if (style.weight && !weight.includes(style.weight)) {
-							weight.push(style.weight);
-						}
-					}
-					if (!colors.includes(layer.layerColor)) {
-						colors.push(layer.layerColor);
-					}
-				}
-			}
-		});
-
-		color = colors[0];
-		opacity = [opacity[0] ?? $defaultOpacity];
-		weight = [weight[0] ?? $defaultWeight];
-
-		colorChanged = false;
-		opacityChanged = false;
-		weightChanged = false;
-	}
-
-	$: if ($selection && openEditStyle) {
-		setStyleInputs();
-	}
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -212,104 +124,8 @@
 				: 'h-9 px-1.5 shadow-md'} pointer-events-auto"
 		>
 			{#if item instanceof ListFileItem || item instanceof ListTrackItem}
-				<Popover.Root bind:open={openEditMetadata}>
-					<Popover.Trigger />
-					<Popover.Content side="top" sideOffset={22} alignOffset={30} class="flex flex-col gap-3">
-						<Label for="name">{$_('menu.metadata.name')}</Label>
-						<Input bind:value={name} id="name" class="font-semibold h-8" />
-						<Label for="description">{$_('menu.metadata.description')}</Label>
-						<Textarea bind:value={description} id="description" />
-						<Button
-							variant="outline"
-							on:click={() => {
-								dbUtils.applyToFile(item.getFileId(), (file) => {
-									if (item instanceof ListFileItem && node instanceof GPXFile) {
-										file.metadata.name = name;
-										file.metadata.desc = description;
-									} else if (item instanceof ListTrackItem && node instanceof Track) {
-										file.trk[item.getTrackIndex()].name = name;
-										file.trk[item.getTrackIndex()].desc = description;
-									}
-									return file;
-								});
-								openEditMetadata = false;
-							}}
-						>
-							<Save size="16" class="mr-1" />
-							{$_('menu.metadata.save')}
-						</Button>
-					</Popover.Content>
-				</Popover.Root>
-				<Popover.Root bind:open={openEditStyle}>
-					<Popover.Trigger />
-					<Popover.Content side="top" sideOffset={22} alignOffset={30} class="flex flex-col gap-3">
-						<Label class="flex flex-row gap-2 items-center justify-between">
-							{$_('menu.style.color')}
-							<Input
-								bind:value={color}
-								type="color"
-								class="p-0 h-6 w-40"
-								on:change={() => (colorChanged = true)}
-							/>
-						</Label>
-						<Label class="flex flex-row gap-2 items-center justify-between">
-							{$_('menu.style.opacity')}
-							<div class="w-40 p-2">
-								<Slider
-									bind:value={opacity}
-									min={0.3}
-									max={1}
-									step={0.1}
-									onValueChange={() => (opacityChanged = true)}
-								/>
-							</div>
-						</Label>
-						<Label class="flex flex-row gap-2 items-center justify-between">
-							{$_('menu.style.weight')}
-							<div class="w-40 p-2">
-								<Slider
-									bind:value={weight}
-									id="weight"
-									min={1}
-									max={10}
-									step={1}
-									onValueChange={() => (weightChanged = true)}
-								/>
-							</div>
-						</Label>
-						<Button
-							variant="outline"
-							disabled={!colorChanged && !opacityChanged && !weightChanged}
-							on:click={() => {
-								let style = {};
-								if (colorChanged) {
-									style.color = color;
-								}
-								if (opacityChanged) {
-									style.opacity = opacity[0];
-								}
-								if (weightChanged) {
-									style.weight = weight[0];
-								}
-								dbUtils.setStyleToSelection(style);
-
-								if (item instanceof ListFileItem && $selection.size === gpxLayers.size) {
-									if (style.opacity) {
-										$defaultOpacity = style.opacity;
-									}
-									if (style.weight) {
-										$defaultWeight = style.weight;
-									}
-								}
-
-								openEditStyle = false;
-							}}
-						>
-							<Save size="16" class="mr-1" />
-							{$_('menu.metadata.save')}
-						</Button>
-					</Popover.Content>
-				</Popover.Root>
+				<MetadataDialog bind:open={openEditMetadata} {node} {item} />
+				<StyleDialog bind:open={openEditStyle} {item} />
 			{/if}
 			{#if item.level === ListLevel.FILE || item.level === ListLevel.TRACK}
 				<div
@@ -378,7 +194,15 @@
 				{$_('menu.style.button')}
 			</ContextMenu.Item>
 			{#if item instanceof ListFileItem}
-				<ContextMenu.Item on:click={toggleSelectionVisibility}>
+				<ContextMenu.Item
+					on:click={() => {
+						if (hidden) {
+							showSelection();
+						} else {
+							hideSelection();
+						}
+					}}
+				>
 					{#if hidden}
 						<Eye size="16" class="mr-1" />
 						{$_('menu.unhide')}
