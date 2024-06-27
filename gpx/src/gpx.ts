@@ -17,8 +17,8 @@ export abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
     abstract get children(): ReadonlyArray<T>;
 
     abstract getNumberOfTrackPoints(): number;
-    abstract getStartTimestamp(): Date;
-    abstract getEndTimestamp(): Date;
+    abstract getStartTimestamp(): Date | undefined;
+    abstract getEndTimestamp(): Date | undefined;
     abstract getStatistics(): GPXStatistics;
     abstract getSegments(): TrackSegment[];
 
@@ -40,11 +40,17 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
         return this.children.reduce((acc, child) => acc + child.getNumberOfTrackPoints(), 0);
     }
 
-    getStartTimestamp(): Date {
+    getStartTimestamp(): Date | undefined {
+        if (this.children.length === 0) {
+            return undefined;
+        }
         return this.children[0].getStartTimestamp();
     }
 
-    getEndTimestamp(): Date {
+    getEndTimestamp(): Date | undefined {
+        if (this.children.length === 0) {
+            return undefined;
+        }
         return this.children[this.children.length - 1].getEndTimestamp();
     }
 
@@ -65,19 +71,28 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
         return produce(this, (draft: Draft<GPXTreeNode<T>>) => {
             let og = getOriginal(draft);
             if (!originalNextTimestamp && !newPreviousTimestamp) {
-                originalNextTimestamp = og.children[og.children.length - 1].getEndTimestamp();
-                newPreviousTimestamp = og.children[0].getStartTimestamp();
+                originalNextTimestamp = og.getEndTimestamp();
+                newPreviousTimestamp = og.getStartTimestamp();
             }
 
-            draft.children.reverse();
+            let children = og.children.slice();
+            children.reverse();
 
             for (let i = 0; i < og.children.length; i++) {
                 let originalStartTimestamp = og.children[og.children.length - i - 1].getStartTimestamp();
 
-                draft.children[i] = draft.children[i]._reverse(originalNextTimestamp, newPreviousTimestamp);
+                children[i] = children[i]._reverse(originalNextTimestamp, newPreviousTimestamp);
 
                 originalNextTimestamp = originalStartTimestamp;
-                newPreviousTimestamp = draft.children[i].getEndTimestamp();
+                newPreviousTimestamp = children[i].getEndTimestamp();
+            }
+
+            if (this instanceof GPXFile) {
+                // @ts-ignore
+                draft.trk = freeze(children);
+            } else if (this instanceof Track) {
+                // @ts-ignore
+                draft.trkseg = freeze(children);
             }
         });
     }
@@ -91,24 +106,6 @@ abstract class GPXTreeLeaf extends GPXTreeElement<GPXTreeLeaf> {
 
     get children(): ReadonlyArray<GPXTreeLeaf> {
         return [];
-    }
-}
-
-// A class that represents a set of GPX files
-export class GPXFiles extends GPXTreeNode<GPXFile> {
-    readonly files: ReadonlyArray<GPXFile>;
-
-    constructor(files: GPXFile[]) {
-        super();
-        this.files = files;
-    }
-
-    get children(): ReadonlyArray<GPXFile> {
-        return this.files;
-    }
-
-    toGeoJSON(): GeoJSON.FeatureCollection[] {
-        return this.children.map((child) => child.toGeoJSON());
     }
 }
 
@@ -745,11 +742,17 @@ export class TrackSegment extends GPXTreeLeaf {
         return this.trkpt.length;
     }
 
-    getStartTimestamp(): Date {
+    getStartTimestamp(): Date | undefined {
+        if (this.trkpt.length === 0) {
+            return undefined;
+        }
         return this.trkpt[0].time;
     }
 
-    getEndTimestamp(): Date {
+    getEndTimestamp(): Date | undefined {
+        if (this.trkpt.length === 0) {
+            return undefined;
+        }
         return this.trkpt[this.trkpt.length - 1].time;
     }
 
