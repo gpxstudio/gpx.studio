@@ -446,6 +446,9 @@ export const dbUtils = {
                             let [result, _removed] = newFile.replaceTrackSegments(trackIndex, segmentIndex + 1, segmentIndex, [file.trk[trackIndex].trkseg[segmentIndex].clone()]);
                             newFile = result;
                         }
+                    } else if (level === ListLevel.WAYPOINTS) {
+                        let [result, _removed] = newFile.replaceWaypoints(file.wpt.length, file.wpt.length - 1, file.wpt.map((wpt) => wpt.clone()));
+                        newFile = result;
                     } else if (level === ListLevel.WAYPOINT) {
                         for (let item of items) {
                             let waypointIndex = (item as ListWaypointItem).getWaypointIndex();
@@ -846,7 +849,7 @@ export const dbUtils = {
         applyGlobal((draft) => {
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
                 let file = original(draft)?.get(fileId);
-                if (file) {
+                if (file && (level === ListLevel.FILE || level === ListLevel.TRACK)) {
                     let newFile = file;
                     if (level === ListLevel.FILE) {
                         newFile = file.setStyle(style);

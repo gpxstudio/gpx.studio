@@ -344,6 +344,15 @@ export function exportFile(file: GPXFile) {
     URL.revokeObjectURL(url);
 }
 
+export const anyHidden = writable(false);
+function updateAnyHidden() {
+    anyHidden.set(get(selection).getSelected().some((item) => {
+        let layer = gpxLayers.get(item.getFileId());
+        return layer && layer.hidden;
+    }));
+}
+selection.subscribe(updateAnyHidden);
+
 export function toggleSelectionVisibility() {
     let files = new Set<string>();
     get(selection).forEach((item) => {
@@ -355,6 +364,7 @@ export function toggleSelectionVisibility() {
             layer.toggleVisibility();
         }
     });
+    updateAnyHidden();
 }
 
 export function hideSelection() {
@@ -368,6 +378,7 @@ export function hideSelection() {
             layer.toggleVisibility();
         }
     });
+    anyHidden.set(true);
 }
 
 export function showSelection() {
@@ -381,7 +392,11 @@ export function showSelection() {
             layer.toggleVisibility();
         }
     });
+    anyHidden.set(false);
 }
+
+export const editMetadata = writable(false);
+export const editStyle = writable(false);
 
 let stravaCookies: any = null;
 function refreshStravaCookies() {

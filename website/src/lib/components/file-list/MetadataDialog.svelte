@@ -9,6 +9,7 @@
 	import { ListFileItem, ListTrackItem, type ListItem } from './FileList';
 	import { GPXTreeElement, Track, type AnyGPXTreeElement, Waypoint, GPXFile } from 'gpx';
 	import { _ } from 'svelte-i18n';
+	import { editMetadata } from '$lib/stores';
 
 	export let node:
 		| GPXTreeElement<AnyGPXTreeElement>
@@ -29,6 +30,10 @@
 			: node instanceof Track
 				? node.desc ?? ''
 				: '';
+
+	$: if (!open) {
+		$editMetadata = false;
+	}
 </script>
 
 <Popover.Root bind:open>

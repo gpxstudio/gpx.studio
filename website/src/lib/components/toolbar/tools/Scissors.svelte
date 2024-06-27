@@ -22,7 +22,9 @@
 	import { Crop } from 'lucide-svelte';
 	import { dbUtils } from '$lib/db';
 
-	$: validSelection = $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints']);
+	$: validSelection =
+		$selection.hasAnyChildren(new ListRootItem(), true, ['waypoints']) &&
+		$gpxStatistics.local.points.length > 0;
 
 	let maxSliderValue = 100;
 	let sliderValues = [0, 100];
@@ -82,8 +84,9 @@
 		variant="outline"
 		disabled={!validSelection || !canCrop}
 		on:click={() => dbUtils.cropSelection(sliderValues[0], sliderValues[1])}
-		><Crop size="16" class="mr-1" />{$_('toolbar.scissors.crop')}</Button
 	>
+		<Crop size="16" class="mr-1" />{$_('toolbar.scissors.crop')}
+	</Button>
 	<Separator />
 	<Label class="flex flex-row gap-3 items-center">
 		<span class="shrink-0">

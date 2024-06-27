@@ -8,7 +8,7 @@
 	import { Save } from 'lucide-svelte';
 	import { ListFileItem, ListTrackItem, type ListItem } from './FileList';
 	import { selection } from './Selection';
-	import { gpxLayers } from '$lib/stores';
+	import { editStyle, gpxLayers } from '$lib/stores';
 	import { _ } from 'svelte-i18n';
 
 	export let item: ListItem;
@@ -88,6 +88,10 @@
 
 	$: if ($selection && open) {
 		setStyleInputs();
+	}
+
+	$: if (!open) {
+		$editStyle = false;
 	}
 </script>
 

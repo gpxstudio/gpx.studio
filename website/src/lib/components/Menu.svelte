@@ -33,7 +33,13 @@
 		View,
 		FilePen,
 		HeartHandshake,
-		PersonStanding
+		PersonStanding,
+		Eye,
+		EyeOff,
+		ClipboardCopy,
+		Scissors,
+		ClipboardPaste,
+		PaintBucket
 	} from 'lucide-svelte';
 
 	import {
@@ -44,9 +50,15 @@
 		createFile,
 		loadFiles,
 		toggleSelectionVisibility,
-		updateSelectionFromKey
+		updateSelectionFromKey,
+		showSelection,
+		hideSelection,
+		anyHidden,
+		editMetadata,
+		editStyle
 	} from '$lib/stores';
 	import {
+		copied,
 		copySelection,
 		cutSelection,
 		pasteSelection,
@@ -65,6 +77,7 @@
 	import { languages } from '$lib/languages';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
+	import { allowedPastes, ListFileItem, ListTrackItem } from './file-list/FileList';
 
 	const {
 		distanceUnits,
@@ -180,11 +193,75 @@
 						<Shortcut key="Z" ctrl={true} shift={true} />
 					</Menubar.Item>
 					<Menubar.Separator />
+					<Menubar.Item
+						disabled={$selection.size !== 1 ||
+							!$selection
+								.getSelected()
+								.every((item) => item instanceof ListFileItem || item instanceof ListTrackItem)}
+						on:click={() => ($editMetadata = true)}
+					>
+						<Info size="16" class="mr-1" />
+						{$_('menu.metadata.button')}
+					</Menubar.Item>
+					<Menubar.Item
+						disabled={$selection.size === 0 ||
+							!$selection
+								.getSelected()
+								.every((item) => item instanceof ListFileItem || item instanceof ListTrackItem)}
+						on:click={() => ($editStyle = true)}
+					>
+						<PaintBucket size="16" class="mr-1" />
+						{$_('menu.style.button')}
+					</Menubar.Item>
+					<Menubar.Item
+						on:click={() => {
+							if ($anyHidden) {
+								showSelection();
+							} else {
+								hideSelection();
+							}
+						}}
+						disabled={$selection.size == 0}
+					>
+						{#if $anyHidden}
+							<Eye size="16" class="mr-1" />
+							{$_('menu.unhide')}
+						{:else}
+							<EyeOff size="16" class="mr-1" />
+							{$_('menu.hide')}
+						{/if}
+						<Shortcut key="H" ctrl={true} />
+					</Menubar.Item>
+					<Menubar.Separator />
 					<Menubar.Item on:click={selectAll}>
 						<span class="w-4 mr-1"></span>
 						{$_('menu.select_all')}
 						<Shortcut key="A" ctrl={true} />
 					</Menubar.Item>
+					{#if $verticalFileView}
+						<Menubar.Separator />
+						<Menubar.Item on:click={copySelection} disabled={$selection.size === 0}>
+							<ClipboardCopy size="16" class="mr-1" />
+							{$_('menu.copy')}
+							<Shortcut key="C" ctrl={true} />
+						</Menubar.Item>
+						<Menubar.Item on:click={cutSelection} disabled={$selection.size === 0}>
+							<Scissors size="16" class="mr-1" />
+							{$_('menu.cut')}
+							<Shortcut key="X" ctrl={true} />
+						</Menubar.Item>
+						<Menubar.Item
+							disabled={$copied === undefined ||
+								$copied.length === 0 ||
+								($selection.size > 0 &&
+									!allowedPastes[$copied[0].level].includes($selection.getSelected().pop()?.level))}
+							on:click={pasteSelection}
+						>
+							<ClipboardPaste size="16" class="mr-1" />
+							{$_('menu.paste')}
+							<Shortcut key="V" ctrl={true} />
+						</Menubar.Item>
+					{/if}
 					<Menubar.Separator />
 					<Menubar.Item on:click={dbUtils.deleteSelection} disabled={$selection.size == 0}>
 						<Trash2 size="16" class="mr-1" />

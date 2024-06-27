@@ -35,7 +35,15 @@
 	} from './Selection';
 	import { getContext } from 'svelte';
 	import { get } from 'svelte/store';
-	import { gpxLayers, hideSelection, map, showSelection } from '$lib/stores';
+	import {
+		anyHidden,
+		editMetadata,
+		editStyle,
+		gpxLayers,
+		hideSelection,
+		map,
+		showSelection
+	} from '$lib/stores';
 	import {
 		GPXTreeElement,
 		Track,
@@ -54,16 +62,12 @@
 		| Readonly<Waypoint>;
 	export let item: ListItem;
 	export let label: string | undefined;
-	let hidden = false;
 
 	let orientation = getContext<'vertical' | 'horizontal'>('orientation');
 
 	const { verticalFileView } = settings;
 
 	$: singleSelection = $selection.size === 1;
-
-	let openEditMetadata: boolean = false;
-	let openEditStyle: boolean = false;
 
 	let nodeColors: string[] = [];
 
@@ -98,6 +102,15 @@
 			}
 		}
 	}
+
+	let openEditMetadata: boolean = false;
+	let openEditStyle: boolean = false;
+
+	$: openEditMetadata = $editMetadata && singleSelection && $selection.has(item);
+	$: openEditStyle =
+		$editStyle &&
+		$selection.has(item) &&
+		$selection.getSelected().findIndex((i) => i.getFullId() === item.getFullId()) === 0;
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -107,10 +120,6 @@
 		if (open) {
 			if (!get(selection).has(item)) {
 				selectItem(item);
-			}
-			let layer = gpxLayers.get(item.getFileId());
-			if (layer) {
-				hidden = layer.hidden;
 			}
 		}
 	}}
@@ -185,25 +194,25 @@
 	</ContextMenu.Trigger>
 	<ContextMenu.Content>
 		{#if item instanceof ListFileItem || item instanceof ListTrackItem}
-			<ContextMenu.Item disabled={!singleSelection} on:click={() => (openEditMetadata = true)}>
+			<ContextMenu.Item disabled={!singleSelection} on:click={() => ($editMetadata = true)}>
 				<Info size="16" class="mr-1" />
 				{$_('menu.metadata.button')}
 			</ContextMenu.Item>
-			<ContextMenu.Item on:click={() => (openEditStyle = true)}>
+			<ContextMenu.Item on:click={() => ($editStyle = true)}>
 				<PaintBucket size="16" class="mr-1" />
 				{$_('menu.style.button')}
 			</ContextMenu.Item>
 			{#if item instanceof ListFileItem}
 				<ContextMenu.Item
 					on:click={() => {
-						if (hidden) {
+						if ($anyHidden) {
 							showSelection();
 						} else {
 							hideSelection();
 						}
 					}}
 				>
-					{#if hidden}
+					{#if $anyHidden}
 						<Eye size="16" class="mr-1" />
 						{$_('menu.unhide')}
 					{:else}
@@ -252,14 +261,12 @@
 				<ContextMenu.Separator />
 			{/if}
 		{/if}
-		{#if $verticalFileView || item.level !== ListLevel.WAYPOINTS}
-			{#if item.level !== ListLevel.WAYPOINTS}
-				<ContextMenu.Item on:click={dbUtils.duplicateSelection}>
-					<Copy size="16" class="mr-1" />
-					{$_('menu.duplicate')}
-					<Shortcut key="D" ctrl={true} /></ContextMenu.Item
-				>
-			{/if}
+		{#if $verticalFileView}
+			<ContextMenu.Item on:click={dbUtils.duplicateSelection}>
+				<Copy size="16" class="mr-1" />
+				{$_('menu.duplicate')}
+				<Shortcut key="D" ctrl={true} /></ContextMenu.Item
+			>
 			{#if $verticalFileView}
 				<ContextMenu.Item on:click={copySelection}>
 					<ClipboardCopy size="16" class="mr-1" />
