@@ -1,13 +1,10 @@
 <script lang="ts">
 	import * as ToggleGroup from '$lib/components/ui/toggle-group';
 	import Tooltip from '$lib/components/Tooltip.svelte';
-
 	import Chart from 'chart.js/auto';
 	import mapboxgl from 'mapbox-gl';
-
 	import { map, gpxStatistics, slicedGPXStatistics } from '$lib/stores';
 	import { settings } from '$lib/db';
-
 	import { onDestroy, onMount } from 'svelte';
 	import {
 		BrickWall,
@@ -19,8 +16,7 @@
 		Zap
 	} from 'lucide-svelte';
 	import { surfaceColors } from '$lib/assets/surfaces';
-
-	import { _ } from 'svelte-i18n';
+	import { _, locale } from 'svelte-i18n';
 	import {
 		getCadenceUnits,
 		getCadenceWithUnits,
@@ -42,6 +38,12 @@
 		secondsToHHMMSS
 	} from '$lib/units';
 	import { get } from 'svelte/store';
+	import { DateFormatter } from '@internationalized/date';
+
+	const df = new DateFormatter($locale ?? 'en', {
+		dateStyle: 'medium',
+		timeStyle: 'medium'
+	});
 
 	let canvas: HTMLCanvasElement;
 	let overlay: HTMLCanvasElement;
@@ -143,11 +145,22 @@
 						};
 						let surface = point.surface ? point.surface : 'unknown';
 
-						return [
+						let labels = [
 							`    ${$_('quantities.distance')}: ${getDistanceWithUnits(point.x, false)}`,
-							`    ${$_('quantities.slope')}: ${slope.at} %${elevationFill === 'slope' ? ` (${slope.length} @${slope.segment} %)` : ''}`,
-							`    ${$_('quantities.surface')}: ${$_(`toolbar.routing.surface.${surface}`)}`
+							`    ${$_('quantities.slope')}: ${slope.at} %${elevationFill === 'slope' ? ` (${slope.length} @${slope.segment} %)` : ''}`
 						];
+
+						if (elevationFill === 'surface') {
+							labels.push(
+								`    ${$_('quantities.surface')}: ${$_(`toolbar.routing.surface.${surface}`)}`
+							);
+						}
+
+						if (point.time) {
+							labels.push(`    ${$_('quantities.time')}: ${df.format(point.time)}`);
+						}
+
+						return labels;
 					}
 				}
 			}
@@ -327,6 +340,7 @@
 				return {
 					x: getConvertedDistance(data.local.distance.total[index]),
 					y: point.ele ? getConvertedElevation(point.ele) : 0,
+					time: point.time,
 					slope: {
 						at: data.local.slope.at[index],
 						segment: data.local.slope.segment[index],
