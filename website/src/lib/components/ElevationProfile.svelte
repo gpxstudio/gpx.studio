@@ -434,7 +434,7 @@
 		let hue = ((0.5 - v) * 120).toString(10);
 		let lightness = 90 - Math.abs(v) * 70;
 
-		return ['hsl(', hue, ',60%,', lightness, '%)'].join('');
+		return ['hsl(', hue, ',70%,', lightness, '%)'].join('');
 	}
 
 	function surfaceFillCallback(context) {

@@ -5,7 +5,7 @@ export type SimplifiedTrackPoint = { point: TrackPoint, distance?: number };
 
 const earthRadius = 6371008.8;
 
-export function ramerDouglasPeucker(points: readonly TrackPoint[], epsilon: number = 50, measure: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => number = computeCrossarc, canSplit: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => boolean = () => true): SimplifiedTrackPoint[] {
+export function ramerDouglasPeucker(points: readonly TrackPoint[], epsilon: number = 50, measure: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => number = computeCrossarc): SimplifiedTrackPoint[] {
     if (points.length == 0) {
         return [];
     } else if (points.length == 1) {
@@ -17,33 +17,31 @@ export function ramerDouglasPeucker(points: readonly TrackPoint[], epsilon: numb
     let simplified = [{
         point: points[0]
     }];
-    ramerDouglasPeuckerRecursive(points, epsilon, measure, canSplit, 0, points.length - 1, simplified);
+    ramerDouglasPeuckerRecursive(points, epsilon, measure, 0, points.length - 1, simplified);
     simplified.push({
         point: points[points.length - 1]
     });
     return simplified;
 }
 
-function ramerDouglasPeuckerRecursive(points: readonly TrackPoint[], epsilon: number, measure: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => number, canSplit: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => boolean, start: number, end: number, simplified: SimplifiedTrackPoint[]) {
+function ramerDouglasPeuckerRecursive(points: readonly TrackPoint[], epsilon: number, measure: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => number, start: number, end: number, simplified: SimplifiedTrackPoint[]) {
     let largest = {
         index: 0,
         distance: 0
     };
 
     for (let i = start + 1; i < end; i++) {
-        if (canSplit(points[start], points[end], points[i])) {
-            let distance = measure(points[start], points[end], points[i]);
-            if (distance > largest.distance) {
-                largest.index = i;
-                largest.distance = distance;
-            }
+        let distance = measure(points[start], points[end], points[i]);
+        if (distance > largest.distance) {
+            largest.index = i;
+            largest.distance = distance;
         }
     }
 
     if (largest.distance > epsilon && largest.index != 0) {
-        ramerDouglasPeuckerRecursive(points, epsilon, measure, canSplit, start, largest.index, simplified);
+        ramerDouglasPeuckerRecursive(points, epsilon, measure, start, largest.index, simplified);
         simplified.push({ point: points[largest.index], distance: largest.distance });
-        ramerDouglasPeuckerRecursive(points, epsilon, measure, canSplit, largest.index, end, simplified);
+        ramerDouglasPeuckerRecursive(points, epsilon, measure, largest.index, end, simplified);
     }
 }
 

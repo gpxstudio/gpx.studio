@@ -692,10 +692,6 @@ export class TrackSegment extends GPXTreeLeaf {
     }
 
     _computeSlopeSegments(statistics: GPXStatistics): [number[], number[]] {
-        function canSplit(point1: TrackPoint, point2: TrackPoint, point3: TrackPoint): boolean {
-            return statistics.local.distance.total[point3._data.index] - statistics.local.distance.total[point1._data.index] >= 0.5 && statistics.local.distance.total[point2._data.index] - statistics.local.distance.total[point3._data.index] >= 0.5;
-        }
-
         // x-coordinates are given by: statistics.local.distance.total[point._data.index] * 1000
         // y-coordinates are given by: point.ele
         // Compute the distance between point3 and the line defined by point1 and point2
@@ -718,7 +714,7 @@ export class TrackSegment extends GPXTreeLeaf {
             return Math.abs((y2 - y1) * x3 - (x2 - x1) * y3 + x2 * y1 - y2 * x1) / dist;
         }
 
-        let simplified = ramerDouglasPeucker(this.trkpt, 25, elevationDistance, canSplit);
+        let simplified = ramerDouglasPeucker(this.trkpt, 20, elevationDistance);
 
         let slope = [];
         let length = [];
