@@ -154,10 +154,6 @@
 						{$_('menu.load_desktop')}
 						<Shortcut key="O" ctrl={true} />
 					</Menubar.Item>
-					<Menubar.Item>
-						<Cloud size="16" class="mr-1" />
-						{$_('menu.load_drive')}</Menubar.Item
-					>
 					<Menubar.Separator />
 					<Menubar.Item on:click={dbUtils.duplicateSelection} disabled={$selection.size == 0}>
 						<Copy size="16" class="mr-1" />

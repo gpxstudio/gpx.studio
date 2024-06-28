@@ -34,22 +34,20 @@
 		<Dialog.Content
 			class="fixed left-[50%] top-[50%] z-50 w-fit max-w-full translate-x-[-50%] translate-y-[-50%] flex flex-col items-center gap-2 border bg-background p-3 shadow-lg rounded-md"
 		>
-			<div class="flex flex-col items-center gap-2 rounded border p-2">
-				<div class="flex flex-row items-center gap-2 text-sm">
-					<span>⚠️</span>
-					<span class="text-center max-w-96">
-						{$_('menu.support_message')}
-					</span>
-					<span>⚠️</span>
-				</div>
-				<Button class="bg-support w-fit" href="https://ko-fi.com/gpxstudio">
+			<div class="flex flex-row items-center gap-4 border rounded-md p-2">
+				<span>⚠️</span>
+				<span class="max-w-96 text-sm">
+					{$_('menu.support_message')}
+				</span>
+			</div>
+			<div class="w-full flex flex-row flex-wrap gap-2">
+				<Button class="bg-support grow" href="https://ko-fi.com/gpxstudio" target="_blank">
 					{$_('menu.support_button')}
 					<span class="ml-2">🙏</span>
 				</Button>
-			</div>
-			<div class="flex flex-row gap-2 justify-center">
 				<Button
 					variant="outline"
+					class="grow"
 					on:click={() => {
 						if ($exportState === ExportState.SELECTION) {
 							exportSelectedFiles();
@@ -66,10 +64,6 @@
 					{:else}
 						{$_('menu.download_files')}
 					{/if}
-				</Button>
-				<Button variant="outline">
-					<Cloud size="16" class="mr-1" />
-					{$_('menu.save_drive')}
 				</Button>
 			</div>
 		</Dialog.Content>
