@@ -192,8 +192,8 @@ export class GPXFile extends GPXTreeNode<Track>{
 
     toGPXFileType(): GPXFileType {
         return {
-            attributes: this.attributes,
-            metadata: this.metadata,
+            attributes: cloneJSON(this.attributes),
+            metadata: cloneJSON(this.metadata),
             wpt: this.wpt,
             trk: this.trk.map((track) => track.toTrackType())
         };
