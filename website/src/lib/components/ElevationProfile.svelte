@@ -40,10 +40,14 @@
 	import { get } from 'svelte/store';
 	import { DateFormatter } from '@internationalized/date';
 
-	const df = new DateFormatter($locale ?? 'en', {
-		dateStyle: 'medium',
-		timeStyle: 'medium'
-	});
+	let df: DateFormatter;
+
+	$: if ($locale) {
+		df = new DateFormatter($locale, {
+			dateStyle: 'medium',
+			timeStyle: 'medium'
+		});
+	}
 
 	let canvas: HTMLCanvasElement;
 	let overlay: HTMLCanvasElement;

@@ -11,7 +11,6 @@
 		Redo2,
 		Trash2,
 		Upload,
-		Cloud,
 		Heart,
 		Map,
 		Layers2,
