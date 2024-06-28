@@ -113,7 +113,7 @@ export const settings = {
     fileOrder: dexieSettingStore<string[]>('fileOrder', []),
     defaultOpacity: dexieSettingStore('defaultOpacity', 0.7),
     defaultWeight: dexieSettingStore('defaultWeight', 5),
-    bottomPanelSize: dexieSettingStore('bottomPanelSize', 192),
+    bottomPanelSize: dexieSettingStore('bottomPanelSize', 170),
     rightPanelSize: dexieSettingStore('rightPanelSize', 240),
 };
 
