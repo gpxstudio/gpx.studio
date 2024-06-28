@@ -1,8 +1,8 @@
 <script lang="ts">
 	import * as Menubar from '$lib/components/ui/menubar/index.js';
 	import { Button } from '$lib/components/ui/button';
-	import Logo from './Logo.svelte';
-	import Shortcut from './Shortcut.svelte';
+	import Logo from '$lib/components/Logo.svelte';
+	import Shortcut from '$lib/components/Shortcut.svelte';
 	import {
 		Plus,
 		Copy,
@@ -44,8 +44,6 @@
 
 	import {
 		map,
-		exportAllFiles,
-		exportSelectedFiles,
 		triggerFileInput,
 		createFile,
 		loadFiles,
@@ -55,7 +53,9 @@
 		hideSelection,
 		anyHidden,
 		editMetadata,
-		editStyle
+		editStyle,
+		exportState,
+		ExportState
 	} from '$lib/stores';
 	import {
 		copied,
@@ -70,6 +70,8 @@
 	import { anySelectedLayer } from '$lib/components/layer-control/utils';
 	import { defaultOverlays } from '$lib/assets/layers';
 	import LayerControlSettings from '$lib/components/layer-control/LayerControlSettings.svelte';
+	import { allowedPastes, ListFileItem, ListTrackItem } from '$lib/components/file-list/FileList';
+	import Export from '$lib/components/Export.svelte';
 
 	import { resetMode, setMode, systemPrefersMode } from 'mode-watcher';
 
@@ -77,7 +79,6 @@
 	import { languages } from '$lib/languages';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
-	import { allowedPastes, ListFileItem, ListTrackItem } from './file-list/FileList';
 
 	const {
 		distanceUnits,
@@ -164,12 +165,18 @@
 						<Shortcut key="D" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Separator />
-					<Menubar.Item on:click={exportSelectedFiles} disabled={$selection.size == 0}>
+					<Menubar.Item
+						on:click={() => ($exportState = ExportState.SELECTION)}
+						disabled={$selection.size == 0}
+					>
 						<Download size="16" class="mr-1" />
 						{$_('menu.export')}
 						<Shortcut key="S" ctrl={true} />
 					</Menubar.Item>
-					<Menubar.Item on:click={exportAllFiles} disabled={$fileObservers.size == 0}>
+					<Menubar.Item
+						on:click={() => ($exportState = ExportState.ALL)}
+						disabled={$fileObservers.size == 0}
+					>
 						<Download size="16" class="mr-1" />
 						{$_('menu.export_all')}
 						<Shortcut key="S" ctrl={true} shift={true} />
@@ -452,6 +459,7 @@
 	</div>
 </div>
 
+<Export />
 <LayerControlSettings bind:open={layerSettingsOpen} />
 
 <svelte:window
@@ -478,9 +486,11 @@
 			}
 		} else if ((e.key === 's' || e.key == 'S') && (e.metaKey || e.ctrlKey)) {
 			if (e.shiftKey) {
-				exportAllFiles();
-			} else {
-				exportSelectedFiles();
+				if ($fileObservers.size > 0) {
+					$exportState = ExportState.ALL;
+				}
+			} else if ($selection.size > 0) {
+				$exportState = ExportState.SELECTION;
 			}
 			e.preventDefault();
 		} else if ((e.key === 'z' || e.key == 'Z') && (e.metaKey || e.ctrlKey)) {

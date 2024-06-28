@@ -312,26 +312,26 @@ export function updateSelectionFromKey(down: boolean, shift: boolean) {
     }
 }
 
-export function exportSelectedFiles() {
-    get(selection).forEach(async (item) => {
-        if (item instanceof ListFileItem) {
-            let file = getFile(item.getFileId());
-            if (file) {
-                exportFile(file);
-                await new Promise(resolve => setTimeout(resolve, 200));
-            }
+async function exportFiles(fileIds: string[]) {
+    for (let fileId of fileIds) {
+        let file = getFile(fileId);
+        if (file) {
+            exportFile(file);
+            await new Promise(resolve => setTimeout(resolve, 200));
         }
+    }
+}
+
+export function exportSelectedFiles() {
+    let fileIds: string[] = [];
+    applyToOrderedSelectedItemsFromFile(async (fileId, level, items) => {
+        fileIds.push(fileId);
     });
+    exportFiles(fileIds);
 }
 
 export function exportAllFiles() {
-    get(fileObservers).forEach(async (file) => {
-        let f = get(file);
-        if (f) {
-            exportFile(f.file);
-            await new Promise(resolve => setTimeout(resolve, 200));
-        }
-    });
+    exportFiles(get(fileOrder));
 }
 
 export function exportFile(file: GPXFile) {
@@ -397,6 +397,13 @@ export function showSelection() {
 
 export const editMetadata = writable(false);
 export const editStyle = writable(false);
+
+export enum ExportState {
+    NONE,
+    SELECTION,
+    ALL
+}
+export const exportState = writable<ExportState>(ExportState.NONE);
 
 let stravaCookies: any = null;
 function refreshStravaCookies() {
