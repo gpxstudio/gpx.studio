@@ -459,6 +459,18 @@
 
 <svelte:window
 	on:keydown={(e) => {
+		console.log(e);
+		let targetInput =
+			e.target.tagName === 'INPUT' ||
+			e.target.tagName === 'TEXTAREA' ||
+			e.target.tagName === 'SELECT' ||
+			e.target.role === 'combobox' ||
+			e.target.role === 'radio' ||
+			e.target.role === 'menu' ||
+			e.target.role === 'menuitem' ||
+			e.target.role === 'menuitemradio' ||
+			e.target.role === 'menuitemcheckbox';
+
 		if (e.key === '+' && (e.metaKey || e.ctrlKey)) {
 			createFile();
 			e.preventDefault();
@@ -469,13 +481,17 @@
 			dbUtils.duplicateSelection();
 			e.preventDefault();
 		} else if (e.key === 'c' && (e.metaKey || e.ctrlKey)) {
-			copySelection();
-			e.preventDefault();
+			if (!targetInput) {
+				copySelection();
+				e.preventDefault();
+			}
 		} else if (e.key === 'x' && (e.metaKey || e.ctrlKey)) {
-			cutSelection();
-			e.preventDefault();
+			if (!targetInput) {
+				cutSelection();
+				e.preventDefault();
+			}
 		} else if (e.key === 'v' && (e.metaKey || e.ctrlKey)) {
-			if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+			if (!targetInput) {
 				pasteSelection();
 				e.preventDefault();
 			}
@@ -502,8 +518,10 @@
 			}
 			e.preventDefault();
 		} else if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {
-			selectAll();
-			e.preventDefault();
+			if (!targetInput) {
+				selectAll();
+				e.preventDefault();
+			}
 		} else if (e.key === 'p' && (e.metaKey || e.ctrlKey)) {
 			$elevationProfile = !$elevationProfile;
 			e.preventDefault();
@@ -531,8 +549,10 @@
 			e.key === 'ArrowLeft' ||
 			e.key === 'ArrowUp'
 		) {
-			updateSelectionFromKey(e.key === 'ArrowRight' || e.key === 'ArrowDown', e.shiftKey);
-			e.preventDefault();
+			if (!targetInput) {
+				updateSelectionFromKey(e.key === 'ArrowRight' || e.key === 'ArrowDown', e.shiftKey);
+				e.preventDefault();
+			}
 		}
 	}}
 	on:dragover={(e) => e.preventDefault()}
