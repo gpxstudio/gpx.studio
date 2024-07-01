@@ -10,7 +10,6 @@
 		Undo2,
 		Redo2,
 		Trash2,
-		Upload,
 		Heart,
 		Map,
 		Layers2,
@@ -38,7 +37,10 @@
 		ClipboardCopy,
 		Scissors,
 		ClipboardPaste,
-		PaintBucket
+		PaintBucket,
+		FolderOpen,
+		FileStack,
+		FileX
 	} from 'lucide-svelte';
 
 	import {
@@ -149,8 +151,8 @@
 					</Menubar.Item>
 					<Menubar.Separator />
 					<Menubar.Item on:click={triggerFileInput}>
-						<Upload size="16" class="mr-1" />
-						{$_('menu.load_desktop')}
+						<FolderOpen size="16" class="mr-1" />
+						{$_('menu.open')}
 						<Shortcut key="O" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Separator />
@@ -158,6 +160,17 @@
 						<Copy size="16" class="mr-1" />
 						{$_('menu.duplicate')}
 						<Shortcut key="D" ctrl={true} />
+					</Menubar.Item>
+					<Menubar.Separator />
+					<Menubar.Item on:click={dbUtils.deleteSelectedFiles} disabled={$selection.size == 0}>
+						<FileX size="16" class="mr-1" />
+						{$_('menu.close')}
+						<Shortcut key="⌫" ctrl={true} />
+					</Menubar.Item>
+					<Menubar.Item on:click={dbUtils.deleteAllFiles} disabled={$fileObservers.size == 0}>
+						<FileX size="16" class="mr-1" />
+						{$_('menu.close_all')}
+						<Shortcut key="⌫" ctrl={true} shift={true} />
 					</Menubar.Item>
 					<Menubar.Separator />
 					<Menubar.Item
@@ -236,7 +249,7 @@
 					</Menubar.Item>
 					<Menubar.Separator />
 					<Menubar.Item on:click={selectAll}>
-						<span class="w-4 mr-1"></span>
+						<FileStack size="16" class="mr-1" />
 						{$_('menu.select_all')}
 						<Shortcut key="A" ctrl={true} />
 					</Menubar.Item>
@@ -269,15 +282,6 @@
 						<Trash2 size="16" class="mr-1" />
 						{$_('menu.delete')}
 						<Shortcut key="⌫" ctrl={true} />
-					</Menubar.Item>
-					<Menubar.Item
-						class="text-destructive data-[highlighted]:text-destructive"
-						on:click={dbUtils.deleteAllFiles}
-						disabled={$fileObservers.size == 0}
-					>
-						<Trash2 size="16" class="mr-1" />
-						{$_('menu.delete_all')}
-						<Shortcut key="⌫" ctrl={true} shift={true} />
 					</Menubar.Item>
 				</Menubar.Content>
 			</Menubar.Menu>
@@ -459,7 +463,6 @@
 
 <svelte:window
 	on:keydown={(e) => {
-		console.log(e);
 		let targetInput =
 			e.target.tagName === 'INPUT' ||
 			e.target.tagName === 'TEXTAREA' ||

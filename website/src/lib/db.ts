@@ -908,6 +908,16 @@ export const dbUtils = {
             });
         });
     },
+    deleteSelectedFiles: () => {
+        if (get(selection).size === 0) {
+            return;
+        }
+        applyGlobal((draft) => {
+            applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+                draft.delete(fileId);
+            });
+        });
+    },
     deleteAllFiles: () => {
         applyGlobal((draft) => {
             draft.clear();

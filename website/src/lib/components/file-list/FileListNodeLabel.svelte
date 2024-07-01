@@ -15,7 +15,9 @@
 		EyeOff,
 		ClipboardCopy,
 		ClipboardPaste,
-		Scissors
+		Scissors,
+		FileStack,
+		FileX
 	} from 'lucide-svelte';
 	import {
 		ListFileItem,
@@ -30,6 +32,7 @@
 		copySelection,
 		cutSelection,
 		pasteSelection,
+		selectAll,
 		selectItem,
 		selection
 	} from './Selection';
@@ -261,6 +264,14 @@
 				<ContextMenu.Separator />
 			{/if}
 		{/if}
+		{#if item.level !== ListLevel.WAYPOINTS}
+			<ContextMenu.Item on:click={selectAll}>
+				<FileStack size="16" class="mr-1" />
+				{$_('menu.select_all')}
+				<Shortcut key="A" ctrl={true} />
+			</ContextMenu.Item>
+			<ContextMenu.Separator />
+		{/if}
 		{#if $verticalFileView}
 			<ContextMenu.Item on:click={dbUtils.duplicateSelection}>
 				<Copy size="16" class="mr-1" />
@@ -292,8 +303,13 @@
 			<ContextMenu.Separator />
 		{/if}
 		<ContextMenu.Item on:click={dbUtils.deleteSelection}>
-			<Trash2 size="16" class="mr-1" />
-			{$_('menu.delete')}
+			{#if item instanceof ListFileItem}
+				<FileX size="16" class="mr-1" />
+				{$_('menu.close')}
+			{:else}
+				<Trash2 size="16" class="mr-1" />
+				{$_('menu.delete')}
+			{/if}
 			<Shortcut key="⌫" ctrl={true} />
 		</ContextMenu.Item>
 	</ContextMenu.Content>
