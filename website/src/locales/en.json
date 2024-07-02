@@ -58,13 +58,13 @@
         "click": "Click",
         "drag": "Drag",
         "metadata": {
-            "button": "Edit info",
+            "button": "Info...",
             "name": "Name",
             "description": "Description",
             "save": "Save"
         },
         "style": {
-            "button": "Change style",
+            "button": "Appearance...",
             "color": "Color",
             "opacity": "Opacity",
             "weight": "Weight"

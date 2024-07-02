@@ -200,6 +200,7 @@
 			<ContextMenu.Item disabled={!singleSelection} on:click={() => ($editMetadata = true)}>
 				<Info size="16" class="mr-1" />
 				{$_('menu.metadata.button')}
+				<Shortcut key="I" ctrl={true} />
 			</ContextMenu.Item>
 			<ContextMenu.Item on:click={() => ($editStyle = true)}>
 				<PaintBucket size="16" class="mr-1" />

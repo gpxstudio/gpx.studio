@@ -217,6 +217,7 @@
 					>
 						<Info size="16" class="mr-1" />
 						{$_('menu.metadata.button')}
+						<Shortcut key="I" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Item
 						disabled={$selection.size === 0 ||
@@ -525,6 +526,16 @@
 				selectAll();
 				e.preventDefault();
 			}
+		} else if (e.key === 'i' && (e.metaKey || e.ctrlKey)) {
+			if (
+				$selection.size === 1 &&
+				$selection
+					.getSelected()
+					.every((item) => item instanceof ListFileItem || item instanceof ListTrackItem)
+			) {
+				$editMetadata = true;
+			}
+			e.preventDefault();
 		} else if (e.key === 'p' && (e.metaKey || e.ctrlKey)) {
 			$elevationProfile = !$elevationProfile;
 			e.preventDefault();
