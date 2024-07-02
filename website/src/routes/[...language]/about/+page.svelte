@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { base } from '$app/paths';
+	import DocsLoader from '$lib/components/docs/DocsLoader.svelte';
 	import { languages } from '$lib/languages';
 	import { _ } from 'svelte-i18n';
 </script>
@@ -21,3 +22,7 @@
 		{/if}
 	{/each}
 </svelte:head>
+
+<div class="px-10 py-6 markdown">
+	<DocsLoader path="about.svx" />
+</div>

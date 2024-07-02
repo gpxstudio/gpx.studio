@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { base } from '$app/paths';
-
 	import { mode } from 'mode-watcher';
 
 	export let iconOnly = false;

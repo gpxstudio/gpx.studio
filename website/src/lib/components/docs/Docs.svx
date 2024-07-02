@@ -1,0 +1,9 @@
+<script>
+	import Test from '$lib/docs/en/introduction/test.md';
+
+	const toc = {
+		introduction: ['test']
+	};
+</script>
+
+<Test />
