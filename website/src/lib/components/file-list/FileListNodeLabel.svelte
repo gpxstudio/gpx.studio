@@ -38,15 +38,7 @@
 	} from './Selection';
 	import { getContext } from 'svelte';
 	import { get } from 'svelte/store';
-	import {
-		anyHidden,
-		editMetadata,
-		editStyle,
-		gpxLayers,
-		hideSelection,
-		map,
-		showSelection
-	} from '$lib/stores';
+	import { allHidden, editMetadata, editStyle, gpxLayers, map } from '$lib/stores';
 	import {
 		GPXTreeElement,
 		Track,
@@ -189,9 +181,18 @@
 				{:else if item.level === ListLevel.WAYPOINT}
 					<MapPin size="16" class="mr-1 shrink-0" />
 				{/if}
-				<span class="grow select-none truncate {$verticalFileView ? 'mr-2' : ''}">
+				<span class="grow select-none truncate {$verticalFileView ? 'last:mr-2' : ''}">
 					{label}
 				</span>
+				{#if (item.level !== ListLevel.WAYPOINTS && node._data.hidden) || (item.level === ListLevel.WAYPOINTS && node._data.hiddenWpt)}
+					<EyeOff
+						size="12"
+						class="shrink-0 mt-1 ml-1 {$verticalFileView ? 'mr-2' : ''} {item.level ===
+							ListLevel.SEGMENT || item.level === ListLevel.WAYPOINT
+							? 'mr-3'
+							: ''}"
+					/>
+				{/if}
 			</span>
 		</Button>
 	</ContextMenu.Trigger>
@@ -206,28 +207,26 @@
 				<PaintBucket size="16" class="mr-1" />
 				{$_('menu.style.button')}
 			</ContextMenu.Item>
-			{#if item instanceof ListFileItem}
-				<ContextMenu.Item
-					on:click={() => {
-						if ($anyHidden) {
-							showSelection();
-						} else {
-							hideSelection();
-						}
-					}}
-				>
-					{#if $anyHidden}
-						<Eye size="16" class="mr-1" />
-						{$_('menu.unhide')}
-					{:else}
-						<EyeOff size="16" class="mr-1" />
-						{$_('menu.hide')}
-					{/if}
-					<Shortcut key="H" ctrl={true} />
-				</ContextMenu.Item>
-			{/if}
-			<ContextMenu.Separator />
 		{/if}
+		<ContextMenu.Item
+			on:click={() => {
+				if ($allHidden) {
+					dbUtils.setHiddenToSelection(false);
+				} else {
+					dbUtils.setHiddenToSelection(true);
+				}
+			}}
+		>
+			{#if $allHidden}
+				<Eye size="16" class="mr-1" />
+				{$_('menu.unhide')}
+			{:else}
+				<EyeOff size="16" class="mr-1" />
+				{$_('menu.hide')}
+			{/if}
+			<Shortcut key="H" ctrl={true} />
+		</ContextMenu.Item>
+		<ContextMenu.Separator />
 		{#if $verticalFileView}
 			{#if item instanceof ListFileItem}
 				<ContextMenu.Item

@@ -2,7 +2,7 @@ import Dexie, { liveQuery } from 'dexie';
 import { GPXFile, GPXStatistics, Track, TrackSegment, Waypoint, TrackPoint, type Coordinates, distance, type LineStyleExtension } from 'gpx';
 import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, castDraft, freeze, produceWithPatches, original, produce } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
-import { gpxStatistics, initTargetMapBounds, splitAs, updateTargetMapBounds } from './stores';
+import { gpxStatistics, initTargetMapBounds, splitAs, updateAllHidden, updateTargetMapBounds } from './stores';
 import { mode } from 'mode-watcher';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays, type CustomLayer, defaultOpacities } from './assets/layers';
 import { applyToOrderedItemsFromFile, applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
@@ -192,6 +192,10 @@ function dexieGPXFileStore(id: string): Readable<GPXFileWithStatistics> & { dest
                 file: gpx,
                 statistics
             });
+
+            if (get(selection).hasAnyChildren(new ListFileItem(id))) {
+                updateAllHidden();
+            }
         }
     });
     return {
@@ -203,10 +207,61 @@ function dexieGPXFileStore(id: string): Readable<GPXFileWithStatistics> & { dest
     };
 }
 
+function updateSelection(updatedFiles: GPXFile[], deletedFileIds: string[]) {
+    let removedItems: ListItem[] = [];
+
+    applyToOrderedItemsFromFile(get(selection).getSelected(), (fileId, level, items) => {
+        let file = updatedFiles.find((file) => file._data.id === fileId);
+        if (file) {
+            items.forEach((item) => {
+                if (item instanceof ListTrackItem) {
+                    let newTrackIndex = file.trk.findIndex((track) => track._data.trackIndex === item.getTrackIndex());
+                    if (newTrackIndex === -1) {
+                        removedItems.push(item);
+                    }
+                } else if (item instanceof ListTrackSegmentItem) {
+                    let newTrackIndex = file.trk.findIndex((track) => track._data.trackIndex === item.getTrackIndex());
+                    if (newTrackIndex === -1) {
+                        removedItems.push(item);
+                    } else {
+                        let newSegmentIndex = file.trk[newTrackIndex].trkseg.findIndex((segment) => segment._data.segmentIndex === item.getSegmentIndex());
+                        if (newSegmentIndex === -1) {
+                            removedItems.push(item);
+                        }
+                    }
+                } else if (item instanceof ListWaypointItem) {
+                    let newWaypointIndex = file.wpt.findIndex((wpt) => wpt._data.index === item.getWaypointIndex());
+                    if (newWaypointIndex === -1) {
+                        removedItems.push(item);
+                    }
+                }
+            });
+        } else if (deletedFileIds.includes(fileId)) {
+            items.forEach((item) => {
+                removedItems.push(item);
+            });
+        }
+    });
+
+    if (removedItems.length > 0) {
+        selection.update(($selection) => {
+            removedItems.forEach((item) => {
+                if (item instanceof ListFileItem) {
+                    $selection.deleteChild(item.getFileId());
+                } else {
+                    $selection.set(item, false);
+                }
+            });
+            return $selection;
+        });
+    }
+}
+
 // Commit the changes to the file state to the database
 function commitFileStateChange(newFileState: ReadonlyMap<string, GPXFile>, patch: Patch[]) {
     let changedFileIds = getChangedFileIds(patch);
     let updatedFileIds: string[] = [], deletedFileIds: string[] = [];
+
     changedFileIds.forEach(id => {
         if (newFileState.has(id)) {
             updatedFileIds.push(id);
@@ -217,6 +272,8 @@ function commitFileStateChange(newFileState: ReadonlyMap<string, GPXFile>, patch
 
     let updatedFiles = updatedFileIds.map(id => newFileState.get(id)).filter(file => file !== undefined) as GPXFile[];
     updatedFileIds = updatedFiles.map(file => file._data.id);
+
+    updateSelection(updatedFiles, deletedFileIds);
 
     return db.transaction('rw', db.fileids, db.files, async () => {
         if (updatedFileIds.length > 0) {
@@ -255,14 +312,6 @@ liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
             });
             return $files;
         });
-        if (deletedFiles.length > 0) {
-            selection.update(($selection) => {
-                deletedFiles.forEach((fileId) => {
-                    $selection.deleteChild(fileId);
-                });
-                return $selection;
-            });
-        }
         settings.fileOrder.update((order) => {
             newFiles.forEach((fileId) => {
                 if (!order.includes(fileId)) {
@@ -427,7 +476,7 @@ export const dbUtils = {
             let ids = getFileIds(get(settings.fileOrder).length);
             let index = 0;
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = original(draft)?.get(fileId);
+                let file = getFile(fileId);
                 if (file) {
                     let newFile = file;
                     if (level === ListLevel.FILE) {
@@ -467,7 +516,7 @@ export const dbUtils = {
         }
         applyGlobal((draft) => {
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = original(draft)?.get(fileId);
+                let file = getFile(fileId);
                 if (file) {
                     let newFile = file;
                     if (level === ListLevel.FILE) {
@@ -504,7 +553,7 @@ export const dbUtils = {
                 wpt: []
             };
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = original(draft)?.get(fileId);
+                let file = getFile(fileId);
                 if (file) {
                     let newFile = file;
                     if (level === ListLevel.FILE) {
@@ -616,7 +665,7 @@ export const dbUtils = {
         }
         applyGlobal((draft) => {
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = original(draft)?.get(fileId);
+                let file = getFile(fileId);
                 if (file) {
                     if (level === ListLevel.FILE) {
                         let length = file.getNumberOfTrackPoints();
@@ -645,7 +694,7 @@ export const dbUtils = {
     extractSelection: () => {
         return applyGlobal((draft) => {
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = original(draft)?.get(fileId);
+                let file = getFile(fileId);
                 if (file) {
                     if (level === ListLevel.FILE) {
                         if (file.trk.length > 1) {
@@ -678,7 +727,9 @@ export const dbUtils = {
                                 let tracks = track.trkseg.map((segment, segmentIndex) => {
                                     let t = track.replaceTrackSegments(0, track.trkseg.length - 1, [segment])[0];
                                     if (track.name) {
-                                        t.name = `${track.name} (${segmentIndex + 1})`;
+                                        t = produce(t, (t) => {
+                                            t.name = `${track.name} (${segmentIndex + 1})`;
+                                        });
                                     }
                                     return t;
                                 });
@@ -734,7 +785,9 @@ export const dbUtils = {
                             let tracks = track.trkseg.map((segment, segmentIndex) => {
                                 let t = track.clone().replaceTrackSegments(0, track.trkseg.length - 1, [segment])[0];
                                 if (track.name) {
-                                    t.name = `${track.name} (${segmentIndex + 1})`;
+                                    t = produce(t, (t) => {
+                                        t.name = `${track.name} (${segmentIndex + 1})`;
+                                    });
                                 }
                                 return t;
                             });
@@ -749,7 +802,7 @@ export const dbUtils = {
     split(fileId: string, trackIndex: number, segmentIndex: number, coordinates: Coordinates) {
         let splitType = get(splitAs);
         return applyGlobal((draft) => {
-            let file = original(draft)?.get(fileId);
+            let file = getFile(fileId);
             if (file) {
                 let segment = file.trk[trackIndex].trkseg[segmentIndex];
 
@@ -794,7 +847,7 @@ export const dbUtils = {
         }
         applyGlobal((draft) => {
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = original(draft)?.get(fileId);
+                let file = getFile(fileId);
                 if (file) {
                     let newFile = file;
                     if (level === ListLevel.FILE) {
@@ -824,7 +877,7 @@ export const dbUtils = {
         applyGlobal((draft) => {
             let allItems = Array.from(itemsAndPoints.keys());
             applyToOrderedItemsFromFile(allItems, (fileId, level, items) => {
-                let file = original(draft)?.get(fileId);
+                let file = getFile(fileId);
                 if (file) {
                     let newFile = file;
                     for (let item of items) {
@@ -848,7 +901,7 @@ export const dbUtils = {
         }
         applyGlobal((draft) => {
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = original(draft)?.get(fileId);
+                let file = getFile(fileId);
                 if (file && (level === ListLevel.FILE || level === ListLevel.TRACK)) {
                     let newFile = file;
                     if (level === ListLevel.FILE) {
@@ -867,6 +920,35 @@ export const dbUtils = {
             });
         });
     },
+    setHiddenToSelection: (hidden: boolean) => {
+        if (get(selection).size === 0) {
+            return;
+        }
+        applyGlobal((draft) => {
+            applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+                let file = getFile(fileId);
+                if (file) {
+                    let newFile = file;
+                    if (level === ListLevel.FILE) {
+                        newFile = file.setHidden(hidden);
+                    } else if (level === ListLevel.TRACK) {
+                        let trackIndices = items.map((item) => (item as ListTrackItem).getTrackIndex());
+                        newFile = newFile.setHidden(hidden, trackIndices);
+                    } else if (level === ListLevel.SEGMENT) {
+                        let trackIndices = [(items[0] as ListTrackSegmentItem).getTrackIndex()];
+                        let segmentIndices = items.map((item) => (item as ListTrackSegmentItem).getSegmentIndex());
+                        newFile = newFile.setHidden(hidden, trackIndices, segmentIndices);
+                    } else if (level === ListLevel.WAYPOINTS) {
+                        newFile = newFile.setHiddenWaypoints(hidden);
+                    } else if (level === ListLevel.WAYPOINT) {
+                        let waypointIndices = items.map((item) => (item as ListWaypointItem).getWaypointIndex());
+                        newFile = newFile.setHiddenWaypoints(hidden, waypointIndices);
+                    }
+                    draft.set(newFile._data.id, freeze(newFile));
+                }
+            });
+        });
+    },
     deleteSelection: () => {
         if (get(selection).size === 0) {
             return;
@@ -876,7 +958,7 @@ export const dbUtils = {
                 if (level === ListLevel.FILE) {
                     draft.delete(fileId);
                 } else {
-                    let file = original(draft)?.get(fileId);
+                    let file = getFile(fileId);
                     if (file) {
                         let newFile = file;
                         if (level === ListLevel.TRACK) {

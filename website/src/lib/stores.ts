@@ -344,56 +344,35 @@ export function exportFile(file: GPXFile) {
     URL.revokeObjectURL(url);
 }
 
-export const anyHidden = writable(false);
-function updateAnyHidden() {
-    anyHidden.set(get(selection).getSelected().some((item) => {
-        let layer = gpxLayers.get(item.getFileId());
-        return layer && layer.hidden;
-    }));
-}
-selection.subscribe(updateAnyHidden);
+export const allHidden = writable(false);
 
-export function toggleSelectionVisibility() {
-    let files = new Set<string>();
-    get(selection).forEach((item) => {
-        files.add(item.getFileId());
-    });
-    files.forEach((fileId) => {
-        let layer = gpxLayers.get(fileId);
-        if (layer) {
-            layer.toggleVisibility();
+export function updateAllHidden() {
+    let hidden = true;
+    applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+        let file = getFile(fileId);
+        if (file) {
+            for (let item of items) {
+                if (!hidden) {
+                    return;
+                }
+
+                if (item instanceof ListFileItem) {
+                    hidden = hidden && (file._data.hidden === true);
+                } else if (item instanceof ListTrackItem && item.getTrackIndex() < file.trk.length) {
+                    hidden = hidden && (file.trk[item.getTrackIndex()]._data.hidden === true);
+                } else if (item instanceof ListTrackSegmentItem && item.getTrackIndex() < file.trk.length && item.getSegmentIndex() < file.trk[item.getTrackIndex()].trkseg.length) {
+                    hidden = hidden && (file.trk[item.getTrackIndex()].trkseg[item.getSegmentIndex()]._data.hidden === true);
+                } else if (item instanceof ListWaypointsItem) {
+                    hidden = hidden && (file._data.hiddenWpt === true);
+                } else if (item instanceof ListWaypointItem && item.getWaypointIndex() < file.wpt.length) {
+                    hidden = hidden && (file.wpt[item.getWaypointIndex()]._data.hidden === true);
+                }
+            }
         }
     });
-    updateAnyHidden();
+    allHidden.set(hidden);
 }
-
-export function hideSelection() {
-    let files = new Set<string>();
-    get(selection).forEach((item) => {
-        files.add(item.getFileId());
-    });
-    files.forEach((fileId) => {
-        let layer = gpxLayers.get(fileId);
-        if (layer && !layer.hidden) {
-            layer.toggleVisibility();
-        }
-    });
-    anyHidden.set(true);
-}
-
-export function showSelection() {
-    let files = new Set<string>();
-    get(selection).forEach((item) => {
-        files.add(item.getFileId());
-    });
-    files.forEach((fileId) => {
-        let layer = gpxLayers.get(fileId);
-        if (layer && layer.hidden) {
-            layer.toggleVisibility();
-        }
-    });
-    anyHidden.set(false);
-}
+selection.subscribe(updateAllHidden);
 
 export const editMetadata = writable(false);
 export const editStyle = writable(false);

@@ -5,8 +5,8 @@
 	import { fileObservers, settings } from '$lib/db';
 	import { setContext } from 'svelte';
 	import { ListFileItem, ListLevel, ListRootItem, allowedPastes } from './FileList';
-	import { copied, pasteSelection, selection } from './Selection';
-	import { ClipboardPaste, Plus } from 'lucide-svelte';
+	import { copied, pasteSelection, selectAll, selection } from './Selection';
+	import { ClipboardPaste, FileStack, Plus } from 'lucide-svelte';
 	import Shortcut from '$lib/components/Shortcut.svelte';
 	import { _ } from 'svelte-i18n';
 	import { createFile } from '$lib/stores';
@@ -64,6 +64,12 @@
 						<Plus size="16" class="mr-1" />
 						{$_('menu.new_file')}
 						<Shortcut key="+" ctrl={true} />
+					</ContextMenu.Item>
+					<ContextMenu.Separator />
+					<ContextMenu.Item on:click={selectAll} disabled={$fileObservers.size === 0}>
+						<FileStack size="16" class="mr-1" />
+						{$_('menu.select_all')}
+						<Shortcut key="A" ctrl={true} />
 					</ContextMenu.Item>
 					<ContextMenu.Separator />
 					<ContextMenu.Item

@@ -48,11 +48,8 @@
 		triggerFileInput,
 		createFile,
 		loadFiles,
-		toggleSelectionVisibility,
 		updateSelectionFromKey,
-		showSelection,
-		hideSelection,
-		anyHidden,
+		allHidden,
 		editMetadata,
 		editStyle,
 		exportState,
@@ -231,15 +228,15 @@
 					</Menubar.Item>
 					<Menubar.Item
 						on:click={() => {
-							if ($anyHidden) {
-								showSelection();
+							if ($allHidden) {
+								dbUtils.setHiddenToSelection(false);
 							} else {
-								hideSelection();
+								dbUtils.setHiddenToSelection(true);
 							}
 						}}
 						disabled={$selection.size == 0}
 					>
-						{#if $anyHidden}
+						{#if $allHidden}
 							<Eye size="16" class="mr-1" />
 							{$_('menu.unhide')}
 						{:else}
@@ -249,7 +246,7 @@
 						<Shortcut key="H" ctrl={true} />
 					</Menubar.Item>
 					<Menubar.Separator />
-					<Menubar.Item on:click={selectAll}>
+					<Menubar.Item on:click={selectAll} disabled={$fileObservers.size == 0}>
 						<FileStack size="16" class="mr-1" />
 						{$_('menu.select_all')}
 						<Shortcut key="A" ctrl={true} />
@@ -543,7 +540,11 @@
 			$verticalFileView = !$verticalFileView;
 			e.preventDefault();
 		} else if (e.key === 'h' && (e.metaKey || e.ctrlKey)) {
-			toggleSelectionVisibility();
+			if ($allHidden) {
+				dbUtils.setHiddenToSelection(false);
+			} else {
+				dbUtils.setHiddenToSelection(true);
+			}
 			e.preventDefault();
 		} else if (e.key === 'F1') {
 			switchBasemaps();

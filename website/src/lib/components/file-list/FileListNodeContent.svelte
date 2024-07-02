@@ -12,14 +12,21 @@
 	import { get, writable, type Readable, type Writable } from 'svelte/store';
 	import FileListNodeStore from './FileListNodeStore.svelte';
 	import FileListNode from './FileListNode.svelte';
-	import { ListLevel, ListRootItem, allowedMoves, moveItems, type ListItem } from './FileList';
+	import {
+		ListFileItem,
+		ListLevel,
+		ListRootItem,
+		ListWaypointsItem,
+		allowedMoves,
+		moveItems,
+		type ListItem
+	} from './FileList';
 	import { selection } from './Selection';
 	import { _ } from 'svelte-i18n';
 
 	export let node:
 		| Map<string, Readable<GPXFileWithStatistics | undefined>>
 		| GPXTreeElement<AnyGPXTreeElement>
-		| ReadonlyArray<Readonly<Waypoint>>
 		| Readonly<Waypoint>;
 	export let item: ListItem;
 	export let waypointRoot: boolean = false;
@@ -32,7 +39,9 @@
 			: node instanceof GPXFile
 				? waypointRoot
 					? ListLevel.WAYPOINTS
-					: ListLevel.TRACK
+					: item instanceof ListWaypointsItem
+						? ListLevel.WAYPOINT
+						: ListLevel.TRACK
 				: node instanceof Track
 					? ListLevel.SEGMENT
 					: ListLevel.WAYPOINT;
@@ -268,10 +277,16 @@
 			</div>
 		{/each}
 	{:else if node instanceof GPXFile}
-		{#if waypointRoot}
+		{#if item instanceof ListWaypointsItem}
+			{#each node.wpt as wpt, i (wpt)}
+				<div data-id={i} class="ml-1">
+					<FileListNode node={wpt} item={item.extend(i)} />
+				</div>
+			{/each}
+		{:else if waypointRoot}
 			{#if node.wpt.length > 0}
 				<div data-id="waypoints">
-					<FileListNode node={node.wpt} item={item.extend('waypoints')} />
+					<FileListNode {node} item={item.extend('waypoints')} />
 				</div>
 			{/if}
 		{:else}
@@ -287,16 +302,10 @@
 				<FileListNode node={child} item={item.extend(i)} />
 			</div>
 		{/each}
-	{:else if Array.isArray(node) && node.length > 0 && node[0] instanceof Waypoint}
-		{#each node as wpt, i (wpt)}
-			<div data-id={i} class="ml-1">
-				<FileListNode node={wpt} item={item.extend(i)} />
-			</div>
-		{/each}
 	{/if}
 </div>
 
-{#if node instanceof GPXFile}
+{#if node instanceof GPXFile && item instanceof ListFileItem}
 	{#if !waypointRoot}
 		<svelte:self {node} {item} waypointRoot={true} />
 	{/if}

@@ -123,7 +123,7 @@ export class GPXFile extends GPXTreeNode<Track>{
         if (gpx) {
             this.attributes = gpx.attributes
             this.metadata = gpx.metadata;
-            this.wpt = gpx.wpt ? gpx.wpt.map((waypoint, index) => new Waypoint(waypoint, index)) : [];
+            this.wpt = gpx.wpt ? gpx.wpt.map((waypoint) => new Waypoint(waypoint)) : [];
             this.trk = gpx.trk ? gpx.trk.map((track) => new Track(track)) : [];
             if (gpx.hasOwnProperty('_data')) {
                 this._data = gpx._data;
@@ -134,6 +134,17 @@ export class GPXFile extends GPXTreeNode<Track>{
             this.wpt = [];
             this.trk = [new Track()];
         }
+
+        this.trk.forEach((track, trackIndex) => {
+            track._data['trackIndex'] = trackIndex;
+            track.trkseg.forEach((segment, segmentIndex) => {
+                segment._data['trackIndex'] = trackIndex;
+                segment._data['segmentIndex'] = segmentIndex;
+            });
+        });
+        this.wpt.forEach((waypoint, waypointIndex) => {
+            waypoint._data['index'] = waypointIndex;
+        });
     }
 
     get children(): ReadonlyArray<Track> {
@@ -367,6 +378,63 @@ export class GPXFile extends GPXTreeNode<Track>{
             }
         });
     }
+
+    setHidden(hidden: boolean, trackIndices?: number[], segmentIndices?: number[]) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let allHidden = hidden;
+            let trk = og.trk.map((track, index) => {
+                if (trackIndices === undefined || trackIndices.includes(index)) {
+                    return track.setHidden(hidden, segmentIndices);
+                } else {
+                    allHidden = allHidden && (track._data.hidden === true);
+                    return track;
+                }
+            });
+            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
+
+            let wpt = og.wpt.map((waypoint) => {
+                if (trackIndices === undefined && segmentIndices === undefined) {
+                    return waypoint.setHidden(hidden);
+                } else {
+                    allHidden = allHidden && (waypoint._data.hidden === true);
+                    return waypoint;
+                }
+            });
+            draft.wpt = freeze(wpt); // Pre-freeze the array, faster as well
+
+            if (trackIndices === undefined && segmentIndices === undefined) {
+                draft._data.hiddenWpt = hidden;
+            }
+
+            draft._data.hidden = allHidden;
+        });
+    }
+
+    setHiddenWaypoints(hidden: boolean, waypointIndices?: number[]) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+
+            let allHiddenWpt = hidden;
+            let wpt = og.wpt.map((waypoint, index) => {
+                if (waypointIndices === undefined || waypointIndices.includes(index)) {
+                    return waypoint.setHidden(hidden);
+                } else {
+                    allHiddenWpt = allHiddenWpt && (waypoint._data.hidden === true);
+                    return waypoint;
+                }
+            });
+            draft.wpt = freeze(wpt); // Pre-freeze the array, faster as well
+
+            let allHiddenTrk = true;
+            og.trk.forEach((track) => {
+                allHiddenTrk = allHiddenTrk && (track._data.hidden === true);
+            });
+
+            draft._data.hiddenWpt = allHiddenWpt;
+            draft._data.hidden = allHiddenTrk && allHiddenWpt;
+        });
+    }
 };
 
 // A class that represents a Track in a GPX file
@@ -573,7 +641,24 @@ export class Track extends GPXTreeNode<TrackSegment> {
             }
         });
     }
-};
+
+    setHidden(hidden: boolean, segmentIndices?: number[]) {
+        return produce(this, (draft) => {
+            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+            let allHidden = hidden;
+            let trkseg = og.trkseg.map((segment, index) => {
+                if (segmentIndices === undefined || segmentIndices.includes(index)) {
+                    return segment.setHidden(hidden);
+                } else {
+                    allHidden = allHidden && (segment._data.hidden === true);
+                    return segment;
+                }
+            });
+            draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
+            draft._data.hidden = allHidden;
+        });
+    }
+}
 
 // A class that represents a TrackSegment in a GPX file
 export class TrackSegment extends GPXTreeLeaf {
@@ -881,6 +966,11 @@ export class TrackSegment extends GPXTreeLeaf {
             }
         });
     }
+    setHidden(hidden: boolean) {
+        return produce(this, (draft) => {
+            draft._data.hidden = hidden;
+        });
+    }
 };
 
 export class TrackPoint {
@@ -985,7 +1075,7 @@ export class Waypoint {
     type?: string;
     _data: { [key: string]: any } = {};
 
-    constructor(waypoint: WaypointType & { _data?: any } | Waypoint, index?: number) {
+    constructor(waypoint: WaypointType & { _data?: any } | Waypoint) {
         this.attributes = waypoint.attributes;
         this.ele = waypoint.ele;
         this.time = waypoint.time;
@@ -997,9 +1087,6 @@ export class Waypoint {
         this.type = waypoint.type;
         if (waypoint.hasOwnProperty('_data')) {
             this._data = waypoint._data;
-        }
-        if (index !== undefined) {
-            this._data['index'] = index;
         }
     }
 
@@ -1030,6 +1117,13 @@ export class Waypoint {
             link: cloneJSON(this.link),
             sym: this.sym,
             type: this.type,
+        });
+    }
+
+    // Producers
+    setHidden(hidden: boolean) {
+        return produce(this, (draft) => {
+            draft._data.hidden = hidden;
         });
     }
 }

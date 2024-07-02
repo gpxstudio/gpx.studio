@@ -50,7 +50,6 @@ export class GPXLayer {
     fileId: string;
     file: Readable<GPXFileWithStatistics | undefined>;
     layerColor: string;
-    hidden: boolean = false;
     markers: mapboxgl.Marker[] = [];
     selected: boolean = false;
     draggable: boolean;
@@ -165,6 +164,15 @@ export class GPXLayer {
                     this.map.removeLayer(this.fileId + '-direction');
                 }
             }
+
+            let visibleItems: [number, number][] = [];
+            file.forEachSegment((segment, trackIndex, segmentIndex) => {
+                if (!segment._data.hidden) {
+                    visibleItems.push([trackIndex, segmentIndex]);
+                }
+            });
+
+            this.map.setFilter(this.fileId, ['any', ...visibleItems.map(([trackIndex, segmentIndex]) => ['all', ['==', 'trackIndex', trackIndex], ['==', 'segmentIndex', segmentIndex]])], { validate: false });
         } catch (e) { // No reliable way to check if the map is ready to add sources and layers
             return;
         }
@@ -244,7 +252,11 @@ export class GPXLayer {
         }
 
         this.markers.forEach((marker) => {
-            marker.addTo(this.map);
+            if (!marker._waypoint._data.hidden) {
+                marker.addTo(this.map);
+            } else {
+                marker.remove();
+            }
         });
     }
 
@@ -363,17 +375,6 @@ export class GPXLayer {
             marker?.getPopup()?.remove();
             currentPopupWaypoint.set(null);
             this.map.off('mousemove', this.maybeHideWaypointPopupBinded);
-        }
-    }
-
-    toggleVisibility() {
-        this.hidden = !this.hidden;
-        if (this.hidden) {
-            this.map.setLayoutProperty(this.fileId, 'visibility', 'none');
-            this.markers.forEach(marker => marker.remove());
-        } else {
-            this.map.setLayoutProperty(this.fileId, 'visibility', 'visible');
-            this.markers.forEach(marker => marker.addTo(this.map));
         }
     }
 
