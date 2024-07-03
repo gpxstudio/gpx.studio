@@ -48,35 +48,44 @@
 	let sortable: Sortable;
 	let orientation = getContext<'vertical' | 'horizontal'>('orientation');
 
+	let lastUpdateStart = 0;
 	function updateToSelection(e) {
-		if (updating) return;
-		updating = true;
-		// Sortable updates selection
-		let changed = getChangedIds();
-		if (changed.length > 0) {
-			selection.update(($selection) => {
-				$selection.clear();
-				Object.entries(elements).forEach(([id, element]) => {
-					$selection.set(
-						item.extend(getRealId(id)),
-						element.classList.contains('sortable-selected')
-					);
-				});
-
-				if (
-					e.originalEvent &&
-					$selection.size > 1 &&
-					!(e.originalEvent.ctrlKey || e.originalEvent.metaKey || e.originalEvent.shiftKey)
-				) {
-					// Fix bug that sometimes causes a single select to be treated as a multi-select
-					$selection.clear();
-					$selection.set(item.extend(getRealId(changed[0])), true);
+		lastUpdateStart = Date.now();
+		setTimeout(() => {
+			if (Date.now() - lastUpdateStart >= 40) {
+				if (updating) {
+					return;
 				}
 
-				return $selection;
-			});
-		}
-		updating = false;
+				updating = true;
+				// Sortable updates selection
+				let changed = getChangedIds();
+				if (changed.length > 0) {
+					selection.update(($selection) => {
+						$selection.clear();
+						Object.entries(elements).forEach(([id, element]) => {
+							$selection.set(
+								item.extend(getRealId(id)),
+								element.classList.contains('sortable-selected')
+							);
+						});
+
+						if (
+							e.originalEvent &&
+							$selection.size > 1 &&
+							!(e.originalEvent.ctrlKey || e.originalEvent.metaKey || e.originalEvent.shiftKey)
+						) {
+							// Fix bug that sometimes causes a single select to be treated as a multi-select
+							$selection.clear();
+							$selection.set(item.extend(getRealId(changed[0])), true);
+						}
+
+						return $selection;
+					});
+				}
+				updating = false;
+			}
+		}, 50);
 	}
 
 	function updateFromSelection() {
