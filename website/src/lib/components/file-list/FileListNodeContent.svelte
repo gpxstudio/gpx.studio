@@ -6,7 +6,7 @@
 
 <script lang="ts">
 	import { GPXFile, Track, Waypoint, type AnyGPXTreeElement, type GPXTreeElement } from 'gpx';
-	import { afterUpdate, getContext, onMount } from 'svelte';
+	import { afterUpdate, getContext, onDestroy, onMount } from 'svelte';
 	import Sortable from 'sortablejs/Sortable';
 	import { getFileIds, settings, type GPXFileWithStatistics } from '$lib/db';
 	import { get, writable, type Readable, type Writable } from 'svelte/store';
@@ -48,8 +48,13 @@
 	let sortable: Sortable;
 	let orientation = getContext<'vertical' | 'horizontal'>('orientation');
 
+	let destroyed = false;
 	let lastUpdateStart = 0;
 	function updateToSelection(e) {
+		if (destroyed) {
+			return;
+		}
+
 		lastUpdateStart = Date.now();
 		setTimeout(() => {
 			if (Date.now() - lastUpdateStart >= 40) {
@@ -89,7 +94,9 @@
 	}
 
 	function updateFromSelection() {
-		if (updating) return;
+		if (destroyed || updating) {
+			return;
+		}
 		updating = true;
 		// Selection updates sortable
 		let changed = getChangedIds();
@@ -229,6 +236,7 @@
 
 	onMount(() => {
 		createSortable();
+		destroyed = false;
 	});
 
 	afterUpdate(() => {
@@ -248,6 +256,10 @@
 
 		syncFileOrder();
 		updateFromSelection();
+	});
+
+	onDestroy(() => {
+		destroyed = true;
 	});
 
 	function getChangedIds() {
