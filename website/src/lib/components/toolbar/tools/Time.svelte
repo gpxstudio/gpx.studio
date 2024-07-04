@@ -34,7 +34,7 @@
 	let speed: number | undefined = undefined;
 
 	function toCalendarDate(date: Date): CalendarDate {
-		return new CalendarDate(date.getFullYear(), date.getMonth(), date.getDate());
+		return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
 	}
 
 	const { velocityUnits, distanceUnits } = settings;
@@ -83,7 +83,7 @@
 			return new Date();
 		}
 		let [hours, minutes, seconds] = time.split(':').map((x) => parseInt(x));
-		return new Date(date.year, date.month, date.day, hours, minutes, seconds);
+		return new Date(date.year, date.month - 1, date.day, hours, minutes, seconds);
 	}
 
 	function updateEnd() {
