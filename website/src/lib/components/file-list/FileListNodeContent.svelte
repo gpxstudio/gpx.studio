@@ -190,8 +190,9 @@
 					if (Sortable.get(e.from)._waypointRoot) {
 						fromItems = [fromItem.extend('waypoints')];
 					} else {
-						let oldIndices =
+						let oldIndices: number[] =
 							e.oldIndicies.length > 0 ? e.oldIndicies.map((i) => i.index) : [e.oldIndex];
+						oldIndices = oldIndices.filter((i) => i >= 0);
 						oldIndices.sort((a, b) => a - b);
 
 						fromItems = oldIndices.map((i) => fromItem.extend(i));
@@ -204,8 +205,9 @@
 							toItem = toItem.extend('waypoints');
 						}
 
-						let newIndices =
+						let newIndices: number[] =
 							e.newIndicies.length > 0 ? e.newIndicies.map((i) => i.index) : [e.newIndex];
+						newIndices = newIndices.filter((i) => i >= 0);
 						newIndices.sort((a, b) => a - b);
 
 						if (toItem instanceof ListRootItem) {

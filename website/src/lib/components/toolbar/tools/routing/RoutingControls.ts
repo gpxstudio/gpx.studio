@@ -413,7 +413,7 @@ export class RoutingControls {
                 if (file.trk.length === 0) {
                     let track = new Track();
                     track.replaceTrackPoints(0, 0, 0, [newPoint]);
-                    file.replaceTracks(0, 0, [track])[0];
+                    file.replaceTracks(0, 0, [track]);
                 } else if (file.trk[trackIndex].trkseg.length === 0) {
                     let segment = new TrackSegment();
                     segment.replaceTrackPoints(0, 0, [newPoint]);

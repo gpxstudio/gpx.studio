@@ -103,6 +103,7 @@
 		$editStyle &&
 		$selection.has(item) &&
 		$selection.getSelected().findIndex((i) => i.getFullId() === item.getFullId()) === 0;
+	$: hidden = item.level === ListLevel.WAYPOINTS ? node._data.hiddenWpt : node._data.hidden;
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -142,7 +143,9 @@
 				/>
 			{/if}
 			<span
-				class="w-full text-left truncate py-1 flex flex-row items-center"
+				class="w-full text-left truncate py-1 flex flex-row items-center {hidden
+					? 'text-muted-foreground'
+					: ''}"
 				on:contextmenu={(e) => {
 					if (e.ctrlKey) {
 						// Add to selection instead of opening context menu
@@ -181,7 +184,7 @@
 				<span class="grow select-none truncate {$verticalFileView ? 'last:mr-2' : ''}">
 					{label}
 				</span>
-				{#if (item.level !== ListLevel.WAYPOINTS && node._data.hidden) || (item.level === ListLevel.WAYPOINTS && node._data.hiddenWpt)}
+				{#if hidden}
 					<EyeOff
 						size="12"
 						class="shrink-0 mt-1 ml-1 {$verticalFileView ? 'mr-2' : ''} {item.level ===

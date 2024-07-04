@@ -35,7 +35,6 @@
 	import { flyAndScale } from '$lib/utils';
 	import { onDestroy, onMount } from 'svelte';
 	import { TrackPoint } from 'gpx';
-	import { produce } from 'immer';
 
 	export let popup: mapboxgl.Popup;
 	export let popupElement: HTMLElement;

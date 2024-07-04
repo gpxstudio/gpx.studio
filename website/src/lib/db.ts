@@ -1,6 +1,6 @@
 import Dexie, { liveQuery } from 'dexie';
 import { GPXFile, GPXStatistics, Track, TrackSegment, Waypoint, TrackPoint, type Coordinates, distance, type LineStyleExtension } from 'gpx';
-import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, castDraft, freeze, produceWithPatches, original, produce } from 'immer';
+import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, freeze, produceWithPatches } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
 import { gpxStatistics, initTargetMapBounds, splitAs, updateAllHidden, updateTargetMapBounds } from './stores';
 import { mode } from 'mode-watcher';
@@ -12,7 +12,6 @@ import { SplitType } from '$lib/components/toolbar/tools/Scissors.svelte';
 
 enableMapSet();
 enablePatches();
-
 
 class Database extends Dexie {
 
@@ -179,7 +178,6 @@ function dexieGPXFileStore(id: string): Readable<GPXFileWithStatistics> & { dest
     let store = writable<GPXFileWithStatistics>(undefined);
     let query = liveQuery(() => db.files.get(id)).subscribe(value => {
         if (value !== undefined) {
-            console.log('File updated', id);
             let gpx = new GPXFile(value);
             updateAnchorPoints(gpx);
 
@@ -260,8 +258,6 @@ function updateSelection(updatedFiles: GPXFile[], deletedFileIds: string[]) {
 
 // Commit the changes to the file state to the database
 function commitFileStateChange(newFileState: ReadonlyMap<string, GPXFile>, patch: Patch[]) {
-    console.log(patch);
-
     let changedFileIds = getChangedFileIds(patch);
     let updatedFileIds: string[] = [], deletedFileIds: string[] = [];
 
@@ -275,7 +271,6 @@ function commitFileStateChange(newFileState: ReadonlyMap<string, GPXFile>, patch
 
     let updatedFiles = updatedFileIds.map(id => newFileState.get(id)).filter(file => file !== undefined) as GPXFile[];
     updatedFileIds = updatedFiles.map(file => file._data.id);
-    console.log(updatedFileIds, deletedFileIds);
 
     updateSelection(updatedFiles, deletedFileIds);
 
@@ -288,8 +283,6 @@ function commitFileStateChange(newFileState: ReadonlyMap<string, GPXFile>, patch
             await db.fileids.bulkDelete(deletedFileIds);
             await db.files.bulkDelete(deletedFileIds);
         }
-    }).catch((error) => {
-        console.error('Error committing file state change', error);
     });
 }
 
@@ -315,7 +308,6 @@ liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
             deletedFiles.forEach(id => {
                 $files.get(id)?.destroy();
                 $files.delete(id);
-                console.log('File removed', id);
             });
             return $files;
         });
@@ -559,10 +551,11 @@ export const dbUtils = {
             };
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
                 let file = draft.get(fileId);
-                if (file) {
+                let originalFile = getFile(fileId);
+                if (file && originalFile) {
                     if (level === ListLevel.FILE) {
-                        toMerge.trk.push(...file.replaceTracks(0, file.trk.length - 1, []));
-                        toMerge.wpt.push(...file.replaceWaypoints(0, file.wpt.length - 1, []));
+                        toMerge.trk.push(...originalFile.trk.map((track) => track.clone()));
+                        toMerge.wpt.push(...originalFile.wpt.map((wpt) => wpt.clone()));
                         if (first) {
                             target = items[0];
                             targetFile = file;
@@ -573,12 +566,12 @@ export const dbUtils = {
                         if (level === ListLevel.TRACK) {
                             items.forEach((item, index) => {
                                 let trackIndex = (item as ListTrackItem).getTrackIndex();
+                                toMerge.trkseg.splice(0, 0, ...originalFile.trk[trackIndex].trkseg.map((segment) => segment.clone()));
                                 if (index === items.length - 1) { // Order is reversed, so the last track is the first one and the one to keep
-                                    toMerge.trkseg.splice(0, 0, ...file.replaceTrackSegments(trackIndex, 0, file.trk[trackIndex].trkseg.length - 1, []));
                                     target = item;
+                                    file.trk[trackIndex].trkseg = [];
                                 } else {
-                                    let removed = file.replaceTracks(trackIndex, trackIndex, []);
-                                    toMerge.trkseg.push(...removed[0].trkseg);
+                                    file.trk.splice(trackIndex, 1);
                                 }
                             });
                         } else if (level === ListLevel.SEGMENT) {
@@ -588,7 +581,8 @@ export const dbUtils = {
                                 if (index === items.length - 1) { // Order is reversed, so the last segment is the first one and the one to keep
                                     target = item;
                                 }
-                                toMerge.trkseg.splice(0, 0, ...file.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex, []));
+                                toMerge.trkseg.splice(0, 0, originalFile.trk[trackIndex].trkseg[segmentIndex].clone());
+                                file.trk[trackIndex].trkseg.splice(segmentIndex, 1);
                             });
                         }
                         targetFile = file;
@@ -613,12 +607,9 @@ export const dbUtils = {
                 }
 
                 if (toMerge.trk.length > 0 && toMerge.trk[0].trkseg.length > 0) {
-                    let s = toMerge.trk[0].trkseg[0];
-                    toMerge.trk.map((track, trackIndex) => {
-                        track.trkseg.forEach((segment, segmentIndex) => {
-                            if (trackIndex === 0 && segmentIndex === 0) {
-                                return;
-                            }
+                    let s = new TrackSegment();
+                    toMerge.trk.map((track) => {
+                        track.trkseg.forEach((segment) => {
                             s.replaceTrackPoints(s.trkpt.length, s.trkpt.length, segment.trkpt.slice(), speed, startTime);
                         });
                     });
@@ -626,33 +617,26 @@ export const dbUtils = {
                     toMerge.trk[0].trkseg = [s];
                 }
                 if (toMerge.trkseg.length > 0) {
-                    let s = toMerge.trkseg[0];
-                    toMerge.trkseg.forEach((segment, segmentIndex) => {
-                        if (segmentIndex === 0) {
-                            return;
-                        }
+                    let s = new TrackSegment();
+                    toMerge.trkseg.forEach((segment) => {
                         s.replaceTrackPoints(s.trkpt.length, s.trkpt.length, segment.trkpt.slice(), speed, startTime);
                     });
                     toMerge.trkseg = [s];
                 }
-                console.log(toMerge);
             }
 
             if (targetFile) {
-                console.log(toMerge, target, targetFile);
                 if (target instanceof ListFileItem) {
-                    targetFile.replaceTracks(0, targetFile.trk.length - 1, toMerge.trk)[0];
-                    targetFile.replaceWaypoints(0, targetFile.wpt.length - 1, toMerge.wpt)[0];
+                    targetFile.replaceTracks(0, targetFile.trk.length - 1, toMerge.trk);
+                    targetFile.replaceWaypoints(0, targetFile.wpt.length - 1, toMerge.wpt);
                 } else if (target instanceof ListTrackItem) {
                     let trackIndex = target.getTrackIndex();
-                    targetFile.replaceTrackSegments(trackIndex, 0, -1, toMerge.trkseg)[0];
+                    targetFile.replaceTrackSegments(trackIndex, 0, -1, toMerge.trkseg);
                 } else if (target instanceof ListTrackSegmentItem) {
                     let trackIndex = target.getTrackIndex();
                     let segmentIndex = target.getSegmentIndex();
-                    targetFile.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex - 1, toMerge.trkseg)[0];
+                    targetFile.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex - 1, toMerge.trkseg);
                 }
-
-                console.log(targetFile);
             }
         });
     },
@@ -721,14 +705,14 @@ export const dbUtils = {
                                 let newFile = file.clone();
                                 let tracks = track.trkseg.map((segment, segmentIndex) => {
                                     let t = track.clone();
-                                    t.replaceTrackSegments(0, track.trkseg.length - 1, [segment])[0];
+                                    t.replaceTrackSegments(0, track.trkseg.length - 1, [segment]);
                                     if (track.name) {
                                         t.name = `${track.name} (${segmentIndex + 1})`;
                                     }
                                     return t;
                                 });
-                                newFile.replaceTracks(0, file.trk.length - 1, tracks)[0];
-                                newFile.replaceWaypoints(0, file.wpt.length - 1, closest.filter((c) => c.index.includes(index)).map((c) => file.wpt[c.wptIndex]))[0];
+                                newFile.replaceTracks(0, file.trk.length - 1, tracks);
+                                newFile.replaceWaypoints(0, file.wpt.length - 1, closest.filter((c) => c.index.includes(index)).map((c) => file.wpt[c.wptIndex]));
                                 newFile._data.id = fileIds[index];
                                 newFile.metadata.name = track.name ?? `${file.metadata.name} (${index + 1})`;
                                 draft.set(newFile._data.id, freeze(newFile));
@@ -759,8 +743,8 @@ export const dbUtils = {
 
                             file.trk[0].trkseg.forEach((segment, index) => {
                                 let newFile = file.clone();
-                                newFile.replaceTrackSegments(0, 0, file.trk[0].trkseg.length - 1, [segment])[0];
-                                newFile.replaceWaypoints(0, file.wpt.length - 1, closest.filter((c) => c.index.includes(index)).map((c) => file.wpt[c.wptIndex]))[0];
+                                newFile.replaceTrackSegments(0, 0, file.trk[0].trkseg.length - 1, [segment]);
+                                newFile.replaceWaypoints(0, file.wpt.length - 1, closest.filter((c) => c.index.includes(index)).map((c) => file.wpt[c.wptIndex]));
                                 newFile._data.id = fileIds[index];
                                 newFile.metadata.name = `${file.trk[0].name ?? file.metadata.name} (${index + 1})`;
                                 draft.set(newFile._data.id, freeze(newFile));
@@ -776,13 +760,13 @@ export const dbUtils = {
                             let track = file.trk[trackIndex];
                             let tracks = track.trkseg.map((segment, segmentIndex) => {
                                 let t = track.clone();
-                                t.replaceTrackSegments(0, track.trkseg.length - 1, [segment])[0];
+                                t.replaceTrackSegments(0, track.trkseg.length - 1, [segment]);
                                 if (track.name) {
                                     t.name = `${track.name} (${segmentIndex + 1})`;
                                 }
                                 return t;
                             });
-                            file.replaceTracks(trackIndex, trackIndex, tracks)[0];
+                            file.replaceTracks(trackIndex, trackIndex, tracks);
                         }
                     }
                 }

@@ -1,6 +1,6 @@
 import { ramerDouglasPeucker } from "./simplify";
 import { Coordinates, GPXFileAttributes, GPXFileType, LineStyleExtension, Link, Metadata, TrackExtensions, TrackPointExtensions, TrackPointType, TrackSegmentType, TrackType, WaypointType } from "./types";
-import { Draft, immerable, isDraft, original, produce, freeze } from "immer";
+import { immerable, isDraft, original, freeze } from "immer";
 
 function cloneJSON<T>(obj: T): T {
     if (obj === null || typeof obj !== 'object') {
@@ -209,23 +209,23 @@ export class GPXFile extends GPXTreeNode<Track>{
     }
 
     // Producers
-    replaceTracks(start: number, end: number, tracks: Track[]): Track[] {
+    replaceTracks(start: number, end: number, tracks: Track[]) {
         if (this._data.style) {
             tracks.forEach((track) => track.setStyle(this._data.style, false));
         }
-        return this.trk.splice(start, end - start + 1, ...tracks);
+        this.trk.splice(start, end - start + 1, ...tracks);
     }
 
-    replaceTrackSegments(trackIndex: number, start: number, end: number, segments: TrackSegment[]): TrackSegment[] {
-        return this.trk[trackIndex].replaceTrackSegments(start, end, segments);
+    replaceTrackSegments(trackIndex: number, start: number, end: number, segments: TrackSegment[]) {
+        this.trk[trackIndex].replaceTrackSegments(start, end, segments);
     }
 
     replaceTrackPoints(trackIndex: number, segmentIndex: number, start: number, end: number, points: TrackPoint[], speed?: number, startTime?: Date) {
         this.trk[trackIndex].replaceTrackPoints(segmentIndex, start, end, points, speed, startTime);
     }
 
-    replaceWaypoints(start: number, end: number, waypoints: Waypoint[]): Waypoint[] {
-        return this.wpt.splice(start, end - start + 1, ...waypoints);
+    replaceWaypoints(start: number, end: number, waypoints: Waypoint[]) {
+        this.wpt.splice(start, end - start + 1, ...waypoints);
     }
 
     reverse() {
@@ -347,28 +347,22 @@ export class GPXFile extends GPXTreeNode<Track>{
     }
 
     setHiddenWaypoints(hidden: boolean, waypointIndices?: number[]) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-
-            let allHiddenWpt = hidden;
-            let wpt = og.wpt.map((waypoint, index) => {
-                if (waypointIndices === undefined || waypointIndices.includes(index)) {
-                    return waypoint.setHidden(hidden);
-                } else {
-                    allHiddenWpt = allHiddenWpt && (waypoint._data.hidden === true);
-                    return waypoint;
-                }
-            });
-            draft.wpt = freeze(wpt); // Pre-freeze the array, faster as well
-
-            let allHiddenTrk = true;
-            og.trk.forEach((track) => {
-                allHiddenTrk = allHiddenTrk && (track._data.hidden === true);
-            });
-
-            draft._data.hiddenWpt = allHiddenWpt;
-            draft._data.hidden = allHiddenTrk && allHiddenWpt;
+        let allHiddenWpt = hidden;
+        this.wpt.forEach((waypoint, index) => {
+            if (waypointIndices === undefined || waypointIndices.includes(index)) {
+                waypoint.setHidden(hidden);
+            } else {
+                allHiddenWpt = allHiddenWpt && (waypoint._data.hidden === true);
+            }
         });
+
+        let allHiddenTrk = true;
+        this.trk.forEach((track) => {
+            allHiddenTrk = allHiddenTrk && (track._data.hidden === true);
+        });
+
+        this._data.hiddenWpt = allHiddenWpt;
+        this._data.hidden = allHiddenTrk && allHiddenWpt;
     }
 };
 
@@ -458,8 +452,8 @@ export class Track extends GPXTreeNode<TrackSegment> {
     }
 
     // Producers
-    replaceTrackSegments(start: number, end: number, segments: TrackSegment[]): TrackSegment[] {
-        return this.trkseg.splice(start, end - start + 1, ...segments);
+    replaceTrackSegments(start: number, end: number, segments: TrackSegment[]) {
+        this.trkseg.splice(start, end - start + 1, ...segments);
     }
 
     replaceTrackPoints(segmentIndex: number, start: number, end: number, points: TrackPoint[], speed?: number, startTime?: Date) {
@@ -494,23 +488,21 @@ export class Track extends GPXTreeNode<TrackSegment> {
     }
 
     clean(bounds: [Coordinates, Coordinates], inside: boolean, segmentIndices?: number[]) {
-        return produce(this, (draft) => {
-            let i = 0;
-            let segmentIndex = 0;
-            while (i < this.trkseg.length) {
-                if (segmentIndices === undefined || segmentIndices.includes(segmentIndex)) {
-                    this.trkseg[i].clean(bounds, inside);
-                    if (this.trkseg[i].getNumberOfTrackPoints() === 0) {
-                        this.trkseg.splice(i, 1);
-                    } else {
-                        i++;
-                    }
+        let i = 0;
+        let segmentIndex = 0;
+        while (i < this.trkseg.length) {
+            if (segmentIndices === undefined || segmentIndices.includes(segmentIndex)) {
+                this.trkseg[i].clean(bounds, inside);
+                if (this.trkseg[i].getNumberOfTrackPoints() === 0) {
+                    this.trkseg.splice(i, 1);
                 } else {
                     i++;
                 }
-                segmentIndex++;
+            } else {
+                i++;
             }
-        });
+            segmentIndex++;
+        }
     }
 
     changeTimestamps(startTime: Date, speed: number, ratio: number, lastPoint?: TrackPoint, segmentIndex?: number) {
