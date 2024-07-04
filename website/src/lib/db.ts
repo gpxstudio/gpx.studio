@@ -179,6 +179,7 @@ function dexieGPXFileStore(id: string): Readable<GPXFileWithStatistics> & { dest
     let store = writable<GPXFileWithStatistics>(undefined);
     let query = liveQuery(() => db.files.get(id)).subscribe(value => {
         if (value !== undefined) {
+            console.log('File updated', id);
             let gpx = new GPXFile(value);
             updateAnchorPoints(gpx);
 
@@ -259,6 +260,8 @@ function updateSelection(updatedFiles: GPXFile[], deletedFileIds: string[]) {
 
 // Commit the changes to the file state to the database
 function commitFileStateChange(newFileState: ReadonlyMap<string, GPXFile>, patch: Patch[]) {
+    console.log(patch);
+
     let changedFileIds = getChangedFileIds(patch);
     let updatedFileIds: string[] = [], deletedFileIds: string[] = [];
 
@@ -272,6 +275,7 @@ function commitFileStateChange(newFileState: ReadonlyMap<string, GPXFile>, patch
 
     let updatedFiles = updatedFileIds.map(id => newFileState.get(id)).filter(file => file !== undefined) as GPXFile[];
     updatedFileIds = updatedFiles.map(file => file._data.id);
+    console.log(updatedFileIds, deletedFileIds);
 
     updateSelection(updatedFiles, deletedFileIds);
 
@@ -284,6 +288,8 @@ function commitFileStateChange(newFileState: ReadonlyMap<string, GPXFile>, patch
             await db.fileids.bulkDelete(deletedFileIds);
             await db.files.bulkDelete(deletedFileIds);
         }
+    }).catch((error) => {
+        console.error('Error committing file state change', error);
     });
 }
 
@@ -309,6 +315,7 @@ liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
             deletedFiles.forEach(id => {
                 $files.get(id)?.destroy();
                 $files.delete(id);
+                console.log('File removed', id);
             });
             return $files;
         });
@@ -360,12 +367,12 @@ function applyGlobal(callback: (files: Map<string, GPXFile>) => void) {
 }
 
 // Helper function to apply a callback to multiple files
-function applyToFiles(fileIds: string[], callback: (file: WritableDraft<GPXFile>) => GPXFile) {
+function applyToFiles(fileIds: string[], callback: (file: WritableDraft<GPXFile>) => void) {
     const [newFileState, patch, inversePatch] = produceWithPatches(fileState, (draft) => {
         fileIds.forEach((fileId) => {
             let file = draft.get(fileId);
             if (file) {
-                draft.set(fileId, castDraft(callback(file)));
+                callback(file);
             }
         });
     });
@@ -376,12 +383,12 @@ function applyToFiles(fileIds: string[], callback: (file: WritableDraft<GPXFile>
 }
 
 // Helper function to apply different callbacks to multiple files
-function applyEachToFilesAndGlobal(fileIds: string[], callbacks: ((file: WritableDraft<GPXFile>, context?: any) => GPXFile)[], globalCallback: (files: Map<string, GPXFile>, context?: any) => void, context?: any) {
+function applyEachToFilesAndGlobal(fileIds: string[], callbacks: ((file: WritableDraft<GPXFile>, context?: any) => void)[], globalCallback: (files: Map<string, GPXFile>, context?: any) => void, context?: any) {
     const [newFileState, patch, inversePatch] = produceWithPatches(fileState, (draft) => {
         fileIds.forEach((fileId, index) => {
             let file = draft.get(fileId);
             if (file) {
-                draft.set(fileId, castDraft(callbacks[index](file, context)));
+                callbacks[index](file, context);
             }
         });
         globalCallback(draft, context);
@@ -459,13 +466,13 @@ export const dbUtils = {
             });
         });
     },
-    applyToFile: (id: string, callback: (file: WritableDraft<GPXFile>) => GPXFile) => {
+    applyToFile: (id: string, callback: (file: WritableDraft<GPXFile>) => void) => {
         applyToFiles([id], callback);
     },
-    applyToFiles: (ids: string[], callback: (file: WritableDraft<GPXFile>) => GPXFile) => {
+    applyToFiles: (ids: string[], callback: (file: WritableDraft<GPXFile>) => void) => {
         applyToFiles(ids, callback);
     },
-    applyEachToFilesAndGlobal: (ids: string[], callbacks: ((file: WritableDraft<GPXFile>, context?: any) => GPXFile)[], globalCallback: (files: Map<string, GPXFile>, context?: any) => void, context?: any) => {
+    applyEachToFilesAndGlobal: (ids: string[], callbacks: ((file: WritableDraft<GPXFile>, context?: any) => void)[], globalCallback: (files: Map<string, GPXFile>, context?: any) => void, context?: any) => {
         applyEachToFilesAndGlobal(ids, callbacks, globalCallback, context);
     },
     duplicateSelection: () => {
@@ -476,36 +483,36 @@ export const dbUtils = {
             let ids = getFileIds(get(settings.fileOrder).length);
             let index = 0;
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = getFile(fileId);
-                if (file) {
-                    let newFile = file;
-                    if (level === ListLevel.FILE) {
-                        newFile = file.clone();
+                if (level === ListLevel.FILE) {
+                    let file = getFile(fileId);
+                    if (file) {
+                        let newFile = file.clone();
                         newFile._data.id = ids[index++];
-                    } else if (level === ListLevel.TRACK) {
-                        for (let item of items) {
-                            let trackIndex = (item as ListTrackItem).getTrackIndex();
-                            let [result, _removed] = newFile.replaceTracks(trackIndex + 1, trackIndex, [file.trk[trackIndex].clone()]);
-                            newFile = result;
-                        }
-                    } else if (level === ListLevel.SEGMENT) {
-                        for (let item of items) {
-                            let trackIndex = (item as ListTrackSegmentItem).getTrackIndex();
-                            let segmentIndex = (item as ListTrackSegmentItem).getSegmentIndex();
-                            let [result, _removed] = newFile.replaceTrackSegments(trackIndex, segmentIndex + 1, segmentIndex, [file.trk[trackIndex].trkseg[segmentIndex].clone()]);
-                            newFile = result;
-                        }
-                    } else if (level === ListLevel.WAYPOINTS) {
-                        let [result, _removed] = newFile.replaceWaypoints(file.wpt.length, file.wpt.length - 1, file.wpt.map((wpt) => wpt.clone()));
-                        newFile = result;
-                    } else if (level === ListLevel.WAYPOINT) {
-                        for (let item of items) {
-                            let waypointIndex = (item as ListWaypointItem).getWaypointIndex();
-                            let [result, _removed] = newFile.replaceWaypoints(waypointIndex + 1, waypointIndex, [file.wpt[waypointIndex].clone()]);
-                            newFile = result;
+                        draft.set(newFile._data.id, freeze(newFile));
+                    }
+                } else {
+                    let file = draft.get(fileId);
+                    if (file) {
+                        if (level === ListLevel.TRACK) {
+                            for (let item of items) {
+                                let trackIndex = (item as ListTrackItem).getTrackIndex();
+                                file.replaceTracks(trackIndex + 1, trackIndex, [file.trk[trackIndex].clone()]);
+                            }
+                        } else if (level === ListLevel.SEGMENT) {
+                            for (let item of items) {
+                                let trackIndex = (item as ListTrackSegmentItem).getTrackIndex();
+                                let segmentIndex = (item as ListTrackSegmentItem).getSegmentIndex();
+                                file.replaceTrackSegments(trackIndex, segmentIndex + 1, segmentIndex, [file.trk[trackIndex].trkseg[segmentIndex].clone()]);
+                            }
+                        } else if (level === ListLevel.WAYPOINTS) {
+                            file.replaceWaypoints(file.wpt.length, file.wpt.length - 1, file.wpt.map((wpt) => wpt.clone()));
+                        } else if (level === ListLevel.WAYPOINT) {
+                            for (let item of items) {
+                                let waypointIndex = (item as ListWaypointItem).getWaypointIndex();
+                                file.replaceWaypoints(waypointIndex + 1, waypointIndex, [file.wpt[waypointIndex].clone()]);
+                            }
                         }
                     }
-                    draft.set(newFile._data.id, freeze(newFile));
                 }
             });
         });
@@ -516,24 +523,22 @@ export const dbUtils = {
         }
         applyGlobal((draft) => {
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = getFile(fileId);
+                let file = draft.get(fileId);
                 if (file) {
-                    let newFile = file;
                     if (level === ListLevel.FILE) {
-                        newFile = file.reverse();
+                        file.reverse();
                     } else if (level === ListLevel.TRACK) {
                         for (let item of items) {
                             let trackIndex = (item as ListTrackItem).getTrackIndex();
-                            newFile = newFile.reverseTrack(trackIndex);
+                            file.reverseTrack(trackIndex);
                         }
                     } else if (level === ListLevel.SEGMENT) {
                         for (let item of items) {
                             let trackIndex = (item as ListTrackSegmentItem).getTrackIndex();
                             let segmentIndex = (item as ListTrackSegmentItem).getSegmentIndex();
-                            newFile = newFile.reverseTrackSegment(trackIndex, segmentIndex);
+                            file.reverseTrackSegment(trackIndex, segmentIndex);
                         }
                     }
-                    draft.set(newFile._data.id, freeze(newFile));
                 }
             });
         });
@@ -553,23 +558,14 @@ export const dbUtils = {
                 wpt: []
             };
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = getFile(fileId);
+                let file = draft.get(fileId);
                 if (file) {
-                    let newFile = file;
                     if (level === ListLevel.FILE) {
-                        {
-                            let [result, removed] = newFile.replaceTracks(0, newFile.trk.length - 1, []);
-                            toMerge.trk.push(...removed);
-                            newFile = result;
-                        }
-                        {
-                            let [result, removed] = newFile.replaceWaypoints(0, newFile.wpt.length - 1, []);
-                            toMerge.wpt.push(...removed);
-                            newFile = result;
-                        }
+                        toMerge.trk.push(...file.replaceTracks(0, file.trk.length - 1, []));
+                        toMerge.wpt.push(...file.replaceWaypoints(0, file.wpt.length - 1, []));
                         if (first) {
                             target = items[0];
-                            targetFile = newFile;
+                            targetFile = file;
                         } else {
                             draft.delete(fileId);
                         }
@@ -578,14 +574,11 @@ export const dbUtils = {
                             items.forEach((item, index) => {
                                 let trackIndex = (item as ListTrackItem).getTrackIndex();
                                 if (index === items.length - 1) { // Order is reversed, so the last track is the first one and the one to keep
-                                    let [result, removed] = newFile.replaceTrackSegments(trackIndex, 0, newFile.trk[trackIndex].trkseg.length - 1, []);
-                                    toMerge.trkseg.splice(0, 0, ...removed);
-                                    newFile = result;
+                                    toMerge.trkseg.splice(0, 0, ...file.replaceTrackSegments(trackIndex, 0, file.trk[trackIndex].trkseg.length - 1, []));
                                     target = item;
                                 } else {
-                                    let [result, removed] = newFile.replaceTracks(trackIndex, trackIndex, []);
+                                    let removed = file.replaceTracks(trackIndex, trackIndex, []);
                                     toMerge.trkseg.push(...removed[0].trkseg);
-                                    newFile = result;
                                 }
                             });
                         } else if (level === ListLevel.SEGMENT) {
@@ -595,16 +588,10 @@ export const dbUtils = {
                                 if (index === items.length - 1) { // Order is reversed, so the last segment is the first one and the one to keep
                                     target = item;
                                 }
-                                let [result, removed] = newFile.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex, []);
-                                toMerge.trkseg.splice(0, 0, ...removed);
-                                newFile = result;
+                                toMerge.trkseg.splice(0, 0, ...file.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex, []));
                             });
                         }
-                        if (first) {
-                            targetFile = newFile;
-                        } else {
-                            draft.set(fileId, freeze(newFile));
-                        }
+                        targetFile = file;
                     }
                     first = false;
                 }
@@ -625,37 +612,47 @@ export const dbUtils = {
                     }
                 }
 
-                if (toMerge.trk.length > 0) {
-                    let s = new TrackSegment();
-                    toMerge.trk.map((track) => {
-                        track.trkseg.forEach((segment) => {
-                            s = s.replaceTrackPoints(s.trkpt.length, s.trkpt.length, segment.trkpt.slice(), speed, startTime);
+                if (toMerge.trk.length > 0 && toMerge.trk[0].trkseg.length > 0) {
+                    let s = toMerge.trk[0].trkseg[0];
+                    toMerge.trk.map((track, trackIndex) => {
+                        track.trkseg.forEach((segment, segmentIndex) => {
+                            if (trackIndex === 0 && segmentIndex === 0) {
+                                return;
+                            }
+                            s.replaceTrackPoints(s.trkpt.length, s.trkpt.length, segment.trkpt.slice(), speed, startTime);
                         });
                     });
-                    toMerge.trk = [toMerge.trk[0].replaceTrackSegments(0, toMerge.trk[0].trkseg.length - 1, [s])[0]];
+                    toMerge.trk = [toMerge.trk[0]];
+                    toMerge.trk[0].trkseg = [s];
                 }
                 if (toMerge.trkseg.length > 0) {
-                    let s = new TrackSegment();
-                    toMerge.trkseg.forEach((segment) => {
-                        s = s.replaceTrackPoints(s.trkpt.length, s.trkpt.length, segment.trkpt.slice(), speed, startTime);
+                    let s = toMerge.trkseg[0];
+                    toMerge.trkseg.forEach((segment, segmentIndex) => {
+                        if (segmentIndex === 0) {
+                            return;
+                        }
+                        s.replaceTrackPoints(s.trkpt.length, s.trkpt.length, segment.trkpt.slice(), speed, startTime);
                     });
                     toMerge.trkseg = [s];
                 }
+                console.log(toMerge);
             }
 
             if (targetFile) {
+                console.log(toMerge, target, targetFile);
                 if (target instanceof ListFileItem) {
-                    targetFile = targetFile.replaceTracks(0, targetFile.trk.length - 1, toMerge.trk)[0];
-                    targetFile = targetFile.replaceWaypoints(0, targetFile.wpt.length - 1, toMerge.wpt)[0];
+                    targetFile.replaceTracks(0, targetFile.trk.length - 1, toMerge.trk)[0];
+                    targetFile.replaceWaypoints(0, targetFile.wpt.length - 1, toMerge.wpt)[0];
                 } else if (target instanceof ListTrackItem) {
                     let trackIndex = target.getTrackIndex();
-                    targetFile = targetFile.replaceTrackSegments(trackIndex, 0, -1, toMerge.trkseg)[0];
+                    targetFile.replaceTrackSegments(trackIndex, 0, -1, toMerge.trkseg)[0];
                 } else if (target instanceof ListTrackSegmentItem) {
                     let trackIndex = target.getTrackIndex();
                     let segmentIndex = target.getSegmentIndex();
-                    targetFile = targetFile.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex - 1, toMerge.trkseg)[0];
+                    targetFile.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex - 1, toMerge.trkseg)[0];
                 }
-                draft.set(targetFile._data.id, freeze(targetFile));
+
+                console.log(targetFile);
             }
         });
     },
@@ -665,27 +662,24 @@ export const dbUtils = {
         }
         applyGlobal((draft) => {
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = getFile(fileId);
+                let file = draft.get(fileId);
                 if (file) {
                     if (level === ListLevel.FILE) {
                         let length = file.getNumberOfTrackPoints();
                         if (start >= length || end < 0) {
                             draft.delete(fileId);
                         } else if (start > 0 || end < length - 1) {
-                            let newFile = file.crop(Math.max(0, start), Math.min(length - 1, end));
-                            draft.set(newFile._data.id, freeze(newFile));
+                            file.crop(Math.max(0, start), Math.min(length - 1, end));
                         }
                         start -= length;
                         end -= length;
                     } else if (level === ListLevel.TRACK) {
                         let trackIndices = items.map((item) => (item as ListTrackItem).getTrackIndex());
-                        let newFile = file.crop(start, end, trackIndices);
-                        draft.set(newFile._data.id, freeze(newFile));
+                        file.crop(start, end, trackIndices);
                     } else if (level === ListLevel.SEGMENT) {
                         let trackIndices = [(items[0] as ListTrackSegmentItem).getTrackIndex()];
                         let segmentIndices = items.map((item) => (item as ListTrackSegmentItem).getSegmentIndex());
-                        let newFile = file.crop(start, end, trackIndices, segmentIndices);
-                        draft.set(newFile._data.id, freeze(newFile));
+                        file.crop(start, end, trackIndices, segmentIndices);
                     }
                 }
             }, false);
@@ -694,9 +688,9 @@ export const dbUtils = {
     extractSelection: () => {
         return applyGlobal((draft) => {
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = getFile(fileId);
-                if (file) {
-                    if (level === ListLevel.FILE) {
+                if (level === ListLevel.FILE) {
+                    let file = getFile(fileId);
+                    if (file) {
                         if (file.trk.length > 1) {
                             let fileIds = getFileIds(file.trk.length);
 
@@ -724,26 +718,23 @@ export const dbUtils = {
                             });
 
                             file.trk.forEach((track, index) => {
+                                let newFile = file.clone();
                                 let tracks = track.trkseg.map((segment, segmentIndex) => {
-                                    let t = track.replaceTrackSegments(0, track.trkseg.length - 1, [segment])[0];
+                                    let t = track.clone();
+                                    t.replaceTrackSegments(0, track.trkseg.length - 1, [segment])[0];
                                     if (track.name) {
-                                        t = produce(t, (t) => {
-                                            t.name = `${track.name} (${segmentIndex + 1})`;
-                                        });
+                                        t.name = `${track.name} (${segmentIndex + 1})`;
                                     }
                                     return t;
                                 });
-                                let newFile = file.replaceTracks(0, file.trk.length - 1, tracks)[0];
-                                newFile = newFile.replaceWaypoints(0, file.wpt.length - 1, closest.filter((c) => c.index.includes(index)).map((c) => file.wpt[c.wptIndex]))[0];
-                                newFile = produce(newFile, (f) => {
-                                    f._data.id = fileIds[index];
-                                    f.metadata.name = track.name ?? `${file.metadata.name} (${index + 1})`;
-                                });
+                                newFile.replaceTracks(0, file.trk.length - 1, tracks)[0];
+                                newFile.replaceWaypoints(0, file.wpt.length - 1, closest.filter((c) => c.index.includes(index)).map((c) => file.wpt[c.wptIndex]))[0];
+                                newFile._data.id = fileIds[index];
+                                newFile.metadata.name = track.name ?? `${file.metadata.name} (${index + 1})`;
                                 draft.set(newFile._data.id, freeze(newFile));
                             });
                         } else if (file.trk.length === 1) {
                             let fileIds = getFileIds(file.trk[0].trkseg.length);
-
 
                             let closest = file.wpt.map((wpt, wptIndex) => {
                                 return {
@@ -767,33 +758,32 @@ export const dbUtils = {
                             });
 
                             file.trk[0].trkseg.forEach((segment, index) => {
-                                let newFile = file.replaceTrackSegments(0, 0, file.trk[0].trkseg.length - 1, [segment])[0];
-                                newFile = newFile.replaceWaypoints(0, file.wpt.length - 1, closest.filter((c) => c.index.includes(index)).map((c) => file.wpt[c.wptIndex]))[0];
-                                newFile = produce(newFile, (f) => {
-                                    f._data.id = fileIds[index];
-                                    f.metadata.name = `${file.trk[0].name ?? file.metadata.name} (${index + 1})`;
-                                });
+                                let newFile = file.clone();
+                                newFile.replaceTrackSegments(0, 0, file.trk[0].trkseg.length - 1, [segment])[0];
+                                newFile.replaceWaypoints(0, file.wpt.length - 1, closest.filter((c) => c.index.includes(index)).map((c) => file.wpt[c.wptIndex]))[0];
+                                newFile._data.id = fileIds[index];
+                                newFile.metadata.name = `${file.trk[0].name ?? file.metadata.name} (${index + 1})`;
                                 draft.set(newFile._data.id, freeze(newFile));
                             });
                         }
                         draft.delete(fileId);
-                    } else if (level === ListLevel.TRACK) {
-                        let newFile = file;
+                    }
+                } else if (level === ListLevel.TRACK) {
+                    let file = draft.get(fileId);
+                    if (file) {
                         for (let item of items) {
                             let trackIndex = (item as ListTrackItem).getTrackIndex();
                             let track = file.trk[trackIndex];
                             let tracks = track.trkseg.map((segment, segmentIndex) => {
-                                let t = track.clone().replaceTrackSegments(0, track.trkseg.length - 1, [segment])[0];
+                                let t = track.clone();
+                                t.replaceTrackSegments(0, track.trkseg.length - 1, [segment])[0];
                                 if (track.name) {
-                                    t = produce(t, (t) => {
-                                        t.name = `${track.name} (${segmentIndex + 1})`;
-                                    });
+                                    t.name = `${track.name} (${segmentIndex + 1})`;
                                 }
                                 return t;
                             });
-                            newFile = newFile.replaceTracks(trackIndex, trackIndex, tracks)[0];
+                            file.replaceTracks(trackIndex, trackIndex, tracks)[0];
                         }
-                        draft.set(newFile._data.id, freeze(newFile));
                     }
                 }
             });
@@ -825,18 +815,32 @@ export const dbUtils = {
                 });
 
                 if (splitType === SplitType.FILES) {
-                    let newFile = file.crop(0, absoluteIndex);
-                    draft.set(newFile._data.id, freeze(newFile));
-                    let newFile2 = file.clone();
-                    newFile2._data.id = getFileIds(1)[0];
-                    newFile2 = newFile2.crop(absoluteIndex, file.getNumberOfTrackPoints() - 1);
-                    draft.set(newFile2._data.id, freeze(newFile2));
+                    let newFile = draft.get(fileId);
+                    if (newFile) {
+                        newFile.crop(0, absoluteIndex);
+                        let newFile2 = file.clone();
+                        newFile2._data.id = getFileIds(1)[0];
+                        newFile2.crop(absoluteIndex, file.getNumberOfTrackPoints() - 1);
+                        draft.set(newFile2._data.id, freeze(newFile2));
+                    }
                 } else if (splitType === SplitType.TRACKS) {
-                    let newFile = file.replaceTracks(trackIndex, trackIndex, [file.trk[trackIndex].crop(0, absoluteIndex), file.trk[trackIndex].crop(absoluteIndex, file.trk[trackIndex].getNumberOfTrackPoints() - 1)])[0];
-                    draft.set(newFile._data.id, freeze(newFile));
+                    let newFile = draft.get(fileId);
+                    if (newFile) {
+                        let start = file.trk[trackIndex].clone();
+                        start.crop(0, absoluteIndex);
+                        let end = file.trk[trackIndex].clone();
+                        end.crop(absoluteIndex, file.trk[trackIndex].getNumberOfTrackPoints() - 1);
+                        newFile.replaceTracks(trackIndex, trackIndex, [start, end]);
+                    }
                 } else if (splitType === SplitType.SEGMENTS) {
-                    let newFile = file.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex, [segment.crop(0, minIndex), segment.crop(minIndex, segment.trkpt.length - 1)])[0];
-                    draft.set(newFile._data.id, freeze(newFile));
+                    let newFile = draft.get(fileId);
+                    if (newFile) {
+                        let start = segment.clone();
+                        start.crop(0, minIndex);
+                        let end = segment.clone();
+                        end.crop(minIndex, segment.trkpt.length - 1);
+                        newFile.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex, [start, end]);
+                    }
                 }
             }
         });
@@ -847,25 +851,23 @@ export const dbUtils = {
         }
         applyGlobal((draft) => {
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = getFile(fileId);
+                let file = draft.get(fileId);
                 if (file) {
-                    let newFile = file;
                     if (level === ListLevel.FILE) {
-                        newFile = file.clean(bounds, inside, deleteTrackPoints, deleteWaypoints);
+                        file.clean(bounds, inside, deleteTrackPoints, deleteWaypoints);
                     } else if (level === ListLevel.TRACK) {
                         let trackIndices = items.map((item) => (item as ListTrackItem).getTrackIndex());
-                        newFile = newFile.clean(bounds, inside, deleteTrackPoints, deleteWaypoints, trackIndices);
+                        file.clean(bounds, inside, deleteTrackPoints, deleteWaypoints, trackIndices);
                     } else if (level === ListLevel.SEGMENT) {
                         let trackIndices = [(items[0] as ListTrackSegmentItem).getTrackIndex()];
                         let segmentIndices = items.map((item) => (item as ListTrackSegmentItem).getSegmentIndex());
-                        newFile = newFile.clean(bounds, inside, deleteTrackPoints, deleteWaypoints, trackIndices, segmentIndices);
+                        file.clean(bounds, inside, deleteTrackPoints, deleteWaypoints, trackIndices, segmentIndices);
                     } else if (level === ListLevel.WAYPOINTS) {
-                        newFile = newFile.clean(bounds, inside, false, deleteWaypoints);
+                        file.clean(bounds, inside, false, deleteWaypoints);
                     } else if (level === ListLevel.WAYPOINT) {
                         let waypointIndices = items.map((item) => (item as ListWaypointItem).getWaypointIndex());
-                        newFile = newFile.clean(bounds, inside, false, deleteWaypoints, [], [], waypointIndices);
+                        file.clean(bounds, inside, false, deleteWaypoints, [], [], waypointIndices);
                     }
-                    draft.set(newFile._data.id, freeze(newFile));
                 }
             });
         });
@@ -877,20 +879,18 @@ export const dbUtils = {
         applyGlobal((draft) => {
             let allItems = Array.from(itemsAndPoints.keys());
             applyToOrderedItemsFromFile(allItems, (fileId, level, items) => {
-                let file = getFile(fileId);
+                let file = draft.get(fileId);
                 if (file) {
-                    let newFile = file;
                     for (let item of items) {
                         if (item instanceof ListTrackSegmentItem) {
                             let trackIndex = item.getTrackIndex();
                             let segmentIndex = item.getSegmentIndex();
                             let points = itemsAndPoints.get(item);
                             if (points) {
-                                newFile = newFile.replaceTrackPoints(trackIndex, segmentIndex, 0, file.trk[trackIndex].trkseg[segmentIndex].getNumberOfTrackPoints() - 1, points);
+                                file.replaceTrackPoints(trackIndex, segmentIndex, 0, file.trk[trackIndex].trkseg[segmentIndex].getNumberOfTrackPoints() - 1, points);
                             }
                         }
                     }
-                    draft.set(newFile._data.id, freeze(newFile));
                 }
             });
         });
@@ -901,21 +901,20 @@ export const dbUtils = {
         }
         applyGlobal((draft) => {
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = getFile(fileId);
+                let file = draft.get(fileId);
                 if (file && (level === ListLevel.FILE || level === ListLevel.TRACK)) {
-                    let newFile = file;
                     if (level === ListLevel.FILE) {
-                        newFile = file.setStyle(style);
+                        file.setStyle(style);
                     } else if (level === ListLevel.TRACK) {
-                        for (let item of items) {
-                            let trackIndex = (item as ListTrackItem).getTrackIndex();
-                            newFile = newFile.replaceTracks(trackIndex, trackIndex, [file.trk[trackIndex].setStyle(style)])[0];
-                        }
                         if (items.length === file.trk.length) {
-                            newFile = newFile.setStyle(style);
+                            file.setStyle(style);
+                        } else {
+                            for (let item of items) {
+                                let trackIndex = (item as ListTrackItem).getTrackIndex();
+                                file.trk[trackIndex].setStyle(style);
+                            }
                         }
                     }
-                    draft.set(newFile._data.id, freeze(newFile));
                 }
             });
         });
@@ -926,25 +925,23 @@ export const dbUtils = {
         }
         applyGlobal((draft) => {
             applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = getFile(fileId);
+                let file = draft.get(fileId);
                 if (file) {
-                    let newFile = file;
                     if (level === ListLevel.FILE) {
-                        newFile = file.setHidden(hidden);
+                        file.setHidden(hidden);
                     } else if (level === ListLevel.TRACK) {
                         let trackIndices = items.map((item) => (item as ListTrackItem).getTrackIndex());
-                        newFile = newFile.setHidden(hidden, trackIndices);
+                        file.setHidden(hidden, trackIndices);
                     } else if (level === ListLevel.SEGMENT) {
                         let trackIndices = [(items[0] as ListTrackSegmentItem).getTrackIndex()];
                         let segmentIndices = items.map((item) => (item as ListTrackSegmentItem).getSegmentIndex());
-                        newFile = newFile.setHidden(hidden, trackIndices, segmentIndices);
+                        file.setHidden(hidden, trackIndices, segmentIndices);
                     } else if (level === ListLevel.WAYPOINTS) {
-                        newFile = newFile.setHiddenWaypoints(hidden);
+                        file.setHiddenWaypoints(hidden);
                     } else if (level === ListLevel.WAYPOINT) {
                         let waypointIndices = items.map((item) => (item as ListWaypointItem).getWaypointIndex());
-                        newFile = newFile.setHiddenWaypoints(hidden, waypointIndices);
+                        file.setHiddenWaypoints(hidden, waypointIndices);
                     }
-                    draft.set(newFile._data.id, freeze(newFile));
                 }
             });
         });
@@ -958,33 +955,27 @@ export const dbUtils = {
                 if (level === ListLevel.FILE) {
                     draft.delete(fileId);
                 } else {
-                    let file = getFile(fileId);
+                    let file = draft.get(fileId);
                     if (file) {
-                        let newFile = file;
                         if (level === ListLevel.TRACK) {
                             for (let item of items) {
                                 let trackIndex = (item as ListTrackItem).getTrackIndex();
-                                let [result, _removed] = newFile.replaceTracks(trackIndex, trackIndex, []);
-                                newFile = result;
+                                file.replaceTracks(trackIndex, trackIndex, []);
                             }
                         } else if (level === ListLevel.SEGMENT) {
                             for (let item of items) {
                                 let trackIndex = (item as ListTrackSegmentItem).getTrackIndex();
                                 let segmentIndex = (item as ListTrackSegmentItem).getSegmentIndex();
-                                let [result, _removed] = newFile.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex, []);
-                                newFile = result;
+                                file.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex, []);
                             }
                         } else if (level === ListLevel.WAYPOINTS) {
-                            let [result, _removed] = newFile.replaceWaypoints(0, newFile.wpt.length - 1, []);
-                            newFile = result;
+                            file.replaceWaypoints(0, file.wpt.length - 1, []);
                         } else if (level === ListLevel.WAYPOINT) {
                             for (let item of items) {
                                 let waypointIndex = (item as ListWaypointItem).getWaypointIndex();
-                                let [result, _removed] = newFile.replaceWaypoints(waypointIndex, waypointIndex, []);
-                                newFile = result;
+                                file.replaceWaypoints(waypointIndex, waypointIndex, []);
                             }
                         }
-                        draft.set(newFile._data.id, freeze(newFile));
                     }
                 }
             });

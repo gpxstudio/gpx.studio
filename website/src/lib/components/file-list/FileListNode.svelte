@@ -27,8 +27,8 @@
 	export let node:
 		| Map<string, Readable<GPXFileWithStatistics | undefined>>
 		| GPXTreeElement<AnyGPXTreeElement>
-		| ReadonlyArray<Readonly<Waypoint>>
-		| Readonly<Waypoint>;
+		| Waypoint[]
+		| Waypoint;
 	export let item: ListItem;
 
 	let recursive = getContext<boolean>('recursive');

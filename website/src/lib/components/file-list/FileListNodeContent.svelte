@@ -27,7 +27,7 @@
 	export let node:
 		| Map<string, Readable<GPXFileWithStatistics | undefined>>
 		| GPXTreeElement<AnyGPXTreeElement>
-		| Readonly<Waypoint>;
+		| Waypoint;
 	export let item: ListItem;
 	export let waypointRoot: boolean = false;
 

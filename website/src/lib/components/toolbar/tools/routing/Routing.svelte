@@ -71,7 +71,7 @@
 	function createFileWithPoint(e: any) {
 		if ($selection.size === 0) {
 			let file = newGPXFile();
-			file = file.replaceTrackPoints(0, 0, 0, 0, [
+			file.replaceTrackPoints(0, 0, 0, 0, [
 				new TrackPoint({
 					attributes: {
 						lat: e.lngLat.lat,
@@ -79,9 +79,7 @@
 					}
 				})
 			]);
-			file = produce(file, (draft) => {
-				draft._data.id = getFileIds(1)[0];
-			});
+			file._data.id = getFileIds(1)[0];
 			dbUtils.add(file);
 			selectFileWhenLoaded(file._data.id);
 		}

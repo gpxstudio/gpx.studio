@@ -68,33 +68,31 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
 
     // Producers
     _reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date) {
-        return produce(this, (draft: Draft<GPXTreeNode<T>>) => {
-            let og = getOriginal(draft);
-            if (!originalNextTimestamp && !newPreviousTimestamp) {
-                originalNextTimestamp = og.getEndTimestamp();
-                newPreviousTimestamp = og.getStartTimestamp();
-            }
+        let og = getOriginal(this);
+        if (!originalNextTimestamp && !newPreviousTimestamp) {
+            originalNextTimestamp = og.getEndTimestamp();
+            newPreviousTimestamp = og.getStartTimestamp();
+        }
 
-            let children = og.children.slice();
-            children.reverse();
+        let children = og.children.slice();
+        children.reverse();
 
-            for (let i = 0; i < og.children.length; i++) {
-                let originalStartTimestamp = og.children[og.children.length - i - 1].getStartTimestamp();
+        for (let i = 0; i < og.children.length; i++) {
+            let originalStartTimestamp = og.children[og.children.length - i - 1].getStartTimestamp();
 
-                children[i] = children[i]._reverse(originalNextTimestamp, newPreviousTimestamp);
+            children[i]._reverse(originalNextTimestamp, newPreviousTimestamp);
 
-                originalNextTimestamp = originalStartTimestamp;
-                newPreviousTimestamp = children[i].getEndTimestamp();
-            }
+            originalNextTimestamp = originalStartTimestamp;
+            newPreviousTimestamp = children[i].getEndTimestamp();
+        }
 
-            if (this instanceof GPXFile) {
-                // @ts-ignore
-                draft.trk = freeze(children);
-            } else if (this instanceof Track) {
-                // @ts-ignore
-                draft.trkseg = freeze(children);
-            }
-        });
+        if (this instanceof GPXFile) {
+            // @ts-ignore
+            this.trk = freeze(children);
+        } else if (this instanceof Track) {
+            // @ts-ignore
+            this.trkseg = freeze(children);
+        }
     }
 }
 
@@ -115,8 +113,8 @@ export class GPXFile extends GPXTreeNode<Track>{
 
     attributes: GPXFileAttributes;
     metadata: Metadata;
-    readonly wpt: ReadonlyArray<Readonly<Waypoint>>;
-    readonly trk: ReadonlyArray<Track>;
+    wpt: Waypoint[];
+    trk: Track[];
 
     constructor(gpx?: GPXFileType & { _data?: any } | GPXFile) {
         super();
@@ -211,51 +209,23 @@ export class GPXFile extends GPXTreeNode<Track>{
     }
 
     // Producers
-    replaceTracks(start: number, end: number, tracks: Track[]): [GPXFile, Track[]] {
-        let removed = [];
-        let result = produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            if (og._data.style) {
-                tracks = tracks.map((track) => track.setStyle(og._data.style, false));
-            }
-            let trk = og.trk.slice();
-            removed = trk.splice(start, end - start + 1, ...tracks);
-            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
-        });
-        return [result, removed];
+    replaceTracks(start: number, end: number, tracks: Track[]): Track[] {
+        if (this._data.style) {
+            tracks.forEach((track) => track.setStyle(this._data.style, false));
+        }
+        return this.trk.splice(start, end - start + 1, ...tracks);
     }
 
-    replaceTrackSegments(trackIndex: number, start: number, end: number, segments: TrackSegment[]): [GPXFile, TrackSegment[]] {
-        let removed = [];
-        let result = produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trk = og.trk.slice();
-            let [result, rmv] = trk[trackIndex].replaceTrackSegments(start, end, segments);
-            trk[trackIndex] = result;
-            removed = rmv;
-            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
-        });
-        return [result, removed];
+    replaceTrackSegments(trackIndex: number, start: number, end: number, segments: TrackSegment[]): TrackSegment[] {
+        return this.trk[trackIndex].replaceTrackSegments(start, end, segments);
     }
 
     replaceTrackPoints(trackIndex: number, segmentIndex: number, start: number, end: number, points: TrackPoint[], speed?: number, startTime?: Date) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trk = og.trk.slice();
-            trk[trackIndex] = trk[trackIndex].replaceTrackPoints(segmentIndex, start, end, points, speed, startTime);
-            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
-        });
+        this.trk[trackIndex].replaceTrackPoints(segmentIndex, start, end, points, speed, startTime);
     }
 
-    replaceWaypoints(start: number, end: number, waypoints: Waypoint[]): [GPXFile, Waypoint[]] {
-        let removed = [];
-        let result = produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let wpt = og.wpt.slice();
-            removed = wpt.splice(start, end - start + 1, ...waypoints);
-            draft.wpt = freeze(wpt); // Pre-freeze the array, faster as well
-        });
-        return [result, removed];
+    replaceWaypoints(start: number, end: number, waypoints: Waypoint[]): Waypoint[] {
+        return this.wpt.splice(start, end - start + 1, ...waypoints);
     }
 
     reverse() {
@@ -263,152 +233,117 @@ export class GPXFile extends GPXTreeNode<Track>{
     }
 
     reverseTrack(trackIndex: number) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trk = og.trk.slice();
-            trk[trackIndex] = trk[trackIndex]._reverse();
-            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
-        });
+        this.trk[trackIndex]._reverse();
     }
 
     reverseTrackSegment(trackIndex: number, segmentIndex: number) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trk = og.trk.slice();
-            trk[trackIndex] = trk[trackIndex].reverseTrackSegment(segmentIndex);
-            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
-        });
+        this.trk[trackIndex].reverseTrackSegment(segmentIndex);
     }
 
     crop(start: number, end: number, trackIndices?: number[], segmentIndices?: number[]) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trk = og.trk.slice();
+        let i = 0;
+        let trackIndex = 0;
+        while (i < this.trk.length) {
+            let length = this.trk[i].getNumberOfTrackPoints();
+            if (trackIndices === undefined || trackIndices.includes(trackIndex)) {
+                if (start >= length || end < 0) {
+                    this.trk.splice(i, 1);
+                } else {
+                    if (start > 0 || end < length - 1) {
+                        this.trk[i].crop(Math.max(0, start), Math.min(length - 1, end), segmentIndices);
+                    }
+                    i++;
+                }
+                start -= length;
+                end -= length;
+            } else {
+                i++;
+            }
+            trackIndex++;
+        }
+    }
+
+    clean(bounds: [Coordinates, Coordinates], inside: boolean, deleteTrackPoints: boolean, deleteWaypoints: boolean, trackIndices?: number[], segmentIndices?: number[], waypointIndices?: number[]) {
+        if (deleteTrackPoints) {
             let i = 0;
             let trackIndex = 0;
-            while (i < trk.length) {
-                let length = trk[i].getNumberOfTrackPoints();
+            while (i < this.trk.length) {
                 if (trackIndices === undefined || trackIndices.includes(trackIndex)) {
-                    if (start >= length || end < 0) {
-                        trk.splice(i, 1);
+                    this.trk[i].clean(bounds, inside, segmentIndices);
+                    if (this.trk[i].getNumberOfTrackPoints() === 0) {
+                        this.trk.splice(i, 1);
                     } else {
-                        if (start > 0 || end < length - 1) {
-                            trk[i] = trk[i].crop(Math.max(0, start), Math.min(length - 1, end), segmentIndices);
-                        }
                         i++;
                     }
-                    start -= length;
-                    end -= length;
                 } else {
                     i++;
                 }
                 trackIndex++;
             }
-            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
-        });
-    }
-
-    clean(bounds: [Coordinates, Coordinates], inside: boolean, deleteTrackPoints: boolean, deleteWaypoints: boolean, trackIndices?: number[], segmentIndices?: number[], waypointIndices?: number[]) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            if (deleteTrackPoints) {
-                let trk = og.trk.slice();
-                let i = 0;
-                let trackIndex = 0;
-                while (i < trk.length) {
-                    if (trackIndices === undefined || trackIndices.includes(trackIndex)) {
-                        trk[i] = trk[i].clean(bounds, inside, segmentIndices);
-                        if (trk[i].getNumberOfTrackPoints() === 0) {
-                            trk.splice(i, 1);
-                        } else {
-                            i++;
-                        }
-                    } else {
-                        i++;
-                    }
-                    trackIndex++;
+        }
+        if (deleteWaypoints) {
+            let og = getOriginal(this); // Read as much as possible from the original object because it is faster
+            let wpt = og.wpt.filter((point, waypointIndex) => {
+                if (waypointIndices === undefined || waypointIndices.includes(waypointIndex)) {
+                    let inBounds = point.attributes.lat >= bounds[0].lat && point.attributes.lat <= bounds[1].lat && point.attributes.lon >= bounds[0].lon && point.attributes.lon <= bounds[1].lon;
+                    return inBounds !== inside;
+                } else {
+                    return true;
                 }
-                draft.trk = freeze(trk); // Pre-freeze the array, faster as well
-            }
-            if (deleteWaypoints) {
-                let wpt = og.wpt.filter((point, waypointIndex) => {
-                    if (waypointIndices === undefined || waypointIndices.includes(waypointIndex)) {
-                        let inBounds = point.attributes.lat >= bounds[0].lat && point.attributes.lat <= bounds[1].lat && point.attributes.lon >= bounds[0].lon && point.attributes.lon <= bounds[1].lon;
-                        return inBounds !== inside;
-                    } else {
-                        return true;
-                    }
-                });
-                draft.wpt = freeze(wpt); // Pre-freeze the array, faster as well
-            }
-        });
+            });
+            this.wpt = freeze(wpt); // Pre-freeze the array, faster as well
+        }
     }
 
     changeTimestamps(startTime: Date, speed: number, ratio: number, trackIndex?: number, segmentIndex?: number) {
         let lastPoint = undefined;
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trk = og.trk.map((track, index) => {
-                if (trackIndex === undefined || trackIndex === index) {
-                    return track.changeTimestamps(startTime, speed, ratio, lastPoint, segmentIndex);
-                } else {
-                    return track;
-                }
-            });
-            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
+        this.trk.forEach((track, index) => {
+            if (trackIndex === undefined || trackIndex === index) {
+                track.changeTimestamps(startTime, speed, ratio, lastPoint, segmentIndex);
+            }
         });
     }
 
     setStyle(style: LineStyleExtension) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trk = og.trk.map((track) => track.setStyle(style));
-            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
-            if (!draft._data.style) {
-                draft._data.style = {};
-            }
-            if (style.color) {
-                draft._data.style.color = style.color;
-            }
-            if (style.opacity) {
-                draft._data.style.opacity = style.opacity;
-            }
-            if (style.weight) {
-                draft._data.style.weight = style.weight;
-            }
+        this.trk.forEach((track) => {
+            track.setStyle(style);
         });
+        if (!this._data.style) {
+            this._data.style = {};
+        }
+        if (style.color) {
+            this._data.style.color = style.color;
+        }
+        if (style.opacity) {
+            this._data.style.opacity = style.opacity;
+        }
+        if (style.weight) {
+            this._data.style.weight = style.weight;
+        }
     }
 
     setHidden(hidden: boolean, trackIndices?: number[], segmentIndices?: number[]) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let allHidden = hidden;
-            let trk = og.trk.map((track, index) => {
-                if (trackIndices === undefined || trackIndices.includes(index)) {
-                    return track.setHidden(hidden, segmentIndices);
-                } else {
-                    allHidden = allHidden && (track._data.hidden === true);
-                    return track;
-                }
-            });
-            draft.trk = freeze(trk); // Pre-freeze the array, faster as well
-
-            let wpt = og.wpt.map((waypoint) => {
-                if (trackIndices === undefined && segmentIndices === undefined) {
-                    return waypoint.setHidden(hidden);
-                } else {
-                    allHidden = allHidden && (waypoint._data.hidden === true);
-                    return waypoint;
-                }
-            });
-            draft.wpt = freeze(wpt); // Pre-freeze the array, faster as well
-
-            if (trackIndices === undefined && segmentIndices === undefined) {
-                draft._data.hiddenWpt = hidden;
+        let allHidden = hidden;
+        this.trk.forEach((track, index) => {
+            if (trackIndices === undefined || trackIndices.includes(index)) {
+                track.setHidden(hidden, segmentIndices);
+            } else {
+                allHidden = allHidden && (track._data.hidden === true);
             }
-
-            draft._data.hidden = allHidden;
         });
+        this.wpt.forEach((waypoint) => {
+            if (trackIndices === undefined && segmentIndices === undefined) {
+                waypoint.setHidden(hidden);
+            } else {
+                allHidden = allHidden && (waypoint._data.hidden === true);
+            }
+        });
+
+        if (trackIndices === undefined && segmentIndices === undefined) {
+            this._data.hiddenWpt = hidden;
+        }
+
+        this._data.hidden = allHidden;
     }
 
     setHiddenWaypoints(hidden: boolean, waypointIndices?: number[]) {
@@ -441,14 +376,14 @@ export class GPXFile extends GPXTreeNode<Track>{
 export class Track extends GPXTreeNode<TrackSegment> {
     [immerable] = true;
 
-    readonly name?: string;
-    readonly cmt?: string;
-    readonly desc?: string;
-    readonly src?: string;
-    readonly link?: Link;
-    readonly type?: string;
-    readonly trkseg: ReadonlyArray<TrackSegment>;
-    readonly extensions?: TrackExtensions;
+    name?: string;
+    cmt?: string;
+    desc?: string;
+    src?: string;
+    link?: Link;
+    type?: string;
+    trkseg: TrackSegment[];
+    extensions?: TrackExtensions;
 
     constructor(track?: TrackType & { _data?: any } | Track) {
         super();
@@ -523,74 +458,50 @@ export class Track extends GPXTreeNode<TrackSegment> {
     }
 
     // Producers
-    replaceTrackSegments(start: number, end: number, segments: TrackSegment[]): [Track, TrackSegment[]] {
-        let removed = [];
-        let result = produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trkseg = og.trkseg.slice();
-            removed = trkseg.splice(start, end - start + 1, ...segments);
-            draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
-        });
-        return [result, removed];
+    replaceTrackSegments(start: number, end: number, segments: TrackSegment[]): TrackSegment[] {
+        return this.trkseg.splice(start, end - start + 1, ...segments);
     }
 
     replaceTrackPoints(segmentIndex: number, start: number, end: number, points: TrackPoint[], speed?: number, startTime?: Date) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trkseg = og.trkseg.slice();
-            trkseg[segmentIndex] = trkseg[segmentIndex].replaceTrackPoints(start, end, points, speed, startTime);
-            draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
-        });
+        this.trkseg[segmentIndex].replaceTrackPoints(start, end, points, speed, startTime);
     }
 
     reverseTrackSegment(segmentIndex: number) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trkseg = og.trkseg.slice();
-            trkseg[segmentIndex] = trkseg[segmentIndex]._reverse(trkseg[segmentIndex].getEndTimestamp(), trkseg[segmentIndex].getStartTimestamp());
-            draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
-        });
+        this.trkseg[segmentIndex]._reverse(this.trkseg[segmentIndex].getEndTimestamp(), this.trkseg[segmentIndex].getStartTimestamp());
     }
 
     crop(start: number, end: number, segmentIndices?: number[]) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trkseg = og.trkseg.slice();
-            let i = 0;
-            let segmentIndex = 0;
-            while (i < trkseg.length) {
-                let length = trkseg[i].getNumberOfTrackPoints();
-                if (segmentIndices === undefined || segmentIndices.includes(segmentIndex)) {
-                    if (start >= length || end < 0) {
-                        trkseg.splice(i, 1);
-                    } else {
-                        if (start > 0 || end < length - 1) {
-                            trkseg[i] = trkseg[i].crop(Math.max(0, start), Math.min(length - 1, end));
-                        }
-                        i++;
-                    }
-                    start -= length;
-                    end -= length;
+        let i = 0;
+        let segmentIndex = 0;
+        while (i < this.trkseg.length) {
+            let length = this.trkseg[i].getNumberOfTrackPoints();
+            if (segmentIndices === undefined || segmentIndices.includes(segmentIndex)) {
+                if (start >= length || end < 0) {
+                    this.trkseg.splice(i, 1);
                 } else {
+                    if (start > 0 || end < length - 1) {
+                        this.trkseg[i].crop(Math.max(0, start), Math.min(length - 1, end));
+                    }
                     i++;
                 }
-                segmentIndex++;
+                start -= length;
+                end -= length;
+            } else {
+                i++;
             }
-            draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
-        });
+            segmentIndex++;
+        }
     }
 
     clean(bounds: [Coordinates, Coordinates], inside: boolean, segmentIndices?: number[]) {
         return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trkseg = og.trkseg.slice();
             let i = 0;
             let segmentIndex = 0;
-            while (i < trkseg.length) {
+            while (i < this.trkseg.length) {
                 if (segmentIndices === undefined || segmentIndices.includes(segmentIndex)) {
-                    trkseg[i] = trkseg[i].clean(bounds, inside);
-                    if (trkseg[i].getNumberOfTrackPoints() === 0) {
-                        trkseg.splice(i, 1);
+                    this.trkseg[i].clean(bounds, inside);
+                    if (this.trkseg[i].getNumberOfTrackPoints() === 0) {
+                        this.trkseg.splice(i, 1);
                     } else {
                         i++;
                     }
@@ -599,64 +510,48 @@ export class Track extends GPXTreeNode<TrackSegment> {
                 }
                 segmentIndex++;
             }
-            draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
         });
     }
 
     changeTimestamps(startTime: Date, speed: number, ratio: number, lastPoint?: TrackPoint, segmentIndex?: number) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trkseg = og.trkseg.slice();
-            trkseg = trkseg.map((segment, index) => {
-                if (segmentIndex === undefined || segmentIndex === index) {
-                    let seg = segment.changeTimestamps(startTime, speed, ratio, lastPoint);
-                    if (seg.trkpt.length > 0) {
-                        lastPoint = seg.trkpt[seg.trkpt.length - 1];
-                    }
-                    return seg;
-                } else {
-                    return segment;
+        this.trkseg.forEach((segment, index) => {
+            if (segmentIndex === undefined || segmentIndex === index) {
+                segment.changeTimestamps(startTime, speed, ratio, lastPoint);
+                if (segment.trkpt.length > 0) {
+                    lastPoint = segment.trkpt[segment.trkpt.length - 1];
                 }
-            });
-            draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
+            }
         });
     }
 
     setStyle(style: LineStyleExtension, force: boolean = true) {
-        return produce(this, (draft) => {
-            if (!draft.extensions) {
-                draft.extensions = {};
-            }
-            if (!draft.extensions['gpx_style:line']) {
-                draft.extensions['gpx_style:line'] = {};
-            }
-            if (style.color !== undefined && (force || draft.extensions['gpx_style:line'].color === undefined)) {
-                draft.extensions['gpx_style:line'].color = style.color;
-            }
-            if (style.opacity !== undefined && (force || draft.extensions['gpx_style:line'].opacity === undefined)) {
-                draft.extensions['gpx_style:line'].opacity = style.opacity;
-            }
-            if (style.weight !== undefined && (force || draft.extensions['gpx_style:line'].weight === undefined)) {
-                draft.extensions['gpx_style:line'].weight = style.weight;
-            }
-        });
+        if (!this.extensions) {
+            this.extensions = {};
+        }
+        if (!this.extensions['gpx_style:line']) {
+            this.extensions['gpx_style:line'] = {};
+        }
+        if (style.color !== undefined && (force || this.extensions['gpx_style:line'].color === undefined)) {
+            this.extensions['gpx_style:line'].color = style.color;
+        }
+        if (style.opacity !== undefined && (force || this.extensions['gpx_style:line'].opacity === undefined)) {
+            this.extensions['gpx_style:line'].opacity = style.opacity;
+        }
+        if (style.weight !== undefined && (force || this.extensions['gpx_style:line'].weight === undefined)) {
+            this.extensions['gpx_style:line'].weight = style.weight;
+        }
     }
 
     setHidden(hidden: boolean, segmentIndices?: number[]) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let allHidden = hidden;
-            let trkseg = og.trkseg.map((segment, index) => {
-                if (segmentIndices === undefined || segmentIndices.includes(index)) {
-                    return segment.setHidden(hidden);
-                } else {
-                    allHidden = allHidden && (segment._data.hidden === true);
-                    return segment;
-                }
-            });
-            draft.trkseg = freeze(trkseg); // Pre-freeze the array, faster as well
-            draft._data.hidden = allHidden;
+        let allHidden = hidden;
+        this.trkseg.forEach((segment, index) => {
+            if (segmentIndices === undefined || segmentIndices.includes(index)) {
+                segment.setHidden(hidden);
+            } else {
+                allHidden = allHidden && (segment._data.hidden === true);
+            }
         });
+        this._data.hidden = allHidden;
     }
 }
 
@@ -664,7 +559,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
 export class TrackSegment extends GPXTreeLeaf {
     [immerable] = true;
 
-    readonly trkpt: ReadonlyArray<Readonly<TrackPoint>>;
+    trkpt: TrackPoint[];
 
     constructor(segment?: TrackSegmentType & { _data?: any } | TrackSegment) {
         super();
@@ -871,83 +766,79 @@ export class TrackSegment extends GPXTreeLeaf {
 
     // Producers
     replaceTrackPoints(start: number, end: number, points: TrackPoint[], speed?: number, startTime?: Date) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trkpt = og.trkpt.slice();
+        let og = getOriginal(this); // Read as much as possible from the original object because it is faster
+        let trkpt = og.trkpt.slice();
 
-            if (speed !== undefined || (trkpt.length > 0 && trkpt[0].time !== undefined)) {
-                if (start > 0 && trkpt[0].time === undefined) {
-                    trkpt.splice(0, 0, withTimestamps(trkpt.splice(0, start), speed, undefined, startTime));
-                }
-                if (points.length > 0) {
-                    let last = start > 0 ? trkpt[start - 1] : undefined;
-                    if (points[0].time === undefined || (points.length > 1 && points[1].time === undefined)) {
-                        points = withTimestamps(points, speed, last, startTime);
-                    } else if (last !== undefined && points[0].time < last.time) {
-                        points = withShiftedAndCompressedTimestamps(points, speed, 1, last);
-                    }
-                }
-                if (end < trkpt.length - 1) {
-                    let last = points.length > 0 ? points[points.length - 1] : start > 0 ? trkpt[start - 1] : undefined;
-                    if (trkpt[end + 1].time === undefined) {
-                        trkpt.splice(end + 1, 0, withTimestamps(trkpt.splice(end + 1), speed, last, startTime));
-                    } else if (last !== undefined && trkpt[end + 1].time < last.time) {
-                        points = withShiftedAndCompressedTimestamps(points, speed, 1, last);
-                    }
+        if (speed !== undefined || (trkpt.length > 0 && trkpt[0].time !== undefined)) {
+            if (start > 0 && trkpt[0].time === undefined) {
+                trkpt.splice(0, 0, ...withTimestamps(trkpt.splice(0, start), speed, undefined, startTime));
+            }
+            if (points.length > 0) {
+                let last = start > 0 ? trkpt[start - 1] : undefined;
+                if (points[0].time === undefined || (points.length > 1 && points[1].time === undefined)) {
+                    points = withTimestamps(points, speed, last, startTime);
+                } else if (last !== undefined && points[0].time < last.time) {
+                    points = withShiftedAndCompressedTimestamps(points, speed, 1, last);
                 }
             }
+            if (end < trkpt.length - 1) {
+                let last = points.length > 0 ? points[points.length - 1] : start > 0 ? trkpt[start - 1] : undefined;
+                if (trkpt[end + 1].time === undefined) {
+                    trkpt.splice(end + 1, 0, ...withTimestamps(trkpt.splice(end + 1), speed, last, startTime));
+                } else if (last !== undefined && trkpt[end + 1].time < last.time) {
+                    points = withShiftedAndCompressedTimestamps(points, speed, 1, last);
+                }
+            }
+        }
 
-            trkpt.splice(start, end - start + 1, ...points);
-            draft.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
-        });
+        trkpt.splice(start, end - start + 1, ...points);
+        this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
     }
 
     _reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date) {
-        return produce(this, (draft) => {
-            if (originalNextTimestamp !== undefined && newPreviousTimestamp !== undefined) {
-                let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
+        let og = getOriginal(this); // Read as much as possible from the original object because it is faster
+        let originalStartTimestamp = og.getStartTimestamp();
+        let originalEndTimestamp = og.getEndTimestamp();
+        if (!newPreviousTimestamp) {
+            newPreviousTimestamp = originalStartTimestamp;
+        }
+        if (newPreviousTimestamp && originalEndTimestamp && !originalNextTimestamp) {
+            originalNextTimestamp = new Date(newPreviousTimestamp.getTime() + originalEndTimestamp.getTime() - originalStartTimestamp.getTime());
+        }
+        if (originalNextTimestamp !== undefined && newPreviousTimestamp !== undefined && originalEndTimestamp !== undefined) {
+            let newStartTimestamp = new Date(
+                newPreviousTimestamp.getTime() + originalNextTimestamp.getTime() - originalEndTimestamp.getTime()
+            );
 
-                let originalEndTimestamp = og.getEndTimestamp();
-                let newStartTimestamp = new Date(
-                    newPreviousTimestamp.getTime() + originalNextTimestamp.getTime() - originalEndTimestamp.getTime()
-                );
+            let trkpt = og.trkpt.map((point, i) => new TrackPoint({
+                attributes: cloneJSON(point.attributes),
+                ele: point.ele,
+                time: new Date(
+                    newStartTimestamp.getTime() + (originalEndTimestamp.getTime() - og.trkpt[i].time.getTime())
+                ),
+                extensions: cloneJSON(point.extensions),
+                _data: cloneJSON(point._data),
+            }));
 
-                let trkpt = og.trkpt.map((point, i) => new TrackPoint({
-                    attributes: cloneJSON(point.attributes),
-                    ele: point.ele,
-                    time: new Date(
-                        newStartTimestamp.getTime() + (originalEndTimestamp.getTime() - og.trkpt[i].time.getTime())
-                    ),
-                    extensions: cloneJSON(point.extensions),
-                    _data: cloneJSON(point._data),
-                }));
+            trkpt.reverse();
 
-                trkpt.reverse();
-
-                draft.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
-            } else {
-                draft.trkpt.reverse();
-            }
-        });
+            this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+        } else {
+            this.trkpt.reverse();
+        }
     }
 
     crop(start: number, end: number) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trkpt = og.trkpt.slice(start, end + 1);
-            draft.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
-        });
+        this.trkpt = this.trkpt.slice(start, end + 1);
     }
 
     clean(bounds: [Coordinates, Coordinates], inside: boolean) {
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            let trkpt = og.trkpt.filter((point) => {
-                let inBounds = point.attributes.lat >= bounds[0].lat && point.attributes.lat <= bounds[1].lat && point.attributes.lon >= bounds[0].lon && point.attributes.lon <= bounds[1].lon;
-                return inBounds !== inside;
-            });
-            draft.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+        let og = getOriginal(this); // Read as much as possible from the original object because it is faster
+        let trkpt = og.trkpt.filter((point) => {
+            let inBounds = point.attributes.lat >= bounds[0].lat && point.attributes.lat <= bounds[1].lat && point.attributes.lon >= bounds[0].lon && point.attributes.lon <= bounds[1].lon;
+            return inBounds !== inside;
         });
+        this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
     }
 
     changeTimestamps(startTime: Date, speed: number, ratio: number, lastPoint?: TrackPoint) {
@@ -955,21 +846,18 @@ export class TrackSegment extends GPXTreeLeaf {
             lastPoint = this.trkpt[0].clone();
             lastPoint.time = startTime;
         }
-        return produce(this, (draft) => {
-            let og = getOriginal(draft); // Read as much as possible from the original object because it is faster
-            if (og.trkpt.length > 0 && og.trkpt[0].time === undefined) {
-                let trkpt = withTimestamps(og.trkpt, speed, lastPoint, startTime);
-                draft.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
-            } else {
-                let trkpt = withShiftedAndCompressedTimestamps(og.trkpt, speed, ratio, lastPoint);
-                draft.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
-            }
-        });
+
+        let og = getOriginal(this); // Read as much as possible from the original object because it is faster
+        if (og.trkpt.length > 0 && og.trkpt[0].time === undefined) {
+            let trkpt = withTimestamps(og.trkpt, speed, lastPoint, startTime);
+            this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+        } else {
+            let trkpt = withShiftedAndCompressedTimestamps(og.trkpt, speed, ratio, lastPoint);
+            this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+        }
     }
     setHidden(hidden: boolean) {
-        return produce(this, (draft) => {
-            draft._data.hidden = hidden;
-        });
+        this._data.hidden = hidden;
     }
 };
 
@@ -1122,9 +1010,7 @@ export class Waypoint {
 
     // Producers
     setHidden(hidden: boolean) {
-        return produce(this, (draft) => {
-            draft._data.hidden = hidden;
-        });
+        this._data.hidden = hidden;
     }
 }
 
@@ -1307,7 +1193,7 @@ export function distance(coord1: Coordinates, coord2: Coordinates): number {
     return maxMeters;
 }
 
-function distanceWindowSmoothing(points: ReadonlyArray<Readonly<TrackPoint>>, distanceWindow: number, accumulate: (index: number) => number, compute: (accumulated: number, start: number, end: number) => number, remove?: (index: number) => number): number[] {
+function distanceWindowSmoothing(points: TrackPoint[], distanceWindow: number, accumulate: (index: number) => number, compute: (accumulated: number, start: number, end: number) => number, remove?: (index: number) => number): number[] {
     let result = [];
 
     let start = 0, end = 0, accumulated = 0;
@@ -1330,7 +1216,7 @@ function distanceWindowSmoothing(points: ReadonlyArray<Readonly<TrackPoint>>, di
     return result;
 }
 
-function distanceWindowSmoothingWithDistanceAccumulator(points: ReadonlyArray<Readonly<TrackPoint>>, distanceWindow: number, compute: (accumulated: number, start: number, end: number) => number): number[] {
+function distanceWindowSmoothingWithDistanceAccumulator(points: TrackPoint[], distanceWindow: number, compute: (accumulated: number, start: number, end: number) => number): number[] {
     return distanceWindowSmoothing(points, distanceWindow, (index) => index > 0 ? distance(points[index - 1].getCoordinates(), points[index].getCoordinates()) : 0, compute, (index) => distance(points[index].getCoordinates(), points[index + 1].getCoordinates()));
 }
 

@@ -21,5 +21,5 @@ export const waypointPopup = new mapboxgl.Popup({
 });
 
 export function deleteWaypoint(fileId: string, waypointIndex: number) {
-    dbUtils.applyToFile(fileId, (file) => file.replaceWaypoints(waypointIndex, waypointIndex, [])[0]);
+    dbUtils.applyToFile(fileId, (file) => file.replaceWaypoints(waypointIndex, waypointIndex, []));
 }

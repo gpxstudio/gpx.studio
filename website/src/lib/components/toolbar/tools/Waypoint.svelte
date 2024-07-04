@@ -104,19 +104,16 @@
 		longitude = parseFloat(longitude.toFixed(6));
 		if ($selectedWaypoint) {
 			dbUtils.applyToFile($selectedWaypoint[1], (file) => {
-				let waypoint = $selectedWaypoint[0].clone();
-				waypoint.name = name;
-				waypoint.desc = description;
-				waypoint.cmt = description;
-				waypoint.setCoordinates({
+				let wpt = file.wpt[$selectedWaypoint[0]._data.index];
+				wpt.name = name;
+				wpt.desc = description;
+				wpt.cmt = description;
+				wpt.setCoordinates({
 					lat: latitude,
 					lon: longitude
 				});
-				return file.replaceWaypoints(
-					$selectedWaypoint[0]._data.index,
-					$selectedWaypoint[0]._data.index,
-					[waypoint]
-				)[0];
+				wpt.ele =
+					get(map)?.queryTerrainElevation([longitude, latitude], { exaggerated: false }) ?? 0;
 			});
 		} else {
 			let fileIds = new Set<string>();
@@ -134,9 +131,8 @@
 			});
 			waypoint.ele =
 				get(map)?.queryTerrainElevation([longitude, latitude], { exaggerated: false }) ?? 0;
-			dbUtils.applyToFiles(
-				Array.from(fileIds),
-				(file) => file.replaceWaypoints(file.wpt.length, file.wpt.length, [waypoint])[0]
+			dbUtils.applyToFiles(Array.from(fileIds), (file) =>
+				file.replaceWaypoints(file.wpt.length, file.wpt.length, [waypoint])
 			);
 		}
 		selectedWaypoint.set(undefined);

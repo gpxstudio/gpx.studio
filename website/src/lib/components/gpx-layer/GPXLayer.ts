@@ -6,7 +6,6 @@ import { currentPopupWaypoint, deleteWaypoint, waypointPopup } from "./WaypointP
 import { addSelectItem, selectItem, selection } from "$lib/components/file-list/Selection";
 import { ListTrackSegmentItem, ListWaypointItem, ListWaypointsItem, ListTrackItem, ListFileItem, ListRootItem } from "$lib/components/file-list/FileList";
 import type { Waypoint } from "gpx";
-import { produce } from "immer";
 import { resetCursor, setCursor, setGrabbingCursor, setPointerCursor } from "$lib/utils";
 import { font } from "$lib/assets/layers";
 import { selectedWaypoint } from "$lib/components/toolbar/tools/Waypoint.svelte";
@@ -231,13 +230,13 @@ export class GPXLayer {
                         resetCursor();
                         marker.getElement().style.cursor = '';
                         dbUtils.applyToFile(this.fileId, (file) => {
-                            return produce(file, (draft) => {
-                                let latLng = marker.getLngLat();
-                                draft.wpt[marker._waypoint._data.index].setCoordinates({
-                                    lat: latLng.lat,
-                                    lon: latLng.lng
-                                });
+                            let latLng = marker.getLngLat();
+                            let wpt = file.wpt[marker._waypoint._data.index];
+                            wpt.setCoordinates({
+                                lat: latLng.lat,
+                                lon: latLng.lng
                             });
+                            wpt.ele = this.map.queryTerrainElevation([latLng.lng, latLng.lat], { exaggerated: false }) ?? 0;
                         });
                         dragEndTimestamp = Date.now()
                     });

@@ -23,15 +23,11 @@ export function updateAnchorPoints(file: GPXFile) {
         }
 
         if (segment.trkpt.length > 0) {
-            if (!segment.trkpt[0]._data.anchor) { // First point is not an anchor, make it one
-                segment.trkpt[0]._data.anchor = true;
-                segment.trkpt[0]._data.zoom = 0;
-            }
-
-            if (!segment.trkpt[segment.trkpt.length - 1]._data.anchor) { // Last point is not an anchor, make it one
-                segment.trkpt[segment.trkpt.length - 1]._data.anchor = true;
-                segment.trkpt[segment.trkpt.length - 1]._data.zoom = 0;
-            }
+            // Ensure first and last points are anchors and always visible
+            segment.trkpt[0]._data.anchor = true;
+            segment.trkpt[0]._data.zoom = 0;
+            segment.trkpt[segment.trkpt.length - 1]._data.anchor = true;
+            segment.trkpt[segment.trkpt.length - 1]._data.zoom = 0;
         }
     }
 }

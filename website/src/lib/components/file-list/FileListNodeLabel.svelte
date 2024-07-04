@@ -51,10 +51,7 @@
 	import MetadataDialog from './MetadataDialog.svelte';
 	import StyleDialog from './StyleDialog.svelte';
 
-	export let node:
-		| GPXTreeElement<AnyGPXTreeElement>
-		| ReadonlyArray<Readonly<Waypoint>>
-		| Readonly<Waypoint>;
+	export let node: GPXTreeElement<AnyGPXTreeElement> | Waypoint[] | Waypoint;
 	export let item: ListItem;
 	export let label: string | undefined;
 
@@ -232,9 +229,8 @@
 				<ContextMenu.Item
 					disabled={!singleSelection}
 					on:click={() =>
-						dbUtils.applyToFile(
-							item.getFileId(),
-							(file) => file.replaceTracks(file.trk.length, file.trk.length, [new Track()])[0]
+						dbUtils.applyToFile(item.getFileId(), (file) =>
+							file.replaceTracks(file.trk.length, file.trk.length, [new Track()])
 						)}
 				>
 					<Plus size="16" class="mr-1" />
@@ -246,15 +242,13 @@
 					disabled={!singleSelection}
 					on:click={() => {
 						let trackIndex = item.getTrackIndex();
-						dbUtils.applyToFile(
-							item.getFileId(),
-							(file) =>
-								file.replaceTrackSegments(
-									trackIndex,
-									file.trk[trackIndex].trkseg.length,
-									file.trk[trackIndex].trkseg.length,
-									[new TrackSegment()]
-								)[0]
+						dbUtils.applyToFile(item.getFileId(), (file) =>
+							file.replaceTrackSegments(
+								trackIndex,
+								file.trk[trackIndex].trkseg.length,
+								file.trk[trackIndex].trkseg.length,
+								[new TrackSegment()]
+							)
 						);
 					}}
 				>
