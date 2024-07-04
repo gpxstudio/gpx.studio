@@ -40,6 +40,7 @@
 		});
 		newMap.on('load', () => {
 			$map = newMap; // only set the store after the map has loaded
+			scaleControl.setUnit($distanceUnits);
 		});
 
 		newMap.addControl(
@@ -113,10 +114,6 @@
 			});
 		});
 	});
-
-	$: if ($map) {
-		scaleControl.setUnit($distanceUnits);
-	}
 
 	$: if (
 		$map &&

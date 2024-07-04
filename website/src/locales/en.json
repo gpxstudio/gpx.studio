@@ -52,10 +52,8 @@
         "layers": "Map layers...",
         "distance_markers": "Distance markers",
         "direction_markers": "Direction markers",
-        "app": "App",
         "about": "About",
         "donate": "Donate",
-        "documentation": "Documentation",
         "ctrl": "Ctrl",
         "click": "Click",
         "drag": "Drag",
@@ -346,5 +344,19 @@
         "segments": "Segments",
         "waypoint": "Point of interest",
         "waypoints": "Points of interest"
+    },
+    "homepage": {
+        "website": "Website",
+        "app": "App",
+        "documentation": "Documentation",
+        "contact": "Contact",
+        "x": "X",
+        "facebook": "Facebook",
+        "github": "GitHub",
+        "crowdin": "Crowdin",
+        "email": "Email",
+        "contribute": "Contribute",
+        "supported_by": "supported by",
+        "support_button": "Support gpx.studio on Ko-fi"
     }
 }

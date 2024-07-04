@@ -27,30 +27,3 @@
 		<Footer />
 	{/if}
 {/if}
-
-<style lang="postcss">
-	:global(.markdown) {
-	}
-
-	:global(.markdown h1) {
-		@apply text-3xl;
-		@apply font-bold;
-		@apply mt-4 mb-2;
-	}
-
-	:global(.markdown h2) {
-		@apply text-2xl;
-		@apply font-bold;
-		@apply mt-4 mb-2;
-	}
-
-	:global(.markdown a) {
-		@apply text-blue-500;
-		@apply hover:underline;
-	}
-
-	:global(.markdown ul) {
-		@apply list-disc;
-		@apply pl-4;
-	}
-</style>

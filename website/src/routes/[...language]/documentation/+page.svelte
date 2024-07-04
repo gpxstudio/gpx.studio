@@ -1,5 +1,5 @@
 <script>
-	import Docs from '$lib/components/docs/Docs.svx';
+	import Docs from '$lib/components/docs/Docs.svelte';
 </script>
 
 <Docs />
