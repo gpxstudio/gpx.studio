@@ -303,16 +303,16 @@
 				let fileId = item.getFileId();
 				dbUtils.applyToFile(fileId, (file) => {
 					if (item instanceof ListFileItem) {
-						return file.changeTimestamps(getDate(startDate, startTime), effectiveSpeed, ratio);
+						file.changeTimestamps(getDate(startDate, startTime), effectiveSpeed, ratio);
 					} else if (item instanceof ListTrackItem) {
-						return file.changeTimestamps(
+						file.changeTimestamps(
 							getDate(startDate, startTime),
 							effectiveSpeed,
 							ratio,
 							item.getTrackIndex()
 						);
 					} else if (item instanceof ListTrackSegmentItem) {
-						return file.changeTimestamps(
+						file.changeTimestamps(
 							getDate(startDate, startTime),
 							effectiveSpeed,
 							ratio,

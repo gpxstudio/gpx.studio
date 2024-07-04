@@ -6,21 +6,28 @@
 
 <script lang="ts">
 	import { GPXFile, Track, Waypoint, type AnyGPXTreeElement, type GPXTreeElement } from 'gpx';
-	import { afterUpdate, getContext, onMount } from 'svelte';
+	import { afterUpdate, getContext, onDestroy, onMount } from 'svelte';
 	import Sortable from 'sortablejs/Sortable';
 	import { getFileIds, settings, type GPXFileWithStatistics } from '$lib/db';
 	import { get, writable, type Readable, type Writable } from 'svelte/store';
 	import FileListNodeStore from './FileListNodeStore.svelte';
 	import FileListNode from './FileListNode.svelte';
-	import { ListLevel, ListRootItem, allowedMoves, moveItems, type ListItem } from './FileList';
+	import {
+		ListFileItem,
+		ListLevel,
+		ListRootItem,
+		ListWaypointsItem,
+		allowedMoves,
+		moveItems,
+		type ListItem
+	} from './FileList';
 	import { selection } from './Selection';
 	import { _ } from 'svelte-i18n';
 
 	export let node:
 		| Map<string, Readable<GPXFileWithStatistics | undefined>>
 		| GPXTreeElement<AnyGPXTreeElement>
-		| ReadonlyArray<Readonly<Waypoint>>
-		| Readonly<Waypoint>;
+		| Waypoint;
 	export let item: ListItem;
 	export let waypointRoot: boolean = false;
 
@@ -32,46 +39,64 @@
 			: node instanceof GPXFile
 				? waypointRoot
 					? ListLevel.WAYPOINTS
-					: ListLevel.TRACK
+					: item instanceof ListWaypointsItem
+						? ListLevel.WAYPOINT
+						: ListLevel.TRACK
 				: node instanceof Track
 					? ListLevel.SEGMENT
 					: ListLevel.WAYPOINT;
 	let sortable: Sortable;
 	let orientation = getContext<'vertical' | 'horizontal'>('orientation');
 
+	let destroyed = false;
+	let lastUpdateStart = 0;
 	function updateToSelection(e) {
-		if (updating) return;
-		updating = true;
-		// Sortable updates selection
-		let changed = getChangedIds();
-		if (changed.length > 0) {
-			selection.update(($selection) => {
-				$selection.clear();
-				Object.entries(elements).forEach(([id, element]) => {
-					$selection.set(
-						item.extend(getRealId(id)),
-						element.classList.contains('sortable-selected')
-					);
-				});
+		if (destroyed) {
+			return;
+		}
 
-				if (
-					e.originalEvent &&
-					$selection.size > 1 &&
-					!(e.originalEvent.ctrlKey || e.originalEvent.metaKey || e.originalEvent.shiftKey)
-				) {
-					// Fix bug that sometimes causes a single select to be treated as a multi-select
-					$selection.clear();
-					$selection.set(item.extend(getRealId(changed[0])), true);
+		lastUpdateStart = Date.now();
+		setTimeout(() => {
+			if (Date.now() - lastUpdateStart >= 40) {
+				if (updating) {
+					return;
 				}
 
-				return $selection;
-			});
-		}
-		updating = false;
+				updating = true;
+				// Sortable updates selection
+				let changed = getChangedIds();
+				if (changed.length > 0) {
+					selection.update(($selection) => {
+						$selection.clear();
+						Object.entries(elements).forEach(([id, element]) => {
+							$selection.set(
+								item.extend(getRealId(id)),
+								element.classList.contains('sortable-selected')
+							);
+						});
+
+						if (
+							e.originalEvent &&
+							$selection.size > 1 &&
+							!(e.originalEvent.ctrlKey || e.originalEvent.metaKey || e.originalEvent.shiftKey)
+						) {
+							// Fix bug that sometimes causes a single select to be treated as a multi-select
+							$selection.clear();
+							$selection.set(item.extend(getRealId(changed[0])), true);
+						}
+
+						return $selection;
+					});
+				}
+				updating = false;
+			}
+		}, 50);
 	}
 
 	function updateFromSelection() {
-		if (updating) return;
+		if (destroyed || updating) {
+			return;
+		}
 		updating = true;
 		// Selection updates sortable
 		let changed = getChangedIds();
@@ -165,8 +190,9 @@
 					if (Sortable.get(e.from)._waypointRoot) {
 						fromItems = [fromItem.extend('waypoints')];
 					} else {
-						let oldIndices =
+						let oldIndices: number[] =
 							e.oldIndicies.length > 0 ? e.oldIndicies.map((i) => i.index) : [e.oldIndex];
+						oldIndices = oldIndices.filter((i) => i >= 0);
 						oldIndices.sort((a, b) => a - b);
 
 						fromItems = oldIndices.map((i) => fromItem.extend(i));
@@ -179,8 +205,9 @@
 							toItem = toItem.extend('waypoints');
 						}
 
-						let newIndices =
+						let newIndices: number[] =
 							e.newIndicies.length > 0 ? e.newIndicies.map((i) => i.index) : [e.newIndex];
+						newIndices = newIndices.filter((i) => i >= 0);
 						newIndices.sort((a, b) => a - b);
 
 						if (toItem instanceof ListRootItem) {
@@ -211,6 +238,7 @@
 
 	onMount(() => {
 		createSortable();
+		destroyed = false;
 	});
 
 	afterUpdate(() => {
@@ -230,6 +258,10 @@
 
 		syncFileOrder();
 		updateFromSelection();
+	});
+
+	onDestroy(() => {
+		destroyed = true;
 	});
 
 	function getChangedIds() {
@@ -268,10 +300,16 @@
 			</div>
 		{/each}
 	{:else if node instanceof GPXFile}
-		{#if waypointRoot}
+		{#if item instanceof ListWaypointsItem}
+			{#each node.wpt as wpt, i (wpt)}
+				<div data-id={i} class="ml-1">
+					<FileListNode node={wpt} item={item.extend(i)} />
+				</div>
+			{/each}
+		{:else if waypointRoot}
 			{#if node.wpt.length > 0}
 				<div data-id="waypoints">
-					<FileListNode node={node.wpt} item={item.extend('waypoints')} />
+					<FileListNode {node} item={item.extend('waypoints')} />
 				</div>
 			{/if}
 		{:else}
@@ -287,16 +325,10 @@
 				<FileListNode node={child} item={item.extend(i)} />
 			</div>
 		{/each}
-	{:else if Array.isArray(node) && node.length > 0 && node[0] instanceof Waypoint}
-		{#each node as wpt, i (wpt)}
-			<div data-id={i} class="ml-1">
-				<FileListNode node={wpt} item={item.extend(i)} />
-			</div>
-		{/each}
 	{/if}
 </div>
 
-{#if node instanceof GPXFile}
+{#if node instanceof GPXFile && item instanceof ListFileItem}
 	{#if !waypointRoot}
 		<svelte:self {node} {item} waypointRoot={true} />
 	{/if}

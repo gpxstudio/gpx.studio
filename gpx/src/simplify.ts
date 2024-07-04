@@ -5,7 +5,7 @@ export type SimplifiedTrackPoint = { point: TrackPoint, distance?: number };
 
 const earthRadius = 6371008.8;
 
-export function ramerDouglasPeucker(points: readonly TrackPoint[], epsilon: number = 50, measure: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => number = computeCrossarc): SimplifiedTrackPoint[] {
+export function ramerDouglasPeucker(points: TrackPoint[], epsilon: number = 50, measure: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => number = computeCrossarc): SimplifiedTrackPoint[] {
     if (points.length == 0) {
         return [];
     } else if (points.length == 1) {
@@ -24,7 +24,7 @@ export function ramerDouglasPeucker(points: readonly TrackPoint[], epsilon: numb
     return simplified;
 }
 
-function ramerDouglasPeuckerRecursive(points: readonly TrackPoint[], epsilon: number, measure: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => number, start: number, end: number, simplified: SimplifiedTrackPoint[]) {
+function ramerDouglasPeuckerRecursive(points: TrackPoint[], epsilon: number, measure: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => number, start: number, end: number, simplified: SimplifiedTrackPoint[]) {
     let largest = {
         index: 0,
         distance: 0

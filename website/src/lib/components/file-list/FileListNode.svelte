@@ -14,8 +14,10 @@
 	import FileListNodeLabel from './FileListNodeLabel.svelte';
 	import { afterUpdate, getContext } from 'svelte';
 	import {
+		ListFileItem,
 		ListTrackSegmentItem,
 		ListWaypointItem,
+		ListWaypointsItem,
 		type ListItem,
 		type ListTrackItem
 	} from './FileList';
@@ -25,8 +27,8 @@
 	export let node:
 		| Map<string, Readable<GPXFileWithStatistics | undefined>>
 		| GPXTreeElement<AnyGPXTreeElement>
-		| ReadonlyArray<Readonly<Waypoint>>
-		| Readonly<Waypoint>;
+		| Waypoint[]
+		| Waypoint;
 	export let item: ListItem;
 
 	let recursive = getContext<boolean>('recursive');
@@ -34,7 +36,7 @@
 	let collapsible: CollapsibleTreeNode;
 
 	$: label =
-		node instanceof GPXFile
+		node instanceof GPXFile && item instanceof ListFileItem
 			? node.metadata.name
 			: node instanceof Track
 				? node.name ?? `${$_('gpx.track')} ${(item as ListTrackItem).trackIndex + 1}`
@@ -42,7 +44,7 @@
 					? `${$_('gpx.segment')} ${(item as ListTrackSegmentItem).segmentIndex + 1}`
 					: node instanceof Waypoint
 						? node.name ?? `${$_('gpx.waypoint')} ${(item as ListWaypointItem).waypointIndex + 1}`
-						: Array.isArray(node) && node.length > 0 && node[0] instanceof Waypoint
+						: node instanceof GPXFile && item instanceof ListWaypointsItem
 							? $_('gpx.waypoints')
 							: '';
 

@@ -38,15 +38,7 @@
 	} from './Selection';
 	import { getContext } from 'svelte';
 	import { get } from 'svelte/store';
-	import {
-		anyHidden,
-		editMetadata,
-		editStyle,
-		gpxLayers,
-		hideSelection,
-		map,
-		showSelection
-	} from '$lib/stores';
+	import { allHidden, editMetadata, editStyle, gpxLayers, map } from '$lib/stores';
 	import {
 		GPXTreeElement,
 		Track,
@@ -59,10 +51,7 @@
 	import MetadataDialog from './MetadataDialog.svelte';
 	import StyleDialog from './StyleDialog.svelte';
 
-	export let node:
-		| GPXTreeElement<AnyGPXTreeElement>
-		| ReadonlyArray<Readonly<Waypoint>>
-		| Readonly<Waypoint>;
+	export let node: GPXTreeElement<AnyGPXTreeElement> | Waypoint[] | Waypoint;
 	export let item: ListItem;
 	export let label: string | undefined;
 
@@ -114,6 +103,7 @@
 		$editStyle &&
 		$selection.has(item) &&
 		$selection.getSelected().findIndex((i) => i.getFullId() === item.getFullId()) === 0;
+	$: hidden = item.level === ListLevel.WAYPOINTS ? node._data.hiddenWpt : node._data.hidden;
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -153,7 +143,9 @@
 				/>
 			{/if}
 			<span
-				class="w-full text-left truncate py-1 flex flex-row items-center"
+				class="w-full text-left truncate py-1 flex flex-row items-center {hidden
+					? 'text-muted-foreground'
+					: ''}"
 				on:contextmenu={(e) => {
 					if (e.ctrlKey) {
 						// Add to selection instead of opening context menu
@@ -189,9 +181,18 @@
 				{:else if item.level === ListLevel.WAYPOINT}
 					<MapPin size="16" class="mr-1 shrink-0" />
 				{/if}
-				<span class="grow select-none truncate {$verticalFileView ? 'mr-2' : ''}">
+				<span class="grow select-none truncate {$verticalFileView ? 'last:mr-2' : ''}">
 					{label}
 				</span>
+				{#if hidden}
+					<EyeOff
+						size="12"
+						class="shrink-0 mt-1 ml-1 {$verticalFileView ? 'mr-2' : ''} {item.level ===
+							ListLevel.SEGMENT || item.level === ListLevel.WAYPOINT
+							? 'mr-3'
+							: ''}"
+					/>
+				{/if}
 			</span>
 		</Button>
 	</ContextMenu.Trigger>
@@ -200,41 +201,39 @@
 			<ContextMenu.Item disabled={!singleSelection} on:click={() => ($editMetadata = true)}>
 				<Info size="16" class="mr-1" />
 				{$_('menu.metadata.button')}
+				<Shortcut key="I" ctrl={true} />
 			</ContextMenu.Item>
 			<ContextMenu.Item on:click={() => ($editStyle = true)}>
 				<PaintBucket size="16" class="mr-1" />
 				{$_('menu.style.button')}
 			</ContextMenu.Item>
-			{#if item instanceof ListFileItem}
-				<ContextMenu.Item
-					on:click={() => {
-						if ($anyHidden) {
-							showSelection();
-						} else {
-							hideSelection();
-						}
-					}}
-				>
-					{#if $anyHidden}
-						<Eye size="16" class="mr-1" />
-						{$_('menu.unhide')}
-					{:else}
-						<EyeOff size="16" class="mr-1" />
-						{$_('menu.hide')}
-					{/if}
-					<Shortcut key="H" ctrl={true} />
-				</ContextMenu.Item>
-			{/if}
-			<ContextMenu.Separator />
 		{/if}
+		<ContextMenu.Item
+			on:click={() => {
+				if ($allHidden) {
+					dbUtils.setHiddenToSelection(false);
+				} else {
+					dbUtils.setHiddenToSelection(true);
+				}
+			}}
+		>
+			{#if $allHidden}
+				<Eye size="16" class="mr-1" />
+				{$_('menu.unhide')}
+			{:else}
+				<EyeOff size="16" class="mr-1" />
+				{$_('menu.hide')}
+			{/if}
+			<Shortcut key="H" ctrl={true} />
+		</ContextMenu.Item>
+		<ContextMenu.Separator />
 		{#if $verticalFileView}
 			{#if item instanceof ListFileItem}
 				<ContextMenu.Item
 					disabled={!singleSelection}
 					on:click={() =>
-						dbUtils.applyToFile(
-							item.getFileId(),
-							(file) => file.replaceTracks(file.trk.length, file.trk.length, [new Track()])[0]
+						dbUtils.applyToFile(item.getFileId(), (file) =>
+							file.replaceTracks(file.trk.length, file.trk.length, [new Track()])
 						)}
 				>
 					<Plus size="16" class="mr-1" />
@@ -246,15 +245,13 @@
 					disabled={!singleSelection}
 					on:click={() => {
 						let trackIndex = item.getTrackIndex();
-						dbUtils.applyToFile(
-							item.getFileId(),
-							(file) =>
-								file.replaceTrackSegments(
-									trackIndex,
-									file.trk[trackIndex].trkseg.length,
-									file.trk[trackIndex].trkseg.length,
-									[new TrackSegment()]
-								)[0]
+						dbUtils.applyToFile(item.getFileId(), (file) =>
+							file.replaceTrackSegments(
+								trackIndex,
+								file.trk[trackIndex].trkseg.length,
+								file.trk[trackIndex].trkseg.length,
+								[new TrackSegment()]
+							)
 						);
 					}}
 				>

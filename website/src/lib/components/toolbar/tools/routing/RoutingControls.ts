@@ -351,7 +351,7 @@ export class RoutingControls {
         } else if (nextAnchor === null) { // Last point, remove trackpoints from previousAnchor
             dbUtils.applyToFile(this.fileId, (file) => {
                 let segment = file.getSegment(anchor.trackIndex, anchor.segmentIndex);
-                return file.replaceTrackPoints(anchor.trackIndex, anchor.segmentIndex, previousAnchor.point._data.index + 1, segment.trkpt.length - 1, []);
+                file.replaceTrackPoints(anchor.trackIndex, anchor.segmentIndex, previousAnchor.point._data.index + 1, segment.trkpt.length - 1, []);
             });
         } else { // Route between previousAnchor and nextAnchor
             this.routeBetweenAnchors([previousAnchor, nextAnchor], [previousAnchor.point.getCoordinates(), nextAnchor.point.getCoordinates()]);
@@ -374,8 +374,8 @@ export class RoutingControls {
 
         let segment = anchor.segment;
         dbUtils.applyToFile(this.fileId, (file) => {
-            let newFile = file.replaceTrackPoints(anchor.trackIndex, anchor.segmentIndex, segment.trkpt.length, segment.trkpt.length - 1, segment.trkpt.slice(0, anchor.point._data.index), speed > 0 ? speed : undefined);
-            return newFile.replaceTrackPoints(anchor.trackIndex, anchor.segmentIndex, 0, anchor.point._data.index - 1, []);
+            file.replaceTrackPoints(anchor.trackIndex, anchor.segmentIndex, segment.trkpt.length, segment.trkpt.length - 1, segment.trkpt.slice(0, anchor.point._data.index), speed > 0 ? speed : undefined);
+            file.crop(anchor.point._data.index, anchor.point._data.index + segment.trkpt.length - 1, [anchor.trackIndex], [anchor.segmentIndex]);
         });
     }
 
@@ -412,14 +412,14 @@ export class RoutingControls {
                 }
                 if (file.trk.length === 0) {
                     let track = new Track();
-                    track = track.replaceTrackPoints(0, 0, 0, [newPoint]);
-                    return file.replaceTracks(0, 0, [track])[0];
+                    track.replaceTrackPoints(0, 0, 0, [newPoint]);
+                    file.replaceTracks(0, 0, [track]);
                 } else if (file.trk[trackIndex].trkseg.length === 0) {
                     let segment = new TrackSegment();
-                    segment = segment.replaceTrackPoints(0, 0, [newPoint]);
-                    return file.replaceTrackSegments(trackIndex, 0, 0, [segment])[0];
+                    segment.replaceTrackPoints(0, 0, [newPoint]);
+                    file.replaceTrackSegments(trackIndex, 0, 0, [segment]);
                 } else {
-                    return file.replaceTrackPoints(trackIndex, segmentIndex, 0, 0, [newPoint]);
+                    file.replaceTrackPoints(trackIndex, segmentIndex, 0, 0, [newPoint]);
                 }
             });
             return;
@@ -458,11 +458,11 @@ export class RoutingControls {
 
         let lastAnchor = this.anchors[this.anchors.length - 1];
 
+        let segment = lastAnchor.segment;
         dbUtils.applyToFile(this.fileId, (file) => {
-            let segment = original(file).getSegment(lastAnchor.trackIndex, lastAnchor.segmentIndex);
             let newSegment = segment.clone();
-            newSegment = newSegment._reverse(segment.getEndTimestamp(), segment.getEndTimestamp());
-            return file.replaceTrackPoints(lastAnchor.trackIndex, lastAnchor.segmentIndex, segment.trkpt.length, segment.trkpt.length, newSegment.trkpt.map((point) => point));
+            newSegment._reverse(segment.getEndTimestamp(), segment.getEndTimestamp());
+            file.replaceTrackPoints(lastAnchor.trackIndex, lastAnchor.segmentIndex, segment.trkpt.length, segment.trkpt.length, newSegment.trkpt.map((point) => point));
         });
     }
 

@@ -11,10 +11,7 @@
 	import { _ } from 'svelte-i18n';
 	import { editMetadata } from '$lib/stores';
 
-	export let node:
-		| GPXTreeElement<AnyGPXTreeElement>
-		| ReadonlyArray<Readonly<Waypoint>>
-		| Readonly<Waypoint>;
+	export let node: GPXTreeElement<AnyGPXTreeElement> | Waypoint[] | Waypoint;
 	export let item: ListItem;
 	export let open = false;
 
@@ -54,7 +51,6 @@
 						file.trk[item.getTrackIndex()].name = name;
 						file.trk[item.getTrackIndex()].desc = description;
 					}
-					return file;
 				});
 				open = false;
 			}}
