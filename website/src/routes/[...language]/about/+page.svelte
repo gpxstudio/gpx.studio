@@ -10,12 +10,17 @@
 	import { settings } from '$lib/db';
 	import { BookOpenText, Heart, Map } from 'lucide-svelte';
 	import { _ } from 'svelte-i18n';
-
 	import { exampleGPXFile } from '$lib/assets/example';
 	import { writable } from 'svelte/store';
 	import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
 	import { currentTool, Tool } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
+	import mapboxOutdoorsMap from '$lib/assets/img/mapbox-outdoors.png?enhanced';
+	import mapboxSatelliteMap from '$lib/assets/img/mapbox-satellite.png?enhanced';
+	import ignMap from '$lib/assets/img/ign.png?enhanced';
+	import cyclosmMap from '$lib/assets/img/cyclosm.png?enhanced';
+	import waymarkedMap from '$lib/assets/img/waymarked.png?enhanced';
+	import mapScreenshot from '$lib/assets/img/map.png?enhanced';
 
 	let gpxStatistics = writable(exampleGPXFile.getStatistics());
 	let slicedGPXStatistics = writable(undefined);
@@ -103,31 +108,31 @@
 			<div
 				class="relative grow min-w-1/2 min-h-96 aspect-square rounded-2xl shadow-xl overflow-clip"
 			>
-				<img
-					src="{base}/mapbox-outdoors.png"
+				<enhanced:img
+					src={mapboxOutdoorsMap}
 					alt="Mapbox Outdoors map screenshot."
 					class="absolute"
 					style="clip-path: inset(0 50% 50% 0);"
 				/>
-				<img
-					src="{base}/mapbox-satellite.png"
+				<enhanced:img
+					src={mapboxSatelliteMap}
 					alt="Mapbox Satellite map screenshot."
 					class="absolute"
 					style="clip-path: inset(0 0 50% 50%);"
 				/>
-				<img
-					src="{base}/ign.png"
+				<enhanced:img
+					src={ignMap}
 					alt="IGN map screenshot."
 					class="absolute"
 					style="clip-path: inset(50% 50% 0 0);"
 				/>
-				<img
-					src="{base}/cyclosm.png"
+				<enhanced:img
+					src={cyclosmMap}
 					alt="CyclOSM map screenshot."
 					class="absolute"
 					style="clip-path: inset(50% 0 0 50%);"
 				/>
-				<img src="{base}/waymarked.png" alt="Waymarked Trails map screenshot." class="absolute" />
+				<enhanced:img src={waymarkedMap} alt="Waymarked Trails map screenshot." class="absolute" />
 			</div>
 		</div>
 	</div>
@@ -160,7 +165,11 @@
 		</div>
 	</div>
 	<div class="relative">
-		<img src="{base}/map.png" alt="Screenshot of the gpx.studio map in 3D." class="w-full" />
+		<enhanced:img
+			src={mapScreenshot}
+			alt="Screenshot of the gpx.studio map in 3D."
+			class="w-full"
+		/>
 		<div
 			class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-background via-transparent to-background"
 		/>
@@ -185,7 +194,7 @@
 	</div>
 	<div class="px-24 flex flex-col items-center">
 		<div
-			class="max-w-5xl flex flex-col md:flex-row items-center justify-center gap-x-12 gap-y-6 p-6 border rounded-2xl shadow-xl"
+			class="max-w-4xl flex flex-col md:flex-row items-center justify-center gap-x-12 gap-y-6 p-6 border rounded-2xl shadow-xl"
 		>
 			<div class="shrink-0 flex flex-col sm:flex-row md:flex-col items-center gap-x-4 gap-y-2">
 				<div class="text-lg font-semibold text-muted-foreground">
