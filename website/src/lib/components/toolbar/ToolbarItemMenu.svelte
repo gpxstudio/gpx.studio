@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Tool, currentTool } from '$lib/stores';
+	import { settings } from '$lib/db';
 	import { flyAndScale } from '$lib/utils';
 	import * as Card from '$lib/components/ui/card';
 	import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
@@ -13,6 +14,8 @@
 	import RoutingControlPopup from '$lib/components/toolbar/tools/routing/RoutingControlPopup.svelte';
 	import { onMount } from 'svelte';
 	import mapboxgl from 'mapbox-gl';
+
+	const { minimizeRoutingMenu } = settings;
 
 	let popupElement: HTMLElement;
 	let popup: mapboxgl.Popup;
@@ -36,7 +39,7 @@
 			<Card.Root class="rounded-md border-none">
 				<Card.Content class="p-2.5">
 					{#if $currentTool === Tool.ROUTING}
-						<Routing {popup} {popupElement} />
+						<Routing {popup} {popupElement} bind:minimized={$minimizeRoutingMenu} />
 					{:else if $currentTool === Tool.SCISSORS}
 						<Scissors />
 					{:else if $currentTool === Tool.WAYPOINT}

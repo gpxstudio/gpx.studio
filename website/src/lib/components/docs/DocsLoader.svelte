@@ -15,7 +15,7 @@
 </script>
 
 {#if module !== undefined}
-	<div class="markdown">
+	<div class="markdown space-y-3">
 		<svelte:component this={module} />
 	</div>
 {/if}
@@ -26,14 +26,19 @@
 
 	:global(.markdown h1) {
 		@apply text-3xl;
-		@apply font-bold;
-		@apply mb-3;
+		@apply font-semibold;
+		@apply mb-6;
 	}
 
 	:global(.markdown h2) {
 		@apply text-2xl;
-		@apply font-bold;
+		@apply font-semibold;
 		@apply mb-3;
+	}
+
+	:global(.markdown p > a) {
+		@apply text-blue-500;
+		@apply hover:underline;
 	}
 
 	:global(.markdown p > a) {

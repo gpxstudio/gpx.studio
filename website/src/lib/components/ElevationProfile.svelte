@@ -3,8 +3,7 @@
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import Chart from 'chart.js/auto';
 	import mapboxgl from 'mapbox-gl';
-	import { map, gpxStatistics, slicedGPXStatistics } from '$lib/stores';
-	import { settings } from '$lib/db';
+	import { map } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
 	import {
 		BrickWall,
@@ -37,8 +36,18 @@
 		getVelocityWithUnits,
 		secondsToHHMMSS
 	} from '$lib/units';
-	import { get } from 'svelte/store';
+	import type { Writable } from 'svelte/store';
 	import { DateFormatter } from '@internationalized/date';
+	import type { GPXStatistics } from 'gpx';
+
+	export let gpxStatistics: Writable<GPXStatistics>;
+	export let slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined>;
+	export let distanceUnits: 'metric' | 'imperial';
+	export let velocityUnits: 'speed' | 'pace';
+	export let temperatureUnits: 'celsius' | 'fahrenheit';
+	export let panelSize: number;
+	export let additionalDatasets: string[];
+	export let elevationFill: 'slope' | 'surface' | undefined;
 
 	let df: DateFormatter;
 
@@ -50,19 +59,18 @@
 	}
 
 	let canvas: HTMLCanvasElement;
+	let showAdditionalScales = true;
+	let updateShowAdditionalScales = () => {
+		showAdditionalScales = canvas.width >= 1200;
+	};
 	let overlay: HTMLCanvasElement;
 	let chart: Chart;
 
 	Chart.defaults.font.family =
 		'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'; // Tailwind CSS font
 
-	let elevationFill: string;
-	let additionalDatasets: string[];
-
 	let marker: mapboxgl.Marker | null = null;
 	let dragging = false;
-
-	let { distanceUnits, velocityUnits, temperatureUnits, bottomPanelSize } = settings;
 
 	let options = {
 		animation: false,
@@ -127,7 +135,7 @@
 							}
 							return `${$_('quantities.elevation')}: ${getElevationWithUnits(point.y, false)}`;
 						} else if (context.datasetIndex === 1) {
-							return `${$velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')}: ${getVelocityWithUnits(point.y, false)}`;
+							return `${velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')}: ${getVelocityWithUnits(point.y, false)}`;
 						} else if (context.datasetIndex === 2) {
 							return `${$_('quantities.heartrate')}: ${getHeartRateWithUnits(point.y)}`;
 						} else if (context.datasetIndex === 3) {
@@ -173,6 +181,7 @@
 		onResize: function (chart, size) {
 			overlay.width = size.width;
 			overlay.height = size.height;
+			updateShowAdditionalScales();
 		}
 	};
 
@@ -185,7 +194,7 @@
 	} = {
 		speed: {
 			id: 'speed',
-			getLabel: () => ($velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')),
+			getLabel: () => (velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')),
 			getUnits: () => getVelocityUnits()
 		},
 		hr: {
@@ -225,13 +234,13 @@
 			grid: {
 				display: false
 			},
-			reverse: () => id === 'speed' && $velocityUnits === 'pace',
+			reverse: () => id === 'speed' && velocityUnits === 'pace',
 			display: false
 		};
 	}
 	options.scales.yspeed['ticks'] = {
 		callback: function (value: number) {
-			if ($velocityUnits === 'speed') {
+			if (velocityUnits === 'speed') {
 				return value;
 			} else {
 				return secondsToHHMMSS(value);
@@ -268,6 +277,8 @@
 			element
 		});
 
+		updateShowAdditionalScales();
+
 		// Overlay canvas to create a selection rectangle
 		overlay.width = canvas.width;
 		overlay.height = canvas.height;
@@ -288,7 +299,7 @@
 			if (points.length === 0) {
 				return evt.x - rect.left <= chart.chartArea.left
 					? 0
-					: get(gpxStatistics).local.points.length - 1;
+					: $gpxStatistics.local.points.length - 1;
 			}
 			let point = points.find((point) => point.element.raw);
 			if (point) {
@@ -309,14 +320,11 @@
 				dragging = true;
 				endIndex = getIndex(evt);
 				if (startIndex !== endIndex) {
-					slicedGPXStatistics.set([
-						get(gpxStatistics).slice(
-							Math.min(startIndex, endIndex),
-							Math.max(startIndex, endIndex)
-						),
+					$slicedGPXStatistics = [
+						$gpxStatistics.slice(Math.min(startIndex, endIndex), Math.max(startIndex, endIndex)),
 						Math.min(startIndex, endIndex),
 						Math.max(startIndex, endIndex)
-					]);
+					];
 				}
 			}
 		}
@@ -326,7 +334,7 @@
 			canvas.style.cursor = '';
 			endIndex = getIndex(evt);
 			if (startIndex === endIndex) {
-				slicedGPXStatistics.set(undefined);
+				$slicedGPXStatistics = undefined;
 			}
 		}
 		canvas.addEventListener('pointerdown', onMouseDown);
@@ -334,7 +342,7 @@
 		canvas.addEventListener('pointerup', onMouseUp);
 	});
 
-	$: if (chart && $distanceUnits && $velocityUnits && $temperatureUnits) {
+	$: if (chart && distanceUnits && velocityUnits && temperatureUnits) {
 		let data = $gpxStatistics;
 
 		// update data
@@ -488,11 +496,12 @@
 			chart.data.datasets[4].hidden = !includeTemperature;
 			chart.data.datasets[5].hidden = !includePower;
 		}
-		chart.options.scales[`y${datasets.speed.id}`].display = includeSpeed;
-		chart.options.scales[`y${datasets.hr.id}`].display = includeHeartRate;
-		chart.options.scales[`y${datasets.cad.id}`].display = includeCadence;
-		chart.options.scales[`y${datasets.atemp.id}`].display = includeTemperature;
-		chart.options.scales[`y${datasets.power.id}`].display = includePower;
+		chart.options.scales[`y${datasets.speed.id}`].display = includeSpeed && showAdditionalScales;
+		chart.options.scales[`y${datasets.hr.id}`].display = includeHeartRate && showAdditionalScales;
+		chart.options.scales[`y${datasets.cad.id}`].display = includeCadence && showAdditionalScales;
+		chart.options.scales[`y${datasets.atemp.id}`].display =
+			includeTemperature && showAdditionalScales;
+		chart.options.scales[`y${datasets.power.id}`].display = includePower && showAdditionalScales;
 		chart.update();
 	}
 
@@ -507,10 +516,10 @@
 			selectionContext.clearRect(0, 0, overlay.width, overlay.height);
 
 			let startPixel = chart.scales.x.getPixelForValue(
-				getConvertedDistance(get(gpxStatistics).local.distance.total[startIndex])
+				getConvertedDistance($gpxStatistics.local.distance.total[startIndex])
 			);
 			let endPixel = chart.scales.x.getPixelForValue(
-				getConvertedDistance(get(gpxStatistics).local.distance.total[endIndex])
+				getConvertedDistance($gpxStatistics.local.distance.total[endIndex])
 			);
 
 			selectionContext.fillRect(
@@ -534,17 +543,14 @@
 	});
 </script>
 
-<div class="h-full grow min-w-0 flex flex-row gap-4 items-center py-2 pr-4">
+<div class="h-full grow min-w-0 flex flex-row gap-4 items-center {$$props.class ?? ''}">
 	<div class="grow h-full min-w-0">
 		<canvas bind:this={overlay} class="absolute pointer-events-none"></canvas>
 		<canvas bind:this={canvas} class="w-full h-full"></canvas>
 	</div>
-	<div
-		class="h-full flex flex-col justify-center"
-		style="width: {$bottomPanelSize > 158 ? 22 : 42}px"
-	>
+	<div class="h-full flex flex-col justify-center" style="width: {panelSize > 158 ? 22 : 42}px">
 		<ToggleGroup.Root
-			class="{$bottomPanelSize > 158
+			class="{panelSize > 158
 				? 'flex-col'
 				: 'flex-row'} flex-wrap gap-0 min-h-0 content-center border rounded-t-md"
 			type="single"
@@ -564,7 +570,7 @@
 			</ToggleGroup.Item>
 		</ToggleGroup.Root>
 		<ToggleGroup.Root
-			class="{$bottomPanelSize > 158
+			class="{panelSize > 158
 				? 'flex-col'
 				: 'flex-row'} flex-wrap gap-0 min-h-0 content-center border rounded-b-md -mt-[1px]"
 			type="multiple"
@@ -574,7 +580,7 @@
 				<Tooltip side="left">
 					<Zap slot="data" size="15" />
 					<span slot="tooltip"
-						>{$velocityUnits === 'speed' ? $_('chart.show_speed') : $_('chart.show_pace')}</span
+						>{velocityUnits === 'speed' ? $_('chart.show_speed') : $_('chart.show_pace')}</span
 					>
 				</Tooltip>
 			</ToggleGroup.Item>

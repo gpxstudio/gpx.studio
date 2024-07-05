@@ -36,13 +36,15 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { TrackPoint } from 'gpx';
 
-	export let popup: mapboxgl.Popup;
-	export let popupElement: HTMLElement;
+	export let minimized = false;
+	export let minimizable = true;
+	export let popup: mapboxgl.Popup | undefined = undefined;
+	export let popupElement: HTMLElement | undefined = undefined;
 	let selectedItem: ListItem | null = null;
 
-	const { minimizeRoutingMenu, privateRoads, routing } = settings;
+	const { privateRoads, routing } = settings;
 
-	$: if ($map) {
+	$: if ($map && popup && popupElement) {
 		// remove controls for deleted files
 		routingControls.forEach((controls, fileId) => {
 			if (!$fileObservers.has(fileId)) {
@@ -93,9 +95,9 @@
 	});
 </script>
 
-{#if $minimizeRoutingMenu}
+{#if minimized}
 	<div class="-m-1.5 -mb-2">
-		<Button variant="ghost" class="px-1 h-[26px]" on:click={() => ($minimizeRoutingMenu = false)}>
+		<Button variant="ghost" class="px-1 h-[26px]" on:click={() => (minimized = false)}>
 			<SquareArrowOutDownRight size="18" />
 		</Button>
 	</div>
@@ -207,9 +209,11 @@
 					<div>{$_('toolbar.routing.help')}</div>
 				{/if}
 			</Help>
-			<Button variant="ghost" class="px-1 h-6" on:click={() => ($minimizeRoutingMenu = true)}>
-				<SquareArrowUpLeft size="18" />
-			</Button>
+			{#if minimizable}
+				<Button variant="ghost" class="px-1 h-6" on:click={() => (minimized = true)}>
+					<SquareArrowUpLeft size="18" />
+				</Button>
+			{/if}
 		</div>
 	</div>
 {/if}

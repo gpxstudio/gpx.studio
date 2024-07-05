@@ -82,9 +82,11 @@ function dexieUninitializedSettingStore(setting: string, initial: any): Writable
 
 export const settings = {
     distanceUnits: dexieSettingStore<'metric' | 'imperial'>('distanceUnits', 'metric'),
-    velocityUnits: dexieSettingStore('velocityUnits', 'speed'),
-    temperatureUnits: dexieSettingStore('temperatureUnits', 'celsius'),
+    velocityUnits: dexieSettingStore<'speed' | 'pace'>('velocityUnits', 'speed'),
+    temperatureUnits: dexieSettingStore<'celsius' | 'fahrenheit'>('temperatureUnits', 'celsius'),
     elevationProfile: dexieSettingStore('elevationProfile', true),
+    additionalDatasets: dexieSettingStore<string[]>('additionalDatasets', []),
+    elevationFill: dexieSettingStore<'slope' | 'surface' | undefined>('elevationFill', undefined),
     verticalFileView: dexieSettingStore<boolean>('fileView', false),
     mode: dexieSettingStore('mode', (() => {
         let currentMode: string | undefined = get(mode);

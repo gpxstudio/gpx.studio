@@ -3,15 +3,17 @@
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import WithUnits from '$lib/components/WithUnits.svelte';
 
-	import { gpxStatistics, slicedGPXStatistics } from '$lib/stores';
-	import { settings } from '$lib/db';
-
 	import { MoveDownRight, MoveUpRight, Ruler, Timer, Zap } from 'lucide-svelte';
 
 	import { _ } from 'svelte-i18n';
 	import type { GPXStatistics } from 'gpx';
+	import type { Writable } from 'svelte/store';
 
-	const { velocityUnits, elevationProfile, bottomPanelSize } = settings;
+	export let gpxStatistics: Writable<GPXStatistics>;
+	export let slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined>;
+	export let velocityUnits: 'speed' | 'pace';
+	export let orientation: 'horizontal' | 'vertical';
+	export let panelSize: number;
 
 	let statistics: GPXStatistics;
 
@@ -23,14 +25,14 @@
 </script>
 
 <Card.Root
-	class="h-full {$elevationProfile
-		? ''
-		: 'w-full pr-4'} overflow-hidden border-none shadow-none min-w-52 pl-4"
+	class="h-full {orientation === 'vertical'
+		? 'min-w-52'
+		: 'w-full pr-4'} border-none shadow-none pl-4"
 >
 	<Card.Content
-		class="h-full flex {$elevationProfile
+		class="h-full flex {orientation === 'vertical'
 			? 'flex-col justify-center'
-			: 'flex-row w-full justify-between'} flex-wrap gap-4  p-0"
+			: 'flex-row w-full justify-between'} gap-4  p-0"
 	>
 		<Tooltip>
 			<span slot="data" class="flex flex-row items-center">
@@ -48,8 +50,8 @@
 			</span>
 			<span slot="tooltip">{$_('quantities.elevation')}</span>
 		</Tooltip>
-		{#if $bottomPanelSize > 120 || !$elevationProfile}
-			<Tooltip>
+		{#if panelSize > 120 || orientation === 'horizontal'}
+			<Tooltip class={orientation === 'horizontal' ? 'hidden xs:block' : ''}>
 				<span slot="data" class="flex flex-row items-center">
 					<Zap size="18" class="mr-1" />
 					<WithUnits value={statistics.global.speed.moving} type="speed" showUnits={false} />
@@ -57,14 +59,14 @@
 					<WithUnits value={statistics.global.speed.total} type="speed" />
 				</span>
 				<span slot="tooltip"
-					>{$velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')} ({$_(
+					>{velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')} ({$_(
 						'quantities.moving'
 					)} / {$_('quantities.total')})</span
 				>
 			</Tooltip>
 		{/if}
-		{#if $bottomPanelSize > 160 || !$elevationProfile}
-			<Tooltip>
+		{#if panelSize > 160 || orientation === 'horizontal'}
+			<Tooltip class={orientation === 'horizontal' ? 'hidden md:block' : ''}>
 				<span slot="data" class="flex flex-row items-center">
 					<Timer size="18" class="mr-1" />
 					<WithUnits value={statistics.global.time.moving} type="time" />

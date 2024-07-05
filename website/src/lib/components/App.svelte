@@ -12,15 +12,30 @@
 	import { Toaster } from '$lib/components/ui/sonner';
 
 	import { settings } from '$lib/db';
+	import { gpxStatistics, slicedGPXStatistics } from '$lib/stores';
 
-	const { verticalFileView, elevationProfile, bottomPanelSize, rightPanelSize } = settings;
+	const {
+		verticalFileView,
+		elevationProfile,
+		bottomPanelSize,
+		rightPanelSize,
+		distanceUnits,
+		velocityUnits,
+		temperatureUnits,
+		additionalDatasets,
+		elevationFill
+	} = settings;
 </script>
 
 <div class="fixed flex flex-row w-screen h-screen h-dvh">
 	<div class="flex flex-col grow h-full min-w-0">
 		<div class="grow relative">
 			<Menu />
-			<Toolbar />
+			<div
+				class="absolute top-0 bottom-0 left-0 z-20 flex flex-col justify-center pointer-events-none"
+			>
+				<Toolbar />
+			</div>
 			<Map class="h-full {$verticalFileView ? '' : 'horizontal'}" />
 			<StreetViewControl />
 			<LayerControl />
@@ -39,9 +54,25 @@
 			class="{$elevationProfile ? '' : 'h-10'} flex flex-row gap-2"
 			style={$elevationProfile ? `height: ${$bottomPanelSize}px` : ''}
 		>
-			<GPXStatistics />
+			<GPXStatistics
+				{gpxStatistics}
+				{slicedGPXStatistics}
+				panelSize={$bottomPanelSize}
+				orientation={$elevationProfile ? 'vertical' : 'horizontal'}
+				velocityUnits={$velocityUnits}
+			/>
 			{#if $elevationProfile}
-				<ElevationProfile />
+				<ElevationProfile
+					{gpxStatistics}
+					{slicedGPXStatistics}
+					bind:additionalDatasets={$additionalDatasets}
+					bind:elevationFill={$elevationFill}
+					panelSize={$bottomPanelSize}
+					distanceUnits={$distanceUnits}
+					velocityUnits={$velocityUnits}
+					temperatureUnits={$temperatureUnits}
+					class="py-2 pr-4"
+				/>
 			{/if}
 		</div>
 	</div>
