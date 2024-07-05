@@ -70,9 +70,7 @@
 	import LayerControlSettings from '$lib/components/layer-control/LayerControlSettings.svelte';
 	import { allowedPastes, ListFileItem, ListTrackItem } from '$lib/components/file-list/FileList';
 	import Export from '$lib/components/Export.svelte';
-
-	import { resetMode, setMode, systemPrefersMode } from 'mode-watcher';
-
+	import { mode, setMode, systemPrefersMode } from 'mode-watcher';
 	import { _, locale } from 'svelte-i18n';
 	import { languages } from '$lib/languages';
 	import { goto } from '$app/navigation';
@@ -84,7 +82,6 @@
 		temperatureUnits,
 		elevationProfile,
 		verticalFileView,
-		mode,
 		currentBasemap,
 		previousBasemap,
 		currentOverlays,
@@ -93,12 +90,6 @@
 		directionMarkers,
 		streetViewSource
 	} = settings;
-
-	$: if ($mode === 'system') {
-		resetMode();
-	} else {
-		setMode($mode);
-	}
 
 	let undoDisabled = derived(canUndo, ($canUndo) => !$canUndo);
 	let redoDisabled = derived(canRedo, ($canRedo) => !$canRedo);
@@ -126,6 +117,8 @@
 	}
 
 	let layerSettingsOpen = false;
+
+	$: selectedMode = $mode ?? $systemPrefersMode ?? 'light';
 </script>
 
 <div class="absolute md:top-2 left-0 right-0 z-20 flex flex-row justify-center pointer-events-none">
@@ -385,26 +378,22 @@
 					</Menubar.Sub>
 					<Menubar.Sub>
 						<Menubar.SubTrigger>
-							{#if $mode === 'system'}
-								{#if $systemPrefersMode === 'light'}
-									<Sun size="16" class="mr-1" />
-								{:else if $systemPrefersMode === 'dark'}
-									<Moon size="16" class="mr-1" />
-								{:else}
-									<Sun size="16" class="mr-1" />
-								{/if}
-							{:else if $mode === 'light'}
+							{#if selectedMode === 'light'}
 								<Sun size="16" class="mr-1" />
-							{:else if $mode === 'dark'}
+							{:else}
 								<Moon size="16" class="mr-1" />
 							{/if}
 							{$_('menu.mode')}
 						</Menubar.SubTrigger>
 						<Menubar.SubContent>
-							<Menubar.RadioGroup bind:value={$mode}>
+							<Menubar.RadioGroup
+								bind:value={selectedMode}
+								onValueChange={(value) => {
+									setMode(value);
+								}}
+							>
 								<Menubar.RadioItem value="light">{$_('menu.light')}</Menubar.RadioItem>
 								<Menubar.RadioItem value="dark">{$_('menu.dark')}</Menubar.RadioItem>
-								<Menubar.RadioItem value="system">{$_('menu.system')}</Menubar.RadioItem>
 							</Menubar.RadioGroup>
 						</Menubar.SubContent>
 					</Menubar.Sub>

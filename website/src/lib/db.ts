@@ -3,7 +3,6 @@ import { GPXFile, GPXStatistics, Track, TrackSegment, Waypoint, TrackPoint, type
 import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, freeze, produceWithPatches } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
 import { gpxStatistics, initTargetMapBounds, splitAs, updateAllHidden, updateTargetMapBounds } from './stores';
-import { mode } from 'mode-watcher';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays, type CustomLayer, defaultOpacities } from './assets/layers';
 import { applyToOrderedItemsFromFile, applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem, ListRootItem } from '$lib/components/file-list/FileList';
@@ -88,13 +87,6 @@ export const settings = {
     additionalDatasets: dexieSettingStore<string[]>('additionalDatasets', []),
     elevationFill: dexieSettingStore<'slope' | 'surface' | undefined>('elevationFill', undefined),
     verticalFileView: dexieSettingStore<boolean>('fileView', false),
-    mode: dexieSettingStore('mode', (() => {
-        let currentMode: string | undefined = get(mode);
-        if (currentMode === undefined) {
-            currentMode = 'system';
-        }
-        return currentMode;
-    })()),
     minimizeRoutingMenu: dexieSettingStore('minimizeRoutingMenu', false),
     routing: dexieSettingStore('routing', true),
     routingProfile: dexieSettingStore('routingProfile', 'bike'),
