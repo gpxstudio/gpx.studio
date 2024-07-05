@@ -165,31 +165,37 @@
 			class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-background via-transparent to-background"
 		/>
 	</div>
-	<div class="px-12 flex flex-col items-center gap-6">
-		<DocsLoader path="about/funding.md" />
-		<Button
-			href="https://ko-fi.com/gpxstudio"
-			target="_blank"
-			class="w-1/3 min-w-fit bg-support text-base"
-		>
-			<Heart size="16" class="mr-1" fill="rgb(var(--support))" />
-			<span>{$_('homepage.support_button')}</span>
-		</Button>
-	</div>
-	<div class="px-12">
-		<DocsLoader path="about/translation.md" />
-	</div>
-	<div
-		class="mx-24 flex flex-col md:flex-row items-center justify-center gap-x-12 gap-y-6 p-6 border rounded-md shadow-xl"
-	>
-		<div class="shrink-0 flex flex-col sm:flex-row md:flex-col items-center gap-x-4 gap-y-2">
-			<div class="text-lg font-semibold text-muted-foreground">
-				❤️ {$_('homepage.supported_by')}
-			</div>
-			<a href="https://www.mapbox.com/" target="_blank">
-				<Logo company="mapbox" class="w-60" />
-			</a>
+	<div class="px-12 flex flex-col items-center">
+		<div class="max-w-5xl flex flex-col items-center gap-6">
+			<DocsLoader path="about/funding.md" />
+			<Button
+				href="https://ko-fi.com/gpxstudio"
+				target="_blank"
+				class="w-1/3 min-w-fit bg-support text-base"
+			>
+				<Heart size="16" class="mr-1" fill="rgb(var(--support))" />
+				<span>{$_('homepage.support_button')}</span>
+			</Button>
 		</div>
-		<DocsLoader path="about/mapbox.md" />
+	</div>
+	<div class="px-12 flex flex-col items-center">
+		<div class="max-w-5xl">
+			<DocsLoader path="about/translation.md" />
+		</div>
+	</div>
+	<div class="px-24 flex flex-col items-center">
+		<div
+			class="max-w-5xl flex flex-col md:flex-row items-center justify-center gap-x-12 gap-y-6 p-6 border rounded-2xl shadow-xl"
+		>
+			<div class="shrink-0 flex flex-col sm:flex-row md:flex-col items-center gap-x-4 gap-y-2">
+				<div class="text-lg font-semibold text-muted-foreground">
+					❤️ {$_('homepage.supported_by')}
+				</div>
+				<a href="https://www.mapbox.com/" target="_blank">
+					<Logo company="mapbox" class="w-60" />
+				</a>
+			</div>
+			<DocsLoader path="about/mapbox.md" />
+		</div>
 	</div>
 </div>
