@@ -117,7 +117,7 @@
 				<DocsLoader path="about/maps.md" />
 			</div>
 			<div
-				class="relative grow min-w-1/2 min-h-96 aspect-square rounded-2xl shadow-xl overflow-clip"
+				class="relative grow min-w-1/2 min-h-96 shrink-0 aspect-square rounded-2xl shadow-xl overflow-clip"
 			>
 				<enhanced:img
 					src={mapboxOutdoorsMap}
