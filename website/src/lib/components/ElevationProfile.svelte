@@ -544,8 +544,8 @@
 </script>
 
 <div class="h-full grow min-w-0 flex flex-row gap-4 items-center {$$props.class ?? ''}">
-	<div class="grow h-full min-w-0">
-		<canvas bind:this={overlay} class="absolute pointer-events-none"></canvas>
+	<div class="grow h-full min-w-0 relative">
+		<canvas bind:this={overlay} class=" w-full h-full absolute pointer-events-none"></canvas>
 		<canvas bind:this={canvas} class="w-full h-full"></canvas>
 	</div>
 	<div class="h-full flex flex-col justify-center" style="width: {panelSize > 158 ? 22 : 42}px">

@@ -52,7 +52,7 @@ const config = {
                 sans: [...fontFamily.sans]
             },
             screens: {
-                "xs": "500px",
+                "xs": "540px",
             }
         }
     },

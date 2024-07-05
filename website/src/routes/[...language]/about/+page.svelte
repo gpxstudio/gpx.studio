@@ -57,7 +57,7 @@
 	{/each}
 </svelte:head>
 
-<div class="flex flex-col gap-y-24 my-24">
+<div class="space-y-24 my-24">
 	<div class="px-12 w-full flex flex-col items-center">
 		<div class="flex flex-col gap-6 items-center max-w-3xl">
 			<div class="text-6xl font-black text-center">{$_('metadata.app_title')}</div>
@@ -147,23 +147,23 @@
 			</div>
 		</div>
 	</div>
-	<div class="p-6 md:p-12">
+	<div class="px-6 md:px-12">
 		<div class="text-center mb-6 [&>*>p]:text-muted-foreground">
 			<DocsLoader path="about/plot.md" />
 		</div>
+		<div class="h-48 w-full">
+			<ElevationProfile
+				{gpxStatistics}
+				{slicedGPXStatistics}
+				additionalDatasets={$additionalDatasets}
+				elevationFill={$elevationFill}
+				panelSize={200}
+				distanceUnits={$distanceUnits}
+				velocityUnits={$velocityUnits}
+				temperatureUnits={$temperatureUnits}
+			/>
+		</div>
 		<div class="flex flex-col items-center">
-			<div class="h-48 w-full">
-				<ElevationProfile
-					{gpxStatistics}
-					{slicedGPXStatistics}
-					additionalDatasets={$additionalDatasets}
-					elevationFill={$elevationFill}
-					panelSize={200}
-					distanceUnits={$distanceUnits}
-					velocityUnits={$velocityUnits}
-					temperatureUnits={$temperatureUnits}
-				/>
-			</div>
 			<div class="h-10 w-fit">
 				<GPXStatistics
 					{gpxStatistics}
