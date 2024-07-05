@@ -15,6 +15,7 @@
 	import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
 	import { currentTool, Tool } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
+	import routingScreenshot from '$lib/assets/img/routing.png?enhanced';
 	import mapboxOutdoorsMap from '$lib/assets/img/mapbox-outdoors.png?enhanced';
 	import mapboxSatelliteMap from '$lib/assets/img/mapbox-satellite.png?enhanced';
 	import ignMap from '$lib/assets/img/ign.png?enhanced';
@@ -74,6 +75,16 @@
 				</Button>
 			</div>
 		</div>
+	</div>
+	<div class="relative">
+		<enhanced:img
+			src={routingScreenshot}
+			alt="Screenshot of the gpx.studio map in 3D."
+			class="w-full"
+		/>
+		<div
+			class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-background via-transparent to-background"
+		/>
 	</div>
 	<div class="px-24 w-full flex flex-col items-center">
 		<div class="flex flex-col md:flex-row gap-x-12 gap-y-6 items-center justify-between max-w-5xl">
