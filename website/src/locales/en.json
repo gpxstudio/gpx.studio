@@ -356,6 +356,14 @@
         "email": "Email",
         "contribute": "Contribute",
         "supported_by": "supported by",
-        "support_button": "Support gpx.studio on Ko-fi"
+        "support_button": "Support gpx.studio on Ko-fi",
+        "route_planning": "Route planning",
+        "route_planning_description": "An intuitive interface to create itineraries tailored to each sport, based on OpenStreetMap data.",
+        "file_processing": "Advanced file processing",
+        "file_processing_description": "A suite of tools for performing all common file processing tasks, and which can be applied to multiple files at once.",
+        "maps": "Global and local maps",
+        "maps_description": "A large collection of basemaps and overlays to help you craft your next outdoor adventure, or visualize your latest achievement.",
+        "data_visualization": "Data visualization",
+        "data_visualization_description": "An interactive elevation profile with detailed statistics to analyze recorded activities and future objectives."
     }
 }

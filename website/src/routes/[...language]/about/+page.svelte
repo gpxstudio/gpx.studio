@@ -88,8 +88,9 @@
 	</div>
 	<div class="px-24 w-full flex flex-col items-center">
 		<div class="flex flex-col md:flex-row gap-x-12 gap-y-6 items-center justify-between max-w-5xl">
-			<div class="text-center [&>*>p]:text-muted-foreground">
-				<DocsLoader path="about/routing.md" />
+			<div class="markdown text-center">
+				<h1>{$_('homepage.route_planning')}</h1>
+				<p class="text-muted-foreground">{$_('homepage.route_planning_description')}</p>
 			</div>
 			<div class="p-3 w-fit rounded-md border shadow-xl">
 				<Routing minimizable={false} />
@@ -98,14 +99,16 @@
 	</div>
 	<div class="px-24 w-full flex flex-col items-center">
 		<div class="flex flex-col md:flex-row gap-x-12 gap-y-6 items-center justify-between max-w-5xl">
-			<div class="text-center md:hidden [&>*>p]:text-muted-foreground">
-				<DocsLoader path="about/tools.md" />
+			<div class="markdown text-center md:hidden">
+				<h1>{$_('homepage.file_processing')}</h1>
+				<p class="text-muted-foreground">{$_('homepage.file_processing_description')}</p>
 			</div>
 			<div class="relative">
 				<Toolbar />
 			</div>
-			<div class="text-center hidden md:block [&>*>p]:text-muted-foreground">
-				<DocsLoader path="about/tools.md" />
+			<div class="markdown text-center hidden md:block">
+				<h1>{$_('homepage.file_processing')}</h1>
+				<p class="text-muted-foreground">{$_('homepage.file_processing_description')}</p>
 			</div>
 		</div>
 	</div>
@@ -113,12 +116,11 @@
 		<div
 			class="markdown flex flex-col md:flex-row gap-x-12 gap-y-6 items-center justify-between max-w-5xl"
 		>
-			<div class="text-center [&>*>p]:text-muted-foreground">
-				<DocsLoader path="about/maps.md" />
+			<div class="markdown text-center">
+				<h1>{$_('homepage.maps')}</h1>
+				<p class="text-muted-foreground">{$_('homepage.maps_description')}</p>
 			</div>
-			<div
-				class="relative grow min-w-1/2 min-h-96 shrink-0 aspect-square rounded-2xl shadow-xl overflow-clip"
-			>
+			<div class="relative h-80 aspect-square rounded-2xl shadow-xl overflow-clip">
 				<enhanced:img
 					src={mapboxOutdoorsMap}
 					alt="Mapbox Outdoors map screenshot."
@@ -148,8 +150,9 @@
 		</div>
 	</div>
 	<div class="px-6 md:px-12">
-		<div class="text-center mb-6 [&>*>p]:text-muted-foreground">
-			<DocsLoader path="about/plot.md" />
+		<div class="markdown text-center">
+			<h1>{$_('homepage.data_visualization')}</h1>
+			<p class="text-muted-foreground">{$_('homepage.data_visualization_description')}</p>
 		</div>
 		<div class="h-48 w-full">
 			<ElevationProfile
@@ -203,7 +206,7 @@
 			<DocsLoader path="about/translation.md" />
 		</div>
 	</div>
-	<div class="px-24 flex flex-col items-center">
+	<div class="px-12 md:px-24 flex flex-col items-center">
 		<div
 			class="max-w-4xl flex flex-col md:flex-row items-center justify-center gap-x-12 gap-y-6 p-6 border rounded-2xl shadow-xl"
 		>
