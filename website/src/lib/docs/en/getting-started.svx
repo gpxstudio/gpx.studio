@@ -1,0 +1,11 @@
+---
+title: Getting started
+---
+
+# { title }
+
+Welcome message.
+
+- screenshot of the interface
+
+explain main components of the interface and link to the corresponding sections

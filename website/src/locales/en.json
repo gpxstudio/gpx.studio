@@ -2,7 +2,7 @@
     "metadata": {
         "home_title": "home",
         "app_title": "the online GPX file editor",
-        "documentation_title": "documentation",
+        "help_title": "help",
         "description": "View, edit and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations."
     },
     "menu": {
@@ -349,7 +349,6 @@
         "website": "Website",
         "home": "Home",
         "app": "App",
-        "documentation": "Documentation",
         "contact": "Contact",
         "x": "X",
         "facebook": "Facebook",

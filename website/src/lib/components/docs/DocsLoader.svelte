@@ -2,22 +2,33 @@
 	import { _, locale } from 'svelte-i18n';
 
 	export let path: string;
+	export let titleOnly: boolean = false;
 
 	let module = undefined;
+	let metadata: Record<string, any> = {};
 
 	const modules = import.meta.glob('/src/lib/docs/**/*.{md,svx}');
 
-	$: if ($locale) {
-		modules[`/src/lib/docs/${$locale}/${path}`]().then((mod) => {
+	function loadModule(path: string) {
+		modules[path]().then((mod) => {
 			module = mod.default;
+			metadata = mod.metadata;
 		});
+	}
+
+	$: if ($locale) {
+		loadModule(`/src/lib/docs/${$locale}/${path}`);
 	}
 </script>
 
 {#if module !== undefined}
-	<div class="markdown space-y-3">
-		<svelte:component this={module} />
-	</div>
+	{#if titleOnly}
+		{metadata.title}
+	{:else}
+		<div class="markdown space-y-3">
+			<svelte:component this={module} />
+		</div>
+	{/if}
 {/if}
 
 <style lang="postcss">

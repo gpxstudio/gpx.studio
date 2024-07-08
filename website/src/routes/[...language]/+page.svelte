@@ -14,13 +14,13 @@
 	import { currentTool, Tool } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
 	import { getURLForLanguage } from '$lib/utils';
-	import routingScreenshot from '$lib/assets/img/routing.png?enhanced';
-	import mapboxOutdoorsMap from '$lib/assets/img/mapbox-outdoors.png?enhanced';
-	import mapboxSatelliteMap from '$lib/assets/img/mapbox-satellite.png?enhanced';
-	import ignMap from '$lib/assets/img/ign.png?enhanced';
-	import cyclosmMap from '$lib/assets/img/cyclosm.png?enhanced';
-	import waymarkedMap from '$lib/assets/img/waymarked.png?enhanced';
-	import mapScreenshot from '$lib/assets/img/map.png?enhanced';
+	import routingScreenshot from '$lib/assets/img/home/routing.png?enhanced';
+	import mapboxOutdoorsMap from '$lib/assets/img/home/mapbox-outdoors.png?enhanced';
+	import mapboxSatelliteMap from '$lib/assets/img/home/mapbox-satellite.png?enhanced';
+	import ignMap from '$lib/assets/img/home/ign.png?enhanced';
+	import cyclosmMap from '$lib/assets/img/home/cyclosm.png?enhanced';
+	import waymarkedMap from '$lib/assets/img/home/waymarked.png?enhanced';
+	import mapScreenshot from '$lib/assets/img/home/map.png?enhanced';
 
 	let gpxStatistics = writable(exampleGPXFile.getStatistics());
 	let slicedGPXStatistics = writable(undefined);
@@ -52,11 +52,11 @@
 				</Button>
 				<Button
 					variant="secondary"
-					href={getURLForLanguage('/[...language]/documentation', $locale)}
+					href={getURLForLanguage('/[...language]/help', $locale)}
 					class="w-1/3 min-w-fit"
 				>
 					<BookOpenText size="18" class="mr-1.5" />
-					<span>{$_('homepage.documentation')}</span>
+					<span>{$_('homepage.help')}</span>
 				</Button>
 			</div>
 		</div>

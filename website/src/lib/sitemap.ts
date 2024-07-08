@@ -3,7 +3,7 @@ import { glob } from 'glob';
 import { languages } from '$lib/languages';
 
 function generateSitemap() {
-    const pages = glob.sync('*.html', { cwd: 'build' });
+    const pages = glob.sync('**/*.html', { cwd: 'build' });
 
     let sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n';
     sitemap += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n';
@@ -11,7 +11,8 @@ function generateSitemap() {
     pages.forEach((page) => {
         const url = page.replace('.html', '').replace('index', '');
 
-        if (languages[url]) {
+        const rootDir = url.split('/')[0];
+        if (languages[url] || languages[rootDir]) {
             // Skip localized pages
             return;
         }

@@ -44,10 +44,10 @@
 					<Button
 						variant="link"
 						class="h-6 px-0 text-muted-foreground"
-						href={getURLForLanguage('/[...language]/documentation', $locale)}
+						href={getURLForLanguage('/[...language]/help', $locale)}
 					>
 						<BookOpenText size="16" class="mr-1" />
-						{$_('homepage.documentation')}
+						{$_('menu.help')}
 					</Button>
 				</div>
 				<div class="flex flex-col items-start gap-1" id="contact">

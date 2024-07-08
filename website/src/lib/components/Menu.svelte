@@ -417,7 +417,7 @@
 		<div class="h-fit flex flex-row items-center ml-1 gap-1">
 			<Button
 				variant="ghost"
-				href={getURLForLanguage('/[...language]/documentation', $locale)}
+				href={getURLForLanguage('/[...language]/help', $locale)}
 				target="_blank"
 				class="cursor-default h-fit rounded-sm px-3 py-0.5"
 			>
