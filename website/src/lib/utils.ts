@@ -5,6 +5,8 @@ import type { TransitionConfig } from "svelte/transition";
 import { get } from "svelte/store";
 import { map } from "./stores";
 import { base } from "$app/paths";
+import { browser } from "$app/environment";
+import { languages } from "$lib/languages";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -92,16 +94,26 @@ export function setCrosshairCursor() {
     setCursor('crosshair');
 }
 
-export function getURLForLanguage(route: string | null, lang: string | null | undefined): string {
-    if (route === null) {
-        return base + '/';
+export function getURLForLanguage(lang: string | null | undefined, path?: string): string {
+    let newPath = path ?? (browser ? window.location.pathname : '');
+    let languageInPath = newPath.split('/')[1];
+    if (!languages.hasOwnProperty(languageInPath)) {
+        languageInPath = 'en';
     }
 
-    let url = route.replace('[...language]', (lang === null || lang === undefined) ? 'en' : lang).replace('/en', '');
-
-    if (url === '') {
-        return base + '/';
+    if (languageInPath === 'en') {
+        if (lang === 'en') {
+            return `${base}${newPath}`;
+        } else {
+            return `${base}/${lang}${newPath}`;
+        }
     } else {
-        return base + url;
+        if (lang === 'en') {
+            newPath = newPath.replace(`/${languageInPath}`, '');
+            return newPath === '' ? `${base}/` : `${base}${newPath}`;
+        } else {
+            newPath = newPath.replace(`/${languageInPath}`, `/${lang}`);
+            return `${base}${newPath}`;
+        }
     }
 }

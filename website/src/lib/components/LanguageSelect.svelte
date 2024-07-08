@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { page } from '$app/stores';
 	import * as Select from '$lib/components/ui/select';
 	import { languages } from '$lib/languages';
 	import { getURLForLanguage } from '$lib/utils';
@@ -26,7 +25,7 @@
 	</Select.Trigger>
 	<Select.Content>
 		{#each Object.entries(languages) as [lang, label]}
-			<a href={getURLForLanguage($page.route.id, lang)}>
+			<a href={getURLForLanguage(lang)}>
 				<Select.Item value={lang}>{label}</Select.Item>
 			</a>
 		{/each}
@@ -36,7 +35,7 @@
 <!-- hidden links for svelte crawling -->
 <div class="hidden">
 	{#each Object.entries(languages) as [lang, label]}
-		<a href={getURLForLanguage($page.route.id, lang)}>
+		<a href={getURLForLanguage(lang)}>
 			{label}
 		</a>
 	{/each}

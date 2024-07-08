@@ -73,7 +73,6 @@
 	import { mode, setMode, systemPrefersMode } from 'mode-watcher';
 	import { _, locale } from 'svelte-i18n';
 	import { languages } from '$lib/languages';
-	import { page } from '$app/stores';
 	import { getURLForLanguage } from '$lib/utils';
 
 	const {
@@ -125,7 +124,7 @@
 	<div
 		class="w-fit flex flex-row items-center justify-center p-1 bg-background rounded-b-md md:rounded-md pointer-events-auto shadow-md"
 	>
-		<a href={getURLForLanguage('/[...language]', $locale)} target="_blank">
+		<a href={getURLForLanguage($locale, '/')} target="_blank">
 			<Logo class="h-5 mt-0.5 mx-2 md:hidden" iconOnly={true} />
 			<Logo class="h-5 mt-0.5 mx-2 hidden md:block" />
 		</a>
@@ -366,7 +365,7 @@
 						<Menubar.SubContent>
 							<Menubar.RadioGroup bind:value={$locale}>
 								{#each Object.entries(languages) as [lang, label]}
-									<a href={getURLForLanguage($page.route.id, lang)}>
+									<a href={getURLForLanguage(lang)}>
 										<Menubar.RadioItem value={lang}>{label}</Menubar.RadioItem>
 									</a>
 								{/each}
@@ -417,7 +416,7 @@
 		<div class="h-fit flex flex-row items-center ml-1 gap-1">
 			<Button
 				variant="ghost"
-				href={getURLForLanguage('/[...language]/help', $locale)}
+				href={getURLForLanguage($locale, '/help')}
 				target="_blank"
 				class="cursor-default h-fit rounded-sm px-3 py-0.5"
 			>

@@ -46,17 +46,17 @@
 				{$_('metadata.description')}
 			</div>
 			<div class="w-full flex flex-row justify-center gap-3">
-				<Button href={getURLForLanguage('/[...language]/app', $locale)} class="w-1/3 min-w-fit">
+				<Button href={getURLForLanguage($locale, '/app')} class="w-1/3 min-w-fit">
 					<Map size="18" class="mr-1.5" />
 					{$_('homepage.app')}
 				</Button>
 				<Button
 					variant="secondary"
-					href={getURLForLanguage('/[...language]/help', $locale)}
+					href={getURLForLanguage($locale, '/help')}
 					class="w-1/3 min-w-fit"
 				>
 					<BookOpenText size="18" class="mr-1.5" />
-					<span>{$_('homepage.help')}</span>
+					<span>{$_('menu.help')}</span>
 				</Button>
 			</div>
 		</div>

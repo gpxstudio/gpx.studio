@@ -17,7 +17,7 @@
 		{#each Object.keys(guides) as guide}
 			<Button
 				variant="link"
-				href={getURLForLanguage(`/[...language]/help/${guide}`, $locale)}
+				href={getURLForLanguage($locale, `/help/${guide}`)}
 				class="h-6 p-0 w-fit text-muted-foreground hover:text-foreground hover:no-underline font-normal hover:font-semibold items-start"
 			>
 				<DocsLoader path={`${guide}.svx`} titleOnly={true} />
@@ -25,7 +25,7 @@
 			{#each guides[guide] as subGuide}
 				<Button
 					variant="link"
-					href={getURLForLanguage(`/[...language]/help/${guide}/${subGuide}`, $locale)}
+					href={getURLForLanguage($locale, `/help/${guide}/${subGuide}`)}
 					class="h-6 p-0 w-fit text-muted-foreground hover:text-foreground hover:no-underline font-normal hover:font-semibold items-start ml-3"
 				>
 					<DocsLoader path={`${guide}/${subGuide}.svx`} titleOnly={true} />

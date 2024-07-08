@@ -28,7 +28,7 @@
 					<Button
 						variant="link"
 						class="h-6 px-0 text-muted-foreground"
-						href={getURLForLanguage('/[...language]', $locale)}
+						href={getURLForLanguage($locale, '/')}
 					>
 						<Home size="16" class="mr-1" />
 						{$_('homepage.home')}
@@ -36,7 +36,7 @@
 					<Button
 						variant="link"
 						class="h-6 px-0 text-muted-foreground"
-						href={getURLForLanguage('/[...language]/app', $locale)}
+						href={getURLForLanguage($locale, '/app')}
 					>
 						<Map size="16" class="mr-1" />
 						{$_('homepage.app')}
@@ -44,7 +44,7 @@
 					<Button
 						variant="link"
 						class="h-6 px-0 text-muted-foreground"
-						href={getURLForLanguage('/[...language]/help', $locale)}
+						href={getURLForLanguage($locale, '/help')}
 					>
 						<BookOpenText size="16" class="mr-1" />
 						{$_('menu.help')}
