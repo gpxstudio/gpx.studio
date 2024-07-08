@@ -1,6 +1,5 @@
 export const languages: Record<string, string> = {
     'en': 'English',
-    'fr': 'Français',
 };
 
 export function getURLForLanguage(route: string | null, lang: string | null | undefined): string {
