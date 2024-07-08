@@ -1,15 +1,13 @@
 <script lang="ts">
-	import { base } from '$app/paths';
 	import { Button } from '$lib/components/ui/button';
 	import DocsLoader from '$lib/components/docs/DocsLoader.svelte';
 	import Logo from '$lib/components/Logo.svelte';
 	import ElevationProfile from '$lib/components/ElevationProfile.svelte';
 	import GPXStatistics from '$lib/components/GPXStatistics.svelte';
 	import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
-	import { languages } from '$lib/languages';
 	import { settings } from '$lib/db';
 	import { BookOpenText, Heart, Map } from 'lucide-svelte';
-	import { _ } from 'svelte-i18n';
+	import { _, locale } from 'svelte-i18n';
 	import { exampleGPXFile } from '$lib/assets/example';
 	import { writable } from 'svelte/store';
 	import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
@@ -22,6 +20,7 @@
 	import cyclosmMap from '$lib/assets/img/cyclosm.png?enhanced';
 	import waymarkedMap from '$lib/assets/img/waymarked.png?enhanced';
 	import mapScreenshot from '$lib/assets/img/map.png?enhanced';
+	import { getURLForLanguage } from '$lib/languages';
 
 	let gpxStatistics = writable(exampleGPXFile.getStatistics());
 	let slicedGPXStatistics = writable(undefined);
@@ -39,24 +38,6 @@
 	});
 </script>
 
-<svelte:head>
-	<title>gpx.studio — {$_('metadata.home_title')}</title>
-	<meta name="description" content={$_('metadata.description')} />
-	<meta property="og:title" content="gpx.studio — {$_('metadata.home_title')}" />
-	<meta property="og:description" content={$_('metadata.description')} />
-	<meta name="twitter:title" content="gpx.studio — {$_('metadata.home_title')}" />
-	<meta name="twitter:description" content={$_('metadata.description')} />
-
-	<link rel="alternate" hreflang="x-default" href="{base}/" />
-	{#each Object.keys(languages) as lang}
-		{#if lang === 'en'}
-			<link rel="alternate" hreflang="en" href="{base}/" />
-		{:else}
-			<link rel="alternate" hreflang={lang} href="{base}/{lang}/" />
-		{/if}
-	{/each}
-</svelte:head>
-
 <div class="space-y-24 my-24">
 	<div class="px-12 w-full flex flex-col items-center">
 		<div class="flex flex-col gap-6 items-center max-w-3xl">
@@ -65,11 +46,15 @@
 				{$_('metadata.description')}
 			</div>
 			<div class="w-full flex flex-row justify-center gap-3">
-				<Button href="./app" class="w-1/3 min-w-fit">
+				<Button href={getURLForLanguage('/[...language]/app', $locale)} class="w-1/3 min-w-fit">
 					<Map size="18" class="mr-1.5" />
 					{$_('homepage.app')}
 				</Button>
-				<Button variant="secondary" href="./documentation" class="w-1/3 min-w-fit">
+				<Button
+					variant="secondary"
+					href={getURLForLanguage('/[...language]/documentation', $locale)}
+					class="w-1/3 min-w-fit"
+				>
 					<BookOpenText size="18" class="mr-1.5" />
 					<span>{$_('homepage.documentation')}</span>
 				</Button>
@@ -190,7 +175,7 @@
 	</div>
 	<div class="px-12 flex flex-col items-center">
 		<div class="max-w-5xl flex flex-col items-center gap-6">
-			<DocsLoader path="about/funding.md" />
+			<DocsLoader path="home/funding.md" />
 			<Button
 				href="https://ko-fi.com/gpxstudio"
 				target="_blank"
@@ -203,7 +188,7 @@
 	</div>
 	<div class="px-12 flex flex-col items-center">
 		<div class="max-w-5xl">
-			<DocsLoader path="about/translation.md" />
+			<DocsLoader path="home/translation.md" />
 		</div>
 	</div>
 	<div class="px-12 md:px-24 flex flex-col items-center">
@@ -218,7 +203,7 @@
 					<Logo company="mapbox" class="w-60" />
 				</a>
 			</div>
-			<DocsLoader path="about/mapbox.md" />
+			<DocsLoader path="home/mapbox.md" />
 		</div>
 	</div>
 </div>

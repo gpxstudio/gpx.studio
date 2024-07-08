@@ -1,5 +1,5 @@
 import { dbUtils, getFile } from "$lib/db";
-import { castDraft, freeze } from "immer";
+import { freeze } from "immer";
 import { GPXFile, Track, TrackSegment, Waypoint } from "gpx";
 import { selection } from "./Selection";
 import { newGPXFile } from "$lib/stores";

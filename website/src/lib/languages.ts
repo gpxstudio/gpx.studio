@@ -1,18 +1,18 @@
 export const languages: Record<string, string> = {
     'en': 'English',
+    'fr': 'Français',
 };
 
-export function getURLForLanguage(lang?: string): string {
-    let currentPath = window.location.pathname;
-    let currentPathArray = currentPath.split('/');
-
-    if (currentPathArray.length > 1 && languages.hasOwnProperty(currentPathArray[1])) {
-        currentPathArray.splice(1, 1);
+export function getURLForLanguage(route: string | null, lang: string | null | undefined): string {
+    if (route === null) {
+        return '/';
     }
 
-    if (lang !== undefined && lang !== 'en') {
-        currentPathArray.splice(1, 0, lang);
-    }
+    let url = route.replace('[...language]', (lang === null || lang === undefined) ? 'en' : lang).replace('/en', '');
 
-    return currentPathArray.join('/');
+    if (url === '') {
+        return '/';
+    } else {
+        return url;
+    }
 }

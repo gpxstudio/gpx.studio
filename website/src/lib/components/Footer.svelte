@@ -3,7 +3,8 @@
 	import LanguageSelect from '$lib/components/LanguageSelect.svelte';
 	import Logo from '$lib/components/Logo.svelte';
 	import { AtSign, BookOpenText, Heart, Home, Map } from 'lucide-svelte';
-	import { _ } from 'svelte-i18n';
+	import { _, locale } from 'svelte-i18n';
+	import { getURLForLanguage } from '$lib/languages';
 </script>
 
 <footer class="w-full">
@@ -24,15 +25,27 @@
 			<div class="grow max-w-2xl flex flex-row flex-wrap justify-between gap-x-10 gap-y-6">
 				<div class="flex flex-col items-start gap-1">
 					<span class="font-semibold">{$_('homepage.website')}</span>
-					<Button variant="link" class="h-6 px-0 text-muted-foreground" href="./about">
+					<Button
+						variant="link"
+						class="h-6 px-0 text-muted-foreground"
+						href={getURLForLanguage('/[...language]', $locale)}
+					>
 						<Home size="16" class="mr-1" />
 						{$_('homepage.home')}
 					</Button>
-					<Button variant="link" class="h-6 px-0 text-muted-foreground" href="./">
+					<Button
+						variant="link"
+						class="h-6 px-0 text-muted-foreground"
+						href={getURLForLanguage('/[...language]/app', $locale)}
+					>
 						<Map size="16" class="mr-1" />
 						{$_('homepage.app')}
 					</Button>
-					<Button variant="link" class="h-6 px-0 text-muted-foreground" href="./documentation">
+					<Button
+						variant="link"
+						class="h-6 px-0 text-muted-foreground"
+						href={getURLForLanguage('/[...language]/documentation', $locale)}
+					>
 						<BookOpenText size="16" class="mr-1" />
 						{$_('homepage.documentation')}
 					</Button>
