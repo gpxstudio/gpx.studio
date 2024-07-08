@@ -4,6 +4,7 @@ import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
 import { get } from "svelte/store";
 import { map } from "./stores";
+import { base } from "$app/paths";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -89,4 +90,18 @@ export function setGrabbingCursor() {
 
 export function setCrosshairCursor() {
     setCursor('crosshair');
+}
+
+export function getURLForLanguage(route: string | null, lang: string | null | undefined): string {
+    if (route === null) {
+        return base + '/';
+    }
+
+    let url = route.replace('[...language]', (lang === null || lang === undefined) ? 'en' : lang).replace('/en', '');
+
+    if (url === '') {
+        return base + '/';
+    } else {
+        return base + url;
+    }
 }

@@ -72,8 +72,9 @@
 	import Export from '$lib/components/Export.svelte';
 	import { mode, setMode, systemPrefersMode } from 'mode-watcher';
 	import { _, locale } from 'svelte-i18n';
-	import { getURLForLanguage, languages } from '$lib/languages';
+	import { languages } from '$lib/languages';
 	import { page } from '$app/stores';
+	import { getURLForLanguage } from '$lib/utils';
 
 	const {
 		distanceUnits,

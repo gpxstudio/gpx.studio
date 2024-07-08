@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import * as Select from '$lib/components/ui/select';
-	import { getURLForLanguage, languages } from '$lib/languages';
+	import { languages } from '$lib/languages';
+	import { getURLForLanguage } from '$lib/utils';
 	import { Languages } from 'lucide-svelte';
 	import { _, locale } from 'svelte-i18n';
 

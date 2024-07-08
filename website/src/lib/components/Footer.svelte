@@ -4,7 +4,7 @@
 	import Logo from '$lib/components/Logo.svelte';
 	import { AtSign, BookOpenText, Heart, Home, Map } from 'lucide-svelte';
 	import { _, locale } from 'svelte-i18n';
-	import { getURLForLanguage } from '$lib/languages';
+	import { getURLForLanguage } from '$lib/utils';
 </script>
 
 <footer class="w-full">

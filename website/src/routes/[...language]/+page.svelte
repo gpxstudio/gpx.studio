@@ -13,6 +13,7 @@
 	import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
 	import { currentTool, Tool } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
+	import { getURLForLanguage } from '$lib/utils';
 	import routingScreenshot from '$lib/assets/img/routing.png?enhanced';
 	import mapboxOutdoorsMap from '$lib/assets/img/mapbox-outdoors.png?enhanced';
 	import mapboxSatelliteMap from '$lib/assets/img/mapbox-satellite.png?enhanced';
@@ -20,7 +21,6 @@
 	import cyclosmMap from '$lib/assets/img/cyclosm.png?enhanced';
 	import waymarkedMap from '$lib/assets/img/waymarked.png?enhanced';
 	import mapScreenshot from '$lib/assets/img/map.png?enhanced';
-	import { getURLForLanguage } from '$lib/languages';
 
 	let gpxStatistics = writable(exampleGPXFile.getStatistics());
 	let slicedGPXStatistics = writable(undefined);

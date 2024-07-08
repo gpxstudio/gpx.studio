@@ -3,8 +3,8 @@
 	import { Button } from '$lib/components/ui/button';
 	import ModeSwitch from '$lib/components/ModeSwitch.svelte';
 	import { BookOpenText, Home, Map } from 'lucide-svelte';
-	import { getURLForLanguage } from '$lib/languages';
 	import { _, locale } from 'svelte-i18n';
+	import { getURLForLanguage } from '$lib/utils';
 </script>
 
 <nav class="w-full sticky top-0 bg-background z-10">
