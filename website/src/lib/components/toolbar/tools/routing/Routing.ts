@@ -17,7 +17,7 @@ export const brouterProfiles: { [key: string]: string } = {
     railway: 'rail'
 };
 export const routingProfileSelectItem = writable({
-    value: '',
+    value: 'bike',
     label: ''
 });
 

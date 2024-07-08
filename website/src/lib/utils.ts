@@ -95,7 +95,7 @@ export function setCrosshairCursor() {
 }
 
 export function getURLForLanguage(lang: string | null | undefined, path?: string): string {
-    let newPath = path ?? (browser ? window.location.pathname : '');
+    let newPath = path ?? (browser ? window.location.pathname.replace(base, '') : '');
     let languageInPath = newPath.split('/')[1];
     if (!languages.hasOwnProperty(languageInPath)) {
         languageInPath = 'en';
