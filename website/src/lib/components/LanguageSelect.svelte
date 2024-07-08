@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import * as Select from '$lib/components/ui/select';
-	import { languages } from '$lib/languages';
+	import { getURLForLanguage, languages } from '$lib/languages';
 	import { Languages } from 'lucide-svelte';
 	import { _, locale } from 'svelte-i18n';
 
@@ -15,21 +15,6 @@
 			value: $locale,
 			label: languages[$locale]
 		};
-	}
-
-	function getURLForLanguage(lang?: string): string {
-		let currentPath = window.location.pathname;
-		let currentPathArray = currentPath.split('/');
-
-		if (currentPathArray.length > 1 && languages.hasOwnProperty(currentPathArray[1])) {
-			currentPathArray.splice(1, 1);
-		}
-
-		if (lang !== undefined && lang !== 'en') {
-			currentPathArray.splice(1, 0, lang);
-		}
-
-		return currentPathArray.join('/');
 	}
 </script>
 

@@ -2,7 +2,7 @@
 	import Logo from '$lib/components/Logo.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import ModeSwitch from '$lib/components/ModeSwitch.svelte';
-	import { BookOpenText, Info, Map } from 'lucide-svelte';
+	import { BookOpenText, Home, Map } from 'lucide-svelte';
 	import { _ } from 'svelte-i18n';
 </script>
 
@@ -13,12 +13,12 @@
 			<Logo class="h-7 hidden sm:block" />
 		</a>
 		<Button variant="link" class="text-base px-0" href="./">
+			<Home size="18" class="mr-1.5" />
+			{$_('homepage.home')}
+		</Button>
+		<Button variant="link" class="text-base px-0" href="./app">
 			<Map size="18" class="mr-1.5" />
 			{$_('homepage.app')}
-		</Button>
-		<Button variant="link" class="text-base px-0" href="./about">
-			<Info size="18" class="mr-1.5" />
-			{$_('menu.about')}
 		</Button>
 		<Button variant="link" class="text-base px-0" href="./documentation">
 			<BookOpenText size="18" class="mr-1.5" />

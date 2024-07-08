@@ -72,9 +72,7 @@
 	import Export from '$lib/components/Export.svelte';
 	import { mode, setMode, systemPrefersMode } from 'mode-watcher';
 	import { _, locale } from 'svelte-i18n';
-	import { languages } from '$lib/languages';
-	import { goto } from '$app/navigation';
-	import { base } from '$app/paths';
+	import { getURLForLanguage, languages } from '$lib/languages';
 
 	const {
 		distanceUnits,
@@ -125,8 +123,10 @@
 	<div
 		class="w-fit flex flex-row items-center justify-center p-1 bg-background rounded-b-md md:rounded-md pointer-events-auto shadow-md"
 	>
-		<Logo class="h-5 mt-0.5 mx-2 md:hidden" iconOnly={true} />
-		<Logo class="h-5 mt-0.5 mx-2 hidden md:block" />
+		<a href="./" target="_blank">
+			<Logo class="h-5 mt-0.5 mx-2 md:hidden" iconOnly={true} />
+			<Logo class="h-5 mt-0.5 mx-2 hidden md:block" />
+		</a>
 		<Menubar.Root class="border-none h-fit p-0">
 			<Menubar.Menu>
 				<Menubar.Trigger>
@@ -362,16 +362,11 @@
 							{$_('menu.language')}
 						</Menubar.SubTrigger>
 						<Menubar.SubContent>
-							<Menubar.RadioGroup
-								bind:value={$locale}
-								onValueChange={(value) => {
-									if (value) {
-										goto(base + '/' + (value === 'en' ? '' : value));
-									}
-								}}
-							>
+							<Menubar.RadioGroup bind:value={$locale}>
 								{#each Object.entries(languages) as [code, name]}
-									<Menubar.RadioItem value={code}>{name}</Menubar.RadioItem>
+									<a href={getURLForLanguage(code)}>
+										<Menubar.RadioItem value={code}>{name}</Menubar.RadioItem>
+									</a>
 								{/each}
 							</Menubar.RadioGroup>
 						</Menubar.SubContent>
@@ -420,20 +415,20 @@
 		<div class="h-fit flex flex-row items-center ml-1 gap-1">
 			<Button
 				variant="ghost"
-				href="./about"
+				href="./documentation"
 				target="_blank"
-				class="cursor-default h-fit rounded-sm"
+				class="cursor-default h-fit rounded-sm px-3 py-0.5"
 			>
 				<Info size="18" class="md:hidden" />
 				<span class="hidden md:block">
-					{$_('menu.about')}
+					{$_('menu.help')}
 				</span>
 			</Button>
 			<Button
 				variant="ghost"
 				href="https://ko-fi.com/gpxstudio"
 				target="_blank"
-				class="cursor-default h-fit rounded-sm font-bold text-support hover:text-support"
+				class="cursor-default h-fit rounded-sm font-bold text-support hover:text-support px-3 py-0.5"
 			>
 				<HeartHandshake size="18" class="md:hidden" />
 				<span class="hidden md:flex flex-row items-center">
@@ -570,12 +565,6 @@
 
 <style lang="postcss">
 	div :global(button) {
-		@apply hover:bg-accent;
-		@apply px-3;
-		@apply py-0.5;
-	}
-
-	div :global(a) {
 		@apply hover:bg-accent;
 		@apply px-3;
 		@apply py-0.5;

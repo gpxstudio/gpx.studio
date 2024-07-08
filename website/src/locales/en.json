@@ -1,7 +1,7 @@
 {
     "metadata": {
         "app_title": "the online GPX file editor",
-        "about_title": "about",
+        "home_title": "home",
         "description": "View, edit and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations."
     },
     "menu": {
@@ -51,7 +51,7 @@
         "layers": "Map layers...",
         "distance_markers": "Distance markers",
         "direction_markers": "Direction markers",
-        "about": "About",
+        "help": "Help",
         "donate": "Donate",
         "ctrl": "Ctrl",
         "click": "Click",
@@ -346,6 +346,7 @@
     },
     "homepage": {
         "website": "Website",
+        "home": "Home",
         "app": "App",
         "documentation": "Documentation",
         "contact": "Contact",

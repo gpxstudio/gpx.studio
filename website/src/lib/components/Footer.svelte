@@ -2,7 +2,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import LanguageSelect from '$lib/components/LanguageSelect.svelte';
 	import Logo from '$lib/components/Logo.svelte';
-	import { AtSign, BookOpenText, Heart, Info, Map } from 'lucide-svelte';
+	import { AtSign, BookOpenText, Heart, Home, Map } from 'lucide-svelte';
 	import { _ } from 'svelte-i18n';
 </script>
 
@@ -24,13 +24,13 @@
 			<div class="grow max-w-2xl flex flex-row flex-wrap justify-between gap-x-10 gap-y-6">
 				<div class="flex flex-col items-start gap-1">
 					<span class="font-semibold">{$_('homepage.website')}</span>
+					<Button variant="link" class="h-6 px-0 text-muted-foreground" href="./about">
+						<Home size="16" class="mr-1" />
+						{$_('homepage.home')}
+					</Button>
 					<Button variant="link" class="h-6 px-0 text-muted-foreground" href="./">
 						<Map size="16" class="mr-1" />
 						{$_('homepage.app')}
-					</Button>
-					<Button variant="link" class="h-6 px-0 text-muted-foreground" href="./about">
-						<Info size="16" class="mr-1" />
-						{$_('menu.about')}
 					</Button>
 					<Button variant="link" class="h-6 px-0 text-muted-foreground" href="./documentation">
 						<BookOpenText size="16" class="mr-1" />

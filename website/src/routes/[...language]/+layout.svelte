@@ -11,7 +11,7 @@
 		locale.set($page.params.language);
 	}
 
-	const appRoute = '/[...language]';
+	const appRoute = '/[...language]/app';
 </script>
 
 <ModeWatcher />
