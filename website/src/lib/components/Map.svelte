@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 
 	import mapboxgl from 'mapbox-gl';
 	import 'mapbox-gl/dist/mapbox-gl.css';
@@ -113,6 +113,13 @@
 				}
 			});
 		});
+	});
+
+	onDestroy(() => {
+		if ($map) {
+			$map.remove();
+			$map = null;
+		}
 	});
 
 	$: if (
