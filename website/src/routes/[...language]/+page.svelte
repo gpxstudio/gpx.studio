@@ -6,7 +6,7 @@
 	import GPXStatistics from '$lib/components/GPXStatistics.svelte';
 	import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
 	import { settings } from '$lib/db';
-	import { BookOpenText, Heart, Map } from 'lucide-svelte';
+	import { BookOpenText, Heart, LineChart, Map, PencilRuler, Route, Scale } from 'lucide-svelte';
 	import { _, locale } from 'svelte-i18n';
 	import { exampleGPXFile } from '$lib/assets/example';
 	import { writable } from 'svelte/store';
@@ -74,7 +74,10 @@
 	<div class="px-24 w-full flex flex-col items-center">
 		<div class="flex flex-col md:flex-row gap-x-12 gap-y-6 items-center justify-between max-w-5xl">
 			<div class="markdown text-center">
-				<h1>{$_('homepage.route_planning')}</h1>
+				<h1>
+					<Route size="24" class="mr-1 inline-block align-baseline" />
+					{$_('homepage.route_planning')}
+				</h1>
 				<p class="text-muted-foreground">{$_('homepage.route_planning_description')}</p>
 			</div>
 			<div class="p-3 w-fit rounded-md border shadow-xl">
@@ -85,14 +88,20 @@
 	<div class="px-24 w-full flex flex-col items-center">
 		<div class="flex flex-col md:flex-row gap-x-12 gap-y-6 items-center justify-between max-w-5xl">
 			<div class="markdown text-center md:hidden">
-				<h1>{$_('homepage.file_processing')}</h1>
+				<h1>
+					<PencilRuler size="24" class="mr-1 inline-block align-baseline" />
+					{$_('homepage.file_processing')}
+				</h1>
 				<p class="text-muted-foreground">{$_('homepage.file_processing_description')}</p>
 			</div>
 			<div class="relative">
 				<Toolbar />
 			</div>
 			<div class="markdown text-center hidden md:block">
-				<h1>{$_('homepage.file_processing')}</h1>
+				<h1>
+					<PencilRuler size="24" class="mr-1 inline-block align-baseline" />
+					{$_('homepage.file_processing')}
+				</h1>
 				<p class="text-muted-foreground">{$_('homepage.file_processing_description')}</p>
 			</div>
 		</div>
@@ -102,7 +111,10 @@
 			class="markdown flex flex-col md:flex-row gap-x-12 gap-y-6 items-center justify-between max-w-5xl"
 		>
 			<div class="markdown text-center">
-				<h1>{$_('homepage.maps')}</h1>
+				<h1>
+					<Map size="24" class="mr-1 inline-block align-baseline" />
+					{$_('homepage.maps')}
+				</h1>
 				<p class="text-muted-foreground">{$_('homepage.maps_description')}</p>
 			</div>
 			<div class="relative h-80 aspect-square rounded-2xl shadow-xl overflow-clip">
@@ -134,10 +146,13 @@
 			</div>
 		</div>
 	</div>
-	<div class="px-6 md:px-12">
-		<div class="markdown text-center">
-			<h1>{$_('homepage.data_visualization')}</h1>
-			<p class="text-muted-foreground">{$_('homepage.data_visualization_description')}</p>
+	<div class="px-8 md:px-12">
+		<div class="markdown text-center px-16 md:px-12">
+			<h1>
+				<LineChart size="24" class="mr-1 inline-block align-baseline" />
+				{$_('homepage.data_visualization')}
+			</h1>
+			<p class="text-muted-foreground mb-6">{$_('homepage.data_visualization_description')}</p>
 		</div>
 		<div class="h-48 w-full">
 			<ElevationProfile
@@ -160,6 +175,27 @@
 					orientation={'horizontal'}
 					velocityUnits={$velocityUnits}
 				/>
+			</div>
+		</div>
+	</div>
+	<div class="px-24 w-full flex flex-col items-center">
+		<div class="flex flex-col md:flex-row gap-x-12 gap-y-6 items-center justify-between max-w-5xl">
+			<div class="markdown text-center md:hidden">
+				<h1>
+					<Scale size="24" class="mr-1 inline-block align-baseline" />
+					{$_('homepage.identity')}
+				</h1>
+				<p class="text-muted-foreground">{$_('homepage.identity_description')}</p>
+			</div>
+			<a href="https://github.com/gpxstudio/gpx.studio" target="_blank">
+				<Logo class="h-32" company="github" />
+			</a>
+			<div class="markdown text-center hidden md:block">
+				<h1>
+					<Scale size="24" class="mr-1 inline-block align-baseline" />
+					{$_('homepage.identity')}
+				</h1>
+				<p class="text-muted-foreground">{$_('homepage.identity_description')}</p>
 			</div>
 		</div>
 	</div>
