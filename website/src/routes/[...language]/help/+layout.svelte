@@ -8,7 +8,7 @@
 </script>
 
 <div class="p-12 flex flex-row gap-24">
-	<div class="hidden md:flex flex-col gap-1 w-40">
+	<div class="hidden md:flex flex-col gap-1 w-40 sticky top-28 self-start">
 		{#each Object.keys(guides) as guide}
 			<Button
 				variant="link"
