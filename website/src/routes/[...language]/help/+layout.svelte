@@ -11,7 +11,7 @@
 	<div
 		class="{$page.params.guide
 			? 'hidden md:flex'
-			: 'flex'} flex-col gap-1 w-40 sticky top-28 self-start"
+			: 'flex'} flex-col gap-1 w-40 sticky top-[105px] self-start"
 	>
 		{#each Object.keys(guides) as guide}
 			<Button

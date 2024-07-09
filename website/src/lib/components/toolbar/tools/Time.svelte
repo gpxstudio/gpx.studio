@@ -160,7 +160,7 @@
 		$selection.size === 1 && $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints']);
 </script>
 
-<div class="flex flex-col gap-3 w-80">
+<div class="flex flex-col gap-3 w-96 {$$props.class ?? ''}">
 	<fieldset class="flex flex-col gap-2">
 		<div class="flex flex-row gap-2 justify-center">
 			<div class="flex flex-col gap-2">

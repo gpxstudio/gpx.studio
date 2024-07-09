@@ -1,5 +1,14 @@
 ---
-title: Reduce
+title: Minify
 ---
 
-# { title }
+<script>
+    import { Filter } from 'lucide-svelte';
+    import Reduce from '$lib/components/toolbar/tools/Reduce.svelte';
+</script>
+
+# <Filter size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+<div class="flex flex-row justify-center">
+    <Reduce class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>

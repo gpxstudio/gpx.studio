@@ -162,7 +162,7 @@
 	});
 </script>
 
-<div class="flex flex-col gap-3 w-full max-w-96">
+<div class="flex flex-col gap-3 w-full max-w-96 {$$props.class ?? ''}">
 	<fieldset class="flex flex-col gap-2">
 		<Label for="name">{$_('menu.metadata.name')}</Label>
 		<Input bind:value={name} id="name" class="font-semibold h-8" />

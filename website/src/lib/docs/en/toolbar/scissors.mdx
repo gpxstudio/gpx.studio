@@ -1,5 +1,14 @@
 ---
-title: Scissors
+title: Crop and split
 ---
 
-# { title }
+<script>
+    import { ScissorsIcon } from 'lucide-svelte';
+    import Scissors from '$lib/components/toolbar/tools/Scissors.svelte';
+</script>
+
+# <ScissorsIcon size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+<div class="flex flex-row justify-center">
+    <Scissors class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>

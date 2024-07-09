@@ -2,4 +2,13 @@
 title: Time
 ---
 
-# { title }
+<script>
+    import { CalendarClock } from 'lucide-svelte';
+    import Time from '$lib/components/toolbar/tools/Time.svelte';
+</script>
+
+# <CalendarClock size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+<div class="flex flex-row justify-center">
+    <Time class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>

@@ -37,7 +37,7 @@
 		});
 </script>
 
-<div class="flex flex-col gap-3 w-full max-w-80">
+<div class="flex flex-col gap-3 w-full max-w-80 {$$props.class ?? ''}">
 	<Button variant="outline" disabled={!validSelection} on:click={dbUtils.extractSelection}>
 		<Ungroup size="16" class="mr-1" />
 		{$_('toolbar.extract.button')}
