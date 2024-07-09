@@ -36,6 +36,10 @@
 	}
 
 	function createLayer() {
+		if (typeof maxZoom === 'string') {
+			maxZoom = parseInt(maxZoom);
+		}
+
 		let layerId = selectedLayerId ?? getLayerId();
 		let layer: CustomLayer = {
 			id: layerId,
