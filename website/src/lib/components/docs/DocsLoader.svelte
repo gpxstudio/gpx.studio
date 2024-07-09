@@ -7,7 +7,7 @@
 	let module = undefined;
 	let metadata: Record<string, any> = {};
 
-	const modules = import.meta.glob('/src/lib/docs/**/*.{md,svx}');
+	const modules = import.meta.glob('/src/lib/docs/**/*.mdx');
 
 	function loadModule(path: string) {
 		modules[path]().then((mod) => {
@@ -47,19 +47,31 @@
 		@apply mb-3;
 	}
 
-	:global(.markdown p > a) {
+	:global(.markdown h3) {
+		@apply text-lg;
+		@apply font-semibold;
+		@apply pt-1.5;
+	}
+
+	:global(.markdown a) {
 		@apply text-blue-500;
 		@apply hover:underline;
 	}
 
-	:global(.markdown p > a) {
-		@apply text-blue-500;
-		@apply hover:underline;
+	:global(.markdown kbd) {
+		@apply p-1;
+		@apply rounded-md;
+		@apply border;
 	}
 
 	:global(.markdown ul) {
 		@apply list-disc;
 		@apply pl-4;
+	}
+
+	:global(.markdown li) {
+		@apply mt-1;
+		@apply first:mt-0;
 	}
 
 	:global(.markdown hr) {

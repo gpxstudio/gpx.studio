@@ -211,7 +211,7 @@
 	</div>
 	<div class="px-12 flex flex-col items-center">
 		<div class="max-w-5xl flex flex-col items-center gap-6">
-			<DocsLoader path="home/funding.md" />
+			<DocsLoader path="home/funding.mdx" />
 			<Button
 				href="https://ko-fi.com/gpxstudio"
 				target="_blank"
@@ -224,7 +224,7 @@
 	</div>
 	<div class="px-12 flex flex-col items-center">
 		<div class="max-w-5xl">
-			<DocsLoader path="home/translation.md" />
+			<DocsLoader path="home/translation.mdx" />
 		</div>
 	</div>
 	<div class="px-12 md:px-24 flex flex-col items-center">
@@ -239,7 +239,7 @@
 					<Logo company="mapbox" class="w-60" />
 				</a>
 			</div>
-			<DocsLoader path="home/mapbox.md" />
+			<DocsLoader path="home/mapbox.mdx" />
 		</div>
 	</div>
 </div>

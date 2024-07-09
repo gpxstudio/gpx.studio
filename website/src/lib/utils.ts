@@ -7,6 +7,7 @@ import { map } from "./stores";
 import { base } from "$app/paths";
 import { browser } from "$app/environment";
 import { languages } from "$lib/languages";
+import { locale } from "svelte-i18n";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -99,6 +100,13 @@ export function getURLForLanguage(lang: string | null | undefined, path?: string
     let languageInPath = newPath.split('/')[1];
     if (!languages.hasOwnProperty(languageInPath)) {
         languageInPath = 'en';
+    }
+
+    if (lang === null || lang === undefined) {
+        lang = get(locale);
+        if (lang === null || lang === undefined) {
+            lang = 'en';
+        }
     }
 
     if (languageInPath === 'en') {

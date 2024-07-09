@@ -43,7 +43,7 @@
         "celsius": "Celsius",
         "fahrenheit": "Fahrenheit",
         "language": "Language",
-        "mode": "Mode",
+        "mode": "Theme",
         "light": "Light",
         "dark": "Dark",
         "street_view_source": "Street view source",
@@ -51,7 +51,7 @@
         "google": "Google",
         "layers": "Map layers...",
         "distance_markers": "Distance markers",
-        "direction_markers": "Direction markers",
+        "direction_markers": "Direction arrows",
         "help": "Help",
         "donate": "Donate",
         "ctrl": "Ctrl",
@@ -67,7 +67,7 @@
             "button": "Appearance...",
             "color": "Color",
             "opacity": "Opacity",
-            "weight": "Weight"
+            "width": "Width"
         },
         "hide": "Hide",
         "unhide": "Unhide"

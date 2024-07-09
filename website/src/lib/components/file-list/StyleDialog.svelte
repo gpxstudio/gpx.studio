@@ -120,7 +120,7 @@
 			</div>
 		</Label>
 		<Label class="flex flex-row gap-2 items-center justify-between">
-			{$_('menu.style.weight')}
+			{$_('menu.style.width')}
 			<div class="w-40 p-2">
 				<Slider
 					bind:value={weight}

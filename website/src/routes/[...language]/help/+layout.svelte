@@ -4,13 +4,7 @@
 	import { locale } from 'svelte-i18n';
 	import DocsLoader from '$lib/components/docs/DocsLoader.svelte';
 	import { page } from '$app/stores';
-
-	let guides: Record<string, string[]> = {
-		'getting-started': [],
-		menu: ['file', 'edit', 'view', 'settings'],
-		toolbar: ['routing', 'poi', 'scissors', 'time', 'merge', 'extract', 'reduce', 'clean'],
-		'map-controls': []
-	};
+	import { guides } from '$lib/components/docs/docs';
 </script>
 
 <div class="p-12 flex flex-row gap-24">
@@ -24,7 +18,7 @@
 					? 'font-semibold text-foreground'
 					: ''}"
 			>
-				<DocsLoader path={`${guide}.svx`} titleOnly={true} />
+				<DocsLoader path={`${guide}.mdx`} titleOnly={true} />
 			</Button>
 			{#each guides[guide] as subGuide}
 				<Button
@@ -36,10 +30,12 @@
 						? 'font-semibold text-foreground'
 						: ''}"
 				>
-					<DocsLoader path={`${guide}/${subGuide}.svx`} titleOnly={true} />
+					<DocsLoader path={`${guide}/${subGuide}.mdx`} titleOnly={true} />
 				</Button>
 			{/each}
 		{/each}
 	</div>
-	<slot />
+	<div class="grow">
+		<slot />
+	</div>
 </div>
