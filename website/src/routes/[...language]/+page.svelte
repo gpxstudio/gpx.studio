@@ -80,7 +80,7 @@
 				</h1>
 				<p class="text-muted-foreground">{$_('homepage.route_planning_description')}</p>
 			</div>
-			<div class="p-3 w-fit rounded-md border shadow-xl">
+			<div class="p-3 w-fit rounded-md border shadow-xl md:shrink-0">
 				<Routing minimizable={false} />
 			</div>
 		</div>
@@ -94,7 +94,7 @@
 				</h1>
 				<p class="text-muted-foreground">{$_('homepage.file_processing_description')}</p>
 			</div>
-			<div class="relative">
+			<div class="relative md:shrink-0 max-w-[400px]">
 				<Toolbar />
 			</div>
 			<div class="markdown text-center hidden md:block">

@@ -2,7 +2,7 @@ import type { Coordinates } from "gpx";
 import { TrackPoint, distance } from "gpx";
 import { derived, get, writable } from "svelte/store";
 import { settings } from "$lib/db";
-import { _, locale } from "svelte-i18n";
+import { _, isLoading, locale } from "svelte-i18n";
 import { map } from "$lib/stores";
 
 const { routing, routingProfile, privateRoads } = settings;
@@ -17,12 +17,12 @@ export const brouterProfiles: { [key: string]: string } = {
     railway: 'rail'
 };
 export const routingProfileSelectItem = writable({
-    value: 'bike',
+    value: '',
     label: ''
 });
 
-derived([routingProfile, locale], ([profile, l]) => [profile, l]).subscribe(([profile, l]) => {
-    if (profile !== get(routingProfileSelectItem).value && l !== null) {
+derived([routingProfile, locale, isLoading], ([profile, l, i]) => [profile, l, i]).subscribe(([profile, l, i]) => {
+    if (!i && profile !== get(routingProfileSelectItem).value && l !== null) {
         routingProfileSelectItem.update((item) => {
             item.value = profile;
             item.label = get(_)(`toolbar.routing.activities.${profile}`);

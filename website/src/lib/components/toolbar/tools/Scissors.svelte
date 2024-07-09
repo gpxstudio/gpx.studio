@@ -76,7 +76,7 @@
 	});
 </script>
 
-<div class="flex flex-col gap-3 w-80">
+<div class="flex flex-col gap-3 w-full max-w-80">
 	<div class="p-2">
 		<Slider bind:value={sliderValues} max={maxSliderValue} step={1} disabled={!validSelection} />
 	</div>

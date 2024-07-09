@@ -102,7 +102,10 @@
 		</Button>
 	</div>
 {:else}
-	<div class="flex flex-col gap-3 w-80" in:flyAndScale={{ x: -2, y: 0, duration: 50 }}>
+	<div
+		class="flex flex-col gap-3 w-full max-w-80 {$$props.class ?? ''}"
+		in:flyAndScale={{ x: -2, y: 0, duration: 50 }}
+	>
 		<div class="grow flex flex-col gap-3">
 			<Tooltip>
 				<Label slot="data" class="w-full flex flex-row justify-between items-center gap-2">

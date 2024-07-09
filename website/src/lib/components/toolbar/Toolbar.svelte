@@ -16,7 +16,7 @@
 	import ToolbarItemMenu from './ToolbarItemMenu.svelte';
 </script>
 
-<div class="flex flex-row w-full items-center">
+<div class="flex flex-row w-full items-center pr-12">
 	<div
 		class="h-fit flex flex-col p-1 gap-1.5 bg-background rounded-r-md pointer-events-auto shadow-md"
 	>

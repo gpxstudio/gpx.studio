@@ -147,7 +147,7 @@
 	}
 </script>
 
-<div class="flex flex-col gap-3 w-80">
+<div class="flex flex-col gap-3 w-full max-w-80">
 	<div class="p-2">
 		<Slider bind:value={sliderValue} min={0} max={100} step={1} />
 	</div>

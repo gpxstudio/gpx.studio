@@ -12,7 +12,7 @@
 
 <DocsLoader path="{$page.params.guide}.mdx" />
 
-<div class="flex flex-row pt-6">
+<div class="flex flex-row flex-wrap gap-3 pt-6">
 	{#if previousGuide}
 		<Button
 			variant="outline"

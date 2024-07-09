@@ -33,24 +33,35 @@
 
 <style lang="postcss">
 	:global(.markdown) {
+		@apply text-muted-foreground;
 	}
 
 	:global(.markdown h1) {
+		@apply text-foreground;
 		@apply text-3xl;
 		@apply font-semibold;
 		@apply mb-6;
 	}
 
 	:global(.markdown h2) {
+		@apply text-foreground;
 		@apply text-2xl;
 		@apply font-semibold;
 		@apply mb-3;
+		@apply pt-3;
 	}
 
 	:global(.markdown h3) {
+		@apply text-foreground;
 		@apply text-lg;
 		@apply font-semibold;
 		@apply pt-1.5;
+	}
+
+	:global(.markdown p > button) {
+		@apply border;
+		@apply rounded-md;
+		@apply px-1;
 	}
 
 	:global(.markdown a) {

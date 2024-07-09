@@ -127,7 +127,7 @@
 	$: validSelection = $selection.size > 0;
 </script>
 
-<div class="flex flex-col gap-3 w-80">
+<div class="flex flex-col gap-3 w-full max-w-80 items-center">
 	<fieldset class="flex flex-col gap-3">
 		<Label class="flex flex-row items-center gap-[6.4px] h-3">
 			<Checkbox bind:checked={deleteTrackpoints} class="scale-90" />
@@ -150,6 +150,7 @@
 	</fieldset>
 	<Button
 		variant="outline"
+		class="w-full"
 		disabled={!validSelection || rectangleCoordinates.length != 2}
 		on:click={() => {
 			dbUtils.cleanSelection(

@@ -52,7 +52,7 @@
 	let mergeType = MergeType.TRACES;
 </script>
 
-<div class="flex flex-col gap-3 w-80">
+<div class="flex flex-col gap-3 w-full max-w-80">
 	<RadioGroup.Root bind:value={mergeType}>
 		<Label class="flex flex-row items-center gap-2 leading-5">
 			<RadioGroup.Item value={MergeType.TRACES} />
