@@ -3,6 +3,7 @@
 	import { getURLForLanguage } from '$lib/utils';
 	import { locale } from 'svelte-i18n';
 	import DocsLoader from '$lib/components/docs/DocsLoader.svelte';
+	import { page } from '$app/stores';
 
 	let guides: Record<string, string[]> = {
 		'getting-started': [],
@@ -18,7 +19,10 @@
 			<Button
 				variant="link"
 				href={getURLForLanguage($locale, `/help/${guide}`)}
-				class="h-6 p-0 w-fit text-muted-foreground hover:text-foreground hover:no-underline font-normal hover:font-semibold items-start"
+				class="h-6 p-0 w-fit text-muted-foreground hover:text-foreground hover:no-underline font-normal hover:font-semibold items-start {$page
+					.params.guide === guide
+					? 'font-semibold text-foreground'
+					: ''}"
 			>
 				<DocsLoader path={`${guide}.svx`} titleOnly={true} />
 			</Button>
@@ -26,7 +30,11 @@
 				<Button
 					variant="link"
 					href={getURLForLanguage($locale, `/help/${guide}/${subGuide}`)}
-					class="h-6 p-0 w-fit text-muted-foreground hover:text-foreground hover:no-underline font-normal hover:font-semibold items-start ml-3"
+					class="h-6 p-0 w-fit text-muted-foreground hover:text-foreground hover:no-underline font-normal hover:font-semibold items-start ml-3 {$page
+						.params.guide ===
+					guide + '/' + subGuide
+						? 'font-semibold text-foreground'
+						: ''}"
 				>
 					<DocsLoader path={`${guide}/${subGuide}.svx`} titleOnly={true} />
 				</Button>
