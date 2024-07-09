@@ -2,7 +2,7 @@ export const guides: Record<string, string[]> = {
     'getting-started': [],
     menu: ['file', 'edit', 'view', 'settings'],
     'files-and-stats': [],
-    toolbar: ['routing', 'poi', 'scissors', 'time', 'merge', 'extract', 'reduce', 'clean'],
+    toolbar: ['routing', 'poi', 'scissors', 'time', 'merge', 'extract', 'minify', 'clean'],
     'map-controls': [],
     'gpx': [],
 };

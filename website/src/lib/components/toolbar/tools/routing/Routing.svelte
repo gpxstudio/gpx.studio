@@ -212,11 +212,17 @@
 					<div>{$_('toolbar.routing.help')}</div>
 				{/if}
 			</Help>
-			{#if minimizable}
-				<Button variant="ghost" class="px-1 h-6" on:click={() => (minimized = true)}>
-					<SquareArrowUpLeft size="18" />
-				</Button>
-			{/if}
+			<Button
+				variant="ghost"
+				class="px-1 h-6"
+				on:click={() => {
+					if (minimizable) {
+						minimized = true;
+					}
+				}}
+			>
+				<SquareArrowUpLeft size="18" />
+			</Button>
 		</div>
 	</div>
 {/if}

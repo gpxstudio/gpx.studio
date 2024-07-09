@@ -188,7 +188,7 @@
             "tooltip": "Reduce the number of GPS points",
             "tolerance": "Tolerance",
             "number_of_points": "Number of GPS points",
-            "button": "Reduce",
+            "button": "Minify",
             "help": "Use the slider to choose the number of GPS points to keep",
             "help_no_selection": "Select a file item to reduce the number of its GPS points"
         },

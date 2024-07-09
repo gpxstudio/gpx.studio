@@ -8,7 +8,7 @@
 </script>
 
 <nav class="w-full sticky top-0 bg-background z-10">
-	<div class="mx-6 py-2 flex flex-row items-center border-b gap-4 md:gap-8">
+	<div class="mx-6 py-2 flex flex-row items-center border-b gap-4 sm:gap-8">
 		<a href={getURLForLanguage($locale, '/')} class="shrink-0 translate-y-0.5">
 			<Logo class="h-8 sm:hidden" iconOnly={true} />
 			<Logo class="h-8 hidden sm:block" />

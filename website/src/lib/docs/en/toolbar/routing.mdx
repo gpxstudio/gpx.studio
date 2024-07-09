@@ -3,7 +3,7 @@ title: Route planning and editing
 ---
 
 <script>
-    import { Pencil, Route, Bike, TriangleAlert, ArrowRightLeft, Home, Repeat, Trash2, CirclePlay } from 'lucide-svelte';
+    import { Pencil, Route, Bike, TriangleAlert, ArrowRightLeft, Home, Repeat, Trash2, CirclePlay, SquareArrowUpLeft } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
     import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
     import routingScreenshot from '$lib/assets/img/docs/tools/routing.png?enhanced';
@@ -17,6 +17,7 @@ The route planning and editing tool allows you to create and edit routes by plac
 ## Settings
 
 As shown below, the tool dialog contains a few settings to control the routing behavior.
+You can minimize the dialog to save space by clicking on <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
 
 <div class="flex flex-row justify-center">
     <Routing minimizable={false} class="text-foreground p-3 border rounded-md shadow-lg" />
