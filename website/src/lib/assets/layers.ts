@@ -644,7 +644,7 @@ export const defaultOverlayTree: LayerTreeType = {
     overlays: {
         world: {
             cyclOSM: {
-                cyclOSMlite: true,
+                cyclOSMlite: false,
             },
             /*strava: {
                 stravaHeatmapRun: true,

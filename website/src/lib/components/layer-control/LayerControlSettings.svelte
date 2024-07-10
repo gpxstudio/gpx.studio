@@ -140,14 +140,6 @@
 					</Accordion.Content>
 				</Accordion.Item>
 				<Accordion.Item value="item-2">
-					<Accordion.Trigger>{$_('layers.custom_layers.title')}</Accordion.Trigger>
-					<Accordion.Content>
-						<ScrollArea>
-							<CustomLayers />
-						</ScrollArea>
-					</Accordion.Content>
-				</Accordion.Item>
-				<Accordion.Item value="item-3">
 					<Accordion.Trigger>{$_('layers.opacity')}</Accordion.Trigger>
 					<Accordion.Content class="flex flex-col gap-3 overflow-visible">
 						<Label class="flex flex-row gap-2 items-center">
@@ -193,6 +185,14 @@
 								/>
 							</div>
 						</Label>
+					</Accordion.Content>
+				</Accordion.Item>
+				<Accordion.Item value="item-3">
+					<Accordion.Trigger>{$_('layers.custom_layers.title')}</Accordion.Trigger>
+					<Accordion.Content>
+						<ScrollArea>
+							<CustomLayers />
+						</ScrollArea>
 					</Accordion.Content>
 				</Accordion.Item>
 				<Accordion.Item value="item-4">
