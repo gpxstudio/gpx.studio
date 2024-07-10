@@ -33,13 +33,19 @@
 
 	function updateSlicedGPXStatistics() {
 		if (validSelection && canCrop) {
-			slicedGPXStatistics.set([
+			$slicedGPXStatistics = [
 				get(gpxStatistics).slice(sliderValues[0], sliderValues[1]),
 				sliderValues[0],
 				sliderValues[1]
-			]);
+			];
 		} else {
-			slicedGPXStatistics.set(undefined);
+			$slicedGPXStatistics = undefined;
+		}
+	}
+
+	function updateSliderValues() {
+		if ($slicedGPXStatistics !== undefined) {
+			sliderValues = [$slicedGPXStatistics[1], $slicedGPXStatistics[2]];
 		}
 	}
 
@@ -61,6 +67,13 @@
 		updateSlicedGPXStatistics();
 	}
 
+	$: if (
+		$slicedGPXStatistics !== undefined &&
+		($slicedGPXStatistics[1] !== sliderValues[0] || $slicedGPXStatistics[2] !== sliderValues[1])
+	) {
+		updateSliderValues();
+	}
+
 	const splitTypes = [
 		{ value: SplitType.FILES, label: $_('gpx.files') },
 		{ value: SplitType.TRACKS, label: $_('gpx.tracks') },
@@ -72,7 +85,7 @@
 	$: splitAs.set(splitType.value);
 
 	onDestroy(() => {
-		slicedGPXStatistics.set(undefined);
+		$slicedGPXStatistics = undefined;
 	});
 </script>
 
@@ -88,12 +101,12 @@
 		<Crop size="16" class="mr-1" />{$_('toolbar.scissors.crop')}
 	</Button>
 	<Separator />
-	<Label class="flex flex-row gap-3 items-center">
+	<Label class="flex flex-row flex-wrap gap-3 items-center">
 		<span class="shrink-0">
 			{$_('toolbar.scissors.split_as')}
 		</span>
 		<Select.Root bind:selected={splitType}>
-			<Select.Trigger class="h-8">
+			<Select.Trigger class="h-8 w-fit grow">
 				<Select.Value />
 			</Select.Trigger>
 			<Select.Content>

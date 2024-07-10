@@ -160,10 +160,10 @@
 		$selection.size === 1 && $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints']);
 </script>
 
-<div class="flex flex-col gap-3 w-96 {$$props.class ?? ''}">
+<div class="flex flex-col gap-3 w-full max-w-80 {$$props.class ?? ''}">
 	<fieldset class="flex flex-col gap-2">
 		<div class="flex flex-row gap-2 justify-center">
-			<div class="flex flex-col gap-2">
+			<div class="flex flex-col gap-2 grow">
 				<Label for="speed" class="flex flex-row">
 					<Zap size="16" class="mr-1" />
 					{#if $velocityUnits === 'speed'}
@@ -207,7 +207,7 @@
 					{/if}
 				</div>
 			</div>
-			<div class="flex flex-col gap-2">
+			<div class="flex flex-col gap-2 grow">
 				<Label for="duration" class="flex flex-row">
 					<Timer size="16" class="mr-1" />
 					{$_('toolbar.time.total_time')}
@@ -229,7 +229,7 @@
 				disabled={!canUpdate}
 				locale={get(locale) ?? 'en'}
 				placeholder={$_('toolbar.time.pick_date')}
-				class="w-[211px]"
+				class="w-fit grow"
 				onValueChange={async () => {
 					await tick();
 					updateEnd();
@@ -240,7 +240,7 @@
 				step={1}
 				disabled={!canUpdate}
 				bind:value={startTime}
-				class="w-[100px]"
+				class="w-fit"
 				on:input={updateEnd}
 			/>
 		</div>
@@ -254,7 +254,7 @@
 				disabled={!canUpdate}
 				locale={get(locale) ?? 'en'}
 				placeholder={$_('toolbar.time.pick_date')}
-				class="w-[211px]"
+				class="w-fit grow"
 				onValueChange={async () => {
 					await tick();
 					updateStart();
@@ -265,7 +265,7 @@
 				step={1}
 				disabled={!canUpdate}
 				bind:value={endTime}
-				class="w-[100px]"
+				class="w-fit"
 				on:change={updateStart}
 			/>
 		</div>

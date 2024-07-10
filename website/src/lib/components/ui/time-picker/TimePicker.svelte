@@ -64,7 +64,7 @@
 
 <div
 	bind:this={container}
-	class="flex flex-row items-center w-fit border rounded-md px-3 focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 {disabled
+	class="flex flex-row items-center w-full min-w-fit border rounded-md px-3 focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 {disabled
 		? 'opacity-50 cursor-not-allowed'
 		: ''}"
 >

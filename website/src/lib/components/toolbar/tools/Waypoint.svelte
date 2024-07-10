@@ -195,7 +195,7 @@
 			</div>
 		</div>
 	</fieldset>
-	<div class="flex flex-row gap-2">
+	<div class="flex flex-row flex-wrap gap-2">
 		<Button
 			variant="outline"
 			disabled={!canCreate && !$selectedWaypoint}
@@ -212,6 +212,7 @@
 		</Button>
 		<Button
 			variant="outline"
+			class="ml-auto"
 			on:click={() => {
 				selectedWaypoint.set(undefined);
 				resetWaypointData();
