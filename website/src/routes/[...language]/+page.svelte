@@ -71,7 +71,7 @@
 			class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-background via-transparent to-background"
 		/>
 	</div>
-	<div class="px-24 w-full flex flex-col items-center">
+	<div class="px-12 sm:px-24 w-full flex flex-col items-center">
 		<div class="flex flex-col md:flex-row gap-x-12 gap-y-6 items-center justify-between max-w-5xl">
 			<div class="markdown text-center">
 				<h1>
@@ -85,7 +85,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="px-24 w-full flex flex-col items-center">
+	<div class="px-12 sm:px-24 w-full flex flex-col items-center">
 		<div class="flex flex-col md:flex-row gap-x-12 gap-y-6 items-center justify-between max-w-5xl">
 			<div class="markdown text-center md:hidden">
 				<h1>
@@ -106,7 +106,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="px-24 w-full flex flex-col items-center">
+	<div class="px-12 sm:px-24 w-full flex flex-col items-center">
 		<div
 			class="markdown flex flex-col md:flex-row gap-x-12 gap-y-6 items-center justify-between max-w-5xl"
 		>
@@ -147,7 +147,7 @@
 		</div>
 	</div>
 	<div class="px-8 md:px-12">
-		<div class="markdown text-center px-16 md:px-12">
+		<div class="markdown text-center px-4 md:px-12">
 			<h1>
 				<LineChart size="24" class="mr-1 inline-block align-baseline" />
 				{$_('homepage.data_visualization')}
@@ -178,7 +178,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="px-24 w-full flex flex-col items-center">
+	<div class="px-12 sm:px-24 w-full flex flex-col items-center">
 		<div class="flex flex-col md:flex-row gap-x-12 gap-y-6 items-center justify-between max-w-5xl">
 			<div class="markdown text-center md:hidden">
 				<h1>
