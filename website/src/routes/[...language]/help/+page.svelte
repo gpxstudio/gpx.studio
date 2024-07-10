@@ -1,4 +1,37 @@
 <script>
+	import { Button } from '$lib/components/ui/button';
+	import { getURLForLanguage } from '$lib/utils';
+	import { locale } from 'svelte-i18n';
+	import DocsLoader from '$lib/components/docs/DocsLoader.svelte';
+	import { guides, guideIcons } from '$lib/components/docs/docs';
 </script>
 
-<div></div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+	{#each Object.keys(guides) as guide}
+		<Button
+			variant="outline"
+			href={getURLForLanguage($locale, `/help/${guide}`)}
+			class="h-full pt-6 pb-3 px-0"
+		>
+			<div class="flex flex-col w-full">
+				<div class="text-center text-5xl">
+					{guideIcons[guide]}
+				</div>
+				<div class="text-2xl text-center my-3 w-full whitespace-normal px-6">
+					<DocsLoader path={`${guide}.mdx`} titleOnly={true} />
+				</div>
+				<div class="flex flex-row justify-center flex-wrap gap-x-6 px-6">
+					{#each guides[guide] as subGuide}
+						<Button
+							variant="link"
+							href={getURLForLanguage($locale, `/help/${guide}/${subGuide}`)}
+							class="h-fit px-0 py-1 text-muted-foreground   text-base text-center whitespace-normal"
+						>
+							<DocsLoader path={`${guide}/${subGuide}.mdx`} titleOnly={true} />
+						</Button>
+					{/each}
+				</div>
+			</div>
+		</Button>
+	{/each}
+</div>

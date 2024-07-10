@@ -7,6 +7,15 @@ export const guides: Record<string, string[]> = {
     'gpx': [],
 };
 
+export const guideIcons: Record<string, string> = {
+    "getting-started": "🚀",
+    "menu": "📂 ⚙️",
+    "files-and-stats": "🗂 📈",
+    "toolbar": "🧰",
+    "map-controls": "🗺",
+    "gpx": "💾",
+};
+
 export function getPreviousGuide(currentGuide: string): string | undefined {
     let subguides = currentGuide.split('/');
 
