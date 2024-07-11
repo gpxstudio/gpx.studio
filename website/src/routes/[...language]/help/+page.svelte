@@ -27,6 +27,7 @@
 							href={getURLForLanguage($locale, `/help/${guide}/${subGuide}`)}
 							class="h-fit px-0 py-1 text-muted-foreground   text-base text-center whitespace-normal"
 						>
+							<svelte:component this={guideIcons[subGuide]} size="16" class="mr-1 shrink-0" />
 							<DocsLoader path={`${guide}/${subGuide}.mdx`} titleOnly={true} />
 						</Button>
 					{/each}
