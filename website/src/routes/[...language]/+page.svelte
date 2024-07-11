@@ -41,7 +41,7 @@
 <div class="space-y-24 my-24">
 	<div class="px-12 w-full flex flex-col items-center">
 		<div class="flex flex-col gap-6 items-center max-w-3xl">
-			<div class="text-6xl font-black text-center">{$_('metadata.app_title')}</div>
+			<div class="text-5xl xs:text-6xl font-black text-center">{$_('metadata.app_title')}</div>
 			<div class="text-xl text-muted-foreground text-center">
 				{$_('metadata.description')}
 			</div>
@@ -117,7 +117,7 @@
 				</h1>
 				<p class="text-muted-foreground">{$_('homepage.maps_description')}</p>
 			</div>
-			<div class="relative h-80 aspect-square rounded-2xl shadow-xl overflow-clip">
+			<div class="relative h-60 xs:h-80 aspect-square rounded-2xl shadow-xl overflow-clip">
 				<enhanced:img
 					src={mapboxOutdoorsMap}
 					alt="Mapbox Outdoors map screenshot."
