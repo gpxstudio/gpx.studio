@@ -12,14 +12,14 @@
 		locale.set($page.params.language.replace('/', ''));
 	}
 
-	const appRoute = '/[...language]/app';
+	const appRoutes = ['/[...language]/app', '/[...language]/embed'];
 </script>
 
 <Head />
 <ModeWatcher />
 
 {#if !$isLoading}
-	{#if $page.route.id === appRoute}
+	{#if $page.route.id !== null && appRoutes.includes($page.route.id)}
 		<slot />
 	{:else}
 		<Nav />

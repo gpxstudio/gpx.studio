@@ -39,15 +39,16 @@
 	import type { Writable } from 'svelte/store';
 	import { DateFormatter } from '@internationalized/date';
 	import type { GPXStatistics } from 'gpx';
+	import { settings } from '$lib/db';
 
 	export let gpxStatistics: Writable<GPXStatistics>;
 	export let slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined>;
-	export let distanceUnits: 'metric' | 'imperial';
-	export let velocityUnits: 'speed' | 'pace';
-	export let temperatureUnits: 'celsius' | 'fahrenheit';
 	export let panelSize: number;
 	export let additionalDatasets: string[];
 	export let elevationFill: 'slope' | 'surface' | undefined;
+	export let showControls: boolean = true;
+
+	const { distanceUnits, velocityUnits, temperatureUnits } = settings;
 
 	let df: DateFormatter;
 
@@ -61,7 +62,7 @@
 	let canvas: HTMLCanvasElement;
 	let showAdditionalScales = true;
 	let updateShowAdditionalScales = () => {
-		showAdditionalScales = canvas.width >= 1200;
+		showAdditionalScales = canvas.width >= 600;
 	};
 	let overlay: HTMLCanvasElement;
 	let chart: Chart;
@@ -135,7 +136,7 @@
 							}
 							return `${$_('quantities.elevation')}: ${getElevationWithUnits(point.y, false)}`;
 						} else if (context.datasetIndex === 1) {
-							return `${velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')}: ${getVelocityWithUnits(point.y, false)}`;
+							return `${$velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')}: ${getVelocityWithUnits(point.y, false)}`;
 						} else if (context.datasetIndex === 2) {
 							return `${$_('quantities.heartrate')}: ${getHeartRateWithUnits(point.y)}`;
 						} else if (context.datasetIndex === 3) {
@@ -194,7 +195,7 @@
 	} = {
 		speed: {
 			id: 'speed',
-			getLabel: () => (velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')),
+			getLabel: () => ($velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')),
 			getUnits: () => getVelocityUnits()
 		},
 		hr: {
@@ -234,13 +235,13 @@
 			grid: {
 				display: false
 			},
-			reverse: () => id === 'speed' && velocityUnits === 'pace',
+			reverse: () => id === 'speed' && $velocityUnits === 'pace',
 			display: false
 		};
 	}
 	options.scales.yspeed['ticks'] = {
 		callback: function (value: number) {
-			if (velocityUnits === 'speed') {
+			if ($velocityUnits === 'speed') {
 				return value;
 			} else {
 				return secondsToHHMMSS(value);
@@ -342,7 +343,7 @@
 		canvas.addEventListener('pointerup', onMouseUp);
 	});
 
-	$: if (chart && distanceUnits && velocityUnits && temperatureUnits) {
+	$: if (chart && $distanceUnits && $velocityUnits && $temperatureUnits) {
 		let data = $gpxStatistics;
 
 		// update data
@@ -548,66 +549,68 @@
 		<canvas bind:this={overlay} class=" w-full h-full absolute pointer-events-none"></canvas>
 		<canvas bind:this={canvas} class="w-full h-full"></canvas>
 	</div>
-	<div class="h-full flex flex-col justify-center" style="width: {panelSize > 158 ? 22 : 42}px">
-		<ToggleGroup.Root
-			class="{panelSize > 158
-				? 'flex-col'
-				: 'flex-row'} flex-wrap gap-0 min-h-0 content-center border rounded-t-md"
-			type="single"
-			bind:value={elevationFill}
-		>
-			<ToggleGroup.Item class="p-0 w-5 h-5" value="slope">
-				<Tooltip side="left">
-					<TriangleRight slot="data" size="15" />
-					<span slot="tooltip">{$_('chart.show_slope')}</span>
-				</Tooltip>
-			</ToggleGroup.Item>
-			<ToggleGroup.Item class="p-0 w-5 h-5" value="surface">
-				<Tooltip side="left">
-					<BrickWall slot="data" size="15" />
-					<span slot="tooltip">{$_('chart.show_surface')}</span>
-				</Tooltip>
-			</ToggleGroup.Item>
-		</ToggleGroup.Root>
-		<ToggleGroup.Root
-			class="{panelSize > 158
-				? 'flex-col'
-				: 'flex-row'} flex-wrap gap-0 min-h-0 content-center border rounded-b-md -mt-[1px]"
-			type="multiple"
-			bind:value={additionalDatasets}
-		>
-			<ToggleGroup.Item class="p-0 w-5 h-5" value="speed">
-				<Tooltip side="left">
-					<Zap slot="data" size="15" />
-					<span slot="tooltip"
-						>{velocityUnits === 'speed' ? $_('chart.show_speed') : $_('chart.show_pace')}</span
-					>
-				</Tooltip>
-			</ToggleGroup.Item>
-			<ToggleGroup.Item class="p-0 w-5 h-5" value="hr">
-				<Tooltip side="left">
-					<HeartPulse slot="data" size="15" />
-					<span slot="tooltip">{$_('chart.show_heartrate')}</span>
-				</Tooltip>
-			</ToggleGroup.Item>
-			<ToggleGroup.Item class="p-0 w-5 h-5" value="cad">
-				<Tooltip side="left">
-					<Orbit slot="data" size="15" />
-					<span slot="tooltip">{$_('chart.show_cadence')}</span>
-				</Tooltip>
-			</ToggleGroup.Item>
-			<ToggleGroup.Item class="p-0 w-5 h-5" value="atemp">
-				<Tooltip side="left">
-					<Thermometer slot="data" size="15" />
-					<span slot="tooltip">{$_('chart.show_temperature')}</span>
-				</Tooltip>
-			</ToggleGroup.Item>
-			<ToggleGroup.Item class="p-0 w-5 h-5" value="power">
-				<Tooltip side="left">
-					<SquareActivity slot="data" size="15" />
-					<span slot="tooltip">{$_('chart.show_power')}</span>
-				</Tooltip>
-			</ToggleGroup.Item>
-		</ToggleGroup.Root>
-	</div>
+	{#if showControls}
+		<div class="h-full flex flex-col justify-center" style="width: {panelSize > 158 ? 22 : 42}px">
+			<ToggleGroup.Root
+				class="{panelSize > 158
+					? 'flex-col'
+					: 'flex-row'} flex-wrap gap-0 min-h-0 content-center border rounded-t-md"
+				type="single"
+				bind:value={elevationFill}
+			>
+				<ToggleGroup.Item class="p-0 w-5 h-5" value="slope">
+					<Tooltip side="left">
+						<TriangleRight slot="data" size="15" />
+						<span slot="tooltip">{$_('chart.show_slope')}</span>
+					</Tooltip>
+				</ToggleGroup.Item>
+				<ToggleGroup.Item class="p-0 w-5 h-5" value="surface">
+					<Tooltip side="left">
+						<BrickWall slot="data" size="15" />
+						<span slot="tooltip">{$_('chart.show_surface')}</span>
+					</Tooltip>
+				</ToggleGroup.Item>
+			</ToggleGroup.Root>
+			<ToggleGroup.Root
+				class="{panelSize > 158
+					? 'flex-col'
+					: 'flex-row'} flex-wrap gap-0 min-h-0 content-center border rounded-b-md -mt-[1px]"
+				type="multiple"
+				bind:value={additionalDatasets}
+			>
+				<ToggleGroup.Item class="p-0 w-5 h-5" value="speed">
+					<Tooltip side="left">
+						<Zap slot="data" size="15" />
+						<span slot="tooltip"
+							>{$velocityUnits === 'speed' ? $_('chart.show_speed') : $_('chart.show_pace')}</span
+						>
+					</Tooltip>
+				</ToggleGroup.Item>
+				<ToggleGroup.Item class="p-0 w-5 h-5" value="hr">
+					<Tooltip side="left">
+						<HeartPulse slot="data" size="15" />
+						<span slot="tooltip">{$_('chart.show_heartrate')}</span>
+					</Tooltip>
+				</ToggleGroup.Item>
+				<ToggleGroup.Item class="p-0 w-5 h-5" value="cad">
+					<Tooltip side="left">
+						<Orbit slot="data" size="15" />
+						<span slot="tooltip">{$_('chart.show_cadence')}</span>
+					</Tooltip>
+				</ToggleGroup.Item>
+				<ToggleGroup.Item class="p-0 w-5 h-5" value="atemp">
+					<Tooltip side="left">
+						<Thermometer slot="data" size="15" />
+						<span slot="tooltip">{$_('chart.show_temperature')}</span>
+					</Tooltip>
+				</ToggleGroup.Item>
+				<ToggleGroup.Item class="p-0 w-5 h-5" value="power">
+					<Tooltip side="left">
+						<SquareActivity slot="data" size="15" />
+						<span slot="tooltip">{$_('chart.show_power')}</span>
+					</Tooltip>
+				</ToggleGroup.Item>
+			</ToggleGroup.Root>
+		</div>
+	{/if}
 </div>

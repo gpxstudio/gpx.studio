@@ -2,7 +2,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as ContextMenu from '$lib/components/ui/context-menu';
 	import Shortcut from '$lib/components/Shortcut.svelte';
-	import { dbUtils, getFile, settings } from '$lib/db';
+	import { dbUtils, getFile } from '$lib/db';
 	import {
 		Copy,
 		Info,
@@ -38,7 +38,7 @@
 	} from './Selection';
 	import { getContext } from 'svelte';
 	import { get } from 'svelte/store';
-	import { allHidden, editMetadata, editStyle, gpxLayers, map } from '$lib/stores';
+	import { allHidden, editMetadata, editStyle, embedding, gpxLayers, map } from '$lib/stores';
 	import {
 		GPXTreeElement,
 		Track,
@@ -56,8 +56,6 @@
 	export let label: string | undefined;
 
 	let orientation = getContext<'vertical' | 'horizontal'>('orientation');
-
-	const { verticalFileView } = settings;
 
 	$: singleSelection = $selection.size === 1;
 
@@ -131,10 +129,12 @@
 			{/if}
 			{#if item.level === ListLevel.FILE || item.level === ListLevel.TRACK}
 				<div
-					class="absolute {$verticalFileView
+					class="absolute {orientation === 'vertical'
 						? 'top-0 bottom-0 right-1 w-1'
 						: 'top-0 h-1 left-0 right-0'}"
-					style="background:linear-gradient(to {$verticalFileView ? 'bottom' : 'right'},{nodeColors
+					style="background:linear-gradient(to {orientation === 'vertical'
+						? 'bottom'
+						: 'right'},{nodeColors
 						.map(
 							(c, i) =>
 								`${c} ${Math.floor((100 * i) / nodeColors.length)}% ${Math.floor((100 * (i + 1)) / nodeColors.length)}%`
@@ -147,6 +147,11 @@
 					? 'text-muted-foreground'
 					: ''}"
 				on:contextmenu={(e) => {
+					if ($embedding) {
+						e.preventDefault();
+						e.stopPropagation();
+						return;
+					}
 					if (e.ctrlKey) {
 						// Add to selection instead of opening context menu
 						e.preventDefault();
@@ -181,13 +186,13 @@
 				{:else if item.level === ListLevel.WAYPOINT}
 					<MapPin size="16" class="mr-1 shrink-0" />
 				{/if}
-				<span class="grow select-none truncate {$verticalFileView ? 'last:mr-2' : ''}">
+				<span class="grow select-none truncate {orientation === 'vertical' ? 'last:mr-2' : ''}">
 					{label}
 				</span>
 				{#if hidden}
 					<EyeOff
 						size="12"
-						class="shrink-0 mt-1 ml-1 {$verticalFileView ? 'mr-2' : ''} {item.level ===
+						class="shrink-0 mt-1 ml-1 {orientation === 'vertical' ? 'mr-2' : ''} {item.level ===
 							ListLevel.SEGMENT || item.level === ListLevel.WAYPOINT
 							? 'mr-3'
 							: ''}"
@@ -227,7 +232,7 @@
 			<Shortcut key="H" ctrl={true} />
 		</ContextMenu.Item>
 		<ContextMenu.Separator />
-		{#if $verticalFileView}
+		{#if orientation === 'vertical'}
 			{#if item instanceof ListFileItem}
 				<ContextMenu.Item
 					disabled={!singleSelection}
@@ -269,13 +274,13 @@
 			</ContextMenu.Item>
 			<ContextMenu.Separator />
 		{/if}
-		{#if $verticalFileView}
+		{#if orientation === 'vertical'}
 			<ContextMenu.Item on:click={dbUtils.duplicateSelection}>
 				<Copy size="16" class="mr-1" />
 				{$_('menu.duplicate')}
 				<Shortcut key="D" ctrl={true} /></ContextMenu.Item
 			>
-			{#if $verticalFileView}
+			{#if orientation === 'vertical'}
 				<ContextMenu.Item on:click={copySelection}>
 					<ClipboardCopy size="16" class="mr-1" />
 					{$_('menu.copy')}

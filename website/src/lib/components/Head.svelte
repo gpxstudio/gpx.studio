@@ -4,7 +4,7 @@
 	import { languages } from '$lib/languages';
 	import { _, isLoading } from 'svelte-i18n';
 
-	$: location = $page.route.id?.split('/').slice(1).at(1) ?? 'home';
+	$: location = $page.route.id?.split('/')[2] ?? 'home';
 </script>
 
 <svelte:head>

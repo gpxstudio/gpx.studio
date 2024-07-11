@@ -8,12 +8,12 @@
 </script>
 
 <div class="p-12 flex flex-row gap-24">
-	<div class="hidden md:flex flex-col gap-1 w-40 sticky top-[105px] self-start">
+	<div class="hidden md:flex flex-col gap-2 w-40 sticky top-[105px] self-start shrink-0">
 		{#each Object.keys(guides) as guide}
 			<Button
 				variant="link"
 				href={getURLForLanguage($locale, `/help/${guide}`)}
-				class="h-6 p-0 w-fit text-muted-foreground hover:text-foreground hover:no-underline font-normal hover:font-semibold items-start {$page
+				class="h-fit p-0 w-fit text-muted-foreground hover:text-foreground hover:no-underline font-normal hover:font-semibold items-start whitespace-normal {$page
 					.params.guide === guide
 					? 'font-semibold text-foreground'
 					: ''}"
@@ -24,7 +24,7 @@
 				<Button
 					variant="link"
 					href={getURLForLanguage($locale, `/help/${guide}/${subGuide}`)}
-					class="h-6 p-0 w-fit text-muted-foreground hover:text-foreground hover:no-underline font-normal hover:font-semibold items-start ml-3 {$page
+					class="h-fit p-0 w-fit text-muted-foreground hover:text-foreground hover:no-underline font-normal hover:font-semibold items-start whitespace-normal ml-3 {$page
 						.params.guide ===
 					guide + '/' + subGuide
 						? 'font-semibold text-foreground'

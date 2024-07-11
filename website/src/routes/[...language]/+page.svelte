@@ -5,15 +5,13 @@
 	import ElevationProfile from '$lib/components/ElevationProfile.svelte';
 	import GPXStatistics from '$lib/components/GPXStatistics.svelte';
 	import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
-	import { settings } from '$lib/db';
 	import { BookOpenText, Heart, LineChart, Map, PencilRuler, Route, Scale } from 'lucide-svelte';
-	import { _, locale } from 'svelte-i18n';
+	import { _ } from 'svelte-i18n';
 	import { exampleGPXFile } from '$lib/assets/example';
 	import { writable } from 'svelte/store';
 	import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
 	import { currentTool, Tool } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
-	import { getURLForLanguage } from '$lib/utils';
 	import routingScreenshot from '$lib/assets/img/home/routing.png?enhanced';
 	import mapboxOutdoorsMap from '$lib/assets/img/home/mapbox-outdoors.png?enhanced';
 	import mapboxSatelliteMap from '$lib/assets/img/home/mapbox-satellite.png?enhanced';
@@ -26,8 +24,6 @@
 	let slicedGPXStatistics = writable(undefined);
 	let additionalDatasets = writable(['speed', 'atemp']);
 	let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
-
-	const { distanceUnits, velocityUnits, temperatureUnits } = settings;
 
 	onMount(() => {
 		currentTool.set(Tool.SCISSORS);
@@ -46,15 +42,11 @@
 				{$_('metadata.description')}
 			</div>
 			<div class="w-full flex flex-row justify-center gap-3">
-				<Button href={getURLForLanguage($locale, '/app')} class="w-1/3 min-w-fit">
+				<Button href="./app" class="w-1/3 min-w-fit">
 					<Map size="18" class="mr-1.5" />
 					{$_('homepage.app')}
 				</Button>
-				<Button
-					variant="secondary"
-					href={getURLForLanguage($locale, '/help')}
-					class="w-1/3 min-w-fit"
-				>
+				<Button variant="secondary" href="./help" class="w-1/3 min-w-fit">
 					<BookOpenText size="18" class="mr-1.5" />
 					<span>{$_('menu.help')}</span>
 				</Button>
@@ -161,9 +153,6 @@
 				additionalDatasets={$additionalDatasets}
 				elevationFill={$elevationFill}
 				panelSize={200}
-				distanceUnits={$distanceUnits}
-				velocityUnits={$velocityUnits}
-				temperatureUnits={$temperatureUnits}
 			/>
 		</div>
 		<div class="flex flex-col items-center">
@@ -173,7 +162,6 @@
 					{slicedGPXStatistics}
 					panelSize={192}
 					orientation={'horizontal'}
-					velocityUnits={$velocityUnits}
 				/>
 			</div>
 		</div>

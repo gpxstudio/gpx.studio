@@ -8,6 +8,7 @@ export const guides: Record<string, string[]> = {
     toolbar: ['routing', 'poi', 'scissors', 'time', 'merge', 'extract', 'minify', 'clean'],
     'map-controls': [],
     'gpx': [],
+    'integration': [],
 };
 
 export const guideIcons: Record<string, string | ComponentType<Icon>> = {
@@ -29,6 +30,7 @@ export const guideIcons: Record<string, string | ComponentType<Icon>> = {
     "clean": SquareDashedMousePointer,
     "map-controls": "🗺",
     "gpx": "💾",
+    "integration": "{ 👩‍💻 }",
 };
 
 export function getPreviousGuide(currentGuide: string): string | undefined {
@@ -40,7 +42,7 @@ export function getPreviousGuide(currentGuide: string): string | undefined {
         if (index === 0) {
             return undefined;
         }
-        let previousGuide = keys.at(index - 1);
+        let previousGuide = keys[index - 1];
         if (previousGuide === undefined) {
             return undefined;
         } else if (guides[previousGuide].length === 0) {
@@ -65,7 +67,7 @@ export function getNextGuide(currentGuide: string): string | undefined {
         if (guides[currentGuide].length === 0) {
             let keys = Object.keys(guides);
             let index = keys.indexOf(currentGuide);
-            return keys.at(index + 1);
+            return keys[index + 1];
         } else {
             return `${currentGuide}/${guides[currentGuide][0]}`;
         }
@@ -76,7 +78,7 @@ export function getNextGuide(currentGuide: string): string | undefined {
         } else {
             let keys = Object.keys(guides);
             let index = keys.indexOf(subguides[0]);
-            return keys.at(index + 1);
+            return keys[index + 1];
         }
     }
 }

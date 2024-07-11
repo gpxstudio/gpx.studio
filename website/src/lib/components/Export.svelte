@@ -9,7 +9,7 @@
 		exportState
 	} from '$lib/stores';
 	import { fileObservers } from '$lib/db';
-	import { Cloud, Download } from 'lucide-svelte';
+	import { Download } from 'lucide-svelte';
 	import { _ } from 'svelte-i18n';
 	import { selection } from './file-list/Selection';
 

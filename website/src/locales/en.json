@@ -2,6 +2,7 @@
     "metadata": {
         "home_title": "home",
         "app_title": "the online GPX file editor",
+        "embed_title": "the online GPX file editor",
         "help_title": "help",
         "description": "View, edit and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations."
     },
@@ -70,7 +71,8 @@
             "width": "Width"
         },
         "hide": "Hide",
-        "unhide": "Unhide"
+        "unhide": "Unhide",
+        "open_in": "Open in"
     },
     "toolbar": {
         "routing": {
@@ -368,5 +370,20 @@
         "data_visualization_description": "An interactive elevation profile with detailed statistics to analyze recorded activities and future objectives.",
         "identity": "Free, ad-free and open-source",
         "identity_description": "The website is free to use, without ads, and the source code is publicly available on GitHub. This is only possible thanks to the incredible support of the community."
+    },
+    "embedding": {
+        "file_urls": "File URLs (separated by commas)",
+        "basemap": "Basemap",
+        "height": "Height",
+        "fill_by": "Fill by",
+        "none": "None",
+        "show_controls": "Show controls",
+        "manual_camera": "Manual camera",
+        "manual_camera_description": "You can move the map below to adjust the camera position.",
+        "zoom": "Zoom",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "pitch": "Pitch",
+        "bearing": "Bearing"
     }
 }

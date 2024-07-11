@@ -280,47 +280,49 @@ function commitFileStateChange(newFileState: ReadonlyMap<string, GPXFile>, patch
     });
 }
 
-export const fileObservers: Writable<Map<string, Readable<GPXFileWithStatistics | undefined> & { destroy: () => void }>> = writable(new Map());
+export const fileObservers: Writable<Map<string, Readable<GPXFileWithStatistics | undefined> & { destroy?: () => void }>> = writable(new Map());
 const fileState: Map<string, GPXFile> = new Map(); // Used to generate patches
 
 // Observe the file ids in the database, and maintain a map of file observers for the corresponding files
-liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
-    // Find new files to observe
-    let newFiles = dbFileIds.filter(id => !get(fileObservers).has(id)).sort((a, b) => parseInt(a.split('-')[1]) - parseInt(b.split('-')[1]));
-    // Find deleted files to stop observing
-    let deletedFiles = Array.from(get(fileObservers).keys()).filter(id => !dbFileIds.find(fileId => fileId === id));
+export function observeFilesFromDatabase() {
+    liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
+        // Find new files to observe
+        let newFiles = dbFileIds.filter(id => !get(fileObservers).has(id)).sort((a, b) => parseInt(a.split('-')[1]) - parseInt(b.split('-')[1]));
+        // Find deleted files to stop observing
+        let deletedFiles = Array.from(get(fileObservers).keys()).filter(id => !dbFileIds.find(fileId => fileId === id));
 
-    // Update the store
-    if (newFiles.length > 0 || deletedFiles.length > 0) {
-        fileObservers.update($files => {
-            if (newFiles.length > 0) { // Reset the target map bounds when new files are added
-                initTargetMapBounds($files.size === 0);
-            }
-            newFiles.forEach(id => {
-                $files.set(id, dexieGPXFileStore(id));
-            });
-            deletedFiles.forEach(id => {
-                $files.get(id)?.destroy();
-                $files.delete(id);
-            });
-            return $files;
-        });
-        settings.fileOrder.update((order) => {
-            newFiles.forEach((fileId) => {
-                if (!order.includes(fileId)) {
-                    order.push(fileId);
+        // Update the store
+        if (newFiles.length > 0 || deletedFiles.length > 0) {
+            fileObservers.update($files => {
+                if (newFiles.length > 0) { // Reset the target map bounds when new files are added
+                    initTargetMapBounds($files.size === 0);
                 }
+                newFiles.forEach(id => {
+                    $files.set(id, dexieGPXFileStore(id));
+                });
+                deletedFiles.forEach(id => {
+                    $files.get(id)?.destroy?.();
+                    $files.delete(id);
+                });
+                return $files;
             });
-            deletedFiles.forEach((fileId) => {
-                let index = order.indexOf(fileId);
-                if (index !== -1) {
-                    order.splice(index, 1);
-                }
+            settings.fileOrder.update((order) => {
+                newFiles.forEach((fileId) => {
+                    if (!order.includes(fileId)) {
+                        order.push(fileId);
+                    }
+                });
+                deletedFiles.forEach((fileId) => {
+                    let index = order.indexOf(fileId);
+                    if (index !== -1) {
+                        order.splice(index, 1);
+                    }
+                });
+                return order;
             });
-            return order;
-        });
-    }
-});
+        }
+    });
+}
 
 export function getFile(fileId: string): GPXFile | undefined {
     let fileStore = get(fileObservers).get(fileId);

@@ -80,6 +80,11 @@
 		@apply pl-4;
 	}
 
+	:global(.markdown ol) {
+		@apply list-decimal;
+		@apply pl-4;
+	}
+
 	:global(.markdown li) {
 		@apply mt-1;
 		@apply first:mt-0;

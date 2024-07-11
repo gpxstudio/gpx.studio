@@ -14,6 +14,7 @@ import { SplitType } from '$lib/components/toolbar/tools/Scissors.svelte';
 const { fileOrder } = settings;
 
 export const map = writable<mapboxgl.Map | null>(null);
+export const embedding = writable(false);
 export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }>({});
 
 export const gpxStatistics: Writable<GPXStatistics> = writable(new GPXStatistics());
@@ -178,7 +179,7 @@ export function triggerFileInput() {
     input.click();
 }
 
-export async function loadFiles(list: FileList) {
+export async function loadFiles(list: FileList | File[]) {
     let files = [];
     for (let i = 0; i < list.length; i++) {
         let file = await loadFile(list[i]);

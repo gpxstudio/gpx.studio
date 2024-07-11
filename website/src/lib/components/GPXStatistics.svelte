@@ -8,12 +8,14 @@
 	import { _ } from 'svelte-i18n';
 	import type { GPXStatistics } from 'gpx';
 	import type { Writable } from 'svelte/store';
+	import { settings } from '$lib/db';
 
 	export let gpxStatistics: Writable<GPXStatistics>;
 	export let slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined>;
-	export let velocityUnits: 'speed' | 'pace';
 	export let orientation: 'horizontal' | 'vertical';
 	export let panelSize: number;
+
+	const { velocityUnits } = settings;
 
 	let statistics: GPXStatistics;
 
@@ -26,8 +28,8 @@
 
 <Card.Root
 	class="h-full {orientation === 'vertical'
-		? 'min-w-52'
-		: 'w-full pr-4'} border-none shadow-none pl-4"
+		? 'min-w-44 sm:min-w-52 text-sm sm:text-base'
+		: 'w-full'} border-none shadow-none"
 >
 	<Card.Content
 		class="h-full flex {orientation === 'vertical'
@@ -59,7 +61,7 @@
 					<WithUnits value={statistics.global.speed.total} type="speed" />
 				</span>
 				<span slot="tooltip"
-					>{velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')} ({$_(
+					>{$velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')} ({$_(
 						'quantities.moving'
 					)} / {$_('quantities.total')})</span
 				>

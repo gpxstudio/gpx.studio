@@ -15,6 +15,8 @@
 
 	mapboxgl.accessToken = mapboxAccessToken;
 
+	export let geocoder = true;
+
 	let fitBoundsOptions: mapboxgl.FitBoundsOptions = {
 		maxZoom: 15,
 		linear: true,
@@ -51,15 +53,17 @@
 
 		newMap.addControl(new mapboxgl.NavigationControl());
 
-		newMap.addControl(
-			new MapboxGeocoder({
-				accessToken: mapboxgl.accessToken,
-				mapboxgl: mapboxgl,
-				collapsed: true,
-				flyTo: fitBoundsOptions,
-				language: get(locale)
-			})
-		);
+		if (geocoder) {
+			newMap.addControl(
+				new MapboxGeocoder({
+					accessToken: mapboxgl.accessToken,
+					mapboxgl: mapboxgl,
+					collapsed: true,
+					flyTo: fitBoundsOptions,
+					language: get(locale)
+				})
+			);
+		}
 
 		newMap.addControl(
 			new mapboxgl.GeolocateControl({
