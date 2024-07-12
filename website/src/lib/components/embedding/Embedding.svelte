@@ -5,7 +5,7 @@
 	import GPXStatistics from '$lib/components/GPXStatistics.svelte';
 	import MapComponent from '$lib/components/Map.svelte';
 	import LayerControl from '$lib/components/layer-control/LayerControl.svelte';
-	import OpenIn from '$lib/components/OpenIn.svelte';
+	import OpenIn from '$lib/components/embedding/OpenIn.svelte';
 
 	import { gpxStatistics, slicedGPXStatistics, embedding, loadFile, map } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
@@ -15,8 +15,6 @@
 	import { selection } from '$lib/components/file-list/Selection';
 	import { ListFileItem } from '$lib/components/file-list/FileList';
 	import { allowedEmbeddingBasemaps, type EmbeddingOptions } from './Embedding';
-	import { languages } from '$lib/languages';
-	import { getURLForLanguage } from '$lib/utils';
 
 	$embedding = true;
 
@@ -96,6 +94,8 @@
 				});
 				return $selection;
 			});
+
+			console.log($fileObservers, $selection);
 
 			map.subscribe(($map) => {
 				if ($map) {
