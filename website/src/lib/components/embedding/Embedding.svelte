@@ -28,6 +28,7 @@
 		directionMarkers
 	} = settings;
 
+	export let useHash = true;
 	export let options: EmbeddingOptions;
 	export let hash: string;
 
@@ -198,7 +199,7 @@
 			accessToken={options.token}
 			geocoder={false}
 			geolocate={false}
-			hash={false}
+			hash={useHash}
 		/>
 		<OpenIn bind:files={options.files} />
 		<LayerControl />

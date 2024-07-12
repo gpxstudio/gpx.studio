@@ -281,7 +281,7 @@
 				{$_('embedding.preview')}
 			</Label>
 			<div class="relative h-[600px]">
-				<Embedding bind:options={iframeOptions} bind:hash />
+				<Embedding bind:options={iframeOptions} bind:hash useHash={false} />
 			</div>
 			<Label>
 				{$_('embedding.code')}
