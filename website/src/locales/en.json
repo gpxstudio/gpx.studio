@@ -372,6 +372,8 @@
         "identity_description": "The website is free to use, without ads, and the source code is publicly available on GitHub. This is only possible thanks to the incredible support of the community."
     },
     "embedding": {
+        "title": "Create your own map",
+        "mapbox_token": "Mapbox access token",
         "file_urls": "File URLs (separated by commas)",
         "basemap": "Basemap",
         "height": "Height",
@@ -384,6 +386,8 @@
         "latitude": "Latitude",
         "longitude": "Longitude",
         "pitch": "Pitch",
-        "bearing": "Bearing"
+        "bearing": "Bearing",
+        "preview": "Preview",
+        "code": "Integration code"
     }
 }

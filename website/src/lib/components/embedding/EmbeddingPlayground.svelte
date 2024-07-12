@@ -5,42 +5,32 @@
 	import * as Select from '$lib/components/ui/select';
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import * as RadioGroup from '$lib/components/ui/radio-group';
-	import { basemaps } from '$lib/assets/layers';
 	import { Zap, HeartPulse, Orbit, Thermometer, SquareActivity } from 'lucide-svelte';
 	import { _ } from 'svelte-i18n';
+	import {
+		allowedEmbeddingBasemaps,
+		getCleanedEmbeddingOptions,
+		getDefaultEmbeddingOptions
+	} from './Embedding';
+	import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
+	import Embedding from './Embedding.svelte';
+	import { map } from '$lib/stores';
+	import { tick } from 'svelte';
+	import { base } from '$app/paths';
 
-	let options = {
-		files: ['https://raw.githubusercontent.com/gpxstudio/gpx.studio/main/gpx/test-data/simple.gpx'],
-		basemap: 'mapboxOutdoors',
-		elevation: {
-			show: true,
-			height: 170,
-			data: [],
-			fill: undefined,
-			controls: true
-		},
-		distanceUnits: 'metric',
-		velocityUnits: 'speed',
-		temperatureUnits: 'celsius'
-	};
+	let options = getDefaultEmbeddingOptions();
+	options.token = 'YOUR_MAPBOX_TOKEN';
+	options.files = [
+		'https://raw.githubusercontent.com/gpxstudio/gpx.studio/main/gpx/test-data/simple.gpx'
+	];
 
-	let files =
-		'https://raw.githubusercontent.com/gpxstudio/gpx.studio/main/gpx/test-data/simple.gpx';
-
+	let files = options.files[0];
 	$: if (files) {
-		options.files = files.split(',');
-	}
-
-	let additionalData = {
-		speed: false,
-		hr: false,
-		cad: false,
-		temp: false,
-		power: false
-	};
-
-	$: if (additionalData) {
-		options.elevation.data = Object.keys(additionalData).filter((key) => additionalData[key]);
+		let urls = files.split(',');
+		urls = urls.filter((url) => url.length > 0);
+		if (JSON.stringify(urls) !== JSON.stringify(options.files)) {
+			options.files = urls;
+		}
 	}
 
 	let manualCamera = false;
@@ -53,36 +43,47 @@
 
 	$: hash = manualCamera ? `#${zoom}/${lat}/${lon}/${bearing}/${pitch}` : '';
 
-	$: console.log(options);
-</script>
+	$: iframeOptions =
+		options.token.length === 0 || options.token === 'YOUR_MAPBOX_TOKEN'
+			? Object.assign({}, options, { token: PUBLIC_MAPBOX_TOKEN })
+			: options;
 
-<iframe
-	src={`../../embed?options=${encodeURIComponent(JSON.stringify(options))}${hash}`}
-	style="width: 100%; height: 600px;"
-></iframe>
+	async function resizeMap() {
+		if ($map) {
+			await tick();
+			$map.resize();
+		}
+	}
+
+	$: if (options.elevation.height || options.elevation.show) {
+		resizeMap();
+	}
+</script>
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>Card Title</Card.Title>
-		<Card.Description>Card Description</Card.Description>
+		<Card.Title>{$_('embedding.title')}</Card.Title>
 	</Card.Header>
 	<Card.Content>
 		<fieldset class="flex flex-col gap-3">
+			<Label for="token">{$_('embedding.mapbox_token')}</Label>
+			<Input id="token" type="text" class="h-8" bind:value={options.token} />
 			<Label for="file_urls">{$_('embedding.file_urls')}</Label>
 			<Input id="file_urls" type="text" class="h-8" bind:value={files} />
 			<Label for="basemap">{$_('embedding.basemap')}</Label>
 			<Select.Root
+				selected={{ value: options.basemap, label: $_(`layers.label.${options.basemap}`) }}
 				onSelectedChange={(selected) => {
 					if (selected?.value) {
 						options.basemap = selected?.value;
 					}
 				}}
 			>
-				<Select.Trigger id="basemap" class="w-[180px] h-8">
+				<Select.Trigger id="basemap" class="w-full h-8">
 					<Select.Value />
 				</Select.Trigger>
 				<Select.Content class="max-h-60 overflow-y-scroll">
-					{#each Object.keys(basemaps) as basemap}
+					{#each allowedEmbeddingBasemaps as basemap}
 						<Select.Item value={basemap}>{$_(`layers.label.${basemap}`)}</Select.Item>
 					{/each}
 				</Select.Content>
@@ -102,13 +103,13 @@
 							{$_('embedding.fill_by')}
 						</span>
 						<Select.Root
+							selected={{ value: 'none', label: $_('embedding.none') }}
 							onSelectedChange={(selected) => {
-								if (selected?.value) {
-									if (selected?.value === 'none') {
-										options.elevation.fill = undefined;
-									} else {
-										options.elevation.fill = selected?.value;
-									}
+								let value = selected?.value;
+								if (value === 'none') {
+									options.elevation.fill = undefined;
+								} else if (value === 'slope' || value === 'surface') {
+									options.elevation.fill = value;
 								}
 							}}
 						>
@@ -127,35 +128,35 @@
 						<Label for="controls">{$_('embedding.show_controls')}</Label>
 					</div>
 					<div class="flex flex-row items-center gap-2">
-						<Checkbox id="show-speed" bind:checked={additionalData.speed} />
+						<Checkbox id="show-speed" bind:checked={options.elevation.speed} />
 						<Label for="show-speed" class="flex flex-row items-center gap-1">
 							<Zap size="16" />
 							{$_('chart.show_speed')}
 						</Label>
 					</div>
 					<div class="flex flex-row items-center gap-2">
-						<Checkbox id="show-hr" bind:checked={additionalData.hr} />
+						<Checkbox id="show-hr" bind:checked={options.elevation.hr} />
 						<Label for="show-hr" class="flex flex-row items-center gap-1">
 							<HeartPulse size="16" />
 							{$_('chart.show_heartrate')}
 						</Label>
 					</div>
 					<div class="flex flex-row items-center gap-2">
-						<Checkbox id="show-cad" bind:checked={additionalData.cad} />
+						<Checkbox id="show-cad" bind:checked={options.elevation.cad} />
 						<Label for="show-cad" class="flex flex-row items-center gap-1">
 							<Orbit size="16" />
 							{$_('chart.show_cadence')}
 						</Label>
 					</div>
 					<div class="flex flex-row items-center gap-2">
-						<Checkbox id="show-temp" bind:checked={additionalData.temp} />
+						<Checkbox id="show-temp" bind:checked={options.elevation.temp} />
 						<Label for="show-temp" class="flex flex-row items-center gap-1">
 							<Thermometer size="16" />
 							{$_('chart.show_temperature')}
 						</Label>
 					</div>
 					<div class="flex flex-row items-center gap-2">
-						<Checkbox id="show-power" bind:checked={additionalData.power} />
+						<Checkbox id="show-power" bind:checked={options.elevation.power} />
 						<Label for="show-power" class="flex flex-row items-center gap-1">
 							<SquareActivity size="16" />
 							{$_('chart.show_power')}
@@ -204,6 +205,20 @@
 					</RadioGroup.Root>
 				</Label>
 			</div>
+			<Label>
+				{$_('embedding.preview')}
+			</Label>
+			<div class="relative h-[600px]">
+				<Embedding bind:options={iframeOptions} />
+			</div>
+			<Label>
+				{$_('embedding.code')}
+			</Label>
+			<pre class="bg-primary text-primary-foreground p-3 rounded-md whitespace-normal break-all">
+                <code class="language-html">
+                    {`<iframe src="https://gpx.studio${base}/embed?${JSON.stringify(getCleanedEmbeddingOptions(options))}${hash}" width="100%" height="600px" frameborder="0" />`}
+                </code>
+            </pre>
 		</fieldset>
 	</Card.Content>
 </Card.Root>

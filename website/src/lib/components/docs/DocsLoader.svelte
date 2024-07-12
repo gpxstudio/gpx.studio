@@ -64,7 +64,12 @@
 		@apply px-1;
 	}
 
-	:global(.markdown a) {
+	:global(.markdown > a) {
+		@apply text-blue-500;
+		@apply hover:underline;
+	}
+
+	:global(.markdown p > a) {
 		@apply text-blue-500;
 		@apply hover:underline;
 	}

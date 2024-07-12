@@ -15,6 +15,8 @@
 	import { gpxStatistics, loadFiles, slicedGPXStatistics } from '$lib/stores';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
+	import { languages } from '$lib/languages';
+	import { getURLForLanguage } from '$lib/utils';
 
 	const {
 		verticalFileView,
@@ -97,6 +99,15 @@
 		<Resizer orientation="col" bind:after={$rightPanelSize} minAfter={100} maxAfter={400} />
 		<FileList orientation="vertical" recursive={true} style="width: {$rightPanelSize}px" />
 	{/if}
+</div>
+
+<!-- hidden links for svelte crawling -->
+<div class="hidden">
+	{#each Object.entries(languages) as [lang, label]}
+		<a href={getURLForLanguage(lang, '/embed')}>
+			{label}
+		</a>
+	{/each}
 </div>
 
 <style lang="postcss">

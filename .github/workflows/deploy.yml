@@ -31,6 +31,7 @@ jobs:
       - name: Build website
         env:
           BASE_PATH: '/${{ github.event.repository.name }}'
+          PUBLIC_MAPBOX_TOKEN: ${{ secrets.PUBLIC_MAPBOX_TOKEN }}
         run: |
           npm run build --prefix website
 

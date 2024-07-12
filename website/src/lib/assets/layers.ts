@@ -1,6 +1,5 @@
+import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
 import { type AnySourceData, type Style } from 'mapbox-gl';
-
-export const mapboxAccessToken = 'pk.eyJ1IjoidmNvcHBlIiwiYSI6ImNseG0zNHpwdTA1NXUycXF4ejJyODc0NWQifQ.4tiCPQ1SxnYl4o7aQc89VA';
 
 export const basemaps: { [key: string]: string | Style; } = {
     mapboxOutdoors: 'mapbox://styles/mapbox/outdoors-v12',
@@ -269,7 +268,7 @@ export const basemaps: { [key: string]: string | Style; } = {
 export function extendBasemap(basemap: string | Style): string | Style {
     if (typeof basemap === 'object') {
         basemap["glyphs"] = "mapbox://fonts/mapbox/{fontstack}/{range}.pbf";
-        basemap["sprite"] = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/sprite?access_token=${mapboxAccessToken}`;
+        basemap["sprite"] = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/sprite?access_token=${PUBLIC_MAPBOX_TOKEN}`;
     }
     return basemap;
 }

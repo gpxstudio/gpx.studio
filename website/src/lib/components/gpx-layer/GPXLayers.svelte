@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { map, gpxLayers } from '$lib/stores';
 	import { GPXLayer } from './GPXLayer';
-	import { get } from 'svelte/store';
 	import WaypointPopup from './WaypointPopup.svelte';
 	import { fileObservers } from '$lib/db';
 	import { DistanceMarkers } from './DistanceMarkers';
@@ -21,14 +20,14 @@
 		// add layers for new files
 		$fileObservers.forEach((file, fileId) => {
 			if (!gpxLayers.has(fileId)) {
-				gpxLayers.set(fileId, new GPXLayer(get(map), fileId, file));
+				gpxLayers.set(fileId, new GPXLayer($map, fileId, file));
 			}
 		});
 	}
 
 	$: if ($map) {
-		distanceMarkers = new DistanceMarkers(get(map));
-		startEndMarkers = new StartEndMarkers(get(map));
+		distanceMarkers = new DistanceMarkers($map);
+		startEndMarkers = new StartEndMarkers($map);
 	}
 </script>
 

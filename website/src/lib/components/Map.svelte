@@ -11,11 +11,12 @@
 	import { settings } from '$lib/db';
 	import { locale } from 'svelte-i18n';
 	import { get } from 'svelte/store';
-	import { mapboxAccessToken } from '$lib/assets/layers';
+	import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
 
-	mapboxgl.accessToken = mapboxAccessToken;
-
+	export let accessToken = PUBLIC_MAPBOX_TOKEN;
 	export let geocoder = true;
+
+	mapboxgl.accessToken = accessToken;
 
 	let fitBoundsOptions: mapboxgl.FitBoundsOptions = {
 		maxZoom: 15,
