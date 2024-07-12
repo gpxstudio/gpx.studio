@@ -76,7 +76,7 @@
     },
     "toolbar": {
         "routing": {
-            "tooltip": "Edit the route",
+            "tooltip": "Plan or edit a route",
             "activity": "Activity",
             "use_routing": "Routing",
             "use_routing_tooltip": "Connect anchor points via road network or with straight lines when disabled",
@@ -94,9 +94,9 @@
                 "tooltip": "Return to the starting point by the same route"
             },
             "start_loop_here": "Start loop here",
-            "help_no_file": "Select a file item to use the routing tool, or create a new file from the menu",
-            "help_multiple_files": "Select a single file item to use the routing tool",
-            "help": "Click on the map to add a new anchor point, or drag existing ones to change the route",
+            "help_no_file": "Select a file item to use the routing tool, or create a new file from the menu.",
+            "help_multiple_files": "Select a single file item to use the routing tool.",
+            "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
             "activities": {
                 "bike": "Bike",
                 "racing_bike": "Racing bike",
@@ -145,11 +145,11 @@
             }
         },
         "scissors": {
-            "tooltip": "Crop or split traces",
+            "tooltip": "Crop or split",
             "crop": "Crop",
             "split_as": "Split the trace into",
-            "help_invalid_selection": "Select a file item to crop or split",
-            "help": "Use the slider to crop the trace, or click on the map to split it at the selected point"
+            "help_invalid_selection": "Select a file item to crop or split.",
+            "help": "Use the slider to crop the trace, or click on the map to split it at the selected point."
         },
         "time": {
             "tooltip": "Manage time data",
@@ -159,24 +159,24 @@
             "pick_date": "Pick a date",
             "artificial": "Create realistic time data",
             "update": "Update time data",
-            "help": "Use the form to set new time data",
-            "help_invalid_selection": "Select a single file item to manage its time data"
+            "help": "Use the form to set new time data.",
+            "help_invalid_selection": "Select a single file item to manage its time data."
         },
         "merge": {
             "merge_traces": "Connect the traces",
             "merge_contents": "Merge the contents and keep the traces disconnected",
             "merge_selection": "Merge selection",
             "tooltip": "Merge file items together",
-            "help_merge_traces": "Connecting the selected traces will create a single file containing a single continuous trace",
-            "help_cannot_merge_traces": "Your selection needs to contain several traces to connect them",
-            "help_merge_contents": "Merging the contents of the selected file items will group all the contents inside the first file item",
-            "help_cannot_merge_contents": "Your selection needs to contain several file items to merge their contents"
+            "help_merge_traces": "Connecting the selected traces will create a single file containing a single continuous trace.",
+            "help_cannot_merge_traces": "Your selection needs to contain several traces to connect them.",
+            "help_merge_contents": "Merging the contents of the selected file items will group all the contents inside the first file item.",
+            "help_cannot_merge_contents": "Your selection needs to contain several file items to merge their contents."
         },
         "extract": {
             "tooltip": "Extract contents to separate file items",
             "button": "Extract",
-            "help": "Extracting the contents of the selected file items will create a separate file item for each of their contents",
-            "help_invalid_selection": "Your selection needs to contain file items with multiple traces to extract them"
+            "help": "Extracting the contents of the selected file items will create a separate file item for each of their contents.",
+            "help_invalid_selection": "Your selection needs to contain file items with multiple traces to extract them."
         },
         "waypoint": {
             "tooltip": "Create and edit points of interest",
@@ -184,15 +184,15 @@
             "latitude": "Latitude",
             "create": "Create point of interest",
             "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
-            "help_no_selection": "Select a file item to create or edit points of interest"
+            "help_no_selection": "Select a file item to create or edit points of interest."
         },
         "reduce": {
             "tooltip": "Reduce the number of GPS points",
             "tolerance": "Tolerance",
             "number_of_points": "Number of GPS points",
             "button": "Minify",
-            "help": "Use the slider to choose the number of GPS points to keep",
-            "help_no_selection": "Select a file item to reduce the number of its GPS points"
+            "help": "Use the slider to choose the number of GPS points to keep.",
+            "help_no_selection": "Select a file item to reduce the number of its GPS points."
         },
         "clean": {
             "tooltip": "Clean GPS points and points of interest with a rectangle selection",
@@ -201,8 +201,8 @@
             "delete_inside": "Delete inside selection",
             "delete_outside": "Delete outside selection",
             "button": "Delete",
-            "help": "Select a rectangle area on the map to remove GPS points and points of interest",
-            "help_no_selection": "Select a file item to clean GPS points and points of interest"
+            "help": "Select a rectangle area on the map to remove GPS points and points of interest.",
+            "help_no_selection": "Select a file item to clean GPS points and points of interest."
         }
     },
     "layers": {
