@@ -81,10 +81,14 @@ targetMapBounds.subscribe((bounds) => {
         return;
     }
 
-    get(map)?.fitBounds(bounds.bounds, {
-        padding: 80,
-        linear: true,
-        easing: () => 1
+    map.subscribe((m) => {
+        if (m) {
+            m.fitBounds(bounds.bounds, {
+                padding: 80,
+                linear: true,
+                easing: () => 1
+            });
+        }
     });
 });
 
