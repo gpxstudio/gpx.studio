@@ -28,10 +28,15 @@ jobs:
       - name: Install dependencies for website
         run: npm install --prefix website
 
+      - name: Create env file
+        run: |
+          touch website/.env
+          echo PUBLIC_MAPBOX_TOKEN=${{ secrets.PUBLIC_MAPBOX_TOKEN }} >> website/.env
+          cat website/.env
+
       - name: Build website
         env:
           BASE_PATH: '/${{ github.event.repository.name }}'
-          PUBLIC_MAPBOX_TOKEN: ${{ secrets.PUBLIC_MAPBOX_TOKEN }}
         run: |
           npm run build --prefix website
 
