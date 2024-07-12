@@ -1,3 +1,5 @@
+import { basemaps } from "$lib/assets/layers";
+
 export type EmbeddingOptions = {
     token: string;
     files: string[];
@@ -13,6 +15,8 @@ export type EmbeddingOptions = {
         temp: boolean,
         power: boolean,
     },
+    distanceMarkers: boolean,
+    directionMarkers: boolean,
     distanceUnits: 'metric' | 'imperial',
     velocityUnits: 'speed' | 'pace',
     temperatureUnits: 'celsius' | 'fahrenheit',
@@ -33,6 +37,8 @@ export const defaultEmbeddingOptions = {
         temp: false,
         power: false,
     },
+    distanceMarkers: false,
+    directionMarkers: false,
     distanceUnits: 'metric',
     velocityUnits: 'speed',
     temperatureUnits: 'celsius',
@@ -57,7 +63,4 @@ export function getCleanedEmbeddingOptions(options: any, defaultOptions: any = d
     return cleanedOptions;
 }
 
-export const allowedEmbeddingBasemaps = [
-    'mapboxOutdoors',
-    'mapboxSatellite',
-];
+export const allowedEmbeddingBasemaps = Object.keys(basemaps).filter(basemap => !['ordnanceSurvey'].includes(basemap));

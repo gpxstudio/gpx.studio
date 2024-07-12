@@ -5,7 +5,16 @@
 	import * as Select from '$lib/components/ui/select';
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import * as RadioGroup from '$lib/components/ui/radio-group';
-	import { Zap, HeartPulse, Orbit, Thermometer, SquareActivity } from 'lucide-svelte';
+	import {
+		Zap,
+		HeartPulse,
+		Orbit,
+		Thermometer,
+		SquareActivity,
+		Coins,
+		Milestone,
+		Video
+	} from 'lucide-svelte';
 	import { _ } from 'svelte-i18n';
 	import {
 		allowedEmbeddingBasemaps,
@@ -35,11 +44,11 @@
 
 	let manualCamera = false;
 
-	let zoom = 0;
-	let lat = 0;
-	let lon = 0;
-	let bearing = 0;
-	let pitch = 0;
+	let zoom = '0';
+	let lat = '0';
+	let lon = '0';
+	let bearing = '0';
+	let pitch = '0';
 
 	$: hash = manualCamera ? `#${zoom}/${lat}/${lon}/${bearing}/${pitch}` : '';
 
@@ -57,6 +66,21 @@
 
 	$: if (options.elevation.height || options.elevation.show) {
 		resizeMap();
+	}
+
+	function updateCamera() {
+		if ($map) {
+			let center = $map.getCenter();
+			lat = center.lat.toFixed(4);
+			lon = center.lng.toFixed(4);
+			zoom = $map.getZoom().toFixed(2);
+			bearing = $map.getBearing().toFixed(1);
+			pitch = $map.getPitch().toFixed(0);
+		}
+	}
+
+	$: if ($map) {
+		$map.on('moveend', updateCamera);
 	}
 </script>
 
@@ -164,6 +188,20 @@
 					</div>
 				</div>
 			{/if}
+			<div class="flex flex-row items-center gap-2">
+				<Checkbox id="distance-markers" bind:checked={options.distanceMarkers} />
+				<Label for="distance-markers" class="flex flex-row items-center gap-1">
+					<Coins size="16" />
+					{$_('menu.distance_markers')}
+				</Label>
+			</div>
+			<div class="flex flex-row items-center gap-2">
+				<Checkbox id="direction-markers" bind:checked={options.directionMarkers} />
+				<Label for="direction-markers" class="flex flex-row items-center gap-1">
+					<Milestone size="16" />
+					{$_('menu.direction_markers')}
+				</Label>
+			</div>
 			<div class="flex flex-row flex-wrap justify-between gap-3">
 				<Label class="flex flex-col items-start gap-2">
 					{$_('menu.distance_units')}
@@ -205,18 +243,52 @@
 					</RadioGroup.Root>
 				</Label>
 			</div>
+			<div class="flex flex-col gap-3 p-3 border rounded-md">
+				<div class="flex flex-row items-center gap-2">
+					<Checkbox id="manual-camera" bind:checked={manualCamera} />
+					<Label for="manual-camera" class="flex flex-row items-center gap-1">
+						<Video size="16" />
+						{$_('embedding.manual_camera')}
+					</Label>
+				</div>
+				<p class="text-sm text-muted-foreground">
+					{$_('embedding.manual_camera_description')}
+				</p>
+				<div class="flex flex-row flex-wrap items-center gap-6">
+					<Label class="flex flex-col gap-1">
+						<span>{$_('embedding.latitude')}</span>
+						<span>{lat}</span>
+					</Label>
+					<Label class="flex flex-col gap-1">
+						<span>{$_('embedding.longitude')}</span>
+						<span>{lon}</span>
+					</Label>
+					<Label class="flex flex-col gap-1">
+						<span>{$_('embedding.zoom')}</span>
+						<span>{zoom}</span>
+					</Label>
+					<Label class="flex flex-col gap-1">
+						<span>{$_('embedding.bearing')}</span>
+						<span>{bearing}</span>
+					</Label>
+					<Label class="flex flex-col gap-1">
+						<span>{$_('embedding.pitch')}</span>
+						<span>{pitch}</span>
+					</Label>
+				</div>
+			</div>
 			<Label>
 				{$_('embedding.preview')}
 			</Label>
 			<div class="relative h-[600px]">
-				<Embedding bind:options={iframeOptions} />
+				<Embedding bind:options={iframeOptions} bind:hash />
 			</div>
 			<Label>
 				{$_('embedding.code')}
 			</Label>
 			<pre class="bg-primary text-primary-foreground p-3 rounded-md whitespace-normal break-all">
                 <code class="language-html">
-                    {`<iframe src="https://gpx.studio${base}/embed?options=${encodeURIComponent(JSON.stringify(getCleanedEmbeddingOptions(options)))}${hash}" width="100%" height="600px" frameborder="0" />`}
+                    {`<iframe src="https://gpx.studio${base}/embed?options=${encodeURIComponent(JSON.stringify(getCleanedEmbeddingOptions(options)))}${hash}" width="100%" height="600px" frameborder="0" style="outline: none;"/>`}
                 </code>
             </pre>
 		</fieldset>

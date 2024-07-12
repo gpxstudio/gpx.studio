@@ -10,7 +10,7 @@
 <Button
 	variant="ghost"
 	class="absolute top-0 flex-wrap h-fit bg-background font-semibold rounded-md py-1 px-2 gap-1.5 xs:text-base mt-2.5 ml-2.5 mr-12"
-	href="{getURLForLanguage($locale, '/embed')}?files={encodeURIComponent(JSON.stringify(files))}"
+	href="{getURLForLanguage($locale, '/app')}?files={encodeURIComponent(JSON.stringify(files))}"
 	target="_blank"
 >
 	{$_('menu.open_in')}

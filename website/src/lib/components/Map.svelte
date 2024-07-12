@@ -14,7 +14,9 @@
 	import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
 
 	export let accessToken = PUBLIC_MAPBOX_TOKEN;
+	export let geolocate = true;
 	export let geocoder = true;
+	export let hash = true;
 
 	mapboxgl.accessToken = accessToken;
 
@@ -35,7 +37,7 @@
 			container: 'map',
 			style: { version: 8, sources: {}, layers: [] },
 			projection: { name: 'mercator' },
-			hash: true,
+			hash: hash,
 			language: get(locale),
 			attributionControl: false,
 			logoPosition: 'bottom-right',
@@ -66,16 +68,18 @@
 			);
 		}
 
-		newMap.addControl(
-			new mapboxgl.GeolocateControl({
-				positionOptions: {
-					enableHighAccuracy: true
-				},
-				fitBoundsOptions,
-				trackUserLocation: true,
-				showUserHeading: true
-			})
-		);
+		if (geolocate) {
+			newMap.addControl(
+				new mapboxgl.GeolocateControl({
+					positionOptions: {
+						enableHighAccuracy: true
+					},
+					fitBoundsOptions,
+					trackUserLocation: true,
+					showUserHeading: true
+				})
+			);
+		}
 
 		newMap.addControl(scaleControl);
 

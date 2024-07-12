@@ -23,5 +23,5 @@
 </script>
 
 {#if embeddingOptions}
-	<Embedding options={embeddingOptions} />
+	<Embedding options={embeddingOptions} hash={$page.url.hash} />
 {/if}

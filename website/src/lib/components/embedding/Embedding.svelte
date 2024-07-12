@@ -18,14 +18,25 @@
 
 	$embedding = true;
 
-	const { currentBasemap, distanceUnits, velocityUnits, temperatureUnits, fileOrder } = settings;
+	const {
+		currentBasemap,
+		distanceUnits,
+		velocityUnits,
+		temperatureUnits,
+		fileOrder,
+		distanceMarkers,
+		directionMarkers
+	} = settings;
 
 	export let options: EmbeddingOptions;
+	export let hash: string;
 
-	let prevUnits = {
-		distance: '',
-		velocity: '',
-		temperature: ''
+	let prevSettings = {
+		distanceMarkers: false,
+		directionMarkers: false,
+		distanceUnits: 'metric',
+		velocityUnits: 'speed',
+		temperatureUnits: 'celsius'
 	};
 
 	function applyOptions() {
@@ -97,27 +108,37 @@
 				return $selection;
 			});
 
-			map.subscribe(($map) => {
-				if ($map) {
-					$map.fitBounds(
-						[
-							bounds.southWest.lon,
-							bounds.southWest.lat,
-							bounds.northEast.lon,
-							bounds.northEast.lat
-						],
-						{
-							padding: 80,
-							linear: true,
-							easing: () => 1
-						}
-					);
-				}
-			});
+			if (hash.length === 0) {
+				map.subscribe(($map) => {
+					if ($map) {
+						$map.fitBounds(
+							[
+								bounds.southWest.lon,
+								bounds.southWest.lat,
+								bounds.northEast.lon,
+								bounds.northEast.lat
+							],
+							{
+								padding: 80,
+								linear: true,
+								easing: () => 1
+							}
+						);
+					}
+				});
+			}
 		});
 
 		if (options.basemap !== $currentBasemap && allowedEmbeddingBasemaps.includes(options.basemap)) {
 			$currentBasemap = options.basemap;
+		}
+
+		if (options.distanceMarkers !== $distanceMarkers) {
+			$distanceMarkers = options.distanceMarkers;
+		}
+
+		if (options.directionMarkers !== $directionMarkers) {
+			$directionMarkers = options.directionMarkers;
 		}
 
 		if (options.distanceUnits !== $distanceUnits) {
@@ -134,9 +155,11 @@
 	}
 
 	onMount(() => {
-		prevUnits.distance = $distanceUnits;
-		prevUnits.velocity = $velocityUnits;
-		prevUnits.temperature = $temperatureUnits;
+		prevSettings.distanceMarkers = $distanceMarkers;
+		prevSettings.directionMarkers = $directionMarkers;
+		prevSettings.distanceUnits = $distanceUnits;
+		prevSettings.velocityUnits = $velocityUnits;
+		prevSettings.temperatureUnits = $temperatureUnits;
 	});
 
 	$: if (options) {
@@ -144,16 +167,24 @@
 	}
 
 	onDestroy(() => {
-		if ($distanceUnits !== prevUnits.distance) {
-			$distanceUnits = prevUnits.distance;
+		if ($distanceMarkers !== prevSettings.distanceMarkers) {
+			$distanceMarkers = prevSettings.distanceMarkers;
 		}
 
-		if ($velocityUnits !== prevUnits.velocity) {
-			$velocityUnits = prevUnits.velocity;
+		if ($directionMarkers !== prevSettings.directionMarkers) {
+			$directionMarkers = prevSettings.directionMarkers;
 		}
 
-		if ($temperatureUnits !== prevUnits.temperature) {
-			$temperatureUnits = prevUnits.temperature;
+		if ($distanceUnits !== prevSettings.distanceUnits) {
+			$distanceUnits = prevSettings.distanceUnits;
+		}
+
+		if ($velocityUnits !== prevSettings.velocityUnits) {
+			$velocityUnits = prevSettings.velocityUnits;
+		}
+
+		if ($temperatureUnits !== prevSettings.temperatureUnits) {
+			$temperatureUnits = prevSettings.temperatureUnits;
 		}
 
 		$fileOrder = $fileOrder.filter((id) => !id.includes('embed'));
@@ -166,6 +197,8 @@
 			class="h-full {$fileObservers.size > 1 ? 'horizontal' : ''}"
 			accessToken={options.token}
 			geocoder={false}
+			geolocate={false}
+			hash={false}
 		/>
 		<OpenIn bind:files={options.files} />
 		<LayerControl />

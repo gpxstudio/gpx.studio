@@ -9,3 +9,10 @@
 >
 	<slot />
 </div>
+
+<style lang="postcss">
+	div :global(a) {
+		@apply text-blue-500;
+		@apply hover:underline;
+	}
+</style>
