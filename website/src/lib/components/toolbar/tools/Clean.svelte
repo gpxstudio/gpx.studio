@@ -129,14 +129,18 @@
 
 <div class="flex flex-col gap-3 w-full max-w-80 items-center {$$props.class ?? ''}">
 	<fieldset class="flex flex-col gap-3">
-		<Label class="flex flex-row items-center gap-[6.4px] h-3">
-			<Checkbox bind:checked={deleteTrackpoints} class="scale-90" />
-			{$_('toolbar.clean.delete_trackpoints')}
-		</Label>
-		<Label class="flex flex-row items-center gap-[6.4px] h-3">
-			<Checkbox bind:checked={deleteWaypoints} class="scale-90" />
-			{$_('toolbar.clean.delete_waypoints')}
-		</Label>
+		<div class="flex flex-row items-center gap-[6.4px] h-3">
+			<Checkbox id="delete-trkpt" bind:checked={deleteTrackpoints} class="scale-90" />
+			<Label for="delete-trkpt">
+				{$_('toolbar.clean.delete_trackpoints')}
+			</Label>
+		</div>
+		<div class="flex flex-row items-center gap-[6.4px] h-3">
+			<Checkbox id="delete-wpt" bind:checked={deleteWaypoints} class="scale-90" />
+			<Label for="delete-wpt">
+				{$_('toolbar.clean.delete_waypoints')}
+			</Label>
+		</div>
 		<RadioGroup.Root bind:value={cleanType}>
 			<Label class="flex flex-row items-center gap-2">
 				<RadioGroup.Item value={CleanType.INSIDE} />

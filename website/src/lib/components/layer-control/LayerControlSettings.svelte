@@ -116,8 +116,8 @@
 			<Sheet.Description>
 				{$_('layers.settings_help')}
 			</Sheet.Description>
-			<Accordion.Root class="flex flex-col overflow-hidden">
-				<Accordion.Item value="item-1" class="flex flex-col overflow-hidden">
+			<Accordion.Root class="flex flex-col overflow-hidden" value="layer-selection">
+				<Accordion.Item value="layer-selection" class="flex flex-col overflow-hidden">
 					<Accordion.Trigger>{$_('layers.selection')}</Accordion.Trigger>
 					<Accordion.Content class="grow flex flex-col border rounded">
 						<ScrollArea class="py-2 pl-1 pr-2 min-h-9">
@@ -139,11 +139,13 @@
 						</ScrollArea>
 					</Accordion.Content>
 				</Accordion.Item>
-				<Accordion.Item value="item-2">
+				<Accordion.Item value="overlay-opacity">
 					<Accordion.Trigger>{$_('layers.opacity')}</Accordion.Trigger>
 					<Accordion.Content class="flex flex-col gap-3 overflow-visible">
-						<Label class="flex flex-row gap-2 items-center">
-							{$_('layers.custom_layers.overlay')}
+						<div class="flex flex-row gap-6 items-center">
+							<Label>
+								{$_('layers.custom_layers.overlay')}
+							</Label>
 							<Select.Root bind:selected={$selectedOverlay}>
 								<Select.Trigger class="h-8 mr-1">
 									<Select.Value />
@@ -161,8 +163,8 @@
 									{/each}
 								</Select.Content>
 							</Select.Root>
-						</Label>
-						<Label class="flex flex-row gap-2 items-center">
+						</div>
+						<Label class="flex flex-row gap-6 items-center">
 							{$_('menu.style.opacity')}
 							<div class="p-2 pr-3 grow">
 								<Slider
@@ -187,7 +189,7 @@
 						</Label>
 					</Accordion.Content>
 				</Accordion.Item>
-				<Accordion.Item value="item-3">
+				<Accordion.Item value="custom-layers">
 					<Accordion.Trigger>{$_('layers.custom_layers.title')}</Accordion.Trigger>
 					<Accordion.Content>
 						<ScrollArea>
@@ -195,11 +197,17 @@
 						</ScrollArea>
 					</Accordion.Content>
 				</Accordion.Item>
-				<Accordion.Item value="item-4">
+				<Accordion.Item value="pois" class="hidden">
+					<Accordion.Trigger>{$_('layers.pois')}</Accordion.Trigger>
+					<Accordion.Content></Accordion.Content>
+				</Accordion.Item>
+				<Accordion.Item value="heatmap-color" class="hidden">
 					<Accordion.Trigger>{$_('layers.heatmap')}</Accordion.Trigger>
 					<Accordion.Content class="overflow-visible">
-						<Label class="flex flex-row items-center justify-between gap-4"
-							>{$_('menu.style.color')}
+						<div class="flex flex-row items-center justify-between gap-6">
+							<Label>
+								{$_('menu.style.color')}
+							</Label>
 							<Select.Root bind:selected={$selectedHeatmapColor}>
 								<Select.Trigger class="h-8 mr-1">
 									<Select.Value />
@@ -210,12 +218,8 @@
 									{/each}
 								</Select.Content>
 							</Select.Root>
-						</Label>
+						</div>
 					</Accordion.Content>
-				</Accordion.Item>
-				<Accordion.Item value="item-5">
-					<Accordion.Trigger>{$_('layers.pois')}</Accordion.Trigger>
-					<Accordion.Content></Accordion.Content>
 				</Accordion.Item>
 			</Accordion.Root>
 		</Sheet.Header>

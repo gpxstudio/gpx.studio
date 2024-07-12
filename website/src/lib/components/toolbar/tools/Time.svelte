@@ -270,10 +270,12 @@
 			/>
 		</div>
 		{#if $gpxStatistics.global.time.moving === 0 || $gpxStatistics.global.time.moving === undefined}
-			<Label class="mt-0.5 flex flex-row gap-1 items-center">
-				<Checkbox disabled={!canUpdate} />
-				{$_('toolbar.time.artificial')}
-			</Label>
+			<div class="mt-0.5 flex flex-row gap-1 items-center hidden">
+				<Checkbox id="artificial-time" disabled={!canUpdate} />
+				<Label for="artificial-time">
+					{$_('toolbar.time.artificial')}
+				</Label>
+			</div>
 		{/if}
 	</fieldset>
 	<div class="flex flex-row gap-2">
