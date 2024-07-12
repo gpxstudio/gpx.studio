@@ -18,7 +18,7 @@
 
 	$embedding = true;
 
-	const { currentBasemap, distanceUnits, velocityUnits, temperatureUnits } = settings;
+	const { currentBasemap, distanceUnits, velocityUnits, temperatureUnits, fileOrder } = settings;
 
 	export let options: EmbeddingOptions;
 
@@ -63,7 +63,7 @@
 						return;
 					}
 
-					let id = `gpx-${index}`;
+					let id = `gpx-${index}-embed`;
 					file._data.id = id;
 					let statistics = new GPXStatisticsTree(file);
 
@@ -87,6 +87,8 @@
 				return $fileObservers;
 			});
 
+			$fileOrder = [...$fileOrder.filter((id) => !id.includes('embed')), ...ids];
+
 			selection.update(($selection) => {
 				$selection.clear();
 				ids.forEach((id) => {
@@ -94,8 +96,6 @@
 				});
 				return $selection;
 			});
-
-			console.log($fileObservers, $selection);
 
 			map.subscribe(($map) => {
 				if ($map) {
@@ -155,6 +155,8 @@
 		if ($temperatureUnits !== prevUnits.temperature) {
 			$temperatureUnits = prevUnits.temperature;
 		}
+
+		$fileOrder = $fileOrder.filter((id) => !id.includes('embed'));
 	});
 </script>
 
