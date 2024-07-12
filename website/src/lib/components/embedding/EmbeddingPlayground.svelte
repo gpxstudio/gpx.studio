@@ -216,7 +216,7 @@
 			</Label>
 			<pre class="bg-primary text-primary-foreground p-3 rounded-md whitespace-normal break-all">
                 <code class="language-html">
-                    {`<iframe src="https://gpx.studio${base}/embed?${JSON.stringify(getCleanedEmbeddingOptions(options))}${hash}" width="100%" height="600px" frameborder="0" />`}
+                    {`<iframe src="https://gpx.studio${base}/embed?options=${encodeURIComponent(JSON.stringify(getCleanedEmbeddingOptions(options)))}${hash}" width="100%" height="600px" frameborder="0" />`}
                 </code>
             </pre>
 		</fieldset>
