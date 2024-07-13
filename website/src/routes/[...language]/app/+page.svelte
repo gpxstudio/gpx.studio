@@ -55,7 +55,7 @@
 		<div class="grow relative">
 			<Menu />
 			<div
-				class="absolute top-0 bottom-0 left-0 z-20 flex flex-col justify-center pointer-events-none"
+				class="absolute top-0 bottom-0 left-0 z-40 flex flex-col justify-center pointer-events-none"
 			>
 				<Toolbar />
 			</div>
