@@ -21,6 +21,7 @@
 
 	mapboxgl.accessToken = accessToken;
 
+	let webgl2Supported = true;
 	let fitBoundsOptions: mapboxgl.FitBoundsOptions = {
 		maxZoom: 15,
 		linear: true,
@@ -34,7 +35,9 @@
 	});
 
 	onMount(() => {
-		if (!mapboxgl.supported()) {
+		let gl = document.createElement('canvas').getContext('webgl2');
+		if (!gl) {
+			webgl2Supported = false;
 			return;
 		}
 
@@ -145,7 +148,7 @@
 </script>
 
 <div {...$$restProps}>
-	{#if mapboxgl.supported()}
+	{#if webgl2Supported}
 		<div id="map" class="h-full"></div>
 	{:else}
 		<div class="flex flex-col items-center justify-center gap-3 h-full">
