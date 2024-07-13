@@ -7,9 +7,10 @@
 	import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 	import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 
+	import { Button } from '$lib/components/ui/button';
 	import { map } from '$lib/stores';
 	import { settings } from '$lib/db';
-	import { locale } from 'svelte-i18n';
+	import { locale, _ } from 'svelte-i18n';
 	import { get } from 'svelte/store';
 	import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
 
@@ -33,6 +34,10 @@
 	});
 
 	onMount(() => {
+		if (!mapboxgl.supported()) {
+			return;
+		}
+
 		let newMap = new mapboxgl.Map({
 			container: 'map',
 			style: { version: 8, sources: {}, layers: [] },
@@ -140,7 +145,16 @@
 </script>
 
 <div {...$$restProps}>
-	<div id="map" class="h-full"></div>
+	{#if mapboxgl.supported()}
+		<div id="map" class="h-full"></div>
+	{:else}
+		<div class="flex flex-col items-center justify-center gap-3 h-full">
+			<p>{$_('webgl2_required')}</p>
+			<Button href="https://get.webgl.org/webgl2/" target="_blank">
+				{$_('enable_webgl2')}
+			</Button>
+		</div>
+	{/if}
 </div>
 
 <style lang="postcss">

@@ -389,5 +389,7 @@
         "bearing": "Bearing",
         "preview": "Preview",
         "code": "Integration code"
-    }
+    },
+    "webgl2_required": "WebGL 2 is required to display the map.",
+    "enable_webgl2": "Learn how to enable WebGL 2 in your browser"
 }
