@@ -135,6 +135,10 @@ export class RoutingControls {
         this.fileUnsubscribe();
     }
 
+    updateMap(map: mapboxgl.Map) {
+        this.map = map;
+    }
+
     createAnchor(point: TrackPoint, segment: TrackSegment, trackIndex: number, segmentIndex: number): AnchorWithMarker {
         let element = document.createElement('div');
         element.className = `h-3 w-3 rounded-full bg-white border-2 border-black cursor-pointer`;

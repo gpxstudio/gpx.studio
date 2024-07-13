@@ -7,6 +7,7 @@ export class StartEndMarkers {
     start: mapboxgl.Marker;
     end: mapboxgl.Marker;
     updateBinded: () => void = this.update.bind(this);
+    unsubscribes: (() => void)[] = [];
 
     constructor(map: mapboxgl.Map) {
         this.map = map;
@@ -20,9 +21,9 @@ export class StartEndMarkers {
         this.start = new mapboxgl.Marker({ element: startElement });
         this.end = new mapboxgl.Marker({ element: endElement });
 
-        gpxStatistics.subscribe(this.updateBinded);
-        slicedGPXStatistics.subscribe(this.updateBinded);
-        currentTool.subscribe(this.updateBinded);
+        this.unsubscribes.push(gpxStatistics.subscribe(this.updateBinded));
+        this.unsubscribes.push(slicedGPXStatistics.subscribe(this.updateBinded));
+        this.unsubscribes.push(currentTool.subscribe(this.updateBinded));
     }
 
     update() {
@@ -35,5 +36,12 @@ export class StartEndMarkers {
             this.start.remove();
             this.end.remove();
         }
+    }
+
+    remove() {
+        this.unsubscribes.forEach(unsubscribe => unsubscribe());
+
+        this.start.remove();
+        this.end.remove();
     }
 }

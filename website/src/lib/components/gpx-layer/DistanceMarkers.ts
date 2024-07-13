@@ -9,13 +9,14 @@ const { distanceMarkers, distanceUnits, currentBasemap } = settings;
 export class DistanceMarkers {
     map: mapboxgl.Map;
     updateBinded: () => void = this.update.bind(this);
+    unsubscribes: (() => void)[] = [];
 
     constructor(map: mapboxgl.Map) {
         this.map = map;
 
-        gpxStatistics.subscribe(this.updateBinded);
-        distanceMarkers.subscribe(this.updateBinded);
-        distanceUnits.subscribe(this.updateBinded);
+        this.unsubscribes.push(gpxStatistics.subscribe(this.updateBinded));
+        this.unsubscribes.push(distanceMarkers.subscribe(this.updateBinded));
+        this.unsubscribes.push(distanceUnits.subscribe(this.updateBinded));
         this.map.on('style.load', this.updateBinded);
     }
 
@@ -59,6 +60,10 @@ export class DistanceMarkers {
         } catch (e) { // No reliable way to check if the map is ready to add sources and layers
             return;
         }
+    }
+
+    remove() {
+        this.unsubscribes.forEach(unsubscribe => unsubscribe());
     }
 
     getDistanceMarkersGeoJSON(): GeoJSON.FeatureCollection {

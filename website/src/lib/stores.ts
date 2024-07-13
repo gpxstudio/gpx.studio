@@ -20,7 +20,7 @@ export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }
 export const gpxStatistics: Writable<GPXStatistics> = writable(new GPXStatistics());
 export const slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined> = writable(undefined);
 
-function updateGPXData() {
+export function updateGPXData() {
     let statistics = new GPXStatistics();
     applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
         let stats = getStatistics(fileId);

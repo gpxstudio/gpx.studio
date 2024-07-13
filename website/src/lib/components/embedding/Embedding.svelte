@@ -3,11 +3,18 @@
 	import ElevationProfile from '$lib/components/ElevationProfile.svelte';
 	import FileList from '$lib/components/file-list/FileList.svelte';
 	import GPXStatistics from '$lib/components/GPXStatistics.svelte';
-	import MapComponent from '$lib/components/Map.svelte';
+	import Map from '$lib/components/Map.svelte';
 	import LayerControl from '$lib/components/layer-control/LayerControl.svelte';
 	import OpenIn from '$lib/components/embedding/OpenIn.svelte';
 
-	import { gpxStatistics, slicedGPXStatistics, embedding, loadFile, map } from '$lib/stores';
+	import {
+		gpxStatistics,
+		slicedGPXStatistics,
+		embedding,
+		loadFile,
+		map,
+		updateGPXData
+	} from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
 	import { fileObservers, settings, GPXStatisticsTree } from '$lib/db';
 	import { readable } from 'svelte/store';
@@ -167,6 +174,10 @@
 		applyOptions();
 	}
 
+	$: if ($fileOrder) {
+		updateGPXData();
+	}
+
 	onDestroy(() => {
 		if ($distanceMarkers !== prevSettings.distanceMarkers) {
 			$distanceMarkers = prevSettings.distanceMarkers;
@@ -194,7 +205,7 @@
 
 <div class="absolute flex flex-col h-full w-full border rounded-xl overflow-clip">
 	<div class="grow relative">
-		<MapComponent
+		<Map
 			class="h-full {$fileObservers.size > 1 ? 'horizontal' : ''}"
 			accessToken={options.token}
 			geocoder={false}

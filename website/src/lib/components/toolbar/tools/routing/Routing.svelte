@@ -54,15 +54,14 @@
 				if (selectedItem && selectedItem.getFileId() === fileId) {
 					selectedItem = null;
 				}
+			} else if ($map !== controls.map) {
+				controls.updateMap($map);
 			}
 		});
 		// add controls for new files
 		$fileObservers.forEach((file, fileId) => {
 			if (!routingControls.has(fileId)) {
-				routingControls.set(
-					fileId,
-					new RoutingControls(get(map), fileId, file, popup, popupElement)
-				);
+				routingControls.set(fileId, new RoutingControls($map, fileId, file, popup, popupElement));
 			}
 		});
 	}
@@ -92,6 +91,9 @@
 
 	onDestroy(() => {
 		$map?.off('click', createFileWithPoint);
+
+		routingControls.forEach((controls) => controls.destroy());
+		routingControls.clear();
 	});
 </script>
 

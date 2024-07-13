@@ -5,9 +5,10 @@
 	import { fileObservers } from '$lib/db';
 	import { DistanceMarkers } from './DistanceMarkers';
 	import { StartEndMarkers } from './StartEndMarkers';
+	import { onDestroy } from 'svelte';
 
-	let distanceMarkers: DistanceMarkers;
-	let startEndMarkers: StartEndMarkers;
+	let distanceMarkers: DistanceMarkers | undefined = undefined;
+	let startEndMarkers: StartEndMarkers | undefined = undefined;
 
 	$: if ($map && $fileObservers) {
 		// remove layers for deleted files
@@ -15,6 +16,8 @@
 			if (!$fileObservers.has(fileId)) {
 				layer.remove();
 				gpxLayers.delete(fileId);
+			} else if ($map !== layer.map) {
+				layer.updateMap($map);
 			}
 		});
 		// add layers for new files
@@ -26,9 +29,30 @@
 	}
 
 	$: if ($map) {
+		if (distanceMarkers) {
+			distanceMarkers.remove();
+		}
+		if (startEndMarkers) {
+			startEndMarkers.remove();
+		}
 		distanceMarkers = new DistanceMarkers($map);
 		startEndMarkers = new StartEndMarkers($map);
 	}
+
+	onDestroy(() => {
+		gpxLayers.forEach((layer) => layer.remove());
+		gpxLayers.clear();
+
+		if (distanceMarkers) {
+			distanceMarkers.remove();
+			distanceMarkers = undefined;
+		}
+
+		if (startEndMarkers) {
+			startEndMarkers.remove();
+			startEndMarkers = undefined;
+		}
+	});
 </script>
 
 <WaypointPopup />

@@ -1,4 +1,4 @@
-import { currentTool, Tool } from "$lib/stores";
+import { currentTool, map, Tool } from "$lib/stores";
 import { settings, type GPXFileWithStatistics, dbUtils } from "$lib/db";
 import { get, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
@@ -259,20 +259,28 @@ export class GPXLayer {
         });
     }
 
-    remove() {
-        this.map.off('click', this.fileId, this.layerOnClickBinded);
-        this.map.off('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
-        this.map.off('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
-        this.map.off('style.load', this.updateBinded);
+    updateMap(map: mapboxgl.Map) {
+        this.map = map;
+        this.map.on('style.load', this.updateBinded);
+        this.update();
+    }
 
-        if (this.map.getLayer(this.fileId + '-direction')) {
-            this.map.removeLayer(this.fileId + '-direction');
-        }
-        if (this.map.getLayer(this.fileId)) {
-            this.map.removeLayer(this.fileId);
-        }
-        if (this.map.getSource(this.fileId)) {
-            this.map.removeSource(this.fileId);
+    remove() {
+        if (get(map)) {
+            this.map.off('click', this.fileId, this.layerOnClickBinded);
+            this.map.off('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
+            this.map.off('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
+            this.map.off('style.load', this.updateBinded);
+
+            if (this.map.getLayer(this.fileId + '-direction')) {
+                this.map.removeLayer(this.fileId + '-direction');
+            }
+            if (this.map.getLayer(this.fileId)) {
+                this.map.removeLayer(this.fileId);
+            }
+            if (this.map.getSource(this.fileId)) {
+                this.map.removeSource(this.fileId);
+            }
         }
 
         this.markers.forEach((marker) => {
