@@ -40,7 +40,8 @@
 		PaintBucket,
 		FolderOpen,
 		FileStack,
-		FileX
+		FileX,
+		BookOpenText
 	} from 'lucide-svelte';
 
 	import {
@@ -420,7 +421,7 @@
 				target="_blank"
 				class="cursor-default h-fit rounded-sm px-3 py-0.5"
 			>
-				<Info size="18" class="md:hidden" />
+				<BookOpenText size="18" class="md:hidden" />
 				<span class="hidden md:block">
 					{$_('menu.help')}
 				</span>
