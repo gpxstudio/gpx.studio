@@ -199,6 +199,8 @@
 			$temperatureUnits = prevSettings.temperatureUnits;
 		}
 
+		$selection.clear();
+		$fileObservers.clear();
 		$fileOrder = $fileOrder.filter((id) => !id.includes('embed'));
 	});
 </script>
