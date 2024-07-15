@@ -27,7 +27,7 @@
 	let resourceType: 'raster' | 'vector' = 'raster';
 
 	$: if (tileUrls[0].length > 0) {
-		if (tileUrls[0].includes('.json')) {
+		if (tileUrls[0].includes('.json') || tileUrls[0].includes('api.mapbox.com/styles')) {
 			resourceType = 'vector';
 			layerType = 'basemap';
 		} else {
