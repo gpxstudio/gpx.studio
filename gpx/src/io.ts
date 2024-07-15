@@ -7,7 +7,7 @@ export function parseGPX(gpxData: string): GPXFile {
         ignoreAttributes: false,
         attributeNamePrefix: "",
         attributesGroupName: 'attributes',
-        isArray: (name: string) => {
+        isArray(name: string) {
             return name === 'trk' || name === 'trkseg' || name === 'trkpt' || name === 'wpt' || name === 'rte' || name === 'rtept' || name === 'gpxx:rpt';
         },
         attributeValueProcessor(attrName, attrValue, jPath) {
@@ -51,6 +51,11 @@ export function parseGPX(gpxData: string): GPXFile {
     });
 
     const parsed: GPXFileType = parser.parse(gpxData).gpx;
+
+    // @ts-ignore
+    if (parsed.metadata === "") {
+        parsed.metadata = {};
+    }
 
     return new GPXFile(parsed);
 }
