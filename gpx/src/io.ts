@@ -8,7 +8,7 @@ export function parseGPX(gpxData: string): GPXFile {
         attributeNamePrefix: "",
         attributesGroupName: 'attributes',
         isArray: (name: string) => {
-            return name === 'trk' || name === 'trkseg' || name === 'trkpt' || name === 'wpt';
+            return name === 'trk' || name === 'trkseg' || name === 'trkpt' || name === 'wpt' || name === 'rte' || name === 'rtept' || name === 'gpxx:rpt';
         },
         attributeValueProcessor(attrName, attrValue, jPath) {
             if (attrName === 'lat' || attrName === 'lon') {

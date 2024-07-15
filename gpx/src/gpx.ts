@@ -1,5 +1,5 @@
 import { ramerDouglasPeucker } from "./simplify";
-import { Coordinates, GPXFileAttributes, GPXFileType, LineStyleExtension, Link, Metadata, TrackExtensions, TrackPointExtensions, TrackPointType, TrackSegmentType, TrackType, WaypointType } from "./types";
+import { Coordinates, GPXFileAttributes, GPXFileType, LineStyleExtension, Link, Metadata, RouteType, TrackExtensions, TrackPointExtensions, TrackPointType, TrackSegmentType, TrackType, WaypointType } from "./types";
 import { immerable, isDraft, original, freeze } from "immer";
 
 function cloneJSON<T>(obj: T): T {
@@ -115,6 +115,7 @@ export class GPXFile extends GPXTreeNode<Track>{
     metadata: Metadata;
     wpt: Waypoint[];
     trk: Track[];
+    rte: RouteType[];
 
     constructor(gpx?: GPXFileType & { _data?: any } | GPXFile) {
         super();
@@ -123,6 +124,9 @@ export class GPXFile extends GPXTreeNode<Track>{
             this.metadata = gpx.metadata;
             this.wpt = gpx.wpt ? gpx.wpt.map((waypoint) => new Waypoint(waypoint)) : [];
             this.trk = gpx.trk ? gpx.trk.map((track) => new Track(track)) : [];
+            if (gpx.rte && gpx.rte.length > 0) {
+                this.trk = this.trk.concat(gpx.rte.map((route) => convertRouteToTrack(route)));
+            }
             if (gpx.hasOwnProperty('_data')) {
                 this._data = gpx._data;
             }
@@ -188,6 +192,7 @@ export class GPXFile extends GPXTreeNode<Track>{
             metadata: cloneJSON(this.metadata),
             wpt: this.wpt.map((waypoint) => waypoint.clone()),
             trk: this.trk.map((track) => track.clone()),
+            rte: [],
             _data: cloneJSON(this._data),
         });
     }
@@ -204,7 +209,8 @@ export class GPXFile extends GPXTreeNode<Track>{
             attributes: cloneJSON(this.attributes),
             metadata: cloneJSON(this.metadata),
             wpt: this.wpt,
-            trk: this.trk.map((track) => track.toTrackType())
+            trk: this.trk.map((track) => track.toTrackType()),
+            rte: [],
         };
     }
 
@@ -1252,3 +1258,38 @@ export type MergedLineStyles = {
     opacity: number[],
     weight: number[],
 };
+
+function convertRouteToTrack(route: RouteType): Track {
+    const track = new Track({
+        name: route.name,
+        cmt: route.cmt,
+        desc: route.desc,
+        src: route.src,
+        link: route.link,
+        type: route.type,
+        trkseg: [],
+        extensions: route.extensions,
+    });
+
+    if (route.rtept) {
+        const segment = new TrackSegment();
+
+        route.rtept.forEach((rpt) => {
+            if (rpt.extensions && rpt.extensions['gpxx:RoutePointExtension'] && rpt.extensions['gpxx:RoutePointExtension']["gpxx:rpt"]) {
+                rpt.extensions['gpxx:RoutePointExtension']["gpxx:rpt"].forEach((rptExtension) => {
+                    segment.trkpt.push(new TrackPoint({
+                        attributes: rptExtension.attributes,
+                    }));
+                });
+            } else {
+                segment.trkpt.push(new TrackPoint({
+                    attributes: rpt.attributes,
+                }));
+            }
+        });
+
+        track.trkseg.push(segment);
+    }
+
+    return track;
+}

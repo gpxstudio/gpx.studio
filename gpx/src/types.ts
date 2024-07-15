@@ -3,6 +3,7 @@ export type GPXFileType = {
     metadata: Metadata;
     wpt: WaypointType[];
     trk: TrackType[];
+    rte: RouteType[];
 };
 
 export type GPXFileAttributes = {
@@ -38,6 +39,11 @@ export type WaypointType = {
     link?: Link;
     sym?: string;
     type?: string;
+    extensions?: WaypointExtensions;
+};
+
+export type WaypointExtensions = {
+    'gpxx:RoutePointExtension'?: RoutePointExtension;
 };
 
 export type Coordinates = {
@@ -100,3 +106,22 @@ export type Author = {
     email?: string;
     link?: Link;
 };
+
+export type RouteType = {
+    name?: string;
+    cmt?: string;
+    desc?: string;
+    src?: string;
+    link?: Link;
+    type?: string;
+    extensions?: TrackExtensions;
+    rtept: WaypointType[];
+}
+
+export type RoutePointExtension = {
+    'gpxx:rpt'?: GPXXRoutePoint[];
+}
+
+export type GPXXRoutePoint = {
+    attributes: Coordinates;
+}
