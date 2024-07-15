@@ -17,9 +17,9 @@ const mapillarySequenceLayer = {
     source: 'mapillary',
     'source-layer': 'sequence',
     paint: {
-        'line-color': 'rgb(53, 175, 109)',
-        'line-opacity': 0.5,
-        'line-width': 4,
+        'line-color': 'rgb(0, 150, 70)',
+        'line-opacity': 0.7,
+        'line-width': 5,
     },
     layout: {
         'line-cap': 'round',
@@ -33,9 +33,9 @@ const mapillaryImageLayer = {
     source: 'mapillary',
     'source-layer': 'image',
     paint: {
-        'circle-color': 'rgb(53, 175, 109)',
-        'circle-radius': 4,
-        'circle-opacity': 0.5,
+        'circle-color': 'rgb(0, 150, 70)',
+        'circle-radius': 5,
+        'circle-opacity': 0.7,
     },
 };
 
