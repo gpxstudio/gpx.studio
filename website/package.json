@@ -48,7 +48,7 @@
     "dependencies": {
         "@internationalized/date": "^3.5.4",
         "@mapbox/mapbox-gl-geocoder": "^5.0.2",
-        "bits-ui": "^0.21.11",
+        "bits-ui": "^0.21.12",
         "chart.js": "^4.4.3",
         "clsx": "^2.1.1",
         "dexie": "^4.0.7",

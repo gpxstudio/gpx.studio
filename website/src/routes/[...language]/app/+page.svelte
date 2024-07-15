@@ -17,6 +17,7 @@
 	import { page } from '$app/stores';
 	import { languages } from '$lib/languages';
 	import { getURLForLanguage } from '$lib/utils';
+	import Welcome from '$lib/components/Welcome.svelte';
 
 	const {
 		verticalFileView,
@@ -99,6 +100,7 @@
 		<Resizer orientation="col" bind:after={$rightPanelSize} minAfter={100} maxAfter={400} />
 		<FileList orientation="vertical" recursive={true} style="width: {$rightPanelSize}px" />
 	{/if}
+	<Welcome />
 </div>
 
 <!-- hidden links for svelte crawling -->
