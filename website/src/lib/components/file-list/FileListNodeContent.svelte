@@ -77,8 +77,8 @@
 
 						if (
 							e.originalEvent &&
-							$selection.size > 1 &&
-							!(e.originalEvent.ctrlKey || e.originalEvent.metaKey || e.originalEvent.shiftKey)
+							!(e.originalEvent.ctrlKey || e.originalEvent.metaKey || e.originalEvent.shiftKey) &&
+							($selection.size > 1 || !$selection.has(item.extend(getRealId(changed[0]))))
 						) {
 							// Fix bug that sometimes causes a single select to be treated as a multi-select
 							$selection.clear();
