@@ -44,7 +44,7 @@
 		let newMap = new mapboxgl.Map({
 			container: 'map',
 			style: { version: 8, sources: {}, layers: [] },
-			projection: { name: 'mercator' },
+			zoom: 0,
 			hash: hash,
 			language: get(locale),
 			attributionControl: false,

@@ -68,16 +68,17 @@ gpxStatistics.subscribe(() => {
 
 const targetMapBounds = writable({
     bounds: new mapboxgl.LngLatBounds([180, 90, -180, -90]),
-    initial: true
+    count: 0
 });
 
 targetMapBounds.subscribe((bounds) => {
-    if (bounds.initial) {
+    if (bounds.count === 0) {
         return;
     }
 
     let currentBounds = get(map)?.getBounds();
-    if (currentBounds && currentBounds.contains(bounds.bounds.getSouthEast()) && currentBounds.contains(bounds.bounds.getNorthWest())) {
+    if (bounds.count !== get(fileObservers).size &&
+        currentBounds && currentBounds.contains(bounds.bounds.getSouthEast()) && currentBounds.contains(bounds.bounds.getNorthWest())) {
         return;
     }
 
@@ -102,7 +103,7 @@ export function initTargetMapBounds(first: boolean) {
     }
     targetMapBounds.set({
         bounds: bounds,
-        initial: true
+        count: 0
     });
 }
 
@@ -117,7 +118,7 @@ export function updateTargetMapBounds(bounds: {
     targetMapBounds.update((target) => {
         target.bounds.extend(bounds.southWest);
         target.bounds.extend(bounds.northEast);
-        target.initial = false;
+        target.count += 1;
         return target;
     });
 }
