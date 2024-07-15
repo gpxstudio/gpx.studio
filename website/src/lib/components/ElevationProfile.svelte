@@ -179,9 +179,8 @@
 			}
 		},
 		stacked: false,
-		onResize: function (chart, size) {
-			overlay.width = size.width;
-			overlay.height = size.height;
+		onResize: function () {
+			updateOverlay();
 			updateShowAdditionalScales();
 		}
 	};
@@ -280,10 +279,6 @@
 
 		updateShowAdditionalScales();
 
-		// Overlay canvas to create a selection rectangle
-		overlay.width = canvas.width;
-		overlay.height = canvas.height;
-
 		let startIndex = 0;
 		let endIndex = 0;
 		function getIndex(evt) {
@@ -295,13 +290,18 @@
 				},
 				true
 			);
-			const rect = canvas.getBoundingClientRect();
 
 			if (points.length === 0) {
-				return evt.x - rect.left <= chart.chartArea.left
-					? 0
-					: $gpxStatistics.local.points.length - 1;
+				const rect = canvas.getBoundingClientRect();
+				if (evt.x - rect.left <= chart.chartArea.left) {
+					return 0;
+				} else if (evt.x - rect.left >= chart.chartArea.right) {
+					return $gpxStatistics.local.points.length - 1;
+				} else {
+					return undefined;
+				}
 			}
+
 			let point = points.find((point) => point.element.raw);
 			if (point) {
 				return point.element.raw.index;
@@ -320,12 +320,16 @@
 			if (dragStarted) {
 				dragging = true;
 				endIndex = getIndex(evt);
-				if (startIndex !== endIndex) {
-					$slicedGPXStatistics = [
-						$gpxStatistics.slice(Math.min(startIndex, endIndex), Math.max(startIndex, endIndex)),
-						Math.min(startIndex, endIndex),
-						Math.max(startIndex, endIndex)
-					];
+				if (endIndex !== undefined) {
+					if (startIndex === undefined) {
+						startIndex = endIndex;
+					} else if (startIndex !== endIndex) {
+						$slicedGPXStatistics = [
+							$gpxStatistics.slice(Math.min(startIndex, endIndex), Math.max(startIndex, endIndex)),
+							Math.min(startIndex, endIndex),
+							Math.max(startIndex, endIndex)
+						];
+					}
 				}
 			}
 		}
@@ -506,36 +510,47 @@
 		chart.update();
 	}
 
-	$: if ($slicedGPXStatistics) {
-		let startIndex = $slicedGPXStatistics[1];
-		let endIndex = $slicedGPXStatistics[2];
-
-		// Draw selection rectangle
-		let selectionContext = overlay.getContext('2d');
-		if (selectionContext) {
-			selectionContext.globalAlpha = 0.1;
-			selectionContext.clearRect(0, 0, overlay.width, overlay.height);
-
-			let startPixel = chart.scales.x.getPixelForValue(
-				getConvertedDistance($gpxStatistics.local.distance.total[startIndex])
-			);
-			let endPixel = chart.scales.x.getPixelForValue(
-				getConvertedDistance($gpxStatistics.local.distance.total[endIndex])
-			);
-
-			selectionContext.fillRect(
-				startPixel,
-				chart.chartArea.top,
-				endPixel - startPixel,
-				chart.chartArea.bottom - chart.chartArea.top
-			);
+	function updateOverlay() {
+		if (!canvas) {
+			return;
 		}
-	} else if (overlay) {
-		let selectionContext = overlay.getContext('2d');
-		if (selectionContext) {
-			selectionContext.clearRect(0, 0, overlay.width, overlay.height);
+
+		overlay.width = canvas.width / window.devicePixelRatio;
+		overlay.height = canvas.height / window.devicePixelRatio;
+
+		if ($slicedGPXStatistics) {
+			let startIndex = $slicedGPXStatistics[1];
+			let endIndex = $slicedGPXStatistics[2];
+
+			// Draw selection rectangle
+			let selectionContext = overlay.getContext('2d');
+			if (selectionContext) {
+				selectionContext.globalAlpha = 0.1;
+				selectionContext.clearRect(0, 0, overlay.width, overlay.height);
+
+				let startPixel = chart.scales.x.getPixelForValue(
+					getConvertedDistance($gpxStatistics.local.distance.total[startIndex])
+				);
+				let endPixel = chart.scales.x.getPixelForValue(
+					getConvertedDistance($gpxStatistics.local.distance.total[endIndex])
+				);
+
+				selectionContext.fillRect(
+					startPixel,
+					chart.chartArea.top,
+					endPixel - startPixel,
+					chart.chartArea.bottom - chart.chartArea.top
+				);
+			}
+		} else if (overlay) {
+			let selectionContext = overlay.getContext('2d');
+			if (selectionContext) {
+				selectionContext.clearRect(0, 0, overlay.width, overlay.height);
+			}
 		}
 	}
+
+	$: $slicedGPXStatistics, updateOverlay();
 
 	onDestroy(() => {
 		if (chart) {
