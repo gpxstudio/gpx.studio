@@ -22,7 +22,7 @@ export const routingProfileSelectItem = writable({
 });
 
 derived([routingProfile, locale, isLoading], ([profile, l, i]) => [profile, l, i]).subscribe(([profile, l, i]) => {
-    if (!i && profile !== get(routingProfileSelectItem).value && l !== null) {
+    if (!i && profile !== '' && profile !== get(routingProfileSelectItem).value && l !== null) {
         routingProfileSelectItem.update((item) => {
             item.value = profile;
             item.label = get(_)(`toolbar.routing.activities.${profile}`);
@@ -31,7 +31,7 @@ derived([routingProfile, locale, isLoading], ([profile, l, i]) => [profile, l, i
     }
 });
 routingProfileSelectItem.subscribe((item) => {
-    if (item.value !== get(routingProfile)) {
+    if (item.value !== '' && item.value !== get(routingProfile)) {
         routingProfile.set(item.value);
     }
 });
