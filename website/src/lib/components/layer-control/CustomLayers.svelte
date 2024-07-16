@@ -99,15 +99,21 @@
 
 	function addLayer(layerId: string) {
 		if (layerType === 'basemap') {
-			if (!$selectedBasemapTree.basemaps.hasOwnProperty('custom')) {
-				$selectedBasemapTree.basemaps['custom'] = {};
-			}
-			$selectedBasemapTree.basemaps['custom'][layerId] = true;
+			selectedBasemapTree.update(($tree) => {
+				if (!$tree.basemaps.hasOwnProperty('custom')) {
+					$tree.basemaps['custom'] = {};
+				}
+				$tree.basemaps['custom'][layerId] = true;
+				return $tree;
+			});
 		} else {
-			if (!$selectedOverlayTree.overlays.hasOwnProperty('custom')) {
-				$selectedOverlayTree.overlays['custom'] = {};
-			}
-			$selectedOverlayTree.overlays['custom'][layerId] = true;
+			selectedOverlayTree.update(($tree) => {
+				if (!$tree.overlays.hasOwnProperty('custom')) {
+					$tree.overlays['custom'] = {};
+				}
+				$tree.overlays['custom'][layerId] = true;
+				return $tree;
+			});
 		}
 	}
 

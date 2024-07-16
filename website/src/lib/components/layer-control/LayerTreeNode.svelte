@@ -8,6 +8,7 @@
 
 	import { _ } from 'svelte-i18n';
 	import { settings } from '$lib/db';
+	import { beforeUpdate } from 'svelte';
 
 	export let name: string;
 	export let node: LayerTreeType;
@@ -18,17 +19,19 @@
 
 	const { customLayers } = settings;
 
-	$: if (checked !== undefined) {
-		Object.keys(node).forEach((id) => {
-			if (!checked.hasOwnProperty(id)) {
-				if (typeof node[id] == 'boolean') {
-					checked[id] = false;
-				} else {
-					checked[id] = {};
+	beforeUpdate(() => {
+		if (checked !== undefined) {
+			Object.keys(node).forEach((id) => {
+				if (!checked.hasOwnProperty(id)) {
+					if (typeof node[id] == 'boolean') {
+						checked[id] = false;
+					} else {
+						checked[id] = {};
+					}
 				}
-			}
-		});
-	}
+			});
+		}
+	});
 </script>
 
 <div class="flex flex-col gap-[3px]">
