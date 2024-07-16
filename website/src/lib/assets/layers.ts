@@ -183,7 +183,7 @@ export const basemaps: { [key: string]: string | Style; } = {
         sources: {
             norwayTopo: {
                 type: 'raster',
-                tiles: ['https://opencache.statkart.no/gatekeeper/gk/gk.open_gmaps?layers=topo4&zoom={z}&x={x}&y={y}', 'https://opencache2.statkart.no/gatekeeper/gk/gk.open_gmaps?layers=topo4&zoom={z}&x={x}&y={y}', 'https://opencache3.statkart.no/gatekeeper/gk/gk.open_gmaps?layers=topo4&zoom={z}&x={x}&y={y}'],
+                tiles: ['https://cache.kartverket.no/v1/wmts/1.0.0/topo/default/webmercator/{z}/{y}/{x}.png'],
                 tileSize: 256,
                 maxzoom: 20,
                 attribution: '&copy; <a href="https://www.geonorge.no/" target="_blank">Geonorge</a>'
