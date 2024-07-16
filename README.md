@@ -1,12 +1,11 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="website/static/logo-dark.svg">
-  <img alt="Logo of gpx.studio." src="website/static/logo.svg" style="width: 100%; max-width: 500px; margin-bottom: 10px;">
+  <img alt="Logo of gpx.studio." src="website/static/logo.svg">
 </picture>
 
 **gpx.studio** is an online tool for creating and editing GPX files.
 
 ![gpx.studio screenshot](website/src/lib/assets/img/docs/getting-started/interface.png)
-
 
 This repository contains the source code of the new website, currently available [here](https://gpx.studio/gpx.studio).
 
@@ -65,6 +64,7 @@ This project has been made possible thanks to the following open-source projects
   - [shadcn-svelte](https://github.com/huntabyte/shadcn-svelte) — beautiful components
   - [lucide-svelte](https://github.com/lucide-icons/lucide/tree/main/packages/lucide-svelte) — beautiful icons
   - [tailwindcss](https://github.com/tailwindlabs/tailwindcss) — easy styling
+  - [Chart.js](https://github.com/chartjs/Chart.js) — beautiful and fast charts
 - Logic:
   - [immer](https://github.com/immerjs/immer) — complex state management
   - [Dexie.js](https://github.com/dexie/Dexie.js) — IndexedDB wrapper
