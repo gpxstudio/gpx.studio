@@ -88,7 +88,8 @@
 		previousOverlays,
 		distanceMarkers,
 		directionMarkers,
-		streetViewSource
+		streetViewSource,
+		routing
 	} = settings;
 
 	let undoDisabled = derived(canUndo, ($canUndo) => !$canUndo);
@@ -543,6 +544,9 @@
 			e.preventDefault();
 		} else if (e.key === 'F4') {
 			$directionMarkers = !$directionMarkers;
+			e.preventDefault();
+		} else if (e.key === 'F5') {
+			$routing = !$routing;
 			e.preventDefault();
 		} else if (
 			e.key === 'ArrowRight' ||

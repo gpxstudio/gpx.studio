@@ -5,6 +5,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import Help from '$lib/components/Help.svelte';
 	import Tooltip from '$lib/components/Tooltip.svelte';
+	import Shortcut from '$lib/components/Shortcut.svelte';
 	import {
 		Bike,
 		Footprints,
@@ -25,7 +26,6 @@
 	import { brouterProfiles, routingProfileSelectItem } from './Routing';
 
 	import { _ } from 'svelte-i18n';
-	import { get } from 'svelte/store';
 	import { RoutingControls } from './RoutingControls';
 	import mapboxgl from 'mapbox-gl';
 	import { fileObservers } from '$lib/db';
@@ -129,7 +129,10 @@
 					</span>
 					<Switch class="scale-90" bind:checked={$routing} />
 				</Label>
-				<span slot="tooltip">{$_('toolbar.routing.use_routing_tooltip')}</span>
+				<span slot="tooltip" class="flex flex-row items-center">
+					{$_('toolbar.routing.use_routing_tooltip')}
+					<Shortcut key="F5" />
+				</span>
 			</Tooltip>
 			{#if $routing}
 				<div class="flex flex-col gap-3" in:slide>
