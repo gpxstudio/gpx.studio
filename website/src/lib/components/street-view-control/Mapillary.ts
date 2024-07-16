@@ -1,7 +1,6 @@
 import mapboxgl from "mapbox-gl";
 import { Viewer } from 'mapillary-js/dist/mapillary.module';
 import 'mapillary-js/dist/mapillary.css';
-import { t } from "svelte-i18n";
 import { resetCursor, setPointerCursor } from "$lib/utils";
 
 const mapillarySource = {
@@ -47,18 +46,14 @@ export class MapillaryLayer {
     onMouseEnterBinded = this.onMouseEnter.bind(this);
     onMouseLeaveBinded = this.onMouseLeave.bind(this);
 
-    constructor(map: mapboxgl.Map) {
+    constructor(map: mapboxgl.Map, container: HTMLElement) {
         this.map = map;
-
-        const container = document.createElement('div');
-        container.style.width = '400px';
-        container.style.height = '300px';
-        container.className = 'rounded-md border-background border-2'
 
         this.viewer = new Viewer({
             accessToken: 'MLY|4381405525255083|3204871ec181638c3c31320490f03011',
             container,
         });
+        container.classList.remove('hidden');
 
         this.popup = new mapboxgl.Popup({
             closeButton: false,
@@ -106,6 +101,10 @@ export class MapillaryLayer {
             this.map.removeSource('mapillary');
         }
 
+        this.popup.remove();
+    }
+
+    closePopup() {
         this.popup.remove();
     }
 

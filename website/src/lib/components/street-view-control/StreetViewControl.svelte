@@ -1,7 +1,7 @@
 <script lang="ts">
 	import CustomControl from '$lib/components/custom-control/CustomControl.svelte';
 	import { Toggle } from '$lib/components/ui/toggle';
-	import { PersonStanding } from 'lucide-svelte';
+	import { PersonStanding, X } from 'lucide-svelte';
 	import { MapillaryLayer } from './Mapillary';
 	import { GoogleRedirect } from './Google';
 	import { map, streetViewEnabled } from '$lib/stores';
@@ -11,10 +11,11 @@
 
 	let googleRedirect: GoogleRedirect;
 	let mapillaryLayer: MapillaryLayer;
+	let container: HTMLElement;
 
 	$: if ($map) {
 		googleRedirect = new GoogleRedirect($map);
-		mapillaryLayer = new MapillaryLayer($map);
+		mapillaryLayer = new MapillaryLayer($map, container);
 	}
 
 	$: if (mapillaryLayer) {
@@ -41,3 +42,21 @@
 		<PersonStanding size="22" />
 	</Toggle>
 </CustomControl>
+
+<div
+	bind:this={container}
+	class="hidden relative w-[50vw] h-[40vh] rounded-md border-background border-2"
+>
+	<!-- svelte-ignore a11y-click-events-have-key-events -->
+	<!-- svelte-ignore a11y-no-static-element-interactions -->
+	<div
+		class="absolute top-0 right-0 z-10 bg-background p-1 rounded-bl-md cursor-pointer"
+		on:click={() => {
+			if (mapillaryLayer) {
+				mapillaryLayer.closePopup();
+			}
+		}}
+	>
+		<X size="16" />
+	</div>
+</div>
