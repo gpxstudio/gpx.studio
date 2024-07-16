@@ -102,10 +102,7 @@ export class SelectionTreeType {
         return false;
     }
 
-    getSelected(selection?: ListItem[]): ListItem[] {
-        if (selection === undefined) {
-            selection = [];
-        }
+    getSelected(selection: ListItem[] = []): ListItem[] {
         if (this.selected) {
             selection.push(this.item);
         }
@@ -198,6 +195,14 @@ export function selectAll() {
 
         return $selection;
     });
+}
+
+export function getOrderedSelection(reverse: boolean = false): ListItem[] {
+    let selected: ListItem[] = [];
+    applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+        selected.push(...items);
+    }, reverse);
+    return selected;
 }
 
 export function applyToOrderedItemsFromFile(selectedItems: ListItem[], callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void, reverse: boolean = true) {

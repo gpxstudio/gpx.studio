@@ -14,7 +14,7 @@ export abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
     _data: { [key: string]: any } = {};
 
     abstract isLeaf(): boolean;
-    abstract get children(): ReadonlyArray<T>;
+    abstract get children(): Array<T>;
 
     abstract getNumberOfTrackPoints(): number;
     abstract getStartTimestamp(): Date | undefined;
@@ -74,16 +74,15 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
             newPreviousTimestamp = og.getStartTimestamp();
         }
 
-        let children = og.children.slice();
-        children.reverse();
+        this.children.reverse();
 
         for (let i = 0; i < og.children.length; i++) {
             let originalStartTimestamp = og.children[og.children.length - i - 1].getStartTimestamp();
 
-            children[i]._reverse(originalNextTimestamp, newPreviousTimestamp);
+            this.children[i]._reverse(originalNextTimestamp, newPreviousTimestamp);
 
             originalNextTimestamp = originalStartTimestamp;
-            newPreviousTimestamp = children[i].getEndTimestamp();
+            newPreviousTimestamp = this.children[i].getEndTimestamp();
         }
 
         if (this instanceof GPXFile) {
@@ -102,7 +101,7 @@ abstract class GPXTreeLeaf extends GPXTreeElement<GPXTreeLeaf> {
         return true;
     }
 
-    get children(): ReadonlyArray<GPXTreeLeaf> {
+    get children(): Array<GPXTreeLeaf> {
         return [];
     }
 }
@@ -149,7 +148,7 @@ export class GPXFile extends GPXTreeNode<Track>{
         });
     }
 
-    get children(): ReadonlyArray<Track> {
+    get children(): Array<Track> {
         return this.trk;
     }
 
@@ -244,6 +243,20 @@ export class GPXFile extends GPXTreeNode<Track>{
 
     reverseTrackSegment(trackIndex: number, segmentIndex: number) {
         this.trk[trackIndex].reverseTrackSegment(segmentIndex);
+    }
+
+    roundTrip() {
+        this.trk.forEach((track) => {
+            track.roundTrip();
+        });
+    }
+
+    roundTripTrack(trackIndex: number) {
+        this.trk[trackIndex].roundTrip();
+    }
+
+    roundTripTrackSegment(trackIndex: number, segmentIndex: number) {
+        this.trk[trackIndex].roundTripTrackSegment(segmentIndex);
     }
 
     crop(start: number, end: number, trackIndices?: number[], segmentIndices?: number[]) {
@@ -404,7 +417,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
         }
     }
 
-    get children(): ReadonlyArray<TrackSegment> {
+    get children(): Array<TrackSegment> {
         return this.trkseg;
     }
 
@@ -468,6 +481,16 @@ export class Track extends GPXTreeNode<TrackSegment> {
 
     reverseTrackSegment(segmentIndex: number) {
         this.trkseg[segmentIndex]._reverse(this.trkseg[segmentIndex].getEndTimestamp(), this.trkseg[segmentIndex].getStartTimestamp());
+    }
+
+    roundTrip() {
+        this.trkseg.forEach((segment) => {
+            segment.roundTrip();
+        });
+    }
+
+    roundTripTrackSegment(segmentIndex: number) {
+        this.trkseg[segmentIndex].roundTrip();
     }
 
     crop(start: number, end: number, segmentIndices?: number[]) {
@@ -824,6 +847,13 @@ export class TrackSegment extends GPXTreeLeaf {
         } else {
             this.trkpt.reverse();
         }
+    }
+
+    roundTrip() {
+        let og = getOriginal(this); // Read as much as possible from the original object because it is faster
+        let newSegment = og.clone();
+        newSegment._reverse(newSegment.getEndTimestamp(), newSegment.getEndTimestamp());
+        this.replaceTrackPoints(this.trkpt.length, this.trkpt.length, newSegment.trkpt);
     }
 
     crop(start: number, end: number) {

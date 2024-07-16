@@ -21,7 +21,7 @@
 	} from 'lucide-svelte';
 
 	import { map, newGPXFile, routingControls, selectFileWhenLoaded } from '$lib/stores';
-	import { dbUtils, getFileIds, settings } from '$lib/db';
+	import { dbUtils, getFile, getFileIds, settings } from '$lib/db';
 	import { brouterProfiles, routingProfileSelectItem } from './Routing';
 
 	import { _ } from 'svelte-i18n';
@@ -30,9 +30,15 @@
 	import mapboxgl from 'mapbox-gl';
 	import { fileObservers } from '$lib/db';
 	import { slide } from 'svelte/transition';
-	import { selection } from '$lib/components/file-list/Selection';
-	import { ListRootItem, type ListItem } from '$lib/components/file-list/FileList';
-	import { flyAndScale } from '$lib/utils';
+	import { getOrderedSelection, selection } from '$lib/components/file-list/Selection';
+	import {
+		ListFileItem,
+		ListRootItem,
+		ListTrackItem,
+		ListTrackSegmentItem,
+		type ListItem
+	} from '$lib/components/file-list/FileList';
+	import { flyAndScale, resetCursor, setCrosshairCursor } from '$lib/utils';
 	import { onDestroy, onMount } from 'svelte';
 	import { TrackPoint } from 'gpx';
 
@@ -86,10 +92,12 @@
 	}
 
 	onMount(() => {
+		setCrosshairCursor();
 		$map?.on('click', createFileWithPoint);
 	});
 
 	onDestroy(() => {
+		resetCursor();
 		$map?.off('click', createFileWithPoint);
 
 		routingControls.forEach((controls) => controls.destroy());
@@ -178,10 +186,33 @@
 					slot="data"
 					variant="outline"
 					class="flex flex-row gap-1 text-xs px-2"
-					disabled={$selection.size != 1 || !validSelection}
+					disabled={!validSelection}
 					on:click={() => {
-						const fileId = get(selection).getSelected()[0].getFileId();
-						routingControls.get(fileId)?.routeToStart();
+						const selected = getOrderedSelection();
+						if (selected.length > 0) {
+							const firstFileId = selected[0].getFileId();
+							const firstFile = getFile(firstFileId);
+							if (firstFile) {
+								let start = (() => {
+									if (selected[0] instanceof ListFileItem) {
+										return firstFile.trk[0]?.trkseg[0]?.trkpt[0];
+									} else if (selected[0] instanceof ListTrackItem) {
+										return firstFile.trk[selected[0].getTrackIndex()]?.trkseg[0]?.trkpt[0];
+									} else if (selected[0] instanceof ListTrackSegmentItem) {
+										return firstFile.trk[selected[0].getTrackIndex()]?.trkseg[
+											selected[0].getSegmentIndex()
+										]?.trkpt[0];
+									}
+								})();
+
+								if (start !== undefined) {
+									const lastFileId = selected[selected.length - 1].getFileId();
+									routingControls
+										.get(lastFileId)
+										?.appendAnchorWithCoordinates(start.getCoordinates());
+								}
+							}
+						}
 					}}
 				>
 					<Home size="12" />{$_('toolbar.routing.route_back_to_start.button')}
@@ -193,11 +224,8 @@
 					slot="data"
 					variant="outline"
 					class="flex flex-row gap-1 text-xs px-2"
-					disabled={$selection.size != 1 || !validSelection}
-					on:click={() => {
-						const fileId = get(selection).getSelected()[0].getFileId();
-						routingControls.get(fileId)?.createRoundTrip();
-					}}
+					disabled={!validSelection}
+					on:click={dbUtils.createRoundTripForSelection}
 				>
 					<Repeat size="12" />{$_('toolbar.routing.round_trip.button')}
 				</Button>
@@ -206,9 +234,7 @@
 		</div>
 		<div class="w-full flex flex-row gap-2 items-end justify-between">
 			<Help>
-				{#if $selection.size > 1}
-					<div>{$_('toolbar.routing.help_multiple_files')}</div>
-				{:else if $selection.size == 0 || !validSelection}
+				{#if !validSelection}
 					<div>{$_('toolbar.routing.help_no_file')}</div>
 				{:else}
 					<div>{$_('toolbar.routing.help')}</div>
