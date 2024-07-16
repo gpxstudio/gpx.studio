@@ -18,6 +18,8 @@ class Database extends Dexie {
     files!: Dexie.Table<GPXFile, string>;
     patches!: Dexie.Table<{ patch: Patch[], inversePatch: Patch[], index: number }, number>;
     settings!: Dexie.Table<any, string>;
+    overpasslayertiles!: Dexie.Table<{ layer: string, x: number, y: number }, [string, number, number]>;
+    overpassdata!: Dexie.Table<{ layer: string, id: number, poi: GeoJSON.Feature }, [string, number]>;
 
     constructor() {
         super("Database", {
@@ -27,19 +29,22 @@ class Database extends Dexie {
             fileids: ',&fileid',
             files: '',
             patches: ',patch',
-            settings: ''
+            settings: '',
+            overpasslayertiles: '[layer+x+y],[x+y]',
+            overpassdata: '[layer+id]',
         });
-        this.files.add
     }
 }
 
-const db = new Database();
+export const db = new Database();
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber, and updates to the store are pushed to the DB
-function dexieSettingStore<T>(setting: string, initial: T): Writable<T> {
-    let store = writable(initial);
-    liveQuery(() => db.settings.get(setting)).subscribe(value => {
-        if (value !== undefined) {
+export function bidirectionalDexieStore<K, V>(table: Dexie.Table<V, K>, key: K, initial: V, initialize: boolean = true): Writable<V> {
+    let store = writable(initialize ? initial : undefined);
+    liveQuery(() => table.get(key)).subscribe(value => {
+        if (value === undefined && !initialize) {
+            store.set(initial);
+        } else if (value !== undefined) {
             store.set(value);
         }
     });
@@ -47,36 +52,20 @@ function dexieSettingStore<T>(setting: string, initial: T): Writable<T> {
         subscribe: store.subscribe,
         set: (value: any) => {
             if (typeof value === 'object' || value !== get(store)) {
-                db.settings.put(value, setting);
+                table.put(value, key);
             }
         },
         update: (callback: (value: any) => any) => {
             let newValue = callback(get(store));
             if (typeof newValue === 'object' || newValue !== get(store)) {
-                db.settings.put(newValue, setting);
+                table.put(newValue, key);
             }
         }
     };
 }
 
-// Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber, and updates to the store are pushed to the DB
-function dexieUninitializedSettingStore(setting: string, initial: any): Writable<any> {
-    let store = writable(undefined);
-    liveQuery(() => db.settings.get(setting)).subscribe(value => {
-        if (value !== undefined) {
-            store.set(value);
-        } else {
-            store.set(initial);
-        }
-    });
-    return {
-        subscribe: store.subscribe,
-        set: (value: any) => db.settings.put(value, setting),
-        update: (callback: (value: any) => any) => {
-            let newValue = callback(get(store));
-            db.settings.put(newValue, setting);
-        }
-    };
+export function dexieSettingStore<T>(key: string, initial: T, initialize: boolean = true): Writable<T> {
+    return bidirectionalDexieStore(db.settings, key, initial, initialize);
 }
 
 export const settings = {
@@ -94,7 +83,7 @@ export const settings = {
     currentBasemap: dexieSettingStore('currentBasemap', defaultBasemap),
     previousBasemap: dexieSettingStore('previousBasemap', defaultBasemap),
     selectedBasemapTree: dexieSettingStore('selectedBasemapTree', defaultBasemapTree),
-    currentOverlays: dexieUninitializedSettingStore('currentOverlays', defaultOverlays),
+    currentOverlays: dexieSettingStore('currentOverlays', defaultOverlays, false),
     previousOverlays: dexieSettingStore('previousOverlays', defaultOverlays),
     selectedOverlayTree: dexieSettingStore('selectedOverlayTree', defaultOverlayTree),
     opacities: dexieSettingStore('opacities', defaultOpacities),
@@ -108,7 +97,7 @@ export const settings = {
     defaultWeight: dexieSettingStore('defaultWeight', 5),
     bottomPanelSize: dexieSettingStore('bottomPanelSize', 170),
     rightPanelSize: dexieSettingStore('rightPanelSize', 240),
-    showWelcomeMessage: dexieUninitializedSettingStore('showWelcomeMessage', true),
+    showWelcomeMessage: dexieSettingStore('showWelcomeMessage', true, false),
 };
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber

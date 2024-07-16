@@ -12,8 +12,10 @@
 	import { map } from '$lib/stores';
 	import { get, writable } from 'svelte/store';
 	import { getLayers } from './utils';
+	import { OverpassLayer } from './OverpassLayer';
 
 	let container: HTMLDivElement;
+	let overpassLayer: OverpassLayer;
 
 	const {
 		currentBasemap,
@@ -52,6 +54,14 @@
 				$map.off('style.load', addOverlayLayer[id]);
 			}
 		});
+	}
+
+	$: if ($map) {
+		if (overpassLayer) {
+			overpassLayer.remove();
+		}
+		overpassLayer = new OverpassLayer($map);
+		overpassLayer.add();
 	}
 
 	let selectedBasemap = writable(get(currentBasemap));

@@ -48,6 +48,8 @@
     "dependencies": {
         "@internationalized/date": "^3.5.4",
         "@mapbox/mapbox-gl-geocoder": "^5.0.2",
+        "@mapbox/sphericalmercator": "^1.2.0",
+        "@types/mapbox__sphericalmercator": "^1.2.3",
         "bits-ui": "^0.21.12",
         "chart.js": "^4.4.3",
         "clsx": "^2.1.1",
