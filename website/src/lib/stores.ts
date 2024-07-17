@@ -73,7 +73,7 @@ const targetMapBounds = writable({
 });
 
 derived([targetMapBounds, map], x => x).subscribe(([bounds, $map]) => {
-    if ($map === null || bounds.count !== bounds.total) {
+    if ($map === null || bounds.count !== bounds.total || (bounds.bounds.getSouth() === 90 && bounds.bounds.getWest() === 180 && bounds.bounds.getNorth() === -90 && bounds.bounds.getEast() === -180)) {
         return;
     }
 
@@ -110,6 +110,10 @@ export function updateTargetMapBounds(bounds: {
     northEast: Coordinates
 }) {
     if (bounds.southWest.lat == 90 && bounds.southWest.lon == 180 && bounds.northEast.lat == -90 && bounds.northEast.lon == -180) { // Avoid update for empty (new) files
+        targetMapBounds.update((target) => {
+            target.count += 1;
+            return target;
+        });
         return;
     }
 
