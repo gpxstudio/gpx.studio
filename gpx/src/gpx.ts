@@ -668,11 +668,11 @@ export class TrackSegment extends GPXTreeLeaf {
     _computeSmoothedElevation(): number[] {
         const points = this.trkpt;
 
-        let smoothed = distanceWindowSmoothing(points, 100, (index) => points[index].ele, (accumulated, start, end) => accumulated / (end - start + 1));
+        let smoothed = distanceWindowSmoothing(points, 100, (index) => points[index].ele ?? 0, (accumulated, start, end) => accumulated / (end - start + 1));
 
         if (points.length > 0) {
-            smoothed[0] = points[0].ele;
-            smoothed[points.length - 1] = points[points.length - 1].ele;
+            smoothed[0] = points[0].ele ?? 0;
+            smoothed[points.length - 1] = points[points.length - 1].ele ?? 0;
         }
 
         return smoothed;

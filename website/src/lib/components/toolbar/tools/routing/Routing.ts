@@ -73,7 +73,7 @@ async function getRoute(points: Coordinates[], brouterProfile: string, privateRo
                 lat: coord[1],
                 lon: coord[0]
             },
-            ele: coord[2] ?? undefined
+            ele: coord[2] ?? (i > 0 ? route[i - 1].ele : 0)
         }));
         route[route.length - 1].setSurface(surface)
 
