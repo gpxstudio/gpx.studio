@@ -4,7 +4,7 @@ import mapboxgl from "mapbox-gl";
 import { get, writable } from "svelte/store";
 import { liveQuery } from "dexie";
 import { db, settings } from "$lib/db";
-import { overpassIcons, overpassQueries } from "$lib/assets/layers";
+import { overpassQueryData } from "$lib/assets/layers";
 
 const {
     currentOverpassQueries
@@ -12,6 +12,14 @@ const {
 
 const mercator = new SphericalMercator({
     size: 256,
+});
+
+export const overpassPopupPOI = writable<Record<string, any> | null>(null);
+
+export const overpassPopup = new mapboxgl.Popup({
+    closeButton: false,
+    maxWidth: undefined,
+    offset: 15,
 });
 
 let data = writable<GeoJSON.FeatureCollection>({ type: 'FeatureCollection', features: [] });
@@ -27,10 +35,13 @@ export class OverpassLayer {
     map: mapboxgl.Map;
 
     currentQueries: Set<string> = new Set();
+    nextQueries: Map<string, { x: number, y: number, queries: string[] }> = new Map();
 
     unsubscribes: (() => void)[] = [];
     queryIfNeededBinded = this.queryIfNeeded.bind(this);
     updateBinded = this.update.bind(this);
+    onHoverBinded = this.onHover.bind(this);
+    maybeHidePopupBinded = this.maybeHidePopup.bind(this);
 
     constructor(map: mapboxgl.Map) {
         this.map = map;
@@ -44,8 +55,6 @@ export class OverpassLayer {
             this.updateBinded();
             this.queryIfNeededBinded();
         }));
-
-        this.map.showTileBoundaries = true;
 
         this.update();
     }
@@ -79,10 +88,13 @@ export class OverpassLayer {
                     type: 'symbol',
                     source: 'overpass',
                     layout: {
-                        'icon-image': ['get', 'query'],
+                        'icon-image': ['get', 'icon'],
                         'icon-size': 0.25,
                     },
                 });
+
+                this.map.on('mouseenter', 'overpass', this.onHoverBinded);
+                this.map.on('click', 'overpass', this.onHoverBinded);
             }
 
             this.map.setFilter('overpass', ['in', 'query', ...getCurrentQueries()]);
@@ -103,6 +115,27 @@ export class OverpassLayer {
         if (this.map.getSource('overpass')) {
             this.map.removeSource('overpass');
         }
+    }
+
+    onHover(e: any) {
+        overpassPopupPOI.set(e.features[0].properties);
+        overpassPopup.setLngLat(e.features[0].geometry.coordinates);
+        overpassPopup.addTo(this.map);
+        this.map.on('mousemove', this.maybeHidePopupBinded);
+    }
+
+    maybeHidePopup(e: any) {
+        let poi = get(overpassPopupPOI);
+        if (poi && this.map.project([poi.lon, poi.lat]).dist(this.map.project(e.lngLat)) > 100) {
+            this.hideWaypointPopup();
+        }
+    }
+
+    hideWaypointPopup() {
+        overpassPopupPOI.set(null);
+        overpassPopup.remove();
+
+        this.map.off('mousemove', this.maybeHidePopupBinded);
     }
 
     query(bbox: [number, number, number, number]) {
@@ -130,17 +163,33 @@ export class OverpassLayer {
     }
 
     queryTile(x: number, y: number, queries: string[]) {
+        if (this.currentQueries.size > 5) {
+            return;
+        }
+
         this.currentQueries.add(`${x},${y}`);
 
         const bounds = mercator.bbox(x, y, this.queryZoom);
         fetch(`${this.overpassUrl}?data=${getQueryForBounds(bounds, queries)}`)
-            .then((response) => response.json())
+            .then((response) => {
+                if (response.ok) {
+                    try {
+                        return response.json();
+                    } catch (e) { }
+                }
+                this.currentQueries.delete(`${x},${y}`);
+                return Promise.reject();
+            }, () => (this.currentQueries.delete(`${x},${y}`)))
             .then((data) => this.storeOverpassData(x, y, queries, data));
     }
 
     storeOverpassData(x: number, y: number, queries: string[], data: any) {
         let queryTiles = queries.map((query) => ({ x, y, query }));
         let pois: { query: string, id: number, poi: GeoJSON.Feature }[] = [];
+
+        if (data.elements === undefined) {
+            return;
+        }
 
         for (let element of data.elements) {
             for (let query of queries) {
@@ -152,13 +201,18 @@ export class OverpassLayer {
                             type: 'Feature',
                             geometry: {
                                 type: 'Point',
-                                coordinates: [element.lon, element.lat],
+                                coordinates: element.center ? [element.center.lon, element.center.lat] : [element.lon, element.lat],
                             },
-                            properties: { query, tags: element.tags },
+                            properties: {
+                                id: element.id,
+                                lat: element.center ? element.center.lat : element.lat,
+                                lon: element.center ? element.center.lon : element.lon,
+                                query: query,
+                                icon: `overpass-${query}`,
+                                tags: element.tags
+                            },
                         }
                     });
-
-                    break;
                 }
             }
         }
@@ -174,17 +228,21 @@ export class OverpassLayer {
     loadIcons() {
         let currentQueries = getCurrentQueries();
         currentQueries.forEach((query) => {
-            if (!this.map.hasImage(query)) {
+            if (!this.map.hasImage(`overpass-${query}`)) {
                 let icon = new Image(100, 100);
-                icon.onload = () => this.map.addImage(query, icon);
+                icon.onload = () => {
+                    if (!this.map.hasImage(`overpass-${query}`)) {
+                        this.map.addImage(`overpass-${query}`, icon);
+                    }
+                }
 
                 // Lucide icons are SVG files with a 24x24 viewBox
                 // Create a new SVG with a 32x32 viewBox and center the icon in a circle
                 icon.src = 'data:image/svg+xml,' + encodeURIComponent(`
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
-                    <circle cx="20" cy="20" r="20" fill="${overpassIcons[query].color}" />
+                    <circle cx="20" cy="20" r="20" fill="${overpassQueryData[query].icon.color}" />
                     <g transform="translate(8 8)">
-                    ${overpassIcons[query].svg.replace('stroke="currentColor"', 'stroke="white"')}
+                    ${overpassQueryData[query].icon.svg.replace('stroke="currentColor"', 'stroke="white"')}
                     </g>
                 </svg>
             `);
@@ -194,22 +252,29 @@ export class OverpassLayer {
 }
 
 function getQueryForBounds(bounds: [number, number, number, number], queries: string[]) {
-    return `[bbox:${bounds[1]},${bounds[0]},${bounds[3]},${bounds[2]}][out:json];(${getQueries(queries)});out;`;
+    return `[bbox:${bounds[1]},${bounds[0]},${bounds[3]},${bounds[2]}][out:json];(${getQueries(queries)});out center;`;
 }
 
 function getQueries(queries: string[]) {
-    return queries.map((query) => `node${getQuery(query)};`).join('');
+    return queries.map((query) => getQuery(query)).join('');
 }
 
 function getQuery(query: string) {
-    return Object.entries(overpassQueries[query])
-        .map(([tag, value]) => value ? `[${tag}=${value}]` : `[${tag}]`)
-        .join('');
+    let arrayEntry = Object.entries(overpassQueryData[query].tags).find(([_, value]) => Array.isArray(value));
+    if (arrayEntry !== undefined) {
+        return arrayEntry[1].map((val) => `nwr${Object.entries(overpassQueryData[query].tags)
+            .map(([tag, value]) => `[${tag}=${tag === arrayEntry[0] ? val : value}]`)
+            .join('')};`).join('');
+    } else {
+        return `nwr${Object.entries(overpassQueryData[query].tags)
+            .map(([tag, value]) => `[${tag}=${value}]`)
+            .join('')};`;
+    }
 }
 
 function belongsToQuery(element: any, query: string) {
-    return Object.entries(overpassQueries[query])
-        .every(([tag, value]) => value ? element.tags[tag] === value : element.tags[tag]);
+    return Object.entries(overpassQueryData[query].tags)
+        .every(([tag, value]) => Array.isArray(value) ? value.includes(element.tags[tag]) : element.tags[tag] === value);
 }
 
 function getCurrentQueries() {

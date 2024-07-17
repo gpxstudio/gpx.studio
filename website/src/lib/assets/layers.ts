@@ -1,5 +1,5 @@
 import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
-import { TramFront } from 'lucide-static';
+import { TramFront, Utensils, ShoppingBasket, Droplet, ShowerHead, Fuel, CircleParking, Fence, FerrisWheel, Telescope, Bed, Mountain, Pickaxe, Store, TrainFront, Bus, Ship, Croissant } from 'lucide-static';
 import { type AnySourceData, type Style } from 'mapbox-gl';
 
 export const basemaps: { [key: string]: string | Style; } = {
@@ -544,8 +544,38 @@ export const overlayTree: LayerTreeType = {
 // Hierachy containing all Overpass layers
 export const overpassTree: LayerTreeType = {
     points_of_interest: {
-        transport: {
-            tram: true,
+        food: {
+            bakery: true,
+            "food-store": true,
+            "eat-and-drink": true,
+        },
+        amenities: {
+            toilets: true,
+            "water": true,
+            "water-spring": true,
+            shower: true,
+            "fuel-station": true,
+            parking: true,
+            barrier: true
+        },
+        tourism: {
+            attraction: true,
+            viewpoint: true,
+            sleep: true,
+            summit: true,
+            pass: true,
+            climbing: true,
+        },
+        bicycle: {
+            "bicycle-parking": true,
+            "bicycle-rental": true,
+            "bicycle-shop": true
+        },
+        "public-transport": {
+            "railway-station": true,
+            "tram-stop": true,
+            "bus-stop": true,
+            ferry: true
         },
     },
 };
@@ -598,8 +628,38 @@ export const defaultOverlays = {
 // Default Overpass queries used (none)
 export const defaultOverpassQueries: LayerTreeType = {
     points_of_interest: {
-        transport: {
-            tram: false,
+        "food": {
+            bakery: false,
+            "food-store": false,
+            "eat-and-drink": false,
+        },
+        amenities: {
+            toilets: false,
+            "water": false,
+            "water-spring": false,
+            shower: false,
+            "fuel-station": false,
+            parking: false,
+            barrier: false
+        },
+        tourism: {
+            attraction: false,
+            viewpoint: false,
+            sleep: false,
+            summit: false,
+            pass: false,
+            climbing: false
+        },
+        bicycle: {
+            "bicycle-parking": false,
+            "bicycle-rental": false,
+            "bicycle-shop": false
+        },
+        "public-transport": {
+            "railway-station": false,
+            "tram-stop": false,
+            "bus-stop": false,
+            ferry: false
         },
     },
 };
@@ -702,8 +762,38 @@ export const defaultOverlayTree: LayerTreeType = {
 // Default Overpass queries shown in the layer menu
 export const defaultOverpassTree: LayerTreeType = {
     points_of_interest: {
-        transport: {
-            tram: true,
+        "food": {
+            bakery: true,
+            "food-store": true,
+            "eat-and-drink": true,
+        },
+        amenities: {
+            toilets: true,
+            "water": true,
+            "water-spring": true,
+            shower: true,
+            "fuel-station": false,
+            parking: false,
+            barrier: false
+        },
+        tourism: {
+            attraction: true,
+            viewpoint: true,
+            sleep: true,
+            summit: true,
+            pass: true,
+            climbing: false
+        },
+        bicycle: {
+            "bicycle-parking": true,
+            "bicycle-rental": true,
+            "bicycle-shop": true
+        },
+        "public-transport": {
+            "railway-station": true,
+            "tram-stop": true,
+            "bus-stop": true,
+            ferry: true
         },
     },
 };
@@ -718,18 +808,223 @@ export type CustomLayer = {
     value: string | {},
 };
 
-type OverpassQuery = Record<string, string | undefined>;
-
-export const overpassQueries: Record<string, OverpassQuery> = {
-    tram: {
-        railway: 'tram_stop',
+type OverpassQueryData = {
+    icon: {
+        svg: string,
+        color: string,
     },
+    tags: Record<string, string | boolean | string[]>,
 };
 
-export const overpassIcons: Record<string, { svg: string, color: string }> = {
-    tram: {
-        svg: TramFront,
-        color: '#000000',
+export const overpassQueryData: Record<string, OverpassQueryData> = {
+    "bakery": {
+        icon: {
+            svg: Croissant,
+            color: "Coral",
+        },
+        tags: {
+            shop: "bakery"
+        }
+    },
+    "food-store": {
+        icon: {
+            svg: ShoppingBasket,
+            color: "Coral",
+        },
+        tags: {
+            shop: ["supermarket", "convenience"],
+        }
+    },
+    "eat-and-drink": {
+        icon: {
+            svg: Utensils,
+            color: "Coral",
+        },
+        tags: {
+            amenity: ["restaurant", "fast_food", "cafe", "pub", "bar"]
+        }
+    },
+    "toilets": {
+        icon: {
+            svg: Droplet,
+            color: "DeepSkyBlue",
+        },
+        tags: {
+            amenity: "toilets"
+        }
+    },
+    water: {
+        icon: {
+            svg: Droplet,
+            color: "DeepSkyBlue",
+        },
+        tags: {
+            amenity: ["drinking_water", "water_point"]
+        }
+    },
+    "water-spring": {
+        icon: {
+            svg: Droplet,
+            color: "DeepSkyBlue",
+        },
+        tags: {
+            natural: "spring",
+            drinking_water: "yes"
+        }
+    },
+    shower: {
+        icon: {
+            svg: ShowerHead,
+            color: "DeepSkyBlue",
+        },
+        tags: {
+            amenity: "shower"
+        }
+    },
+    "fuel-station": {
+        icon: {
+            svg: Fuel,
+            color: "#000000",
+        },
+        tags: {
+            amenity: "fuel"
+        }
+    },
+    parking: {
+        icon: {
+            svg: CircleParking,
+            color: "#000000",
+        },
+        tags: {
+            amenity: "parking"
+        }
+    },
+    barrier: {
+        icon: {
+            svg: Fence,
+            color: "#000000",
+        },
+        tags: {
+            barrier: true
+        }
+    },
+    attraction: {
+        icon: {
+            svg: FerrisWheel,
+            color: "Green",
+        },
+        tags: {
+            tourism: "attraction"
+        }
+    },
+    viewpoint: {
+        icon: {
+            svg: Telescope,
+            color: "Green",
+        },
+        tags: {
+            tourism: "viewpoint"
+        }
+    },
+    sleep: {
+        icon: {
+            svg: Bed,
+            color: "Green",
+        },
+        tags: {
+            tourism: ["hotel", "hostel", "guest_house", "motel", "camp_site", "alpine_hut", "wilderness_hut"]
+        }
+    },
+    summit: {
+        icon: {
+            svg: Mountain,
+            color: "Green",
+        },
+        tags: {
+            natural: "peak"
+        }
+    },
+    pass: {
+        icon: {
+            svg: Mountain,
+            color: "Green",
+        },
+        tags: {
+            mountain_pass: "yes"
+        }
+    },
+    climbing: {
+        icon: {
+            svg: Pickaxe,
+            color: "Green",
+        },
+        tags: {
+            sport: "climbing"
+        }
+    },
+    "bicycle-parking": {
+        icon: {
+            svg: CircleParking,
+            color: "HotPink",
+        },
+        tags: {
+            amenity: "bicycle_parking"
+        }
+    },
+    "bicycle-rental": {
+        icon: {
+            svg: Store,
+            color: "HotPink",
+        },
+        tags: {
+            amenity: "bicycle_rental"
+        }
+    },
+    "bicycle-shop": {
+        icon: {
+            svg: Store,
+            color: "HotPink",
+        },
+        tags: {
+            shop: "bicycle"
+        }
+    },
+    "railway-station": {
+        icon: {
+            svg: TrainFront,
+            color: "DarkBlue",
+        },
+        tags: {
+            railway: "station"
+        }
+    },
+    "tram-stop": {
+        icon: {
+            svg: TramFront,
+            color: 'DarkBlue',
+        },
+        tags: {
+            railway: "tram_stop"
+        },
+    },
+    "bus-stop": {
+        icon: {
+            svg: Bus,
+            color: "DarkBlue",
+        },
+        tags: {
+            "public_transport": ["stop_position", "platform"],
+            bus: "yes"
+        }
+    },
+    ferry: {
+        icon: {
+            svg: Ship,
+            color: "DarkBlue",
+        },
+        tags: {
+            amenity: "ferry_terminal"
+        }
     }
 };
 

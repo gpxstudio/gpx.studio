@@ -13,6 +13,7 @@
 	import { get, writable } from 'svelte/store';
 	import { getLayers } from './utils';
 	import { OverpassLayer } from './OverpassLayer';
+	import OverpassPopup from './OverpassPopup.svelte';
 
 	let container: HTMLDivElement;
 	let overpassLayer: OverpassLayer;
@@ -185,6 +186,8 @@
 		</div>
 	</div>
 </CustomControl>
+
+<OverpassPopup />
 
 <svelte:window
 	on:click={(e) => {
