@@ -14,7 +14,7 @@
 
 {#if $file}
 	{#if recursive}
-		<CollapsibleTree side="left" margin={4} defaultState="closed" slotInsideTrigger={false}>
+		<CollapsibleTree side="left" defaultState="closed" slotInsideTrigger={false}>
 			<FileListNode node={$file.file} item={new ListFileItem($file.file._data.id)} />
 		</CollapsibleTree>
 	{:else}

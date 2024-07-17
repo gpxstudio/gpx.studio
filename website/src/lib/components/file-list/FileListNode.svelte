@@ -72,7 +72,7 @@
 {:else if recursive}
 	<CollapsibleTreeNode id={item.getId()} bind:this={collapsible}>
 		<FileListNodeLabel {node} {item} {label} slot="trigger" />
-		<div slot="content">
+		<div slot="content" class="ml-2">
 			{#key node}
 				<FileListNodeContent {node} {item} />
 			{/key}

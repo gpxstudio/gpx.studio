@@ -10,7 +10,6 @@
 	let defaultState = getContext<'open' | 'closed'>('collapsible-tree-default-state');
 	let open = getContext<Writable<Record<string, boolean>>>('collapsible-tree-state');
 	let side = getContext<'left' | 'right'>('collapsible-tree-side');
-	let margin = getContext<number>('collapsible-tree-margin');
 	let nohover = getContext<boolean>('collapsible-tree-nohover');
 	let slotInsideTrigger = getContext<boolean>('collapsible-tree-slot-inside-trigger');
 	let parentId = getContext<string>('collapsible-tree-parent-id');
@@ -92,7 +91,7 @@
 		</Button>
 	{/if}
 
-	<Collapsible.Content class="ml-{margin} pl-{margin}">
+	<Collapsible.Content class="ml-2">
 		<slot name="content" />
 	</Collapsible.Content>
 </Collapsible.Root>
