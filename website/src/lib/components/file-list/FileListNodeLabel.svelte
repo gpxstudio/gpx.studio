@@ -30,6 +30,7 @@
 	import {
 		copied,
 		copySelection,
+		cut,
 		cutSelection,
 		pasteSelection,
 		selectAll,
@@ -144,6 +145,8 @@
 			{/if}
 			<span
 				class="w-full text-left truncate py-1 flex flex-row items-center {hidden
+					? 'text-muted-foreground'
+					: ''} {$cut && $copied?.some((i) => i.getFullId() === item.getFullId())
 					? 'text-muted-foreground'
 					: ''}"
 				on:contextmenu={(e) => {

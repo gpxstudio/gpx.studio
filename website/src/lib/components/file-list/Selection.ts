@@ -230,7 +230,7 @@ export function applyToOrderedSelectedItemsFromFile(callback: (fileId: string, l
 }
 
 export const copied = writable<ListItem[] | undefined>(undefined);
-const cut = writable(false);
+export const cut = writable(false);
 
 export function copySelection(): boolean {
     let selected = get(selection).getSelected();
