@@ -2,7 +2,7 @@ import Dexie, { liveQuery } from 'dexie';
 import { GPXFile, GPXStatistics, Track, TrackSegment, Waypoint, TrackPoint, type Coordinates, distance, type LineStyleExtension } from 'gpx';
 import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, freeze, produceWithPatches } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
-import { gpxStatistics, initTargetMapBounds, splitAs, updateAllHidden, updateTargetMapBounds } from './stores';
+import { Tool, currentTool, gpxStatistics, initTargetMapBounds, splitAs, updateAllHidden, updateTargetMapBounds } from './stores';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays, type CustomLayer, defaultOpacities } from './assets/layers';
 import { applyToOrderedItemsFromFile, applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem, ListRootItem } from '$lib/components/file-list/FileList';
@@ -295,8 +295,8 @@ export function observeFilesFromDatabase() {
         // Update the store
         if (newFiles.length > 0 || deletedFiles.length > 0) {
             fileObservers.update($files => {
-                if (newFiles.length > 0) { // Reset the target map bounds when new files are added
-                    initTargetMapBounds($files.size === 0);
+                if (newFiles.length > 0 && get(currentTool) !== Tool.SCISSORS) { // Reset the target map bounds when new files are added
+                    initTargetMapBounds(newFiles.length);
                 }
                 newFiles.forEach(id => {
                     $files.set(id, dexieGPXFileStore(id));

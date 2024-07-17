@@ -1,4 +1,4 @@
-import { writable, get, type Writable } from 'svelte/store';
+import { writable, get, type Writable, derived } from 'svelte/store';
 
 import mapboxgl from 'mapbox-gl';
 import { GPXFile, buildGPX, parseGPX, GPXStatistics, type Coordinates } from 'gpx';
@@ -68,42 +68,40 @@ gpxStatistics.subscribe(() => {
 
 const targetMapBounds = writable({
     bounds: new mapboxgl.LngLatBounds([180, 90, -180, -90]),
-    count: 0
+    count: 0,
+    total: -1
 });
 
-targetMapBounds.subscribe((bounds) => {
-    if (bounds.count === 0) {
+derived([targetMapBounds, map], x => x).subscribe(([bounds, $map]) => {
+    if ($map === null || bounds.count !== bounds.total) {
         return;
     }
 
-    let currentBounds = get(map)?.getBounds();
-    if (bounds.count !== get(fileObservers).size &&
-        currentBounds && currentBounds.contains(bounds.bounds.getSouthEast()) && currentBounds.contains(bounds.bounds.getNorthWest())) {
-        return;
-    }
+    let currentBounds = $map.getBounds();
+    if (bounds.count !== get(fileObservers).size && currentBounds) {
+        // There are other files on the map
 
-    map.subscribe((m) => {
-        if (m) {
-            m.fitBounds(bounds.bounds, {
-                padding: 80,
-                linear: true,
-                easing: () => 1
-            });
+        if (currentBounds.contains(bounds.bounds.getSouthEast()) && currentBounds.contains(bounds.bounds.getNorthWest())) {
+            return;
         }
+
+        bounds.bounds.extend(currentBounds.getSouthWest());
+        bounds.bounds.extend(currentBounds.getNorthEast());
+    }
+
+    $map.fitBounds(bounds.bounds, {
+        padding: 80,
+        linear: true,
+        easing: () => 1
     });
 });
 
 
-export function initTargetMapBounds(first: boolean) {
-    let bounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
-    let mapBounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
-    if (!first) { // Some files are already loaded
-        mapBounds = get(map)?.getBounds() ?? mapBounds;
-        bounds.extend(mapBounds);
-    }
+export function initTargetMapBounds(total: number) {
     targetMapBounds.set({
-        bounds: bounds,
-        count: 0
+        bounds: new mapboxgl.LngLatBounds([180, 90, -180, -90]),
+        count: 0,
+        total: total
     });
 }
 
