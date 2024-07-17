@@ -84,14 +84,6 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
             originalNextTimestamp = originalStartTimestamp;
             newPreviousTimestamp = this.children[i].getEndTimestamp();
         }
-
-        if (this instanceof GPXFile) {
-            // @ts-ignore
-            this.trk = freeze(children);
-        } else if (this instanceof Track) {
-            // @ts-ignore
-            this.trkseg = freeze(children);
-        }
     }
 }
 
