@@ -1,24 +1,14 @@
-import { type LayerTreeType } from "$lib/assets/layers";
 import SphericalMercator from "@mapbox/sphericalmercator";
 import { getLayers } from "./utils";
 import mapboxgl from "mapbox-gl";
 import { get, writable } from "svelte/store";
 import { liveQuery } from "dexie";
-import { db } from "$lib/db";
+import { db, settings } from "$lib/db";
+import { overpassIcons, overpassQueries } from "$lib/assets/layers";
 
-const poiSelection: LayerTreeType = {
-    transport: {
-        tram: true,
-    },
-};
-
-type PoiQuery = Record<string, string | undefined>;
-
-const poiQueries: Record<string, PoiQuery> = {
-    tram: {
-        railway: 'tram_stop',
-    },
-};
+const {
+    currentOverpassQueries
+} = settings;
 
 const mercator = new SphericalMercator({
     size: 256,
@@ -31,9 +21,9 @@ liveQuery(() => db.overpassdata.toArray()).subscribe((pois) => {
 });
 
 export class OverpassLayer {
-    overpassUrl = 'https://overpass-api.de/api/interpreter';
+    overpassUrl = 'https://overpass.private.coffee/api/interpreter';
     minZoom = 12;
-    queryZoom = 14;
+    queryZoom = 12;
     map: mapboxgl.Map;
 
     currentQueries: Set<string> = new Set();
@@ -50,6 +40,10 @@ export class OverpassLayer {
         this.map.on('moveend', this.queryIfNeededBinded);
         this.map.on('style.load', this.updateBinded);
         this.unsubscribes.push(data.subscribe(this.updateBinded));
+        this.unsubscribes.push(currentOverpassQueries.subscribe(() => {
+            this.updateBinded();
+            this.queryIfNeededBinded();
+        }));
 
         this.map.showTileBoundaries = true;
 
@@ -64,6 +58,8 @@ export class OverpassLayer {
     }
 
     update() {
+        this.loadIcons();
+
         let d = get(data);
 
         try {
@@ -83,14 +79,13 @@ export class OverpassLayer {
                     type: 'symbol',
                     source: 'overpass',
                     layout: {
-                        'text-field': ['get', 'name'],
-                        'text-allow-overlap': true,
+                        'icon-image': ['get', 'query'],
+                        'icon-size': 0.25,
                     },
-                    paint: {
-                        'text-color': 'black',
-                    }
                 });
             }
+
+            this.map.setFilter('overpass', ['in', 'query', ...getCurrentQueries()]);
         } catch (e) {
             // No reliable way to check if the map is ready to add sources and layers
         }
@@ -111,7 +106,11 @@ export class OverpassLayer {
     }
 
     query(bbox: [number, number, number, number]) {
-        let layers = getLayers(poiSelection);
+        let queries = getCurrentQueries();
+        if (queries.length === 0) {
+            return;
+        }
+
         let tileLimits = mercator.xyz(bbox, this.queryZoom);
 
         for (let x = tileLimits.minX; x <= tileLimits.maxX; x++) {
@@ -120,34 +119,34 @@ export class OverpassLayer {
                     continue;
                 }
 
-                db.overpasslayertiles.where('[x+y]').equals([x, y]).toArray().then((layertiles) => {
-                    let missingLayers = Object.keys(layers).filter((layer) => !layertiles.some((layertile) => layertile.layer === layer));
-                    if (missingLayers.length > 0) {
-                        this.queryTileForLayers(x, y, missingLayers);
+                db.overpassquerytiles.where('[x+y]').equals([x, y]).toArray().then((querytiles) => {
+                    let missingQueries = queries.filter((query) => !querytiles.some((querytile) => querytile.query === query));
+                    if (missingQueries.length > 0) {
+                        this.queryTile(x, y, missingQueries);
                     }
                 });
             }
         }
     }
 
-    queryTileForLayers(x: number, y: number, layers: string[]) {
+    queryTile(x: number, y: number, queries: string[]) {
         this.currentQueries.add(`${x},${y}`);
 
         const bounds = mercator.bbox(x, y, this.queryZoom);
-        fetch(`${this.overpassUrl}?data=${getQueryForBoundsAndLayers(bounds, layers)}`)
+        fetch(`${this.overpassUrl}?data=${getQueryForBounds(bounds, queries)}`)
             .then((response) => response.json())
-            .then((data) => this.storeOverpassData(x, y, layers, data));
+            .then((data) => this.storeOverpassData(x, y, queries, data));
     }
 
-    storeOverpassData(x: number, y: number, layers: string[], data: any) {
-        let layerTiles = layers.map((layer) => ({ x, y, layer }));
-        let pois: { layer: string, id: number, poi: GeoJSON.Feature }[] = [];
+    storeOverpassData(x: number, y: number, queries: string[], data: any) {
+        let queryTiles = queries.map((query) => ({ x, y, query }));
+        let pois: { query: string, id: number, poi: GeoJSON.Feature }[] = [];
 
         for (let element of data.elements) {
-            for (let layer of layers) {
-                if (belongsToLayer(element, layer)) {
+            for (let query of queries) {
+                if (belongsToQuery(element, query)) {
                     pois.push({
-                        layer,
+                        query,
                         id: element.id,
                         poi: {
                             type: 'Feature',
@@ -155,7 +154,7 @@ export class OverpassLayer {
                                 type: 'Point',
                                 coordinates: [element.lon, element.lat],
                             },
-                            properties: { ...element.tags, layer }
+                            properties: { query, tags: element.tags },
                         }
                     });
 
@@ -164,30 +163,60 @@ export class OverpassLayer {
             }
         }
 
-        db.transaction('rw', db.overpasslayertiles, db.overpassdata, async () => {
-            await db.overpasslayertiles.bulkPut(layerTiles);
+        db.transaction('rw', db.overpassquerytiles, db.overpassdata, async () => {
+            await db.overpassquerytiles.bulkPut(queryTiles);
             await db.overpassdata.bulkPut(pois);
         });
 
         this.currentQueries.delete(`${x},${y}`);
     }
+
+    loadIcons() {
+        let currentQueries = getCurrentQueries();
+        currentQueries.forEach((query) => {
+            if (!this.map.hasImage(query)) {
+                let icon = new Image(100, 100);
+                icon.onload = () => this.map.addImage(query, icon);
+
+                // Lucide icons are SVG files with a 24x24 viewBox
+                // Create a new SVG with a 32x32 viewBox and center the icon in a circle
+                icon.src = 'data:image/svg+xml,' + encodeURIComponent(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+                    <circle cx="20" cy="20" r="20" fill="${overpassIcons[query].color}" />
+                    <g transform="translate(8 8)">
+                    ${overpassIcons[query].svg.replace('stroke="currentColor"', 'stroke="white"')}
+                    </g>
+                </svg>
+            `);
+            }
+        });
+    }
 }
 
-function getQueryForBoundsAndLayers(bounds: [number, number, number, number], layers: string[]) {
-    return `[bbox:${bounds[1]},${bounds[0]},${bounds[3]},${bounds[2]}][out:json];(${getQueryForLayers(layers)});out;`;
+function getQueryForBounds(bounds: [number, number, number, number], queries: string[]) {
+    return `[bbox:${bounds[1]},${bounds[0]},${bounds[3]},${bounds[2]}][out:json];(${getQueries(queries)});out;`;
 }
 
-function getQueryForLayers(layers: string[]) {
-    return layers.map((layer) => `node${getQueryForLayer(layer)};`).join('');
+function getQueries(queries: string[]) {
+    return queries.map((query) => `node${getQuery(query)};`).join('');
 }
 
-function getQueryForLayer(layer: string) {
-    return Object.entries(poiQueries[layer])
+function getQuery(query: string) {
+    return Object.entries(overpassQueries[query])
         .map(([tag, value]) => value ? `[${tag}=${value}]` : `[${tag}]`)
         .join('');
 }
 
-function belongsToLayer(element: any, layer: string) {
-    return Object.entries(poiQueries[layer])
+function belongsToQuery(element: any, query: string) {
+    return Object.entries(overpassQueries[query])
         .every(([tag, value]) => value ? element.tags[tag] === value : element.tags[tag]);
+}
+
+function getCurrentQueries() {
+    let currentQueries = get(currentOverpassQueries);
+    if (currentQueries === undefined) {
+        return [];
+    }
+
+    return Object.entries(getLayers(currentQueries)).filter(([_, selected]) => selected).map(([query, _]) => query);
 }

@@ -3,7 +3,7 @@ import { GPXFile, GPXStatistics, Track, TrackSegment, Waypoint, TrackPoint, type
 import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, freeze, produceWithPatches } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
 import { gpxStatistics, initTargetMapBounds, splitAs, updateAllHidden, updateTargetMapBounds } from './stores';
-import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays, type CustomLayer, defaultOpacities } from './assets/layers';
+import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays, type CustomLayer, defaultOpacities, defaultOverpassQueries, defaultOverpassTree } from './assets/layers';
 import { applyToOrderedItemsFromFile, applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem, ListRootItem } from '$lib/components/file-list/FileList';
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
@@ -18,8 +18,8 @@ class Database extends Dexie {
     files!: Dexie.Table<GPXFile, string>;
     patches!: Dexie.Table<{ patch: Patch[], inversePatch: Patch[], index: number }, number>;
     settings!: Dexie.Table<any, string>;
-    overpasslayertiles!: Dexie.Table<{ layer: string, x: number, y: number }, [string, number, number]>;
-    overpassdata!: Dexie.Table<{ layer: string, id: number, poi: GeoJSON.Feature }, [string, number]>;
+    overpassquerytiles!: Dexie.Table<{ query: string, x: number, y: number }, [string, number, number]>;
+    overpassdata!: Dexie.Table<{ query: string, id: number, poi: GeoJSON.Feature }, [string, number]>;
 
     constructor() {
         super("Database", {
@@ -30,8 +30,8 @@ class Database extends Dexie {
             files: '',
             patches: ',patch',
             settings: '',
-            overpasslayertiles: '[layer+x+y],[x+y]',
-            overpassdata: '[layer+id]',
+            overpassquerytiles: '[query+x+y],[x+y]',
+            overpassdata: '[query+id]',
         });
     }
 }
@@ -86,6 +86,8 @@ export const settings = {
     currentOverlays: dexieSettingStore('currentOverlays', defaultOverlays, false),
     previousOverlays: dexieSettingStore('previousOverlays', defaultOverlays),
     selectedOverlayTree: dexieSettingStore('selectedOverlayTree', defaultOverlayTree),
+    currentOverpassQueries: dexieSettingStore('currentOverpassQueries', defaultOverpassQueries, false),
+    selectedOverpassTree: dexieSettingStore('selectedOverpassTree', defaultOverpassTree),
     opacities: dexieSettingStore('opacities', defaultOpacities),
     customLayers: dexieSettingStore<Record<string, CustomLayer>>('customLayers', {}),
     directionMarkers: dexieSettingStore('directionMarkers', false),

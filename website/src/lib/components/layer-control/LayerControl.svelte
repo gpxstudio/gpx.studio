@@ -21,8 +21,10 @@
 		currentBasemap,
 		previousBasemap,
 		currentOverlays,
+		currentOverpassQueries,
 		selectedBasemapTree,
 		selectedOverlayTree,
+		selectedOverpassTree,
 		customLayers,
 		opacities
 	} = settings;
@@ -164,6 +166,17 @@
 								name="overlays"
 								multiple={true}
 								bind:checked={$currentOverlays}
+							/>
+						{/if}
+					</div>
+					<Separator class="w-full" />
+					<div class="p-2">
+						{#if $currentOverpassQueries}
+							<LayerTree
+								layerTree={$selectedOverpassTree}
+								name="overpass"
+								multiple={true}
+								bind:checked={$currentOverpassQueries}
 							/>
 						{/if}
 					</div>

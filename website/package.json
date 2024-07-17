@@ -56,6 +56,7 @@
         "dexie": "^4.0.7",
         "gpx": "file:../gpx",
         "immer": "^10.1.1",
+        "lucide-static": "^0.408.0",
         "lucide-svelte": "^0.395.0",
         "mapbox-gl": "^3.4.0",
         "mapillary-js": "^4.1.2",

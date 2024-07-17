@@ -1,4 +1,5 @@
 import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
+import { TramFront } from 'lucide-static';
 import { type AnySourceData, type Style } from 'mapbox-gl';
 
 export const basemaps: { [key: string]: string | Style; } = {
@@ -540,6 +541,15 @@ export const overlayTree: LayerTreeType = {
     },
 }
 
+// Hierachy containing all Overpass layers
+export const overpassTree: LayerTreeType = {
+    points_of_interest: {
+        transport: {
+            tram: true,
+        },
+    },
+};
+
 // Default basemap used
 export const defaultBasemap = 'mapboxOutdoors';
 
@@ -581,6 +591,15 @@ export const defaultOverlays = {
                 swisstopoMountainBike: false,
                 swisstopoSkiTouring: false,
             }
+        },
+    },
+};
+
+// Default Overpass queries used (none)
+export const defaultOverpassQueries: LayerTreeType = {
+    points_of_interest: {
+        transport: {
+            tram: false,
         },
     },
 };
@@ -680,6 +699,15 @@ export const defaultOverlayTree: LayerTreeType = {
     }
 }
 
+// Default Overpass queries shown in the layer menu
+export const defaultOverpassTree: LayerTreeType = {
+    points_of_interest: {
+        transport: {
+            tram: true,
+        },
+    },
+};
+
 export type CustomLayer = {
     id: string,
     name: string,
@@ -688,6 +716,21 @@ export type CustomLayer = {
     layerType: 'basemap' | 'overlay',
     resourceType: 'raster' | 'vector',
     value: string | {},
+};
+
+type OverpassQuery = Record<string, string | undefined>;
+
+export const overpassQueries: Record<string, OverpassQuery> = {
+    tram: {
+        railway: 'tram_stop',
+    },
+};
+
+export const overpassIcons: Record<string, { svg: string, color: string }> = {
+    tram: {
+        svg: TramFront,
+        color: '#000000',
+    }
 };
 
 export const stravaHeatmapServers = ['https://heatmap-external-a.strava.com/tiles-auth', 'https://heatmap-external-b.strava.com/tiles-auth', 'https://heatmap-external-c.strava.com/tiles-auth'];
