@@ -34,24 +34,22 @@
 					{/if}
 				</div>
 				{#if $currentPopupWaypoint[0].desc}
-					<span>{$currentPopupWaypoint[0].desc}</span>
+					<span class="whitespace-pre-wrap">{$currentPopupWaypoint[0].desc}</span>
 				{/if}
 				{#if $currentPopupWaypoint[0].cmt && $currentPopupWaypoint[0].cmt !== $currentPopupWaypoint[0].desc}
-					<span>{$currentPopupWaypoint[0].cmt}</span>
+					<span class="whitespace-pre-wrap">{$currentPopupWaypoint[0].cmt}</span>
 				{/if}
 				{#if $currentTool === Tool.WAYPOINT}
-					<div class="mt-2">
-						<Button
-							class="w-full px-2 py-1 h-6 justify-start"
-							variant="ghost"
-							on:click={() =>
-								deleteWaypoint($currentPopupWaypoint[1], $currentPopupWaypoint[0]._data.index)}
-						>
-							<Trash2 size="16" class="mr-1" />
-							{$_('menu.delete')}
-							<Shortcut key="" shift={true} click={true} />
-						</Button>
-					</div>
+					<Button
+						class="mt-2 w-full px-2 py-1 h-8 justify-start"
+						variant="outline"
+						on:click={() =>
+							deleteWaypoint($currentPopupWaypoint[1], $currentPopupWaypoint[0]._data.index)}
+					>
+						<Trash2 size="16" class="mr-1" />
+						{$_('menu.delete')}
+						<Shortcut key="" shift={true} click={true} />
+					</Button>
 				{/if}
 			</Card.Content>
 		</Card.Root>

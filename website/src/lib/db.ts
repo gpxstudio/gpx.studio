@@ -1,8 +1,8 @@
 import Dexie, { liveQuery } from 'dexie';
-import { GPXFile, GPXStatistics, Track, TrackSegment, Waypoint, TrackPoint, type Coordinates, distance, type LineStyleExtension } from 'gpx';
+import { GPXFile, GPXStatistics, Track, TrackSegment, Waypoint, TrackPoint, type Coordinates, distance, type LineStyleExtension, type WaypointType } from 'gpx';
 import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, freeze, produceWithPatches } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
-import { gpxStatistics, initTargetMapBounds, splitAs, updateAllHidden, updateTargetMapBounds } from './stores';
+import { gpxStatistics, initTargetMapBounds, map, splitAs, updateAllHidden, updateTargetMapBounds } from './stores';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays, type CustomLayer, defaultOpacities, defaultOverpassQueries, defaultOverpassTree } from './assets/layers';
 import { applyToOrderedItemsFromFile, applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem, ListRootItem } from '$lib/components/file-list/FileList';
@@ -892,6 +892,29 @@ export const dbUtils = {
                 }
             });
         });
+    },
+    addOrUpdateWaypoint: (waypoint: WaypointType, item?: ListWaypointItem) => {
+        let ele = get(map)?.queryTerrainElevation([waypoint.attributes.lon, waypoint.attributes.lat], { exaggerated: false }) ?? 0;
+        if (item) {
+            dbUtils.applyToFile(item.getFileId(), (file) => {
+                let wpt = file.wpt[item.getWaypointIndex()];
+                wpt.name = waypoint.name;
+                wpt.desc = waypoint.desc;
+                wpt.cmt = waypoint.cmt;
+                wpt.setCoordinates(waypoint.attributes);
+                wpt.ele = ele;
+            });
+        } else {
+            let fileIds = new Set<string>();
+            get(selection).getSelected().forEach((item) => {
+                fileIds.add(item.getFileId());
+            });
+            let wpt = new Waypoint(waypoint);
+            wpt.ele = ele;
+            dbUtils.applyToFiles(Array.from(fileIds), (file) =>
+                file.replaceWaypoints(file.wpt.length, file.wpt.length, [wpt])
+            );
+        }
     },
     setStyleToSelection: (style: LineStyleExtension) => {
         if (get(selection).size === 0) {

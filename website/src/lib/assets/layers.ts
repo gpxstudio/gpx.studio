@@ -561,7 +561,7 @@ export const overpassTree: LayerTreeType = {
         tourism: {
             attraction: true,
             viewpoint: true,
-            sleep: true,
+            accommodation: true,
             summit: true,
             pass: true,
             climbing: true,
@@ -645,7 +645,7 @@ export const defaultOverpassQueries: LayerTreeType = {
         tourism: {
             attraction: false,
             viewpoint: false,
-            sleep: false,
+            accommodation: false,
             summit: false,
             pass: false,
             climbing: false
@@ -770,30 +770,30 @@ export const defaultOverpassTree: LayerTreeType = {
         amenities: {
             toilets: true,
             "water": true,
-            "water-spring": true,
-            shower: true,
+            "water-spring": false,
+            shower: false,
             "fuel-station": false,
             parking: false,
             barrier: false
         },
         tourism: {
-            attraction: true,
-            viewpoint: true,
-            sleep: true,
+            attraction: false,
+            viewpoint: false,
+            accommodation: true,
             summit: true,
             pass: true,
             climbing: false
         },
         bicycle: {
-            "bicycle-parking": true,
-            "bicycle-rental": true,
+            "bicycle-parking": false,
+            "bicycle-rental": false,
             "bicycle-shop": true
         },
         "public-transport": {
             "railway-station": true,
             "tram-stop": true,
             "bus-stop": true,
-            ferry: true
+            ferry: false
         },
     },
 };
@@ -926,10 +926,10 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
             tourism: "viewpoint"
         }
     },
-    sleep: {
+    accommodation: {
         icon: {
             svg: Bed,
-            color: "Green",
+            color: "#e6c100",
         },
         tags: {
             tourism: ["hotel", "hostel", "guest_house", "motel", "camp_site", "alpine_hut", "wilderness_hut"]

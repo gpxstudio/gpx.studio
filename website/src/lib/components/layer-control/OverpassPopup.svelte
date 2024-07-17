@@ -2,9 +2,11 @@
 	import * as Card from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { overpassPopup, overpassPopupPOI } from './OverpassLayer';
-	import { PencilLine } from 'lucide-svelte';
+	import { selection } from '$lib/components/file-list/Selection';
+	import { PencilLine, MapPin } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
+	import { dbUtils } from '$lib/db';
 
 	let popupElement: HTMLDivElement;
 
@@ -47,23 +49,45 @@
 					<img src={tags.image ?? tags['image:0']} />
 				</div>
 			{/if}
-			<Card.Content
-				class="grid grid-cols-[auto_auto] gap-x-3 p-0 text-sm mt-1 whitespace-normal break-all"
-			>
-				{#each Object.entries(tags) as [key, value]}
-					{#if key !== 'name' && !key.includes('image')}
-						<span class="font-mono">{key}</span>
-						{#if key === 'website' || key === 'contact:website' || key === 'contact:facebook' || key === 'contact:instagram' || key === 'contact:twitter'}
-							<a href={value} target="_blank" class="text-blue-500 underline">{value}</a>
-						{:else if key === 'phone' || key === 'contact:phone'}
-							<a href={'tel:' + value} class="text-blue-500 underline">{value}</a>
-						{:else if key === 'email' || key === 'contact:email'}
-							<a href={'mailto:' + value} class="text-blue-500 underline">{value}</a>
-						{:else}
-							<span>{value}</span>
+			<Card.Content class="flex flex-col p-0 text-sm mt-1 whitespace-normal break-all">
+				<div class="grid grid-cols-[auto_auto] gap-x-3">
+					{#each Object.entries(tags) as [key, value]}
+						{#if key !== 'name' && !key.includes('image')}
+							<span class="font-mono">{key}</span>
+							{#if key === 'website' || key === 'contact:website' || key === 'contact:facebook' || key === 'contact:instagram' || key === 'contact:twitter'}
+								<a href={value} target="_blank" class="text-blue-500 underline">{value}</a>
+							{:else if key === 'phone' || key === 'contact:phone'}
+								<a href={'tel:' + value} class="text-blue-500 underline">{value}</a>
+							{:else if key === 'email' || key === 'contact:email'}
+								<a href={'mailto:' + value} class="text-blue-500 underline">{value}</a>
+							{:else}
+								<span>{value}</span>
+							{/if}
 						{/if}
-					{/if}
-				{/each}
+					{/each}
+				</div>
+				<Button
+					class="mt-2"
+					variant="outline"
+					disabled={$selection.size === 0}
+					on:click={() => {
+						let desc = Object.entries(tags)
+							.map(([key, value]) => `${key}: ${value}`)
+							.join('\n');
+						dbUtils.addOrUpdateWaypoint({
+							attributes: {
+								lat: $overpassPopupPOI.lat,
+								lon: $overpassPopupPOI.lon
+							},
+							name: tags.name ?? '',
+							desc: desc,
+							cmt: desc
+						});
+					}}
+				>
+					<MapPin size="16" class="mr-1" />
+					{$_('toolbar.waypoint.add')}
+				</Button>
 			</Card.Content>
 		</Card.Root>
 	{/if}

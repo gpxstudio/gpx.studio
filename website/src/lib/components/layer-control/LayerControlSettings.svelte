@@ -209,10 +209,6 @@
 							</ScrollArea>
 						</Accordion.Content>
 					</Accordion.Item>
-					<Accordion.Item value="pois" class="hidden">
-						<Accordion.Trigger>{$_('layers.pois')}</Accordion.Trigger>
-						<Accordion.Content></Accordion.Content>
-					</Accordion.Item>
 					<Accordion.Item value="heatmap-color" class="hidden">
 						<Accordion.Trigger>{$_('layers.heatmap')}</Accordion.Trigger>
 						<Accordion.Content class="overflow-visible">

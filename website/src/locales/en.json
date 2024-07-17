@@ -182,6 +182,7 @@
             "longitude": "Longitude",
             "latitude": "Latitude",
             "create": "Create point of interest",
+            "add": "Add point of interest to file",
             "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
             "help_no_selection": "Select a file item to create or edit points of interest."
         },
@@ -223,7 +224,6 @@
         },
         "opacity": "Overlay opacity",
         "heatmap": "Strava Heatmap",
-        "pois": "Points of interest",
         "label": {
             "basemaps": "Basemaps",
             "overlays": "Overlays",
@@ -302,7 +302,7 @@
             "tourism": "Tourism",
             "attraction": "Attraction",
             "viewpoint": "Viewpoint",
-            "sleep": "Sleep",
+            "accommodation": "Accommodation",
             "summit": "Summit",
             "pass": "Pass",
             "climbing": "Climbing",

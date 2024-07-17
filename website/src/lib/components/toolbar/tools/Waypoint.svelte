@@ -102,39 +102,22 @@
 		}
 		latitude = parseFloat(latitude.toFixed(6));
 		longitude = parseFloat(longitude.toFixed(6));
-		if ($selectedWaypoint) {
-			dbUtils.applyToFile($selectedWaypoint[1], (file) => {
-				let wpt = file.wpt[$selectedWaypoint[0]._data.index];
-				wpt.name = name;
-				wpt.desc = description;
-				wpt.cmt = description;
-				wpt.setCoordinates({
-					lat: latitude,
-					lon: longitude
-				});
-				wpt.ele =
-					get(map)?.queryTerrainElevation([longitude, latitude], { exaggerated: false }) ?? 0;
-			});
-		} else {
-			let fileIds = new Set<string>();
-			$selection.getSelected().forEach((item) => {
-				fileIds.add(item.getFileId());
-			});
-			let waypoint = new Waypoint({
-				name,
-				desc: description,
-				cmt: description,
+
+		dbUtils.addOrUpdateWaypoint(
+			{
 				attributes: {
 					lat: latitude,
 					lon: longitude
-				}
-			});
-			waypoint.ele =
-				get(map)?.queryTerrainElevation([longitude, latitude], { exaggerated: false }) ?? 0;
-			dbUtils.applyToFiles(Array.from(fileIds), (file) =>
-				file.replaceWaypoints(file.wpt.length, file.wpt.length, [waypoint])
-			);
-		}
+				},
+				name,
+				desc: description,
+				cmt: description
+			},
+			$selectedWaypoint
+				? new ListWaypointItem($selectedWaypoint[1], $selectedWaypoint[0]._data.index)
+				: undefined
+		);
+
 		selectedWaypoint.set(undefined);
 		resetWaypointData();
 	}

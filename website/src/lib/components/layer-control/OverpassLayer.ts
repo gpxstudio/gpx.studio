@@ -90,6 +90,7 @@ export class OverpassLayer {
                     layout: {
                         'icon-image': ['get', 'icon'],
                         'icon-size': 0.25,
+                        'icon-padding': 0,
                     },
                 });
 
@@ -173,14 +174,13 @@ export class OverpassLayer {
         fetch(`${this.overpassUrl}?data=${getQueryForBounds(bounds, queries)}`)
             .then((response) => {
                 if (response.ok) {
-                    try {
-                        return response.json();
-                    } catch (e) { }
+                    return response.json();
                 }
                 this.currentQueries.delete(`${x},${y}`);
                 return Promise.reject();
             }, () => (this.currentQueries.delete(`${x},${y}`)))
-            .then((data) => this.storeOverpassData(x, y, queries, data));
+            .then((data) => this.storeOverpassData(x, y, queries, data))
+            .catch(() => this.currentQueries.delete(`${x},${y}`));
     }
 
     storeOverpassData(x: number, y: number, queries: string[], data: any) {
