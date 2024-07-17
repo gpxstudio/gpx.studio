@@ -96,6 +96,10 @@ export function buildGPX(file: GPXFile): string {
         }
     };
 
+    if (gpx.trk.length === 1 && (gpx.trk[0].name === undefined || gpx.trk[0].name === '')) {
+        gpx.trk[0].name = gpx.metadata.name;
+    }
+
     return builder.build({
         "?xml": {
             attributes: {
