@@ -9,7 +9,7 @@
 	import * as Select from '$lib/components/ui/select';
 	import { Slider } from '$lib/components/ui/slider';
 
-	import { basemapTree, overlays, overlayTree } from '$lib/assets/layers';
+	import { basemapTree, overlays, overlayTree, overpassTree } from '$lib/assets/layers';
 	import { isSelected } from '$lib/components/layer-control/utils';
 	import { settings } from '$lib/db';
 
@@ -22,6 +22,7 @@
 	const {
 		selectedBasemapTree,
 		selectedOverlayTree,
+		selectedOverpassTree,
 		stravaHeatmapColor,
 		currentOverlays,
 		customLayers,
@@ -29,6 +30,7 @@
 	} = settings;
 
 	export let open: boolean;
+	let accordionValue = 'layer-selection';
 
 	let selectedOverlay = writable(undefined);
 	let overlayOpacity = writable([1]);
@@ -113,115 +115,122 @@
 	<Sheet.Content>
 		<Sheet.Header class="h-full">
 			<Sheet.Title>{$_('layers.settings')}</Sheet.Title>
-			<Sheet.Description>
-				{$_('layers.settings_help')}
-			</Sheet.Description>
-			<Accordion.Root class="flex flex-col overflow-hidden" value="layer-selection">
-				<Accordion.Item value="layer-selection" class="flex flex-col overflow-hidden">
-					<Accordion.Trigger>{$_('layers.selection')}</Accordion.Trigger>
-					<Accordion.Content class="grow flex flex-col border rounded">
-						<ScrollArea class="py-2 pl-1 pr-2 min-h-9">
-							<LayerTree
-								layerTree={basemapTree}
-								name="basemapSettings"
-								multiple={true}
-								bind:checked={$selectedBasemapTree}
-							/>
-						</ScrollArea>
-						<Separator />
-						<ScrollArea class="py-2 pl-1 pr-2 min-h-9">
-							<LayerTree
-								layerTree={overlayTree}
-								name="overlaySettings"
-								multiple={true}
-								bind:checked={$selectedOverlayTree}
-							/>
-						</ScrollArea>
-					</Accordion.Content>
-				</Accordion.Item>
-				<Accordion.Item value="overlay-opacity">
-					<Accordion.Trigger>{$_('layers.opacity')}</Accordion.Trigger>
-					<Accordion.Content class="flex flex-col gap-3 overflow-visible">
-						<div class="flex flex-row gap-6 items-center">
-							<Label>
-								{$_('layers.custom_layers.overlay')}
-							</Label>
-							<Select.Root bind:selected={$selectedOverlay}>
-								<Select.Trigger class="h-8 mr-1">
-									<Select.Value />
-								</Select.Trigger>
-								<Select.Content>
-									{#each Object.keys(overlays) as id}
-										{#if isSelected($selectedOverlayTree, id)}
-											<Select.Item value={id}>{$_(`layers.label.${id}`)}</Select.Item>
-										{/if}
-									{/each}
-									{#each Object.entries($customLayers) as [id, layer]}
-										{#if layer.layerType === 'overlay'}
-											<Select.Item value={id}>{layer.name}</Select.Item>
-										{/if}
-									{/each}
-								</Select.Content>
-							</Select.Root>
-						</div>
-						<Label class="flex flex-row gap-6 items-center">
-							{$_('menu.style.opacity')}
-							<div class="p-2 pr-3 grow">
-								<Slider
-									bind:value={$overlayOpacity}
-									min={0.1}
-									max={1}
-									step={0.1}
-									disabled={$selectedOverlay === undefined}
-									onValueChange={() => {
-										if ($selectedOverlay) {
-											$opacities[$selectedOverlay.value] = $overlayOpacity[0];
-											if ($map) {
-												if ($map.getLayer($selectedOverlay.value)) {
-													$map.removeLayer($selectedOverlay.value);
-													$currentOverlays = $currentOverlays;
-												}
-											}
-										}
-									}}
+			<ScrollArea class="w-[105%] pr-4">
+				<Sheet.Description>
+					{$_('layers.settings_help')}
+				</Sheet.Description>
+				<Accordion.Root class="flex flex-col" bind:value={accordionValue}>
+					<Accordion.Item value="layer-selection" class="flex flex-col">
+						<Accordion.Trigger>{$_('layers.selection')}</Accordion.Trigger>
+						<Accordion.Content class="grow flex flex-col border rounded">
+							<div class="py-2 pl-1 pr-2">
+								<LayerTree
+									layerTree={basemapTree}
+									name="basemapSettings"
+									multiple={true}
+									bind:checked={$selectedBasemapTree}
 								/>
 							</div>
-						</Label>
-					</Accordion.Content>
-				</Accordion.Item>
-				<Accordion.Item value="custom-layers">
-					<Accordion.Trigger>{$_('layers.custom_layers.title')}</Accordion.Trigger>
-					<Accordion.Content>
-						<ScrollArea>
-							<CustomLayers />
-						</ScrollArea>
-					</Accordion.Content>
-				</Accordion.Item>
-				<Accordion.Item value="pois" class="hidden">
-					<Accordion.Trigger>{$_('layers.pois')}</Accordion.Trigger>
-					<Accordion.Content></Accordion.Content>
-				</Accordion.Item>
-				<Accordion.Item value="heatmap-color" class="hidden">
-					<Accordion.Trigger>{$_('layers.heatmap')}</Accordion.Trigger>
-					<Accordion.Content class="overflow-visible">
-						<div class="flex flex-row items-center justify-between gap-6">
-							<Label>
-								{$_('menu.style.color')}
+							<Separator />
+							<div class="py-2 pl-1 pr-2">
+								<LayerTree
+									layerTree={overlayTree}
+									name="overlaySettings"
+									multiple={true}
+									bind:checked={$selectedOverlayTree}
+								/>
+							</div>
+							<Separator />
+							<div class="py-2 pl-1 pr-2">
+								<LayerTree
+									layerTree={overpassTree}
+									name="overpassSettings"
+									multiple={true}
+									bind:checked={$selectedOverpassTree}
+								/>
+							</div>
+						</Accordion.Content>
+					</Accordion.Item>
+					<Accordion.Item value="overlay-opacity">
+						<Accordion.Trigger>{$_('layers.opacity')}</Accordion.Trigger>
+						<Accordion.Content class="flex flex-col gap-3 overflow-visible">
+							<div class="flex flex-row gap-6 items-center">
+								<Label>
+									{$_('layers.custom_layers.overlay')}
+								</Label>
+								<Select.Root bind:selected={$selectedOverlay}>
+									<Select.Trigger class="h-8 mr-1">
+										<Select.Value />
+									</Select.Trigger>
+									<Select.Content>
+										{#each Object.keys(overlays) as id}
+											{#if isSelected($selectedOverlayTree, id)}
+												<Select.Item value={id}>{$_(`layers.label.${id}`)}</Select.Item>
+											{/if}
+										{/each}
+										{#each Object.entries($customLayers) as [id, layer]}
+											{#if layer.layerType === 'overlay'}
+												<Select.Item value={id}>{layer.name}</Select.Item>
+											{/if}
+										{/each}
+									</Select.Content>
+								</Select.Root>
+							</div>
+							<Label class="flex flex-row gap-6 items-center">
+								{$_('menu.style.opacity')}
+								<div class="p-2 pr-3 grow">
+									<Slider
+										bind:value={$overlayOpacity}
+										min={0.1}
+										max={1}
+										step={0.1}
+										disabled={$selectedOverlay === undefined}
+										onValueChange={() => {
+											if ($selectedOverlay) {
+												$opacities[$selectedOverlay.value] = $overlayOpacity[0];
+												if ($map) {
+													if ($map.getLayer($selectedOverlay.value)) {
+														$map.removeLayer($selectedOverlay.value);
+														$currentOverlays = $currentOverlays;
+													}
+												}
+											}
+										}}
+									/>
+								</div>
 							</Label>
-							<Select.Root bind:selected={$selectedHeatmapColor}>
-								<Select.Trigger class="h-8 mr-1">
-									<Select.Value />
-								</Select.Trigger>
-								<Select.Content>
-									{#each heatmapColors as { value, label }}
-										<Select.Item {value}>{label}</Select.Item>
-									{/each}
-								</Select.Content>
-							</Select.Root>
-						</div>
-					</Accordion.Content>
-				</Accordion.Item>
-			</Accordion.Root>
+						</Accordion.Content>
+					</Accordion.Item>
+					<Accordion.Item value="custom-layers">
+						<Accordion.Trigger>{$_('layers.custom_layers.title')}</Accordion.Trigger>
+						<Accordion.Content>
+							<ScrollArea>
+								<CustomLayers />
+							</ScrollArea>
+						</Accordion.Content>
+					</Accordion.Item>
+					<Accordion.Item value="heatmap-color" class="hidden">
+						<Accordion.Trigger>{$_('layers.heatmap')}</Accordion.Trigger>
+						<Accordion.Content class="overflow-visible">
+							<div class="flex flex-row items-center justify-between gap-6">
+								<Label>
+									{$_('menu.style.color')}
+								</Label>
+								<Select.Root bind:selected={$selectedHeatmapColor}>
+									<Select.Trigger class="h-8 mr-1">
+										<Select.Value />
+									</Select.Trigger>
+									<Select.Content>
+										{#each heatmapColors as { value, label }}
+											<Select.Item {value}>{label}</Select.Item>
+										{/each}
+									</Select.Content>
+								</Select.Root>
+							</div>
+						</Accordion.Content>
+					</Accordion.Item>
+				</Accordion.Root>
+			</ScrollArea>
 		</Sheet.Header>
 	</Sheet.Content>
 </Sheet.Root>

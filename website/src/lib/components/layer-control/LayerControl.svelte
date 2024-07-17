@@ -12,15 +12,20 @@
 	import { map } from '$lib/stores';
 	import { get, writable } from 'svelte/store';
 	import { getLayers } from './utils';
+	import { OverpassLayer } from './OverpassLayer';
+	import OverpassPopup from './OverpassPopup.svelte';
 
 	let container: HTMLDivElement;
+	let overpassLayer: OverpassLayer;
 
 	const {
 		currentBasemap,
 		previousBasemap,
 		currentOverlays,
+		currentOverpassQueries,
 		selectedBasemapTree,
 		selectedOverlayTree,
+		selectedOverpassTree,
 		customLayers,
 		opacities
 	} = settings;
@@ -52,6 +57,14 @@
 				$map.off('style.load', addOverlayLayer[id]);
 			}
 		});
+	}
+
+	$: if ($map) {
+		if (overpassLayer) {
+			overpassLayer.remove();
+		}
+		overpassLayer = new OverpassLayer($map);
+		overpassLayer.add();
 	}
 
 	let selectedBasemap = writable(get(currentBasemap));
@@ -157,11 +170,24 @@
 							/>
 						{/if}
 					</div>
+					<Separator class="w-full" />
+					<div class="p-2">
+						{#if $currentOverpassQueries}
+							<LayerTree
+								layerTree={$selectedOverpassTree}
+								name="overpass"
+								multiple={true}
+								bind:checked={$currentOverpassQueries}
+							/>
+						{/if}
+					</div>
 				</div>
 			</ScrollArea>
 		</div>
 	</div>
 </CustomControl>
+
+<OverpassPopup />
 
 <svelte:window
 	on:click={(e) => {

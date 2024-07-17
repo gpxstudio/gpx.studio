@@ -1,9 +1,9 @@
 import Dexie, { liveQuery } from 'dexie';
-import { GPXFile, GPXStatistics, Track, TrackSegment, Waypoint, TrackPoint, type Coordinates, distance, type LineStyleExtension } from 'gpx';
+import { GPXFile, GPXStatistics, Track, TrackSegment, Waypoint, TrackPoint, type Coordinates, distance, type LineStyleExtension, type WaypointType } from 'gpx';
 import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, freeze, produceWithPatches } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
-import { Tool, currentTool, gpxStatistics, initTargetMapBounds, splitAs, updateAllHidden, updateTargetMapBounds } from './stores';
-import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays, type CustomLayer, defaultOpacities } from './assets/layers';
+import { Tool, currentTool, gpxStatistics, initTargetMapBounds, map, splitAs, updateAllHidden, updateTargetMapBounds } from './stores';
+import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays, type CustomLayer, defaultOpacities, defaultOverpassQueries, defaultOverpassTree } from './assets/layers';
 import { applyToOrderedItemsFromFile, applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem, ListRootItem } from '$lib/components/file-list/FileList';
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
@@ -18,6 +18,8 @@ class Database extends Dexie {
     files!: Dexie.Table<GPXFile, string>;
     patches!: Dexie.Table<{ patch: Patch[], inversePatch: Patch[], index: number }, number>;
     settings!: Dexie.Table<any, string>;
+    overpassquerytiles!: Dexie.Table<{ query: string, x: number, y: number }, [string, number, number]>;
+    overpassdata!: Dexie.Table<{ query: string, id: number, poi: GeoJSON.Feature }, [string, number]>;
 
     constructor() {
         super("Database", {
@@ -27,19 +29,22 @@ class Database extends Dexie {
             fileids: ',&fileid',
             files: '',
             patches: ',patch',
-            settings: ''
+            settings: '',
+            overpassquerytiles: '[query+x+y],[x+y]',
+            overpassdata: '[query+id]',
         });
-        this.files.add
     }
 }
 
-const db = new Database();
+export const db = new Database();
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber, and updates to the store are pushed to the DB
-function dexieSettingStore<T>(setting: string, initial: T): Writable<T> {
-    let store = writable(initial);
-    liveQuery(() => db.settings.get(setting)).subscribe(value => {
-        if (value !== undefined) {
+export function bidirectionalDexieStore<K, V>(table: Dexie.Table<V, K>, key: K, initial: V, initialize: boolean = true): Writable<V> {
+    let store = writable(initialize ? initial : undefined);
+    liveQuery(() => table.get(key)).subscribe(value => {
+        if (value === undefined && !initialize) {
+            store.set(initial);
+        } else if (value !== undefined) {
             store.set(value);
         }
     });
@@ -47,36 +52,20 @@ function dexieSettingStore<T>(setting: string, initial: T): Writable<T> {
         subscribe: store.subscribe,
         set: (value: any) => {
             if (typeof value === 'object' || value !== get(store)) {
-                db.settings.put(value, setting);
+                table.put(value, key);
             }
         },
         update: (callback: (value: any) => any) => {
             let newValue = callback(get(store));
             if (typeof newValue === 'object' || newValue !== get(store)) {
-                db.settings.put(newValue, setting);
+                table.put(newValue, key);
             }
         }
     };
 }
 
-// Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber, and updates to the store are pushed to the DB
-function dexieUninitializedSettingStore(setting: string, initial: any): Writable<any> {
-    let store = writable(undefined);
-    liveQuery(() => db.settings.get(setting)).subscribe(value => {
-        if (value !== undefined) {
-            store.set(value);
-        } else {
-            store.set(initial);
-        }
-    });
-    return {
-        subscribe: store.subscribe,
-        set: (value: any) => db.settings.put(value, setting),
-        update: (callback: (value: any) => any) => {
-            let newValue = callback(get(store));
-            db.settings.put(newValue, setting);
-        }
-    };
+export function dexieSettingStore<T>(key: string, initial: T, initialize: boolean = true): Writable<T> {
+    return bidirectionalDexieStore(db.settings, key, initial, initialize);
 }
 
 export const settings = {
@@ -94,9 +83,11 @@ export const settings = {
     currentBasemap: dexieSettingStore('currentBasemap', defaultBasemap),
     previousBasemap: dexieSettingStore('previousBasemap', defaultBasemap),
     selectedBasemapTree: dexieSettingStore('selectedBasemapTree', defaultBasemapTree),
-    currentOverlays: dexieUninitializedSettingStore('currentOverlays', defaultOverlays),
+    currentOverlays: dexieSettingStore('currentOverlays', defaultOverlays, false),
     previousOverlays: dexieSettingStore('previousOverlays', defaultOverlays),
     selectedOverlayTree: dexieSettingStore('selectedOverlayTree', defaultOverlayTree),
+    currentOverpassQueries: dexieSettingStore('currentOverpassQueries', defaultOverpassQueries, false),
+    selectedOverpassTree: dexieSettingStore('selectedOverpassTree', defaultOverpassTree),
     opacities: dexieSettingStore('opacities', defaultOpacities),
     customLayers: dexieSettingStore<Record<string, CustomLayer>>('customLayers', {}),
     directionMarkers: dexieSettingStore('directionMarkers', false),
@@ -108,7 +99,7 @@ export const settings = {
     defaultWeight: dexieSettingStore('defaultWeight', 5),
     bottomPanelSize: dexieSettingStore('bottomPanelSize', 170),
     rightPanelSize: dexieSettingStore('rightPanelSize', 240),
-    showWelcomeMessage: dexieUninitializedSettingStore('showWelcomeMessage', true),
+    showWelcomeMessage: dexieSettingStore('showWelcomeMessage', true, false),
 };
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber
@@ -901,6 +892,29 @@ export const dbUtils = {
                 }
             });
         });
+    },
+    addOrUpdateWaypoint: (waypoint: WaypointType, item?: ListWaypointItem) => {
+        let ele = get(map)?.queryTerrainElevation([waypoint.attributes.lon, waypoint.attributes.lat], { exaggerated: false }) ?? 0;
+        if (item) {
+            dbUtils.applyToFile(item.getFileId(), (file) => {
+                let wpt = file.wpt[item.getWaypointIndex()];
+                wpt.name = waypoint.name;
+                wpt.desc = waypoint.desc;
+                wpt.cmt = waypoint.cmt;
+                wpt.setCoordinates(waypoint.attributes);
+                wpt.ele = ele;
+            });
+        } else {
+            let fileIds = new Set<string>();
+            get(selection).getSelected().forEach((item) => {
+                fileIds.add(item.getFileId());
+            });
+            let wpt = new Waypoint(waypoint);
+            wpt.ele = ele;
+            dbUtils.applyToFiles(Array.from(fileIds), (file) =>
+                file.replaceWaypoints(file.wpt.length, file.wpt.length, [wpt])
+            );
+        }
     },
     setStyleToSelection: (style: LineStyleExtension) => {
         if (get(selection).size === 0) {
