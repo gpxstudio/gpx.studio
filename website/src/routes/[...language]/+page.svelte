@@ -36,11 +36,13 @@
 	let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
 
 	onMount(() => {
-		currentTool.set(Tool.SCISSORS);
+		$currentTool = Tool.SCISSORS;
 	});
 
+	$: $currentTool, ($currentTool = Tool.SCISSORS);
+
 	onDestroy(() => {
-		currentTool.set(null);
+		$currentTool = null;
 	});
 </script>
 
