@@ -7,6 +7,7 @@
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { dbUtils } from '$lib/db';
+	import { get } from 'svelte/store';
 
 	let popupElement: HTMLDivElement;
 
@@ -16,8 +17,14 @@
 	});
 
 	let tags = {};
+	let name = '';
 	$: if ($overpassPopupPOI) {
 		tags = JSON.parse($overpassPopupPOI.tags);
+		if (tags.name !== undefined && tags.name !== '') {
+			name = tags.name;
+		} else {
+			name = $_(`layers.label.${$overpassPopupPOI.query}`);
+		}
 	}
 </script>
 
@@ -28,7 +35,7 @@
 				<Card.Title class="text-md">
 					<div class="flex flex-row gap-3">
 						<div class="flex flex-col">
-							{tags.name ?? ''}
+							{name}
 							<div class="text-muted-foreground text-sm font-normal">
 								{$overpassPopupPOI.lat.toFixed(6)}&deg; {$overpassPopupPOI.lon.toFixed(6)}&deg;
 							</div>
@@ -46,6 +53,7 @@
 			</Card.Header>
 			{#if tags.image || tags['image:0']}
 				<div class="w-full rounded-md overflow-clip my-2 max-w-96 mx-auto">
+					<!-- svelte-ignore a11y-missing-attribute -->
 					<img src={tags.image ?? tags['image:0']} />
 				</div>
 			{/if}
@@ -79,7 +87,7 @@
 								lat: $overpassPopupPOI.lat,
 								lon: $overpassPopupPOI.lon
 							},
-							name: tags.name ?? '',
+							name: name,
 							desc: desc,
 							cmt: desc
 						});
