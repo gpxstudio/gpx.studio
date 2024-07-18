@@ -172,6 +172,7 @@ export class GPXLayer {
             });
 
             this.map.setFilter(this.fileId, ['any', ...visibleItems.map(([trackIndex, segmentIndex]) => ['all', ['==', 'trackIndex', trackIndex], ['==', 'segmentIndex', segmentIndex]])], { validate: false });
+            this.map.setFilter(this.fileId + '-direction', ['any', ...visibleItems.map(([trackIndex, segmentIndex]) => ['all', ['==', 'trackIndex', trackIndex], ['==', 'segmentIndex', segmentIndex]])], { validate: false });
         } catch (e) { // No reliable way to check if the map is ready to add sources and layers
             return;
         }
