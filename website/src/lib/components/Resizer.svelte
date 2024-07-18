@@ -35,7 +35,7 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
 	class="{orientation === 'col'
-		? 'w-1 h-full cursor-col-resize'
-		: 'w-full h-1 cursor-row-resize'} {orientation}"
+		? 'w-1 h-full cursor-col-resize border-l'
+		: 'w-full h-1 cursor-row-resize border-t'} {orientation}"
 	on:pointerdown={handleMouseDown}
 />
