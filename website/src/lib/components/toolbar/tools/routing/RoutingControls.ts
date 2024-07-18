@@ -501,18 +501,16 @@ export class RoutingControls {
         }
 
         if (anchors[0].point._data.index === 0) { // First anchor is the first point of the segment
-            response[0]._data.index = 0;
-            response[0].time = anchors[0].point.time;
             anchors[0].point = response[0]; // replace the first anchor
+            anchors[0].point._data.index = 0;
         } else {
             anchors[0].point = anchors[0].point.clone(); // Clone the anchor to assign new properties
             response.splice(0, 0, anchors[0].point); // Insert it in the response to keep it
         }
 
         if (anchors[anchors.length - 1].point._data.index === segment.trkpt.length - 1) { // Last anchor is the last point of the segment
-            response[response.length - 1]._data.index = segment.trkpt.length - 1;
-            response[response.length - 1].time = anchors[anchors.length - 1].point.time;
             anchors[anchors.length - 1].point = response[response.length - 1]; // replace the last anchor
+            anchors[anchors.length - 1].point._data.index = segment.trkpt.length - 1;
         } else {
             anchors[anchors.length - 1].point = anchors[anchors.length - 1].point.clone(); // Clone the anchor to assign new properties
             response.push(anchors[anchors.length - 1].point); // Insert it in the response to keep it
@@ -556,6 +554,11 @@ export class RoutingControls {
             let replacingTime = newTime - remainingTime;
 
             speed = replacingDistance / replacingTime * 3600;
+
+            if (startTime === undefined) { // Replacing the first point
+                let endIndex = anchors[anchors.length - 1].point._data.index;
+                startTime = new Date((segment.trkpt[endIndex].time?.getTime() ?? 0) - (replacingTime + stats.local.time.total[endIndex] - stats.local.time.moving[endIndex]) * 1000);
+            }
         }
 
         dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(anchors[0].trackIndex, anchors[0].segmentIndex, anchors[0].point._data.index, anchors[anchors.length - 1].point._data.index, response, speed, startTime));

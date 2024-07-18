@@ -799,7 +799,7 @@ export class TrackSegment extends GPXTreeLeaf {
                 if (trkpt[end + 1].time === undefined) {
                     trkpt.splice(end + 1, 0, ...withTimestamps(trkpt.splice(end + 1), speed, last, startTime));
                 } else if (last !== undefined && trkpt[end + 1].time < last.time) {
-                    points = withShiftedAndCompressedTimestamps(points, speed, 1, last);
+                    trkpt.splice(end + 1, 0, ...withShiftedAndCompressedTimestamps(trkpt.splice(end + 1), speed, 1, last));
                 }
             }
         }
