@@ -9,6 +9,7 @@ import type { Waypoint } from "gpx";
 import { resetCursor, setCursor, setGrabbingCursor, setPointerCursor } from "$lib/utils";
 import { font } from "$lib/assets/layers";
 import { selectedWaypoint } from "$lib/components/toolbar/tools/Waypoint.svelte";
+import { MapPin } from "lucide-static";
 
 const colors = [
     '#ff0000',
@@ -184,12 +185,22 @@ export class GPXLayer {
         if (get(selection).hasAnyChildren(new ListFileItem(this.fileId))) {
             file.wpt.forEach((waypoint) => { // Update markers
                 if (markerIndex < this.markers.length) {
+                    this.markers[markerIndex].getElement().querySelector('circle')?.setAttribute('fill', this.layerColor);
                     this.markers[markerIndex].setLngLat(waypoint.getCoordinates());
                     Object.defineProperty(this.markers[markerIndex], '_waypoint', { value: waypoint, writable: true });
                 } else {
+                    let element = document.createElement('div');
+                    element.classList.add('w-8', 'h-8', 'drop-shadow-xl');
+                    element.innerHTML = MapPin
+                        .replace('width="24"', '')
+                        .replace('height="24"', '')
+                        .replace('stroke="currentColor"', '')
+                        .replace('path', `path fill="#3fb1ce" stroke="SteelBlue" stroke-width="1"`)
+                        .replace('circle', `circle fill="${this.layerColor}" stroke="white" stroke-width="2.5"`);
                     let marker = new mapboxgl.Marker({
                         draggable: this.draggable,
-                        scale: 0.8
+                        element,
+                        anchor: 'bottom'
                     }).setLngLat(waypoint.getCoordinates());
                     Object.defineProperty(marker, '_waypoint', { value: waypoint, writable: true });
                     let dragEndTimestamp = 0;
