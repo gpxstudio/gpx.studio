@@ -4,6 +4,7 @@ title: View options
 
 <script lang="ts">
     import { MountainSnow, GalleryVertical, Map, Layers2, Coins, Milestone, Box } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # { title }
@@ -39,3 +40,7 @@ Toggle the visibility of direction arrows on the map.
 ### <Box size="16" class="inline-block" style="margin-bottom: 2px" /> Toggle 3D
 
 Enter or exit the 3D map view.
+
+<DocsNote>
+    To control the orientation and tilt of the map, you can also drag the map while holding <kbd>Ctrl</kbd>.
+</DocsNote>
