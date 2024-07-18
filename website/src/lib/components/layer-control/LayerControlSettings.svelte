@@ -30,7 +30,7 @@
 	} = settings;
 
 	export let open: boolean;
-	let accordionValue = 'layer-selection';
+	let accordionValue: string | string[] | undefined = undefined;
 
 	let selectedOverlay = writable(undefined);
 	let overlayOpacity = writable([1]);
@@ -115,7 +115,7 @@
 	<Sheet.Content>
 		<Sheet.Header class="h-full">
 			<Sheet.Title>{$_('layers.settings')}</Sheet.Title>
-			<ScrollArea class="w-[105%] pr-4">
+			<ScrollArea class="w-[105%] min-h-full pr-4">
 				<Sheet.Description>
 					{$_('layers.settings_help')}
 				</Sheet.Description>
@@ -162,7 +162,7 @@
 									<Select.Trigger class="h-8 mr-1">
 										<Select.Value />
 									</Select.Trigger>
-									<Select.Content>
+									<Select.Content class="h-fit max-h-[40dvh] overflow-y-auto">
 										{#each Object.keys(overlays) as id}
 											{#if isSelected($selectedOverlayTree, id)}
 												<Select.Item value={id}>{$_(`layers.label.${id}`)}</Select.Item>
