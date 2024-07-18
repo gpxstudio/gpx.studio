@@ -5,7 +5,16 @@
 	import ElevationProfile from '$lib/components/ElevationProfile.svelte';
 	import GPXStatistics from '$lib/components/GPXStatistics.svelte';
 	import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
-	import { BookOpenText, Heart, LineChart, Map, PencilRuler, Route, Scale } from 'lucide-svelte';
+	import {
+		BookOpenText,
+		Heart,
+		LineChart,
+		Map,
+		PencilRuler,
+		Route,
+		Scale,
+		MoveDown
+	} from 'lucide-svelte';
 	import { _ } from 'svelte-i18n';
 	import { exampleGPXFile } from '$lib/assets/example';
 	import { writable } from 'svelte/store';
@@ -13,6 +22,7 @@
 	import { currentTool, Tool } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
 	import routingScreenshot from '$lib/assets/img/home/routing.png?enhanced';
+	import routingScreenshotSmall from '$lib/assets/img/home/routing-small.png?enhanced';
 	import mapboxOutdoorsMap from '$lib/assets/img/home/mapbox-outdoors.png?enhanced';
 	import mapboxSatelliteMap from '$lib/assets/img/home/mapbox-satellite.png?enhanced';
 	import ignMap from '$lib/assets/img/home/ign.png?enhanced';
@@ -35,33 +45,40 @@
 </script>
 
 <div class="space-y-24 my-24">
-	<div class="px-12 w-full flex flex-col items-center">
-		<div class="flex flex-col gap-6 items-center max-w-3xl">
-			<div class="text-5xl xs:text-6xl font-black text-center">{$_('metadata.app_title')}</div>
-			<div class="text-xl text-muted-foreground text-center">
-				{$_('metadata.description')}
-			</div>
-			<div class="w-full flex flex-row justify-center gap-3">
-				<Button href="./app" class="w-1/3 min-w-fit">
-					<Map size="18" class="mr-1.5" />
-					{$_('homepage.app')}
-				</Button>
-				<Button variant="secondary" href="./help" class="w-1/3 min-w-fit">
-					<BookOpenText size="18" class="mr-1.5" />
-					<span>{$_('menu.help')}</span>
-				</Button>
+	<div class="-mt-12 sm:mt-0">
+		<div class="px-12 w-full flex flex-col items-center">
+			<div class="flex flex-col gap-6 items-center max-w-3xl">
+				<div class="text-4xl sm:text-6xl font-black text-center">{$_('metadata.app_title')}</div>
+				<div class="text-lg sm:text-xl text-muted-foreground text-center">
+					{$_('metadata.description')}
+				</div>
+				<div class="w-full flex flex-row justify-center gap-3">
+					<Button href="./app" class="w-1/3 min-w-fit">
+						<Map size="18" class="mr-1.5" />
+						{$_('homepage.app')}
+					</Button>
+					<Button variant="secondary" href="./help" class="w-1/3 min-w-fit">
+						<BookOpenText size="18" class="mr-1.5" />
+						<span>{$_('menu.help')}</span>
+					</Button>
+				</div>
 			</div>
 		</div>
-	</div>
-	<div class="relative">
-		<enhanced:img
-			src={routingScreenshot}
-			alt="Screenshot of the gpx.studio map in 3D."
-			class="w-full"
-		/>
-		<div
-			class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-background via-transparent to-background"
-		/>
+		<div class="relative">
+			<enhanced:img
+				src={routingScreenshotSmall}
+				alt="Screenshot of the gpx.studio map in 3D."
+				class="w-full sm:hidden"
+			/>
+			<enhanced:img
+				src={routingScreenshot}
+				alt="Screenshot of the gpx.studio map in 3D."
+				class="w-full hidden sm:block"
+			/>
+			<div
+				class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-background via-transparent to-background"
+			/>
+		</div>
 	</div>
 	<div class="px-12 sm:px-24 w-full flex flex-col items-center">
 		<div class="flex flex-col md:flex-row gap-x-12 gap-y-6 items-center justify-between max-w-5xl">
