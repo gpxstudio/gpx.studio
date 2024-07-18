@@ -91,6 +91,7 @@ export class OverpassLayer {
                         'icon-image': ['get', 'icon'],
                         'icon-size': 0.25,
                         'icon-padding': 0,
+                        'icon-allow-overlap': ['step', ['zoom'], false, 14, true],
                     },
                 });
 
