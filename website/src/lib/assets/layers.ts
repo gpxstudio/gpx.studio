@@ -73,7 +73,24 @@ export const basemaps: { [key: string]: string | Style; } = {
             source: 'cyclOSM',
         }],
     },
-    swisstopo: 'https://vectortiles.geo.admin.ch/styles/ch.swisstopo.basemap.vt/style.json',
+    swisstopoRaster: {
+        version: 8,
+        sources: {
+            swisstopoRaster: {
+                type: 'raster',
+                tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg'],
+                tileSize: 128,
+                maxzoom: 19,
+                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+            }
+        },
+        layers: [{
+            id: 'swisstopoRaster',
+            type: 'raster',
+            source: 'swisstopoRaster',
+        }],
+    },
+    swisstopoVector: 'https://vectortiles.geo.admin.ch/styles/ch.swisstopo.basemap.vt/style.json',
     swisstopoSatellite: 'https://vectortiles.geo.admin.ch/styles/ch.swisstopo.imagerybasemap.vt/style.json',
     linz: 'https://basemaps.linz.govt.nz/v1/tiles/topographic/EPSG:3857/style/topographic.json?api=d01fbtg0ar23gctac5m0jgyy2ds',
     linzTopo: {
@@ -277,7 +294,7 @@ export function extendBasemap(basemap: string | Style): string | Style {
 Object.values(basemaps).forEach(extendBasemap);
 
 export const font: { [key: string]: string; } = {
-    swisstopo: 'Frutiger Neue Condensed Regular',
+    swisstopoVector: 'Frutiger Neue Condensed Regular',
     swisstopoSatellite: 'Frutiger Neue Condensed Regular',
 };
 
@@ -296,6 +313,19 @@ export const overlays: { [key: string]: AnySourceData; } = {
         maxzoom: 17,
         attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>',
     },
+    swisstopoHiking: {
+        type: 'raster',
+        tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-wanderwege/default/current/3857/{z}/{x}/{y}.png'],
+        tileSize: 256,
+        maxzoom: 18,
+        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+    },
+    swisstopoHikingClosures: {
+        type: 'raster',
+        tiles: ['https://wms.geo.admin.ch/?version=1.3.0&service=WMS&request=GetMap&sld_version=1.1.0&layers=ch.astra.wanderland-sperrungen_umleitungen&format=image/png&STYLE=default&bbox={bbox-epsg-3857}&width=256&height=256&crs=EPSG:3857&transparent=true'],
+        tileSize: 256,
+        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+    },
     swisstopoCycling: {
         type: 'raster',
         tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.astra.veloland/default/current/3857/{z}/{x}/{y}.png'],
@@ -303,11 +333,23 @@ export const overlays: { [key: string]: AnySourceData; } = {
         maxzoom: 18,
         attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
     },
+    swisstopoCyclingClosures: {
+        type: 'raster',
+        tiles: ['https://wms.geo.admin.ch/?version=1.3.0&service=WMS&request=GetMap&sld_version=1.1.0&layers=ch.astra.veloland-sperrungen_umleitungen&format=image/png&STYLE=default&bbox={bbox-epsg-3857}&width=256&height=256&crs=EPSG:3857&transparent=true'],
+        tileSize: 256,
+        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+    },
     swisstopoMountainBike: {
         type: 'raster',
         tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.astra.mountainbikeland/default/current/3857/{z}/{x}/{y}.png'],
         tileSize: 256,
         maxzoom: 18,
+        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+    },
+    swisstopoMountainBikeClosures: {
+        type: 'raster',
+        tiles: ['https://wms.geo.admin.ch/?version=1.3.0&service=WMS&request=GetMap&sld_version=1.1.0&layers=ch.astra.mountainbikeland-sperrungen_umleitungen&format=image/png&STYLE=default&bbox={bbox-epsg-3857}&width=256&height=256&crs=EPSG:3857&transparent=true'],
+        tileSize: 256,
         attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
     },
     swisstopoSkiTouring: {
@@ -486,7 +528,8 @@ export const basemapTree: LayerTreeType = {
                 swedenTopo: true,
             },
             switzerland: {
-                swisstopo: true,
+                swisstopoRaster: true,
+                swisstopoVector: true,
                 swisstopoSatellite: true,
             },
             united_kingdom: {
@@ -533,8 +576,12 @@ export const overlayTree: LayerTreeType = {
             },
             switzerland: {
                 swisstopoSlope: true,
+                swisstopoHiking: true,
+                swisstopoHikingClosures: true,
                 swisstopoCycling: true,
+                swisstopoCyclingClosures: true,
                 swisstopoMountainBike: true,
+                swisstopoMountainBikeClosures: true,
                 swisstopoSkiTouring: true,
             }
         },
@@ -621,8 +668,12 @@ export const defaultOverlays = {
             },
             switzerland: {
                 swisstopoSlope: false,
+                swisstopoHiking: false,
+                swisstopoHikingClosures: false,
                 swisstopoCycling: false,
+                swisstopoCyclingClosures: false,
                 swisstopoMountainBike: false,
+                swisstopoMountainBikeClosures: false,
                 swisstopoSkiTouring: false,
             }
         },
@@ -712,7 +763,8 @@ export const defaultBasemapTree: LayerTreeType = {
                 swedenTopo: false,
             },
             switzerland: {
-                swisstopo: false,
+                swisstopoRaster: false,
+                swisstopoVector: false,
                 swisstopoSatellite: false,
             },
             united_kingdom: {
@@ -759,8 +811,12 @@ export const defaultOverlayTree: LayerTreeType = {
             },
             switzerland: {
                 swisstopoSlope: false,
+                swisstopoHiking: false,
+                swisstopoHikingClosures: false,
                 swisstopoCycling: false,
+                swisstopoCyclingClosures: false,
                 swisstopoMountainBike: false,
+                swisstopoMountainBikeClosures: false,
                 swisstopoSkiTouring: false,
             }
         },
