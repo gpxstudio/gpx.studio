@@ -1,5 +1,5 @@
 import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
-import { TramFront, Utensils, ShoppingBasket, Droplet, ShowerHead, Fuel, CircleParking, Fence, FerrisWheel, Telescope, Bed, Mountain, Pickaxe, Store, TrainFront, Bus, Ship, Croissant } from 'lucide-static';
+import { TramFront, Utensils, ShoppingBasket, Droplet, ShowerHead, Fuel, CircleParking, Fence, FerrisWheel, Telescope, Bed, Mountain, Pickaxe, Store, TrainFront, Bus, Ship, Croissant, House, Tent } from 'lucide-static';
 import { type AnySourceData, type Style } from 'mapbox-gl';
 
 export const basemaps: { [key: string]: string | Style; } = {
@@ -561,7 +561,9 @@ export const overpassTree: LayerTreeType = {
         tourism: {
             attraction: true,
             viewpoint: true,
-            accommodation: true,
+            hotel: true,
+            campsite: true,
+            hut: true,
             summit: true,
             pass: true,
             climbing: true,
@@ -645,7 +647,9 @@ export const defaultOverpassQueries: LayerTreeType = {
         tourism: {
             attraction: false,
             viewpoint: false,
-            accommodation: false,
+            hotel: false,
+            campsite: false,
+            hut: false,
             summit: false,
             pass: false,
             climbing: false
@@ -779,7 +783,9 @@ export const defaultOverpassTree: LayerTreeType = {
         tourism: {
             attraction: false,
             viewpoint: false,
-            accommodation: true,
+            hotel: true,
+            campsite: true,
+            hut: true,
             summit: true,
             pass: true,
             climbing: false
@@ -926,13 +932,31 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
             tourism: "viewpoint"
         }
     },
-    accommodation: {
+    hotel: {
         icon: {
             svg: Bed,
             color: "#e6c100",
         },
         tags: {
-            tourism: ["hotel", "hostel", "guest_house", "motel", "camp_site", "alpine_hut", "wilderness_hut"]
+            tourism: ["hotel", "hostel", "guest_house", "motel"]
+        }
+    },
+    campsite: {
+        icon: {
+            svg: Tent,
+            color: "#e6c100",
+        },
+        tags: {
+            tourism: "camp_site"
+        }
+    },
+    hut: {
+        icon: {
+            svg: House,
+            color: "#e6c100",
+        },
+        tags: {
+            tourism: ["alpine_hut", "wilderness_hut"]
         }
     },
     summit: {
