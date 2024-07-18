@@ -7,7 +7,7 @@
 
 	import { Layers } from 'lucide-svelte';
 
-	import { basemaps, overlays } from '$lib/assets/layers';
+	import { basemaps, defaultBasemap, overlays } from '$lib/assets/layers';
 	import { settings } from '$lib/db';
 	import { map } from '$lib/stores';
 	import { get, writable } from 'svelte/store';
@@ -34,7 +34,7 @@
 		// Set style depending on the current basemap
 		let basemap = basemaps.hasOwnProperty($currentBasemap)
 			? basemaps[$currentBasemap]
-			: $customLayers[$currentBasemap].value;
+			: $customLayers[$currentBasemap]?.value ?? basemaps[defaultBasemap];
 		$map.setStyle(basemap, {
 			diff: false
 		});
