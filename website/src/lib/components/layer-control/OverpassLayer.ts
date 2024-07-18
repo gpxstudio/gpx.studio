@@ -260,20 +260,36 @@ function getQueries(queries: string[]) {
 }
 
 function getQuery(query: string) {
-    let arrayEntry = Object.entries(overpassQueryData[query].tags).find(([_, value]) => Array.isArray(value));
+    if (Array.isArray(overpassQueryData[query].tags)) {
+        return overpassQueryData[query].tags.map((tags) => getQueryItem(tags)).join('');
+    } else {
+        return getQueryItem(overpassQueryData[query].tags);
+    }
+}
+
+function getQueryItem(tags: Record<string, string | boolean | string[]>) {
+    let arrayEntry = Object.entries(tags).find(([_, value]) => Array.isArray(value));
     if (arrayEntry !== undefined) {
-        return arrayEntry[1].map((val) => `nwr${Object.entries(overpassQueryData[query].tags)
+        return arrayEntry[1].map((val) => `nwr${Object.entries(tags)
             .map(([tag, value]) => `[${tag}=${tag === arrayEntry[0] ? val : value}]`)
             .join('')};`).join('');
     } else {
-        return `nwr${Object.entries(overpassQueryData[query].tags)
+        return `nwr${Object.entries(tags)
             .map(([tag, value]) => `[${tag}=${value}]`)
             .join('')};`;
     }
 }
 
 function belongsToQuery(element: any, query: string) {
-    return Object.entries(overpassQueryData[query].tags)
+    if (Array.isArray(overpassQueryData[query].tags)) {
+        return overpassQueryData[query].tags.some((tags) => belongsToQueryItem(element, tags));
+    } else {
+        return belongsToQueryItem(element, overpassQueryData[query].tags);
+    }
+}
+
+function belongsToQueryItem(element: any, tags: Record<string, string | boolean | string[]>) {
+    return Object.entries(tags)
         .every(([tag, value]) => Array.isArray(value) ? value.includes(element.tags[tag]) : element.tags[tag] === value);
 }
 

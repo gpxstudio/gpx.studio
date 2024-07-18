@@ -1,5 +1,5 @@
 import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
-import { TramFront, Utensils, ShoppingBasket, Droplet, ShowerHead, Fuel, CircleParking, Fence, FerrisWheel, Telescope, Bed, Mountain, Pickaxe, Store, TrainFront, Bus, Ship, Croissant, House, Tent } from 'lucide-static';
+import { TramFront, Utensils, ShoppingBasket, Droplet, ShowerHead, Fuel, CircleParking, Fence, FerrisWheel, Telescope, Bed, Mountain, Pickaxe, Store, TrainFront, Bus, Ship, Croissant, House, Tent, Wrench } from 'lucide-static';
 import { type AnySourceData, type Style } from 'mapbox-gl';
 
 export const basemaps: { [key: string]: string | Style; } = {
@@ -552,10 +552,7 @@ export const overpassTree: LayerTreeType = {
         amenities: {
             toilets: true,
             "water": true,
-            "water-spring": true,
             shower: true,
-            "fuel-station": true,
-            parking: true,
             barrier: true
         },
         tourism: {
@@ -578,6 +575,11 @@ export const overpassTree: LayerTreeType = {
             "tram-stop": true,
             "bus-stop": true,
             ferry: true
+        },
+        motorized: {
+            "fuel-station": true,
+            parking: true,
+            garage: true
         },
     },
 };
@@ -638,10 +640,7 @@ export const defaultOverpassQueries: LayerTreeType = {
         amenities: {
             toilets: false,
             "water": false,
-            "water-spring": false,
             shower: false,
-            "fuel-station": false,
-            parking: false,
             barrier: false
         },
         tourism: {
@@ -664,6 +663,11 @@ export const defaultOverpassQueries: LayerTreeType = {
             "tram-stop": false,
             "bus-stop": false,
             ferry: false
+        },
+        motorized: {
+            "fuel-station": false,
+            parking: false,
+            garage: false
         },
     },
 };
@@ -774,10 +778,7 @@ export const defaultOverpassTree: LayerTreeType = {
         amenities: {
             toilets: true,
             "water": true,
-            "water-spring": false,
             shower: false,
-            "fuel-station": false,
-            parking: false,
             barrier: false
         },
         tourism: {
@@ -801,6 +802,11 @@ export const defaultOverpassTree: LayerTreeType = {
             "bus-stop": true,
             ferry: false
         },
+        motorized: {
+            "fuel-station": false,
+            parking: false,
+            garage: false
+        },
     },
 };
 
@@ -819,7 +825,7 @@ type OverpassQueryData = {
         svg: string,
         color: string,
     },
-    tags: Record<string, string | boolean | string[]>,
+    tags: Record<string, string | boolean | string[]> | Record<string, string | boolean | string[]>[],
 };
 
 export const overpassQueryData: Record<string, OverpassQueryData> = {
@@ -864,19 +870,12 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
             svg: Droplet,
             color: "DeepSkyBlue",
         },
-        tags: {
+        tags: [{
             amenity: ["drinking_water", "water_point"]
-        }
-    },
-    "water-spring": {
-        icon: {
-            svg: Droplet,
-            color: "DeepSkyBlue",
-        },
-        tags: {
+        }, {
             natural: "spring",
             drinking_water: "yes"
-        }
+        }]
     },
     shower: {
         icon: {
@@ -903,6 +902,15 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             amenity: "parking"
+        }
+    },
+    garage: {
+        icon: {
+            svg: Wrench,
+            color: "#000000",
+        },
+        tags: {
+            shop: ["car_repair", "motorcycle_repair"]
         }
     },
     barrier: {
