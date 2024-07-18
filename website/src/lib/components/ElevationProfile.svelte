@@ -62,7 +62,7 @@
 	let canvas: HTMLCanvasElement;
 	let showAdditionalScales = true;
 	let updateShowAdditionalScales = () => {
-		showAdditionalScales = canvas.width >= 600;
+		showAdditionalScales = canvas.width / window.devicePixelRatio >= 600;
 	};
 	let overlay: HTMLCanvasElement;
 	let chart: Chart;
