@@ -4,13 +4,16 @@
 
 	export let position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' = 'top-right';
 
-	let container: HTMLDivElement | null = null;
+	let container: HTMLDivElement;
+	let control: CustomControl | undefined = undefined;
 
 	$: if ($map && container) {
 		if (position.includes('right')) container.classList.add('float-right');
 		else container.classList.add('float-left');
 		container.classList.remove('hidden');
-		let control = new CustomControl(container);
+		if (control === undefined) {
+			control = new CustomControl(container);
+		}
 		$map.addControl(control, position);
 	}
 </script>

@@ -148,16 +148,15 @@
 </script>
 
 <div {...$$restProps}>
-	{#if webgl2Supported}
-		<div id="map" class="h-full"></div>
-	{:else}
-		<div class="flex flex-col items-center justify-center gap-3 h-full">
-			<p>{$_('webgl2_required')}</p>
-			<Button href="https://get.webgl.org/webgl2/" target="_blank">
-				{$_('enable_webgl2')}
-			</Button>
-		</div>
-	{/if}
+	<div id="map" class="h-full {webgl2Supported ? '' : 'hidden'}"></div>
+	<div
+		class="flex flex-col items-center justify-center gap-3 h-full {webgl2Supported ? 'hidden' : ''}"
+	>
+		<p>{$_('webgl2_required')}</p>
+		<Button href="https://get.webgl.org/webgl2/" target="_blank">
+			{$_('enable_webgl2')}
+		</Button>
+	</div>
 </div>
 
 <style lang="postcss">

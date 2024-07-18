@@ -13,19 +13,21 @@
 	}
 
 	const appRoutes = ['/[...language]/app', '/[...language]/embed'];
+
+	$: showNavAndFooter = $page.route.id === null || !appRoutes.includes($page.route.id);
 </script>
 
 <Head />
 <ModeWatcher />
 
 {#if !$isLoading}
-	{#if $page.route.id !== null && appRoutes.includes($page.route.id)}
-		<slot />
-	{:else}
+	{#if showNavAndFooter}
 		<Nav />
-		<main>
-			<slot />
-		</main>
+	{/if}
+	<main>
+		<slot />
+	</main>
+	{#if showNavAndFooter}
 		<Footer />
 	{/if}
 {/if}
