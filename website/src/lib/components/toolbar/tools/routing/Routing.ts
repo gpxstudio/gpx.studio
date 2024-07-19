@@ -4,6 +4,7 @@ import { derived, get, writable } from "svelte/store";
 import { settings } from "$lib/db";
 import { _, isLoading, locale } from "svelte-i18n";
 import { map } from "$lib/stores";
+import { getElevation } from "$lib/utils";
 
 const { routing, routingProfile, privateRoads } = settings;
 
@@ -123,9 +124,12 @@ function getIntermediatePoints(points: Coordinates[]): Promise<TrackPoint[]> {
         }
     }));
 
+    let m = get(map);
     route.forEach((point) => {
         point.setSurface("unknown");
-        point.ele = get(map)?.queryTerrainElevation(point.getCoordinates(), { exaggerated: false }) ?? undefined;
+        if (m) {
+            point.ele = getElevation(m, point.getCoordinates());
+        }
     });
 
     return new Promise((resolve) => resolve(route));

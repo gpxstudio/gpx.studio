@@ -8,6 +8,8 @@ import { applyToOrderedItemsFromFile, applyToOrderedSelectedItemsFromFile, selec
 import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem, ListRootItem } from '$lib/components/file-list/FileList';
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
 import { SplitType } from '$lib/components/toolbar/tools/Scissors.svelte';
+import { getElevation } from '$lib/utils';
+
 
 enableMapSet();
 enablePatches();
@@ -894,7 +896,11 @@ export const dbUtils = {
         });
     },
     addOrUpdateWaypoint: (waypoint: WaypointType, item?: ListWaypointItem) => {
-        let ele = get(map)?.queryTerrainElevation([waypoint.attributes.lon, waypoint.attributes.lat], { exaggerated: false }) ?? 0;
+        let m = get(map);
+        if (m === null) {
+            return;
+        }
+        let ele = getElevation(m, waypoint.attributes);
         if (item) {
             dbUtils.applyToFile(item.getFileId(), (file) => {
                 let wpt = file.wpt[item.getWaypointIndex()];

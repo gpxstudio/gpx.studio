@@ -8,6 +8,8 @@ import { base } from "$app/paths";
 import { browser } from "$app/environment";
 import { languages } from "$lib/languages";
 import { locale } from "svelte-i18n";
+import type Coordinates from "gpx";
+import type mapboxgl from "mapbox-gl";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -66,6 +68,11 @@ export const flyAndScale = (
         easing: cubicOut
     };
 };
+
+export function getElevation(map: mapboxgl.Map, coordinates: Coordinates): number {
+    let elevation = map.queryTerrainElevation(coordinates, { exaggerated: false });
+    return elevation === null ? 0 : elevation;
+}
 
 let previousCursors: string[] = [];
 export function setCursor(cursor: string) {

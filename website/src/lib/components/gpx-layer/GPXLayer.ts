@@ -6,7 +6,7 @@ import { currentPopupWaypoint, deleteWaypoint, waypointPopup } from "./WaypointP
 import { addSelectItem, selectItem, selection } from "$lib/components/file-list/Selection";
 import { ListTrackSegmentItem, ListWaypointItem, ListWaypointsItem, ListTrackItem, ListFileItem, ListRootItem } from "$lib/components/file-list/FileList";
 import type { Waypoint } from "gpx";
-import { resetCursor, setCursor, setGrabbingCursor, setPointerCursor } from "$lib/utils";
+import { getElevation, resetCursor, setCursor, setGrabbingCursor, setPointerCursor } from "$lib/utils";
 import { font } from "$lib/assets/layers";
 import { selectedWaypoint } from "$lib/components/toolbar/tools/Waypoint.svelte";
 import { MapPin } from "lucide-static";
@@ -250,7 +250,7 @@ export class GPXLayer {
                                 lat: latLng.lat,
                                 lon: latLng.lng
                             });
-                            wpt.ele = this.map.queryTerrainElevation([latLng.lng, latLng.lat], { exaggerated: false }) ?? 0;
+                            wpt.ele = getElevation(this.map, wpt.getCoordinates());
                         });
                         dragEndTimestamp = Date.now()
                     });
