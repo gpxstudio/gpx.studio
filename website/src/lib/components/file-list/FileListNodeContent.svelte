@@ -341,13 +341,21 @@
 		@apply leading-none;
 	}
 
+	.vertical :global(button) {
+		@apply hover:bg-muted;
+	}
+
+	.vertical :global(.sortable-selected button) {
+		@apply hover:bg-accent;
+	}
+
 	.vertical :global(.sortable-selected) {
 		@apply bg-accent;
 	}
 
 	.horizontal :global(button) {
 		@apply bg-accent;
-		@apply hover:bg-background;
+		@apply hover:bg-muted;
 	}
 
 	.horizontal :global(.sortable-selected button) {
