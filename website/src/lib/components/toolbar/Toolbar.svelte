@@ -9,7 +9,8 @@
 		Ungroup,
 		MapPin,
 		Filter,
-		Scissors
+		Scissors,
+		MountainSnow
 	} from 'lucide-svelte';
 
 	import { _ } from 'svelte-i18n';
@@ -44,6 +45,10 @@
 		<ToolbarItem tool={Tool.EXTRACT}>
 			<Ungroup slot="icon" size="18" />
 			<span slot="tooltip">{$_('toolbar.extract.tooltip')}</span>
+		</ToolbarItem>
+		<ToolbarItem tool={Tool.ELEVATION}>
+			<MountainSnow slot="icon" size="18" />
+			<span slot="tooltip">{$_('toolbar.elevation.tooltip')}</span>
 		</ToolbarItem>
 		<ToolbarItem tool={Tool.REDUCE}>
 			<Filter slot="icon" size="18" />

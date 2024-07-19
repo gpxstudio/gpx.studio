@@ -8,7 +8,7 @@ import { base } from "$app/paths";
 import { browser } from "$app/environment";
 import { languages } from "$lib/languages";
 import { locale } from "svelte-i18n";
-import type Coordinates from "gpx";
+import type { Coordinates, TrackPoint, Waypoint } from "gpx";
 import type mapboxgl from "mapbox-gl";
 
 export function cn(...inputs: ClassValue[]) {
@@ -72,6 +72,29 @@ export const flyAndScale = (
 export function getElevation(map: mapboxgl.Map, coordinates: Coordinates): number {
     let elevation = map.queryTerrainElevation(coordinates, { exaggerated: false });
     return elevation === null ? 0 : elevation;
+}
+
+export async function getPreciseElevation(map: mapboxgl.Map, coordinates: Coordinates | mapboxgl.LngLat): Promise<number> {
+    if (!map.getBounds().contains(coordinates) || map.getZoom() < 14) {
+        map.flyTo({ center: coordinates, zoom: 14 });
+        await map.once('idle');
+    }
+    let elevation = map.queryTerrainElevation(coordinates, { exaggerated: false });
+    return elevation === null ? 0 : elevation;
+}
+
+export async function getPreciseElevations(map: mapboxgl.Map, points: (TrackPoint | Waypoint)[]): Promise<Map<string, number>> {
+    let elevations = new Map<string, number>();
+
+    for (let point of points) {
+        let key = `${point.getLatitude()},${point.getLongitude()}`;
+        if (elevations.has(key)) {
+            continue;
+        }
+        elevations.set(key, await getPreciseElevation(map, point.getCoordinates()));
+    }
+
+    return elevations;
 }
 
 let previousCursors: string[] = [];

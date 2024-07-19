@@ -9,6 +9,7 @@
 	import Time from '$lib/components/toolbar/tools/Time.svelte';
 	import Merge from '$lib/components/toolbar/tools/Merge.svelte';
 	import Extract from '$lib/components/toolbar/tools/Extract.svelte';
+	import Elevation from '$lib/components/toolbar/tools/Elevation.svelte';
 	import Clean from '$lib/components/toolbar/tools/Clean.svelte';
 	import Reduce from '$lib/components/toolbar/tools/Reduce.svelte';
 	import RoutingControlPopup from '$lib/components/toolbar/tools/routing/RoutingControlPopup.svelte';
@@ -48,6 +49,8 @@
 						<Time />
 					{:else if $currentTool === Tool.MERGE}
 						<Merge />
+					{:else if $currentTool === Tool.ELEVATION}
+						<Elevation />
 					{:else if $currentTool === Tool.EXTRACT}
 						<Extract />
 					{:else if $currentTool === Tool.CLEAN}

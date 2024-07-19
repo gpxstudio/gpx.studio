@@ -8,8 +8,8 @@ import { applyToOrderedItemsFromFile, applyToOrderedSelectedItemsFromFile, selec
 import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem, ListRootItem } from '$lib/components/file-list/FileList';
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
 import { SplitType } from '$lib/components/toolbar/tools/Scissors.svelte';
-import { getElevation } from '$lib/utils';
-
+import { getElevation, getPreciseElevations } from '$lib/utils';
+import type mapboxgl from 'mapbox-gl';
 
 enableMapSet();
 enablePatches();
@@ -1005,6 +1005,64 @@ export const dbUtils = {
                         }
                     }
                 }
+            });
+        });
+    },
+    addElevationToSelection: async (map: mapboxgl.Map) => {
+        if (get(selection).size === 0) {
+            return;
+        }
+        let points: (TrackPoint | Waypoint)[] = [];
+        applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+            let file = fileState.get(fileId);
+            if (file) {
+                if (level === ListLevel.FILE) {
+                    points.push(...file.getTrackPoints());
+                    points.push(...file.wpt);
+                } else if (level === ListLevel.TRACK) {
+                    let trackIndices = items.map((item) => (item as ListTrackItem).getTrackIndex());
+                    trackIndices.forEach((trackIndex) => {
+                        points.push(...file.trk[trackIndex].getTrackPoints());
+                    });
+                } else if (level === ListLevel.SEGMENT) {
+                    let trackIndex = (items[0] as ListTrackSegmentItem).getTrackIndex();
+                    let segmentIndices = items.map((item) => (item as ListTrackSegmentItem).getSegmentIndex());
+                    segmentIndices.forEach((segmentIndex) => {
+                        points.push(...file.trk[trackIndex].trkseg[segmentIndex].getTrackPoints());
+                    });
+                } else if (level === ListLevel.WAYPOINTS) {
+                    points.push(...file.wpt);
+                } else if (level === ListLevel.WAYPOINT) {
+                    let waypointIndices = items.map((item) => (item as ListWaypointItem).getWaypointIndex());
+                    points.push(...waypointIndices.map((waypointIndex) => file.wpt[waypointIndex]));
+                }
+            }
+        });
+
+        getPreciseElevations(map, points).then((elevations) => {
+
+            let callback = (coordinates: Coordinates) => elevations.get(`${coordinates.lat},${coordinates.lon}`) ?? 0;
+            applyGlobal((draft) => {
+                applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+                    let file = draft.get(fileId);
+                    if (file) {
+                        if (level === ListLevel.FILE) {
+                            file.addElevation(callback);
+                        } else if (level === ListLevel.TRACK) {
+                            let trackIndices = items.map((item) => (item as ListTrackItem).getTrackIndex());
+                            file.addElevation(callback, trackIndices, undefined, []);
+                        } else if (level === ListLevel.SEGMENT) {
+                            let trackIndices = [(items[0] as ListTrackSegmentItem).getTrackIndex()];
+                            let segmentIndices = items.map((item) => (item as ListTrackSegmentItem).getSegmentIndex());
+                            file.addElevation(callback, trackIndices, segmentIndices, []);
+                        } else if (level === ListLevel.WAYPOINTS) {
+                            file.addElevation(callback, [], [], undefined);
+                        } else if (level === ListLevel.WAYPOINT) {
+                            let waypointIndices = items.map((item) => (item as ListWaypointItem).getWaypointIndex());
+                            file.addElevation(callback, [], [], waypointIndices);
+                        }
+                    }
+                });
             });
         });
     },

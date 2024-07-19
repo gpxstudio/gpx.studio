@@ -135,6 +135,7 @@ export enum Tool {
     TIME,
     MERGE,
     EXTRACT,
+    ELEVATION,
     REDUCE,
     CLEAN
 }

@@ -21,6 +21,7 @@ export abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
     abstract getEndTimestamp(): Date | undefined;
     abstract getStatistics(): GPXStatistics;
     abstract getSegments(): TrackSegment[];
+    abstract getTrackPoints(): TrackPoint[];
 
     abstract toGeoJSON(): GeoJSON.Feature | GeoJSON.Feature[] | GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[];
 
@@ -64,6 +65,10 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
 
     getSegments(): TrackSegment[] {
         return this.children.flatMap((child) => child.getSegments());
+    }
+
+    getTrackPoints(): TrackPoint[] {
+        return this.children.flatMap((child) => child.getTrackPoints());
     }
 
     // Producers
@@ -311,6 +316,26 @@ export class GPXFile extends GPXTreeNode<Track>{
         this.trk.forEach((track, index) => {
             if (trackIndex === undefined || trackIndex === index) {
                 track.changeTimestamps(startTime, speed, ratio, lastPoint, segmentIndex);
+            }
+        });
+    }
+
+    addElevation(callback: (Coordinates) => number, trackIndices?: number[], segmentIndices?: number[], waypointIndices?: number[]) {
+        let og = getOriginal(this); // Read as much as possible from the original object because it is faster
+        this.trk.forEach((track, trackIndex) => {
+            if (trackIndices === undefined || trackIndices.includes(trackIndex)) {
+                track.trkseg.forEach((segment, segmentIndex) => {
+                    if (segmentIndices === undefined || segmentIndices.includes(segmentIndex)) {
+                        segment.trkpt.forEach((point, pointIndex) => {
+                            point.ele = callback(og.trk[trackIndex].trkseg[segmentIndex].trkpt[pointIndex].attributes);
+                        });
+                    }
+                });
+            }
+        });
+        this.wpt.forEach((waypoint, waypointIndex) => {
+            if (waypointIndices === undefined || waypointIndices.includes(waypointIndex)) {
+                waypoint.ele = callback(og.wpt[waypointIndex].attributes);
             }
         });
     }
@@ -751,6 +776,10 @@ export class TrackSegment extends GPXTreeLeaf {
 
     getSegments(): TrackSegment[] {
         return [this];
+    }
+
+    getTrackPoints(): TrackPoint[] {
+        return this.trkpt;
     }
 
     toGeoJSON(): GeoJSON.Feature {
