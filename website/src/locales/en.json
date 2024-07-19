@@ -401,10 +401,10 @@
         "file_processing": "Advanced file processing",
         "file_processing_description": "A suite of tools for performing all common file processing tasks, and which can be applied to multiple files at once.",
         "maps": "Global and local maps",
-        "maps_description": "A large collection of basemaps and overlays to help you craft your next outdoor adventure, or visualize your latest achievement.",
+        "maps_description": "A large collection of basemaps, overlays and points of interest to help you craft your next outdoor adventure, or visualize your latest achievement.",
         "data_visualization": "Data visualization",
         "data_visualization_description": "An interactive elevation profile with detailed statistics to analyze recorded activities and future objectives.",
-        "identity": "Free, ad-free and open-source",
+        "identity": "Free, ad-free and open source",
         "identity_description": "The website is free to use, without ads, and the source code is publicly available on GitHub. This is only possible thanks to the incredible support of the community."
     },
     "embedding": {

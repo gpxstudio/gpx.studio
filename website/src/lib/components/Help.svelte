@@ -2,10 +2,7 @@
 	import { CircleHelp } from 'lucide-svelte';
 </script>
 
-<div
-	class="{$$props.class ||
-		''} text-sm bg-muted font-light rounded border flex flex-row items-center p-2"
->
+<div class="{$$props.class || ''} text-sm bg-muted rounded border flex flex-row items-center p-2">
 	<CircleHelp size="16" class="w-4 mr-2 shrink-0 grow-0" />
 	<slot />
 </div>

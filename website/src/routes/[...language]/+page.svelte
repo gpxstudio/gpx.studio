@@ -5,7 +5,16 @@
 	import ElevationProfile from '$lib/components/ElevationProfile.svelte';
 	import GPXStatistics from '$lib/components/GPXStatistics.svelte';
 	import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
-	import { BookOpenText, Heart, LineChart, Map, PencilRuler, Route, Scale } from 'lucide-svelte';
+	import {
+		BookOpenText,
+		Heart,
+		LineChart,
+		Map,
+		PencilRuler,
+		PenLine,
+		Route,
+		Scale
+	} from 'lucide-svelte';
 	import { _ } from 'svelte-i18n';
 	import { exampleGPXFile } from '$lib/assets/example';
 	import { writable } from 'svelte/store';
@@ -202,22 +211,26 @@
 			/>
 		</div>
 	</div>
-	<div class="px-12 flex flex-col items-center">
-		<div class="max-w-5xl flex flex-col items-center gap-6">
+	<div
+		class="px-12 md:px-24 flex flex-row flex-wrap lg:flex-nowrap items-center justify-center -space-y-0.5 lg:-space-x-0.5"
+	>
+		<div
+			class="grow max-w-xl flex flex-col items-center gap-6 p-8 border rounded-2xl shadow-xl -rotate-1 lg:rotate-1"
+		>
 			<DocsLoader path="home/funding.mdx" />
-			<Button
-				href="https://ko-fi.com/gpxstudio"
-				target="_blank"
-				class="w-1/3 min-w-fit bg-support text-base"
-			>
-				<Heart size="16" class="mr-1" fill="rgb(var(--support))" />
+			<Button href="https://ko-fi.com/gpxstudio" target="_blank" class="text-base">
+				<Heart size="16" class="mr-1" fill="rgb(var(--support))" color="rgb(var(--support))" />
 				<span>{$_('homepage.support_button')}</span>
 			</Button>
 		</div>
-	</div>
-	<div class="px-12 flex flex-col items-center">
-		<div class="max-w-5xl">
+		<div
+			class="grow max-w-lg mx-6 h-fit bg-background flex flex-col items-center gap-6 p-8 border rounded-2xl shadow-xl rotate-1 lg:-rotate-1"
+		>
 			<DocsLoader path="home/translation.mdx" />
+			<Button href="https://crowdin.com/project/gpxstudio" target="_blank" class="text-base">
+				<PenLine size="16" class="mr-1" />
+				<span>{$_('homepage.contribute')}</span>
+			</Button>
 		</div>
 	</div>
 	<div class="px-12 md:px-24 flex flex-col items-center">

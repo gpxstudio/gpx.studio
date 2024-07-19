@@ -54,7 +54,7 @@ npm run dev
 
 ## Credits
 
-This project has been made possible thanks to the following open-source projects:
+This project has been made possible thanks to the following open source projects:
 
 - Development:
   - [Svelte](https://github.com/sveltejs/svelte) and [SvelteKit](https://github.com/sveltejs/kit) — seamless development experience
