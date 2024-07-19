@@ -5,16 +5,7 @@
 	import ElevationProfile from '$lib/components/ElevationProfile.svelte';
 	import GPXStatistics from '$lib/components/GPXStatistics.svelte';
 	import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
-	import {
-		BookOpenText,
-		Heart,
-		LineChart,
-		Map,
-		PencilRuler,
-		Route,
-		Scale,
-		MoveDown
-	} from 'lucide-svelte';
+	import { BookOpenText, Heart, LineChart, Map, PencilRuler, Route, Scale } from 'lucide-svelte';
 	import { _ } from 'svelte-i18n';
 	import { exampleGPXFile } from '$lib/assets/example';
 	import { writable } from 'svelte/store';
@@ -22,7 +13,6 @@
 	import { currentTool, Tool } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
 	import routingScreenshot from '$lib/assets/img/home/routing.png?enhanced';
-	import routingScreenshotSmall from '$lib/assets/img/home/routing-small.png?enhanced';
 	import mapboxOutdoorsMap from '$lib/assets/img/home/mapbox-outdoors.png?enhanced';
 	import mapboxSatelliteMap from '$lib/assets/img/home/mapbox-satellite.png?enhanced';
 	import ignMap from '$lib/assets/img/home/ign.png?enhanced';
@@ -66,16 +56,11 @@
 				</div>
 			</div>
 		</div>
-		<div class="relative">
-			<enhanced:img
-				src={routingScreenshotSmall}
-				alt="Screenshot of the gpx.studio map in 3D."
-				class="w-full sm:hidden"
-			/>
+		<div class="relative overflow-hidden">
 			<enhanced:img
 				src={routingScreenshot}
 				alt="Screenshot of the gpx.studio map in 3D."
-				class="w-full hidden sm:block"
+				class="w-full min-w-[1200px] ml-[20%] -translate-x-[20%]"
 			/>
 			<div
 				class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-background via-transparent to-background"
@@ -128,7 +113,9 @@
 				</h1>
 				<p class="text-muted-foreground">{$_('homepage.maps_description')}</p>
 			</div>
-			<div class="relative h-60 xs:h-80 aspect-square rounded-2xl shadow-xl overflow-clip">
+			<div
+				class="relative h-60 xs:h-80 aspect-square rounded-2xl shadow-xl overflow-hidden overflow-clip"
+			>
 				<enhanced:img
 					src={mapboxOutdoorsMap}
 					alt="Mapbox Outdoors map screenshot."
@@ -206,15 +193,14 @@
 			</div>
 		</div>
 	</div>
-	<div class="relative">
-		<enhanced:img
-			src={mapScreenshot}
-			alt="Screenshot of the gpx.studio map in 3D."
-			class="w-full"
-		/>
-		<div
-			class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-background via-transparent to-background"
-		/>
+	<div class="px-12 w-full">
+		<div class="w-full max-w-7xl mx-auto rounded-2xl shadow-xl overflow-hidden overflow-clip">
+			<enhanced:img
+				src={mapScreenshot}
+				alt="Screenshot of the gpx.studio map in 3D."
+				class="min-w-[800px] ml-[15%] -translate-x-[15%]"
+			/>
+		</div>
 	</div>
 	<div class="px-12 flex flex-col items-center">
 		<div class="max-w-5xl flex flex-col items-center gap-6">
@@ -236,9 +222,9 @@
 	</div>
 	<div class="px-12 md:px-24 flex flex-col items-center">
 		<div
-			class="max-w-4xl flex flex-col md:flex-row items-center justify-center gap-x-12 gap-y-6 p-6 border rounded-2xl shadow-xl"
+			class="max-w-4xl flex flex-col lg:flex-row items-center justify-center gap-x-12 gap-y-6 p-6 border rounded-2xl shadow-xl bg-muted"
 		>
-			<div class="shrink-0 flex flex-col sm:flex-row md:flex-col items-center gap-x-4 gap-y-2">
+			<div class="shrink-0 flex flex-col sm:flex-row lg:flex-col items-center gap-x-4 gap-y-2">
 				<div class="text-lg font-semibold text-muted-foreground">
 					❤️ {$_('homepage.supported_by')}
 				</div>
