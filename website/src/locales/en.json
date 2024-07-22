@@ -94,7 +94,7 @@
                 "tooltip": "Return to the starting point by the same route"
             },
             "start_loop_here": "Start loop here",
-            "help_no_file": "Select a file item to use the routing tool, or click on the map to start creating a new route.",
+            "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
             "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
             "activities": {
                 "bike": "Bike",
@@ -147,7 +147,7 @@
             "tooltip": "Crop or split",
             "crop": "Crop",
             "split_as": "Split the trace into",
-            "help_invalid_selection": "Select a file item to crop or split.",
+            "help_invalid_selection": "Select a trace to crop or split.",
             "help": "Use the slider to crop the trace, or click on the map to split it at the selected point."
         },
         "time": {
@@ -159,7 +159,7 @@
             "artificial": "Create realistic time data",
             "update": "Update time data",
             "help": "Use the form to set new time data.",
-            "help_invalid_selection": "Select a single file item to manage its time data."
+            "help_invalid_selection": "Select a single trace to manage its time data."
         },
         "merge": {
             "merge_traces": "Connect the traces",
@@ -184,7 +184,7 @@
             "create": "Create point of interest",
             "add": "Add point of interest to file",
             "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
-            "help_no_selection": "Select a file item to create or edit points of interest."
+            "help_no_selection": "Select a file to create or edit points of interest."
         },
         "reduce": {
             "tooltip": "Reduce the number of GPS points",
@@ -192,7 +192,7 @@
             "number_of_points": "Number of GPS points",
             "button": "Minify",
             "help": "Use the slider to choose the number of GPS points to keep.",
-            "help_no_selection": "Select a file item to reduce the number of its GPS points."
+            "help_no_selection": "Select a trace to reduce the number of its GPS points."
         },
         "clean": {
             "tooltip": "Clean GPS points and points of interest with a rectangle selection",
@@ -202,7 +202,7 @@
             "delete_outside": "Delete outside selection",
             "button": "Delete",
             "help": "Select a rectangle area on the map to remove GPS points and points of interest.",
-            "help_no_selection": "Select a file item to clean GPS points and points of interest."
+            "help_no_selection": "Select a trace to clean GPS points and points of interest."
         }
     },
     "layers": {
