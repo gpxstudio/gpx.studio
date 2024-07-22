@@ -98,7 +98,7 @@
             "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
             "activities": {
                 "bike": "Bike",
-                "racing_bike": "Racing bike",
+                "racing_bike": "Road bike",
                 "mountain_bike": "Mountain bike",
                 "foot": "Run/hike",
                 "motorcycle": "Motorcycle",
