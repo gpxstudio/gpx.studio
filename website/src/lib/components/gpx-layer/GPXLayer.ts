@@ -98,9 +98,9 @@ export class GPXLayer {
             return;
         }
 
-        if (file._data.style && file._data.style.color && this.layerColor !== file._data.style.color) {
+        if (file._data.style && file._data.style.color && this.layerColor !== `#${file._data.style.color}`) {
             decrementColor(this.layerColor);
-            this.layerColor = file._data.style.color;
+            this.layerColor = `#${file._data.style.color}`;
         }
 
         try {

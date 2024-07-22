@@ -23,6 +23,7 @@ export function parseGPX(gpxData: string): GPXFile {
             }
             return tagName;
         },
+        parseTagValue: false,
         tagValueProcessor(tagName, tagValue, jPath, hasAttributes, isLeafNode) {
             if (isLeafNode) {
                 if (tagName === 'ele') {

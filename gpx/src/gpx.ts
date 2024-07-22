@@ -120,6 +120,23 @@ export class GPXFile extends GPXTreeNode<Track>{
             }
             if (gpx.hasOwnProperty('_data')) {
                 this._data = gpx._data;
+
+                if (!this._data.hasOwnProperty('style')) {
+                    let style = this.getStyle();
+                    let fileStyle = {};
+                    if (style.color.length === 1) {
+                        fileStyle['color'] = style.color[0];
+                    }
+                    if (style.weight.length === 1) {
+                        fileStyle['weight'] = style.weight[0];
+                    }
+                    if (style.opacity.length === 1) {
+                        fileStyle['opacity'] = style.opacity[0];
+                    }
+                    if (Object.keys(fileStyle).length > 0) {
+                        this.setStyle(fileStyle);
+                    }
+                }
             }
         } else {
             this.attributes = {};
@@ -323,7 +340,7 @@ export class GPXFile extends GPXTreeNode<Track>{
             this._data.style = {};
         }
         if (style.color) {
-            this._data.style.color = style.color;
+            this._data.style.color = style.color.replace('#', '');
         }
         if (style.opacity) {
             this._data.style.opacity = style.opacity;
@@ -428,7 +445,16 @@ export class Track extends GPXTreeNode<TrackSegment> {
     }
 
     getStyle(): LineStyleExtension | undefined {
-        return this.extensions && this.extensions['gpx_style:line'];
+        if (this.extensions && this.extensions['gpx_style:line']) {
+            if (this.extensions["gpx_style:line"].color) {
+                return {
+                    ...this.extensions["gpx_style:line"],
+                    color: `#${this.extensions["gpx_style:line"].color}`
+                }
+            }
+            return this.extensions['gpx_style:line'];
+        }
+        return undefined;
     }
 
     toGeoJSON(): GeoJSON.Feature[] {
@@ -436,7 +462,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
             let geoJSON = child.toGeoJSON();
             if (this.extensions && this.extensions['gpx_style:line']) {
                 if (this.extensions['gpx_style:line'].color) {
-                    geoJSON.properties['color'] = this.extensions['gpx_style:line'].color;
+                    geoJSON.properties['color'] = `#${this.extensions['gpx_style:line'].color}`;
                 }
                 if (this.extensions['gpx_style:line'].opacity) {
                     geoJSON.properties['opacity'] = this.extensions['gpx_style:line'].opacity;
@@ -545,7 +571,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
             this.extensions['gpx_style:line'] = {};
         }
         if (style.color !== undefined && (force || this.extensions['gpx_style:line'].color === undefined)) {
-            this.extensions['gpx_style:line'].color = style.color;
+            this.extensions['gpx_style:line'].color = style.color.replace('#', '');
         }
         if (style.opacity !== undefined && (force || this.extensions['gpx_style:line'].opacity === undefined)) {
             this.extensions['gpx_style:line'].opacity = style.opacity;
