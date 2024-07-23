@@ -4,7 +4,7 @@
         "app_title": "the online GPX file editor",
         "embed_title": "the online GPX file editor",
         "help_title": "pomoc",
-        "description": "View, edit and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations."
+        "description": "View, edit, and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations."
     },
     "menu": {
         "new": "New",
@@ -80,7 +80,7 @@
             "tooltip": "Plan or edit a route",
             "activity": "Aktywność",
             "use_routing": "Routing",
-            "use_routing_tooltip": "Connect anchor points via road network or with straight lines when disabled",
+            "use_routing_tooltip": "Connect anchor points via road network or in a straight line if disabled",
             "allow_private": "Allow private roads",
             "reverse": {
                 "button": "Odwróć",
@@ -141,7 +141,7 @@
                 "from": "The start point is too far from the nearest road",
                 "via": "The via point is too far from the nearest road",
                 "to": "The end point is too far from the nearest road",
-                "timeout": "The routing request took too long, try adding points closer"
+                "timeout": "The routing request took too long, try adding points closer together"
             }
         },
         "scissors": {
