@@ -201,7 +201,7 @@
             "delete_waypoints": "Delete points of interest",
             "delete_inside": "Delete inside selection",
             "delete_outside": "Delete outside selection",
-            "button": "Delete",
+            "button": "Διαγραφή",
             "help": "Select a rectangle area on the map to remove GPS points and points of interest.",
             "help_no_selection": "Select a trace to clean GPS points and points of interest."
         }
@@ -218,8 +218,8 @@
             "url_placeholder": "WMTS, WMS or Mapbox style JSON",
             "max_zoom": "Max zoom",
             "layer_type": "Layer type",
-            "basemap": "Basemap",
-            "overlay": "Overlay",
+            "basemap": "Βασικός Χάρτης",
+            "overlay": "Επικαλύψεις",
             "create": "Create layer",
             "update": "Update layer"
         },
@@ -232,7 +232,7 @@
             "world": "World",
             "countries": "Countries",
             "belgium": "Belgium",
-            "bulgaria": "Bulgaria",
+            "bulgaria": "Βουλγαρία",
             "finland": "Finland",
             "france": "France",
             "new_zealand": "New Zealand",
@@ -326,11 +326,11 @@
             "ferry": "Ferry"
         },
         "color": {
-            "blue": "Blue",
+            "blue": "Μπλέ",
             "bluered": "Blue Red",
-            "gray": "Gray",
-            "hot": "Hot",
-            "purple": "Purple",
+            "gray": "Γκρίζο",
+            "hot": "Ζεστό",
+            "purple": "Μωβ",
             "orange": "Orange"
         }
     },
@@ -345,25 +345,25 @@
         "show_power": "Show power data"
     },
     "quantities": {
-        "distance": "Distance",
-        "elevation": "Elevation",
+        "distance": "Απόσταση",
+        "elevation": "Υψόμετρο",
         "temperature": "Temperature",
-        "speed": "Speed",
-        "pace": "Pace",
+        "speed": "Ταχύτητα",
+        "pace": "Ρυθμός",
         "heartrate": "Heart rate",
         "cadence": "Cadence",
         "power": "Power",
-        "slope": "Slope",
-        "surface": "Surface",
+        "slope": "Πλαγιά",
+        "surface": "Επιφάνεια",
         "time": "Time",
         "moving": "Moving",
-        "total": "Total"
+        "total": "Σύνολο"
     },
     "units": {
-        "meters": "m",
-        "feet": "ft",
-        "kilometers": "km",
-        "miles": "mi",
+        "meters": "μέτρα",
+        "feet": "πόδια",
+        "kilometers": "χλμ",
+        "miles": "μίλια",
         "celsius": "°C",
         "fahrenheit": "°F",
         "kilometers_per_hour": "km/h",
@@ -377,8 +377,8 @@
     "gpx": {
         "file": "File",
         "files": "Files",
-        "track": "Track",
-        "tracks": "Tracks",
+        "track": "Διαδρομή",
+        "tracks": "Διαδρομές",
         "segment": "Segment",
         "segments": "Segments",
         "waypoint": "Point of interest",
@@ -411,8 +411,8 @@
     "embedding": {
         "title": "Create your own map",
         "mapbox_token": "Mapbox access token",
-        "file_urls": "File URLs (separated by commas)",
-        "basemap": "Basemap",
+        "file_urls": "Υπερσύνδεσμοι URL Αρχείων (διαχωρισμένοι με κόμμα)",
+        "basemap": "Βασικός Χάρτης",
         "height": "Height",
         "fill_by": "Fill by",
         "none": "None",
@@ -424,7 +424,7 @@
         "zoom": "Zoom",
         "pitch": "Pitch",
         "bearing": "Bearing",
-        "preview": "Preview",
+        "preview": "Προεπισκόπηση",
         "code": "Integration code"
     },
     "webgl2_required": "WebGL 2 is required to display the map.",
