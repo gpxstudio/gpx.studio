@@ -1,0 +1,50 @@
+---
+title: View options
+---
+
+<script lang="ts">
+    import { MountainSnow, GalleryVertical, Map, Layers2, Coins, Milestone, Box } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+This menu provides options to rearrange the interface and the map view.
+
+### <MountainSnow size="16" class="inline-block" style="margin-bottom: 2px" /> Elevation profile
+
+Hide the elevation profile to make room for the map, or show it to inspect the current selection.
+
+### <GalleryVertical size="16" class="inline-block" style="margin-bottom: 2px" /> Vertical file list
+
+Switch between a vertical and a horizontal layout for the file list.
+The [vertical file list](../files-and-stats) is useful when you have many files open, or files with multiple [tracks, segments, or waypoints](../gpx).
+
+### <Map size="16" class="inline-block" style="margin-bottom: 2px" /> Switch to previous basemap
+
+Change the basemap to the one previously selected through the [map layer control](../map-controls).
+
+### <Layers2 size="16" class="inline-block" style="margin-bottom: 2px" /> Toggle overlays
+
+Toggle the visibility of the map overlays selected through the [map layer control](../map-controls).
+
+### <Coins size="16" class="inline-block" style="margin-bottom: 2px" /> Distance markers
+
+Toggle the visibility of distance markers on the map.
+They are displayed for the current selection, like the [elevation profile](../files-and-stats).
+
+### <Milestone size="16" class="inline-block" style="margin-bottom: 2px" /> Direction arrows
+
+Toggle the visibility of direction arrows on the map.
+
+### <Box size="16" class="inline-block" style="margin-bottom: 2px" /> Toggle 3D
+
+Enter or exit the 3D map view.
+
+<DocsNote>
+
+```
+Para controlar la orientación e inclinación del mapa, puede arrastrarlo mientras mantiene pulsada la tecla <kbd>Ctrl</kbd>.
+```
+
+</DocsNote>
