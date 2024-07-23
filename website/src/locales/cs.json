@@ -100,6 +100,7 @@
             "activities": {
                 "bike": "Kolo",
                 "racing_bike": "Road bike",
+                "gravel_bike": "Gravel bike",
                 "mountain_bike": "Horské kolo",
                 "foot": "Chůze/běh",
                 "motorcycle": "Motocykl",
