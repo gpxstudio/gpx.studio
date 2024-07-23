@@ -100,6 +100,7 @@
             "activities": {
                 "bike": "Đạp xe",
                 "racing_bike": "Road bike",
+                "gravel_bike": "Gravel bike",
                 "mountain_bike": "Xe đạp leo núi",
                 "foot": "Chạy/đi bộ",
                 "motorcycle": "Xe máy",
