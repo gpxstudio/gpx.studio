@@ -80,23 +80,23 @@
             "tooltip": "Útvonal tervezése vagy szerkesztése",
             "activity": "Tevékenység",
             "use_routing": "Útvonal választása",
-            "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
-            "allow_private": "Allow private roads",
+            "use_routing_tooltip": "Útvonal követés kikapcsolava egyenes vonal rajzolása",
+            "allow_private": "Magánutak engedélyezése",
             "reverse": {
                 "button": "Út menetirány váltás",
-                "tooltip": "Reverse the direction of the route"
+                "tooltip": "Útvonal irányát megfordítása"
             },
             "route_back_to_start": {
-                "button": "Back to start",
-                "tooltip": "Connect the last point of the route with the starting point"
+                "button": "Vissza a starthoz",
+                "tooltip": "Kapcsolja össze az útvonal utolsó pontját a kiindulási ponttal"
             },
             "round_trip": {
-                "button": "Round trip",
-                "tooltip": "Return to the starting point by the same route"
+                "button": "Körút",
+                "tooltip": "Ugyanezen az útvonalon vissza a kiindulóponthoz"
             },
             "start_loop_here": "Rajt áthelyezése ide",
-            "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
-            "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
+            "help_no_file": "Válasszon egy nyomkövetést az útválasztó eszköz használatához, vagy kattintson a térképre egy új útvonal létrehozásához.",
+            "help": "Kattintson a térképre új rögzítési pont hozzáadásához, vagy húzza a meglévőket az útvonal módosításához.",
             "activities": {
                 "bike": "Kerékpár",
                 "racing_bike": "Road bike",
