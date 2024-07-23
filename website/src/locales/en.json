@@ -80,7 +80,7 @@
             "tooltip": "Plan or edit a route",
             "activity": "Activity",
             "use_routing": "Routing",
-            "use_routing_tooltip": "Connect anchor points via road network or in a straight line if disabled",
+            "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
             "allow_private": "Allow private roads",
             "reverse": {
                 "button": "Reverse",
