@@ -4,7 +4,7 @@
         "app_title": "o editor online de arquivos GPX",
         "embed_title": "o editor online de arquivos GPX",
         "help_title": "ajuda",
-        "description": "View, edit, and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations."
+        "description": "Visualizar, editar e criar arquivos GPX online com capacidade de roteamento avançado e ferramentas de processamento de arquivos, belos mapas e visualização de dados detalhados."
     },
     "menu": {
         "new": "Novo",
@@ -80,7 +80,7 @@
             "tooltip": "Planejar ou editar uma rota",
             "activity": "Atividade",
             "use_routing": "Rota",
-            "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
+            "use_routing_tooltip": "Conecte pontos âncora via rede rodoviária ou em linha reta se desativado",
             "allow_private": "Permitir estradas privadas",
             "reverse": {
                 "button": "Inverter",
@@ -88,15 +88,15 @@
             },
             "route_back_to_start": {
                 "button": "Voltar para o início",
-                "tooltip": "Connect the last point of the route with the starting point"
+                "tooltip": "Conecte o último ponto da rota com o ponto de partida"
             },
             "round_trip": {
                 "button": "Ida e volta",
-                "tooltip": "Return to the starting point by the same route"
+                "tooltip": "Retorne ao ponto de partida pela mesma rota"
             },
             "start_loop_here": "Iniciar o loop aqui",
-            "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
-            "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
+            "help_no_file": "Selecione um rastro para usar a ferramenta de roteamento, ou clique no mapa para começar a criar uma nova rota.",
+            "help": "Clique no mapa para adicionar pontos de âncora ou arraste os existentes para alterar a rota.",
             "activities": {
                 "bike": "Bicicleta",
                 "racing_bike": "Bicicleta de estrada",
@@ -112,18 +112,18 @@
                 "unpaved": "Não pavimentado",
                 "asphalt": "Asfalto",
                 "concrete": "Cimento",
-                "chipseal": "Chipseal",
+                "chipseal": "Pedriscos",
                 "cobblestone": "Empedrado",
-                "unhewn_cobblestone": "Unhewn cobblestone",
-                "paving_stones": "Paving stones",
-                "stepping_stones": "Stepping stones",
-                "sett": "Sett",
+                "unhewn_cobblestone": "Paralelepípedo bruto",
+                "paving_stones": "Paralelepípedo",
+                "stepping_stones": "Caminho de pedras",
+                "sett": "Pedra portuguesa",
                 "metal": "Metal",
                 "wood": "Madeira",
                 "compacted": "Cascalho compactado",
                 "fine_gravel": "Cascalho fino",
                 "gravel": "Gravilha",
-                "pebblestone": "Pebblestone",
+                "pebblestone": "Pedregulhos",
                 "rock": "Pedra",
                 "dirt": "Terra",
                 "ground": "Chão",
@@ -133,38 +133,38 @@
                 "salt": "Sal",
                 "mud": "Lama",
                 "sand": "Areia",
-                "woodchips": "Woodchips",
+                "woodchips": "Cavacos de madeira",
                 "grass": "Grama",
-                "grass_paver": "Grass paver"
+                "grass_paver": "Pavimentação com grama"
             },
             "error": {
-                "from": "The start point is too far from the nearest road",
-                "via": "The via point is too far from the nearest road",
-                "to": "The end point is too far from the nearest road",
-                "timeout": "Route calculation took too long, try adding points closer together"
+                "from": "O ponto de partida está muito longe da estrada mais próxima",
+                "via": "O ponto intermediário está muito longe da estrada mais próxima",
+                "to": "O ponto de chegada está muito longe da estrada mais próxima",
+                "timeout": "O cálculo da rota demorou muito tempo, tente adicionar pontos mais próximos"
             }
         },
         "scissors": {
             "tooltip": "Cortar ou dividir",
             "crop": "Cortar",
             "split_as": "Dividir a trilha em",
-            "help_invalid_selection": "Select a trace to crop or split.",
-            "help": "Use the slider to crop the trace, or click on the map to split it at the selected point."
+            "help_invalid_selection": "Selecione um rastro para cortar ou dividir.",
+            "help": "Use o controle deslizante para cortar o traço ou clique no mapa para dividi-lo no ponto selecionado."
         },
         "time": {
-            "tooltip": "Manage time data",
+            "tooltip": "Gerenciar dados de tempo",
             "start": "Iniciar",
             "end": "Fim",
             "total_time": "Tempo em Movimento",
             "pick_date": "Escolha uma data",
-            "artificial": "Create realistic time data",
-            "update": "Update time data",
-            "help": "Use the form to set new time data.",
-            "help_invalid_selection": "Select a single trace to manage its time data."
+            "artificial": "Criar dados realista de tempo",
+            "update": "Atualizar dados de temp",
+            "help": "Use o formulário para definir os novos dados horários.",
+            "help_invalid_selection": "Seleciona um unico rastro para gerenciar seus dados de tempo."
         },
         "merge": {
-            "merge_traces": "Connect the traces",
-            "merge_contents": "Merge the contents and keep the traces disconnected",
+            "merge_traces": "Conecte os rastros",
+            "merge_contents": "Mesclar o conteúdo e manter os rastros desconectados",
             "merge_selection": "Unir seleção",
             "tooltip": "Unir itens",
             "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
@@ -207,17 +207,17 @@
         }
     },
     "layers": {
-        "settings": "Layer settings",
+        "settings": "Configurações de camada",
         "settings_help": "Select the map layers you want to show in the interface, add custom ones, and adjust their settings.",
-        "selection": "Layer selection",
+        "selection": "Seleção de camada",
         "custom_layers": {
-            "title": "Custom layers",
-            "new": "New custom layer",
-            "edit": "Edit custom layer",
+            "title": "Camadas personalizadas",
+            "new": "Nova camada personalizada",
+            "edit": "Editar camada personalizada",
             "urls": "URL(s)",
-            "url_placeholder": "WMTS, WMS or Mapbox style JSON",
+            "url_placeholder": "WMTS, WMS ou JSON estilo Mapbox",
             "max_zoom": "Zoom máximo",
-            "layer_type": "Layer type",
+            "layer_type": "Tipo de camada",
             "basemap": "Mapa-base",
             "overlay": "Cobertura",
             "create": "Criar camada",
@@ -274,7 +274,7 @@
             "swisstopoMountainBikeClosures": "swisstopo MTB Closures",
             "swisstopoSkiTouring": "swisstopo Ski Touring",
             "ignFrCadastre": "IGN Cadastre",
-            "ignSlope": "IGN Slope",
+            "ignSlope": "Inclinação IGN",
             "ignSkiTouring": "IGN Ski Touring",
             "strava": "Strava",
             "stravaHeatmapRun": "Corrida",
@@ -356,7 +356,7 @@
         "slope": "Inclinação",
         "surface": "Superfície",
         "time": "Tempo",
-        "moving": "Moving",
+        "moving": "Movimento",
         "total": "Total"
     },
     "units": {
@@ -398,8 +398,8 @@
         "supported_by": "apoiado por",
         "support_button": "Apoie o gpx.studio no Ko-fi",
         "route_planning": "Planejamento de rota",
-        "route_planning_description": "An intuitive interface to create itineraries tailored to each sport, based on OpenStreetMap data.",
-        "file_processing": "Advanced file processing",
+        "route_planning_description": "Uma interface intuitiva para criar itinerários adaptados a cada esporte, com base em dados do OpenStreetMap.",
+        "file_processing": "Processamento avançado de arquivo",
         "file_processing_description": "A suite of tools for performing all common file processing tasks, and which can be applied to multiple files at once.",
         "maps": "Mapas globais e locais",
         "maps_description": "A large collection of basemaps, overlays and points of interest to help you craft your next outdoor adventure, or visualize your latest achievement.",
@@ -410,11 +410,11 @@
     },
     "embedding": {
         "title": "Crie seu próprio mapa",
-        "mapbox_token": "Mapbox access token",
-        "file_urls": "File URLs (separated by commas)",
+        "mapbox_token": "Token de acesso do Mapbox",
+        "file_urls": "URLs de arquivos (separados por vírgula)",
         "basemap": "Mapa-base",
         "height": "Altura",
-        "fill_by": "Fill by",
+        "fill_by": "Preencher por",
         "none": "Nenhum",
         "show_controls": "Mostrar controles",
         "manual_camera": "Câmera manual",
@@ -425,7 +425,7 @@
         "pitch": "Pitch",
         "bearing": "Bearing",
         "preview": "Prévia",
-        "code": "Integration code"
+        "code": "Código de integração"
     },
     "webgl2_required": "WebGL 2 é necessário para exibir o mapa.",
     "enable_webgl2": "Saiba como ativar WebGL 2 em seu navegador"
