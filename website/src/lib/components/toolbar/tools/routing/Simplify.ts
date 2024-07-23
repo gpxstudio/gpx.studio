@@ -10,7 +10,7 @@ export function getZoomLevelForDistance(latitude: number, distance?: number): nu
     const rad = Math.PI / 180;
     const lat = latitude * rad;
 
-    return Math.min(20, Math.max(0, Math.floor(Math.log2((earthRadius * Math.cos(lat)) / distance))));
+    return Math.min(22, Math.max(0, Math.log2((earthRadius * Math.cos(lat)) / distance)));
 }
 
 export function updateAnchorPoints(file: GPXFile) {
@@ -34,7 +34,7 @@ export function updateAnchorPoints(file: GPXFile) {
 
 function computeAnchorPoints(segment: TrackSegment) {
     let points = segment.trkpt;
-    let anchors = ramerDouglasPeucker(points);
+    let anchors = ramerDouglasPeucker(points, 1);
     anchors.forEach((anchor) => {
         let point = anchor.point;
         point._data.anchor = true;
