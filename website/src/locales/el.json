@@ -100,6 +100,7 @@
             "activities": {
                 "bike": "Ποδήλατο",
                 "racing_bike": "Road bike",
+                "gravel_bike": "Gravel bike",
                 "mountain_bike": "Ποδήλατο βουνού",
                 "foot": "Τρέξιμο/πεζοπορία",
                 "motorcycle": "Μοτοσικλέτα",
