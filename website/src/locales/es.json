@@ -100,6 +100,7 @@
             "activities": {
                 "bike": "En bicicleta",
                 "racing_bike": "Bicicleta de carretera",
+                "gravel_bike": "Gravel bike",
                 "mountain_bike": "Bicicleta de montaña",
                 "foot": "Correr/Caminar",
                 "motorcycle": "Motocicleta",
