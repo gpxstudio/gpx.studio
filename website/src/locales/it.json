@@ -141,7 +141,7 @@
                 "from": "The start point is too far from the nearest road",
                 "via": "The via point is too far from the nearest road",
                 "to": "The end point is too far from the nearest road",
-                "timeout": "Route calculation took too long, try adding points closer together"
+                "timeout": "Il calcolo del percorso ha richiesto troppo tempo, prova ad aggiungere punti più vicini"
             }
         },
         "scissors": {
@@ -166,14 +166,14 @@
             "merge_traces": "Connect the traces",
             "merge_contents": "Merge the contents and keep the traces disconnected",
             "merge_selection": "Selezione unione",
-            "tooltip": "Merge items together",
-            "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
-            "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
-            "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
+            "tooltip": "Unisci gli elementi insieme",
+            "help_merge_traces": "Collegando le tracce selezionate si creerà una singola traccia continua.",
+            "help_cannot_merge_traces": "La tua selezione deve contenere diverse tracce per collegarle.",
+            "help_merge_contents": "Unendo il contenuto degli elementi selezionati si raggrupperà tutti i contenuti all'interno del primo elemento.",
             "help_cannot_merge_contents": "Your selection must contain several items to merge their contents."
         },
         "extract": {
-            "tooltip": "Extract contents to separate items",
+            "tooltip": "Estrae i contenuti per separare gli elementi",
             "button": "Estrai",
             "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
             "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
