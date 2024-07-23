@@ -10,9 +10,9 @@
 	import { Button } from '$lib/components/ui/button';
 	import { map } from '$lib/stores';
 	import { settings } from '$lib/db';
-	import { locale, _ } from 'svelte-i18n';
-	import { get } from 'svelte/store';
+	import { _ } from 'svelte-i18n';
 	import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
+	import { page } from '$app/stores';
 
 	export let accessToken = PUBLIC_MAPBOX_TOKEN;
 	export let geolocate = true;
@@ -41,12 +41,21 @@
 			return;
 		}
 
+		let language = $page.params.language;
+		if (language === 'zh') {
+			language = 'zh-Hans';
+		} else if (language?.includes('-')) {
+			language = language.split('-')[0];
+		} else if (language === '' || language === undefined) {
+			language = 'en';
+		}
+
 		let newMap = new mapboxgl.Map({
 			container: 'map',
 			style: { version: 8, sources: {}, layers: [] },
 			zoom: 0,
 			hash: hash,
-			language: get(locale),
+			language,
 			attributionControl: false,
 			logoPosition: 'bottom-right',
 			boxZoom: false
@@ -71,7 +80,7 @@
 					mapboxgl: mapboxgl,
 					collapsed: true,
 					flyTo: fitBoundsOptions,
-					language: get(locale)
+					language
 				})
 			);
 		}
