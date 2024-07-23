@@ -11,6 +11,7 @@ const { routing, routingProfile, privateRoads } = settings;
 export const brouterProfiles: { [key: string]: string } = {
     bike: 'Trekking-dry',
     racing_bike: 'fastbike',
+    gravel_bike: 'gravel',
     mountain_bike: 'MTB',
     foot: 'Hiking-Alpine-SAC6',
     motorcycle: 'Car-FastEco',
