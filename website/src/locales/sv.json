@@ -141,8 +141,8 @@
             "error": {
                 "from": "Startpunkten är för långt bort från närmaste väg",
                 "via": "Ruttpunkten är för långt bort från närmaste väg",
-                "to": "The end point is too far from the nearest road",
-                "timeout": "Route calculation took too long, try adding points closer together"
+                "to": "Slutpunkten är för långt bort från närmaste väg",
+                "timeout": "Ruttberäkningen tog för lång tid, försök att lägga punkterna närmare varandra"
             }
         },
         "scissors": {
