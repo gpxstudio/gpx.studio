@@ -141,7 +141,7 @@
                 "from": "The start point is too far from the nearest road",
                 "via": "The via point is too far from the nearest road",
                 "to": "The end point is too far from the nearest road",
-                "timeout": "The routing request took too long, try adding points closer together"
+                "timeout": "Route calculation took too long, try adding points closer together"
             }
         },
         "scissors": {
