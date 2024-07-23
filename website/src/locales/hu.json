@@ -67,19 +67,19 @@
         },
         "style": {
             "button": "Appearance...",
-            "color": "Color",
+            "color": "Szín",
             "opacity": "Opacity",
-            "width": "Width"
+            "width": "Szélesség"
         },
-        "hide": "Hide",
-        "unhide": "Unhide",
+        "hide": "Elrejtés",
+        "unhide": "Felfedés",
         "open_in": "Open in"
     },
     "toolbar": {
         "routing": {
-            "tooltip": "Plan or edit a route",
+            "tooltip": "Útvonal tervezése vagy szerkesztése",
             "activity": "Tevékenység",
-            "use_routing": "Routing",
+            "use_routing": "Útvonal választása",
             "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
             "allow_private": "Allow private roads",
             "reverse": {
