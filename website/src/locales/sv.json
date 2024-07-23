@@ -100,6 +100,7 @@
             "activities": {
                 "bike": "Cykel",
                 "racing_bike": "Road bike",
+                "gravel_bike": "Gravel bike",
                 "mountain_bike": "Mountainbike",
                 "foot": "Löpa/vandra",
                 "motorcycle": "Motorcykel",
