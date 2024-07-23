@@ -1,0 +1,5 @@
+files:
+  - source: /website/src/locales/en.json
+    translation: /website/src/locales/%two_letters_code%.json
+  - source: /website/src/lib/docs/en/**/*.mdx
+    translation: /website/src/lib/docs/%two_letters_code%/**/%original_file_name%.mdx
