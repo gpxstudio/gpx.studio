@@ -95,7 +95,7 @@
                 "tooltip": "Retorne ao ponto de partida pela mesma rota"
             },
             "start_loop_here": "Iniciar o loop aqui",
-            "help_no_file": "Selecione um rastro para usar a ferramenta de roteamento, ou clique no mapa para começar a criar uma nova rota.",
+            "help_no_file": "Selecione uma trilha para usar a ferramenta de roteamento, ou clique no mapa para começar a criar uma nova rota.",
             "help": "Clique no mapa para adicionar pontos de âncora ou arraste os existentes para alterar a rota.",
             "activities": {
                 "bike": "Bicicleta",
@@ -148,8 +148,8 @@
             "tooltip": "Cortar ou dividir",
             "crop": "Cortar",
             "split_as": "Dividir a trilha em",
-            "help_invalid_selection": "Selecione um rastro para cortar ou dividir.",
-            "help": "Use o controle deslizante para cortar o traço ou clique no mapa para dividi-lo no ponto selecionado."
+            "help_invalid_selection": "Selecione uma trilha para cortar ou dividir.",
+            "help": "Use o controle deslizante para cortar a trilha ou clique no mapa para dividi-la no ponto selecionado."
         },
         "time": {
             "tooltip": "Gerenciar dados de tempo",
@@ -160,23 +160,23 @@
             "artificial": "Criar dados realista de tempo",
             "update": "Atualizar dados de temp",
             "help": "Use o formulário para definir os novos dados horários.",
-            "help_invalid_selection": "Seleciona um unico rastro para gerenciar seus dados de tempo."
+            "help_invalid_selection": "Seleciona uma única trilha para gerenciar seus dados de tempo."
         },
         "merge": {
-            "merge_traces": "Conecte os rastros",
-            "merge_contents": "Mesclar o conteúdo e manter os rastros desconectados",
+            "merge_traces": "Conecte as trilhas",
+            "merge_contents": "Mesclar o conteúdo e manter as trilhas desconectadas",
             "merge_selection": "Unir seleção",
             "tooltip": "Unir itens",
-            "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
-            "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
-            "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
-            "help_cannot_merge_contents": "Your selection must contain several items to merge their contents."
+            "help_merge_traces": "Conectar as trilhas selecionadas criará uma trilha única contínua.",
+            "help_cannot_merge_traces": "Sua seleção deve conter várias trilhas para conectá-las.",
+            "help_merge_contents": "Mesclar o conteúdo dos itens selecionados agrupará todo o conteúdo dentro do primeiro item.",
+            "help_cannot_merge_contents": "Sua seleção deve conter vários itens para mesclar seu conteúdo."
         },
         "extract": {
-            "tooltip": "Extract contents to separate items",
+            "tooltip": "Extrair conteúdo para itens separados",
             "button": "Extrair",
-            "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
-            "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
+            "help": "Extrair o conteúdo dos itens selecionados criará um item separado para cada um de seu conteúdo.",
+            "help_invalid_selection": "Sua seleção deve conter itens com multiplas trilhas para extraí-las."
         },
         "waypoint": {
             "tooltip": "Criar e editar pontos de interesse",
@@ -184,31 +184,31 @@
             "latitude": "Latitude",
             "create": "Criar ponto de interesse",
             "add": "Adicionar ponto de interesse ao arquivo",
-            "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
-            "help_no_selection": "Select a file to create or edit points of interest."
+            "help": "Preencha o formulário para criar um novo ponto de interesse, ou clique em um já existente para editá-lo. Clique no mapa para preencher as coordenadas ou arraste pontos de interesse para movê-las.",
+            "help_no_selection": "Selecione um arquivo para criar ou editar pontos de interesse."
         },
         "reduce": {
             "tooltip": "Reduzir o número de pontos GPS",
             "tolerance": "Tolerância",
             "number_of_points": "Número de pontos GPS",
             "button": "Minificar",
-            "help": "Use the slider to choose the number of GPS points to keep.",
-            "help_no_selection": "Select a trace to reduce the number of its GPS points."
+            "help": "Use o controle deslizante para escolher o número de pontos GPS para manter.",
+            "help_no_selection": "Seleciona uma trilha para reduzir o número de pontos GPS."
         },
         "clean": {
-            "tooltip": "Clean GPS points and points of interest with a rectangle selection",
+            "tooltip": "Limpar pontos de GPS e pontos de interesse com uma seleção retangular",
             "delete_trackpoints": "Excluir pontos GPS",
             "delete_waypoints": "Excluir pontos de interesse",
             "delete_inside": "Excluir dentro da seleção",
             "delete_outside": "Excluir fora da seleção",
             "button": "Apagar",
             "help": "Selecione uma área retangular no mapa para remover pontos GPS e pontos de interesse.",
-            "help_no_selection": "Selecione um trajeto para limpar os pontos GPS e pontos de interesse."
+            "help_no_selection": "Selecione uma trilha para limpar os pontos GPS e pontos de interesse."
         }
     },
     "layers": {
         "settings": "Configurações de camada",
-        "settings_help": "Select the map layers you want to show in the interface, add custom ones, and adjust their settings.",
+        "settings_help": "Selecione as camadas do mapa que você deseja mostrar na interface, adicione as customizadas e ajuste suas configurações.",
         "selection": "Seleção de camada",
         "custom_layers": {
             "title": "Camadas personalizadas",
@@ -400,13 +400,13 @@
         "route_planning": "Planejamento de rota",
         "route_planning_description": "Uma interface intuitiva para criar itinerários adaptados a cada esporte, com base em dados do OpenStreetMap.",
         "file_processing": "Processamento avançado de arquivo",
-        "file_processing_description": "A suite of tools for performing all common file processing tasks, and which can be applied to multiple files at once.",
+        "file_processing_description": "Um conjunto de ferramentas para executar todas as tarefas comuns de processamento de arquivos, e que podem ser aplicadas a vários arquivos de uma só vez.",
         "maps": "Mapas globais e locais",
-        "maps_description": "A large collection of basemaps, overlays and points of interest to help you craft your next outdoor adventure, or visualize your latest achievement.",
+        "maps_description": "Uma grande coleção de mapas base, sobreposições e pontos de interesse para ajudá-lo a criar sua aventura ao ar livre, ou visualizar sua última conquista.",
         "data_visualization": "Visualização de dados",
-        "data_visualization_description": "An interactive elevation profile with detailed statistics to analyze recorded activities and future objectives.",
+        "data_visualization_description": "Um perfil de elevação interativo, com estatísticas detalhadas para analisar atividades gravadas e objetivos futuros.",
         "identity": "Grátis, sem anúncios e de código aberto",
-        "identity_description": "The website is free to use, without ads, and the source code is publicly available on GitHub. This is only possible thanks to the incredible support of the community."
+        "identity_description": "O site é gratuito de usar, sem anúncios, e o código-fonte está disponível publicamente no GitHub. Isso só é possível graças ao apoio incrível da comunidade."
     },
     "embedding": {
         "title": "Crie seu próprio mapa",
@@ -418,7 +418,7 @@
         "none": "Nenhum",
         "show_controls": "Mostrar controles",
         "manual_camera": "Câmera manual",
-        "manual_camera_description": "You can move the map below to adjust the camera position.",
+        "manual_camera_description": "Você pode mover o mapa abaixo para ajustar a posição da câmera.",
         "latitude": "Latitude",
         "longitude": "Longitude",
         "zoom": "Zoom",
