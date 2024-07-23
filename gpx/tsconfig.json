@@ -7,7 +7,6 @@
         "moduleResolution": "node",
     },
     "include": [
-        "src",
-        "test"
+        "src"
     ],
 }

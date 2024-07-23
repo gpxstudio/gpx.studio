@@ -320,30 +320,30 @@ export function updateSelectionFromKey(down: boolean, shift: boolean) {
     }
 }
 
-async function exportFiles(fileIds: string[]) {
+async function exportFiles(fileIds: string[], exclude: string[]) {
     for (let fileId of fileIds) {
         let file = getFile(fileId);
         if (file) {
-            exportFile(file);
+            exportFile(file, exclude);
             await new Promise(resolve => setTimeout(resolve, 200));
         }
     }
 }
 
-export function exportSelectedFiles() {
+export function exportSelectedFiles(exclude: string[]) {
     let fileIds: string[] = [];
     applyToOrderedSelectedItemsFromFile(async (fileId, level, items) => {
         fileIds.push(fileId);
     });
-    exportFiles(fileIds);
+    exportFiles(fileIds, exclude);
 }
 
-export function exportAllFiles() {
-    exportFiles(get(fileOrder));
+export function exportAllFiles(exclude: string[]) {
+    exportFiles(get(fileOrder), exclude);
 }
 
-export function exportFile(file: GPXFile) {
-    let blob = new Blob([buildGPX(file)], { type: 'application/gpx+xml' });
+export function exportFile(file: GPXFile, exclude: string[]) {
+    let blob = new Blob([buildGPX(file, exclude)], { type: 'application/gpx+xml' });
     let url = URL.createObjectURL(blob);
     let a = document.createElement('a');
     a.href = url;

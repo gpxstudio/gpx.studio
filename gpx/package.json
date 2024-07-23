@@ -2,8 +2,8 @@
     "name": "gpx",
     "version": "1.0.0",
     "type": "module",
-    "exports": "./dist/src/index.js",
-    "types": "dist/src/index.d.ts",
+    "exports": "./dist/index.js",
+    "types": "dist/index.d.ts",
     "repository": {
         "type": "git",
         "url": "https://github.com/gpxstudio/gpx.studio.git",
@@ -16,15 +16,11 @@
         "ts-node": "^10.9.2"
     },
     "scripts": {
-        "build": "tsc",
-        "test": "jest"
+        "build": "tsc"
     },
     "devDependencies": {
         "@types/geojson": "^7946.0.14",
-        "@types/jest": "^29.5.12",
         "@types/node": "^20.14.6",
-        "jest": "^29.7.0",
-        "ts-jest": "^29.1.5",
         "typescript": "^5.4.5"
     }
 }
