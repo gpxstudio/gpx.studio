@@ -4,7 +4,7 @@
         "app_title": "l'éditeur de fichiers GPX en ligne",
         "embed_title": "l'éditeur de fichiers GPX en ligne",
         "help_title": "aide",
-        "description": "Affichez, éditez et créez des fichiers GPX en ligne avec des outils avancés de planification et de traitement de fichiers, de magnifiques cartes et des visualisations de données détaillées."
+        "description": "View, edit, and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations."
     },
     "menu": {
         "new": "Nouveau",
@@ -80,7 +80,7 @@
             "tooltip": "Planifier ou modifier un itinéraire",
             "activity": "Activité",
             "use_routing": "Routage",
-            "use_routing_tooltip": "Connect anchor points via road network or with straight lines when disabled",
+            "use_routing_tooltip": "Connect anchor points via road network or in a straight line if disabled",
             "allow_private": "Allow private roads",
             "reverse": {
                 "button": "Inverser",
@@ -141,7 +141,7 @@
                 "from": "The start point is too far from the nearest road",
                 "via": "The via point is too far from the nearest road",
                 "to": "The end point is too far from the nearest road",
-                "timeout": "The routing request took too long, try adding points closer"
+                "timeout": "The routing request took too long, try adding points closer together"
             }
         },
         "scissors": {
