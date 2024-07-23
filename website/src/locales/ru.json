@@ -326,11 +326,11 @@
             "ferry": "Ferry"
         },
         "color": {
-            "blue": "Blue",
+            "blue": "Синий",
             "bluered": "Blue Red",
-            "gray": "Gray",
+            "gray": "Серый",
             "hot": "Hot",
-            "purple": "Purple",
+            "purple": "Фиолетовый",
             "orange": "Orange"
         }
     },
@@ -345,25 +345,25 @@
         "show_power": "Show power data"
     },
     "quantities": {
-        "distance": "Distance",
-        "elevation": "Elevation",
-        "temperature": "Temperature",
-        "speed": "Speed",
-        "pace": "Pace",
+        "distance": "Расстояние",
+        "elevation": "Высота",
+        "temperature": "Температура",
+        "speed": "Скорость",
+        "pace": "Темп",
         "heartrate": "Heart rate",
-        "cadence": "Cadence",
-        "power": "Power",
-        "slope": "Slope",
-        "surface": "Surface",
-        "time": "Time",
+        "cadence": "Каденс",
+        "power": "Мощность",
+        "slope": "Уклон",
+        "surface": "Поверхность",
+        "time": "Время",
         "moving": "Moving",
-        "total": "Total"
+        "total": "Всего"
     },
     "units": {
-        "meters": "m",
-        "feet": "ft",
-        "kilometers": "km",
-        "miles": "mi",
+        "meters": "м",
+        "feet": "фт",
+        "kilometers": "км",
+        "miles": "ми",
         "celsius": "°C",
         "fahrenheit": "°F",
         "kilometers_per_hour": "km/h",
@@ -378,9 +378,9 @@
         "file": "File",
         "files": "Files",
         "track": "Track",
-        "tracks": "Tracks",
+        "tracks": "Треки",
         "segment": "Segment",
-        "segments": "Segments",
+        "segments": "Сегменты",
         "waypoint": "Point of interest",
         "waypoints": "Points of interest"
     },
@@ -411,7 +411,7 @@
     "embedding": {
         "title": "Create your own map",
         "mapbox_token": "Mapbox access token",
-        "file_urls": "File URLs (separated by commas)",
+        "file_urls": "URL-адреса файлов (разделенные запятыми)",
         "basemap": "Basemap",
         "height": "Height",
         "fill_by": "Fill by",
@@ -424,7 +424,7 @@
         "zoom": "Zoom",
         "pitch": "Pitch",
         "bearing": "Bearing",
-        "preview": "Preview",
+        "preview": "Предварительный просмотр",
         "code": "Integration code"
     },
     "webgl2_required": "WebGL 2 is required to display the map.",
