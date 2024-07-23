@@ -4,7 +4,7 @@
         "app_title": "l'éditeur de fichiers GPX en ligne",
         "embed_title": "l'éditeur de fichiers GPX en ligne",
         "help_title": "aide",
-        "description": "View, edit, and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations."
+        "description": "Affichez, éditez et créez des fichiers GPX en ligne avec des outils avancés de planification et de traitement de fichiers, de magnifiques cartes et des visualisations de données détaillées."
     },
     "menu": {
         "new": "Nouveau",
@@ -80,19 +80,19 @@
             "tooltip": "Planifier ou modifier un itinéraire",
             "activity": "Activité",
             "use_routing": "Routage",
-            "use_routing_tooltip": "Connect anchor points via road network or in a straight line if disabled",
-            "allow_private": "Allow private roads",
+            "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
+            "allow_private": "Autoriser les routes privées",
             "reverse": {
                 "button": "Inverser",
-                "tooltip": "Reverse the direction of the route"
+                "tooltip": "Inverser le sens de l'itinéraire"
             },
             "route_back_to_start": {
-                "button": "Back to start",
+                "button": "Retour au départ",
                 "tooltip": "Connect the last point of the route with the starting point"
             },
             "round_trip": {
-                "button": "Round trip",
-                "tooltip": "Return to the starting point by the same route"
+                "button": "Aller-retour",
+                "tooltip": "Revenir au point de départ par le même itinéraire"
             },
             "start_loop_here": "Démarrer la boucle ici",
             "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
@@ -107,7 +107,7 @@
                 "railway": "Chemins de fer"
             },
             "surface": {
-                "unknown": "Unknown",
+                "unknown": "Inconnu",
                 "paved": "Revêtement",
                 "unpaved": "Sans revêtement",
                 "asphalt": "Asphalte",
@@ -120,8 +120,8 @@
                 "sett": "Sett",
                 "metal": "Métal",
                 "wood": "Bois",
-                "compacted": "Compacted gravel",
-                "fine_gravel": "Fine gravel",
+                "compacted": "Gravier compact",
+                "fine_gravel": "Gravier fin",
                 "gravel": "Gravier",
                 "pebblestone": "Galets",
                 "rock": "Roche",
@@ -138,45 +138,45 @@
                 "grass_paver": "Grass paver"
             },
             "error": {
-                "from": "The start point is too far from the nearest road",
-                "via": "The via point is too far from the nearest road",
-                "to": "The end point is too far from the nearest road",
-                "timeout": "The routing request took too long, try adding points closer together"
+                "from": "Le point de départ est trop éloigné de la route la plus proche",
+                "via": "Le point de passage est trop éloigné de la route la plus proche",
+                "to": "Le point d'arrivée est trop éloigné de la route la plus proche",
+                "timeout": "Route calculation took too long, try adding points closer together"
             }
         },
         "scissors": {
-            "tooltip": "Crop or split",
-            "crop": "Crop",
-            "split_as": "Split the trace into",
-            "help_invalid_selection": "Select a trace to crop or split.",
-            "help": "Use the slider to crop the trace, or click on the map to split it at the selected point."
+            "tooltip": "Rogner ou diviser",
+            "crop": "Rogner",
+            "split_as": "Diviser la trace en",
+            "help_invalid_selection": "Sélectionnez une trace à rogner ou diviser.",
+            "help": "Utilisez le curseur pour rogner la trace, ou cliquez sur la carte pour la diviser au point sélectionné."
         },
         "time": {
-            "tooltip": "Manage time data",
+            "tooltip": "Gérer les données temporelles",
             "start": "Début",
-            "end": "End",
+            "end": "Fin",
             "total_time": "Temps en mouvement",
-            "pick_date": "Pick a date",
-            "artificial": "Create realistic time data",
-            "update": "Update time data",
-            "help": "Use the form to set new time data.",
-            "help_invalid_selection": "Select a single trace to manage its time data."
+            "pick_date": "Choisir une date",
+            "artificial": "Créer des données de temps réalistes",
+            "update": "Mettre à jour les données temporelles",
+            "help": "Utilisez le formulaire pour définir de nouvelles données temporelles.",
+            "help_invalid_selection": "Sélectionnez une seule trace pour gérer ses données temporelles."
         },
         "merge": {
-            "merge_traces": "Connect the traces",
-            "merge_contents": "Merge the contents and keep the traces disconnected",
+            "merge_traces": "Connecter les traces",
+            "merge_contents": "Fusionner les contenus et garder les traces déconnectées",
             "merge_selection": "Fusionner la sélection",
-            "tooltip": "Merge file items together",
-            "help_merge_traces": "Connecting the selected traces will create a single file containing a single continuous trace.",
-            "help_cannot_merge_traces": "Your selection needs to contain several traces to connect them.",
-            "help_merge_contents": "Merging the contents of the selected file items will group all the contents inside the first file item.",
-            "help_cannot_merge_contents": "Your selection needs to contain several file items to merge their contents."
+            "tooltip": "Merge items together",
+            "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
+            "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
+            "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
+            "help_cannot_merge_contents": "Your selection must contain several items to merge their contents."
         },
         "extract": {
-            "tooltip": "Extract contents to separate file items",
-            "button": "Extract",
-            "help": "Extracting the contents of the selected file items will create a separate file item for each of their contents.",
-            "help_invalid_selection": "Your selection needs to contain file items with multiple traces to extract them."
+            "tooltip": "Extract contents to separate items",
+            "button": "Extraire",
+            "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
+            "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
         },
         "waypoint": {
             "tooltip": "Create and edit points of interest",
