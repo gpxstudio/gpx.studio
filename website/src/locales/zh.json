@@ -81,13 +81,13 @@
             "activity": "活动",
             "use_routing": "Routing",
             "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
-            "allow_private": "Allow private roads",
+            "allow_private": "允许私有道路",
             "reverse": {
                 "button": "反转",
                 "tooltip": "Reverse the direction of the route"
             },
             "route_back_to_start": {
-                "button": "Back to start",
+                "button": "返回至起点",
                 "tooltip": "Connect the last point of the route with the starting point"
             },
             "round_trip": {
