@@ -1,6 +1,9 @@
 import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
 import { TramFront, Utensils, ShoppingBasket, Droplet, ShowerHead, Fuel, CircleParking, Fence, FerrisWheel, Telescope, Bed, Mountain, Pickaxe, Store, TrainFront, Bus, Ship, Croissant, House, Tent, Wrench } from 'lucide-static';
 import { type AnySourceData, type Style } from 'mapbox-gl';
+import ignFrTopo from './custom/ign-fr-topo.json';
+import ignFrPlan from './custom/ign-fr-plan.json';
+import ignFrSatellite from './custom/ign-fr-satellite.json';
 
 export const basemaps: { [key: string]: string | Style; } = {
     mapboxOutdoors: 'mapbox://styles/mapbox/outdoors-v12',
@@ -127,24 +130,8 @@ export const basemaps: { [key: string]: string | Style; } = {
             source: 'ignBe',
         }],
     },
-    ignFrPlan: {
-        version: 8,
-        sources: {
-            ignFrPlan: {
-                type: 'raster',
-                tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TILEMATRIXSET=PM&TILEMATRIX={z}&TILECOL={x}&TILEROW={y}&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&FORMAT=image/png&STYLE=normal'],
-                tileSize: 256,
-                maxzoom: 19,
-                attribution: 'IGN-F/Géoportail'
-            }
-        },
-        layers: [{
-            id: 'ignFrPlan',
-            type: 'raster',
-            source: 'ignFrPlan',
-        }],
-    },
-    ignFrTopo: 'https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/classique.json',
+    ignFrPlan: ignFrPlan,
+    ignFrTopo: ignFrTopo,
     ignFrScan25: {
         version: 8,
         sources: {
@@ -162,23 +149,7 @@ export const basemaps: { [key: string]: string | Style; } = {
             source: 'ignFrScan25',
         }],
     },
-    ignFrSatellite: {
-        version: 8,
-        sources: {
-            ignFrSatellite: {
-                type: 'raster',
-                tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/jpeg&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}'],
-                tileSize: 256,
-                maxzoom: 19,
-                attribution: 'IGN-F/Géoportail'
-            }
-        },
-        layers: [{
-            id: 'ignFrSatellite',
-            type: 'raster',
-            source: 'ignFrSatellite',
-        }],
-    },
+    ignFrSatellite: ignFrSatellite,
     ignEs: {
         version: 8,
         sources: {
