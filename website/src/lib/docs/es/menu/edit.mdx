@@ -9,45 +9,35 @@ title: Acciones de edición
 
 # { title }
 
-Unlike the file actions, the edit actions can potentially modify the content of the currently selected files.
-Moreover, when the vertical layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, and points of interest](../gpx).
-Therefore, we will refer to the elements that can be modified by these actions as _file items_.
-Note that except for the undo and redo actions, the edit actions are also accessible through the context menu (right-click) of the file items.
+A diferencia de las acciones de archivo, las acciones de edición pueden potencialmente modificar el contenido de los archivos seleccionados actualmente.
+Además, cuando está habilitada la distribución vertical de la lista de archivos (ver [Archivos y estadísticas](../files-and-stats)), también se pueden aplicar a [pistas, segmentos y puntos de interés](../gpx).
+Por lo tanto, nos referiremos a los elementos que pueden ser modificados por estas acciones como _elementos de archivo_.
+Tenga en cuenta que, excepto para las acciones de deshacer y rehacer, las acciones de edición también son accesibles a través del menú contextual (clic derecho) de los elementos del archivo.
 
-### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Undo and redo
+### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Deshacer y rehacer
 
-Using these buttons, you can undo or redo the last actions you performed.
-This applies to all actions of the interface but not to view options, application settings, or map navigation.
+Usando estos botones, puede deshacer o rehacer las últimas acciones que realizó.
+Esto aplica a todas las acciones de la interfaz pero no a las opciones de vista, ajustes de la aplicación o la navegación del mapa.
 
-### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> Info...
+### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> información...
 
-Open the information dialog of the currently selected file item, where you can see and edit its name and description.
+Abre el cuadro de diálogo de información del elemento del archivo seleccionado, donde puede ver y editar su nombre y descripción.
 
-### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Appearance...
+### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Apariencia...
 
-Open the appearance dialog, where you can change the color, opacity, and width of the selected file items on the map.
+Abre el diálogo de apariencia, donde puede cambiar el color, la opacidad y el ancho en el mapa de los elementos de archivo seleccionados.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Ocultar/mostrar
 
-Toggle the visibility of the selected file items on the map.
+Alterna la visibilidad de los elementos del archivo seleccionado en el mapa.
 
-### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Select all
+### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Seleccionar todo
 
-Add all file items in the current hierarchy level to the selection.
+Añade todos los elementos del archivo en el nivel de jerarquía actual a la selección.
 
-### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copy
+### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copiar
 
-Copy the selected file items to the clipboard.
-
-<DocsNote>
-
-Esta acción solo está disponible cuando está activada la disposición vertical de la lista de archivos.
-
-</DocsNote>
-
-### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Cut
-
-Cut the selected file items to the clipboard.
+Copia los elementos del archivo seleccionado al portapapeles.
 
 <DocsNote>
 
@@ -55,9 +45,9 @@ Esta acción solo está disponible cuando está activada la disposición vertica
 
 </DocsNote>
 
-### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Paste
+### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Cortar
 
-Paste the file items from the clipboard to the current hierarchy level if they are compatible with it.
+Corta los elementos del archivo seleccionado al portapapeles.
 
 <DocsNote>
 
@@ -65,6 +55,16 @@ Esta acción solo está disponible cuando está activada la disposición vertica
 
 </DocsNote>
 
-### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Delete
+### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Pegar
 
-Delete the selected file items.
+Pega los elementos de archivo del portapapeles al nivel de jerarquía actual si son compatibles con él.
+
+<DocsNote>
+
+Esta acción solo está disponible cuando está activada la disposición vertical de la lista de archivos.
+
+</DocsNote>
+
+### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Eliminar
+
+Elimina los elementos del archivo seleccionados.
