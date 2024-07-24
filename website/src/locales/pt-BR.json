@@ -256,6 +256,7 @@
             "swisstopoSatellite": "swisstopo Satellite",
             "ignBe": "IGN Topo",
             "ignFrPlan": "IGN Plan",
+            "ignFrTopo": "IGN Topo",
             "ignFrScan25": "IGN SCAN25",
             "ignFrSatellite": "Satélite IGN",
             "ignEs": "IGN",
