@@ -424,8 +424,8 @@
         "latitude": "Latitude",
         "longitude": "Longitude",
         "zoom": "Zoom",
-        "pitch": "Pitch",
-        "bearing": "Bearing",
+        "pitch": "Inclinação",
+        "bearing": "Orientação",
         "preview": "Prévia",
         "code": "Código de integração"
     },
