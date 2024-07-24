@@ -180,11 +180,11 @@
             "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
         },
         "waypoint": {
-            "tooltip": "Create and edit points of interest",
+            "tooltip": "Kurti ar keisti svarbų tašką",
             "longitude": "Longitude",
             "latitude": "Latitude",
-            "create": "Create point of interest",
-            "add": "Add point of interest to file",
+            "create": "Kurti svarbų tašką",
+            "add": "Pridėti svarbų tašką į failą",
             "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
             "help_no_selection": "Select a file to create or edit points of interest."
         },
@@ -199,7 +199,7 @@
         "clean": {
             "tooltip": "Clean GPS points and points of interest with a rectangle selection",
             "delete_trackpoints": "Delete GPS points",
-            "delete_waypoints": "Delete points of interest",
+            "delete_waypoints": "Trinti svarbų tašką",
             "delete_inside": "Delete inside selection",
             "delete_outside": "Delete outside selection",
             "button": "Ištrinti",
