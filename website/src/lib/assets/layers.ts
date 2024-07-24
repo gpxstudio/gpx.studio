@@ -127,7 +127,24 @@ export const basemaps: { [key: string]: string | Style; } = {
             source: 'ignBe',
         }],
     },
-    ignFrPlan: 'https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/classique.json',
+    ignFrPlan: {
+        version: 8,
+        sources: {
+            ignFrPlan: {
+                type: 'raster',
+                tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TILEMATRIXSET=PM&TILEMATRIX={z}&TILECOL={x}&TILEROW={y}&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&FORMAT=image/png&STYLE=normal'],
+                tileSize: 256,
+                maxzoom: 19,
+                attribution: 'IGN-F/Géoportail'
+            }
+        },
+        layers: [{
+            id: 'ignFrPlan',
+            type: 'raster',
+            source: 'ignFrPlan',
+        }],
+    },
+    ignFrTopo: 'https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/classique.json',
     ignFrScan25: {
         version: 8,
         sources: {
@@ -511,6 +528,7 @@ export const basemapTree: LayerTreeType = {
             },
             france: {
                 ignFrPlan: true,
+                ignFrTopo: true,
                 ignFrScan25: true,
                 ignFrSatellite: true,
             },
@@ -746,6 +764,7 @@ export const defaultBasemapTree: LayerTreeType = {
             },
             france: {
                 ignFrPlan: false,
+                ignFrTopo: false,
                 ignFrScan25: false,
                 ignFrSatellite: false,
             },
