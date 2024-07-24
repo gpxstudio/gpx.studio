@@ -30,14 +30,19 @@
 		opacities
 	} = settings;
 
-	$: if ($map) {
-		// Set style depending on the current basemap
-		let basemap = basemaps.hasOwnProperty($currentBasemap)
-			? basemaps[$currentBasemap]
-			: $customLayers[$currentBasemap]?.value ?? basemaps[defaultBasemap];
-		$map.setStyle(basemap, {
-			diff: false
-		});
+	function setStyle() {
+		if ($map) {
+			let basemap = basemaps.hasOwnProperty($currentBasemap)
+				? basemaps[$currentBasemap]
+				: $customLayers[$currentBasemap]?.value ?? basemaps[defaultBasemap];
+			$map.setStyle(basemap, {
+				diff: false
+			});
+		}
+	}
+
+	$: if ($map && $currentBasemap) {
+		setStyle();
 	}
 
 	$: if ($map && $currentOverlays) {

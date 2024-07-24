@@ -39,6 +39,10 @@
 	}
 
 	function createLayer() {
+		if (selectedLayerId && $customLayers[selectedLayerId].layerType !== layerType) {
+			deleteLayer(selectedLayerId);
+		}
+
 		if (typeof maxZoom === 'string') {
 			maxZoom = parseInt(maxZoom);
 		}
@@ -106,6 +110,8 @@
 				$tree.basemaps['custom'][layerId] = true;
 				return $tree;
 			});
+
+			$currentBasemap = layerId;
 		} else {
 			selectedOverlayTree.update(($tree) => {
 				if (!$tree.overlays.hasOwnProperty('custom')) {
@@ -114,6 +120,16 @@
 				$tree.overlays['custom'][layerId] = true;
 				return $tree;
 			});
+
+			if ($map && $map.getSource(layerId)) {
+				// Reset source when updating an existing layer
+				if ($map.getLayer(layerId)) {
+					$map.removeLayer(layerId);
+				}
+				$map.removeSource(layerId);
+			}
+
+			$currentOverlays.overlays['custom'][layerId] = true;
 		}
 	}
 
@@ -142,8 +158,13 @@
 				$selectedBasemapTree.basemaps = tryDeleteLayer($selectedBasemapTree.basemaps, 'custom');
 			}
 		} else {
-			$currentOverlays = tryDeleteLayer($currentOverlays, layerId);
-			$previousOverlays = tryDeleteLayer($previousOverlays, layerId);
+			$currentOverlays.overlays['custom'][layerId] = false;
+			if ($previousOverlays.overlays['custom']) {
+				$previousOverlays.overlays['custom'] = tryDeleteLayer(
+					$previousOverlays.overlays['custom'],
+					layerId
+				);
+			}
 
 			$selectedOverlayTree.overlays['custom'] = tryDeleteLayer(
 				$selectedOverlayTree.overlays['custom'],
