@@ -100,7 +100,7 @@
             "activities": {
                 "bike": "En bicicleta",
                 "racing_bike": "Bicicleta de carretera",
-                "gravel_bike": "Gravel bike",
+                "gravel_bike": "Bicicleta gravel",
                 "mountain_bike": "Bicicleta de montaña",
                 "foot": "Correr/Caminar",
                 "motorcycle": "Motocicleta",
@@ -224,7 +224,7 @@
             "create": "Crear capa",
             "update": "Actualizar capa"
         },
-        "opacity": "Opacidad de la superposición",
+        "opacity": "Opacidad de la capa superpuesta",
         "heatmap": "Mapa de actividad de Strava",
         "label": {
             "basemaps": "Mapas base",
@@ -256,6 +256,7 @@
             "swisstopoSatellite": "swisstopo Satélite",
             "ignBe": "IGN Topo",
             "ignFrPlan": "IGN Plan",
+            "ignFrTopo": "IGN Topo",
             "ignFrScan25": "IGN SCAN25",
             "ignFrSatellite": "IGN Satélite",
             "ignEs": "IGN",
