@@ -9,6 +9,7 @@ import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem,
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
 import { SplitType } from '$lib/components/toolbar/tools/Scissors.svelte';
 import { getElevation } from '$lib/utils';
+import { browser } from '$app/environment';
 
 
 enableMapSet();
@@ -98,7 +99,7 @@ export const settings = {
     streetViewSource: dexieSettingStore('streetViewSource', 'mapillary'),
     fileOrder: dexieSettingStore<string[]>('fileOrder', []),
     defaultOpacity: dexieSettingStore('defaultOpacity', 0.7),
-    defaultWeight: dexieSettingStore('defaultWeight', 5),
+    defaultWeight: dexieSettingStore('defaultWeight', (browser && window.innerWidth < 600) ? 8 : 5),
     bottomPanelSize: dexieSettingStore('bottomPanelSize', 170),
     rightPanelSize: dexieSettingStore('rightPanelSize', 240),
     showWelcomeMessage: dexieSettingStore('showWelcomeMessage', true, false),

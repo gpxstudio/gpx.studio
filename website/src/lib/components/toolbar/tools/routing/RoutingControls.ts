@@ -14,6 +14,10 @@ import { resetCursor, setGrabbingCursor } from "$lib/utils";
 
 export const canChangeStart = writable(false);
 
+function stopPropagation(e: any) {
+    e.stopPropagation();
+}
+
 export class RoutingControls {
     active: boolean = false;
     map: mapboxgl.Map;
@@ -80,6 +84,7 @@ export class RoutingControls {
         this.map.on('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         this.map.on('click', this.appendAnchorBinded);
         this.map.on('mousemove', this.fileId, this.showTemporaryAnchorBinded);
+        this.map.on('click', this.fileId, stopPropagation);
 
         this.fileUnsubscribe = this.file.subscribe(this.updateControls.bind(this));
     }
@@ -127,6 +132,7 @@ export class RoutingControls {
         this.map.off('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         this.map.off('click', this.appendAnchorBinded);
         this.map.off('mousemove', this.fileId, this.showTemporaryAnchorBinded);
+        this.map.off('click', this.fileId, stopPropagation);
         this.map.off('mousemove', this.updateTemporaryAnchorBinded);
         this.temporaryAnchor.marker.remove();
 
@@ -139,7 +145,7 @@ export class RoutingControls {
 
     createAnchor(point: TrackPoint, segment: TrackSegment, trackIndex: number, segmentIndex: number): AnchorWithMarker {
         let element = document.createElement('div');
-        element.className = `h-3 w-3 rounded-full bg-white border-2 border-black cursor-pointer`;
+        element.className = `h-5 w-5 xs:h-4 xs:w-4 md:h-3 md:w-3 rounded-full bg-white border-2 border-black cursor-pointer`;
 
         let marker = new mapboxgl.Marker({
             draggable: true,
