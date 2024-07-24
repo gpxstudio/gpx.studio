@@ -1,4 +1,5 @@
 {
+    "_info": "This style is an adaptation of the official IGN 'toponymes' style (https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/toponymes.json) below which satellite imagery is added.",
     "version": 8,
     "name": "PLAN IGN",
     "glyphs": "https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/{fontstack}/{range}.pbf",
