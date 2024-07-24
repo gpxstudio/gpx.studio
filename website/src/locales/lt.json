@@ -180,11 +180,11 @@
             "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
         },
         "waypoint": {
-            "tooltip": "Kurti ar keisti svarbų tašką",
+            "tooltip": "Kurti ar keisti svarbią vietą",
             "longitude": "Longitude",
             "latitude": "Latitude",
-            "create": "Kurti svarbų tašką",
-            "add": "Pridėti svarbų tašką į failą",
+            "create": "Kurti svarbią vietą",
+            "add": "Pridėti svarbią vietą į failą",
             "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
             "help_no_selection": "Select a file to create or edit points of interest."
         },
@@ -199,11 +199,11 @@
         "clean": {
             "tooltip": "Clean GPS points and points of interest with a rectangle selection",
             "delete_trackpoints": "Delete GPS points",
-            "delete_waypoints": "Trinti svarbų tašką",
+            "delete_waypoints": "Trinti svarbią vietą",
             "delete_inside": "Delete inside selection",
             "delete_outside": "Delete outside selection",
             "button": "Ištrinti",
-            "help": "Norėdami pašalinti GPS taškus ir svarbius taškus apibrėžkite stačiakampę sritį žemėlapyje.",
+            "help": "Norėdami pašalinti GPS taškus ir svarbias vietas apibrėžkite stačiakampę sritį žemėlapyje.",
             "help_no_selection": "Select a trace to clean GPS points and points of interest."
         }
     },
@@ -383,8 +383,8 @@
         "tracks": "Maršrutai",
         "segment": "Atkarpa",
         "segments": "Atkarpos",
-        "waypoint": "Point of interest",
-        "waypoints": "Points of interest"
+        "waypoint": "Svarbi vieta",
+        "waypoints": "Svarbios vietos"
     },
     "homepage": {
         "website": "Website",
