@@ -10,7 +10,7 @@
 	const modules = import.meta.glob('/src/lib/docs/**/*.mdx');
 
 	function loadModule(path: string) {
-		modules[path]().then((mod) => {
+		modules[path]?.().then((mod) => {
 			module = mod.default;
 			metadata = mod.metadata;
 		});
