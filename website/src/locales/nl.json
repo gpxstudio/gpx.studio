@@ -80,7 +80,7 @@
             "tooltip": "Plan or edit a route",
             "activity": "activiteit",
             "use_routing": "Routeberekening",
-            "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
+            "use_routing_tooltip": "Verbind ankerpunten via wegennetwerk, of in een rechte lijn indien uitgeschakeld",
             "allow_private": "Allow private roads",
             "reverse": {
                 "button": "Richting omkeren",
@@ -100,7 +100,7 @@
             "activities": {
                 "bike": "Fiets",
                 "racing_bike": "Road bike",
-                "gravel_bike": "Gravel bike",
+                "gravel_bike": "Gravel fiets",
                 "mountain_bike": "Mountainbike",
                 "foot": "Hardlopen/wandelen",
                 "motorcycle": "Motorfiets",
@@ -142,7 +142,7 @@
                 "from": "The start point is too far from the nearest road",
                 "via": "The via point is too far from the nearest road",
                 "to": "The end point is too far from the nearest road",
-                "timeout": "Route calculation took too long, try adding points closer together"
+                "timeout": "Routeberekening heeft te lang geduurd, probeer punten dichter bij elkaar toe te voegen"
             }
         },
         "scissors": {
@@ -167,17 +167,17 @@
             "merge_traces": "Connect the traces",
             "merge_contents": "Merge the contents and keep the traces disconnected",
             "merge_selection": "Voeg selectie samen",
-            "tooltip": "Merge items together",
-            "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
-            "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
-            "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
-            "help_cannot_merge_contents": "Your selection must contain several items to merge their contents."
+            "tooltip": "Items samenvoegen",
+            "help_merge_traces": "Het verbinden van de geselecteerde sporen creëert één continu spoor.",
+            "help_cannot_merge_traces": "Uw selectie moet meerdere sporen bevatten om ze te verbinden.",
+            "help_merge_contents": "Het samenvoegen van de inhoud van de geselecteerde items zal alle inhoud binnen het eerste item groeperen.",
+            "help_cannot_merge_contents": "Je selectie moet meerdere items bevatten om hun inhoud samen te voegen."
         },
         "extract": {
-            "tooltip": "Extract contents to separate items",
+            "tooltip": "Splits inhoud naar afzonderlijke items",
             "button": "Extract",
-            "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
-            "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
+            "help": "Het uitpakken van de inhoud van de geselecteerde items maakt een apart item voor elk van de inhoud.",
+            "help_invalid_selection": "Je selectie moet items met meerdere sporen bevatten om ze uit te pakken."
         },
         "waypoint": {
             "tooltip": "Create and edit points of interest",
@@ -256,6 +256,7 @@
             "swisstopoSatellite": "swisstopo Satellite",
             "ignBe": "IGN Topo",
             "ignFrPlan": "IGN Plan",
+            "ignFrTopo": "IGN Topo",
             "ignFrScan25": "IGN SCAN25",
             "ignFrSatellite": "IGN Satellite",
             "ignEs": "IGN",
