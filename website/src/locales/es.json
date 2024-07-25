@@ -150,7 +150,7 @@
             "crop": "Recortar",
             "split_as": "Dividir el rastro en",
             "help_invalid_selection": "Seleccione un rastro para recortar o dividir.",
-            "help": "Use el control deslizante para recortar el trazado o haga clic en el mapa para dividirlo en el punto seleccionado."
+            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
         },
         "time": {
             "tooltip": "Gestionar datos de tiempo",
