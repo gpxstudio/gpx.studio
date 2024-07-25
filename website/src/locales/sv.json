@@ -150,7 +150,7 @@
             "crop": "Beskär",
             "split_as": "Dela upp spåret i",
             "help_invalid_selection": "Välj ett spår att beskära eller dela upp.",
-            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
+            "help": "Använd reglaget för att beskära spåret, eller dela upp det genom att klicka på en av delningsmarkörerna eller direkt på spåret."
         },
         "time": {
             "tooltip": "Manage time data",
