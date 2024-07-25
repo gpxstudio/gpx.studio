@@ -4,7 +4,7 @@ title: Crop and split
 
 <script>
     import { ScissorsIcon } from 'lucide-svelte';
-    import Scissors from '$lib/components/toolbar/tools/Scissors.svelte';
+    import Scissors from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
     import splitScreenshot from '$lib/assets/img/docs/tools/split.png?enhanced';
     import DocsImage from '$lib/components/docs/DocsImage.svelte';
 </script>
@@ -24,8 +24,9 @@ Validate the selection when you are satisfied with the result.
 
 ## Split
 
-To split the selected trace into two parts, hover over the trace on the map.
-Scissors will appear at the cursor position, indicating that you can split the trace at this point.
+To split the selected trace into two parts, click on one of the split markers displayed along the trace.
+To split at a specific point of your choice, hover over the trace on the map.
+Scissors will appear at the cursor position, showing that you can split the trace at that point.
 
 You can choose to split the trace into two GPX files, or to keep the split parts in the same file as [tracks or segments](../gpx).
 
