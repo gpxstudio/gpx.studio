@@ -164,7 +164,7 @@
             "help_invalid_selection": "Select a single trace to manage its time data."
         },
         "merge": {
-            "merge_traces": "Connect the traces",
+            "merge_traces": "连接轨迹",
             "merge_contents": "Merge the contents and keep the traces disconnected",
             "merge_selection": "合并选择项",
             "tooltip": "Merge items together",
@@ -180,9 +180,9 @@
             "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
         },
         "waypoint": {
-            "tooltip": "Create and edit points of interest",
-            "longitude": "Longitude",
-            "latitude": "Latitude",
+            "tooltip": "创建并编辑兴趣点",
+            "longitude": "经度",
+            "latitude": "纬度",
             "create": "Create point of interest",
             "add": "Add point of interest to file",
             "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
