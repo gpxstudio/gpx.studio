@@ -142,7 +142,7 @@
                 "from": "Pradžios taškas yra per toli nuo artimiausio kelio",
                 "via": "Tarpinis taškas yra per toli nuo artimiausio kelio",
                 "to": "Pabaigos taškas yra per toli nuo artimiausio kelio",
-                "timeout": "Route calculation took too long, try adding points closer together"
+                "timeout": "Maršruto skaičiavimas užtruko per ilgai, pabandykite pridėti taškus arčiau vienas kito"
             }
         },
         "scissors": {
