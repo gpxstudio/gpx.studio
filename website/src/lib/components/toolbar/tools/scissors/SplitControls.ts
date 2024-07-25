@@ -118,7 +118,6 @@ export class SplitControls {
         let element = document.createElement('div');
         element.className = `h-6 w-6 p-0.5 rounded-full bg-white border-2 border-black cursor-pointer`;
         element.innerHTML = Scissors.replace('width="24"', "").replace('height="24"', "");
-        console.log(element.innerHTML);
 
         let marker = new mapboxgl.Marker({
             draggable: true,
@@ -138,7 +137,6 @@ export class SplitControls {
 
         marker.getElement().addEventListener('click', (e) => {
             e.stopPropagation();
-            console.log('click', fileId, trackIndex, segmentIndex, point.getCoordinates(), point._data.index);
             dbUtils.split(fileId, trackIndex, segmentIndex, point.getCoordinates(), point._data.index);
         });
 
