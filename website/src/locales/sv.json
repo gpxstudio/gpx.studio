@@ -80,7 +80,7 @@
             "tooltip": "Planera eller redigera en rutt",
             "activity": "Aktivitet",
             "use_routing": "Ruttplanering",
-            "use_routing_tooltip": "Koppla förankringspunkter via vägnätet, eller om inaktiverad, i en rak linje",
+            "use_routing_tooltip": "Koppla fästpunkter via vägnätet, eller om inaktiverad, i en rak linje",
             "allow_private": "Tillåt privata vägar",
             "reverse": {
                 "button": "Reversera",
@@ -91,37 +91,38 @@
                 "tooltip": "Koppla den sista punkten på rutten med startpunkten"
             },
             "round_trip": {
-                "button": "Round trip",
-                "tooltip": "Return to the starting point by the same route"
+                "button": "Tur och retur",
+                "tooltip": "Återvänd till startpunkten med samma rutt"
             },
             "start_loop_here": "Starta loopen här",
-            "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
-            "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
+            "help_no_file": "Välj ett spår för att använda ruttverktyget, eller klicka på kartan för att skapa en ny rutt.",
+            "help": "Klicka på kartan för att lägga till en ny fästpunkt eller dra befintliga för att ändra rutten.",
             "activities": {
                 "bike": "Cykel",
-                "racing_bike": "Road bike",
+                "racing_bike": "Racingcykel",
+                "gravel_bike": "Gravel bike",
                 "mountain_bike": "Mountainbike",
                 "foot": "Löpa/vandra",
                 "motorcycle": "Motorcykel",
-                "water": "Water",
-                "railway": "Railway"
+                "water": "Vatten",
+                "railway": "Järnväg"
             },
             "surface": {
-                "unknown": "Unknown",
+                "unknown": "Okänt",
                 "paved": "Asfalterad",
                 "unpaved": "Oasfalterad",
                 "asphalt": "Asfalt",
                 "concrete": "Betong",
                 "chipseal": "Oljegrus",
                 "cobblestone": "Kullersten",
-                "unhewn_cobblestone": "Unhewn cobblestone",
-                "paving_stones": "Paving stones",
-                "stepping_stones": "Stepping stones",
-                "sett": "Sett",
+                "unhewn_cobblestone": "Rå kullersten",
+                "paving_stones": "Gatstenar",
+                "stepping_stones": "Trampsten",
+                "sett": "Kullersten",
                 "metal": "Metall",
                 "wood": "Trä",
-                "compacted": "Compacted gravel",
-                "fine_gravel": "Fine gravel",
+                "compacted": "Packat grus",
+                "fine_gravel": "Fint grus",
                 "gravel": "Grus",
                 "pebblestone": "Småsten",
                 "rock": "Sten",
@@ -135,13 +136,13 @@
                 "sand": "Sand",
                 "woodchips": "Träflis",
                 "grass": "Gräs",
-                "grass_paver": "Grass paver"
+                "grass_paver": "Gräsarmering"
             },
             "error": {
-                "from": "The start point is too far from the nearest road",
-                "via": "The via point is too far from the nearest road",
-                "to": "The end point is too far from the nearest road",
-                "timeout": "Route calculation took too long, try adding points closer together"
+                "from": "Startpunkten är för långt bort från närmaste väg",
+                "via": "Ruttpunkten är för långt bort från närmaste väg",
+                "to": "Slutpunkten är för långt bort från närmaste väg",
+                "timeout": "Ruttberäkningen tog för lång tid, försök att lägga punkterna närmare varandra"
             }
         },
         "scissors": {
@@ -149,7 +150,7 @@
             "crop": "Crop",
             "split_as": "Split the trace into",
             "help_invalid_selection": "Select a trace to crop or split.",
-            "help": "Use the slider to crop the trace, or click on the map to split it at the selected point."
+            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
         },
         "time": {
             "tooltip": "Manage time data",
@@ -255,6 +256,7 @@
             "swisstopoSatellite": "swisstopo Satellite",
             "ignBe": "IGN Topo",
             "ignFrPlan": "IGN Plan",
+            "ignFrTopo": "IGN Topo",
             "ignFrScan25": "IGN SCAN25",
             "ignFrSatellite": "IGN Satellite",
             "ignEs": "IGN",

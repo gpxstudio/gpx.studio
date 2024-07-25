@@ -1,17 +1,17 @@
 {
     "metadata": {
         "home_title": "home",
-        "app_title": "the online GPX file editor",
+        "app_title": "der Online-Editor für GPX-Dateien",
         "embed_title": "the online GPX file editor",
         "help_title": "hilfe",
-        "description": "View, edit, and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations."
+        "description": "GPX-Dateien online anzeigen, bearbeiten und erstellen mit erweiterten Routenplanungs- und Dateiverarbeitungswerkzeugen, schönen Karten und detaillierten Datenvisualisierungen."
     },
     "menu": {
         "new": "New",
-        "new_file": "New file",
-        "new_track": "New track",
-        "new_segment": "New segment",
-        "open": "Open...",
+        "new_file": "Neue Datei",
+        "new_track": "Neue Route",
+        "new_segment": "Neues Segment",
+        "open": "Öffnen...",
         "duplicate": "Duplizieren",
         "close": "Close",
         "close_all": "Close all",
@@ -100,6 +100,7 @@
             "activities": {
                 "bike": "Rad",
                 "racing_bike": "Road bike",
+                "gravel_bike": "Gravel Bike",
                 "mountain_bike": "Mountainbike",
                 "foot": "Laufen/Wandern",
                 "motorcycle": "Moped",
@@ -149,7 +150,7 @@
             "crop": "Crop",
             "split_as": "Split the trace into",
             "help_invalid_selection": "Select a trace to crop or split.",
-            "help": "Use the slider to crop the trace, or click on the map to split it at the selected point."
+            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
         },
         "time": {
             "tooltip": "Manage time data",
@@ -255,6 +256,7 @@
             "swisstopoSatellite": "swisstopo Satellite",
             "ignBe": "IGN Topo",
             "ignFrPlan": "IGN Plan",
+            "ignFrTopo": "IGN Topo",
             "ignFrScan25": "IGN SCAN25",
             "ignFrSatellite": "IGN Satellite",
             "ignEs": "IGN",

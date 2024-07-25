@@ -100,6 +100,7 @@
             "activities": {
                 "bike": "Bicicletta",
                 "racing_bike": "Road bike",
+                "gravel_bike": "Gravel bike",
                 "mountain_bike": "Mountain bike",
                 "foot": "Corsa/escursione",
                 "motorcycle": "Moto",
@@ -149,7 +150,7 @@
             "crop": "Crop",
             "split_as": "Split the trace into",
             "help_invalid_selection": "Select a trace to crop or split.",
-            "help": "Use the slider to crop the trace, or click on the map to split it at the selected point."
+            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
         },
         "time": {
             "tooltip": "Manage time data",
@@ -255,6 +256,7 @@
             "swisstopoSatellite": "swisstopo Satellite",
             "ignBe": "IGN Topo",
             "ignFrPlan": "IGN Plan",
+            "ignFrTopo": "IGN Topo",
             "ignFrScan25": "IGN SCAN25",
             "ignFrSatellite": "Satellitare IGN",
             "ignEs": "IGN",

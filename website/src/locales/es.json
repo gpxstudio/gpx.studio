@@ -100,6 +100,7 @@
             "activities": {
                 "bike": "En bicicleta",
                 "racing_bike": "Bicicleta de carretera",
+                "gravel_bike": "Bicicleta gravel",
                 "mountain_bike": "Bicicleta de montaña",
                 "foot": "Correr/Caminar",
                 "motorcycle": "Motocicleta",
@@ -149,7 +150,7 @@
             "crop": "Recortar",
             "split_as": "Dividir el rastro en",
             "help_invalid_selection": "Seleccione un rastro para recortar o dividir.",
-            "help": "Use el control deslizante para recortar el trazado o haga clic en el mapa para dividirlo en el punto seleccionado."
+            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
         },
         "time": {
             "tooltip": "Gestionar datos de tiempo",
@@ -223,7 +224,7 @@
             "create": "Crear capa",
             "update": "Actualizar capa"
         },
-        "opacity": "Opacidad de la superposición",
+        "opacity": "Opacidad de la capa superpuesta",
         "heatmap": "Mapa de actividad de Strava",
         "label": {
             "basemaps": "Mapas base",
@@ -255,10 +256,11 @@
             "swisstopoSatellite": "swisstopo Satélite",
             "ignBe": "IGN Topo",
             "ignFrPlan": "IGN Plan",
+            "ignFrTopo": "IGN Topo",
             "ignFrScan25": "IGN SCAN25",
             "ignFrSatellite": "IGN Satélite",
             "ignEs": "IGN",
-            "ordnanceSurvey": "Ordnance Survey",
+            "ordnanceSurvey": "Encuesta Ordnance",
             "norwayTopo": "Topografisk Norgeskart 4",
             "swedenTopo": "Lantmäteriet Topo",
             "finlandTopo": "Lantmäteriverket Terrängkarta",
