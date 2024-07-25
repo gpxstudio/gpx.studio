@@ -430,5 +430,6 @@
         "code": "Integracijos kodas"
     },
     "webgl2_required": "Žemėlapio rodymui būtina „WebGL 2“.",
-    "enable_webgl2": "Sužinokite kaip aktyvuoti „WebGL 2“ naršyklėje"
+    "enable_webgl2": "Sužinokite kaip aktyvuoti „WebGL 2“ naršyklėje",
+    "page_not_found": "page not found"
 }
