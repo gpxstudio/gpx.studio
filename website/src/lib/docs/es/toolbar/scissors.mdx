@@ -4,7 +4,7 @@ title: Recortar y dividir
 
 <script>
     import { ScissorsIcon } from 'lucide-svelte';
-    import Scissors from '$lib/components/toolbar/tools/Scissors.svelte';
+    import Scissors from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
     import splitScreenshot from '$lib/assets/img/docs/tools/split.png?enhanced';
     import DocsImage from '$lib/components/docs/DocsImage.svelte';
 </script>
@@ -24,8 +24,9 @@ Valide la selección cuando esté satisfecho con el resultado.
 
 ## Dividir
 
-Para dividir el trazado seleccionado en dos partes, sitúe el cursor sobre él en el mapa.
-Las tijeras aparecerán en la posición del cursor, indicando que puede dividir el rastro en este punto.
+To split the selected trace into two parts, click on one of the split markers displayed along the trace.
+To split at a specific point of your choice, hover over the trace on the map.
+Scissors will appear at the cursor position, showing that you can split the trace at that point.
 
 Puede elegir dividir el trazado en dos archivos GPX o mantener las partes divididas en el mismo archivo como [pistas o segmentos](../gpx).
 
