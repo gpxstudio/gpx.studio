@@ -51,11 +51,15 @@ export function getPreviousGuide(currentGuide: string): string | undefined {
             return `${previousGuide}/${guides[previousGuide][guides[previousGuide].length - 1]}`;
         }
     } else {
-        let subguideIndex = guides[subguides[0]].indexOf(subguides[1]);
-        if (subguideIndex > 0) {
-            return `${subguides[0]}/${guides[subguides[0]][subguideIndex - 1]}`;
+        if (guides.hasOwnProperty(subguides[0])) {
+            let subguideIndex = guides[subguides[0]].indexOf(subguides[1]);
+            if (subguideIndex > 0) {
+                return `${subguides[0]}/${guides[subguides[0]][subguideIndex - 1]}`;
+            } else {
+                return subguides[0];
+            }
         } else {
-            return subguides[0];
+            return undefined;
         }
     }
 }
@@ -64,21 +68,29 @@ export function getNextGuide(currentGuide: string): string | undefined {
     let subguides = currentGuide.split('/');
 
     if (subguides.length === 1) {
-        if (guides[currentGuide].length === 0) {
-            let keys = Object.keys(guides);
-            let index = keys.indexOf(currentGuide);
-            return keys[index + 1];
+        if (guides.hasOwnProperty(currentGuide)) {
+            if (guides[currentGuide].length === 0) {
+                let keys = Object.keys(guides);
+                let index = keys.indexOf(currentGuide);
+                return keys[index + 1];
+            } else {
+                return `${currentGuide}/${guides[currentGuide][0]}`;
+            }
         } else {
-            return `${currentGuide}/${guides[currentGuide][0]}`;
+            return undefined;
         }
     } else {
-        let subguideIndex = guides[subguides[0]].indexOf(subguides[1]);
-        if (subguideIndex < guides[subguides[0]].length - 1) {
-            return `${subguides[0]}/${guides[subguides[0]][subguideIndex + 1]}`;
+        if (guides.hasOwnProperty(subguides[0])) {
+            let subguideIndex = guides[subguides[0]].indexOf(subguides[1]);
+            if (subguideIndex < guides[subguides[0]].length - 1) {
+                return `${subguides[0]}/${guides[subguides[0]][subguideIndex + 1]}`;
+            } else {
+                let keys = Object.keys(guides);
+                let index = keys.indexOf(subguides[0]);
+                return keys[index + 1];
+            }
         } else {
-            let keys = Object.keys(guides);
-            let index = keys.indexOf(subguides[0]);
-            return keys[index + 1];
+            return undefined;
         }
     }
 }
