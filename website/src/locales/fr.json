@@ -430,5 +430,6 @@
         "code": "Code d'intégration"
     },
     "webgl2_required": "WebGL 2 est requis pour afficher la carte.",
-    "enable_webgl2": "Découvrir comment activer WebGL 2 dans votre navigateur"
+    "enable_webgl2": "Découvrir comment activer WebGL 2 dans votre navigateur",
+    "page_not_found": "page not found"
 }
