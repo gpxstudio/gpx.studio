@@ -71,7 +71,11 @@
 			})
 		);
 
-		newMap.addControl(new mapboxgl.NavigationControl());
+		newMap.addControl(
+			new mapboxgl.NavigationControl({
+				visualizePitch: true
+			})
+		);
 
 		if (geocoder) {
 			newMap.addControl(
