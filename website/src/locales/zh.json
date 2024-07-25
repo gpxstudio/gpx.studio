@@ -62,11 +62,11 @@
         "metadata": {
             "button": "Info...",
             "name": "名称",
-            "description": "Description",
+            "description": "说明",
             "save": "保存"
         },
         "style": {
-            "button": "Appearance...",
+            "button": "外观...",
             "color": "配色",
             "opacity": "透明度",
             "width": "宽度"
@@ -91,8 +91,8 @@
                 "tooltip": "Connect the last point of the route with the starting point"
             },
             "round_trip": {
-                "button": "Round trip",
-                "tooltip": "Return to the starting point by the same route"
+                "button": "往返",
+                "tooltip": "通过相同路线返回起始点"
             },
             "start_loop_here": "在此开始循环",
             "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
@@ -253,7 +253,7 @@
             "linzTopo": "LINZ Topo50",
             "swisstopoRaster": "swisstopo Raster",
             "swisstopoVector": "swisstopo Vector",
-            "swisstopoSatellite": "swisstopo Satellite",
+            "swisstopoSatellite": "swisstopo 卫星图",
             "ignBe": "IGN Topo",
             "ignFrPlan": "IGN Plan",
             "ignFrTopo": "IGN Topo",
@@ -293,9 +293,9 @@
             "waymarkedTrailsMTB": "MTB",
             "waymarkedTrailsSkating": "滑雪",
             "waymarkedTrailsHorseRiding": "骑马",
-            "waymarkedTrailsWinter": "Winter",
-            "points_of_interest": "Points of interest",
-            "food": "Food",
+            "waymarkedTrailsWinter": "冬季",
+            "points_of_interest": "兴趣点",
+            "food": "食物",
             "bakery": "面包店",
             "food-store": "Food Store",
             "eat-and-drink": "吃吃喝喝",
@@ -306,7 +306,7 @@
             "motorized": "Cars and Motorcycles",
             "fuel-station": "加油站",
             "parking": "停车场",
-            "garage": "Garage",
+            "garage": "车库",
             "barrier": "障碍物",
             "tourism": "旅游观光",
             "attraction": "景点",
@@ -325,7 +325,7 @@
             "railway-station": "火车站",
             "tram-stop": "有轨电车站",
             "bus-stop": "巴士站",
-            "ferry": "Ferry"
+            "ferry": "轮渡"
         },
         "color": {
             "blue": "蓝色",
@@ -384,7 +384,7 @@
         "segment": "段",
         "segments": "Segments",
         "waypoint": "Point of interest",
-        "waypoints": "Points of interest"
+        "waypoints": "兴趣点"
     },
     "homepage": {
         "website": "官方网站",
@@ -430,5 +430,5 @@
         "code": "Integration code"
     },
     "webgl2_required": "WebGL 2 is required to display the map.",
-    "enable_webgl2": "Learn how to enable WebGL 2 in your browser"
+    "enable_webgl2": "学习如何在您的浏览器中启用 WebGL 2"
 }
