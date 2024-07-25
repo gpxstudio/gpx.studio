@@ -168,16 +168,16 @@
             "merge_contents": "Sujungti turinį ir laikyti trasas atskirai",
             "merge_selection": "Sujungti pasirinkimą",
             "tooltip": "Sujungti elementus",
-            "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
-            "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
-            "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
-            "help_cannot_merge_contents": "Your selection must contain several items to merge their contents."
+            "help_merge_traces": "Sujungus pasirinktas trasas bus sukurta viena ištisinė trasa.",
+            "help_cannot_merge_traces": "Turi pasirinkti kelias trasas, kad galėtumėte jas sujungti.",
+            "help_merge_contents": "Sujungus pasirinktų elementų turiny, jų turinys bus sugrupuotas į pirmąjį elementą.",
+            "help_cannot_merge_contents": "Turite pasirinkti kelis elementus norėdami sujungti jų turinį."
         },
         "extract": {
-            "tooltip": "Extract contents to separate items",
-            "button": "Extract",
-            "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
-            "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
+            "tooltip": "Išskirti turinį į kelis atskirus elementus",
+            "button": "Išskirti",
+            "help": "Iškyrus pasirinktų elementų turinį bus sukurti atskiri elementai kiekvienam turiniui.",
+            "help_invalid_selection": "Norėdami išskirti turite pasirinkti elementą, kuriame yra kelios trasos."
         },
         "waypoint": {
             "tooltip": "Kurti ar keisti svarbią vietą",
@@ -185,19 +185,19 @@
             "latitude": "Platuma",
             "create": "Kurti svarbią vietą",
             "add": "Pridėti svarbią vietą į failą",
-            "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
-            "help_no_selection": "Select a file to create or edit points of interest."
+            "help": "Norėdami sukurti naują svarbią vietą, užpildykite formą arba spustelėkite esamą, kad ją redaguotumėte. Spustelėję žemėlapyje užpildysite koordinates, arba vilkite svarbią vietą, kad ją perkeltumėte.",
+            "help_no_selection": "Pasirinkite failą, kuriame kursite ar keisite svarbias vietas."
         },
         "reduce": {
-            "tooltip": "Reduce the number of GPS points",
+            "tooltip": "Sumažinti GPS taškų skaičių",
             "tolerance": "Leistinas nuokrypis",
             "number_of_points": "GPS taškų skaičius",
             "button": "Sumažinti",
-            "help": "Use the slider to choose the number of GPS points to keep.",
-            "help_no_selection": "Select a trace to reduce the number of its GPS points."
+            "help": "Slinkite slankiklį, norėdami pasirinkti kiek GPS taškų palikti.",
+            "help_no_selection": "Pasirinkite trasą, kurioje norite sumažnti GPS taškų skaičių."
         },
         "clean": {
-            "tooltip": "Clean GPS points and points of interest with a rectangle selection",
+            "tooltip": "Išvalykite GPS taškus ir svarbias vietas pasirinkę stačiakampiu",
             "delete_trackpoints": "Trinti GPS taškus",
             "delete_waypoints": "Trinti svarbią vietą",
             "delete_inside": "Trinti pasirikimo viduje",
@@ -209,7 +209,7 @@
     },
     "layers": {
         "settings": "Sluoksnio parametrai",
-        "settings_help": "Select the map layers you want to show in the interface, add custom ones, and adjust their settings.",
+        "settings_help": "Pasirinkite žemėlapio sluoksnius, kuriuos norite rodyti sąsajoje, pridėkite vartotojo sluoksnius ir keiskite jų nustatymus.",
         "selection": "Sluoksnių pasirinkimas",
         "custom_layers": {
             "title": "Vartotojo sluoksniai",
@@ -400,15 +400,15 @@
         "supported_by": "remia",
         "support_button": "Paremkite „gpx.studio“ per „Ko-fi“",
         "route_planning": "Maršruto planavimas",
-        "route_planning_description": "An intuitive interface to create itineraries tailored to each sport, based on OpenStreetMap data.",
+        "route_planning_description": "Lengvai suprantama sąsaja, leidžianti kurti maršrutus, pritaikytus kiekvienai sporto šakai, remiantis „OpenStreetMap“ duomenimis.",
         "file_processing": "Pažangus failo apdorojimas",
-        "file_processing_description": "A suite of tools for performing all common file processing tasks, and which can be applied to multiple files at once.",
+        "file_processing_description": "Įrankių rinkinys, skirtas visoms įprastoms failų apdorojimo užduotims atlikti, kurį vienu metu galima taikyti keliems failams.",
         "maps": "Pasaulio ir vietiniai žemėlapiai",
-        "maps_description": "A large collection of basemaps, overlays and points of interest to help you craft your next outdoor adventure, or visualize your latest achievement.",
+        "maps_description": "Didelis pagrindo žemėlapių, sluoksnių ir svarbių vietų rinkinys, padedantis pasiruošti kitam nuotykiui lauke arba atvaizduoti naujausią pasiekimą.",
         "data_visualization": "Duomenų atvaizdvimas",
-        "data_visualization_description": "An interactive elevation profile with detailed statistics to analyze recorded activities and future objectives.",
+        "data_visualization_description": "Interaktyvus aukščio profilis su išsamiais statistiniais duomenimis, kad būtų galima analizuoti užregistruotą veiklą ir būsimus tikslus.",
         "identity": "Nemokamai, be reklamų ir atviro kodo",
-        "identity_description": "The website is free to use, without ads, and the source code is publicly available on GitHub. This is only possible thanks to the incredible support of the community."
+        "identity_description": "Tinklalapiu galima naudotis nemokamai, jame nėra reklamų, o kodas yra atviras ir prieinamas „GitHub“ svetainėje. Tai įmanoma tik dėl neįtikėtinos bendruomenės paramos."
     },
     "embedding": {
         "title": "Susikurkite savo žemėlapį",
