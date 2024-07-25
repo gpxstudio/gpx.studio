@@ -69,37 +69,37 @@
             "button": "Uiterlijk...",
             "color": "Kleur",
             "opacity": "Transparantie",
-            "width": "Width"
+            "width": "Breedte"
         },
-        "hide": "Hide",
-        "unhide": "Unhide",
-        "open_in": "Open in"
+        "hide": "Verberg",
+        "unhide": "Maak zichtbaar",
+        "open_in": "Openen in"
     },
     "toolbar": {
         "routing": {
-            "tooltip": "Plan or edit a route",
+            "tooltip": "Een route plannen of bewerken",
             "activity": "activiteit",
             "use_routing": "Routeberekening",
             "use_routing_tooltip": "Verbind ankerpunten via wegennetwerk, of in een rechte lijn indien uitgeschakeld",
-            "allow_private": "Allow private roads",
+            "allow_private": "Sta privéwegen toe",
             "reverse": {
                 "button": "Richting omkeren",
-                "tooltip": "Reverse the direction of the route"
+                "tooltip": "Keer de richting van de route om"
             },
             "route_back_to_start": {
-                "button": "Back to start",
-                "tooltip": "Connect the last point of the route with the starting point"
+                "button": "Terug naar start",
+                "tooltip": "Verbind het laatste punt van de route met het startpunt"
             },
             "round_trip": {
-                "button": "Round trip",
-                "tooltip": "Return to the starting point by the same route"
+                "button": "Rondtrip",
+                "tooltip": "Terug naar het startpunt met dezelfde route"
             },
             "start_loop_here": "Start lus hier",
-            "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
-            "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
+            "help_no_file": "Selecteer een trace om de routing tool te gebruiken, of klik op de kaart om een nieuwe route te maken.",
+            "help": "Klik op de kaart om een nieuw ankerpunt toe te voegen, of sleep bestaande punten om de route te wijzigen.",
             "activities": {
                 "bike": "Fiets",
-                "racing_bike": "Road bike",
+                "racing_bike": "Fiets",
                 "gravel_bike": "Gravel fiets",
                 "mountain_bike": "Mountainbike",
                 "foot": "Hardlopen/wandelen",
@@ -108,21 +108,21 @@
                 "railway": "Spoorweg"
             },
             "surface": {
-                "unknown": "Unknown",
+                "unknown": "Onbekend",
                 "paved": "Verhard",
                 "unpaved": "Onverhard",
                 "asphalt": "Asfalt",
                 "concrete": "Beton",
                 "chipseal": "Chipseal",
                 "cobblestone": "Klinkers",
-                "unhewn_cobblestone": "Unhewn cobblestone",
-                "paving_stones": "Paving stones",
-                "stepping_stones": "Stepping stones",
-                "sett": "Sett",
+                "unhewn_cobblestone": "Ruwe kasseien",
+                "paving_stones": "Straatstenen",
+                "stepping_stones": "Stapstenen",
+                "sett": "Serie",
                 "metal": "Metaal",
                 "wood": "Hout",
-                "compacted": "Compacted gravel",
-                "fine_gravel": "Fine gravel",
+                "compacted": "Verdicht grind",
+                "fine_gravel": "Steengruis",
                 "gravel": "Grind",
                 "pebblestone": "Kiezelsteen",
                 "rock": "Rots",
@@ -136,36 +136,36 @@
                 "sand": "Zand",
                 "woodchips": "Houtsnippers",
                 "grass": "Gras",
-                "grass_paver": "Grass paver"
+                "grass_paver": "Grastegel"
             },
             "error": {
-                "from": "The start point is too far from the nearest road",
-                "via": "The via point is too far from the nearest road",
-                "to": "The end point is too far from the nearest road",
+                "from": "Het startpunt ligt te ver van de dichtstbijzijnde weg",
+                "via": "Het via punt ligt te ver van de dichtstbijzijnde weg",
+                "to": "Het eindpunt is te ver van de dichtstbijzijnde weg",
                 "timeout": "Routeberekening heeft te lang geduurd, probeer punten dichter bij elkaar toe te voegen"
             }
         },
         "scissors": {
-            "tooltip": "Crop or split",
-            "crop": "Crop",
-            "split_as": "Split the trace into",
-            "help_invalid_selection": "Select a trace to crop or split.",
-            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
+            "tooltip": "Bijsnijden of splitsen",
+            "crop": "Bijsnijden",
+            "split_as": "Splits de route in",
+            "help_invalid_selection": "Selecteer een route om bij te knippen of te splitsen.",
+            "help": "Gebruik de schuifregelaar om de route te snijden of te splitsen door op een van de splitsingsmarkeringen te klikken of op de route zelf."
         },
         "time": {
-            "tooltip": "Manage time data",
+            "tooltip": "Tijddata beheren",
             "start": "Start",
-            "end": "End",
+            "end": "Einde",
             "total_time": "Verplaatsingstijd",
-            "pick_date": "Pick a date",
-            "artificial": "Create realistic time data",
-            "update": "Update time data",
-            "help": "Use the form to set new time data.",
-            "help_invalid_selection": "Select a single trace to manage its time data."
+            "pick_date": "Kies een datum",
+            "artificial": "Maak realistische tijddata",
+            "update": "Tijddata bijwerken",
+            "help": "Gebruik het formulier om nieuwe tijddata in te stellen.",
+            "help_invalid_selection": "Selecteer één route om de tijddata te beheren."
         },
         "merge": {
-            "merge_traces": "Connect the traces",
-            "merge_contents": "Merge the contents and keep the traces disconnected",
+            "merge_traces": "Verbind de routes",
+            "merge_contents": "Voeg de inhoud samen en houd de routes gescheiden",
             "merge_selection": "Voeg selectie samen",
             "tooltip": "Items samenvoegen",
             "help_merge_traces": "Het verbinden van de geselecteerde sporen creëert één continu spoor.",
@@ -175,14 +175,14 @@
         },
         "extract": {
             "tooltip": "Splits inhoud naar afzonderlijke items",
-            "button": "Extract",
+            "button": "Uitpakken",
             "help": "Het uitpakken van de inhoud van de geselecteerde items maakt een apart item voor elk van de inhoud.",
             "help_invalid_selection": "Je selectie moet items met meerdere sporen bevatten om ze uit te pakken."
         },
         "waypoint": {
-            "tooltip": "Create and edit points of interest",
-            "longitude": "Longitude",
-            "latitude": "Latitude",
+            "tooltip": "Maken en bewerken van bezienswaardigheden",
+            "longitude": "Lengtegraad",
+            "latitude": "Breedtegraad",
             "create": "Create point of interest",
             "add": "Add point of interest to file",
             "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
