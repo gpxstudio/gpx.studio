@@ -430,5 +430,6 @@
         "code": "Integration code"
     },
     "webgl2_required": "WebGL 2 is required to display the map.",
-    "enable_webgl2": "学习如何在您的浏览器中启用 WebGL 2"
+    "enable_webgl2": "学习如何在您的浏览器中启用 WebGL 2",
+    "page_not_found": "page not found"
 }
