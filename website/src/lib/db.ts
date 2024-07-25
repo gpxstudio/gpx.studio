@@ -93,6 +93,8 @@ export const settings = {
     selectedOverpassTree: dexieSettingStore('selectedOverpassTree', defaultOverpassTree),
     opacities: dexieSettingStore('opacities', defaultOpacities),
     customLayers: dexieSettingStore<Record<string, CustomLayer>>('customLayers', {}),
+    customBasemapOrder: dexieSettingStore<string[]>('customBasemapOrder', []),
+    customOverlayOrder: dexieSettingStore<string[]>('customOverlayOrder', []),
     directionMarkers: dexieSettingStore('directionMarkers', false),
     distanceMarkers: dexieSettingStore('distanceMarkers', false),
     stravaHeatmapColor: dexieSettingStore('stravaHeatmapColor', 'bluered'),
