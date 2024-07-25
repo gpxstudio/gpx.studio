@@ -430,5 +430,6 @@
         "code": "Código de integración"
     },
     "webgl2_required": "Se requiere WebGL 2 para visualizar el mapa.",
-    "enable_webgl2": "Aprenda cómo activar WebGL 2 en su navegador"
+    "enable_webgl2": "Aprenda cómo activar WebGL 2 en su navegador",
+    "page_not_found": "page not found"
 }
