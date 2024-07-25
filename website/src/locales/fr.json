@@ -150,7 +150,7 @@
             "crop": "Rogner",
             "split_as": "Diviser la trace en",
             "help_invalid_selection": "Sélectionnez une trace à rogner ou diviser.",
-            "help": "Utilisez le curseur pour rogner la trace, ou cliquez sur la carte pour la diviser au point sélectionné."
+            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
         },
         "time": {
             "tooltip": "Gérer les données temporelles",
