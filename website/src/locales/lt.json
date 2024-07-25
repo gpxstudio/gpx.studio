@@ -150,7 +150,7 @@
             "crop": "Apkarpyti",
             "split_as": "Padalinti trasą į",
             "help_invalid_selection": "Pasirinkite trasą, kurią norite nukirpti arba padalinti.",
-            "help": "Naudokite slankiklį trasos apkirpimui, arba spustelėkite žemėlapyje, kad toje vietoje padalintumėte."
+            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
         },
         "time": {
             "tooltip": "Valdyti laiko duomenis",
