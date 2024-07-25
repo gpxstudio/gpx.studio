@@ -150,7 +150,7 @@
             "crop": "裁剪",
             "split_as": "Split the trace into",
             "help_invalid_selection": "Select a trace to crop or split.",
-            "help": "Use the slider to crop the trace, or click on the map to split it at the selected point."
+            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
         },
         "time": {
             "tooltip": "管理时间数据",
