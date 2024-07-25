@@ -9,7 +9,7 @@
     "menu": {
         "new": "Naujas",
         "new_file": "Naujas failas",
-        "new_track": "Naujas maršrutas",
+        "new_track": "Nauja trasa",
         "new_segment": "Naujas segmentas",
         "open": "Atverti...",
         "duplicate": "Dubliuoti",
@@ -135,13 +135,13 @@
                 "mud": "Purvas",
                 "sand": "Smėlis",
                 "woodchips": "Medžio drožlės",
-                "grass": "Grass",
-                "grass_paver": "Grass paver"
+                "grass": "Žolė",
+                "grass_paver": "Žolės grindinys"
             },
             "error": {
-                "from": "The start point is too far from the nearest road",
-                "via": "The via point is too far from the nearest road",
-                "to": "The end point is too far from the nearest road",
+                "from": "Pradžios taškas yra per toli nuo artimiausio kelio",
+                "via": "Tarpinis taškas yra per toli nuo artimiausio kelio",
+                "to": "Pabaigos taškas yra per toli nuo artimiausio kelio",
                 "timeout": "Route calculation took too long, try adding points closer together"
             }
         },
@@ -198,7 +198,7 @@
         },
         "clean": {
             "tooltip": "Clean GPS points and points of interest with a rectangle selection",
-            "delete_trackpoints": "Delete GPS points",
+            "delete_trackpoints": "Trinti GPS taškus",
             "delete_waypoints": "Trinti svarbią vietą",
             "delete_inside": "Delete inside selection",
             "delete_outside": "Delete outside selection",
@@ -379,8 +379,8 @@
     "gpx": {
         "file": "Failas",
         "files": "Failai",
-        "track": "Maršrutas",
-        "tracks": "Maršrutai",
+        "track": "Trasa",
+        "tracks": "Trasos",
         "segment": "Atkarpa",
         "segments": "Atkarpos",
         "waypoint": "Svarbi vieta",
