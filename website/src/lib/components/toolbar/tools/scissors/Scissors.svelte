@@ -15,12 +15,22 @@
 	import { Slider } from '$lib/components/ui/slider';
 	import * as Select from '$lib/components/ui/select';
 	import { Separator } from '$lib/components/ui/separator';
-	import { gpxStatistics, slicedGPXStatistics, splitAs } from '$lib/stores';
+	import { gpxStatistics, map, slicedGPXStatistics, splitAs } from '$lib/stores';
 	import { get } from 'svelte/store';
 	import { _ } from 'svelte-i18n';
 	import { onDestroy, tick } from 'svelte';
 	import { Crop } from 'lucide-svelte';
 	import { dbUtils } from '$lib/db';
+	import { SplitControls } from './SplitControls';
+
+	let splitControls: SplitControls | undefined = undefined;
+
+	$: if ($map) {
+		if (splitControls) {
+			splitControls.destroy();
+		}
+		splitControls = new SplitControls($map);
+	}
 
 	$: validSelection =
 		$selection.hasAnyChildren(new ListRootItem(), true, ['waypoints']) &&
@@ -86,6 +96,10 @@
 
 	onDestroy(() => {
 		$slicedGPXStatistics = undefined;
+		if (splitControls) {
+			splitControls.destroy();
+			splitControls = undefined;
+		}
 	});
 </script>
 

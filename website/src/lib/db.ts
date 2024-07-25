@@ -7,7 +7,7 @@ import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays
 import { applyToOrderedItemsFromFile, applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem, ListRootItem } from '$lib/components/file-list/FileList';
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
-import { SplitType } from '$lib/components/toolbar/tools/Scissors.svelte';
+import { SplitType } from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
 import { getElevation } from '$lib/utils';
 import { browser } from '$app/environment';
 
@@ -790,22 +790,26 @@ export const dbUtils = {
             });
         });
     },
-    split(fileId: string, trackIndex: number, segmentIndex: number, coordinates: Coordinates) {
+    split(fileId: string, trackIndex: number, segmentIndex: number, coordinates: Coordinates, trkptIndex?: number) {
         let splitType = get(splitAs);
         return applyGlobal((draft) => {
             let file = getFile(fileId);
             if (file) {
                 let segment = file.trk[trackIndex].trkseg[segmentIndex];
 
-                // Find the point closest to split
-                let minDistance = Number.MAX_VALUE;
                 let minIndex = 0;
-                for (let i = 0; i < segment.trkpt.length; i++) {
-                    let dist = distance(segment.trkpt[i].getCoordinates(), coordinates);
-                    if (dist < minDistance) {
-                        minDistance = dist;
-                        minIndex = i;
+                if (trkptIndex === undefined) {
+                    // Find the point closest to split
+                    let minDistance = Number.MAX_VALUE;
+                    for (let i = 0; i < segment.trkpt.length; i++) {
+                        let dist = distance(segment.trkpt[i].getCoordinates(), coordinates);
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            minIndex = i;
+                        }
                     }
+                } else {
+                    minIndex = trkptIndex;
                 }
 
                 let absoluteIndex = minIndex;

@@ -9,7 +9,7 @@ import { dbUtils, fileObservers, getFile, getStatistics, settings } from './db';
 import { addSelectItem, applyToOrderedSelectedItemsFromFile, selectFile, selectItem, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListItem, ListTrackItem, ListTrackSegmentItem, ListWaypointItem, ListWaypointsItem } from '$lib/components/file-list/FileList';
 import type { RoutingControls } from '$lib/components/toolbar/tools/routing/RoutingControls';
-import { SplitType } from '$lib/components/toolbar/tools/Scissors.svelte';
+import { SplitType } from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
 
 const { fileOrder } = settings;
 
