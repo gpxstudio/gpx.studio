@@ -9,6 +9,7 @@
 	import { languages } from '$lib/languages';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import { base } from '$app/paths';
 
 	$: if ($page.params.language === '' && $locale !== 'en') {
 		locale.set('en');
@@ -18,7 +19,7 @@
 			if (languages.hasOwnProperty(lang)) {
 				locale.set(lang);
 			} else if (browser) {
-				goto('/404');
+				goto(`${base}/404`);
 			}
 		}
 	}

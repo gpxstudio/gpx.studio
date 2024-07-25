@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import { base } from '$app/paths';
 	import { _, locale } from 'svelte-i18n';
 
 	export let path: string;
@@ -22,7 +23,7 @@
 		if (modules.hasOwnProperty(`/src/lib/docs/${$locale}/${path}`)) {
 			loadModule(`/src/lib/docs/${$locale}/${path}`);
 		} else if (browser) {
-			goto(`/404`);
+			goto(`${base}/404`);
 		}
 	}
 </script>
