@@ -55,7 +55,7 @@
         "distance_markers": "距离标记",
         "direction_markers": "Direction arrows",
         "help": "帮助",
-        "donate": "Donate",
+        "donate": "捐赠",
         "ctrl": "Ctrl",
         "click": "Click",
         "drag": "Drag",
@@ -104,11 +104,11 @@
                 "mountain_bike": "山地自行车",
                 "foot": "跑步/徒步",
                 "motorcycle": "摩托车",
-                "water": "Water",
-                "railway": "Railway"
+                "water": "水域",
+                "railway": "铁路"
             },
             "surface": {
-                "unknown": "Unknown",
+                "unknown": "未知的",
                 "paved": "铺装路面",
                 "unpaved": "非铺装路面",
                 "asphalt": "沥青",
@@ -139,7 +139,7 @@
                 "grass_paver": "Grass paver"
             },
             "error": {
-                "from": "The start point is too far from the nearest road",
+                "from": "起点距离最近的道路太远",
                 "via": "The via point is too far from the nearest road",
                 "to": "The end point is too far from the nearest road",
                 "timeout": "Route calculation took too long, try adding points closer together"
@@ -153,13 +153,13 @@
             "help": "Use the slider to crop the trace, or click on the map to split it at the selected point."
         },
         "time": {
-            "tooltip": "Manage time data",
+            "tooltip": "管理时间数据",
             "start": "开始",
-            "end": "End",
+            "end": "结束",
             "total_time": "移动时间",
             "pick_date": "选择日期",
-            "artificial": "Create realistic time data",
-            "update": "Update time data",
+            "artificial": "创建实际时间数据",
+            "update": "更新时间数据",
             "help": "Use the form to set new time data.",
             "help_invalid_selection": "Select a single trace to manage its time data."
         },
