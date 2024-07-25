@@ -12,56 +12,56 @@ title: Controles do mapa
 
 ### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Navegação no mapa
 
-The controls at the top allow you to zoom in <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> and out <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, and to change the orientation and tilt of the map <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
+Os controles no topo permitem aumentar<Plus size="16" class="inline-block" style="margin-bottom: 2px" /> e diminuir <Minus size="16" class="inline-block" style="margin-bottom: 2px" /> o zoom e mudar a orientação e inclinação do mapa <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
 
 <DocsNote>
 
-To control the orientation and tilt of the map, you can also drag the map while holding <kbd>Ctrl</kbd>.
+Para controlar a orientação e a inclinação do mapa, você também pode arrastar o mapa enquanto segura <kbd>Ctrl</kbd>.
 
 </DocsNote>
 
 ### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Barra de pesquisa
 
-You can use the search bar to look for an address and navigate to it on the map.
+Você pode usar a barra de pesquisa para procurar um endereço e navegar até ele no mapa.
 
 ### U<LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Botão Localizar
 
-The locate button will center the map on your current location.
+O botão de localizar centrará o mapa na sua localização atual.
 
 <DocsNote>
 
-This only works if you have allowed your browser and <b>gpx.studio</b> to access your location.
+Isso só funciona se você tiver permitido o acesso que seu navegador e <b>gpx.studio</b> tenham acesso a sua localização.
 
 </DocsNote>
 
 ### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Street view
 
-This button can be used to enable street view mode on the map.
-Depending on the street view source chosen in the [settings](./menu/settings), street view imagery can be accessed differently.
+Este botão pode ser usado para ativar o modo visualização de rua no mapa.
+Dependendo da fonte da visualização de rua escolhida nas [configurações](./menu/settings), as imagens de visualização de rua podem ser acessadas de forma diferente.
 
-- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: the street view coverage will appear as green lines on the map. When zoomed in enough, green dots will show the exact locations where street view imagery is available. Hovering over a green dot will show the street view image at that location.
-- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: click on the map to open a new tab with the street view imagery at that location.
+- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: a cobertura de rua aparecerá como linhas verdes no mapa. Quando ampliado o suficiente, os pontos verdes mostrarão os locais exatos onde a imagem de visualização de rua está disponível. Passar o mouse sobre um ponto verde irá mostrar a imagem de rua naquele local.
+- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: clique no mapa para abrir uma nova aba com a visualização de rua naquele local.
 
 ### <Layers3 size="16" class="inline-block" style="margin-bottom: 2px" /> Camadas do mapa
 
-The map layers button allows you to switch between different basemaps, and toggle map overlays and categories of points of interest.
+O botão de camadas de mapa permite que você alterne entre diferentes mapas e alternar entre sobreposições de mapa e categorias de pontos de interesse.
 
-- **Basemaps** are background maps that present the main geographic features of the world.
-  Depending on their purpose, basemaps will have different styles and levels of detail.
-  Only one basemap can be displayed at a time.
+- **Mapas base** são mapas de fundo que apresentam as características geográficas principais do mundo.
+  Dependendo da sua finalidade, os mapas terão diferentes estilos e níveis de detalhes.
+  Apenas um mapa base pode ser exibio por vez.
 - **Sobreposições** são camadas adicionais que podem ser exibidas no topo do basemap para fornecer informações complementares.
-- **Points of interest** can be added to the map to show different categories of places, such as shops, restaurants, or accommodations.
+- **Pontos de interesse** podem ser adicionados ao mapa para mostrar diferentes categorias de lugares, como lojas, restaurantes ou acomodações.
 
 <div class="flex flex-col items-center">
     <DocsLayers />
     <span class="text-sm text-center mt-2">
-        Hover over the map to show the <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> overlay on top of the <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> basemap.
+        Passe o mouse por cima do mapa para mostrar a camada de <a href="https://hiking.waymarkedtrails.org" target="_blank">Trilhas demarcadas</a> sobre o mapa <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a>.
     </span>
 </div>
 
-A large collection of global and local basemaps and overlays is available in **gpx.studio**, as well as a selection of point-of-interest categories.
-They can be enabled in the [map layer settings dialog](./menu/settings).
+Uma grande diversidade de mapas globais e locais está disponível no **gpx.studio**, bem como uma seleção de pontos de interesse.
+Eles podem ser ativados nas [configurações de camadas do mapa](./menu/settings).
 
-In these settings, you can also manage the opacity of the overlays.
+Nessas configurações, você também pode gerenciar a opacidade das camadas.
 
-For advanced users, it is possible to add custom basemaps and overlays by providing <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, or <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox style JSON</a> URLs.
+Para usuários avançados, é possível adicionar mapas e sobreposições personalizados, fornecendo <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, ou <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, ou ainda URLs com arquivos <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox JSON</a>.
