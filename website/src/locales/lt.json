@@ -146,8 +146,8 @@
             }
         },
         "scissors": {
-            "tooltip": "Crop or split",
-            "crop": "Crop",
+            "tooltip": "Apkarpyti arba padalinti",
+            "crop": "Apkarpyti",
             "split_as": "Split the trace into",
             "help_invalid_selection": "Select a trace to crop or split.",
             "help": "Use the slider to crop the trace, or click on the map to split it at the selected point."
