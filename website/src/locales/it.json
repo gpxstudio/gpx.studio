@@ -150,7 +150,7 @@
             "crop": "Crop",
             "split_as": "Split the trace into",
             "help_invalid_selection": "Select a trace to crop or split.",
-            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
+            "help": "Utilizzare il cursore per ritagliare la traccia, o dividerla facendo clic su uno dei marcatori divisi o sulla traccia stessa."
         },
         "time": {
             "tooltip": "Manage time data",
