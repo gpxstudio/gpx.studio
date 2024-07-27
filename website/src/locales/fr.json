@@ -88,19 +88,19 @@
             },
             "route_back_to_start": {
                 "button": "Retour au départ",
-                "tooltip": "Connect the last point of the route with the starting point"
+                "tooltip": "Connectez le dernier point de l'itinéraire au point de départ"
             },
             "round_trip": {
                 "button": "Aller-retour",
                 "tooltip": "Revenir au point de départ par le même itinéraire"
             },
             "start_loop_here": "Démarrer la boucle ici",
-            "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
-            "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
+            "help_no_file": "Sélectionnez une trace pour utiliser l'outil de routage, ou cliquez sur la carte pour commencer à créer un nouvel itinéraire.",
+            "help": "Cliquez sur la carte pour ajouter un nouveau point d'ancrage, ou faites glisser ceux existants pour changer l'itinéraire.",
             "activities": {
                 "bike": "Vélo",
-                "racing_bike": "Road bike",
-                "gravel_bike": "Gravel bike",
+                "racing_bike": "Vélo de route",
+                "gravel_bike": "Vélo Gravel",
                 "mountain_bike": "VTT",
                 "foot": "Course à pied/randonnée",
                 "motorcycle": "Moto",
@@ -115,7 +115,7 @@
                 "concrete": "Béton",
                 "chipseal": "Enduit superficiel routier",
                 "cobblestone": "Pavés",
-                "unhewn_cobblestone": "Unhewn cobblestone",
+                "unhewn_cobblestone": "Pavé non taillé",
                 "paving_stones": "Paving stones",
                 "stepping_stones": "Stepping stones",
                 "sett": "Sett",
@@ -194,7 +194,7 @@
             "number_of_points": "Nombre de points GPS",
             "button": "Minifier",
             "help": "Utilisez le curseur pour choisir le nombre de points GPS à garder.",
-            "help_no_selection": "Select a trace to reduce the number of its GPS points."
+            "help_no_selection": "Sélectionnez une trace pour réduire le nombre de ses points GPS."
         },
         "clean": {
             "tooltip": "Clean GPS points and points of interest with a rectangle selection",
@@ -203,13 +203,13 @@
             "delete_inside": "Supprimer à l'intérieur de la sélection",
             "delete_outside": "Supprimer en dehors de la sélection",
             "button": "Supprimer",
-            "help": "Select a rectangle area on the map to remove GPS points and points of interest.",
-            "help_no_selection": "Select a trace to clean GPS points and points of interest."
+            "help": "Sélectionnez une zone rectangulaire sur la carte pour supprimer les points GPS et les points d'intérêt.",
+            "help_no_selection": "Sélectionnez une trace pour nettoyer les points GPS et les points d'intérêt."
         }
     },
     "layers": {
         "settings": "Réglages des couches",
-        "settings_help": "Select the map layers you want to show in the interface, add custom ones, and adjust their settings.",
+        "settings_help": "Sélectionnez les couches de la carte que vous voulez afficher dans l'interface, ajoutez celles personnalisées, et ajustez leurs paramètres.",
         "selection": "Sélection des couches",
         "custom_layers": {
             "title": "Couches personnalisées",
@@ -400,9 +400,9 @@
         "supported_by": "soutenu par",
         "support_button": "Soutenir gpx.studio sur Ko-fi",
         "route_planning": "Planification d’itinéraire",
-        "route_planning_description": "An intuitive interface to create itineraries tailored to each sport, based on OpenStreetMap data.",
+        "route_planning_description": "Une interface intuitive pour créer des itinéraires adaptés à chaque sport, basés sur les données d'OpenStreetMap.",
         "file_processing": "Traitement de fichiers avancé",
-        "file_processing_description": "A suite of tools for performing all common file processing tasks, and which can be applied to multiple files at once.",
+        "file_processing_description": "Une suite d'outils pour effectuer toutes les tâches courantes de traitement de fichiers, et qui peuvent être appliqués à plusieurs fichiers à la fois.",
         "maps": "Cartes mondiales et locales",
         "maps_description": "A large collection of basemaps, overlays and points of interest to help you craft your next outdoor adventure, or visualize your latest achievement.",
         "data_visualization": "Data visualization",
