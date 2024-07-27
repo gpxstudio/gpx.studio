@@ -1,5 +1,5 @@
 ---
-title: Edit actions
+title: Actions d'édition
 ---
 
 <script lang="ts">
@@ -9,62 +9,62 @@ title: Edit actions
 
 # { title }
 
-Unlike the file actions, the edit actions can potentially modify the content of the currently selected files.
-Moreover, when the vertical layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, and points of interest](../gpx).
-Therefore, we will refer to the elements that can be modified by these actions as _file items_.
-Note that except for the undo and redo actions, the edit actions are also accessible through the context menu (right-click) of the file items.
+Contrairement aux actions sur les fichiers, les actions d'édition peuvent potentiellement modifier le contenu des fichiers sélectionnés.
+De plus, lorsque la vue verticale de la liste de fichiers est activée (voir [Fichiers et statistiques](../files-and-stats)), elles peuvent également être appliquées aux [pistes, segments, et points d'intérêt](../gpx).
+Par conséquent, nous appellerons les éléments qui peuvent être modifiés par ces actions des _éléments de fichier_.
+Notez que, à part les actions annuler et rétablir, les actions d'édition sont également accessibles via le menu contextuel (clic droit) des éléments de fichier.
 
-### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Undo and redo
+### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Annuler et rétablir
 
-Using these buttons, you can undo or redo the last actions you performed.
-This applies to all actions of the interface but not to view options, application settings, or map navigation.
+En utilisant ces boutons, vous pouvez annuler ou rétablir les dernières actions que vous avez effectuées.
+Cela s'applique à toutes les actions de l'interface, mais pas aux options d'affichage, aux paramètres de l'application ou à la navigation de la carte.
 
-### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> Info...
+### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> Infos...
 
-Open the information dialog of the currently selected file item, where you can see and edit its name and description.
+Ouvrir la boîte de dialogue d'information de l'élément de fichier actuellement sélectionné, où vous pouvez voir et modifier son nom et sa description.
 
-### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Appearance...
+### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Apparence...
 
-Open the appearance dialog, where you can change the color, opacity, and width of the selected file items on the map.
+Ouvrir la boîte de dialogue d'apparence, où vous pouvez changer la couleur, l'opacité et l'épaisseur des éléments de fichier sélectionnés sur la carte.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Cacher/afficher
 
-Toggle the visibility of the selected file items on the map.
+Activer/désactiver la visibilité des éléments de fichier sélectionnés sur la carte.
 
-### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Select all
+### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Sélectionner tout
 
-Add all file items in the current hierarchy level to the selection.
+Ajouter tous les éléments de fichier du niveau de hiérarchie actuel à la sélection.
 
-### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copy
+### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copier
 
-Copy the selected file items to the clipboard.
-
-<DocsNote>
-
-This action is only available when the vertical layout of the files list is enabled.
-
-</DocsNote>
-
-### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Cut
-
-Cut the selected file items to the clipboard.
+Copier les éléments de fichier sélectionnés dans le presse-papiers.
 
 <DocsNote>
 
-This action is only available when the vertical layout of the files list is enabled.
+Cette action n'est disponible que lorsque la vue verticale de la liste de fichiers est activée.
 
 </DocsNote>
 
-### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Paste
+### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Couper
 
-Paste the file items from the clipboard to the current hierarchy level if they are compatible with it.
+Couper les éléments de fichier sélectionnés dans le presse-papiers.
 
 <DocsNote>
 
-This action is only available when the vertical layout of the files list is enabled.
+Cette action n'est disponible que lorsque la vue verticale de la liste de fichiers est activée.
 
 </DocsNote>
 
-### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Delete
+### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Coller
 
-Delete the selected file items.
+Coller les éléments de fichier du presse-papiers au niveau de hiérarchie actuel, s'ils sont compatibles avec celui-ci.
+
+<DocsNote>
+
+Cette action n'est disponible que lorsque la vue verticale de la liste de fichiers est activée.
+
+</DocsNote>
+
+### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Supprimer
+
+Supprimer les éléments de fichier sélectionnés.
