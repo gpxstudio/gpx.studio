@@ -48,7 +48,7 @@
         "mode": "Thème",
         "light": "Clair",
         "dark": "Sombre",
-        "street_view_source": "Street view source",
+        "street_view_source": "Source d'imagerie de rue",
         "mapillary": "Mapillary",
         "google": "Google",
         "layers": "Couches de la carte...",
@@ -209,7 +209,7 @@
     },
     "layers": {
         "settings": "Réglages des couches",
-        "settings_help": "Sélectionnez les couches de la carte que vous voulez afficher dans l'interface, ajoutez celles personnalisées, et ajustez leurs paramètres.",
+        "settings_help": "Sélectionnez les couches de carte que vous voulez afficher dans l'interface, ajoutez des couches personnalisées, et ajustez leurs paramètres.",
         "selection": "Sélection des couches",
         "custom_layers": {
             "title": "Couches personnalisées",
@@ -418,7 +418,7 @@
         "height": "Height",
         "fill_by": "Fill by",
         "none": "None",
-        "show_controls": "Show controls",
+        "show_controls": "Afficher les commandes",
         "manual_camera": "Manual camera",
         "manual_camera_description": "You can move the map below to adjust the camera position.",
         "latitude": "Latitude",
