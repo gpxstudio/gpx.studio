@@ -58,7 +58,7 @@
         "donate": "Faire un don",
         "ctrl": "Ctrl",
         "click": "Clic",
-        "drag": "Drag",
+        "drag": "Glisser",
         "metadata": {
             "button": "Infos...",
             "name": "Nom",
@@ -80,7 +80,7 @@
             "tooltip": "Planifier ou modifier un itinéraire",
             "activity": "Activité",
             "use_routing": "Routage",
-            "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
+            "use_routing_tooltip": "Connecter les points d'ancrage via le réseau routier ou en ligne droite si désactivé",
             "allow_private": "Autoriser les routes privées",
             "reverse": {
                 "button": "Inverser",
@@ -177,7 +177,7 @@
             "tooltip": "Extract contents to separate items",
             "button": "Extraire",
             "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
-            "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
+            "help_invalid_selection": "Votre sélection doit contenir des éléments avec plusieurs traces pour les extraire."
         },
         "waypoint": {
             "tooltip": "Créer et modifier des points d'intérêt",
@@ -185,8 +185,8 @@
             "latitude": "Latitude",
             "create": "Créer le point d'intérêt",
             "add": "Ajouter le point d'intérêt au fichier",
-            "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
-            "help_no_selection": "Select a file to create or edit points of interest."
+            "help": "Remplissez le formulaire pour créer un nouveau point d'intérêt, ou cliquez sur un point existant pour le modifier. Cliquez sur la carte pour remplir les coordonnées, ou faites glisser les points d'intérêt pour les déplacer.",
+            "help_no_selection": "Sélectionnez un fichier pour créer ou éditer des points d'intérêt."
         },
         "reduce": {
             "tooltip": "Réduire le nombre de points GPS",
