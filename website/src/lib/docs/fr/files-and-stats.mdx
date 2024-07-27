@@ -1,5 +1,5 @@
 ---
-title: Files and statistics
+title: Fichiers et statistiques
 ---
 
 <script>
@@ -9,71 +9,71 @@ title: Files and statistics
 
 # { title }
 
-## File list
+## Liste de fichiers
 
-Once you have [opened](./menu/file) files, they will be shown as tabs in the file list located at the bottom of the map.
-You can reorder them by dragging and dropping the tabs.
-And when many files are open, you can scroll through the list of tabs to navigate between them.
-
-<DocsNote>
-
-When using a mouse, you need to hold <kbd>Shift</kbd> to scroll horizontally.
-
-</DocsNote>
-
-### File selection
-
-By clicking on a tab, you can switch between the files to inspect their statistics, and apply [edit actions](./menu/edit) and [tools](./toolbar/) to them.
-By holding the <kbd>Ctrl/Cmd</kbd> key, you can add files to the selection or remove them, and by holding <kbd>Shift</kbd>, you can select a range of files.
-Most of the [edit actions](./menu/edit) and [tools](./toolbar/) can be applied to multiple files at once.
+Une fois que vous avez des fichiers [ouverts](./menu/fichier), ils seront affichés sous forme d'onglets dans la liste de fichiers située au bas de la carte.
+Vous pouvez les réordonner en glissant-déposant les onglets.
+Et lorsque beaucoup de fichiers sont ouverts, vous pouvez faire défiler la liste des onglets pour naviguer entre eux.
 
 <DocsNote>
 
-You can also navigate through the files using the arrow keys on your keyboard, and use <kbd>Shift</kbd> to add files to the selection.
+Si vous utilisez une souris, vous devez maintenir <kbd>Shift</kbd> pour faire défiler la liste horizontalement.
 
 </DocsNote>
 
-### Edit actions
+### Sélection de fichiers
 
-By right-clicking on a file tab, you can access the same actions as in the [edit menu](./menu/edit).
-
-### Vertical layout
-
-As mentioned in the [view options section](./menu/view), you can switch between a horizontal and a vertical layout for the file list.
-The vertical file list is useful when you have many files open, or files with multiple [tracks, segments, or points of interest](../gpx).
-Indeed, this layout allows you to inspect the content of the files through collapsible sections.
-
-You can also apply [edit actions](./menu/edit) and [tools](./toolbar/) to internal file items.
-Furthermore, you can drag and drop the inner items to reorder them, or move them in the hierarchy or even to another file.
+En cliquant sur un onglet, vous pouvez basculer entre les fichiers pour inspecter leurs statistiques, et leur appliquer des [actions d'édition](./menu/edit) et [tools](./toolbar/).
+En maintenant la touche <kbd>Ctrl/Cmd</kbd>, vous pouvez ajouter ou supprimer des fichiers à la sélection, et en maintenant <kbd>Shift</kbd>, vous pouvez sélectionner une plage de fichiers.
+La plupart des [actions d'édition](./menu/edit) et des [outils](./toolbar/) peuvent être appliqués à plusieurs fichiers à la fois.
 
 <DocsNote>
 
-The size of the file list can be adjusted by dragging the separator between the map and the file list.
+Vous pouvez également naviguer à travers les fichiers en utilisant les flèches de votre clavier, et utiliser <kbd>Shift</kbd> pour ajouter des fichiers à la sélection.
 
 </DocsNote>
 
-## Elevation profile and statistics
+### Actions d'édition
 
-At the bottom of the interface, you can find the elevation profile and statistics for the current selection.
+En faisant un clic droit sur un onglet de fichier, vous pouvez accéder aux mêmes actions que dans le [menu d'édition](./menu/edit).
+
+### Vue verticale
+
+Comme mentionné dans la [section des options d'affichage](./menu/view), vous pouvez basculer entre une vue horizontale et verticale pour la liste de fichiers.
+La vue verticale est utile lorsque vous avez beaucoup de fichiers ouverts, ou des fichiers avec plusieurs [pistes, segments ou points d'intérêt](../gpx).
+En effet, cette vue vous permet d'inspecter le contenu des fichiers grâce à des sections pliables.
+
+Vous pouvez également appliquer les [actions d'édition](./menu/edit) et les [outils](./toolbar/) aux éléments intérieurs aux fichiers.
+De plus, vous pouvez glisser-déposer les éléments intérieurs pour les réorganiser, ou les déplacer dans la hiérarchie ou même dans un autre fichier.
 
 <DocsNote>
 
-The size of the elevation profile can be adjusted by dragging the separator between the map and the elevation profile.
+La taille de la liste de fichiers peut être ajustée en faisant glisser le séparateur entre la carte et la liste de fichiers.
 
 </DocsNote>
 
-### Interactive statistics
+## Profil altimétrique et statistiques
 
-When hovering over the elevation profile, a tooltip will show statistics at the cursor position.
-To get the statistics for a specific section of the elevation profile, you can drag a selection rectangle on the profile.
-Click on the profile to reset the selection.
+En bas de l'interface, vous pouvez trouver le profil altimétrique et les statistiques de la sélection actuelle.
 
-### Additional data
+<DocsNote>
 
-Using the buttons on the right of the elevation profile, you can optionally color the elevation profile by:
+La taille du profil altimétrique peut être ajustée en faisant glisser le séparateur entre la carte et le profil altimétrique.
 
-- **slope** <TriangleRight size="16" class="inline-block" style="margin-bottom: 2px" /> information computed from the elevation data, or
-- **surface** <BrickWall size="16" class="inline-block" style="margin-bottom: 2px" /> data coming from <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> tags.
-  This is only available for files created with **gpx.studio**.
+</DocsNote>
 
-If your selection includes it, you can also visualize: **speed** <Zap size="16" class="inline-block" style="margin-bottom: 2px" />, **heart rate** <HeartPulse size="16" class="inline-block" style="margin-bottom: 2px" />, **cadence** <Orbit size="16" class="inline-block" style="margin-bottom: 2px" />, **temperature** <Thermometer size="16" class="inline-block" style="margin-bottom: 2px" />, and **power** <SquareActivity size="16" class="inline-block" style="margin-bottom: 2px" /> data on the elevation profile.
+### Statistiques interactives
+
+En survolant le profil d'altitude, une infobulle affiche les statistiques à la position du curseur.
+Pour obtenir les statistiques d'une section donnée du profil altimétrique, vous pouvez créer un rectangle de sélection en faisant glisser votre curseur sur le profil.
+Cliquez sur le profil pour réinitialiser la sélection.
+
+### Données supplémentaires
+
+En utilisant les boutons à droite du profil d'altitude, vous pouvez optionnellement colorier le profil d'altitude en fonction de :
+
+- des données de **pente** <TriangleRight size="16" class="inline-block" style="margin-bottom: 2px" /> calculées à partir des données d'altitude, ou
+- des données de **revêtement** <BrickWall size="16" class="inline-block" style="margin-bottom: 2px" /> venant des tags de <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> d'<a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>.
+  Ceci est uniquement disponible pour les fichiers créés avec **gpx.studio**.
+
+Si votre sélection possède ces données, vous pouvez également visualiser les données de : **vitesse** <Zap size="16" class="inline-block" style="margin-bottom: 2px" />, **fréquence cardiaque** <HeartPulse size="16" class="inline-block" style="margin-bottom: 2px" />, **cadence** <Orbit size="16" class="inline-block" style="margin-bottom: 2px" />, **température** <Thermometer size="16" class="inline-block" style="margin-bottom: 2px" /> et **puissance** <SquareActivity size="16" class="inline-block" style="margin-bottom: 2px" /> sur le profil altimétrique.
