@@ -4,7 +4,7 @@
         "app_title": "l'editor di file GPX online",
         "embed_title": "l'editor di file GPX online",
         "help_title": "aiuto",
-        "description": "View, edit, and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations."
+        "description": "Visualizza, modifica e genera file GPX online con avanzate funzionalità di pianificazione del percorso e strumenti di elaborazione dei file, mappe eleganti e visualizzazione dettagliata dei dati."
     },
     "menu": {
         "new": "Nuova",
@@ -24,7 +24,7 @@
         "support_message": "Lo strumento è gratuito nell'utilizzo, ma non nel funzionamento. Si prega di considerare il supportare al sito web se lo si utilizza frequentemente. Grazie!",
         "support_button": "Aiutaci a mantenere il sito gratuito",
         "download_file": "Scarica il file",
-        "download_files": "Download files",
+        "download_files": "Scarica file",
         "edit": "Modifica",
         "undo": "Annulla",
         "redo": "Ripeti",
@@ -34,7 +34,7 @@
         "elevation_profile": "Profilo altimetrico",
         "vertical_file_view": "Elenco file verticale",
         "switch_basemap": "Passa alla mappa di base precedente",
-        "toggle_overlays": "Toggle overlays",
+        "toggle_overlays": "Attiva le sovrapposizioni",
         "toggle_3d": "Attiva/disattiva 3D",
         "settings": "Impostazioni",
         "distance_units": "Unità distanza",
@@ -67,7 +67,7 @@
         },
         "style": {
             "button": "Aspetto...",
-            "color": "Color",
+            "color": "Colore",
             "opacity": "Opacity",
             "width": "Width"
         },
