@@ -68,23 +68,23 @@
         "style": {
             "button": "Aspetto...",
             "color": "Colore",
-            "opacity": "Opacity",
-            "width": "Width"
+            "opacity": "Opacità",
+            "width": "Larghezza"
         },
-        "hide": "Hide",
-        "unhide": "Unhide",
-        "open_in": "Open in"
+        "hide": "Nascondi",
+        "unhide": "Mostra",
+        "open_in": "Apri con"
     },
     "toolbar": {
         "routing": {
-            "tooltip": "Plan or edit a route",
+            "tooltip": "Pianifica o modifica un percorso",
             "activity": "Attività",
             "use_routing": "Instradamento",
             "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
             "allow_private": "Allow private roads",
             "reverse": {
                 "button": "Inverti la traccia",
-                "tooltip": "Reverse the direction of the route"
+                "tooltip": "Invertire la direzione del percorso"
             },
             "route_back_to_start": {
                 "button": "Back to start",
@@ -100,7 +100,7 @@
             "activities": {
                 "bike": "Bicicletta",
                 "racing_bike": "Road bike",
-                "gravel_bike": "Gravel bike",
+                "gravel_bike": "Bici da gravel",
                 "mountain_bike": "Mountain bike",
                 "foot": "Corsa/escursione",
                 "motorcycle": "Moto",
@@ -108,7 +108,7 @@
                 "railway": "Ferrovia"
             },
             "surface": {
-                "unknown": "Unknown",
+                "unknown": "Sconosciuto",
                 "paved": "Pavimentato",
                 "unpaved": "Non asfaltato",
                 "asphalt": "Asfalto",
@@ -155,7 +155,7 @@
         "time": {
             "tooltip": "Manage time data",
             "start": "Partenza",
-            "end": "End",
+            "end": "Fine",
             "total_time": "Tempo in movimento",
             "pick_date": "Pick a date",
             "artificial": "Create realistic time data",
@@ -286,15 +286,15 @@
             "stravaHeatmapGravel": "Gravel Cycling",
             "stravaHeatmapMTB": "MTB",
             "stravaHeatmapWater": "Acqua",
-            "stravaHeatmapWinter": "Winter",
+            "stravaHeatmapWinter": "Inverno",
             "waymarked_trails": "Waymarked Trails",
             "waymarkedTrailsHiking": "Hiking",
             "waymarkedTrailsCycling": "Cycling",
             "waymarkedTrailsMTB": "MTB",
             "waymarkedTrailsSkating": "Skating",
             "waymarkedTrailsHorseRiding": "Horse Riding",
-            "waymarkedTrailsWinter": "Winter",
-            "points_of_interest": "Points of interest",
+            "waymarkedTrailsWinter": "Inverno",
+            "points_of_interest": "Punti di interesse",
             "food": "Food",
             "bakery": "Panificio",
             "food-store": "Food Store",
@@ -418,7 +418,7 @@
         "height": "Altezza",
         "fill_by": "Fill by",
         "none": "None",
-        "show_controls": "Show controls",
+        "show_controls": "Visualizza controlli",
         "manual_camera": "Manual camera",
         "manual_camera_description": "You can move the map below to adjust the camera position.",
         "latitude": "Latitude",
