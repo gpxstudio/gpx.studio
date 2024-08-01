@@ -148,8 +148,8 @@
         "scissors": {
             "tooltip": "Bijsnijden of splitsen",
             "crop": "Bijsnijden",
-            "split_as": "Splits de route in",
-            "help_invalid_selection": "Selecteer een route om bij te knippen of te splitsen.",
+            "split_as": "Splits het spoor in",
+            "help_invalid_selection": "Selecteer een spoor om bij te knippen of te splitsen.",
             "help": "Gebruik de schuifregelaar om de route te snijden of te splitsen door op een van de splitsingsmarkeringen te klikken of op de route zelf."
         },
         "time": {
@@ -161,11 +161,11 @@
             "artificial": "Maak realistische tijddata",
             "update": "Tijddata bijwerken",
             "help": "Gebruik het formulier om nieuwe tijddata in te stellen.",
-            "help_invalid_selection": "Selecteer één route om de tijddata te beheren."
+            "help_invalid_selection": "Selecteer één spoor om de tijddata te beheren."
         },
         "merge": {
             "merge_traces": "Verbind de routes",
-            "merge_contents": "Voeg de inhoud samen en houd de routes gescheiden",
+            "merge_contents": "Voeg de inhoud samen en houd de sporen gescheiden",
             "merge_selection": "Voeg selectie samen",
             "tooltip": "Items samenvoegen",
             "help_merge_traces": "Het verbinden van de geselecteerde sporen creëert één continu spoor.",
