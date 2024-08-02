@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "home_title": "huis",
+        "home_title": "beginscherm",
         "app_title": "de online GPX-bestandseditor",
         "embed_title": "de online GPX-bestandseditor",
         "help_title": "help",
@@ -9,7 +9,7 @@
     "menu": {
         "new": "Nieuw",
         "new_file": "Nieuw bestand",
-        "new_track": "Nieuwe route",
+        "new_track": "Nieuwe track",
         "new_segment": "Nieuw segment",
         "open": "Openen...",
         "duplicate": "Dupliceren",
@@ -21,7 +21,7 @@
         "export": "Exporteren...",
         "export_all": "Alles exporteren...",
         "export_options": "Export instellingen",
-        "support_message": "De tool is gratis te gebruiken, maar is niet gratis om te onderhouden. Overweeg om de website te ondersteunen als je hem vaak gebruikt. Bedankt!",
+        "support_message": "Het gereedschap is gratis te gebruiken, maar is niet gratis om te onderhouden. Overweeg om de website te ondersteunen als je hem vaak gebruikt. Bedankt!",
         "support_button": "Help de website gratis te houden",
         "download_file": "Bestand downloaden",
         "download_files": "Bestanden downloaden",
@@ -92,14 +92,14 @@
             },
             "round_trip": {
                 "button": "Rondtrip",
-                "tooltip": "Terug naar het startpunt met dezelfde route"
+                "tooltip": "Terug naar het startpunt via dezelfde route"
             },
             "start_loop_here": "Start lus hier",
-            "help_no_file": "Selecteer een trace om de routing tool te gebruiken, of klik op de kaart om een nieuwe route te maken.",
+            "help_no_file": "Selecteer een spoor om de routering tool te gebruiken, of klik op de kaart om een nieuwe route te maken.",
             "help": "Klik op de kaart om een nieuw ankerpunt toe te voegen, of sleep bestaande punten om de route te wijzigen.",
             "activities": {
                 "bike": "Fiets",
-                "racing_bike": "Fiets",
+                "racing_bike": "Racefiets",
                 "gravel_bike": "Gravel fiets",
                 "mountain_bike": "Mountainbike",
                 "foot": "Hardlopen/wandelen",
@@ -118,7 +118,7 @@
                 "unhewn_cobblestone": "Ruwe kasseien",
                 "paving_stones": "Straatstenen",
                 "stepping_stones": "Stapstenen",
-                "sett": "Serie",
+                "sett": "Instellen",
                 "metal": "Metaal",
                 "wood": "Hout",
                 "compacted": "Verdicht grind",
