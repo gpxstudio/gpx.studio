@@ -15,7 +15,8 @@
 		Route,
 		Scale
 	} from 'lucide-svelte';
-	import { _ } from 'svelte-i18n';
+	import { _, locale } from 'svelte-i18n';
+	import { getURLForLanguage } from '$lib/utils';
 	import { exampleGPXFile } from '$lib/assets/example';
 	import { writable } from 'svelte/store';
 	import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
@@ -54,11 +55,15 @@
 					{$_('metadata.description')}
 				</div>
 				<div class="w-full flex flex-row justify-center gap-3">
-					<Button href="./app" class="w-1/3 min-w-fit">
+					<Button href={getURLForLanguage($locale, '/app')} class="w-1/3 min-w-fit">
 						<Map size="18" class="mr-1.5" />
 						{$_('homepage.app')}
 					</Button>
-					<Button variant="secondary" href="./help" class="w-1/3 min-w-fit">
+					<Button
+						variant="secondary"
+						href={getURLForLanguage($locale, '/help')}
+						class="w-1/3 min-w-fit"
+					>
 						<BookOpenText size="18" class="mr-1.5" />
 						<span>{$_('menu.help')}</span>
 					</Button>
