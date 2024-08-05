@@ -283,54 +283,58 @@
 	$: selectedLayerId, setDataFromSelectedLayer();
 </script>
 
-<div class="flex flex-col gap-3">
-	<div class="flex flex-col gap-2">
-		{#if $customBasemapOrder.length > 0}
-			<div class="flex flex-row items-center gap-1 font-semibold">
-				<Map size="16" />
-				{$_('layers.label.basemaps')}
-				<div class="grow">
-					<Separator />
-				</div>
+<div class="flex flex-col">
+	{#if $customBasemapOrder.length > 0}
+		<div class="flex flex-row items-center gap-1 font-semibold mb-2">
+			<Map size="16" />
+			{$_('layers.label.basemaps')}
+			<div class="grow">
+				<Separator />
 			</div>
-		{/if}
-		<div bind:this={basemapContainer} class="ml-1.5 flex flex-col gap-1">
-			{#each $customBasemapOrder as id (id)}
-				<div class="flex flex-row items-center gap-2" data-id={id}>
-					<Move size="12" />
-					<span class="grow">{$customLayers[id].name}</span>
-					<Button variant="outline" on:click={() => (selectedLayerId = id)} class="p-1 h-7">
-						<Pencil size="16" />
-					</Button>
-					<Button variant="outline" on:click={() => deleteLayer(id)} class="p-1 h-7">
-						<Trash2 size="16" />
-					</Button>
-				</div>
-			{/each}
 		</div>
-		{#if $customOverlayOrder.length > 0}
-			<div class="flex flex-row items-center gap-1 font-semibold">
-				<Layers2 size="16" />
-				{$_('layers.label.overlays')}
-				<div class="grow">
-					<Separator />
-				</div>
+	{/if}
+	<div
+		bind:this={basemapContainer}
+		class="ml-1.5 flex flex-col gap-1 {$customBasemapOrder.length > 0 ? 'mb-2' : ''}"
+	>
+		{#each $customBasemapOrder as id (id)}
+			<div class="flex flex-row items-center gap-2" data-id={id}>
+				<Move size="12" />
+				<span class="grow">{$customLayers[id].name}</span>
+				<Button variant="outline" on:click={() => (selectedLayerId = id)} class="p-1 h-7">
+					<Pencil size="16" />
+				</Button>
+				<Button variant="outline" on:click={() => deleteLayer(id)} class="p-1 h-7">
+					<Trash2 size="16" />
+				</Button>
 			</div>
-		{/if}
-		<div bind:this={overlayContainer} class="ml-1.5 flex flex-col gap-1">
-			{#each $customOverlayOrder as id (id)}
-				<div class="flex flex-row items-center gap-2" data-id={id}>
-					<Move size="12" />
-					<span class="grow">{$customLayers[id].name}</span>
-					<Button variant="outline" on:click={() => (selectedLayerId = id)} class="p-1 h-7">
-						<Pencil size="16" />
-					</Button>
-					<Button variant="outline" on:click={() => deleteLayer(id)} class="p-1 h-7">
-						<Trash2 size="16" />
-					</Button>
-				</div>
-			{/each}
+		{/each}
+	</div>
+	{#if $customOverlayOrder.length > 0}
+		<div class="flex flex-row items-center gap-1 font-semibold mb-2">
+			<Layers2 size="16" />
+			{$_('layers.label.overlays')}
+			<div class="grow">
+				<Separator />
+			</div>
 		</div>
+	{/if}
+	<div
+		bind:this={overlayContainer}
+		class="ml-1.5 flex flex-col gap-1 {$customOverlayOrder.length > 0 ? 'mb-2' : ''}"
+	>
+		{#each $customOverlayOrder as id (id)}
+			<div class="flex flex-row items-center gap-2" data-id={id}>
+				<Move size="12" />
+				<span class="grow">{$customLayers[id].name}</span>
+				<Button variant="outline" on:click={() => (selectedLayerId = id)} class="p-1 h-7">
+					<Pencil size="16" />
+				</Button>
+				<Button variant="outline" on:click={() => deleteLayer(id)} class="p-1 h-7">
+					<Trash2 size="16" />
+				</Button>
+			</div>
+		{/each}
 	</div>
 
 	<Card.Root>
