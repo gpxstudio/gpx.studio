@@ -150,7 +150,7 @@
             "crop": "Cortar",
             "split_as": "Dividir a trilha em",
             "help_invalid_selection": "Selecione uma trilha para cortar ou dividir.",
-            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
+            "help": "Use o controle deslizante para cortar o rastro ou divida-o clicando em um dos marcadores de divisão ou no próprio rastro."
         },
         "time": {
             "tooltip": "Gerenciar dados de tempo",
@@ -430,5 +430,6 @@
         "code": "Código de integração"
     },
     "webgl2_required": "WebGL 2 é necessário para exibir o mapa.",
-    "enable_webgl2": "Saiba como ativar WebGL 2 em seu navegador"
+    "enable_webgl2": "Saiba como ativar WebGL 2 em seu navegador",
+    "page_not_found": "página não encontrada"
 }

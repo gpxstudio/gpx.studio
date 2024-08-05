@@ -10,58 +10,58 @@ title: Commandes de la carte
 
 # { title }
 
-### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Map navigation
+### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Navigation de la carte
 
-The controls at the top allow you to zoom in <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> and out <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, and to change the orientation of the map <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
-
-<DocsNote>
-
-To control the orientation and tilt of the map, you can also drag the map while holding <kbd>Ctrl</kbd>.
-
-</DocsNote>
-
-### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Search bar
-
-You can use the search bar to look for an address and navigate to it on the map.
-
-### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Locate button
-
-The locate button will center the map on your current location.
+Les commandes en haut vous permettent de zoomer <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> et dézoomer <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, et de changer l'orientation et l'inclinaison de la carte <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
 
 <DocsNote>
 
-This only works if you have allowed your browser and <b>gpx.studio</b> to access your location.
+Pour contrôler l'orientation et l'inclinaison de la carte, vous pouvez également faire glisser la carte tout en maintenant <kbd>Ctrl</kbd>.
 
 </DocsNote>
 
-### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Street view
+### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Barre de recherche
 
-This button can be used to enable street view mode on the map.
-Depending on the street view source chosen in the [settings](./menu/settings), street view imagery can be accessed differently.
+Vous pouvez utiliser la barre de recherche pour rechercher une adresse et naviguer vers celle-ci sur la carte.
 
-- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: the street view coverage will appear as green lines on the map. When zoomed in enough, green dots will show the exact locations where street view imagery is available. Hovering over a green dot will show the street view image at that location.
-- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: click on the map to open a new tab with the street view imagery at that location.
+### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Bouton de localisation
 
-### <Layers3 size="16" class="inline-block" style="margin-bottom: 2px" /> Map layers
+Le bouton de localisation centre la carte sur votre localisation actuelle.
 
-The map layers button allows you to switch between different basemaps, and toggle map overlays and categories of points of interest.
+<DocsNote>
 
-- **Basemaps** are background maps that present the main geographic features of the world.
-  Depending on their purpose, basemaps will have different styles and levels of detail.
-  Only one basemap can be displayed at a time.
-- **Overlays** are additional layers that can be displayed on top of the basemap to provide complementary information.
-- **Points of interest** can be added to the map to show different categories of places, such as shops, restaurants, or accommodations.
+Cela ne fonctionne que si vous avez autorisé votre navigateur et <b>gpx.studio</b> à accéder à votre localisation.
+
+</DocsNote>
+
+### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Imagerie de rue
+
+Ce bouton peut être utilisé pour activer le mode imagerie de rue sur la carte.
+Selon la source d'imagerie de rue choisie dans les [réglages](./menu/settings), les images de rue peuvent être accédées différemment.
+
+- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: la couverture d'imagerie de rue sera représentée sur la carte par des lignes vertes. Lorsque le zoom est suffisant, des points verts montreront les endroits précis où des images de rue sont disponibles. En survolant un point vert, vous verrez l'image de rue correspondant à cet endroit.
+- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: cliquez sur la carte pour ouvrir un nouvel onglet avec l’imagerie de rue correspondant à cet endroit.
+
+### <Layers3 size="16" class="inline-block" style="margin-bottom: 2px" /> Couches de la carte
+
+Le bouton des couches de la carte vous permet de basculer entre différents fonds de carte, et d'activer/désactiver les surcouches de cartes et les catégories de points d'intérêt.
+
+- Les **fonds de carte** sont des cartes apparaissant en fond et présentant les principales caractéristiques géographiques du monde.
+  Selon leur fonction, les fonds de carte ont des styles et des niveaux de détail différents.
+  Un seul fond de carte peut être affiché à la fois.
+- Les **surcouches** sont des couches supplémentaires qui peuvent être affichées par-dessus le fond de carte pour fournir des informations complémentaires.
+- Les **points d'intérêt** peuvent être ajoutés à la carte pour montrer différentes catégories d'endroits, comme les magasins, les restaurants ou les hébergements.
 
 <div class="flex flex-col items-center">
     <DocsLayers />
     <span class="text-sm text-center mt-2">
-        Hover over the map to show the <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> overlay on top of the <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> basemap.
+        Survolez la carte pour afficher la <a href="https://hiking.waymarkedtrails.org" target="_blank">Randonnée Marquée</a> par-dessus le fond de carte <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a>.
     </span>
 </div>
 
-A large collection of global and local basemaps and overlays is available in **gpx.studio**, as well as a selection of point-of-interest categories.
-They can be enabled in the [map layer settings dialog](./menu/settings).
+Une grande collection de fonds de carte et de surcouches mondiales et locales est disponible dans **gpx.studio**, ainsi qu'une sélection de catégories de points d'intérêt.
+Ceux-ci peuvent être activés dans la [fenêtre de configuration des couches de carte](./menu/settings).
 
-In these settings, you can also manage the opacity of the overlays.
+Dans ces paramètres, vous pouvez également gérer l'opacité des surcouches.
 
-For advanced users, it is possible to add custom basemaps and overlays by providing <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, or <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox style JSON</a> URLs.
+Pour les utilisateurs expérimentés, il est possible d'ajouter des fonds de carte et des surcouches personnalisés en fournissant des URLs <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, ou <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox style JSON</a>.

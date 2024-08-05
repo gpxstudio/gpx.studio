@@ -1,5 +1,5 @@
 ---
-title: Route planning and editing
+title: Planification et édition d'itinéraires
 ---
 
 <script>
@@ -12,74 +12,74 @@ title: Route planning and editing
 
 # <Pencil size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
 
-The route planning and editing tool allows you to create and edit routes by placing or moving anchor points on the map.
+L'outil de planification et d'édition d'itinéraires vous permet de créer et de modifier des itinéraires en plaçant ou en déplaçant des points d'ancrage sur la carte.
 
-## Settings
+## Réglages
 
-As shown below, the tool dialog contains a few settings to control the routing behavior.
-You can minimize the dialog to save space by clicking on <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
+Comme illustré ci-dessous, la boîte de dialogue de l'outil contient quelques paramètres pour contrôler le comportement du routage.
+Vous pouvez minimiser la boîte de dialogue pour économiser de l'espace en cliquant sur <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
 
 <div class="flex flex-row justify-center">
     <Routing minimizable={false} class="text-foreground p-3 border rounded-md shadow-lg" />
 </div>
 
-### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routing
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routage
 
-When routing is enabled, anchor points placed or moved on the map will be connected by a route calculated on the <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> road network.
-Disable routing to connect anchor points with straight lines.
-This setting can also be toggled by pressing <kbd>F5</kbd>.
+Lorsque le routage est activé, les points d'ancrage placés ou déplacés sur la carte seront connectés par une route calculée sur le réseau routier <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a>.
+Désactivez le routage pour connecter les points d'ancrage en ligne droite.
+Ce paramètre peut également être modifié en appuyant sur <kbd>F5</kbd>.
 
-### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Activity
+### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Activité
 
-Select the activity type to tailor the routes for.
+Sélectionnez le type d'activité pour lequel vous souhaitez que les itinéraires soient adaptés.
 
-### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Allow private roads
+### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Autoriser les routes privées
 
-When enabled, the routing engine will consider private roads when computing routes.
+Lorsque cette option est activée, le moteur de routage prend en compte les routes privées lors du calcul des routes.
 
 <DocsNote type="warning">
 
-Only use this option if you have local knowledge of the area and have permission to use the roads in question.
+Utilisez cette option uniquement si vous connaissez bien la région et avez la permission d'utiliser les routes en question.
 
 </DocsNote>
 
-## Plotting and editing routes
+## Tracer et éditer des itinéraires
 
-Creating a route or extending an existing one is as simple as clicking on the map to place a new anchor point.
+Créer un itinéraire ou étendre un itinéraire existant est aussi simple que de cliquer sur la carte pour placer un nouveau point d'ancrage.
 
-You can also drag an existing anchor point to reroute the segment connecting it with the previous and next anchor points.
+Vous pouvez également faire glisser un point d'ancrage existant pour rediriger le segment qui le relie au point d'ancrage précédent et suivant.
 
-Furthermore, new anchor points can be inserted between existing ones by hovering over the segment connecting them and dragging the anchor point that appears to the desired location.
-On touch devices, you can tap on the segment to insert a new anchor point.
+De plus, de nouveaux points d'ancrage peuvent être insérés entre les points existants en survolant le segment qui les relie et en faisant glisser le point d'ancrage qui apparaît à l'emplacement souhaité.
+Sur les appareils tactiles, vous pouvez appuyer sur le segment pour insérer un nouveau point d'ancrage.
 
 <DocsNote>
 
-When editing imported GPX files, an initial set of anchor points is created automatically.
-To ease the editing process, the more the map is zoomed in, the more anchor points are displayed.
-This allows the route to be edited at different levels of detail.
+Lors de l'édition de fichiers GPX importés, un ensemble de points d'ancrage initial est créé automatiquement.
+Pour faciliter le processus d'édition, plus la carte est zoomée, plus les points d'ancrage sont nombreux à être affichés.
+Cela permet d'éditer l'itinéraire à différents niveaux de détail.
 
 </DocsNote>
 
-Finally, you can delete anchor points by clicking on them and selecting <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Delete</button> from the context menu.
+Enfin, vous pouvez supprimer les points d'ancrage en cliquant dessus et en sélectionnant <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Supprimer</button> dans le menu contextuel.
 
-<DocsImage src={routingScreenshot} alt="Anchor points allow you to easily edit a route." />
+<DocsImage src={routingScreenshot} alt="Les points d'ancrage permettent de modifier facilement un itinéraire." />
 
-## Additional tools
+## Outils supplémentaires
 
-The following tools automate some common route modification operations.
+Les outils suivants automatisent certaines opérations communes de modification d'itinéraire.
 
-### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Reverse
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Inverser
 
-Reverse the direction of the route.
+Inverser le sens de l'itinéraire.
 
-### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Back to start
+### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Retour au départ
 
-Connect the last point of the route with the starting point, using the chosen routing settings.
+Connecter le dernier point de l'itinéraire avec le point de départ, en utilisant les paramètres de routage choisis.
 
-### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Round trip
+### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Aller-retour
 
-Return to the starting point by the same route.
+Revenir au point de départ par le même itinéraire.
 
-### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Change the start of the loop
+### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Changer le point de départ de la boucle
 
-When the end point of the route is close enough to the start, you can change the start of the loop by clicking on any anchor point and selecting <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Start loop here</button> from the context menu.
+Lorsque le point d'arrivée de l'itinéraire est suffisamment proche du départ, vous pouvez changer le départ de la boucle en cliquant sur n'importe quel point d'ancrage et en sélectionnant <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Démarrer la boucle ici</button> dans le menu contextuel.

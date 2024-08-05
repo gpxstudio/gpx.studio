@@ -10,7 +10,7 @@
         "new": "新建",
         "new_file": "新建文件",
         "new_track": "新路线",
-        "new_segment": "New segment",
+        "new_segment": "新分段",
         "open": "打开...",
         "duplicate": "创建副本",
         "close": "关闭",
@@ -32,9 +32,9 @@
         "select_all": "全选",
         "view": "视图",
         "elevation_profile": "海拔",
-        "vertical_file_view": "Vertical file list",
+        "vertical_file_view": "垂直文件列表",
         "switch_basemap": "切换到上一个底图",
-        "toggle_overlays": "Toggle overlays",
+        "toggle_overlays": "切换覆盖",
         "toggle_3d": "切换3D",
         "settings": "设置",
         "distance_units": "长度单位",
@@ -53,14 +53,14 @@
         "google": "Google",
         "layers": "地图图层...",
         "distance_markers": "距离标记",
-        "direction_markers": "Direction arrows",
+        "direction_markers": "方向箭头",
         "help": "帮助",
         "donate": "捐赠",
         "ctrl": "Ctrl",
-        "click": "Click",
-        "drag": "Drag",
+        "click": "单击",
+        "drag": "拖动",
         "metadata": {
-            "button": "Info...",
+            "button": "信息...",
             "name": "名称",
             "description": "说明",
             "save": "保存"
@@ -79,24 +79,24 @@
         "routing": {
             "tooltip": "规划或编辑路线",
             "activity": "活动",
-            "use_routing": "Routing",
-            "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
+            "use_routing": "路由",
+            "use_routing_tooltip": "通过公路网络连接锚点，如果禁用则直接连接直线",
             "allow_private": "允许私有道路",
             "reverse": {
                 "button": "反转",
-                "tooltip": "Reverse the direction of the route"
+                "tooltip": "反转路由方向"
             },
             "route_back_to_start": {
                 "button": "返回至起点",
-                "tooltip": "Connect the last point of the route with the starting point"
+                "tooltip": "将路由的最后一点与起点连接"
             },
             "round_trip": {
                 "button": "往返",
                 "tooltip": "通过相同路线返回起始点"
             },
             "start_loop_here": "在此开始循环",
-            "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
-            "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
+            "help_no_file": "选择一个轨迹来使用路由工具，或点击地图开始创建新路由。",
+            "help": "点击地图添加一个新的锚点，或拖动现有的锚点以更改路由。",
             "activities": {
                 "bike": "自行车",
                 "racing_bike": "公路自行车",
@@ -115,14 +115,14 @@
                 "concrete": "混凝土",
                 "chipseal": "碎石铺装",
                 "cobblestone": "鹅卵石",
-                "unhewn_cobblestone": "Unhewn cobblestone",
-                "paving_stones": "Paving stones",
-                "stepping_stones": "Stepping stones",
+                "unhewn_cobblestone": "未开凿的鹅卵石",
+                "paving_stones": "铺路石",
+                "stepping_stones": "垫脚石",
                 "sett": "Sett",
                 "metal": "金属",
                 "wood": "木材",
-                "compacted": "Compacted gravel",
-                "fine_gravel": "Fine gravel",
+                "compacted": "紧凑的砾石",
+                "fine_gravel": "精良的砾石",
                 "gravel": "砾石",
                 "pebblestone": "卵石",
                 "rock": "岩石",
@@ -136,7 +136,7 @@
                 "sand": "沙粒",
                 "woodchips": "木片",
                 "grass": "草地",
-                "grass_paver": "Grass paver"
+                "grass_paver": "草坪"
             },
             "error": {
                 "from": "起点距离最近的道路太远",
@@ -430,5 +430,6 @@
         "code": "Integration code"
     },
     "webgl2_required": "WebGL 2 is required to display the map.",
-    "enable_webgl2": "学习如何在您的浏览器中启用 WebGL 2"
+    "enable_webgl2": "学习如何在您的浏览器中启用 WebGL 2",
+    "page_not_found": "page not found"
 }

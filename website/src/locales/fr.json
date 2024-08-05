@@ -48,7 +48,7 @@
         "mode": "Thème",
         "light": "Clair",
         "dark": "Sombre",
-        "street_view_source": "Street view source",
+        "street_view_source": "Source d'imagerie de rue",
         "mapillary": "Mapillary",
         "google": "Google",
         "layers": "Couches de la carte...",
@@ -58,7 +58,7 @@
         "donate": "Faire un don",
         "ctrl": "Ctrl",
         "click": "Clic",
-        "drag": "Drag",
+        "drag": "Glisser",
         "metadata": {
             "button": "Infos...",
             "name": "Nom",
@@ -80,7 +80,7 @@
             "tooltip": "Planifier ou modifier un itinéraire",
             "activity": "Activité",
             "use_routing": "Routage",
-            "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
+            "use_routing_tooltip": "Connecter les points d'ancrage via le réseau routier ou en ligne droite si désactivé",
             "allow_private": "Autoriser les routes privées",
             "reverse": {
                 "button": "Inverser",
@@ -88,19 +88,19 @@
             },
             "route_back_to_start": {
                 "button": "Retour au départ",
-                "tooltip": "Connect the last point of the route with the starting point"
+                "tooltip": "Connectez le dernier point de l'itinéraire au point de départ"
             },
             "round_trip": {
                 "button": "Aller-retour",
                 "tooltip": "Revenir au point de départ par le même itinéraire"
             },
             "start_loop_here": "Démarrer la boucle ici",
-            "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
-            "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
+            "help_no_file": "Sélectionnez une trace pour utiliser l'outil de routage, ou cliquez sur la carte pour commencer à créer un nouvel itinéraire.",
+            "help": "Cliquez sur la carte pour ajouter un nouveau point d'ancrage, ou faites glisser ceux existants pour changer l'itinéraire.",
             "activities": {
                 "bike": "Vélo",
-                "racing_bike": "Road bike",
-                "gravel_bike": "Gravel bike",
+                "racing_bike": "Vélo de route",
+                "gravel_bike": "Vélo Gravel",
                 "mountain_bike": "VTT",
                 "foot": "Course à pied/randonnée",
                 "motorcycle": "Moto",
@@ -115,10 +115,10 @@
                 "concrete": "Béton",
                 "chipseal": "Enduit superficiel routier",
                 "cobblestone": "Pavés",
-                "unhewn_cobblestone": "Unhewn cobblestone",
-                "paving_stones": "Paving stones",
-                "stepping_stones": "Stepping stones",
-                "sett": "Sett",
+                "unhewn_cobblestone": "Pavé non taillé",
+                "paving_stones": "Pavage en pierres",
+                "stepping_stones": "Pierres de gué",
+                "sett": "Pavés",
                 "metal": "Métal",
                 "wood": "Bois",
                 "compacted": "Gravier compact",
@@ -136,13 +136,13 @@
                 "sand": "Sable",
                 "woodchips": "Plaquette forestière",
                 "grass": "Herbe",
-                "grass_paver": "Grass paver"
+                "grass_paver": "Mélange d'herbe et de pavés"
             },
             "error": {
                 "from": "Le point de départ est trop éloigné de la route la plus proche",
                 "via": "Le point de passage est trop éloigné de la route la plus proche",
                 "to": "Le point d'arrivée est trop éloigné de la route la plus proche",
-                "timeout": "Route calculation took too long, try adding points closer together"
+                "timeout": "Le calcul de l'itinéraire a pris trop de temps, essayez d'ajouter des points plus rapprochés"
             }
         },
         "scissors": {
@@ -150,7 +150,7 @@
             "crop": "Rogner",
             "split_as": "Diviser la trace en",
             "help_invalid_selection": "Sélectionnez une trace à rogner ou diviser.",
-            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
+            "help": "Utilisez le curseur pour rogner la trace, ou divisez-la en cliquant sur l'un des marqueurs de séparation ou sur la trace elle-même."
         },
         "time": {
             "tooltip": "Gérer les données temporelles",
@@ -167,17 +167,17 @@
             "merge_traces": "Connecter les traces",
             "merge_contents": "Fusionner les contenus et garder les traces déconnectées",
             "merge_selection": "Fusionner la sélection",
-            "tooltip": "Merge items together",
-            "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
-            "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
-            "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
-            "help_cannot_merge_contents": "Your selection must contain several items to merge their contents."
+            "tooltip": "Fusionner les éléments",
+            "help_merge_traces": "Connecter les traces sélectionnées créera une seule trace continue.",
+            "help_cannot_merge_traces": "Votre sélection doit contenir plusieurs traces pour pouvoir les connecter.",
+            "help_merge_contents": "Fusionner le contenu des éléments sélectionnés regroupera l'ensemble du contenu à l'intérieur du premier élément.",
+            "help_cannot_merge_contents": "Votre sélection doit contenir plusieurs éléments pour fusionner leur contenu."
         },
         "extract": {
-            "tooltip": "Extract contents to separate items",
+            "tooltip": "Extraire le contenu vers des éléments séparés",
             "button": "Extraire",
-            "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
-            "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
+            "help": "Extraire le contenu des éléments sélectionnés créera un élément séparé pour chaque élément de leur contenu.",
+            "help_invalid_selection": "Votre sélection doit contenir des éléments avec plusieurs traces pour les extraire."
         },
         "waypoint": {
             "tooltip": "Créer et modifier des points d'intérêt",
@@ -185,8 +185,8 @@
             "latitude": "Latitude",
             "create": "Créer le point d'intérêt",
             "add": "Ajouter le point d'intérêt au fichier",
-            "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
-            "help_no_selection": "Select a file to create or edit points of interest."
+            "help": "Remplissez le formulaire pour créer un nouveau point d'intérêt, ou cliquez sur un point existant pour le modifier. Cliquez sur la carte pour remplir les coordonnées, ou faites glisser les points d'intérêt pour les déplacer.",
+            "help_no_selection": "Sélectionnez un fichier pour créer ou éditer des points d'intérêt."
         },
         "reduce": {
             "tooltip": "Réduire le nombre de points GPS",
@@ -194,22 +194,22 @@
             "number_of_points": "Nombre de points GPS",
             "button": "Minifier",
             "help": "Utilisez le curseur pour choisir le nombre de points GPS à garder.",
-            "help_no_selection": "Select a trace to reduce the number of its GPS points."
+            "help_no_selection": "Sélectionnez une trace pour réduire le nombre de ses points GPS."
         },
         "clean": {
-            "tooltip": "Clean GPS points and points of interest with a rectangle selection",
+            "tooltip": "Nettoyer les points GPS et les points d'intérêt avec une sélection rectangulaire",
             "delete_trackpoints": "Supprimer les points GPS",
             "delete_waypoints": "Supprimer les points d'intérêt",
             "delete_inside": "Supprimer à l'intérieur de la sélection",
             "delete_outside": "Supprimer en dehors de la sélection",
             "button": "Supprimer",
-            "help": "Select a rectangle area on the map to remove GPS points and points of interest.",
-            "help_no_selection": "Select a trace to clean GPS points and points of interest."
+            "help": "Sélectionnez une zone rectangulaire sur la carte pour supprimer les points GPS et les points d'intérêt.",
+            "help_no_selection": "Sélectionnez une trace pour nettoyer les points GPS et les points d'intérêt."
         }
     },
     "layers": {
         "settings": "Réglages des couches",
-        "settings_help": "Select the map layers you want to show in the interface, add custom ones, and adjust their settings.",
+        "settings_help": "Sélectionnez les couches de carte que vous voulez afficher dans l'interface, ajoutez des couches personnalisées, et ajustez leurs paramètres.",
         "selection": "Sélection des couches",
         "custom_layers": {
             "title": "Couches personnalisées",
@@ -252,7 +252,7 @@
             "linz": "LINZ Topo",
             "linzTopo": "LINZ Topo50",
             "swisstopoRaster": "swisstopo Raster",
-            "swisstopoVector": "swisstopo Vector",
+            "swisstopoVector": "swisstopo Vectorielle",
             "swisstopoSatellite": "swisstopo Satellite",
             "ignBe": "IGN Topo",
             "ignFrPlan": "IGN Plan",
@@ -263,17 +263,17 @@
             "ordnanceSurvey": "Ordnance Survey",
             "norwayTopo": "Topografisk Norgeskart 4",
             "swedenTopo": "Lantmäteriet Topo",
-            "finlandTopo": "Lantmäteriverket Terrängkarta",
+            "finlandTopo": "Lantmäteriverket Terrängkarta",
             "bgMountains": "BGMountains",
             "usgs": "USGS",
             "cyclOSMlite": "CyclOSM Lite",
             "swisstopoSlope": "swisstopo Pente",
             "swisstopoHiking": "swisstopo Randonnée",
-            "swisstopoHikingClosures": "swisstopo Hiking Closures",
+            "swisstopoHikingClosures": "swisstopo Fermetures de randonnée",
             "swisstopoCycling": "swisstopo Vélo",
-            "swisstopoCyclingClosures": "swisstopo Cycling Closures",
-            "swisstopoMountainBike": "swisstopo MTB",
-            "swisstopoMountainBikeClosures": "swisstopo MTB Closures",
+            "swisstopoCyclingClosures": "swisstopo Fermetures vélo",
+            "swisstopoMountainBike": "swisstopo VTT",
+            "swisstopoMountainBikeClosures": "swisstopo Fermetures VTT",
             "swisstopoSkiTouring": "swisstopo Ski de randonnée",
             "ignFrCadastre": "IGN Cadastre",
             "ignSlope": "IGN Pente",
@@ -291,9 +291,9 @@
             "waymarkedTrailsHiking": "Randonnée",
             "waymarkedTrailsCycling": "Vélo",
             "waymarkedTrailsMTB": "VTT",
-            "waymarkedTrailsSkating": "Skating",
-            "waymarkedTrailsHorseRiding": "Horse Riding",
-            "waymarkedTrailsWinter": "Winter",
+            "waymarkedTrailsSkating": "Patinage",
+            "waymarkedTrailsHorseRiding": "Equitation",
+            "waymarkedTrailsWinter": "Hiver",
             "points_of_interest": "Points d'intérêt",
             "food": "Alimentation",
             "bakery": "Boulangerie",
@@ -329,7 +329,7 @@
         },
         "color": {
             "blue": "Bleu",
-            "bluered": "Blue Red",
+            "bluered": "Bleu rouge",
             "gray": "Gris",
             "hot": "Vif",
             "purple": "Violet",
@@ -337,14 +337,14 @@
         }
     },
     "chart": {
-        "show_slope": "Show slope data",
-        "show_surface": "Show surface data",
-        "show_speed": "Show speed data",
-        "show_pace": "Show pace data",
-        "show_heartrate": "Show heart rate data",
-        "show_cadence": "Show cadence data",
-        "show_temperature": "Show temperature data",
-        "show_power": "Show power data"
+        "show_slope": "Afficher les données de pente",
+        "show_surface": "Afficher les données de surface",
+        "show_speed": "Afficher les données de vitesse",
+        "show_pace": "Afficher les données d'allure",
+        "show_heartrate": "Afficher les données de fréquence cardiaque",
+        "show_cadence": "Afficher les données de cadence",
+        "show_temperature": "Afficher les données de température",
+        "show_power": "Afficher les données de puissance"
     },
     "quantities": {
         "distance": "Distance",
@@ -352,7 +352,7 @@
         "temperature": "Température",
         "speed": "Vitesse",
         "pace": "Allure",
-        "heartrate": "Heart rate",
+        "heartrate": "Fréquence cardiaque",
         "cadence": "Cadence",
         "power": "Puissance",
         "slope": "Pente",
@@ -400,27 +400,27 @@
         "supported_by": "soutenu par",
         "support_button": "Soutenir gpx.studio sur Ko-fi",
         "route_planning": "Planification d’itinéraire",
-        "route_planning_description": "An intuitive interface to create itineraries tailored to each sport, based on OpenStreetMap data.",
+        "route_planning_description": "Une interface intuitive pour créer des itinéraires adaptés à chaque sport, basés sur les données d'OpenStreetMap.",
         "file_processing": "Traitement de fichiers avancé",
-        "file_processing_description": "A suite of tools for performing all common file processing tasks, and which can be applied to multiple files at once.",
+        "file_processing_description": "Une suite d'outils pour effectuer toutes les tâches courantes de traitement de fichiers, et qui peuvent être appliqués à plusieurs fichiers à la fois.",
         "maps": "Cartes mondiales et locales",
-        "maps_description": "A large collection of basemaps, overlays and points of interest to help you craft your next outdoor adventure, or visualize your latest achievement.",
-        "data_visualization": "Data visualization",
-        "data_visualization_description": "An interactive elevation profile with detailed statistics to analyze recorded activities and future objectives.",
-        "identity": "Free, ad-free and open source",
-        "identity_description": "The website is free to use, without ads, and the source code is publicly available on GitHub. This is only possible thanks to the incredible support of the community."
+        "maps_description": "Une vaste collection de fonds de carte, de surcouches et de points d'intérêt pour vous aider à planifier votre prochaine aventure en plein air ou à visualiser vos dernières expéditions.",
+        "data_visualization": "Visualisation de données",
+        "data_visualization_description": "Un profil altimétrique interactif avec des statistiques détaillées pour analyser les activités enregistrées et les objectifs futurs.",
+        "identity": "Gratuit, sans pub et open source",
+        "identity_description": "Le site Web est gratuit, sans publicité, et le code source est disponible publiquement sur GitHub. Cela est possible uniquement grâce au soutien incroyable de la communauté."
     },
     "embedding": {
-        "title": "Create your own map",
-        "mapbox_token": "Mapbox access token",
+        "title": "Créez votre propre carte",
+        "mapbox_token": "Jeton d'accès Mapbox",
         "file_urls": "URLs des fichiers (séparées par des virgules)",
         "basemap": "Carte de base",
-        "height": "Height",
-        "fill_by": "Fill by",
-        "none": "None",
-        "show_controls": "Show controls",
-        "manual_camera": "Manual camera",
-        "manual_camera_description": "You can move the map below to adjust the camera position.",
+        "height": "Hauteur",
+        "fill_by": "Remplir selon",
+        "none": "Aucun",
+        "show_controls": "Afficher les commandes",
+        "manual_camera": "Caméra manuelle",
+        "manual_camera_description": "Vous pouvez déplacer la carte ci-dessous pour régler la position de la caméra.",
         "latitude": "Latitude",
         "longitude": "Longitude",
         "zoom": "Zoom",
@@ -430,5 +430,6 @@
         "code": "Code d'intégration"
     },
     "webgl2_required": "WebGL 2 est requis pour afficher la carte.",
-    "enable_webgl2": "Découvrir comment activer WebGL 2 dans votre navigateur"
+    "enable_webgl2": "Découvrir comment activer WebGL 2 dans votre navigateur",
+    "page_not_found": "page introuvable"
 }

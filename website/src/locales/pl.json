@@ -1,79 +1,79 @@
 {
     "metadata": {
-        "home_title": "home",
-        "app_title": "the online GPX file editor",
-        "embed_title": "the online GPX file editor",
+        "home_title": "strona główna",
+        "app_title": "edytor online plików GPX",
+        "embed_title": "edytor online plików GPX",
         "help_title": "pomoc",
-        "description": "View, edit, and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations."
+        "description": "Przeglądaj, edytuj i twórz pliki GPX online z zaawansowanymi możliwościami planowania trasy i narzędziami do przetwarzania plików, pięknymi mapami i szczegółowymi wizualizacjami danych."
     },
     "menu": {
-        "new": "New",
-        "new_file": "New file",
-        "new_track": "New track",
-        "new_segment": "New segment",
-        "open": "Open...",
+        "new": "Nowy",
+        "new_file": "Nowy plik",
+        "new_track": "Nowa ścieżka",
+        "new_segment": "Nowy segment",
+        "open": "Otwórz...",
         "duplicate": "Duplikuj",
-        "close": "Close",
-        "close_all": "Close all",
-        "copy": "Copy",
-        "paste": "Paste",
-        "cut": "Cut",
-        "export": "Export...",
-        "export_all": "Export all...",
-        "export_options": "Export options",
+        "close": "Zamknij",
+        "close_all": "Zamknij wszystko",
+        "copy": "Kopiuj",
+        "paste": "Wklej",
+        "cut": "Wytnij",
+        "export": "Eksportuj...",
+        "export_all": "Eksportuj wszystko...",
+        "export_options": "Opcje eksportu",
         "support_message": "The tool is free to use, but not free to run. Please consider supporting the website if you use it frequently. Thank you!",
-        "support_button": "Help keep the website free",
-        "download_file": "Download file",
-        "download_files": "Download files",
-        "edit": "Edit",
-        "undo": "Undo",
-        "redo": "Redo",
+        "support_button": "Wspomóż, by strona nadal była darmowa",
+        "download_file": "Pobierz plik",
+        "download_files": "Pobierz pliki",
+        "edit": "Edytuj",
+        "undo": "Cofnij",
+        "redo": "Ponów",
         "delete": "Usuń",
-        "select_all": "Select all",
-        "view": "View",
-        "elevation_profile": "Elevation profile",
-        "vertical_file_view": "Vertical file list",
+        "select_all": "Zaznacz wszystko",
+        "view": "Wyświetl",
+        "elevation_profile": "Profil wysokości",
+        "vertical_file_view": "Pionowa lista plików",
         "switch_basemap": "Switch to previous basemap",
-        "toggle_overlays": "Toggle overlays",
-        "toggle_3d": "Toggle 3D",
-        "settings": "Settings",
+        "toggle_overlays": "Przełącz nakładki",
+        "toggle_3d": "Przełącz widok 3D",
+        "settings": "Ustawienia",
         "distance_units": "Jednostki odległości",
         "metric": "Metryczne",
         "imperial": "Imperialne",
         "velocity_units": "Jednostki prędkości",
-        "temperature_units": "Temperature units",
-        "celsius": "Celsius",
-        "fahrenheit": "Fahrenheit",
-        "language": "Language",
-        "mode": "Theme",
-        "light": "Light",
-        "dark": "Dark",
+        "temperature_units": "Jednostki temperatury",
+        "celsius": "Stopnie Celsjusza",
+        "fahrenheit": "Stopnie Fahrenheita",
+        "language": "Język",
+        "mode": "Motyw",
+        "light": "Jasny",
+        "dark": "Ciemny",
         "street_view_source": "Street view source",
         "mapillary": "Mapillary",
         "google": "Google",
-        "layers": "Map layers...",
+        "layers": "Warstwy mapy...",
         "distance_markers": "Znaczniki odległości",
-        "direction_markers": "Direction arrows",
+        "direction_markers": "Strzałki kierunku",
         "help": "Pomoc",
-        "donate": "Donate",
+        "donate": "Przekaż darowiznę",
         "ctrl": "Ctrl",
-        "click": "Click",
-        "drag": "Drag",
+        "click": "Kliknij",
+        "drag": "Przeciągnij",
         "metadata": {
             "button": "Info...",
             "name": "Nazwa",
-            "description": "Description",
+            "description": "Opis",
             "save": "Zapisz"
         },
         "style": {
             "button": "Appearance...",
-            "color": "Color",
-            "opacity": "Opacity",
-            "width": "Width"
+            "color": "Kolor",
+            "opacity": "Przezroczystość",
+            "width": "Szerokość"
         },
-        "hide": "Hide",
-        "unhide": "Unhide",
-        "open_in": "Open in"
+        "hide": "Ukryj",
+        "unhide": "Pokaż",
+        "open_in": "Otwórz w"
     },
     "toolbar": {
         "routing": {
@@ -81,17 +81,17 @@
             "activity": "Aktywność",
             "use_routing": "Routing",
             "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
-            "allow_private": "Allow private roads",
+            "allow_private": "Zezwalaj na prywatne drogi",
             "reverse": {
                 "button": "Odwróć",
-                "tooltip": "Reverse the direction of the route"
+                "tooltip": "Odwróć kierunek trasy"
             },
             "route_back_to_start": {
-                "button": "Back to start",
+                "button": "Wróć do początku",
                 "tooltip": "Connect the last point of the route with the starting point"
             },
             "round_trip": {
-                "button": "Round trip",
+                "button": "Przejazd z powrotem",
                 "tooltip": "Return to the starting point by the same route"
             },
             "start_loop_here": "Rozpocznij pętlę tutaj",
@@ -99,7 +99,7 @@
             "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
             "activities": {
                 "bike": "Rower",
-                "racing_bike": "Road bike",
+                "racing_bike": "Rower szosowy",
                 "gravel_bike": "Gravel bike",
                 "mountain_bike": "Rower górski",
                 "foot": "Bieg/Wędrówka",
@@ -108,7 +108,7 @@
                 "railway": "Kolej"
             },
             "surface": {
-                "unknown": "Unknown",
+                "unknown": "Nieznany",
                 "paved": "Utwardzona",
                 "unpaved": "Nieutwardzona",
                 "asphalt": "Asfalt",
@@ -146,32 +146,32 @@
             }
         },
         "scissors": {
-            "tooltip": "Crop or split",
-            "crop": "Crop",
-            "split_as": "Split the trace into",
+            "tooltip": "Przytnij lub podziel",
+            "crop": "Przytnij",
+            "split_as": "Podziel ślad na",
             "help_invalid_selection": "Select a trace to crop or split.",
             "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
         },
         "time": {
-            "tooltip": "Manage time data",
+            "tooltip": "Zarządzaj danymi czasu",
             "start": "Początek",
-            "end": "End",
+            "end": "Koniec",
             "total_time": "Czas ruchu",
-            "pick_date": "Pick a date",
+            "pick_date": "Wybierz datę",
             "artificial": "Create realistic time data",
-            "update": "Update time data",
+            "update": "Aktualizuj dane czasu",
             "help": "Use the form to set new time data.",
             "help_invalid_selection": "Select a single trace to manage its time data."
         },
         "merge": {
-            "merge_traces": "Connect the traces",
+            "merge_traces": "Połącz ślady",
             "merge_contents": "Merge the contents and keep the traces disconnected",
             "merge_selection": "Scal zaznaczenie",
-            "tooltip": "Merge items together",
+            "tooltip": "Scal elementy razem",
             "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
             "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
             "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
-            "help_cannot_merge_contents": "Your selection must contain several items to merge their contents."
+            "help_cannot_merge_contents": "Twój wybór musi zawierać kilka elementów, aby scalić ich zawartość."
         },
         "extract": {
             "tooltip": "Extract contents to separate items",
@@ -180,11 +180,11 @@
             "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
         },
         "waypoint": {
-            "tooltip": "Create and edit points of interest",
-            "longitude": "Longitude",
-            "latitude": "Latitude",
-            "create": "Create point of interest",
-            "add": "Add point of interest to file",
+            "tooltip": "Twórz i edytuj punkty zainteresowania",
+            "longitude": "Długość",
+            "latitude": "Szerokość",
+            "create": "Utwórz punkt zainteresowania",
+            "add": "Dodaj punkt zainteresowania do pliku",
             "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
             "help_no_selection": "Select a file to create or edit points of interest."
         },
@@ -430,5 +430,6 @@
         "code": "Integration code"
     },
     "webgl2_required": "WebGL 2 is required to display the map.",
-    "enable_webgl2": "Learn how to enable WebGL 2 in your browser"
+    "enable_webgl2": "Learn how to enable WebGL 2 in your browser",
+    "page_not_found": "page not found"
 }

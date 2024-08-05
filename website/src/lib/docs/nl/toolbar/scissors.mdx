@@ -1,33 +1,33 @@
 ---
-title: Crop and split
+title: Bijsnijden of splitsen
 ---
 
 <script>
-    import { ScissorsIcon } from 'lucide-svelte';
-    import Scissors from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
-    import splitScreenshot from '$lib/assets/img/docs/tools/split.png?enhanced';
-    import DocsImage from '$lib/components/docs/DocsImage.svelte';
+    importeer { ScissorsIcon } uit 'lucide svelte';
+    importeer schaar van '$lib/components/toolbar/toolbar/schaars/schaar. velte';
+    importeer splitScreenshot van '$lib/assets/img/docs/tools/split. ng?Updated ';
+    importeer DocsImage van '$lib/components/DocsImage.svelte';
 </script>
 
 # <ScissorsIcon size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
 
-## Crop
+## Bijsnijden
 
-Using the slider, you can define the part of the selected trace that you want to keep.
-The start and end markers on the map and the [statistics and elevation profile](../files-and-stats) are updated in real time to reflect the selection.
-Alternatively, you can drag a selection rectangle directly on the elevation profile.
-Validate the selection when you are satisfied with the result.
+Met behulp van de schuifregelaar kunt u het deel van de gekozen track dat u wilt behouden, definiëren.
+De start- en eindmarkeringen op de kaart en het [statistieken en hoogteprofiel](../files-and-stats) worden in real time bijgewerkt om de selectie weer te geven.
+Als alternatief kun je een selectierechthoek direct op het profiel slepen.
+Bevestig de selectie wanneer u tevreden bent met het resultaat.
 
 <div class="flex flex-row justify-center">
     <Scissors class="text-foreground p-3 border rounded-md shadow-lg" />
 </div>
 
-## Split
+## Splitsen
 
-To split the selected trace into two parts, click on one of the split markers displayed along the trace.
-To split at a specific point of your choice, hover over the trace on the map.
-Scissors will appear at the cursor position, showing that you can split the trace at that point.
+Om de geselecteerde trace in twee delen te splitsen, klikt u op een van de splitsmarkeringen die langs de trace worden weergegeven.
+Om te splitsen op een specifiek punt van je keuze, zweef over de track op de kaart.
+Schaar verschijnt op de cursorpositie, en toont dat je het spoor kunt splitsen op dat punt.
 
-You can choose to split the trace into two GPX files, or to keep the split parts in the same file as [tracks or segments](../gpx).
+Je kunt kiezen om de track te splitsen in twee GPX-bestanden, of om de delen in hetzelfde bestand te houden als [nummers of segmenten](../gpx).
 
-<DocsImage src={splitScreenshot} alt="Hovering over the selected trace turns your cursor into scissors." />
+<DocsImage src={splitScreenshot} alt="Over het geselecteerde spoor zweven verandert je cursor in een schaar." />

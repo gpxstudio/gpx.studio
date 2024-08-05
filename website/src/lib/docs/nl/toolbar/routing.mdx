@@ -1,5 +1,5 @@
 ---
-title: Route planning and editing
+title: Routeplanning en -bewerking
 ---
 
 <script>
@@ -12,30 +12,30 @@ title: Route planning and editing
 
 # <Pencil size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
 
-The route planning and editing tool allows you to create and edit routes by placing or moving anchor points on the map.
+Met het gereedschap voor routeplanning en bewerken kunt je routes te maken en bewerken door ankerpunten te plaatsen of verplaatsen op de kaart.
 
-## Settings
+## Instellingen
 
-As shown below, the tool dialog contains a few settings to control the routing behavior.
-You can minimize the dialog to save space by clicking on <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
+Zoals hieronder weergegeven, bevat het dialoogvenster een paar instellingen om het routerend gedrag te beheren.
+Je kunt het dialoogvenster minimaliseren om ruimte te besparen door te klikken op <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
 
 <div class="flex flex-row justify-center">
     <Routing minimizable={false} class="text-foreground p-3 border rounded-md shadow-lg" />
 </div>
 
-### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routing
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> routering
 
-When routing is enabled, anchor points placed or moved on the map will be connected by a route calculated on the <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> road network.
-Disable routing to connect anchor points with straight lines.
-This setting can also be toggled by pressing <kbd>F5</kbd>.
+Wanneer routering is ingeschakeld zullen ankerpunten geplaatst of verplaatst op de kaart worden verbonden door een route berekend op het <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> wegennetwerk.
+Routering uitschakelen om ankerpunten te verbinden met rechte lijnen.
+Deze instelling kan ook worden omgeschakeld door op <kbd>F5</kbd> te drukken.
 
-### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Activity
+### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> activiteit
 
-Select the activity type to tailor the routes for.
+Selecteer het type activiteit waarop de routes toegesneden moeten worden.
 
-### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Allow private roads
+### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" />Privéwegen toestaan
 
-When enabled, the routing engine will consider private roads when computing routes.
+Wanneer ingeschakeld, zal de routering software rekening houden met privéwegen bij het berekenen van routes.
 
 <DocsNote type="warning">
 
@@ -43,14 +43,14 @@ Gebruik deze optie alleen als je lokale kennis van het gebied hebt en toestemmin
 
 </DocsNote>
 
-## Plotting and editing routes
+## Plotten en bewerken van routes
 
-Creating a route or extending an existing one is as simple as clicking on the map to place a new anchor point.
+Voor het maken van een route of het uitbreiden van een bestaande route kun je simpelweg klikken op de kaart om een nieuw ankerpunt te plaatsen.
 
-You can also drag an existing anchor point to reroute the segment connecting it with the previous and next anchor points.
+Je kunt ook een bestaand ankerpunt slepen om het segment opnieuw te berekenen tussen het vorige en volgende ankerpunt.
 
-Furthermore, new anchor points can be inserted between existing ones by hovering over the segment connecting them and dragging the anchor point that appears to the desired location.
-On touch devices, you can tap on the segment to insert a new anchor point.
+Verder kunnen nieuwe ankerpunten worden ingevoegd tussen bestaande door over het tussenliggende segment te zweven en het ankerpunt dat verschijnt te verslepen naar de gewenste locatie.
+Op touchapparaten kun je op het segment tikken om een nieuw ankerpunt in te voegen.
 
 <DocsNote>
 
@@ -60,26 +60,26 @@ Hierdoor kan de route op verschillende detailniveaus worden bewerkt.
 
 </DocsNote>
 
-Finally, you can delete anchor points by clicking on them and selecting <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Delete</button> from the context menu.
+Tot slot kun je ankerpunten verwijderen door erop te klikken en <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Delete</button> te selecteren in het contextmenu.
 
-<DocsImage src={routingScreenshot} alt="Anchor points allow you to easily edit a route." />
+<DocsImage src={routingScreenshot} alt="Ankerpunten maken het makkelijk om een route te bewerken." />
 
-## Additional tools
+## Extra gereedschappen
 
-The following tools automate some common route modification operations.
+De volgende gereedschappen automatiseren bewerkingen op een gemeenschappelijke route.
 
-### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Reverse
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Omkeren
 
-Reverse the direction of the route.
+Keer de richting van de route om.
 
-### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Back to start
+### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Terug naar start
 
-Connect the last point of the route with the starting point, using the chosen routing settings.
+Sluit het laatste punt van de route aan met het startpunt, door gebruik te maken van de gekozen route-instellingen.
 
-### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Round trip
+### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Rondreis
 
-Return to the starting point by the same route.
+Terug naar het startpunt met dezelfde route.
 
-### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Change the start of the loop
+### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Wijzig het begin van de lus
 
 Wanneer het eindpunt van de route dichtbij genoeg is, kan je de start van de lus veranderen door op een ankerpunt te klikken en <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Start Loop hier</button> te selecteren in het contextmenu.

@@ -1,5 +1,5 @@
 ---
-title: Map controls
+title: Kaart beheer
 ---
 
 <script>
@@ -10,9 +10,9 @@ title: Map controls
 
 # { title }
 
-### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Map navigation
+### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Kaartnavigatie
 
-The controls at the top allow you to zoom in <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> and out <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, and to change the orientation of the map <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
+Met de besturingselementen bovenaan kunt u inzoomen <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> en uitzoomen <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, en de oriëntatie en kanteling van de kaart <Compass size="16" class="inline-block" style="margin-bottom: 2px" /> wijzigen.
 
 <DocsNote>
 
@@ -20,13 +20,13 @@ Om de oriëntatie en kanteling van de kaart te bepalen, kun je ook de kaart slep
 
 </DocsNote>
 
-### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Search bar
+### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Zoekbalk
 
-You can use the search bar to look for an address and navigate to it on the map.
+Je kunt de zoekbalk gebruiken om een adres te zoeken en via de kaart er naar toe te navigeren.
 
-### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Locate button
+### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Lokaliseer knop
 
-The locate button will center the map on your current location.
+De locatie-knop centreert de kaart op je huidige locatie.
 
 <DocsNote>
 
@@ -36,32 +36,32 @@ Dit werkt alleen als je je browser en <b>gpx.studio</b> hebt toegestaan om toega
 
 ### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Street view
 
-This button can be used to enable street view mode on the map.
-Depending on the street view source chosen in the [settings](./menu/settings), street view imagery can be accessed differently.
+Deze knop kan worden gebruikt om de street view modus op de kaart in te schakelen.
+Afhankelijk van de bron die voor street view weergave gekozen is in de [settings](./menu/instellingen), kan straatbeeld verschillend benaderd worden.
 
-- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: the street view coverage will appear as green lines on the map. When zoomed in enough, green dots will show the exact locations where street view imagery is available. Hovering over a green dot will show the street view image at that location.
-- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: click on the map to open a new tab with the street view imagery at that location.
+- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: de dekking van street view wordt weergegeven als groene lijnen op de kaart. Wanneer voldoende ingezoomd, zullen groene stippen de exacte locaties tonen waar straatbeeld aanwezig is. Bewegen over een groene stip toont op die locatie het straatbeeld.
+- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: klik op de kaart om een nieuw tabblad met het straatbeeld te openen op die locatie.
 
-### <Layers3 size="16" class="inline-block" style="margin-bottom: 2px" /> Map layers
+### <Layers3 size="16" class="inline-block" style="margin-bottom: 2px" /> Kaartlagen
 
-The map layers button allows you to switch between different basemaps, and toggle map overlays and categories of points of interest.
+Met de kaartlagen knop kunt u wisselen tussen verschillende basiskaarten, en kaart overlays en POI categorieën aan en uit zetten.
 
-- **Basemaps** are background maps that present the main geographic features of the world.
-  Depending on their purpose, basemaps will have different styles and levels of detail.
-  Only one basemap can be displayed at a time.
-- **Overlays** are additional layers that can be displayed on top of the basemap to provide complementary information.
-- **Points of interest** can be added to the map to show different categories of places, such as shops, restaurants, or accommodations.
+- **Basiskaarten** zijn achtergrondkaarten die de belangrijkste geografische kenmerken van de wereld weergeven.
+  Afhankelijk van hun doel hebben basiskaarten verschillende stijlen en detailniveaus.
+  Er kan slechts één basiskaart tegelijk worden weergegeven.
+- **Overlays** zijn extra lagen die kunnen worden weergegeven bovenop de basiskaart om aanvullende informatie te verstrekken.
+- **POI's (Interessante punten)** kunnen worden toegevoegd aan de kaart om verschillende categorieën plaatsen te tonen, zoals winkels, restaurants, of accommodaties.
 
 <div class="flex flex-col items-center">
     <DocsLayers />
     <span class="text-sm text-center mt-2">
-        Hover over the map to show the <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> overlay on top of the <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> basemap.
+Beweeg boven de kaart om de <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> overlay te tonen bovenop de <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> basiskaart.
     </span>
 </div>
 
-A large collection of global and local basemaps and overlays is available in **gpx.studio**, as well as a selection of point-of-interest categories.
-They can be enabled in the [map layer settings dialog](./menu/settings).
+Een grote verzameling van globale en lokale basiskaarten en overlays is beschikbaar in **gpx.studio**, evenals een aantal POI categorien.
+Ze kunnen worden ingeschakeld in het [map layer settings dialoog](./menu/settings).
 
-In these settings, you can also manage the opacity of the overlays.
+In deze instellingen kunt u ook de transparantie van de overlays beheren.
 
-For advanced users, it is possible to add custom basemaps and overlays by providing <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, or <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox style JSON</a> URLs.
+Voor gevorderde gebruikers is het mogelijk om aangepaste basiskaarten en overlays toe te voegen door <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, of <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox style JSON</a> URLs.

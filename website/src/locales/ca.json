@@ -11,7 +11,7 @@
         "new_file": "Nou fitxer",
         "new_track": "Nou itinerari",
         "new_segment": "Nou segment",
-        "open": "Open...",
+        "open": "Obrir...",
         "duplicate": "Duplica el track",
         "close": "Tancar",
         "close_all": "Tancar tot",
@@ -51,7 +51,7 @@
         "street_view_source": "Street view source",
         "mapillary": "Mapillary",
         "google": "Google",
-        "layers": "Map layers...",
+        "layers": "Capes del mapa...",
         "distance_markers": "Marcadors de distancia",
         "direction_markers": "Fletxes de direcció",
         "help": "Ajuda",
@@ -67,31 +67,31 @@
         },
         "style": {
             "button": "Aparença...",
-            "color": "Color",
-            "opacity": "Opacity",
-            "width": "Width"
+            "color": "Colors",
+            "opacity": "Opacitat",
+            "width": "Amplada"
         },
-        "hide": "Hide",
-        "unhide": "Unhide",
-        "open_in": "Open in"
+        "hide": "Amagar",
+        "unhide": "Veure",
+        "open_in": "Obrir amb"
     },
     "toolbar": {
         "routing": {
-            "tooltip": "Plan or edit a route",
+            "tooltip": "Planificar o editar una ruta",
             "activity": "Activitat",
-            "use_routing": "Routing",
+            "use_routing": "Trobar una ruta",
             "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
-            "allow_private": "Allow private roads",
+            "allow_private": "Permet camins particulars",
             "reverse": {
                 "button": "Inverteix el track",
-                "tooltip": "Reverse the direction of the route"
+                "tooltip": "Invertir el sentit de la ruta"
             },
             "route_back_to_start": {
-                "button": "Back to start",
-                "tooltip": "Connect the last point of the route with the starting point"
+                "button": "Tornar a l'inici",
+                "tooltip": "Connectar l'últim punt de la ruta amb el punt d'inici"
             },
             "round_trip": {
-                "button": "Round trip",
+                "button": "Ruta circular",
                 "tooltip": "Return to the starting point by the same route"
             },
             "start_loop_here": "Comença el bucle aquí",
@@ -99,8 +99,8 @@
             "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
             "activities": {
                 "bike": "Bicicleta",
-                "racing_bike": "Road bike",
-                "gravel_bike": "Gravel bike",
+                "racing_bike": "Bicicleta de carretera",
+                "gravel_bike": "Bicicleta gravel",
                 "mountain_bike": "Bicicleta de muntanya",
                 "foot": "Córrer/caminar",
                 "motorcycle": "Motocicleta",
@@ -108,7 +108,7 @@
                 "railway": "Línia de ferrocarril"
             },
             "surface": {
-                "unknown": "Unknown",
+                "unknown": "Desconegut",
                 "paved": "Pavimentat",
                 "unpaved": "No pavimentat",
                 "asphalt": "Asfalt",
@@ -147,7 +147,7 @@
         },
         "scissors": {
             "tooltip": "Crop or split",
-            "crop": "Crop",
+            "crop": "Retallar",
             "split_as": "Split the trace into",
             "help_invalid_selection": "Select a trace to crop or split.",
             "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
@@ -155,9 +155,9 @@
         "time": {
             "tooltip": "Manage time data",
             "start": "Inici",
-            "end": "End",
+            "end": "Final",
             "total_time": "Temps en moviment",
-            "pick_date": "Pick a date",
+            "pick_date": "Triar una data",
             "artificial": "Create realistic time data",
             "update": "Update time data",
             "help": "Use the form to set new time data.",
@@ -430,5 +430,6 @@
         "code": "Integration code"
     },
     "webgl2_required": "WebGL 2 is required to display the map.",
-    "enable_webgl2": "Learn how to enable WebGL 2 in your browser"
+    "enable_webgl2": "Learn how to enable WebGL 2 in your browser",
+    "page_not_found": "page not found"
 }
