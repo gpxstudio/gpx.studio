@@ -28,6 +28,7 @@ export class RoutingControls {
     popup: mapboxgl.Popup;
     popupElement: HTMLElement;
     temporaryAnchor: AnchorWithMarker;
+    lastDragEvent = 0;
     fileUnsubscribe: () => void = () => { };
     unsubscribes: Function[] = [];
 
@@ -162,27 +163,35 @@ export class RoutingControls {
             inZoom: false
         };
 
-        let lastDragEvent = 0;
         marker.on('dragstart', (e) => {
-            lastDragEvent = Date.now();
+            this.lastDragEvent = Date.now();
             setGrabbingCursor();
             element.classList.remove('cursor-pointer');
             element.classList.add('cursor-grabbing');
         });
         marker.on('dragend', (e) => {
-            lastDragEvent = Date.now();
+            this.lastDragEvent = Date.now();
             resetCursor();
             element.classList.remove('cursor-grabbing');
             element.classList.add('cursor-pointer');
             this.moveAnchor(anchor);
         });
-        marker.getElement().addEventListener('click', (e) => {
+        let handleAnchorClick = this.handleClickForAnchor(anchor, marker);
+        marker.getElement().addEventListener('click', handleAnchorClick);
+        marker.getElement().addEventListener('contextmenu', handleAnchorClick);
+
+        return anchor;
+    }
+
+    handleClickForAnchor(anchor: Anchor, marker: mapboxgl.Marker) {
+        return (e: any) => {
+            e.preventDefault();
             e.stopPropagation();
             if (marker === this.temporaryAnchor.marker) {
                 return;
             }
 
-            if (Date.now() - lastDragEvent < 100) { // Prevent click event during drag
+            if (Date.now() - this.lastDragEvent < 100) { // Prevent click event during drag
                 return;
             }
 
@@ -213,9 +222,7 @@ export class RoutingControls {
                 this.popupElement.removeEventListener('delete', deleteThisAnchor);
                 this.popupElement.removeEventListener('change-start', startLoopAtThisAnchor);
             });
-        });
-
-        return anchor;
+        };
     }
 
     toggleAnchorsForZoomLevelAndBounds() { // Show markers only if they are in the current zoom level and bounds
