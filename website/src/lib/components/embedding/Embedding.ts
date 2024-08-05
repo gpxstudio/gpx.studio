@@ -48,6 +48,18 @@ export function getDefaultEmbeddingOptions(): EmbeddingOptions {
     return JSON.parse(JSON.stringify(defaultEmbeddingOptions));
 }
 
+export function getMergedEmbeddingOptions(options: any, defaultOptions: any = defaultEmbeddingOptions): EmbeddingOptions {
+    const mergedOptions = JSON.parse(JSON.stringify(defaultOptions));
+    for (const key in options) {
+        if (typeof options[key] === 'object' && options[key] !== null && !Array.isArray(options[key])) {
+            mergedOptions[key] = getMergedEmbeddingOptions(options[key], defaultOptions[key]);
+        } else {
+            mergedOptions[key] = options[key];
+        }
+    }
+    return mergedOptions;
+}
+
 export function getCleanedEmbeddingOptions(options: any, defaultOptions: any = defaultEmbeddingOptions): any {
     const cleanedOptions = JSON.parse(JSON.stringify(options));
     for (const key in cleanedOptions) {

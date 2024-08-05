@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import Embedding from '$lib/components/embedding/Embedding.svelte';
 	import {
-		getDefaultEmbeddingOptions,
+		getMergedEmbeddingOptions,
 		type EmbeddingOptions
 	} from '$lib/components/embedding/Embedding';
 
@@ -18,7 +18,7 @@
 		if (options === null) {
 			return;
 		}
-		embeddingOptions = Object.assign(getDefaultEmbeddingOptions(), options);
+		embeddingOptions = getMergedEmbeddingOptions(options);
 	});
 </script>
 
