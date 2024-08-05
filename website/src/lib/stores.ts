@@ -195,6 +195,8 @@ export async function loadFiles(list: FileList | File[]) {
         }
     }
 
+    initTargetMapBounds(list.length);
+
     dbUtils.addMultiple(files);
 
     selectFileWhenLoaded(files[0]._data.id);

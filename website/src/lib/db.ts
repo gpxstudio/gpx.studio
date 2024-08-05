@@ -282,7 +282,14 @@ const fileState: Map<string, GPXFile> = new Map(); // Used to generate patches
 
 // Observe the file ids in the database, and maintain a map of file observers for the corresponding files
 export function observeFilesFromDatabase() {
+    let initialize = true;
     liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
+        if (initialize) {
+            if (dbFileIds.length > 0) {
+                initTargetMapBounds(dbFileIds.length);
+            }
+            initialize = false;
+        }
         // Find new files to observe
         let newFiles = dbFileIds.filter(id => !get(fileObservers).has(id)).sort((a, b) => parseInt(a.split('-')[1]) - parseInt(b.split('-')[1]));
         // Find deleted files to stop observing
@@ -291,9 +298,6 @@ export function observeFilesFromDatabase() {
         // Update the store
         if (newFiles.length > 0 || deletedFiles.length > 0) {
             fileObservers.update($files => {
-                if (newFiles.length > 0 && get(currentTool) !== Tool.SCISSORS) { // Reset the target map bounds when new files are added
-                    initTargetMapBounds(newFiles.length);
-                }
                 newFiles.forEach(id => {
                     $files.set(id, dexieGPXFileStore(id));
                 });
