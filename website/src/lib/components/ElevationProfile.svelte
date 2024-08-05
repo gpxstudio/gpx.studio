@@ -40,6 +40,7 @@
 	import { DateFormatter } from '@internationalized/date';
 	import type { GPXStatistics } from 'gpx';
 	import { settings } from '$lib/db';
+	import { mode } from 'mode-watcher';
 
 	export let gpxStatistics: Writable<GPXStatistics>;
 	export let slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined>;
@@ -525,7 +526,8 @@
 			// Draw selection rectangle
 			let selectionContext = overlay.getContext('2d');
 			if (selectionContext) {
-				selectionContext.globalAlpha = 0.1;
+				selectionContext.fillStyle = $mode === 'dark' ? 'white' : 'black';
+				selectionContext.globalAlpha = $mode === 'dark' ? 0.2 : 0.1;
 				selectionContext.clearRect(0, 0, overlay.width, overlay.height);
 
 				let startPixel = chart.scales.x.getPixelForValue(

@@ -24,6 +24,7 @@
 	import { SplitControls } from './SplitControls';
 
 	let splitControls: SplitControls | undefined = undefined;
+	let canCrop = false;
 
 	$: if ($map) {
 		if (splitControls) {
@@ -39,7 +40,9 @@
 	let maxSliderValue = 100;
 	let sliderValues = [0, 100];
 
-	$: canCrop = sliderValues[0] != 0 || sliderValues[1] != maxSliderValue;
+	function updateCanCrop() {
+		canCrop = sliderValues[0] != 0 || sliderValues[1] != maxSliderValue;
+	}
 
 	function updateSlicedGPXStatistics() {
 		if (validSelection && canCrop) {
@@ -74,6 +77,7 @@
 	}
 
 	$: if (sliderValues) {
+		updateCanCrop();
 		updateSlicedGPXStatistics();
 	}
 
@@ -82,6 +86,7 @@
 		($slicedGPXStatistics[1] !== sliderValues[0] || $slicedGPXStatistics[2] !== sliderValues[1])
 	) {
 		updateSliderValues();
+		updateCanCrop();
 	}
 
 	const splitTypes = [
