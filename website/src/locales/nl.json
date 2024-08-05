@@ -32,7 +32,7 @@
         "select_all": "Alles selecteren",
         "view": "Weergave",
         "elevation_profile": "Hoogteprofiel",
-        "vertical_file_view": "Verticale bestandslijst",
+        "vertical_file_view": "Route, Tracks, Segmenten ",
         "switch_basemap": "Schakel over naar vorige basiskaart",
         "toggle_overlays": "Schermlagen in- of uitschakelen",
         "toggle_3d": "3D aan/uit",
@@ -407,7 +407,7 @@
         "maps_description": "Een grote verzameling van basemaps, overlays en interessante punten om je te helpen je volgende outdoor avontuur te maken, of om je laatste prestatie te visualiseren.",
         "data_visualization": "Data visualisatie",
         "data_visualization_description": "Een interactief hoogteprofiel met gedetailleerde statistieken om opgenomen activiteiten en toekomstige doelstellingen te analyseren.",
-        "identity": "Vrije, advertentievrij en open source",
+        "identity": "Vrij, advertentievrij en open source",
         "identity_description": "De website is gratis te gebruiken, zonder advertenties, en de broncode is publiekelijk beschikbaar op GitHub. Dit is alleen mogelijk dankzij de ongelooflijke steun van de gemeenschap."
     },
     "embedding": {
