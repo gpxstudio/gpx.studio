@@ -516,6 +516,9 @@ export class RoutingControls {
         if (anchors[0].point._data.index === 0) { // First anchor is the first point of the segment
             anchors[0].point = response[0]; // replace the first anchor
             anchors[0].point._data.index = 0;
+        } else if (anchors[0].point._data.index === segment.trkpt.length - 1 && distance(anchors[0].point.getCoordinates(), response[0].getCoordinates()) < 1) { // First anchor is the last point of the segment, and the new point is close enough
+            anchors[0].point = response[0]; // replace the first anchor
+            anchors[0].point._data.index = segment.trkpt.length - 1;
         } else {
             anchors[0].point = anchors[0].point.clone(); // Clone the anchor to assign new properties
             response.splice(0, 0, anchors[0].point); // Insert it in the response to keep it
