@@ -79,8 +79,8 @@
         "routing": {
             "tooltip": "Planlegg eller endre en rute",
             "activity": "Aktivitet",
-            "use_routing": "Routing",
-            "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
+            "use_routing": "Dirigering",
+            "use_routing_tooltip": "Koble forankringspunkter via veinett, eller i en rett linje hvis den er deaktivert",
             "allow_private": "Allow private roads",
             "reverse": {
                 "button": "Omvendt",
