@@ -569,6 +569,10 @@ export class RoutingControls {
             let remainingTime = stats.global.time.moving - (stats.local.time.moving[anchors[anchors.length - 1].point._data.index] - stats.local.time.moving[anchors[0].point._data.index]);
             let replacingTime = newTime - remainingTime;
 
+            if (replacingTime <= 0) { // Fallback to simple time difference
+                replacingTime = stats.local.time.total[anchors[anchors.length - 1].point._data.index] - stats.local.time.total[anchors[0].point._data.index];
+            }
+
             speed = replacingDistance / replacingTime * 3600;
 
             if (startTime === undefined) { // Replacing the first point

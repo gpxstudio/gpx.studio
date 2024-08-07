@@ -682,7 +682,7 @@ export class TrackSegment extends GPXTreeLeaf {
                 const time = (points[i].time.getTime() - points[i - 1].time.getTime()) / 1000;
                 speed = dist / (time / 3600);
 
-                if (speed >= 0.5) {
+                if (speed >= 0.5 && speed <= 1500) {
                     statistics.global.distance.moving += dist;
                     statistics.global.time.moving += time;
                 }
