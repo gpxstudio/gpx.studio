@@ -164,7 +164,7 @@
 		{$_('toolbar.reduce.button')}
 	</Button>
 
-	<Help>
+	<Help link="./help/toolbar/minify">
 		{#if validSelection}
 			{$_('toolbar.reduce.help')}
 		{:else}

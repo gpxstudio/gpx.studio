@@ -178,7 +178,7 @@
 		<Trash2 size="16" class="mr-1" />
 		{$_('toolbar.clean.button')}
 	</Button>
-	<Help>
+	<Help link="./help/toolbar/clean">
 		{#if validSelection}
 			{$_('toolbar.clean.help')}
 		{:else}

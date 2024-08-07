@@ -332,7 +332,7 @@
 			<CircleX size="16" />
 		</Button>
 	</div>
-	<Help>
+	<Help link="./help/toolbar/time">
 		{#if canUpdate}
 			{$_('toolbar.time.help')}
 		{:else}

@@ -135,7 +135,7 @@
 			</Select.Content>
 		</Select.Root>
 	</Label>
-	<Help>
+	<Help link="./help/toolbar/scissors">
 		{#if validSelection}
 			{$_('toolbar.scissors.help')}
 		{:else}

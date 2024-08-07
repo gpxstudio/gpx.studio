@@ -204,7 +204,7 @@
 			<CircleX size="16" />
 		</Button>
 	</div>
-	<Help>
+	<Help link="./help/toolbar/poi">
 		{#if $selectedWaypoint || canCreate}
 			{$_('toolbar.waypoint.help')}
 		{:else}
