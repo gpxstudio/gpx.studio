@@ -552,7 +552,7 @@
 		}
 	}
 
-	$: $slicedGPXStatistics, updateOverlay();
+	$: $slicedGPXStatistics, $mode, updateOverlay();
 
 	onDestroy(() => {
 		if (chart) {
