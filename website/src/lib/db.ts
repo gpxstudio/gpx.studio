@@ -918,6 +918,7 @@ export const dbUtils = {
                 wpt.name = waypoint.name;
                 wpt.desc = waypoint.desc;
                 wpt.cmt = waypoint.cmt;
+                wpt.sym = waypoint.sym;
                 wpt.setCoordinates(waypoint.attributes);
                 wpt.ele = ele;
             });

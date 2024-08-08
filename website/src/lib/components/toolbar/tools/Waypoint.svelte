@@ -9,6 +9,7 @@
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Button } from '$lib/components/ui/button';
+	import * as Select from '$lib/components/ui/select';
 	import { selection } from '$lib/components/file-list/Selection';
 	import { Waypoint } from 'gpx';
 	import { _ } from 'svelte-i18n';
@@ -20,11 +21,17 @@
 	import { map } from '$lib/stores';
 	import { resetCursor, setCrosshairCursor } from '$lib/utils';
 	import { CirclePlus, CircleX, Save } from 'lucide-svelte';
+	import { symbols } from '$lib/assets/symbols';
 
 	let name: string;
 	let description: string;
 	let longitude: number;
 	let latitude: number;
+
+	let selectedSymbol = {
+		value: '',
+		label: ''
+	};
 
 	const { verticalFileView } = settings;
 
@@ -60,6 +67,19 @@
 					) {
 						description += '\n\n' + $selectedWaypoint[0].cmt;
 					}
+					let symbol = $selectedWaypoint[0].sym ?? '';
+					let symbolKey = Object.keys(symbols).find((key) => symbols[key].value === symbol);
+					if (symbolKey) {
+						selectedSymbol = {
+							value: symbol,
+							label: $_(`gpx.symbol.${symbolKey}`)
+						};
+					} else {
+						selectedSymbol = {
+							value: symbol,
+							label: ''
+						};
+					}
 					longitude = parseFloat($selectedWaypoint[0].getLongitude().toFixed(6));
 					latitude = parseFloat($selectedWaypoint[0].getLatitude().toFixed(6));
 				} else {
@@ -74,6 +94,10 @@
 	function resetWaypointData() {
 		name = '';
 		description = '';
+		selectedSymbol = {
+			value: '',
+			label: ''
+		};
 		longitude = 0;
 		latitude = 0;
 	}
@@ -111,7 +135,8 @@
 				},
 				name,
 				desc: description,
-				cmt: description
+				cmt: description,
+				sym: selectedSymbol.value
 			},
 			$selectedWaypoint
 				? new ListWaypointItem($selectedWaypoint[1], $selectedWaypoint[0]._data.index)
@@ -151,6 +176,30 @@
 		<Input bind:value={name} id="name" class="font-semibold h-8" />
 		<Label for="description">{$_('menu.metadata.description')}</Label>
 		<Textarea bind:value={description} id="description" />
+		<Label for="symbol">{$_('toolbar.waypoint.icon')}</Label>
+		<Select.Root bind:selected={selectedSymbol}>
+			<Select.Trigger id="symbol" class="w-full h-8">
+				<Select.Value />
+			</Select.Trigger>
+			<Select.Content class="max-h-60 overflow-y-scroll">
+				{#each Object.entries(symbols) as [key, symbol]}
+					<Select.Item value={symbol.value}>
+						<span>
+							{#if symbol.icon}
+								<svelte:component
+									this={symbol.icon}
+									size="14"
+									class="inline-block align-sub mr-0.5"
+								/>
+							{:else}
+								<span class="w-4 inline-block" />
+							{/if}
+							{$_(`gpx.symbol.${key}`)}
+						</span>
+					</Select.Item>
+				{/each}
+			</Select.Content>
+		</Select.Root>
 		<div class="flex flex-row gap-2">
 			<div>
 				<Label for="latitude">{$_('toolbar.waypoint.latitude')}</Label>

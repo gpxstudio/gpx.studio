@@ -7,6 +7,7 @@
 	import { Dot, Trash2 } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { Tool, currentTool } from '$lib/stores';
+	import { symbols } from '$lib/assets/symbols';
 	import { _ } from 'svelte-i18n';
 
 	let popupElement: HTMLDivElement;
@@ -15,6 +16,11 @@
 		waypointPopup.setDOMContent(popupElement);
 		popupElement.classList.remove('hidden');
 	});
+
+	$: symbolKey =
+		$currentPopupWaypoint && $currentPopupWaypoint[0].sym
+			? Object.keys(symbols).find((key) => symbols[key].value === $currentPopupWaypoint[0].sym)
+			: undefined;
 </script>
 
 <div bind:this={popupElement} class="hidden">
@@ -24,7 +30,22 @@
 				<Card.Title class="text-md">{$currentPopupWaypoint[0].name}</Card.Title>
 			</Card.Header>
 			<Card.Content class="flex flex-col p-0 text-sm">
-				<div class="flex flex-row items-center text-muted-foreground">
+				<div class="flex flex-row items-center text-muted-foreground text-xs">
+					{#if symbolKey && symbols.hasOwnProperty(symbolKey)}
+						<span>
+							{#if symbols[symbolKey].icon}
+								<svelte:component
+									this={symbols[symbolKey].icon}
+									size="12"
+									class="inline-block mb-0.5"
+								/>
+							{:else}
+								<span class="w-4 inline-block" />
+							{/if}
+							{$_(`gpx.symbol.${symbolKey}`)}
+						</span>
+						<Dot size="16" />
+					{/if}
 					{$currentPopupWaypoint[0].getLatitude().toFixed(6)}&deg; {$currentPopupWaypoint[0]
 						.getLongitude()
 						.toFixed(6)}&deg;

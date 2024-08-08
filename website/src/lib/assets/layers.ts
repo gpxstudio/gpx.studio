@@ -872,10 +872,11 @@ type OverpassQueryData = {
         color: string,
     },
     tags: Record<string, string | boolean | string[]> | Record<string, string | boolean | string[]>[],
+    symbol?: string,
 };
 
 export const overpassQueryData: Record<string, OverpassQueryData> = {
-    "bakery": {
+    bakery: {
         icon: {
             svg: Croissant,
             color: "Coral",
@@ -891,7 +892,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             shop: ["supermarket", "convenience"],
-        }
+        },
+        symbol: "Convenience Store"
     },
     "eat-and-drink": {
         icon: {
@@ -900,16 +902,18 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             amenity: ["restaurant", "fast_food", "cafe", "pub", "bar"]
-        }
+        },
+        symbol: "Restaurant"
     },
-    "toilets": {
+    toilets: {
         icon: {
             svg: Droplet,
             color: "DeepSkyBlue",
         },
         tags: {
             amenity: "toilets"
-        }
+        },
+        symbol: "Restroom"
     },
     water: {
         icon: {
@@ -921,7 +925,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         }, {
             natural: "spring",
             drinking_water: "yes"
-        }]
+        }],
+        symbol: "Drinking Water"
     },
     shower: {
         icon: {
@@ -930,7 +935,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             amenity: "shower"
-        }
+        },
+        symbol: "Shower"
     },
     "fuel-station": {
         icon: {
@@ -939,7 +945,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             amenity: "fuel"
-        }
+        },
+        symbol: "Gas Station"
     },
     parking: {
         icon: {
@@ -948,7 +955,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             amenity: "parking"
-        }
+        },
+        symbol: "Parking Area"
     },
     garage: {
         icon: {
@@ -957,7 +965,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             shop: ["car_repair", "motorcycle_repair"]
-        }
+        },
+        symbol: "Car Repair"
     },
     barrier: {
         icon: {
@@ -984,7 +993,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             tourism: "viewpoint"
-        }
+        },
+        symbol: "Scenic Area"
     },
     hotel: {
         icon: {
@@ -993,7 +1003,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             tourism: ["hotel", "hostel", "guest_house", "motel"]
-        }
+        },
+        symbol: "Hotel"
     },
     campsite: {
         icon: {
@@ -1002,7 +1013,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             tourism: "camp_site"
-        }
+        },
+        symbol: "Campground"
     },
     hut: {
         icon: {
@@ -1011,7 +1023,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             tourism: ["alpine_hut", "wilderness_hut"]
-        }
+        },
+        symbol: "Lodge"
     },
     summit: {
         icon: {
@@ -1020,7 +1033,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             natural: "peak"
-        }
+        },
+        symbol: "Summit"
     },
     pass: {
         icon: {
@@ -1047,7 +1061,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             amenity: "bicycle_parking"
-        }
+        },
+        symbol: "Parking Area"
     },
     "bicycle-rental": {
         icon: {
@@ -1074,7 +1089,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             railway: "station"
-        }
+        },
+        symbol: "Ground Transportation"
     },
     "tram-stop": {
         icon: {
@@ -1084,6 +1100,7 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         tags: {
             railway: "tram_stop"
         },
+        symbol: "Ground Transportation"
     },
     "bus-stop": {
         icon: {
@@ -1093,7 +1110,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         tags: {
             "public_transport": ["stop_position", "platform"],
             bus: "yes"
-        }
+        },
+        symbol: "Ground Transportation"
     },
     ferry: {
         icon: {

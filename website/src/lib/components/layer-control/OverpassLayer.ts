@@ -120,7 +120,10 @@ export class OverpassLayer {
     }
 
     onHover(e: any) {
-        overpassPopupPOI.set(e.features[0].properties);
+        overpassPopupPOI.set({
+            ...e.features[0].properties,
+            sym: overpassQueryData[e.features[0].properties.query].symbol ?? ''
+        });
         overpassPopup.setLngLat(e.features[0].geometry.coordinates);
         overpassPopup.addTo(this.map);
         this.map.on('mousemove', this.maybeHidePopupBinded);
