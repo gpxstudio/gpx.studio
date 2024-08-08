@@ -55,7 +55,7 @@
         "distance_markers": "Marqueurs de distance",
         "direction_markers": "Flèches de direction",
         "help": "Aide",
-        "more": "More...",
+        "more": "Plus...",
         "donate": "Faire un don",
         "ctrl": "Ctrl",
         "click": "Clic",
@@ -101,7 +101,7 @@
             "activities": {
                 "bike": "Vélo",
                 "racing_bike": "Vélo de route",
-                "gravel_bike": "Vélo Gravel",
+                "gravel_bike": "Vélo gravel",
                 "mountain_bike": "VTT",
                 "foot": "Course à pied/randonnée",
                 "motorcycle": "Moto",
