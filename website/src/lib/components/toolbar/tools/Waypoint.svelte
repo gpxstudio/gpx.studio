@@ -21,7 +21,7 @@
 	import { map } from '$lib/stores';
 	import { resetCursor, setCrosshairCursor } from '$lib/utils';
 	import { CirclePlus, CircleX, Save } from 'lucide-svelte';
-	import { symbols } from '$lib/assets/symbols';
+	import { getSymbolKey, symbols } from '$lib/assets/symbols';
 
 	let name: string;
 	let description: string;
@@ -68,7 +68,7 @@
 						description += '\n\n' + $selectedWaypoint[0].cmt;
 					}
 					let symbol = $selectedWaypoint[0].sym ?? '';
-					let symbolKey = Object.keys(symbols).find((key) => symbols[key].value === symbol);
+					let symbolKey = getSymbolKey(symbol);
 					if (symbolKey) {
 						selectedSymbol = {
 							value: symbol,

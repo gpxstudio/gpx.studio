@@ -1,45 +1,56 @@
 import { Landmark, type Icon, Shell, Bike, Building, Tent, Car, Wrench, ShoppingBasket, Droplet, DoorOpen, Trees, Fuel, Home, Info, TreeDeciduous, CircleParking, Cross, Utensils, Construction, BrickWall, ShowerHead, Mountain, Phone, Eye, TrainFront, Bed } from "lucide-svelte";
+import { Landmark as LandmarkSvg, Shell as ShellSvg, Bike as BikeSvg, Building as BuildingSvg, Tent as TentSvg, Car as CarSvg, Wrench as WrenchSvg, ShoppingBasket as ShoppingBasketSvg, Droplet as DropletSvg, DoorOpen as DoorOpenSvg, Trees as TreesSvg, Fuel as FuelSvg, Home as HomeSvg, Info as InfoSvg, TreeDeciduous as TreeDeciduousSvg, CircleParking as CircleParkingSvg, Cross as CrossSvg, Utensils as UtensilsSvg, Construction as ConstructionSvg, BrickWall as BrickWallSvg, ShowerHead as ShowerHeadSvg, Mountain as MountainSvg, Phone as PhoneSvg, Eye as EyeSvg, TrainFront as TrainFrontSvg, Bed as BedSvg } from "lucide-static";
 import type { ComponentType } from "svelte";
 
 export type Symbol = {
     value: string;
     icon?: ComponentType<Icon>;
+    iconSvg?: string;
 };
 
 export const symbols: { [key: string]: Symbol } = {
-    bank: { value: 'Bank', icon: Landmark },
-    beach: { value: 'Beach', icon: Shell },
-    bike_trail: { value: 'Bike Trail', icon: Bike },
+    bank: { value: 'Bank', icon: Landmark, iconSvg: LandmarkSvg },
+    beach: { value: 'Beach', icon: Shell, iconSvg: ShellSvg },
+    bike_trail: { value: 'Bike Trail', icon: Bike, iconSvg: BikeSvg },
     bridge: { value: 'Bridge' },
-    building: { value: 'Building', icon: Building },
-    campground: { value: 'Campground', icon: Tent },
-    car: { value: 'Car', icon: Car },
-    car_repair: { value: 'Car Repair', icon: Wrench },
-    convenience_store: { value: 'Convenience Store', icon: ShoppingBasket },
+    building: { value: 'Building', icon: Building, iconSvg: BuildingSvg },
+    campground: { value: 'Campground', icon: Tent, iconSvg: TentSvg },
+    car: { value: 'Car', icon: Car, iconSvg: CarSvg },
+    car_repair: { value: 'Car Repair', icon: Wrench, iconSvg: WrenchSvg },
+    convenience_store: { value: 'Convenience Store', icon: ShoppingBasket, iconSvg: ShoppingBasketSvg },
     crossing: { value: 'Crossing' },
-    department_store: { value: 'Department Store', icon: ShoppingBasket },
-    drinking_water: { value: 'Drinking Water', icon: Droplet },
-    exit: { value: 'Exit', icon: DoorOpen },
-    lodge: { value: 'Lodge', icon: Home },
-    forest: { value: 'Forest', icon: Trees },
-    gas_station: { value: 'Gas Station', icon: Fuel },
-    ground_transportation: { value: 'Ground Transportation', icon: TrainFront },
-    hotel: { value: 'Hotel', icon: Bed },
-    house: { value: 'House', icon: Home },
-    information: { value: 'Information', icon: Info },
-    park: { value: 'Park', icon: TreeDeciduous },
-    parking_area: { value: 'Parking Area', icon: CircleParking },
-    pharmacy: { value: 'Pharmacy', icon: Cross },
-    picnic_area: { value: 'Picnic Area', icon: Utensils },
-    restaurant: { value: 'Restaurant', icon: Utensils },
-    restricted_area: { value: 'Restricted Area', icon: Construction },
+    department_store: { value: 'Department Store', icon: ShoppingBasket, iconSvg: ShoppingBasketSvg },
+    drinking_water: { value: 'Drinking Water', icon: Droplet, iconSvg: DropletSvg },
+    exit: { value: 'Exit', icon: DoorOpen, iconSvg: DoorOpenSvg },
+    lodge: { value: 'Lodge', icon: Home, iconSvg: HomeSvg },
+    lodging: { value: 'Lodging', icon: Bed, iconSvg: BedSvg },
+    forest: { value: 'Forest', icon: Trees, iconSvg: TreesSvg },
+    gas_station: { value: 'Gas Station', icon: Fuel, iconSvg: FuelSvg },
+    ground_transportation: { value: 'Ground Transportation', icon: TrainFront, iconSvg: TrainFrontSvg },
+    hotel: { value: 'Hotel', icon: Bed, iconSvg: BedSvg },
+    house: { value: 'House', icon: Home, iconSvg: HomeSvg },
+    information: { value: 'Information', icon: Info, iconSvg: InfoSvg },
+    park: { value: 'Park', icon: TreeDeciduous, iconSvg: TreeDeciduousSvg },
+    parking_area: { value: 'Parking Area', icon: CircleParking, iconSvg: CircleParkingSvg },
+    pharmacy: { value: 'Pharmacy', icon: Cross, iconSvg: CrossSvg },
+    picnic_area: { value: 'Picnic Area', icon: Utensils, iconSvg: UtensilsSvg },
+    restaurant: { value: 'Restaurant', icon: Utensils, iconSvg: UtensilsSvg },
+    restricted_area: { value: 'Restricted Area', icon: Construction, iconSvg: ConstructionSvg },
     restroom: { value: 'Restroom' },
-    road: { value: 'Road', icon: BrickWall },
+    road: { value: 'Road', icon: BrickWall, iconSvg: BrickWallSvg },
     scenic_area: { value: 'Scenic Area', icon: Eye },
     shopping_center: { value: 'Shopping Center', icon: ShoppingBasket },
-    shower: { value: 'Shower', icon: ShowerHead },
-    summit: { value: 'Summit', icon: Mountain },
-    telephone: { value: 'Telephone', icon: Phone },
+    shower: { value: 'Shower', icon: ShowerHead, iconSvg: ShowerHeadSvg },
+    summit: { value: 'Summit', icon: Mountain, iconSvg: MountainSvg },
+    telephone: { value: 'Telephone', icon: Phone, iconSvg: PhoneSvg },
     tunnel: { value: 'Tunnel' },
-    water_source: { value: 'Water Source', icon: Droplet },
+    water_source: { value: 'Water Source', icon: Droplet, iconSvg: DropletSvg },
 };
+
+export function getSymbolKey(value: string | undefined): string | undefined {
+    if (value === undefined) {
+        return undefined;
+    } else {
+        return Object.keys(symbols).find(key => symbols[key].value === value);
+    }
+}

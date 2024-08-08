@@ -9,7 +9,8 @@ import type { Waypoint } from "gpx";
 import { getElevation, resetCursor, setGrabbingCursor, setPointerCursor, setScissorsCursor } from "$lib/utils";
 import { font } from "$lib/assets/layers";
 import { selectedWaypoint } from "$lib/components/toolbar/tools/Waypoint.svelte";
-import { MapPin } from "lucide-static";
+import { MapPin, Square } from "lucide-static";
+import { getSymbolKey, symbols } from "$lib/assets/symbols";
 
 const colors = [
     '#ff0000',
@@ -41,6 +42,25 @@ function decrementColor(color: string) {
     if (colorCount.hasOwnProperty(color)) {
         colorCount[color]--;
     }
+}
+
+function getMarkerForSymbol(symbol: string | undefined, layerColor: string) {
+    let symbolSvg = symbol ? symbols[symbol]?.iconSvg : undefined;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    ${Square
+            .replace('stroke="currentColor"', 'stroke="SteelBlue" stroke-width="1.5" transform="translate(9.6, 0.4) scale(0.5)"')
+            .replace('fill="none"', `fill="${layerColor}"`)}
+
+    ${MapPin
+            .replace('width="24"', '')
+            .replace('height="24"', '')
+            .replace('stroke="currentColor"', '')
+            .replace('path', `path fill="#3fb1ce" stroke="SteelBlue" stroke-width="1"`)
+            .replace('circle', `circle fill="${symbolSvg ? 'none' : 'white'}" stroke="${symbolSvg ? 'none' : 'white'}" stroke-width="2"`)}
+            
+    ${symbolSvg?.replace('stroke="currentColor"', 'stroke="white" stroke-width="2.5" transform="translate(7.2, 5) scale(0.4)"') ?? ''}
+
+    </svg>`
 }
 
 const { directionMarkers, verticalFileView, currentBasemap, defaultOpacity, defaultWeight } = settings;
@@ -184,19 +204,15 @@ export class GPXLayer {
 
         if (get(selection).hasAnyChildren(new ListFileItem(this.fileId))) {
             file.wpt.forEach((waypoint) => { // Update markers
+                let symbolKey = getSymbolKey(waypoint.sym);
                 if (markerIndex < this.markers.length) {
-                    this.markers[markerIndex].getElement().querySelector('circle')?.setAttribute('fill', this.layerColor);
+                    this.markers[markerIndex].getElement().innerHTML = getMarkerForSymbol(symbolKey, this.layerColor);
                     this.markers[markerIndex].setLngLat(waypoint.getCoordinates());
                     Object.defineProperty(this.markers[markerIndex], '_waypoint', { value: waypoint, writable: true });
                 } else {
                     let element = document.createElement('div');
                     element.classList.add('w-8', 'h-8', 'drop-shadow-xl');
-                    element.innerHTML = MapPin
-                        .replace('width="24"', '')
-                        .replace('height="24"', '')
-                        .replace('stroke="currentColor"', '')
-                        .replace('path', `path fill="#3fb1ce" stroke="SteelBlue" stroke-width="1"`)
-                        .replace('circle', `circle fill="${this.layerColor}" stroke="white" stroke-width="2.5"`);
+                    element.innerHTML = getMarkerForSymbol(symbolKey, this.layerColor);
                     let marker = new mapboxgl.Marker({
                         draggable: this.draggable,
                         element,

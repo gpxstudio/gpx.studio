@@ -7,7 +7,7 @@
 	import { Dot, Trash2 } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { Tool, currentTool } from '$lib/stores';
-	import { symbols } from '$lib/assets/symbols';
+	import { getSymbolKey, symbols } from '$lib/assets/symbols';
 	import { _ } from 'svelte-i18n';
 
 	let popupElement: HTMLDivElement;
@@ -17,10 +17,7 @@
 		popupElement.classList.remove('hidden');
 	});
 
-	$: symbolKey =
-		$currentPopupWaypoint && $currentPopupWaypoint[0].sym
-			? Object.keys(symbols).find((key) => symbols[key].value === $currentPopupWaypoint[0].sym)
-			: undefined;
+	$: symbolKey = $currentPopupWaypoint ? getSymbolKey($currentPopupWaypoint[0].sym) : undefined;
 </script>
 
 <div bind:this={popupElement} class="hidden">
@@ -30,8 +27,8 @@
 				<Card.Title class="text-md">{$currentPopupWaypoint[0].name}</Card.Title>
 			</Card.Header>
 			<Card.Content class="flex flex-col p-0 text-sm">
-				<div class="flex flex-row items-center text-muted-foreground text-xs">
-					{#if symbolKey && symbols.hasOwnProperty(symbolKey)}
+				<div class="flex flex-row items-center text-muted-foreground text-xs whitespace-nowrap">
+					{#if symbolKey}
 						<span>
 							{#if symbols[symbolKey].icon}
 								<svelte:component
