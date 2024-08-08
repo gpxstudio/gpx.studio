@@ -42,14 +42,22 @@ class Database extends Dexie {
 export const db = new Database();
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber, and updates to the store are pushed to the DB
-export function bidirectionalDexieStore<K, V>(table: Dexie.Table<V, K>, key: K, initial: V, initialize: boolean = true): Writable<V> {
-    let store = writable(initialize ? initial : undefined);
+export function bidirectionalDexieStore<K, V>(table: Dexie.Table<V, K>, key: K, initial: V, initialize: boolean = true): Writable<V | undefined> {
+    let first = true;
+    let store = writable<V | undefined>(initialize ? initial : undefined);
     liveQuery(() => table.get(key)).subscribe(value => {
-        if (value === undefined && !initialize) {
-            store.set(initial);
-        } else if (value !== undefined) {
+        if (value === undefined) {
+            if (first) {
+                if (!initialize) {
+                    store.set(initial);
+                }
+            } else {
+                store.set(value);
+            }
+        } else {
             store.set(value);
         }
+        first = false;
     });
     return {
         subscribe: store.subscribe,
