@@ -183,6 +183,7 @@
         "waypoint": {
             "tooltip": "Maken en bewerken van bezienswaardigheden",
             "icon": "Icon",
+            "link": "Link",
             "longitude": "Lengtegraad",
             "latitude": "Breedtegraad",
             "create": "Maak bezienswaardigheid",

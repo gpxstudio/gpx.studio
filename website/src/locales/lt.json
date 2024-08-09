@@ -183,6 +183,7 @@
         "waypoint": {
             "tooltip": "Kurti ar keisti svarbią vietą",
             "icon": "Icon",
+            "link": "Link",
             "longitude": "Ilguma",
             "latitude": "Platuma",
             "create": "Kurti svarbią vietą",

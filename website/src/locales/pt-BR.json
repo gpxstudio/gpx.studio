@@ -183,6 +183,7 @@
         "waypoint": {
             "tooltip": "Criar e editar pontos de interesse",
             "icon": "Icon",
+            "link": "Link",
             "longitude": "Longitude",
             "latitude": "Latitude",
             "create": "Criar ponto de interesse",
