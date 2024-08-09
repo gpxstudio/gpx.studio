@@ -5,6 +5,7 @@
 	import { _, isLoading } from 'svelte-i18n';
 
 	let location: string;
+	let title: string;
 
 	$: if ($page.route.id) {
 		location = $page.route.id;
@@ -14,6 +15,7 @@
 				location = location.replace(`[...${param}]`, $page.params[param]);
 			}
 		});
+		title = location.replace('/[...language]', '').split('/')[1] ?? 'home';
 	}
 </script>
 
@@ -35,11 +37,11 @@
 			content="View, edit and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations."
 		/>
 	{:else}
-		<title>gpx.studio — {$_(`metadata.${location}_title`)}</title>
+		<title>gpx.studio — {$_(`metadata.${title}_title`)}</title>
 		<meta name="description" content={$_('metadata.description')} />
-		<meta property="og:title" content="gpx.studio — {$_(`metadata.${location}_title`)}" />
+		<meta property="og:title" content="gpx.studio — {$_(`metadata.${title}_title`)}" />
 		<meta property="og:description" content={$_('metadata.description')} />
-		<meta name="twitter:title" content="gpx.studio — {$_(`metadata.${location}_title`)}" />
+		<meta name="twitter:title" content="gpx.studio — {$_(`metadata.${title}_title`)}" />
 		<meta name="twitter:description" content={$_('metadata.description')} />
 	{/if}
 
