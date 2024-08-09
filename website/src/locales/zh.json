@@ -183,6 +183,7 @@
         "waypoint": {
             "tooltip": "创建并编辑兴趣点",
             "icon": "Icon",
+            "link": "Link",
             "longitude": "经度",
             "latitude": "纬度",
             "create": "Create point of interest",
