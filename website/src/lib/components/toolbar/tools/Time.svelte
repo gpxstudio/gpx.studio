@@ -10,7 +10,7 @@
 	import {
 		distancePerHourToSecondsPerDistance,
 		getConvertedVelocity,
-		kilometersToMiles
+		milesToKilometers
 	} from '$lib/units';
 	import { CalendarDate, type DateValue } from '@internationalized/date';
 	import { CalendarClock, CirclePlay, CircleStop, CircleX, Timer, Zap } from 'lucide-svelte';
@@ -128,7 +128,7 @@
 			speedValue = distancePerHourToSecondsPerDistance(speed);
 		}
 		if ($distanceUnits === 'imperial') {
-			speedValue = kilometersToMiles(speedValue);
+			speedValue = milesToKilometers(speedValue);
 		}
 		return speedValue;
 	}
