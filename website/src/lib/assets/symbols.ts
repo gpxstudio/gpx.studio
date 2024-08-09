@@ -38,7 +38,7 @@ export const symbols: { [key: string]: Symbol } = {
     restricted_area: { value: 'Restricted Area', icon: Construction, iconSvg: ConstructionSvg },
     restroom: { value: 'Restroom' },
     road: { value: 'Road', icon: BrickWall, iconSvg: BrickWallSvg },
-    scenic_area: { value: 'Scenic Area', icon: Eye },
+    scenic_area: { value: 'Scenic Area', icon: Eye, iconSvg: EyeSvg },
     shopping_center: { value: 'Shopping Center', icon: ShoppingBasket },
     shower: { value: 'Shower', icon: ShowerHead, iconSvg: ShowerHeadSvg },
     summit: { value: 'Summit', icon: Mountain, iconSvg: MountainSvg },
