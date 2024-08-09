@@ -25,6 +25,7 @@
 
 	let name: string;
 	let description: string;
+	let link: string;
 	let longitude: number;
 	let latitude: number;
 
@@ -67,6 +68,7 @@
 					) {
 						description += '\n\n' + $selectedWaypoint[0].cmt;
 					}
+					link = $selectedWaypoint[0].link?.attributes?.href ?? '';
 					let symbol = $selectedWaypoint[0].sym ?? '';
 					let symbolKey = getSymbolKey(symbol);
 					if (symbolKey) {
@@ -94,6 +96,7 @@
 	function resetWaypointData() {
 		name = '';
 		description = '';
+		link = '';
 		selectedSymbol = {
 			value: '',
 			label: ''
@@ -133,10 +136,11 @@
 					lat: latitude,
 					lon: longitude
 				},
-				name,
-				desc: description,
-				cmt: description,
-				sym: selectedSymbol.value
+				name: name.length > 0 ? name : undefined,
+				desc: description.length > 0 ? description : undefined,
+				cmt: description.length > 0 ? description : undefined,
+				link: link.length > 0 ? { attributes: { href: link } } : undefined,
+				sym: selectedSymbol.value.length > 0 ? selectedSymbol.value : undefined
 			},
 			$selectedWaypoint
 				? new ListWaypointItem($selectedWaypoint[1], $selectedWaypoint[0]._data.index)
@@ -200,6 +204,8 @@
 				{/each}
 			</Select.Content>
 		</Select.Root>
+		<Label for="link">{$_('toolbar.waypoint.link')}</Label>
+		<Input bind:value={link} id="link" class="h-8" />
 		<div class="flex flex-row gap-2">
 			<div>
 				<Label for="latitude">{$_('toolbar.waypoint.latitude')}</Label>

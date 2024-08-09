@@ -216,7 +216,7 @@ export class GPXFile extends GPXTreeNode<Track>{
         let file: GPXFileType = {
             attributes: cloneJSON(this.attributes),
             metadata: {},
-            wpt: this.wpt,
+            wpt: this.wpt.map((wpt) => wpt.toWaypointType(exclude)),
             trk: this.trk.map((track) => track.toTrackType(exclude)),
             rte: [],
         };
@@ -1105,6 +1105,23 @@ export class Waypoint {
 
     getLongitude(): number {
         return this.attributes.lon;
+    }
+
+    toWaypointType(exclude: string[] = []): WaypointType {
+        let wpt: WaypointType = {
+            attributes: this.attributes,
+            ele: this.ele,
+            name: this.name,
+            cmt: this.cmt,
+            desc: this.desc,
+            link: this.link,
+            sym: this.sym,
+            type: this.type,
+        };
+        if (!exclude.includes('time')) {
+            wpt = { ...wpt, time: this.time };
+        }
+        return wpt;
     }
 
     clone(): Waypoint {

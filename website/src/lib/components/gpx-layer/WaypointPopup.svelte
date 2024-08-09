@@ -4,11 +4,12 @@
 	import Shortcut from '$lib/components/Shortcut.svelte';
 	import { waypointPopup, currentPopupWaypoint, deleteWaypoint } from './WaypointPopup';
 	import WithUnits from '$lib/components/WithUnits.svelte';
-	import { Dot, Trash2 } from 'lucide-svelte';
+	import { Dot, ExternalLink, Trash2 } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { Tool, currentTool } from '$lib/stores';
 	import { getSymbolKey, symbols } from '$lib/assets/symbols';
 	import { _ } from 'svelte-i18n';
+	import sanitizeHtml from 'sanitize-html';
 
 	let popupElement: HTMLDivElement;
 
@@ -18,13 +19,35 @@
 	});
 
 	$: symbolKey = $currentPopupWaypoint ? getSymbolKey($currentPopupWaypoint[0].sym) : undefined;
+
+	function sanitize(text: string | undefined): string {
+		if (text === undefined) {
+			return '';
+		}
+		let sanitized = sanitizeHtml(text, {
+			allowedTags: ['a', 'br'],
+			allowedAttributes: {
+				a: ['href', 'target']
+			}
+		}).trim();
+		return sanitized;
+	}
 </script>
 
 <div bind:this={popupElement} class="hidden">
 	{#if $currentPopupWaypoint}
 		<Card.Root class="border-none shadow-md text-base max-w-80 p-2">
 			<Card.Header class="p-0">
-				<Card.Title class="text-md">{$currentPopupWaypoint[0].name}</Card.Title>
+				<Card.Title class="text-md">
+					{#if $currentPopupWaypoint[0].link && $currentPopupWaypoint[0].link.attributes && $currentPopupWaypoint[0].link.attributes.href}
+						<a href={$currentPopupWaypoint[0].link.attributes.href} target="_blank">
+							{$currentPopupWaypoint[0].name ?? $currentPopupWaypoint[0].link.attributes.href}
+							<ExternalLink size="12" class="inline-block mb-1.5" />
+						</a>
+					{:else}
+						{$currentPopupWaypoint[0].name ?? $_('gpx.waypoint')}
+					{/if}
+				</Card.Title>
 			</Card.Header>
 			<Card.Content class="flex flex-col p-0 text-sm">
 				<div class="flex flex-row items-center text-muted-foreground text-xs whitespace-nowrap">
@@ -52,10 +75,10 @@
 					{/if}
 				</div>
 				{#if $currentPopupWaypoint[0].desc}
-					<span class="whitespace-pre-wrap">{$currentPopupWaypoint[0].desc}</span>
+					<span class="whitespace-pre-wrap">{@html sanitize($currentPopupWaypoint[0].desc)}</span>
 				{/if}
 				{#if $currentPopupWaypoint[0].cmt && $currentPopupWaypoint[0].cmt !== $currentPopupWaypoint[0].desc}
-					<span class="whitespace-pre-wrap">{$currentPopupWaypoint[0].cmt}</span>
+					<span class="whitespace-pre-wrap">{@html sanitize($currentPopupWaypoint[0].cmt)}</span>
 				{/if}
 				{#if $currentTool === Tool.WAYPOINT}
 					<Button
@@ -73,3 +96,10 @@
 		</Card.Root>
 	{/if}
 </div>
+
+<style lang="postcss">
+	div :global(a) {
+		@apply text-blue-500 dark:text-blue-300;
+		@apply hover:underline;
+	}
+</style>
