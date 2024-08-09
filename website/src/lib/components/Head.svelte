@@ -4,7 +4,17 @@
 	import { languages } from '$lib/languages';
 	import { _, isLoading } from 'svelte-i18n';
 
-	$: location = $page.route.id?.split('/')[2] ?? 'home';
+	let location: string;
+
+	$: if ($page.route.id) {
+		location = $page.route.id;
+		Object.keys($page.params).forEach((param) => {
+			if (param !== 'language') {
+				location = location.replace(`[${param}]`, $page.params[param]);
+				location = location.replace(`[...${param}]`, $page.params[param]);
+			}
+		});
+	}
 </script>
 
 <svelte:head>
@@ -46,15 +56,13 @@
 	<link
 		rel="alternate"
 		hreflang="x-default"
-		href="https://gpx.studio{base}/{location === 'home' ? '' : location}"
+		href="https://gpx.studio{base}{location.replace('/[...language]', '')}"
 	/>
 	{#each Object.keys(languages) as lang}
 		<link
 			rel="alternate"
 			hreflang={lang}
-			href="https://gpx.studio{base}/{lang === 'en' ? '' : lang + '/'}{location === 'home'
-				? ''
-				: location}"
+			href="https://gpx.studio{base}{location.replace('[...language]', lang)}"
 		/>
 	{/each}
 </svelte:head>
