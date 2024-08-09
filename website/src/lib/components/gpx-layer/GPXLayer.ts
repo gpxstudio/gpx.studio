@@ -48,19 +48,22 @@ function getMarkerForSymbol(symbol: string | undefined, layerColor: string) {
     let symbolSvg = symbol ? symbols[symbol]?.iconSvg : undefined;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
     ${Square
-            .replace('stroke="currentColor"', 'stroke="SteelBlue" stroke-width="1.5" transform="translate(9.6, 0.4) scale(0.5)"')
+            .replace('width="24"', 'width="12"')
+            .replace('height="24"', 'height="12"')
+            .replace('stroke="currentColor"', 'stroke="SteelBlue"')
+            .replace('stroke-width="2"', 'stroke-width="1.5" x="9.6" y="0.4"')
             .replace('fill="none"', `fill="${layerColor}"`)}
-
     ${MapPin
             .replace('width="24"', '')
             .replace('height="24"', '')
             .replace('stroke="currentColor"', '')
             .replace('path', `path fill="#3fb1ce" stroke="SteelBlue" stroke-width="1"`)
-            .replace('circle', `circle fill="${symbolSvg ? 'none' : 'white'}" stroke="${symbolSvg ? 'none' : 'white'}" stroke-width="2"`)}
-            
-    ${symbolSvg?.replace('stroke="currentColor"', 'stroke="white" stroke-width="2.5" transform="translate(7.2, 5) scale(0.4)"') ?? ''}
-
-    </svg>`
+            .replace('circle', `circle fill="${symbolSvg ? 'none' : 'white'}" stroke="${symbolSvg ? 'none' : 'white'}" stroke-width="2"`)} 
+    ${symbolSvg?.replace('width="24"', 'width="10"')
+            .replace('height="24"', 'height="10"')
+            .replace('stroke="currentColor"', 'stroke="white"')
+            .replace('stroke-width="2"', 'stroke-width="2.5" x="7" y="5"') ?? ''}
+    </svg>`;
 }
 
 const { directionMarkers, verticalFileView, currentBasemap, defaultOpacity, defaultWeight } = settings;
