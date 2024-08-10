@@ -152,7 +152,11 @@
 		if (movingTime === undefined) {
 			return;
 		}
-		setSpeed($gpxStatistics.global.distance.moving / (movingTime / 3600));
+		let distance =
+			$gpxStatistics.global.distance.moving > 0
+				? $gpxStatistics.global.distance.moving
+				: $gpxStatistics.global.distance.total;
+		setSpeed(distance / (movingTime / 3600));
 		updateEnd();
 	}
 
@@ -195,7 +199,7 @@
 							bind:value={speed}
 							showHours={false}
 							disabled={!canUpdate}
-							on:change={updateDataFromSpeed}
+							onChange={updateDataFromSpeed}
 						/>
 						<span class="text-sm shrink-0">
 							{#if $distanceUnits === 'imperial'}
@@ -215,7 +219,7 @@
 				<TimePicker
 					bind:value={movingTime}
 					disabled={!canUpdate}
-					on:change={updateDataFromTotalTime}
+					onChange={updateDataFromTotalTime}
 				/>
 			</div>
 		</div>
@@ -235,13 +239,13 @@
 					updateEnd();
 				}}
 			/>
-			<Input
+			<input
 				type="time"
 				step={1}
 				disabled={!canUpdate}
 				bind:value={startTime}
 				class="w-fit"
-				on:input={updateEnd}
+				on:change={updateEnd}
 			/>
 		</div>
 		<Label class="flex flex-row">
@@ -260,7 +264,7 @@
 					updateStart();
 				}}
 			/>
-			<Input
+			<input
 				type="time"
 				step={1}
 				disabled={!canUpdate}
@@ -340,3 +344,13 @@
 		{/if}
 	</Help>
 </div>
+
+<style lang="postcss">
+	div :global(input[type='time']) {
+		/*
+        Style copy-pasted from shadcn-svelte Input.
+        Needed to use native time input to avoid a bug with 2-level bind:value.
+        */
+		@apply flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+	}
+</style>
