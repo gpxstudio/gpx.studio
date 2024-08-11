@@ -22,7 +22,6 @@
 		Sun,
 		Moon,
 		Layers3,
-		MountainSnow,
 		GalleryVertical,
 		Languages,
 		Settings,
@@ -41,7 +40,8 @@
 		FolderOpen,
 		FileStack,
 		FileX,
-		BookOpenText
+		BookOpenText,
+		ChartArea
 	} from 'lucide-svelte';
 
 	import {
@@ -286,7 +286,7 @@
 				</Menubar.Trigger>
 				<Menubar.Content class="border-none">
 					<Menubar.CheckboxItem bind:checked={$elevationProfile}>
-						<MountainSnow size="16" class="mr-1" />
+						<ChartArea size="16" class="mr-1" />
 						{$_('menu.elevation_profile')}
 						<Shortcut key="P" ctrl={true} />
 					</Menubar.CheckboxItem>

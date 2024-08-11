@@ -1,5 +1,5 @@
-import { Landmark, type Icon, Shell, Bike, Building, Tent, Car, Wrench, ShoppingBasket, Droplet, DoorOpen, Trees, Fuel, Home, Info, TreeDeciduous, CircleParking, Cross, Utensils, Construction, BrickWall, ShowerHead, Mountain, Phone, Eye, TrainFront, Bed } from "lucide-svelte";
-import { Landmark as LandmarkSvg, Shell as ShellSvg, Bike as BikeSvg, Building as BuildingSvg, Tent as TentSvg, Car as CarSvg, Wrench as WrenchSvg, ShoppingBasket as ShoppingBasketSvg, Droplet as DropletSvg, DoorOpen as DoorOpenSvg, Trees as TreesSvg, Fuel as FuelSvg, Home as HomeSvg, Info as InfoSvg, TreeDeciduous as TreeDeciduousSvg, CircleParking as CircleParkingSvg, Cross as CrossSvg, Utensils as UtensilsSvg, Construction as ConstructionSvg, BrickWall as BrickWallSvg, ShowerHead as ShowerHeadSvg, Mountain as MountainSvg, Phone as PhoneSvg, Eye as EyeSvg, TrainFront as TrainFrontSvg, Bed as BedSvg } from "lucide-static";
+import { Landmark, Icon, Shell, Bike, Building, Tent, Car, Wrench, ShoppingBasket, Droplet, DoorOpen, Trees, Fuel, Home, Info, TreeDeciduous, CircleParking, Cross, Utensils, Construction, BrickWall, ShowerHead, Mountain, Phone, TrainFront, Bed, Binoculars, TriangleAlert, Anchor } from "lucide-svelte";
+import { Landmark as LandmarkSvg, Shell as ShellSvg, Bike as BikeSvg, Building as BuildingSvg, Tent as TentSvg, Car as CarSvg, Wrench as WrenchSvg, ShoppingBasket as ShoppingBasketSvg, Droplet as DropletSvg, DoorOpen as DoorOpenSvg, Trees as TreesSvg, Fuel as FuelSvg, Home as HomeSvg, Info as InfoSvg, TreeDeciduous as TreeDeciduousSvg, CircleParking as CircleParkingSvg, Cross as CrossSvg, Utensils as UtensilsSvg, Construction as ConstructionSvg, BrickWall as BrickWallSvg, ShowerHead as ShowerHeadSvg, Mountain as MountainSvg, Phone as PhoneSvg, TrainFront as TrainFrontSvg, Bed as BedSvg, Binoculars as BinocularsSvg, TriangleAlert as TriangleAlertSvg, Anchor as AnchorSvg } from "lucide-static";
 import type { ComponentType } from "svelte";
 
 export type Symbol = {
@@ -9,9 +9,12 @@ export type Symbol = {
 };
 
 export const symbols: { [key: string]: Symbol } = {
+    alert: { value: 'Alert', icon: TriangleAlert, iconSvg: TriangleAlertSvg },
+    anchor: { value: 'Anchor', icon: Anchor, iconSvg: AnchorSvg },
     bank: { value: 'Bank', icon: Landmark, iconSvg: LandmarkSvg },
     beach: { value: 'Beach', icon: Shell, iconSvg: ShellSvg },
     bike_trail: { value: 'Bike Trail', icon: Bike, iconSvg: BikeSvg },
+    binoculars: { value: 'Binoculars', icon: Binoculars, iconSvg: BinocularsSvg },
     bridge: { value: 'Bridge' },
     building: { value: 'Building', icon: Building, iconSvg: BuildingSvg },
     campground: { value: 'Campground', icon: Tent, iconSvg: TentSvg },
@@ -38,7 +41,8 @@ export const symbols: { [key: string]: Symbol } = {
     restricted_area: { value: 'Restricted Area', icon: Construction, iconSvg: ConstructionSvg },
     restroom: { value: 'Restroom' },
     road: { value: 'Road', icon: BrickWall, iconSvg: BrickWallSvg },
-    scenic_area: { value: 'Scenic Area', icon: Eye, iconSvg: EyeSvg },
+    scenic_area: { value: 'Scenic Area', icon: Binoculars, iconSvg: BinocularsSvg },
+    shelter: { value: 'Shelter', icon: Tent, iconSvg: TentSvg },
     shopping_center: { value: 'Shopping Center', icon: ShoppingBasket },
     shower: { value: 'Shower', icon: ShowerHead, iconSvg: ShowerHeadSvg },
     summit: { value: 'Summit', icon: Mountain, iconSvg: MountainSvg },

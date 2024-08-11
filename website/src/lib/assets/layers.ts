@@ -1,5 +1,5 @@
 import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
-import { TramFront, Utensils, ShoppingBasket, Droplet, ShowerHead, Fuel, CircleParking, Fence, FerrisWheel, Telescope, Bed, Mountain, Pickaxe, Store, TrainFront, Bus, Ship, Croissant, House, Tent, Wrench } from 'lucide-static';
+import { TramFront, Utensils, ShoppingBasket, Droplet, ShowerHead, Fuel, CircleParking, Fence, FerrisWheel, Bed, Mountain, Pickaxe, Store, TrainFront, Bus, Ship, Croissant, House, Tent, Wrench, Binoculars } from 'lucide-static';
 import { type AnySourceData, type Style } from 'mapbox-gl';
 import ignFrTopo from './custom/ign-fr-topo.json';
 import ignFrPlan from './custom/ign-fr-plan.json';
@@ -803,7 +803,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             shop: "bakery"
-        }
+        },
+        symbol: "Convenience Store"
     },
     "food-store": {
         icon: {
@@ -860,13 +861,13 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
     },
     shelter: {
         icon: {
-            svg: House,
+            svg: Tent,
             color: "#000000",
         },
         tags: {
             amenity: "shelter"
         },
-        symbol: "House"
+        symbol: "Shelter"
     },
     "fuel-station": {
         icon: {
@@ -918,7 +919,7 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
     },
     viewpoint: {
         icon: {
-            svg: Telescope,
+            svg: Binoculars,
             color: "Green",
         },
         tags: {
@@ -1060,6 +1061,7 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             amenity: "ferry_terminal"
-        }
+        },
+        symbol: "Anchor"
     }
 };
