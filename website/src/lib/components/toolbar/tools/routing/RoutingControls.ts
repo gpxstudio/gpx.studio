@@ -1,4 +1,4 @@
-import { distance, type Coordinates, TrackPoint, TrackSegment, Track } from "gpx";
+import { distance, type Coordinates, TrackPoint, TrackSegment, Track, crossarcDistance } from "gpx";
 import { get, writable, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
 import { route } from "./Routing";
@@ -245,6 +245,10 @@ export class RoutingControls {
     }
 
     showTemporaryAnchor(e: any) {
+        if (this.temporaryAnchor.marker.getElement().classList.contains('cursor-grabbing')) { // Do not not change the source point if it is already being dragged
+            return;
+        }
+
         if (get(streetViewEnabled)) {
             return;
         }
@@ -335,12 +339,12 @@ export class RoutingControls {
         let minAnchor = this.temporaryAnchor as Anchor;
         file?.forEachSegment((segment, trackIndex, segmentIndex) => {
             if (get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex))) {
-                for (let point of segment.trkpt) {
-                    let dist = distance(point.getCoordinates(), this.temporaryAnchor.point.getCoordinates());
+                for (let i = 0; i < segment.trkpt.length - 1; i++) {
+                    let dist = crossarcDistance(segment.trkpt[i], segment.trkpt[i + 1], this.temporaryAnchor.point);
                     if (dist < minDistance) {
                         minDistance = dist;
                         minAnchor = {
-                            point,
+                            point: segment.trkpt[i],
                             segment,
                             trackIndex,
                             segmentIndex,

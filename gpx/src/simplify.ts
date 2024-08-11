@@ -5,7 +5,7 @@ export type SimplifiedTrackPoint = { point: TrackPoint, distance?: number };
 
 const earthRadius = 6371008.8;
 
-export function ramerDouglasPeucker(points: TrackPoint[], epsilon: number = 50, measure: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => number = computeCrossarc): SimplifiedTrackPoint[] {
+export function ramerDouglasPeucker(points: TrackPoint[], epsilon: number = 50, measure: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => number = crossarcDistance): SimplifiedTrackPoint[] {
     if (points.length == 0) {
         return [];
     } else if (points.length == 1) {
@@ -45,7 +45,7 @@ function ramerDouglasPeuckerRecursive(points: TrackPoint[], epsilon: number, mea
     }
 }
 
-function computeCrossarc(point1: TrackPoint, point2: TrackPoint, point3: TrackPoint): number {
+export function crossarcDistance(point1: TrackPoint, point2: TrackPoint, point3: TrackPoint): number {
     return crossarc(point1.getCoordinates(), point2.getCoordinates(), point3.getCoordinates());
 }
 
