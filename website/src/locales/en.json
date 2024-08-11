@@ -228,7 +228,6 @@
             "update": "Update layer"
         },
         "opacity": "Overlay opacity",
-        "heatmap": "Strava Heatmap",
         "label": {
             "basemaps": "Basemaps",
             "overlays": "Overlays",
@@ -281,15 +280,6 @@
             "ignFrCadastre": "IGN Cadastre",
             "ignSlope": "IGN Slope",
             "ignSkiTouring": "IGN Ski Touring",
-            "strava": "Strava",
-            "stravaHeatmapRun": "Running",
-            "stravaHeatmapTrailRun": "Trail Running",
-            "stravaHeatmapHike": "Hiking",
-            "stravaHeatmapRide": "Cycling",
-            "stravaHeatmapGravel": "Gravel Cycling",
-            "stravaHeatmapMTB": "MTB",
-            "stravaHeatmapWater": "Water",
-            "stravaHeatmapWinter": "Winter",
             "waymarked_trails": "Waymarked Trails",
             "waymarkedTrailsHiking": "Hiking",
             "waymarkedTrailsCycling": "Cycling",

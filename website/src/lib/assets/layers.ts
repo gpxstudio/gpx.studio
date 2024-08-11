@@ -410,62 +410,6 @@ export const overlays: { [key: string]: AnySourceData; } = {
         maxzoom: 18,
         attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
     },
-    stravaHeatmapRun: {
-        type: 'raster',
-        tiles: [],
-        tileSize: 1024,
-        maxzoom: 15,
-        attribution: '&copy; <a href="https://www.strava.com" target="_blank">Strava</a>'
-    },
-    stravaHeatmapTrailRun: {
-        type: 'raster',
-        tiles: [],
-        tileSize: 1024,
-        maxzoom: 15,
-        attribution: '&copy; <a href="https://www.strava.com" target="_blank">Strava</a>'
-    },
-    stravaHeatmapHike: {
-        type: 'raster',
-        tiles: [],
-        tileSize: 1024,
-        maxzoom: 15,
-        attribution: '&copy; <a href="https://www.strava.com" target="_blank">Strava</a>'
-    },
-    stravaHeatmapRide: {
-        type: 'raster',
-        tiles: [],
-        tileSize: 1024,
-        maxzoom: 15,
-        attribution: '&copy; <a href="https://www.strava.com" target="_blank">Strava</a>'
-    },
-    stravaHeatmapGravel: {
-        type: 'raster',
-        tiles: [],
-        tileSize: 1024,
-        maxzoom: 15,
-        attribution: '&copy; <a href="https://www.strava.com" target="_blank">Strava</a>'
-    },
-    stravaHeatmapMTB: {
-        type: 'raster',
-        tiles: [],
-        tileSize: 1024,
-        maxzoom: 15,
-        attribution: '&copy; <a href="https://www.strava.com" target="_blank">Strava</a>'
-    },
-    stravaHeatmapWater: {
-        type: 'raster',
-        tiles: [],
-        tileSize: 1024,
-        maxzoom: 15,
-        attribution: '&copy; <a href="https://www.strava.com" target="_blank">Strava</a>'
-    },
-    stravaHeatmapWinter: {
-        type: 'raster',
-        tiles: [],
-        tileSize: 1024,
-        maxzoom: 15,
-        attribution: '&copy; <a href="https://www.strava.com" target="_blank">Strava</a>'
-    },
 };
 
 export const defaultOpacities: { [key: string]: number; } = {
@@ -538,16 +482,6 @@ export const overlayTree: LayerTreeType = {
             cyclOSM: {
                 cyclOSMlite: true,
             },
-            /*strava: {
-                stravaHeatmapRun: true,
-                stravaHeatmapTrailRun: true,
-                stravaHeatmapHike: true,
-                stravaHeatmapRide: true,
-                stravaHeatmapGravel: true,
-                stravaHeatmapMTB: true,
-                stravaHeatmapWater: true,
-                stravaHeatmapWinter: true,
-            },*/
             waymarked_trails: {
                 waymarkedTrailsHiking: true,
                 waymarkedTrailsCycling: true,
@@ -630,16 +564,6 @@ export const defaultOverlays = {
             cyclOSM: {
                 cyclOSMlite: false,
             },
-            /*strava: {
-                stravaHeatmapRun: false,
-                stravaHeatmapTrailRun: false,
-                stravaHeatmapHike: false,
-                stravaHeatmapRide: false,
-                stravaHeatmapGravel: false,
-                stravaHeatmapMTB: false,
-                stravaHeatmapWater: false,
-                stravaHeatmapWinter: false,
-            },*/
             waymarked_trails: {
                 waymarkedTrailsHiking: false,
                 waymarkedTrailsCycling: false,
@@ -774,16 +698,6 @@ export const defaultOverlayTree: LayerTreeType = {
             cyclOSM: {
                 cyclOSMlite: false,
             },
-            /*strava: {
-                stravaHeatmapRun: true,
-                stravaHeatmapTrailRun: true,
-                stravaHeatmapHike: true,
-                stravaHeatmapRide: true,
-                stravaHeatmapGravel: true,
-                stravaHeatmapMTB: true,
-                stravaHeatmapWater: true,
-                stravaHeatmapWinter: true,
-            },*/
             waymarked_trails: {
                 waymarkedTrailsHiking: true,
                 waymarkedTrailsCycling: true,
@@ -1123,15 +1037,3 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         }
     }
 };
-
-export const stravaHeatmapServers = ['https://heatmap-external-a.strava.com/tiles-auth', 'https://heatmap-external-b.strava.com/tiles-auth', 'https://heatmap-external-c.strava.com/tiles-auth'];
-export const stravaHeatmapActivityIds: { [key: string]: string } = {
-    stravaHeatmapRun: 'sport_Run',
-    stravaHeatmapTrailRun: 'sport_TrailRun',
-    stravaHeatmapHike: 'sport_Hike',
-    stravaHeatmapRide: 'sport_Ride',
-    stravaHeatmapGravel: 'sport_GravelRide',
-    stravaHeatmapMTB: 'sport_MountainBikeRide',
-    stravaHeatmapWater: 'water',
-    stravaHeatmapWinter: 'winter',
-}

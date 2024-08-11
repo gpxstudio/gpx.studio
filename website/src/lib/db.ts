@@ -105,7 +105,6 @@ export const settings = {
     customOverlayOrder: dexieSettingStore<string[]>('customOverlayOrder', []),
     directionMarkers: dexieSettingStore('directionMarkers', false),
     distanceMarkers: dexieSettingStore('distanceMarkers', false),
-    stravaHeatmapColor: dexieSettingStore('stravaHeatmapColor', 'bluered'),
     streetViewSource: dexieSettingStore('streetViewSource', 'mapillary'),
     fileOrder: dexieSettingStore<string[]>('fileOrder', []),
     defaultOpacity: dexieSettingStore('defaultOpacity', 0.7),
