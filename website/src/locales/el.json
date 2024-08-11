@@ -46,6 +46,7 @@
         "fahrenheit": "Fahrenheit",
         "language": "Language",
         "mode": "Theme",
+        "system": "System",
         "light": "Light",
         "dark": "Dark",
         "street_view_source": "Street view source",
