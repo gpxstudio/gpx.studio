@@ -12,7 +12,7 @@
 	import * as Select from '$lib/components/ui/select';
 	import { selection } from '$lib/components/file-list/Selection';
 	import { Waypoint } from 'gpx';
-	import { _ } from 'svelte-i18n';
+	import { _, locale } from 'svelte-i18n';
 	import { ListWaypointItem } from '$lib/components/file-list/FileList';
 	import { dbUtils, fileObservers, getFile, settings, type GPXFileWithStatistics } from '$lib/db';
 	import { get } from 'svelte/store';
@@ -156,6 +156,10 @@
 		longitude = e.lngLat.lng.toFixed(6);
 	}
 
+	$: sortedSymbols = Object.entries(symbols).sort((a, b) => {
+		return $_(`gpx.symbol.${a[0]}`).localeCompare($_(`gpx.symbol.${b[0]}`), $locale ?? 'en');
+	});
+
 	onMount(() => {
 		let m = get(map);
 		m?.on('click', setCoordinates);
@@ -186,7 +190,7 @@
 				<Select.Value />
 			</Select.Trigger>
 			<Select.Content class="max-h-60 overflow-y-scroll">
-				{#each Object.entries(symbols) as [key, symbol]}
+				{#each sortedSymbols as [key, symbol]}
 					<Select.Item value={symbol.value}>
 						<span>
 							{#if symbol.icon}
