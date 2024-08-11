@@ -16,8 +16,11 @@
 	});
 </script>
 
-<span class="ml-auto pl-2 text-xs tracking-widest text-muted-foreground"
-	>{shift ? '⇧' : ''}{ctrl ? (isMac && !isSafari ? '⌘' : $_('menu.ctrl') + '+') : ''}{key}{click
-		? $_('menu.click')
-		: ''}</span
+<div
+	class="ml-auto pl-2 text-xs tracking-widest text-muted-foreground flex flex-row gap-0 items-baseline"
 >
+	<span>{shift ? '⇧' : ''}</span>
+	<span>{ctrl ? (isMac && !isSafari ? '⌘' : $_('menu.ctrl') + '+') : ''}</span>
+	<span class={key === '+' ? 'font-medium text-sm/4' : ''}>{key}</span>
+	<span>{click ? $_('menu.click') : ''}</span>
+</div>
