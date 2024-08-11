@@ -243,6 +243,23 @@
 					</RadioGroup.Root>
 				</Label>
 			</div>
+			<Label class="flex flex-col items-start gap-2">
+				{$_('menu.mode')}
+				<RadioGroup.Root bind:value={options.theme} class="flex flex-row">
+					<div class="flex items-center space-x-2">
+						<RadioGroup.Item value="system" id="system" />
+						<Label for="system">{$_('menu.system')}</Label>
+					</div>
+					<div class="flex items-center space-x-2">
+						<RadioGroup.Item value="light" id="light" />
+						<Label for="light">{$_('menu.light')}</Label>
+					</div>
+					<div class="flex items-center space-x-2">
+						<RadioGroup.Item value="dark" id="dark" />
+						<Label for="dark">{$_('menu.dark')}</Label>
+					</div>
+				</RadioGroup.Root>
+			</Label>
 			<div class="flex flex-col gap-3 p-3 border rounded-md">
 				<div class="flex flex-row items-center gap-2">
 					<Checkbox id="manual-camera" bind:checked={manualCamera} />

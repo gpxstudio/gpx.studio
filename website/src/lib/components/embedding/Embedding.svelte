@@ -6,7 +6,6 @@
 	import Map from '$lib/components/Map.svelte';
 	import LayerControl from '$lib/components/layer-control/LayerControl.svelte';
 	import OpenIn from '$lib/components/embedding/OpenIn.svelte';
-
 	import {
 		gpxStatistics,
 		slicedGPXStatistics,
@@ -22,6 +21,7 @@
 	import { selection } from '$lib/components/file-list/Selection';
 	import { ListFileItem } from '$lib/components/file-list/FileList';
 	import { allowedEmbeddingBasemaps, type EmbeddingOptions } from './Embedding';
+	import { mode, setMode } from 'mode-watcher';
 
 	$embedding = true;
 
@@ -44,7 +44,8 @@
 		directionMarkers: false,
 		distanceUnits: 'metric',
 		velocityUnits: 'speed',
-		temperatureUnits: 'celsius'
+		temperatureUnits: 'celsius',
+		theme: 'system'
 	};
 
 	function applyOptions() {
@@ -160,6 +161,10 @@
 		if (options.temperatureUnits !== $temperatureUnits) {
 			$temperatureUnits = options.temperatureUnits;
 		}
+
+		if (options.theme !== $mode) {
+			setMode(options.theme);
+		}
 	}
 
 	onMount(() => {
@@ -168,6 +173,7 @@
 		prevSettings.distanceUnits = $distanceUnits;
 		prevSettings.velocityUnits = $velocityUnits;
 		prevSettings.temperatureUnits = $temperatureUnits;
+		prevSettings.theme = $mode ?? 'system';
 	});
 
 	$: if (options) {
@@ -197,6 +203,10 @@
 
 		if ($temperatureUnits !== prevSettings.temperatureUnits) {
 			$temperatureUnits = prevSettings.temperatureUnits;
+		}
+
+		if ($mode !== prevSettings.theme) {
+			setMode(prevSettings.theme);
 		}
 
 		$selection.clear();

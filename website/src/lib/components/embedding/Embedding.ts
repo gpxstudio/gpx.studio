@@ -20,6 +20,7 @@ export type EmbeddingOptions = {
     distanceUnits: 'metric' | 'imperial',
     velocityUnits: 'speed' | 'pace',
     temperatureUnits: 'celsius' | 'fahrenheit',
+    theme: 'system' | 'light' | 'dark',
 };
 
 export const defaultEmbeddingOptions = {
@@ -42,6 +43,7 @@ export const defaultEmbeddingOptions = {
     distanceUnits: 'metric',
     velocityUnits: 'speed',
     temperatureUnits: 'celsius',
+    theme: 'system',
 };
 
 export function getDefaultEmbeddingOptions(): EmbeddingOptions {
