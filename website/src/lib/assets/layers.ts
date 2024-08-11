@@ -523,6 +523,7 @@ export const overpassTree: LayerTreeType = {
             toilets: true,
             "water": true,
             shower: true,
+            shelter: true,
             barrier: true
         },
         tourism: {
@@ -531,6 +532,7 @@ export const overpassTree: LayerTreeType = {
             hotel: true,
             campsite: true,
             hut: true,
+            picnic: true,
             summit: true,
             pass: true,
             climbing: true,
@@ -605,6 +607,7 @@ export const defaultOverpassQueries: LayerTreeType = {
             toilets: false,
             "water": false,
             shower: false,
+            shelter: false,
             barrier: false
         },
         tourism: {
@@ -613,6 +616,7 @@ export const defaultOverpassQueries: LayerTreeType = {
             hotel: false,
             campsite: false,
             hut: false,
+            picnic: false,
             summit: false,
             pass: false,
             climbing: false
@@ -739,6 +743,7 @@ export const defaultOverpassTree: LayerTreeType = {
             toilets: true,
             "water": true,
             shower: false,
+            shelter: false,
             barrier: false
         },
         tourism: {
@@ -747,6 +752,7 @@ export const defaultOverpassTree: LayerTreeType = {
             hotel: true,
             campsite: true,
             hut: true,
+            picnic: false,
             summit: true,
             pass: true,
             climbing: false
@@ -852,6 +858,16 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         symbol: "Shower"
     },
+    shelter: {
+        icon: {
+            svg: House,
+            color: "#000000",
+        },
+        tags: {
+            amenity: "shelter"
+        },
+        symbol: "House"
+    },
     "fuel-station": {
         icon: {
             svg: Fuel,
@@ -939,6 +955,16 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
             tourism: ["alpine_hut", "wilderness_hut"]
         },
         symbol: "Lodge"
+    },
+    picnic: {
+        icon: {
+            svg: Utensils,
+            color: "Green",
+        },
+        tags: {
+            tourism: "picnic_site"
+        },
+        symbol: "Picnic Area"
     },
     summit: {
         icon: {
