@@ -53,6 +53,7 @@
         "@types/mapbox__sphericalmercator": "^1.2.3",
         "bits-ui": "^0.21.12",
         "chart.js": "^4.4.3",
+        "chartjs-plugin-zoom": "^2.0.1",
         "clsx": "^2.1.1",
         "dexie": "^4.0.7",
         "gpx": "file:../gpx",

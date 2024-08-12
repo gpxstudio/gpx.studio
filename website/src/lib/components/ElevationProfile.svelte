@@ -2,6 +2,7 @@
 	import * as ToggleGroup from '$lib/components/ui/toggle-group';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import Chart from 'chart.js/auto';
+	import zoomPlugin from 'chartjs-plugin-zoom';
 	import mapboxgl from 'mapbox-gl';
 	import { map } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
@@ -68,11 +69,13 @@
 	let overlay: HTMLCanvasElement;
 	let chart: Chart;
 
+	Chart.register(zoomPlugin);
 	Chart.defaults.font.family =
 		'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'; // Tailwind CSS font
 
 	let marker: mapboxgl.Marker | null = null;
 	let dragging = false;
+	let panning = false;
 
 	let options = {
 		animation: false,
@@ -119,7 +122,7 @@
 				enabled: true
 			},
 			tooltip: {
-				enabled: () => !dragging,
+				enabled: () => !dragging && !panning,
 				callbacks: {
 					title: function () {
 						return '';
@@ -175,6 +178,48 @@
 						}
 
 						return labels;
+					}
+				}
+			},
+			zoom: {
+				pan: {
+					enabled: true,
+					mode: 'x',
+					modifierKey: 'shift',
+					onPanStart: function () {
+						// hide tooltip
+						panning = true;
+						$slicedGPXStatistics = undefined;
+					},
+					onPanComplete: function () {
+						panning = false;
+					}
+				},
+				zoom: {
+					wheel: {
+						enabled: true
+					},
+					mode: 'x',
+					onZoomStart: function ({ chart, event }: { chart: Chart; event: any }) {
+						if (
+							event.deltaY < 0 &&
+							Math.abs(
+								chart.getInitialScaleBounds().x.max / chart.options.plugins.zoom.limits.x.minRange -
+									chart.getZoomLevel()
+							) < 0.01
+						) {
+							// Disable wheel pan if zoomed in to the max, and zooming in
+							return false;
+						}
+
+						$slicedGPXStatistics = undefined;
+					}
+				},
+				limits: {
+					x: {
+						min: 'original',
+						max: 'original',
+						minRange: 1
 					}
 				}
 			}
@@ -313,6 +358,10 @@
 
 		let dragStarted = false;
 		function onMouseDown(evt) {
+			if (evt.shiftKey) {
+				// Panning interaction
+				return;
+			}
 			dragStarted = true;
 			canvas.style.cursor = 'col-resize';
 			startIndex = getIndex(evt);
