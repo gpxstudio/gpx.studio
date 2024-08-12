@@ -4,6 +4,7 @@
         "app_title": "l'editor di file GPX online",
         "embed_title": "l'editor di file GPX online",
         "help_title": "aiuto",
+        "404_title": "pagina non trovata",
         "description": "Visualizza, modifica e genera file GPX online con avanzate funzionalità di pianificazione del percorso e strumenti di elaborazione dei file, mappe eleganti e visualizzazione dettagliata dei dati."
     },
     "menu": {
@@ -46,7 +47,7 @@
         "fahrenheit": "Fahrenheit",
         "language": "Lingua",
         "mode": "Tema",
-        "system": "System",
+        "system": "Sistema",
         "light": "Chiaro",
         "dark": "Scuro",
         "street_view_source": "Sorgente della vista stradale",

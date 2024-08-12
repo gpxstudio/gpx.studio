@@ -4,6 +4,7 @@
         "app_title": "de online GPX-bestandseditor",
         "embed_title": "de online GPX-bestandseditor",
         "help_title": "help",
+        "404_title": "pagina niet gevonden",
         "description": "Bekijk, bewerk en maak GPX-bestanden met geavanceerde mogelijkheden voor route planning en nabewerkingsmogelijkheden, prachtige kaarten en gedetailleerde visualisaties."
     },
     "menu": {
@@ -46,7 +47,7 @@
         "fahrenheit": "Fahrenheit",
         "language": "Taal",
         "mode": "Thema",
-        "system": "System",
+        "system": "Systeem",
         "light": "Licht",
         "dark": "Donker",
         "street_view_source": "Streetview bron",

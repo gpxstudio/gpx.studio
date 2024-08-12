@@ -4,6 +4,7 @@
         "app_title": "GPX 文件在线编辑器",
         "embed_title": "GPX 文件在线编辑器",
         "help_title": "帮助",
+        "404_title": "page not found",
         "description": "利用先进的路线规划功能和文件处理工具、精美的地图和详细的可视化数据，在线查看、编辑和创建 GPX 文件。"
     },
     "menu": {
