@@ -32,6 +32,7 @@ export class OverpassLayer {
     overpassUrl = 'https://overpass.private.coffee/api/interpreter';
     minZoom = 12;
     queryZoom = 12;
+    expirationTime = 7 * 24 * 3600 * 1000;
     map: mapboxgl.Map;
 
     currentQueries: Set<string> = new Set();
@@ -150,6 +151,7 @@ export class OverpassLayer {
         }
 
         let tileLimits = mercator.xyz(bbox, this.queryZoom);
+        let time = Date.now();
 
         for (let x = tileLimits.minX; x <= tileLimits.maxX; x++) {
             for (let y = tileLimits.minY; y <= tileLimits.maxY; y++) {
@@ -157,8 +159,8 @@ export class OverpassLayer {
                     continue;
                 }
 
-                db.overpassquerytiles.where('[x+y]').equals([x, y]).toArray().then((querytiles) => {
-                    let missingQueries = queries.filter((query) => !querytiles.some((querytile) => querytile.query === query));
+                db.overpasstiles.where('[x+y]').equals([x, y]).toArray().then((querytiles) => {
+                    let missingQueries = queries.filter((query) => !querytiles.some((querytile) => querytile.query === query && time - querytile.time < this.expirationTime));
                     if (missingQueries.length > 0) {
                         this.queryTile(x, y, missingQueries);
                     }
@@ -188,7 +190,8 @@ export class OverpassLayer {
     }
 
     storeOverpassData(x: number, y: number, queries: string[], data: any) {
-        let queryTiles = queries.map((query) => ({ x, y, query }));
+        let time = Date.now();
+        let queryTiles = queries.map((query) => ({ x, y, query, time }));
         let pois: { query: string, id: number, poi: GeoJSON.Feature }[] = [];
 
         if (data.elements === undefined) {
@@ -221,8 +224,8 @@ export class OverpassLayer {
             }
         }
 
-        db.transaction('rw', db.overpassquerytiles, db.overpassdata, async () => {
-            await db.overpassquerytiles.bulkPut(queryTiles);
+        db.transaction('rw', db.overpasstiles, db.overpassdata, async () => {
+            await db.overpasstiles.bulkPut(queryTiles);
             await db.overpassdata.bulkPut(pois);
         });
 

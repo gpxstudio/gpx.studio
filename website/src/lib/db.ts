@@ -21,7 +21,7 @@ class Database extends Dexie {
     files!: Dexie.Table<GPXFile, string>;
     patches!: Dexie.Table<{ patch: Patch[], inversePatch: Patch[], index: number }, number>;
     settings!: Dexie.Table<any, string>;
-    overpassquerytiles!: Dexie.Table<{ query: string, x: number, y: number }, [string, number, number]>;
+    overpasstiles!: Dexie.Table<{ query: string, x: number, y: number, time: number }, [string, number, number]>;
     overpassdata!: Dexie.Table<{ query: string, id: number, poi: GeoJSON.Feature }, [string, number]>;
 
     constructor() {
@@ -33,7 +33,7 @@ class Database extends Dexie {
             files: '',
             patches: ',patch',
             settings: '',
-            overpassquerytiles: '[query+x+y],[x+y]',
+            overpasstiles: '[query+x+y],[x+y]',
             overpassdata: '[query+id]',
         });
     }
