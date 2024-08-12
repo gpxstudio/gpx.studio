@@ -32,7 +32,7 @@
 	{#if titleOnly}
 		{metadata.title}
 	{:else}
-		<div class="markdown space-y-3">
+		<div class="markdown flex flex-col gap-3">
 			<svelte:component this={module} />
 		</div>
 	{/if}
@@ -47,14 +47,13 @@
 		@apply text-foreground;
 		@apply text-3xl;
 		@apply font-semibold;
-		@apply mb-6;
+		@apply mb-3 pt-6;
 	}
 
 	:global(.markdown h2) {
 		@apply text-foreground;
 		@apply text-2xl;
 		@apply font-semibold;
-		@apply mb-3;
 		@apply pt-3;
 	}
 

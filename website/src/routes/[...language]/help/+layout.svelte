@@ -7,8 +7,8 @@
 	import { guides } from '$lib/components/docs/docs';
 </script>
 
-<div class="p-12 flex flex-row gap-24">
-	<div class="hidden md:flex flex-col gap-2 w-40 sticky top-[105px] self-start shrink-0">
+<div class="px-12 pt-6 pb-12 flex flex-row gap-24">
+	<div class="hidden md:flex flex-col gap-2 w-40 sticky top-[108px] self-start shrink-0">
 		{#each Object.keys(guides) as guide}
 			<Button
 				variant="link"
