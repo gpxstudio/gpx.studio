@@ -4,6 +4,7 @@
         "app_title": "el editor online de archivos GPX",
         "embed_title": "el editor online de archivos GPX",
         "help_title": "ayuda",
+        "404_title": "página no encontrada",
         "description": "Ver, editar y crear archivos GPX online con capacidades de planificación avanzada de rutas y herramientas de procesamiento de archivos, hermosos mapas y visualizaciones detalladas de datos."
     },
     "menu": {
