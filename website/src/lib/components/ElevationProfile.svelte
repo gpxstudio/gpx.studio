@@ -2,7 +2,6 @@
 	import * as ToggleGroup from '$lib/components/ui/toggle-group';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import Chart from 'chart.js/auto';
-	import zoomPlugin from 'chartjs-plugin-zoom';
 	import mapboxgl from 'mapbox-gl';
 	import { map } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
@@ -69,7 +68,6 @@
 	let overlay: HTMLCanvasElement;
 	let chart: Chart;
 
-	Chart.register(zoomPlugin);
 	Chart.defaults.font.family =
 		'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'; // Tailwind CSS font
 
@@ -294,7 +292,9 @@
 		}
 	};
 
-	onMount(() => {
+	onMount(async () => {
+		Chart.register((await import('chartjs-plugin-zoom')).default); // dynamic import to avoid SSR and 'window is not defined' error
+
 		chart = new Chart(canvas, {
 			type: 'line',
 			data: {
