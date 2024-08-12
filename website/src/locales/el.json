@@ -4,6 +4,7 @@
         "app_title": "the online GPX file editor",
         "embed_title": "the online GPX file editor",
         "help_title": "βοήθεια",
+        "404_title": "page not found",
         "description": "View, edit, and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations."
     },
     "menu": {
