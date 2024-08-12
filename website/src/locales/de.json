@@ -4,6 +4,7 @@
         "app_title": "der Online-Editor für GPX-Dateien",
         "embed_title": "the online GPX file editor",
         "help_title": "hilfe",
+        "404_title": "page not found",
         "description": "GPX-Dateien online anzeigen, bearbeiten und erstellen mit erweiterten Routenplanungs- und Dateiverarbeitungswerkzeugen, schönen Karten und detaillierten Datenvisualisierungen."
     },
     "menu": {
