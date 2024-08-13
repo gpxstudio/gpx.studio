@@ -3,7 +3,7 @@
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import Chart from 'chart.js/auto';
 	import mapboxgl from 'mapbox-gl';
-	import { map } from '$lib/stores';
+	import { hoveredTrackPoint, map } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
 	import {
 		BrickWall,
@@ -127,7 +127,7 @@
 					},
 					label: function (context: Chart.TooltipContext) {
 						let point = context.raw;
-						if (context.datasetIndex === 0) {
+						if (context.datasetIndex === 0 && $hoveredTrackPoint === undefined) {
 							if ($map && marker) {
 								if (dragging) {
 									marker.remove();
@@ -602,6 +602,32 @@
 	}
 
 	$: $slicedGPXStatistics, $mode, updateOverlay();
+
+	$: if (chart) {
+		if ($hoveredTrackPoint) {
+			let index = chart._metasets[0].data.findIndex(
+				(point) =>
+					$gpxStatistics.local.points[point.raw.index]._data.index ===
+						$hoveredTrackPoint.point._data.index &&
+					$hoveredTrackPoint.point.getLongitude() === point.raw.coordinates.lon &&
+					$hoveredTrackPoint.point.getLatitude() === point.raw.coordinates.lat
+			);
+			if (index >= 0) {
+				chart.tooltip?.setActiveElements(
+					[
+						{
+							datasetIndex: 0,
+							index
+						}
+					],
+					{ x: 0, y: 0 }
+				);
+			}
+		} else {
+			chart.tooltip?.setActiveElements([], { x: 0, y: 0 });
+		}
+		chart.update();
+	}
 
 	onDestroy(() => {
 		if (chart) {

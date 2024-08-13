@@ -1,4 +1,4 @@
-import { currentTool, map, Tool } from "$lib/stores";
+import { currentTool, hoveredTrackPoint, map, Tool } from "$lib/stores";
 import { settings, type GPXFileWithStatistics, dbUtils } from "$lib/db";
 import { get, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
@@ -6,7 +6,7 @@ import { currentPopupWaypoint, deleteWaypoint, waypointPopup } from "./WaypointP
 import { addSelectItem, selectItem, selection } from "$lib/components/file-list/Selection";
 import { ListTrackSegmentItem, ListWaypointItem, ListWaypointsItem, ListTrackItem, ListFileItem, ListRootItem } from "$lib/components/file-list/FileList";
 import type { Waypoint } from "gpx";
-import { getElevation, resetCursor, setGrabbingCursor, setPointerCursor, setScissorsCursor } from "$lib/utils";
+import { getClosestLinePoint, getElevation, resetCursor, setGrabbingCursor, setPointerCursor, setScissorsCursor } from "$lib/utils";
 import { font } from "$lib/assets/layers";
 import { selectedWaypoint } from "$lib/components/toolbar/tools/Waypoint.svelte";
 import { MapPin, Square } from "lucide-static";
@@ -80,6 +80,7 @@ export class GPXLayer {
 
     updateBinded: () => void = this.update.bind(this);
     layerOnMouseEnterBinded: (e: any) => void = this.layerOnMouseEnter.bind(this);
+    layerOnMouseMoveBinded: (e: any) => void = this.layerOnMouseMove.bind(this);
     layerOnMouseLeaveBinded: () => void = this.layerOnMouseLeave.bind(this);
     layerOnClickBinded: (e: any) => void = this.layerOnClick.bind(this);
     maybeHideWaypointPopupBinded: (e: any) => void = this.maybeHideWaypointPopup.bind(this);
@@ -155,6 +156,7 @@ export class GPXLayer {
 
                 this.map.on('click', this.fileId, this.layerOnClickBinded);
                 this.map.on('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
+                this.map.on('mousemove', this.fileId, this.layerOnMouseMoveBinded);
                 this.map.on('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
             }
 
@@ -302,6 +304,7 @@ export class GPXLayer {
         if (get(map)) {
             this.map.off('click', this.fileId, this.layerOnClickBinded);
             this.map.off('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
+            this.map.off('mousemove', this.fileId, this.layerOnMouseMoveBinded);
             this.map.off('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
             this.map.off('style.load', this.updateBinded);
 
@@ -345,8 +348,28 @@ export class GPXLayer {
         }
     }
 
+    layerOnMouseMove(e: any) {
+        let trackIndex = e.features[0].properties.trackIndex;
+        let segmentIndex = e.features[0].properties.segmentIndex;
+
+        if (get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex))) {
+            let file = get(this.file)?.file;
+            if (file) {
+                let segment = file.trk[trackIndex].trkseg[segmentIndex];
+                let point = getClosestLinePoint(segment.trkpt, { lat: e.lngLat.lat, lon: e.lngLat.lng });
+                hoveredTrackPoint.set({
+                    fileId: this.fileId,
+                    trackIndex,
+                    segmentIndex,
+                    point
+                });
+            }
+        }
+    }
+
     layerOnMouseLeave() {
         resetCursor();
+        hoveredTrackPoint.set(undefined);
     }
 
     layerOnClick(e: any) {

@@ -1,7 +1,7 @@
 import { writable, get, type Writable, derived } from 'svelte/store';
 
 import mapboxgl from 'mapbox-gl';
-import { GPXFile, buildGPX, parseGPX, GPXStatistics, type Coordinates } from 'gpx';
+import { GPXFile, buildGPX, parseGPX, GPXStatistics, type Coordinates, TrackPoint } from 'gpx';
 import { tick } from 'svelte';
 import { _ } from 'svelte-i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
@@ -19,6 +19,7 @@ export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }
 
 export const gpxStatistics: Writable<GPXStatistics> = writable(new GPXStatistics());
 export const slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined> = writable(undefined);
+export const hoveredTrackPoint = writable<{ fileId: string, trackIndex: number, segmentIndex: number, point: TrackPoint, matchedPoint?: TrackPoint } | undefined>(undefined);
 
 export function updateGPXData() {
     let statistics = new GPXStatistics();
