@@ -10,7 +10,7 @@ import { dbUtils, type GPXFileWithStatistics } from "$lib/db";
 import { getOrderedSelection, selection } from "$lib/components/file-list/Selection";
 import { ListFileItem, ListTrackItem, ListTrackSegmentItem } from "$lib/components/file-list/FileList";
 import { currentTool, streetViewEnabled, Tool } from "$lib/stores";
-import { resetCursor, setGrabbingCursor } from "$lib/utils";
+import { getClosestLinePoint, resetCursor, setGrabbingCursor } from "$lib/utils";
 
 export const canChangeStart = writable(false);
 
@@ -339,17 +339,16 @@ export class RoutingControls {
         let minAnchor = this.temporaryAnchor as Anchor;
         file?.forEachSegment((segment, trackIndex, segmentIndex) => {
             if (get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex))) {
-                for (let i = 0; i < segment.trkpt.length - 1; i++) {
-                    let dist = crossarcDistance(segment.trkpt[i], segment.trkpt[i + 1], this.temporaryAnchor.point);
-                    if (dist < minDistance) {
-                        minDistance = dist;
-                        minAnchor = {
-                            point: segment.trkpt[i],
-                            segment,
-                            trackIndex,
-                            segmentIndex,
-                        };
-                    }
+                let details: any = {};
+                let closest = getClosestLinePoint(segment.trkpt, this.temporaryAnchor.point, details);
+                if (details.distance < minDistance) {
+                    minDistance = details.distance;
+                    minAnchor = {
+                        point: closest,
+                        segment,
+                        trackIndex,
+                        segmentIndex
+                    };
                 }
             }
         });
@@ -539,16 +538,7 @@ export class RoutingControls {
         for (let i = 1; i < anchors.length - 1; i++) {
             // Find the closest point to the intermediate anchor
             // and transfer the marker to that point
-            let minDistance = Number.MAX_VALUE;
-            let minIndex = 0;
-            for (let j = 1; j < response.length - 1; j++) {
-                let dist = distance(response[j].getCoordinates(), targetCoordinates[i]);
-                if (dist < minDistance) {
-                    minDistance = dist;
-                    minIndex = j;
-                }
-            }
-            anchors[i].point = response[minIndex];
+            anchors[i].point = getClosestLinePoint(response.slice(1, - 1), targetCoordinates[i]);
         }
 
         anchors.forEach((anchor) => {

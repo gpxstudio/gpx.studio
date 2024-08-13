@@ -2,13 +2,13 @@ import Dexie, { liveQuery } from 'dexie';
 import { GPXFile, GPXStatistics, Track, TrackSegment, Waypoint, TrackPoint, type Coordinates, distance, type LineStyleExtension, type WaypointType } from 'gpx';
 import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, freeze, produceWithPatches } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
-import { Tool, currentTool, gpxStatistics, initTargetMapBounds, map, splitAs, updateAllHidden, updateTargetMapBounds } from './stores';
+import { gpxStatistics, initTargetMapBounds, map, splitAs, updateAllHidden, updateTargetMapBounds } from './stores';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays, type CustomLayer, defaultOpacities, defaultOverpassQueries, defaultOverpassTree } from './assets/layers';
 import { applyToOrderedItemsFromFile, applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem, ListRootItem } from '$lib/components/file-list/FileList';
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
 import { SplitType } from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
-import { getElevation } from '$lib/utils';
+import { getClosestLinePoint, getElevation } from '$lib/utils';
 import { browser } from '$app/environment';
 
 
@@ -813,14 +813,8 @@ export const dbUtils = {
                 let minIndex = 0;
                 if (trkptIndex === undefined) {
                     // Find the point closest to split
-                    let minDistance = Number.MAX_VALUE;
-                    for (let i = 0; i < segment.trkpt.length; i++) {
-                        let dist = distance(segment.trkpt[i].getCoordinates(), coordinates);
-                        if (dist < minDistance) {
-                            minDistance = dist;
-                            minIndex = i;
-                        }
-                    }
+                    let closest = getClosestLinePoint(segment.trkpt, coordinates);
+                    minIndex = closest._data.index;
                 } else {
                     minIndex = trkptIndex;
                 }

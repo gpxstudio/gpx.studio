@@ -9,6 +9,7 @@ import { browser } from "$app/environment";
 import { languages } from "$lib/languages";
 import { locale } from "svelte-i18n";
 import type mapboxgl from "mapbox-gl";
+import { type TrackPoint, type Coordinates, crossarcDistance } from "gpx";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -67,6 +68,20 @@ export const flyAndScale = (
         easing: cubicOut
     };
 };
+
+export function getClosestLinePoint(points: TrackPoint[], point: TrackPoint | Coordinates, details: any = {}): TrackPoint {
+    let closest = points[0];
+    let closestDist = Number.MAX_VALUE;
+    for (let i = 0; i < points.length - 1; i++) {
+        let dist = crossarcDistance(points[i], points[i + 1], point);
+        if (dist < closestDist) {
+            closest = points[i];
+            closestDist = dist;
+        }
+    }
+    details['distance'] = closestDist;
+    return closest;
+}
 
 export function getElevation(map: mapboxgl.Map, coordinates: Coordinates): number {
     let elevation = map.queryTerrainElevation(coordinates, { exaggerated: false });
