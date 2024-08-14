@@ -453,6 +453,7 @@
         "title": "Create your own map",
         "mapbox_token": "Mapbox access token",
         "file_urls": "URL dels fitxers (separades per comes)",
+        "drive_ids": "ID del fitxer a Google Drive (separats per comes)",
         "basemap": "Mapa base",
         "height": "Height",
         "fill_by": "Fill by",

@@ -1,5 +1,5 @@
 ---
-title: GPX file format
+title: Formato file GPX
 ---
 
 <script>
@@ -8,27 +8,27 @@ title: GPX file format
 
 # { title }
 
-The <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX file format</a> is an open standard for exchanging GPS data between applications and GPS devices.
-It essentially consists of a series of GPS points encoding one or multiple GPS traces, and, optionally, some points of interest.
+Il formato <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX</a> è uno standard aperto per lo scambio di dati GPS tra applicazioni e dispositivi GPS.
+Esso consiste essenzialmente di una serie di punti GPS che codificano una o più tracce GPS, e, facoltativamente, alcuni punti d'interesse.
 
-GPX files may also contain metadata, of which the **name** and **description** fields are the most useful for users.
+I file GPX possono anche contenere metadati, di cui i campi **nome** e **descrizione** sono i più utili per gli utenti.
 
-### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Tracks, segments, and GPS points
+### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Tracce, segmenti e punti GPS
 
-As mentioned above, a GPX file can contain multiple GPS traces.
-These are organized in a hierarchical structure, with tracks at the top level.
+Come accennato sopra, un file GPX può contenere più tracce GPS.
+Queste sono organizzate in una struttura gerarchica, con le tracce stesse al livello superiore.
 
-- A **track** is made of a sequence of disconnected segments.
-  Furthermore, it can contain metadata such as a **name**, a **description**, and **appearance properties**.
-- A **segment** is a sequence of GPS points that form a continuous path.
-- A **GPS point** is a location with a latitude, a longitude, and optionally a timestamp and an altitude.
-  Some devices also store additional information such as heart rate, cadence, temperature, and power.
+- Una **traccia** è composta da una sequenza di segmenti scollegati.
+  Inoltre, può contenere metadati come un **nome**, una **descrizione**, e **proprietà di visualizzazione**.
+- Un **segmento** è una sequenza di punti GPS che formano un percorso continuo.
+- Un **punto GPS** è una posizione con una latitudine, una longitudine, ed eventualmente un timestamp e un'altitudine.
+  Alcuni dispositivi memorizzano anche informazioni aggiuntive come frequenza cardiaca, cadenza, temperatura e potenza.
 
-In most cases, GPX files contain a single track with a single segment.
-However, the hierarchy described above allows for more advanced use cases, such as planning multi-day trips with several variants for each day.
+Nella maggior parte dei casi, i file GPX contengono una singola traccia con un singolo segmento.
+Tuttavia, la gerarchia sopra descritta consente applicazioni più avanzate, come la pianificazione di viaggi di più giorni con diverse varianti per ogni giorno.
 
-### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Points of interest
+### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Punti d'interesse
 
-**Points of interest** (technically called _waypoints_) represent locations of interest to show either on a GPS device or on a digital map.
+I **punti d'interesse** (tecnicamente chiamati _waypoint_) rappresentano luoghi d'interesse da mostrare su un dispositivo GPS o su una mappa digitale.
 
-In addition to its coordinates, a point of interest can have a **name** and a **description**.
+Oltre alle sue coordinate, un punto d'interesse può avere un **nome** e una **descrizione**.
