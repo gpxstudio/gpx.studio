@@ -4,7 +4,7 @@
 	import { languages } from '$lib/languages';
 	import { _, isLoading } from 'svelte-i18n';
 
-	let location: string;
+	let location: string = '';
 	let title: string;
 
 	$: if ($page.route.id) {
