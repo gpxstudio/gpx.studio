@@ -8,6 +8,7 @@
 	import Footer from '$lib/components/Footer.svelte';
 	import { onMount } from 'svelte';
 	import { convertOldEmbeddingOptions } from '$lib/components/embedding/Embedding';
+	import { base } from '$app/paths';
 
 	const appRoutes = ['/[[language]]/app', '/[[language]]/embed'];
 
@@ -15,7 +16,7 @@
 		if ($page.url.searchParams.has('embed')) {
 			// convert old embedding options to new format and redirect to new embed page
 			let locale = $page.params.language;
-			window.location.href = `${locale ? '/' + locale : ''}/embed?options=${encodeURIComponent(JSON.stringify(convertOldEmbeddingOptions($page.url.searchParams)))}`;
+			window.location.href = `${base}${locale ? '/' + locale : ''}/embed?options=${encodeURIComponent(JSON.stringify(convertOldEmbeddingOptions($page.url.searchParams)))}`;
 		}
 	});
 
