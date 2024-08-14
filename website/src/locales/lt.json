@@ -453,6 +453,7 @@
         "title": "Susikurkite savo žemėlapį",
         "mapbox_token": "Prieigos prie „Mapbox“ atpažinimo ženklas",
         "file_urls": "Failų URL adresai (atskirti kableliais)",
+        "drive_ids": "Google Drive file IDs (separated by commas)",
         "basemap": "Pagrindo žemėlapis",
         "height": "Aukštis",
         "fill_by": "Užpildyti (kuo)",
