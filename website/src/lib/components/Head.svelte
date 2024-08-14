@@ -15,7 +15,7 @@
 				location = location.replace(`[...${param}]`, $page.params[param]);
 			}
 		});
-		title = location.replace('/[...language]', '').split('/')[1] ?? 'home';
+		title = location.replace('/[[language]]', '').split('/')[1] ?? 'home';
 	}
 </script>
 
@@ -58,13 +58,13 @@
 	<link
 		rel="alternate"
 		hreflang="x-default"
-		href="https://gpx.studio{base}{location.replace('/[...language]', '')}"
+		href="https://gpx.studio{base}{location.replace('/[[language]]', '')}"
 	/>
 	{#each Object.keys(languages) as lang}
 		<link
 			rel="alternate"
 			hreflang={lang}
-			href="https://gpx.studio{base}{location.replace('[...language]', lang)}"
+			href="https://gpx.studio{base}{location.replace('[[language]]', lang)}"
 		/>
 	{/each}
 </svelte:head>

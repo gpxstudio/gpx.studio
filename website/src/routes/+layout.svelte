@@ -7,7 +7,7 @@
 	import Nav from '$lib/components/Nav.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 
-	const appRoutes = ['/[...language]/app', '/[...language]/embed'];
+	const appRoutes = ['/[[language]]/app', '/[[language]]/embed'];
 
 	$: showNavAndFooter = $page.route.id === null || !appRoutes.includes($page.route.id);
 </script>
