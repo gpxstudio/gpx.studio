@@ -19,7 +19,8 @@ const config = {
             strict: true
         }),
         paths: {
-            base: process.argv.includes('dev') ? '' : process.env.BASE_PATH
+            base: process.argv.includes('dev') ? '' : process.env.BASE_PATH,
+            relative: false,
         },
         prerender: {
             entries: ['/', '/404', '/l/fr/'],
