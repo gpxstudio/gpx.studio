@@ -24,13 +24,13 @@
 		if (text === undefined) {
 			return '';
 		}
-		let sanitized = sanitizeHtml(text, {
-			allowedTags: ['a', 'br'],
+		return sanitizeHtml(text, {
+			allowedTags: ['a', 'br', 'img'],
 			allowedAttributes: {
-				a: ['href', 'target']
+				a: ['href', 'target'],
+				img: ['src']
 			}
 		}).trim();
-		return sanitized;
 	}
 </script>
 
@@ -101,5 +101,10 @@
 	div :global(a) {
 		@apply text-blue-500 dark:text-blue-300;
 		@apply hover:underline;
+	}
+
+	div :global(img) {
+		@apply my-0;
+		@apply rounded-md;
 	}
 </style>
