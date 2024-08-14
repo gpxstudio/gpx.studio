@@ -23,7 +23,7 @@ const config = {
             base: process.argv.includes('dev') ? '' : process.env.BASE_PATH
         },
         prerender: {
-            entries: ['/', '/404'],
+            entries: ['/', '/404', '/l/fr/'],
             crawl: true,
         }
     }

@@ -1,3 +1,4 @@
+import { PUBLIC_MAPBOX_TOKEN } from "$env/static/public";
 import { basemaps } from "$lib/assets/layers";
 
 export type EmbeddingOptions = {
@@ -78,3 +79,51 @@ export function getCleanedEmbeddingOptions(options: any, defaultOptions: any = d
 }
 
 export const allowedEmbeddingBasemaps = Object.keys(basemaps).filter(basemap => !['ordnanceSurvey'].includes(basemap));
+
+export function getURLForGoogleDriveFile(fileId: string): string {
+    return `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=AIzaSyA2ZadQob_hXiT2VaYIkAyafPvz_4ZMssk`;
+}
+
+export function convertOldEmbeddingOptions(options: URLSearchParams): any {
+    let newOptions: any = {
+        token: PUBLIC_MAPBOX_TOKEN,
+        files: [],
+    };
+    if (options.has('state')) {
+        let state = JSON.parse(options.get('state')!);
+        if (state.ids) {
+            newOptions.files.push(...state.ids.map(getURLForGoogleDriveFile));
+        }
+        if (state.urls) {
+            newOptions.files.push(...state.urls);
+        }
+    }
+    if (options.has('source')) {
+        let basemap = options.get('source')!;
+        if (basemap === 'satellite') {
+            newOptions.basemap = 'mapboxSatellite';
+        } else if (basemap === 'otm') {
+            newOptions.basemap = 'openTopoMap';
+        } else if (basemap === 'ohm') {
+            newOptions.basemap = 'openHikingMap';
+        }
+    }
+    if (options.has('imperial')) {
+        newOptions.distanceUnits = 'imperial';
+    }
+    if (options.has('running')) {
+        newOptions.velocityUnits = 'pace';
+    }
+    if (options.has('distance')) {
+        newOptions.distanceMarkers = true;
+    }
+    if (options.has('direction')) {
+        newOptions.directionMarkers = true;
+    }
+    if (options.has('slope')) {
+        newOptions.elevation = {
+            fill: 'slope',
+        };
+    }
+    return newOptions;
+}
