@@ -453,6 +453,7 @@
         "title": "Maak je eigen kaart",
         "mapbox_token": "Toegangstoken voor Mapbox",
         "file_urls": "Bestands URL's (komma gescheiden)",
+        "drive_ids": "Google Drive file IDs (separated by commas)",
         "basemap": "Basiskaart",
         "height": "Hoogte",
         "fill_by": "Opvullen door",
