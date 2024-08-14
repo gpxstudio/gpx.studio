@@ -19,7 +19,8 @@
 	import {
 		allowedEmbeddingBasemaps,
 		getCleanedEmbeddingOptions,
-		getDefaultEmbeddingOptions
+		getDefaultEmbeddingOptions,
+		getURLForGoogleDriveFile
 	} from './Embedding';
 	import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
 	import Embedding from './Embedding.svelte';
@@ -34,9 +35,13 @@
 	];
 
 	let files = options.files[0];
-	$: if (files) {
+	let driveIds = '';
+	$: if (files && driveIds) {
 		let urls = files.split(',');
 		urls = urls.filter((url) => url.length > 0);
+		let ids = driveIds.split(',');
+		ids = ids.filter((id) => id.length > 0);
+		urls.push(...ids.map(getURLForGoogleDriveFile));
 		if (JSON.stringify(urls) !== JSON.stringify(options.files)) {
 			options.files = urls;
 		}
@@ -94,6 +99,8 @@
 			<Input id="token" type="text" class="h-8" bind:value={options.token} />
 			<Label for="file_urls">{$_('embedding.file_urls')}</Label>
 			<Input id="file_urls" type="text" class="h-8" bind:value={files} />
+			<Label for="drive_ids">{$_('embedding.drive_ids')}</Label>
+			<Input id="drive_ids" type="text" class="h-8" bind:value={driveIds} />
 			<Label for="basemap">{$_('embedding.basemap')}</Label>
 			<Select.Root
 				selected={{ value: options.basemap, label: $_(`layers.label.${options.basemap}`) }}
