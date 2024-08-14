@@ -453,6 +453,7 @@
         "title": "Créez votre propre carte",
         "mapbox_token": "Jeton d'accès Mapbox",
         "file_urls": "URLs des fichiers (séparées par des virgules)",
+        "drive_ids": "Google Drive file IDs (separated by commas)",
         "basemap": "Carte de base",
         "height": "Hauteur",
         "fill_by": "Remplir selon",
