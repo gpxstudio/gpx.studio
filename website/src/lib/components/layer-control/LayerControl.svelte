@@ -11,7 +11,7 @@
 	import { settings } from '$lib/db';
 	import { map } from '$lib/stores';
 	import { get, writable } from 'svelte/store';
-	import { getLayers } from './utils';
+	import { customBasemapUpdate, getLayers } from './utils';
 	import { OverpassLayer } from './OverpassLayer';
 	import OverpassPopup from './OverpassPopup.svelte';
 
@@ -41,7 +41,7 @@
 		}
 	}
 
-	$: if ($map && $currentBasemap) {
+	$: if ($map && ($currentBasemap || $customBasemapUpdate)) {
 		setStyle();
 	}
 

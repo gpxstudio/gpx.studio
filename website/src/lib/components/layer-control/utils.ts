@@ -1,4 +1,5 @@
 import type { LayerTreeType } from "$lib/assets/layers";
+import { writable } from "svelte/store";
 
 export function anySelectedLayer(node: LayerTreeType) {
     return Object.keys(node).find((id) => {
@@ -37,3 +38,5 @@ export function isSelected(node: LayerTreeType, id: string) {
         return false;
     });
 }
+
+export const customBasemapUpdate = writable(0);

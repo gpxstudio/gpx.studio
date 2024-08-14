@@ -23,6 +23,7 @@
 	import { map } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
 	import Sortable from 'sortablejs/Sortable';
+	import { customBasemapUpdate } from './utils';
 
 	const {
 		customLayers,
@@ -130,6 +131,7 @@
 						[layerId]: {
 							type: 'raster',
 							tiles: tileUrls,
+							tileSize: 256,
 							maxzoom: maxZoom
 						}
 					},
@@ -145,6 +147,7 @@
 				layer.value = {
 					type: 'raster',
 					tiles: tileUrls,
+					tileSize: 256,
 					maxzoom: maxZoom
 				};
 			}
@@ -173,7 +176,11 @@
 				return $tree;
 			});
 
-			$currentBasemap = layerId;
+			if ($currentBasemap === layerId) {
+				$customBasemapUpdate++;
+			} else {
+				$currentBasemap = layerId;
+			}
 
 			if (!$customBasemapOrder.includes(layerId)) {
 				$customBasemapOrder = [...$customBasemapOrder, layerId];
