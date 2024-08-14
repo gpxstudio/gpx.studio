@@ -453,6 +453,7 @@
         "title": "Create your own map",
         "mapbox_token": "Mapbox access token",
         "file_urls": "Fájl elérési URL-ek (vesszővel elválasztva)",
+        "drive_ids": "Google Drive file IDs (separated by commas)",
         "basemap": "Alap térkép",
         "height": "Height",
         "fill_by": "Fill by",
