@@ -453,6 +453,7 @@
         "title": "Crie seu próprio mapa",
         "mapbox_token": "Token de acesso do Mapbox",
         "file_urls": "URLs de arquivos (separados por vírgula)",
+        "drive_ids": "Google Drive file IDs (separated by commas)",
         "basemap": "Mapa-base",
         "height": "Altura",
         "fill_by": "Preencher por",
