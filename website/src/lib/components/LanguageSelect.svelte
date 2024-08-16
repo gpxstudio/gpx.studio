@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import * as Select from '$lib/components/ui/select';
 	import { languages } from '$lib/languages';
 	import { getURLForLanguage } from '$lib/utils';
@@ -34,9 +35,11 @@
 
 <!-- hidden links for svelte crawling -->
 <div class="hidden">
-	{#each Object.entries(languages) as [lang, label]}
-		<a href={getURLForLanguage(lang)}>
-			{label}
-		</a>
-	{/each}
+	{#if $page.url.pathname !== '/404'}
+		{#each Object.entries(languages) as [lang, label]}
+			<a href={getURLForLanguage(lang, $page.url.pathname)}>
+				{label}
+			</a>
+		{/each}
+	{/if}
 </div>
