@@ -367,7 +367,7 @@
 						<Menubar.SubContent>
 							<Menubar.RadioGroup bind:value={$locale}>
 								{#each Object.entries(languages) as [lang, label]}
-									<a href={getURLForLanguage(lang)}>
+									<a href={getURLForLanguage(lang, '/app')}>
 										<Menubar.RadioItem value={lang}>{label}</Menubar.RadioItem>
 									</a>
 								{/each}

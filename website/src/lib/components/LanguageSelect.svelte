@@ -26,16 +26,22 @@
 	</Select.Trigger>
 	<Select.Content>
 		{#each Object.entries(languages) as [lang, label]}
-			<a href={getURLForLanguage(lang)}>
-				<Select.Item value={lang}>{label}</Select.Item>
-			</a>
+			{#if $page.url.pathname.includes('404')}
+				<a href={getURLForLanguage(lang, '/')}>
+					<Select.Item value={lang}>{label}</Select.Item>
+				</a>
+			{:else}
+				<a href={getURLForLanguage(lang, $page.url.pathname)}>
+					<Select.Item value={lang}>{label}</Select.Item>
+				</a>
+			{/if}
 		{/each}
 	</Select.Content>
 </Select.Root>
 
 <!-- hidden links for svelte crawling -->
 <div class="hidden">
-	{#if $page.url.pathname !== '/404'}
+	{#if !$page.url.pathname.includes('404')}
 		{#each Object.entries(languages) as [lang, label]}
 			<a href={getURLForLanguage(lang, $page.url.pathname)}>
 				{label}
