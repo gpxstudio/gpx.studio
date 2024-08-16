@@ -11,6 +11,7 @@
 	import { languages } from '$lib/languages';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import { getURLForLanguage } from '$lib/utils';
 
 	const appRoutes = ['/[[language]]/app', '/[[language]]/embed'];
 
@@ -18,7 +19,7 @@
 		if ($page.url.searchParams.has('embed')) {
 			// convert old embedding options to new format and redirect to new embed page
 			let locale = $page.url.pathname.split('/')[1] ?? 'en';
-			window.location.href = `${base}${locale ? '/' + locale : ''}/embed?options=${encodeURIComponent(JSON.stringify(convertOldEmbeddingOptions($page.url.searchParams)))}`;
+			window.location.href = `${getURLForLanguage(locale, '/embed')}?options=${encodeURIComponent(JSON.stringify(convertOldEmbeddingOptions($page.url.searchParams)))}`;
 		}
 	});
 
