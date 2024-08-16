@@ -18,7 +18,8 @@
 	onMount(() => {
 		if ($page.url.searchParams.has('embed')) {
 			// convert old embedding options to new format and redirect to new embed page
-			let locale = $page.url.pathname.split('/')[1] ?? 'en';
+			let folders = $page.url.pathname.split('/');
+			let locale = folders.indexOf('l') >= 0 ? folders[folders.indexOf('l') + 1] ?? 'en' : 'en';
 			window.location.href = `${getURLForLanguage(locale, '/embed')}?options=${encodeURIComponent(JSON.stringify(convertOldEmbeddingOptions($page.url.searchParams)))}`;
 		}
 	});
