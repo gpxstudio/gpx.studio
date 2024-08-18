@@ -57,7 +57,7 @@
         "distance_markers": "Indicatori di distanza",
         "direction_markers": "Frecce di direzione",
         "help": "Aiuto",
-        "more": "More...",
+        "more": "Altro...",
         "donate": "Dona",
         "ctrl": "Ctrl",
         "click": "Click",
@@ -84,13 +84,13 @@
             "activity": "Attività",
             "use_routing": "Instradamento",
             "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
-            "allow_private": "Allow private roads",
+            "allow_private": "Consenti strade private",
             "reverse": {
                 "button": "Inverti la traccia",
                 "tooltip": "Invertire la direzione del percorso"
             },
             "route_back_to_start": {
-                "button": "Back to start",
+                "button": "Torna all'inizio",
                 "tooltip": "Connect the last point of the route with the starting point"
             },
             "round_trip": {
@@ -121,10 +121,10 @@
                 "unhewn_cobblestone": "Unhewn cobblestone",
                 "paving_stones": "Paving stones",
                 "stepping_stones": "Stepping stones",
-                "sett": "Sett",
+                "sett": "Pavé",
                 "metal": "Metallo",
                 "wood": "Legno",
-                "compacted": "Compacted gravel",
+                "compacted": "Ghiaia compatta",
                 "fine_gravel": "Fine gravel",
                 "gravel": "Ghiaia",
                 "pebblestone": "Ciottoli",
@@ -150,7 +150,7 @@
         },
         "scissors": {
             "tooltip": "Crop or split",
-            "crop": "Crop",
+            "crop": "Ritaglia",
             "split_as": "Split the trace into",
             "help_invalid_selection": "Select a trace to crop or split.",
             "help": "Utilizzare il cursore per ritagliare la traccia, o dividerla facendo clic su uno dei marcatori divisi o sulla traccia stessa."
@@ -160,7 +160,7 @@
             "start": "Partenza",
             "end": "Fine",
             "total_time": "Tempo in movimento",
-            "pick_date": "Pick a date",
+            "pick_date": "Seleziona una data",
             "artificial": "Create realistic time data",
             "update": "Update time data",
             "help": "Use the form to set new time data.",
