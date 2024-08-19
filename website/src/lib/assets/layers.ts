@@ -167,23 +167,7 @@ export const basemaps: { [key: string]: string | Style; } = {
             source: 'ignEs',
         }],
     },
-    ordnanceSurvey: {
-        version: 8,
-        sources: {
-            ordnanceSurvey: {
-                type: 'raster',
-                tiles: ['https://api.os.uk/maps/raster/v1/zxy/Outdoor_3857/{z}/{x}/{y}.png?key=piCT8WysfuC3xLSUW7sGLfrAAJoYDvQz'],
-                tileSize: 256,
-                maxzoom: 20,
-                attribution: '&copy; <a href="http://www.ordnancesurvey.co.uk/" target="_blank">Ordnance Survey</a>'
-            }
-        },
-        layers: [{
-            id: 'ordnanceSurvey',
-            type: 'raster',
-            source: 'ordnanceSurvey',
-        }],
-    },
+    ordnanceSurvey: "https://api.os.uk/maps/vector/v1/vts/resources/styles?srs=3857&key=piCT8WysfuC3xLSUW7sGLfrAAJoYDvQz",
     norwayTopo: {
         version: 8,
         sources: {
