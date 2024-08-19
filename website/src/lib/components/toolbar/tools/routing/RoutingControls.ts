@@ -81,7 +81,6 @@ export class RoutingControls {
     add() {
         this.active = true;
 
-        this.map.on('zoom', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         this.map.on('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         this.map.on('click', this.appendAnchorBinded);
         this.map.on('mousemove', this.fileId, this.showTemporaryAnchorBinded);
@@ -129,7 +128,6 @@ export class RoutingControls {
         for (let anchor of this.anchors) {
             anchor.marker.remove();
         }
-        this.map.off('zoom', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         this.map.off('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         this.map.off('click', this.appendAnchorBinded);
         this.map.off('mousemove', this.fileId, this.showTemporaryAnchorBinded);
@@ -228,14 +226,15 @@ export class RoutingControls {
     toggleAnchorsForZoomLevelAndBounds() { // Show markers only if they are in the current zoom level and bounds
         this.shownAnchors.splice(0, this.shownAnchors.length);
 
-        let southWest = this.map.unproject([0, this.map.getCanvas().height]);
-        let northEast = this.map.unproject([this.map.getCanvas().width, 0]);
-        let bounds = new mapboxgl.LngLatBounds(southWest, northEast);
+        let center = this.map.getCenter();
+        let bottomLeft = this.map.unproject([0, this.map.getCanvas().height]);
+        let topRight = this.map.unproject([this.map.getCanvas().width, 0]);
+        let diagonal = bottomLeft.distanceTo(topRight);
 
         let zoom = this.map.getZoom();
         this.anchors.forEach((anchor) => {
             anchor.inZoom = anchor.point._data.zoom <= zoom;
-            if (anchor.inZoom && bounds.contains(anchor.marker.getLngLat())) {
+            if (anchor.inZoom && center.distanceTo(anchor.marker.getLngLat()) < diagonal) {
                 anchor.marker.addTo(this.map);
                 this.shownAnchors.push(anchor);
             } else {
