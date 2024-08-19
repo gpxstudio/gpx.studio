@@ -333,6 +333,7 @@
 							<Menubar.RadioGroup bind:value={$distanceUnits}>
 								<Menubar.RadioItem value="metric">{$_('menu.metric')}</Menubar.RadioItem>
 								<Menubar.RadioItem value="imperial">{$_('menu.imperial')}</Menubar.RadioItem>
+								<Menubar.RadioItem value="nautical">{$_('menu.nautical')}</Menubar.RadioItem>
 							</Menubar.RadioGroup>
 						</Menubar.SubContent>
 					</Menubar.Sub>

@@ -16,6 +16,10 @@ export function metersToFeet(value: number) {
     return value * 3.28084;
 }
 
+export function kilometersToNauticalMiles(value: number) {
+    return value * 0.539957;
+}
+
 export function celsiusToFahrenheit(value: number) {
     return value * 1.8 + 32;
 }
@@ -93,15 +97,35 @@ export function getTemperatureWithUnits(value: number, convert: boolean = true) 
 
 // Get the units
 export function getDistanceUnits() {
-    return get(distanceUnits) === 'metric' ? get(_)('units.kilometers') : get(_)('units.miles');
+    switch (get(distanceUnits)) {
+        case 'metric':
+            return get(_)('units.kilometers');
+        case 'imperial':
+            return get(_)('units.miles');
+        case 'nautical':
+            return get(_)('units.nautical_miles');
+    }
 }
 
 export function getVelocityUnits() {
     if (get(velocityUnits) === 'speed') {
-        return get(distanceUnits) === 'metric' ? get(_)('units.kilometers_per_hour') : get(_)('units.miles_per_hour');
+        switch (get(distanceUnits)) {
+            case 'metric':
+                return get(_)('units.kilometers_per_hour');
+            case 'imperial':
+                return get(_)('units.miles_per_hour');
+            case 'nautical':
+                return get(_)('units.knots');
+        }
     } else {
-        return get(distanceUnits) === 'metric' ? get(_)('units.minutes_per_kilometer') : get(_)('units.minutes_per_mile');
-
+        switch (get(distanceUnits)) {
+            case 'metric':
+                return get(_)('units.minutes_per_kilometer');
+            case 'imperial':
+                return get(_)('units.minutes_per_mile');
+            case 'nautical':
+                return get(_)('units.minutes_per_nautical_mile');
+        }
     }
 }
 
@@ -127,7 +151,14 @@ export function getTemperatureUnits() {
 
 // Convert only the value
 export function getConvertedDistance(value: number) {
-    return get(distanceUnits) === 'metric' ? value : kilometersToMiles(value);
+    switch (get(distanceUnits)) {
+        case 'metric':
+            return value;
+        case 'imperial':
+            return kilometersToMiles(value);
+        case 'nautical':
+            return kilometersToNauticalMiles(value);
+    }
 }
 
 export function getConvertedElevation(value: number) {
@@ -136,9 +167,23 @@ export function getConvertedElevation(value: number) {
 
 export function getConvertedVelocity(value: number) {
     if (get(velocityUnits) === 'speed') {
-        return get(distanceUnits) === 'metric' ? value : kilometersToMiles(value);
+        switch (get(distanceUnits)) {
+            case 'metric':
+                return value;
+            case 'imperial':
+                return milesToKilometers(value);
+            case 'nautical':
+                return kilometersToNauticalMiles(value);
+        }
     } else {
-        return get(distanceUnits) === 'metric' ? distancePerHourToSecondsPerDistance(value) : distancePerHourToSecondsPerDistance(kilometersToMiles(value));
+        switch (get(distanceUnits)) {
+            case 'metric':
+                return distancePerHourToSecondsPerDistance(value);
+            case 'imperial':
+                return distancePerHourToSecondsPerDistance(kilometersToMiles(value));
+            case 'nautical':
+                return distancePerHourToSecondsPerDistance(kilometersToNauticalMiles(value));
+        }
     }
 }
 
