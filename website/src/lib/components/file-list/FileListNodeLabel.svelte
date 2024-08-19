@@ -277,36 +277,34 @@
 			</ContextMenu.Item>
 			<ContextMenu.Separator />
 		{/if}
+		<ContextMenu.Item on:click={dbUtils.duplicateSelection}>
+			<Copy size="16" class="mr-1" />
+			{$_('menu.duplicate')}
+			<Shortcut key="D" ctrl={true} /></ContextMenu.Item
+		>
 		{#if orientation === 'vertical'}
-			<ContextMenu.Item on:click={dbUtils.duplicateSelection}>
-				<Copy size="16" class="mr-1" />
-				{$_('menu.duplicate')}
-				<Shortcut key="D" ctrl={true} /></ContextMenu.Item
+			<ContextMenu.Item on:click={copySelection}>
+				<ClipboardCopy size="16" class="mr-1" />
+				{$_('menu.copy')}
+				<Shortcut key="C" ctrl={true} />
+			</ContextMenu.Item>
+			<ContextMenu.Item on:click={cutSelection}>
+				<Scissors size="16" class="mr-1" />
+				{$_('menu.cut')}
+				<Shortcut key="X" ctrl={true} />
+			</ContextMenu.Item>
+			<ContextMenu.Item
+				disabled={$copied === undefined ||
+					$copied.length === 0 ||
+					!allowedPastes[$copied[0].level].includes(item.level)}
+				on:click={pasteSelection}
 			>
-			{#if orientation === 'vertical'}
-				<ContextMenu.Item on:click={copySelection}>
-					<ClipboardCopy size="16" class="mr-1" />
-					{$_('menu.copy')}
-					<Shortcut key="C" ctrl={true} />
-				</ContextMenu.Item>
-				<ContextMenu.Item on:click={cutSelection}>
-					<Scissors size="16" class="mr-1" />
-					{$_('menu.cut')}
-					<Shortcut key="X" ctrl={true} />
-				</ContextMenu.Item>
-				<ContextMenu.Item
-					disabled={$copied === undefined ||
-						$copied.length === 0 ||
-						!allowedPastes[$copied[0].level].includes(item.level)}
-					on:click={pasteSelection}
-				>
-					<ClipboardPaste size="16" class="mr-1" />
-					{$_('menu.paste')}
-					<Shortcut key="V" ctrl={true} />
-				</ContextMenu.Item>
-			{/if}
-			<ContextMenu.Separator />
+				<ClipboardPaste size="16" class="mr-1" />
+				{$_('menu.paste')}
+				<Shortcut key="V" ctrl={true} />
+			</ContextMenu.Item>
 		{/if}
+		<ContextMenu.Separator />
 		<ContextMenu.Item on:click={dbUtils.deleteSelection}>
 			{#if item instanceof ListFileItem}
 				<FileX size="16" class="mr-1" />
