@@ -2,9 +2,12 @@
 	import { settings } from '$lib/db';
 	import {
 		celsiusToFahrenheit,
-		distancePerHourToSecondsPerDistance,
-		kilometersToMiles,
-		metersToFeet,
+		getConvertedDistance,
+		getConvertedElevation,
+		getConvertedVelocity,
+		getDistanceUnits,
+		getElevationUnits,
+		getVelocityUnits,
 		secondsToHHMMSS
 	} from '$lib/units';
 
@@ -20,31 +23,18 @@
 
 <span class={$$props.class}>
 	{#if type === 'distance'}
-		{#if $distanceUnits === 'metric'}
-			{value.toFixed(decimals ?? 2)} {showUnits ? $_('units.kilometers') : ''}
-		{:else}
-			{kilometersToMiles(value).toFixed(decimals ?? 2)} {showUnits ? $_('units.miles') : ''}
-		{/if}
+		{ getConvertedDistance(value, $distanceUnits).toFixed(decimals ?? 2) }
+		{ showUnits ? getDistanceUnits($distanceUnits) : '' }
 	{:else if type === 'elevation'}
-		{#if $distanceUnits === 'metric'}
-			{value.toFixed(decimals ?? 0)} {showUnits ? $_('units.meters') : ''}
-		{:else}
-			{metersToFeet(value).toFixed(decimals ?? 0)} {showUnits ? $_('units.feet') : ''}
-		{/if}
+		{ getConvertedElevation(value, $distanceUnits).toFixed(decimals ?? 2) }
+		{ showUnits ? getElevationUnits($distanceUnits) : '' }
 	{:else if type === 'speed'}
-		{#if $distanceUnits === 'metric'}
-			{#if $velocityUnits === 'speed'}
-				{value.toFixed(decimals ?? 2)} {showUnits ? $_('units.kilometers_per_hour') : ''}
-			{:else}
-				{secondsToHHMMSS(distancePerHourToSecondsPerDistance(value))}
-				{showUnits ? $_('units.minutes_per_kilometer') : ''}
-			{/if}
-		{:else if $velocityUnits === 'speed'}
-			{kilometersToMiles(value).toFixed(decimals ?? 2)}
-			{showUnits ? $_('units.miles_per_hour') : ''}
+		{#if $velocityUnits === 'speed'}
+			{ getConvertedVelocity(value, $velocityUnits, $distanceUnits).toFixed(decimals ?? 2) }
+			{ showUnits ? getVelocityUnits($velocityUnits, $distanceUnits) : '' }
 		{:else}
-			{secondsToHHMMSS(distancePerHourToSecondsPerDistance(kilometersToMiles(value)))}
-			{showUnits ? $_('units.minutes_per_mile') : ''}
+			{ secondsToHHMMSS(getConvertedVelocity(value, $velocityUnits, $distanceUnits)) }
+			{ showUnits ? getVelocityUnits($velocityUnits, $distanceUnits) : '' }
 		{/if}
 	{:else if type === 'temperature'}
 		{#if $temperatureUnits === 'celsius'}
@@ -53,6 +43,6 @@
 			{celsiusToFahrenheit(value)} {showUnits ? $_('units.fahrenheit') : ''}
 		{/if}
 	{:else if type === 'time'}
-		{secondsToHHMMSS(value)}
+		{ secondsToHHMMSS(value) }
 	{/if}
 </span>
