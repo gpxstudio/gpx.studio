@@ -18,7 +18,7 @@ export type EmbeddingOptions = {
     },
     distanceMarkers: boolean,
     directionMarkers: boolean,
-    distanceUnits: 'metric' | 'imperial',
+    distanceUnits: 'metric' | 'imperial' | 'nautical',
     velocityUnits: 'speed' | 'pace',
     temperatureUnits: 'celsius' | 'fahrenheit',
     theme: 'system' | 'light' | 'dark',
