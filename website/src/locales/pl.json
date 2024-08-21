@@ -153,7 +153,7 @@
             "crop": "Przytnij",
             "split_as": "Podziel ślad na",
             "help_invalid_selection": "Select a trace to crop or split.",
-            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
+            "help": ".."
         },
         "time": {
             "tooltip": "Zarządzaj danymi czasu",
