@@ -171,7 +171,7 @@ export function getConvertedVelocity(value: number, currentVelocityUnits = get(v
             case 'metric':
                 return value;
             case 'imperial':
-                return milesToKilometers(value);
+                return kilometersToMiles(value);
             case 'nautical':
                 return kilometersToNauticalMiles(value);
         }
