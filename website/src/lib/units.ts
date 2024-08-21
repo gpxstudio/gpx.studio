@@ -20,6 +20,10 @@ export function kilometersToNauticalMiles(value: number) {
     return value * 0.539957;
 }
 
+export function nauticalMilesToKilometers(value: number) {
+    return value * 1.852;
+}
+
 export function celsiusToFahrenheit(value: number) {
     return value * 1.8 + 32;
 }
