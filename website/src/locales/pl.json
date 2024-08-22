@@ -50,26 +50,26 @@
         "system": "System",
         "light": "Jasny",
         "dark": "Ciemny",
-        "street_view_source": "Street view source",
+        "street_view_source": "Źródło widoku ulicznego",
         "mapillary": "Mapillary",
         "google": "Google",
         "layers": "Warstwy mapy...",
         "distance_markers": "Znaczniki odległości",
         "direction_markers": "Strzałki kierunku",
         "help": "Pomoc",
-        "more": "More...",
+        "more": "Więcej...",
         "donate": "Przekaż darowiznę",
         "ctrl": "Ctrl",
         "click": "Kliknij",
         "drag": "Przeciągnij",
         "metadata": {
-            "button": "Info...",
+            "button": "Informacje...",
             "name": "Nazwa",
             "description": "Opis",
             "save": "Zapisz"
         },
         "style": {
-            "button": "Appearance...",
+            "button": "Wygląd...",
             "color": "Kolor",
             "opacity": "Przezroczystość",
             "width": "Szerokość"
@@ -80,10 +80,10 @@
     },
     "toolbar": {
         "routing": {
-            "tooltip": "Plan or edit a route",
+            "tooltip": "Zaplanuj lub edytuj trasę",
             "activity": "Aktywność",
-            "use_routing": "Routing",
-            "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
+            "use_routing": "Trasa",
+            "use_routing_tooltip": "Połącz punkty drogami lub w linii prostej, jeśli wyłączone",
             "allow_private": "Zezwalaj na prywatne drogi",
             "reverse": {
                 "button": "Odwróć",
@@ -91,19 +91,19 @@
             },
             "route_back_to_start": {
                 "button": "Wróć do początku",
-                "tooltip": "Connect the last point of the route with the starting point"
+                "tooltip": "Połącz ostatni punkt trasy z punktem początkowym"
             },
             "round_trip": {
                 "button": "Przejazd z powrotem",
-                "tooltip": "Return to the starting point by the same route"
+                "tooltip": "Powrót do punktu początkowego tą samą trasą"
             },
             "start_loop_here": "Rozpocznij pętlę tutaj",
-            "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
-            "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
+            "help_no_file": "Wybierz ślad do użycia narzędzia trasy lub kliknij mapę, aby rozpocząć tworzenie nowej trasy.",
+            "help": "Kliknij mapę, aby dodać nowy punkt lub przeciągnij istniejące, aby zmienić trasę.",
             "activities": {
                 "bike": "Rower",
                 "racing_bike": "Rower szosowy",
-                "gravel_bike": "Gravel bike",
+                "gravel_bike": "Gravel",
                 "mountain_bike": "Rower górski",
                 "foot": "Bieg/Wędrówka",
                 "motorcycle": "Motocykl",
@@ -118,14 +118,14 @@
                 "concrete": "Beton",
                 "chipseal": "Nawierzchnia utrwalana powierzchniowo",
                 "cobblestone": "Bruk",
-                "unhewn_cobblestone": "Unhewn cobblestone",
-                "paving_stones": "Paving stones",
-                "stepping_stones": "Stepping stones",
-                "sett": "Sett",
+                "unhewn_cobblestone": "Bruk",
+                "paving_stones": "Płyta",
+                "stepping_stones": "Bruk",
+                "sett": "Bruk",
                 "metal": "Metal",
                 "wood": "Drewno",
-                "compacted": "Compacted gravel",
-                "fine_gravel": "Fine gravel",
+                "compacted": "Utwardzony żwir",
+                "fine_gravel": "Drobny żwir",
                 "gravel": "Żwir",
                 "pebblestone": "Otoczak",
                 "rock": "Kamień",
@@ -139,20 +139,20 @@
                 "sand": "Piasek",
                 "woodchips": "Zrębki",
                 "grass": "Trawa",
-                "grass_paver": "Grass paver"
+                "grass_paver": "Płyta ażurowa"
             },
             "error": {
-                "from": "The start point is too far from the nearest road",
-                "via": "The via point is too far from the nearest road",
-                "to": "The end point is too far from the nearest road",
-                "timeout": "Route calculation took too long, try adding points closer together"
+                "from": "Punkt początkowy jest zbyt daleko od najbliższej drogi",
+                "via": "Punkt przelotowy jest zbyt daleko od najbliższej drogi",
+                "to": "Punkt końcowy jest zbyt daleko od najbliższej drogi",
+                "timeout": "Obliczanie trasy trwało zbyt długo, spróbuj dodać punkty bliżej siebie"
             }
         },
         "scissors": {
             "tooltip": "Przytnij lub podziel",
             "crop": "Przytnij",
             "split_as": "Podziel ślad na",
-            "help_invalid_selection": "Select a trace to crop or split.",
+            "help_invalid_selection": "Wybierz ślad do przycinania lub rozdzielenia.",
             "help": ".."
         },
         "time": {
@@ -161,24 +161,24 @@
             "end": "Koniec",
             "total_time": "Czas ruchu",
             "pick_date": "Wybierz datę",
-            "artificial": "Create realistic time data",
+            "artificial": "Utwórz realistyczne dane czasu",
             "update": "Aktualizuj dane czasu",
-            "help": "Use the form to set new time data.",
-            "help_invalid_selection": "Select a single trace to manage its time data."
+            "help": "Użyj formularza, aby ustawić nowe dane czasu.",
+            "help_invalid_selection": "Wybierz pojedynczy ślad do zarządzania danymi czasowymi."
         },
         "merge": {
             "merge_traces": "Połącz ślady",
-            "merge_contents": "Merge the contents and keep the traces disconnected",
+            "merge_contents": "Scal zawartość, ale utrzymaj rozłączone ślady",
             "merge_selection": "Scal zaznaczenie",
             "tooltip": "Scal elementy razem",
-            "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
-            "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
-            "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
+            "help_merge_traces": "Połączenie zaznaczonych śladów stworzy pojedynczy ciągły ślad.",
+            "help_cannot_merge_traces": "Wybór musi zawierać kilka śladów, aby je połączyć.",
+            "help_merge_contents": "Scalanie zawartości zaznaczonych elementów zgrupuje całą zawartość wewnątrz pierwszego elementu.",
             "help_cannot_merge_contents": "Twój wybór musi zawierać kilka elementów, aby scalić ich zawartość."
         },
         "extract": {
-            "tooltip": "Extract contents to separate items",
-            "button": "Extract",
+            "tooltip": "Wyodrębnij zawartość do rozdzielenia elementów",
+            "button": "Wyodrębnij",
             "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
             "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
         },
