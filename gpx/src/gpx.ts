@@ -784,7 +784,7 @@ export class TrackSegment extends GPXTreeLeaf {
             let start = simplified[i].point._data.index;
             let end = simplified[i + 1].point._data.index;
             let dist = statistics.local.distance.total[end] - statistics.local.distance.total[start];
-            let ele = simplified[i + 1].point.ele - simplified[i].point.ele;
+            let ele = (simplified[i + 1].point.ele ?? 0) - (simplified[i].point.ele ?? 0);
 
             for (let j = start; j < end + (i + 1 === simplified.length - 1 ? 1 : 0); j++) {
                 slope.push(0.1 * ele / dist);
@@ -1418,9 +1418,15 @@ function withTimestamps(points: TrackPoint[], speed: number, lastPoint: TrackPoi
 
 function withShiftedAndCompressedTimestamps(points: TrackPoint[], speed: number, ratio: number, lastPoint: TrackPoint): TrackPoint[] {
     let start = getTimestamp(lastPoint, points[0], speed);
+    let last = points[0];
     return points.map((point) => {
         let pt = point.clone();
-        pt.time = new Date(start.getTime() + ratio * (point.time.getTime() - points[0].time.getTime()));
+        if (point.time === undefined) {
+            pt.time = getTimestamp(last, point, speed);
+        } else {
+            pt.time = new Date(start.getTime() + ratio * (point.time.getTime() - points[0].time.getTime()));
+        }
+        last = pt;
         return pt;
     });
 }
