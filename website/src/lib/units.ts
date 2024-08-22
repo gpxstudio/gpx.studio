@@ -100,8 +100,8 @@ export function getTemperatureWithUnits(value: number, convert: boolean = true) 
 }
 
 // Get the units
-export function getDistanceUnits(currentDistanceUnits = get(distanceUnits)) {
-    switch (currentDistanceUnits) {
+export function getDistanceUnits(targetDistanceUnits = get(distanceUnits)) {
+    switch (targetDistanceUnits) {
         case 'metric':
             return get(_)('units.kilometers');
         case 'imperial':
@@ -111,9 +111,9 @@ export function getDistanceUnits(currentDistanceUnits = get(distanceUnits)) {
     }
 }
 
-export function getVelocityUnits(currentVelocityUnits = get(velocityUnits), currentDistanceUnits = get(distanceUnits)) {
-    if (currentVelocityUnits === 'speed') {
-        switch (currentDistanceUnits) {
+export function getVelocityUnits(targetVelocityUnits = get(velocityUnits), targetDistanceUnits = get(distanceUnits)) {
+    if (targetVelocityUnits === 'speed') {
+        switch (targetDistanceUnits) {
             case 'metric':
                 return get(_)('units.kilometers_per_hour');
             case 'imperial':
@@ -122,7 +122,7 @@ export function getVelocityUnits(currentVelocityUnits = get(velocityUnits), curr
                 return get(_)('units.knots');
         }
     } else {
-        switch (currentDistanceUnits) {
+        switch (targetDistanceUnits) {
             case 'metric':
                 return get(_)('units.minutes_per_kilometer');
             case 'imperial':
@@ -133,8 +133,8 @@ export function getVelocityUnits(currentVelocityUnits = get(velocityUnits), curr
     }
 }
 
-export function getElevationUnits(currentDistanceUnits = get(distanceUnits)) {
-    return currentDistanceUnits === 'metric' ? get(_)('units.meters') : get(_)('units.feet');
+export function getElevationUnits(targetDistanceUnits = get(distanceUnits)) {
+    return targetDistanceUnits === 'metric' ? get(_)('units.meters') : get(_)('units.feet');
 }
 
 export function getHeartRateUnits() {
@@ -154,8 +154,8 @@ export function getTemperatureUnits() {
 }
 
 // Convert only the value
-export function getConvertedDistance(value: number, currentDistanceUnits = get(distanceUnits)) {
-    switch (currentDistanceUnits) {
+export function getConvertedDistance(value: number, targetDistanceUnits = get(distanceUnits)) {
+    switch (targetDistanceUnits) {
         case 'metric':
             return value;
         case 'imperial':
@@ -165,13 +165,13 @@ export function getConvertedDistance(value: number, currentDistanceUnits = get(d
     }
 }
 
-export function getConvertedElevation(value: number) {
-    return get(distanceUnits) === 'metric' ? value : metersToFeet(value);
+export function getConvertedElevation(value: number, targetDistanceUnits = get(distanceUnits)) {
+    return targetDistanceUnits === 'metric' ? value : metersToFeet(value);
 }
 
-export function getConvertedVelocity(value: number, currentVelocityUnits = get(velocityUnits), currentDistanceUnits = get(distanceUnits)) {
-    if (currentVelocityUnits === 'speed') {
-        switch (currentDistanceUnits) {
+export function getConvertedVelocity(value: number, targetVelocityUnits = get(velocityUnits), targetDistanceUnits = get(distanceUnits)) {
+    if (targetVelocityUnits === 'speed') {
+        switch (targetDistanceUnits) {
             case 'metric':
                 return value;
             case 'imperial':
@@ -180,7 +180,7 @@ export function getConvertedVelocity(value: number, currentVelocityUnits = get(v
                 return kilometersToNauticalMiles(value);
         }
     } else {
-        switch (currentDistanceUnits) {
+        switch (targetDistanceUnits) {
             case 'metric':
                 return distancePerHourToSecondsPerDistance(value);
             case 'imperial':
