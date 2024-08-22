@@ -4,7 +4,7 @@
         "app_title": "edytor online plików GPX",
         "embed_title": "edytor online plików GPX",
         "help_title": "pomoc",
-        "404_title": "page not found",
+        "404_title": "nie odnaleziono strony",
         "description": "Przeglądaj, edytuj i twórz pliki GPX online z zaawansowanymi możliwościami planowania trasy i narzędziami do przetwarzania plików, pięknymi mapami i szczegółowymi wizualizacjami danych."
     },
     "menu": {
@@ -22,7 +22,7 @@
         "export": "Eksportuj...",
         "export_all": "Eksportuj wszystko...",
         "export_options": "Opcje eksportu",
-        "support_message": "The tool is free to use, but not free to run. Please consider supporting the website if you use it frequently. Thank you!",
+        "support_message": "Narzędzie jest darmowe w użyciu, ale nie jest darmowe w utrzymaniu. Jeśli często go używasz, rozważ wsparcie witryny. Dziękujemy!",
         "support_button": "Wspomóż, by strona nadal była darmowa",
         "download_file": "Pobierz plik",
         "download_files": "Pobierz pliki",
@@ -34,7 +34,7 @@
         "view": "Wyświetl",
         "elevation_profile": "Profil wysokości",
         "vertical_file_view": "Pionowa lista plików",
-        "switch_basemap": "Switch to previous basemap",
+        "switch_basemap": "Przełącz na poprzednią mapę",
         "toggle_overlays": "Przełącz nakładki",
         "toggle_3d": "Przełącz widok 3D",
         "settings": "Ustawienia",
