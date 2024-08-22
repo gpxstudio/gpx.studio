@@ -1360,7 +1360,13 @@ export class GPXStatistics {
 }
 
 const earthRadius = 6371008.8;
-export function distance(coord1: Coordinates, coord2: Coordinates): number {
+export function distance(coord1: TrackPoint | Coordinates, coord2: TrackPoint | Coordinates): number {
+    if (coord1 instanceof TrackPoint) {
+        coord1 = coord1.getCoordinates();
+    }
+    if (coord2 instanceof TrackPoint) {
+        coord2 = coord2.getCoordinates();
+    }
     const rad = Math.PI / 180;
     const lat1 = coord1.lat * rad;
     const lat2 = coord2.lat * rad;

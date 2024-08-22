@@ -5,11 +5,10 @@ import type { TransitionConfig } from "svelte/transition";
 import { get } from "svelte/store";
 import { map } from "./stores";
 import { base } from "$app/paths";
-import { browser } from "$app/environment";
 import { languages } from "$lib/languages";
-import { locale } from "svelte-i18n";
+import { locale, t } from "svelte-i18n";
 import type mapboxgl from "mapbox-gl";
-import { type TrackPoint, type Coordinates, crossarcDistance } from "gpx";
+import { type TrackPoint, type Coordinates, crossarcDistance, distance } from "gpx";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -75,8 +74,14 @@ export function getClosestLinePoint(points: TrackPoint[], point: TrackPoint | Co
     for (let i = 0; i < points.length - 1; i++) {
         let dist = crossarcDistance(points[i], points[i + 1], point);
         if (dist < closestDist) {
-            closest = points[i];
             closestDist = dist;
+            if (distance(points[i], point) <= distance(points[i + 1], point)) {
+                closest = points[i];
+                details['before'] = true;
+            } else {
+                closest = points[i + 1];
+                details['before'] = false;
+            }
         }
     }
     details['distance'] = closestDist;

@@ -334,14 +334,14 @@ export class RoutingControls {
         let file = get(this.file)?.file;
 
         // Find the point closest to the temporary anchor
-        let minDistance = Number.MAX_VALUE;
+        let minDetails: any = { distance: Number.MAX_VALUE };
         let minAnchor = this.temporaryAnchor as Anchor;
         file?.forEachSegment((segment, trackIndex, segmentIndex) => {
             if (get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex))) {
                 let details: any = {};
                 let closest = getClosestLinePoint(segment.trkpt, this.temporaryAnchor.point, details);
-                if (details.distance < minDistance) {
-                    minDistance = details.distance;
+                if (details.distance < minDetails.distance) {
+                    minDetails = details;
                     minAnchor = {
                         point: closest,
                         segment,
@@ -351,6 +351,15 @@ export class RoutingControls {
                 }
             }
         });
+
+        if (minAnchor.point._data.anchor) {
+            minAnchor.point = minAnchor.point.clone();
+            if (minDetails.before) {
+                minAnchor.point._data.index = minAnchor.point._data.index + 0.5;
+            } else {
+                minAnchor.point._data.index = minAnchor.point._data.index - 0.5;
+            }
+        }
 
         return minAnchor;
     }
