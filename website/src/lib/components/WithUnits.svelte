@@ -23,18 +23,18 @@
 
 <span class={$$props.class}>
 	{#if type === 'distance'}
-		{ getConvertedDistance(value, $distanceUnits).toFixed(decimals ?? 2) }
-		{ showUnits ? getDistanceUnits($distanceUnits) : '' }
+		{getConvertedDistance(value, $distanceUnits).toFixed(decimals ?? 2)}
+		{showUnits ? getDistanceUnits($distanceUnits) : ''}
 	{:else if type === 'elevation'}
-		{ getConvertedElevation(value, $distanceUnits).toFixed(decimals ?? 2) }
-		{ showUnits ? getElevationUnits($distanceUnits) : '' }
+		{getConvertedElevation(value, $distanceUnits).toFixed(decimals ?? 2)}
+		{showUnits ? getElevationUnits($distanceUnits) : ''}
 	{:else if type === 'speed'}
 		{#if $velocityUnits === 'speed'}
-			{ getConvertedVelocity(value, $velocityUnits, $distanceUnits).toFixed(decimals ?? 2) }
-			{ showUnits ? getVelocityUnits($velocityUnits, $distanceUnits) : '' }
+			{getConvertedVelocity(value, $velocityUnits, $distanceUnits).toFixed(decimals ?? 2)}
+			{showUnits ? getVelocityUnits($velocityUnits, $distanceUnits) : ''}
 		{:else}
-			{ secondsToHHMMSS(getConvertedVelocity(value, $velocityUnits, $distanceUnits)) }
-			{ showUnits ? getVelocityUnits($velocityUnits, $distanceUnits) : '' }
+			{secondsToHHMMSS(getConvertedVelocity(value, $velocityUnits, $distanceUnits))}
+			{showUnits ? getVelocityUnits($velocityUnits, $distanceUnits) : ''}
 		{/if}
 	{:else if type === 'temperature'}
 		{#if $temperatureUnits === 'celsius'}
@@ -43,6 +43,6 @@
 			{celsiusToFahrenheit(value)} {showUnits ? $_('units.fahrenheit') : ''}
 		{/if}
 	{:else if type === 'time'}
-		{ secondsToHHMMSS(value) }
+		{secondsToHHMMSS(value)}
 	{/if}
 </span>
