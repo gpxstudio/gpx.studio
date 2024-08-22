@@ -1326,6 +1326,17 @@ export class GPXStatistics {
     }
 
     slice(start: number, end: number): GPXStatistics {
+        if (start < 0) {
+            start = 0;
+        } else if (start >= this.local.points.length) {
+            return new GPXStatistics();
+        }
+        if (end < start) {
+            return new GPXStatistics();
+        } else if (end >= this.local.points.length) {
+            end = this.local.points.length - 1;
+        }
+
         let statistics = new GPXStatistics();
 
         statistics.local.points = this.local.points.slice(start, end + 1);

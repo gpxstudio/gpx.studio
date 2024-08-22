@@ -37,8 +37,8 @@
 		$selection.hasAnyChildren(new ListRootItem(), true, ['waypoints']) &&
 		$gpxStatistics.local.points.length > 0;
 
-	let maxSliderValue = 100;
-	let sliderValues = [0, 100];
+	let maxSliderValue = 1;
+	let sliderValues = [0, 1];
 
 	function updateCanCrop() {
 		canCrop = sliderValues[0] != 0 || sliderValues[1] != maxSliderValue;
@@ -66,7 +66,7 @@
 		if (validSelection && $gpxStatistics.local.points.length > 0) {
 			maxSliderValue = $gpxStatistics.local.points.length - 1;
 		} else {
-			maxSliderValue = 100;
+			maxSliderValue = 1;
 		}
 		await tick();
 		sliderValues = [0, maxSliderValue];
