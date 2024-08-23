@@ -137,7 +137,15 @@ export function getVelocityUnits(
 }
 
 export function getElevationUnits(targetDistanceUnits = get(distanceUnits)) {
-	return targetDistanceUnits === 'metric' ? get(_)('units.meters') : get(_)('units.feet');
+	switch (targetDistanceUnits) {
+		case 'metric':
+			return get(_)('units.meters');
+		case 'imperial':
+			return get(_)('units.feet');
+		case 'nautical':
+			// See https://github.com/gpxstudio/gpx.studio/pull/66#issuecomment-2306568997
+			return get(_)('units.meters');
+	}
 }
 
 export function getHeartRateUnits() {
@@ -169,7 +177,14 @@ export function getConvertedDistance(value: number, targetDistanceUnits = get(di
 }
 
 export function getConvertedElevation(value: number, targetDistanceUnits = get(distanceUnits)) {
-	return targetDistanceUnits === 'metric' ? value : metersToFeet(value);
+	switch (targetDistanceUnits) {
+		case 'metric':
+			return value;
+		case 'imperial':
+			return metersToFeet(value);
+		case 'nautical':
+			return value;
+	}
 }
 
 export function getConvertedVelocity(
