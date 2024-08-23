@@ -15,7 +15,7 @@
 		EyeOff,
 		ClipboardCopy,
 		ClipboardPaste,
-		Maximize2,
+		Maximize,
 		Scissors,
 		FileStack,
 		FileX
@@ -45,9 +45,10 @@
 		editMetadata,
 		editStyle,
 		embedding,
+		flyToBounds,
 		gpxLayers,
-		map,
-		updateTargetMapBounds
+		gpxStatistics,
+		map
 	} from '$lib/stores';
 	import {
 		GPXTreeElement,
@@ -226,30 +227,14 @@
 				{$_('menu.style.button')}
 			</ContextMenu.Item>
 		{/if}
-		{#if node instanceof GPXTreeElement}
-			<ContextMenu.Item
-				on:click={() => {
-					const targetBounds = node.getStatistics().global.bounds;
-					const mapBoxBounds = new mapboxgl.LngLatBounds([
-						[targetBounds.northEast.lon, targetBounds.northEast.lat],
-						[targetBounds.southWest.lon, targetBounds.southWest.lat]
-					]);
-					$map?.fitBounds(mapBoxBounds, {
-						padding: 80,
-						linear: true,
-						duration: 1000,
-						easing: (t) => {
-							return t < 0.5
-								? (1 - Math.sqrt(1 - Math.pow(2 * t, 2))) / 2
-								: (Math.sqrt(1 - Math.pow(-2 * t + 2, 2)) + 1) / 2;
-						}
-					});
-				}}
-			>
-				<Maximize2 size="16" class="mr-1" />
-				{$_('menu.fit_map')}
-			</ContextMenu.Item>
-		{/if}
+		<ContextMenu.Item
+			on:click={() => {
+				flyToBounds($gpxStatistics.global.bounds, $map);
+			}}
+		>
+			<Maximize size="16" class="mr-1" />
+			{$_('menu.fly_to')}
+		</ContextMenu.Item>
 		<ContextMenu.Item
 			on:click={() => {
 				if ($allHidden) {

@@ -41,7 +41,8 @@
 		FileStack,
 		FileX,
 		BookOpenText,
-		ChartArea
+		ChartArea,
+		Maximize
 	} from 'lucide-svelte';
 
 	import {
@@ -54,7 +55,9 @@
 		editMetadata,
 		editStyle,
 		exportState,
-		ExportState
+		ExportState,
+		flyToBounds,
+		gpxStatistics
 	} from '$lib/stores';
 	import {
 		copied,
@@ -221,6 +224,13 @@
 					>
 						<PaintBucket size="16" class="mr-1" />
 						{$_('menu.style.button')}
+					</Menubar.Item>
+					<Menubar.Item
+						disabled={$selection.size === 0}
+						on:click={() => flyToBounds($gpxStatistics.global.bounds, $map)}
+					>
+						<Maximize size="16" class="mr-1" />
+						{$_('menu.fly_to_selection')}
 					</Menubar.Item>
 					<Menubar.Item
 						on:click={() => {
