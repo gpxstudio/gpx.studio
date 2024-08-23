@@ -76,7 +76,8 @@
         },
         "hide": "Hide",
         "unhide": "Unhide",
-        "open_in": "Open in"
+        "open_in": "Open in",
+        "fit_map": "Fit on map"
     },
     "toolbar": {
         "routing": {

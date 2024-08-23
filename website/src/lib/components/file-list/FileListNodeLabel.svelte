@@ -15,6 +15,7 @@
 		EyeOff,
 		ClipboardCopy,
 		ClipboardPaste,
+		Maximize2,
 		Scissors,
 		FileStack,
 		FileX
@@ -39,7 +40,15 @@
 	} from './Selection';
 	import { getContext } from 'svelte';
 	import { get } from 'svelte/store';
-	import { allHidden, editMetadata, editStyle, embedding, gpxLayers, map } from '$lib/stores';
+	import {
+		allHidden,
+		editMetadata,
+		editStyle,
+		embedding,
+		gpxLayers,
+		map,
+		updateTargetMapBounds
+	} from '$lib/stores';
 	import {
 		GPXTreeElement,
 		Track,
@@ -51,6 +60,7 @@
 	import { _ } from 'svelte-i18n';
 	import MetadataDialog from './MetadataDialog.svelte';
 	import StyleDialog from './StyleDialog.svelte';
+	import mapboxgl from 'mapbox-gl';
 
 	export let node: GPXTreeElement<AnyGPXTreeElement> | Waypoint[] | Waypoint;
 	export let item: ListItem;
@@ -214,6 +224,30 @@
 			<ContextMenu.Item on:click={() => ($editStyle = true)}>
 				<PaintBucket size="16" class="mr-1" />
 				{$_('menu.style.button')}
+			</ContextMenu.Item>
+		{/if}
+		{#if node instanceof GPXTreeElement}
+			<ContextMenu.Item
+				on:click={() => {
+					const targetBounds = node.getStatistics().global.bounds;
+					const mapBoxBounds = new mapboxgl.LngLatBounds([
+						[targetBounds.northEast.lon, targetBounds.northEast.lat],
+						[targetBounds.southWest.lon, targetBounds.southWest.lat]
+					]);
+					$map?.fitBounds(mapBoxBounds, {
+						padding: 80,
+						linear: true,
+						duration: 1000,
+						easing: (t) => {
+							return t < 0.5
+								? (1 - Math.sqrt(1 - Math.pow(2 * t, 2))) / 2
+								: (Math.sqrt(1 - Math.pow(-2 * t + 2, 2)) + 1) / 2;
+						}
+					});
+				}}
+			>
+				<Maximize2 size="16" class="mr-1" />
+				{$_('menu.fit_map')}
 			</ContextMenu.Item>
 		{/if}
 		<ContextMenu.Item
