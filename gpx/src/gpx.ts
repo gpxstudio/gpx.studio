@@ -784,7 +784,7 @@ export class TrackSegment extends GPXTreeLeaf {
             let start = simplified[i].point._data.index;
             let end = simplified[i + 1].point._data.index;
             let dist = statistics.local.distance.total[end] - statistics.local.distance.total[start];
-            let ele = simplified[i + 1].point.ele - simplified[i].point.ele;
+            let ele = (simplified[i + 1].point.ele ?? 0) - (simplified[i].point.ele ?? 0);
 
             for (let j = start; j < end + (i + 1 === simplified.length - 1 ? 1 : 0); j++) {
                 slope.push(0.1 * ele / dist);
@@ -1326,6 +1326,17 @@ export class GPXStatistics {
     }
 
     slice(start: number, end: number): GPXStatistics {
+        if (start < 0) {
+            start = 0;
+        } else if (start >= this.local.points.length) {
+            return new GPXStatistics();
+        }
+        if (end < start) {
+            return new GPXStatistics();
+        } else if (end >= this.local.points.length) {
+            end = this.local.points.length - 1;
+        }
+
         let statistics = new GPXStatistics();
 
         statistics.local.points = this.local.points.slice(start, end + 1);
@@ -1360,7 +1371,13 @@ export class GPXStatistics {
 }
 
 const earthRadius = 6371008.8;
-export function distance(coord1: Coordinates, coord2: Coordinates): number {
+export function distance(coord1: TrackPoint | Coordinates, coord2: TrackPoint | Coordinates): number {
+    if (coord1 instanceof TrackPoint) {
+        coord1 = coord1.getCoordinates();
+    }
+    if (coord2 instanceof TrackPoint) {
+        coord2 = coord2.getCoordinates();
+    }
     const rad = Math.PI / 180;
     const lat1 = coord1.lat * rad;
     const lat2 = coord2.lat * rad;
@@ -1412,9 +1429,15 @@ function withTimestamps(points: TrackPoint[], speed: number, lastPoint: TrackPoi
 
 function withShiftedAndCompressedTimestamps(points: TrackPoint[], speed: number, ratio: number, lastPoint: TrackPoint): TrackPoint[] {
     let start = getTimestamp(lastPoint, points[0], speed);
+    let last = points[0];
     return points.map((point) => {
         let pt = point.clone();
-        pt.time = new Date(start.getTime() + ratio * (point.time.getTime() - points[0].time.getTime()));
+        if (point.time === undefined) {
+            pt.time = getTimestamp(last, point, speed);
+        } else {
+            pt.time = new Date(start.getTime() + ratio * (point.time.getTime() - points[0].time.getTime()));
+        }
+        last = pt;
         return pt;
     });
 }
