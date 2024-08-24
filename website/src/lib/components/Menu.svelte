@@ -509,12 +509,14 @@
 				dbUtils.undo();
 			}
 		} else if ((e.key === 'Backspace' || e.key === 'Delete') && (e.metaKey || e.ctrlKey)) {
-			if (e.shiftKey) {
-				dbUtils.deleteAllFiles();
-			} else {
-				dbUtils.deleteSelection();
+			if (!targetInput) {
+				if (e.shiftKey) {
+					dbUtils.deleteAllFiles();
+				} else {
+					dbUtils.deleteSelection();
+				}
+				e.preventDefault();
 			}
-			e.preventDefault();
 		} else if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {
 			if (!targetInput) {
 				selectAll();
