@@ -104,7 +104,8 @@
 			line: {
 				pointRadius: 0,
 				tension: 0.4,
-				borderWidth: 2
+				borderWidth: 2,
+				cubicInterpolationMode: 'monotone'
 			}
 		},
 		interaction: {
