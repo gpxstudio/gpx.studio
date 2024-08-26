@@ -117,7 +117,7 @@ export class SplitControls {
     createControl(point: TrackPoint, segment: TrackSegment, fileId: string, trackIndex: number, segmentIndex: number): ControlWithMarker {
         let element = document.createElement('div');
         element.className = `h-6 w-6 p-0.5 rounded-full bg-white border-2 border-black cursor-pointer`;
-        element.innerHTML = Scissors.replace('width="24"', "").replace('height="24"', "");
+        element.innerHTML = Scissors.replace('width="24"', "").replace('height="24"', "").replace('stroke="currentColor"', 'stroke="black"');
 
         let marker = new mapboxgl.Marker({
             draggable: true,
