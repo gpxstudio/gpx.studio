@@ -221,6 +221,10 @@
 							<RadioGroup.Item value="imperial" id="imperial" />
 							<Label for="imperial">{$_('menu.imperial')}</Label>
 						</div>
+						<div class="flex items-center space-x-2">
+							<RadioGroup.Item value="nautical" id="nautical" />
+							<Label for="nautical">{$_('menu.nautical')}</Label>
+						</div>
 					</RadioGroup.Root>
 				</Label>
 				<Label class="flex flex-col items-start gap-2">

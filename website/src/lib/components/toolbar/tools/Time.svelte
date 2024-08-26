@@ -10,7 +10,8 @@
 	import {
 		distancePerHourToSecondsPerDistance,
 		getConvertedVelocity,
-		milesToKilometers
+		milesToKilometers,
+		nauticalMilesToKilometers
 	} from '$lib/units';
 	import { CalendarDate, type DateValue } from '@internationalized/date';
 	import { CalendarClock, CirclePlay, CircleStop, CircleX, Timer, Zap } from 'lucide-svelte';
@@ -129,6 +130,8 @@
 		}
 		if ($distanceUnits === 'imperial') {
 			speedValue = milesToKilometers(speedValue);
+		} else if ($distanceUnits === 'nautical') {
+			speedValue = nauticalMilesToKilometers(speedValue);
 		}
 		return speedValue;
 	}
@@ -190,8 +193,10 @@
 						<span class="text-sm shrink-0">
 							{#if $distanceUnits === 'imperial'}
 								{$_('units.miles_per_hour')}
-							{:else}
+							{:else if $distanceUnits === 'metric'}
 								{$_('units.kilometers_per_hour')}
+							{:else if $distanceUnits === 'nautical'}
+								{$_('units.knots')}
 							{/if}
 						</span>
 					{:else}
@@ -204,8 +209,10 @@
 						<span class="text-sm shrink-0">
 							{#if $distanceUnits === 'imperial'}
 								{$_('units.minutes_per_mile')}
-							{:else}
+							{:else if $distanceUnits === 'metric'}
 								{$_('units.minutes_per_kilometer')}
+							{:else if $distanceUnits === 'nautical'}
+								{$_('units.minutes_per_nautical_mile')}
 							{/if}
 						</span>
 					{/if}

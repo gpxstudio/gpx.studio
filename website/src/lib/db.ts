@@ -80,7 +80,7 @@ export function dexieSettingStore<T>(key: string, initial: T, initialize: boolea
 }
 
 export const settings = {
-    distanceUnits: dexieSettingStore<'metric' | 'imperial'>('distanceUnits', 'metric'),
+    distanceUnits: dexieSettingStore<'metric' | 'imperial' | 'nautical'>('distanceUnits', 'metric'),
     velocityUnits: dexieSettingStore<'speed' | 'pace'>('velocityUnits', 'speed'),
     temperatureUnits: dexieSettingStore<'celsius' | 'fahrenheit'>('temperatureUnits', 'celsius'),
     elevationProfile: dexieSettingStore('elevationProfile', true),
