@@ -77,6 +77,7 @@
         },
         "hide": "Verberg",
         "unhide": "Maak zichtbaar",
+        "center": "Center",
         "open_in": "Openen in"
     },
     "toolbar": {
