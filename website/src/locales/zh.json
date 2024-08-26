@@ -77,6 +77,7 @@
         },
         "hide": "隐藏",
         "unhide": "取消隐藏",
+        "center": "Center",
         "open_in": "打开"
     },
     "toolbar": {
