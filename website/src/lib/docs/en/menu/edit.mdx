@@ -3,7 +3,7 @@ title: Edit actions
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2 } from 'lucide-svelte';
+    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -34,6 +34,10 @@ Toggle the visibility of the selected file items on the map.
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Select all
 
 Add all file items in the current hierarchy level to the selection.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+
+Center the map on the selected file items.
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copy
 
