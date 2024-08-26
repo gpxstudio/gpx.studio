@@ -3,7 +3,7 @@ title: Edit actions
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2 } from 'lucide-svelte';
+    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -34,6 +34,10 @@ Konfigurieren Sie die Sichtbarkeit der ausgewählten Dateielemente auf der Karte
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Alle auswählen
 
 Alle Dateielemente in der aktuellen Hierarchieebene zur Auswahl hinzufügen.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+
+Center the map on the selected file items.
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Kopieren
 
