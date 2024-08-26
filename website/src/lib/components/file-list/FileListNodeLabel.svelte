@@ -45,9 +45,8 @@
 		editMetadata,
 		editStyle,
 		embedding,
-		flyToBounds,
+		centerMapOnSelection,
 		gpxLayers,
-		gpxStatistics,
 		map
 	} from '$lib/stores';
 	import {
@@ -61,7 +60,6 @@
 	import { _ } from 'svelte-i18n';
 	import MetadataDialog from './MetadataDialog.svelte';
 	import StyleDialog from './StyleDialog.svelte';
-	import mapboxgl from 'mapbox-gl';
 
 	export let node: GPXTreeElement<AnyGPXTreeElement> | Waypoint[] | Waypoint;
 	export let item: ListItem;
@@ -229,14 +227,6 @@
 		{/if}
 		<ContextMenu.Item
 			on:click={() => {
-				flyToBounds($gpxStatistics.global.bounds, $map);
-			}}
-		>
-			<Maximize size="16" class="mr-1" />
-			{$_('menu.fly_to')}
-		</ContextMenu.Item>
-		<ContextMenu.Item
-			on:click={() => {
 				if ($allHidden) {
 					dbUtils.setHiddenToSelection(false);
 				} else {
@@ -294,8 +284,13 @@
 				{$_('menu.select_all')}
 				<Shortcut key="A" ctrl={true} />
 			</ContextMenu.Item>
-			<ContextMenu.Separator />
 		{/if}
+		<ContextMenu.Item on:click={centerMapOnSelection}>
+			<Maximize size="16" class="mr-1" />
+			{$_('menu.center')}
+			<Shortcut key="⏎" ctrl={true} />
+		</ContextMenu.Item>
+		<ContextMenu.Separator />
 		<ContextMenu.Item on:click={dbUtils.duplicateSelection}>
 			<Copy size="16" class="mr-1" />
 			{$_('menu.duplicate')}

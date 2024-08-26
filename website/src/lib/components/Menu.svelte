@@ -56,8 +56,7 @@
 		editStyle,
 		exportState,
 		ExportState,
-		flyToBounds,
-		gpxStatistics
+		centerMapOnSelection
 	} from '$lib/stores';
 	import {
 		copied,
@@ -226,13 +225,6 @@
 						{$_('menu.style.button')}
 					</Menubar.Item>
 					<Menubar.Item
-						disabled={$selection.size === 0}
-						on:click={() => flyToBounds($gpxStatistics.global.bounds, $map)}
-					>
-						<Maximize size="16" class="mr-1" />
-						{$_('menu.fly_to_selection')}
-					</Menubar.Item>
-					<Menubar.Item
 						on:click={() => {
 							if ($allHidden) {
 								dbUtils.setHiddenToSelection(false);
@@ -256,6 +248,17 @@
 						<FileStack size="16" class="mr-1" />
 						{$_('menu.select_all')}
 						<Shortcut key="A" ctrl={true} />
+					</Menubar.Item>
+					<Menubar.Item
+						on:click={() => {
+							if ($selection.size > 0) {
+								centerMapOnSelection();
+							}
+						}}
+					>
+						<Maximize size="16" class="mr-1" />
+						{$_('menu.center')}
+						<Shortcut key="⏎" ctrl={true} />
 					</Menubar.Item>
 					{#if $verticalFileView}
 						<Menubar.Separator />
@@ -545,6 +548,10 @@
 				dbUtils.setHiddenToSelection(true);
 			}
 			e.preventDefault();
+		} else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+			if ($selection.size > 0) {
+				centerMapOnSelection();
+			}
 		} else if (e.key === 'F1') {
 			switchBasemaps();
 			e.preventDefault();
