@@ -3,7 +3,7 @@ title: Bewerkingen
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2 } from 'lucide-svelte';
+    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -34,6 +34,10 @@ De zichtbaarheid van de geselecteerde bestandsitems op de kaart in-/uitschakelen
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Selecteer alles
 
 Alle bestanden in het huidige hiërarchie niveau aan de selectie toevoegen.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+
+Center the map on the selected file items.
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Kopie
 
