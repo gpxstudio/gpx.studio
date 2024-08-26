@@ -3,68 +3,72 @@ title: Edit actions
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2 } from 'lucide-svelte';
+    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # { title }
 
-Unlike the file actions, the edit actions can potentially modify the content of the currently selected files.
-Moreover, when the vertical layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, and points of interest](../gpx).
-Therefore, we will refer to the elements that can be modified by these actions as _file items_.
-Note that except for the undo and redo actions, the edit actions are also accessible through the context menu (right-click) of the file items.
+W przeciwieństwie do pliku, edycja może potencjalnie modyfikować zawartość aktualnie wybranych plików.
+Ponadto, gdy układ pionowy listy plików jest włączony (patrz [Pliki i statystyki](../files-and-stats)), może być również zastosowane do [ścieżek, segmentów i punktów zainteresowania](../gpx).
+Dlatego będziemy odnosić się do elementów, które mogą być modyfikowane przez te działania jako _elementy pliku_.
+Zauważ, że z wyjątkiem akcji cofania i powtarzania, akcje edycji są również dostępne w menu kontekstowym (prawy przycisk myszy) elementów pliku.
 
-### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Undo and redo
+### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Cofnij i ponów
 
-Using these buttons, you can undo or redo the last actions you performed.
-This applies to all actions of the interface but not to view options, application settings, or map navigation.
+Używając tych przycisków, możesz cofnąć lub ponownie wykonać ostatnio wykonane czynności.
+Ma to zastosowanie do wszystkich akcji interfejsu, ale nie do opcji wyświetlania, ustawień aplikacji lub nawigacji mapy.
 
 ### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> Info...
 
-Open the information dialog of the currently selected file item, where you can see and edit its name and description.
+Otwórz okno dialogowe aktualnie wybranego pliku, gdzie możesz zobaczyć i edytować jego nazwę i opis.
 
-### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Appearance...
+### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Wygląd...
 
-Open the appearance dialog, where you can change the color, opacity, and width of the selected file items on the map.
+Otwórz okno dialogowe wyglądu, aby zmienić kolor, przezroczystość i szerokość zaznaczonych elementów pliku na mapie.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Ukryj/pokaż
 
-Toggle the visibility of the selected file items on the map.
+Przełącz widoczność zaznaczonego pliku na mapie.
 
-### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Select all
+### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Zaznacz wszystko
 
-Add all file items in the current hierarchy level to the selection.
+Dodaj do zaznaczenia wszystkie pliki na bieżącym poziomie hierarchii.
 
-### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copy
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
 
-Copy the selected file items to the clipboard.
+Center the map on the selected file items.
 
-<DocsNote>
+### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Kopiuj
 
-This action is only available when the vertical layout of the files list is enabled.
-
-</DocsNote>
-
-### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Cut
-
-Cut the selected file items to the clipboard.
+Skopiuj zaznaczone pliki do schowka.
 
 <DocsNote>
 
-This action is only available when the vertical layout of the files list is enabled.
+Ta akcja jest dostępna tylko wtedy, gdy układ pionowy listy plików jest włączony.
 
 </DocsNote>
 
-### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Paste
+### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Wytnij
 
-Paste the file items from the clipboard to the current hierarchy level if they are compatible with it.
+Wytnij zaznaczone pliki do schowka.
 
 <DocsNote>
 
-This action is only available when the vertical layout of the files list is enabled.
+Ta akcja jest dostępna tylko wtedy, gdy układ pionowy listy plików jest włączony.
 
 </DocsNote>
 
-### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Delete
+### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Wklej
 
-Delete the selected file items.
+Wklej elementy pliku ze schowka do bieżącego poziomu hierarchii, jeśli są z nim zgodne.
+
+<DocsNote>
+
+Ta akcja jest dostępna tylko wtedy, gdy układ pionowy listy plików jest włączony.
+
+</DocsNote>
+
+### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Usuń
+
+Usuń zaznaczone pliki.

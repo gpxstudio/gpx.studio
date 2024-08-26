@@ -41,6 +41,7 @@
         "distance_units": "Atstumo vienetai",
         "metric": "Metriniai",
         "imperial": "Imperiniai",
+        "nautical": "Nautical",
         "velocity_units": "Greičio matavimo vienetai",
         "temperature_units": "Temperatūros vienetas",
         "celsius": "Celsijus",
@@ -76,6 +77,7 @@
         },
         "hide": "Slėpti",
         "unhide": "Rodyti",
+        "center": "Center",
         "open_in": "Atverti naudojant"
     },
     "toolbar": {
@@ -363,12 +365,15 @@
         "feet": "pėd.",
         "kilometers": "km",
         "miles": "myl.",
+        "nautical_miles": "nm",
         "celsius": "°C",
         "fahrenheit": "°F",
         "kilometers_per_hour": "km/val.",
         "miles_per_hour": "myl./val.",
         "minutes_per_kilometer": "min./km",
         "minutes_per_mile": "min./myl.",
+        "minutes_per_nautical_mile": "min/nm",
+        "knots": "kn",
         "heartrate": "dūž./min.",
         "cadence": "aps./min.",
         "power": "W"

@@ -41,6 +41,7 @@
         "distance_units": "Entfernungseinheiten",
         "metric": "Metrisch",
         "imperial": "Imperial",
+        "nautical": "Nautical",
         "velocity_units": "Geschwindigkeitseinheiten",
         "temperature_units": "Temperature units",
         "celsius": "Celsius",
@@ -76,6 +77,7 @@
         },
         "hide": "Hide",
         "unhide": "Unhide",
+        "center": "Center",
         "open_in": "Open in"
     },
     "toolbar": {
@@ -363,12 +365,15 @@
         "feet": "ft",
         "kilometers": "km",
         "miles": "mi",
+        "nautical_miles": "nm",
         "celsius": "°C",
         "fahrenheit": "°F",
         "kilometers_per_hour": "km/h",
         "miles_per_hour": "mph",
         "minutes_per_kilometer": "min/km",
         "minutes_per_mile": "min/mi",
+        "minutes_per_nautical_mile": "min/nm",
+        "knots": "kn",
         "heartrate": "bpm",
         "cadence": "rpm",
         "power": "W"
