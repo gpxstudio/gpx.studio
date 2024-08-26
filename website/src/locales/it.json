@@ -41,7 +41,7 @@
         "distance_units": "Unità distanza",
         "metric": "Metrico",
         "imperial": "Imperiale",
-        "nautical": "Nautical",
+        "nautical": "Nautica",
         "velocity_units": "Unità velocità",
         "temperature_units": "Unità di temperatura",
         "celsius": "Centigradi",
@@ -77,7 +77,7 @@
         },
         "hide": "Nascondi",
         "unhide": "Mostra",
-        "center": "Center",
+        "center": "Centro",
         "open_in": "Apri con"
     },
     "toolbar": {
