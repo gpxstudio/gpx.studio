@@ -26,7 +26,7 @@
 		{getConvertedDistance(value, $distanceUnits).toFixed(decimals ?? 2)}
 		{showUnits ? getDistanceUnits($distanceUnits) : ''}
 	{:else if type === 'elevation'}
-		{getConvertedElevation(value, $distanceUnits).toFixed(decimals ?? 2)}
+		{getConvertedElevation(value, $distanceUnits).toFixed(decimals ?? 0)}
 		{showUnits ? getElevationUnits($distanceUnits) : ''}
 	{:else if type === 'speed'}
 		{#if $velocityUnits === 'speed'}
