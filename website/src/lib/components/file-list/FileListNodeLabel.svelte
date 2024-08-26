@@ -15,6 +15,7 @@
 		EyeOff,
 		ClipboardCopy,
 		ClipboardPaste,
+		Maximize,
 		Scissors,
 		FileStack,
 		FileX
@@ -39,7 +40,15 @@
 	} from './Selection';
 	import { getContext } from 'svelte';
 	import { get } from 'svelte/store';
-	import { allHidden, editMetadata, editStyle, embedding, gpxLayers, map } from '$lib/stores';
+	import {
+		allHidden,
+		editMetadata,
+		editStyle,
+		embedding,
+		centerMapOnSelection,
+		gpxLayers,
+		map
+	} from '$lib/stores';
 	import {
 		GPXTreeElement,
 		Track,
@@ -275,8 +284,13 @@
 				{$_('menu.select_all')}
 				<Shortcut key="A" ctrl={true} />
 			</ContextMenu.Item>
-			<ContextMenu.Separator />
 		{/if}
+		<ContextMenu.Item on:click={centerMapOnSelection}>
+			<Maximize size="16" class="mr-1" />
+			{$_('menu.center')}
+			<Shortcut key="⏎" ctrl={true} />
+		</ContextMenu.Item>
+		<ContextMenu.Separator />
 		<ContextMenu.Item on:click={dbUtils.duplicateSelection}>
 			<Copy size="16" class="mr-1" />
 			{$_('menu.duplicate')}
