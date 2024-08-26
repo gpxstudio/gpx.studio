@@ -77,6 +77,7 @@
         },
         "hide": "Hide",
         "unhide": "Unhide",
+        "center": "Center",
         "open_in": "Open in"
     },
     "toolbar": {
@@ -461,7 +462,7 @@
         "basemap": "Basemap",
         "height": "Height",
         "fill_by": "Fill by",
-        "none": "",
+        "none": "ללא",
         "show_controls": "Show controls",
         "manual_camera": "Manual camera",
         "manual_camera_description": "You can move the map below to adjust the camera position.",
