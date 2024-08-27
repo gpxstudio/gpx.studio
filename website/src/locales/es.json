@@ -41,7 +41,7 @@
         "distance_units": "Unidades de distancia",
         "metric": "Métrico",
         "imperial": "Imperial",
-        "nautical": "Nautical",
+        "nautical": "Náutico",
         "velocity_units": "Unidades de velocidad",
         "temperature_units": "Unidades de temperatura",
         "celsius": "Celsius",
@@ -77,7 +77,7 @@
         },
         "hide": "Ocultar",
         "unhide": "Mostrar",
-        "center": "Center",
+        "center": "Centrar",
         "open_in": "Abrir en"
     },
     "toolbar": {
