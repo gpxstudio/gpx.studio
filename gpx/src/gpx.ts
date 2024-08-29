@@ -350,6 +350,15 @@ export class GPXFile extends GPXTreeNode<Track>{
         });
     }
 
+    createArtificialTimestamps(startTime: Date, totalTime: number, trackIndex?: number, segmentIndex?: number) {
+        let lastPoint = undefined;
+        this.trk.forEach((track, index) => {
+            if (trackIndex === undefined || trackIndex === index) {
+                track.createArtificialTimestamps(startTime, totalTime, lastPoint, segmentIndex);
+            }
+        });
+    }
+
     setStyle(style: LineStyleExtension) {
         this.trk.forEach((track) => {
             track.setStyle(style);
@@ -574,6 +583,17 @@ export class Track extends GPXTreeNode<TrackSegment> {
         this.trkseg.forEach((segment, index) => {
             if (segmentIndex === undefined || segmentIndex === index) {
                 segment.changeTimestamps(startTime, speed, ratio, lastPoint);
+                if (segment.trkpt.length > 0) {
+                    lastPoint = segment.trkpt[segment.trkpt.length - 1];
+                }
+            }
+        });
+    }
+
+    createArtificialTimestamps(startTime: Date, totalTime: number, lastPoint: TrackPoint | undefined, segmentIndex?: number) {
+        this.trkseg.forEach((segment, index) => {
+            if (segmentIndex === undefined || segmentIndex === index) {
+                segment.createArtificialTimestamps(startTime, totalTime, lastPoint);
                 if (segment.trkpt.length > 0) {
                     lastPoint = segment.trkpt[segment.trkpt.length - 1];
                 }
@@ -944,6 +964,14 @@ export class TrackSegment extends GPXTreeLeaf {
             this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
         }
     }
+
+    createArtificialTimestamps(startTime: Date, totalTime: number, lastPoint: TrackPoint | undefined) {
+        let og = getOriginal(this); // Read as much as possible from the original object because it is faster
+        let slope = og._computeSlope();
+        let trkpt = withArtificialTimestamps(og.trkpt, totalTime, lastPoint, startTime, slope);
+        this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+    }
+
     setHidden(hidden: boolean) {
         this._data.hidden = hidden;
     }
@@ -1436,6 +1464,30 @@ function withShiftedAndCompressedTimestamps(points: TrackPoint[], speed: number,
             pt.time = getTimestamp(last, point, speed);
         } else {
             pt.time = new Date(start.getTime() + ratio * (point.time.getTime() - points[0].time.getTime()));
+        }
+        last = pt;
+        return pt;
+    });
+}
+
+function withArtificialTimestamps(points: TrackPoint[], totalTime: number, lastPoint: TrackPoint | undefined, startTime: Date, slope: number[]): TrackPoint[] {
+    let weight = [];
+    let totalWeight = 0;
+
+    for (let i = 0; i < points.length - 1; i++) {
+        let dist = distance(points[i].getCoordinates(), points[i + 1].getCoordinates());
+        let w = dist * (0.5 + 1 / (1 + Math.exp(- 0.2 * slope[i])));
+        weight.push(w);
+        totalWeight += w;
+    }
+
+    let last = lastPoint;
+    return points.map((point, i) => {
+        let pt = point.clone();
+        if (i === 0) {
+            pt.time = lastPoint?.time ?? startTime;
+        } else {
+            pt.time = new Date(last.time.getTime() + totalTime * 1000 * weight[i - 1] / totalWeight);
         }
         last = pt;
         return pt;
