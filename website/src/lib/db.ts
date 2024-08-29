@@ -111,7 +111,6 @@ export const settings = {
     defaultWeight: dexieSettingStore('defaultWeight', (browser && window.innerWidth < 600) ? 8 : 5),
     bottomPanelSize: dexieSettingStore('bottomPanelSize', 170),
     rightPanelSize: dexieSettingStore('rightPanelSize', 240),
-    showWelcomeMessage: dexieSettingStore('showWelcomeMessage', true, false),
 };
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber
