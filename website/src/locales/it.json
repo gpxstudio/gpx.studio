@@ -41,7 +41,7 @@
         "distance_units": "Unità distanza",
         "metric": "Metrico",
         "imperial": "Imperiale",
-        "nautical": "Nautical",
+        "nautical": "Nautica",
         "velocity_units": "Unità velocità",
         "temperature_units": "Unità di temperatura",
         "celsius": "Centigradi",
@@ -77,7 +77,7 @@
         },
         "hide": "Nascondi",
         "unhide": "Mostra",
-        "center": "Center",
+        "center": "Centro",
         "open_in": "Apri con"
     },
     "toolbar": {
@@ -85,7 +85,7 @@
             "tooltip": "Pianifica o modifica un percorso",
             "activity": "Attività",
             "use_routing": "Instradamento",
-            "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
+            "use_routing_tooltip": "Collega i punti di ancoraggio tramite la rete stradale o in linea retta se disabilitato",
             "allow_private": "Consenti strade private",
             "reverse": {
                 "button": "Inverti la traccia",
@@ -105,7 +105,7 @@
             "activities": {
                 "bike": "Bicicletta",
                 "racing_bike": "Bici da strada",
-                "gravel_bike": "Bici da gravel",
+                "gravel_bike": "Bici gravel",
                 "mountain_bike": "Mountain bike",
                 "foot": "Corsa/escursione",
                 "motorcycle": "Moto",
@@ -300,7 +300,7 @@
             "toilets": "Servizi igienici",
             "water": "Acqua",
             "shower": "Doccia",
-            "shelter": "Rifugio",
+            "shelter": "Riparo",
             "motorized": "Cars and Motorcycles",
             "fuel-station": "Stazione di Rifornimento",
             "parking": "Parcheggio",
