@@ -1,9 +1,9 @@
-import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
 import { TramFront, Utensils, ShoppingBasket, Droplet, ShowerHead, Fuel, CircleParking, Fence, FerrisWheel, Bed, Mountain, Pickaxe, Store, TrainFront, Bus, Ship, Croissant, House, Tent, Wrench, Binoculars } from 'lucide-static';
-import { type AnySourceData, type Style } from 'mapbox-gl';
+import { type Style } from 'mapbox-gl';
 import ignFrTopo from './custom/ign-fr-topo.json';
 import ignFrPlan from './custom/ign-fr-plan.json';
 import ignFrSatellite from './custom/ign-fr-satellite.json';
+import bikerouterGravel from './custom/bikerouter-gravel.json';
 
 export const basemaps: { [key: string]: string | Style; } = {
     mapboxOutdoors: 'mapbox://styles/mapbox/outdoors-v12',
@@ -255,144 +255,309 @@ export const basemaps: { [key: string]: string | Style; } = {
     },
 };
 
-export function extendBasemap(basemap: string | Style): string | Style {
-    if (typeof basemap === 'object') {
-        basemap["glyphs"] = "mapbox://fonts/mapbox/{fontstack}/{range}.pbf";
-        basemap["sprite"] = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/sprite?access_token=${PUBLIC_MAPBOX_TOKEN}`;
-    }
-    return basemap;
-}
-
-Object.values(basemaps).forEach(extendBasemap);
-
-export const font: { [key: string]: string; } = {
-    swisstopoVector: 'Frutiger Neue Condensed Regular',
-    swisstopoSatellite: 'Frutiger Neue Condensed Regular',
-};
-
-export const overlays: { [key: string]: AnySourceData; } = {
+export const overlays: { [key: string]: string | Style; } = {
     cyclOSMlite: {
-        type: 'raster',
-        tiles: ['https://a.tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png', 'https://b.tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png', 'https://c.tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 17,
-        attribution: '&copy; <a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" title="CyclOSM - Open Bicycle render">CyclOSM</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        version: 8,
+        sources: {
+            cyclOSMlite: {
+                type: 'raster',
+                tiles: ['https://a.tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png', 'https://b.tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png', 'https://c.tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 17,
+                attribution: '&copy; <a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" title="CyclOSM - Open Bicycle render">CyclOSM</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }
+        },
+        layers: [{
+            id: 'cyclOSMlite',
+            type: 'raster',
+            source: 'cyclOSMlite',
+        }],
     },
+    bikerouterGravel: bikerouterGravel,
     swisstopoSlope: {
-        type: 'raster',
-        tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.hangneigung-ueber_30/default/current/3857/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 17,
-        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>',
+        version: 8,
+        sources: {
+            swisstopoSlope: {
+                type: 'raster',
+                tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.hangneigung-ueber_30/default/current/3857/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 17,
+                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>',
+            },
+        },
+        layers: [{
+            id: 'swisstopoSlope',
+            type: 'raster',
+            source: 'swisstopoSlope',
+        }],
     },
     swisstopoHiking: {
-        type: 'raster',
-        tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-wanderwege/default/current/3857/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+        version: 8,
+        sources: {
+            swisstopoHiking: {
+                type: 'raster',
+                tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-wanderwege/default/current/3857/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+            },
+        },
+        layers: [{
+            id: 'swisstopoHiking',
+            type: 'raster',
+            source: 'swisstopoHiking',
+        }],
     },
     swisstopoHikingClosures: {
-        type: 'raster',
-        tiles: ['https://wms.geo.admin.ch/?version=1.3.0&service=WMS&request=GetMap&sld_version=1.1.0&layers=ch.astra.wanderland-sperrungen_umleitungen&format=image/png&STYLE=default&bbox={bbox-epsg-3857}&width=256&height=256&crs=EPSG:3857&transparent=true'],
-        tileSize: 256,
-        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+        version: 8,
+        sources: {
+            swisstopoHikingClosures: {
+                type: 'raster',
+                tiles: ['https://wms.geo.admin.ch/?version=1.3.0&service=WMS&request=GetMap&sld_version=1.1.0&layers=ch.astra.wanderland-sperrungen_umleitungen&format=image/png&STYLE=default&bbox={bbox-epsg-3857}&width=256&height=256&crs=EPSG:3857&transparent=true'],
+                tileSize: 256,
+                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+            },
+        },
+        layers: [{
+            id: 'swisstopoHikingClosures',
+            type: 'raster',
+            source: 'swisstopoHikingClosures',
+        }],
     },
     swisstopoCycling: {
-        type: 'raster',
-        tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.astra.veloland/default/current/3857/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+        version: 8,
+        sources: {
+            swisstopoCycling: {
+                type: 'raster',
+                tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.astra.veloland/default/current/3857/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+            }
+        },
+        layers: [{
+            id: 'swisstopoCycling',
+            type: 'raster',
+            source: 'swisstopoCycling',
+        }],
     },
     swisstopoCyclingClosures: {
-        type: 'raster',
-        tiles: ['https://wms.geo.admin.ch/?version=1.3.0&service=WMS&request=GetMap&sld_version=1.1.0&layers=ch.astra.veloland-sperrungen_umleitungen&format=image/png&STYLE=default&bbox={bbox-epsg-3857}&width=256&height=256&crs=EPSG:3857&transparent=true'],
-        tileSize: 256,
-        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+        version: 8,
+        sources: {
+            swisstopoCyclingClosures: {
+                type: 'raster',
+                tiles: ['https://wms.geo.admin.ch/?version=1.3.0&service=WMS&request=GetMap&sld_version=1.1.0&layers=ch.astra.veloland-sperrungen_umleitungen&format=image/png&STYLE=default&bbox={bbox-epsg-3857}&width=256&height=256&crs=EPSG:3857&transparent=true'],
+                tileSize: 256,
+                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+            }
+        },
+        layers: [{
+            id: 'swisstopoCyclingClosures',
+            type: 'raster',
+            source: 'swisstopoCyclingClosures',
+        }],
     },
     swisstopoMountainBike: {
-        type: 'raster',
-        tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.astra.mountainbikeland/default/current/3857/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+        version: 8,
+        sources: {
+            swisstopoMountainBike: {
+                type: 'raster',
+                tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.astra.mountainbikeland/default/current/3857/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+            }
+        },
+        layers: [{
+            id: 'swisstopoMountainBike',
+            type: 'raster',
+            source: 'swisstopoMountainBike',
+        }],
     },
     swisstopoMountainBikeClosures: {
-        type: 'raster',
-        tiles: ['https://wms.geo.admin.ch/?version=1.3.0&service=WMS&request=GetMap&sld_version=1.1.0&layers=ch.astra.mountainbikeland-sperrungen_umleitungen&format=image/png&STYLE=default&bbox={bbox-epsg-3857}&width=256&height=256&crs=EPSG:3857&transparent=true'],
-        tileSize: 256,
-        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+        version: 8,
+        sources: {
+            swisstopoMountainBikeClosures: {
+                type: 'raster',
+                tiles: ['https://wms.geo.admin.ch/?version=1.3.0&service=WMS&request=GetMap&sld_version=1.1.0&layers=ch.astra.mountainbikeland-sperrungen_umleitungen&format=image/png&STYLE=default&bbox={bbox-epsg-3857}&width=256&height=256&crs=EPSG:3857&transparent=true'],
+                tileSize: 256,
+                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+            }
+        },
+        layers: [{
+            id: 'swisstopoMountainBikeClosures',
+            type: 'raster',
+            source: 'swisstopoMountainBikeClosures',
+        }],
     },
     swisstopoSkiTouring: {
-        type: 'raster',
-        tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.swisstopo-karto.skitouren/default/current/3857/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 17,
-        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+        version: 8,
+        sources: {
+            swisstopoSkiTouring: {
+                type: 'raster',
+                tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.swisstopo-karto.skitouren/default/current/3857/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 17,
+                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+            }
+        },
+        layers: [{
+            id: 'swisstopoSkiTouring',
+            type: 'raster',
+            source: 'swisstopoSkiTouring',
+        }],
     },
     ignFrCadastre: {
-        type: 'raster',
-        tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TILEMATRIXSET=PM&TILEMATRIX={z}&TILECOL={x}&TILEROW={y}&LAYER=CADASTRALPARCELS.PARCELS&FORMAT=image/png&STYLE=normal'],
-        tileSize: 256,
-        maxzoom: 20,
-        attribution: 'IGN-F/Géoportail'
+        version: 8,
+        sources: {
+            ignFrCadastre: {
+                type: 'raster',
+                tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TILEMATRIXSET=PM&TILEMATRIX={z}&TILECOL={x}&TILEROW={y}&LAYER=CADASTRALPARCELS.PARCELS&FORMAT=image/png&STYLE=normal'],
+                tileSize: 256,
+                maxzoom: 20,
+                attribution: 'IGN-F/Géoportail'
+            }
+        },
+        layers: [{
+            id: 'ignFrCadastre',
+            type: 'raster',
+            source: 'ignFrCadastre',
+        }],
     },
     ignSlope: {
-        type: 'raster',
-        tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TileMatrixSet=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&Layer=GEOGRAPHICALGRIDSYSTEMS.SLOPES.MOUNTAIN&FORMAT=image/png&Style=normal'],
-        tileSize: 256,
-        maxzoom: 17,
-        attribution: 'IGN-F/Géoportail'
+        version: 8,
+        sources: {
+            ignSlope: {
+                type: 'raster',
+                tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TileMatrixSet=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&Layer=GEOGRAPHICALGRIDSYSTEMS.SLOPES.MOUNTAIN&FORMAT=image/png&Style=normal'],
+                tileSize: 256,
+                attribution: 'IGN-F/Géoportail'
+            }
+        },
+        layers: [{
+            id: 'ignSlope',
+            type: 'raster',
+            source: 'ignSlope',
+        }],
     },
     ignSkiTouring: {
-        type: 'raster',
-        tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TileMatrixSet=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&Layer=TRACES.RANDO.HIVERNALE&FORMAT=image/png&Style=normal'],
-        tileSize: 256,
-        maxzoom: 16,
-        attribution: 'IGN-F/Géoportail'
+        version: 8,
+        sources: {
+            ignSkiTouring: {
+                type: 'raster',
+                tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TileMatrixSet=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&Layer=TRACES.RANDO.HIVERNALE&FORMAT=image/png&Style=normal'],
+                tileSize: 256,
+                maxzoom: 16,
+                attribution: 'IGN-F/Géoportail'
+            },
+        },
+        layers: [{
+            id: 'ignSkiTouring',
+            type: 'raster',
+            source: 'ignSkiTouring',
+        }],
     },
     waymarkedTrailsHiking: {
-        type: 'raster',
-        tiles: ['https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+        version: 8,
+        sources: {
+            waymarkedTrailsHiking: {
+                type: 'raster',
+                tiles: ['https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+            }
+        },
+        layers: [{
+            id: 'waymarkedTrailsHiking',
+            type: 'raster',
+            source: 'waymarkedTrailsHiking',
+        }],
     },
     waymarkedTrailsCycling: {
-        type: 'raster',
-        tiles: ['https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+        version: 8,
+        sources: {
+            waymarkedTrailsCycling: {
+                type: 'raster',
+                tiles: ['https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+            }
+        },
+        layers: [{
+            id: 'waymarkedTrailsCycling',
+            type: 'raster',
+            source: 'waymarkedTrailsCycling',
+        }],
     },
     waymarkedTrailsMTB: {
-        type: 'raster',
-        tiles: ['https://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+        version: 8,
+        sources: {
+            waymarkedTrailsMTB: {
+                type: 'raster',
+                tiles: ['https://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+            }
+        },
+        layers: [{
+            id: 'waymarkedTrailsMTB',
+            type: 'raster',
+            source: 'waymarkedTrailsMTB',
+        }],
     },
     waymarkedTrailsSkating: {
-        type: 'raster',
-        tiles: ['https://tile.waymarkedtrails.org/skating/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+        version: 8,
+        sources: {
+            waymarkedTrailsSkating: {
+                type: 'raster',
+                tiles: ['https://tile.waymarkedtrails.org/skating/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+            }
+        },
+        layers: [{
+            id: 'waymarkedTrailsSkating',
+            type: 'raster',
+            source: 'waymarkedTrailsSkating',
+        }],
     },
     waymarkedTrailsHorseRiding: {
-        type: 'raster',
-        tiles: ['https://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+        version: 8,
+        sources: {
+            waymarkedTrailsHorseRiding: {
+                type: 'raster',
+                tiles: ['https://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+            }
+        },
+        layers: [{
+            id: 'waymarkedTrailsHorseRiding',
+            type: 'raster',
+            source: 'waymarkedTrailsHorseRiding',
+        }],
     },
     waymarkedTrailsWinter: {
-        type: 'raster',
-        tiles: ['https://tile.waymarkedtrails.org/slopes/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+        version: 8,
+        sources: {
+            waymarkedTrailsWinter: {
+                type: 'raster',
+                tiles: ['https://tile.waymarkedtrails.org/slopes/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+            }
+        },
+        layers: [{
+            id: 'waymarkedTrailsWinter',
+            type: 'raster',
+            source: 'waymarkedTrailsWinter',
+        }],
     },
 };
 
@@ -463,9 +628,6 @@ export const basemapTree: LayerTreeType = {
 export const overlayTree: LayerTreeType = {
     overlays: {
         world: {
-            cyclOSM: {
-                cyclOSMlite: true,
-            },
             waymarked_trails: {
                 waymarkedTrailsHiking: true,
                 waymarkedTrailsCycling: true,
@@ -473,7 +635,9 @@ export const overlayTree: LayerTreeType = {
                 waymarkedTrailsSkating: true,
                 waymarkedTrailsHorseRiding: true,
                 waymarkedTrailsWinter: true,
-            }
+            },
+            cyclOSMlite: true,
+            bikerouterGravel: true,
         },
         countries: {
             france: {
@@ -547,9 +711,6 @@ export const defaultBasemap = 'mapboxOutdoors';
 export const defaultOverlays = {
     overlays: {
         world: {
-            cyclOSM: {
-                cyclOSMlite: false,
-            },
             waymarked_trails: {
                 waymarkedTrailsHiking: false,
                 waymarkedTrailsCycling: false,
@@ -557,7 +718,9 @@ export const defaultOverlays = {
                 waymarkedTrailsSkating: false,
                 waymarkedTrailsHorseRiding: false,
                 waymarkedTrailsWinter: false,
-            }
+            },
+            cyclOSMlite: false,
+            bikerouterGravel: false,
         },
         countries: {
             france: {
@@ -683,9 +846,6 @@ export const defaultBasemapTree: LayerTreeType = {
 export const defaultOverlayTree: LayerTreeType = {
     overlays: {
         world: {
-            cyclOSM: {
-                cyclOSMlite: false,
-            },
             waymarked_trails: {
                 waymarkedTrailsHiking: true,
                 waymarkedTrailsCycling: true,
@@ -693,7 +853,9 @@ export const defaultOverlayTree: LayerTreeType = {
                 waymarkedTrailsSkating: false,
                 waymarkedTrailsHorseRiding: false,
                 waymarkedTrailsWinter: false,
-            }
+            },
+            cyclOSMlite: false,
+            bikerouterGravel: false,
         },
         countries: {
             france: {

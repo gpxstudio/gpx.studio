@@ -50,7 +50,7 @@ export class OverpassLayer {
 
     add() {
         this.map.on('moveend', this.queryIfNeededBinded);
-        this.map.on('style.load', this.updateBinded);
+        this.map.on('style.import.load', this.updateBinded);
         this.unsubscribes.push(data.subscribe(this.updateBinded));
         this.unsubscribes.push(currentOverpassQueries.subscribe(() => {
             this.updateBinded();
@@ -108,15 +108,19 @@ export class OverpassLayer {
 
     remove() {
         this.map.off('moveend', this.queryIfNeededBinded);
-        this.map.off('style.load', this.updateBinded);
+        this.map.off('style.import.load', this.updateBinded);
         this.unsubscribes.forEach((unsubscribe) => unsubscribe());
 
-        if (this.map.getLayer('overpass')) {
-            this.map.removeLayer('overpass');
-        }
+        try {
+            if (this.map.getLayer('overpass')) {
+                this.map.removeLayer('overpass');
+            }
 
-        if (this.map.getSource('overpass')) {
-            this.map.removeSource('overpass');
+            if (this.map.getSource('overpass')) {
+                this.map.removeSource('overpass');
+            }
+        } catch (e) {
+            // No reliable way to check if the map is ready to remove sources and layers
         }
     }
 

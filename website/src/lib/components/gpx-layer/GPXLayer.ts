@@ -7,7 +7,6 @@ import { addSelectItem, selectItem, selection } from "$lib/components/file-list/
 import { ListTrackSegmentItem, ListWaypointItem, ListWaypointsItem, ListTrackItem, ListFileItem, ListRootItem } from "$lib/components/file-list/FileList";
 import type { Waypoint } from "gpx";
 import { getElevation, resetCursor, setGrabbingCursor, setPointerCursor, setScissorsCursor } from "$lib/utils";
-import { font } from "$lib/assets/layers";
 import { selectedWaypoint } from "$lib/components/toolbar/tools/Waypoint.svelte";
 import { MapPin, Square } from "lucide-static";
 import { getSymbolKey, symbols } from "$lib/assets/symbols";
@@ -66,7 +65,7 @@ function getMarkerForSymbol(symbol: string | undefined, layerColor: string) {
     </svg>`;
 }
 
-const { directionMarkers, verticalFileView, currentBasemap, defaultOpacity, defaultWeight } = settings;
+const { directionMarkers, verticalFileView, defaultOpacity, defaultWeight } = settings;
 
 export class GPXLayer {
     map: mapboxgl.Map;
@@ -112,7 +111,7 @@ export class GPXLayer {
         }));
         this.draggable = get(currentTool) === Tool.WAYPOINT;
 
-        this.map.on('style.load', this.updateBinded);
+        this.map.on('style.import.load', this.updateBinded);
     }
 
     update() {
@@ -170,7 +169,7 @@ export class GPXLayer {
                             'text-keep-upright': false,
                             'text-max-angle': 361,
                             'text-allow-overlap': true,
-                            'text-font': [font[get(currentBasemap)] ?? 'Open Sans Bold'],
+                            'text-font': ['Open Sans Bold'],
                             'symbol-placement': 'line',
                             'symbol-spacing': 20,
                         },
@@ -294,7 +293,7 @@ export class GPXLayer {
 
     updateMap(map: mapboxgl.Map) {
         this.map = map;
-        this.map.on('style.load', this.updateBinded);
+        this.map.on('style.import.load', this.updateBinded);
         this.update();
     }
 
@@ -303,7 +302,7 @@ export class GPXLayer {
             this.map.off('click', this.fileId, this.layerOnClickBinded);
             this.map.off('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
             this.map.off('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
-            this.map.off('style.load', this.updateBinded);
+            this.map.off('style.import.load', this.updateBinded);
 
             if (this.map.getLayer(this.fileId + '-direction')) {
                 this.map.removeLayer(this.fileId + '-direction');
