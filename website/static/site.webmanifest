@@ -1,0 +1,37 @@
+{
+    "scope": "/app/",
+    "start_url": "/app/",
+    "display": "standalone",
+    "orientation": "any",
+    "name": "gpx.studio",
+    "short_name": "gpx.studio",
+    "description": "View, edit, and create GPX files online.",
+    "theme_color": "#030816",
+    "background_color": "#030816",
+    "icons": [
+        {
+            "src": "/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ]
+}
