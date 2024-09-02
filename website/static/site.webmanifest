@@ -1,6 +1,6 @@
 {
-    "scope": "/gpx.studio/app/",
-    "start_url": "/gpx.studio/app/",
+    "scope": "/gpx.studio/app",
+    "start_url": "/gpx.studio/app",
     "display": "standalone",
     "orientation": "any",
     "name": "gpx.studio",
