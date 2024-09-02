@@ -4,7 +4,7 @@
         "app_title": "GPX 文件在线编辑器",
         "embed_title": "GPX 文件在线编辑器",
         "help_title": "帮助",
-        "404_title": "page not found",
+        "404_title": "无法找到页面",
         "description": "利用先进的路线规划功能和文件处理工具、精美的地图和详细的可视化数据，在线查看、编辑和创建 GPX 文件。"
     },
     "menu": {
@@ -58,7 +58,7 @@
         "distance_markers": "距离标记",
         "direction_markers": "方向箭头",
         "help": "帮助",
-        "more": "More...",
+        "more": "更多",
         "donate": "捐赠",
         "ctrl": "Ctrl",
         "click": "单击",
@@ -145,15 +145,15 @@
             },
             "error": {
                 "from": "起点距离最近的道路太远",
-                "via": "The via point is too far from the nearest road",
-                "to": "The end point is too far from the nearest road",
+                "via": "起点距离最近的道路太远",
+                "to": "终点离最近的道路太远了",
                 "timeout": "Route calculation took too long, try adding points closer together"
             }
         },
         "scissors": {
             "tooltip": "裁剪或拆分",
             "crop": "裁剪",
-            "split_as": "Split the trace into",
+            "split_as": "",
             "help_invalid_selection": "Select a trace to crop or split.",
             "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
         },
@@ -205,7 +205,7 @@
         },
         "clean": {
             "tooltip": "Clean GPS points and points of interest with a rectangle selection",
-            "delete_trackpoints": "Delete GPS points",
+            "delete_trackpoints": "删除 GPS 点",
             "delete_waypoints": "Delete points of interest",
             "delete_inside": "Delete inside selection",
             "delete_outside": "Delete outside selection",
@@ -231,7 +231,7 @@
             "create": "创建图层",
             "update": "更新图层"
         },
-        "opacity": "Overlay opacity",
+        "opacity": "图层透明度",
         "label": {
             "basemaps": "底图",
             "overlays": "叠加层",
