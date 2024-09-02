@@ -3,11 +3,11 @@
   <img alt="Logo of gpx.studio." src="website/static/logo.svg">
 </picture>
 
-**gpx.studio** is an online tool for creating and editing GPX files.
+[**gpx.studio**](https://gpx.studio) is an online tool for creating and editing GPX files.
 
 ![gpx.studio screenshot](website/src/lib/assets/img/docs/getting-started/interface.png)
 
-This repository contains the source code of the new website, currently available [here](https://gpx.studio/gpx.studio).
+This repository contains the source code of the website.
 
 ## Contributing
 
