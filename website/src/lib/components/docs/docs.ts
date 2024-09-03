@@ -9,6 +9,7 @@ export const guides: Record<string, string[]> = {
     'map-controls': [],
     'gpx': [],
     'integration': [],
+    'faq': [],
 };
 
 export const guideIcons: Record<string, string | ComponentType<Icon>> = {
@@ -31,6 +32,7 @@ export const guideIcons: Record<string, string | ComponentType<Icon>> = {
     "map-controls": "🗺",
     "gpx": "💾",
     "integration": "{ 👩‍💻 }",
+    "faq": "🔮",
 };
 
 export function getPreviousGuide(currentGuide: string): string | undefined {
