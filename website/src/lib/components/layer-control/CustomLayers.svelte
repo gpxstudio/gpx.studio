@@ -184,7 +184,11 @@
                 return $tree;
             });
 
-            if ($map) {
+            if (
+                $currentOverlays.overlays['custom'] &&
+                $currentOverlays.overlays['custom'][layerId] &&
+                $map
+            ) {
                 try {
                     $map.removeImport(layerId);
                 } catch (e) {
