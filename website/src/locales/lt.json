@@ -184,6 +184,12 @@
             "help": "Iškyrus pasirinktų elementų turinį bus sukurti atskiri elementai kiekvienam turiniui.",
             "help_invalid_selection": "Norėdami išskirti turite pasirinkti elementą, kuriame yra kelios trasos."
         },
+        "elevation": {
+            "tooltip": "Request elevation data",
+            "button": "Request elevation data",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
+            "help_no_selection": "Select a file item to request elevation data."
+        },
         "waypoint": {
             "tooltip": "Kurti ar keisti svarbią vietą",
             "icon": "Piktograma",
