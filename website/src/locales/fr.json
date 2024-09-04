@@ -184,6 +184,12 @@
             "help": "Extraire le contenu des éléments sélectionnés créera un élément séparé pour chaque élément de leur contenu.",
             "help_invalid_selection": "Votre sélection doit contenir des éléments avec plusieurs traces pour les extraire."
         },
+        "elevation": {
+            "tooltip": "Request elevation data",
+            "button": "Request elevation data",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
+            "help_no_selection": "Select a file item to request elevation data."
+        },
         "waypoint": {
             "tooltip": "Créer et modifier des points d'intérêt",
             "icon": "Icône",
