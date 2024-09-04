@@ -184,6 +184,12 @@
             "help": "Het uitpakken van de inhoud van de geselecteerde items maakt een apart item voor elk van de inhoud.",
             "help_invalid_selection": "Je selectie moet items met meerdere sporen bevatten om ze uit te pakken."
         },
+        "elevation": {
+            "tooltip": "Request elevation data",
+            "button": "Request elevation data",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
+            "help_no_selection": "Select a file item to request elevation data."
+        },
         "waypoint": {
             "tooltip": "Maken en bewerken van bezienswaardigheden",
             "icon": "Pictogram",
