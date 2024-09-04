@@ -113,7 +113,7 @@
         let layer: CustomLayer = {
             id: layerId,
             name: name,
-            tileUrls: tileUrls,
+            tileUrls: tileUrls.map((url) => decodeURI(url.trim())),
             maxZoom: maxZoom,
             layerType: layerType,
             resourceType: resourceType,
@@ -121,14 +121,14 @@
         };
 
         if (resourceType === 'vector') {
-            layer.value = tileUrls[0];
+            layer.value = layer.tileUrls[0];
         } else {
             layer.value = {
                 version: 8,
                 sources: {
                     [layerId]: {
                         type: 'raster',
-                        tiles: tileUrls,
+                        tiles: layer.tileUrls,
                         tileSize: 256,
                         maxzoom: maxZoom
                     }
