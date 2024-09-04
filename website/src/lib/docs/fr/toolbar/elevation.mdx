@@ -1,0 +1,24 @@
+---
+title: Dénivelé
+---
+
+<script>
+    import { MountainSnow } from 'lucide-svelte';
+    import Elevation from '$lib/components/toolbar/tools/Elevation.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# <MountainSnow size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+This tool allows you to add elevation data to traces and [points of interest](../gpx), or to replace the existing data.
+
+<div class="flex flex-row justify-center">
+    <Elevation class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+<DocsNote>
+
+Elevation data is provided by <a href="https://mapbox.com" target="_blank">Mapbox</a>.
+You can learn more about its origin and accuracy in the <a href="https://docs.mapbox.com/data/tilesets/reference/mapbox-terrain-dem-v1/#elevation-data" target="_blank">documentation</a>.
+
+</DocsNote>
