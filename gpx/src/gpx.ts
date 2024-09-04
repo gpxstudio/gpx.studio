@@ -372,14 +372,14 @@ export class GPXFile extends GPXTreeNode<Track>{
         });
     }
 
-    addElevation(callback: (Coordinates) => number, trackIndices?: number[], segmentIndices?: number[], waypointIndices?: number[]) {
-        let og = getOriginal(this); // Read as much as possible from the original object because it is faster
+    addElevation(elevations: number[], trackIndices?: number[], segmentIndices?: number[], waypointIndices?: number[]) {
+        let index = 0;
         this.trk.forEach((track, trackIndex) => {
             if (trackIndices === undefined || trackIndices.includes(trackIndex)) {
                 track.trkseg.forEach((segment, segmentIndex) => {
                     if (segmentIndices === undefined || segmentIndices.includes(segmentIndex)) {
-                        segment.trkpt.forEach((point, pointIndex) => {
-                            point.ele = callback(og.trk[trackIndex].trkseg[segmentIndex].trkpt[pointIndex].attributes);
+                        segment.trkpt.forEach((point) => {
+                            point.ele = elevations[index++];
                         });
                     }
                 });
@@ -387,7 +387,7 @@ export class GPXFile extends GPXTreeNode<Track>{
         });
         this.wpt.forEach((waypoint, waypointIndex) => {
             if (waypointIndices === undefined || waypointIndices.includes(waypointIndex)) {
-                waypoint.ele = callback(og.wpt[waypointIndex].attributes);
+                waypoint.ele = elevations[index++];
             }
         });
     }

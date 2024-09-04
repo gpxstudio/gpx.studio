@@ -8,7 +8,7 @@ import { applyToOrderedItemsFromFile, applyToOrderedSelectedItemsFromFile, selec
 import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem, ListRootItem } from '$lib/components/file-list/FileList';
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
 import { SplitType } from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
-import { getClosestLinePoint, getElevation, getPreciseElevations } from '$lib/utils';
+import { getClosestLinePoint, getElevation } from '$lib/utils';
 import { browser } from '$app/environment';
 import type mapboxgl from 'mapbox-gl';
 
@@ -911,29 +911,30 @@ export const dbUtils = {
         if (m === null) {
             return;
         }
-        let ele = getElevation(m, waypoint.attributes);
-        if (item) {
-            dbUtils.applyToFile(item.getFileId(), (file) => {
-                let wpt = file.wpt[item.getWaypointIndex()];
-                wpt.name = waypoint.name;
-                wpt.desc = waypoint.desc;
-                wpt.cmt = waypoint.cmt;
-                wpt.sym = waypoint.sym;
-                wpt.link = waypoint.link;
-                wpt.setCoordinates(waypoint.attributes);
-                wpt.ele = ele;
-            });
-        } else {
-            let fileIds = new Set<string>();
-            get(selection).getSelected().forEach((item) => {
-                fileIds.add(item.getFileId());
-            });
-            let wpt = new Waypoint(waypoint);
-            wpt.ele = ele;
-            dbUtils.applyToFiles(Array.from(fileIds), (file) =>
-                file.replaceWaypoints(file.wpt.length, file.wpt.length, [wpt])
-            );
-        }
+        getElevation([waypoint.attributes]).then((elevation) => {
+            if (item) {
+                dbUtils.applyToFile(item.getFileId(), (file) => {
+                    let wpt = file.wpt[item.getWaypointIndex()];
+                    wpt.name = waypoint.name;
+                    wpt.desc = waypoint.desc;
+                    wpt.cmt = waypoint.cmt;
+                    wpt.sym = waypoint.sym;
+                    wpt.link = waypoint.link;
+                    wpt.setCoordinates(waypoint.attributes);
+                    wpt.ele = elevation[0];
+                });
+            } else {
+                let fileIds = new Set<string>();
+                get(selection).getSelected().forEach((item) => {
+                    fileIds.add(item.getFileId());
+                });
+                let wpt = new Waypoint(waypoint);
+                wpt.ele = elevation[0];
+                dbUtils.applyToFiles(Array.from(fileIds), (file) =>
+                    file.replaceWaypoints(file.wpt.length, file.wpt.length, [wpt])
+                );
+            }
+        });
     },
     setStyleToSelection: (style: LineStyleExtension) => {
         if (get(selection).size === 0) {
@@ -1052,27 +1053,25 @@ export const dbUtils = {
             }
         });
 
-        getPreciseElevations(map, points).then((elevations) => {
-
-            let callback = (coordinates: Coordinates) => elevations.get(`${coordinates.lat},${coordinates.lon}`) ?? 0;
+        getElevation(points).then((elevations) => {
             applyGlobal((draft) => {
                 applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
                     let file = draft.get(fileId);
                     if (file) {
                         if (level === ListLevel.FILE) {
-                            file.addElevation(callback);
+                            file.addElevation(elevations);
                         } else if (level === ListLevel.TRACK) {
                             let trackIndices = items.map((item) => (item as ListTrackItem).getTrackIndex());
-                            file.addElevation(callback, trackIndices, undefined, []);
+                            file.addElevation(elevations, trackIndices, undefined, []);
                         } else if (level === ListLevel.SEGMENT) {
                             let trackIndices = [(items[0] as ListTrackSegmentItem).getTrackIndex()];
                             let segmentIndices = items.map((item) => (item as ListTrackSegmentItem).getSegmentIndex());
-                            file.addElevation(callback, trackIndices, segmentIndices, []);
+                            file.addElevation(elevations, trackIndices, segmentIndices, []);
                         } else if (level === ListLevel.WAYPOINTS) {
-                            file.addElevation(callback, [], [], undefined);
+                            file.addElevation(elevations, [], [], undefined);
                         } else if (level === ListLevel.WAYPOINT) {
                             let waypointIndices = items.map((item) => (item as ListWaypointItem).getWaypointIndex());
-                            file.addElevation(callback, [], [], waypointIndices);
+                            file.addElevation(elevations, [], [], waypointIndices);
                         }
                     }
                 });

@@ -261,14 +261,16 @@ export class GPXLayer {
                     marker.on('dragend', (e) => {
                         resetCursor();
                         marker.getElement().style.cursor = '';
-                        dbUtils.applyToFile(this.fileId, (file) => {
-                            let latLng = marker.getLngLat();
-                            let wpt = file.wpt[marker._waypoint._data.index];
-                            wpt.setCoordinates({
-                                lat: latLng.lat,
-                                lon: latLng.lng
+                        getElevation([marker._waypoint]).then((ele) => {
+                            dbUtils.applyToFile(this.fileId, (file) => {
+                                let latLng = marker.getLngLat();
+                                let wpt = file.wpt[marker._waypoint._data.index];
+                                wpt.setCoordinates({
+                                    lat: latLng.lat,
+                                    lon: latLng.lng
+                                });
+                                wpt.ele = ele[0];
                             });
-                            wpt.ele = getElevation(this.map, wpt.getCoordinates());
                         });
                         dragEndTimestamp = Date.now()
                     });

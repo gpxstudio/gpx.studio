@@ -125,13 +125,11 @@ function getIntermediatePoints(points: Coordinates[]): Promise<TrackPoint[]> {
         }
     }));
 
-    let m = get(map);
-    route.forEach((point) => {
-        point.setSurface("unknown");
-        if (m) {
-            point.ele = getElevation(m, point.getCoordinates());
-        }
+    return getElevation(route).then((elevations) => {
+        route.forEach((point, i) => {
+            point.setSurface("unknown");
+            point.ele = elevations[i];
+        });
+        return route;
     });
-
-    return new Promise((resolve) => resolve(route));
 }

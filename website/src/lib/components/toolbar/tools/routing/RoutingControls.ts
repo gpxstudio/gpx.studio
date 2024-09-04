@@ -10,7 +10,7 @@ import { dbUtils, type GPXFileWithStatistics } from "$lib/db";
 import { getOrderedSelection, selection } from "$lib/components/file-list/Selection";
 import { ListFileItem, ListTrackItem, ListTrackSegmentItem } from "$lib/components/file-list/FileList";
 import { currentTool, streetViewEnabled, Tool } from "$lib/stores";
-import { getClosestLinePoint, getElevation, resetCursor, setGrabbingCursor } from "$lib/utils";
+import { getClosestLinePoint, resetCursor, setGrabbingCursor } from "$lib/utils";
 
 export const canChangeStart = writable(false);
 

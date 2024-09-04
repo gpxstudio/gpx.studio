@@ -1,11 +1,11 @@
-import { File, FilePen, View, type Icon, Settings, Pencil, MapPin, Scissors, CalendarClock, Group, Ungroup, Filter, SquareDashedMousePointer } from "lucide-svelte";
+import { File, FilePen, View, type Icon, Settings, Pencil, MapPin, Scissors, CalendarClock, Group, Ungroup, Filter, SquareDashedMousePointer, MountainSnow } from "lucide-svelte";
 import type { ComponentType } from "svelte";
 
 export const guides: Record<string, string[]> = {
     'getting-started': [],
     menu: ['file', 'edit', 'view', 'settings'],
     'files-and-stats': [],
-    toolbar: ['routing', 'poi', 'scissors', 'time', 'merge', 'extract', 'minify', 'clean'],
+    toolbar: ['routing', 'poi', 'scissors', 'time', 'merge', 'extract', 'elevation', 'minify', 'clean'],
     'map-controls': [],
     'gpx': [],
     'integration': [],
@@ -27,6 +27,7 @@ export const guideIcons: Record<string, string | ComponentType<Icon>> = {
     "time": CalendarClock,
     "merge": Group,
     "extract": Ungroup,
+    "elevation": MountainSnow,
     "minify": Filter,
     "clean": SquareDashedMousePointer,
     "map-controls": "🗺",

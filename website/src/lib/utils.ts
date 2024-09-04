@@ -7,8 +7,11 @@ import { map } from "./stores";
 import { base } from "$app/paths";
 import { languages } from "$lib/languages";
 import { locale } from "svelte-i18n";
-import type mapboxgl from "mapbox-gl";
-import { type TrackPoint, type Waypoint, type Coordinates, crossarcDistance, distance } from "gpx";
+import { TrackPoint, Waypoint, type Coordinates, crossarcDistance, distance } from "gpx";
+import mapboxgl from "mapbox-gl";
+import tilebelt from "@mapbox/tilebelt";
+import { PUBLIC_MAPBOX_TOKEN } from "$env/static/public";
+import PNGReader from "png.js";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -90,32 +93,52 @@ export function getClosestLinePoint(points: TrackPoint[], point: TrackPoint | Co
     return closest;
 }
 
-export function getElevation(map: mapboxgl.Map, coordinates: Coordinates): number {
-    let elevation = map.queryTerrainElevation(coordinates, { exaggerated: false });
-    return elevation === null ? 0 : elevation;
-}
+export function getElevation(points: (TrackPoint | Waypoint | Coordinates)[], ELEVATION_ZOOM: number = 13, tileSize = 512): Promise<number[]> {
+    let coordinates = points.map((point) => (point instanceof TrackPoint || point instanceof Waypoint) ? point.getCoordinates() : point);
+    let bbox = new mapboxgl.LngLatBounds();
+    coordinates.forEach((coord) => bbox.extend(coord));
 
-export async function getPreciseElevation(map: mapboxgl.Map, coordinates: Coordinates | mapboxgl.LngLat): Promise<number> {
-    if (!map.getBounds().contains(coordinates) || map.getZoom() < 14) {
-        map.flyTo({ center: coordinates, zoom: 14 });
-        await map.once('idle');
-    }
-    let elevation = map.queryTerrainElevation(coordinates, { exaggerated: false });
-    return elevation === null ? 0 : elevation;
-}
+    let tiles = coordinates.map((coord) => tilebelt.pointToTile(coord.lon, coord.lat, ELEVATION_ZOOM));
+    let uniqueTiles = Array.from(new Set(tiles.map((tile) => tile.join(',')))).map((tile) => tile.split(',').map((x) => parseInt(x)));
+    let pngs = new Map<string, PNGReader>();
 
-export async function getPreciseElevations(map: mapboxgl.Map, points: (TrackPoint | Waypoint)[]): Promise<Map<string, number>> {
-    let elevations = new Map<string, number>();
+    let promises = uniqueTiles.map((tile) => fetch(`https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/${ELEVATION_ZOOM}/${tile[0]}/${tile[1]}@2x.pngraw?access_token=${PUBLIC_MAPBOX_TOKEN}`, { cache: 'force-cache' }).then((response) => response.arrayBuffer()).then((buffer) => new Promise((resolve, reject) => {
+        let png = new PNGReader(new Uint8Array(buffer));
+        png.parse((err, png) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(png);
+            }
+        });
+    })).then((png) => {
+        pngs.set(tile.join(','), png);
+    }));
 
-    for (let point of points) {
-        let key = `${point.getLatitude()},${point.getLongitude()}`;
-        if (elevations.has(key)) {
-            continue;
-        }
-        elevations.set(key, await getPreciseElevation(map, point.getCoordinates()));
-    }
+    return Promise.all(promises).then(() => coordinates.map((coord, index) => {
+        let tile = tiles[index];
+        let tf = tilebelt.pointToTileFraction(coord.lon, coord.lat, ELEVATION_ZOOM);
+        let x = tileSize * (tf[0] - tile[0]);
+        let y = tileSize * (tf[1] - tile[1]);
+        let _x = Math.floor(x);
+        let _y = Math.floor(y);
+        let dx = x - _x;
+        let dy = y - _y;
 
-    return elevations;
+        // Get the four pixels surrounding the point
+        let png = pngs.get(tile.join(','))!;
+        const p00 = png.getPixel(_x, _y);
+        const p01 = png.getPixel(_x, _y + (_y + 1 == tileSize ? 0 : 1));
+        const p10 = png.getPixel(_x + (_x + 1 == tileSize ? 0 : 1), _y);
+        const p11 = png.getPixel(_x + (_x + 1 == tileSize ? 0 : 1), _y + (_y + 1 == tileSize ? 0 : 1));
+
+        let ele00 = -10000 + ((p00[0] * 256 * 256 + p00[1] * 256 + p00[2]) * 0.1);
+        let ele01 = -10000 + ((p01[0] * 256 * 256 + p01[1] * 256 + p01[2]) * 0.1);
+        let ele10 = -10000 + ((p10[0] * 256 * 256 + p10[1] * 256 + p10[2]) * 0.1);
+        let ele11 = -10000 + ((p11[0] * 256 * 256 + p11[1] * 256 + p11[2]) * 0.1);
+
+        return ele00 * (1 - dx) * (1 - dy) + ele01 * (1 - dx) * dy + ele10 * dx * (1 - dy) + ele11 * dx * dy;
+    }));
 }
 
 let previousCursors: string[] = [];
