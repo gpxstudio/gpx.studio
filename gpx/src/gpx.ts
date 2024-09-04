@@ -112,7 +112,7 @@ export class GPXFile extends GPXTreeNode<Track>{
         super();
         if (gpx) {
             this.attributes = gpx.attributes
-            this.metadata = gpx.metadata;
+            this.metadata = gpx.metadata ?? {};
             this.metadata.author = {
                 name: 'gpx.studio',
                 link: {
