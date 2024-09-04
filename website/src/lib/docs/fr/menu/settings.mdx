@@ -1,0 +1,50 @@
+---
+title: Réglages
+---
+
+<script lang="ts">
+    import { Ruler, Zap, Thermometer, Languages, Sun, PersonStanding, Layers3 } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+### <Ruler size="16" class="inline-block" style="margin-bottom: 2px" /> Unités de distance
+
+Changer les unités utilisées pour afficher les distances dans l'interface.
+
+### <Zap size="16" class="inline-block" style="margin-bottom: 2px" /> Unités de vitesse
+
+Changer les unités utilisées pour afficher les vitesses dans l'interface.
+Vous pouvez choisir entre distance par heure et minutes par distance, ce qui peut être plus approprié pour les activités en course à pied.
+
+### <Thermometer size="16" class="inline-block" style="margin-bottom: 2px" /> Unités de température
+
+Changer les unités utilisées pour afficher les températures dans l'interface.
+
+### <Languages size="16" class="inline-block" style="margin-bottom: 2px" /> Langue
+
+Définir la langue de l'interface.
+
+<DocsNote>
+
+Vous pouvez contribuer en ajoutant ou en améliorant des traductions sur notre projet <a href="https://crowdin.com/project/gpxstudio" target="_blank">Crowdin</a>.
+Si vous voulez commencer la traduction dans une nouvelle langue, vous pouvez nous <a href="#contact">contacter</a>.
+Toute aide est grandement appréciée !
+
+</DocsNote>
+
+### <Sun size="16" class="inline-block" style="margin-bottom: 2px" /> Thème
+
+Changer le thème utilisé dans l'interface.
+
+### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Source d'imagerie de rue
+
+Changer la source utilisée pour la [commande d'imagerie de rue](../map-controls).
+Par défaut, l'imagerie de <a href="https://www.mapillary.com" target="_blank">Mapillary</a> est utilisée, mais vous pouvez également utiliser <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>.
+Plus d'informations sur l'utilisation de la commande d'imagerie de rue dans la [section des commandes de la carte](../map-controls).
+
+### <Layers3 size="16" class="inline-block" style="margin-bottom: 2px" /> Couches de la carte...
+
+Ouvrir un menu où vous pouvez activer ou désactiver les couches de la carte, ajouter des couches personnalisées, modifier l'opacité des surcouches et plus encore.
+Plus d'informations sur les couches de la carte peuvent être trouvées dans la [section des commandes de la carte](../map-controls).

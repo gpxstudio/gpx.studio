@@ -1,0 +1,48 @@
+---
+title: Opciones de vista
+---
+
+<script lang="ts">
+    import { ChartArea, GalleryVertical, Map, Layers2, Coins, Milestone, Box } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+Este menú proporciona opciones para reorganizar la interfaz y la vista del mapa.
+
+### <ChartArea size="16" class="inline-block" style="margin-bottom: 2px" /> Perfil de elevación
+
+Oculta el perfil de elevación para dejar espacio para el mapa, o lo muestra para inspeccionar la selección actual.
+
+### <GalleryVertical size="16" class="inline-block" style="margin-bottom: 2px" /> Lista vertical de archivos
+
+Cambia entre una distribución vertical u horizontal para la lista de archivos.
+La [lista vertical de archivos](../files-and-stats) es útil cuando tiene muchos archivos abiertos o archivos con varios [pistas, segmentos o puntos de interés](../gpx).
+
+### <Map size="16" class="inline-block" style="margin-bottom: 2px" /> Cambiar al mapa base anterior
+
+Cambia el mapa base al seleccionado previamente mediante el [control de capa de mapa](../map-controls).
+
+### <Layers2 size="16" class="inline-block" style="margin-bottom: 2px" /> Alternar capas superpuestas
+
+Cambia la visibilidad de las capas seleccionadas del mapa a través del [control de capa de mapa](../map-controls).
+
+### <Coins size="16" class="inline-block" style="margin-bottom: 2px" /> Marcadores de distancia
+
+Alterna la visibilidad de los marcadores de distancia en el mapa.
+Se muestran para la selección actual, como el [perfil de elevación](../files-and-stats).
+
+### <Milestone size="16" class="inline-block" style="margin-bottom: 2px" /> Flechas de dirección
+
+Alterna la visibilidad de las flechas de dirección en el mapa.
+
+### <Box size="16" class="inline-block" style="margin-bottom: 2px" /> Alternar 3D
+
+Entra o sale de la vista 3D del mapa.
+
+<DocsNote>
+
+Para controlar la orientación e inclinación del mapa, puede arrastrarlo mientras mantiene pulsada la tecla <kbd>Ctrl</kbd>.
+
+</DocsNote>

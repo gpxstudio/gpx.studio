@@ -10,15 +10,17 @@ title: Minify
 
 # <Filter size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
 
-This tool can be used to reduce the number of GPS points of a trace, which can be useful to reduce its size.
+This tool can be used to reduce the number of GPS points in a trace, which can be useful for decreasing its size.
 
-You can play with the slider to adjust the tolerance of the simplification algorithm, and see the number of points that will be kept as well as the simplified trace on the map.
+You can adjust the tolerance of the simplification algorithm using the slider, and see the number of points that will be kept, as well as the simplified trace on the map.
 
 <div class="flex flex-row justify-center">
     <Reduce class="text-foreground p-3 border rounded-md shadow-lg" />
 </div>
 
 <DocsNote>
-    The tolerance value represents the maximum distance allowed between the original trace and the simplified trace.
-    You can read more about the algorithm used <a href="https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm" target="_blank">here</a>.
+
+The tolerance value represents the maximum distance allowed between the original trace and the simplified trace.
+You can read more about the algorithm used <a href="https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm" target="_blank">here</a>.
+    
 </DocsNote>

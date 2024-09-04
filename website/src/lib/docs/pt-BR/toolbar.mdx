@@ -1,0 +1,32 @@
+---
+title: Barra de ferramentas
+---
+
+<script lang="ts">
+    import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
+	import { currentTool, Tool } from '$lib/stores';
+	import { onMount, onDestroy } from 'svelte';
+
+    onMount(() => {
+        currentTool.set(Tool.ROUTING);
+    });
+
+    onDestroy(() => {
+        currentTool.set(null);
+    });
+</script>
+
+# { title }
+
+A barra de ferramentas está localizada ao lado esquero do do mapa e é o coração da aplicação, dando acesso as principais funcionalidades do **gpx.studio**.
+Cada ferramenta é representada por um ícone e pode ser ativada clicando nela.
+
+<div class="flex flex-row justify-center text-foreground">
+    <div>
+        <Toolbar class="border rounded-md shadow-lg" />
+    </div>
+</div>
+
+Como em [ações de edição](./menu/edit), a maioria das ferramentas pode ser aplicada a vários arquivos de uma única vez e para [faixas internas e segmentos](./gpx).
+
+As próximas seções descrevem cada ferramenta em detalhes.

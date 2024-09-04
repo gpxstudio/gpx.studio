@@ -1,0 +1,74 @@
+---
+title: Edit actions
+---
+
+<script lang="ts">
+    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+W przeciwieństwie do pliku, edycja może potencjalnie modyfikować zawartość aktualnie wybranych plików.
+Ponadto, gdy układ pionowy listy plików jest włączony (patrz [Pliki i statystyki](../files-and-stats)), może być również zastosowane do [ścieżek, segmentów i punktów zainteresowania](../gpx).
+Dlatego będziemy odnosić się do elementów, które mogą być modyfikowane przez te działania jako _elementy pliku_.
+Zauważ, że z wyjątkiem akcji cofania i powtarzania, akcje edycji są również dostępne w menu kontekstowym (prawy przycisk myszy) elementów pliku.
+
+### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Cofnij i ponów
+
+Używając tych przycisków, możesz cofnąć lub ponownie wykonać ostatnio wykonane czynności.
+Ma to zastosowanie do wszystkich akcji interfejsu, ale nie do opcji wyświetlania, ustawień aplikacji lub nawigacji mapy.
+
+### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> Info...
+
+Otwórz okno dialogowe aktualnie wybranego pliku, gdzie możesz zobaczyć i edytować jego nazwę i opis.
+
+### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Wygląd...
+
+Otwórz okno dialogowe wyglądu, aby zmienić kolor, przezroczystość i szerokość zaznaczonych elementów pliku na mapie.
+
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Ukryj/pokaż
+
+Przełącz widoczność zaznaczonego pliku na mapie.
+
+### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Zaznacz wszystko
+
+Dodaj do zaznaczenia wszystkie pliki na bieżącym poziomie hierarchii.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+
+Center the map on the selected file items.
+
+### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Kopiuj
+
+Skopiuj zaznaczone pliki do schowka.
+
+<DocsNote>
+
+Ta akcja jest dostępna tylko wtedy, gdy układ pionowy listy plików jest włączony.
+
+</DocsNote>
+
+### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Wytnij
+
+Wytnij zaznaczone pliki do schowka.
+
+<DocsNote>
+
+Ta akcja jest dostępna tylko wtedy, gdy układ pionowy listy plików jest włączony.
+
+</DocsNote>
+
+### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Wklej
+
+Wklej elementy pliku ze schowka do bieżącego poziomu hierarchii, jeśli są z nim zgodne.
+
+<DocsNote>
+
+Ta akcja jest dostępna tylko wtedy, gdy układ pionowy listy plików jest włączony.
+
+</DocsNote>
+
+### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Usuń
+
+Usuń zaznaczone pliki.

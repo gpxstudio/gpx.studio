@@ -1,0 +1,74 @@
+---
+title: Ações de edição
+---
+
+<script lang="ts">
+    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+Ao contrário das ações de arquivo, as ações de edição podem potencialmente modificar o conteúdo dos arquivos selecionados.
+Além do mais, quando o layout vertical da lista de arquivos está habilitado (veja [Arquivos e estatísticas](../files-and-stats)), eles também podem ser aplicadas a [faixas, segmentos e pontos de interesse](../gpx).
+Portanto, nós iremos nos referir aos elementos que podem ser modificados por essas ações como **itens de arquivo**.
+Note que exceto as ações de desfazer e refazer, as ações de edição também estão acessíveis através do menu de contexto (botão direito) dos itens de arquivo.
+
+### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Desfazer e refazer
+
+Usando esses botões, você pode desfazer e refazer as últimas ações realizadas.
+Isso se aplica para todas as ações da interface, mas não para as opções de visualização, configuração do aplicativo ou navegação no mapa.
+
+### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> Informações...
+
+Abrir a caixa de informação do arquivo atualmente selecionado, onde você pode ver e editar seu nome e descrição.
+
+### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Aparência...
+
+Abrir a caixa de aparência onde você pode mudar a cor, opacidade e largura do arquivo selecionado no mapa.
+
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Esconder/mostrar
+
+Alternar a visibilidade dos arquivos selecionados no mapa.
+
+### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Selecionar tudo
+
+Adicionar todos os itens na hierarquia atual à seleção.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+
+Center the map on the selected file items.
+
+### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copiar
+
+Copiar os arquivos selecionados para a área de transferência.
+
+<DocsNote>
+
+Esta ação só está disponível quando o layout vertical da lista de arquivos está habilitado.
+
+</DocsNote>
+
+### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Cortar
+
+Recortar os itens do arquivo selecionado para a área de transferência.
+
+<DocsNote>
+
+Esta ação só está disponível quando o layout vertical da lista de arquivos está habilitado.
+
+</DocsNote>
+
+### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Colar
+
+Cole os itens do arquivo da área de transferência para o nível de hierarquia atual se eles forem compatíveis com ele.
+
+<DocsNote>
+
+Esta ação só está disponível quando o layout vertical da lista de arquivos está habilitado.
+
+</DocsNote>
+
+### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Excluir
+
+Excluir os itens do arquivo selecionado.

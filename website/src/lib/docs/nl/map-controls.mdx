@@ -1,0 +1,67 @@
+---
+title: Kaart beheer
+---
+
+<script>
+    import { Plus, Minus, Diff, Compass, Search, LocateFixed, PersonStanding, Layers3 } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import DocsLayers from '$lib/components/docs/DocsLayers.svelte';
+</script>
+
+# { title }
+
+### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Kaartnavigatie
+
+Met de besturingselementen bovenaan kunt u inzoomen <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> en uitzoomen <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, en de oriëntatie en kanteling van de kaart <Compass size="16" class="inline-block" style="margin-bottom: 2px" /> wijzigen.
+
+<DocsNote>
+
+Om de oriëntatie en kanteling van de kaart te bepalen, kun je ook de kaart slepen terwijl je <kbd>Ctrl</kbd> ingedrukt houdt.
+
+</DocsNote>
+
+### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Zoekbalk
+
+Je kunt de zoekbalk gebruiken om een adres te zoeken en via de kaart er naar toe te navigeren.
+
+### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Lokaliseer knop
+
+De locatie-knop centreert de kaart op je huidige locatie.
+
+<DocsNote>
+
+Dit werkt alleen als je je browser en <b>gpx.studio</b> hebt toegestaan om toegang te krijgen tot je locatie.
+
+</DocsNote>
+
+### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Street view
+
+Deze knop kan worden gebruikt om de street view modus op de kaart in te schakelen.
+Afhankelijk van de bron die voor street view weergave gekozen is in de [settings](./menu/instellingen), kan straatbeeld verschillend benaderd worden.
+
+- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: de dekking van street view wordt weergegeven als groene lijnen op de kaart. Wanneer voldoende ingezoomd, zullen groene stippen de exacte locaties tonen waar straatbeeld aanwezig is. Bewegen over een groene stip toont op die locatie het straatbeeld.
+- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: klik op de kaart om een nieuw tabblad met het straatbeeld te openen op die locatie.
+
+### <Layers3 size="16" class="inline-block" style="margin-bottom: 2px" /> Kaartlagen
+
+Met de kaartlagen knop kunt u wisselen tussen verschillende basiskaarten, en kaart overlays en POI categorieën aan en uit zetten.
+
+- **Basiskaarten** zijn achtergrondkaarten die de belangrijkste geografische kenmerken van de wereld weergeven.
+  Afhankelijk van hun doel hebben basiskaarten verschillende stijlen en detailniveaus.
+  Er kan slechts één basiskaart tegelijk worden weergegeven.
+- **Overlays** zijn extra lagen die kunnen worden weergegeven bovenop de basiskaart om aanvullende informatie te verstrekken.
+- **POI's (Interessante punten)** kunnen worden toegevoegd aan de kaart om verschillende categorieën plaatsen te tonen, zoals winkels, restaurants, of accommodaties.
+
+<div class="flex flex-col items-center">
+    <DocsLayers />
+    <span class="text-sm text-center mt-2">
+Beweeg boven de kaart om de <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> overlay te tonen bovenop de <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> basiskaart.
+    </span>
+</div>
+
+Een grote verzameling van globale en lokale basiskaarten en overlays is beschikbaar in **gpx.studio**, evenals een aantal POI categorien.
+Ze kunnen worden ingeschakeld in het [map layer settings dialoog](./menu/settings).
+
+In deze instellingen kunt u ook de transparantie van de overlays beheren.
+
+Voor gevorderde gebruikers is het mogelijk om aangepaste basiskaarten en overlays toe te voegen door <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, of <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox style JSON</a> URLs.

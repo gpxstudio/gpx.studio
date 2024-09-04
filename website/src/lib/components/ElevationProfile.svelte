@@ -40,6 +40,7 @@
 	import { DateFormatter } from '@internationalized/date';
 	import type { GPXStatistics } from 'gpx';
 	import { settings } from '$lib/db';
+	import { mode } from 'mode-watcher';
 
 	export let gpxStatistics: Writable<GPXStatistics>;
 	export let slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined>;
@@ -72,6 +73,7 @@
 
 	let marker: mapboxgl.Marker | null = null;
 	let dragging = false;
+	let panning = false;
 
 	let options = {
 		animation: false,
@@ -102,7 +104,8 @@
 			line: {
 				pointRadius: 0,
 				tension: 0.4,
-				borderWidth: 2
+				borderWidth: 2,
+				cubicInterpolationMode: 'monotone'
 			}
 		},
 		interaction: {
@@ -118,7 +121,7 @@
 				enabled: true
 			},
 			tooltip: {
-				enabled: () => !dragging,
+				enabled: () => !dragging && !panning,
 				callbacks: {
 					title: function () {
 						return '';
@@ -174,6 +177,48 @@
 						}
 
 						return labels;
+					}
+				}
+			},
+			zoom: {
+				pan: {
+					enabled: true,
+					mode: 'x',
+					modifierKey: 'shift',
+					onPanStart: function () {
+						// hide tooltip
+						panning = true;
+						$slicedGPXStatistics = undefined;
+					},
+					onPanComplete: function () {
+						panning = false;
+					}
+				},
+				zoom: {
+					wheel: {
+						enabled: true
+					},
+					mode: 'x',
+					onZoomStart: function ({ chart, event }: { chart: Chart; event: any }) {
+						if (
+							event.deltaY < 0 &&
+							Math.abs(
+								chart.getInitialScaleBounds().x.max / chart.options.plugins.zoom.limits.x.minRange -
+									chart.getZoomLevel()
+							) < 0.01
+						) {
+							// Disable wheel pan if zoomed in to the max, and zooming in
+							return false;
+						}
+
+						$slicedGPXStatistics = undefined;
+					}
+				},
+				limits: {
+					x: {
+						min: 'original',
+						max: 'original',
+						minRange: 1
 					}
 				}
 			}
@@ -248,7 +293,9 @@
 		}
 	};
 
-	onMount(() => {
+	onMount(async () => {
+		Chart.register((await import('chartjs-plugin-zoom')).default); // dynamic import to avoid SSR and 'window is not defined' error
+
 		chart = new Chart(canvas, {
 			type: 'line',
 			data: {
@@ -312,6 +359,10 @@
 
 		let dragStarted = false;
 		function onMouseDown(evt) {
+			if (evt.shiftKey) {
+				// Panning interaction
+				return;
+			}
 			dragStarted = true;
 			canvas.style.cursor = 'col-resize';
 			startIndex = getIndex(evt);
@@ -525,7 +576,8 @@
 			// Draw selection rectangle
 			let selectionContext = overlay.getContext('2d');
 			if (selectionContext) {
-				selectionContext.globalAlpha = 0.1;
+				selectionContext.fillStyle = $mode === 'dark' ? 'white' : 'black';
+				selectionContext.globalAlpha = $mode === 'dark' ? 0.2 : 0.1;
 				selectionContext.clearRect(0, 0, overlay.width, overlay.height);
 
 				let startPixel = chart.scales.x.getPixelForValue(
@@ -550,7 +602,7 @@
 		}
 	}
 
-	$: $slicedGPXStatistics, updateOverlay();
+	$: $slicedGPXStatistics, $mode, updateOverlay();
 
 	onDestroy(() => {
 		if (chart) {

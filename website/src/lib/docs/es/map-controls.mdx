@@ -1,0 +1,67 @@
+---
+title: Controles del mapa
+---
+
+<script>
+    import { Plus, Minus, Diff, Compass, Search, LocateFixed, PersonStanding, Layers3 } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import DocsLayers from '$lib/components/docs/DocsLayers.svelte';
+</script>
+
+# { title }
+
+### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Navegación del mapa
+
+Los controles de la parte superior le permiten acercarse <Plus size="16" class="inline-block" style="margin-bottom: 2px" />, alejarse <Minus size="16" class="inline-block" style="margin-bottom: 2px" /> y cambiar la orientación e inclinación del mapa <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
+
+<DocsNote>
+
+Para controlar la orientación e inclinación del mapa, puede arrastrarlo mientras mantiene pulsada la tecla <kbd>Ctrl</kbd>.
+
+</DocsNote>
+
+### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Barra de búsqueda
+
+Puede usar la barra de búsqueda para buscar una dirección y navegar hacia ella en el mapa.
+
+### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Botón de ubicación
+
+El botón de ubicación centra el mapa en su ubicación actual.
+
+<DocsNote>
+
+Solo funciona si ha permitido que su navegador y <b>gpx.studio</b> accedan a su ubicación.
+
+</DocsNote>
+
+### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Vista de calle
+
+Este botón se usa para activar el modo de vista en calle en el mapa.
+Dependiendo de la fuente de la vista de calle seleccionada en la [configuración](./menu/settings), se puede acceder a las imágenes de las calles de forma diferente.
+
+- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: la cobertura de la vista de calle aparecerá como líneas verdes en el mapa. Al acercarse lo suficiente, se mostrarán las ubicaciones exactas como puntos verdes donde estén disponibles las imágenes de vista de calle. Al pasar el cursor por encima de un punto verde se mostrará la imagen de la calle en esa ubicación.
+- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: haga clic en el mapa para abrir una nueva pestaña con las imágenes de vista de calle de esa ubicación.
+
+### <Layers3 size="16" class="inline-block" style="margin-bottom: 2px" /> Capas de mapa
+
+El botón de capas de mapa le permite cambiar entre diferentes mapas bases y alternar capas superpuestas del mapa y categorías de puntos de interés.
+
+- Los **mapas base** son mapas de fondo que presentan las principales características geográficas del mundo.
+  Solo se puede mostrar un mapa base a la vez.
+  Dependiendo de su propósito, los mapas base tienen distintos estilos y niveles de detalle.
+- Las **capas superpuestas** son capas adicionales que se pueden mostrar sobre el mapa de base para proporcionar información complementaria.
+- Los **puntos de interés** se pueden añadir al mapa para mostrar diferentes categorías de lugares, como tiendas, restaurantes o alojamientos.
+
+<div class="flex flex-col items-center">
+    <DocsLayers />
+    <span class="text-sm text-center mt-2">
+        Sitúe el cursor sobre el mapa para mostrar la capa <a href="https://hiking.waymarkedtrails.org" target="_blank">Rutas Señalizadas de senderismo</a> sobre el mapa base <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Exteriores</a>.
+    </span>
+</div>
+
+Una gran colección de mapas y capas superpuestas globales y locales está disponible en **gpx.studio**, así como una selección de categorías de puntos de interés.
+Pueden activarse en la [configuración de capas del mapa](./menu/settings).
+
+En estos ajustes, también puede administrar la opacidad de las capas superpuestas.
+
+Para los usuarios avanzados, es posible añadir mapas base y superposiciones personalizadas proporcionando <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a> o URLs <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">JSON estilo Mapbox</a>.

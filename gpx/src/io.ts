@@ -23,6 +23,7 @@ export function parseGPX(gpxData: string): GPXFile {
             }
             return tagName;
         },
+        parseTagValue: false,
         tagValueProcessor(tagName, tagValue, jPath, hasAttributes, isLeafNode) {
             if (isLeafNode) {
                 if (tagName === 'ele') {
@@ -33,7 +34,7 @@ export function parseGPX(gpxData: string): GPXFile {
                     return new Date(tagValue);
                 }
 
-                if (tagName === 'gpxtpx:hr' || tagName === 'gpxtpx:cad' || tagName === 'gpxtpx:atemp' || tagName === 'gpxpx:PowerInWatts' || tagName === 'opacity' || tagName === 'weight') {
+                if (tagName === 'gpxtpx:atemp' || tagName === 'gpxtpx:hr' || tagName === 'gpxtpx:cad' || tagName === 'gpxpx:PowerInWatts' || tagName === 'opacity' || tagName === 'weight') {
                     return parseFloat(tagValue);
                 }
 
@@ -60,9 +61,8 @@ export function parseGPX(gpxData: string): GPXFile {
     return new GPXFile(parsed);
 }
 
-
-export function buildGPX(file: GPXFile): string {
-    const gpx = file.toGPXFileType();
+export function buildGPX(file: GPXFile, exclude: string[]): string {
+    const gpx = file.toGPXFileType(exclude);
 
     const builder = new XMLBuilder({
         format: true,
@@ -87,14 +87,6 @@ export function buildGPX(file: GPXFile): string {
     gpx.attributes['xmlns:gpxx'] = 'http://www.garmin.com/xmlschemas/GpxExtensions/v3';
     gpx.attributes['xmlns:gpxpx'] = 'http://www.garmin.com/xmlschemas/PowerExtension/v1';
     gpx.attributes['xmlns:gpx_style'] = 'http://www.topografix.com/GPX/gpx_style/0/2';
-    gpx.metadata.author = {
-        name: 'gpx.studio',
-        link: {
-            attributes: {
-                href: 'https://gpx.studio',
-            }
-        }
-    };
 
     if (gpx.trk.length === 1 && (gpx.trk[0].name === undefined || gpx.trk[0].name === '')) {
         gpx.trk[0].name = gpx.metadata.name;

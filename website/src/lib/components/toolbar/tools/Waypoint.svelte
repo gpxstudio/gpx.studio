@@ -9,9 +9,10 @@
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Button } from '$lib/components/ui/button';
+	import * as Select from '$lib/components/ui/select';
 	import { selection } from '$lib/components/file-list/Selection';
 	import { Waypoint } from 'gpx';
-	import { _ } from 'svelte-i18n';
+	import { _, locale } from 'svelte-i18n';
 	import { ListWaypointItem } from '$lib/components/file-list/FileList';
 	import { dbUtils, fileObservers, getFile, settings, type GPXFileWithStatistics } from '$lib/db';
 	import { get } from 'svelte/store';
@@ -20,11 +21,18 @@
 	import { map } from '$lib/stores';
 	import { resetCursor, setCrosshairCursor } from '$lib/utils';
 	import { CirclePlus, CircleX, Save } from 'lucide-svelte';
+	import { getSymbolKey, symbols } from '$lib/assets/symbols';
 
 	let name: string;
 	let description: string;
+	let link: string;
 	let longitude: number;
 	let latitude: number;
+
+	let selectedSymbol = {
+		value: '',
+		label: ''
+	};
 
 	const { verticalFileView } = settings;
 
@@ -60,6 +68,20 @@
 					) {
 						description += '\n\n' + $selectedWaypoint[0].cmt;
 					}
+					link = $selectedWaypoint[0].link?.attributes?.href ?? '';
+					let symbol = $selectedWaypoint[0].sym ?? '';
+					let symbolKey = getSymbolKey(symbol);
+					if (symbolKey) {
+						selectedSymbol = {
+							value: symbol,
+							label: $_(`gpx.symbol.${symbolKey}`)
+						};
+					} else {
+						selectedSymbol = {
+							value: symbol,
+							label: ''
+						};
+					}
 					longitude = parseFloat($selectedWaypoint[0].getLongitude().toFixed(6));
 					latitude = parseFloat($selectedWaypoint[0].getLatitude().toFixed(6));
 				} else {
@@ -74,6 +96,11 @@
 	function resetWaypointData() {
 		name = '';
 		description = '';
+		link = '';
+		selectedSymbol = {
+			value: '',
+			label: ''
+		};
 		longitude = 0;
 		latitude = 0;
 	}
@@ -109,9 +136,11 @@
 					lat: latitude,
 					lon: longitude
 				},
-				name,
-				desc: description,
-				cmt: description
+				name: name.length > 0 ? name : undefined,
+				desc: description.length > 0 ? description : undefined,
+				cmt: description.length > 0 ? description : undefined,
+				link: link.length > 0 ? { attributes: { href: link } } : undefined,
+				sym: selectedSymbol.value.length > 0 ? selectedSymbol.value : undefined
 			},
 			$selectedWaypoint
 				? new ListWaypointItem($selectedWaypoint[1], $selectedWaypoint[0]._data.index)
@@ -126,6 +155,10 @@
 		latitude = e.lngLat.lat.toFixed(6);
 		longitude = e.lngLat.lng.toFixed(6);
 	}
+
+	$: sortedSymbols = Object.entries(symbols).sort((a, b) => {
+		return $_(`gpx.symbol.${a[0]}`).localeCompare($_(`gpx.symbol.${b[0]}`), $locale ?? 'en');
+	});
 
 	onMount(() => {
 		let m = get(map);
@@ -151,6 +184,32 @@
 		<Input bind:value={name} id="name" class="font-semibold h-8" />
 		<Label for="description">{$_('menu.metadata.description')}</Label>
 		<Textarea bind:value={description} id="description" />
+		<Label for="symbol">{$_('toolbar.waypoint.icon')}</Label>
+		<Select.Root bind:selected={selectedSymbol}>
+			<Select.Trigger id="symbol" class="w-full h-8">
+				<Select.Value />
+			</Select.Trigger>
+			<Select.Content class="max-h-60 overflow-y-scroll">
+				{#each sortedSymbols as [key, symbol]}
+					<Select.Item value={symbol.value}>
+						<span>
+							{#if symbol.icon}
+								<svelte:component
+									this={symbol.icon}
+									size="14"
+									class="inline-block align-sub mr-0.5"
+								/>
+							{:else}
+								<span class="w-4 inline-block" />
+							{/if}
+							{$_(`gpx.symbol.${key}`)}
+						</span>
+					</Select.Item>
+				{/each}
+			</Select.Content>
+		</Select.Root>
+		<Label for="link">{$_('toolbar.waypoint.link')}</Label>
+		<Input bind:value={link} id="link" class="h-8" />
 		<div class="flex flex-row gap-2">
 			<div>
 				<Label for="latitude">{$_('toolbar.waypoint.latitude')}</Label>
@@ -204,7 +263,7 @@
 			<CircleX size="16" />
 		</Button>
 	</div>
-	<Help>
+	<Help link="./help/toolbar/poi">
 		{#if $selectedWaypoint || canCreate}
 			{$_('toolbar.waypoint.help')}
 		{:else}

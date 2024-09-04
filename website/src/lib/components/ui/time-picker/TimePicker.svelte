@@ -4,13 +4,14 @@
 	export let showHours = true;
 	export let value: number | undefined = undefined;
 	export let disabled: boolean = false;
+	export let onChange = () => {};
 
 	let hours: string | number = '--';
 	let minutes: string | number = '--';
 	let seconds: string | number = '--';
 
 	function maybeParseInt(value: string | number): number {
-		if (value === '--') {
+		if (value === '--' || value === '') {
 			return 0;
 		}
 		return typeof value === 'string' ? parseInt(value) : value;
@@ -84,12 +85,12 @@
 				} else {
 					hours = 0;
 				}
+				onChange();
 			}}
 			on:keypress={onKeyPress}
 			on:focusin={() => {
 				countKeyPress = 0;
 			}}
-			on:change
 		/>
 		<span class="text-sm">:</span>
 	{/if}
@@ -110,12 +111,12 @@
 				minutes = 0;
 			}
 			minutes = minutes.toString().padStart(showHours ? 2 : 1, '0');
+			onChange();
 		}}
 		on:keypress={onKeyPress}
 		on:focusin={() => {
 			countKeyPress = 0;
 		}}
-		on:change
 	/>
 	<span class="text-sm">:</span>
 	<TimeComponentInput
@@ -135,12 +136,12 @@
 				seconds = 0;
 			}
 			seconds = seconds.toString().padStart(2, '0');
+			onChange();
 		}}
 		on:keypress={onKeyPress}
 		on:focusin={() => {
 			countKeyPress = 0;
 		}}
-		on:change
 	/>
 </div>
 

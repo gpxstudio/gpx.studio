@@ -1,0 +1,50 @@
+---
+title: Impostazioni
+---
+
+<script lang="ts">
+    import { Ruler, Zap, Thermometer, Languages, Sun, PersonStanding, Layers3 } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+### <Ruler size="16" class="inline-block" style="margin-bottom: 2px" /> Unità distanza
+
+Cambia le unità utilizzate per visualizzare le distanze nell'interfaccia.
+
+### <Zap size="16" class="inline-block" style="margin-bottom: 2px" /> Velocity units
+
+Cambia le unità utilizzate per visualizzare le velocità nell'interfaccia.
+Puoi scegliere tra distanza oraria o minuti per distanza, che può essere più adatta per le attività di corsa.
+
+### <Thermometer size="16" class="inline-block" style="margin-bottom: 2px" /> Temperature units
+
+Cambia le unità utilizzate per visualizzare le temperature nell'interfaccia.
+
+### <Languages size="16" class="inline-block" style="margin-bottom: 2px" /> Language
+
+Cambia la lingua utilizzata nell'interfaccia.
+
+<DocsNote>
+
+Tu puoi contribuire aggiungendo o migliorando le traduzioni sul nostro <a href="https://crowdin.com/project/gpxstudio" target="_blank">progetto Crowdin</a>.
+Se desideri iniziare a tradurre in una nuova lingua, <a href="#contact">contattaci</a>.
+Qualsiasi aiuto è molto apprezzato!
+
+</DocsNote>
+
+### <Sun size="16" class="inline-block" style="margin-bottom: 2px" /> Theme
+
+Cambia il tema usato nell'interfaccia.
+
+### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Street view source
+
+Change the source used for the [street view control](../map-controls).
+The default one is <a href="https://www.mapillary.com" target="_blank">Mapillary</a>, but you can also use <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>.
+Learn more about how to use the street view control in the [map controls section](../map-controls).
+
+### <Layers3 size="16" class="inline-block" style="margin-bottom: 2px" /> Map layers...
+
+Open a dialog where you can enable or disable map layers, add custom ones, change the opacity of overlays, and more.
+More information about map layers can be found in the [map controls section](../map-controls).

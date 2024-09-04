@@ -74,7 +74,7 @@
 		<Group size="16" class="mr-1" />
 		{$_('toolbar.merge.merge_selection')}
 	</Button>
-	<Help>
+	<Help link="./help/toolbar/merge">
 		{#if mergeType === MergeType.TRACES && canMergeTraces}
 			{$_('toolbar.merge.help_merge_traces')}
 		{:else if mergeType === MergeType.TRACES && !canMergeTraces}

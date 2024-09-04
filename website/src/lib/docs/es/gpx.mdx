@@ -1,0 +1,34 @@
+---
+title: Formato de archivo GPX
+---
+
+<script>
+    import { Waypoints, MapPin } from 'lucide-svelte';
+</script>
+
+# { title }
+
+El <a href="https://www.topografix.com/gpx.asp" target="_blank">formato de archivo GPX</a> es un estándar abierto para el intercambio de datos GPS entre aplicaciones y dispositivos GPS.
+Consiste esencialmente en una serie de puntos GPS que codifican uno o varios trazados GPS y, opcionalmente, algunos puntos de interés.
+
+Los archivos GPX también pueden contener metadatos, de los cuales los campos **nombre** y **descripción** son los más útiles para los usuarios.
+
+### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Pistas, segmentos y puntos GPS
+
+Como se mencionó anteriormente, un archivo GPX puede contener múltiples trazados GPS.
+Éstos están organizados en una estructura jerárquica, con las pistas en el nivel superior.
+
+- Una **pista** está compuesta por una secuencia de segmentos desconectados.
+  Además, puede contener metadatos como un **nombre**, una **descripción**, y **propiedades de apariencia**.
+- Un **segmento** es una secuencia de puntos GPS que forman una ruta continua.
+- Un **punto GPS** es una ubicación con latitud, longitud y opcionalmente una marca de tiempo y altitud.
+  Algunos dispositivos también almacenan información adicional como ritmo cardíaco, cadencia, temperatura y potencia.
+
+En la mayoría de los casos, los archivos GPX contienen una sola pista con un solo segmento.
+Sin embargo, la jerarquía descrita anteriormente permite casos de uso más avanzados, como la planificación de viajes de varios días con varias variantes para cada día.
+
+### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Puntos de interés
+
+**Puntos de interés** (técnicamente llamados _waypoints_) representan ubicaciones de interés para mostrar en un dispositivo GPS o en un mapa digital.
+
+Además de sus coordenadas, un punto de interés puede tener un **nombre** y una **descripción**.

@@ -6,10 +6,23 @@ import { tick } from 'svelte';
 import { _ } from 'svelte-i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
 import { dbUtils, fileObservers, getFile, getStatistics, settings } from './db';
-import { addSelectItem, applyToOrderedSelectedItemsFromFile, selectFile, selectItem, selection } from '$lib/components/file-list/Selection';
-import { ListFileItem, ListItem, ListTrackItem, ListTrackSegmentItem, ListWaypointItem, ListWaypointsItem } from '$lib/components/file-list/FileList';
+import {
+    addSelectItem,
+    applyToOrderedSelectedItemsFromFile,
+    selectFile,
+    selectItem,
+    selection
+} from '$lib/components/file-list/Selection';
+import {
+    ListFileItem,
+    ListItem,
+    ListTrackItem,
+    ListTrackSegmentItem,
+    ListWaypointItem,
+    ListWaypointsItem
+} from '$lib/components/file-list/FileList';
 import type { RoutingControls } from '$lib/components/toolbar/tools/routing/RoutingControls';
-import { SplitType } from '$lib/components/toolbar/tools/Scissors.svelte';
+import { SplitType } from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
 
 const { fileOrder } = settings;
 
@@ -18,7 +31,8 @@ export const embedding = writable(false);
 export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }>({});
 
 export const gpxStatistics: Writable<GPXStatistics> = writable(new GPXStatistics());
-export const slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined> = writable(undefined);
+export const slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined> =
+    writable(undefined);
 
 export function updateGPXData() {
     let statistics = new GPXStatistics();
@@ -38,7 +52,8 @@ export function updateGPXData() {
 }
 
 let unsubscribes: Map<string, () => void> = new Map();
-selection.subscribe(($selection) => { // Maintain up-to-date statistics for the current selection
+selection.subscribe(($selection) => {
+    // Maintain up-to-date statistics for the current selection
     updateGPXData();
 
     while (unsubscribes.size > 0) {
@@ -53,10 +68,13 @@ selection.subscribe(($selection) => { // Maintain up-to-date statistics for the 
             let fileObserver = get(fileObservers).get(fileId);
             if (fileObserver) {
                 let first = true;
-                unsubscribes.set(fileId, fileObserver.subscribe(() => {
-                    if (first) first = false;
-                    else updateGPXData();
-                }));
+                unsubscribes.set(
+                    fileId,
+                    fileObserver.subscribe(() => {
+                        if (first) first = false;
+                        else updateGPXData();
+                    })
+                );
             }
         }
     });
@@ -72,8 +90,15 @@ const targetMapBounds = writable({
     total: -1
 });
 
-derived([targetMapBounds, map], x => x).subscribe(([bounds, $map]) => {
-    if ($map === null || bounds.count !== bounds.total || (bounds.bounds.getSouth() === 90 && bounds.bounds.getWest() === 180 && bounds.bounds.getNorth() === -90 && bounds.bounds.getEast() === -180)) {
+derived([targetMapBounds, map], (x) => x).subscribe(([bounds, $map]) => {
+    if (
+        $map === null ||
+        bounds.count !== bounds.total ||
+        (bounds.bounds.getSouth() === 90 &&
+            bounds.bounds.getWest() === 180 &&
+            bounds.bounds.getNorth() === -90 &&
+            bounds.bounds.getEast() === -180)
+    ) {
         return;
     }
 
@@ -81,7 +106,10 @@ derived([targetMapBounds, map], x => x).subscribe(([bounds, $map]) => {
     if (bounds.count !== get(fileObservers).size && currentBounds) {
         // There are other files on the map
 
-        if (currentBounds.contains(bounds.bounds.getSouthEast()) && currentBounds.contains(bounds.bounds.getNorthWest())) {
+        if (
+            currentBounds.contains(bounds.bounds.getSouthEast()) &&
+            currentBounds.contains(bounds.bounds.getNorthWest())
+        ) {
             return;
         }
 
@@ -89,13 +117,8 @@ derived([targetMapBounds, map], x => x).subscribe(([bounds, $map]) => {
         bounds.bounds.extend(currentBounds.getNorthEast());
     }
 
-    $map.fitBounds(bounds.bounds, {
-        padding: 80,
-        linear: true,
-        easing: () => 1
-    });
+    $map.fitBounds(bounds.bounds, { padding: 80, linear: true, easing: () => 1 });
 });
-
 
 export function initTargetMapBounds(total: number) {
     targetMapBounds.set({
@@ -105,11 +128,14 @@ export function initTargetMapBounds(total: number) {
     });
 }
 
-export function updateTargetMapBounds(bounds: {
-    southWest: Coordinates,
-    northEast: Coordinates
-}) {
-    if (bounds.southWest.lat == 90 && bounds.southWest.lon == 180 && bounds.northEast.lat == -90 && bounds.northEast.lon == -180) { // Avoid update for empty (new) files
+export function updateTargetMapBounds(bounds: { southWest: Coordinates; northEast: Coordinates }) {
+    if (
+        bounds.southWest.lat == 90 &&
+        bounds.southWest.lon == 180 &&
+        bounds.northEast.lat == -90 &&
+        bounds.northEast.lon == -180
+    ) {
+        // Avoid update for empty (new) files
         targetMapBounds.update((target) => {
             target.count += 1;
             return target;
@@ -122,6 +148,38 @@ export function updateTargetMapBounds(bounds: {
         target.bounds.extend(bounds.northEast);
         target.count += 1;
         return target;
+    });
+}
+
+export function centerMapOnSelection(
+) {
+    let selected = get(selection).getSelected();
+    let bounds = new mapboxgl.LngLatBounds();
+
+    if (selected.find((item) => item instanceof ListWaypointItem)) {
+        applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+            let file = getFile(fileId);
+            if (file) {
+                items.forEach((item) => {
+                    if (item instanceof ListWaypointItem) {
+                        let waypoint = file.wpt[item.getWaypointIndex()];
+                        if (waypoint) {
+                            bounds.extend([waypoint.getLongitude(), waypoint.getLatitude()]);
+                        }
+                    }
+                });
+            }
+        });
+    } else {
+        let selectionBounds = get(gpxStatistics).global.bounds;
+        bounds.setNorthEast(selectionBounds.northEast);
+        bounds.setSouthWest(selectionBounds.southWest);
+    }
+
+    get(map)?.fitBounds(bounds, {
+        padding: 80,
+        easing: () => 1,
+        maxZoom: 15
     });
 }
 
@@ -144,7 +202,7 @@ export const splitAs = writable(SplitType.FILES);
 export const streetViewEnabled = writable(false);
 
 export function newGPXFile() {
-    const newFileName = get(_)("menu.new_file");
+    const newFileName = get(_)('menu.new_file');
 
     let file = new GPXFile();
 
@@ -196,6 +254,8 @@ export async function loadFiles(list: FileList | File[]) {
         }
     }
 
+    initTargetMapBounds(list.length);
+
     dbUtils.addMultiple(files);
 
     selectFileWhenLoaded(files[0]._data.id);
@@ -246,7 +306,11 @@ export function updateSelectionFromKey(down: boolean, shift: boolean) {
         let limitIndex: number | undefined = undefined;
         selected.forEach((item) => {
             let index = order.indexOf(item.getFileId());
-            if (limitIndex === undefined || (down && index > limitIndex) || (!down && index < limitIndex)) {
+            if (
+                limitIndex === undefined ||
+                (down && index > limitIndex) ||
+                (!down && index < limitIndex)
+            ) {
                 limitIndex = index;
             }
         });
@@ -273,37 +337,52 @@ export function updateSelectionFromKey(down: boolean, shift: boolean) {
                 nextIndex += down ? 1 : -1;
             }
         }
-    } else if (selected[0] instanceof ListTrackItem && selected[selected.length - 1] instanceof ListTrackItem) {
+    } else if (
+        selected[0] instanceof ListTrackItem &&
+        selected[selected.length - 1] instanceof ListTrackItem
+    ) {
         let fileId = selected[0].getFileId();
         let file = getFile(fileId);
         if (file) {
             let numberOfTracks = file.trk.length;
-            let trackIndex = down ? selected[selected.length - 1].getTrackIndex() : selected[0].getTrackIndex();
+            let trackIndex = down
+                ? selected[selected.length - 1].getTrackIndex()
+                : selected[0].getTrackIndex();
             if (down && trackIndex < numberOfTracks - 1) {
                 next = new ListTrackItem(fileId, trackIndex + 1);
             } else if (!down && trackIndex > 0) {
                 next = new ListTrackItem(fileId, trackIndex - 1);
             }
         }
-    } else if (selected[0] instanceof ListTrackSegmentItem && selected[selected.length - 1] instanceof ListTrackSegmentItem) {
+    } else if (
+        selected[0] instanceof ListTrackSegmentItem &&
+        selected[selected.length - 1] instanceof ListTrackSegmentItem
+    ) {
         let fileId = selected[0].getFileId();
         let file = getFile(fileId);
         if (file) {
             let trackIndex = selected[0].getTrackIndex();
             let numberOfSegments = file.trk[trackIndex].trkseg.length;
-            let segmentIndex = down ? selected[selected.length - 1].getSegmentIndex() : selected[0].getSegmentIndex();
+            let segmentIndex = down
+                ? selected[selected.length - 1].getSegmentIndex()
+                : selected[0].getSegmentIndex();
             if (down && segmentIndex < numberOfSegments - 1) {
                 next = new ListTrackSegmentItem(fileId, trackIndex, segmentIndex + 1);
             } else if (!down && segmentIndex > 0) {
                 next = new ListTrackSegmentItem(fileId, trackIndex, segmentIndex - 1);
             }
         }
-    } else if (selected[0] instanceof ListWaypointItem && selected[selected.length - 1] instanceof ListWaypointItem) {
+    } else if (
+        selected[0] instanceof ListWaypointItem &&
+        selected[selected.length - 1] instanceof ListWaypointItem
+    ) {
         let fileId = selected[0].getFileId();
         let file = getFile(fileId);
         if (file) {
             let numberOfWaypoints = file.wpt.length;
-            let waypointIndex = down ? selected[selected.length - 1].getWaypointIndex() : selected[0].getWaypointIndex();
+            let waypointIndex = down
+                ? selected[selected.length - 1].getWaypointIndex()
+                : selected[0].getWaypointIndex();
             if (down && waypointIndex < numberOfWaypoints - 1) {
                 next = new ListWaypointItem(fileId, waypointIndex + 1);
             } else if (!down && waypointIndex > 0) {
@@ -321,30 +400,30 @@ export function updateSelectionFromKey(down: boolean, shift: boolean) {
     }
 }
 
-async function exportFiles(fileIds: string[]) {
+async function exportFiles(fileIds: string[], exclude: string[]) {
     for (let fileId of fileIds) {
         let file = getFile(fileId);
         if (file) {
-            exportFile(file);
-            await new Promise(resolve => setTimeout(resolve, 200));
+            exportFile(file, exclude);
+            await new Promise((resolve) => setTimeout(resolve, 200));
         }
     }
 }
 
-export function exportSelectedFiles() {
+export function exportSelectedFiles(exclude: string[]) {
     let fileIds: string[] = [];
     applyToOrderedSelectedItemsFromFile(async (fileId, level, items) => {
         fileIds.push(fileId);
     });
-    exportFiles(fileIds);
+    exportFiles(fileIds, exclude);
 }
 
-export function exportAllFiles() {
-    exportFiles(get(fileOrder));
+export function exportAllFiles(exclude: string[]) {
+    exportFiles(get(fileOrder), exclude);
 }
 
-export function exportFile(file: GPXFile) {
-    let blob = new Blob([buildGPX(file)], { type: 'application/gpx+xml' });
+export function exportFile(file: GPXFile, exclude: string[]) {
+    let blob = new Blob([buildGPX(file, exclude)], { type: 'application/gpx+xml' });
     let url = URL.createObjectURL(blob);
     let a = document.createElement('a');
     a.href = url;
@@ -366,15 +445,21 @@ export function updateAllHidden() {
                 }
 
                 if (item instanceof ListFileItem) {
-                    hidden = hidden && (file._data.hidden === true);
+                    hidden = hidden && file._data.hidden === true;
                 } else if (item instanceof ListTrackItem && item.getTrackIndex() < file.trk.length) {
-                    hidden = hidden && (file.trk[item.getTrackIndex()]._data.hidden === true);
-                } else if (item instanceof ListTrackSegmentItem && item.getTrackIndex() < file.trk.length && item.getSegmentIndex() < file.trk[item.getTrackIndex()].trkseg.length) {
-                    hidden = hidden && (file.trk[item.getTrackIndex()].trkseg[item.getSegmentIndex()]._data.hidden === true);
+                    hidden = hidden && file.trk[item.getTrackIndex()]._data.hidden === true;
+                } else if (
+                    item instanceof ListTrackSegmentItem &&
+                    item.getTrackIndex() < file.trk.length &&
+                    item.getSegmentIndex() < file.trk[item.getTrackIndex()].trkseg.length
+                ) {
+                    hidden =
+                        hidden &&
+                        file.trk[item.getTrackIndex()].trkseg[item.getSegmentIndex()]._data.hidden === true;
                 } else if (item instanceof ListWaypointsItem) {
-                    hidden = hidden && (file._data.hiddenWpt === true);
+                    hidden = hidden && file._data.hiddenWpt === true;
                 } else if (item instanceof ListWaypointItem && item.getWaypointIndex() < file.wpt.length) {
-                    hidden = hidden && (file.wpt[item.getWaypointIndex()]._data.hidden === true);
+                    hidden = hidden && file.wpt[item.getWaypointIndex()]._data.hidden === true;
                 }
             }
         }
@@ -392,47 +477,3 @@ export enum ExportState {
     ALL
 }
 export const exportState = writable<ExportState>(ExportState.NONE);
-
-let stravaCookies: any = null;
-function refreshStravaCookies() {
-    /*
-    TODO
-    if (stravaCookies === null) {
-        return fetch('https://s.gpx.studio')
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('Failed to fetch Strava cookies');
-                }
-            })
-            .then(data => {
-                stravaCookies = data;
-                console.log('Strava cookies:', stravaCookies);
-            });
-    } else {
-        return Promise.resolve();
-    }
-    */
-    return Promise.resolve();
-}
-
-export function setStravaHeatmapURLs() {
-    /*refreshStravaCookies().then(() => {
-        overlays.stravaHeatmapRun.tiles = [];
-        overlays.stravaHeatmapTrailRun.tiles = [];
-        overlays.stravaHeatmapHike.tiles = [];
-        overlays.stravaHeatmapRide.tiles = [];
-        overlays.stravaHeatmapGravel.tiles = [];
-        overlays.stravaHeatmapMTB.tiles = [];
-        overlays.stravaHeatmapWater.tiles = [];
-        overlays.stravaHeatmapWinter.tiles = [];
- 
-        for (let activity of Object.keys(overlayTree.overlays.world.strava)) {
-            overlays[activity].tiles = [];
-            for (let server of stravaHeatmapServers) {
-                overlays[activity].tiles.push(`${server}/${stravaHeatmapActivityIds[activity]}/${get(settings.stravaHeatmapColor)}/{z}/{x}/{y}@2x.png`); //?Signature=${stravaCookies['CloudFront-Signature']}&Key-Pair-Id=${stravaCookies['CloudFront-Key-Pair-Id']}&Policy=${stravaCookies['CloudFront-Policy']}`);
-            }
-        }
-    });*/
-}

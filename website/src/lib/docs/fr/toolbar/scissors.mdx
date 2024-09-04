@@ -1,0 +1,33 @@
+---
+title: Rogner et diviser
+---
+
+<script>
+    import { ScissorsIcon } from 'lucide-svelte';
+    import Scissors from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
+    import splitScreenshot from '$lib/assets/img/docs/tools/split.png?enhanced';
+    import DocsImage from '$lib/components/docs/DocsImage.svelte';
+</script>
+
+# <ScissorsIcon size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+## Rogner
+
+En utilisant le curseur, vous pouvez définir la partie de la trace sélectionnée que vous voulez garder.
+Les marqueurs de départ et d'arrivée sur la carte et les [statistiques et profil altimétrique](../files-and-stats) sont mis à jour en temps réel pour refléter la sélection.
+Vous pouvez également créer un rectangle de sélection directement sur le profil altimétrique.
+Validez la sélection lorsque vous êtes satisfait du résultat.
+
+<div class="flex flex-row justify-center">
+    <Scissors class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+## Diviser
+
+Pour diviser la trace sélectionnée en deux parties, cliquez sur l'un des marqueurs séparés affichés le long de la trace.
+Pour diviser à un point précis de votre choix, survolez la trace sur la carte.
+Des ciseaux apparaîtront à la position du curseur, montrant que vous pouvez diviser la trace à ce point.
+
+Vous pouvez choisir de diviser la trace en deux fichiers GPX, ou de créer une [piste ou un segment](../gpx) pour chaque partie dans le même fichier.
+
+<DocsImage src={splitScreenshot} alt="Survoler la trace sélectionnée transforme votre curseur en ciseaux." />

@@ -1,0 +1,50 @@
+---
+title: Einstellungen
+---
+
+<script lang="ts">
+    import { Ruler, Zap, Thermometer, Languages, Sun, PersonStanding, Layers3 } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+### <Ruler size="16" class="inline-block" style="margin-bottom: 2px" /> Entfernungseinheiten
+
+Ändern Sie die Einheiten die verwendet werden, um Entfernungen in der Bedienoberfläche anzuzeigen.
+
+### <Zap size="16" class="inline-block" style="margin-bottom: 2px" /> Geschwindigkeitseinheiten
+
+Ändern Sie die Einheiten die verwendet werden, um Geschwindigkeiten in der Bedienoberfläche anzuzeigen.
+Sie können wählen zwischen Entfernung pro Stunden oder Minuten pro Entfernung, die für Laufaktivitäten besser geeignet ist.
+
+### <Thermometer size="16" class="inline-block" style="margin-bottom: 2px" /> Temperatureinheiten
+
+Ändern Sie die Einheiten die verwendet werden, um Temperaturen in der Bedienoberfläche anzuzeigen.
+
+### <Languages size="16" class="inline-block" style="margin-bottom: 2px" /> Sprache
+
+Ändern Sie die Sprache der Bedienoberfläche.
+
+<DocsNote>
+
+Sie können dazu beitragen, indem Sie Übersetzungen in unserem <a href="https://crowdin.com/project/gpxstudio" target="_blank">Crowdin Projekt</a> hinzufügen oder verbessern.
+Wenn Sie mit der Übersetzung in einer neuen Sprache beginnen möchten, kontaktieren Sie uns bitte <a href="#contact">Kontaktaufnahme</a>.
+Jede Hilfe ist sehr willkommen!
+
+</DocsNote>
+
+### <Sun size="16" class="inline-block" style="margin-bottom: 2px" /> Design
+
+Ändern Sie das Design der Bedienoberfläche.
+
+### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Street-View Quelle
+
+Ändern der verwendeten Quelle für [street view control](../map-controls).
+Die Standardeinstellung ist <a href="https://www.mapillary.com" target="_blank">Mapillary</a>, aber Sie können auch <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a> verwenden.
+Erfahren Sie mehr zur Bedienung von Street-View in [map controls section](../map-controls).
+
+### <Layers3 size="16" class="inline-block" style="margin-bottom: 2px" /> Karten-Ebenen...
+
+Öffnen Sie ein Dialogfeld, in dem Sie Karten-Ebenen aktivieren oder deaktivieren, benutzerdefinierte Ebenen hinzufügen, die Deckkraft von Overlays ändern können und mehr.
+Weitere Informationen zum Thema Kartenebenen können Sie finden in [map controls section](../map-controls).

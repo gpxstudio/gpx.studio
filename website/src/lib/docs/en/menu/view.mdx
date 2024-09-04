@@ -3,7 +3,7 @@ title: View options
 ---
 
 <script lang="ts">
-    import { MountainSnow, GalleryVertical, Map, Layers2, Coins, Milestone, Box } from 'lucide-svelte';
+    import { ChartArea, GalleryVertical, Map, Layers2, Coins, Milestone, Box } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -11,14 +11,14 @@ title: View options
 
 This menu provides options to rearrange the interface and the map view.
 
-### <MountainSnow size="16" class="inline-block" style="margin-bottom: 2px" /> Elevation profile
+### <ChartArea size="16" class="inline-block" style="margin-bottom: 2px" /> Elevation profile
 
 Hide the elevation profile to make room for the map, or show it to inspect the current selection.
 
 ### <GalleryVertical size="16" class="inline-block" style="margin-bottom: 2px" /> Vertical file list
 
 Switch between a vertical and a horizontal layout for the file list.
-The [vertical file list](../files-and-stats) is useful when you have many files open, or files with multiple [tracks, segments or waypoints](../gpx).
+The [vertical file list](../files-and-stats) is useful when you have many files open, or files with multiple [tracks, segments, or points of interest](../gpx).
 
 ### <Map size="16" class="inline-block" style="margin-bottom: 2px" /> Switch to previous basemap
 
@@ -42,5 +42,7 @@ Toggle the visibility of direction arrows on the map.
 Enter or exit the 3D map view.
 
 <DocsNote>
-    To control the orientation and tilt of the map, you can also drag the map while holding <kbd>Ctrl</kbd>.
+
+To control the orientation and tilt of the map, you can also drag the map while holding <kbd>Ctrl</kbd>.
+    
 </DocsNote>

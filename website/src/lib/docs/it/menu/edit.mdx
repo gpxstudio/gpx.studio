@@ -1,0 +1,74 @@
+---
+title: Edit actions
+---
+
+<script lang="ts">
+    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+Unlike the file actions, the edit actions can potentially modify the content of the currently selected files.
+Inoltre, quando il layout verticale dell'elenco dei file è abilitato (vedi [File e statistiche](.. files-and-stats)), possono anche essere applicati a [tracce, segmenti e punti di interesse](../gpx).
+Pertanto, ci riferiremo agli elementi che possono essere modificati da queste azioni come _elementi_.
+Note that except for the undo and redo actions, the edit actions are also accessible through the context menu (right-click) of the file items.
+
+### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Undo and redo
+
+Usando questi pulsanti, puoi annullare o ripetere le ultime azioni eseguite.
+This applies to all actions of the interface but not to view options, application settings, or map navigation.
+
+### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> Info...
+
+Open the information dialog of the currently selected file item, where you can see and edit its name and description.
+
+### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Appearance...
+
+Open the appearance dialog, where you can change the color, opacity, and width of the selected file items on the map.
+
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
+
+Toggle the visibility of the selected file items on the map.
+
+### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Select all
+
+Add all file items in the current hierarchy level to the selection.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+
+Centra la mappa sugli elementi di file selezionati.
+
+### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copy
+
+Copy the selected file items to the clipboard.
+
+<DocsNote>
+
+This action is only available when the vertical layout of the files list is enabled.
+
+</DocsNote>
+
+### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Cut
+
+Cut the selected file items to the clipboard.
+
+<DocsNote>
+
+This action is only available when the vertical layout of the files list is enabled.
+
+</DocsNote>
+
+### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Paste
+
+Incolla gli elementi del file dagli appunti al livello di gerarchia corrente se sono compatibili con esso.
+
+<DocsNote>
+
+This action is only available when the vertical layout of the files list is enabled.
+
+</DocsNote>
+
+### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Delete
+
+Delete the selected file items.

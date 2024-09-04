@@ -15,6 +15,7 @@
 		EyeOff,
 		ClipboardCopy,
 		ClipboardPaste,
+		Maximize,
 		Scissors,
 		FileStack,
 		FileX
@@ -39,7 +40,15 @@
 	} from './Selection';
 	import { getContext } from 'svelte';
 	import { get } from 'svelte/store';
-	import { allHidden, editMetadata, editStyle, embedding, gpxLayers, map } from '$lib/stores';
+	import {
+		allHidden,
+		editMetadata,
+		editStyle,
+		embedding,
+		centerMapOnSelection,
+		gpxLayers,
+		map
+	} from '$lib/stores';
 	import {
 		GPXTreeElement,
 		Track,
@@ -275,38 +284,41 @@
 				{$_('menu.select_all')}
 				<Shortcut key="A" ctrl={true} />
 			</ContextMenu.Item>
-			<ContextMenu.Separator />
 		{/if}
+		<ContextMenu.Item on:click={centerMapOnSelection}>
+			<Maximize size="16" class="mr-1" />
+			{$_('menu.center')}
+			<Shortcut key="⏎" ctrl={true} />
+		</ContextMenu.Item>
+		<ContextMenu.Separator />
+		<ContextMenu.Item on:click={dbUtils.duplicateSelection}>
+			<Copy size="16" class="mr-1" />
+			{$_('menu.duplicate')}
+			<Shortcut key="D" ctrl={true} /></ContextMenu.Item
+		>
 		{#if orientation === 'vertical'}
-			<ContextMenu.Item on:click={dbUtils.duplicateSelection}>
-				<Copy size="16" class="mr-1" />
-				{$_('menu.duplicate')}
-				<Shortcut key="D" ctrl={true} /></ContextMenu.Item
+			<ContextMenu.Item on:click={copySelection}>
+				<ClipboardCopy size="16" class="mr-1" />
+				{$_('menu.copy')}
+				<Shortcut key="C" ctrl={true} />
+			</ContextMenu.Item>
+			<ContextMenu.Item on:click={cutSelection}>
+				<Scissors size="16" class="mr-1" />
+				{$_('menu.cut')}
+				<Shortcut key="X" ctrl={true} />
+			</ContextMenu.Item>
+			<ContextMenu.Item
+				disabled={$copied === undefined ||
+					$copied.length === 0 ||
+					!allowedPastes[$copied[0].level].includes(item.level)}
+				on:click={pasteSelection}
 			>
-			{#if orientation === 'vertical'}
-				<ContextMenu.Item on:click={copySelection}>
-					<ClipboardCopy size="16" class="mr-1" />
-					{$_('menu.copy')}
-					<Shortcut key="C" ctrl={true} />
-				</ContextMenu.Item>
-				<ContextMenu.Item on:click={cutSelection}>
-					<Scissors size="16" class="mr-1" />
-					{$_('menu.cut')}
-					<Shortcut key="X" ctrl={true} />
-				</ContextMenu.Item>
-				<ContextMenu.Item
-					disabled={$copied === undefined ||
-						$copied.length === 0 ||
-						!allowedPastes[$copied[0].level].includes(item.level)}
-					on:click={pasteSelection}
-				>
-					<ClipboardPaste size="16" class="mr-1" />
-					{$_('menu.paste')}
-					<Shortcut key="V" ctrl={true} />
-				</ContextMenu.Item>
-			{/if}
-			<ContextMenu.Separator />
+				<ClipboardPaste size="16" class="mr-1" />
+				{$_('menu.paste')}
+				<Shortcut key="V" ctrl={true} />
+			</ContextMenu.Item>
 		{/if}
+		<ContextMenu.Separator />
 		<ContextMenu.Item on:click={dbUtils.deleteSelection}>
 			{#if item instanceof ListFileItem}
 				<FileX size="16" class="mr-1" />

@@ -1,0 +1,33 @@
+---
+title: Recortar y dividir
+---
+
+<script>
+    import { ScissorsIcon } from 'lucide-svelte';
+    import Scissors from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
+    import splitScreenshot from '$lib/assets/img/docs/tools/split.png?enhanced';
+    import DocsImage from '$lib/components/docs/DocsImage.svelte';
+</script>
+
+# <ScissorsIcon size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+## Recortar
+
+Usando el control deslizante, puede definir la parte del trazado seleccionado que desea conservar.
+Los marcadores de inicio y final en el mapa y el [perfil de estadísticas y elevación](../files-and-stats) se actualizan en tiempo real para reflejar la selección.
+Alternativamente, puede arrastrar un rectángulo de selección directamente en el perfil de elevación.
+Valide la selección cuando esté satisfecho con el resultado.
+
+<div class="flex flex-row justify-center">
+    <Scissors class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+## Dividir
+
+Para dividir el trazado seleccionado en dos partes, haga clic en uno de los marcadores que se muestran a lo largo del mismo.
+Para dividir en un punto específico de su elección, sitúe el cursor sobre el trazado en el mapa.
+Las tijeras aparecerán en la posición del cursor, mostrando que puede dividir el trazado en ese punto.
+
+Puede elegir dividir el trazado en dos archivos GPX o mantener las partes divididas en el mismo archivo como [pistas o segmentos](../gpx).
+
+<DocsImage src={splitScreenshot} alt="Situar el cursor sobre el trazado seleccionado lo convierte en tijeras." />

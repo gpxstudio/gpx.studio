@@ -1,0 +1,52 @@
+---
+title: Ações do arquivo
+---
+
+<script lang="ts">
+    import { Plus, FolderOpen, Copy, FileX, Download } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+O menu de ações de arquivo contém um conjunto de operações de arquivo bem auto-explicativo.
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Novo
+
+Criar novo arquivo vazio.
+
+### <FolderOpen size="16" class="inline-block" style="margin-bottom: 2px" /> Abrir...
+
+Abrir arquivos do seu computador. 
+
+<DocsNote>
+
+Você também pode arrastar e soltar arquivos diretamente do seu sistema de arquivos para a janela.
+
+</DocsNote>
+
+### <Copy size="16" class="inline-block" style="margin-bottom: 2px" /> Duplicar
+
+Criar uma cópia dos arquivos atualmente selecionados.
+
+### <FileX size="16" class="inline-block" style="margin-bottom: 2px" /> Fechar
+
+Fechar os arquivos atualmente selecionados.
+
+### <FileX size="16" class="inline-block" style="margin-bottom: 2px" /> Fechar todos
+
+Fechar todos os arquivos.
+
+### <Download size="16" class="inline-block" style="margin-bottom: 2px" /> Exportar...
+
+Abrir caixa de diálogo de exportação para o arquivo selecionado para seu computador.
+
+### <Download size="16" class="inline-block" style="margin-bottom: 2px" /> Exportar todos...
+
+Abrir caixa de diálogo de exportação para salvar todos os arquivos para seu computador.
+
+<DocsNote type="warning">
+
+Se o seu download não começar depois de clicar no botão de download, verifique as configurações do seu navegador para permitir os downloads de <b>gpx.studio</b>.
+
+</DocsNote>

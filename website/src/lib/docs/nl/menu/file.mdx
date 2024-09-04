@@ -1,0 +1,52 @@
+---
+title: Bestandsbewerkingen
+---
+
+<script lang="ts">
+    import { Plus, FolderOpen, Copy, FileX, Download } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+Het menu met bestandsacties bevat een aantal vrij vanzelfsprekende bestandsoperaties.
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Nieuw
+
+Nieuw leeg bestand maken.
+
+### <FolderOpen size="16" class="inline-block" style="margin-bottom: 2px" /> Openen...
+
+Open bestanden vanaf de computer. 
+
+<DocsNote>
+
+Je kunt ook bestanden direct vanuit je bestandssysteem naar het venster slepen.
+
+</DocsNote>
+
+### <Copy size="16" class="inline-block" style="margin-bottom: 2px" /> Copy
+
+Maak een kopie van de huidige geselecteerde bestanden.
+
+### <FileX size="16" class="inline-block" style="margin-bottom: 2px" /> Sluiten
+
+Sluit de huidige geselecteerde bestanden.
+
+### <FileX size="16" class="inline-block" style="margin-bottom: 2px" /> Alles sluiten
+
+Sluit alle bestanden.
+
+### <Download size="16" class="inline-block" style="margin-bottom: 2px" /> Exporteren...
+
+Open het exportdialoogvenster om de huidige geselecteerde bestanden op te slaan op uw computer.
+
+### <Download size="16" class="inline-block" style="margin-bottom: 2px" /> Exporteer alles...
+
+Open het exportdialoogvenster om de huidige geselecteerde bestanden op te slaan op uw computer.
+
+<DocsNote type="warning">
+
+Als je download niet start na het klikken op de downloadknop, controleer dan je browserinstellingen om downloads van <b>gpx.studio</b> toe te staan.
+
+</DocsNote>

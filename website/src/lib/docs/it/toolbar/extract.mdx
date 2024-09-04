@@ -1,0 +1,26 @@
+---
+title: Estrai
+---
+
+<script>
+    import { Ungroup } from 'lucide-svelte';
+    import Extract from '$lib/components/toolbar/tools/Extract.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# <Ungroup size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Questo strumento consente di estrarre [tracce (o segmenti)](../gpx) da file (o tracce) contenenti più di essi.
+
+<div class="flex flex-row justify-center">
+    <Extract class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+Applicando lo strumento a un file contenente più tracce si creerà un nuovo file per ciascuna delle tracce che contiene.
+Allo stesso modo, applicare lo strumento a una traccia contenente più segmenti creerà (nello stesso file) una nuova traccia per ciascuno dei segmenti che contiene.
+
+<DocsNote>
+
+Quando si estraggono le tracce da un file contenente <a href="../gpx">punti d'interesse</a>, lo strumento assegnerà automaticamente ogni punto d'interesse alla traccia a cui è più vicino.
+
+</DocsNote>

@@ -1,0 +1,33 @@
+---
+title: Ritaglia e dividi
+---
+
+<script>
+    import { ScissorsIcon } from 'lucide-svelte';
+    import Scissors from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
+    import splitScreenshot from '$lib/assets/img/docs/tools/split.png?enhanced';
+    import DocsImage from '$lib/components/docs/DocsImage.svelte';
+</script>
+
+# <ScissorsIcon size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+## Ritaglia
+
+Utilizzando il dispositivo di scorrimento è possibile definire la parte della traccia selezionata che si desidera conservare.
+I marcatori di inizio e fine sulla mappa e il [profilo di elevazione](../files-and-stats) vengono aggiornati in tempo reale per riflettere la selezione.
+In alternativa, puoi trascinare un rettangolo di selezione direttamente sul profilo di elevazione.
+Convalida la selezione quando sei soddisfatto del risultato.
+
+<div class="flex flex-row justify-center">
+    <Scissors class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+## Dividi
+
+Per dividere la traccia selezionata in due parti, fare clic su uno degli indicatori di divisione visualizzati lungo la traccia.
+Per dividere in un punto specifico a tua scelta, passa sopra la traccia sulla mappa.
+Le forbici appariranno nella posizione del cursore, mostrando che è possibile dividere la traccia in quel punto.
+
+Puoi scegliere di dividere la traccia in due file GPX, o di mantenere le parti divise nello stesso file di [tracce o segmenti](../gpx).
+
+<DocsImage src={splitScreenshot} alt="Passare sopra la traccia selezionata trasforma il cursore in forbici." />

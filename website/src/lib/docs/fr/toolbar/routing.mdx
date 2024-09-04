@@ -1,0 +1,85 @@
+---
+title: Planification et édition d'itinéraires
+---
+
+<script>
+    import { Pencil, Route, Bike, TriangleAlert, ArrowRightLeft, Home, Repeat, Trash2, CirclePlay, SquareArrowUpLeft } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
+    import routingScreenshot from '$lib/assets/img/docs/tools/routing.png?enhanced';
+    import DocsImage from '$lib/components/docs/DocsImage.svelte';
+</script>
+
+# <Pencil size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+L'outil de planification et d'édition d'itinéraires vous permet de créer et de modifier des itinéraires en plaçant ou en déplaçant des points d'ancrage sur la carte.
+
+## Réglages
+
+Comme illustré ci-dessous, la boîte de dialogue de l'outil contient quelques paramètres pour contrôler le comportement du routage.
+Vous pouvez minimiser la boîte de dialogue pour économiser de l'espace en cliquant sur <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
+
+<div class="flex flex-row justify-center">
+    <Routing minimizable={false} class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routage
+
+Lorsque le routage est activé, les points d'ancrage placés ou déplacés sur la carte seront connectés par une route calculée sur le réseau routier <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a>.
+Désactivez le routage pour connecter les points d'ancrage en ligne droite.
+Ce paramètre peut également être modifié en appuyant sur <kbd>F5</kbd>.
+
+### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Activité
+
+Sélectionnez le type d'activité pour lequel vous souhaitez que les itinéraires soient adaptés.
+
+### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Autoriser les routes privées
+
+Lorsque cette option est activée, le moteur de routage prend en compte les routes privées lors du calcul des routes.
+
+<DocsNote type="warning">
+
+Utilisez cette option uniquement si vous connaissez bien la région et avez la permission d'utiliser les routes en question.
+
+</DocsNote>
+
+## Tracer et éditer des itinéraires
+
+Créer un itinéraire ou étendre un itinéraire existant est aussi simple que de cliquer sur la carte pour placer un nouveau point d'ancrage.
+
+Vous pouvez également faire glisser un point d'ancrage existant pour rediriger le segment qui le relie au point d'ancrage précédent et suivant.
+
+De plus, de nouveaux points d'ancrage peuvent être insérés entre les points existants en survolant le segment qui les relie et en faisant glisser le point d'ancrage qui apparaît à l'emplacement souhaité.
+Sur les appareils tactiles, vous pouvez appuyer sur le segment pour insérer un nouveau point d'ancrage.
+
+<DocsNote>
+
+Lors de l'édition de fichiers GPX importés, un ensemble de points d'ancrage initial est créé automatiquement.
+Pour faciliter le processus d'édition, plus la carte est zoomée, plus les points d'ancrage sont nombreux à être affichés.
+Cela permet d'éditer l'itinéraire à différents niveaux de détail.
+
+</DocsNote>
+
+Enfin, vous pouvez supprimer les points d'ancrage en cliquant dessus et en sélectionnant <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Supprimer</button> dans le menu contextuel.
+
+<DocsImage src={routingScreenshot} alt="Les points d'ancrage permettent de modifier facilement un itinéraire." />
+
+## Outils supplémentaires
+
+Les outils suivants automatisent certaines opérations communes de modification d'itinéraire.
+
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Inverser
+
+Inverser le sens de l'itinéraire.
+
+### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Retour au départ
+
+Connecter le dernier point de l'itinéraire avec le point de départ, en utilisant les paramètres de routage choisis.
+
+### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Aller-retour
+
+Revenir au point de départ par le même itinéraire.
+
+### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Changer le point de départ de la boucle
+
+Lorsque le point d'arrivée de l'itinéraire est suffisamment proche du départ, vous pouvez changer le départ de la boucle en cliquant sur n'importe quel point d'ancrage et en sélectionnant <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Démarrer la boucle ici</button> dans le menu contextuel.

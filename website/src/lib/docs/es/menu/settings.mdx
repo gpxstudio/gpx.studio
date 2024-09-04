@@ -1,0 +1,50 @@
+---
+title: Configuración
+---
+
+<script lang="ts">
+    import { Ruler, Zap, Thermometer, Languages, Sun, PersonStanding, Layers3 } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+### <Ruler size="16" class="inline-block" style="margin-bottom: 2px" /> Unidades de distancia
+
+Cambia las unidades usadas para mostrar distancias en la interfaz.
+
+### <Zap size="16" class="inline-block" style="margin-bottom: 2px" /> Unidades de velocidad
+
+Cambia las unidades usadas para mostrar velocidades en la interfaz.
+Puede elegir entre distancia por hora o minutos por distancia, lo cual puede ser más adecuado para actividades de carrera.
+
+### <Thermometer size="16" class="inline-block" style="margin-bottom: 2px" /> Unidades de temperatura
+
+Cambia las unidades usadas para mostrar temperaturas en la interfaz.
+
+### <Languages size="16" class="inline-block" style="margin-bottom: 2px" /> Idioma
+
+Cambia el idioma usado en la interfaz.
+
+<DocsNote>
+
+Puede contribuir añadiendo o mejorando las traducciones en nuestro <a href="https://crowdin.com/project/gpxstudio" target="_blank">proyecto Crowdin</a>.
+Si quiere comenzar la traducción en un nuevo idioma, por favor <a href="#contact">contáctenos</a>.
+¡Tu ayuda es bienvenida!
+
+</DocsNote>
+
+### <Sun size="16" class="inline-block" style="margin-bottom: 2px" /> Tema
+
+Cambia el tema usado en la interfaz.
+
+### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Fuente de vista de calle
+
+Cambia la fuente usada para el [control de vista de calle](../map-controls).
+El predeterminado es <a href="https://www.mapillary.com" target="_blank">Mapillary</a>, pero también puede usar <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>.
+Aprenda más sobre cómo usar el control de la vista de calle en la [sección de controles de mapa](../map-controls).
+
+### <Layers3 size="16" class="inline-block" style="margin-bottom: 2px" /> Capas de mapa...
+
+Abre un cuadro de diálogo donde puede activar o desactivar capas de mapa, añadir capas personalizadas, cambiar la opacidad de las capas superpuestas, y más.
+Puede encontrar más información sobre las capas de mapa en la [sección de controles de mapa](../map-controls).

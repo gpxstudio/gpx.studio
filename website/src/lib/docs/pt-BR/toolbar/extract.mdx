@@ -1,0 +1,26 @@
+---
+title: Extrair
+---
+
+<script>
+    import { Ungroup } from 'lucide-svelte';
+    import Extract from '$lib/components/toolbar/tools/Extract.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# <Ungroup size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Esta ferramenta permite que você extraia [faixas (ou segmentos)](../gpx) de arquivos (ou faixas) que contenham múltiplos deles.
+
+<div class="flex flex-row justify-center">
+    <Extract class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+Aplicar a ferramenta a um arquivo que contém várias faixas criará um novo arquivo para cada uma das trilhas que contém.
+Da mesma forma, aplicar a ferramenta a uma faixa que contém vários segmentos irá criar (no mesmo arquivo) uma nova faixa para cada um dos segmentos que ele contém.
+
+<DocsNote>
+
+Ao extrair as trilhas de um arquivo que contém <a href="../gpx">pontos de interesse</a>, a ferramenta atribuirá automaticamente cada ponto de interesse para a faixa à qual está mais próximo.
+
+</DocsNote>

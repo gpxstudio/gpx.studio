@@ -1,0 +1,27 @@
+---
+title: Integración
+---
+
+<script>
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import EmbeddingPlayground from '$lib/components/embedding/EmbeddingPlayground.svelte';
+</script>
+
+# { title }
+
+Puede usar **gpx.studio** para crear mapas que muestren sus archivos GPX e integrarlos en su sitio web.
+
+Todo lo que necesita es:
+
+1. Un <a href="https://account.mapbox.com/auth/signup" target="_blank">token de acceso a Mapbox</a> para cargar el mapa, y
+2. Archivos GPX alojados en su servidor, en Google Drive o accesibles a través de una URL pública.
+
+Luego puede jugar con el configurador de abajo para personalizar su mapa y generar el código HTML correspondiente.
+
+<DocsNote type="warning">
+
+Necesitará configurar las cabeceras <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS" target="_blank">Cross-Origin Resource Sharing (CORS)</a> en su servidor para permitir a <b>gpx.studio</b> que cargue sus archivos GPX.
+
+</DocsNote>
+
+<EmbeddingPlayground />

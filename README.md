@@ -3,11 +3,11 @@
   <img alt="Logo of gpx.studio." src="website/static/logo.svg">
 </picture>
 
-**gpx.studio** is an online tool for creating and editing GPX files.
+[**gpx.studio**](https://gpx.studio) is an online tool for creating and editing GPX files.
 
 ![gpx.studio screenshot](website/src/lib/assets/img/docs/getting-started/interface.png)
 
-This repository contains the source code of the new website, currently available [here](https://gpx.studio/gpx.studio).
+This repository contains the source code of the website.
 
 ## Contributing
 
@@ -16,8 +16,6 @@ Please create an issue if you find a bug or have a feature request.
 Code contributions are also welcome, but except for obvious bug fixes, please open an issue first to discuss the changes you would like to make.
 
 ## Translation
-
-***Translations for the new website will start once the new version is stable.***
 
 The website is translated by volunteers on a collaborative translation platform.
 You can help complete and improve the translations by joining the [Crowdin project](https://crowdin.com/project/gpxstudio).
@@ -54,7 +52,7 @@ npm run dev
 
 ## Credits
 
-This project has been made possible thanks to the following open-source projects:
+This project has been made possible thanks to the following open source projects:
 
 - Development:
   - [Svelte](https://github.com/sveltejs/svelte) and [SvelteKit](https://github.com/sveltejs/kit) — seamless development experience

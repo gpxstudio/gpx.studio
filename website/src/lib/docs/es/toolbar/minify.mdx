@@ -1,0 +1,26 @@
+---
+title: Minimizar
+---
+
+<script>
+    import { Filter } from 'lucide-svelte';
+    import Reduce from '$lib/components/toolbar/tools/Reduce.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# <Filter size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Esta herramienta se puede usar para reducir el número de puntos GPS en un trazado, lo que puede ser útil para reducir su tamaño.
+
+Puede ajustar la tolerancia del algoritmo de simplificación usando el deslizador, y ver el número de puntos que se conservarán, así como el trazado simplificado en el mapa.
+
+<div class="flex flex-row justify-center">
+    <Reduce class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+<DocsNote>
+
+El valor de tolerancia representa la distancia máxima permitida entre el trazado original y el trazado simplificado.
+Puede leer más sobre el algoritmo usado <a href="https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm" target="_blank">aquí</a>.
+
+</DocsNote>

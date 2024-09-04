@@ -236,11 +236,11 @@
 			</Tooltip>
 		</div>
 		<div class="w-full flex flex-row gap-2 items-end justify-between">
-			<Help>
+			<Help link="./help/toolbar/routing">
 				{#if !validSelection}
-					<div>{$_('toolbar.routing.help_no_file')}</div>
+					{$_('toolbar.routing.help_no_file')}
 				{:else}
-					<div>{$_('toolbar.routing.help')}</div>
+					{$_('toolbar.routing.help')}
 				{/if}
 			</Help>
 			<Button

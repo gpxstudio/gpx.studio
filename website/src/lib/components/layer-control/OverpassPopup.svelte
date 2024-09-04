@@ -7,7 +7,6 @@
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { dbUtils } from '$lib/db';
-	import { get } from 'svelte/store';
 
 	let popupElement: HTMLDivElement;
 
@@ -89,7 +88,8 @@
 							},
 							name: name,
 							desc: desc,
-							cmt: desc
+							cmt: desc,
+							sym: $overpassPopupPOI.sym
 						});
 					}}
 				>

@@ -1,0 +1,74 @@
+---
+title: Bewerkingen
+---
+
+<script lang="ts">
+    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+In tegenstelling tot de bestandsacties, kunnen de bewerkingsacties mogelijk de inhoud van de huidige geselecteerde bestanden wijzigen.
+Bovendien, wanneer de verticale lay-out van de bestandenlijst is ingeschakeld (zie [Bestanden en statistieken](../files-and-stats)), deze kunnen ook worden toegepast op [tracks, segmenten en interessante punten](../gpx).
+Daarom zullen we verwijzen naar de elementen die door deze acties kunnen worden gewijzigd als _bestanden_.
+Merk op dat behalve het ongedaan maken en opnieuw doen de acties ook toegankelijk zijn via het contextmenu (rechtermuisklik) van de bestandsitems.
+
+### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Ongedaan maken en opnieuw doen
+
+Met behulp van deze knoppen kunt u de laatste acties die u heeft uitgevoerd ongedaan maken of opnieuw uitvoeren.
+Dit geldt voor alle acties van de interface maar niet voor het bekijken van opties, applicatie-instellingen of kaart navigatie.
+
+### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> info...
+
+Open het informatievenster van het huidig geselecteerde bestandsitem, waar u de naam en beschrijving kunt zien en bewerken.
+
+### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> uiterlijk...
+
+Open het uiterlijk-dialoogvenster, waar je de kleur, doorzichtigheid en breedte van de geselecteerde items op de kaart kunt wijzigen.
+
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Verberg/Toon
+
+De zichtbaarheid van de geselecteerde bestandsitems op de kaart in-/uitschakelen.
+
+### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Selecteer alles
+
+Alle bestanden in het huidige hiërarchie niveau aan de selectie toevoegen.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Midden
+
+Centreer de kaart op de geselecteerde bestandsitems.
+
+### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Kopie
+
+Kopieer de geselecteerde bestanden naar het klembord.
+
+<DocsNote>
+
+Deze actie is alleen beschikbaar wanneer de verticale lay-out van de bestandslijst is ingeschakeld.
+
+</DocsNote>
+
+### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Knip
+
+Kopieer de geselecteerde bestanden naar het klembord.
+
+<DocsNote>
+
+Deze actie is alleen beschikbaar wanneer de verticale lay-out van de bestandslijst is ingeschakeld.
+
+</DocsNote>
+
+### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Plakken
+
+Plak de bestandsitems van het klembord naar het huidige hiërarchie niveau indien compatibel.
+
+<DocsNote>
+
+Deze actie is alleen beschikbaar wanneer de verticale lay-out van de bestandslijst is ingeschakeld.
+
+</DocsNote>
+
+### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Verwijderen
+
+Verwijder de geselecteerde bestanden.

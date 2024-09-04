@@ -1,4 +1,4 @@
-import { distance, type Coordinates, TrackPoint, TrackSegment, Track } from "gpx";
+import { distance, type Coordinates, TrackPoint, TrackSegment, Track, projectedPoint } from "gpx";
 import { get, writable, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
 import { route } from "./Routing";
@@ -10,9 +10,13 @@ import { dbUtils, type GPXFileWithStatistics } from "$lib/db";
 import { getOrderedSelection, selection } from "$lib/components/file-list/Selection";
 import { ListFileItem, ListTrackItem, ListTrackSegmentItem } from "$lib/components/file-list/FileList";
 import { currentTool, streetViewEnabled, Tool } from "$lib/stores";
-import { resetCursor, setGrabbingCursor } from "$lib/utils";
+import { getClosestLinePoint, getElevation, resetCursor, setGrabbingCursor } from "$lib/utils";
 
 export const canChangeStart = writable(false);
+
+function stopPropagation(e: any) {
+    e.stopPropagation();
+}
 
 export class RoutingControls {
     active: boolean = false;
@@ -24,6 +28,7 @@ export class RoutingControls {
     popup: mapboxgl.Popup;
     popupElement: HTMLElement;
     temporaryAnchor: AnchorWithMarker;
+    lastDragEvent = 0;
     fileUnsubscribe: () => void = () => { };
     unsubscribes: Function[] = [];
 
@@ -76,10 +81,10 @@ export class RoutingControls {
     add() {
         this.active = true;
 
-        this.map.on('zoom', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         this.map.on('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         this.map.on('click', this.appendAnchorBinded);
         this.map.on('mousemove', this.fileId, this.showTemporaryAnchorBinded);
+        this.map.on('click', this.fileId, stopPropagation);
 
         this.fileUnsubscribe = this.file.subscribe(this.updateControls.bind(this));
     }
@@ -123,10 +128,10 @@ export class RoutingControls {
         for (let anchor of this.anchors) {
             anchor.marker.remove();
         }
-        this.map.off('zoom', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         this.map.off('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         this.map.off('click', this.appendAnchorBinded);
         this.map.off('mousemove', this.fileId, this.showTemporaryAnchorBinded);
+        this.map.off('click', this.fileId, stopPropagation);
         this.map.off('mousemove', this.updateTemporaryAnchorBinded);
         this.temporaryAnchor.marker.remove();
 
@@ -139,7 +144,7 @@ export class RoutingControls {
 
     createAnchor(point: TrackPoint, segment: TrackSegment, trackIndex: number, segmentIndex: number): AnchorWithMarker {
         let element = document.createElement('div');
-        element.className = `h-3 w-3 rounded-full bg-white border-2 border-black cursor-pointer`;
+        element.className = `h-5 w-5 xs:h-4 xs:w-4 md:h-3 md:w-3 rounded-full bg-white border-2 border-black cursor-pointer`;
 
         let marker = new mapboxgl.Marker({
             draggable: true,
@@ -156,27 +161,37 @@ export class RoutingControls {
             inZoom: false
         };
 
-        let lastDragEvent = 0;
         marker.on('dragstart', (e) => {
-            lastDragEvent = Date.now();
+            this.lastDragEvent = Date.now();
             setGrabbingCursor();
             element.classList.remove('cursor-pointer');
             element.classList.add('cursor-grabbing');
         });
         marker.on('dragend', (e) => {
-            lastDragEvent = Date.now();
+            this.lastDragEvent = Date.now();
             resetCursor();
             element.classList.remove('cursor-grabbing');
             element.classList.add('cursor-pointer');
             this.moveAnchor(anchor);
         });
-        marker.getElement().addEventListener('click', (e) => {
+        let handleAnchorClick = this.handleClickForAnchor(anchor, marker);
+        marker.getElement().addEventListener('click', handleAnchorClick);
+        marker.getElement().addEventListener('contextmenu', handleAnchorClick);
+
+        return anchor;
+    }
+
+    handleClickForAnchor(anchor: Anchor, marker: mapboxgl.Marker) {
+        return (e: any) => {
+            e.preventDefault();
             e.stopPropagation();
-            if (marker === this.temporaryAnchor.marker) {
+
+            if (Date.now() - this.lastDragEvent < 100) { // Prevent click event during drag
                 return;
             }
 
-            if (Date.now() - lastDragEvent < 100) { // Prevent click event during drag
+            if (marker === this.temporaryAnchor.marker) {
+                this.turnIntoPermanentAnchor();
                 return;
             }
 
@@ -207,22 +222,21 @@ export class RoutingControls {
                 this.popupElement.removeEventListener('delete', deleteThisAnchor);
                 this.popupElement.removeEventListener('change-start', startLoopAtThisAnchor);
             });
-        });
-
-        return anchor;
+        };
     }
 
     toggleAnchorsForZoomLevelAndBounds() { // Show markers only if they are in the current zoom level and bounds
         this.shownAnchors.splice(0, this.shownAnchors.length);
 
-        let southWest = this.map.unproject([0, this.map.getCanvas().height]);
-        let northEast = this.map.unproject([this.map.getCanvas().width, 0]);
-        let bounds = new mapboxgl.LngLatBounds(southWest, northEast);
+        let center = this.map.getCenter();
+        let bottomLeft = this.map.unproject([0, this.map.getCanvas().height]);
+        let topRight = this.map.unproject([this.map.getCanvas().width, 0]);
+        let diagonal = bottomLeft.distanceTo(topRight);
 
         let zoom = this.map.getZoom();
         this.anchors.forEach((anchor) => {
             anchor.inZoom = anchor.point._data.zoom <= zoom;
-            if (anchor.inZoom && bounds.contains(anchor.marker.getLngLat())) {
+            if (anchor.inZoom && center.distanceTo(anchor.marker.getLngLat()) < diagonal) {
                 anchor.marker.addTo(this.map);
                 this.shownAnchors.push(anchor);
             } else {
@@ -232,6 +246,10 @@ export class RoutingControls {
     }
 
     showTemporaryAnchor(e: any) {
+        if (this.temporaryAnchor.marker.getElement().classList.contains('cursor-grabbing')) { // Do not not change the source point if it is already being dragged
+            return;
+        }
+
         if (get(streetViewEnabled)) {
             return;
         }
@@ -318,26 +336,81 @@ export class RoutingControls {
         let file = get(this.file)?.file;
 
         // Find the point closest to the temporary anchor
-        let minDistance = Number.MAX_VALUE;
+        let minDetails: any = { distance: Number.MAX_VALUE };
         let minAnchor = this.temporaryAnchor as Anchor;
         file?.forEachSegment((segment, trackIndex, segmentIndex) => {
             if (get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex))) {
-                for (let point of segment.trkpt) {
-                    let dist = distance(point.getCoordinates(), this.temporaryAnchor.point.getCoordinates());
-                    if (dist < minDistance) {
-                        minDistance = dist;
-                        minAnchor = {
-                            point,
-                            segment,
-                            trackIndex,
-                            segmentIndex,
-                        };
-                    }
+                let details: any = {};
+                let closest = getClosestLinePoint(segment.trkpt, this.temporaryAnchor.point, details);
+                if (details.distance < minDetails.distance) {
+                    minDetails = details;
+                    minAnchor = {
+                        point: closest,
+                        segment,
+                        trackIndex,
+                        segmentIndex
+                    };
                 }
             }
         });
 
+        if (minAnchor.point._data.anchor) {
+            minAnchor.point = minAnchor.point.clone();
+            if (minDetails.before) {
+                minAnchor.point._data.index = minAnchor.point._data.index + 0.5;
+            } else {
+                minAnchor.point._data.index = minAnchor.point._data.index - 0.5;
+            }
+        }
+
         return minAnchor;
+    }
+
+    turnIntoPermanentAnchor() {
+        let file = get(this.file)?.file;
+
+        // Find the point closest to the temporary anchor
+        let minDetails: any = { distance: Number.MAX_VALUE };
+        let minInfo = {
+            point: this.temporaryAnchor.point,
+            trackIndex: -1,
+            segmentIndex: -1,
+            trkptIndex: -1
+        };
+
+        file?.forEachSegment((segment, trackIndex, segmentIndex) => {
+            if (get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex))) {
+                let details: any = {};
+                getClosestLinePoint(segment.trkpt, this.temporaryAnchor.point, details);
+                if (details.distance < minDetails.distance) {
+                    minDetails = details;
+                    let before = details.before ? details.index : details.index - 1;
+
+                    let projectedPt = projectedPoint(segment.trkpt[before], segment.trkpt[before + 1], this.temporaryAnchor.point);
+                    let ratio = distance(segment.trkpt[before], projectedPt) / distance(segment.trkpt[before], segment.trkpt[before + 1]);
+
+                    let point = segment.trkpt[before].clone();
+                    point.setCoordinates(projectedPt);
+                    point.ele = (1 - ratio) * (segment.trkpt[before].ele ?? 0) + ratio * (segment.trkpt[before + 1].ele ?? 0);
+                    point.time = (segment.trkpt[before].time && segment.trkpt[before + 1].time) ? new Date((1 - ratio) * segment.trkpt[before].time.getTime() + ratio * segment.trkpt[before + 1].time.getTime()) : undefined;
+                    point._data = {
+                        anchor: true,
+                        zoom: 0
+                    };
+
+                    minInfo = {
+                        point,
+                        trackIndex,
+                        segmentIndex,
+                        trkptIndex: before + 1
+                    };
+                }
+            }
+        });
+
+        if (minInfo.trackIndex !== -1) {
+            dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(minInfo.trackIndex, minInfo.segmentIndex, minInfo.trkptIndex, minInfo.trkptIndex - 1, [minInfo.point]));
+        }
     }
 
     getDeleteAnchor(anchor: Anchor) {
@@ -503,6 +576,9 @@ export class RoutingControls {
         if (anchors[0].point._data.index === 0) { // First anchor is the first point of the segment
             anchors[0].point = response[0]; // replace the first anchor
             anchors[0].point._data.index = 0;
+        } else if (anchors[0].point._data.index === segment.trkpt.length - 1 && distance(anchors[0].point.getCoordinates(), response[0].getCoordinates()) < 1) { // First anchor is the last point of the segment, and the new point is close enough
+            anchors[0].point = response[0]; // replace the first anchor
+            anchors[0].point._data.index = segment.trkpt.length - 1;
         } else {
             anchors[0].point = anchors[0].point.clone(); // Clone the anchor to assign new properties
             response.splice(0, 0, anchors[0].point); // Insert it in the response to keep it
@@ -519,16 +595,7 @@ export class RoutingControls {
         for (let i = 1; i < anchors.length - 1; i++) {
             // Find the closest point to the intermediate anchor
             // and transfer the marker to that point
-            let minDistance = Number.MAX_VALUE;
-            let minIndex = 0;
-            for (let j = 1; j < response.length - 1; j++) {
-                let dist = distance(response[j].getCoordinates(), targetCoordinates[i]);
-                if (dist < minDistance) {
-                    minDistance = dist;
-                    minIndex = j;
-                }
-            }
-            anchors[i].point = response[minIndex];
+            anchors[i].point = getClosestLinePoint(response.slice(1, - 1), targetCoordinates[i]);
         }
 
         anchors.forEach((anchor) => {
@@ -552,6 +619,10 @@ export class RoutingControls {
 
             let remainingTime = stats.global.time.moving - (stats.local.time.moving[anchors[anchors.length - 1].point._data.index] - stats.local.time.moving[anchors[0].point._data.index]);
             let replacingTime = newTime - remainingTime;
+
+            if (replacingTime <= 0) { // Fallback to simple time difference
+                replacingTime = stats.local.time.total[anchors[anchors.length - 1].point._data.index] - stats.local.time.total[anchors[0].point._data.index];
+            }
 
             speed = replacingDistance / replacingTime * 3600;
 

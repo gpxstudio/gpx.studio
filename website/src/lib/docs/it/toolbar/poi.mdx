@@ -1,0 +1,27 @@
+---
+title: Punti di interesse
+---
+
+<script>
+    import { MapPin } from 'lucide-svelte';
+    import Waypoint from '$lib/components/toolbar/tools/Waypoint.svelte';
+</script>
+
+# <MapPin size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+[Punti d'interesse](../gpx) possono essere aggiunti ai file GPX per contrassegnare le posizioni d'interesse sulla mappa e visualizzarli sul tuo dispositivo GPS.
+
+### Creare un punto d'interesse
+
+Per creare un punto di interesse, compila il modulo qui sotto.
+È possibile scegliere la posizione del punto di interesse facendo clic sulla mappa o inserendo le coordinate manualmente.
+Convalida il modulo quando hai finito.
+
+<div class="flex flex-row justify-center">
+    <Waypoint class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+### Modificare un punto di interesse
+
+Il modulo sopra può anche essere utilizzato per modificare un punto di interesse esistente dopo averlo selezionato sulla mappa.
+Se hai solo bisogno di spostare il punto di interesse, puoi trascinarlo nella posizione desiderata.

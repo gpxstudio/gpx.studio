@@ -1,0 +1,18 @@
+---
+title: Nettoyer
+---
+
+<script>
+    import { SquareDashedMousePointer } from 'lucide-svelte';
+    import Clean from '$lib/components/toolbar/tools/Clean.svelte';
+</script>
+
+# <SquareDashedMousePointer size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Lorsque l'outil de nettoyage est sélectionné, glisser le curseur sur la carte crée une sélection rectangulaire.
+
+Selon les options sélectionnées dans la boîte de dialogue illustrée ci-dessous, cliquer sur le bouton de suppression supprimera les points GPS et/ou [points d'intérêt](../gpx) situés à l'intérieur ou à l'extérieur de la sélection.
+
+<div class="flex flex-row justify-center">
+    <Clean class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>

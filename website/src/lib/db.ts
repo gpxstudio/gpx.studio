@@ -2,13 +2,14 @@ import Dexie, { liveQuery } from 'dexie';
 import { GPXFile, GPXStatistics, Track, TrackSegment, Waypoint, TrackPoint, type Coordinates, distance, type LineStyleExtension, type WaypointType } from 'gpx';
 import { enableMapSet, enablePatches, applyPatches, type Patch, type WritableDraft, freeze, produceWithPatches } from 'immer';
 import { writable, get, derived, type Readable, type Writable } from 'svelte/store';
-import { Tool, currentTool, gpxStatistics, initTargetMapBounds, map, splitAs, updateAllHidden, updateTargetMapBounds } from './stores';
+import { gpxStatistics, initTargetMapBounds, map, splitAs, updateAllHidden, updateTargetMapBounds } from './stores';
 import { defaultBasemap, defaultBasemapTree, defaultOverlayTree, defaultOverlays, type CustomLayer, defaultOpacities, defaultOverpassQueries, defaultOverpassTree } from './assets/layers';
 import { applyToOrderedItemsFromFile, applyToOrderedSelectedItemsFromFile, selection } from '$lib/components/file-list/Selection';
 import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem, ListWaypointItem, ListRootItem } from '$lib/components/file-list/FileList';
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
-import { SplitType } from '$lib/components/toolbar/tools/Scissors.svelte';
-import { getElevation, getPreciseElevations } from '$lib/utils';
+import { SplitType } from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
+import { getClosestLinePoint, getElevation, getPreciseElevations } from '$lib/utils';
+import { browser } from '$app/environment';
 import type mapboxgl from 'mapbox-gl';
 
 enableMapSet();
@@ -20,7 +21,7 @@ class Database extends Dexie {
     files!: Dexie.Table<GPXFile, string>;
     patches!: Dexie.Table<{ patch: Patch[], inversePatch: Patch[], index: number }, number>;
     settings!: Dexie.Table<any, string>;
-    overpassquerytiles!: Dexie.Table<{ query: string, x: number, y: number }, [string, number, number]>;
+    overpasstiles!: Dexie.Table<{ query: string, x: number, y: number, time: number }, [string, number, number]>;
     overpassdata!: Dexie.Table<{ query: string, id: number, poi: GeoJSON.Feature }, [string, number]>;
 
     constructor() {
@@ -32,7 +33,7 @@ class Database extends Dexie {
             files: '',
             patches: ',patch',
             settings: '',
-            overpassquerytiles: '[query+x+y],[x+y]',
+            overpasstiles: '[query+x+y],[x+y]',
             overpassdata: '[query+id]',
         });
     }
@@ -41,14 +42,22 @@ class Database extends Dexie {
 export const db = new Database();
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber, and updates to the store are pushed to the DB
-export function bidirectionalDexieStore<K, V>(table: Dexie.Table<V, K>, key: K, initial: V, initialize: boolean = true): Writable<V> {
-    let store = writable(initialize ? initial : undefined);
+export function bidirectionalDexieStore<K, V>(table: Dexie.Table<V, K>, key: K, initial: V, initialize: boolean = true): Writable<V | undefined> {
+    let first = true;
+    let store = writable<V | undefined>(initialize ? initial : undefined);
     liveQuery(() => table.get(key)).subscribe(value => {
-        if (value === undefined && !initialize) {
-            store.set(initial);
-        } else if (value !== undefined) {
+        if (value === undefined) {
+            if (first) {
+                if (!initialize) {
+                    store.set(initial);
+                }
+            } else {
+                store.set(value);
+            }
+        } else {
             store.set(value);
         }
+        first = false;
     });
     return {
         subscribe: store.subscribe,
@@ -71,7 +80,7 @@ export function dexieSettingStore<T>(key: string, initial: T, initialize: boolea
 }
 
 export const settings = {
-    distanceUnits: dexieSettingStore<'metric' | 'imperial'>('distanceUnits', 'metric'),
+    distanceUnits: dexieSettingStore<'metric' | 'imperial' | 'nautical'>('distanceUnits', 'metric'),
     velocityUnits: dexieSettingStore<'speed' | 'pace'>('velocityUnits', 'speed'),
     temperatureUnits: dexieSettingStore<'celsius' | 'fahrenheit'>('temperatureUnits', 'celsius'),
     elevationProfile: dexieSettingStore('elevationProfile', true),
@@ -92,16 +101,16 @@ export const settings = {
     selectedOverpassTree: dexieSettingStore('selectedOverpassTree', defaultOverpassTree),
     opacities: dexieSettingStore('opacities', defaultOpacities),
     customLayers: dexieSettingStore<Record<string, CustomLayer>>('customLayers', {}),
+    customBasemapOrder: dexieSettingStore<string[]>('customBasemapOrder', []),
+    customOverlayOrder: dexieSettingStore<string[]>('customOverlayOrder', []),
     directionMarkers: dexieSettingStore('directionMarkers', false),
     distanceMarkers: dexieSettingStore('distanceMarkers', false),
-    stravaHeatmapColor: dexieSettingStore('stravaHeatmapColor', 'bluered'),
     streetViewSource: dexieSettingStore('streetViewSource', 'mapillary'),
     fileOrder: dexieSettingStore<string[]>('fileOrder', []),
     defaultOpacity: dexieSettingStore('defaultOpacity', 0.7),
-    defaultWeight: dexieSettingStore('defaultWeight', 5),
+    defaultWeight: dexieSettingStore('defaultWeight', (browser && window.innerWidth < 600) ? 8 : 5),
     bottomPanelSize: dexieSettingStore('bottomPanelSize', 170),
     rightPanelSize: dexieSettingStore('rightPanelSize', 240),
-    showWelcomeMessage: dexieSettingStore('showWelcomeMessage', true, false),
 };
 
 // Wrap Dexie live queries in a Svelte store to avoid triggering the query for every subscriber
@@ -279,7 +288,14 @@ const fileState: Map<string, GPXFile> = new Map(); // Used to generate patches
 
 // Observe the file ids in the database, and maintain a map of file observers for the corresponding files
 export function observeFilesFromDatabase() {
+    let initialize = true;
     liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
+        if (initialize) {
+            if (dbFileIds.length > 0) {
+                initTargetMapBounds(dbFileIds.length);
+            }
+            initialize = false;
+        }
         // Find new files to observe
         let newFiles = dbFileIds.filter(id => !get(fileObservers).has(id)).sort((a, b) => parseInt(a.split('-')[1]) - parseInt(b.split('-')[1]));
         // Find deleted files to stop observing
@@ -288,9 +304,6 @@ export function observeFilesFromDatabase() {
         // Update the store
         if (newFiles.length > 0 || deletedFiles.length > 0) {
             fileObservers.update($files => {
-                if (newFiles.length > 0 && get(currentTool) !== Tool.SCISSORS) { // Reset the target map bounds when new files are added
-                    initTargetMapBounds(newFiles.length);
-                }
                 newFiles.forEach(id => {
                     $files.set(id, dexieGPXFileStore(id));
                 });
@@ -789,22 +802,20 @@ export const dbUtils = {
             });
         });
     },
-    split(fileId: string, trackIndex: number, segmentIndex: number, coordinates: Coordinates) {
+    split(fileId: string, trackIndex: number, segmentIndex: number, coordinates: Coordinates, trkptIndex?: number) {
         let splitType = get(splitAs);
         return applyGlobal((draft) => {
             let file = getFile(fileId);
             if (file) {
                 let segment = file.trk[trackIndex].trkseg[segmentIndex];
 
-                // Find the point closest to split
-                let minDistance = Number.MAX_VALUE;
                 let minIndex = 0;
-                for (let i = 0; i < segment.trkpt.length; i++) {
-                    let dist = distance(segment.trkpt[i].getCoordinates(), coordinates);
-                    if (dist < minDistance) {
-                        minDistance = dist;
-                        minIndex = i;
-                    }
+                if (trkptIndex === undefined) {
+                    // Find the point closest to split
+                    let closest = getClosestLinePoint(segment.trkpt, coordinates);
+                    minIndex = closest._data.index;
+                } else {
+                    minIndex = trkptIndex;
                 }
 
                 let absoluteIndex = minIndex;
@@ -907,6 +918,8 @@ export const dbUtils = {
                 wpt.name = waypoint.name;
                 wpt.desc = waypoint.desc;
                 wpt.cmt = waypoint.cmt;
+                wpt.sym = waypoint.sym;
+                wpt.link = waypoint.link;
                 wpt.setCoordinates(waypoint.attributes);
                 wpt.ele = ele;
             });

@@ -1,0 +1,48 @@
+---
+title: Ver opções
+---
+
+<script lang="ts">
+    import { ChartArea, GalleryVertical, Map, Layers2, Coins, Milestone, Box } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+Este menu fornece opções para reorganizar a interface e a visualização do mapa.
+
+### <ChartArea size="16" class="inline-block" style="margin-bottom: 2px" /> Perfil de elevação
+
+Oculte o perfil de elevação para liberar espaço para o mapa, ou mostre-o para inspecionar a seleção atual.
+
+### <GalleryVertical size="16" class="inline-block" style="margin-bottom: 2px" /> Lista de arquivos vertical
+
+Alternar entre um layout vertical e horizontal para a lista de arquivos.
+A [lista vertical de arquivos](../files-and-stats) é útil quando você tem muitos arquivos abertos, ou arquivos com múltiplas [faixas, segmentos ou pontos de interesse](../gpx).
+
+### <Map size="16" class="inline-block" style="margin-bottom: 2px" /> Mudar para mapa base anterior
+
+Altere o mapa base para o previamente selecionado através do [controle de camada de mapa](../map-controls).
+
+### <Layers2 size="16" class="inline-block" style="margin-bottom: 2px" /> Alternar sobreposições
+
+Alternar a visibilidade das camadas do mapa selecionadas através do [controle da camada do mapa](../map-controls).
+
+### <Coins size="16" class="inline-block" style="margin-bottom: 2px" /> Marcadores de distância
+
+Alterna a visibilidade dos marcadores de distância no mapa.
+Eles são exibidos para a seleção atual, como o [perfil de elevação](../files-and-stats).
+
+### <Milestone size="16" class="inline-block" style="margin-bottom: 2px" /> Setas de direção
+
+Alterna a visibilidade das setas de direção no mapa.
+
+### <Box size="16" class="inline-block" style="margin-bottom: 2px" /> Alternar 3D
+
+Entrar ou sair da visualização do mapa 3D.
+
+<DocsNote>
+
+Para controlar a orientação e a inclinação do mapa, você também pode arrastar o mapa enquanto segura <kbd>Ctrl</kbd>.
+
+</DocsNote>

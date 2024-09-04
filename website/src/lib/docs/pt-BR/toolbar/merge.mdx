@@ -1,0 +1,20 @@
+---
+title: Mesclar
+---
+
+<script>
+    import { Group } from 'lucide-svelte';
+    import Merge from '$lib/components/toolbar/tools/Merge.svelte';
+</script>
+
+# <Group size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Para usar esta ferramenta, você precisa [selecionar](../files-and-stats) vários arquivos, [faixas ou segmentos](../gpx).
+
+- Se seu objetivo é criar um único rastro contínuo a partir da sua seleção, use a opção **Conecte os rastros** e valide.
+- A segunda opção pode ser usada para criar ou gerenciar arquivos com várias [faixas ou segmentos](../gpx).
+  Mesclar arquivos (ou faixas) resultará em um único arquivo (ou faixa) contendo todas as faixas (ou segmentos) da seleção.
+
+<div class="flex flex-row justify-center">
+    <Merge class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>

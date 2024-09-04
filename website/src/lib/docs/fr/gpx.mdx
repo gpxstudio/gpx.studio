@@ -1,0 +1,34 @@
+---
+title: Format de fichier GPX
+---
+
+<script>
+    import { Waypoints, MapPin } from 'lucide-svelte';
+</script>
+
+# { title }
+
+Le format de fichier <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX</a> est un standard ouvert pour l'échange de données GPS entre applications et appareils GPS.
+Il consiste principalement en une série de points GPS encodant une ou plusieurs traces GPS, et, éventuellement, certains points d'intérêt.
+
+Les fichiers GPX peuvent aussi contenir des métadonnées, dont les champs **nom** et **description** sont les plus utiles pour les utilisateurs.
+
+### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Pistes, segments et points GPS
+
+Comme mentionné ci-dessus, un fichier GPX peut contenir plusieurs traces GPS.
+Celles-ci sont organisées en une structure hiérarchique, dont les pistes constituent le niveau supérieur.
+
+- Une **piste** est faite d'une séquence de segments déconnectés.
+  De plus, une piste peut contenir des métadonnées comme un **nom**, une **description**, et des **propriétés d'apparence**.
+- Un **segment** est une séquence de points GPS qui forment un chemin continu.
+- Un **point GPS** est une localisation avec une latitude, une longitude, et éventuellement un horodatage et une altitude.
+  Certains appareils stockent également des informations supplémentaires telles que la fréquence cardiaque, la cadence, la température et la puissance.
+
+Dans la plupart des cas, les fichiers GPX contiennent une seule piste avec un seul segment.
+Cependant, la hiérarchie décrite ci-dessus permet des cas d'utilisation plus avancés, comme la planification de voyages de plusieurs jours avec plusieurs variantes pour chaque jour.
+
+### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Points d'intérêt
+
+Les **points d'intérêt** (techniquement appelés _waypoints_) représentent des lieux d'intérêt à afficher sur un appareil GPS ou sur une carte numérique.
+
+En plus de ses coordonnées, un point d'intérêt peut avoir un **nom** et une **description**.

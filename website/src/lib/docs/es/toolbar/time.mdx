@@ -1,0 +1,27 @@
+---
+title: Tiempo
+---
+
+<script>
+    import { CalendarClock } from 'lucide-svelte';
+    import Time from '$lib/components/toolbar/tools/Time.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# <CalendarClock size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Esta herramienta le permite cambiar o añadir marcas de tiempo a un trazado.
+Simplemente tiene que usar el formulario que se muestra a continuación y validarlo cuando haya terminado.
+
+<div class="flex flex-row justify-center">
+    <Time class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+Al editar la velocidad, el tiempo de movimiento se actualiza en el formulario y viceversa.
+De la misma manera, al editar la hora de inicio, la hora de finalización se actualiza para mantener la misma duración total, y viceversa.
+
+<DocsNote>
+
+Al usar esta herramienta con marcas de tiempo existentes, los cambios en el tiempo o velocidad simplemente las desplazará, extenderá o comprimirá en consonancia.
+
+</DocsNote>

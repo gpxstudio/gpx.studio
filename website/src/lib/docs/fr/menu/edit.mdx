@@ -1,0 +1,74 @@
+---
+title: Actions d'édition
+---
+
+<script lang="ts">
+    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+Contrairement aux actions sur les fichiers, les actions d'édition peuvent potentiellement modifier le contenu des fichiers sélectionnés.
+De plus, lorsque la vue verticale de la liste de fichiers est activée (voir [Fichiers et statistiques](../files-and-stats)), elles peuvent également être appliquées aux [pistes, segments, et points d'intérêt](../gpx).
+Par conséquent, nous appellerons les éléments qui peuvent être modifiés par ces actions des _éléments de fichier_.
+Notez que, à part les actions annuler et rétablir, les actions d'édition sont également accessibles via le menu contextuel (clic droit) des éléments de fichier.
+
+### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Annuler et rétablir
+
+En utilisant ces boutons, vous pouvez annuler ou rétablir les dernières actions que vous avez effectuées.
+Cela s'applique à toutes les actions de l'interface, mais pas aux options d'affichage, aux paramètres de l'application ou à la navigation de la carte.
+
+### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> Infos...
+
+Ouvrir la boîte de dialogue d'information de l'élément de fichier actuellement sélectionné, où vous pouvez voir et modifier son nom et sa description.
+
+### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Apparence...
+
+Ouvrir la boîte de dialogue d'apparence, où vous pouvez changer la couleur, l'opacité et l'épaisseur des éléments de fichier sélectionnés sur la carte.
+
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Cacher/afficher
+
+Activer/désactiver la visibilité des éléments de fichier sélectionnés sur la carte.
+
+### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Sélectionner tout
+
+Ajouter tous les éléments de fichier du niveau de hiérarchie actuel à la sélection.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Centrer
+
+Centrer la carte sur les éléments de fichier sélectionnés.
+
+### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copier
+
+Copier les éléments de fichier sélectionnés dans le presse-papiers.
+
+<DocsNote>
+
+Cette action n'est disponible que lorsque la vue verticale de la liste de fichiers est activée.
+
+</DocsNote>
+
+### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Couper
+
+Couper les éléments de fichier sélectionnés dans le presse-papiers.
+
+<DocsNote>
+
+Cette action n'est disponible que lorsque la vue verticale de la liste de fichiers est activée.
+
+</DocsNote>
+
+### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Coller
+
+Coller les éléments de fichier du presse-papiers au niveau de hiérarchie actuel, s'ils sont compatibles avec celui-ci.
+
+<DocsNote>
+
+Cette action n'est disponible que lorsque la vue verticale de la liste de fichiers est activée.
+
+</DocsNote>
+
+### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Supprimer
+
+Supprimer les éléments de fichier sélectionnés.

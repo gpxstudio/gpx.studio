@@ -1,0 +1,20 @@
+---
+title: Unisci
+---
+
+<script>
+    import { Group } from 'lucide-svelte';
+    import Merge from '$lib/components/toolbar/tools/Merge.svelte';
+</script>
+
+# <Group size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Per utilizzare questo strumento, è necessario [selezionare](../files-and-stats) file multipli, [tracce, o segmenti](../gpx).
+
+- Se il tuo obiettivo è quello di creare una singola traccia continua dalla tua selezione, usa l'opzione **Collega le tracce** e convalida.
+- La seconda opzione può essere utilizzata per creare o gestire file con più [tracce o segmenti](../gpx).
+  L'unione di file (o tracce) comporterà un singolo file (o traccia) contenente tutte le tracce (o segmenti) dalla selezione.
+
+<div class="flex flex-row justify-center">
+    <Merge class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>

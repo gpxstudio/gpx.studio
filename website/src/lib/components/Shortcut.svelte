@@ -8,14 +8,19 @@
 	export let click: boolean = false;
 
 	let isMac = false;
+	let isSafari = false;
 
 	onMount(() => {
 		isMac = navigator.userAgent.toUpperCase().indexOf('MAC') >= 0;
+		isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 	});
 </script>
 
-<span class="ml-auto pl-2 text-xs tracking-widest text-muted-foreground"
-	>{shift ? '⇧' : ''}{ctrl ? (isMac ? '⌘' : $_('menu.ctrl') + '+') : ''}{key}{click
-		? $_('menu.click')
-		: ''}</span
+<div
+	class="ml-auto pl-2 text-xs tracking-widest text-muted-foreground flex flex-row gap-0 items-baseline"
 >
+	<span>{shift ? '⇧' : ''}</span>
+	<span>{ctrl ? (isMac && !isSafari ? '⌘' : $_('menu.ctrl') + '+') : ''}</span>
+	<span class={key === '+' ? 'font-medium text-sm/4' : ''}>{key}</span>
+	<span>{click ? $_('menu.click') : ''}</span>
+</div>

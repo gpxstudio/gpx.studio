@@ -1,0 +1,67 @@
+---
+title: Controles do mapa
+---
+
+<script>
+    import { Plus, Minus, Diff, Compass, Search, LocateFixed, PersonStanding, Layers3 } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import DocsLayers from '$lib/components/docs/DocsLayers.svelte';
+</script>
+
+# { title }
+
+### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Navegação no mapa
+
+Os controles no topo permitem aumentar<Plus size="16" class="inline-block" style="margin-bottom: 2px" /> e diminuir <Minus size="16" class="inline-block" style="margin-bottom: 2px" /> o zoom e mudar a orientação e inclinação do mapa <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
+
+<DocsNote>
+
+Para controlar a orientação e a inclinação do mapa, você também pode arrastar o mapa enquanto segura <kbd>Ctrl</kbd>.
+
+</DocsNote>
+
+### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Barra de pesquisa
+
+Você pode usar a barra de pesquisa para procurar um endereço e navegar até ele no mapa.
+
+### U<LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Botão Localizar
+
+O botão de localizar centraliza o mapa na sua localização atual.
+
+<DocsNote>
+
+Isso só funciona se você tiver permitido o acesso que seu navegador e <b>gpx.studio</b> tenham acesso a sua localização.
+
+</DocsNote>
+
+### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Street view
+
+Este botão pode ser usado para ativar o modo visualização de rua no mapa.
+Dependendo da fonte da visualização de rua escolhida nas [configurações](./menu/settings), as imagens de visualização de rua podem ser acessadas de forma diferente.
+
+- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: a cobertura de rua aparecerá como linhas verdes no mapa. Quando ampliado o suficiente, os pontos verdes mostrarão os locais exatos onde a imagem de visualização de rua está disponível. Passar o mouse sobre um ponto verde irá mostrar a imagem de rua naquele local.
+- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: clique no mapa para abrir uma nova aba com a visualização de rua naquele local.
+
+### <Layers3 size="16" class="inline-block" style="margin-bottom: 2px" /> Camadas do mapa
+
+O botão de camadas de mapa permite que você alterne entre diferentes mapas e alternar entre sobreposições de mapa e categorias de pontos de interesse.
+
+- **Mapas base** são mapas de fundo que apresentam as características geográficas principais do mundo.
+  Apenas um mapa base pode ser exibio por vez.
+  Depending on their purpose, basemaps have different styles and levels of detail.
+- **Sobreposições** são camadas adicionais que podem ser exibidas no topo do basemap para fornecer informações complementares.
+- **Pontos de interesse** podem ser adicionados ao mapa para mostrar diferentes categorias de lugares, como lojas, restaurantes ou acomodações.
+
+<div class="flex flex-col items-center">
+    <DocsLayers />
+    <span class="text-sm text-center mt-2">
+        Passe o mouse por cima do mapa para mostrar a camada de <a href="https://hiking.waymarkedtrails.org" target="_blank">Trilhas demarcadas</a> sobre o mapa <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a>.
+    </span>
+</div>
+
+Uma grande diversidade de mapas globais e locais está disponível no **gpx.studio**, bem como uma seleção de pontos de interesse.
+Eles podem ser ativados nas [configurações de camadas do mapa](./menu/settings).
+
+Nessas configurações, você também pode gerenciar a opacidade das camadas.
+
+Para usuários avançados, é possível adicionar mapas e sobreposições personalizados, fornecendo <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, ou <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, ou ainda URLs com arquivos <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox JSON</a>.

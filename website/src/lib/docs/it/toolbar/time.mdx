@@ -1,0 +1,27 @@
+---
+title: Dati temporali
+---
+
+<script>
+    import { CalendarClock } from 'lucide-svelte';
+    import Time from '$lib/components/toolbar/tools/Time.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# <CalendarClock size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Questo strumento consente di modificare o aggiungere timestamp a una traccia.
+Devi semplicemente usare il modulo mostrato qui sotto e convalidarlo quando hai finito.
+
+<div class="flex flex-row justify-center">
+    <Time class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+Quando si modifica la velocità, il tempo di spostamento viene adattato di conseguenza nel modulo e viceversa.
+Allo stesso modo, quando si modifica l'ora di inizio, l'ora di fine viene aggiornata per mantenere la stessa durata totale, e viceversa.
+
+<DocsNote>
+
+Quando si utilizza questo strumento con timestamp esistenti, cambiare il tempo o la velocità semplicemente spostando, allungando o comprimendo di conseguenza.
+
+</DocsNote>

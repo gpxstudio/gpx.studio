@@ -1,0 +1,85 @@
+---
+title: Planejamento e edição de rotas
+---
+
+<script>
+    import { Pencil, Route, Bike, TriangleAlert, ArrowRightLeft, Home, Repeat, Trash2, CirclePlay, SquareArrowUpLeft } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
+    import routingScreenshot from '$lib/assets/img/docs/tools/routing.png?enhanced';
+    import DocsImage from '$lib/components/docs/DocsImage.svelte';
+</script>
+
+# <Pencil size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+A ferramenta de planejamento e edição de rotas permite que você crie e edite rotas colocando ou movendo pontos de âncora no mapa.
+
+## Configurações
+
+Como mostrado abaixo, o diálogo de ferramentas contém algumas configurações para controlar o comportamento de roteamento.
+Você pode minimizar o diálogo para economizar espaço clicando em <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
+
+<div class="flex flex-row justify-center">
+    <Routing minimizable={false} class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Roteamento
+
+Quando o roteamento estiver habilitado, pontos de ancoragem colocados ou movidos no mapa serão conectados por uma rota calculada na rede rodoviária do <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a>.
+Desative o roteamento para conectar pontos de âncora com linhas retas.
+Esta configuração também pode ser alternada pressionando <kbd>F5</kbd>.
+
+### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Atividade
+
+Selecione o tipo de atividade para adaptar as rotas.
+
+### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Permitir estradas particulares
+
+Quando habilitado, o mecanismo de roteamento considerará estradas privadas durante as rotas de computação.
+
+<DocsNote type="warning">
+
+Só utilize esta opção se tiver conhecimento local da região e tiver autorização para utilizar as estradas em questão.
+
+</DocsNote>
+
+## Plotagem e edição de rotas
+
+Criar uma rota ou estender uma já existente é tão simples quanto clicar no mapa para colocar um novo ponto de âncora.
+
+Você também pode arrastar um ponto de âncora existente para re-rotear o segmento conectando-o com os pontos de âncora anterior e posterior.
+
+Adicionalmente, novos pontos de âncora podem ser inseridos entre os existentes passando o mouse sobre o segmento que os conecta e arrastando o ponto de âncora que parece para a localização desejada.
+Em dispositivos com tela sensível ao toque, você pode tocar no segmento para inserir um novo ponto de âncora.
+
+<DocsNote>
+
+Ao editar arquivos GPX importados, um conjunto inicial de pontos de âncora é criado automaticamente.
+Para facilitar o processo de edição, quanto mais o mapa está ampliado, mais pontos de âncora são exibidos.
+Isto permite que o caminho seja editado em diferentes níveis de detalhes.
+
+</DocsNote>
+
+Finalmente, você pode excluir pontos de âncora clicando neles e selecionando <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Apagar</button> do menu de contexto.
+
+<DocsImage src={routingScreenshot} alt="Pontos de âncora permitem que você edite uma rota facilmente." />
+
+## Ferramentas adicionais
+
+As seguintes ferramentas automatizam algumas operações comuns de modificação de rota.
+
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Inverter
+
+Inverter a direção da rota.
+
+### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Voltar para o início
+
+Conecte o último ponto da rota com o ponto de partida, usando as configurações de roteamento escolhidas.
+
+### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Ida e volta
+
+Retorne ao ponto de partida pela mesma rota.
+
+### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Muda o início do laço
+
+Quando o ponto final da rota é suficientemente próximo do início, você pode alterar o início do laço clicando em qualquer ponto de âncora e selecionando <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Começar laço aqui</button> no menu de contexto.

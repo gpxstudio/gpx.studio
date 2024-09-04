@@ -1,0 +1,82 @@
+---
+title: Bestanden en statistieken
+---
+
+<script>
+    import { TriangleRight, BrickWall, Zap, HeartPulse, Orbit, Thermometer, SquareActivity } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+## Bestandenlijst
+
+Zodra je [opened](./menu/bestand) bestanden hebt, worden ze weergegeven als tabbladen in de lijst met bestanden die zich onderaan de kaart bevinden.
+U kunt ze rangschikken door de tabbladen te slepen en te laten vallen.
+En wanneer veel bestanden open zijn, kun je door de lijst met tabbladen bladeren.
+
+<DocsNote>
+
+Wanneer je een muis gebruikt, moet je <kbd>Shift</kbd> ingedrukt houden om horizontaal te scrollen.
+
+</DocsNote>
+
+### Bestand selecteren
+
+Door op een tabblad te klikken, kun je schakelen tussen de bestanden om de statistieken daarvan te controleren, en [bewerk acties](./menu/edit) en [tools](./toolbar/) er op toe te passen.
+Door de <kbd>Ctrl/Cmd</kbd> toets ingedrukt te houden, kunt u bestanden aan de selectie toevoegen of verwijderen en door <kbd>Shift</kbd>ingedrukt te houden, kunt u een serie bestanden selecteren.
+De meeste van de [bewerk acties](./menu/edit) en [tools](./toolbar/) kunnen tegelijk op meerdere bestanden worden toegepast.
+
+<DocsNote>
+
+Je kunt ook navigeren door de bestanden met behulp van de pijltoetsen op je toetsenbord, en <kbd>Shift</kbd> gebruiken om bestanden toe te voegen aan de selectie.
+
+</DocsNote>
+
+### Bewerkingen
+
+Door met de rechtermuisknop te klikken op een tabblad bestanden, kun je dezelfde acties gebruiken als in het [edit menu](./menu/edit).
+
+### Verticale lay-out
+
+Zoals vermeld in de [opties bekijken](./menu/view), kan je schakelen tussen een horizontale en een verticale lay-out voor de bestandslijst.
+De verticale bestandslijst is handig wanneer je veel bestanden hebt geopend, of bestanden met meerdere [tracks, segmenten of POI's](../gpx).
+Deze lay-out stelt je in staat om de inhoud van de bestanden te bekijken via inklapbare onderdelen.
+
+Je kunt ook [bewerk acties](./menu/edit) en [tools](./toolbar/) toepassen op interne items.
+Bovendien kun je de interne onderdelen slepen en neerzetten om ze te rangschikken, of ze in de hiërarchie of zelfs naar een ander bestand verplaatsen.
+
+<DocsNote>
+
+De grootte van de bestandslijst kan worden aangepast door het scheidingsteken tussen de kaart en de bestandslijst te slepen.
+
+</DocsNote>
+
+## Hoogteprofiel en statistieken
+
+Aan de onderkant van de interface kunt u het hoogteprofiel en de statistieken voor de huidige selectie vinden.
+
+<DocsNote>
+
+De grootte van het hoogteprofiel kan worden aangepast door het scheidingsteken tussen de kaart en het hoogteprofiel te slepen.
+
+</DocsNote>
+
+### Interactieve statistieken
+
+Bij het zweven over het hoogteprofiel, toont een hint de statistieken op de positie van de cursor.
+
+Om de statistieken van een specifiek gedeelte van het hoogteprofiel te zien, kunt u een selectierechthoek over het profiel slepen.
+Klik op het profiel om de selectie opnieuw in te stellen.
+
+Je kunt het muiswiel ook gebruiken om in en uit te zoomen op het hoogte profiel, of te verschuiven door het profiel te slepen terwijl je de <kbd>Shift</kbd> toets ingedrukt houdt.
+
+### Aanvullende gegevens
+
+Met behulp van de knoppen aan de rechterkant van het hoogteprofiel kunt u het hoogteprofiel optioneel kleuren door:
+
+- **slope** <TriangleRight size="16" class="inline-block" style="margin-bottom: 2px" /> informatie berekend op basis van de hoogtegegevens, of
+- **oppervlak** <BrickWall size="16" class="inline-block" style="margin-bottom: 2px" /> data afkomstig van <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> tags.
+  Dit is alleen beschikbaar voor bestanden gemaakt met **gpx.studio**.
+
+Als je selectie het bevat, kun je ook visualiseren: **snelheid** <Zap size="16" class="inline-block" style="margin-bottom: 2px" />, **hartsnelheid** <HeartPulse size="16" class="inline-block" style="margin-bottom: 2px" />, **cadence** <Orbit size="16" class="inline-block" style="margin-bottom: 2px" />, **temperature** <Thermometer size="16" class="inline-block" style="margin-bottom: 2px" />, en **power** <SquareActivity size="16" class="inline-block" style="margin-bottom: 2px" /> data op het hoogteprofiel.

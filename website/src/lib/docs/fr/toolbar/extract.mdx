@@ -1,0 +1,26 @@
+---
+title: Extraire
+---
+
+<script>
+    import { Ungroup } from 'lucide-svelte';
+    import Extract from '$lib/components/toolbar/tools/Extract.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# <Ungroup size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Cet outil vous permet d'extraire [des pistes (ou des segments)](../gpx) de fichiers (ou de pistes) en contenant plusieurs.
+
+<div class="flex flex-row justify-center">
+    <Extract class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+Appliquer l'outil à un fichier contenant plusieurs pistes créera un nouveau fichier pour chacune des pistes qu'il contient.
+De même, appliquer l'outil à une piste contenant plusieurs segments créera (dans le même fichier) une nouvelle piste pour chacun des segments qu'elle contient.
+
+<DocsNote>
+
+Lors de l'extraction des pistes d'un fichier contenant des <a href="../gpx">points d'intérêt</a>, l'outil assigne automatiquement chaque point d'intérêt à la piste de laquelle il est le plus proche.
+
+</DocsNote>

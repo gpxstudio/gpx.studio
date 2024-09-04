@@ -1,10 +1,9 @@
 
-import { font } from "$lib/assets/layers";
 import { settings } from "$lib/db";
 import { gpxStatistics } from "$lib/stores";
 import { get } from "svelte/store";
 
-const { distanceMarkers, distanceUnits, currentBasemap } = settings;
+const { distanceMarkers, distanceUnits } = settings;
 
 export class DistanceMarkers {
     map: mapboxgl.Map;
@@ -17,7 +16,7 @@ export class DistanceMarkers {
         this.unsubscribes.push(gpxStatistics.subscribe(this.updateBinded));
         this.unsubscribes.push(distanceMarkers.subscribe(this.updateBinded));
         this.unsubscribes.push(distanceUnits.subscribe(this.updateBinded));
-        this.map.on('style.load', this.updateBinded);
+        this.map.on('style.import.load', this.updateBinded);
     }
 
     update() {
@@ -40,7 +39,7 @@ export class DistanceMarkers {
                         layout: {
                             'text-field': ['get', 'distance'],
                             'text-size': 14,
-                            'text-font': [font[get(currentBasemap)] ?? 'Open Sans Bold'],
+                            'text-font': ['Open Sans Bold'],
                             'text-padding': 20,
                         },
                         paint: {

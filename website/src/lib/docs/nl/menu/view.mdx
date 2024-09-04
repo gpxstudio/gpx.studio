@@ -1,0 +1,48 @@
+---
+title: Bekijk opties
+---
+
+<script lang="ts">
+    import { ChartArea, GalleryVertical, Map, Layers2, Coins, Milestone, Box } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+Dit menu biedt opties om de interface en de kaartweergave te herschikken.
+
+### <ChartArea size="16" class="inline-block" style="margin-bottom: 2px" /> Hoogte profiel
+
+Verberg het hoogteprofiel om ruimte te maken voor de kaart, of toon het om de huidige selectie te inspecteren.
+
+### <GalleryVertical size="16" class="inline-block" style="margin-bottom: 2px" /> Verticale bestandslijst
+
+Schakel tussen een verticale en een horizontale layout voor de bestandslijst.
+De verticale bestandslijst is handig wanneer je veel bestanden hebt geopend, of bestanden met meerdere [tracks, segmenten of POI's](../gpx).
+
+### <Map size="16" class="inline-block" style="margin-bottom: 2px" /> Wissel naar vorige basemap
+
+Verander de basiskaart naar de kaart die eerder is geselecteerd via [kaartlaag controle](../map-controls).
+
+### <Layers2 size="16" class="inline-block" style="margin-bottom: 2px" /> Schakel overlays
+
+Verander de basiskaart naar de kaart die eerder is geselecteerd via [kaartlaag controle](../map-controls).
+
+### <Coins size="16" class="inline-block" style="margin-bottom: 2px" /> afstandsmarkeringen
+
+De zichtbaarheid van afstandsmarkeringen op de kaart in-/uitschakelen.
+Ze worden weergegeven voor de huidige selectie, zoals het [hoogteprofiel](../files-and-stats).
+
+### <Milestone size="16" class="inline-block" style="margin-bottom: 2px" /> Richtingspijlen
+
+Afstandsmarkeringen op de kaart in-/uitschakelen.
+
+### <Box size="16" class="inline-block" style="margin-bottom: 2px" /> Schakel 3D in/uit
+
+Voer in of verlaat de 3D-mapweergave.
+
+<DocsNote>
+
+Om de oriëntatie en kanteling van de kaart te bepalen, kun je ook de kaart slepen terwijl je <kbd>Ctrl</kbd> ingedrukt houdt.
+
+</DocsNote>

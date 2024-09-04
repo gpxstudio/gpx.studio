@@ -1,0 +1,32 @@
+---
+title: Barre d'outils
+---
+
+<script lang="ts">
+    import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
+	import { currentTool, Tool } from '$lib/stores';
+	import { onMount, onDestroy } from 'svelte';
+
+    onMount(() => {
+        currentTool.set(Tool.ROUTING);
+    });
+
+    onDestroy(() => {
+        currentTool.set(null);
+    });
+</script>
+
+# { title }
+
+La barre d'outils est située sur le côté gauche de la carte et est le cœur de l'application, puisqu'elle permet d'accéder aux fonctionnalités principales de **gpx.studio**.
+Chaque outil est représenté par une icône et peut être activé en cliquant dessus.
+
+<div class="flex flex-row justify-center text-foreground">
+    <div>
+        <Toolbar class="border rounded-md shadow-lg" />
+    </div>
+</div>
+
+Comme pour les [actions d'édition](./menu/edit), la plupart des outils peuvent être appliqués à plusieurs fichiers à la fois et aux [pistes et segments](./gpx).
+
+Les sections qui suivent décrivent chaque outil en détail.

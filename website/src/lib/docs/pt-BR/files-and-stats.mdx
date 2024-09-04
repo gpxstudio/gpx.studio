@@ -1,0 +1,82 @@
+---
+title: Arquivos e estatísticas
+---
+
+<script>
+    import { TriangleRight, BrickWall, Zap, HeartPulse, Orbit, Thermometer, SquareActivity } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+## Lista de arquivos
+
+Uma vez [abertos](./menu/arquivo), os arquivos serão exibidos como abas na lista de arquivos localizados na parte inferior do mapa.
+Você pode reordená-los arrastando e soltando as abas.
+E quando muitos arquivos estiverem abertos, você poderá rolar a lista de abas para navegar entre eles.
+
+<DocsNote>
+
+Ao usar um mouse, você precisa segurar <kbd>Shift</kbd> para rolar horizontalmente.
+
+</DocsNote>
+
+### Seleção de arquivo
+
+Clicando em uma aba, você pode alternar entre arquivos para inspecionar suas estatísticas, e aplicar [ações de edição](./menu/edit) e [ferramentas](./toolbar/) para eles.
+Ao segurar a tecla <kbd>Ctrl/Cmd</kbd>, você poderá adicionar arquivos à seleção ou removê-los e segurando <kbd>Shift</kbd>, você pode selecionar um intervalo de arquivos.
+A maioria das [ações de edição](./menu/edit) e [ferramentas](./toolbar/) podem ser aplicadas a vários arquivos de uma só vez.
+
+<DocsNote>
+
+Você também pode navegar pelos arquivos usando as setas do teclado e usar <kbd>Shift</kbd> para adicionar arquivos à seleção.
+
+</DocsNote>
+
+### Ações de edição
+
+Clicando com o botão direito em uma aba arquivo, você pode acessar as mesmas ações que no [menu de edição](./menu/edit).
+
+### Layout vertical
+
+Como mencionado na [seção de opções de visualização](./menu/view), você pode alternar entre um layout horizontal e vertical para a lista de arquivos.
+A lista vertical é útil quando você tem muito arquivos abertos, ou arquivos com múltiplas [faixas, segmentos ou waypoints](../gpx).
+De fato, este layout permite que você inspecione o conteúdo dos arquivos por seções ocultáveis.
+
+Você também pode aplicar as [ações de edição](./menu/edit) e [ferramentas](./toolbar/) para itens de arquivos internos.
+Além disso, você pode arrastar e soltar os itens internos para reordená-los, ou movê-los na hierarquia ou até mesmo para outro arquivo.
+
+<DocsNote>
+
+O tamanho da lista de arquivos pode ser ajustado arrastando o separador entre o mapa e a lista de arquivos.
+
+</DocsNote>
+
+## Perfil de elevação e estatísticas
+
+Na parte inferior da interface, você pode encontrar o perfil de elevação e estatísticas para a seleção atual.
+
+<DocsNote>
+
+O tamanho do perfil de elevação pode ser ajustado arrastando o separador entre o mapa e o perfil de elevação.
+
+</DocsNote>
+
+### Estatísticas interativas
+
+Ao passar o mouse sobre o perfil de elevação, uma dica mostrará estatísticas sobre a posição do cursor.
+
+Para obter as estatísticas de uma seção específica do perfil de elevação, você pode arrastar um retângulo de seleção no perfil.
+Clique no perfil para redefinir a seleção.
+
+Você também pode usar a roda do mouse para aumentar e diminuir o zoom no perfil de elevação, e mover para esquerda e direita arrastando o perfil enquanto segura a tecla <kbd>Shift</kbd>.
+
+### Dados adicionais
+
+Usando os botões à direita do perfil de elevação, você pode opcionalmente colorir o perfil de elevação por:
+
+- **inclinação** <TriangleRight size="16" class="inline-block" style="margin-bottom: 2px" /> informação computada a partir dos dados de elevação, ou
+- **superfície** <BrickWall size="16" class="inline-block" style="margin-bottom: 2px" /> dados vindos dos marcadores de <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">superfície</a> do <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>.
+  Isso só está disponível para arquivos criados com **gpx.studio**.
+
+Se sua seleção incluir, você também pode visualizar: **velocidade** <Zap size="16" class="inline-block" style="margin-bottom: 2px" />, **frequência cardíaca** <HeartPulse size="16" class="inline-block" style="margin-bottom: 2px" />, **cadência** <Orbit size="16" class="inline-block" style="margin-bottom: 2px" />, **temperatura** <Thermometer size="16" class="inline-block" style="margin-bottom: 2px" />e **energia** <SquareActivity size="16" class="inline-block" style="margin-bottom: 2px" /> dados sobre o perfil de elevação.

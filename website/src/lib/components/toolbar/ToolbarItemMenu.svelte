@@ -4,7 +4,7 @@
 	import { flyAndScale } from '$lib/utils';
 	import * as Card from '$lib/components/ui/card';
 	import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
-	import Scissors from '$lib/components/toolbar/tools/Scissors.svelte';
+	import Scissors from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
 	import Waypoint from '$lib/components/toolbar/tools/Waypoint.svelte';
 	import Time from '$lib/components/toolbar/tools/Time.svelte';
 	import Merge from '$lib/components/toolbar/tools/Merge.svelte';

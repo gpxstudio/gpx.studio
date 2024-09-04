@@ -1,0 +1,26 @@
+---
+title: Kiemelés
+---
+
+<script>
+    import { Ungroup } from 'lucide-svelte';
+    import Extract from '$lib/components/toolbar/tools/Extract.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# <Ungroup size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Ezzel az eszközzel kiemelhetsz [nyomvonalakat (vagy szakaszokat)](../gpx) olyan fájlokból (vagy nyomvonalakból), amelyek több ilyet tartalmaznak.
+
+<div class="flex flex-row justify-center">
+    <Extract class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+Ha az eszközt egy több nyomvonalat (track) tartalmazó fájlra alkalmazod, akkor minden egyes nyomvonalhoz létre fog jönni egy új fájl.
+Hasonlóképpen, ha az eszközt egy több szakaszt (segment) tartalmazó nyomvonalra alkalmazod, akkor (a fájlon belül) létre fog jönni egy-egy új nyomvonal minden egyes szakaszhoz, amelyet a fájl tartalmaz.
+
+<DocsNote>
+
+Ha egy <a href="../gpx">érdekes pontokat (POI)</a> is tartalmazó fájlból emelsz ki nyomvonalat, akkor az eszköz az egyes érdekes pontokat automatikusan ahhoz a pályához rendeli hozzá, amelyikhez a legközelebb van.
+
+</DocsNote>

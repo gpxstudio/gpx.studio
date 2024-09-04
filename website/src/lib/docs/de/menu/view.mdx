@@ -1,0 +1,48 @@
+---
+title: Anzeigeoptionen
+---
+
+<script lang="ts">
+    import { ChartArea, GalleryVertical, Map, Layers2, Coins, Milestone, Box } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+Dieses Menü bietet Optionen zum Neuanordnen der Benutzeroberfläche und der Kartenansicht.
+
+### <ChartArea size="16" class="inline-block" style="margin-bottom: 2px" /> Höhenprofil
+
+Das Höhenprofil ausblenden, um Platz für die Karte zu schaffen, oder um die aktuelle Auswahl zu prüfen.
+
+### <GalleryVertical size="16" class="inline-block" style="margin-bottom: 2px" /> Vertikale Dateiliste
+
+Wechseln Sie zwischen einem vertikalen und einem horizontalen Layout für die Dateiliste.
+Die [vertical file list](../files-and-stats) ist sinnvoll, wenn viele Dateien geöffnet sind mit mehreren [tracks, segments, or points of interest](../gpx).
+
+### <Map size="16" class="inline-block" style="margin-bottom: 2px" /> Wechseln zur vorherigen Basiskarte
+
+Ändere die Basiskarte auf jene, die zuvor über die [map layer control](../map-controls) ausgewählt wurde.
+
+### <Layers2 size="16" class="inline-block" style="margin-bottom: 2px" /> Overlays Umschalten
+
+Schaltet die Sichtbarkeit der Karten-Overlays um, die zuvor ausgewählt wurden mittels [map layer control](../map-controls).
+
+### <Coins size="16" class="inline-block" style="margin-bottom: 2px" /> Entfernungsmarkierungen
+
+Schaltet die Sichtbarkeit der Entfernungsmarker auf der Karte um.
+Sie werden für die aktuelle Auswahl angezeigt, wie in [elevation profile](../files-and-stats).
+
+### <Milestone size="16" class="inline-block" style="margin-bottom: 2px" /> Richtungspfeile
+
+Schaltet die Sichtbarkeit der Richtungspfeile auf der Karte um.
+
+### <Box size="16" class="inline-block" style="margin-bottom: 2px" /> 3D Ein/Aus
+
+Aufrufen oder Beenden der 3D-Kartenansicht.
+
+<DocsNote>
+
+To control the orientation and tilt of the map, you can also drag the map while holding <kbd>Ctrl</kbd>.
+
+</DocsNote>

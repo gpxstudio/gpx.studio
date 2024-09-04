@@ -1,0 +1,50 @@
+---
+title: Configurações
+---
+
+<script lang="ts">
+    import { Ruler, Zap, Thermometer, Languages, Sun, PersonStanding, Layers3 } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+### <Ruler size="16" class="inline-block" style="margin-bottom: 2px" /> Unidades de distância
+
+Altere as unidades usadas para exibir distâncias na interface.
+
+### <Zap size="16" class="inline-block" style="margin-bottom: 2px" /> Unidade de velocidade
+
+Altere as unidades usadas para exibir velocidades na interface.
+Você pode escolher entre distância por hora ou minutos por distância, que pode ser mais adequada para atividades em execução.
+
+### <Thermometer size="16" class="inline-block" style="margin-bottom: 2px" /> Unidade de temperatura
+
+Alterar as unidades usadas para exibir temperaturas na interface.
+
+### <Languages size="16" class="inline-block" style="margin-bottom: 2px" /> Idioma
+
+Altere o idioma usado na interface.
+
+<DocsNote>
+
+Você pode contribuir adicionando ou melhorando as traduções em nosso <a href="https://crowdin.com/project/gpxstudio" target="_blank">projeto do Crowdin</a>.
+Se quiser iniciar a tradução de uma nova língua, por favor <a href="#contact">entre em contato</a>.
+Qualquer ajuda é muito bem-vinda!
+
+</DocsNote>
+
+### <Sun size="16" class="inline-block" style="margin-bottom: 2px" /> Tema
+
+Alterar o tema usado na interface.
+
+### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Fonte do Street View
+
+Altere a fonte usada para o [controle de Street View](../map-controls).
+O padrão é <a href="https://www.mapillary.com" target="_blank">Mapilliary</a>, mas você também pode user <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>.
+Saiba mais sobre como utilizar o controle de Street View na [seção de controle de mapa](../map-controls).
+
+### <Layers3 size="16" class="inline-block" style="margin-bottom: 2px" /> Camadas do mapa...
+
+Abrir uma caixa de diálogo onde você pode ativar ou desativar camadas de mapa, adicionar camadas, alterar a opacidade das camadas e muito mais.
+Mais informações sobre as camadas do mapa podem ser encontradas na [seção de controles do mapa](../map-controls).

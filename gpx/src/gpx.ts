@@ -117,7 +117,15 @@ export class GPXFile extends GPXTreeNode<Track>{
         super();
         if (gpx) {
             this.attributes = gpx.attributes
-            this.metadata = gpx.metadata;
+            this.metadata = gpx.metadata ?? {};
+            this.metadata.author = {
+                name: 'gpx.studio',
+                link: {
+                    attributes: {
+                        href: 'https://gpx.studio',
+                    }
+                }
+            };
             this.wpt = gpx.wpt ? gpx.wpt.map((waypoint) => new Waypoint(waypoint)) : [];
             this.trk = gpx.trk ? gpx.trk.map((track) => new Track(track)) : [];
             if (gpx.rte && gpx.rte.length > 0) {
@@ -125,6 +133,23 @@ export class GPXFile extends GPXTreeNode<Track>{
             }
             if (gpx.hasOwnProperty('_data')) {
                 this._data = gpx._data;
+
+                if (!this._data.hasOwnProperty('style')) {
+                    let style = this.getStyle();
+                    let fileStyle = {};
+                    if (style.color.length === 1) {
+                        fileStyle['color'] = style.color[0];
+                    }
+                    if (style.weight.length === 1) {
+                        fileStyle['weight'] = style.weight[0];
+                    }
+                    if (style.opacity.length === 1) {
+                        fileStyle['opacity'] = style.opacity[0];
+                    }
+                    if (Object.keys(fileStyle).length > 0) {
+                        this.setStyle(fileStyle);
+                    }
+                }
             }
         } else {
             this.attributes = {};
@@ -200,14 +225,32 @@ export class GPXFile extends GPXTreeNode<Track>{
         };
     }
 
-    toGPXFileType(): GPXFileType {
-        return {
+    toGPXFileType(exclude: string[] = []): GPXFileType {
+        let file: GPXFileType = {
             attributes: cloneJSON(this.attributes),
-            metadata: cloneJSON(this.metadata),
-            wpt: this.wpt,
-            trk: this.trk.map((track) => track.toTrackType()),
+            metadata: {},
+            wpt: this.wpt.map((wpt) => wpt.toWaypointType(exclude)),
+            trk: this.trk.map((track) => track.toTrackType(exclude)),
             rte: [],
         };
+        if (this.metadata) {
+            if (this.metadata.name) {
+                file.metadata.name = this.metadata.name;
+            }
+            if (this.metadata.desc) {
+                file.metadata.desc = this.metadata.desc;
+            }
+            if (this.metadata.author) {
+                file.metadata.author = cloneJSON(this.metadata.author);
+            }
+            if (this.metadata.link) {
+                file.metadata.link = cloneJSON(this.metadata.link);
+            }
+            if (this.metadata.time && !exclude.includes('time')) {
+                file.metadata.time = this.metadata.time;
+            }
+        }
+        return file;
     }
 
     // Producers
@@ -320,6 +363,15 @@ export class GPXFile extends GPXTreeNode<Track>{
         });
     }
 
+    createArtificialTimestamps(startTime: Date, totalTime: number, trackIndex?: number, segmentIndex?: number) {
+        let lastPoint = undefined;
+        this.trk.forEach((track, index) => {
+            if (trackIndex === undefined || trackIndex === index) {
+                track.createArtificialTimestamps(startTime, totalTime, lastPoint, segmentIndex);
+            }
+        });
+    }
+
     addElevation(callback: (Coordinates) => number, trackIndices?: number[], segmentIndices?: number[], waypointIndices?: number[]) {
         let og = getOriginal(this); // Read as much as possible from the original object because it is faster
         this.trk.forEach((track, trackIndex) => {
@@ -348,7 +400,7 @@ export class GPXFile extends GPXTreeNode<Track>{
             this._data.style = {};
         }
         if (style.color) {
-            this._data.style.color = style.color;
+            this._data.style.color = style.color.replace('#', '');
         }
         if (style.opacity) {
             this._data.style.opacity = style.opacity;
@@ -412,8 +464,8 @@ export class Track extends GPXTreeNode<TrackSegment> {
     src?: string;
     link?: Link;
     type?: string;
-    trkseg: TrackSegment[];
     extensions?: TrackExtensions;
+    trkseg: TrackSegment[];
 
     constructor(track?: TrackType & { _data?: any } | Track) {
         super();
@@ -446,14 +498,23 @@ export class Track extends GPXTreeNode<TrackSegment> {
             src: this.src,
             link: cloneJSON(this.link),
             type: this.type,
-            trkseg: this.trkseg.map((seg) => seg.clone()),
             extensions: cloneJSON(this.extensions),
+            trkseg: this.trkseg.map((seg) => seg.clone()),
             _data: cloneJSON(this._data),
         });
     }
 
     getStyle(): LineStyleExtension | undefined {
-        return this.extensions && this.extensions['gpx_style:line'];
+        if (this.extensions && this.extensions['gpx_style:line']) {
+            if (this.extensions["gpx_style:line"].color) {
+                return {
+                    ...this.extensions["gpx_style:line"],
+                    color: `#${this.extensions["gpx_style:line"].color}`
+                }
+            }
+            return this.extensions['gpx_style:line'];
+        }
+        return undefined;
     }
 
     toGeoJSON(): GeoJSON.Feature[] {
@@ -461,7 +522,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
             let geoJSON = child.toGeoJSON();
             if (this.extensions && this.extensions['gpx_style:line']) {
                 if (this.extensions['gpx_style:line'].color) {
-                    geoJSON.properties['color'] = this.extensions['gpx_style:line'].color;
+                    geoJSON.properties['color'] = `#${this.extensions['gpx_style:line'].color}`;
                 }
                 if (this.extensions['gpx_style:line'].opacity) {
                     geoJSON.properties['opacity'] = this.extensions['gpx_style:line'].opacity;
@@ -474,7 +535,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
         });
     }
 
-    toTrackType(): TrackType {
+    toTrackType(exclude: string[] = []): TrackType {
         return {
             name: this.name,
             cmt: this.cmt,
@@ -482,8 +543,8 @@ export class Track extends GPXTreeNode<TrackSegment> {
             src: this.src,
             link: this.link,
             type: this.type,
-            trkseg: this.trkseg.map((seg) => seg.toTrackSegmentType()),
             extensions: this.extensions,
+            trkseg: this.trkseg.map((seg) => seg.toTrackSegmentType(exclude)),
         };
     }
 
@@ -562,6 +623,17 @@ export class Track extends GPXTreeNode<TrackSegment> {
         });
     }
 
+    createArtificialTimestamps(startTime: Date, totalTime: number, lastPoint: TrackPoint | undefined, segmentIndex?: number) {
+        this.trkseg.forEach((segment, index) => {
+            if (segmentIndex === undefined || segmentIndex === index) {
+                segment.createArtificialTimestamps(startTime, totalTime, lastPoint);
+                if (segment.trkpt.length > 0) {
+                    lastPoint = segment.trkpt[segment.trkpt.length - 1];
+                }
+            }
+        });
+    }
+
     setStyle(style: LineStyleExtension, force: boolean = true) {
         if (!this.extensions) {
             this.extensions = {};
@@ -570,7 +642,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
             this.extensions['gpx_style:line'] = {};
         }
         if (style.color !== undefined && (force || this.extensions['gpx_style:line'].color === undefined)) {
-            this.extensions['gpx_style:line'].color = style.color;
+            this.extensions['gpx_style:line'].color = style.color.replace('#', '');
         }
         if (style.opacity !== undefined && (force || this.extensions['gpx_style:line'].opacity === undefined)) {
             this.extensions['gpx_style:line'].opacity = style.opacity;
@@ -663,7 +735,7 @@ export class TrackSegment extends GPXTreeLeaf {
                 const time = (points[i].time.getTime() - points[i - 1].time.getTime()) / 1000;
                 speed = dist / (time / 3600);
 
-                if (speed >= 0.5) {
+                if (speed >= 0.5 && speed <= 1500) {
                     statistics.global.distance.moving += dist;
                     statistics.global.time.moving += time;
                 }
@@ -677,6 +749,30 @@ export class TrackSegment extends GPXTreeLeaf {
             statistics.global.bounds.southWest.lon = Math.min(statistics.global.bounds.southWest.lon, points[i].attributes.lon);
             statistics.global.bounds.northEast.lat = Math.max(statistics.global.bounds.northEast.lat, points[i].attributes.lat);
             statistics.global.bounds.northEast.lon = Math.max(statistics.global.bounds.northEast.lon, points[i].attributes.lon);
+
+            // extensions
+            if (points[i].extensions) {
+                if (points[i].extensions["gpxtpx:TrackPointExtension"] && points[i].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:atemp"]) {
+                    let atemp = points[i].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:atemp"];
+                    statistics.global.atemp.avg = (statistics.global.atemp.count * statistics.global.atemp.avg + atemp) / (statistics.global.atemp.count + 1);
+                    statistics.global.atemp.count++;
+                }
+                if (points[i].extensions["gpxtpx:TrackPointExtension"] && points[i].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:hr"]) {
+                    let hr = points[i].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:hr"];
+                    statistics.global.hr.avg = (statistics.global.hr.count * statistics.global.hr.avg + hr) / (statistics.global.hr.count + 1);
+                    statistics.global.hr.count++;
+                }
+                if (points[i].extensions["gpxtpx:TrackPointExtension"] && points[i].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:cad"]) {
+                    let cad = points[i].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:cad"];
+                    statistics.global.cad.avg = (statistics.global.cad.count * statistics.global.cad.avg + cad) / (statistics.global.cad.count + 1);
+                    statistics.global.cad.count++;
+                }
+                if (points[i].extensions["gpxpx:PowerExtension"] && points[i].extensions["gpxpx:PowerExtension"]["gpxpx:PowerInWatts"]) {
+                    let power = points[i].extensions["gpxpx:PowerExtension"]["gpxpx:PowerInWatts"];
+                    statistics.global.power.avg = (statistics.global.power.count * statistics.global.power.avg + power) / (statistics.global.power.count + 1);
+                    statistics.global.power.count++;
+                }
+            }
         }
 
         [statistics.local.slope.segment, statistics.local.slope.length] = this._computeSlopeSegments(statistics);
@@ -741,7 +837,7 @@ export class TrackSegment extends GPXTreeLeaf {
             let start = simplified[i].point._data.index;
             let end = simplified[i + 1].point._data.index;
             let dist = statistics.local.distance.total[end] - statistics.local.distance.total[start];
-            let ele = simplified[i + 1].point.ele - simplified[i].point.ele;
+            let ele = (simplified[i + 1].point.ele ?? 0) - (simplified[i].point.ele ?? 0);
 
             for (let j = start; j < end + (i + 1 === simplified.length - 1 ? 1 : 0); j++) {
                 slope.push(0.1 * ele / dist);
@@ -793,9 +889,9 @@ export class TrackSegment extends GPXTreeLeaf {
         };
     }
 
-    toTrackSegmentType(): TrackSegmentType {
+    toTrackSegmentType(exclude: string[] = []): TrackSegmentType {
         return {
-            trkpt: this.trkpt.map((point) => point.toTrackPointType())
+            trkpt: this.trkpt.map((point) => point.toTrackPointType(exclude))
         };
     }
 
@@ -905,6 +1001,14 @@ export class TrackSegment extends GPXTreeLeaf {
             this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
         }
     }
+
+    createArtificialTimestamps(startTime: Date, totalTime: number, lastPoint: TrackPoint | undefined) {
+        let og = getOriginal(this); // Read as much as possible from the original object because it is faster
+        let slope = og._computeSlope();
+        let trkpt = withArtificialTimestamps(og.trkpt, totalTime, lastPoint, startTime, slope);
+        this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+    }
+
     setHidden(hidden: boolean) {
         this._data.hidden = hidden;
     }
@@ -945,16 +1049,16 @@ export class TrackPoint {
         return this.attributes.lon;
     }
 
+    getTemperature(): number {
+        return this.extensions && this.extensions['gpxtpx:TrackPointExtension'] && this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:atemp'] ? this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:atemp'] : undefined;
+    }
+
     getHeartRate(): number {
         return this.extensions && this.extensions['gpxtpx:TrackPointExtension'] && this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:hr'] ? this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:hr'] : undefined;
     }
 
     getCadence(): number {
         return this.extensions && this.extensions['gpxtpx:TrackPointExtension'] && this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:cad'] ? this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:cad'] : undefined;
-    }
-
-    getTemperature(): number {
-        return this.extensions && this.extensions['gpxtpx:TrackPointExtension'] && this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:atemp'] ? this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:atemp'] : undefined;
     }
 
     getPower(): number {
@@ -978,13 +1082,38 @@ export class TrackPoint {
         this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"]["surface"] = surface;
     }
 
-    toTrackPointType(): TrackPointType {
-        return {
+    toTrackPointType(exclude: string[] = []): TrackPointType {
+        let trkpt: TrackPointType = {
             attributes: this.attributes,
             ele: this.ele,
-            time: this.time,
-            extensions: this.extensions,
         };
+        if (!exclude.includes('time')) {
+            trkpt = { ...trkpt, time: this.time };
+        }
+        if (this.extensions) {
+            trkpt = {
+                ...trkpt, extensions: {
+                    "gpxtpx:TrackPointExtension": {},
+                    "gpxpx:PowerExtension": {},
+                }
+            };
+            if (this.extensions["gpxtpx:TrackPointExtension"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:atemp"] && !exclude.includes('atemp')) {
+                trkpt.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:atemp"] = this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:atemp"];
+            }
+            if (this.extensions["gpxtpx:TrackPointExtension"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:hr"] && !exclude.includes('hr')) {
+                trkpt.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:hr"] = this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:hr"];
+            }
+            if (this.extensions["gpxtpx:TrackPointExtension"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:cad"] && !exclude.includes('cad')) {
+                trkpt.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:cad"] = this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:cad"];
+            }
+            if (this.extensions["gpxpx:PowerExtension"] && this.extensions["gpxpx:PowerExtension"]["gpxpx:PowerInWatts"] && !exclude.includes('power')) {
+                trkpt.extensions["gpxpx:PowerExtension"]["gpxpx:PowerInWatts"] = this.extensions["gpxpx:PowerExtension"]["gpxpx:PowerInWatts"];
+            }
+            if (this.extensions["gpxtpx:TrackPointExtension"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"].surface && !exclude.includes('surface')) {
+                trkpt.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"] = { surface: this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"].surface };
+            }
+        }
+        return trkpt;
     }
 
     clone(): TrackPoint {
@@ -1043,6 +1172,34 @@ export class Waypoint {
         return this.attributes.lon;
     }
 
+    toWaypointType(exclude: string[] = []): WaypointType {
+        if (!exclude.includes('time')) {
+            return {
+                attributes: this.attributes,
+                ele: this.ele,
+                time: this.time,
+                name: this.name,
+                cmt: this.cmt,
+                desc: this.desc,
+                link: this.link,
+                sym: this.sym,
+                type: this.type,
+
+            }
+        } else {
+            return {
+                attributes: this.attributes,
+                ele: this.ele,
+                name: this.name,
+                cmt: this.cmt,
+                desc: this.desc,
+                link: this.link,
+                sym: this.sym,
+                type: this.type,
+            };
+        }
+    }
+
     clone(): Waypoint {
         return new Waypoint({
             attributes: cloneJSON(this.attributes),
@@ -1087,6 +1244,22 @@ export class GPXStatistics {
             southWest: Coordinates,
             northEast: Coordinates,
         },
+        atemp: {
+            avg: number,
+            count: number,
+        },
+        hr: {
+            avg: number,
+            count: number,
+        },
+        cad: {
+            avg: number,
+            count: number,
+        },
+        power: {
+            avg: number,
+            count: number,
+        }
     };
     local: {
         points: TrackPoint[],
@@ -1141,6 +1314,22 @@ export class GPXStatistics {
                     lon: -180,
                 },
             },
+            atemp: {
+                avg: 0,
+                count: 0,
+            },
+            hr: {
+                avg: 0,
+                count: 0,
+            },
+            cad: {
+                avg: 0,
+                count: 0,
+            },
+            power: {
+                avg: 0,
+                count: 0,
+            }
         };
         this.local = {
             points: [],
@@ -1201,9 +1390,29 @@ export class GPXStatistics {
         this.global.bounds.southWest.lon = Math.min(this.global.bounds.southWest.lon, other.global.bounds.southWest.lon);
         this.global.bounds.northEast.lat = Math.max(this.global.bounds.northEast.lat, other.global.bounds.northEast.lat);
         this.global.bounds.northEast.lon = Math.max(this.global.bounds.northEast.lon, other.global.bounds.northEast.lon);
+
+        this.global.atemp.avg = (this.global.atemp.count * this.global.atemp.avg + other.global.atemp.count * other.global.atemp.avg) / Math.max(1, this.global.atemp.count + other.global.atemp.count);
+        this.global.atemp.count += other.global.atemp.count;
+        this.global.hr.avg = (this.global.hr.count * this.global.hr.avg + other.global.hr.count * other.global.hr.avg) / Math.max(1, this.global.hr.count + other.global.hr.count);
+        this.global.hr.count += other.global.hr.count;
+        this.global.cad.avg = (this.global.cad.count * this.global.cad.avg + other.global.cad.count * other.global.cad.avg) / Math.max(1, this.global.cad.count + other.global.cad.count);
+        this.global.cad.count += other.global.cad.count;
+        this.global.power.avg = (this.global.power.count * this.global.power.avg + other.global.power.count * other.global.power.avg) / Math.max(1, this.global.power.count + other.global.power.count);
+        this.global.power.count += other.global.power.count;
     }
 
     slice(start: number, end: number): GPXStatistics {
+        if (start < 0) {
+            start = 0;
+        } else if (start >= this.local.points.length) {
+            return new GPXStatistics();
+        }
+        if (end < start) {
+            return new GPXStatistics();
+        } else if (end >= this.local.points.length) {
+            end = this.local.points.length - 1;
+        }
+
         let statistics = new GPXStatistics();
 
         statistics.local.points = this.local.points.slice(start, end + 1);
@@ -1228,12 +1437,23 @@ export class GPXStatistics {
         statistics.global.bounds.northEast.lat = this.global.bounds.northEast.lat;
         statistics.global.bounds.northEast.lon = this.global.bounds.northEast.lon;
 
+        statistics.global.atemp = this.global.atemp;
+        statistics.global.hr = this.global.hr;
+        statistics.global.cad = this.global.cad;
+        statistics.global.power = this.global.power;
+
         return statistics;
     }
 }
 
 const earthRadius = 6371008.8;
-export function distance(coord1: Coordinates, coord2: Coordinates): number {
+export function distance(coord1: TrackPoint | Coordinates, coord2: TrackPoint | Coordinates): number {
+    if (coord1 instanceof TrackPoint) {
+        coord1 = coord1.getCoordinates();
+    }
+    if (coord2 instanceof TrackPoint) {
+        coord2 = coord2.getCoordinates();
+    }
     const rad = Math.PI / 180;
     const lat1 = coord1.lat * rad;
     const lat2 = coord2.lat * rad;
@@ -1285,9 +1505,39 @@ function withTimestamps(points: TrackPoint[], speed: number, lastPoint: TrackPoi
 
 function withShiftedAndCompressedTimestamps(points: TrackPoint[], speed: number, ratio: number, lastPoint: TrackPoint): TrackPoint[] {
     let start = getTimestamp(lastPoint, points[0], speed);
+    let last = points[0];
     return points.map((point) => {
         let pt = point.clone();
-        pt.time = new Date(start.getTime() + ratio * (point.time.getTime() - points[0].time.getTime()));
+        if (point.time === undefined) {
+            pt.time = getTimestamp(last, point, speed);
+        } else {
+            pt.time = new Date(start.getTime() + ratio * (point.time.getTime() - points[0].time.getTime()));
+        }
+        last = pt;
+        return pt;
+    });
+}
+
+function withArtificialTimestamps(points: TrackPoint[], totalTime: number, lastPoint: TrackPoint | undefined, startTime: Date, slope: number[]): TrackPoint[] {
+    let weight = [];
+    let totalWeight = 0;
+
+    for (let i = 0; i < points.length - 1; i++) {
+        let dist = distance(points[i].getCoordinates(), points[i + 1].getCoordinates());
+        let w = dist * (0.5 + 1 / (1 + Math.exp(- 0.2 * slope[i])));
+        weight.push(w);
+        totalWeight += w;
+    }
+
+    let last = lastPoint;
+    return points.map((point, i) => {
+        let pt = point.clone();
+        if (i === 0) {
+            pt.time = lastPoint?.time ?? startTime;
+        } else {
+            pt.time = new Date(last.time.getTime() + totalTime * 1000 * weight[i - 1] / totalWeight);
+        }
+        last = pt;
         return pt;
     });
 }
@@ -1318,8 +1568,8 @@ function convertRouteToTrack(route: RouteType): Track {
         src: route.src,
         link: route.link,
         type: route.type,
-        trkseg: [],
         extensions: route.extensions,
+        trkseg: [],
     });
 
     if (route.rtept) {

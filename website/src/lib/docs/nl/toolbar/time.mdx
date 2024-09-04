@@ -1,0 +1,27 @@
+---
+title: Tijd
+---
+
+<script>
+    import { CalendarClock } from 'lucide-svelte';
+    import Time from '$lib/components/toolbar/tools/Time.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# <CalendarClock size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Met deze tool kunt u tijd wijzigen of toevoegen aan een spoor.
+U hoeft alleen het onderstaande formulier te gebruiken en het te valideren wanneer u klaar bent.
+
+<div class="flex flex-row justify-center">
+    <Time class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+Wanneer u de snelheid bewerkt, wordt de bewegende tijd aangepast in het formulier, en omgekeerd.
+Ook wanneer u de starttijd bewerkt, wordt de eindtijd bijgewerkt om dezelfde totale duur te houden, en omgekeerd.
+
+<DocsNote>
+
+Bij het gebruik van dit gereedschap met bestaande tijdstempels, zal het wijzigen van de tijd of snelheid ertoe leiden dat deze gewoon verschuiven, of langer/korter worden.
+
+</DocsNote>

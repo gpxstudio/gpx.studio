@@ -1,0 +1,82 @@
+---
+title: Fichiers et statistiques
+---
+
+<script>
+    import { TriangleRight, BrickWall, Zap, HeartPulse, Orbit, Thermometer, SquareActivity } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+## Liste de fichiers
+
+Une fois que vous avez des fichiers [ouverts](./menu/fichier), ils seront affichés sous forme d'onglets dans la liste de fichiers située au bas de la carte.
+Vous pouvez les réordonner en glissant-déposant les onglets.
+Et lorsque beaucoup de fichiers sont ouverts, vous pouvez faire défiler la liste des onglets pour naviguer entre eux.
+
+<DocsNote>
+
+Si vous utilisez une souris, vous devez maintenir <kbd>Shift</kbd> pour faire défiler la liste horizontalement.
+
+</DocsNote>
+
+### Sélection de fichiers
+
+En cliquant sur un onglet, vous pouvez basculer entre les fichiers pour inspecter leurs statistiques, et leur appliquer des [actions d'édition](./menu/edit) et [tools](./toolbar/).
+En maintenant la touche <kbd>Ctrl/Cmd</kbd>, vous pouvez ajouter ou supprimer des fichiers à la sélection, et en maintenant <kbd>Shift</kbd>, vous pouvez sélectionner une plage de fichiers.
+La plupart des [actions d'édition](./menu/edit) et des [outils](./toolbar/) peuvent être appliqués à plusieurs fichiers à la fois.
+
+<DocsNote>
+
+Vous pouvez également naviguer à travers les fichiers en utilisant les flèches de votre clavier, et utiliser <kbd>Shift</kbd> pour ajouter des fichiers à la sélection.
+
+</DocsNote>
+
+### Actions d'édition
+
+En faisant un clic droit sur un onglet de fichier, vous pouvez accéder aux mêmes actions que dans le [menu d'édition](./menu/edit).
+
+### Vue verticale
+
+Comme mentionné dans la [section des options d'affichage](./menu/view), vous pouvez basculer entre une vue horizontale et verticale pour la liste de fichiers.
+La vue verticale est utile lorsque vous avez beaucoup de fichiers ouverts, ou des fichiers avec plusieurs [pistes, segments ou points d'intérêt](../gpx).
+En effet, cette vue vous permet d'inspecter le contenu des fichiers grâce à des sections pliables.
+
+Vous pouvez également appliquer les [actions d'édition](./menu/edit) et les [outils](./toolbar/) aux éléments intérieurs aux fichiers.
+De plus, vous pouvez glisser-déposer les éléments intérieurs pour les réorganiser, ou les déplacer dans la hiérarchie ou même dans un autre fichier.
+
+<DocsNote>
+
+La taille de la liste de fichiers peut être ajustée en faisant glisser le séparateur entre la carte et la liste de fichiers.
+
+</DocsNote>
+
+## Profil altimétrique et statistiques
+
+En bas de l'interface, vous pouvez trouver le profil altimétrique et les statistiques de la sélection actuelle.
+
+<DocsNote>
+
+La taille du profil altimétrique peut être ajustée en faisant glisser le séparateur entre la carte et le profil altimétrique.
+
+</DocsNote>
+
+### Statistiques interactives
+
+En survolant le profil d'altitude, une infobulle affiche les statistiques à la position du curseur.
+
+Pour obtenir les statistiques d'une section donnée du profil altimétrique, vous pouvez créer un rectangle de sélection en faisant glisser votre curseur sur le profil.
+Cliquez sur le profil pour réinitialiser la sélection.
+
+Vous pouvez également utiliser la molette de la souris pour zoomer ou dézoomer sur le profil d'altitude, et bouger à gauche et à droite en faisant glisser le profil tout en maintenant la touche <kbd>Shift</kbd>.
+
+### Données supplémentaires
+
+En utilisant les boutons à droite du profil d'altitude, vous pouvez optionnellement colorier le profil d'altitude en fonction de :
+
+- des données de **pente** <TriangleRight size="16" class="inline-block" style="margin-bottom: 2px" /> calculées à partir des données d'altitude, ou
+- des données de **revêtement** <BrickWall size="16" class="inline-block" style="margin-bottom: 2px" /> venant des tags de <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> d'<a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>.
+  Ceci est uniquement disponible pour les fichiers créés avec **gpx.studio**.
+
+Si votre sélection possède ces données, vous pouvez également visualiser les données de : **vitesse** <Zap size="16" class="inline-block" style="margin-bottom: 2px" />, **fréquence cardiaque** <HeartPulse size="16" class="inline-block" style="margin-bottom: 2px" />, **cadence** <Orbit size="16" class="inline-block" style="margin-bottom: 2px" />, **température** <Thermometer size="16" class="inline-block" style="margin-bottom: 2px" /> et **puissance** <SquareActivity size="16" class="inline-block" style="margin-bottom: 2px" /> sur le profil altimétrique.

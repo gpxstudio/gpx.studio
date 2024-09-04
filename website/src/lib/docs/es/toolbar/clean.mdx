@@ -1,0 +1,18 @@
+---
+title: Limpiar
+---
+
+<script>
+    import { SquareDashedMousePointer } from 'lucide-svelte';
+    import Clean from '$lib/components/toolbar/tools/Clean.svelte';
+</script>
+
+# <SquareDashedMousePointer size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Al seleccionar la herramienta limpiar, si arrastra sobre el mapa creará una selección rectangular.
+
+Dependiendo de las opciones seleccionadas en el diálogo que se muestra a continuación, hacer clic en el botón de borrar eliminará los puntos GPS y/o [puntos de interés](../gpx) ubicados dentro o fuera de la selección.
+
+<div class="flex flex-row justify-center">
+    <Clean class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>

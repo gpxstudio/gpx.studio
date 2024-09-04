@@ -9,11 +9,11 @@ title: GPX file format
 # { title }
 
 The <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX file format</a> is an open standard for exchanging GPS data between applications and GPS devices.
-It essentially consists of a series of GPS points encoding one or multiple GPS traces, and optionally some points of interest.
+It essentially consists of a series of GPS points encoding one or multiple GPS traces, and, optionally, some points of interest.
 
 GPX files may also contain metadata, of which the **name** and **description** fields are the most useful for users.
 
-### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Tracks, segments and GPS points
+### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Tracks, segments, and GPS points
 
 As mentioned above, a GPX file can contain multiple GPS traces.
 These are organized in a hierarchical structure, with tracks at the top level.
@@ -22,7 +22,7 @@ These are organized in a hierarchical structure, with tracks at the top level.
 Furthermore, it can contain metadata such as a **name**, a **description**, and **appearance properties**.
 - A **segment** is a sequence of GPS points that form a continuous path.
 - A **GPS point** is a location with a latitude, a longitude, and optionally a timestamp and an altitude.
-Some devices also store additional information such as the heart rate, the cadence, the temperature and the power.
+Some devices also store additional information such as heart rate, cadence, temperature, and power.
 
 In most cases, GPX files contain a single track with a single segment.
 However, the hierarchy described above allows for more advanced use cases, such as planning multi-day trips with several variants for each day.

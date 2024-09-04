@@ -1,0 +1,26 @@
+---
+title: Verkleinen
+---
+
+<script>
+    import { Filter } from 'lucide-svelte';
+    import Reduce from '$lib/components/toolbar/tools/Reduce.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# <Filter size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Dit gereedschap kan worden gebruikt om het aantal GPS-punten in een spoor te verminderen, wat nuttig kan zijn om de grootte te verminderen.
+
+U kunt de marge van het vereenvoudigingsalgoritme aanpassen met de schuifregelaar, en dan wordt het aantal punten zichtbaar dat zal worden bewaard, evenals het vereenvoudigde spoor op de kaart.
+
+<div class="flex flex-row justify-center">
+    <Reduce class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+<DocsNote>
+
+De tolerantiewaarde vertegenwoordigt de maximale afstand tussen het oorspronkelijke spoor en de vereenvoudigde spoor.
+Je kunt <a href="https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm" target="_blank">hier</a> meer lezen over het algoritme dat wordt gebruikt.
+
+</DocsNote>

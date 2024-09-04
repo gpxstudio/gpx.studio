@@ -1,0 +1,48 @@
+---
+title: Options d'affichage
+---
+
+<script lang="ts">
+    import { ChartArea, GalleryVertical, Map, Layers2, Coins, Milestone, Box } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+Ce menu propose des options pour réorganiser l'interface et la vue de la carte.
+
+### <ChartArea size="16" class="inline-block" style="margin-bottom: 2px" /> Profil altimétrique
+
+Masquer le profil altimétrique pour faire de la place pour la carte, ou l'afficher pour inspecter la sélection.
+
+### <GalleryVertical size="16" class="inline-block" style="margin-bottom: 2px" /> Liste de fichiers verticale
+
+Basculer entre la vue verticale et horizontale de la liste de fichiers.
+La [vue verticale](../files-and-stats) est utile lorsque vous avez beaucoup de fichiers ouverts, ou des fichiers avec plusieurs [pistes, segments ou points d'intérêt](../gpx).
+
+### <Map size="16" class="inline-block" style="margin-bottom: 2px" /> Basculer au fond de carte précédent
+
+Remplacer le fond de carte par celui précédemment sélectionné dans le [menu des couches de la carte](../map-controls).
+
+### <Layers2 size="16" class="inline-block" style="margin-bottom: 2px" /> Afficher/cacher les surcouches
+
+Activer/désactiver la visibilité des surcouches de carte sélectionnées à travers le [menu des couches de la carte](../map-controls).
+
+### <Coins size="16" class="inline-block" style="margin-bottom: 2px" /> Marqueurs de distance
+
+Activer/désactiver la visibilité des marqueurs de distance sur la carte.
+Ceux-ci sont affichés pour la sélection courante, comme le [profil altimétrique](../files-and-stats).
+
+### <Milestone size="16" class="inline-block" style="margin-bottom: 2px" /> Flèches de direction
+
+Activer/désactiver la visibilité des flèches de direction sur la carte.
+
+### <Box size="16" class="inline-block" style="margin-bottom: 2px" /> Activer/désactiver la 3D
+
+Entrer ou sortir de la vue 3D de la carte.
+
+<DocsNote>
+
+Pour contrôler l'orientation et l'inclinaison de la carte, vous pouvez également faire glisser la carte tout en maintenant <kbd>Ctrl</kbd>.
+
+</DocsNote>

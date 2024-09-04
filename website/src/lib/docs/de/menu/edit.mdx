@@ -1,0 +1,74 @@
+---
+title: Edit actions
+---
+
+<script lang="ts">
+    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+Im Gegensatz zu den Datei-Aktionen können die Bearbeitungs-Aktionen möglicherweise den Inhalt der aktuell ausgewählten Dateien verändern.
+Wenn das vertikale Layout der Dateiliste aktiviert ist (siehe [Dateien und Statistik](.. files-and-stats)), können dieses auch auf [Tracks, Segmente und Points-of-Interest](../gpx) angewendet werden.
+Daher bezeichnen wir die Elemente, die durch diese Aktionen geändert werden können, als _file items_.
+Beachten Sie, dass außer den Rückgängig- und Wiederholen-Aktionen die Bearbeitungsaktionen auch über das Kontextmenü (Rechtsklick) der Dateielemente zugänglich sind.
+
+### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Rückgängig und Wiederholen
+
+Mit diesen Schaltflächen können Sie die letzten Aktionen rückgängig machen oder wiederholen.
+Dies gilt für alle Aktionen der Bedienoberfläche, aber nicht für Optionen, Anwendungseinstellungen oder Kartennavigation.
+
+### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> Information...
+
+Öffnen Sie das Dialogfeld Information des aktuell ausgewählten Dateielements, wo Sie dessen Namen und Beschreibung sehen und bearbeiten können.
+
+### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Darstellung...
+
+Öffnen Sie das Dialogfeld Darstellung, in der Sie die Farbe, Deckkraft und Breite der ausgewählten Dateielemente auf der Karte ändern können.
+
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Einblenden/Ausblenden
+
+Konfigurieren Sie die Sichtbarkeit der ausgewählten Dateielemente auf der Karte.
+
+### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Alle auswählen
+
+Alle Dateielemente in der aktuellen Hierarchieebene zur Auswahl hinzufügen.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+
+Center the map on the selected file items.
+
+### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Kopieren
+
+Kopieren Sie die ausgewählten Dateielemente in die Zwischenablage.
+
+<DocsNote>
+
+Diese Aktion ist nur verfügbar, wenn das vertikale Layout der Dateiliste aktiviert ist.
+
+</DocsNote>
+
+### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Ausschneiden
+
+Kopieren Sie die ausgewählten Dateielemente in die Zwischenablage.
+
+<DocsNote>
+
+Diese Aktion ist nur verfügbar, wenn das vertikale Layout der Dateiliste aktiviert ist.
+
+</DocsNote>
+
+### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Einfügen
+
+Fügen Sie die Dateielemente aus der Zwischenablage in die aktuelle Hierarchieebene ein, wenn sie damit kompatibel sind.
+
+<DocsNote>
+
+Diese Aktion ist nur verfügbar, wenn das vertikale Layout der Dateiliste aktiviert ist.
+
+</DocsNote>
+
+### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Löschen
+
+Lösche ausgewählte Dateielemente.

@@ -1,0 +1,52 @@
+---
+title: Actions sur les fichiers
+---
+
+<script lang="ts">
+    import { Plus, FolderOpen, Copy, FileX, Download } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+Le menu des actions sur les fichiers contient un ensemble d'opérations de fichiers assez explicites.
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Nouveau
+
+Créer un nouveau fichier vide.
+
+### <FolderOpen size="16" class="inline-block" style="margin-bottom: 2px" /> Ouvrir...
+
+Ouvrir des fichiers depuis votre ordinateur. 
+
+<DocsNote>
+
+Vous pouvez également glisser-déposer des fichiers directement depuis votre système de fichiers dans la fenêtre.
+
+</DocsNote>
+
+### <Copy size="16" class="inline-block" style="margin-bottom: 2px" /> Dupliquer
+
+Créer une copie des fichiers sélectionnés.
+
+### <FileX size="16" class="inline-block" style="margin-bottom: 2px" /> Fermer
+
+Fermer les fichiers sélectionnés.
+
+### <FileX size="16" class="inline-block" style="margin-bottom: 2px" /> Fermer tout
+
+Fermer tous les fichiers.
+
+### <Download size="16" class="inline-block" style="margin-bottom: 2px" /> Exporter...
+
+Ouvrir le menu d'exportation pour enregistrer les fichiers sélectionnés sur votre ordinateur.
+
+### <Download size="16" class="inline-block" style="margin-bottom: 2px" /> Exporter tout...
+
+Ouvrir le menu d'exportation pour enregistrer tous les fichiers ouverts sur votre ordinateur.
+
+<DocsNote type="warning">
+
+Si votre téléchargement ne commence pas après avoir cliqué sur le bouton de téléchargement, veuillez vérifier les paramètres de votre navigateur pour autoriser les téléchargements depuis <b>gpx.studio</b>.
+
+</DocsNote>

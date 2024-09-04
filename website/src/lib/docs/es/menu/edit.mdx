@@ -1,0 +1,74 @@
+---
+title: Acciones de edición
+---
+
+<script lang="ts">
+    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# { title }
+
+A diferencia de las acciones de archivo, las acciones de edición pueden potencialmente modificar el contenido de los archivos seleccionados actualmente.
+Además, cuando está habilitada la distribución vertical de la lista de archivos (ver [Archivos y estadísticas](../files-and-stats)), también se pueden aplicar a [pistas, segmentos y puntos de interés](../gpx).
+Por lo tanto, nos referiremos a los elementos que pueden ser modificados por estas acciones como _elementos de archivo_.
+Tenga en cuenta que, excepto para las acciones de deshacer y rehacer, las acciones de edición también son accesibles a través del menú contextual (clic derecho) de los elementos del archivo.
+
+### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Deshacer y rehacer
+
+Usando estos botones, puede deshacer o rehacer las últimas acciones que realizó.
+Esto aplica a todas las acciones de la interfaz pero no a las opciones de vista, ajustes de la aplicación o la navegación del mapa.
+
+### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> información...
+
+Abre el cuadro de diálogo de información del elemento del archivo seleccionado, donde puede ver y editar su nombre y descripción.
+
+### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Apariencia...
+
+Abre el diálogo de apariencia, donde puede cambiar el color, la opacidad y el ancho en el mapa de los elementos de archivo seleccionados.
+
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Ocultar/mostrar
+
+Alterna la visibilidad de los elementos del archivo seleccionado en el mapa.
+
+### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Seleccionar todo
+
+Añade todos los elementos del archivo en el nivel de jerarquía actual a la selección.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Centrar
+
+Centrar el mapa en los elementos de archivo seleccionados.
+
+### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copiar
+
+Copia los elementos del archivo seleccionado al portapapeles.
+
+<DocsNote>
+
+Esta acción solo está disponible cuando está activada la disposición vertical de la lista de archivos.
+
+</DocsNote>
+
+### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Cortar
+
+Corta los elementos del archivo seleccionado al portapapeles.
+
+<DocsNote>
+
+Esta acción solo está disponible cuando está activada la disposición vertical de la lista de archivos.
+
+</DocsNote>
+
+### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Pegar
+
+Pega los elementos de archivo del portapapeles al nivel de jerarquía actual si son compatibles con él.
+
+<DocsNote>
+
+Esta acción solo está disponible cuando está activada la disposición vertical de la lista de archivos.
+
+</DocsNote>
+
+### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Eliminar
+
+Elimina los elementos del archivo seleccionados.

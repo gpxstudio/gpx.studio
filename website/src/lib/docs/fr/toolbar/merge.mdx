@@ -1,0 +1,20 @@
+---
+title: Fusionner
+---
+
+<script>
+    import { Group } from 'lucide-svelte';
+    import Merge from '$lib/components/toolbar/tools/Merge.svelte';
+</script>
+
+# <Group size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Pour utiliser cet outil, vous devez [sélectionner](../files-and-stats) plusieurs fichiers, [pistes ou segments](../gpx).
+
+- Si votre objectif est de créer une seule trace continue à partir de votre sélection, utilisez l'option **Connecter les traces** et validez.
+- La deuxième option peut être utilisée pour créer ou gérer des fichiers avec plusieurs [pistes ou segments](../gpx).
+  Fusionner des fichiers (ou des pistes) résultera en un seul fichier (ou piste) contenant toutes les pistes (ou tous les segments) de la sélection.
+
+<div class="flex flex-row justify-center">
+    <Merge class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>

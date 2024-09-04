@@ -58,8 +58,8 @@ export type TrackType = {
     src?: string;
     link?: Link;
     type?: string;
-    trkseg: TrackSegmentType[];
     extensions?: TrackExtensions;
+    trkseg: TrackSegmentType[];
 };
 
 export type TrackExtensions = {
@@ -89,9 +89,9 @@ export type TrackPointExtensions = {
 };
 
 export type TrackPointExtension = {
+    'gpxtpx:atemp'?: number;
     'gpxtpx:hr'?: number;
     'gpxtpx:cad'?: number;
-    'gpxtpx:atemp'?: number;
     'gpxtpx:Extensions'?: {
         surface?: string;
     };

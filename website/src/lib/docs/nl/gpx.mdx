@@ -1,0 +1,34 @@
+---
+title: GPX bestandsindeling
+---
+
+<script>
+    import { Waypoints, MapPin } from 'lucide-svelte';
+</script>
+
+# { title }
+
+De <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX bestandsindeling</a> is open voor het uitwisselen van GPS-gegevens tussen applicaties en GPS-apparaten.
+Het bestaat in wezen uit een reeks GPS-punten die één of meerdere GPS-sporen coderen, en eventueel enkele aandachtspunten.
+
+GPX-bestanden kunnen ook metagegevens bevatten, waarvan de **naam** en **omschrijving** velden het nuttigst zijn voor gebruikers.
+
+### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Tracks, segmenten en GPS punten
+
+Zoals hierboven vermeld, kan een GPX-bestand meerdere GPS-routes bevatten.
+Deze zijn georganiseerd in een hiërarchische structuur, met routes op het hoogste niveau.
+
+- Een **track** is gemaakt van een reeks van losstaande segmenten.
+  Bovendien kan het metadata bevatten zoals een **naam**, een **beschrijving**, en **eigenschappen**.
+- Een **segment** is een reeks GPS-punten die een continu pad vormen.
+- Een **GPS punt** is een locatie met een breedtegraad, een lengtegraad en optioneel een tijdstempel en een hoogte.
+  Sommige toestellen slaan ook extra informatie op, zoals hartsnelheid, cadentie, temperatuur en voeding.
+
+In de meeste gevallen bevatten GPX-bestanden een enkele track met een enkel segment.
+De hierboven beschreven hiërarchie maakt echter meer geavanceerd gebruik mogelijk, zoals het plannen van meerdaagse reizen met meerdere varianten per dag.
+
+### POI's (Interessante plekken)
+
+**Points of interest** (technically called _waypoints_) represent locations of interest to show either on a GPS device or on a digital map.
+
+Naast de coördinaten kan een POI een **naam** en een **beschrijving** bevatten.

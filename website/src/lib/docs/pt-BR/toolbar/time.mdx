@@ -1,0 +1,27 @@
+---
+title: Tempo
+---
+
+<script>
+    import { CalendarClock } from 'lucide-svelte';
+    import Time from '$lib/components/toolbar/tools/Time.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# <CalendarClock size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Esta ferramenta permite alterar ou adicionar tempos de tempo para traços.
+Você precisa simplesmente usar o formulário mostrado abaixo e validá-lo quando terminar.
+
+<div class="flex flex-row justify-center">
+    <Time class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+Ao editar a velocidade, o tempo de movimento é adaptado no formulário, e vice-versa.
+Da mesma forma, quando você editar a hora de início, a hora de término é atualizada para manter a mesma duração total e vice-versa.
+
+<DocsNote>
+
+Ao usar esta ferramenta com carimbos de tempo existentes, alterar o tempo ou velocidade simplesmente transferir, alongar ou compactá-los de acordo.
+
+</DocsNote>

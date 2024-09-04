@@ -1,0 +1,26 @@
+---
+title: Minifier
+---
+
+<script>
+    import { Filter } from 'lucide-svelte';
+    import Reduce from '$lib/components/toolbar/tools/Reduce.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# <Filter size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Cet outil peut être utilisé pour réduire le nombre de points GPS d'une trace, ce qui peut être utile pour réduire sa taille.
+
+Vous pouvez ajuster la tolérance de l'algorithme de simplification en utilisant le curseur, et observer le nombre de points qui seront conservés, ainsi qu'un aperçu de la trace simplifiée sur la carte.
+
+<div class="flex flex-row justify-center">
+    <Reduce class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+<DocsNote>
+
+La valeur de tolérance représente la distance maximale permise entre la trace originale et la trace simplifiée.
+Vous pouvez en apprendre plus sur l'algorithme utilisé <a href="https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm" target="_blank">ici</a>.
+
+</DocsNote>

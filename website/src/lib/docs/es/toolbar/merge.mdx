@@ -1,0 +1,20 @@
+---
+title: Combinar
+---
+
+<script>
+    import { Group } from 'lucide-svelte';
+    import Merge from '$lib/components/toolbar/tools/Merge.svelte';
+</script>
+
+# <Group size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Para usar esta herramienta, necesita [seleccionar](../files-and-stats) múltiples archivos, [pistas o segmentos](../gpx).
+
+- Si su objetivo es crear un único trazado continuo a partir de su selección, use la opción **Conectar los trazados** y valide.
+- La segunda opción se puede usar para crear o gestionar archivos con múltiples [pistas o segmentos](../gpx).
+  Combinar archivos (o pistas) dará como resultado un único archivo (o pista) que contendrá todas las pistas (o segmentos) de la selección.
+
+<div class="flex flex-row justify-center">
+    <Merge class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>

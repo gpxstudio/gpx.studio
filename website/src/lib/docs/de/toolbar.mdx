@@ -1,0 +1,32 @@
+---
+title: Werkzeugleiste
+---
+
+<script lang="ts">
+    import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
+	import { currentTool, Tool } from '$lib/stores';
+	import { onMount, onDestroy } from 'svelte';
+
+    onMount(() => {
+        currentTool.set(Tool.ROUTING);
+    });
+
+    onDestroy(() => {
+        currentTool.set(null);
+    });
+</script>
+
+# { title }
+
+The toolbar is located on the left side of the map and is the heart of the application, as it provides access to the main features of **gpx.studio**.
+Jedes Werkzeug wird durch ein Symbol dargestellt und kann durch einen Klick aktiviert werden.
+
+<div class="flex flex-row justify-center text-foreground">
+    <div>
+        <Toolbar class="border rounded-md shadow-lg" />
+    </div>
+</div>
+
+As with [edit actions](./menu/edit), most tools can be applied to multiple files at once and to [inner tracks and segments](./gpx).
+
+In den folgenden Abschnitten werden die einzelnen Tools detailliert beschrieben.

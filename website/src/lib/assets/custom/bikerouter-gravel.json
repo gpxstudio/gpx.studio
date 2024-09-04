@@ -1,0 +1,1864 @@
+{
+    "_info": "Taken from https://github.com/mjaschen/gravel-overlay, with prior authorization from the author (https://github.com/gpxstudio/gpx.studio/issues/32#issuecomment-2320219804).",
+    "version": 8,
+    "name": "Gravel Overlay",
+    "metadata": {
+        "mapbox:autocomposite": false,
+        "mapbox:type": "template",
+        "maputnik:renderer": "mbgljs",
+        "openmaptiles:version": "3.x",
+        "openmaptiles:mapbox:owner": "openmaptiles",
+        "openmaptiles:mapbox:source:url": "mapbox://openmaptiles.4qljc88t"
+    },
+    "sources": {
+        "openmaptiles": {
+            "type": "vector",
+            "url": "https://tiles.bikerouter.de/services/gravel/"
+        }
+    },
+    "sprite": "https://demotiles.maplibre.org/styles/osm-bright-gl-style/sprite",
+    "glyphs": "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key={key}",
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "layout": {
+                "visibility": "none"
+            },
+            "paint": {
+                "background-color": "rgba(145, 211, 164, 1)"
+            }
+        },
+        {
+            "id": "debug_rail",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "filter": [
+                "all",
+                [
+                    "==",
+                    "$type",
+                    "LineString"
+                ],
+                [
+                    "in",
+                    "class",
+                    "rail"
+                ]
+            ],
+            "layout": {
+                "visibility": "none"
+            },
+            "paint": {
+                "line-color": "rgba(144, 144, 144, 1)"
+            }
+        },
+        {
+            "id": "debug_road",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "filter": [
+                "all",
+                [
+                    "==",
+                    "$type",
+                    "LineString"
+                ],
+                [
+                    "in",
+                    "class",
+                    "motorway",
+                    "trunk",
+                    "primary",
+                    "secondary",
+                    "tertiary",
+                    "minor",
+                    "residential",
+                    "track",
+                    "path"
+                ]
+            ],
+            "layout": {
+                "visibility": "none"
+            },
+            "paint": {
+                "line-color": "rgba(204, 204, 204, 1)",
+                "line-width": {
+                    "stops": [
+                        [
+                            10,
+                            0.5
+                        ],
+                        [
+                            12,
+                            1
+                        ]
+                    ]
+                }
+            }
+        },
+        {
+            "id": "tr_X_g45-bg",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    [
+                        "geometry-type"
+                    ],
+                    "LineString"
+                ],
+                [
+                    "match",
+                    [
+                        "get",
+                        "class"
+                    ],
+                    [
+                        "track"
+                    ],
+                    true,
+                    false
+                ],
+                [
+                    "any",
+                    [
+                        "match",
+                        [
+                            "get",
+                            "tracktype"
+                        ],
+                        [
+                            "grade5"
+                        ],
+                        true,
+                        false
+                    ],
+                    [
+                        "all",
+                        [
+                            "match",
+                            [
+                                "get",
+                                "tracktype"
+                            ],
+                            [
+                                "grade4"
+                            ],
+                            true,
+                            false
+                        ],
+                        [
+                            "match",
+                            [
+                                "get",
+                                "surface"
+                            ],
+                            [
+                                "dirt",
+                                "grass",
+                                "mud",
+                                "sand"
+                            ],
+                            true,
+                            false
+                        ]
+                    ]
+                ]
+            ],
+            "layout": {
+                "line-cap": "square",
+                "line-join": "bevel",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(255, 0, 0, 0.7)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.4
+                        ],
+                        [
+                            12,
+                            1.3
+                        ],
+                        [
+                            14,
+                            1.7
+                        ]
+                    ]
+                },
+                "line-dasharray": [
+                    1
+                ],
+                "line-offset": {
+                    "stops": [
+                        [
+                            12,
+                            0
+                        ],
+                        [
+                            13,
+                            1.8
+                        ],
+                        [
+                            15,
+                            3
+                        ],
+                        [
+                            16,
+                            4
+                        ]
+                    ],
+                    "base": 1.55
+                }
+            }
+        },
+        {
+            "id": "tr_X_g45",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    [
+                        "geometry-type"
+                    ],
+                    "LineString"
+                ],
+                [
+                    "match",
+                    [
+                        "get",
+                        "class"
+                    ],
+                    [
+                        "track"
+                    ],
+                    true,
+                    false
+                ],
+                [
+                    "any",
+                    [
+                        "match",
+                        [
+                            "get",
+                            "tracktype"
+                        ],
+                        [
+                            "grade5"
+                        ],
+                        true,
+                        false
+                    ],
+                    [
+                        "all",
+                        [
+                            "match",
+                            [
+                                "get",
+                                "tracktype"
+                            ],
+                            [
+                                "grade4"
+                            ],
+                            true,
+                            false
+                        ],
+                        [
+                            "match",
+                            [
+                                "get",
+                                "surface"
+                            ],
+                            [
+                                "dirt",
+                                "grass",
+                                "mud",
+                                "sand"
+                            ],
+                            true,
+                            false
+                        ]
+                    ]
+                ]
+            ],
+            "layout": {
+                "line-cap": "square",
+                "line-join": "bevel",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(255, 255, 0, 0.7)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.4
+                        ],
+                        [
+                            12,
+                            1.3
+                        ],
+                        [
+                            14,
+                            1.7
+                        ]
+                    ]
+                },
+                "line-dasharray": [
+                    2,
+                    2
+                ],
+                "line-offset": {
+                    "stops": [
+                        [
+                            12,
+                            0
+                        ],
+                        [
+                            13,
+                            1.8
+                        ],
+                        [
+                            15,
+                            3
+                        ],
+                        [
+                            16,
+                            4
+                        ]
+                    ],
+                    "base": 1.55
+                }
+            }
+        },
+        {
+            "id": "tr_B_g3",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    [
+                        "geometry-type"
+                    ],
+                    "LineString"
+                ],
+                [
+                    "==",
+                    [
+                        "get",
+                        "class"
+                    ],
+                    "track"
+                ],
+                [
+                    "match",
+                    [
+                        "get",
+                        "tracktype"
+                    ],
+                    [
+                        "grade3"
+                    ],
+                    true,
+                    false
+                ],
+                [
+                    "any",
+                    [
+                        "match",
+                        [
+                            "get",
+                            "smoothness"
+                        ],
+                        [
+                            "bad",
+                            "good",
+                            "intermediate"
+                        ],
+                        true,
+                        false
+                    ],
+                    [
+                        "match",
+                        [
+                            "get",
+                            "surface"
+                        ],
+                        [
+                            "compacted",
+                            "fine_gravel",
+                            "gravel"
+                        ],
+                        true,
+                        false
+                    ]
+                ]
+            ],
+            "layout": {
+                "line-cap": "butt",
+                "line-join": "miter",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(235, 6, 158, 1)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.4
+                        ],
+                        [
+                            12,
+                            1.3
+                        ],
+                        [
+                            14,
+                            1.7
+                        ]
+                    ]
+                },
+                "line-offset": {
+                    "stops": [
+                        [
+                            12,
+                            0
+                        ],
+                        [
+                            13,
+                            2
+                        ],
+                        [
+                            15,
+                            4
+                        ],
+                        [
+                            16,
+                            5
+                        ]
+                    ],
+                    "base": 1.55
+                },
+                "line-dasharray": [
+                    3,
+                    1.5
+                ]
+            }
+        },
+        {
+            "id": "tr_A_g2-plain-case",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    [
+                        "geometry-type"
+                    ],
+                    "LineString"
+                ],
+                [
+                    "==",
+                    [
+                        "get",
+                        "class"
+                    ],
+                    "track"
+                ],
+                [
+                    "match",
+                    [
+                        "get",
+                        "tracktype"
+                    ],
+                    [
+                        "grade2"
+                    ],
+                    true,
+                    false
+                ],
+                [
+                    "!",
+                    [
+                        "has",
+                        "surface"
+                    ]
+                ],
+                [
+                    "!",
+                    [
+                        "has",
+                        "smoothness"
+                    ]
+                ]
+            ],
+            "layout": {
+                "line-cap": "butt",
+                "line-join": "miter",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(255, 255, 255, 0.6)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.8
+                        ],
+                        [
+                            12,
+                            3
+                        ],
+                        [
+                            14,
+                            4
+                        ]
+                    ]
+                },
+                "line-offset": {
+                    "stops": [
+                        [
+                            12,
+                            0
+                        ],
+                        [
+                            13,
+                            1.5
+                        ],
+                        [
+                            15,
+                            3
+                        ],
+                        [
+                            16,
+                            4
+                        ]
+                    ],
+                    "base": 1.55
+                }
+            }
+        },
+        {
+            "id": "tr_A_g2-plain",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    [
+                        "geometry-type"
+                    ],
+                    "LineString"
+                ],
+                [
+                    "==",
+                    [
+                        "get",
+                        "class"
+                    ],
+                    "track"
+                ],
+                [
+                    "match",
+                    [
+                        "get",
+                        "tracktype"
+                    ],
+                    [
+                        "grade2"
+                    ],
+                    true,
+                    false
+                ],
+                [
+                    "!",
+                    [
+                        "has",
+                        "surface"
+                    ]
+                ],
+                [
+                    "!",
+                    [
+                        "has",
+                        "smoothness"
+                    ]
+                ]
+            ],
+            "layout": {
+                "line-cap": "butt",
+                "line-join": "miter",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(235, 6, 158, 0.6)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.5
+                        ],
+                        [
+                            12,
+                            1.5
+                        ],
+                        [
+                            14,
+                            2
+                        ]
+                    ]
+                },
+                "line-offset": {
+                    "stops": [
+                        [
+                            12,
+                            0
+                        ],
+                        [
+                            13,
+                            1.5
+                        ],
+                        [
+                            15,
+                            3
+                        ],
+                        [
+                            16,
+                            4
+                        ]
+                    ],
+                    "base": 1.55
+                },
+                "line-dasharray": [
+                    5,
+                    1
+                ]
+            }
+        },
+        {
+            "id": "tr_A_g2-case",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    [
+                        "geometry-type"
+                    ],
+                    "LineString"
+                ],
+                [
+                    "==",
+                    [
+                        "get",
+                        "class"
+                    ],
+                    "track"
+                ],
+                [
+                    "match",
+                    [
+                        "get",
+                        "tracktype"
+                    ],
+                    [
+                        "grade2"
+                    ],
+                    true,
+                    false
+                ],
+                [
+                    "any",
+                    [
+                        "match",
+                        [
+                            "get",
+                            "surface"
+                        ],
+                        [
+                            "compacted",
+                            "fine_gravel",
+                            "gravel"
+                        ],
+                        true,
+                        false
+                    ],
+                    [
+                        "match",
+                        [
+                            "get",
+                            "smoothness"
+                        ],
+                        [
+                            "bad",
+                            "good",
+                            "intermediate"
+                        ],
+                        true,
+                        false
+                    ]
+                ]
+            ],
+            "layout": {
+                "line-cap": "butt",
+                "line-join": "miter",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(255, 255, 255, 1)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.8
+                        ],
+                        [
+                            12,
+                            3
+                        ],
+                        [
+                            14,
+                            4
+                        ]
+                    ]
+                },
+                "line-offset": {
+                    "stops": [
+                        [
+                            12,
+                            0
+                        ],
+                        [
+                            13,
+                            2
+                        ],
+                        [
+                            15,
+                            4
+                        ],
+                        [
+                            16,
+                            5
+                        ]
+                    ],
+                    "base": 1.55
+                }
+            }
+        },
+        {
+            "id": "tr_A_g2",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    [
+                        "geometry-type"
+                    ],
+                    "LineString"
+                ],
+                [
+                    "==",
+                    [
+                        "get",
+                        "class"
+                    ],
+                    "track"
+                ],
+                [
+                    "match",
+                    [
+                        "get",
+                        "tracktype"
+                    ],
+                    [
+                        "grade2"
+                    ],
+                    true,
+                    false
+                ],
+                [
+                    "any",
+                    [
+                        "match",
+                        [
+                            "get",
+                            "surface"
+                        ],
+                        [
+                            "compacted",
+                            "fine_gravel",
+                            "gravel"
+                        ],
+                        true,
+                        false
+                    ],
+                    [
+                        "match",
+                        [
+                            "get",
+                            "smoothness"
+                        ],
+                        [
+                            "bad",
+                            "good",
+                            "intermediate"
+                        ],
+                        true,
+                        false
+                    ]
+                ]
+            ],
+            "layout": {
+                "line-cap": "butt",
+                "line-join": "miter",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(235, 6, 158, 1)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.5
+                        ],
+                        [
+                            12,
+                            1.5
+                        ],
+                        [
+                            14,
+                            2
+                        ]
+                    ]
+                },
+                "line-offset": {
+                    "stops": [
+                        [
+                            12,
+                            0
+                        ],
+                        [
+                            13,
+                            2
+                        ],
+                        [
+                            15,
+                            4
+                        ],
+                        [
+                            16,
+                            5
+                        ]
+                    ],
+                    "base": 1.55
+                }
+            }
+        },
+        {
+            "id": "p_X-bg",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    "$type",
+                    "LineString"
+                ],
+                [
+                    "in",
+                    "class",
+                    "path"
+                ],
+                [
+                    "in",
+                    "smoothness",
+                    "very_bad",
+                    "horrible",
+                    "very_horrible",
+                    "impassable"
+                ],
+                [
+                    "!in",
+                    "tracktype",
+                    "grade5",
+                    "grade4"
+                ]
+            ],
+            "layout": {
+                "line-cap": "square",
+                "line-join": "bevel",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(255, 0, 0, 0.7)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.4
+                        ],
+                        [
+                            12,
+                            1.1
+                        ],
+                        [
+                            14,
+                            1.5
+                        ]
+                    ]
+                },
+                "line-offset": {
+                    "stops": [
+                        [
+                            12,
+                            0
+                        ],
+                        [
+                            13,
+                            1.8
+                        ],
+                        [
+                            15,
+                            3
+                        ],
+                        [
+                            16,
+                            4
+                        ]
+                    ],
+                    "base": 1.55
+                }
+            }
+        },
+        {
+            "id": "p_X",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    "$type",
+                    "LineString"
+                ],
+                [
+                    "in",
+                    "class",
+                    "path"
+                ],
+                [
+                    "in",
+                    "smoothness",
+                    "very_bad",
+                    "horrible",
+                    "very_horrible",
+                    "impassable"
+                ],
+                [
+                    "!in",
+                    "tracktype",
+                    "grade5",
+                    "grade4"
+                ]
+            ],
+            "layout": {
+                "line-cap": "square",
+                "line-join": "bevel",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(255, 255, 0, 0.7)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.4
+                        ],
+                        [
+                            12,
+                            1.1
+                        ],
+                        [
+                            14,
+                            1.5
+                        ]
+                    ]
+                },
+                "line-dasharray": [
+                    2,
+                    2
+                ],
+                "line-offset": {
+                    "stops": [
+                        [
+                            12,
+                            0
+                        ],
+                        [
+                            13,
+                            1.8
+                        ],
+                        [
+                            15,
+                            3
+                        ],
+                        [
+                            16,
+                            4
+                        ]
+                    ],
+                    "base": 1.55
+                }
+            }
+        },
+        {
+            "id": "p_B",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    "$type",
+                    "LineString"
+                ],
+                [
+                    "==",
+                    "class",
+                    "path"
+                ],
+                [
+                    "in",
+                    "smoothness",
+                    "good",
+                    "intermediate",
+                    "bad"
+                ],
+                [
+                    "!in",
+                    "surface",
+                    "gravel",
+                    "fine_gravel",
+                    "compacted",
+                    "cobblestone",
+                    "sett",
+                    "unhewn_cobblestone",
+                    "paving_stones"
+                ],
+                [
+                    "!in",
+                    "bicycle",
+                    "no"
+                ],
+                [
+                    "!in",
+                    "access",
+                    "no"
+                ]
+            ],
+            "layout": {
+                "line-cap": "butt",
+                "line-join": "miter",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(235, 6, 158, 1)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.4
+                        ],
+                        [
+                            12,
+                            1.1
+                        ],
+                        [
+                            14,
+                            1.5
+                        ]
+                    ]
+                },
+                "line-offset": {
+                    "stops": [
+                        [
+                            12,
+                            0
+                        ],
+                        [
+                            13,
+                            2
+                        ],
+                        [
+                            15,
+                            4
+                        ],
+                        [
+                            16,
+                            5
+                        ]
+                    ],
+                    "base": 1.55
+                },
+                "line-dasharray": [
+                    1.5,
+                    1
+                ]
+            }
+        },
+        {
+            "id": "p_A-case",
+            "type": "line",
+            "metadata": {
+                "maputnik:comment": "Gravel surface with ok-ish smoothness"
+            },
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    [
+                        "geometry-type"
+                    ],
+                    "LineString"
+                ],
+                [
+                    "==",
+                    [
+                        "get",
+                        "class"
+                    ],
+                    "path"
+                ],
+                [
+                    "any",
+                    [
+                        "match",
+                        [
+                            "get",
+                            "surface"
+                        ],
+                        [
+                            "compacted",
+                            "fine_gravel"
+                        ],
+                        true,
+                        false
+                    ],
+                    [
+                        "all",
+                        [
+                            "match",
+                            [
+                                "get",
+                                "surface"
+                            ],
+                            [
+                                "gravel"
+                            ],
+                            true,
+                            false
+                        ],
+                        [
+                            "match",
+                            [
+                                "get",
+                                "smoothness"
+                            ],
+                            [
+                                "bad",
+                                "good",
+                                "intermediate"
+                            ],
+                            true,
+                            false
+                        ]
+                    ]
+                ],
+                [
+                    "match",
+                    [
+                        "get",
+                        "bicycle"
+                    ],
+                    [
+                        "no"
+                    ],
+                    false,
+                    true
+                ],
+                [
+                    "match",
+                    [
+                        "get",
+                        "access"
+                    ],
+                    [
+                        "no"
+                    ],
+                    false,
+                    true
+                ]
+            ],
+            "layout": {
+                "line-cap": "butt",
+                "line-join": "miter",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(255, 255, 255, 1)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.7
+                        ],
+                        [
+                            12,
+                            2.5
+                        ],
+                        [
+                            14,
+                            3.2
+                        ]
+                    ]
+                },
+                "line-offset": {
+                    "stops": [
+                        [
+                            12,
+                            0
+                        ],
+                        [
+                            13,
+                            2
+                        ],
+                        [
+                            15,
+                            4
+                        ],
+                        [
+                            16,
+                            5
+                        ]
+                    ],
+                    "base": 1.55
+                }
+            }
+        },
+        {
+            "id": "p_A",
+            "type": "line",
+            "metadata": {
+                "maputnik:comment": "Gravel surface with ok-ish smoothness"
+            },
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    [
+                        "geometry-type"
+                    ],
+                    "LineString"
+                ],
+                [
+                    "==",
+                    [
+                        "get",
+                        "class"
+                    ],
+                    "path"
+                ],
+                [
+                    "any",
+                    [
+                        "match",
+                        [
+                            "get",
+                            "surface"
+                        ],
+                        [
+                            "compacted",
+                            "fine_gravel"
+                        ],
+                        true,
+                        false
+                    ],
+                    [
+                        "all",
+                        [
+                            "match",
+                            [
+                                "get",
+                                "surface"
+                            ],
+                            [
+                                "gravel"
+                            ],
+                            true,
+                            false
+                        ],
+                        [
+                            "match",
+                            [
+                                "get",
+                                "smoothness"
+                            ],
+                            [
+                                "bad",
+                                "good",
+                                "intermediate"
+                            ],
+                            true,
+                            false
+                        ]
+                    ]
+                ],
+                [
+                    "match",
+                    [
+                        "get",
+                        "bicycle"
+                    ],
+                    [
+                        "no"
+                    ],
+                    false,
+                    true
+                ],
+                [
+                    "match",
+                    [
+                        "get",
+                        "access"
+                    ],
+                    [
+                        "no"
+                    ],
+                    false,
+                    true
+                ]
+            ],
+            "layout": {
+                "line-cap": "butt",
+                "line-join": "miter",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(235, 6, 158, 1)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.5
+                        ],
+                        [
+                            12,
+                            1.5
+                        ],
+                        [
+                            14,
+                            2
+                        ]
+                    ]
+                },
+                "line-offset": {
+                    "stops": [
+                        [
+                            12,
+                            0
+                        ],
+                        [
+                            13,
+                            2
+                        ],
+                        [
+                            15,
+                            4
+                        ],
+                        [
+                            16,
+                            5
+                        ]
+                    ],
+                    "base": 1.55
+                }
+            }
+        },
+        {
+            "id": "r_X_cobbles-case",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    "$type",
+                    "LineString"
+                ],
+                [
+                    "in",
+                    "class",
+                    "minor",
+                    "service",
+                    "track",
+                    "path",
+                    "residential"
+                ],
+                [
+                    "in",
+                    "surface",
+                    "sett",
+                    "cobblestone",
+                    "unhewn_cobblestone"
+                ],
+                [
+                    "!in",
+                    "service",
+                    "driveway"
+                ]
+            ],
+            "layout": {
+                "line-cap": "butt",
+                "line-join": "miter",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(0, 0, 0, 1)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.5
+                        ],
+                        [
+                            12,
+                            1.5
+                        ],
+                        [
+                            14,
+                            2
+                        ]
+                    ]
+                }
+            }
+        },
+        {
+            "id": "r_X_cobbles",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    "$type",
+                    "LineString"
+                ],
+                [
+                    "in",
+                    "class",
+                    "minor",
+                    "service",
+                    "track",
+                    "path",
+                    "residential"
+                ],
+                [
+                    "in",
+                    "surface",
+                    "sett",
+                    "cobblestone",
+                    "unhewn_cobblestone"
+                ],
+                [
+                    "!in",
+                    "service",
+                    "driveway"
+                ]
+            ],
+            "layout": {
+                "line-cap": "butt",
+                "line-join": "miter",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(245, 255, 0, 1)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.5
+                        ],
+                        [
+                            12,
+                            1.5
+                        ],
+                        [
+                            14,
+                            2
+                        ]
+                    ]
+                },
+                "line-dasharray": [
+                    1.5,
+                    1
+                ]
+            }
+        },
+        {
+            "id": "r_X-bg",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    "$type",
+                    "LineString"
+                ],
+                [
+                    "in",
+                    "class",
+                    "minor"
+                ],
+                [
+                    "in",
+                    "smoothness",
+                    "very_bad",
+                    "horrible",
+                    "very_horrible",
+                    "impassable"
+                ],
+                [
+                    "!in",
+                    "surface",
+                    "sett",
+                    "cobblestone",
+                    "unhewn_cobblestone"
+                ]
+            ],
+            "layout": {
+                "line-cap": "square",
+                "line-join": "bevel",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(255, 0, 0, 0.7)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.4
+                        ],
+                        [
+                            12,
+                            1.1
+                        ],
+                        [
+                            14,
+                            1.5
+                        ]
+                    ]
+                }
+            }
+        },
+        {
+            "id": "r_X",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    "$type",
+                    "LineString"
+                ],
+                [
+                    "in",
+                    "class",
+                    "minor"
+                ],
+                [
+                    "in",
+                    "smoothness",
+                    "very_bad",
+                    "horrible",
+                    "very_horrible",
+                    "impassable"
+                ],
+                [
+                    "!in",
+                    "surface",
+                    "sett",
+                    "cobblestone",
+                    "unhewn_cobblestone"
+                ]
+            ],
+            "layout": {
+                "line-cap": "square",
+                "line-join": "bevel",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(255, 255, 0, 0.7)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.4
+                        ],
+                        [
+                            12,
+                            1.1
+                        ],
+                        [
+                            14,
+                            1.5
+                        ]
+                    ]
+                },
+                "line-dasharray": [
+                    2,
+                    2
+                ]
+            }
+        },
+        {
+            "id": "r_A_case",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    "$type",
+                    "LineString"
+                ],
+                [
+                    "in",
+                    "class",
+                    "minor",
+                    "residential",
+                    "service"
+                ],
+                [
+                    "in",
+                    "surface",
+                    "gravel",
+                    "compacted",
+                    "fine_gravel"
+                ],
+                [
+                    "!in",
+                    "service",
+                    "driveway",
+                    "parking_aisle",
+                    "drive-through",
+                    "emergency_access"
+                ]
+            ],
+            "layout": {
+                "line-cap": "square",
+                "line-join": "bevel",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(255, 255, 255, 1)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.8
+                        ],
+                        [
+                            12,
+                            3
+                        ],
+                        [
+                            14,
+                            4
+                        ]
+                    ]
+                }
+            }
+        },
+        {
+            "id": "r_A",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "==",
+                    "$type",
+                    "LineString"
+                ],
+                [
+                    "in",
+                    "class",
+                    "minor",
+                    "residential",
+                    "service"
+                ],
+                [
+                    "in",
+                    "surface",
+                    "gravel",
+                    "compacted",
+                    "fine_gravel"
+                ],
+                [
+                    "!in",
+                    "service",
+                    "driveway",
+                    "parking_aisle",
+                    "drive-through",
+                    "emergency_access"
+                ]
+            ],
+            "layout": {
+                "line-cap": "square",
+                "line-join": "bevel",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(235, 6, 158, 1)",
+                "line-width": {
+                    "base": 1.55,
+                    "stops": [
+                        [
+                            10,
+                            0.5
+                        ],
+                        [
+                            12,
+                            1.5
+                        ],
+                        [
+                            14,
+                            2
+                        ]
+                    ]
+                }
+            }
+        },
+        {
+            "id": "cemetery",
+            "type": "symbol",
+            "source": "openmaptiles",
+            "source-layer": "landuse",
+            "filter": [
+                "all",
+                [
+                    "==",
+                    "class",
+                    "cemetery"
+                ]
+            ],
+            "layout": {
+                "icon-image": "cemetery_11",
+                "icon-rotation-alignment": "map",
+                "icon-size": 1.5
+            }
+        },
+        {
+            "id": "drinking_water",
+            "type": "symbol",
+            "source": "openmaptiles",
+            "source-layer": "poi",
+            "minzoom": 9,
+            "maxzoom": 20,
+            "filter": [
+                "any",
+                [
+                    "==",
+                    "class",
+                    "drinking_water"
+                ],
+                [
+                    "==",
+                    "subclass",
+                    "drinking_water"
+                ]
+            ],
+            "layout": {
+                "icon-image": "drinking_water_11",
+                "visibility": "visible",
+                "icon-rotation-alignment": "map",
+                "icon-size": 1.4
+            }
+        }
+    ],
+    "id": "basic",
+    "owner": "Marcus Jaschen"
+}

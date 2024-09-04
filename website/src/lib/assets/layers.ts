@@ -1,6 +1,9 @@
-import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
-import { TramFront, Utensils, ShoppingBasket, Droplet, ShowerHead, Fuel, CircleParking, Fence, FerrisWheel, Telescope, Bed, Mountain, Pickaxe, Store, TrainFront, Bus, Ship, Croissant, House, Tent, Wrench } from 'lucide-static';
-import { type AnySourceData, type Style } from 'mapbox-gl';
+import { TramFront, Utensils, ShoppingBasket, Droplet, ShowerHead, Fuel, CircleParking, Fence, FerrisWheel, Bed, Mountain, Pickaxe, Store, TrainFront, Bus, Ship, Croissant, House, Tent, Wrench, Binoculars } from 'lucide-static';
+import { type Style } from 'mapbox-gl';
+import ignFrTopo from './custom/ign-fr-topo.json';
+import ignFrPlan from './custom/ign-fr-plan.json';
+import ignFrSatellite from './custom/ign-fr-satellite.json';
+import bikerouterGravel from './custom/bikerouter-gravel.json';
 
 export const basemaps: { [key: string]: string | Style; } = {
     mapboxOutdoors: 'mapbox://styles/mapbox/outdoors-v12',
@@ -127,7 +130,8 @@ export const basemaps: { [key: string]: string | Style; } = {
             source: 'ignBe',
         }],
     },
-    ignFrPlan: 'https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/classique.json',
+    ignFrPlan: ignFrPlan,
+    ignFrTopo: ignFrTopo,
     ignFrScan25: {
         version: 8,
         sources: {
@@ -145,23 +149,7 @@ export const basemaps: { [key: string]: string | Style; } = {
             source: 'ignFrScan25',
         }],
     },
-    ignFrSatellite: {
-        version: 8,
-        sources: {
-            ignFrSatellite: {
-                type: 'raster',
-                tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/jpeg&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}'],
-                tileSize: 256,
-                maxzoom: 19,
-                attribution: 'IGN-F/Géoportail'
-            }
-        },
-        layers: [{
-            id: 'ignFrSatellite',
-            type: 'raster',
-            source: 'ignFrSatellite',
-        }],
-    },
+    ignFrSatellite: ignFrSatellite,
     ignEs: {
         version: 8,
         sources: {
@@ -179,23 +167,7 @@ export const basemaps: { [key: string]: string | Style; } = {
             source: 'ignEs',
         }],
     },
-    ordnanceSurvey: {
-        version: 8,
-        sources: {
-            ordnanceSurvey: {
-                type: 'raster',
-                tiles: ['https://api.os.uk/maps/raster/v1/zxy/Outdoor_3857/{z}/{x}/{y}.png?key=piCT8WysfuC3xLSUW7sGLfrAAJoYDvQz'],
-                tileSize: 256,
-                maxzoom: 20,
-                attribution: '&copy; <a href="http://www.ordnancesurvey.co.uk/" target="_blank">Ordnance Survey</a>'
-            }
-        },
-        layers: [{
-            id: 'ordnanceSurvey',
-            type: 'raster',
-            source: 'ordnanceSurvey',
-        }],
-    },
+    ordnanceSurvey: "https://api.os.uk/maps/vector/v1/vts/resources/styles?srs=3857&key=piCT8WysfuC3xLSUW7sGLfrAAJoYDvQz",
     norwayTopo: {
         version: 8,
         sources: {
@@ -216,18 +188,49 @@ export const basemaps: { [key: string]: string | Style; } = {
     swedenTopo: {
         version: 8,
         sources: {
-            swedenTopo: {
+            swedenTopoWMTS: {
                 type: 'raster',
                 tiles: ['https://api.lantmateriet.se/open/topowebb-ccby/v1/wmts/token/1d54dd14-a28c-38a9-b6f3-b4ebfcc3c204/1.0.0/topowebb/default/3857/{z}/{y}/{x}.png'],
                 tileSize: 256,
                 maxzoom: 14,
                 attribution: '&copy; <a href="https://www.lantmateriet.se" target="_blank">Lantmäteriet</a>'
+            },
+            swedenTopoWMS: {
+                type: 'raster',
+                tiles: ['https://minkarta.lantmateriet.se/map/topowebb?REQUEST=GetMap&SERVICE=WMS&VERSION=1.1.1&FORMAT=image%2Fpng&STYLES=&TRANSPARENT=false&LAYERS=topowebbkartan&TILED=true&MAP_RESOLUTION=180&WIDTH=512&HEIGHT=512&SRS=EPSG%3A3857&BBOX={bbox-epsg-3857}'],
+                tileSize: 512,
+                minzoom: 14,
+                maxzoom: 20,
+                attribution: '&copy; <a href="https://www.lantmateriet.se" target="_blank">Lantmäteriet</a>'
             }
         },
         layers: [{
-            id: 'swedenTopo',
+            id: 'swedenTopoWMTS',
             type: 'raster',
-            source: 'swedenTopo',
+            source: 'swedenTopoWMTS',
+            maxzoom: 14
+        }, {
+            id: 'swedenTopoWMS',
+            type: 'raster',
+            source: 'swedenTopoWMS',
+            minzoom: 14
+        }],
+    },
+    swedenSatellite: {
+        version: 8,
+        sources: {
+            swedenSatellite: {
+                type: 'raster',
+                tiles: ['https://minkarta.lantmateriet.se/map/ortofoto?REQUEST=GetMap&SERVICE=WMS&VERSION=1.1.1&FORMAT=image%2Fpng&STYLES=&TRANSPARENT=false&LAYERS=Ortofoto_0.5%2COrtofoto_0.4%2COrtofoto_0.25%2COrtofoto_0.16&TILED=true&MAP_RESOLUTION=180&WIDTH=512&HEIGHT=512&SRS=EPSG%3A3857&BBOX={bbox-epsg-3857}'],
+                tileSize: 512,
+                maxzoom: 22,
+                attribution: '&copy; <a href="https://www.lantmateriet.se" target="_blank">Lantmäteriet</a>'
+            }
+        },
+        layers: [{
+            id: 'swedenSatellite',
+            type: 'raster',
+            source: 'swedenSatellite',
         }],
     },
     finlandTopo: {
@@ -283,200 +286,309 @@ export const basemaps: { [key: string]: string | Style; } = {
     },
 };
 
-export function extendBasemap(basemap: string | Style): string | Style {
-    if (typeof basemap === 'object') {
-        basemap["glyphs"] = "mapbox://fonts/mapbox/{fontstack}/{range}.pbf";
-        basemap["sprite"] = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/sprite?access_token=${PUBLIC_MAPBOX_TOKEN}`;
-    }
-    return basemap;
-}
-
-Object.values(basemaps).forEach(extendBasemap);
-
-export const font: { [key: string]: string; } = {
-    swisstopoVector: 'Frutiger Neue Condensed Regular',
-    swisstopoSatellite: 'Frutiger Neue Condensed Regular',
-};
-
-export const overlays: { [key: string]: AnySourceData; } = {
+export const overlays: { [key: string]: string | Style; } = {
     cyclOSMlite: {
-        type: 'raster',
-        tiles: ['https://a.tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png', 'https://b.tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png', 'https://c.tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 17,
-        attribution: '&copy; <a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" title="CyclOSM - Open Bicycle render">CyclOSM</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        version: 8,
+        sources: {
+            cyclOSMlite: {
+                type: 'raster',
+                tiles: ['https://a.tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png', 'https://b.tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png', 'https://c.tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 17,
+                attribution: '&copy; <a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" title="CyclOSM - Open Bicycle render">CyclOSM</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }
+        },
+        layers: [{
+            id: 'cyclOSMlite',
+            type: 'raster',
+            source: 'cyclOSMlite',
+        }],
     },
+    bikerouterGravel: bikerouterGravel,
     swisstopoSlope: {
-        type: 'raster',
-        tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.hangneigung-ueber_30/default/current/3857/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 17,
-        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>',
+        version: 8,
+        sources: {
+            swisstopoSlope: {
+                type: 'raster',
+                tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.hangneigung-ueber_30/default/current/3857/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 17,
+                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>',
+            },
+        },
+        layers: [{
+            id: 'swisstopoSlope',
+            type: 'raster',
+            source: 'swisstopoSlope',
+        }],
     },
     swisstopoHiking: {
-        type: 'raster',
-        tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-wanderwege/default/current/3857/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+        version: 8,
+        sources: {
+            swisstopoHiking: {
+                type: 'raster',
+                tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-wanderwege/default/current/3857/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+            },
+        },
+        layers: [{
+            id: 'swisstopoHiking',
+            type: 'raster',
+            source: 'swisstopoHiking',
+        }],
     },
     swisstopoHikingClosures: {
-        type: 'raster',
-        tiles: ['https://wms.geo.admin.ch/?version=1.3.0&service=WMS&request=GetMap&sld_version=1.1.0&layers=ch.astra.wanderland-sperrungen_umleitungen&format=image/png&STYLE=default&bbox={bbox-epsg-3857}&width=256&height=256&crs=EPSG:3857&transparent=true'],
-        tileSize: 256,
-        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+        version: 8,
+        sources: {
+            swisstopoHikingClosures: {
+                type: 'raster',
+                tiles: ['https://wms.geo.admin.ch/?version=1.3.0&service=WMS&request=GetMap&sld_version=1.1.0&layers=ch.astra.wanderland-sperrungen_umleitungen&format=image/png&STYLE=default&bbox={bbox-epsg-3857}&width=256&height=256&crs=EPSG:3857&transparent=true'],
+                tileSize: 256,
+                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+            },
+        },
+        layers: [{
+            id: 'swisstopoHikingClosures',
+            type: 'raster',
+            source: 'swisstopoHikingClosures',
+        }],
     },
     swisstopoCycling: {
-        type: 'raster',
-        tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.astra.veloland/default/current/3857/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+        version: 8,
+        sources: {
+            swisstopoCycling: {
+                type: 'raster',
+                tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.astra.veloland/default/current/3857/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+            }
+        },
+        layers: [{
+            id: 'swisstopoCycling',
+            type: 'raster',
+            source: 'swisstopoCycling',
+        }],
     },
     swisstopoCyclingClosures: {
-        type: 'raster',
-        tiles: ['https://wms.geo.admin.ch/?version=1.3.0&service=WMS&request=GetMap&sld_version=1.1.0&layers=ch.astra.veloland-sperrungen_umleitungen&format=image/png&STYLE=default&bbox={bbox-epsg-3857}&width=256&height=256&crs=EPSG:3857&transparent=true'],
-        tileSize: 256,
-        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+        version: 8,
+        sources: {
+            swisstopoCyclingClosures: {
+                type: 'raster',
+                tiles: ['https://wms.geo.admin.ch/?version=1.3.0&service=WMS&request=GetMap&sld_version=1.1.0&layers=ch.astra.veloland-sperrungen_umleitungen&format=image/png&STYLE=default&bbox={bbox-epsg-3857}&width=256&height=256&crs=EPSG:3857&transparent=true'],
+                tileSize: 256,
+                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+            }
+        },
+        layers: [{
+            id: 'swisstopoCyclingClosures',
+            type: 'raster',
+            source: 'swisstopoCyclingClosures',
+        }],
     },
     swisstopoMountainBike: {
-        type: 'raster',
-        tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.astra.mountainbikeland/default/current/3857/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+        version: 8,
+        sources: {
+            swisstopoMountainBike: {
+                type: 'raster',
+                tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.astra.mountainbikeland/default/current/3857/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+            }
+        },
+        layers: [{
+            id: 'swisstopoMountainBike',
+            type: 'raster',
+            source: 'swisstopoMountainBike',
+        }],
     },
     swisstopoMountainBikeClosures: {
-        type: 'raster',
-        tiles: ['https://wms.geo.admin.ch/?version=1.3.0&service=WMS&request=GetMap&sld_version=1.1.0&layers=ch.astra.mountainbikeland-sperrungen_umleitungen&format=image/png&STYLE=default&bbox={bbox-epsg-3857}&width=256&height=256&crs=EPSG:3857&transparent=true'],
-        tileSize: 256,
-        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+        version: 8,
+        sources: {
+            swisstopoMountainBikeClosures: {
+                type: 'raster',
+                tiles: ['https://wms.geo.admin.ch/?version=1.3.0&service=WMS&request=GetMap&sld_version=1.1.0&layers=ch.astra.mountainbikeland-sperrungen_umleitungen&format=image/png&STYLE=default&bbox={bbox-epsg-3857}&width=256&height=256&crs=EPSG:3857&transparent=true'],
+                tileSize: 256,
+                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+            }
+        },
+        layers: [{
+            id: 'swisstopoMountainBikeClosures',
+            type: 'raster',
+            source: 'swisstopoMountainBikeClosures',
+        }],
     },
     swisstopoSkiTouring: {
-        type: 'raster',
-        tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.swisstopo-karto.skitouren/default/current/3857/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 17,
-        attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+        version: 8,
+        sources: {
+            swisstopoSkiTouring: {
+                type: 'raster',
+                tiles: ['https://wmts.geo.admin.ch/1.0.0/ch.swisstopo-karto.skitouren/default/current/3857/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 17,
+                attribution: '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank">swisstopo</a>'
+            }
+        },
+        layers: [{
+            id: 'swisstopoSkiTouring',
+            type: 'raster',
+            source: 'swisstopoSkiTouring',
+        }],
     },
     ignFrCadastre: {
-        type: 'raster',
-        tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TILEMATRIXSET=PM&TILEMATRIX={z}&TILECOL={x}&TILEROW={y}&LAYER=CADASTRALPARCELS.PARCELS&FORMAT=image/png&STYLE=normal'],
-        tileSize: 256,
-        maxzoom: 20,
-        attribution: 'IGN-F/Géoportail'
+        version: 8,
+        sources: {
+            ignFrCadastre: {
+                type: 'raster',
+                tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TILEMATRIXSET=PM&TILEMATRIX={z}&TILECOL={x}&TILEROW={y}&LAYER=CADASTRALPARCELS.PARCELS&FORMAT=image/png&STYLE=normal'],
+                tileSize: 256,
+                maxzoom: 20,
+                attribution: 'IGN-F/Géoportail'
+            }
+        },
+        layers: [{
+            id: 'ignFrCadastre',
+            type: 'raster',
+            source: 'ignFrCadastre',
+        }],
     },
     ignSlope: {
-        type: 'raster',
-        tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TileMatrixSet=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&Layer=GEOGRAPHICALGRIDSYSTEMS.SLOPES.MOUNTAIN&FORMAT=image/png&Style=normal'],
-        tileSize: 256,
-        maxzoom: 17,
-        attribution: 'IGN-F/Géoportail'
+        version: 8,
+        sources: {
+            ignSlope: {
+                type: 'raster',
+                tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TileMatrixSet=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&Layer=GEOGRAPHICALGRIDSYSTEMS.SLOPES.MOUNTAIN&FORMAT=image/png&Style=normal'],
+                tileSize: 256,
+                attribution: 'IGN-F/Géoportail'
+            }
+        },
+        layers: [{
+            id: 'ignSlope',
+            type: 'raster',
+            source: 'ignSlope',
+        }],
     },
     ignSkiTouring: {
-        type: 'raster',
-        tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TileMatrixSet=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&Layer=TRACES.RANDO.HIVERNALE&FORMAT=image/png&Style=normal'],
-        tileSize: 256,
-        maxzoom: 16,
-        attribution: 'IGN-F/Géoportail'
+        version: 8,
+        sources: {
+            ignSkiTouring: {
+                type: 'raster',
+                tiles: ['https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TileMatrixSet=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&Layer=TRACES.RANDO.HIVERNALE&FORMAT=image/png&Style=normal'],
+                tileSize: 256,
+                maxzoom: 16,
+                attribution: 'IGN-F/Géoportail'
+            },
+        },
+        layers: [{
+            id: 'ignSkiTouring',
+            type: 'raster',
+            source: 'ignSkiTouring',
+        }],
     },
     waymarkedTrailsHiking: {
-        type: 'raster',
-        tiles: ['https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+        version: 8,
+        sources: {
+            waymarkedTrailsHiking: {
+                type: 'raster',
+                tiles: ['https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+            }
+        },
+        layers: [{
+            id: 'waymarkedTrailsHiking',
+            type: 'raster',
+            source: 'waymarkedTrailsHiking',
+        }],
     },
     waymarkedTrailsCycling: {
-        type: 'raster',
-        tiles: ['https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+        version: 8,
+        sources: {
+            waymarkedTrailsCycling: {
+                type: 'raster',
+                tiles: ['https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+            }
+        },
+        layers: [{
+            id: 'waymarkedTrailsCycling',
+            type: 'raster',
+            source: 'waymarkedTrailsCycling',
+        }],
     },
     waymarkedTrailsMTB: {
-        type: 'raster',
-        tiles: ['https://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+        version: 8,
+        sources: {
+            waymarkedTrailsMTB: {
+                type: 'raster',
+                tiles: ['https://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+            }
+        },
+        layers: [{
+            id: 'waymarkedTrailsMTB',
+            type: 'raster',
+            source: 'waymarkedTrailsMTB',
+        }],
     },
     waymarkedTrailsSkating: {
-        type: 'raster',
-        tiles: ['https://tile.waymarkedtrails.org/skating/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+        version: 8,
+        sources: {
+            waymarkedTrailsSkating: {
+                type: 'raster',
+                tiles: ['https://tile.waymarkedtrails.org/skating/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+            }
+        },
+        layers: [{
+            id: 'waymarkedTrailsSkating',
+            type: 'raster',
+            source: 'waymarkedTrailsSkating',
+        }],
     },
     waymarkedTrailsHorseRiding: {
-        type: 'raster',
-        tiles: ['https://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+        version: 8,
+        sources: {
+            waymarkedTrailsHorseRiding: {
+                type: 'raster',
+                tiles: ['https://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+            }
+        },
+        layers: [{
+            id: 'waymarkedTrailsHorseRiding',
+            type: 'raster',
+            source: 'waymarkedTrailsHorseRiding',
+        }],
     },
     waymarkedTrailsWinter: {
-        type: 'raster',
-        tiles: ['https://tile.waymarkedtrails.org/slopes/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        maxzoom: 18,
-        attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
-    },
-    stravaHeatmapRun: {
-        type: 'raster',
-        tiles: [],
-        tileSize: 1024,
-        maxzoom: 15,
-        attribution: '&copy; <a href="https://www.strava.com" target="_blank">Strava</a>'
-    },
-    stravaHeatmapTrailRun: {
-        type: 'raster',
-        tiles: [],
-        tileSize: 1024,
-        maxzoom: 15,
-        attribution: '&copy; <a href="https://www.strava.com" target="_blank">Strava</a>'
-    },
-    stravaHeatmapHike: {
-        type: 'raster',
-        tiles: [],
-        tileSize: 1024,
-        maxzoom: 15,
-        attribution: '&copy; <a href="https://www.strava.com" target="_blank">Strava</a>'
-    },
-    stravaHeatmapRide: {
-        type: 'raster',
-        tiles: [],
-        tileSize: 1024,
-        maxzoom: 15,
-        attribution: '&copy; <a href="https://www.strava.com" target="_blank">Strava</a>'
-    },
-    stravaHeatmapGravel: {
-        type: 'raster',
-        tiles: [],
-        tileSize: 1024,
-        maxzoom: 15,
-        attribution: '&copy; <a href="https://www.strava.com" target="_blank">Strava</a>'
-    },
-    stravaHeatmapMTB: {
-        type: 'raster',
-        tiles: [],
-        tileSize: 1024,
-        maxzoom: 15,
-        attribution: '&copy; <a href="https://www.strava.com" target="_blank">Strava</a>'
-    },
-    stravaHeatmapWater: {
-        type: 'raster',
-        tiles: [],
-        tileSize: 1024,
-        maxzoom: 15,
-        attribution: '&copy; <a href="https://www.strava.com" target="_blank">Strava</a>'
-    },
-    stravaHeatmapWinter: {
-        type: 'raster',
-        tiles: [],
-        tileSize: 1024,
-        maxzoom: 15,
-        attribution: '&copy; <a href="https://www.strava.com" target="_blank">Strava</a>'
+        version: 8,
+        sources: {
+            waymarkedTrailsWinter: {
+                type: 'raster',
+                tiles: ['https://tile.waymarkedtrails.org/slopes/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution: '&copy; <a href="https://www.waymarkedtrails.org" target="_blank">Waymarked Trails</a>'
+            }
+        },
+        layers: [{
+            id: 'waymarkedTrailsWinter',
+            type: 'raster',
+            source: 'waymarkedTrailsWinter',
+        }],
     },
 };
 
@@ -511,6 +623,7 @@ export const basemapTree: LayerTreeType = {
             },
             france: {
                 ignFrPlan: true,
+                ignFrTopo: true,
                 ignFrScan25: true,
                 ignFrSatellite: true,
             },
@@ -526,6 +639,7 @@ export const basemapTree: LayerTreeType = {
             },
             sweden: {
                 swedenTopo: true,
+                swedenSatellite: true,
             },
             switzerland: {
                 swisstopoRaster: true,
@@ -546,19 +660,6 @@ export const basemapTree: LayerTreeType = {
 export const overlayTree: LayerTreeType = {
     overlays: {
         world: {
-            cyclOSM: {
-                cyclOSMlite: true,
-            },
-            /*strava: {
-                stravaHeatmapRun: true,
-                stravaHeatmapTrailRun: true,
-                stravaHeatmapHike: true,
-                stravaHeatmapRide: true,
-                stravaHeatmapGravel: true,
-                stravaHeatmapMTB: true,
-                stravaHeatmapWater: true,
-                stravaHeatmapWinter: true,
-            },*/
             waymarked_trails: {
                 waymarkedTrailsHiking: true,
                 waymarkedTrailsCycling: true,
@@ -566,7 +667,9 @@ export const overlayTree: LayerTreeType = {
                 waymarkedTrailsSkating: true,
                 waymarkedTrailsHorseRiding: true,
                 waymarkedTrailsWinter: true,
-            }
+            },
+            cyclOSMlite: true,
+            bikerouterGravel: true,
         },
         countries: {
             france: {
@@ -600,6 +703,7 @@ export const overpassTree: LayerTreeType = {
             toilets: true,
             "water": true,
             shower: true,
+            shelter: true,
             barrier: true
         },
         tourism: {
@@ -608,6 +712,7 @@ export const overpassTree: LayerTreeType = {
             hotel: true,
             campsite: true,
             hut: true,
+            picnic: true,
             summit: true,
             pass: true,
             climbing: true,
@@ -638,19 +743,6 @@ export const defaultBasemap = 'mapboxOutdoors';
 export const defaultOverlays = {
     overlays: {
         world: {
-            cyclOSM: {
-                cyclOSMlite: false,
-            },
-            /*strava: {
-                stravaHeatmapRun: false,
-                stravaHeatmapTrailRun: false,
-                stravaHeatmapHike: false,
-                stravaHeatmapRide: false,
-                stravaHeatmapGravel: false,
-                stravaHeatmapMTB: false,
-                stravaHeatmapWater: false,
-                stravaHeatmapWinter: false,
-            },*/
             waymarked_trails: {
                 waymarkedTrailsHiking: false,
                 waymarkedTrailsCycling: false,
@@ -658,7 +750,9 @@ export const defaultOverlays = {
                 waymarkedTrailsSkating: false,
                 waymarkedTrailsHorseRiding: false,
                 waymarkedTrailsWinter: false,
-            }
+            },
+            cyclOSMlite: false,
+            bikerouterGravel: false,
         },
         countries: {
             france: {
@@ -692,6 +786,7 @@ export const defaultOverpassQueries: LayerTreeType = {
             toilets: false,
             "water": false,
             shower: false,
+            shelter: false,
             barrier: false
         },
         tourism: {
@@ -700,6 +795,7 @@ export const defaultOverpassQueries: LayerTreeType = {
             hotel: false,
             campsite: false,
             hut: false,
+            picnic: false,
             summit: false,
             pass: false,
             climbing: false
@@ -746,6 +842,7 @@ export const defaultBasemapTree: LayerTreeType = {
             },
             france: {
                 ignFrPlan: false,
+                ignFrTopo: false,
                 ignFrScan25: false,
                 ignFrSatellite: false,
             },
@@ -761,6 +858,7 @@ export const defaultBasemapTree: LayerTreeType = {
             },
             sweden: {
                 swedenTopo: false,
+                swedenSatellite: false,
             },
             switzerland: {
                 swisstopoRaster: false,
@@ -781,19 +879,6 @@ export const defaultBasemapTree: LayerTreeType = {
 export const defaultOverlayTree: LayerTreeType = {
     overlays: {
         world: {
-            cyclOSM: {
-                cyclOSMlite: false,
-            },
-            /*strava: {
-                stravaHeatmapRun: true,
-                stravaHeatmapTrailRun: true,
-                stravaHeatmapHike: true,
-                stravaHeatmapRide: true,
-                stravaHeatmapGravel: true,
-                stravaHeatmapMTB: true,
-                stravaHeatmapWater: true,
-                stravaHeatmapWinter: true,
-            },*/
             waymarked_trails: {
                 waymarkedTrailsHiking: true,
                 waymarkedTrailsCycling: true,
@@ -801,7 +886,9 @@ export const defaultOverlayTree: LayerTreeType = {
                 waymarkedTrailsSkating: false,
                 waymarkedTrailsHorseRiding: false,
                 waymarkedTrailsWinter: false,
-            }
+            },
+            cyclOSMlite: false,
+            bikerouterGravel: false,
         },
         countries: {
             france: {
@@ -835,6 +922,7 @@ export const defaultOverpassTree: LayerTreeType = {
             toilets: true,
             "water": true,
             shower: false,
+            shelter: false,
             barrier: false
         },
         tourism: {
@@ -843,6 +931,7 @@ export const defaultOverpassTree: LayerTreeType = {
             hotel: true,
             campsite: true,
             hut: true,
+            picnic: false,
             summit: true,
             pass: true,
             climbing: false
@@ -882,17 +971,19 @@ type OverpassQueryData = {
         color: string,
     },
     tags: Record<string, string | boolean | string[]> | Record<string, string | boolean | string[]>[],
+    symbol?: string,
 };
 
 export const overpassQueryData: Record<string, OverpassQueryData> = {
-    "bakery": {
+    bakery: {
         icon: {
             svg: Croissant,
             color: "Coral",
         },
         tags: {
             shop: "bakery"
-        }
+        },
+        symbol: "Convenience Store"
     },
     "food-store": {
         icon: {
@@ -901,7 +992,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             shop: ["supermarket", "convenience"],
-        }
+        },
+        symbol: "Convenience Store"
     },
     "eat-and-drink": {
         icon: {
@@ -910,16 +1002,18 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             amenity: ["restaurant", "fast_food", "cafe", "pub", "bar"]
-        }
+        },
+        symbol: "Restaurant"
     },
-    "toilets": {
+    toilets: {
         icon: {
             svg: Droplet,
             color: "DeepSkyBlue",
         },
         tags: {
             amenity: "toilets"
-        }
+        },
+        symbol: "Restroom"
     },
     water: {
         icon: {
@@ -931,7 +1025,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         }, {
             natural: "spring",
             drinking_water: "yes"
-        }]
+        }],
+        symbol: "Drinking Water"
     },
     shower: {
         icon: {
@@ -940,7 +1035,18 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             amenity: "shower"
-        }
+        },
+        symbol: "Shower"
+    },
+    shelter: {
+        icon: {
+            svg: Tent,
+            color: "#000000",
+        },
+        tags: {
+            amenity: "shelter"
+        },
+        symbol: "Shelter"
     },
     "fuel-station": {
         icon: {
@@ -949,7 +1055,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             amenity: "fuel"
-        }
+        },
+        symbol: "Gas Station"
     },
     parking: {
         icon: {
@@ -958,7 +1065,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             amenity: "parking"
-        }
+        },
+        symbol: "Parking Area"
     },
     garage: {
         icon: {
@@ -967,7 +1075,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             shop: ["car_repair", "motorcycle_repair"]
-        }
+        },
+        symbol: "Car Repair"
     },
     barrier: {
         icon: {
@@ -989,12 +1098,13 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
     },
     viewpoint: {
         icon: {
-            svg: Telescope,
+            svg: Binoculars,
             color: "Green",
         },
         tags: {
             tourism: "viewpoint"
-        }
+        },
+        symbol: "Scenic Area"
     },
     hotel: {
         icon: {
@@ -1003,7 +1113,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             tourism: ["hotel", "hostel", "guest_house", "motel"]
-        }
+        },
+        symbol: "Hotel"
     },
     campsite: {
         icon: {
@@ -1012,7 +1123,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             tourism: "camp_site"
-        }
+        },
+        symbol: "Campground"
     },
     hut: {
         icon: {
@@ -1021,7 +1133,18 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             tourism: ["alpine_hut", "wilderness_hut"]
-        }
+        },
+        symbol: "Lodge"
+    },
+    picnic: {
+        icon: {
+            svg: Utensils,
+            color: "Green",
+        },
+        tags: {
+            tourism: "picnic_site"
+        },
+        symbol: "Picnic Area"
     },
     summit: {
         icon: {
@@ -1030,7 +1153,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             natural: "peak"
-        }
+        },
+        symbol: "Summit"
     },
     pass: {
         icon: {
@@ -1057,7 +1181,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             amenity: "bicycle_parking"
-        }
+        },
+        symbol: "Parking Area"
     },
     "bicycle-rental": {
         icon: {
@@ -1084,7 +1209,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             railway: "station"
-        }
+        },
+        symbol: "Ground Transportation"
     },
     "tram-stop": {
         icon: {
@@ -1094,6 +1220,7 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         tags: {
             railway: "tram_stop"
         },
+        symbol: "Ground Transportation"
     },
     "bus-stop": {
         icon: {
@@ -1103,7 +1230,8 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         tags: {
             "public_transport": ["stop_position", "platform"],
             bus: "yes"
-        }
+        },
+        symbol: "Ground Transportation"
     },
     ferry: {
         icon: {
@@ -1112,18 +1240,7 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         tags: {
             amenity: "ferry_terminal"
-        }
+        },
+        symbol: "Anchor"
     }
 };
-
-export const stravaHeatmapServers = ['https://heatmap-external-a.strava.com/tiles-auth', 'https://heatmap-external-b.strava.com/tiles-auth', 'https://heatmap-external-c.strava.com/tiles-auth'];
-export const stravaHeatmapActivityIds: { [key: string]: string } = {
-    stravaHeatmapRun: 'sport_Run',
-    stravaHeatmapTrailRun: 'sport_TrailRun',
-    stravaHeatmapHike: 'sport_Hike',
-    stravaHeatmapRide: 'sport_Ride',
-    stravaHeatmapGravel: 'sport_GravelRide',
-    stravaHeatmapMTB: 'sport_MountainBikeRide',
-    stravaHeatmapWater: 'water',
-    stravaHeatmapWinter: 'winter',
-}

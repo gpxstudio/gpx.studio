@@ -42,7 +42,7 @@
 		<Ungroup size="16" class="mr-1" />
 		{$_('toolbar.extract.button')}
 	</Button>
-	<Help>
+	<Help link="./help/toolbar/extract">
 		{#if validSelection}
 			{$_('toolbar.extract.help')}
 		{:else}

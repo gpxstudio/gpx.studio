@@ -1,0 +1,85 @@
+---
+title: Planificación y edición de rutas
+---
+
+<script>
+    import { Pencil, Route, Bike, TriangleAlert, ArrowRightLeft, Home, Repeat, Trash2, CirclePlay, SquareArrowUpLeft } from 'lucide-svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
+    import routingScreenshot from '$lib/assets/img/docs/tools/routing.png?enhanced';
+    import DocsImage from '$lib/components/docs/DocsImage.svelte';
+</script>
+
+# <Pencil size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+La herramienta de planificación y edición de rutas le permite crear y editar rutas colocando o moviendo puntos de ancla en el mapa.
+
+## Configuración
+
+Como se muestra a continuación, el cuadro de diálogo de la herramienta contiene algunas opciones para controlar el comportamiento de enrutamiento.
+Puede minimizar el cuadro de diálogo para ahorrar espacio haciendo clic en <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
+
+<div class="flex flex-row justify-center">
+    <Routing minimizable={false} class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Enrutamiento
+
+Cuando el enrutamiento está habilitado, los puntos de ancla colocados o movidos en el mapa se conectarán mediante una ruta calculada sobre la red viaria de <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a>.
+Deshabilita el enrutamiento para conectar puntos de ancla con líneas rectas.
+Esta opción también se puede cambiar pulsando <kbd>F5</kbd>.
+
+### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Actividad
+
+Seleccione el tipo de actividad al que se ajustarán las rutas.
+
+### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Permitir caminos privados
+
+Cuando está activado, el motor de enrutamiento tendrá en cuenta los caminos privados cuando se calculen rutas.
+
+<DocsNote type="warning">
+
+Use esta opción solo si tiene conocimiento local de la zona y tiene permiso para utilizar los caminos en cuestión.
+
+</DocsNote>
+
+## Trazado y edición de rutas
+
+Crear una ruta o extender una ya existente es tan sencillo como hacer clic en el mapa para colocar un nuevo punto de ancla.
+
+También puede arrastrar un punto de ancla existente para redirigir el segmento conectándolo con los puntos de ancla anterior y posterior.
+
+Además, los nuevos puntos de ancla pueden ser insertados entre los existentes situando el cursor sobre el segmento que los conecta y arrastrando a la ubicación deseada el punto de ancla que aparece.
+En dispositivos táctiles, puede tocar sobre el segmento para insertar un nuevo punto de ancla.
+
+<DocsNote>
+
+Al editar archivos GPX importados, se crea automáticamente un conjunto inicial de puntos de anclaje.
+Para facilitar el proceso de edición, cuanto más se acerque el mapa, más puntos de anclaje se mostrarán.
+Esto permite que la ruta sea editada con diferentes niveles de detalle.
+
+</DocsNote>
+
+Finalmente, puede eliminar puntos de ancla haciendo clic en ellos y seleccionando <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Eliminar</button> del menú contextual.
+
+<DocsImage src={routingScreenshot} alt="Los puntos de anclaje le permiten editar una ruta fácilmente." />
+
+## Herramientas adicionales
+
+Las siguientes herramientas automatizan algunas operaciones comunes de modificación de rutas.
+
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Inverso
+
+Invierte el sentido de la ruta.
+
+### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Volver al inicio
+
+Conecta el último punto de la ruta con el punto de inicio, usando los ajustes de ruta elegidos.
+
+### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Ida y vuelta
+
+Vuelve al punto de inicio por la misma ruta.
+
+### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Cambiar el inicio de la vuelta
+
+Cuando el punto final de la ruta está lo suficientemente cerca del inicio, puede cambiar el inicio de la vuelta haciendo clic en cualquier punto de ancla y seleccionando <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Iniciar vuelta aquí</button> desde el menú contextual.

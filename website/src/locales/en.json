@@ -4,7 +4,8 @@
         "app_title": "the online GPX file editor",
         "embed_title": "the online GPX file editor",
         "help_title": "help",
-        "description": "View, edit and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations."
+        "404_title": "page not found",
+        "description": "View, edit, and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations."
     },
     "menu": {
         "new": "New",
@@ -20,6 +21,7 @@
         "cut": "Cut",
         "export": "Export...",
         "export_all": "Export all...",
+        "export_options": "Export options",
         "support_message": "The tool is free to use, but not free to run. Please consider supporting the website if you use it frequently. Thank you!",
         "support_button": "Help keep the website free",
         "download_file": "Download file",
@@ -39,12 +41,14 @@
         "distance_units": "Distance units",
         "metric": "Metric",
         "imperial": "Imperial",
+        "nautical": "Nautical",
         "velocity_units": "Velocity units",
         "temperature_units": "Temperature units",
         "celsius": "Celsius",
         "fahrenheit": "Fahrenheit",
         "language": "Language",
         "mode": "Theme",
+        "system": "System",
         "light": "Light",
         "dark": "Dark",
         "street_view_source": "Street view source",
@@ -54,6 +58,7 @@
         "distance_markers": "Distance markers",
         "direction_markers": "Direction arrows",
         "help": "Help",
+        "more": "More...",
         "donate": "Donate",
         "ctrl": "Ctrl",
         "click": "Click",
@@ -72,6 +77,7 @@
         },
         "hide": "Hide",
         "unhide": "Unhide",
+        "center": "Center",
         "open_in": "Open in"
     },
     "toolbar": {
@@ -79,7 +85,7 @@
             "tooltip": "Plan or edit a route",
             "activity": "Activity",
             "use_routing": "Routing",
-            "use_routing_tooltip": "Connect anchor points via road network or with straight lines when disabled",
+            "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
             "allow_private": "Allow private roads",
             "reverse": {
                 "button": "Reverse",
@@ -94,11 +100,12 @@
                 "tooltip": "Return to the starting point by the same route"
             },
             "start_loop_here": "Start loop here",
-            "help_no_file": "Select a file item to use the routing tool, or click on the map to start creating a new route.",
+            "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
             "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
             "activities": {
                 "bike": "Bike",
-                "racing_bike": "Racing bike",
+                "racing_bike": "Road bike",
+                "gravel_bike": "Gravel bike",
                 "mountain_bike": "Mountain bike",
                 "foot": "Run/hike",
                 "motorcycle": "Motorcycle",
@@ -140,15 +147,15 @@
                 "from": "The start point is too far from the nearest road",
                 "via": "The via point is too far from the nearest road",
                 "to": "The end point is too far from the nearest road",
-                "timeout": "The routing request took too long, try adding points closer"
+                "timeout": "Route calculation took too long, try adding points closer together"
             }
         },
         "scissors": {
             "tooltip": "Crop or split",
             "crop": "Crop",
             "split_as": "Split the trace into",
-            "help_invalid_selection": "Select a file item to crop or split.",
-            "help": "Use the slider to crop the trace, or click on the map to split it at the selected point."
+            "help_invalid_selection": "Select a trace to crop or split.",
+            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
         },
         "time": {
             "tooltip": "Manage time data",
@@ -159,23 +166,23 @@
             "artificial": "Create realistic time data",
             "update": "Update time data",
             "help": "Use the form to set new time data.",
-            "help_invalid_selection": "Select a single file item to manage its time data."
+            "help_invalid_selection": "Select a single trace to manage its time data."
         },
         "merge": {
             "merge_traces": "Connect the traces",
             "merge_contents": "Merge the contents and keep the traces disconnected",
             "merge_selection": "Merge selection",
-            "tooltip": "Merge file items together",
-            "help_merge_traces": "Connecting the selected traces will create a single file containing a single continuous trace.",
-            "help_cannot_merge_traces": "Your selection needs to contain several traces to connect them.",
-            "help_merge_contents": "Merging the contents of the selected file items will group all the contents inside the first file item.",
-            "help_cannot_merge_contents": "Your selection needs to contain several file items to merge their contents."
+            "tooltip": "Merge items together",
+            "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
+            "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
+            "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
+            "help_cannot_merge_contents": "Your selection must contain several items to merge their contents."
         },
         "extract": {
-            "tooltip": "Extract contents to separate file items",
+            "tooltip": "Extract contents to separate items",
             "button": "Extract",
-            "help": "Extracting the contents of the selected file items will create a separate file item for each of their contents.",
-            "help_invalid_selection": "Your selection needs to contain file items with multiple traces to extract them."
+            "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
+            "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
         },
         "elevation": {
             "tooltip": "Request elevation data",
@@ -185,12 +192,14 @@
         },
         "waypoint": {
             "tooltip": "Create and edit points of interest",
+            "icon": "Icon",
+            "link": "Link",
             "longitude": "Longitude",
             "latitude": "Latitude",
             "create": "Create point of interest",
             "add": "Add point of interest to file",
             "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
-            "help_no_selection": "Select a file item to create or edit points of interest."
+            "help_no_selection": "Select a file to create or edit points of interest."
         },
         "reduce": {
             "tooltip": "Reduce the number of GPS points",
@@ -198,7 +207,7 @@
             "number_of_points": "Number of GPS points",
             "button": "Minify",
             "help": "Use the slider to choose the number of GPS points to keep.",
-            "help_no_selection": "Select a file item to reduce the number of its GPS points."
+            "help_no_selection": "Select a trace to reduce the number of its GPS points."
         },
         "clean": {
             "tooltip": "Clean GPS points and points of interest with a rectangle selection",
@@ -208,7 +217,7 @@
             "delete_outside": "Delete outside selection",
             "button": "Delete",
             "help": "Select a rectangle area on the map to remove GPS points and points of interest.",
-            "help_no_selection": "Select a file item to clean GPS points and points of interest."
+            "help_no_selection": "Select a trace to clean GPS points and points of interest."
         }
     },
     "layers": {
@@ -229,7 +238,6 @@
             "update": "Update layer"
         },
         "opacity": "Overlay opacity",
-        "heatmap": "Strava Heatmap",
         "label": {
             "basemaps": "Basemaps",
             "overlays": "Overlays",
@@ -260,15 +268,18 @@
             "swisstopoSatellite": "swisstopo Satellite",
             "ignBe": "IGN Topo",
             "ignFrPlan": "IGN Plan",
+            "ignFrTopo": "IGN Topo",
             "ignFrScan25": "IGN SCAN25",
             "ignFrSatellite": "IGN Satellite",
             "ignEs": "IGN",
             "ordnanceSurvey": "Ordnance Survey",
             "norwayTopo": "Topografisk Norgeskart 4",
             "swedenTopo": "Lantmäteriet Topo",
+            "swedenSatellite": "Lantmäteriet Satellite",
             "finlandTopo": "Lantmäteriverket Terrängkarta",
             "bgMountains": "BGMountains",
             "usgs": "USGS",
+            "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
             "swisstopoSlope": "swisstopo Slope",
             "swisstopoHiking": "swisstopo Hiking",
@@ -281,15 +292,6 @@
             "ignFrCadastre": "IGN Cadastre",
             "ignSlope": "IGN Slope",
             "ignSkiTouring": "IGN Ski Touring",
-            "strava": "Strava",
-            "stravaHeatmapRun": "Running",
-            "stravaHeatmapTrailRun": "Trail Running",
-            "stravaHeatmapHike": "Hiking",
-            "stravaHeatmapRide": "Cycling",
-            "stravaHeatmapGravel": "Gravel Cycling",
-            "stravaHeatmapMTB": "MTB",
-            "stravaHeatmapWater": "Water",
-            "stravaHeatmapWinter": "Winter",
             "waymarked_trails": "Waymarked Trails",
             "waymarkedTrailsHiking": "Hiking",
             "waymarkedTrailsCycling": "Cycling",
@@ -306,6 +308,7 @@
             "toilets": "Toilets",
             "water": "Water",
             "shower": "Shower",
+            "shelter": "Shelter",
             "motorized": "Cars and Motorcycles",
             "fuel-station": "Fuel Station",
             "parking": "Parking",
@@ -317,6 +320,7 @@
             "hotel": "Hotel",
             "campsite": "Campsite",
             "hut": "Hut",
+            "picnic": "Picnic Area",
             "summit": "Summit",
             "pass": "Pass",
             "climbing": "Climbing",
@@ -369,12 +373,15 @@
         "feet": "ft",
         "kilometers": "km",
         "miles": "mi",
+        "nautical_miles": "nm",
         "celsius": "°C",
         "fahrenheit": "°F",
         "kilometers_per_hour": "km/h",
         "miles_per_hour": "mph",
         "minutes_per_kilometer": "min/km",
         "minutes_per_mile": "min/mi",
+        "minutes_per_nautical_mile": "min/nm",
+        "knots": "kn",
         "heartrate": "bpm",
         "cadence": "rpm",
         "power": "W"
@@ -387,7 +394,49 @@
         "segment": "Segment",
         "segments": "Segments",
         "waypoint": "Point of interest",
-        "waypoints": "Points of interest"
+        "waypoints": "Points of interest",
+        "symbol": {
+            "alert": "Alert",
+            "anchor": "Anchor",
+            "bank": "Bank",
+            "beach": "Beach",
+            "bike_trail": "Bike Trail",
+            "binoculars": "Binoculars",
+            "bridge": "Bridge",
+            "building": "Building",
+            "campground": "Campsite",
+            "car": "Car",
+            "car_repair": "Garage",
+            "convenience_store": "Convenience Store",
+            "crossing": "Crossing",
+            "department_store": "Department Store",
+            "drinking_water": "Water",
+            "exit": "Exit",
+            "lodge": "Hut",
+            "lodging": "Accommodation",
+            "forest": "Forest",
+            "gas_station": "Fuel Station",
+            "ground_transportation": "Ground Transportation",
+            "hotel": "Hotel",
+            "house": "House",
+            "information": "Information",
+            "park": "Park",
+            "parking_area": "Parking",
+            "pharmacy": "Pharmacy",
+            "picnic_area": "Picnic Area",
+            "restaurant": "Restaurant",
+            "restricted_area": "Restricted Area",
+            "restroom": "Toilets",
+            "road": "Road",
+            "scenic_area": "Scenic Area",
+            "shelter": "Shelter",
+            "shopping_center": "Shopping Center",
+            "shower": "Shower",
+            "summit": "Summit",
+            "telephone": "Telephone",
+            "tunnel": "Tunnel",
+            "water_source": "Water Source"
+        }
     },
     "homepage": {
         "website": "Website",
@@ -407,16 +456,17 @@
         "file_processing": "Advanced file processing",
         "file_processing_description": "A suite of tools for performing all common file processing tasks, and which can be applied to multiple files at once.",
         "maps": "Global and local maps",
-        "maps_description": "A large collection of basemaps and overlays to help you craft your next outdoor adventure, or visualize your latest achievement.",
+        "maps_description": "A large collection of basemaps, overlays and points of interest to help you craft your next outdoor adventure, or visualize your latest achievement.",
         "data_visualization": "Data visualization",
         "data_visualization_description": "An interactive elevation profile with detailed statistics to analyze recorded activities and future objectives.",
-        "identity": "Free, ad-free and open-source",
+        "identity": "Free, ad-free and open source",
         "identity_description": "The website is free to use, without ads, and the source code is publicly available on GitHub. This is only possible thanks to the incredible support of the community."
     },
     "embedding": {
         "title": "Create your own map",
         "mapbox_token": "Mapbox access token",
         "file_urls": "File URLs (separated by commas)",
+        "drive_ids": "Google Drive file IDs (separated by commas)",
         "basemap": "Basemap",
         "height": "Height",
         "fill_by": "Fill by",
@@ -433,5 +483,6 @@
         "code": "Integration code"
     },
     "webgl2_required": "WebGL 2 is required to display the map.",
-    "enable_webgl2": "Learn how to enable WebGL 2 in your browser"
+    "enable_webgl2": "Learn how to enable WebGL 2 in your browser",
+    "page_not_found": "page not found"
 }

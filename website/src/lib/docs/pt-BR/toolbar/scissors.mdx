@@ -1,0 +1,33 @@
+---
+title: Cortar e dividir
+---
+
+<script>
+    import { ScissorsIcon } from 'lucide-svelte';
+    import Scissors from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
+    import splitScreenshot from '$lib/assets/img/docs/tools/split.png?enhanced';
+    import DocsImage from '$lib/components/docs/DocsImage.svelte';
+</script>
+
+# <ScissorsIcon size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+## Cortar
+
+Usando o controle deslizante, você pode definir a parte do rastro selecionado que você deseja manter.
+Os marcadores de início e fim no mapa e o [perfil de estatísticas e elevação](../files-and-stats) são atualizados em tempo real para refletir a seleção.
+Alternativamente, você pode arrastar um retângulo de seleção diretamente no perfil de elevação.
+Valide a seleção quando você estiver satisfeito com o resultado.
+
+<div class="flex flex-row justify-center">
+    <Scissors class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+## Dividir
+
+Para dividir o rastro selecionado em duas partes, clique em um dos marcadores de divisão exibidos ao longo do traço.
+Para dividir em um ponto específico de sua escolha, passe o mouse sobre o rastro no mapa.
+Uma tesoura irá aparecer na posição do cursor, mostrando que você pode dividir o rastro naquele momento.
+
+Você pode optar por dividir o rastro em dois arquivos GPX, ou para manter as partes divididas no mesmo arquivo como [faixas ou segmentos](../gpx).
+
+<DocsImage src={splitScreenshot} alt="Passando o mouse sobre o rastro selecionado transforma seu cursor em tesoura." />

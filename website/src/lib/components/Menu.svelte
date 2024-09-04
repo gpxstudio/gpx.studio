@@ -22,7 +22,6 @@
 		Sun,
 		Moon,
 		Layers3,
-		MountainSnow,
 		GalleryVertical,
 		Languages,
 		Settings,
@@ -41,7 +40,9 @@
 		FolderOpen,
 		FileStack,
 		FileX,
-		BookOpenText
+		BookOpenText,
+		ChartArea,
+		Maximize
 	} from 'lucide-svelte';
 
 	import {
@@ -54,7 +55,8 @@
 		editMetadata,
 		editStyle,
 		exportState,
-		ExportState
+		ExportState,
+		centerMapOnSelection
 	} from '$lib/stores';
 	import {
 		copied,
@@ -247,6 +249,17 @@
 						{$_('menu.select_all')}
 						<Shortcut key="A" ctrl={true} />
 					</Menubar.Item>
+					<Menubar.Item
+						on:click={() => {
+							if ($selection.size > 0) {
+								centerMapOnSelection();
+							}
+						}}
+					>
+						<Maximize size="16" class="mr-1" />
+						{$_('menu.center')}
+						<Shortcut key="⏎" ctrl={true} />
+					</Menubar.Item>
 					{#if $verticalFileView}
 						<Menubar.Separator />
 						<Menubar.Item on:click={copySelection} disabled={$selection.size === 0}>
@@ -286,7 +299,7 @@
 				</Menubar.Trigger>
 				<Menubar.Content class="border-none">
 					<Menubar.CheckboxItem bind:checked={$elevationProfile}>
-						<MountainSnow size="16" class="mr-1" />
+						<ChartArea size="16" class="mr-1" />
 						{$_('menu.elevation_profile')}
 						<Shortcut key="P" ctrl={true} />
 					</Menubar.CheckboxItem>
@@ -333,6 +346,7 @@
 							<Menubar.RadioGroup bind:value={$distanceUnits}>
 								<Menubar.RadioItem value="metric">{$_('menu.metric')}</Menubar.RadioItem>
 								<Menubar.RadioItem value="imperial">{$_('menu.imperial')}</Menubar.RadioItem>
+								<Menubar.RadioItem value="nautical">{$_('menu.nautical')}</Menubar.RadioItem>
 							</Menubar.RadioGroup>
 						</Menubar.SubContent>
 					</Menubar.Sub>
@@ -367,7 +381,7 @@
 						<Menubar.SubContent>
 							<Menubar.RadioGroup bind:value={$locale}>
 								{#each Object.entries(languages) as [lang, label]}
-									<a href={getURLForLanguage(lang)}>
+									<a href={getURLForLanguage(lang, '/app')}>
 										<Menubar.RadioItem value={lang}>{label}</Menubar.RadioItem>
 									</a>
 								{/each}
@@ -499,12 +513,14 @@
 				dbUtils.undo();
 			}
 		} else if ((e.key === 'Backspace' || e.key === 'Delete') && (e.metaKey || e.ctrlKey)) {
-			if (e.shiftKey) {
-				dbUtils.deleteAllFiles();
-			} else {
-				dbUtils.deleteSelection();
+			if (!targetInput) {
+				if (e.shiftKey) {
+					dbUtils.deleteAllFiles();
+				} else {
+					dbUtils.deleteSelection();
+				}
+				e.preventDefault();
 			}
-			e.preventDefault();
 		} else if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {
 			if (!targetInput) {
 				selectAll();
@@ -533,6 +549,10 @@
 				dbUtils.setHiddenToSelection(true);
 			}
 			e.preventDefault();
+		} else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+			if ($selection.size > 0) {
+				centerMapOnSelection();
+			}
 		} else if (e.key === 'F1') {
 			switchBasemaps();
 			e.preventDefault();
