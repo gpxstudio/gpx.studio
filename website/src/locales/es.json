@@ -184,6 +184,11 @@
             "help": "Extraer los contenidos de los elementos seleccionados creará un elemento separado para cada uno.",
             "help_invalid_selection": "Su selección debe contener elementos con múltiples trazados para extraerlos."
         },
+        "elevation": {
+            "button": "Request elevation data",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
+            "help_no_selection": "Select a file item to request elevation data."
+        },
         "waypoint": {
             "tooltip": "Crear y editar puntos de interés",
             "icon": "Icono",
@@ -349,7 +354,8 @@
     },
     "quantities": {
         "distance": "Distancia",
-        "elevation": "Desnivel",
+        "elevation": "Altitud",
+        "elevation_gain_loss": "Elevation gain and loss",
         "temperature": "Temperatura",
         "speed": "Velocidad",
         "pace": "Ritmo",

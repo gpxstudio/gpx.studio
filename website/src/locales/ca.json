@@ -154,8 +154,8 @@
             "tooltip": "Crop or split",
             "crop": "Retallar",
             "split_as": "Split the trace into",
-            "help_invalid_selection": "Select a trace to crop or split.",
-            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
+            "help_invalid_selection": "\"Seleccioneu una traça per retallar o dividir\"",
+            "help": ""
         },
         "time": {
             "tooltip": "Manage time data",
@@ -183,6 +183,11 @@
             "button": "Extract",
             "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
             "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
+        },
+        "elevation": {
+            "button": "Request elevation data",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
+            "help_no_selection": "Select a file item to request elevation data."
         },
         "waypoint": {
             "tooltip": "Create and edit points of interest",
@@ -350,6 +355,7 @@
     "quantities": {
         "distance": "Distancia",
         "elevation": "Elevació",
+        "elevation_gain_loss": "Elevation gain and loss",
         "temperature": "Temperature",
         "speed": "Velocitat",
         "pace": "Ritme",

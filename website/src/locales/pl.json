@@ -184,6 +184,11 @@
             "help": "Wyodrębnienie zawartości zaznaczonych elementów utworzy oddzielny element dla każdej z nich.",
             "help_invalid_selection": "Twój wybór musi zawierać elementy z kilkoma śladami, aby je rozpakować."
         },
+        "elevation": {
+            "button": "Request elevation data",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
+            "help_no_selection": "Select a file item to request elevation data."
+        },
         "waypoint": {
             "tooltip": "Twórz i edytuj punkty zainteresowania",
             "icon": "Ikona",
@@ -350,6 +355,7 @@
     "quantities": {
         "distance": "Dystans",
         "elevation": "Przewyższenie",
+        "elevation_gain_loss": "Elevation gain and loss",
         "temperature": "Temperatura",
         "speed": "Prędkość",
         "pace": "Tempo",

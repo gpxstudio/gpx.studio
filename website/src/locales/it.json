@@ -184,6 +184,11 @@
             "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
             "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
         },
+        "elevation": {
+            "button": "Request elevation data",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
+            "help_no_selection": "Select a file item to request elevation data."
+        },
         "waypoint": {
             "tooltip": "Crea e modifica punti di interesse",
             "icon": "Icona",
@@ -350,6 +355,7 @@
     "quantities": {
         "distance": "Distanza",
         "elevation": "Dislivello",
+        "elevation_gain_loss": "Elevation gain and loss",
         "temperature": "Temperatura",
         "speed": "Velocità",
         "pace": "Passo",

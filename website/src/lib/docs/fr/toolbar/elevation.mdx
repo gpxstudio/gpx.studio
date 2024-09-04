@@ -1,0 +1,24 @@
+---
+title: Altitude
+---
+
+<script>
+    import { MountainSnow } from 'lucide-svelte';
+    import Elevation from '$lib/components/toolbar/tools/Elevation.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+</script>
+
+# <MountainSnow size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
+
+Cet outil vous permet d'ajouter des données d'altitude aux traces et aux [points d'intérêt](../gpx), ou de remplacer les données existantes.
+
+<div class="flex flex-row justify-center">
+    <Elevation class="text-foreground p-3 border rounded-md shadow-lg" />
+</div>
+
+<DocsNote>
+
+Les données d'altitude sont fournies par <a href="https://mapbox.com" target="_blank">Mapbox</a>.
+Vous pouvez en apprendre plus sur leur origine et précision dans la <a href="https://docs.mapbox.com/data/tilesets/reference/mapbox-terrain-dem-v1/#elevation-data" target="_blank">documentation</a>.
+
+</DocsNote>
