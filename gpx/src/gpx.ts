@@ -390,6 +390,7 @@ export class GPXFile extends GPXTreeNode<Track>{
                 waypoint.ele = elevations[index++];
             }
         });
+        elevations.splice(0, index);
     }
 
     setStyle(style: LineStyleExtension) {
