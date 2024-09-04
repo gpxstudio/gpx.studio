@@ -185,9 +185,9 @@
             "help_invalid_selection": "Votre sélection doit contenir des éléments avec plusieurs traces pour les extraire."
         },
         "elevation": {
-            "button": "Request elevation data",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
-            "help_no_selection": "Select a file item to request elevation data."
+            "button": "Ajouter des données d'altitude",
+            "help": "Ajouter des données d'altitude effacera les données d'altitude existantes, le cas échéant, et les remplacera par des données de Mapbox.",
+            "help_no_selection": "Sélectionnez un élément de fichier pour ajouter des données d'altitude."
         },
         "waypoint": {
             "tooltip": "Créer et modifier des points d'intérêt",
@@ -354,8 +354,8 @@
     },
     "quantities": {
         "distance": "Distance",
-        "elevation": "Dénivelé",
-        "elevation_gain_loss": "Elevation gain and loss",
+        "elevation": "Altitude",
+        "elevation_gain_loss": "Dénivelé positif et négatif",
         "temperature": "Température",
         "speed": "Vitesse",
         "pace": "Allure",
