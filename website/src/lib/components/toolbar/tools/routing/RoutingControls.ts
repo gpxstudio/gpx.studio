@@ -389,16 +389,17 @@ export class RoutingControls {
                     let projectedPt = projectedPoint(segment.trkpt[before], segment.trkpt[before + 1], this.temporaryAnchor.point);
                     let ratio = distance(segment.trkpt[before], projectedPt) / distance(segment.trkpt[before], segment.trkpt[before + 1]);
 
+                    let point = segment.trkpt[before].clone();
+                    point.setCoordinates(projectedPt);
+                    point.ele = (1 - ratio) * (segment.trkpt[before].ele ?? 0) + ratio * (segment.trkpt[before + 1].ele ?? 0);
+                    point.time = (segment.trkpt[before].time && segment.trkpt[before + 1].time) ? new Date((1 - ratio) * segment.trkpt[before].time.getTime() + ratio * segment.trkpt[before + 1].time.getTime()) : undefined;
+                    point._data = {
+                        anchor: true,
+                        zoom: 0
+                    };
+
                     minInfo = {
-                        point: new TrackPoint({
-                            attributes: projectedPt,
-                            ele: (1 - ratio) * (segment.trkpt[before].ele ?? 0) + ratio * (segment.trkpt[before + 1].ele ?? 0),
-                            time: (segment.trkpt[before].time && segment.trkpt[before + 1].time) ? new Date((1 - ratio) * segment.trkpt[before].time.getTime() + ratio * segment.trkpt[before + 1].time.getTime()) : undefined,
-                            _data: {
-                                anchor: true,
-                                zoom: 0
-                            }
-                        }),
+                        point,
                         trackIndex,
                         segmentIndex,
                         trkptIndex: before + 1
