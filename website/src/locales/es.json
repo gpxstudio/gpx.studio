@@ -354,7 +354,7 @@
     },
     "quantities": {
         "distance": "Distancia",
-        "elevation": "Desnivel",
+        "elevation": "Altitud",
         "elevation_gain_loss": "Elevation gain and loss",
         "temperature": "Temperatura",
         "speed": "Velocidad",
