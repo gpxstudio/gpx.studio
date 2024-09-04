@@ -78,9 +78,11 @@ export function getClosestLinePoint(points: TrackPoint[], point: TrackPoint | Co
             if (distance(points[i], point) <= distance(points[i + 1], point)) {
                 closest = points[i];
                 details['before'] = true;
+                details['index'] = i;
             } else {
                 closest = points[i + 1];
                 details['before'] = false;
+                details['index'] = i + 1;
             }
         }
     }

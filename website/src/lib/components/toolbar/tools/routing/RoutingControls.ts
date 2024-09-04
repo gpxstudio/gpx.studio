@@ -1,4 +1,4 @@
-import { distance, type Coordinates, TrackPoint, TrackSegment, Track, crossarcDistance } from "gpx";
+import { distance, type Coordinates, TrackPoint, TrackSegment, Track, projectedPoint } from "gpx";
 import { get, writable, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
 import { route } from "./Routing";
@@ -10,7 +10,7 @@ import { dbUtils, type GPXFileWithStatistics } from "$lib/db";
 import { getOrderedSelection, selection } from "$lib/components/file-list/Selection";
 import { ListFileItem, ListTrackItem, ListTrackSegmentItem } from "$lib/components/file-list/FileList";
 import { currentTool, streetViewEnabled, Tool } from "$lib/stores";
-import { getClosestLinePoint, resetCursor, setGrabbingCursor } from "$lib/utils";
+import { getClosestLinePoint, getElevation, resetCursor, setGrabbingCursor } from "$lib/utils";
 
 export const canChangeStart = writable(false);
 
@@ -185,11 +185,13 @@ export class RoutingControls {
         return (e: any) => {
             e.preventDefault();
             e.stopPropagation();
-            if (marker === this.temporaryAnchor.marker) {
+
+            if (Date.now() - this.lastDragEvent < 100) { // Prevent click event during drag
                 return;
             }
 
-            if (Date.now() - this.lastDragEvent < 100) { // Prevent click event during drag
+            if (marker === this.temporaryAnchor.marker) {
+                this.turnIntoPermanentAnchor();
                 return;
             }
 
@@ -362,6 +364,52 @@ export class RoutingControls {
         }
 
         return minAnchor;
+    }
+
+    turnIntoPermanentAnchor() {
+        let file = get(this.file)?.file;
+
+        // Find the point closest to the temporary anchor
+        let minDetails: any = { distance: Number.MAX_VALUE };
+        let minInfo = {
+            point: this.temporaryAnchor.point,
+            trackIndex: -1,
+            segmentIndex: -1,
+            trkptIndex: -1
+        };
+
+        file?.forEachSegment((segment, trackIndex, segmentIndex) => {
+            if (get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex))) {
+                let details: any = {};
+                getClosestLinePoint(segment.trkpt, this.temporaryAnchor.point, details);
+                if (details.distance < minDetails.distance) {
+                    minDetails = details;
+                    let before = details.before ? details.index : details.index - 1;
+
+                    let projectedPt = projectedPoint(segment.trkpt[before], segment.trkpt[before + 1], this.temporaryAnchor.point);
+                    let ratio = distance(segment.trkpt[before], projectedPt) / distance(segment.trkpt[before], segment.trkpt[before + 1]);
+
+                    minInfo = {
+                        point: new TrackPoint({
+                            attributes: projectedPt,
+                            ele: (1 - ratio) * (segment.trkpt[before].ele ?? 0) + ratio * (segment.trkpt[before + 1].ele ?? 0),
+                            time: (segment.trkpt[before].time && segment.trkpt[before + 1].time) ? new Date((1 - ratio) * segment.trkpt[before].time.getTime() + ratio * segment.trkpt[before + 1].time.getTime()) : undefined,
+                            _data: {
+                                anchor: true,
+                                zoom: 0
+                            }
+                        }),
+                        trackIndex,
+                        segmentIndex,
+                        trkptIndex: before + 1
+                    };
+                }
+            }
+        });
+
+        if (minInfo.trackIndex !== -1) {
+            dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(minInfo.trackIndex, minInfo.segmentIndex, minInfo.trkptIndex, minInfo.trkptIndex - 1, [minInfo.point]));
+        }
     }
 
     getDeleteAnchor(anchor: Anchor) {
