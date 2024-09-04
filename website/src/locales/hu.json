@@ -185,7 +185,6 @@
             "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
         },
         "elevation": {
-            "tooltip": "Request elevation data",
             "button": "Request elevation data",
             "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
             "help_no_selection": "Select a file item to request elevation data."
@@ -356,6 +355,7 @@
     "quantities": {
         "distance": "Távolság",
         "elevation": "Emelkedés",
+        "elevation_gain_loss": "Elevation gain and loss",
         "temperature": "Hőmérséklet",
         "speed": "Sebesség",
         "pace": "Tempó",
