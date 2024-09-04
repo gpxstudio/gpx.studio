@@ -113,6 +113,14 @@ export class GPXFile extends GPXTreeNode<Track>{
         if (gpx) {
             this.attributes = gpx.attributes
             this.metadata = gpx.metadata;
+            this.metadata.author = {
+                name: 'gpx.studio',
+                link: {
+                    attributes: {
+                        href: 'https://gpx.studio',
+                    }
+                }
+            };
             this.wpt = gpx.wpt ? gpx.wpt.map((waypoint) => new Waypoint(waypoint)) : [];
             this.trk = gpx.trk ? gpx.trk.map((track) => new Track(track)) : [];
             if (gpx.rte && gpx.rte.length > 0) {
@@ -431,8 +439,8 @@ export class Track extends GPXTreeNode<TrackSegment> {
     src?: string;
     link?: Link;
     type?: string;
-    trkseg: TrackSegment[];
     extensions?: TrackExtensions;
+    trkseg: TrackSegment[];
 
     constructor(track?: TrackType & { _data?: any } | Track) {
         super();
@@ -465,8 +473,8 @@ export class Track extends GPXTreeNode<TrackSegment> {
             src: this.src,
             link: cloneJSON(this.link),
             type: this.type,
-            trkseg: this.trkseg.map((seg) => seg.clone()),
             extensions: cloneJSON(this.extensions),
+            trkseg: this.trkseg.map((seg) => seg.clone()),
             _data: cloneJSON(this._data),
         });
     }
@@ -510,8 +518,8 @@ export class Track extends GPXTreeNode<TrackSegment> {
             src: this.src,
             link: this.link,
             type: this.type,
-            trkseg: this.trkseg.map((seg) => seg.toTrackSegmentType(exclude)),
             extensions: this.extensions,
+            trkseg: this.trkseg.map((seg) => seg.toTrackSegmentType(exclude)),
         };
     }
 
@@ -719,6 +727,11 @@ export class TrackSegment extends GPXTreeLeaf {
 
             // extensions
             if (points[i].extensions) {
+                if (points[i].extensions["gpxtpx:TrackPointExtension"] && points[i].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:atemp"]) {
+                    let atemp = points[i].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:atemp"];
+                    statistics.global.atemp.avg = (statistics.global.atemp.count * statistics.global.atemp.avg + atemp) / (statistics.global.atemp.count + 1);
+                    statistics.global.atemp.count++;
+                }
                 if (points[i].extensions["gpxtpx:TrackPointExtension"] && points[i].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:hr"]) {
                     let hr = points[i].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:hr"];
                     statistics.global.hr.avg = (statistics.global.hr.count * statistics.global.hr.avg + hr) / (statistics.global.hr.count + 1);
@@ -728,11 +741,6 @@ export class TrackSegment extends GPXTreeLeaf {
                     let cad = points[i].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:cad"];
                     statistics.global.cad.avg = (statistics.global.cad.count * statistics.global.cad.avg + cad) / (statistics.global.cad.count + 1);
                     statistics.global.cad.count++;
-                }
-                if (points[i].extensions["gpxtpx:TrackPointExtension"] && points[i].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:atemp"]) {
-                    let atemp = points[i].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:atemp"];
-                    statistics.global.atemp.avg = (statistics.global.atemp.count * statistics.global.atemp.avg + atemp) / (statistics.global.atemp.count + 1);
-                    statistics.global.atemp.count++;
                 }
                 if (points[i].extensions["gpxpx:PowerExtension"] && points[i].extensions["gpxpx:PowerExtension"]["gpxpx:PowerInWatts"]) {
                     let power = points[i].extensions["gpxpx:PowerExtension"]["gpxpx:PowerInWatts"];
@@ -1012,16 +1020,16 @@ export class TrackPoint {
         return this.attributes.lon;
     }
 
+    getTemperature(): number {
+        return this.extensions && this.extensions['gpxtpx:TrackPointExtension'] && this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:atemp'] ? this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:atemp'] : undefined;
+    }
+
     getHeartRate(): number {
         return this.extensions && this.extensions['gpxtpx:TrackPointExtension'] && this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:hr'] ? this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:hr'] : undefined;
     }
 
     getCadence(): number {
         return this.extensions && this.extensions['gpxtpx:TrackPointExtension'] && this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:cad'] ? this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:cad'] : undefined;
-    }
-
-    getTemperature(): number {
-        return this.extensions && this.extensions['gpxtpx:TrackPointExtension'] && this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:atemp'] ? this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:atemp'] : undefined;
     }
 
     getPower(): number {
@@ -1060,14 +1068,14 @@ export class TrackPoint {
                     "gpxpx:PowerExtension": {},
                 }
             };
+            if (this.extensions["gpxtpx:TrackPointExtension"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:atemp"] && !exclude.includes('atemp')) {
+                trkpt.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:atemp"] = this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:atemp"];
+            }
             if (this.extensions["gpxtpx:TrackPointExtension"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:hr"] && !exclude.includes('hr')) {
                 trkpt.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:hr"] = this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:hr"];
             }
             if (this.extensions["gpxtpx:TrackPointExtension"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:cad"] && !exclude.includes('cad')) {
                 trkpt.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:cad"] = this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:cad"];
-            }
-            if (this.extensions["gpxtpx:TrackPointExtension"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:atemp"] && !exclude.includes('atemp')) {
-                trkpt.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:atemp"] = this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:atemp"];
             }
             if (this.extensions["gpxpx:PowerExtension"] && this.extensions["gpxpx:PowerExtension"]["gpxpx:PowerInWatts"] && !exclude.includes('power')) {
                 trkpt.extensions["gpxpx:PowerExtension"]["gpxpx:PowerInWatts"] = this.extensions["gpxpx:PowerExtension"]["gpxpx:PowerInWatts"];
@@ -1136,20 +1144,31 @@ export class Waypoint {
     }
 
     toWaypointType(exclude: string[] = []): WaypointType {
-        let wpt: WaypointType = {
-            attributes: this.attributes,
-            ele: this.ele,
-            name: this.name,
-            cmt: this.cmt,
-            desc: this.desc,
-            link: this.link,
-            sym: this.sym,
-            type: this.type,
-        };
         if (!exclude.includes('time')) {
-            wpt = { ...wpt, time: this.time };
+            return {
+                attributes: this.attributes,
+                ele: this.ele,
+                time: this.time,
+                name: this.name,
+                cmt: this.cmt,
+                desc: this.desc,
+                link: this.link,
+                sym: this.sym,
+                type: this.type,
+
+            }
+        } else {
+            return {
+                attributes: this.attributes,
+                ele: this.ele,
+                name: this.name,
+                cmt: this.cmt,
+                desc: this.desc,
+                link: this.link,
+                sym: this.sym,
+                type: this.type,
+            };
         }
-        return wpt;
     }
 
     clone(): Waypoint {
@@ -1196,15 +1215,15 @@ export class GPXStatistics {
             southWest: Coordinates,
             northEast: Coordinates,
         },
+        atemp: {
+            avg: number,
+            count: number,
+        },
         hr: {
             avg: number,
             count: number,
         },
         cad: {
-            avg: number,
-            count: number,
-        },
-        atemp: {
             avg: number,
             count: number,
         },
@@ -1266,15 +1285,15 @@ export class GPXStatistics {
                     lon: -180,
                 },
             },
+            atemp: {
+                avg: 0,
+                count: 0,
+            },
             hr: {
                 avg: 0,
                 count: 0,
             },
             cad: {
-                avg: 0,
-                count: 0,
-            },
-            atemp: {
                 avg: 0,
                 count: 0,
             },
@@ -1343,12 +1362,12 @@ export class GPXStatistics {
         this.global.bounds.northEast.lat = Math.max(this.global.bounds.northEast.lat, other.global.bounds.northEast.lat);
         this.global.bounds.northEast.lon = Math.max(this.global.bounds.northEast.lon, other.global.bounds.northEast.lon);
 
+        this.global.atemp.avg = (this.global.atemp.count * this.global.atemp.avg + other.global.atemp.count * other.global.atemp.avg) / Math.max(1, this.global.atemp.count + other.global.atemp.count);
+        this.global.atemp.count += other.global.atemp.count;
         this.global.hr.avg = (this.global.hr.count * this.global.hr.avg + other.global.hr.count * other.global.hr.avg) / Math.max(1, this.global.hr.count + other.global.hr.count);
         this.global.hr.count += other.global.hr.count;
         this.global.cad.avg = (this.global.cad.count * this.global.cad.avg + other.global.cad.count * other.global.cad.avg) / Math.max(1, this.global.cad.count + other.global.cad.count);
         this.global.cad.count += other.global.cad.count;
-        this.global.atemp.avg = (this.global.atemp.count * this.global.atemp.avg + other.global.atemp.count * other.global.atemp.avg) / Math.max(1, this.global.atemp.count + other.global.atemp.count);
-        this.global.atemp.count += other.global.atemp.count;
         this.global.power.avg = (this.global.power.count * this.global.power.avg + other.global.power.count * other.global.power.avg) / Math.max(1, this.global.power.count + other.global.power.count);
         this.global.power.count += other.global.power.count;
     }
@@ -1389,9 +1408,9 @@ export class GPXStatistics {
         statistics.global.bounds.northEast.lat = this.global.bounds.northEast.lat;
         statistics.global.bounds.northEast.lon = this.global.bounds.northEast.lon;
 
+        statistics.global.atemp = this.global.atemp;
         statistics.global.hr = this.global.hr;
         statistics.global.cad = this.global.cad;
-        statistics.global.atemp = this.global.atemp;
         statistics.global.power = this.global.power;
 
         return statistics;
@@ -1520,8 +1539,8 @@ function convertRouteToTrack(route: RouteType): Track {
         src: route.src,
         link: route.link,
         type: route.type,
-        trkseg: [],
         extensions: route.extensions,
+        trkseg: [],
     });
 
     if (route.rtept) {
