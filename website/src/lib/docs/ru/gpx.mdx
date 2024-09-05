@@ -1,5 +1,5 @@
 ---
-title: GPX file format
+title: Формат GPX файла
 ---
 
 <script>
@@ -8,27 +8,27 @@ title: GPX file format
 
 # { title }
 
-The <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX file format</a> is an open standard for exchanging GPS data between applications and GPS devices.
-It essentially consists of a series of GPS points encoding one or multiple GPS traces, and, optionally, some points of interest.
+Файл <a href="https://www.topografix.com/gpx.asp" target="_blank">с GPX форматом</a> является открытым стандартом для обмена данными GPS между приложениями и GPS устройствами.
+В сущности, он состоит из серии GPS-точек, кодирующих один или несколько GPS-треков, а также точки интереса.
 
-GPX files may also contain metadata, of which the **name** and **description** fields are the most useful for users.
+GPX-файлы могут также содержать метаданные, из которых поля **имя** и **описание** являются наиболее полезными для пользователей.
 
-### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Tracks, segments, and GPS points
+### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Треки, сегменты и GPS точки
 
-As mentioned above, a GPX file can contain multiple GPS traces.
-These are organized in a hierarchical structure, with tracks at the top level.
+Как упоминалось выше, файл GPX может содержать несколько GPS треков.
+Они организованы в иерархической структуре, с треками на верхнем уровне.
 
-- A **track** is made of a sequence of disconnected segments.
-  Furthermore, it can contain metadata such as a **name**, a **description**, and **appearance properties**.
-- A **segment** is a sequence of GPS points that form a continuous path.
-- A **GPS point** is a location with a latitude, a longitude, and optionally a timestamp and an altitude.
-  Some devices also store additional information such as heart rate, cadence, temperature, and power.
+- **Трек** состоит из последовательности несоединенных сегментов.
+  Кроме того, он может содержать метаданные, такие как **имя**, **описание** и **свойства внешнего вида**.
+- **сегмент** — это последовательность точек GPS, образующих непрерывный путь.
+- **GPS точка** — это местоположение с заданной широтой и долготой, а также, при необходимости, с временной меткой и высотой.
+  Некоторые устройства также хранят дополнительную информацию, такую как сердечный ритм, каденс, температура и мощность.
 
-In most cases, GPX files contain a single track with a single segment.
-However, the hierarchy described above allows for more advanced use cases, such as planning multi-day trips with several variants for each day.
+В большинстве случаев файлы GPX содержат один трек с одним сегментом.
+Однако описанная выше иерархия позволяет использовать более сложные варианты использования, такие как планирование многодневных поездок с несколькими вариантами на каждый день.
 
-### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Points of interest
+### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Точки интереса
 
-**Points of interest** (technically called _waypoints_) represent locations of interest to show either on a GPS device or on a digital map.
+**Точки интереса** (технически называемые _путевые точки_) представляют интересные места для показа на GPS устройстве или на цифровой карте.
 
-In addition to its coordinates, a point of interest can have a **name** and a **description**.
+Помимо координат, точка интереса может иметь **имя** и **описание**.
