@@ -100,23 +100,28 @@ export function getElevation(points: (TrackPoint | Waypoint | Coordinates)[], EL
 
     let tiles = coordinates.map((coord) => tilebelt.pointToTile(coord.lon, coord.lat, ELEVATION_ZOOM));
     let uniqueTiles = Array.from(new Set(tiles.map((tile) => tile.join(',')))).map((tile) => tile.split(',').map((x) => parseInt(x)));
-    let pngs = new Map<string, PNGReader>();
+    let pngs = new Map<string, any>();
 
-    let promises = uniqueTiles.map((tile) => fetch(`https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/${ELEVATION_ZOOM}/${tile[0]}/${tile[1]}@2x.pngraw?access_token=${PUBLIC_MAPBOX_TOKEN}`, { cache: 'force-cache' }).then((response) => response.arrayBuffer()).then((buffer) => new Promise((resolve, reject) => {
+    let promises = uniqueTiles.map((tile) => fetch(`https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/${ELEVATION_ZOOM}/${tile[0]}/${tile[1]}@2x.pngraw?access_token=${PUBLIC_MAPBOX_TOKEN}`, { cache: 'force-cache' }).then((response) => response.arrayBuffer()).then((buffer) => new Promise((resolve) => {
         let png = new PNGReader(new Uint8Array(buffer));
         png.parse((err, png) => {
             if (err) {
-                reject(err);
+                resolve(false); // Also resolve so that Promise.all doesn't fail
             } else {
-                resolve(png);
+                pngs.set(tile.join(','), png);
+                resolve(true);
             }
         });
-    })).then((png) => {
-        pngs.set(tile.join(','), png);
-    }));
+    })));
 
     return Promise.all(promises).then(() => coordinates.map((coord, index) => {
         let tile = tiles[index];
+        let png = pngs.get(tile.join(','));
+
+        if (!png) {
+            return 0;
+        }
+
         let tf = tilebelt.pointToTileFraction(coord.lon, coord.lat, ELEVATION_ZOOM);
         let x = tileSize * (tf[0] - tile[0]);
         let y = tileSize * (tf[1] - tile[1]);
@@ -125,8 +130,6 @@ export function getElevation(points: (TrackPoint | Waypoint | Coordinates)[], EL
         let dx = x - _x;
         let dy = y - _y;
 
-        // Get the four pixels surrounding the point
-        let png = pngs.get(tile.join(','))!;
         const p00 = png.getPixel(_x, _y);
         const p01 = png.getPixel(_x, _y + (_y + 1 == tileSize ? 0 : 1));
         const p10 = png.getPixel(_x + (_x + 1 == tileSize ? 0 : 1), _y);
