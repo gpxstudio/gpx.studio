@@ -49,9 +49,7 @@ export class SplitControls {
     }
 
     updateControls() { // Update the markers when the files change
-
         let controlIndex = 0;
-
         applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
             let file = getFile(fileId);
 
@@ -61,6 +59,7 @@ export class SplitControls {
                         for (let point of segment.trkpt.slice(1, -1)) { // Update the existing controls (could be improved by matching the existing controls with the new ones?)
                             if (point._data.anchor) {
                                 if (controlIndex < this.controls.length) {
+                                    this.controls[controlIndex].fileId = fileId;
                                     this.controls[controlIndex].point = point;
                                     this.controls[controlIndex].segment = segment;
                                     this.controls[controlIndex].trackIndex = trackIndex;
@@ -137,7 +136,7 @@ export class SplitControls {
 
         marker.getElement().addEventListener('click', (e) => {
             e.stopPropagation();
-            dbUtils.split(fileId, trackIndex, segmentIndex, point.getCoordinates(), point._data.index);
+            dbUtils.split(control.fileId, control.trackIndex, control.segmentIndex, control.point.getCoordinates(), control.point._data.index);
         });
 
         return control;
