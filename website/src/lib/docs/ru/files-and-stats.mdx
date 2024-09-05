@@ -1,5 +1,5 @@
 ---
-title: Files and statistics
+title: Файлы и статистика
 ---
 
 <script>
@@ -9,74 +9,74 @@ title: Files and statistics
 
 # { title }
 
-## File list
+## Список файлов
 
-Once you have [opened](./menu/file) files, they will be shown as tabs in the file list located at the bottom of the map.
-You can reorder them by dragging and dropping the tabs.
-And when many files are open, you can scroll through the list of tabs to navigate between them.
-
-<DocsNote>
-
-When using a mouse, you need to hold <kbd>Shift</kbd> to scroll horizontally.
-
-</DocsNote>
-
-### File selection
-
-By clicking on a tab, you can switch between the files to inspect their statistics, and apply [edit actions](./menu/edit) and [tools](./toolbar/) to them.
-By holding the <kbd>Ctrl/Cmd</kbd> key, you can add files to the selection or remove them, and by holding <kbd>Shift</kbd>, you can select a range of files.
-Most of the [edit actions](./menu/edit) and [tools](./toolbar/) can be applied to multiple files at once.
+После того как вы [откроете](./menu/file) файлы, они будут отображаться в виде вкладок в списке файлов, расположенном внизу карты.
+Вы можете изменить их порядок, перетаскивая вкладки.
+И когда открыто множество файлов, вы можете прокручивать список вкладок, чтобы перемещаться между ними.
 
 <DocsNote>
 
-You can also navigate through the files using the arrow keys on your keyboard, and use <kbd>Shift</kbd> to add files to the selection.
+При использовании мыши, для горизонтальной прокрутки необходимо удерживать клавишу <kbd>Shift</kbd>.
 
 </DocsNote>
 
-### Edit actions
+### Выбор файла
 
-By right-clicking on a file tab, you can access the same actions as in the [edit menu](./menu/edit).
-
-### Vertical layout
-
-As mentioned in the [view options section](./menu/view), you can switch between a horizontal and a vertical layout for the file list.
-The vertical file list is useful when you have many files open, or files with multiple [tracks, segments, or points of interest](../gpx).
-Indeed, this layout allows you to inspect the content of the files through collapsible sections.
-
-You can also apply [edit actions](./menu/edit) and [tools](./toolbar/) to internal file items.
-Furthermore, you can drag and drop the inner items to reorder them, or move them in the hierarchy or even to another file.
+Нажав на вкладку, вы можете переключаться между файлами, чтобы просмотреть их статистику и применить [действия редактирования](./menu/edit) и [инструменты](./toolbar/) к ним.
+Удерживая клавишу <kbd>Ctrl/Cmd</kbd>, вы можете добавить файлы в выборку или удалить их, а удерживая <kbd>Shift</kbd>, вы можете выбрать диапазон файлов.
+Большинство [действий редактирования](./menu/edit) и [инструментов](./toolbar/) можно применять к нескольким файлам одновременно.
 
 <DocsNote>
 
-The size of the file list can be adjusted by dragging the separator between the map and the file list.
+Вы также можете перемещаться по файлам с помощью стрелок на клавиатуре и использовать <kbd>Shift</kbd>, чтобы добавлять файлы в выборку.
 
 </DocsNote>
 
-## Elevation profile and statistics
+### Редактировать действия
 
-At the bottom of the interface, you can find the elevation profile and statistics for the current selection.
+Щелкнув правой кнопкой мыши на вкладке файла, вы можете получить доступ к тем же действиям, что и в [меню редактирования](./menu/edit).
+
+### Вертикальное расположение
+
+Как упоминалось в разделе [варианты просмотра](./menu/view), вы можете переключаться между горизонтальным и вертикальным макетом для списка файлов.
+Вертикальный список полезен при открытии большого количества файлов или нескольких файлов с [треками, звеньями или интересными точками](../gpx).
+Действительно, этот макет позволяет вам просматривать содержимое файлов через сворачиваемые секции.
+
+Вы также можете применять [действия редактирования](./menu/edit) и [инструменты](./toolbar/) к внутренним элементам файла.
+Кроме того, вы можете перетаскивать внутренние элементы, чтобы изменить их порядок, перемещать их в иерархии или даже в другой файл.
 
 <DocsNote>
 
-The size of the elevation profile can be adjusted by dragging the separator between the map and the elevation profile.
+Размер списка файлов можно настроить, перетаскивая разделитель между картой и списком файлов.
 
 </DocsNote>
 
-### Interactive statistics
+## Профиль и статистика высот
 
-When hovering over the elevation profile, a tooltip will show statistics at the cursor position.
+Внизу интерфейса вы можете найти профиль высоты и статистику для текущего выбора.
 
-To get the statistics for a specific section of the elevation profile, you can drag a selection rectangle on the profile.
-Click on the profile to reset the selection.
+<DocsNote>
 
-You can also use the mouse wheel to zoom in and out on the elevation profile, and move left and right by dragging the profile while holding the <kbd>Shift</kbd> key.
+Размер профиля высоты можно настроить, перетаскивая разделитель между картой и профилем высоты.
 
-### Additional data
+</DocsNote>
 
-Using the buttons on the right of the elevation profile, you can optionally color the elevation profile by:
+### Интерактивная статистика
 
-- **slope** <TriangleRight size="16" class="inline-block" style="margin-bottom: 2px" /> information computed from the elevation data, or
-- **surface** <BrickWall size="16" class="inline-block" style="margin-bottom: 2px" /> data coming from <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> tags.
-  This is only available for files created with **gpx.studio**.
+При наведении курсора на профиль высоты появится подсказка с данными статистики в позиции курсора.
 
-If your selection includes it, you can also visualize: **speed** <Zap size="16" class="inline-block" style="margin-bottom: 2px" />, **heart rate** <HeartPulse size="16" class="inline-block" style="margin-bottom: 2px" />, **cadence** <Orbit size="16" class="inline-block" style="margin-bottom: 2px" />, **temperature** <Thermometer size="16" class="inline-block" style="margin-bottom: 2px" />, and **power** <SquareActivity size="16" class="inline-block" style="margin-bottom: 2px" /> data on the elevation profile.
+Чтобы получить статистику для конкретного сегмента профиля высоты, вы можете перетащить выделяющий прямоугольник на профиле.
+Нажмите на профиль, чтобы сбросить выделение.
+
+Вы также можете использовать колесо мыши для увеличения и уменьшения масштаба профиля высоты, а перемещаться влево и вправо, перетаскивая профиль, удерживая клавишу <kbd>Shift</kbd>.
+
+### Дополнительные данные
+
+С помощью кнопок справа от профиля высоты можно изменить цвет профиля высоты:
+
+- **угол наклона** <TriangleRight size="16" class="inline-block" style="margin-bottom: 2px" /> информация, вычисленная на основе данных о высоте, или
+- **поверхность** <BrickWall size="16" class="inline-block" style="margin-bottom: 2px" /> данные, полученные из тегов <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> по ключу <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a>.
+  Это доступно только для файлов, созданных с помощью **gpx.studio**.
+
+Если ваш выбор включает это, вы также можете визуализировать: **скорость** <Zap size="16" class="inline-block" style="margin-bottom: 2px" />, **частоту сердечных сокращений** <HeartPulse size="16" class="inline-block" style="margin-bottom: 2px" />, **каденцию** <Orbit size="16" class="inline-block" style="margin-bottom: 2px" />, **температуру** <Thermometer size="16" class="inline-block" style="margin-bottom: 2px" />, и **мощность** <SquareActivity size="16" class="inline-block" style="margin-bottom: 2px" /> данные на профиле высоты.
