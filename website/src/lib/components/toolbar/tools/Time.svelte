@@ -85,6 +85,9 @@
             return new Date();
         }
         let [hours, minutes, seconds] = time.split(':').map((x) => parseInt(x));
+        if (seconds === undefined) {
+            seconds = 0;
+        }
         return new Date(date.year, date.month - 1, date.day, hours, minutes, seconds);
     }
 
