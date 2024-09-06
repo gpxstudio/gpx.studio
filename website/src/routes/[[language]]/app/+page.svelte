@@ -17,6 +17,7 @@
     import { page } from '$app/stores';
     import { languages } from '$lib/languages';
     import { getURLForLanguage } from '$lib/utils';
+    import { getURLForGoogleDriveFile } from '$lib/components/embedding/Embedding';
 
     const {
         verticalFileView,
@@ -30,11 +31,13 @@
     onMount(() => {
         observeFilesFromDatabase();
 
-        let files = JSON.parse($page.url.searchParams.get('files') || '[]');
+        let files: string[] = JSON.parse($page.url.searchParams.get('files') || '[]');
+        let ids: string[] = JSON.parse($page.url.searchParams.get('ids') || '[]');
+        let urls: string[] = files.concat(ids.map(getURLForGoogleDriveFile));
 
-        if (files.length > 0) {
+        if (urls.length > 0) {
             let downloads: Promise<File | null>[] = [];
-            files.forEach((url) => {
+            urls.forEach((url) => {
                 downloads.push(
                     fetch(url)
                         .then((response) => response.blob())

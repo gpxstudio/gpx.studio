@@ -35,15 +35,21 @@
     ];
 
     let files = options.files[0];
-    let driveIds = '';
-    $: if (files || driveIds) {
+    $: {
         let urls = files.split(',');
         urls = urls.filter((url) => url.length > 0);
-        let ids = driveIds.split(',');
-        ids = ids.filter((id) => id.length > 0);
-        urls.push(...ids.map(getURLForGoogleDriveFile));
         if (JSON.stringify(urls) !== JSON.stringify(options.files)) {
             options.files = urls;
+            console.log(options.files);
+        }
+    }
+    let driveIds = '';
+    $: {
+        let ids = driveIds.split(',');
+        ids = ids.filter((id) => id.length > 0);
+        if (JSON.stringify(ids) !== JSON.stringify(options.ids)) {
+            options.ids = ids;
+            console.log(options.ids);
         }
     }
 
