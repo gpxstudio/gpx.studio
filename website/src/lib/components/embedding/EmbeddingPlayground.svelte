@@ -40,7 +40,6 @@
         urls = urls.filter((url) => url.length > 0);
         if (JSON.stringify(urls) !== JSON.stringify(options.files)) {
             options.files = urls;
-            console.log(options.files);
         }
     }
     let driveIds = '';
@@ -49,7 +48,6 @@
         ids = ids.filter((id) => id.length > 0);
         if (JSON.stringify(ids) !== JSON.stringify(options.ids)) {
             options.ids = ids;
-            console.log(options.ids);
         }
     }
 
