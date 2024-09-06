@@ -13,6 +13,7 @@
 <div class="flex flex-col gap-3 w-full max-w-80 {$$props.class ?? ''}">
     <Button
         variant="outline"
+        class="whitespace-normal h-fit"
         disabled={!validSelection}
         on:click={async () => {
             if ($map) {
@@ -20,7 +21,7 @@
             }
         }}
     >
-        <MountainSnow size="16" class="mr-1" />
+        <MountainSnow size="16" class="mr-1 shrink-0" />
         {$_('toolbar.elevation.button')}
     </Button>
     <Help link="./help/toolbar/elevation">

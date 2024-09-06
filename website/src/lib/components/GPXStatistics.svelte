@@ -64,11 +64,11 @@
                     <span class="mx-1">/</span>
                     <WithUnits value={statistics.global.speed.total} type="speed" />
                 </span>
-                <span slot="tooltip"
-                    >{$velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')} ({$_(
+                <span slot="tooltip">
+                    {$velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')} ({$_(
                         'quantities.moving'
-                    )} / {$_('quantities.total')})</span
-                >
+                    )} / {$_('quantities.total')})
+                </span>
             </Tooltip>
         {/if}
         {#if panelSize > 160 || orientation === 'horizontal'}

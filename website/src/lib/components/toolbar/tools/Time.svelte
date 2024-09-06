@@ -293,11 +293,11 @@
             </div>
         {/if}
     </fieldset>
-    <div class="flex flex-row gap-2">
+    <div class="flex flex-row gap-2 items-center">
         <Button
             variant="outline"
             disabled={!canUpdate}
-            class="grow"
+            class="grow whitespace-normal h-fit"
             on:click={() => {
                 let effectiveSpeed = getSpeed();
                 if (
@@ -372,7 +372,7 @@
                 });
             }}
         >
-            <CalendarClock size="16" class="mr-1" />
+            <CalendarClock size="16" class="mr-1 shrink-0" />
             {$_('toolbar.time.update')}
         </Button>
         <Button variant="outline" on:click={setGPXData}>
