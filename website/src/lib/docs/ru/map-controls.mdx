@@ -1,5 +1,5 @@
 ---
-title: Map controls
+title: Управление картой
 ---
 
 <script>
@@ -10,58 +10,58 @@ title: Map controls
 
 # { title }
 
-### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Map navigation
+### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Карта навигации
 
-The controls at the top allow you to zoom in <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> and out <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, and to change the orientation and tilt of the map <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
-
-<DocsNote>
-
-To control the orientation and tilt of the map, you can also drag the map while holding <kbd>Ctrl</kbd>.
-
-</DocsNote>
-
-### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Search bar
-
-You can use the search bar to look for an address and navigate to it on the map.
-
-### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Locate button
-
-The locate button centers the map on your current location.
+Элементы управления вверху позволяют увеличивать <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> и уменьшать масштаб <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, а также изменять ориентацию и наклон карты <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
 
 <DocsNote>
 
-This only works if you have allowed your browser and <b>gpx.studio</b> to access your location.
+Чтобы управлять ориентацией и наклоном карты, вы также можете перетаскивать карту, удерживая <kbd>Ctrl</kbd>.
 
 </DocsNote>
 
-### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Street view
+### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Панель поиска
 
-This button can be used to enable street view mode on the map.
-Depending on the street view source chosen in the [settings](./menu/settings), street view imagery can be accessed differently.
+Вы можете использовать строку поиска, чтобы найти адрес и перейти к нему на карте.
 
-- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: the street view coverage will appear as green lines on the map. When zoomed in enough, green dots will show the exact locations where street view imagery is available. Hovering over a green dot will show the street view image at that location.
-- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: click on the map to open a new tab with the street view imagery at that location.
+### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Кнопка определения местоположения
 
-### <Layers3 size="16" class="inline-block" style="margin-bottom: 2px" /> Map layers
+Кнопка "Найти" центрирует карту на вашем текущем местоположении.
 
-The map layers button allows you to switch between different basemaps, and toggle map overlays and categories of points of interest.
+<DocsNote>
 
-- **Basemaps** are background maps that present the main geographic features of the world.
-  Only one basemap can be displayed at a time.
-  Depending on their purpose, basemaps have different styles and levels of detail.
-- **Overlays** are additional layers that can be displayed on top of the basemap to provide complementary information.
-- **Points of interest** can be added to the map to show different categories of places, such as shops, restaurants, or accommodations.
+Это работает только в том случае, если вы разрешили вашему браузеру и <b>gpx.studio</b> доступ к вашему местоположению.
+
+</DocsNote>
+
+### Просмотр улиц
+
+Эта кнопка может быть использована для включения режима просмотра улиц на карте.
+В зависимости от выбранного источника просмотра улиц в [настройках](./menu/settings), доступ к изображениям просмотра улиц может осуществляться по-разному.
+
+- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: просмотр улиц будет отображаться зелеными линиями на карте. При достаточном увеличении на карте зеленые точки будут показывать точные места, где доступны изображения просмотра улиц. Наведите курсор на зеленую точку на изображении улиц в этом месте.
+- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: нажмите на карту, чтобы открыть новую вкладку с изображением улицы в этом месте.
+
+### <Layers3 size="16" class="inline-block" style="margin-bottom: 2px" /> Слои карты
+
+Кнопка слоев карты позволяет переключаться между различными базовыми картами, а также включать и выключать наложения карты и категории объектов интереса.
+
+- **Основные карты** - это фоновые карты, в которых представлены основные географические особенности мира.
+  В зависимости от их назначения, базовые карты имеют разные стили и уровни детализации.
+  В один момент может быть отображена только одна базовая карта.
+- **Наложения** - это дополнительные слои, которые могут быть отображены поверх базы данных для предоставления дополнительной информации.
+- **Точки интереса** можно добавить на карту для показа различных категорий мест, таких как магазины, рестораны или размещения.
 
 <div class="flex flex-col items-center">
     <DocsLayers />
     <span class="text-sm text-center mt-2">
-        Hover over the map to show the <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> overlay on top of the <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> basemap.
+        Наведите указатель мыши на карту, чтобы отобразить наложение <a href="https://hiking.waymarkedtrails.org" target="_blank">Пешеходные маршруты с метками</a> поверх базовой карты <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a>.
     </span>
 </div>
 
-A large collection of global and local basemaps and overlays is available in **gpx.studio**, as well as a selection of point-of-interest categories.
-They can be enabled in the [map layer settings dialog](./menu/settings).
+В **gpx.studio** доступна большая коллекция глобальных и локальных базовых карт и наложений, а также выбор категорий объектов интереса.
+Они могут быть включены в [диалоге настроек слоя карты](./menu/settings).
 
-In these settings, you can also manage the opacity of the overlays.
+В этих настройках вы также можете управлять непрозрачностью наложений.
 
-For advanced users, it is possible to add custom basemaps and overlays by providing <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, or <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox style JSON</a> URLs.
+Для продвинутых пользователей возможно добавление пользовательских базовых карт и наложений, предоставив<a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, or <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox style JSON</a> URLs.

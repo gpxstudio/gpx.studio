@@ -232,7 +232,7 @@
             "max_zoom": "Zoom max",
             "layer_type": "Type de couche",
             "basemap": "Carte de base",
-            "overlay": "Calque de superposition",
+            "overlay": "Surcouche",
             "create": "Créer la couche",
             "update": "Mettre à jour la couche"
         },
