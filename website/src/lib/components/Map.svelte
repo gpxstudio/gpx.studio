@@ -108,15 +108,40 @@
         );
 
         if (geocoder) {
-            newMap.addControl(
-                new MapboxGeocoder({
-                    accessToken: mapboxgl.accessToken,
-                    mapboxgl: mapboxgl,
-                    collapsed: true,
-                    flyTo: fitBoundsOptions,
-                    language
-                })
-            );
+            let geocoder = new MapboxGeocoder({
+                mapboxgl: mapboxgl,
+                enableEventLogging: false,
+                collapsed: true,
+                flyTo: fitBoundsOptions,
+                language,
+                localGeocoder: () => [],
+                localGeocoderOnly: true,
+                externalGeocoder: (query: string) =>
+                    fetch(
+                        `https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=5&accept-language=${language}`
+                    )
+                        .then((response) => response.json())
+                        .then((data) => {
+                            return data.map((result: any) => {
+                                return {
+                                    type: 'Feature',
+                                    geometry: {
+                                        type: 'Point',
+                                        coordinates: [result.lon, result.lat]
+                                    },
+                                    place_name: result.display_name
+                                };
+                            });
+                        })
+            });
+            let onKeyDown = geocoder._onKeyDown;
+            geocoder._onKeyDown = (e: KeyboardEvent) => {
+                // Trigger search on Enter key only
+                if (e.key === 'Enter') {
+                    onKeyDown.apply(geocoder, [{ target: geocoder._inputEl }]);
+                }
+            };
+            newMap.addControl(geocoder);
         }
 
         if (geolocate) {
