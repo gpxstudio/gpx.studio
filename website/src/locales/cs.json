@@ -105,7 +105,7 @@
             "activities": {
                 "bike": "Kolo",
                 "racing_bike": "Road bike",
-                "gravel_bike": "Gravel bike",
+                "gravel_bike": "Gravel kolo",
                 "mountain_bike": "Horské kolo",
                 "foot": "Chůze/běh",
                 "motorcycle": "Motocykl",
@@ -141,7 +141,7 @@
                 "sand": "Písek",
                 "woodchips": "Dřevěné štěpky",
                 "grass": "Tráva",
-                "grass_paver": "Grass paver"
+                "grass_paver": "Zatravňovací dlažba"
             },
             "error": {
                 "from": "The start point is too far from the nearest road",
