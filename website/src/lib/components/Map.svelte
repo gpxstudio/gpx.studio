@@ -92,6 +92,7 @@
         });
         newMap.on('load', () => {
             $map = newMap; // only set the store after the map has loaded
+            window._map = newMap; // entry point for extensions
             scaleControl.setUnit($distanceUnits);
         });
 
