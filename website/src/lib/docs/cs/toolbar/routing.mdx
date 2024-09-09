@@ -1,5 +1,5 @@
 ---
-title: Route planning and editing
+title: Plánování a úpravy tras
 ---
 
 <script>
@@ -12,74 +12,74 @@ title: Route planning and editing
 
 # <Pencil size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
 
-The route planning and editing tool allows you to create and edit routes by placing or moving anchor points on the map.
+Nástroj plánování a úpravy tras vám umožňuje vytvářet a upravovat trasy umístěním nebo přetažením kotevních bodů na mapě.
 
 ## Settings
 
-As shown below, the tool dialog contains a few settings to control the routing behavior.
-You can minimize the dialog to save space by clicking on <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
+Jak je zobrazeno níže, dialogové okno nástroje obsahuje několik nastavení pro kontrolu chování plánování tras.
+Dialog lze minimalizovat kliknutím na <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
 
 <div class="flex flex-row justify-center">
     <Routing minimizable={false} class="text-foreground p-3 border rounded-md shadow-lg" />
 </div>
 
-### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routing
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Plánování tras
 
-When routing is enabled, anchor points placed or moved on the map will be connected by a route calculated on the <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> road network.
-Disable routing to connect anchor points with straight lines.
-This setting can also be toggled by pressing <kbd>F5</kbd>.
+Když je plánování trasy aktivní, kotevní body umístěné nebo přesunuté po mapě budou projenou trasou vypočítanou v silniční síti <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a>.
+Zakázat plánování trasy pro propojení kotevních bodů přímými čarami.
+Toto nastavení lze také přepnout stisknutím <kbd>F5</kbd>.
 
-### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Activity
+### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Aktivita
 
-Select the activity type to tailor the routes for.
+Vyberte druh aktivity, pro kterou chcete přizpůsobit trasy.
 
-### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Allow private roads
+### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" />Povolit soukromé komunikace
 
-When enabled, the routing engine will consider private roads when computing routes.
+Pokud je povoleno, plánování tras bude při výpočtu nabízet soukromé komunikace.
 
 <DocsNote type="warning">
 
-Only use this option if you have local knowledge of the area and have permission to use the roads in question.
+Tuto možnost použijte pouze v případě, že disponujete místní znalostí a máte povolení používat dané silnice.
 
 </DocsNote>
 
-## Plotting and editing routes
+## Vykreslování a úpravy tras
 
-Creating a route or extending an existing one is as simple as clicking on the map to place a new anchor point.
+Vytvoření trasy nebo rozšíření existující trasy vyžaduje jen kliknutí na mapu pro umístění nového kotevního bodu.
 
-You can also drag an existing anchor point to reroute the segment connecting it with the previous and next anchor point.
+Můžete také přetáhnout existující kotevní bod pro přeplánování úseku spojujícího jej s předchozím a dalším kotevním bodem.
 
-Furthermore, new anchor points can be inserted between existing ones by hovering over the segment connecting them and dragging the anchor point that appears to the desired location.
-On touch devices, you can tap on the segment to insert a new anchor point.
+Mezi existující kotevní body lze navíc umístit nové najetím na trasu a přetažením nově vzniklého kotevního bodu.
+Na dotykových zařízeních můžete pro vložení nového kotevního bodu klepnout na požadovaný úsek.
 
 <DocsNote>
 
-When editing imported GPX files, an initial set of anchor points is created automatically.
-To ease the editing process, the more the map is zoomed in, the more anchor points are displayed.
-This allows the route to be edited at different levels of detail.
+Při úpravách importovaných GPX souborů se automaticky vytvoří počáteční sada kotevních bodů.
+Pro usnadnění úprav se při větším přiblížení zobrazí více kotevních bodů.
+To umožňuje různě detailní úpravu tras.
 
 </DocsNote>
 
-Finally, you can delete anchor points by clicking on them and selecting <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Delete</button> from the context menu.
+Kliknutím na kotevní bod a výběrem <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Odstranit</button> z kontextového menu můžete bod odstranit.
 
-<DocsImage src={routingScreenshot} alt="Anchor points allow you to easily edit a route." />
+<DocsImage src={routingScreenshot} alt="Kotevní body vám umožní snadno upravit trasu." />
 
-## Additional tools
+## Další nástroje
 
-The following tools automate some common route modification operations.
+Následující nástroje automatizují některé běžné operace úpravy trasy.
 
-### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Reverse
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Obrátit
 
-Reverse the direction of the route.
+Obrátit směr trasy.
 
-### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Back to start
+### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Zpět na začátek
 
-Connect the last point of the route with the starting point, using the chosen routing settings.
+Propojit poslední bod trasy s výchozím bodem pomocí zvoleného nastavení směrování.
 
-### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Round trip
+### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Zpáteční cesta
 
-Return to the starting point by the same route.
+Vrátit se na výchozí bod stejnou trasou.
 
-### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Change the start of the loop
+### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Změnit začátek smyčky
 
-When the end point of the route is close enough to the start, you can change the start of the loop by clicking on any anchor point and selecting <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Start loop here</button> from the context menu.
+Je-li konečný bod trasy dostatečně blízko k výchozímu bodu, můžete přesunout začátek okurhu kliknutím na libovolný kotevní bod a výběrem <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Začít okruh zde</button> z kontextového menu.
