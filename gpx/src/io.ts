@@ -62,7 +62,7 @@ export function parseGPX(gpxData: string): GPXFile {
 }
 
 export function buildGPX(file: GPXFile, exclude: string[]): string {
-    const gpx = removeEmptyElements(file.toGPXFileType(exclude));
+    const gpx = file.toGPXFileType(exclude);
 
     const builder = new XMLBuilder({
         format: true,
@@ -99,7 +99,7 @@ export function buildGPX(file: GPXFile, exclude: string[]): string {
                 encoding: "UTF-8",
             }
         },
-        gpx
+        gpx: removeEmptyElements(gpx)
     });
 }
 
