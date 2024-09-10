@@ -62,7 +62,7 @@ export function parseGPX(gpxData: string): GPXFile {
 }
 
 export function buildGPX(file: GPXFile, exclude: string[]): string {
-    const gpx = file.toGPXFileType(exclude);
+    const gpx = removeEmptyElements(file.toGPXFileType(exclude));
 
     const builder = new XMLBuilder({
         format: true,
@@ -101,4 +101,18 @@ export function buildGPX(file: GPXFile, exclude: string[]): string {
         },
         gpx
     });
+}
+
+function removeEmptyElements(obj: GPXFileType): GPXFileType {
+    for (const key in obj) {
+        if (obj[key] === null || obj[key] === undefined || obj[key] === '' || (Array.isArray(obj[key]) && obj[key].length === 0)) {
+            delete obj[key];
+        } else if (typeof obj[key] === 'object') {
+            removeEmptyElements(obj[key]);
+            if (Object.keys(obj[key]).length === 0) {
+                delete obj[key];
+            }
+        }
+    }
+    return obj;
 }
