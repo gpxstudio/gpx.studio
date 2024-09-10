@@ -35,9 +35,24 @@ export async function handle({ event, resolve }) {
 `;
     }
 
+    let stringsHTML = stringsToHTML(strings);
+
     const response = await resolve(event, {
-        transformPageChunk: ({ html }) => html.replace('<head>', head)
+        transformPageChunk: ({ html }) => html.replace('<head>', head).replace('<body data-sveltekit-preload-data="hover">', `<body data-sveltekit-preload-data="hover"><div class="hidden">${stringsHTML}</div>`)
     });
 
     return response;
+}
+
+function stringsToHTML(dictionary, strings = new Set(), root = true) {
+    Object.values(dictionary).forEach((value) => {
+        if (typeof value === 'object') {
+            stringsToHTML(value, strings, false);
+        } else {
+            strings.add(value);
+        }
+    });
+    if (root) {
+        return Array.from(strings).map((string) => `<p>${string}</p>`).join('');
+    }
 }
