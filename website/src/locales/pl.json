@@ -77,7 +77,7 @@
         },
         "hide": "Ukryj",
         "unhide": "Pokaż",
-        "center": "Center",
+        "center": "Wyśrodkuj",
         "open_in": "Otwórz w"
     },
     "toolbar": {
@@ -220,21 +220,21 @@
         }
     },
     "layers": {
-        "settings": "Layer settings",
+        "settings": "Ustawienia warstw",
         "settings_help": "Select the map layers you want to show in the interface, add custom ones, and adjust their settings.",
         "selection": "Layer selection",
         "custom_layers": {
             "title": "Custom layers",
             "new": "New custom layer",
             "edit": "Edit custom layer",
-            "urls": "URL(s)",
+            "urls": "URL(e)",
             "url_placeholder": "WMTS, WMS or Mapbox style JSON",
-            "max_zoom": "Max zoom",
+            "max_zoom": "Maksymalne powiększenie",
             "layer_type": "Rodzaj warstwy",
             "basemap": "Mapa bazowa",
             "overlay": "Nakładka",
-            "create": "Create layer",
-            "update": "Update layer"
+            "create": "Utwórz warstwę",
+            "update": "Zaktualizuj warstwę"
         },
         "opacity": "Overlay opacity",
         "label": {
@@ -243,7 +243,7 @@
             "custom": "Własne",
             "world": "Świat",
             "countries": "Kraje",
-            "belgium": "Belgium",
+            "belgium": "Belgia",
             "bulgaria": "Bułgaria",
             "finland": "Finlandia",
             "france": "Francja",
