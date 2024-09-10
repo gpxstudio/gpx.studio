@@ -513,7 +513,7 @@ export const dbUtils = {
         });
     },
     reverseSelection: () => {
-        if (!get(selection).hasAnyChildren(new ListRootItem(), true, ['waypoints'])) {
+        if (!get(selection).hasAnyChildren(new ListRootItem(), true, ['waypoints']) || get(gpxStatistics).local.points?.length <= 1) {
             return;
         }
         applyGlobal((draft) => {
@@ -1052,6 +1052,10 @@ export const dbUtils = {
                 }
             }
         });
+
+        if (points.length === 0) {
+            return;
+        }
 
         getElevation(points).then((elevations) => {
             applyGlobal((draft) => {
