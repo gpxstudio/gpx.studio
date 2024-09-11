@@ -565,6 +565,7 @@
             } else {
                 dbUtils.undo();
             }
+            e.preventDefault();
         } else if ((e.key === 'Backspace' || e.key === 'Delete') && (e.metaKey || e.ctrlKey)) {
             if (!targetInput) {
                 if (e.shiftKey) {
