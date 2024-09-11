@@ -107,7 +107,7 @@ function removeEmptyElements(obj: GPXFileType): GPXFileType {
     for (const key in obj) {
         if (obj[key] === null || obj[key] === undefined || obj[key] === '' || (Array.isArray(obj[key]) && obj[key].length === 0)) {
             delete obj[key];
-        } else if (typeof obj[key] === 'object') {
+        } else if (typeof obj[key] === 'object' && !(obj[key] instanceof Date)) {
             removeEmptyElements(obj[key]);
             if (Object.keys(obj[key]).length === 0) {
                 delete obj[key];
