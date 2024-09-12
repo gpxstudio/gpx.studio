@@ -81,6 +81,7 @@ export class GPXLayer {
     layerOnMouseEnterBinded: (e: any) => void = this.layerOnMouseEnter.bind(this);
     layerOnMouseLeaveBinded: () => void = this.layerOnMouseLeave.bind(this);
     layerOnClickBinded: (e: any) => void = this.layerOnClick.bind(this);
+    layerOnContextMenuBinded: (e: any) => void = this.layerOnContextMenu.bind(this);
     maybeHideWaypointPopupBinded: (e: any) => void = this.maybeHideWaypointPopup.bind(this);
 
     constructor(map: mapboxgl.Map, fileId: string, file: Readable<GPXFileWithStatistics | undefined>) {
@@ -153,6 +154,7 @@ export class GPXLayer {
                 });
 
                 this.map.on('click', this.fileId, this.layerOnClickBinded);
+                this.map.on('contextmenu', this.fileId, this.layerOnContextMenuBinded);
                 this.map.on('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
                 this.map.on('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
             }
@@ -302,6 +304,7 @@ export class GPXLayer {
     remove() {
         if (get(map)) {
             this.map.off('click', this.fileId, this.layerOnClickBinded);
+            this.map.off('contextmenu', this.fileId, this.layerOnContextMenuBinded);
             this.map.off('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
             this.map.off('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
             this.map.off('style.import.load', this.updateBinded);
@@ -379,6 +382,12 @@ export class GPXLayer {
             addSelectItem(item);
         } else {
             selectItem(item);
+        }
+    }
+
+    layerOnContextMenu(e: any) {
+        if (e.originalEvent.ctrlKey) {
+            this.layerOnClick(e);
         }
     }
 
