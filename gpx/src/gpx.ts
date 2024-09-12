@@ -1579,14 +1579,10 @@ function convertRouteToTrack(route: RouteType): Track {
         route.rtept.forEach((rpt) => {
             if (rpt.extensions && rpt.extensions['gpxx:RoutePointExtension'] && rpt.extensions['gpxx:RoutePointExtension']["gpxx:rpt"]) {
                 rpt.extensions['gpxx:RoutePointExtension']["gpxx:rpt"].forEach((rptExtension) => {
-                    segment.trkpt.push(new TrackPoint({
-                        attributes: rptExtension.attributes,
-                    }));
+                    segment.trkpt.push(new TrackPoint(rptExtension as TrackPointType));
                 });
             } else {
-                segment.trkpt.push(new TrackPoint({
-                    attributes: rpt.attributes,
-                }));
+                segment.trkpt.push(new TrackPoint(rpt as TrackPointType));
             }
         });
 
