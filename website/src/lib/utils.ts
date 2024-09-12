@@ -178,6 +178,14 @@ export function setScissorsCursor() {
     setCursor(scissorsCursor);
 }
 
+export function isMac() {
+    return navigator.userAgent.toUpperCase().indexOf('MAC') >= 0;
+}
+
+export function isSafari() {
+    return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+}
+
 export function getURLForLanguage(lang: string | null | undefined, path: string): string {
     let newPath = path.replace(base, '');
     let languageInPath = newPath.split('/')[1];
