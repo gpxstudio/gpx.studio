@@ -176,7 +176,7 @@
             "help_merge_traces": "Collegando le tracce selezionate si creerà una singola traccia continua.",
             "help_cannot_merge_traces": "La tua selezione deve contenere diverse tracce per collegarle.",
             "help_merge_contents": "Unendo il contenuto degli elementi selezionati si raggrupperà tutti i contenuti all'interno del primo elemento.",
-            "help_cannot_merge_contents": "Your selection must contain several items to merge their contents."
+            "help_cannot_merge_contents": "La selezione deve contenere diversi elementi per unire il loro contenuto."
         },
         "extract": {
             "tooltip": "Estrae i contenuti per separare gli elementi",
