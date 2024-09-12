@@ -39,6 +39,10 @@
         return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
     }
 
+    function toTimeString(date: Date): string {
+        return date.toTimeString().split(' ')[0];
+    }
+
     const { velocityUnits, distanceUnits } = settings;
 
     function setSpeed(value: number) {
@@ -52,14 +56,14 @@
     function setGPXData() {
         if ($gpxStatistics.global.time.start) {
             startDate = toCalendarDate($gpxStatistics.global.time.start);
-            startTime = $gpxStatistics.global.time.start.toLocaleTimeString();
+            startTime = toTimeString($gpxStatistics.global.time.start);
         } else {
             startDate = undefined;
             startTime = undefined;
         }
         if ($gpxStatistics.global.time.end) {
             endDate = toCalendarDate($gpxStatistics.global.time.end);
-            endTime = $gpxStatistics.global.time.end.toLocaleTimeString();
+            endTime = toTimeString($gpxStatistics.global.time.end);
         } else {
             endDate = undefined;
             endTime = undefined;
@@ -103,7 +107,7 @@
                     : 1;
             let end = new Date(start.getTime() + ratio * movingTime * 1000);
             endDate = toCalendarDate(end);
-            endTime = end.toLocaleTimeString();
+            endTime = toTimeString(end);
         }
     }
 
@@ -119,7 +123,7 @@
                     : 1;
             let start = new Date(end.getTime() - ratio * movingTime * 1000);
             startDate = toCalendarDate(start);
-            startTime = start.toLocaleTimeString();
+            startTime = toTimeString(start);
         }
     }
 
