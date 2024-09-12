@@ -54,6 +54,9 @@ const config = {
             screens: {
                 "xs": "540px",
             }
+        },
+        supports: {
+            dvh: 'height: 100dvh',
         }
     },
 };
