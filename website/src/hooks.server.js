@@ -12,7 +12,9 @@ export async function handle({ event, resolve }) {
     let title = strings.metadata[`${page}_title`];
     let description = strings.metadata[`description`];
 
-    let head = `<head>
+    let htmlTag = `<html lang="${language}" translate="no">`;
+
+    let headTag = `<head>
     <title>gpx.studio — ${title}</title>
     <meta name="description" content="${description}" />
     <meta property="og:title" content="gpx.studio — ${title}" />
@@ -31,14 +33,14 @@ export async function handle({ event, resolve }) {
     <link rel="alternate" hreflang="x-default" href="https://gpx.studio${getURLForLanguage('en', path)}" />`;
 
     for (let lang of Object.keys(languages)) {
-        head += `   <link rel="alternate" hreflang="${lang}" href="https://gpx.studio${getURLForLanguage(lang, path)}" />
+        headTag += `   <link rel="alternate" hreflang="${lang}" href="https://gpx.studio${getURLForLanguage(lang, path)}" />
 `;
     }
 
     let stringsHTML = stringsToHTML(strings);
 
     const response = await resolve(event, {
-        transformPageChunk: ({ html }) => html.replace('<head>', head).replace('<body data-sveltekit-preload-data="hover">', `<body data-sveltekit-preload-data="hover"><div class="hidden">${stringsHTML}</div>`)
+        transformPageChunk: ({ html }) => html.replace('<html>', htmlTag).replace('<head>', headTag).replace('<body data-sveltekit-preload-data="hover">', `<body data-sveltekit-preload-data="hover"><div class="hidden">${stringsHTML}</div>`)
     });
 
     return response;
