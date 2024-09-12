@@ -120,7 +120,7 @@
                 "concrete": "Calcestruzzo",
                 "chipseal": "Chipseal",
                 "cobblestone": "Acciottolato",
-                "unhewn_cobblestone": "Unhewn cobblestone",
+                "unhewn_cobblestone": "Ciottolame",
                 "paving_stones": "Paving stones",
                 "stepping_stones": "Stepping stones",
                 "sett": "Pavé",
@@ -151,26 +151,26 @@
             }
         },
         "scissors": {
-            "tooltip": "Crop or split",
+            "tooltip": "Ritaglia o dividi",
             "crop": "Ritaglia",
             "split_as": "Dividi la traccia in",
-            "help_invalid_selection": "Select a trace to crop or split.",
+            "help_invalid_selection": "Seleziona una traccia da ritagliare o dividere.",
             "help": "Utilizzare il cursore per ritagliare la traccia, o dividerla facendo clic su uno dei marcatori divisi o sulla traccia stessa."
         },
         "time": {
-            "tooltip": "Manage time data",
+            "tooltip": "Gestisci i tempi",
             "start": "Partenza",
             "end": "Fine",
             "total_time": "Tempo in movimento",
             "pick_date": "Seleziona una data",
-            "artificial": "Create realistic time data",
+            "artificial": "Crea tempi realistici",
             "update": "Aggiorna i dati del tempo",
-            "help": "Use the form to set new time data.",
+            "help": "Usa il modulo per impostare nuovi tempi.",
             "help_invalid_selection": "Select a single trace to manage its time data."
         },
         "merge": {
             "merge_traces": "Collega le tracce",
-            "merge_contents": "Merge the contents and keep the traces disconnected",
+            "merge_contents": "Unisci i contenuti e mantieni le tracce disconnesse",
             "merge_selection": "Selezione unione",
             "tooltip": "Unisci gli elementi insieme",
             "help_merge_traces": "Collegando le tracce selezionate si creerà una singola traccia continua.",
@@ -185,7 +185,7 @@
             "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
         },
         "elevation": {
-            "button": "Request elevation data",
+            "button": "Richiedi dati elevazione",
             "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
             "help_no_selection": "Select a file item to request elevation data."
         },
