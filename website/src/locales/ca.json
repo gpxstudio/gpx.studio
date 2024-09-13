@@ -85,7 +85,7 @@
             "tooltip": "Planificar o editar una ruta",
             "activity": "Activitat",
             "use_routing": "Trobar una ruta",
-            "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
+            "use_routing_tooltip": "Connectar entre els punts a través de camins o en línies rectes si està desactivat",
             "allow_private": "Permet camins particulars",
             "reverse": {
                 "button": "Inverteix el track",
@@ -97,11 +97,11 @@
             },
             "round_trip": {
                 "button": "Ruta circular",
-                "tooltip": "Return to the starting point by the same route"
+                "tooltip": "Tronar al punt de sortida a través de la mateixa ruta"
             },
             "start_loop_here": "Comença el bucle aquí",
-            "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
-            "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
+            "help_no_file": "Sel·leccionar una traça fent servir l'eina o bé, clicar al mapa per començar a crear una nova ruta.",
+            "help": "Clicar al mapa per afegir un nou punt de pas o bé, morue els existents per modificar la ruta.",
             "activities": {
                 "bike": "Bicicleta",
                 "racing_bike": "Bicicleta de carretera",
@@ -120,14 +120,14 @@
                 "concrete": "Formigó",
                 "chipseal": "Camí asfaltat",
                 "cobblestone": "Llambordes",
-                "unhewn_cobblestone": "Unhewn cobblestone",
-                "paving_stones": "Paving stones",
-                "stepping_stones": "Stepping stones",
-                "sett": "Sett",
+                "unhewn_cobblestone": "Llambordes grosses",
+                "paving_stones": "Camí de pedres",
+                "stepping_stones": "Empedrat",
+                "sett": "Establir",
                 "metal": "Metall",
                 "wood": "Fusta",
-                "compacted": "Compacted gravel",
-                "fine_gravel": "Fine gravel",
+                "compacted": "Grava compactada",
+                "fine_gravel": "Grava fina",
                 "gravel": "Grava",
                 "pebblestone": "Empedrat",
                 "rock": "Roques",
@@ -141,40 +141,40 @@
                 "sand": "Sorra",
                 "woodchips": "Estella forestal",
                 "grass": "Herba",
-                "grass_paver": "Grass paver"
+                "grass_paver": "Gespa"
             },
             "error": {
-                "from": "The start point is too far from the nearest road",
-                "via": "The via point is too far from the nearest road",
-                "to": "The end point is too far from the nearest road",
-                "timeout": "Route calculation took too long, try adding points closer together"
+                "from": "El punt d'inici és massa lluny de la via més propera",
+                "via": "El punt és massa lluny de la via més propera",
+                "to": "El punt final és massa lluny de la via més propera",
+                "timeout": "El càlcul de la ruta tarda més del compte, prova d'afegir punts més propers entre si"
             }
         },
         "scissors": {
-            "tooltip": "Crop or split",
+            "tooltip": "Retallar o dividir",
             "crop": "Retallar",
-            "split_as": "Split the trace into",
+            "split_as": "Dividir la sala en",
             "help_invalid_selection": "\"Seleccioneu una traça per retallar o dividir\"",
             "help": ""
         },
         "time": {
-            "tooltip": "Manage time data",
+            "tooltip": "Gestionar dades de temps",
             "start": "Inici",
             "end": "Final",
             "total_time": "Temps en moviment",
             "pick_date": "Triar una data",
-            "artificial": "Create realistic time data",
-            "update": "Update time data",
-            "help": "Use the form to set new time data.",
-            "help_invalid_selection": "Select a single trace to manage its time data."
+            "artificial": "Crear dades de temps realistes",
+            "update": "Actualitzar dades de temps",
+            "help": "Utilitzar el formulari per establir noves dates de temps.",
+            "help_invalid_selection": "Triar una sola traçada per gestionar-ne les dades de temps."
         },
         "merge": {
-            "merge_traces": "Connect the traces",
-            "merge_contents": "Merge the contents and keep the traces disconnected",
+            "merge_traces": "Connectar les traçades",
+            "merge_contents": "Unir els continguts i mantenir les traçades desconnectades",
             "merge_selection": "Combinar la selecció",
-            "tooltip": "Merge items together",
-            "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
-            "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
+            "tooltip": "Unir els elements",
+            "help_merge_traces": "Unir les traçades crearà una única traçada contínua.",
+            "help_cannot_merge_traces": "Has de sel·leccionar diverses traçades per tal d'unir-les.",
             "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
             "help_cannot_merge_contents": "Your selection must contain several items to merge their contents."
         },
