@@ -443,6 +443,7 @@
         "home": "Accueil",
         "app": "Application",
         "contact": "Contact",
+        "reddit": "Reddit",
         "x": "X",
         "facebook": "Facebook",
         "github": "GitHub",
@@ -461,6 +462,28 @@
         "data_visualization_description": "Un profil altimétrique interactif avec des statistiques détaillées pour analyser les activités enregistrées et les objectifs futurs.",
         "identity": "Gratuit, sans pub et open source",
         "identity_description": "Le site Web est gratuit, sans publicité, et le code source est disponible publiquement sur GitHub. Cela est possible uniquement grâce au soutien incroyable de la communauté."
+    },
+    "docs": {
+        "edit": "Edit this page on GitHub",
+        "translate": "Improve this translation on Crowdin",
+        "answer_not_found": "Did not find what you were looking for?",
+        "ask_on_reddit": "Ask the community on Reddit",
+        "search": {
+            "search": "Search",
+            "clear": "Clear",
+            "cancel": "Annuler",
+            "recent": "Recent",
+            "no_recent": "No recent searches",
+            "save": "Save this search",
+            "remove": "Remove this search from history",
+            "favorites": "Favorites",
+            "remove_favorite": "Remove this search from favorites",
+            "to_select": "to select",
+            "to_navigate": "to navigate",
+            "to_close": "to close",
+            "no_results": "No results for",
+            "no_results_suggestion": "Try searching for"
+        }
     },
     "embedding": {
         "title": "Créez votre propre carte",
