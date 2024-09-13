@@ -72,6 +72,8 @@ This project has been made possible thanks to the following open source projects
   - [Mapbox GL JS](https://github.com/mapbox/mapbox-gl-js) — beautiful and fast interactive maps
   - [brouter](https://github.com/abrensch/brouter) — routing engine
   - [OpenStreetMap](https://www.openstreetmap.org) — map data used by Mapbox and brouter
+- Search:
+  - [DocSearch](https://github.com/algolia/docsearch) — search engine for the documentation
 
 ## License
 

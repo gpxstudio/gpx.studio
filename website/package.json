@@ -50,6 +50,7 @@
     },
     "type": "module",
     "dependencies": {
+        "@docsearch/js": "^3.6.1",
         "@internationalized/date": "^3.5.4",
         "@mapbox/mapbox-gl-geocoder": "^5.0.2",
         "@mapbox/sphericalmercator": "^1.2.0",

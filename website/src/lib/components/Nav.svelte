@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Logo from '$lib/components/Logo.svelte';
 	import { Button } from '$lib/components/ui/button';
+	import AlgoliaDocSearch from '$lib/components/AlgoliaDocSearch.svelte';
 	import ModeSwitch from '$lib/components/ModeSwitch.svelte';
 	import { BookOpenText, Home, Map } from 'lucide-svelte';
 	import { _, locale } from 'svelte-i18n';
@@ -25,6 +26,7 @@
 			<BookOpenText size="18" class="mr-1.5" />
 			{$_('menu.help')}
 		</Button>
-		<ModeSwitch class="ml-auto" />
+		<AlgoliaDocSearch class="ml-auto" />
+		<ModeSwitch class="hidden xs:block" />
 	</div>
 </nav>
