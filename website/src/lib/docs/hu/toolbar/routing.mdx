@@ -1,5 +1,5 @@
 ---
-title: Route planning and editing
+title: Útvonal tervezés és szerkesztés
 ---
 
 <script>
@@ -12,74 +12,74 @@ title: Route planning and editing
 
 # <Pencil size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
 
-The route planning and editing tool allows you to create and edit routes by placing or moving anchor points on the map.
+Az útvonaltervező és -szerkesztő eszköz lehetővé teszi útvonalak létrehozását és szerkesztését horgonypontok elhelyezésével vagy mozgatásával a térképen.
 
 ## Settings
 
-As shown below, the tool dialog contains a few settings to control the routing behavior.
-You can minimize the dialog to save space by clicking on <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
+Az alábbiak szerint az eszköz párbeszédpanel néhány beállítást tartalmaz az útválasztási viselkedés szabályozásához.
+A <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button> elemre kattintva a párbeszédpanelt kicsinyítheti, hogy helyet takarítson meg.
 
 <div class="flex flex-row justify-center">
     <Routing minimizable={false} class="text-foreground p-3 border rounded-md shadow-lg" />
 </div>
 
-### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routing
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Útválasztás
 
-When routing is enabled, anchor points placed or moved on the map will be connected by a route calculated on the <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> road network.
-Disable routing to connect anchor points with straight lines.
-This setting can also be toggled by pressing <kbd>F5</kbd>.
+Ha az útválasztás engedélyezve van, a térképen elhelyezett vagy áthelyezett horgonypontokat az <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> úthálózaton kiszámított útvonal köti össze.
+Az útválasztás letiltása a rögzítési pontok egyenes vonalakkal történő összekapcsolásához.
+Ez a beállítás az <kbd>F5</kbd> megnyomásával is váltható.
 
-### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Activity
+### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Tevékenység
 
-Select the activity type to tailor the routes for.
+Válassza ki a tevékenység típusát az útvonalak személyre szabásához.
 
-### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Allow private roads
+### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Magánutak engedélyezése
 
-When enabled, the routing engine will consider private roads when computing routes.
+Ha engedélyezve van, az útvonaltervező motor figyelembe veszi a magánutakat az útvonalak kiszámításakor.
 
 <DocsNote type="warning">
 
-Only use this option if you have local knowledge of the area and have permission to use the roads in question.
+Csak akkor használja ezt a lehetőséget, ha ismeri a területet, és rendelkezik engedéllyel a kérdéses utak használatára.
 
 </DocsNote>
 
-## Plotting and editing routes
+## Útvonalak tervezése és szerkesztése
 
-Creating a route or extending an existing one is as simple as clicking on the map to place a new anchor point.
+Útvonal létrehozása vagy egy meglévő meghosszabbítása olyan egyszerű, mint egy új horgonypont elhelyezéséhez a térképre kattintva.
 
-You can also drag an existing anchor point to reroute the segment connecting it with the previous and next anchor point.
+Meglévő rögzítési pontot húzással is átirányíthatja az előző és a következő horgonyponttal összekötő szakaszt.
 
-Furthermore, new anchor points can be inserted between existing ones by hovering over the segment connecting them and dragging the anchor point that appears to the desired location.
-On touch devices, you can tap on the segment to insert a new anchor point.
+Továbbá új rögzítési pontokat lehet beszúrni a meglévők közé, ha az egérmutatót az őket összekötő szakasz fölé viszi, és a megjelenő rögzítési pontot a kívánt helyre húzza.
+Érintős eszközökön a szegmens megérintésével új rögzítési pontot szúrhat be.
 
 <DocsNote>
 
-When editing imported GPX files, an initial set of anchor points is created automatically.
-To ease the editing process, the more the map is zoomed in, the more anchor points are displayed.
-This allows the route to be edited at different levels of detail.
+Az importált GPX-fájlok szerkesztésekor a rendszer automatikusan létrehozza a kezdeti rögzítési pontokat.
+A szerkesztési folyamat megkönnyítése érdekében minél jobban kinagyítja a térképet, annál több horgonypont jelenik meg.
+Ez lehetővé teszi az útvonal különböző részletezésű szerkesztését.
 
 </DocsNote>
 
-Finally, you can delete anchor points by clicking on them and selecting <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Delete</button> from the context menu.
+Végül törölheti a rögzítési pontokat, ha rájuk kattint, és a helyi menü <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Törlés</button> parancsát választja.
 
-<DocsImage src={routingScreenshot} alt="Anchor points allow you to easily edit a route." />
+<DocsImage src={routingScreenshot} alt="A rögzítési pontok lehetővé teszik az útvonal egyszerű szerkesztését." />
 
-## Additional tools
+## További eszközök
 
-The following tools automate some common route modification operations.
+A következő eszközök automatizálnak néhány gyakori útvonal-módosítási műveletet.
 
-### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Reverse
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Fordítva
 
-Reverse the direction of the route.
+Fordítsa meg az útvonal irányát.
 
-### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Back to start
+### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Vissza a kezdéshez
 
-Connect the last point of the route with the starting point, using the chosen routing settings.
+Csatlakoztassa az útvonal utolsó pontját a kiindulási ponthoz a kiválasztott útvonalbeállítások segítségével.
 
-### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Round trip
+### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Oda-vissza út
 
-Return to the starting point by the same route.
+Ugyanezen az útvonalon térjen vissza a kiindulóponthoz.
 
-### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Change the start of the loop
+### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Módosítsa a hurok kezdetét
 
-When the end point of the route is close enough to the start, you can change the start of the loop by clicking on any anchor point and selecting <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Start loop here</button> from the context menu.
+Ha az útvonal végpontja elég közel van a kiinduláshoz, módosíthatja az útvonal kezdőpontját, ha bármelyik horgonypontra kattint, és a helyi menüből kiválasztja a <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Útvonal indítása itt</button> lehetőséget.
