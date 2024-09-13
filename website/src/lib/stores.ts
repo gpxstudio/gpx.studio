@@ -269,9 +269,10 @@ export async function loadFile(file: File): Promise<GPXFile | null> {
             if (data) {
                 let gpx = parseGPX(data);
                 if (gpx.metadata === undefined) {
-                    gpx.metadata = { name: file.name.split('.').slice(0, -1).join('.') };
-                } else if (gpx.metadata.name === undefined) {
-                    gpx.metadata['name'] = file.name.split('.').slice(0, -1).join('.');
+                    gpx.metadata = {};
+                }
+                if (gpx.metadata.name === undefined || gpx.metadata.name.trim() === '') {
+                    gpx.metadata.name = file.name.split('.').slice(0, -1).join('.');
                 }
                 resolve(gpx);
             } else {
