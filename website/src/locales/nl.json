@@ -443,6 +443,7 @@
         "home": "Beginscherm",
         "app": "App",
         "contact": "Contact",
+        "reddit": "Reddit",
         "x": "X",
         "facebook": "Facebook",
         "github": "GitHub",
@@ -461,6 +462,28 @@
         "data_visualization_description": "Een interactief hoogteprofiel met gedetailleerde statistieken om opgenomen activiteiten en toekomstige doelstellingen te analyseren.",
         "identity": "Vrij, advertentievrij en open source",
         "identity_description": "De website is gratis te gebruiken, zonder advertenties, en de broncode is publiekelijk beschikbaar op GitHub. Dit is alleen mogelijk dankzij de ongelooflijke steun van de gemeenschap."
+    },
+    "docs": {
+        "edit": "Edit this page on GitHub",
+        "translate": "Improve this translation on Crowdin",
+        "answer_not_found": "Did not find what you were looking for?",
+        "ask_on_reddit": "Ask the community on Reddit",
+        "search": {
+            "search": "Search",
+            "clear": "Clear",
+            "cancel": "Annuleren",
+            "recent": "Recent",
+            "no_recent": "No recent searches",
+            "save": "Save this search",
+            "remove": "Remove this search from history",
+            "favorites": "Favorites",
+            "remove_favorite": "Remove this search from favorites",
+            "to_select": "to select",
+            "to_navigate": "to navigate",
+            "to_close": "to close",
+            "no_results": "No results for",
+            "no_results_suggestion": "Try searching for"
+        }
     },
     "embedding": {
         "title": "Maak je eigen kaart",
