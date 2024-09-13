@@ -154,8 +154,8 @@
             "tooltip": "Retallar o dividir",
             "crop": "Retallar",
             "split_as": "Dividir la sala en",
-            "help_invalid_selection": "\"Seleccioneu una traça per retallar o dividir\"",
-            "help": ""
+            "help_invalid_selection": "Seleccioneu una traça per retallar o dividir.",
+            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
         },
         "time": {
             "tooltip": "Gestionar dades de temps",
