@@ -55,6 +55,15 @@
 					<Button
 						variant="link"
 						class="h-6 px-0 text-muted-foreground"
+						href="https://www.reddit.com/r/gpxstudio/"
+						target="_blank"
+					>
+						<Logo company="reddit" class="h-4 mr-1 fill-muted-foreground" />
+						{$_('homepage.reddit')}
+					</Button>
+					<Button
+						variant="link"
+						class="h-6 px-0 text-muted-foreground"
 						href="https://facebook.com/gpx.studio"
 						target="_blank"
 					>
