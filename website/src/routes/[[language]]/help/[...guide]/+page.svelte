@@ -58,7 +58,7 @@
 			class="p-0 h-6 ml-auto text-blue-500"
 		>
 			<PenLine size="16" class="mr-1" />
-			{$_('docs.edit')}
+			Edit this page on GitHub
 		</Button>
 	{:else}
 		<Button
