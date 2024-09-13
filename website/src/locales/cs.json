@@ -464,15 +464,14 @@
         "identity_description": "Webová stránka je zdarma k použití, bez reklam a zdrojový kód je veřejně dostupný na GitHubu. To je možné jen díky neuvěřitelné podpoře komunity."
     },
     "docs": {
-        "edit": "Edit this page on GitHub",
-        "translate": "Improve this translation on Crowdin",
+        "translate": "Improve the translation on Crowdin",
         "answer_not_found": "Did not find what you were looking for?",
         "ask_on_reddit": "Ask the community on Reddit",
         "search": {
             "search": "Search",
             "clear": "Clear",
             "cancel": "Storno",
-            "recent": "Recent",
+            "recent": "Recent searches",
             "no_recent": "No recent searches",
             "save": "Save this search",
             "remove": "Remove this search from history",
