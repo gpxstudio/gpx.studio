@@ -120,7 +120,7 @@
                 "concrete": "Calcestruzzo",
                 "chipseal": "Chipseal",
                 "cobblestone": "Acciottolato",
-                "unhewn_cobblestone": "Unhewn cobblestone",
+                "unhewn_cobblestone": "Ciottolame",
                 "paving_stones": "Paving stones",
                 "stepping_stones": "Stepping stones",
                 "sett": "Pavé",
@@ -151,32 +151,32 @@
             }
         },
         "scissors": {
-            "tooltip": "Crop or split",
+            "tooltip": "Ritaglia o dividi",
             "crop": "Ritaglia",
             "split_as": "Dividi la traccia in",
-            "help_invalid_selection": "Select a trace to crop or split.",
+            "help_invalid_selection": "Seleziona una traccia da ritagliare o dividere.",
             "help": "Utilizzare il cursore per ritagliare la traccia, o dividerla facendo clic su uno dei marcatori divisi o sulla traccia stessa."
         },
         "time": {
-            "tooltip": "Manage time data",
+            "tooltip": "Gestisci i tempi",
             "start": "Partenza",
             "end": "Fine",
             "total_time": "Tempo in movimento",
             "pick_date": "Seleziona una data",
-            "artificial": "Create realistic time data",
+            "artificial": "Crea tempi realistici",
             "update": "Aggiorna i dati del tempo",
-            "help": "Use the form to set new time data.",
+            "help": "Usa il modulo per impostare nuovi tempi.",
             "help_invalid_selection": "Select a single trace to manage its time data."
         },
         "merge": {
             "merge_traces": "Collega le tracce",
-            "merge_contents": "Merge the contents and keep the traces disconnected",
+            "merge_contents": "Unisci i contenuti e mantieni le tracce disconnesse",
             "merge_selection": "Selezione unione",
             "tooltip": "Unisci gli elementi insieme",
             "help_merge_traces": "Collegando le tracce selezionate si creerà una singola traccia continua.",
             "help_cannot_merge_traces": "La tua selezione deve contenere diverse tracce per collegarle.",
             "help_merge_contents": "Unendo il contenuto degli elementi selezionati si raggrupperà tutti i contenuti all'interno del primo elemento.",
-            "help_cannot_merge_contents": "Your selection must contain several items to merge their contents."
+            "help_cannot_merge_contents": "La selezione deve contenere diversi elementi per unire il loro contenuto."
         },
         "extract": {
             "tooltip": "Estrae i contenuti per separare gli elementi",
@@ -185,7 +185,7 @@
             "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
         },
         "elevation": {
-            "button": "Request elevation data",
+            "button": "Richiedi dati elevazione",
             "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
             "help_no_selection": "Select a file item to request elevation data."
         },
@@ -443,6 +443,7 @@
         "home": "Home",
         "app": "App",
         "contact": "Contatto",
+        "reddit": "Reddit",
         "x": "X",
         "facebook": "Facebook",
         "github": "GitHub",
@@ -461,6 +462,27 @@
         "data_visualization_description": "An interactive elevation profile with detailed statistics to analyze recorded activities and future objectives.",
         "identity": "Gratuito, senza pubblicità e open source",
         "identity_description": "The website is free to use, without ads, and the source code is publicly available on GitHub. This is only possible thanks to the incredible support of the community."
+    },
+    "docs": {
+        "translate": "Improve the translation on Crowdin",
+        "answer_not_found": "Did not find what you were looking for?",
+        "ask_on_reddit": "Ask the community on Reddit",
+        "search": {
+            "search": "Search",
+            "clear": "Clear",
+            "cancel": "Annulla",
+            "recent": "Recent searches",
+            "no_recent": "No recent searches",
+            "save": "Save this search",
+            "remove": "Remove this search from history",
+            "favorites": "Favorites",
+            "remove_favorite": "Remove this search from favorites",
+            "to_select": "to select",
+            "to_navigate": "to navigate",
+            "to_close": "to close",
+            "no_results": "No results for",
+            "no_results_suggestion": "Try searching for"
+        }
     },
     "embedding": {
         "title": "Crea la tua mappa",

@@ -77,7 +77,7 @@
         },
         "hide": "Ukryj",
         "unhide": "Pokaż",
-        "center": "Center",
+        "center": "Wyśrodkuj",
         "open_in": "Otwórz w"
     },
     "toolbar": {
@@ -220,21 +220,21 @@
         }
     },
     "layers": {
-        "settings": "Layer settings",
+        "settings": "Ustawienia warstw",
         "settings_help": "Select the map layers you want to show in the interface, add custom ones, and adjust their settings.",
         "selection": "Layer selection",
         "custom_layers": {
             "title": "Custom layers",
             "new": "New custom layer",
             "edit": "Edit custom layer",
-            "urls": "URL(s)",
+            "urls": "URL(e)",
             "url_placeholder": "WMTS, WMS or Mapbox style JSON",
-            "max_zoom": "Max zoom",
+            "max_zoom": "Maksymalne powiększenie",
             "layer_type": "Rodzaj warstwy",
             "basemap": "Mapa bazowa",
             "overlay": "Nakładka",
-            "create": "Create layer",
-            "update": "Update layer"
+            "create": "Utwórz warstwę",
+            "update": "Zaktualizuj warstwę"
         },
         "opacity": "Overlay opacity",
         "label": {
@@ -243,7 +243,7 @@
             "custom": "Własne",
             "world": "Świat",
             "countries": "Kraje",
-            "belgium": "Belgium",
+            "belgium": "Belgia",
             "bulgaria": "Bułgaria",
             "finland": "Finlandia",
             "france": "Francja",
@@ -443,6 +443,7 @@
         "home": "Home",
         "app": "App",
         "contact": "Contact",
+        "reddit": "Reddit",
         "x": "X",
         "facebook": "Facebook",
         "github": "GitHub",
@@ -461,6 +462,27 @@
         "data_visualization_description": "An interactive elevation profile with detailed statistics to analyze recorded activities and future objectives.",
         "identity": "Free, ad-free and open source",
         "identity_description": "The website is free to use, without ads, and the source code is publicly available on GitHub. This is only possible thanks to the incredible support of the community."
+    },
+    "docs": {
+        "translate": "Improve the translation on Crowdin",
+        "answer_not_found": "Did not find what you were looking for?",
+        "ask_on_reddit": "Ask the community on Reddit",
+        "search": {
+            "search": "Search",
+            "clear": "Clear",
+            "cancel": "Anuluj",
+            "recent": "Recent searches",
+            "no_recent": "No recent searches",
+            "save": "Save this search",
+            "remove": "Remove this search from history",
+            "favorites": "Favorites",
+            "remove_favorite": "Remove this search from favorites",
+            "to_select": "to select",
+            "to_navigate": "to navigate",
+            "to_close": "to close",
+            "no_results": "No results for",
+            "no_results_suggestion": "Try searching for"
+        }
     },
     "embedding": {
         "title": "Create your own map",
