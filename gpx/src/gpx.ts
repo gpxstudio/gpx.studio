@@ -104,7 +104,7 @@ abstract class GPXTreeLeaf extends GPXTreeElement<GPXTreeLeaf> {
 }
 
 // A class that represents a GPX file
-export class GPXFile extends GPXTreeNode<Track>{
+export class GPXFile extends GPXTreeNode<Track> {
     [immerable] = true;
 
     attributes: GPXFileAttributes;
@@ -1579,10 +1579,16 @@ function convertRouteToTrack(route: RouteType): Track {
         route.rtept.forEach((rpt) => {
             if (rpt.extensions && rpt.extensions['gpxx:RoutePointExtension'] && rpt.extensions['gpxx:RoutePointExtension']["gpxx:rpt"]) {
                 rpt.extensions['gpxx:RoutePointExtension']["gpxx:rpt"].forEach((rptExtension) => {
-                    segment.trkpt.push(new TrackPoint(rptExtension as TrackPointType));
+                    segment.trkpt.push(new TrackPoint({
+                        attributes: rptExtension.attributes,
+                    }));
                 });
             } else {
-                segment.trkpt.push(new TrackPoint(rpt as TrackPointType));
+                segment.trkpt.push(new TrackPoint({
+                    attributes: rpt.attributes,
+                    ele: rpt.ele,
+                    time: rpt.time,
+                }));
             }
         });
 
