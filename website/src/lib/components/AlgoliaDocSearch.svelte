@@ -16,6 +16,7 @@
 				facetFilters: ['lang:' + ($locale ?? 'en')]
 			},
 			placeholder: $_('docs.search.search'),
+			disableUserPersonalization: true,
 			translations: {
 				button: {
 					buttonText: $_('docs.search.search'),
@@ -28,14 +29,6 @@
 						cancelButtonText: $_('docs.search.cancel'),
 						cancelButtonAriaLabel: $_('docs.search.cancel'),
 						searchInputLabel: $_('docs.search.search')
-					},
-					startScreen: {
-						recentSearchesTitle: $_('docs.search.recent'),
-						noRecentSearchesText: $_('docs.search.no_recent'),
-						saveRecentSearchButtonTitle: $_('docs.search.save'),
-						removeRecentSearchButtonTitle: $_('docs.search.remove'),
-						favoriteSearchesTitle: $_('docs.search.favorites'),
-						removeFavoriteSearchButtonTitle: $_('docs.search.remove_favorite')
 					},
 					footer: {
 						selectText: $_('docs.search.to_select'),
