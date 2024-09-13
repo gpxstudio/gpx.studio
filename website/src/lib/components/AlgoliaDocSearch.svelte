@@ -2,11 +2,23 @@
 	import docsearch from '@docsearch/js';
 	import '@docsearch/css';
 	import { onMount } from 'svelte';
-	import { _, locale } from 'svelte-i18n';
+	import { _, locale, isLoading, waitLocale } from 'svelte-i18n';
 
 	let mounted = false;
 
 	function initDocsearch() {
+		console.log(
+			'initDocsearch',
+			$locale,
+			$_('docs.search.search'),
+			$_('docs.search.clear'),
+			$_('docs.search.cancel'),
+			$_('docs.search.no_results'),
+			$_('docs.search.no_results_suggestion'),
+			$_('docs.search.to_select'),
+			$_('docs.search.to_navigate'),
+			$_('docs.search.to_close')
+		);
 		docsearch({
 			appId: '21XLD94PE3',
 			apiKey: 'd2c1ed6cb0ed12adb2bd84eb2a38494d',
@@ -49,7 +61,7 @@
 	});
 
 	$: if (mounted && $locale) {
-		initDocsearch();
+		waitLocale().then(initDocsearch);
 	}
 </script>
 
