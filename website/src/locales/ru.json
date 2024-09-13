@@ -443,6 +443,7 @@
         "home": "Домашняя страница",
         "app": "Приложение",
         "contact": "Контакт",
+        "reddit": "Reddit",
         "x": "X",
         "facebook": "Facebook",
         "github": "GitHub",
@@ -461,6 +462,28 @@
         "data_visualization_description": "Интерактивный профиль высоты с подробной статистикой для анализа записанных активностей и будущих целей.",
         "identity": "Бесплатно, без рекламы и с открытым исходным кодом",
         "identity_description": "Сайт бесплатен для использования, без рекламы, а исходный код доступен публично на GitHub. Это стало возможным только благодаря невероятной поддержке сообщества."
+    },
+    "docs": {
+        "edit": "Edit this page on GitHub",
+        "translate": "Improve this translation on Crowdin",
+        "answer_not_found": "Did not find what you were looking for?",
+        "ask_on_reddit": "Ask the community on Reddit",
+        "search": {
+            "search": "Search",
+            "clear": "Clear",
+            "cancel": "Отмена",
+            "recent": "Recent",
+            "no_recent": "No recent searches",
+            "save": "Save this search",
+            "remove": "Remove this search from history",
+            "favorites": "Favorites",
+            "remove_favorite": "Remove this search from favorites",
+            "to_select": "to select",
+            "to_navigate": "to navigate",
+            "to_close": "to close",
+            "no_results": "No results for",
+            "no_results_suggestion": "Try searching for"
+        }
     },
     "embedding": {
         "title": "Создайте свою собственную карту",
