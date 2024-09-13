@@ -464,15 +464,14 @@
         "identity_description": "Este sitio web es de uso gratuito, sin anuncios y el código fuente está disponible públicamente en GitHub. Esto solo es posible gracias al increíble apoyo de la comunidad."
     },
     "docs": {
-        "edit": "Edit this page on GitHub",
-        "translate": "Improve this translation on Crowdin",
+        "translate": "Improve the translation on Crowdin",
         "answer_not_found": "Did not find what you were looking for?",
         "ask_on_reddit": "Ask the community on Reddit",
         "search": {
             "search": "Search",
             "clear": "Clear",
             "cancel": "Cancelar",
-            "recent": "Recent",
+            "recent": "Recent searches",
             "no_recent": "No recent searches",
             "save": "Save this search",
             "remove": "Remove this search from history",
