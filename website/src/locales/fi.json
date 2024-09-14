@@ -100,7 +100,7 @@
                 "tooltip": "Palaa alkuun samaa reittiä"
             },
             "start_loop_here": "Start loop here",
-            "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
+            "help_no_file": "Valitse muokattava reitti tai lisää uuden reitin alkupiste klikkaamalla karttaa.",
             "help": "Lisää suunnitelmapiste klikkaamalla karttaa. Muuta reittiä raahaamalla suunnitelmapisteitä.",
             "activities": {
                 "bike": "Polkupyörä",
@@ -114,34 +114,34 @@
             },
             "surface": {
                 "unknown": "Tuntematon",
-                "paved": "Pinnoitettu",
-                "unpaved": "Pinnoittamaton",
+                "paved": "Päällystetty",
+                "unpaved": "Päällystämätön",
                 "asphalt": "Asfaltti",
                 "concrete": "Betoni",
                 "chipseal": "Öljysora",
                 "cobblestone": "Mukulakivi",
-                "unhewn_cobblestone": "Unhewn cobblestone",
-                "paving_stones": "Paving stones",
-                "stepping_stones": "Stepping stones",
+                "unhewn_cobblestone": "Luonnonmukainen mukulakivi",
+                "paving_stones": "Katukivetys",
+                "stepping_stones": "Astinkivet",
                 "sett": "Kivetys",
                 "metal": "Metalli",
                 "wood": "Puu",
-                "compacted": "Compacted gravel",
+                "compacted": "Pakkautunut sora",
                 "fine_gravel": "Hieno sora",
                 "gravel": "Sora",
-                "pebblestone": "Pebblestone",
-                "rock": "Rock",
-                "dirt": "Dirt",
-                "ground": "Ground",
-                "earth": "Earth",
+                "pebblestone": "Pikkukivi",
+                "rock": "Kivi",
+                "dirt": "Maa",
+                "ground": "Maa",
+                "earth": "Maa",
                 "snow": "Lumi",
                 "ice": "Jää",
-                "salt": "Salt",
-                "mud": "Mud",
-                "sand": "Sand",
+                "salt": "Suola",
+                "mud": "Muta",
+                "sand": "Hiekka",
                 "woodchips": "Hake",
-                "grass": "Grass",
-                "grass_paver": "Grass paver"
+                "grass": "Nurmi",
+                "grass_paver": "Nurmikivi"
             },
             "error": {
                 "from": "Aloituspiste on liian kaukana lähimmästä tiestä",
@@ -155,7 +155,7 @@
             "crop": "Rajaa",
             "split_as": "Pilkottujen reittien muoto",
             "help_invalid_selection": "Valitse rajattava/pilkottava reitti.",
-            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
+            "help": "Rajaa reittiä säätimellä tai pilko reitti klikkaamalla reittipisteitä tai reittiä."
         },
         "time": {
             "tooltip": "Muokkaa aikaleimoja",
@@ -170,41 +170,41 @@
         },
         "merge": {
             "merge_traces": "Yhdistä reitit",
-            "merge_contents": "Merge the contents and keep the traces disconnected",
-            "merge_selection": "Merge selection",
-            "tooltip": "Merge items together",
-            "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
-            "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
-            "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
-            "help_cannot_merge_contents": "Your selection must contain several items to merge their contents."
+            "merge_contents": "Yhdistä reitit samaan tiedostoon",
+            "merge_selection": "Yhdistä valitut",
+            "tooltip": "Yhdistä tiedostot",
+            "help_merge_traces": "Yhdistäminen luo valituista reiteistä yhden yhtenäisen reitin.",
+            "help_cannot_merge_traces": "Valitse useampia reittejä yhdistääksesi ne.",
+            "help_merge_contents": "Valittujen tiedostojen yhdistäminen kokoaa reitit ensimmäisenä valittuun tiedostoon.",
+            "help_cannot_merge_contents": "Valitse useampi tiedosto yhdistääksesi ne."
         },
         "extract": {
-            "tooltip": "Extract contents to separate items",
-            "button": "Extract",
-            "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
-            "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
+            "tooltip": "Pura tiedosto osiin",
+            "button": "Pura",
+            "help": "Erota valittujen tiedostojen osat omiksi tiedostoiksi.",
+            "help_invalid_selection": "Valitse tiedosto, joka sisältää useita reittejä."
         },
         "elevation": {
-            "button": "Request elevation data",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
-            "help_no_selection": "Select a file item to request elevation data."
+            "button": "Hae korkeustiedot",
+            "help": "Tietojen haku korvaa aiemmat korkeustiedot Mapboxin tiedoilla.",
+            "help_no_selection": "Valitse tiedosto, jolle haet korkeustietoja."
         },
         "waypoint": {
-            "tooltip": "Create and edit points of interest",
-            "icon": "Icon",
+            "tooltip": "Lisää ja muokkaa kohdepisteitä",
+            "icon": "Kuvake",
             "link": "Link",
-            "longitude": "Longitude",
-            "latitude": "Latitude",
-            "create": "Create point of interest",
-            "add": "Add point of interest to file",
+            "longitude": "Pituusaste",
+            "latitude": "Leveysaste",
+            "create": "Lisää kohdepiste",
+            "add": "Lisää kohdepiste tiedostoon",
             "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
             "help_no_selection": "Select a file to create or edit points of interest."
         },
         "reduce": {
-            "tooltip": "Reduce the number of GPS points",
-            "tolerance": "Tolerance",
-            "number_of_points": "Number of GPS points",
-            "button": "Minify",
+            "tooltip": "Harvenna GPS pisteiden määrää",
+            "tolerance": "Poikkeamaraja",
+            "number_of_points": "GPS pisteiden määrä",
+            "button": "Harvenna",
             "help": "Use the slider to choose the number of GPS points to keep.",
             "help_no_selection": "Select a trace to reduce the number of its GPS points."
         },
@@ -214,7 +214,7 @@
             "delete_waypoints": "Delete points of interest",
             "delete_inside": "Delete inside selection",
             "delete_outside": "Delete outside selection",
-            "button": "Delete",
+            "button": "Poista",
             "help": "Select a rectangle area on the map to remove GPS points and points of interest.",
             "help_no_selection": "Select a trace to clean GPS points and points of interest."
         }
@@ -227,7 +227,7 @@
             "title": "Custom layers",
             "new": "New custom layer",
             "edit": "Edit custom layer",
-            "urls": "URL(s)",
+            "urls": "URL(t)",
             "url_placeholder": "WMTS, WMS or Mapbox style JSON",
             "max_zoom": "Max zoom",
             "layer_type": "Layer type",
