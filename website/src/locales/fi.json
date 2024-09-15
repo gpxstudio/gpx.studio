@@ -210,10 +210,10 @@
         },
         "clean": {
             "tooltip": "Clean GPS points and points of interest with a rectangle selection",
-            "delete_trackpoints": "Delete GPS points",
+            "delete_trackpoints": "Poista reittipisteitä",
             "delete_waypoints": "Poista kohdepisteitä",
-            "delete_inside": "Delete inside selection",
-            "delete_outside": "Delete outside selection",
+            "delete_inside": "Poista valitut",
+            "delete_outside": "Poista valinnan ulkopuoliset",
             "button": "Poista",
             "help": "Poista reittipisteitä ja kohdepisteitä suorakulmaiselta alueelta.",
             "help_no_selection": "Select a trace to clean GPS points and points of interest."
@@ -298,7 +298,7 @@
             "waymarkedTrailsSkating": "Skating",
             "waymarkedTrailsHorseRiding": "Horse Riding",
             "waymarkedTrailsWinter": "Winter",
-            "points_of_interest": "Points of interest",
+            "points_of_interest": "Kohdepisteet",
             "food": "Food",
             "bakery": "Bakery",
             "food-store": "Food Store",
