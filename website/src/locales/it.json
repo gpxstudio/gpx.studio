@@ -166,7 +166,7 @@
             "artificial": "Crea tempi realistici",
             "update": "Aggiorna i dati del tempo",
             "help": "Usa il modulo per impostare nuovi tempi.",
-            "help_invalid_selection": "Select a single trace to manage its time data."
+            "help_invalid_selection": "Seleziona una traccia singola per gestire i suoi dati temporali."
         },
         "merge": {
             "merge_traces": "Collega le tracce",
@@ -181,8 +181,8 @@
         "extract": {
             "tooltip": "Estrae i contenuti per separare gli elementi",
             "button": "Estrai",
-            "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
-            "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
+            "help": "L'estrazione del contenuto degli elementi selezionati creerà un elemento separato per ciascuno dei loro contenuti.",
+            "help_invalid_selection": "La tua selezione deve contenere elementi con tracce multiple per estrarli."
         },
         "elevation": {
             "button": "Richiedi dati elevazione",
@@ -212,11 +212,11 @@
             "tooltip": "Pulire i punti GPS e i punti di interesse con una selezione rettangolare",
             "delete_trackpoints": "Eliminare punti GPS",
             "delete_waypoints": "Cancella punti d'interesse",
-            "delete_inside": "Delete inside selection",
+            "delete_inside": "Elimina all'interno della selezione",
             "delete_outside": "Elimina fuori dalla selezione",
             "button": "Elimina",
             "help": "Selezionare un'area rettangolare sulla mappa per rimuovere i punti GPS e i punti di interesse.",
-            "help_no_selection": "Select a trace to clean GPS points and points of interest."
+            "help_no_selection": "Seleziona una traccia per pulire i punti GPS e i punti di interesse."
         }
     },
     "layers": {
@@ -308,7 +308,7 @@
             "water": "Acqua",
             "shower": "Doccia",
             "shelter": "Riparo",
-            "motorized": "Cars and Motorcycles",
+            "motorized": "Auto e Motocicli",
             "fuel-station": "Stazione di Rifornimento",
             "parking": "Parcheggio",
             "garage": "Garage",
@@ -432,7 +432,7 @@
             "shelter": "Rifugio",
             "shopping_center": "Centro commerciale",
             "shower": "Doccia",
-            "summit": "Summit",
+            "summit": "Cima",
             "telephone": "Telefono",
             "tunnel": "Tunnel",
             "water_source": "Fonte d'acqua"
