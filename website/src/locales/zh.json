@@ -73,10 +73,10 @@
             "button": "外观...",
             "color": "配色",
             "opacity": "透明度",
-            "width": "宽度"
+            "width": "宽"
         },
         "hide": "隐藏",
-        "unhide": "取消隐藏",
+        "unhide": "显示",
         "center": "Center",
         "open_in": "打开"
     },
@@ -85,27 +85,27 @@
             "tooltip": "规划或编辑路线",
             "activity": "活动",
             "use_routing": "路由",
-            "use_routing_tooltip": "通过公路网络连接锚点，如果禁用则直接连接直线",
+            "use_routing_tooltip": "通过路网连接锚点，若禁用则用直线连接",
             "allow_private": "允许私有道路",
             "reverse": {
                 "button": "反转",
-                "tooltip": "反转路由方向"
+                "tooltip": "反转路线"
             },
             "route_back_to_start": {
-                "button": "返回至起点",
-                "tooltip": "将路由的最后一点与起点连接"
+                "button": "返回起点",
+                "tooltip": "连接路线的终点与起点"
             },
             "round_trip": {
                 "button": "往返",
                 "tooltip": "通过相同路线返回起始点"
             },
             "start_loop_here": "在此开始循环",
-            "help_no_file": "选择一个轨迹来使用路由工具，或点击地图开始创建新路由。",
-            "help": "点击地图添加一个新的锚点，或拖动现有的锚点以更改路由。",
+            "help_no_file": "选择一条轨迹进行编辑，或在地图上单击创建新的路线。",
+            "help": "在地图上点击添加一个新的锚点，或拖动现有的锚点以改变路线。",
             "activities": {
                 "bike": "自行车",
                 "racing_bike": "公路自行车",
-                "gravel_bike": "公路自行车",
+                "gravel_bike": "山地自行车",
                 "mountain_bike": "山地自行车",
                 "foot": "跑步/徒步",
                 "motorcycle": "摩托车",
@@ -113,7 +113,7 @@
                 "railway": "铁路"
             },
             "surface": {
-                "unknown": "未知的",
+                "unknown": "未知",
                 "paved": "铺装路面",
                 "unpaved": "非铺装路面",
                 "asphalt": "沥青",
@@ -144,16 +144,16 @@
                 "grass_paver": "草坪"
             },
             "error": {
-                "from": "起点距离最近的道路太远",
-                "via": "起点距离最近的道路太远",
-                "to": "终点离最近的道路太远了",
+                "from": "起点离最近的道路太远",
+                "via": "途径点离最近的道路太远",
+                "to": "终点离最近的道路太远",
                 "timeout": "Route calculation took too long, try adding points closer together"
             }
         },
         "scissors": {
             "tooltip": "裁剪或拆分",
             "crop": "裁剪",
-            "split_as": "",
+            "split_as": "将轨迹分为",
             "help_invalid_selection": "Select a trace to crop or split.",
             "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
         },
