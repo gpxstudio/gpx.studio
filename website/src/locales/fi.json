@@ -205,17 +205,17 @@
             "tolerance": "Poikkeamaraja",
             "number_of_points": "GPS pisteiden määrä",
             "button": "Harvenna",
-            "help": "Use the slider to choose the number of GPS points to keep.",
-            "help_no_selection": "Select a trace to reduce the number of its GPS points."
+            "help": "Aseta reittiviivan yksityiskohtaisuus säätimellä.",
+            "help_no_selection": "Valitse harvennettava reitti."
         },
         "clean": {
             "tooltip": "Clean GPS points and points of interest with a rectangle selection",
             "delete_trackpoints": "Delete GPS points",
-            "delete_waypoints": "Delete points of interest",
+            "delete_waypoints": "Poista kohdepisteitä",
             "delete_inside": "Delete inside selection",
             "delete_outside": "Delete outside selection",
             "button": "Poista",
-            "help": "Select a rectangle area on the map to remove GPS points and points of interest.",
+            "help": "Poista reittipisteitä ja kohdepisteitä suorakulmaiselta alueelta.",
             "help_no_selection": "Select a trace to clean GPS points and points of interest."
         }
     },
