@@ -806,7 +806,7 @@ export class TrackSegment extends GPXTreeLeaf {
         return distanceWindowSmoothingWithDistanceAccumulator(points, 50, (accumulated, start, end) => 100 * ((points[end].ele ?? 0) - (points[start].ele ?? 0)) / (accumulated > 0 ? accumulated : 1));
     }
 
-    _computeSlopeSegments(statistics: GPXStatistics): [number[], number[]] {
+    _computeSlopeSegments(statistics: GPXStatistics, epsilon = 20): [number[], number[]] {
         // x-coordinates are given by: statistics.local.distance.total[point._data.index] * 1000
         // y-coordinates are given by: point.ele
         // Compute the distance between point3 and the line defined by point1 and point2
