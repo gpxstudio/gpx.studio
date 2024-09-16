@@ -355,7 +355,7 @@
     "quantities": {
         "distance": "Distance",
         "elevation": "Korkeus",
-        "elevation_gain_loss": "Elevation gain and loss",
+        "elevation_gain_loss": "Nousu- ja laskusumma",
         "temperature": "Lämpötila",
         "speed": "Speed",
         "pace": "Pace",
