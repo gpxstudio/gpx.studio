@@ -1,7 +1,6 @@
 import { ramerDouglasPeucker } from "./simplify";
 import { Coordinates, GPXFileAttributes, GPXFileType, LineStyleExtension, Link, Metadata, RouteType, TrackExtensions, TrackPointExtensions, TrackPointType, TrackSegmentType, TrackType, WaypointType } from "./types";
 import { immerable, isDraft, original, freeze } from "immer";
-import { Feature, FeatureCollection } from "geojson";
 
 function cloneJSON<T>(obj: T): T {
     if (obj === null || typeof obj !== 'object') {
@@ -24,7 +23,7 @@ export abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
     abstract getSegments(): TrackSegment[];
     abstract getTrackPoints(): TrackPoint[];
 
-    abstract toGeoJSON(): Feature | Feature[] | FeatureCollection | FeatureCollection[];
+    abstract toGeoJSON(): GeoJSON.Feature | GeoJSON.Feature[] | GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[];
 
     // Producers
     abstract _reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date);
@@ -219,7 +218,7 @@ export class GPXFile extends GPXTreeNode<Track> {
         });
     }
 
-    toGeoJSON(): FeatureCollection {
+    toGeoJSON(): GeoJSON.FeatureCollection {
         return {
             type: "FeatureCollection",
             features: this.children.flatMap((child) => child.toGeoJSON())
@@ -519,7 +518,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
         return undefined;
     }
 
-    toGeoJSON(): Feature[] {
+    toGeoJSON(): GeoJSON.Feature[] {
         return this.children.map((child) => {
             let geoJSON = child.toGeoJSON();
             if (this.extensions && this.extensions['gpx_style:line']) {
@@ -880,7 +879,7 @@ export class TrackSegment extends GPXTreeLeaf {
         return this.trkpt;
     }
 
-    toGeoJSON(): Feature {
+    toGeoJSON(): GeoJSON.Feature {
         return {
             type: "Feature",
             geometry: {
