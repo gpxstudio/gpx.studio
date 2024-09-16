@@ -806,30 +806,8 @@ export class TrackSegment extends GPXTreeLeaf {
         return distanceWindowSmoothingWithDistanceAccumulator(points, 50, (accumulated, start, end) => 100 * ((points[end].ele ?? 0) - (points[start].ele ?? 0)) / (accumulated > 0 ? accumulated : 1));
     }
 
-    _computeSlopeSegments(statistics: GPXStatistics, epsilon = 20): [number[], number[]] {
-        // x-coordinates are given by: statistics.local.distance.total[point._data.index] * 1000
-        // y-coordinates are given by: point.ele
-        // Compute the distance between point3 and the line defined by point1 and point2
-        function elevationDistance(point1: TrackPoint, point2: TrackPoint, point3: TrackPoint): number {
-            if (point1.ele === undefined || point2.ele === undefined || point3.ele === undefined) {
-                return 0;
-            }
-            let x1 = statistics.local.distance.total[point1._data.index] * 1000;
-            let x2 = statistics.local.distance.total[point2._data.index] * 1000;
-            let x3 = statistics.local.distance.total[point3._data.index] * 1000;
-            let y1 = point1.ele;
-            let y2 = point2.ele;
-            let y3 = point3.ele;
-
-            let dist = Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
-            if (dist === 0) {
-                return Math.sqrt(Math.pow(x3 - x1, 2) + Math.pow(y3 - y1, 2));
-            }
-
-            return Math.abs((y2 - y1) * x3 - (x2 - x1) * y3 + x2 * y1 - y2 * x1) / dist;
-        }
-
-        let simplified = ramerDouglasPeucker(this.trkpt, 20, elevationDistance);
+    _computeSlopeSegments(statistics: GPXStatistics): [number[], number[]] {
+        let simplified = ramerDouglasPeucker(this.trkpt, 20, getElevationDistanceFunction(statistics));
 
         let slope = [];
         let length = [];
@@ -1461,6 +1439,30 @@ export function distance(coord1: TrackPoint | Coordinates, coord2: TrackPoint | 
     const a = Math.sin(lat1) * Math.sin(lat2) + Math.cos(lat1) * Math.cos(lat2) * Math.cos((coord2.lon - coord1.lon) * rad);
     const maxMeters = earthRadius * Math.acos(Math.min(a, 1));
     return maxMeters;
+}
+
+export function getElevationDistanceFunction(statistics: GPXStatistics) {
+    // x-coordinates are given by: statistics.local.distance.total[point._data.index] * 1000
+    // y-coordinates are given by: point.ele
+    // Compute the distance between point3 and the line defined by point1 and point2
+    return (point1: TrackPoint, point2: TrackPoint, point3: TrackPoint) => {
+        if (point1.ele === undefined || point2.ele === undefined || point3.ele === undefined) {
+            return 0;
+        }
+        let x1 = statistics.local.distance.total[point1._data.index] * 1000;
+        let x2 = statistics.local.distance.total[point2._data.index] * 1000;
+        let x3 = statistics.local.distance.total[point3._data.index] * 1000;
+        let y1 = point1.ele;
+        let y2 = point2.ele;
+        let y3 = point3.ele;
+
+        let dist = Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
+        if (dist === 0) {
+            return Math.sqrt(Math.pow(x3 - x1, 2) + Math.pow(y3 - y1, 2));
+        }
+
+        return Math.abs((y2 - y1) * x3 - (x2 - x1) * y3 + x2 * y1 - y2 * x1) / dist;
+    }
 }
 
 function distanceWindowSmoothing(points: TrackPoint[], distanceWindow: number, accumulate: (index: number) => number, compute: (accumulated: number, start: number, end: number) => number, remove?: (index: number) => number): number[] {
