@@ -464,24 +464,24 @@
         "identity_description": "Este sitio web es de uso gratuito, sin anuncios y el código fuente está disponible públicamente en GitHub. Esto solo es posible gracias al increíble apoyo de la comunidad."
     },
     "docs": {
-        "translate": "Improve the translation on Crowdin",
-        "answer_not_found": "Did not find what you were looking for?",
-        "ask_on_reddit": "Ask the community on Reddit",
+        "translate": "Mejorar la traducción en Crowdin",
+        "answer_not_found": "¿No ha encontrado lo que buscaba?",
+        "ask_on_reddit": "Pregunte a la comunidad en Reddit",
         "search": {
-            "search": "Search",
-            "clear": "Clear",
+            "search": "Buscar",
+            "clear": "Limpiar",
             "cancel": "Cancelar",
-            "recent": "Recent searches",
-            "no_recent": "No recent searches",
-            "save": "Save this search",
-            "remove": "Remove this search from history",
-            "favorites": "Favorites",
-            "remove_favorite": "Remove this search from favorites",
-            "to_select": "to select",
-            "to_navigate": "to navigate",
-            "to_close": "to close",
-            "no_results": "No results for",
-            "no_results_suggestion": "Try searching for"
+            "recent": "Búsquedas recientes",
+            "no_recent": "No hay búsquedas recientes",
+            "save": "Guardar esta búsqueda",
+            "remove": "Eliminar esta búsqueda del historial",
+            "favorites": "Favoritos",
+            "remove_favorite": "Eliminar esta búsqueda de favoritos",
+            "to_select": "para seleccionar",
+            "to_navigate": "para navegar",
+            "to_close": "para cerrar",
+            "no_results": "No hay resultados para",
+            "no_results_suggestion": "Intente buscar"
         }
     },
     "embedding": {
