@@ -292,11 +292,11 @@
             "ignSlope": "IGN Slope",
             "ignSkiTouring": "IGN Ski Touring",
             "waymarked_trails": "Waymarked Trails",
-            "waymarkedTrailsHiking": "Hiking",
-            "waymarkedTrailsCycling": "Cycling",
-            "waymarkedTrailsMTB": "MTB",
-            "waymarkedTrailsSkating": "Skating",
-            "waymarkedTrailsHorseRiding": "Horse Riding",
+            "waymarkedTrailsHiking": "Patikointi",
+            "waymarkedTrailsCycling": "Pyöräily",
+            "waymarkedTrailsMTB": "Maastopyöräily",
+            "waymarkedTrailsSkating": "Luistelu",
+            "waymarkedTrailsHorseRiding": "Ratsastus",
             "waymarkedTrailsWinter": "Winter",
             "points_of_interest": "Kohdepisteet",
             "food": "Food",
@@ -334,11 +334,11 @@
             "ferry": "Lautat"
         },
         "color": {
-            "blue": "Blue",
+            "blue": "Sininen",
             "bluered": "Blue Red",
-            "gray": "Gray",
+            "gray": "Harmaa",
             "hot": "Hot",
-            "purple": "Purple",
+            "purple": "Violetti",
             "orange": "Oranssi"
         }
     },
