@@ -1,17 +1,17 @@
 {
     "metadata": {
         "home_title": "首页",
-        "app_title": "GPX 文件在线编辑器",
+        "app_title": "在线GPX 文件编辑器",
         "embed_title": "GPX 文件在线编辑器",
         "help_title": "帮助",
-        "404_title": "无法找到页面",
-        "description": "利用先进的路线规划功能和文件处理工具、精美的地图和详细的可视化数据，在线查看、编辑和创建 GPX 文件。"
+        "404_title": "找不到页面",
+        "description": "在线查看、编辑和创建 GPX 文件，包含高级路线规划、文件管理器、精美的地图和详细的数据可视化功能。"
     },
     "menu": {
         "new": "新建",
         "new_file": "新建文件",
-        "new_track": "新路线",
-        "new_segment": "新分段",
+        "new_track": "新建轨迹",
+        "new_segment": "新建轨迹段",
         "open": "打开...",
         "duplicate": "创建副本",
         "close": "关闭",
@@ -22,7 +22,7 @@
         "export": "导出...",
         "export_all": "全部导出...",
         "export_options": "导出选项",
-        "support_message": "该工具可免费使用，但不能免费运行。如果您经常使用，请考虑支持本网站。谢谢！",
+        "support_message": "本工具免费使用，但运行需要消耗成本。若您经常使用，请捐助支持本网站。谢谢！",
         "support_button": "帮助网站保持免费",
         "download_file": "下载文件",
         "download_files": "下载文件",
@@ -58,7 +58,7 @@
         "distance_markers": "距离标记",
         "direction_markers": "方向箭头",
         "help": "帮助",
-        "more": "更多",
+        "more": "更多...",
         "donate": "捐赠",
         "ctrl": "Ctrl",
         "click": "单击",
@@ -73,10 +73,10 @@
             "button": "外观...",
             "color": "配色",
             "opacity": "透明度",
-            "width": "宽度"
+            "width": "宽"
         },
         "hide": "隐藏",
-        "unhide": "取消隐藏",
+        "unhide": "显示",
         "center": "Center",
         "open_in": "打开"
     },
@@ -85,27 +85,27 @@
             "tooltip": "规划或编辑路线",
             "activity": "活动",
             "use_routing": "路由",
-            "use_routing_tooltip": "通过公路网络连接锚点，如果禁用则直接连接直线",
+            "use_routing_tooltip": "通过路网连接锚点，若禁用则用直线连接",
             "allow_private": "允许私有道路",
             "reverse": {
                 "button": "反转",
-                "tooltip": "反转路由方向"
+                "tooltip": "反转路线"
             },
             "route_back_to_start": {
-                "button": "返回至起点",
-                "tooltip": "将路由的最后一点与起点连接"
+                "button": "返回起点",
+                "tooltip": "连接路线的终点与起点"
             },
             "round_trip": {
                 "button": "往返",
                 "tooltip": "通过相同路线返回起始点"
             },
             "start_loop_here": "在此开始循环",
-            "help_no_file": "选择一个轨迹来使用路由工具，或点击地图开始创建新路由。",
-            "help": "点击地图添加一个新的锚点，或拖动现有的锚点以更改路由。",
+            "help_no_file": "选择一条轨迹进行编辑，或在地图上单击创建新的路线。",
+            "help": "在地图上点击添加一个新的锚点，或拖动现有的锚点以改变路线。",
             "activities": {
                 "bike": "自行车",
                 "racing_bike": "公路自行车",
-                "gravel_bike": "公路自行车",
+                "gravel_bike": "山地自行车",
                 "mountain_bike": "山地自行车",
                 "foot": "跑步/徒步",
                 "motorcycle": "摩托车",
@@ -113,7 +113,7 @@
                 "railway": "铁路"
             },
             "surface": {
-                "unknown": "未知的",
+                "unknown": "未知",
                 "paved": "铺装路面",
                 "unpaved": "非铺装路面",
                 "asphalt": "沥青",
@@ -144,16 +144,16 @@
                 "grass_paver": "草坪"
             },
             "error": {
-                "from": "起点距离最近的道路太远",
-                "via": "起点距离最近的道路太远",
-                "to": "终点离最近的道路太远了",
+                "from": "起点离最近的道路太远",
+                "via": "途径点离最近的道路太远",
+                "to": "终点离最近的道路太远",
                 "timeout": "Route calculation took too long, try adding points closer together"
             }
         },
         "scissors": {
             "tooltip": "裁剪或拆分",
             "crop": "裁剪",
-            "split_as": "",
+            "split_as": "将轨迹分为",
             "help_invalid_selection": "Select a trace to crop or split.",
             "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
         },
@@ -191,19 +191,19 @@
         },
         "waypoint": {
             "tooltip": "创建并编辑兴趣点",
-            "icon": "Icon",
+            "icon": "图标",
             "link": "Link",
             "longitude": "经度",
             "latitude": "纬度",
-            "create": "Create point of interest",
+            "create": "创建兴趣点",
             "add": "Add point of interest to file",
             "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
             "help_no_selection": "Select a file to create or edit points of interest."
         },
         "reduce": {
-            "tooltip": "Reduce the number of GPS points",
+            "tooltip": "减少轨迹点的数量",
             "tolerance": "Tolerance",
-            "number_of_points": "Number of GPS points",
+            "number_of_points": "轨迹点数量",
             "button": "Minify",
             "help": "Use the slider to choose the number of GPS points to keep.",
             "help_no_selection": "Select a trace to reduce the number of its GPS points."
