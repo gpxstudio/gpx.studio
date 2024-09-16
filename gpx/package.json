@@ -15,12 +15,13 @@
         "immer": "^10.1.1",
         "ts-node": "^10.9.2"
     },
-    "scripts": {
-        "build": "tsc"
-    },
     "devDependencies": {
         "@types/geojson": "^7946.0.14",
         "@types/node": "^20.14.6",
         "typescript": "^5.4.5"
+    },
+    "scripts": {
+        "build": "tsc",
+        "postinstall": "npm run build"
     }
 }
