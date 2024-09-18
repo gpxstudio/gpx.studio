@@ -3,7 +3,7 @@ title: Actions d'édition
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize } from 'lucide-svelte';
+    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -30,6 +30,28 @@ Ouvrir la boîte de dialogue d'apparence, où vous pouvez changer la couleur, l'
 ### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Cacher/afficher
 
 Activer/désactiver la visibilité des éléments de fichier sélectionnés sur la carte.
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New track
+
+Create a new track in the selected file.
+
+<DocsNote>
+
+Cette action n'est disponible que lorsque la vue verticale de la liste de fichiers est activée.
+Additionally, the selection must be a single file.
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New segment
+
+Create a new segment in the selected track.
+
+<DocsNote>
+
+Cette action n'est disponible que lorsque la vue verticale de la liste de fichiers est activée.
+Additionally, the selection must be a single track.
+
+</DocsNote>
 
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Sélectionner tout
 
