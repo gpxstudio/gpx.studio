@@ -3,7 +3,7 @@ title: Bewerkingen
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize } from 'lucide-svelte';
+    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -30,6 +30,28 @@ Open het uiterlijk-dialoogvenster, waar je de kleur, doorzichtigheid en breedte 
 ### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Verberg/Toon
 
 De zichtbaarheid van de geselecteerde bestandsitems op de kaart in-/uitschakelen.
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Nieuwe track
+
+Maak een nieuwe track aan in het geselecteerde bestand.
+
+<DocsNote>
+
+Deze actie is alleen beschikbaar wanneer de verticale lay-out van de bestandslijst is ingeschakeld.
+Bovendien moet de selectie een enkel bestand zijn.
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Nieuw segment
+
+Maak een nieuw segment aan in de geselecteerde track.
+
+<DocsNote>
+
+Deze actie is alleen beschikbaar wanneer de verticale lay-out van de bestandslijst is ingeschakeld.
+Bovendien moet de selectie een enkele track zijn.
+
+</DocsNote>
 
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Selecteer alles
 

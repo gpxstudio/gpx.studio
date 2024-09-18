@@ -3,7 +3,7 @@ title: Edit actions
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize } from 'lucide-svelte';
+    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -30,6 +30,28 @@ Nyissa meg a megjelenés párbeszédablakot, ahol módosíthatja a térképen ki
 ### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Elrejtés/megjelenítés
 
 Kapcsolja be a kijelölt fájlelemek láthatóságát a térképen.
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New track
+
+Create a new track in the selected file.
+
+<DocsNote>
+
+Ez a művelet csak akkor érhető el, ha a fájllista függőleges elrendezése engedélyezett.
+Additionally, the selection must be a single file.
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New segment
+
+Create a new segment in the selected track.
+
+<DocsNote>
+
+Ez a művelet csak akkor érhető el, ha a fájllista függőleges elrendezése engedélyezett.
+Additionally, the selection must be a single track.
+
+</DocsNote>
 
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Az összes kijelölése
 

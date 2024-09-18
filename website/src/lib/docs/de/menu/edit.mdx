@@ -3,7 +3,7 @@ title: Edit actions
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize } from 'lucide-svelte';
+    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -30,6 +30,28 @@ Dies gilt für alle Aktionen der Bedienoberfläche, aber nicht für Optionen, An
 ### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Einblenden/Ausblenden
 
 Konfigurieren Sie die Sichtbarkeit der ausgewählten Dateielemente auf der Karte.
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New track
+
+Create a new track in the selected file.
+
+<DocsNote>
+
+Diese Aktion ist nur verfügbar, wenn das vertikale Layout der Dateiliste aktiviert ist.
+Additionally, the selection must be a single file.
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New segment
+
+Create a new segment in the selected track.
+
+<DocsNote>
+
+Diese Aktion ist nur verfügbar, wenn das vertikale Layout der Dateiliste aktiviert ist.
+Additionally, the selection must be a single track.
+
+</DocsNote>
 
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Alle auswählen
 

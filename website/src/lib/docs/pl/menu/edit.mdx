@@ -3,7 +3,7 @@ title: Edit actions
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize } from 'lucide-svelte';
+    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -30,6 +30,28 @@ Otwórz okno dialogowe wyglądu, aby zmienić kolor, przezroczystość i szeroko
 ### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Ukryj/pokaż
 
 Przełącz widoczność zaznaczonego pliku na mapie.
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New track
+
+Create a new track in the selected file.
+
+<DocsNote>
+
+Ta akcja jest dostępna tylko wtedy, gdy układ pionowy listy plików jest włączony.
+Additionally, the selection must be a single file.
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New segment
+
+Create a new segment in the selected track.
+
+<DocsNote>
+
+Ta akcja jest dostępna tylko wtedy, gdy układ pionowy listy plików jest włączony.
+Additionally, the selection must be a single track.
+
+</DocsNote>
 
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Zaznacz wszystko
 
