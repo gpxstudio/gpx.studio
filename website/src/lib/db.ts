@@ -512,6 +512,15 @@ export const dbUtils = {
             });
         });
     },
+    addNewTrack: (fileId: string) => {
+        dbUtils.applyToFile(fileId, (file) => file.replaceTracks(file.trk.length, file.trk.length, [new Track()]));
+    },
+    addNewSegment: (fileId: string, trackIndex: number) => {
+        dbUtils.applyToFile(fileId, (file) => {
+            let track = file.trk[trackIndex];
+            track.replaceTrackSegments(track.trkseg.length, track.trkseg.length, [new TrackSegment()]);
+        });
+    },
     reverseSelection: () => {
         if (!get(selection).hasAnyChildren(new ListRootItem(), true, ['waypoints']) || get(gpxStatistics).local.points?.length <= 1) {
             return;

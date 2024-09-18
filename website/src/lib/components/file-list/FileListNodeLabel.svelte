@@ -248,10 +248,7 @@
 			{#if item instanceof ListFileItem}
 				<ContextMenu.Item
 					disabled={!singleSelection}
-					on:click={() =>
-						dbUtils.applyToFile(item.getFileId(), (file) =>
-							file.replaceTracks(file.trk.length, file.trk.length, [new Track()])
-						)}
+					on:click={() => dbUtils.addNewTrack(item.getFileId())}
 				>
 					<Plus size="16" class="mr-1" />
 					{$_('menu.new_track')}
@@ -260,17 +257,7 @@
 			{:else if item instanceof ListTrackItem}
 				<ContextMenu.Item
 					disabled={!singleSelection}
-					on:click={() => {
-						let trackIndex = item.getTrackIndex();
-						dbUtils.applyToFile(item.getFileId(), (file) =>
-							file.replaceTrackSegments(
-								trackIndex,
-								file.trk[trackIndex].trkseg.length,
-								file.trk[trackIndex].trkseg.length,
-								[new TrackSegment()]
-							)
-						);
-					}}
+					on:click={() => dbUtils.addNewSegment(item.getFileId(), item.getTrackIndex())}
 				>
 					<Plus size="16" class="mr-1" />
 					{$_('menu.new_segment')}
