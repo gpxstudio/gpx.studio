@@ -84,16 +84,20 @@ gpxStatistics.subscribe(() => {
     slicedGPXStatistics.set(undefined);
 });
 
-const targetMapBounds = writable({
+const targetMapBounds = writable<{
+    bounds: mapboxgl.LngLatBounds;
+    ids: string[];
+    total: number;
+}>({
     bounds: new mapboxgl.LngLatBounds([180, 90, -180, -90]),
-    count: 0,
-    total: -1
+    ids: [],
+    total: 0,
 });
 
 derived([targetMapBounds, map], (x) => x).subscribe(([bounds, $map]) => {
     if (
         $map === null ||
-        bounds.count !== bounds.total ||
+        bounds.ids.length > 0 ||
         (bounds.bounds.getSouth() === 90 &&
             bounds.bounds.getWest() === 180 &&
             bounds.bounds.getNorth() === -90 &&
@@ -102,10 +106,13 @@ derived([targetMapBounds, map], (x) => x).subscribe(([bounds, $map]) => {
         return;
     }
 
+    let currentZoom = $map.getZoom();
     let currentBounds = $map.getBounds();
-    if (bounds.count !== get(fileObservers).size && currentBounds) {
+    if (bounds.total !== get(fileObservers).size &&
+        currentBounds &&
+        currentZoom > 2 // Extend current bounds only if the map is zoomed in
+    ) {
         // There are other files on the map
-
         if (
             currentBounds.contains(bounds.bounds.getSouthEast()) &&
             currentBounds.contains(bounds.bounds.getNorthWest())
@@ -120,33 +127,32 @@ derived([targetMapBounds, map], (x) => x).subscribe(([bounds, $map]) => {
     $map.fitBounds(bounds.bounds, { padding: 80, linear: true, easing: () => 1 });
 });
 
-export function initTargetMapBounds(total: number) {
+export function initTargetMapBounds(ids: string[]) {
     targetMapBounds.set({
         bounds: new mapboxgl.LngLatBounds([180, 90, -180, -90]),
-        count: 0,
-        total: total
+        ids,
+        total: ids.length,
     });
 }
 
-export function updateTargetMapBounds(bounds: { southWest: Coordinates; northEast: Coordinates }) {
-    if (
-        bounds.southWest.lat == 90 &&
-        bounds.southWest.lon == 180 &&
-        bounds.northEast.lat == -90 &&
-        bounds.northEast.lon == -180
-    ) {
-        // Avoid update for empty (new) files
-        targetMapBounds.update((target) => {
-            target.count += 1;
-            return target;
-        });
+export function updateTargetMapBounds(id: string, bounds: { southWest: Coordinates; northEast: Coordinates }) {
+    if (get(targetMapBounds).ids.indexOf(id) === -1) {
         return;
     }
 
     targetMapBounds.update((target) => {
-        target.bounds.extend(bounds.southWest);
-        target.bounds.extend(bounds.northEast);
-        target.count += 1;
+        target.ids = target.ids.filter((x) => x !== id);
+        if (
+            bounds.southWest.lat !== 90 ||
+            bounds.southWest.lon !== 180 ||
+            bounds.northEast.lat !== -90 ||
+            bounds.northEast.lon !== -180
+        ) {
+            // Avoid update for empty (new) files
+            target.bounds.extend(bounds.southWest);
+            target.bounds.extend(bounds.northEast);
+        }
+
         return target;
     });
 }
@@ -246,7 +252,7 @@ export function triggerFileInput() {
 }
 
 export async function loadFiles(list: FileList | File[]) {
-    let files = [];
+    let files: GPXFile[] = [];
     for (let i = 0; i < list.length; i++) {
         let file = await loadFile(list[i]);
         if (file) {
@@ -254,11 +260,10 @@ export async function loadFiles(list: FileList | File[]) {
         }
     }
 
-    initTargetMapBounds(list.length);
+    let ids = dbUtils.addMultiple(files);
 
-    dbUtils.addMultiple(files);
-
-    selectFileWhenLoaded(files[0]._data.id);
+    initTargetMapBounds(ids);
+    selectFileWhenLoaded(ids[0]);
 }
 
 export async function loadFile(file: File): Promise<GPXFile | null> {

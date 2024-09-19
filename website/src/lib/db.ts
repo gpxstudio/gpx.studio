@@ -180,7 +180,7 @@ function dexieGPXFileStore(id: string): Readable<GPXFileWithStatistics> & { dest
 
             let statistics = new GPXStatisticsTree(gpx);
             if (!fileState.has(id)) { // Update the map bounds for new files
-                updateTargetMapBounds(statistics.getStatisticsFor(new ListFileItem(id)).global.bounds);
+                updateTargetMapBounds(id, statistics.getStatisticsFor(new ListFileItem(id)).global.bounds);
             }
 
             fileState.set(id, gpx);
@@ -287,12 +287,13 @@ export const fileObservers: Writable<Map<string, Readable<GPXFileWithStatistics 
 const fileState: Map<string, GPXFile> = new Map(); // Used to generate patches
 
 // Observe the file ids in the database, and maintain a map of file observers for the corresponding files
-export function observeFilesFromDatabase() {
+export function observeFilesFromDatabase(fitBounds: boolean) {
     let initialize = true;
     liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
         if (initialize) {
-            if (dbFileIds.length > 0) {
-                initTargetMapBounds(dbFileIds.length);
+            console.log('fitBounds', fitBounds);
+            if (fitBounds && dbFileIds.length > 0) {
+                initTargetMapBounds(dbFileIds);
             }
             initialize = false;
         }
@@ -453,13 +454,14 @@ export const dbUtils = {
         });
     },
     addMultiple: (files: GPXFile[]) => {
-        return applyGlobal((draft) => {
-            let ids = getFileIds(files.length);
+        let ids = getFileIds(files.length);
+        applyGlobal((draft) => {
             files.forEach((file, index) => {
                 file._data.id = ids[index];
                 draft.set(file._data.id, freeze(file));
             });
         });
+        return ids;
     },
     applyToFile: (id: string, callback: (file: WritableDraft<GPXFile>) => void) => {
         applyToFiles([id], callback);
