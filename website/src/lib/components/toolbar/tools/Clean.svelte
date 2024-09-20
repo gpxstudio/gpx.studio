@@ -11,9 +11,9 @@
 	import * as RadioGroup from '$lib/components/ui/radio-group';
 	import { Button } from '$lib/components/ui/button';
 	import Help from '$lib/components/Help.svelte';
-	import { _ } from 'svelte-i18n';
+	import { _, locale } from 'svelte-i18n';
 	import { onDestroy, onMount } from 'svelte';
-	import { resetCursor, setCrosshairCursor } from '$lib/utils';
+	import { getURLForLanguage, resetCursor, setCrosshairCursor } from '$lib/utils';
 	import { Trash2 } from 'lucide-svelte';
 	import { map } from '$lib/stores';
 	import { selection } from '$lib/components/file-list/Selection';
@@ -178,7 +178,7 @@
 		<Trash2 size="16" class="mr-1" />
 		{$_('toolbar.clean.button')}
 	</Button>
-	<Help link="./help/toolbar/clean">
+	<Help link={getURLForLanguage($locale, '/help/toolbar/clean')}>
 		{#if validSelection}
 			{$_('toolbar.clean.help')}
 		{:else}

@@ -17,11 +17,12 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import { gpxStatistics, map, slicedGPXStatistics, splitAs } from '$lib/stores';
 	import { get } from 'svelte/store';
-	import { _ } from 'svelte-i18n';
+	import { _, locale } from 'svelte-i18n';
 	import { onDestroy, tick } from 'svelte';
 	import { Crop } from 'lucide-svelte';
 	import { dbUtils } from '$lib/db';
 	import { SplitControls } from './SplitControls';
+	import { getURLForLanguage } from '$lib/utils';
 
 	let splitControls: SplitControls | undefined = undefined;
 	let canCrop = false;
@@ -135,7 +136,7 @@
 			</Select.Content>
 		</Select.Root>
 	</Label>
-	<Help link="./help/toolbar/scissors">
+	<Help link={getURLForLanguage($locale, '/help/toolbar/scissors')}>
 		{#if validSelection}
 			{$_('toolbar.scissors.help')}
 		{:else}

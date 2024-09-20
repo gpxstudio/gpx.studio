@@ -25,7 +25,7 @@
 	import { dbUtils, getFile, getFileIds, settings } from '$lib/db';
 	import { brouterProfiles, routingProfileSelectItem } from './Routing';
 
-	import { _ } from 'svelte-i18n';
+	import { _, locale } from 'svelte-i18n';
 	import { RoutingControls } from './RoutingControls';
 	import mapboxgl from 'mapbox-gl';
 	import { fileObservers } from '$lib/db';
@@ -38,7 +38,7 @@
 		ListTrackSegmentItem,
 		type ListItem
 	} from '$lib/components/file-list/FileList';
-	import { flyAndScale, resetCursor, setCrosshairCursor } from '$lib/utils';
+	import { flyAndScale, getURLForLanguage, resetCursor, setCrosshairCursor } from '$lib/utils';
 	import { onDestroy, onMount } from 'svelte';
 	import { TrackPoint } from 'gpx';
 
@@ -236,7 +236,7 @@
 			</Tooltip>
 		</div>
 		<div class="w-full flex flex-row gap-2 items-end justify-between">
-			<Help link="./help/toolbar/routing">
+			<Help link={getURLForLanguage($locale, '/help/toolbar/routing')}>
 				{#if !validSelection}
 					{$_('toolbar.routing.help_no_file')}
 				{:else}

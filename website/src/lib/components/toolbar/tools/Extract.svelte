@@ -11,7 +11,8 @@
 	} from '$lib/components/file-list/FileList';
 	import Help from '$lib/components/Help.svelte';
 	import { dbUtils, getFile } from '$lib/db';
-	import { _ } from 'svelte-i18n';
+	import { _, locale } from 'svelte-i18n';
+	import { getURLForLanguage } from '$lib/utils';
 
 	$: validSelection =
 		$selection.size > 0 &&
@@ -42,7 +43,7 @@
 		<Ungroup size="16" class="mr-1" />
 		{$_('toolbar.extract.button')}
 	</Button>
-	<Help link="./help/toolbar/extract">
+	<Help link={getURLForLanguage($locale, '/help/toolbar/extract')}>
 		{#if validSelection}
 			{$_('toolbar.extract.help')}
 		{:else}
