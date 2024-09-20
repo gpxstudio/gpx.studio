@@ -291,7 +291,6 @@ export function observeFilesFromDatabase(fitBounds: boolean) {
     let initialize = true;
     liveQuery(() => db.fileids.toArray()).subscribe(dbFileIds => {
         if (initialize) {
-            console.log('fitBounds', fitBounds);
             if (fitBounds && dbFileIds.length > 0) {
                 initTargetMapBounds(dbFileIds);
             }
