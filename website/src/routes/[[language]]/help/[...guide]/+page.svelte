@@ -1,36 +1,42 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { getNextGuide, getPreviousGuide } from '$lib/components/docs/docs';
-	import DocsLoader from '$lib/components/docs/DocsLoader.svelte';
+	import DocsContainer from '$lib/components/docs/DocsContainer.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { getURLForLanguage } from '$lib/utils';
 	import { ChevronLeft, ChevronRight, PenLine, CornerDownRight } from 'lucide-svelte';
 	import { _, locale } from 'svelte-i18n';
 
-	$: previousGuide = getPreviousGuide($page.params.guide);
-	$: nextGuide = getNextGuide($page.params.guide);
+	export let data: {
+		component: any;
+		previousGuide: string | undefined;
+		previousGuideTitle: string | undefined;
+		nextGuide: string | undefined;
+		nextGuideTitle: string | undefined;
+	};
 </script>
 
-<DocsLoader path="{$page.params.guide}.mdx" />
+<div class="markdown flex flex-col gap-3">
+	<DocsContainer module={data.component} />
+</div>
 
 <div class="flex flex-row flex-wrap gap-3 pt-6">
-	{#if previousGuide}
+	{#if data.previousGuide}
 		<Button
 			variant="outline"
 			class="mr-auto"
-			href={getURLForLanguage(undefined, `/help/${previousGuide}`)}
+			href={getURLForLanguage($locale, `/help/${data.previousGuide}`)}
 		>
 			<ChevronLeft size="14" class="mr-1 mt-0.5" />
-			<DocsLoader path="{previousGuide}.mdx" titleOnly={true} />
+			{data.previousGuideTitle}
 		</Button>
 	{/if}
-	{#if nextGuide}
+	{#if data.nextGuide}
 		<Button
 			variant="outline"
 			class="ml-auto"
-			href={getURLForLanguage(undefined, `/help/${nextGuide}`)}
+			href={getURLForLanguage($locale, `/help/${data.nextGuide}`)}
 		>
-			<DocsLoader path="{nextGuide}.mdx" titleOnly={true} />
+			{data.nextGuideTitle}
 			<ChevronRight size="14" class="ml-1 mt-0.5" />
 		</Button>
 	{/if}

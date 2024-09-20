@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
-	import DocsLoader from '$lib/components/docs/DocsLoader.svelte';
+	import DocsContainer from '$lib/components/docs/DocsContainer.svelte';
 	import Logo from '$lib/components/Logo.svelte';
 	import ElevationProfile from '$lib/components/ElevationProfile.svelte';
 	import GPXStatistics from '$lib/components/GPXStatistics.svelte';
@@ -8,7 +8,7 @@
 	import {
 		BookOpenText,
 		Heart,
-		LineChart,
+		ChartArea,
 		Map,
 		PencilRuler,
 		PenLine,
@@ -29,6 +29,12 @@
 	import cyclosmMap from '$lib/assets/img/home/cyclosm.png?enhanced';
 	import waymarkedMap from '$lib/assets/img/home/waymarked.png?enhanced';
 	import mapScreenshot from '$lib/assets/img/home/map.png?enhanced';
+
+	export let data: {
+		fundingComponent: any;
+		translationComponent: any;
+		mapboxComponent: any;
+	};
 
 	let gpxStatistics = writable(exampleGPXFile.getStatistics());
 	let slicedGPXStatistics = writable(undefined);
@@ -161,7 +167,7 @@
 	<div class="px-8 md:px-12">
 		<div class="markdown text-center px-4 md:px-12">
 			<h1>
-				<LineChart size="24" class="mr-1 inline-block align-baseline" />
+				<ChartArea size="24" class="mr-1 inline-block align-baseline" />
 				{$_('homepage.data_visualization')}
 			</h1>
 			<p class="text-muted-foreground mb-6">{$_('homepage.data_visualization_description')}</p>
@@ -222,7 +228,7 @@
 		<div
 			class="grow max-w-xl flex flex-col items-center gap-6 p-8 border rounded-2xl shadow-xl -rotate-1 lg:rotate-1"
 		>
-			<DocsLoader path="home/funding.mdx" />
+			<DocsContainer module={data.fundingComponent} />
 			<Button href="https://ko-fi.com/gpxstudio" target="_blank" class="text-base">
 				<Heart size="16" class="mr-1" fill="rgb(var(--support))" color="rgb(var(--support))" />
 				<span>{$_('homepage.support_button')}</span>
@@ -231,7 +237,7 @@
 		<div
 			class="grow max-w-lg mx-6 h-fit bg-background flex flex-col items-center gap-6 p-8 border rounded-2xl shadow-xl rotate-1 lg:-rotate-1"
 		>
-			<DocsLoader path="home/translation.mdx" />
+			<DocsContainer module={data.translationComponent} />
 			<Button href="https://crowdin.com/project/gpxstudio" target="_blank" class="text-base">
 				<PenLine size="16" class="mr-1" />
 				<span>{$_('homepage.contribute')}</span>
@@ -250,7 +256,7 @@
 					<Logo company="mapbox" class="w-60" />
 				</a>
 			</div>
-			<DocsLoader path="home/mapbox.mdx" />
+			<DocsContainer module={data.mapboxComponent} />
 		</div>
 	</div>
 </div>
