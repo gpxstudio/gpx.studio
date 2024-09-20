@@ -7,16 +7,16 @@
 	import { _, locale } from 'svelte-i18n';
 
 	export let data: {
-		component: any;
+		guideModule: any;
 		previousGuide: string | undefined;
-		previousGuideTitle: string | undefined;
+		previousGuideModule: any;
 		nextGuide: string | undefined;
-		nextGuideTitle: string | undefined;
+		nextGuideModule: any;
 	};
 </script>
 
 <div class="markdown flex flex-col gap-3">
-	<DocsContainer module={data.component} />
+	<DocsContainer module={data.guideModule.default} />
 </div>
 
 <div class="flex flex-row flex-wrap gap-3 pt-6">
@@ -27,7 +27,9 @@
 			href={getURLForLanguage($locale, `/help/${data.previousGuide}`)}
 		>
 			<ChevronLeft size="14" class="mr-1 mt-0.5" />
-			{data.previousGuideTitle}
+			{#await data.previousGuideModule then guideModule}
+				{guideModule.metadata.title}
+			{/await}
 		</Button>
 	{/if}
 	{#if data.nextGuide}
@@ -36,7 +38,9 @@
 			class="ml-auto"
 			href={getURLForLanguage($locale, `/help/${data.nextGuide}`)}
 		>
-			{data.nextGuideTitle}
+			{#await data.nextGuideModule then guideModule}
+				{guideModule.metadata.title}
+			{/await}
 			<ChevronRight size="14" class="ml-1 mt-0.5" />
 		</Button>
 	{/if}

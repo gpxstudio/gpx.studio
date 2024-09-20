@@ -31,9 +31,9 @@
 	import mapScreenshot from '$lib/assets/img/home/map.png?enhanced';
 
 	export let data: {
-		fundingComponent: any;
-		translationComponent: any;
-		mapboxComponent: any;
+		fundingModule: any;
+		translationModule: any;
+		mapboxModule: any;
 	};
 
 	let gpxStatistics = writable(exampleGPXFile.getStatistics());
@@ -228,7 +228,9 @@
 		<div
 			class="grow max-w-xl flex flex-col items-center gap-6 p-8 border rounded-2xl shadow-xl -rotate-1 lg:rotate-1"
 		>
-			<DocsContainer module={data.fundingComponent} />
+			{#await data.fundingModule then fundingModule}
+				<DocsContainer module={fundingModule.default} />
+			{/await}
 			<Button href="https://ko-fi.com/gpxstudio" target="_blank" class="text-base">
 				<Heart size="16" class="mr-1" fill="rgb(var(--support))" color="rgb(var(--support))" />
 				<span>{$_('homepage.support_button')}</span>
@@ -237,7 +239,9 @@
 		<div
 			class="grow max-w-lg mx-6 h-fit bg-background flex flex-col items-center gap-6 p-8 border rounded-2xl shadow-xl rotate-1 lg:-rotate-1"
 		>
-			<DocsContainer module={data.translationComponent} />
+			{#await data.translationModule then translationModule}
+				<DocsContainer module={translationModule.default} />
+			{/await}
 			<Button href="https://crowdin.com/project/gpxstudio" target="_blank" class="text-base">
 				<PenLine size="16" class="mr-1" />
 				<span>{$_('homepage.contribute')}</span>
@@ -256,7 +260,9 @@
 					<Logo company="mapbox" class="w-60" />
 				</a>
 			</div>
-			<DocsContainer module={data.mapboxComponent} />
+			{#await data.mapboxModule then mapboxModule}
+				<DocsContainer module={mapboxModule.default} />
+			{/await}
 		</div>
 	</div>
 </div>
