@@ -266,23 +266,25 @@
 								{$_('menu.new_segment')}
 							</Menubar.Item>
 						{/if}
-						<Menubar.Separator />
-						<Menubar.Item on:click={selectAll} disabled={$fileObservers.size == 0}>
-							<FileStack size="16" class="mr-1" />
-							{$_('menu.select_all')}
-							<Shortcut key="A" ctrl={true} />
-						</Menubar.Item>
-						<Menubar.Item
-							on:click={() => {
-								if ($selection.size > 0) {
-									centerMapOnSelection();
-								}
-							}}
-						>
-							<Maximize size="16" class="mr-1" />
-							{$_('menu.center')}
-							<Shortcut key="⏎" ctrl={true} />
-						</Menubar.Item>
+					{/if}
+					<Menubar.Separator />
+					<Menubar.Item on:click={selectAll} disabled={$fileObservers.size == 0}>
+						<FileStack size="16" class="mr-1" />
+						{$_('menu.select_all')}
+						<Shortcut key="A" ctrl={true} />
+					</Menubar.Item>
+					<Menubar.Item
+						on:click={() => {
+							if ($selection.size > 0) {
+								centerMapOnSelection();
+							}
+						}}
+					>
+						<Maximize size="16" class="mr-1" />
+						{$_('menu.center')}
+						<Shortcut key="⏎" ctrl={true} />
+					</Menubar.Item>
+					{#if $verticalFileView}
 						<Menubar.Separator />
 						<Menubar.Item on:click={copySelection} disabled={$selection.size === 0}>
 							<ClipboardCopy size="16" class="mr-1" />
