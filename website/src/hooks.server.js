@@ -3,16 +3,24 @@ import { languages } from '$lib/languages';
 import { getURLForLanguage } from '$lib/utils';
 
 export async function handle({ event, resolve }) {
-    let language = event.params.language ?? 'en';
+    const language = event.params.language ?? 'en';
     const strings = await import(`./locales/${language}.json`);
 
-    let path = event.url.pathname;
-    let page = event.route.id?.replace('/[[language]]', '').split('/')[1] ?? 'home';
+    const path = event.url.pathname;
+    const page = event.route.id?.replace('/[[language]]', '').split('/')[1] ?? 'home';
 
     let title = strings.metadata[`${page}_title`];
-    let description = strings.metadata[`description`];
+    const description = strings.metadata[`description`];
 
-    let htmlTag = `<html lang="${language}" translate="no">`;
+    if (page === 'help' && event.params.guide) {
+        const [guide, subguide] = event.params.guide.split('/');
+        const guideModule = subguide
+            ? await import(`./lib/docs/${language}/${guide}/${subguide}.mdx`)
+            : await import(`./lib/docs/${language}/${guide}.mdx`);
+        title = `${title} | ${guideModule.metadata.title}`;
+    }
+
+    const htmlTag = `<html lang="${language}" translate="no">`;
 
     let headTag = `<head>
     <title>gpx.studio — ${title}</title>
@@ -37,7 +45,7 @@ export async function handle({ event, resolve }) {
 `;
     }
 
-    let stringsHTML = page === 'app' ? stringsToHTML(strings) : '';
+    const stringsHTML = page === 'app' ? stringsToHTML(strings) : '';
 
     const response = await resolve(event, {
         transformPageChunk: ({ html }) => html.replace('<html>', htmlTag).replace('<head>', headTag).replace('<body data-sveltekit-preload-data="hover">', `<body data-sveltekit-preload-data="hover"><div class="hidden">${stringsHTML}</div>`)

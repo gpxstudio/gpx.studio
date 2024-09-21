@@ -2,9 +2,9 @@ import { guides } from '$lib/components/docs/docs.js';
 
 function getModule(language: string | undefined, guide: string) {
     language = language ?? 'en';
-    let subguide = guide.includes('/') ? guide.split('/').pop() : undefined;
-    if (subguide) {
-        guide = guide.replace(`/${subguide}`, '');
+    let subguide = undefined;
+    if (guide.includes('/')) {
+        [guide, subguide] = guide.split('/');
     }
     return subguide
         ? import(`./../../../lib/docs/${language}/${guide}/${subguide}.mdx`)
