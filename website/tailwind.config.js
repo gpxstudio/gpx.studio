@@ -42,6 +42,7 @@ const config = {
                     foreground: "hsl(var(--card-foreground) / <alpha-value>)"
                 },
                 support: "rgb(var(--support))",
+                link: "rgb(var(--link))"
             },
             borderRadius: {
                 lg: "var(--radius)",

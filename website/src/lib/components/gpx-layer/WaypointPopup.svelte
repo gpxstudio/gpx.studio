@@ -99,7 +99,7 @@
 
 <style lang="postcss">
 	div :global(a) {
-		@apply text-blue-500 dark:text-blue-300;
+		@apply text-link;
 		@apply hover:underline;
 	}
 

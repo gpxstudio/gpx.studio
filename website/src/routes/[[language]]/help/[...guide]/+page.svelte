@@ -53,7 +53,7 @@
 			variant="link"
 			href="https://www.reddit.com/r/gpxstudio/"
 			target="_blank"
-			class="p-0 h-6 text-blue-500"
+			class="p-0 h-6 text-link"
 		>
 			<CornerDownRight size="16" class="mr-1" />
 			{$_('docs.ask_on_reddit')}
@@ -65,7 +65,7 @@
 			href="https://github.com/gpxstudio/gpx.studio/edit/dev/website/src/lib/docs/en/{$page.params
 				.guide}.mdx"
 			target="_blank"
-			class="p-0 h-6 ml-auto text-blue-500"
+			class="p-0 h-6 ml-auto text-link"
 		>
 			<PenLine size="16" class="mr-1" />
 			Edit this page on GitHub
@@ -75,7 +75,7 @@
 			variant="link"
 			href="https://crowdin.com/project/gpxstudio/{$locale}"
 			target="_blank"
-			class="p-0 h-6 ml-auto text-blue-500"
+			class="p-0 h-6 ml-auto text-link"
 		>
 			<PenLine size="16" class="mr-1" />
 			{$_('docs.translate')}

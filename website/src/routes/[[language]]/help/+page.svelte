@@ -14,13 +14,13 @@
 		<Button
 			variant="outline"
 			href={getURLForLanguage($locale, `/help/${guide}`)}
-			class="h-full pt-6 pb-3 px-0"
+			class="min-h-36 h-full pt-6 pb-3 px-0"
 		>
 			<div class="flex flex-col w-full">
-				<div class="text-center text-5xl">
+				<div class="h-12 text-center text-5xl">
 					{guideIcons[guide]}
 				</div>
-				<div class="text-2xl text-center my-3 w-full whitespace-normal px-6">
+				<div class="min-h-8 text-2xl text-center my-3 w-full whitespace-normal px-6">
 					{#await data.guideModules[guide] then guideModule}
 						{guideModule.metadata.title}
 					{/await}
@@ -30,7 +30,7 @@
 						<Button
 							variant="link"
 							href={getURLForLanguage($locale, `/help/${guide}/${subGuide}`)}
-							class="h-fit px-0 py-1 text-muted-foreground   text-base text-center whitespace-normal"
+							class="min-h-8 h-fit min-w-24 px-0 py-1 text-muted-foreground text-base text-center whitespace-normal"
 						>
 							<svelte:component this={guideIcons[subGuide]} size="16" class="mr-1 shrink-0" />
 							{#await data.guideModules[`${guide}/${subGuide}`] then guideModule}

@@ -3,8 +3,8 @@
 </script>
 
 <div
-	class="bg-accent border-l-8 {type === 'note'
-		? 'border-blue-500'
+	class="bg-secondary border-l-8 {type === 'note'
+		? 'border-link'
 		: 'border-destructive'} p-2 text-sm rounded-md"
 >
 	<slot />
@@ -12,7 +12,7 @@
 
 <style lang="postcss">
 	div :global(a) {
-		@apply text-blue-500;
+		@apply text-link;
 		@apply hover:underline;
 	}
 </style>

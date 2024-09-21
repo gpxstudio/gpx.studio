@@ -41,17 +41,17 @@
 	}
 
 	:global(.markdown > a) {
-		@apply text-blue-500;
+		@apply text-link;
 		@apply hover:underline;
 	}
 
 	:global(.markdown p > a) {
-		@apply text-blue-500;
+		@apply text-link;
 		@apply hover:underline;
 	}
 
 	:global(.markdown li > a) {
-		@apply text-blue-500;
+		@apply text-link;
 		@apply hover:underline;
 	}
 
