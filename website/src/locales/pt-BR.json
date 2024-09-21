@@ -41,7 +41,7 @@
         "distance_units": "Unidades de distância",
         "metric": "Métrico",
         "imperial": "Imperial",
-        "nautical": "Nautical",
+        "nautical": "Náutico",
         "velocity_units": "Unidades de velocidade",
         "temperature_units": "Unidade de temperatura",
         "celsius": "Celsius",
@@ -77,7 +77,7 @@
         },
         "hide": "Ocultar",
         "unhide": "Mostrar",
-        "center": "Center",
+        "center": "Centralizar",
         "open_in": "Abrir em"
     },
     "toolbar": {
@@ -185,9 +185,9 @@
             "help_invalid_selection": "Sua seleção deve conter itens com multiplas trilhas para extraí-las."
         },
         "elevation": {
-            "button": "Request elevation data",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
-            "help_no_selection": "Select a file item to request elevation data."
+            "button": "Solicitar dados de elevação",
+            "help": "Solicitar dados de elevação apagará os dados de elevação existentes, se houver, e os substituirá pelos dados do Mapbox.",
+            "help_no_selection": "Selecione um item de arquivo para solicitar os dados de elevação."
         },
         "waypoint": {
             "tooltip": "Criar e editar pontos de interesse",
@@ -274,7 +274,7 @@
             "ordnanceSurvey": "Ordnance Survey",
             "norwayTopo": "Topografisk Norgeskart 4",
             "swedenTopo": "Lantmäteriet Topo",
-            "swedenSatellite": "Lantmäteriet Satellite",
+            "swedenSatellite": "Satélite Lantmäteriet",
             "finlandTopo": "Lantmäteriverket Terrängkarta",
             "bgMountains": "BGMountains",
             "usgs": "USGS",
@@ -355,7 +355,7 @@
     "quantities": {
         "distance": "Distância",
         "elevation": "Elevação",
-        "elevation_gain_loss": "Elevation gain and loss",
+        "elevation_gain_loss": "Ganho e perda de elevação",
         "temperature": "Temperatura",
         "speed": "Velocidade",
         "pace": "Ritmo",
@@ -464,24 +464,24 @@
         "identity_description": "O site é gratuito de usar, sem anúncios, e o código-fonte está disponível publicamente no GitHub. Isso só é possível graças ao apoio incrível da comunidade."
     },
     "docs": {
-        "translate": "Improve the translation on Crowdin",
-        "answer_not_found": "Did not find what you were looking for?",
-        "ask_on_reddit": "Ask the community on Reddit",
+        "translate": "Melhore a tradução no Crowdin",
+        "answer_not_found": "Não encontrou o que estava procurando?",
+        "ask_on_reddit": "Pergunte à comunidade no Reddit",
         "search": {
-            "search": "Search",
-            "clear": "Clear",
-            "cancel": "Cancel",
-            "recent": "Recent searches",
-            "no_recent": "No recent searches",
-            "save": "Save this search",
-            "remove": "Remove this search from history",
-            "favorites": "Favorites",
-            "remove_favorite": "Remove this search from favorites",
-            "to_select": "to select",
-            "to_navigate": "to navigate",
-            "to_close": "to close",
-            "no_results": "No results for",
-            "no_results_suggestion": "Try searching for"
+            "search": "Pesquisar",
+            "clear": "Limpar",
+            "cancel": "Cancelar",
+            "recent": "Pesquisas recentes",
+            "no_recent": "Nenhuma busca recente",
+            "save": "Salvar esta busca",
+            "remove": "Remover busca do histórico de pesquisa",
+            "favorites": "Favoritos",
+            "remove_favorite": "Remover esta busca dos favoritos",
+            "to_select": "para selecionar",
+            "to_navigate": "para navegar",
+            "to_close": "para fechar",
+            "no_results": "Nenhum resultado para",
+            "no_results_suggestion": "Tente pesquisar por"
         }
     },
     "embedding": {
