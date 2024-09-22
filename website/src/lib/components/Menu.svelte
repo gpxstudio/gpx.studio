@@ -21,7 +21,7 @@
 		Thermometer,
 		Sun,
 		Moon,
-		Layers3,
+		Layers,
 		GalleryVertical,
 		Languages,
 		Settings,
@@ -447,7 +447,7 @@
 						</Menubar.SubContent>
 					</Menubar.Sub>
 					<Menubar.Item on:click={() => (layerSettingsOpen = true)}>
-						<Layers3 size="16" class="mr-1" />
+						<Layers size="16" class="mr-1" />
 						{$_('menu.layers')}
 					</Menubar.Item>
 				</Menubar.Content>
