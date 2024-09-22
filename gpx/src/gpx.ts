@@ -774,6 +774,14 @@ export class TrackSegment extends GPXTreeLeaf {
                     statistics.global.power.count++;
                 }
             }
+
+            if (i > 0 && points[i - 1].extensions && points[i - 1].extensions["gpxtpx:TrackPointExtension"] && points[i - 1].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"] && points[i - 1].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"].surface) {
+                let surface = points[i - 1].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"].surface;
+                if (statistics.global.surface[surface] === undefined) {
+                    statistics.global.surface[surface] = 0;
+                }
+                statistics.global.surface[surface] += dist;
+            }
         }
 
         [statistics.local.slope.segment, statistics.local.slope.length] = this._computeSlopeSegments(statistics);
@@ -887,22 +895,30 @@ export class TrackSegment extends GPXTreeLeaf {
         let trkpt = og.trkpt.slice();
 
         if (speed !== undefined || (trkpt.length > 0 && trkpt[0].time !== undefined)) {
+            // Must handle timestamps (either segment has timestamps or the new points will have timestamps)
             if (start > 0 && trkpt[0].time === undefined) {
+                // Add timestamps to points before [start, end] because they are missing 
                 trkpt.splice(0, 0, ...withTimestamps(trkpt.splice(0, start), speed, undefined, startTime));
             }
             if (points.length > 0) {
+                // Adapt timestamps of the new points
                 let last = start > 0 ? trkpt[start - 1] : undefined;
                 if (points[0].time === undefined || (points.length > 1 && points[1].time === undefined)) {
+                    // Add timestamps to the new points because they are missing
                     points = withTimestamps(points, speed, last, startTime);
                 } else if (last !== undefined && points[0].time < last.time) {
+                    // Adapt timestamps of the new points because they are too early
                     points = withShiftedAndCompressedTimestamps(points, speed, 1, last);
                 }
             }
             if (end < trkpt.length - 1) {
+                // Adapt timestamps of points after [start, end]
                 let last = points.length > 0 ? points[points.length - 1] : start > 0 ? trkpt[start - 1] : undefined;
                 if (trkpt[end + 1].time === undefined) {
+                    // Add timestamps to points after [start, end] because they are missing
                     trkpt.splice(end + 1, 0, ...withTimestamps(trkpt.splice(end + 1), speed, last, startTime));
                 } else if (last !== undefined && trkpt[end + 1].time < last.time) {
+                    // Adapt timestamps of points after [start, end] because they are too early
                     trkpt.splice(end + 1, 0, ...withShiftedAndCompressedTimestamps(trkpt.splice(end + 1), speed, 1, last));
                 }
             }
@@ -1238,7 +1254,8 @@ export class GPXStatistics {
         power: {
             avg: number,
             count: number,
-        }
+        },
+        surface: Record<string, number>,
     };
     local: {
         points: TrackPoint[],
@@ -1308,7 +1325,8 @@ export class GPXStatistics {
             power: {
                 avg: 0,
                 count: 0,
-            }
+            },
+            surface: {},
         };
         this.local = {
             points: [],
@@ -1378,6 +1396,12 @@ export class GPXStatistics {
         this.global.cad.count += other.global.cad.count;
         this.global.power.avg = (this.global.power.count * this.global.power.avg + other.global.power.count * other.global.power.avg) / Math.max(1, this.global.power.count + other.global.power.count);
         this.global.power.count += other.global.power.count;
+        Object.keys(other.global.surface).forEach((surface) => {
+            if (this.global.surface[surface] === undefined) {
+                this.global.surface[surface] = 0;
+            }
+            this.global.surface[surface] += other.global.surface[surface];
+        });
     }
 
     slice(start: number, end: number): GPXStatistics {

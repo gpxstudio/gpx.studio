@@ -63,6 +63,7 @@
 		}
 
 		hide.time = statistics.global.time.total === 0;
+		hide.surface = !Object.keys(statistics.global.surface).some((key) => key !== 'unknown');
 		hide.hr = statistics.global.hr.count === 0;
 		hide.cad = statistics.global.cad.count === 0;
 		hide.atemp = statistics.global.atemp.count === 0;
@@ -86,10 +87,10 @@
 			class="fixed left-[50%] top-[50%] z-50 w-fit max-w-full translate-x-[-50%] translate-y-[-50%] flex flex-col items-center gap-3 border bg-background p-3 shadow-lg rounded-md"
 		>
 			<div
-				class="w-full flex flex-row items-center justify-center gap-4 border rounded-md p-2 bg-accent"
+				class="w-full flex flex-row items-center justify-center gap-4 border rounded-md p-2 bg-secondary"
 			>
 				<span>⚠️</span>
-				<span class="max-w-96 text-sm">
+				<span class="max-w-[80%] text-sm">
 					{$_('menu.support_message')}
 				</span>
 			</div>
@@ -119,7 +120,11 @@
 					{/if}
 				</Button>
 			</div>
-			<div class="w-full max-w-xl flex flex-col items-center gap-2">
+			<div
+				class="w-full max-w-xl flex flex-col items-center gap-2 {Object.values(hide).some((v) => !v)
+					? ''
+					: 'hidden'}"
+			>
 				<div class="w-full flex flex-row items-center gap-3">
 					<div class="grow">
 						<Separator />
@@ -139,7 +144,7 @@
 							{$_('quantities.time')}
 						</Label>
 					</div>
-					<div class="flex flex-row items-center gap-1.5">
+					<div class="flex flex-row items-center gap-1.5 {hide.surface ? 'hidden' : ''}">
 						<Checkbox id="export-surface" bind:checked={exportOptions.surface} />
 						<Label for="export-surface" class="flex flex-row items-center gap-1">
 							<BrickWall size="16" />

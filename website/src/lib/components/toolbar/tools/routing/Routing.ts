@@ -66,7 +66,7 @@ async function getRoute(points: Coordinates[], brouterProfile: string, privateRo
     const latIdx = messages[0].indexOf("Latitude");
     const tagIdx = messages[0].indexOf("WayTags");
     let messageIdx = 1;
-    let surface = messageIdx < messages.length ? getSurface(messages[messageIdx][tagIdx]) : "unknown";
+    let surface = messageIdx < messages.length ? getSurface(messages[messageIdx][tagIdx]) : undefined;
 
     for (let i = 0; i < coordinates.length; i++) {
         let coord = coordinates[i];
@@ -77,27 +77,30 @@ async function getRoute(points: Coordinates[], brouterProfile: string, privateRo
             },
             ele: coord[2] ?? (i > 0 ? route[i - 1].ele : 0)
         }));
-        route[route.length - 1].setSurface(surface)
 
         if (messageIdx < messages.length &&
             coordinates[i][0] == Number(messages[messageIdx][lngIdx]) / 1000000 &&
             coordinates[i][1] == Number(messages[messageIdx][latIdx]) / 1000000) {
             messageIdx++;
 
-            if (messageIdx == messages.length) surface = "unknown";
+            if (messageIdx == messages.length) surface = undefined;
             else surface = getSurface(messages[messageIdx][tagIdx]);
+        }
+
+        if (surface) {
+            route[route.length - 1].setSurface(surface);
         }
     }
 
     return route;
 }
 
-function getSurface(message: string): string {
+function getSurface(message: string): string | undefined {
     const fields = message.split(" ");
     for (let i = 0; i < fields.length; i++) if (fields[i].startsWith("surface=")) {
         return fields[i].substring(8);
     }
-    return "unknown";
+    return undefined;
 };
 
 function getIntermediatePoints(points: Coordinates[]): Promise<TrackPoint[]> {
@@ -127,7 +130,6 @@ function getIntermediatePoints(points: Coordinates[]): Promise<TrackPoint[]> {
 
     return getElevation(route).then((elevations) => {
         route.forEach((point, i) => {
-            point.setSurface("unknown");
             point.ele = elevations[i];
         });
         return route;
