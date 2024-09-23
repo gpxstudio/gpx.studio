@@ -54,6 +54,7 @@
         "street_view_source": "스트리트 뷰 출처",
         "mapillary": "Mapillary",
         "google": "Google",
+        "toggle_street_view": "Street view",
         "layers": "지도 레이어...",
         "distance_markers": "Distance markers",
         "direction_markers": "방향 화살표",
