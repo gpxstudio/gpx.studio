@@ -20,7 +20,7 @@
 </script>
 
 <Select.Root bind:selected>
-	<Select.Trigger class="w-[180px] {$$props.class ?? ''}">
+	<Select.Trigger class="w-[180px] {$$props.class ?? ''}" aria-label={$_('menu.language')}>
 		<Languages size="16" />
 		<Select.Value class="ml-2 mr-auto" />
 	</Select.Trigger>

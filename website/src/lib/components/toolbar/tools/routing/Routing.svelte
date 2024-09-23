@@ -117,8 +117,8 @@
 		in:flyAndScale={{ x: -2, y: 0, duration: 50 }}
 	>
 		<div class="grow flex flex-col gap-3">
-			<Tooltip>
-				<Label slot="data" class="w-full flex flex-row justify-between items-center gap-2">
+			<Tooltip label={$_('toolbar.routing.use_routing_tooltip')}>
+				<Label class="w-full flex flex-row justify-between items-center gap-2">
 					<span class="flex flex-row gap-1">
 						{#if $routing}
 							<Route size="16" />
@@ -129,10 +129,7 @@
 					</span>
 					<Switch class="scale-90" bind:checked={$routing} />
 				</Label>
-				<span slot="tooltip" class="flex flex-row items-center">
-					{$_('toolbar.routing.use_routing_tooltip')}
-					<Shortcut key="F5" />
-				</span>
+				<Shortcut slot="extra" key="F5" />
 			</Tooltip>
 			{#if $routing}
 				<div class="flex flex-col gap-3" in:slide>
@@ -172,9 +169,8 @@
 			{/if}
 		</div>
 		<div class="flex flex-row flex-wrap justify-center gap-1">
-			<Tooltip>
+			<Tooltip label={$_('toolbar.routing.reverse.tooltip')}>
 				<Button
-					slot="data"
 					variant="outline"
 					class="flex flex-row gap-1 text-xs px-2"
 					disabled={!validSelection}
@@ -182,11 +178,9 @@
 				>
 					<ArrowRightLeft size="12" />{$_('toolbar.routing.reverse.button')}
 				</Button>
-				<span slot="tooltip">{$_('toolbar.routing.reverse.tooltip')}</span>
 			</Tooltip>
-			<Tooltip>
+			<Tooltip label={$_('toolbar.routing.route_back_to_start.tooltip')}>
 				<Button
-					slot="data"
 					variant="outline"
 					class="flex flex-row gap-1 text-xs px-2"
 					disabled={!validSelection}
@@ -220,11 +214,9 @@
 				>
 					<Home size="12" />{$_('toolbar.routing.route_back_to_start.button')}
 				</Button>
-				<span slot="tooltip">{$_('toolbar.routing.route_back_to_start.tooltip')}</span>
 			</Tooltip>
-			<Tooltip>
+			<Tooltip label={$_('toolbar.routing.round_trip.tooltip')}>
 				<Button
-					slot="data"
 					variant="outline"
 					class="flex flex-row gap-1 text-xs px-2"
 					disabled={!validSelection}
@@ -232,7 +224,6 @@
 				>
 					<Repeat size="12" />{$_('toolbar.routing.round_trip.button')}
 				</Button>
-				<span slot="tooltip">{$_('toolbar.routing.round_trip.tooltip')}</span>
 			</Tooltip>
 		</div>
 		<div class="w-full flex flex-row gap-2 items-end justify-between">

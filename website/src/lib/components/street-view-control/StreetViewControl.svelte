@@ -1,11 +1,13 @@
 <script lang="ts">
 	import CustomControl from '$lib/components/custom-control/CustomControl.svelte';
+	import Tooltip from '$lib/components/Tooltip.svelte';
 	import { Toggle } from '$lib/components/ui/toggle';
 	import { PersonStanding, X } from 'lucide-svelte';
 	import { MapillaryLayer } from './Mapillary';
 	import { GoogleRedirect } from './Google';
 	import { map, streetViewEnabled } from '$lib/stores';
 	import { settings } from '$lib/db';
+	import { _ } from 'svelte-i18n';
 
 	const { streetViewSource } = settings;
 
@@ -38,9 +40,15 @@
 </script>
 
 <CustomControl class="w-[29px] h-[29px] shrink-0">
-	<Toggle bind:pressed={$streetViewEnabled} class="w-full h-full rounded p-0">
-		<PersonStanding size="22" />
-	</Toggle>
+	<Tooltip class="w-full h-full" side="left" label={$_('menu.toggle_street_view')}>
+		<Toggle
+			bind:pressed={$streetViewEnabled}
+			class="w-full h-full rounded p-0"
+			aria-label={$_('menu.toggle_street_view')}
+		>
+			<PersonStanding size="22" />
+		</Toggle>
+	</Tooltip>
 </CustomControl>
 
 <div

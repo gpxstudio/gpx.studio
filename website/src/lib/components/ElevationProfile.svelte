@@ -626,15 +626,13 @@
 				bind:value={elevationFill}
 			>
 				<ToggleGroup.Item class="p-0 w-5 h-5" value="slope" aria-label={$_('chart.show_slope')}>
-					<Tooltip side="left">
-						<TriangleRight slot="data" size="15" />
-						<span slot="tooltip">{$_('chart.show_slope')}</span>
+					<Tooltip side="left" label={$_('chart.show_slope')}>
+						<TriangleRight size="15" />
 					</Tooltip>
 				</ToggleGroup.Item>
 				<ToggleGroup.Item class="p-0 w-5 h-5" value="surface" aria-label={$_('chart.show_surface')}>
-					<Tooltip side="left">
-						<BrickWall slot="data" size="15" />
-						<span slot="tooltip">{$_('chart.show_surface')}</span>
+					<Tooltip side="left" label={$_('chart.show_surface')}>
+						<BrickWall size="15" />
 					</Tooltip>
 				</ToggleGroup.Item>
 			</ToggleGroup.Root>
@@ -650,23 +648,21 @@
 					value="speed"
 					aria-label={$velocityUnits === 'speed' ? $_('chart.show_speed') : $_('chart.show_pace')}
 				>
-					<Tooltip side="left">
-						<Zap slot="data" size="15" />
-						<span slot="tooltip">
-							{$velocityUnits === 'speed' ? $_('chart.show_speed') : $_('chart.show_pace')}
-						</span>
+					<Tooltip
+						side="left"
+						label={$velocityUnits === 'speed' ? $_('chart.show_speed') : $_('chart.show_pace')}
+					>
+						<Zap size="15" />
 					</Tooltip>
 				</ToggleGroup.Item>
 				<ToggleGroup.Item class="p-0 w-5 h-5" value="hr" aria-label={$_('chart.show_heartrate')}>
-					<Tooltip side="left">
-						<HeartPulse slot="data" size="15" />
-						<span slot="tooltip">{$_('chart.show_heartrate')}</span>
+					<Tooltip side="left" label={$_('chart.show_heartrate')}>
+						<HeartPulse size="15" />
 					</Tooltip>
 				</ToggleGroup.Item>
 				<ToggleGroup.Item class="p-0 w-5 h-5" value="cad" aria-label={$_('chart.show_cadence')}>
-					<Tooltip side="left">
-						<Orbit slot="data" size="15" />
-						<span slot="tooltip">{$_('chart.show_cadence')}</span>
+					<Tooltip side="left" label={$_('chart.show_cadence')}>
+						<Orbit size="15" />
 					</Tooltip>
 				</ToggleGroup.Item>
 				<ToggleGroup.Item
@@ -674,15 +670,13 @@
 					value="atemp"
 					aria-label={$_('chart.show_temperature')}
 				>
-					<Tooltip side="left">
-						<Thermometer slot="data" size="15" />
-						<span slot="tooltip">{$_('chart.show_temperature')}</span>
+					<Tooltip side="left" label={$_('chart.show_temperature')}>
+						<Thermometer size="15" />
 					</Tooltip>
 				</ToggleGroup.Item>
 				<ToggleGroup.Item class="p-0 w-5 h-5" value="power" aria-label={$_('chart.show_power')}>
-					<Tooltip side="left">
-						<SquareActivity slot="data" size="15" />
-						<span slot="tooltip">{$_('chart.show_power')}</span>
+					<Tooltip side="left" label={$_('chart.show_power')}>
+						<SquareActivity size="15" />
 					</Tooltip>
 				</ToggleGroup.Item>
 			</ToggleGroup.Root>

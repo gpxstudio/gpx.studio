@@ -46,6 +46,7 @@
 							value={id}
 							bind:checked={checked[id]}
 							class="scale-90"
+							aria-label={$_(`layers.label.${id}`)}
 						/>
 					{:else}
 						<input id="{name}-{id}" type="radio" {name} value={id} bind:group={selected} />

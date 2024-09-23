@@ -15,6 +15,7 @@
 	on:click={() => {
 		setMode(selectedMode === 'light' ? 'dark' : 'light');
 	}}
+	aria-label={$_('menu.mode')}
 >
 	{#if selectedMode === 'light'}
 		<Sun {size} />

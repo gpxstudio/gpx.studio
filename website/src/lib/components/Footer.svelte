@@ -11,7 +11,7 @@
 	<div class="mx-6 border-t">
 		<div class="mx-12 py-10 flex flex-row flex-wrap justify-between gap-x-10 gap-y-6">
 			<div class="grow flex flex-col items-start">
-				<Logo class="h-8" />
+				<Logo class="h-8" width="153" />
 				<Button
 					variant="link"
 					class="h-6 px-0 text-muted-foreground"
