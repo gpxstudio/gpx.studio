@@ -54,6 +54,7 @@
         "street_view_source": "Fuente de vista de calle",
         "mapillary": "Mapillary",
         "google": "Google",
+        "toggle_street_view": "Street view",
         "layers": "Capas de mapa...",
         "distance_markers": "Indicadores de distancia",
         "direction_markers": "Flechas de dirección",

@@ -54,6 +54,7 @@
         "street_view_source": "Zdroj panoramatického zobrazení",
         "mapillary": "Mapillary",
         "google": "Google",
+        "toggle_street_view": "Street view",
         "layers": "Mapové vrstvy...",
         "distance_markers": "Značky vzdálenosti",
         "direction_markers": "Směrové šipky",

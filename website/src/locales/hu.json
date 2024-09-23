@@ -54,6 +54,7 @@
         "street_view_source": "Utcakép nézet forrása",
         "mapillary": "Mapillary",
         "google": "Google",
+        "toggle_street_view": "Street view",
         "layers": "Térképrétegek...",
         "distance_markers": "Távolsági km szakaszok mutatása",
         "direction_markers": "Menetirány mutatása",

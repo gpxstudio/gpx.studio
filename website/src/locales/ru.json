@@ -54,6 +54,7 @@
         "street_view_source": "Источник просмотра улиц",
         "mapillary": "Mapillary",
         "google": "Google",
+        "toggle_street_view": "Street view",
         "layers": "Слои карты...",
         "distance_markers": "Метки расстояния",
         "direction_markers": "Стрелки направления",

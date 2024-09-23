@@ -54,6 +54,7 @@
         "street_view_source": "Fonte de Street View",
         "mapillary": "Mapillary",
         "google": "Google",
+        "toggle_street_view": "Street view",
         "layers": "Camadas do mapa...",
         "distance_markers": "Marcadores de distância",
         "direction_markers": "Setas de direção",

@@ -54,6 +54,7 @@
         "street_view_source": "Font de \"Street view\"",
         "mapillary": "Mapillary",
         "google": "Google",
+        "toggle_street_view": "Street view",
         "layers": "Capes del mapa...",
         "distance_markers": "Marcadors de distancia",
         "direction_markers": "Fletxes de direcció",
