@@ -54,6 +54,7 @@
         "street_view_source": "Gatuvykälla",
         "mapillary": "Mapillary",
         "google": "Google",
+        "toggle_street_view": "Street view",
         "layers": "Kartlager...",
         "distance_markers": "Distansmarkörer",
         "direction_markers": "Riktningsmarkörer",
