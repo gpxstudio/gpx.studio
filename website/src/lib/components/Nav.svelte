@@ -11,8 +11,8 @@
 <nav class="w-full sticky top-0 bg-background z-50">
 	<div class="mx-6 py-2 flex flex-row items-center border-b gap-4 sm:gap-8">
 		<a href={getURLForLanguage($locale, '/')} class="shrink-0 translate-y-0.5">
-			<Logo class="h-8 sm:hidden" iconOnly={true} />
-			<Logo class="h-8 hidden sm:block" />
+			<Logo class="h-8 sm:hidden" iconOnly={true} width="26" />
+			<Logo class="h-8 hidden sm:block" width="153" />
 		</a>
 		<Button variant="link" class="text-base px-0" href={getURLForLanguage($locale, '/')}>
 			<Home size="18" class="mr-1.5" />

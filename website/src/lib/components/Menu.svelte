@@ -129,8 +129,8 @@
 		class="w-fit flex flex-row items-center justify-center p-1 bg-background rounded-b-md md:rounded-md pointer-events-auto shadow-md"
 	>
 		<a href="./" target="_blank" class="shrink-0">
-			<Logo class="h-5 mt-0.5 mx-2 md:hidden" iconOnly={true} />
-			<Logo class="h-5 mt-0.5 mx-2 hidden md:block" />
+			<Logo class="h-5 mt-0.5 mx-2 md:hidden" iconOnly={true} width="16" />
+			<Logo class="h-5 mt-0.5 mx-2 hidden md:block" width="96" />
 		</a>
 		<Menubar.Root class="border-none h-fit p-0">
 			<Menubar.Menu>
