@@ -231,7 +231,7 @@
             "url_placeholder": "WMTS, WMS ou Mapbox style JSON",
             "max_zoom": "Zoom max",
             "layer_type": "Type de couche",
-            "basemap": "Carte de base",
+            "basemap": "Fond de carte",
             "overlay": "Surcouche",
             "create": "Créer la couche",
             "update": "Mettre à jour la couche"
@@ -489,7 +489,7 @@
         "mapbox_token": "Jeton d'accès Mapbox",
         "file_urls": "URLs des fichiers (séparées par des virgules)",
         "drive_ids": "IDs des fichiers Google Drive (séparés par des virgules)",
-        "basemap": "Carte de base",
+        "basemap": "Fond de carte",
         "height": "Hauteur",
         "fill_by": "Remplir selon",
         "none": "Aucun",
