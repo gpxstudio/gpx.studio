@@ -54,6 +54,7 @@
         "street_view_source": "Katunäkymäkuvapalvelu",
         "mapillary": "Mapillary",
         "google": "Google",
+        "toggle_street_view": "Street view",
         "layers": "Karttatasot...",
         "distance_markers": "Etäisyysmerkit",
         "direction_markers": "Suuntanuolet",
