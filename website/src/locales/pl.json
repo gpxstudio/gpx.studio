@@ -54,6 +54,7 @@
         "street_view_source": "Źródło widoku ulicznego",
         "mapillary": "Mapillary",
         "google": "Google",
+        "toggle_street_view": "Street view",
         "layers": "Warstwy mapy...",
         "distance_markers": "Znaczniki odległości",
         "direction_markers": "Strzałki kierunku",
