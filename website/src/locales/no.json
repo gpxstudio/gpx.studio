@@ -54,6 +54,7 @@
         "street_view_source": "Gatevisning kilde",
         "mapillary": "Mapillary",
         "google": "Google",
+        "toggle_street_view": "Street view",
         "layers": "Kartlag...",
         "distance_markers": "Distansemarkører",
         "direction_markers": "Retningspiler",
