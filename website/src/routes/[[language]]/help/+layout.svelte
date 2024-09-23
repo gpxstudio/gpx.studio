@@ -6,7 +6,7 @@
 	import { guides } from '$lib/components/docs/docs';
 
 	export let data: {
-		guideModules: Record<string, any>;
+		guideTitles: Record<string, string>;
 	};
 </script>
 
@@ -21,9 +21,7 @@
 					? 'font-semibold text-foreground'
 					: ''}"
 			>
-				{#await data.guideModules[guide] then guideModule}
-					{guideModule.metadata.title}
-				{/await}
+				{data.guideTitles[guide]}
 			</Button>
 			{#each guides[guide] as subGuide}
 				<Button
@@ -35,9 +33,7 @@
 						? 'font-semibold text-foreground'
 						: ''}"
 				>
-					{#await data.guideModules[`${guide}/${subGuide}`] then guideModule}
-						{guideModule.metadata.title}
-					{/await}
+					{data.guideTitles[`${guide}/${subGuide}`]}
 				</Button>
 			{/each}
 		{/each}

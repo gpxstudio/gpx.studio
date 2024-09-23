@@ -5,7 +5,7 @@
 	import { guides, guideIcons } from '$lib/components/docs/docs';
 
 	export let data: {
-		guideModules: Record<string, any>;
+		guideTitles: Record<string, string>;
 	};
 </script>
 
@@ -21,9 +21,7 @@
 					{guideIcons[guide]}
 				</div>
 				<div class="min-h-8 text-2xl text-center my-3 w-full whitespace-normal px-6">
-					{#await data.guideModules[guide] then guideModule}
-						{guideModule.metadata.title}
-					{/await}
+					{data.guideTitles[guide]}
 				</div>
 				<div class="flex flex-row justify-center flex-wrap gap-x-6 px-6">
 					{#each guides[guide] as subGuide}
@@ -33,9 +31,7 @@
 							class="min-h-8 h-fit min-w-24 px-0 py-1 text-muted-foreground text-base text-center whitespace-normal"
 						>
 							<svelte:component this={guideIcons[subGuide]} size="16" class="mr-1 shrink-0" />
-							{#await data.guideModules[`${guide}/${subGuide}`] then guideModule}
-								{guideModule.metadata.title}
-							{/await}
+							{data.guideTitles[`${guide}/${subGuide}`]}
 						</Button>
 					{/each}
 				</div>

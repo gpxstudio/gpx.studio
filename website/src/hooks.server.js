@@ -48,7 +48,7 @@ export async function handle({ event, resolve }) {
     const stringsHTML = page === 'app' ? stringsToHTML(strings) : '';
 
     const response = await resolve(event, {
-        transformPageChunk: ({ html }) => html.replace('<html>', htmlTag).replace('<head>', headTag).replace('<body data-sveltekit-preload-data="hover">', `<body data-sveltekit-preload-data="hover"><div class="hidden">${stringsHTML}</div>`)
+        transformPageChunk: ({ html }) => html.replace('<html>', htmlTag).replace('<head>', headTag).replace('</body>', `<div class="fixed -z-10 text-transparent">${stringsHTML}</div></body>`)
     });
 
     return response;

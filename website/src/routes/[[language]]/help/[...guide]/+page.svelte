@@ -9,9 +9,9 @@
 	export let data: {
 		guideModule: any;
 		previousGuide: string | undefined;
-		previousGuideModule: any;
+		previousGuideTitle: string | undefined;
 		nextGuide: string | undefined;
-		nextGuideModule: any;
+		nextGuideTitle: string | undefined;
 	};
 </script>
 
@@ -27,9 +27,7 @@
 			href={getURLForLanguage($locale, `/help/${data.previousGuide}`)}
 		>
 			<ChevronLeft size="14" class="mr-1 mt-0.5" />
-			{#await data.previousGuideModule then guideModule}
-				{guideModule.metadata.title}
-			{/await}
+			{data.previousGuideTitle}
 		</Button>
 	{/if}
 	{#if data.nextGuide}
@@ -38,9 +36,7 @@
 			class="ml-auto"
 			href={getURLForLanguage($locale, `/help/${data.nextGuide}`)}
 		>
-			{#await data.nextGuideModule then guideModule}
-				{guideModule.metadata.title}
-			{/await}
+			{data.nextGuideTitle}
 			<ChevronRight size="14" class="ml-1 mt-0.5" />
 		</Button>
 	{/if}

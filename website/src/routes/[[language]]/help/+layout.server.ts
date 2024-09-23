@@ -14,15 +14,15 @@ function getModule(language: string | undefined, guide: string) {
 export async function load({ params }) {
     const { language } = params;
 
-    const guideModules: Record<string, any> = {};
+    const guideTitles: Record<string, string> = {};
     for (let guide of Object.keys(guides)) {
-        guideModules[guide] = getModule(language, guide);
+        guideTitles[guide] = (await getModule(language, guide)).metadata.title;
         for (let subguide of guides[guide]) {
-            guideModules[`${guide}/${subguide}`] = getModule(language, `${guide}/${subguide}`);
+            guideTitles[`${guide}/${subguide}`] = (await getModule(language, `${guide}/${subguide}`)).metadata.title;
         }
     }
 
     return {
-        guideModules
+        guideTitles
     };
 }

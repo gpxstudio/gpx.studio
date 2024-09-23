@@ -1,5 +1,3 @@
-import { getNextGuide, getPreviousGuide } from "$lib/components/docs/docs";
-
 function getModule(language: string | undefined, guide: string) {
     language = language ?? 'en';
     let subguide = undefined;
@@ -11,17 +9,13 @@ function getModule(language: string | undefined, guide: string) {
         : import(`./../../../../lib/docs/${language}/${guide}.mdx`);
 }
 
-export async function load({ params }) {
+export async function load({ data, params }) {
     const { guide, language } = params;
 
-    const previousGuide = getPreviousGuide(guide);
-    const nextGuide = getNextGuide(guide);
+    const guideModule = await getModule(language, guide);
 
     return {
-        guideModule: await getModule(language, guide),
-        previousGuide,
-        previousGuideModule: previousGuide ? getModule(language, previousGuide) : undefined,
-        nextGuide,
-        nextGuideModule: nextGuide ? getModule(language, nextGuide) : undefined,
+        guideModule,
+        ...data,
     };
 }
