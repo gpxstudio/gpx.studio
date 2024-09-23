@@ -9,7 +9,7 @@
 	};
 </script>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 	{#each Object.keys(guides) as guide}
 		<Button
 			variant="outline"
