@@ -54,6 +54,7 @@
         "street_view_source": "街景来源",
         "mapillary": "Mapillary",
         "google": "Google",
+        "toggle_street_view": "Street view",
         "layers": "地图图层...",
         "distance_markers": "距离标记",
         "direction_markers": "方向箭头",
