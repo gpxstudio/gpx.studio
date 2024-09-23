@@ -54,6 +54,7 @@
         "street_view_source": "Izvor uličnog prikaza",
         "mapillary": "Mapillary",
         "google": "Google",
+        "toggle_street_view": "Street view",
         "layers": "Slojevi mape...",
         "distance_markers": "Markeri udaljenosti",
         "direction_markers": "Strelice pravca",
