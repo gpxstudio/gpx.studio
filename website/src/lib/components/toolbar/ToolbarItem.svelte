@@ -4,6 +4,7 @@
 	import { currentTool, type Tool } from '$lib/stores';
 
 	export let tool: Tool;
+	export let label: string;
 
 	function toggleTool() {
 		currentTool.update((current) => (current === tool ? null : tool));
@@ -17,11 +18,12 @@
 			variant="ghost"
 			class="h-[26px] px-1 py-1.5 {$currentTool === tool ? 'bg-accent' : ''}"
 			on:click={toggleTool}
+			aria-label={label}
 		>
 			<slot name="icon" />
 		</Button>
 	</Tooltip.Trigger>
 	<Tooltip.Content side="right">
-		<slot name="tooltip" />
+		<span>{label}</span>
 	</Tooltip.Content>
 </Tooltip.Root>

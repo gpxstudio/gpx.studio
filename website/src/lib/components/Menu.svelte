@@ -134,7 +134,7 @@
 		</a>
 		<Menubar.Root class="border-none h-fit p-0">
 			<Menubar.Menu>
-				<Menubar.Trigger>
+				<Menubar.Trigger aria-label={$_('gpx.file')}>
 					<File size="18" class="md:hidden" />
 					<span class="hidden md:block">{$_('gpx.file')}</span>
 				</Menubar.Trigger>
@@ -187,7 +187,7 @@
 				</Menubar.Content>
 			</Menubar.Menu>
 			<Menubar.Menu>
-				<Menubar.Trigger>
+				<Menubar.Trigger aria-label={$_('menu.edit')}>
 					<FilePen size="18" class="md:hidden" />
 					<span class="hidden md:block">{$_('menu.edit')}</span>
 				</Menubar.Trigger>
@@ -317,7 +317,7 @@
 				</Menubar.Content>
 			</Menubar.Menu>
 			<Menubar.Menu>
-				<Menubar.Trigger>
+				<Menubar.Trigger aria-label={$_('menu.view')}>
 					<View size="18" class="md:hidden" />
 					<span class="hidden md:block">{$_('menu.view')}</span>
 				</Menubar.Trigger>
@@ -355,7 +355,7 @@
 				</Menubar.Content>
 			</Menubar.Menu>
 			<Menubar.Menu>
-				<Menubar.Trigger>
+				<Menubar.Trigger aria-label={$_('menu.settings')}>
 					<Settings size="18" class="md:hidden" />
 					<span class="hidden md:block">
 						{$_('menu.settings')}
@@ -459,6 +459,7 @@
 				href="./help"
 				target="_blank"
 				class="cursor-default h-fit rounded-sm px-3 py-0.5"
+				aria-label={$_('menu.help')}
 			>
 				<BookOpenText size="18" class="md:hidden" />
 				<span class="hidden md:block">
@@ -470,6 +471,7 @@
 				href="https://ko-fi.com/gpxstudio"
 				target="_blank"
 				class="cursor-default h-fit rounded-sm font-bold text-support hover:text-support px-3 py-0.5"
+				aria-label={$_('menu.donate')}
 			>
 				<HeartHandshake size="18" class="md:hidden" />
 				<span class="hidden md:flex flex-row items-center">
