@@ -1,3 +1,6 @@
 User-agent: *
 Disallow: /*?*
+Disallow: /embed
+Disallow: /*/embed
+Disallow: /404
 Sitemap: https://gpx.studio/sitemap.xml

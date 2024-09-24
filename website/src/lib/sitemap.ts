@@ -12,7 +12,7 @@ function generateSitemap() {
         const url = page.replace('.html', '').replace('index', '');
 
         const rootDir = url.split('/')[0];
-        if (languages[url] || languages[rootDir]) {
+        if (url.includes('embed') || url.includes('404') || languages[url] || languages[rootDir]) {
             // Skip localized pages
             return;
         }
