@@ -222,7 +222,7 @@
     },
     "layers": {
         "settings": "Impostazioni del livello",
-        "settings_help": "Select the map layers you want to show in the interface, add custom ones, and adjust their settings.",
+        "settings_help": "Selezionare i livelli di mappa che si desidera mostrare nell'interfaccia, aggiungere quelli personalizzati e regolare le impostazioni.",
         "selection": "Selezione del livello",
         "custom_layers": {
             "title": "Livelli personalizzati",
