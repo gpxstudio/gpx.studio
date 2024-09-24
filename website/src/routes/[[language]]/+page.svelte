@@ -22,13 +22,6 @@
 	import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
 	import { currentTool, Tool } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
-	import routingScreenshot from '$lib/assets/img/home/routing.png?enhanced';
-	import mapboxOutdoorsMap from '$lib/assets/img/home/mapbox-outdoors.png?enhanced';
-	import mapboxSatelliteMap from '$lib/assets/img/home/mapbox-satellite.png?enhanced';
-	import ignMap from '$lib/assets/img/home/ign.png?enhanced';
-	import cyclosmMap from '$lib/assets/img/home/cyclosm.png?enhanced';
-	import waymarkedMap from '$lib/assets/img/home/waymarked.png?enhanced';
-	import mapScreenshot from '$lib/assets/img/home/map.png?enhanced';
 
 	export let data: {
 		fundingModule: any;
@@ -78,7 +71,7 @@
 		</div>
 		<div class="relative overflow-hidden">
 			<enhanced:img
-				src={routingScreenshot}
+				src="/src/lib/assets/img/home/routing.png"
 				alt="Screenshot of the gpx.studio map in 3D."
 				class="w-full min-w-[1200px] ml-[20%] -translate-x-[20%]"
 			/>
@@ -137,30 +130,34 @@
 				class="relative h-60 xs:h-80 aspect-square rounded-2xl shadow-xl overflow-hidden overflow-clip"
 			>
 				<enhanced:img
-					src={mapboxOutdoorsMap}
+					src="/src/lib/assets/img/home/mapbox-outdoors.png"
 					alt="Mapbox Outdoors map screenshot."
 					class="absolute"
 					style="clip-path: inset(0 50% 50% 0);"
 				/>
 				<enhanced:img
-					src={mapboxSatelliteMap}
+					src="/src/lib/assets/img/home/mapbox-satellite.png"
 					alt="Mapbox Satellite map screenshot."
 					class="absolute"
 					style="clip-path: inset(0 0 50% 50%);"
 				/>
 				<enhanced:img
-					src={ignMap}
+					src="/src/lib/assets/img/home/ign.png"
 					alt="IGN map screenshot."
 					class="absolute"
 					style="clip-path: inset(50% 50% 0 0);"
 				/>
 				<enhanced:img
-					src={cyclosmMap}
+					src="/src/lib/assets/img/home/cyclosm.png"
 					alt="CyclOSM map screenshot."
 					class="absolute"
 					style="clip-path: inset(50% 0 0 50%);"
 				/>
-				<enhanced:img src={waymarkedMap} alt="Waymarked Trails map screenshot." class="absolute" />
+				<enhanced:img
+					src="/src/lib/assets/img/home/waymarked.png"
+					alt="Waymarked Trails map screenshot."
+					class="absolute"
+				/>
 			</div>
 		</div>
 	</div>
@@ -216,7 +213,7 @@
 	<div class="px-12 w-full">
 		<div class="w-full max-w-7xl mx-auto rounded-2xl shadow-xl overflow-hidden overflow-clip">
 			<enhanced:img
-				src={mapScreenshot}
+				src="/src/lib/assets/img/home/map.png"
 				alt="Screenshot of the gpx.studio map in 3D."
 				class="min-w-[800px] ml-[15%] -translate-x-[15%]"
 			/>
