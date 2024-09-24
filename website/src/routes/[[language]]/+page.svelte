@@ -247,7 +247,7 @@
 	</div>
 	<div class="px-12 md:px-24 flex flex-col items-center">
 		<div
-			class="max-w-4xl flex flex-col lg:flex-row items-center justify-center gap-x-12 gap-y-6 p-6 border rounded-2xl shadow-xl bg-muted"
+			class="max-w-4xl flex flex-col lg:flex-row items-center justify-center gap-x-12 gap-y-6 p-6 border rounded-2xl shadow-xl bg-secondary"
 		>
 			<div class="shrink-0 flex flex-col sm:flex-row lg:flex-col items-center gap-x-4 gap-y-2">
 				<div class="text-lg font-semibold text-muted-foreground">
