@@ -169,10 +169,12 @@
 				tileSize: 512,
 				maxzoom: 14
 			});
-			newMap.setTerrain({
-				source: 'mapbox-dem',
-				exaggeration: newMap.getPitch() > 0 ? 1 : 0
-			});
+			if (newMap.getPitch() > 0) {
+				newMap.setTerrain({
+					source: 'mapbox-dem',
+					exaggeration: 1
+				});
+			}
 			newMap.setFog({
 				color: 'rgb(186, 210, 235)',
 				'high-color': 'rgb(36, 92, 223)',
@@ -186,10 +188,7 @@
 						exaggeration: 1
 					});
 				} else {
-					newMap.setTerrain({
-						source: 'mapbox-dem',
-						exaggeration: 0
-					});
+					newMap.setTerrain(null);
 				}
 			});
 		});
