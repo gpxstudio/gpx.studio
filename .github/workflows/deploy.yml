@@ -18,6 +18,12 @@ jobs:
           cache-dependency-path: |
             gpx/package-lock.json
             website/package-lock.json
+      
+      - name: Install dependencies for gpx
+        run: npm install --prefix gpx
+
+      - name: Build gpx
+        run: npm run build --prefix gpx
 
       - name: Install dependencies for website
         run: npm install --prefix website

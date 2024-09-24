@@ -22,6 +22,6 @@
     },
     "scripts": {
         "build": "tsc",
-        "postinstall": "npm install && npm run build"
+        "postinstall": "npm run build"
     }
 }
