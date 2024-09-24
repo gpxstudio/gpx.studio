@@ -7,8 +7,8 @@ function getModule(language: string | undefined, guide: string) {
         [guide, subguide] = guide.split('/');
     }
     return subguide
-        ? import(`./../../../lib/docs/${language}/${guide}/${subguide}.mdx`)
-        : import(`./../../../lib/docs/${language}/${guide}.mdx`);
+        ? import(`./../lib/docs/${language}/${guide}/${subguide}.mdx`)
+        : import(`./../lib/docs/${language}/${guide}.mdx`);
 }
 
 export async function load({ params }) {

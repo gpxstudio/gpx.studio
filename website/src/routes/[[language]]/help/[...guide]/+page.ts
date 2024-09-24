@@ -9,13 +9,12 @@ function getModule(language: string | undefined, guide: string) {
         : import(`./../../../../lib/docs/${language}/${guide}.mdx`);
 }
 
-export async function load({ data, params }) {
+export async function load({ params }) {
     const { guide, language } = params;
 
     const guideModule = await getModule(language, guide);
 
     return {
         guideModule,
-        ...data,
     };
 }

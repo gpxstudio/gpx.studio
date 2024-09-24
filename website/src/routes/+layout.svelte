@@ -13,6 +13,10 @@
 	import { goto } from '$app/navigation';
 	import { getURLForLanguage } from '$lib/utils';
 
+	export let data: {
+		guideTitles: Record<string, string>;
+	};
+
 	const appRoutes = ['/[[language]]/app', '/[[language]]/embed'];
 
 	onMount(() => {
@@ -29,26 +33,20 @@
 			let lang = $page.params.language.replace('/', '');
 			if ($locale !== lang) {
 				if (languages.hasOwnProperty(lang)) {
-					locale.set(lang);
+					$locale = lang;
 				} else if (browser) {
 					goto(`${base}/404`);
 				}
 			}
 		} else if ($locale !== 'en') {
-			locale.set('en');
+			$locale = 'en';
 		}
 	}
 
 	$: if (browser && !$isLoading && $locale) {
 		let title = `gpx.studio — ${$_(`metadata.${$page.route.id?.replace('/[[language]]', '').split('/')[1] ?? 'home'}_title`)}`;
 		if ($page.params.guide) {
-			const [guide, subguide] = $page.params.guide.split('/');
-			const promise = subguide
-				? import(`../lib/docs/${$locale ?? 'en'}/${guide}/${subguide}.mdx`)
-				: import(`../lib/docs/${$locale ?? 'en'}/${guide}.mdx`);
-			promise.then((module) => {
-				document.title = `${title} | ${module.metadata.title}`;
-			});
+			document.title = `${title} | ${data.guideTitles[$page.params.guide]}`;
 		} else {
 			document.title = title;
 		}

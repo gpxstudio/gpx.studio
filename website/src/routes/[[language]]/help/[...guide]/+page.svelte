@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { getNextGuide, getPreviousGuide } from '$lib/components/docs/docs';
 	import DocsContainer from '$lib/components/docs/DocsContainer.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { getURLForLanguage } from '$lib/utils';
@@ -8,11 +9,11 @@
 
 	export let data: {
 		guideModule: any;
-		previousGuide: string | undefined;
-		previousGuideTitle: string | undefined;
-		nextGuide: string | undefined;
-		nextGuideTitle: string | undefined;
+		guideTitles: Record<string, string>;
 	};
+
+	$: previousGuide = getPreviousGuide($page.params.guide);
+	$: nextGuide = getNextGuide($page.params.guide);
 </script>
 
 <div class="markdown flex flex-col gap-3">
@@ -20,23 +21,23 @@
 </div>
 
 <div class="flex flex-row flex-wrap gap-3 pt-6">
-	{#if data.previousGuide}
+	{#if previousGuide}
 		<Button
 			variant="outline"
 			class="mr-auto"
-			href={getURLForLanguage($locale, `/help/${data.previousGuide}`)}
+			href={getURLForLanguage($locale, `/help/${previousGuide}`)}
 		>
 			<ChevronLeft size="14" class="mr-1 mt-0.5" />
-			{data.previousGuideTitle}
+			{data.guideTitles[previousGuide]}
 		</Button>
 	{/if}
-	{#if data.nextGuide}
+	{#if nextGuide}
 		<Button
 			variant="outline"
 			class="ml-auto"
-			href={getURLForLanguage($locale, `/help/${data.nextGuide}`)}
+			href={getURLForLanguage($locale, `/help/${nextGuide}`)}
 		>
-			{data.nextGuideTitle}
+			{data.guideTitles[nextGuide]}
 			<ChevronRight size="14" class="ml-1 mt-0.5" />
 		</Button>
 	{/if}
