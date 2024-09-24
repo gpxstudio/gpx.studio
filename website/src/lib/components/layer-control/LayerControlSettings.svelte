@@ -9,8 +9,14 @@
 	import * as Select from '$lib/components/ui/select';
 	import { Slider } from '$lib/components/ui/slider';
 
-	import { basemapTree, overlays, overlayTree, overpassTree } from '$lib/assets/layers';
-	import { isSelected } from '$lib/components/layer-control/utils';
+	import {
+		basemapTree,
+		defaultBasemap,
+		overlays,
+		overlayTree,
+		overpassTree
+	} from '$lib/assets/layers';
+	import { getLayers, isSelected, toggle } from '$lib/components/layer-control/utils';
 	import { settings } from '$lib/db';
 
 	import { _ } from 'svelte-i18n';
@@ -22,6 +28,7 @@
 		selectedBasemapTree,
 		selectedOverlayTree,
 		selectedOverpassTree,
+		currentBasemap,
 		currentOverlays,
 		customLayers,
 		opacities
@@ -43,6 +50,30 @@
 			}
 		} else {
 			$overlayOpacity = [1];
+		}
+	}
+
+	$: if ($selectedBasemapTree && $currentBasemap) {
+		if (!isSelected($selectedBasemapTree, $currentBasemap)) {
+			if (!isSelected($selectedBasemapTree, defaultBasemap)) {
+				$selectedBasemapTree = toggle($selectedBasemapTree, defaultBasemap);
+			}
+			$currentBasemap = defaultBasemap;
+		}
+	}
+
+	$: if ($selectedOverlayTree && $currentOverlays) {
+		let overlayLayers = getLayers($currentOverlays);
+		let toRemove = Object.entries(overlayLayers).filter(
+			([id, checked]) => checked && !isSelected($selectedOverlayTree, id)
+		);
+		if (toRemove.length > 0) {
+			currentOverlays.update((tree) => {
+				toRemove.forEach(([id]) => {
+					toggle(tree, id);
+				});
+				return tree;
+			});
 		}
 	}
 

@@ -133,17 +133,6 @@
 		selectedBasemap.set(value);
 	});
 
-	function removeOverlayLayer(id: string) {
-		if ($map) {
-			let overlay = $customLayers.hasOwnProperty(id) ? $customLayers[id].value : overlays[id];
-			if (overlay.layers) {
-				$map.removeImport(id);
-			} else {
-				$map.removeLayer(id);
-			}
-		}
-	}
-
 	let open = false;
 	function openLayerControl() {
 		open = true;

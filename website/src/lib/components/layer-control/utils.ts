@@ -39,4 +39,15 @@ export function isSelected(node: LayerTreeType, id: string) {
     });
 }
 
+export function toggle(node: LayerTreeType, id: string) {
+    Object.keys(node).forEach((key) => {
+        if (key === id) {
+            node[key] = !node[key];
+        } else if (typeof node[key] !== "boolean") {
+            toggle(node[key], id);
+        }
+    });
+    return node;
+}
+
 export const customBasemapUpdate = writable(0);
