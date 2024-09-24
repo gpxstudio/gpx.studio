@@ -29,17 +29,9 @@ The code is split into two parts:
 - `gpx`: a Typescript library for parsing and manipulating GPX files,
 - `website`: the website itself, which is a [SvelteKit](https://kit.svelte.dev/) application.
 
-You will need [Node.js](https://nodejs.org/) to build and run these two parts.
+You will need [Node.js](https://nodejs.org/) to build and run the website.
 
-### Building the `gpx` library
-
-```bash
-cd gpx
-npm install
-npm run build
-```
-
-### Running the website
+### Running the website in development mode
 
 To be able to load the map, you will need to create your own <a href="https://account.mapbox.com/auth/signup" target="_blank">Mapbox access token</a> and store it in a `.env` file in the `website` directory.
 
