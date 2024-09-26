@@ -177,7 +177,8 @@
             "help_merge_traces": "Yhdistäminen luo valituista reiteistä yhden yhtenäisen reitin.",
             "help_cannot_merge_traces": "Valitse useampia reittejä yhdistääksesi ne.",
             "help_merge_contents": "Valittujen tiedostojen yhdistäminen kokoaa reitit ensimmäisenä valittuun tiedostoon.",
-            "help_cannot_merge_contents": "Valitse useampi tiedosto yhdistääksesi ne."
+            "help_cannot_merge_contents": "Valitse useampi tiedosto yhdistääksesi ne.",
+            "selection_tip": "Tip: use {KEYBOARD_SHORTCUT} to add items to the selection."
         },
         "extract": {
             "tooltip": "Pura tiedosto osiin",
