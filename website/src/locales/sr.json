@@ -177,7 +177,8 @@
             "help_merge_traces": "Povezivanje izabranih trekova će stvoriti jedan kontinuirani trek.",
             "help_cannot_merge_traces": "Vaš izbor mora da sadrži nekoliko trekova da biste ih povezali.",
             "help_merge_contents": "Spajanje sadržaja izabranih stavki grupisaće sav sadržaj unutar prve stavke.",
-            "help_cannot_merge_contents": "Vaš izbor mora da sadrži nekoliko stavki da biste spojili njihov sadržaj."
+            "help_cannot_merge_contents": "Vaš izbor mora da sadrži nekoliko stavki da biste spojili njihov sadržaj.",
+            "selection_tip": "Tip: use {KEYBOARD_SHORTCUT} to add items to the selection."
         },
         "extract": {
             "tooltip": "Izdvojite sadržaj u odvojene stavke",
