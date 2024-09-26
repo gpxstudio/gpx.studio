@@ -49,7 +49,7 @@
 	<div class="-mt-12 sm:mt-0">
 		<div class="px-12 w-full flex flex-col items-center">
 			<div class="flex flex-col gap-6 items-center max-w-3xl">
-				<div class="text-4xl sm:text-6xl font-black text-center">{$_('metadata.app_title')}</div>
+				<div class="text-4xl sm:text-6xl font-black text-center">{$_('metadata.home_title')}</div>
 				<div class="text-lg sm:text-xl text-muted-foreground text-center">
 					{$_('metadata.description')}
 				</div>
