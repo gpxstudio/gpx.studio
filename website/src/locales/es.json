@@ -178,7 +178,7 @@
             "help_cannot_merge_traces": "Su selección debe contener varios trazados para conectarlos.",
             "help_merge_contents": "Combinar el contenido de los elementos seleccionados los agrupará dentro del primer elemento.",
             "help_cannot_merge_contents": "Su selección debe contener varios elementos para combinar sus contenidos.",
-            "selection_tip": "Tip: use {KEYBOARD_SHORTCUT} to add items to the selection."
+            "selection_tip": "Consejo: use {KEYBOARD_SHORTCUT} para añadir elementos a la selección."
         },
         "extract": {
             "tooltip": "Extraer contenidos en elementos separados",
