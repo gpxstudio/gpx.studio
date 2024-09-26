@@ -177,7 +177,8 @@
             "help_merge_traces": "Unir les traçades crearà una única traçada contínua.",
             "help_cannot_merge_traces": "Has de sel·leccionar diverses traçades per tal d'unir-les.",
             "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
-            "help_cannot_merge_contents": "Your selection must contain several items to merge their contents."
+            "help_cannot_merge_contents": "Your selection must contain several items to merge their contents.",
+            "selection_tip": "Tip: use {KEYBOARD_SHORTCUT} to add items to the selection."
         },
         "extract": {
             "tooltip": "Extract contents to separate items",
