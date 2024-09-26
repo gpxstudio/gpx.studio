@@ -177,7 +177,8 @@
             "help_merge_traces": "Sujungus pasirinktas trasas bus sukurta viena ištisinė trasa.",
             "help_cannot_merge_traces": "Turi pasirinkti kelias trasas, kad galėtumėte jas sujungti.",
             "help_merge_contents": "Sujungus pasirinktų elementų turiny, jų turinys bus sugrupuotas į pirmąjį elementą.",
-            "help_cannot_merge_contents": "Turite pasirinkti kelis elementus norėdami sujungti jų turinį."
+            "help_cannot_merge_contents": "Turite pasirinkti kelis elementus norėdami sujungti jų turinį.",
+            "selection_tip": "Tip: use {KEYBOARD_SHORTCUT} to add items to the selection."
         },
         "extract": {
             "tooltip": "Išskirti turinį į kelis atskirus elementus",

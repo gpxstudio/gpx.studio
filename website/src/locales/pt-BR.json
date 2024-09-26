@@ -177,7 +177,8 @@
             "help_merge_traces": "Conectar as trilhas selecionadas criará uma trilha única contínua.",
             "help_cannot_merge_traces": "Sua seleção deve conter várias trilhas para conectá-las.",
             "help_merge_contents": "Mesclar o conteúdo dos itens selecionados agrupará todo o conteúdo dentro do primeiro item.",
-            "help_cannot_merge_contents": "Sua seleção deve conter vários itens para mesclar seu conteúdo."
+            "help_cannot_merge_contents": "Sua seleção deve conter vários itens para mesclar seu conteúdo.",
+            "selection_tip": "Tip: use {KEYBOARD_SHORTCUT} to add items to the selection."
         },
         "extract": {
             "tooltip": "Extrair conteúdo para itens separados",

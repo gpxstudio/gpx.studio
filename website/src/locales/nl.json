@@ -177,7 +177,8 @@
             "help_merge_traces": "Het verbinden van de geselecteerde sporen creëert één continu spoor.",
             "help_cannot_merge_traces": "Uw selectie moet meerdere sporen bevatten om ze te verbinden.",
             "help_merge_contents": "Het samenvoegen van de inhoud van de geselecteerde items zal alle inhoud binnen het eerste item groeperen.",
-            "help_cannot_merge_contents": "Je selectie moet meerdere items bevatten om hun inhoud samen te voegen."
+            "help_cannot_merge_contents": "Je selectie moet meerdere items bevatten om hun inhoud samen te voegen.",
+            "selection_tip": "Tip: gebruik {KEYBOARD_SHORTCUT} om items toe te voegen aan de selectie."
         },
         "extract": {
             "tooltip": "Splits inhoud naar afzonderlijke items",

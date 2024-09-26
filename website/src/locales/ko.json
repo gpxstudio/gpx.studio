@@ -78,7 +78,7 @@
         },
         "hide": "숨기기",
         "unhide": "표시",
-        "center": "Center",
+        "center": "중앙",
         "open_in": "Open in"
     },
     "toolbar": {
@@ -177,7 +177,8 @@
             "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
             "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
             "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
-            "help_cannot_merge_contents": "Your selection must contain several items to merge their contents."
+            "help_cannot_merge_contents": "Your selection must contain several items to merge their contents.",
+            "selection_tip": "Tip: use {KEYBOARD_SHORTCUT} to add items to the selection."
         },
         "extract": {
             "tooltip": "Extract contents to separate items",

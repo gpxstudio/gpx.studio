@@ -177,7 +177,8 @@
             "help_merge_traces": "Połączenie zaznaczonych śladów stworzy pojedynczy ciągły ślad.",
             "help_cannot_merge_traces": "Wybór musi zawierać kilka śladów, aby je połączyć.",
             "help_merge_contents": "Scalanie zawartości zaznaczonych elementów zgrupuje całą zawartość wewnątrz pierwszego elementu.",
-            "help_cannot_merge_contents": "Twój wybór musi zawierać kilka elementów, aby scalić ich zawartość."
+            "help_cannot_merge_contents": "Twój wybór musi zawierać kilka elementów, aby scalić ich zawartość.",
+            "selection_tip": "Tip: use {KEYBOARD_SHORTCUT} to add items to the selection."
         },
         "extract": {
             "tooltip": "Wyodrębnij zawartość do rozdzielenia elementów",
