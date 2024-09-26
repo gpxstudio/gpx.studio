@@ -1,7 +1,7 @@
 {
     "metadata": {
-        "home_title": "domů",
-        "app_title": "online editor GPX souborů",
+        "home_title": "online editor GPX souborů",
+        "app_title": "aplikace",
         "embed_title": "online editor GPX souborů",
         "help_title": "nápověda",
         "404_title": "stránka nenalezena",
@@ -469,19 +469,19 @@
         "answer_not_found": "Did not find what you were looking for?",
         "ask_on_reddit": "Ask the community on Reddit",
         "search": {
-            "search": "Search",
-            "clear": "Clear",
+            "search": "Hledat",
+            "clear": "Vyčistit",
             "cancel": "Storno",
-            "recent": "Recent searches",
+            "recent": "Nedávná hledání",
             "no_recent": "No recent searches",
             "save": "Save this search",
             "remove": "Remove this search from history",
-            "favorites": "Favorites",
-            "remove_favorite": "Remove this search from favorites",
-            "to_select": "to select",
+            "favorites": "Oblíbené",
+            "remove_favorite": "Odstranit toto hledání z oblíbených",
+            "to_select": "vybrat",
             "to_navigate": "to navigate",
-            "to_close": "to close",
-            "no_results": "No results for",
+            "to_close": "zavřít",
+            "no_results": "Žádné výsledky pro",
             "no_results_suggestion": "Try searching for"
         }
     },
