@@ -16,6 +16,7 @@
 	import { dbUtils, getFile } from '$lib/db';
 	import { Group } from 'lucide-svelte';
 	import { getURLForLanguage } from '$lib/utils';
+	import Shortcut from '$lib/components/Shortcut.svelte';
 
 	let canMergeTraces = false;
 	let canMergeContents = false;
@@ -81,10 +82,24 @@
 			{$_('toolbar.merge.help_merge_traces')}
 		{:else if mergeType === MergeType.TRACES && !canMergeTraces}
 			{$_('toolbar.merge.help_cannot_merge_traces')}
+			{$_('toolbar.merge.selection_tip').split('{KEYBOARD_SHORTCUT}')[0]}
+			<Shortcut
+				ctrl={true}
+				click={true}
+				class="inline-flex text-muted-foreground text-xs border rounded p-0.5 gap-0"
+			/>
+			{$_('toolbar.merge.selection_tip').split('{KEYBOARD_SHORTCUT}')[1]}
 		{:else if mergeType === MergeType.CONTENTS && canMergeContents}
 			{$_('toolbar.merge.help_merge_contents')}
 		{:else if mergeType === MergeType.CONTENTS && !canMergeContents}
 			{$_('toolbar.merge.help_cannot_merge_contents')}
+			{$_('toolbar.merge.selection_tip').split('{KEYBOARD_SHORTCUT}')[0]}
+			<Shortcut
+				ctrl={true}
+				click={true}
+				class="inline-flex text-muted-foreground text-xs border rounded p-0.5 gap-0"
+			/>
+			{$_('toolbar.merge.selection_tip').split('{KEYBOARD_SHORTCUT}')[1]}
 		{/if}
 	</Help>
 </div>

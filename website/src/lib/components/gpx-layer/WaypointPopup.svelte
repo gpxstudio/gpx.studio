@@ -89,7 +89,7 @@
 					>
 						<Trash2 size="16" class="mr-1" />
 						{$_('menu.delete')}
-						<Shortcut key="" shift={true} click={true} />
+						<Shortcut shift={true} click={true} />
 					</Button>
 				{/if}
 			</Card.Content>
