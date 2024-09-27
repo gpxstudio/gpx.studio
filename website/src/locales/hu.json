@@ -33,7 +33,7 @@
         "select_all": "Összes kijelölése",
         "view": "Nézet",
         "elevation_profile": "Magassági profil",
-        "vertical_file_view": "Függoleges fájl lista",
+        "vertical_file_view": "Függőleges fájl lista",
         "switch_basemap": "Váltás az előző alaptérképre",
         "toggle_overlays": "Átfedés váltása",
         "toggle_3d": "3D nézet bekapcsolása",
@@ -54,7 +54,7 @@
         "street_view_source": "Utcakép nézet forrása",
         "mapillary": "Mapillary",
         "google": "Google",
-        "toggle_street_view": "Street view",
+        "toggle_street_view": "Utcakép nézet",
         "layers": "Térképrétegek...",
         "distance_markers": "Távolsági km szakaszok mutatása",
         "direction_markers": "Menetirány mutatása",
@@ -86,11 +86,11 @@
             "tooltip": "Útvonal tervezése vagy szerkesztése",
             "activity": "Tevékenység",
             "use_routing": "Útvonal választása",
-            "use_routing_tooltip": "Útvonal követés kikapcsolava egyenes vonal rajzolása",
+            "use_routing_tooltip": "Útvonal követés kikapcsolva egyenes vonal rajzolása",
             "allow_private": "Magánutak engedélyezése",
             "reverse": {
                 "button": "Út menetirány váltás",
-                "tooltip": "Útvonal irányát megfordítása"
+                "tooltip": "Útvonal irányának megfordítása"
             },
             "route_back_to_start": {
                 "button": "Vissza a starthoz",
@@ -161,7 +161,7 @@
         "time": {
             "tooltip": "Manage time data",
             "start": "Rajt",
-            "end": "End",
+            "end": "Befejezés",
             "total_time": "Mozgási idő",
             "pick_date": "Pick a date",
             "artificial": "Create realistic time data",
@@ -205,14 +205,14 @@
         "reduce": {
             "tooltip": "Reduce the number of GPS points",
             "tolerance": "Tolerance",
-            "number_of_points": "Number of GPS points",
+            "number_of_points": "GPS pontok száma",
             "button": "Minify",
             "help": "Use the slider to choose the number of GPS points to keep.",
             "help_no_selection": "Select a trace to reduce the number of its GPS points."
         },
         "clean": {
             "tooltip": "Clean GPS points and points of interest with a rectangle selection",
-            "delete_trackpoints": "Delete GPS points",
+            "delete_trackpoints": "GPS pontok törlése",
             "delete_waypoints": "Delete points of interest",
             "delete_inside": "Delete inside selection",
             "delete_outside": "Delete outside selection",
@@ -222,14 +222,14 @@
         }
     },
     "layers": {
-        "settings": "Layer settings",
+        "settings": "Réteg beállítások",
         "settings_help": "Select the map layers you want to show in the interface, add custom ones, and adjust their settings.",
         "selection": "Layer selection",
         "custom_layers": {
             "title": "Custom layers",
             "new": "New custom layer",
             "edit": "Edit custom layer",
-            "urls": "URL(s)",
+            "urls": "Webcím(ek)",
             "url_placeholder": "WMTS, WMS vagy Mapbox stílus JSON",
             "max_zoom": "Max nagyítás",
             "layer_type": "Réteg típus",
@@ -333,7 +333,7 @@
             "railway-station": "Vasútállomás",
             "tram-stop": "Villamos megálló",
             "bus-stop": "Buszmegálló",
-            "ferry": "Ferry"
+            "ferry": "Komp"
         },
         "color": {
             "blue": "Kék",
@@ -341,7 +341,7 @@
             "gray": "Szürke",
             "hot": "Legérdekesebb",
             "purple": "Lila",
-            "orange": "Orange"
+            "orange": "Narancssárga"
         }
     },
     "chart": {
@@ -383,7 +383,7 @@
         "minutes_per_kilometer": "min/km",
         "minutes_per_mile": "min/mi",
         "minutes_per_nautical_mile": "min/nm",
-        "knots": "kn",
+        "knots": "csomó",
         "heartrate": "bpm",
         "cadence": "rpm",
         "power": "W"
