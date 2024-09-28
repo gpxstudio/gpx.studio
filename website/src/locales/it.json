@@ -178,7 +178,7 @@
             "help_cannot_merge_traces": "La tua selezione deve contenere diverse tracce per collegarle.",
             "help_merge_contents": "Unendo il contenuto degli elementi selezionati si raggrupperà tutti i contenuti all'interno del primo elemento.",
             "help_cannot_merge_contents": "La selezione deve contenere diversi elementi per unire il loro contenuto.",
-            "selection_tip": "Tip: use {KEYBOARD_SHORTCUT} to add items to the selection."
+            "selection_tip": "Suggerimento: usa {KEYBOARD_SHORTCUT} per aggiungere elementi alla selezione."
         },
         "extract": {
             "tooltip": "Estrae i contenuti per separare gli elementi",
@@ -188,8 +188,8 @@
         },
         "elevation": {
             "button": "Richiedi dati elevazione",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
-            "help_no_selection": "Select a file item to request elevation data."
+            "help": "Richiedere dati di altitudine cancellerà i dati di altitudine attuali, se presenti, e li rimpiazzerà con quelli provenienti da Mapbox.",
+            "help_no_selection": "Seleziona un file per richiedere i dati di altitudine."
         },
         "waypoint": {
             "tooltip": "Crea e modifica punti di interesse",
