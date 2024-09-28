@@ -172,7 +172,7 @@
         "merge": {
             "merge_traces": "Connect the traces",
             "merge_contents": "Merge the contents and keep the traces disconnected",
-            "merge_selection": "Egyesítés kijelőlés",
+            "merge_selection": "Egyesítés kijelölés",
             "tooltip": "Merge items together",
             "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
             "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
