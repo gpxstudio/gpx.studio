@@ -20,7 +20,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { map } from '$lib/stores';
 	import { getURLForLanguage, resetCursor, setCrosshairCursor } from '$lib/utils';
-	import { CirclePlus, CircleX, Save } from 'lucide-svelte';
+	import { MapPin, CircleX, Save } from 'lucide-svelte';
 	import { getSymbolKey, symbols } from '$lib/assets/symbols';
 
 	let name: string;
@@ -181,12 +181,21 @@
 <div class="flex flex-col gap-3 w-full max-w-96 {$$props.class ?? ''}">
 	<fieldset class="flex flex-col gap-2">
 		<Label for="name">{$_('menu.metadata.name')}</Label>
-		<Input bind:value={name} id="name" class="font-semibold h-8" />
+		<Input
+			bind:value={name}
+			id="name"
+			class="font-semibold h-8"
+			disabled={!canCreate && !$selectedWaypoint}
+		/>
 		<Label for="description">{$_('menu.metadata.description')}</Label>
-		<Textarea bind:value={description} id="description" />
+		<Textarea
+			bind:value={description}
+			id="description"
+			disabled={!canCreate && !$selectedWaypoint}
+		/>
 		<Label for="symbol">{$_('toolbar.waypoint.icon')}</Label>
 		<Select.Root bind:selected={selectedSymbol}>
-			<Select.Trigger id="symbol" class="w-full h-8">
+			<Select.Trigger id="symbol" class="w-full h-8" disabled={!canCreate && !$selectedWaypoint}>
 				<Select.Value />
 			</Select.Trigger>
 			<Select.Content class="max-h-60 overflow-y-scroll">
@@ -209,7 +218,7 @@
 			</Select.Content>
 		</Select.Root>
 		<Label for="link">{$_('toolbar.waypoint.link')}</Label>
-		<Input bind:value={link} id="link" class="h-8" />
+		<Input bind:value={link} id="link" class="h-8" disabled={!canCreate && !$selectedWaypoint} />
 		<div class="flex flex-row gap-2">
 			<div class="grow">
 				<Label for="latitude">{$_('toolbar.waypoint.latitude')}</Label>
@@ -220,7 +229,8 @@
 					step={1e-6}
 					min={-90}
 					max={90}
-					class="text-xs h-8 "
+					class="text-xs h-8"
+					disabled={!canCreate && !$selectedWaypoint}
 				/>
 			</div>
 			<div class="grow">
@@ -233,6 +243,7 @@
 					min={-180}
 					max={180}
 					class="text-xs h-8"
+					disabled={!canCreate && !$selectedWaypoint}
 				/>
 			</div>
 		</div>
@@ -248,7 +259,7 @@
 				<Save size="16" class="mr-1 shrink-0" />
 				{$_('menu.metadata.save')}
 			{:else}
-				<CirclePlus size="16" class="mr-1 shrink-0" />
+				<MapPin size="16" class="mr-1 shrink-0" />
 				{$_('toolbar.waypoint.create')}
 			{/if}
 		</Button>
