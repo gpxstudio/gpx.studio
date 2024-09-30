@@ -4,6 +4,7 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Button } from '$lib/components/ui/button';
 	import Help from '$lib/components/Help.svelte';
+	import ButtonWithTooltip from '$lib/components/ButtonWithTooltip.svelte';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import Shortcut from '$lib/components/Shortcut.svelte';
 	import {
@@ -105,7 +106,7 @@
 	});
 </script>
 
-{#if minimized}
+{#if minimizable && minimized}
 	<div class="-m-1.5 -mb-2">
 		<Button variant="ghost" class="px-1 h-[26px]" on:click={() => (minimized = false)}>
 			<SquareArrowOutDownRight size="18" />
@@ -116,24 +117,24 @@
 		class="flex flex-col gap-3 w-full max-w-80 {$$props.class ?? ''}"
 		in:flyAndScale={{ x: -2, y: 0, duration: 50 }}
 	>
-		<div class="grow flex flex-col gap-3">
-			<Tooltip label={$_('toolbar.routing.use_routing_tooltip')}>
-				<Label class="w-full flex flex-row justify-between items-center gap-2">
-					<span class="flex flex-row gap-1">
-						{#if $routing}
-							<Route size="16" />
-						{:else}
-							<RouteOff size="16" />
-						{/if}
-						{$_('toolbar.routing.use_routing')}
-					</span>
+		<div class="flex flex-col gap-3">
+			<Label class="flex flex-row justify-between items-center gap-2">
+				<span class="flex flex-row items-center gap-1">
+					{#if $routing}
+						<Route size="16" />
+					{:else}
+						<RouteOff size="16" />
+					{/if}
+					{$_('toolbar.routing.use_routing')}
+				</span>
+				<Tooltip label={$_('toolbar.routing.use_routing_tooltip')}>
 					<Switch class="scale-90" bind:checked={$routing} />
-				</Label>
-				<Shortcut slot="extra" key="F5" />
-			</Tooltip>
+					<Shortcut slot="extra" key="F5" />
+				</Tooltip>
+			</Label>
 			{#if $routing}
 				<div class="flex flex-col gap-3" in:slide>
-					<Label class="w-full flex flex-row justify-between items-center gap-2">
+					<Label class="flex flex-row justify-between items-center gap-2">
 						<span class="shrink-0 flex flex-row items-center gap-1">
 							{#if $routingProfileSelectItem.value.includes('bike') || $routingProfileSelectItem.value.includes('motorcycle')}
 								<Bike size="16" />
@@ -159,72 +160,70 @@
 							</Select.Content>
 						</Select.Root>
 					</Label>
-					<Label class="w-full flex flex-row justify-between items-center gap-2">
-						<span class="flex flex-row gap-1"
-							><TriangleAlert size="16" />{$_('toolbar.routing.allow_private')}</span
-						>
+					<Label class="flex flex-row justify-between items-center gap-2">
+						<span class="flex flex-row gap-1">
+							<TriangleAlert size="16" />
+							{$_('toolbar.routing.allow_private')}
+						</span>
 						<Switch class="scale-90" bind:checked={$privateRoads} />
 					</Label>
 				</div>
 			{/if}
 		</div>
 		<div class="flex flex-row flex-wrap justify-center gap-1">
-			<Tooltip label={$_('toolbar.routing.reverse.tooltip')}>
-				<Button
-					variant="outline"
-					class="flex flex-row gap-1 text-xs px-2"
-					disabled={!validSelection}
-					on:click={dbUtils.reverseSelection}
-				>
-					<ArrowRightLeft size="12" />{$_('toolbar.routing.reverse.button')}
-				</Button>
-			</Tooltip>
-			<Tooltip label={$_('toolbar.routing.route_back_to_start.tooltip')}>
-				<Button
-					variant="outline"
-					class="flex flex-row gap-1 text-xs px-2"
-					disabled={!validSelection}
-					on:click={() => {
-						const selected = getOrderedSelection();
-						if (selected.length > 0) {
-							const firstFileId = selected[0].getFileId();
-							const firstFile = getFile(firstFileId);
-							if (firstFile) {
-								let start = (() => {
-									if (selected[0] instanceof ListFileItem) {
-										return firstFile.trk[0]?.trkseg[0]?.trkpt[0];
-									} else if (selected[0] instanceof ListTrackItem) {
-										return firstFile.trk[selected[0].getTrackIndex()]?.trkseg[0]?.trkpt[0];
-									} else if (selected[0] instanceof ListTrackSegmentItem) {
-										return firstFile.trk[selected[0].getTrackIndex()]?.trkseg[
-											selected[0].getSegmentIndex()
-										]?.trkpt[0];
-									}
-								})();
-
-								if (start !== undefined) {
-									const lastFileId = selected[selected.length - 1].getFileId();
-									routingControls
-										.get(lastFileId)
-										?.appendAnchorWithCoordinates(start.getCoordinates());
+			<ButtonWithTooltip
+				label={$_('toolbar.routing.reverse.tooltip')}
+				variant="outline"
+				class="flex flex-row gap-1 text-xs px-2"
+				disabled={!validSelection}
+				on:click={dbUtils.reverseSelection}
+			>
+				<ArrowRightLeft size="12" />{$_('toolbar.routing.reverse.button')}
+			</ButtonWithTooltip>
+			<ButtonWithTooltip
+				label={$_('toolbar.routing.route_back_to_start.tooltip')}
+				variant="outline"
+				class="flex flex-row gap-1 text-xs px-2"
+				disabled={!validSelection}
+				on:click={() => {
+					const selected = getOrderedSelection();
+					if (selected.length > 0) {
+						const firstFileId = selected[0].getFileId();
+						const firstFile = getFile(firstFileId);
+						if (firstFile) {
+							let start = (() => {
+								if (selected[0] instanceof ListFileItem) {
+									return firstFile.trk[0]?.trkseg[0]?.trkpt[0];
+								} else if (selected[0] instanceof ListTrackItem) {
+									return firstFile.trk[selected[0].getTrackIndex()]?.trkseg[0]?.trkpt[0];
+								} else if (selected[0] instanceof ListTrackSegmentItem) {
+									return firstFile.trk[selected[0].getTrackIndex()]?.trkseg[
+										selected[0].getSegmentIndex()
+									]?.trkpt[0];
 								}
+							})();
+
+							if (start !== undefined) {
+								const lastFileId = selected[selected.length - 1].getFileId();
+								routingControls
+									.get(lastFileId)
+									?.appendAnchorWithCoordinates(start.getCoordinates());
 							}
 						}
-					}}
-				>
-					<Home size="12" />{$_('toolbar.routing.route_back_to_start.button')}
-				</Button>
-			</Tooltip>
-			<Tooltip label={$_('toolbar.routing.round_trip.tooltip')}>
-				<Button
-					variant="outline"
-					class="flex flex-row gap-1 text-xs px-2"
-					disabled={!validSelection}
-					on:click={dbUtils.createRoundTripForSelection}
-				>
-					<Repeat size="12" />{$_('toolbar.routing.round_trip.button')}
-				</Button>
-			</Tooltip>
+					}
+				}}
+			>
+				<Home size="12" />{$_('toolbar.routing.route_back_to_start.button')}
+			</ButtonWithTooltip>
+			<ButtonWithTooltip
+				label={$_('toolbar.routing.round_trip.tooltip')}
+				variant="outline"
+				class="flex flex-row gap-1 text-xs px-2"
+				disabled={!validSelection}
+				on:click={dbUtils.createRoundTripForSelection}
+			>
+				<Repeat size="12" />{$_('toolbar.routing.round_trip.button')}
+			</ButtonWithTooltip>
 		</div>
 		<div class="w-full flex flex-row gap-2 items-end justify-between">
 			<Help link={getURLForLanguage($locale, '/help/toolbar/routing')}>
