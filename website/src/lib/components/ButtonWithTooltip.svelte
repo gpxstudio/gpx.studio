@@ -16,7 +16,7 @@
 
 <Tooltip.Root>
 	<Tooltip.Trigger asChild let:builder>
-		<Button builders={[builder]} {variant} {...$$restProps}>
+		<Button builders={[builder]} {variant} {...$$restProps} on:click>
 			<slot />
 		</Button>
 	</Tooltip.Trigger>
