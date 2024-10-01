@@ -890,7 +890,7 @@ export class TrackSegment extends GPXTreeLeaf {
     }
 
     // Producers
-    replaceTrackPoints(start: number, end: number, points: TrackPoint[], speed?: number, startTime?: Date) {
+    replaceTrackPoints(start: number, end: number, points: TrackPoint[], speed?: number, startTime?: Date, removeGaps?: boolean) {
         let og = getOriginal(this); // Read as much as possible from the original object because it is faster
         let trkpt = og.trkpt.slice();
 
@@ -909,6 +909,21 @@ export class TrackSegment extends GPXTreeLeaf {
                 } else if (last !== undefined && points[0].time < last.time) {
                     // Adapt timestamps of the new points because they are too early
                     points = withShiftedAndCompressedTimestamps(points, speed, 1, last);
+                } else if (last !== undefined && removeGaps) {
+                    // Remove gaps between the new points and the previous point
+                    if (last.getLatitude() === points[0].getLatitude() && last.getLongitude() === points[0].getLongitude()) {
+                        // Same point, make the new points start at its timestamp and remove the first point
+                        if (points[0].time > last.time) {
+                            points = withShiftedAndCompressedTimestamps(points, speed, 1, last).slice(1);
+                        }
+                    } else {
+                        // Different points, make the new points start one second after the previous point
+                        if (points[0].time.getTime() - last.time.getTime() > 1000) {
+                            let artificialLast = points[0].clone();
+                            artificialLast.time = new Date(last.time.getTime() + 1000);
+                            points = withShiftedAndCompressedTimestamps(points, speed, 1, artificialLast);
+                        }
+                    }
                 }
             }
             if (end < trkpt.length - 1) {

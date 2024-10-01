@@ -574,7 +574,7 @@ export const dbUtils = {
             });
         });
     },
-    mergeSelection: (mergeTraces: boolean) => {
+    mergeSelection: (mergeTraces: boolean, removeGaps: boolean) => {
         applyGlobal((draft) => {
             let first = true;
             let target: ListItem = new ListRootItem();
@@ -649,7 +649,7 @@ export const dbUtils = {
                     let s = new TrackSegment();
                     toMerge.trk.map((track) => {
                         track.trkseg.forEach((segment) => {
-                            s.replaceTrackPoints(s.trkpt.length, s.trkpt.length, segment.trkpt.slice(), speed, startTime);
+                            s.replaceTrackPoints(s.trkpt.length, s.trkpt.length, segment.trkpt.slice(), speed, startTime, removeGaps);
                         });
                     });
                     toMerge.trk = [toMerge.trk[0]];
@@ -658,7 +658,7 @@ export const dbUtils = {
                 if (toMerge.trkseg.length > 0) {
                     let s = new TrackSegment();
                     toMerge.trkseg.forEach((segment) => {
-                        s.replaceTrackPoints(s.trkpt.length, s.trkpt.length, segment.trkpt.slice(), speed, startTime);
+                        s.replaceTrackPoints(s.trkpt.length, s.trkpt.length, segment.trkpt.slice(), speed, startTime, removeGaps);
                     });
                     toMerge.trkseg = [s];
                 }

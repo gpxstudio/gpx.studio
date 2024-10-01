@@ -11,15 +11,18 @@
 	import { selection } from '$lib/components/file-list/Selection';
 	import { Button } from '$lib/components/ui/button';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import { Checkbox } from '$lib/components/ui/checkbox';
 	import * as RadioGroup from '$lib/components/ui/radio-group';
 	import { _, locale } from 'svelte-i18n';
 	import { dbUtils, getFile } from '$lib/db';
 	import { Group } from 'lucide-svelte';
 	import { getURLForLanguage } from '$lib/utils';
 	import Shortcut from '$lib/components/Shortcut.svelte';
+	import { gpxStatistics } from '$lib/stores';
 
 	let canMergeTraces = false;
 	let canMergeContents = false;
+	let removeGaps = false;
 
 	$: if ($selection.size > 1) {
 		canMergeTraces = true;
@@ -56,22 +59,31 @@
 
 <div class="flex flex-col gap-3 w-full max-w-80 {$$props.class ?? ''}">
 	<RadioGroup.Root bind:value={mergeType}>
-		<Label class="flex flex-row items-center gap-2 leading-5">
+		<Label class="flex flex-row items-center gap-1.5 leading-5">
 			<RadioGroup.Item value={MergeType.TRACES} />
 			{$_('toolbar.merge.merge_traces')}
 		</Label>
-		<Label class="flex flex-row items-center gap-2 leading-5">
+		<Label class="flex flex-row items-center gap-1.5 leading-5">
 			<RadioGroup.Item value={MergeType.CONTENTS} />
 			{$_('toolbar.merge.merge_contents')}
 		</Label>
 	</RadioGroup.Root>
+	{#if mergeType === MergeType.TRACES && $gpxStatistics.global.time.total > 0}
+		<div class="flex flex-row items-center gap-1.5">
+			<Checkbox id="remove-gaps" bind:checked={removeGaps} />
+			<Label for="remove-gaps">{$_('toolbar.merge.remove_gaps')}</Label>
+		</div>
+	{/if}
 	<Button
 		variant="outline"
 		class="whitespace-normal h-fit"
 		disabled={(mergeType === MergeType.TRACES && !canMergeTraces) ||
 			(mergeType === MergeType.CONTENTS && !canMergeContents)}
 		on:click={() => {
-			dbUtils.mergeSelection(mergeType === MergeType.TRACES);
+			dbUtils.mergeSelection(
+				mergeType === MergeType.TRACES,
+				mergeType === MergeType.TRACES && $gpxStatistics.global.time.total > 0 && removeGaps
+			);
 		}}
 	>
 		<Group size="16" class="mr-1 shrink-0" />
