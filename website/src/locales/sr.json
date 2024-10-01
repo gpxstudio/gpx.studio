@@ -173,6 +173,7 @@
             "merge_traces": "Poveži trekove",
             "merge_contents": "Spojite sadržaj i držite trekove nepovezanim",
             "merge_selection": "Spoji izbor",
+            "remove_gaps": "Remove time gaps between traces",
             "tooltip": "Spoji stavke",
             "help_merge_traces": "Povezivanje izabranih trekova će stvoriti jedan kontinuirani trek.",
             "help_cannot_merge_traces": "Vaš izbor mora da sadrži nekoliko trekova da biste ih povezali.",
