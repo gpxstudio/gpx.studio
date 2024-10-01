@@ -5,7 +5,7 @@
         "embed_title": "az online GPX szerkesztő",
         "help_title": "súgó",
         "404_title": "az oldal nem található",
-        "description": "GPX-fájlok online megtekintése, szerkesztése és létrehozása fejlett útvonaltervezési képességekkel és fájlfeldolgozó eszközökkel, gyönyörű térképekkel és részletes adatmegjelenítésekkel."
+        "description": "GPX fájlok online megtekintése, szerkesztése és létrehozása fejlett útvonal tervezési képességekkel és fájlfeldolgozó eszközökkel, gyönyörű térképekkel és részletes adatmegjelenítésekkel."
     },
     "menu": {
         "new": "Új",
@@ -159,18 +159,18 @@
             "help": "Használja a csúszkát az útvonal kivágásához, vagy ossza fel az egyik jelölőre vagy magára az útvonalra kattintva."
         },
         "time": {
-            "tooltip": "Manage time data",
+            "tooltip": "Idő beállítása",
             "start": "Rajt",
             "end": "Befejezés",
             "total_time": "Mozgási idő",
-            "pick_date": "Pick a date",
-            "artificial": "Create realistic time data",
-            "update": "Update time data",
-            "help": "Use the form to set new time data.",
-            "help_invalid_selection": "Select a single trace to manage its time data."
+            "pick_date": "Válassz dátumot",
+            "artificial": "Valósághű időadatok hozzáadása",
+            "update": "Használd  a formot új idő beállításához.",
+            "help": "Használd a form-ot az új idő beállításához.",
+            "help_invalid_selection": "Válasszon ki egyetlen nyomvonalat az időadatainak kezeléséhez."
         },
         "merge": {
-            "merge_traces": "Connect the traces",
+            "merge_traces": "Kösd össze az útvonalakat",
             "merge_contents": "Merge the contents and keep the traces disconnected",
             "merge_selection": "Egyesítés kijelölés",
             "remove_gaps": "Remove time gaps between traces",
@@ -185,10 +185,10 @@
             "tooltip": "Extract contents to separate items",
             "button": "Extract",
             "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
-            "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
+            "help_invalid_selection": "Több nyomvonalat kell tartalmazzon a kijelölés a kinyeréshez."
         },
         "elevation": {
-            "button": "Request elevation data",
+            "button": "Magassági információk lekérése",
             "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
             "help_no_selection": "Select a file item to request elevation data."
         },
@@ -197,10 +197,10 @@
             "icon": "Icon",
             "link": "Link",
             "longitude": "Longitude",
-            "latitude": "Latitude",
-            "create": "Create point of interest",
+            "latitude": "Szélesség",
+            "create": "POI fájlba mentése",
             "add": "Add point of interest to file",
-            "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
+            "help": "Töltsd ki az űrlapot egy új POI létrehozásához, vagy kattints egy meglévőre a szerkesztéshez. Kattints a térképre a koordináták megadásához, vagy áthelyezéshez egérrel húzd el a POI-kat.",
             "help_no_selection": "Select a file to create or edit points of interest."
         },
         "reduce": {
@@ -500,14 +500,14 @@
         "manual_camera": "Manual camera",
         "manual_camera_description": "You can move the map below to adjust the camera position.",
         "latitude": "Latitude",
-        "longitude": "Longitude",
+        "longitude": "Hosszúság",
         "zoom": "Zoom",
-        "pitch": "Pitch",
-        "bearing": "Bearing",
+        "pitch": "Dőlésszög",
+        "bearing": "Irányszög",
         "preview": "Előnézet",
         "code": "Integration code"
     },
-    "webgl2_required": "WebGL 2 is required to display the map.",
+    "webgl2_required": "A térkép megjelenítéséhez WebGL 2 szükséges. ",
     "enable_webgl2": "Learn how to enable WebGL 2 in your browser",
     "page_not_found": "page not found"
 }
