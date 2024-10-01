@@ -173,7 +173,7 @@
             "merge_traces": "Collega le tracce",
             "merge_contents": "Unisci i contenuti e mantieni le tracce disconnesse",
             "merge_selection": "Selezione unione",
-            "remove_gaps": "Remove time gaps between traces",
+            "remove_gaps": "Rimuovere le differenze di tempo tra le tracce",
             "tooltip": "Unisci gli elementi insieme",
             "help_merge_traces": "Collegando le tracce selezionate si creerà una singola traccia continua.",
             "help_cannot_merge_traces": "La tua selezione deve contenere diverse tracce per collegarle.",
