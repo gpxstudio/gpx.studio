@@ -173,6 +173,7 @@
             "merge_traces": "Sujungti trasas",
             "merge_contents": "Sujungti turinį ir laikyti trasas atskirai",
             "merge_selection": "Sujungti pasirinkimą",
+            "remove_gaps": "Remove time gaps between traces",
             "tooltip": "Sujungti elementus",
             "help_merge_traces": "Sujungus pasirinktas trasas bus sukurta viena ištisinė trasa.",
             "help_cannot_merge_traces": "Turi pasirinkti kelias trasas, kad galėtumėte jas sujungti.",
