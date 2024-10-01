@@ -173,6 +173,7 @@
             "merge_traces": "Conecte as trilhas",
             "merge_contents": "Mesclar o conteúdo e manter as trilhas desconectadas",
             "merge_selection": "Unir seleção",
+            "remove_gaps": "Remove time gaps between traces",
             "tooltip": "Unir itens",
             "help_merge_traces": "Conectar as trilhas selecionadas criará uma trilha única contínua.",
             "help_cannot_merge_traces": "Sua seleção deve conter várias trilhas para conectá-las.",
