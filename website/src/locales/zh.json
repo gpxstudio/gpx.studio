@@ -173,6 +173,7 @@
             "merge_traces": "连接轨迹",
             "merge_contents": "Merge the contents and keep the traces disconnected",
             "merge_selection": "合并选择项",
+            "remove_gaps": "Remove time gaps between traces",
             "tooltip": "Merge items together",
             "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
             "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
