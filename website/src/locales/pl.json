@@ -173,6 +173,7 @@
             "merge_traces": "Połącz ślady",
             "merge_contents": "Scal zawartość, ale utrzymaj rozłączone ślady",
             "merge_selection": "Scal zaznaczenie",
+            "remove_gaps": "Remove time gaps between traces",
             "tooltip": "Scal elementy razem",
             "help_merge_traces": "Połączenie zaznaczonych śladów stworzy pojedynczy ciągły ślad.",
             "help_cannot_merge_traces": "Wybór musi zawierać kilka śladów, aby je połączyć.",
