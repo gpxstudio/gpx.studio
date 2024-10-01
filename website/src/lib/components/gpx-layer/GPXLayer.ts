@@ -10,6 +10,7 @@ import { getElevation, resetCursor, setGrabbingCursor, setPointerCursor, setScis
 import { selectedWaypoint } from "$lib/components/toolbar/tools/Waypoint.svelte";
 import { MapPin, Square } from "lucide-static";
 import { getSymbolKey, symbols } from "$lib/assets/symbols";
+import { tick } from "svelte";
 
 const colors = [
     '#ff0000',
@@ -394,13 +395,18 @@ export class GPXLayer {
     showWaypointPopup(waypoint: Waypoint) {
         if (get(currentPopupWaypoint) !== null) {
             this.hideWaypointPopup();
+        } else if (waypoint === get(currentPopupWaypoint)?.[0]) {
+            return;
         }
         let marker = this.markers[waypoint._data.index];
         if (marker) {
             currentPopupWaypoint.set([waypoint, this.fileId]);
-            marker.setPopup(waypointPopup);
-            marker.togglePopup();
-            this.map.on('mousemove', this.maybeHideWaypointPopupBinded);
+            tick().then(() => {
+                // Show popup once the content component has been rendered
+                marker.setPopup(waypointPopup);
+                marker.togglePopup();
+                this.map.on('mousemove', this.maybeHideWaypointPopupBinded);
+            });
         }
     }
 

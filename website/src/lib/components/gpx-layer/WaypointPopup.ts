@@ -7,6 +7,7 @@ export const currentPopupWaypoint = writable<[Waypoint, string] | null>(null);
 
 export const waypointPopup = new mapboxgl.Popup({
     closeButton: false,
+    focusAfterOpen: false,
     maxWidth: undefined,
     offset: {
         'top': [0, 0],
@@ -15,8 +16,8 @@ export const waypointPopup = new mapboxgl.Popup({
         'bottom': [0, -30],
         'bottom-left': [0, -30],
         'bottom-right': [0, -30],
-        'left': [0, 0],
-        'right': [0, 0]
+        'left': [10, -15],
+        'right': [-10, -15],
     },
 });
 

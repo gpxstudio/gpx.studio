@@ -5,6 +5,7 @@ import { get, writable } from "svelte/store";
 import { liveQuery } from "dexie";
 import { db, settings } from "$lib/db";
 import { overpassQueryData } from "$lib/assets/layers";
+import { tick } from "svelte";
 
 const {
     currentOverpassQueries
@@ -18,6 +19,7 @@ export const overpassPopupPOI = writable<Record<string, any> | null>(null);
 
 export const overpassPopup = new mapboxgl.Popup({
     closeButton: false,
+    focusAfterOpen: false,
     maxWidth: undefined,
     offset: 15,
 });
@@ -129,9 +131,12 @@ export class OverpassLayer {
             ...e.features[0].properties,
             sym: overpassQueryData[e.features[0].properties.query].symbol ?? ''
         });
-        overpassPopup.setLngLat(e.features[0].geometry.coordinates);
-        overpassPopup.addTo(this.map);
-        this.map.on('mousemove', this.maybeHidePopupBinded);
+        tick().then(() => {
+            // Show the popup once the content component has been rendered
+            overpassPopup.setLngLat(e.features[0].geometry.coordinates);
+            overpassPopup.addTo(this.map);
+            this.map.on('mousemove', this.maybeHidePopupBinded);
+        });
     }
 
     maybeHidePopup(e: any) {
