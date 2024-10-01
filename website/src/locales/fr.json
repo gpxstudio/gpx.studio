@@ -173,6 +173,7 @@
             "merge_traces": "Connecter les traces",
             "merge_contents": "Fusionner les contenus et garder les traces déconnectées",
             "merge_selection": "Fusionner la sélection",
+            "remove_gaps": "Supprimer les écarts de temps entre les traces",
             "tooltip": "Fusionner les éléments",
             "help_merge_traces": "Connecter les traces sélectionnées créera une seule trace continue.",
             "help_cannot_merge_traces": "Votre sélection doit contenir plusieurs traces pour pouvoir les connecter.",
