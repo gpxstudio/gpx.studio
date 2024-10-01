@@ -296,7 +296,7 @@
 	}
 
 	div :global(.mapboxgl-ctrl-top-right) {
-		@apply z-40;
+		@apply z-20;
 		@apply flex;
 		@apply flex-col;
 		@apply items-end;
