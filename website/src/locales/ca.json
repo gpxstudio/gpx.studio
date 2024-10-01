@@ -173,6 +173,7 @@
             "merge_traces": "Connectar les traçades",
             "merge_contents": "Unir els continguts i mantenir les traçades desconnectades",
             "merge_selection": "Combinar la selecció",
+            "remove_gaps": "Remove time gaps between traces",
             "tooltip": "Unir els elements",
             "help_merge_traces": "Unir les traçades crearà una única traçada contínua.",
             "help_cannot_merge_traces": "Has de sel·leccionar diverses traçades per tal d'unir-les.",
