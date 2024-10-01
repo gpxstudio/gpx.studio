@@ -104,12 +104,12 @@
             "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
             "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
             "activities": {
-                "bike": "Rad",
+                "bike": "Fahrrad",
                 "racing_bike": "Rennrad",
                 "gravel_bike": "Gravel Bike",
                 "mountain_bike": "Mountainbike",
                 "foot": "Laufen/Wandern",
-                "motorcycle": "Moped",
+                "motorcycle": "Motorrad",
                 "water": "Wasser",
                 "railway": "Railway"
             },
