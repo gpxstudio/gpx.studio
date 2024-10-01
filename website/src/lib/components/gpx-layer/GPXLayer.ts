@@ -409,7 +409,7 @@ export class GPXLayer {
         if (waypoint) {
             let marker = this.markers[waypoint._data.index];
             if (marker) {
-                if (this.map.project(marker.getLngLat()).dist(this.map.project(e.lngLat)) > 100) {
+                if (this.map.project(marker.getLngLat()).dist(this.map.project(e.lngLat)) > 60) {
                     this.hideWaypointPopup();
                 }
             } else {

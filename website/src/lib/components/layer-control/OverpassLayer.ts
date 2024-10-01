@@ -136,7 +136,7 @@ export class OverpassLayer {
 
     maybeHidePopup(e: any) {
         let poi = get(overpassPopupPOI);
-        if (poi && this.map.project([poi.lon, poi.lat]).dist(this.map.project(e.lngLat)) > 100) {
+        if (poi && this.map.project([poi.lon, poi.lat]).dist(this.map.project(e.lngLat)) > 60) {
             this.hideWaypointPopup();
         }
     }
