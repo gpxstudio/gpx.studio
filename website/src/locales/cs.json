@@ -173,6 +173,7 @@
             "merge_traces": "Připojit trasy",
             "merge_contents": "Sloučit obsah a zachovat trasy oddělené",
             "merge_selection": "Sloučit výběr",
+            "remove_gaps": "Remove time gaps between traces",
             "tooltip": "Sloučit položky",
             "help_merge_traces": "Připojení vybraných tras vytvoří jednu spojitou trasu.",
             "help_cannot_merge_traces": "Váš výběr musí obsahovat několik tras, které je chcete připojit.",

@@ -173,6 +173,7 @@
             "merge_traces": "Verbind de routes",
             "merge_contents": "Voeg de inhoud samen en houd de sporen gescheiden",
             "merge_selection": "Voeg selectie samen",
+            "remove_gaps": "Remove time gaps between traces",
             "tooltip": "Items samenvoegen",
             "help_merge_traces": "Het verbinden van de geselecteerde sporen creëert één continu spoor.",
             "help_cannot_merge_traces": "Uw selectie moet meerdere sporen bevatten om ze te verbinden.",

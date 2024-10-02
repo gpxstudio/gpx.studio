@@ -173,6 +173,7 @@
             "merge_traces": "Conectar los trazados",
             "merge_contents": "Combinar los contenidos y mantener los trazados desconectados",
             "merge_selection": "Combinar selección",
+            "remove_gaps": "Eliminar intervalos vacíos de tiempo entre trazas",
             "tooltip": "Combinar elementos",
             "help_merge_traces": "Conectar los trazados seleccionados creará un único trazado continuo.",
             "help_cannot_merge_traces": "Su selección debe contener varios trazados para conectarlos.",

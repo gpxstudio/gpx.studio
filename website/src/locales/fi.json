@@ -173,6 +173,7 @@
             "merge_traces": "Yhdistä reitit",
             "merge_contents": "Yhdistä reitit samaan tiedostoon",
             "merge_selection": "Yhdistä valitut",
+            "remove_gaps": "Remove time gaps between traces",
             "tooltip": "Yhdistä tiedostot",
             "help_merge_traces": "Yhdistäminen luo valituista reiteistä yhden yhtenäisen reitin.",
             "help_cannot_merge_traces": "Valitse useampia reittejä yhdistääksesi ne.",

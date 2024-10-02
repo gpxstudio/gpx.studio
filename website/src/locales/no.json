@@ -173,6 +173,7 @@
             "merge_traces": "Connect the traces",
             "merge_contents": "Merge the contents and keep the traces disconnected",
             "merge_selection": "Slå sammen valgte",
+            "remove_gaps": "Remove time gaps between traces",
             "tooltip": "Slå sammen elementer",
             "help_merge_traces": "Ved å koble sammen de valgte sporene vil det opprettes ett enkelt kontinuerlig spor.",
             "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
