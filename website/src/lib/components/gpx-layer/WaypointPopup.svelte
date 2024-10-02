@@ -36,7 +36,7 @@
 
 <div bind:this={popupElement} class="hidden">
 	{#if $currentPopupWaypoint}
-		<Card.Root class="border-none shadow-md text-base max-w-80 p-2">
+		<Card.Root class="border-none shadow-md text-base p-2 max-w-[50dvw]">
 			<Card.Header class="p-0">
 				<Card.Title class="text-md">
 					{#if $currentPopupWaypoint[0].link && $currentPopupWaypoint[0].link.attributes && $currentPopupWaypoint[0].link.attributes.href}
