@@ -8,16 +8,18 @@
 	import { map, streetViewEnabled } from '$lib/stores';
 	import { settings } from '$lib/db';
 	import { _ } from 'svelte-i18n';
+	import { writable } from 'svelte/store';
 
 	const { streetViewSource } = settings;
 
 	let googleRedirect: GoogleRedirect;
 	let mapillaryLayer: MapillaryLayer;
+	let mapillaryOpen = writable(false);
 	let container: HTMLElement;
 
 	$: if ($map) {
 		googleRedirect = new GoogleRedirect($map);
-		mapillaryLayer = new MapillaryLayer($map, container);
+		mapillaryLayer = new MapillaryLayer($map, container, mapillaryOpen);
 	}
 
 	$: if (mapillaryLayer) {
@@ -53,7 +55,9 @@
 
 <div
 	bind:this={container}
-	class="hidden relative w-[50vw] h-[40vh] rounded-md border-background border-2"
+	class="{$mapillaryOpen
+		? ''
+		: 'hidden'} !absolute bottom-[44px] right-2.5 z-10 w-[40%] h-[40%] bg-background rounded-md overflow-hidden border-background border-2"
 >
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<!-- svelte-ignore a11y-no-static-element-interactions -->

@@ -3,7 +3,6 @@ import { TrackPoint, distance } from "gpx";
 import { derived, get, writable } from "svelte/store";
 import { settings } from "$lib/db";
 import { _, isLoading, locale } from "svelte-i18n";
-import { map } from "$lib/stores";
 import { getElevation } from "$lib/utils";
 
 const { routing, routingProfile, privateRoads } = settings;

@@ -1,16 +1,17 @@
-import mapboxgl from "mapbox-gl";
-import { Viewer } from 'mapillary-js/dist/mapillary.module';
+import mapboxgl, { type LayerSpecification, type VectorSourceSpecification } from "mapbox-gl";
+import { Viewer, type ViewerBearingEvent } from 'mapillary-js/dist/mapillary.module';
 import 'mapillary-js/dist/mapillary.css';
 import { resetCursor, setPointerCursor } from "$lib/utils";
+import type { Writable } from "svelte/store";
 
-const mapillarySource = {
+const mapillarySource: VectorSourceSpecification = {
     type: 'vector',
     tiles: ['https://tiles.mapillary.com/maps/vtp/mly1_computed_public/2/{z}/{x}/{y}?access_token=MLY|4381405525255083|3204871ec181638c3c31320490f03011'],
     minzoom: 6,
     maxzoom: 14,
 };
 
-const mapillarySequenceLayer = {
+const mapillarySequenceLayer: LayerSpecification = {
     id: 'mapillary-sequence',
     type: 'line',
     source: 'mapillary',
@@ -26,7 +27,7 @@ const mapillarySequenceLayer = {
     },
 };
 
-const mapillaryImageLayer = {
+const mapillaryImageLayer: LayerSpecification = {
     id: 'mapillary-image',
     type: 'circle',
     source: 'mapillary',
@@ -40,35 +41,56 @@ const mapillaryImageLayer = {
 
 export class MapillaryLayer {
     map: mapboxgl.Map;
-    popup: mapboxgl.Popup;
+    marker: mapboxgl.Marker;
     viewer: Viewer;
+
+    active = false;
+    popupOpen: Writable<boolean>;
+
     addBinded = this.add.bind(this);
     onMouseEnterBinded = this.onMouseEnter.bind(this);
     onMouseLeaveBinded = this.onMouseLeave.bind(this);
 
-    constructor(map: mapboxgl.Map, container: HTMLElement) {
+    constructor(map: mapboxgl.Map, container: HTMLElement, popupOpen: Writable<boolean>) {
         this.map = map;
 
         this.viewer = new Viewer({
             accessToken: 'MLY|4381405525255083|3204871ec181638c3c31320490f03011',
             container,
         });
-        container.classList.remove('hidden');
 
-        this.popup = new mapboxgl.Popup({
-            closeButton: false,
-            maxWidth: container.style.width,
-        }).setDOMContent(container);
+        const element = document.createElement('div');
+        element.className = 'mapboxgl-user-location mapboxgl-user-location-show-heading';
+        const dot = document.createElement('div');
+        dot.className = 'mapboxgl-user-location-dot';
+        const heading = document.createElement('div');
+        heading.className = 'mapboxgl-user-location-heading';
+        element.appendChild(dot);
+        element.appendChild(heading);
+
+        this.marker = new mapboxgl.Marker({
+            rotationAlignment: 'map',
+            element
+        });
 
         this.viewer.on('position', async () => {
-            if (this.popup.isOpen()) {
+            if (this.active) {
+                popupOpen.set(true);
                 let latLng = await this.viewer.getPosition();
-                this.popup.setLngLat(latLng);
-                if (!this.map.getBounds().contains(latLng)) {
+                this.marker.setLngLat(latLng).addTo(this.map);
+                if (!this.map.getBounds()?.contains(latLng)) {
                     this.map.panTo(latLng);
                 }
             }
         });
+
+        this.viewer.on('bearing', (e: ViewerBearingEvent) => {
+            if (this.active) {
+                this.marker.setRotation(e.bearing);
+            }
+        });
+
+        this.popupOpen = popupOpen;
     }
 
     add() {
@@ -101,15 +123,19 @@ export class MapillaryLayer {
             this.map.removeSource('mapillary');
         }
 
-        this.popup.remove();
+        this.marker.remove();
+        this.popupOpen.set(false);
     }
 
     closePopup() {
-        this.popup.remove();
+        this.active = false;
+        this.marker.remove();
+        this.popupOpen.set(false);
     }
 
-    onMouseEnter(e: mapboxgl.MapLayerMouseEvent) {
-        this.popup.addTo(this.map).setLngLat(e.lngLat);
+    onMouseEnter(e: mapboxgl.MapMouseEvent) {
+        this.active = true;
+
         this.viewer.resize();
         this.viewer.moveTo(e.features[0].properties.id);
 

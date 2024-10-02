@@ -2,16 +2,15 @@ import { distance, type Coordinates, TrackPoint, TrackSegment, Track, projectedP
 import { get, writable, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
 import { route } from "./Routing";
-
 import { toast } from "svelte-sonner";
-
 import { _ } from "svelte-i18n";
-import { dbUtils, type GPXFileWithStatistics } from "$lib/db";
+import { dbUtils, settings, type GPXFileWithStatistics } from "$lib/db";
 import { getOrderedSelection, selection } from "$lib/components/file-list/Selection";
 import { ListFileItem, ListTrackItem, ListTrackSegmentItem } from "$lib/components/file-list/FileList";
 import { currentTool, streetViewEnabled, Tool } from "$lib/stores";
 import { getClosestLinePoint, resetCursor, setGrabbingCursor } from "$lib/utils";
 
+const { streetViewSource } = settings;
 export const canChangeStart = writable(false);
 
 function stopPropagation(e: any) {
@@ -458,7 +457,7 @@ export class RoutingControls {
     }
 
     async appendAnchor(e: mapboxgl.MapMouseEvent) { // Add a new anchor to the end of the last segment
-        if (get(streetViewEnabled)) {
+        if (get(streetViewEnabled) && get(streetViewSource) === 'google') {
             return;
         }
 
