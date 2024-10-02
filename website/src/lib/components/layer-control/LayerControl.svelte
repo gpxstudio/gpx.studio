@@ -130,7 +130,9 @@
 	});
 	currentBasemap.subscribe((value) => {
 		// Updates coming from the database, or from the user swapping basemaps
-		selectedBasemap.set(value);
+		if (value !== get(selectedBasemap)) {
+			selectedBasemap.set(value);
+		}
 	});
 
 	let open = false;

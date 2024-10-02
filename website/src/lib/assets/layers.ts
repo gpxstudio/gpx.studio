@@ -1,11 +1,11 @@
 import { TramFront, Utensils, ShoppingBasket, Droplet, ShowerHead, Fuel, CircleParking, Fence, FerrisWheel, Bed, Mountain, Pickaxe, Store, TrainFront, Bus, Ship, Croissant, House, Tent, Wrench, Binoculars } from 'lucide-static';
-import { type Style } from 'mapbox-gl';
+import { type StyleSpecification } from 'mapbox-gl';
 import ignFrTopo from './custom/ign-fr-topo.json';
 import ignFrPlan from './custom/ign-fr-plan.json';
 import ignFrSatellite from './custom/ign-fr-satellite.json';
 import bikerouterGravel from './custom/bikerouter-gravel.json';
 
-export const basemaps: { [key: string]: string | Style; } = {
+export const basemaps: { [key: string]: string | StyleSpecification; } = {
     mapboxOutdoors: 'mapbox://styles/mapbox/outdoors-v12',
     mapboxSatellite: 'mapbox://styles/mapbox/satellite-streets-v12',
     openStreetMap: {
@@ -286,7 +286,7 @@ export const basemaps: { [key: string]: string | Style; } = {
     },
 };
 
-export const overlays: { [key: string]: string | Style; } = {
+export const overlays: { [key: string]: string | StyleSpecification; } = {
     cyclOSMlite: {
         version: 8,
         sources: {

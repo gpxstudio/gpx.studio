@@ -10,7 +10,6 @@ import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simpli
 import { SplitType } from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
 import { getClosestLinePoint, getElevation } from '$lib/utils';
 import { browser } from '$app/environment';
-import type mapboxgl from 'mapbox-gl';
 
 enableMapSet();
 enablePatches();
