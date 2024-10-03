@@ -3,7 +3,7 @@ title: Файлы и статистика
 ---
 
 <script>
-    import { TriangleRight, BrickWall, Zap, HeartPulse, Orbit, Thermometer, SquareActivity } from 'lucide-svelte';
+    import { ChartNoAxesColumn } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -73,10 +73,10 @@ title: Файлы и статистика
 
 ### Дополнительные данные
 
-С помощью кнопок справа от профиля высоты можно изменить цвет профиля высоты:
+Using the <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> button at the bottom-right of the elevation profile, you can optionally color the elevation profile by:
 
-- **угол наклона** <TriangleRight size="16" class="inline-block" style="margin-bottom: 2px" /> информация, вычисленная на основе данных о высоте, или
-- **поверхность** <BrickWall size="16" class="inline-block" style="margin-bottom: 2px" /> данные, полученные из тегов <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> по ключу <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a>.
+- **slope** information computed from the elevation data, or
+- **surface** or **category** data coming from <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> and <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> tags.
   Это доступно только для файлов, созданных с помощью **gpx.studio**.
 
-Если ваш выбор включает это, вы также можете визуализировать: **скорость** <Zap size="16" class="inline-block" style="margin-bottom: 2px" />, **частоту сердечных сокращений** <HeartPulse size="16" class="inline-block" style="margin-bottom: 2px" />, **каденцию** <Orbit size="16" class="inline-block" style="margin-bottom: 2px" />, **температуру** <Thermometer size="16" class="inline-block" style="margin-bottom: 2px" />, и **мощность** <SquareActivity size="16" class="inline-block" style="margin-bottom: 2px" /> данные на профиле высоты.
+If your selection includes it, you can also visualize: **speed**, **heart rate**, **cadence**, **temperature** and **power** data on the elevation profile.
