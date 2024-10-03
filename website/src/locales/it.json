@@ -136,8 +136,8 @@
                 "sand": "Sabbia",
                 "grass": "Erba",
                 "grass_paver": "Pavimentazione erbosa",
-                "clay": "Clay",
-                "stone": "Stone"
+                "clay": "Argilla",
+                "stone": "Pietra"
             },
             "error": {
                 "from": "Il punto di partenza è troppo lontano dalla strada più vicina",
