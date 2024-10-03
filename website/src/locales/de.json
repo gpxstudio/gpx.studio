@@ -139,6 +139,52 @@
                 "clay": "Clay",
                 "stone": "Stone"
             },
+            "highway": {
+                "unknown": "Unknown",
+                "residential": "Residential",
+                "service": "Service",
+                "track": "Track",
+                "unclassified": "Unclassified",
+                "footway": "Footway",
+                "tertiary": "Tertiary",
+                "path": "Path",
+                "secondary": "Secondary",
+                "primary": "Primary",
+                "cycleway": "Cycleway",
+                "trunk": "Trunk",
+                "living_street": "Living Street",
+                "motorway": "Motorway",
+                "motorway_link": "Motorway Link",
+                "steps": "Steps",
+                "road": "Road",
+                "pedestrian": "Pedestrian",
+                "trunk_link": "Trunk Link",
+                "primary_link": "Primary Link",
+                "secondary_link": "Secondary Link",
+                "tertiary_link": "Tertiary Link",
+                "construction": "Construction",
+                "bridleway": "Bridleway",
+                "platform": "Platform",
+                "proposed": "Proposed",
+                "raceway": "Raceway",
+                "rest_area": "Rest Area",
+                "abandoned": "Abandoned",
+                "services": "Services",
+                "corridor": "Corridor",
+                "bus_stop": "Bus Stop",
+                "busway": "Busway",
+                "elevator": "Elevator",
+                "via_ferrata": "Via Ferrata"
+            },
+            "sac_scale": {
+                "hiking": "Hiking",
+                "mountain_hiking": "Mountain hiking",
+                "demanding_mountain_hiking": "Demanding mountain hiking",
+                "alpine_hiking": "Alpine hiking",
+                "demanding_alpine_hiking": "Demanding alpine hiking",
+                "difficult_alpine_hiking": "Difficult alpine hiking"
+            },
+            "mtb_scale": "MTB scale",
             "error": {
                 "from": "Der Startpunkt ist zu weit von der nächsten Straße entfernt",
                 "via": "The via point is too far from the nearest road",
@@ -341,14 +387,7 @@
         }
     },
     "chart": {
-        "show_slope": "Show slope data",
-        "show_surface": "Oberflächenanzeigen",
-        "show_speed": "Geschwindigkeit anzeigen",
-        "show_pace": "Show pace data",
-        "show_heartrate": "Herzfrequenz anzeigen",
-        "show_cadence": "Kadenz anzeigen",
-        "show_temperature": "Temperatur anzeigen",
-        "show_power": "Show power data"
+        "settings": "Elevation profile settings"
     },
     "quantities": {
         "distance": "Distanz",
@@ -362,9 +401,11 @@
         "power": "Leistung",
         "slope": "Gefälle",
         "surface": "Oberfläche",
+        "highway": "Category",
         "time": "Zeit",
         "moving": "Bewegung",
-        "total": "Gesamt"
+        "total": "Gesamt",
+        "osm_extensions": "OpenStreetMap data"
     },
     "units": {
         "meters": "m",
