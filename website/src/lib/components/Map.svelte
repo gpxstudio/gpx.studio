@@ -310,7 +310,7 @@
 	}
 
 	div :global(.mapboxgl-ctrl-top-right) {
-		@apply z-20;
+		@apply z-40;
 		@apply flex;
 		@apply flex-col;
 		@apply items-end;
@@ -348,7 +348,7 @@
 
 	div :global(.mapboxgl-popup) {
 		@apply w-fit;
-		@apply z-20;
+		@apply z-50;
 	}
 
 	div :global(.mapboxgl-popup-content) {
