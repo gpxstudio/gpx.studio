@@ -28,7 +28,7 @@
 
 <Card.Root
 	class="h-full {orientation === 'vertical'
-		? 'min-w-44 sm:min-w-52 text-sm sm:text-base'
+		? 'min-w-40 sm:min-w-44 text-sm sm:text-base'
 		: 'w-full'} border-none shadow-none"
 >
 	<Card.Content
@@ -38,15 +38,15 @@
 	>
 		<Tooltip label={$_('quantities.distance')}>
 			<span class="flex flex-row items-center">
-				<Ruler size="18" class="mr-1" />
+				<Ruler size="16" class="mr-1" />
 				<WithUnits value={statistics.global.distance.total} type="distance" />
 			</span>
 		</Tooltip>
 		<Tooltip label={$_('quantities.elevation_gain_loss')}>
 			<span class="flex flex-row items-center">
-				<MoveUpRight size="18" class="mr-1" />
+				<MoveUpRight size="16" class="mr-1" />
 				<WithUnits value={statistics.global.elevation.gain} type="elevation" />
-				<MoveDownRight size="18" class="mx-1" />
+				<MoveDownRight size="16" class="mx-1" />
 				<WithUnits value={statistics.global.elevation.loss} type="elevation" />
 			</span>
 		</Tooltip>
@@ -58,7 +58,7 @@
 				)} / {$_('quantities.total')})"
 			>
 				<span class="flex flex-row items-center">
-					<Zap size="18" class="mr-1" />
+					<Zap size="16" class="mr-1" />
 					<WithUnits value={statistics.global.speed.moving} type="speed" showUnits={false} />
 					<span class="mx-1">/</span>
 					<WithUnits value={statistics.global.speed.total} type="speed" />
@@ -71,7 +71,7 @@
 				label="{$_('quantities.time')} ({$_('quantities.moving')} / {$_('quantities.total')})"
 			>
 				<span class="flex flex-row items-center">
-					<Timer size="18" class="mr-1" />
+					<Timer size="16" class="mr-1" />
 					<WithUnits value={statistics.global.time.moving} type="time" />
 					<span class="mx-1">/</span>
 					<WithUnits value={statistics.global.time.total} type="time" />

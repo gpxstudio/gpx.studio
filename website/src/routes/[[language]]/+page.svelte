@@ -175,7 +175,6 @@
 				{slicedGPXStatistics}
 				additionalDatasets={$additionalDatasets}
 				elevationFill={$elevationFill}
-				panelSize={200}
 			/>
 		</div>
 		<div class="flex flex-col items-center">

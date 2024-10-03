@@ -92,8 +92,6 @@
 					{slicedGPXStatistics}
 					bind:additionalDatasets={$additionalDatasets}
 					bind:elevationFill={$elevationFill}
-					panelSize={$bottomPanelSize}
-					class="py-2"
 				/>
 			{/if}
 		</div>

@@ -165,35 +165,35 @@
 						<Checkbox id="show-speed" bind:checked={options.elevation.speed} />
 						<Label for="show-speed" class="flex flex-row items-center gap-1">
 							<Zap size="16" />
-							{$_('chart.show_speed')}
+							{$_('quantities.speed')}
 						</Label>
 					</div>
 					<div class="flex flex-row items-center gap-2">
 						<Checkbox id="show-hr" bind:checked={options.elevation.hr} />
 						<Label for="show-hr" class="flex flex-row items-center gap-1">
 							<HeartPulse size="16" />
-							{$_('chart.show_heartrate')}
+							{$_('quantities.heartrate')}
 						</Label>
 					</div>
 					<div class="flex flex-row items-center gap-2">
 						<Checkbox id="show-cad" bind:checked={options.elevation.cad} />
 						<Label for="show-cad" class="flex flex-row items-center gap-1">
 							<Orbit size="16" />
-							{$_('chart.show_cadence')}
+							{$_('quantities.cadence')}
 						</Label>
 					</div>
 					<div class="flex flex-row items-center gap-2">
 						<Checkbox id="show-temp" bind:checked={options.elevation.temp} />
 						<Label for="show-temp" class="flex flex-row items-center gap-1">
 							<Thermometer size="16" />
-							{$_('chart.show_temperature')}
+							{$_('quantities.temperature')}
 						</Label>
 					</div>
 					<div class="flex flex-row items-center gap-2">
 						<Checkbox id="show-power" bind:checked={options.elevation.power} />
 						<Label for="show-power" class="flex flex-row items-center gap-1">
 							<SquareActivity size="16" />
-							{$_('chart.show_power')}
+							{$_('quantities.power')}
 						</Label>
 					</div>
 				</div>

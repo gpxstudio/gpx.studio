@@ -260,9 +260,7 @@
 					options.elevation.power ? 'power' : null
 				].filter((dataset) => dataset !== null)}
 				elevationFill={options.elevation.fill}
-				panelSize={options.elevation.height}
 				showControls={options.elevation.controls}
-				class="py-2"
 			/>
 		{/if}
 	</div>

@@ -79,7 +79,8 @@
 					callback: function (value: number) {
 						return `${value.toFixed(1).replace(/\.0+$/, '')} ${getDistanceUnits()}`;
 					},
-					align: 'inner'
+					align: 'inner',
+					maxRotation: 0
 				}
 			},
 			y: {
@@ -489,6 +490,8 @@
 
 		overlay.width = canvas.width / window.devicePixelRatio;
 		overlay.height = canvas.height / window.devicePixelRatio;
+		overlay.style.width = `${canvas.width}px`;
+		overlay.style.height = `${canvas.height}px`;
 
 		if ($slicedGPXStatistics) {
 			let startIndex = $slicedGPXStatistics[1];
@@ -512,7 +515,7 @@
 					startPixel,
 					chart.chartArea.top,
 					endPixel - startPixel,
-					chart.chartArea.bottom - chart.chartArea.top
+					chart.chartArea.height
 				);
 			}
 		} else if (overlay) {
@@ -532,9 +535,9 @@
 	});
 </script>
 
-<div class="h-full grow min-w-0 relative {$$props.class ?? ''}">
+<div class="h-full grow min-w-0 relative py-2">
 	<canvas bind:this={overlay} class="w-full h-full absolute pointer-events-none"></canvas>
-	<canvas bind:this={canvas} class="w-full h-full"></canvas>
+	<canvas bind:this={canvas} class="w-full h-full absolute"></canvas>
 	{#if showControls}
 		<div class="absolute bottom-10 right-1.5">
 			<Popover.Root>
@@ -543,9 +546,9 @@
 						label={$_('chart.settings')}
 						builders={[builder]}
 						variant="outline"
-						class="p-1 h-7 opacity-70 hover:opacity-100 transition-opacity duration-300 hover:bg-background"
+						class="w-7 h-7 p-0 flex justify-center opacity-70 hover:opacity-100 transition-opacity duration-300 hover:bg-background"
 					>
-						<ChartNoAxesColumn size="16" />
+						<ChartNoAxesColumn size="18" />
 					</ButtonWithTooltip>
 				</Popover.Trigger>
 				<Popover.Content class="w-fit p-0 flex flex-col divide-y" side="left" sideOffset={-32}>
