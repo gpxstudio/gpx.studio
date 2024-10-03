@@ -341,14 +341,7 @@
         }
     },
     "chart": {
-        "show_slope": "Show slope data",
-        "show_surface": "Show surface data",
-        "show_speed": "Show speed data",
-        "show_pace": "Show pace data",
-        "show_heartrate": "Show heart rate data",
-        "show_cadence": "Show cadence data",
-        "show_temperature": "Show temperature data",
-        "show_power": "Show power data"
+        "settings": "Elevation profile settings"
     },
     "quantities": {
         "distance": "Distance",

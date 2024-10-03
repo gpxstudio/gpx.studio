@@ -1,6 +1,7 @@
 <script lang="ts">
+	import ButtonWithTooltip from '$lib/components/ButtonWithTooltip.svelte';
+	import * as Popover from '$lib/components/ui/popover';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group';
-	import Tooltip from '$lib/components/Tooltip.svelte';
 	import Chart from 'chart.js/auto';
 	import mapboxgl from 'mapbox-gl';
 	import { map } from '$lib/stores';
@@ -12,7 +13,10 @@
 		Orbit,
 		SquareActivity,
 		Thermometer,
-		Zap
+		Zap,
+		Circle,
+		Check,
+		ChartNoAxesColumn
 	} from 'lucide-svelte';
 	import { surfaceColors } from '$lib/assets/surfaces';
 	import { _, locale } from 'svelte-i18n';
@@ -28,8 +32,7 @@
 		getHeartRateWithUnits,
 		getPowerWithUnits,
 		getTemperatureWithUnits,
-		getVelocityWithUnits,
-		secondsToHHMMSS
+		getVelocityWithUnits
 	} from '$lib/units';
 	import type { Writable } from 'svelte/store';
 	import { DateFormatter } from '@internationalized/date';
@@ -39,7 +42,6 @@
 
 	export let gpxStatistics: Writable<GPXStatistics>;
 	export let slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined>;
-	export let panelSize: number;
 	export let additionalDatasets: string[];
 	export let elevationFill: 'slope' | 'surface' | undefined;
 	export let showControls: boolean = true;
@@ -74,12 +76,10 @@
 			x: {
 				type: 'linear',
 				ticks: {
-					callback: function (value: number, index: number, ticks: { value: number }[]) {
-						if (index === ticks.length - 1) {
-							return `${value.toFixed(1).replace(/\.0+$/, '')}`;
-						}
+					callback: function (value: number) {
 						return `${value.toFixed(1).replace(/\.0+$/, '')} ${getDistanceUnits()}`;
-					}
+					},
+					align: 'inner'
 				}
 			},
 			y: {
@@ -532,75 +532,122 @@
 	});
 </script>
 
-<div class="h-full grow min-w-0 flex flex-row gap-4 items-center {$$props.class ?? ''}">
-	<div class="grow h-full min-w-0 relative">
-		<canvas bind:this={overlay} class=" w-full h-full absolute pointer-events-none"></canvas>
-		<canvas bind:this={canvas} class="w-full h-full"></canvas>
-	</div>
+<div class="h-full grow min-w-0 relative {$$props.class ?? ''}">
+	<canvas bind:this={overlay} class="w-full h-full absolute pointer-events-none"></canvas>
+	<canvas bind:this={canvas} class="w-full h-full"></canvas>
 	{#if showControls}
-		<div class="h-full flex flex-col justify-center" style="width: {panelSize > 158 ? 22 : 42}px">
-			<ToggleGroup.Root
-				class="{panelSize > 158
-					? 'flex-col'
-					: 'flex-row'} flex-wrap gap-0 min-h-0 content-center border rounded-t-md"
-				type="single"
-				bind:value={elevationFill}
-			>
-				<ToggleGroup.Item class="p-0 w-5 h-5" value="slope" aria-label={$_('chart.show_slope')}>
-					<Tooltip side="left" label={$_('chart.show_slope')}>
-						<TriangleRight size="15" />
-					</Tooltip>
-				</ToggleGroup.Item>
-				<ToggleGroup.Item class="p-0 w-5 h-5" value="surface" aria-label={$_('chart.show_surface')}>
-					<Tooltip side="left" label={$_('chart.show_surface')}>
-						<BrickWall size="15" />
-					</Tooltip>
-				</ToggleGroup.Item>
-			</ToggleGroup.Root>
-			<ToggleGroup.Root
-				class="{panelSize > 158
-					? 'flex-col'
-					: 'flex-row'} flex-wrap gap-0 min-h-0 content-center border rounded-b-md -mt-[1px]"
-				type="multiple"
-				bind:value={additionalDatasets}
-			>
-				<ToggleGroup.Item
-					class="p-0 w-5 h-5"
-					value="speed"
-					aria-label={$velocityUnits === 'speed' ? $_('chart.show_speed') : $_('chart.show_pace')}
-				>
-					<Tooltip
-						side="left"
-						label={$velocityUnits === 'speed' ? $_('chart.show_speed') : $_('chart.show_pace')}
+		<div class="absolute bottom-10 right-1.5">
+			<Popover.Root>
+				<Popover.Trigger asChild let:builder>
+					<ButtonWithTooltip
+						label={$_('chart.settings')}
+						builders={[builder]}
+						variant="outline"
+						class="p-1 h-7 opacity-70 hover:opacity-100 transition-opacity duration-300 hover:bg-background"
 					>
-						<Zap size="15" />
-					</Tooltip>
-				</ToggleGroup.Item>
-				<ToggleGroup.Item class="p-0 w-5 h-5" value="hr" aria-label={$_('chart.show_heartrate')}>
-					<Tooltip side="left" label={$_('chart.show_heartrate')}>
-						<HeartPulse size="15" />
-					</Tooltip>
-				</ToggleGroup.Item>
-				<ToggleGroup.Item class="p-0 w-5 h-5" value="cad" aria-label={$_('chart.show_cadence')}>
-					<Tooltip side="left" label={$_('chart.show_cadence')}>
-						<Orbit size="15" />
-					</Tooltip>
-				</ToggleGroup.Item>
-				<ToggleGroup.Item
-					class="p-0 w-5 h-5"
-					value="atemp"
-					aria-label={$_('chart.show_temperature')}
-				>
-					<Tooltip side="left" label={$_('chart.show_temperature')}>
-						<Thermometer size="15" />
-					</Tooltip>
-				</ToggleGroup.Item>
-				<ToggleGroup.Item class="p-0 w-5 h-5" value="power" aria-label={$_('chart.show_power')}>
-					<Tooltip side="left" label={$_('chart.show_power')}>
-						<SquareActivity size="15" />
-					</Tooltip>
-				</ToggleGroup.Item>
-			</ToggleGroup.Root>
+						<ChartNoAxesColumn size="16" />
+					</ButtonWithTooltip>
+				</Popover.Trigger>
+				<Popover.Content class="w-fit p-0 flex flex-col divide-y" side="left" sideOffset={-32}>
+					<ToggleGroup.Root
+						class="flex flex-col items-start gap-0 p-1"
+						type="single"
+						bind:value={elevationFill}
+					>
+						<ToggleGroup.Item
+							class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
+							value="slope"
+						>
+							<div class="w-6 flex justify-center items-center">
+								{#if elevationFill === 'slope'}
+									<Circle class="h-1.5 w-1.5 fill-current text-current" />
+								{/if}
+							</div>
+							<TriangleRight size="15" class="mr-1" />
+							{$_('quantities.slope')}
+						</ToggleGroup.Item>
+						<ToggleGroup.Item
+							class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
+							value="surface"
+							variant="outline"
+						>
+							<div class="w-6 flex justify-center items-center">
+								{#if elevationFill === 'surface'}
+									<Circle class="h-1.5 w-1.5 fill-current text-current" />
+								{/if}
+							</div>
+							<BrickWall size="15" class="mr-1" />
+							{$_('quantities.surface')}
+						</ToggleGroup.Item>
+					</ToggleGroup.Root>
+					<ToggleGroup.Root
+						class="flex flex-col items-start gap-0 p-1"
+						type="multiple"
+						bind:value={additionalDatasets}
+					>
+						<ToggleGroup.Item
+							class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
+							value="speed"
+						>
+							<div class="w-6 flex justify-center items-center">
+								{#if additionalDatasets.includes('speed')}
+									<Check size="14" />
+								{/if}
+							</div>
+							<Zap size="15" class="mr-1" />
+							{$velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')}
+						</ToggleGroup.Item>
+						<ToggleGroup.Item
+							class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
+							value="hr"
+						>
+							<div class="w-6 flex justify-center items-center">
+								{#if additionalDatasets.includes('hr')}
+									<Check size="14" />
+								{/if}
+							</div>
+							<HeartPulse size="15" class="mr-1" />
+							{$_('quantities.heartrate')}
+						</ToggleGroup.Item>
+						<ToggleGroup.Item
+							class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
+							value="cad"
+						>
+							<div class="w-6 flex justify-center items-center">
+								{#if additionalDatasets.includes('cad')}
+									<Check size="14" />
+								{/if}
+							</div>
+							<Orbit size="15" class="mr-1" />
+							{$_('quantities.cadence')}
+						</ToggleGroup.Item>
+						<ToggleGroup.Item
+							class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
+							value="atemp"
+						>
+							<div class="w-6 flex justify-center items-center">
+								{#if additionalDatasets.includes('atemp')}
+									<Check size="14" />
+								{/if}
+							</div>
+							<Thermometer size="15" class="mr-1" />
+							{$_('quantities.temperature')}
+						</ToggleGroup.Item>
+						<ToggleGroup.Item
+							class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
+							value="power"
+						>
+							<div class="w-6 flex justify-center items-center">
+								{#if additionalDatasets.includes('power')}
+									<Check size="14" />
+								{/if}
+							</div>
+							<SquareActivity size="15" class="mr-1" />
+							{$_('quantities.power')}
+						</ToggleGroup.Item>
+					</ToggleGroup.Root>
+				</Popover.Content>
+			</Popover.Root>
 		</div>
 	{/if}
 </div>
