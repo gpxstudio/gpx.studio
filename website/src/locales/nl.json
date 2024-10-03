@@ -136,8 +136,8 @@
                 "sand": "Zand",
                 "grass": "Gras",
                 "grass_paver": "Grastegel",
-                "clay": "Clay",
-                "stone": "Stone"
+                "clay": "Klei",
+                "stone": "Steen"
             },
             "error": {
                 "from": "Het startpunt ligt te ver van de dichtstbijzijnde weg",
