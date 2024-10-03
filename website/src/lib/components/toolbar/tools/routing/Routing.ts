@@ -65,7 +65,7 @@ async function getRoute(points: Coordinates[], brouterProfile: string, privateRo
     const latIdx = messages[0].indexOf("Latitude");
     const tagIdx = messages[0].indexOf("WayTags");
     let messageIdx = 1;
-    let surface = messageIdx < messages.length ? getSurface(messages[messageIdx][tagIdx]) : undefined;
+    let tags = messageIdx < messages.length ? getTags(messages[messageIdx][tagIdx]) : {};
 
     for (let i = 0; i < coordinates.length; i++) {
         let coord = coordinates[i];
@@ -82,25 +82,25 @@ async function getRoute(points: Coordinates[], brouterProfile: string, privateRo
             coordinates[i][1] == Number(messages[messageIdx][latIdx]) / 1000000) {
             messageIdx++;
 
-            if (messageIdx == messages.length) surface = undefined;
-            else surface = getSurface(messages[messageIdx][tagIdx]);
+            if (messageIdx == messages.length) tags = {};
+            else tags = getTags(messages[messageIdx][tagIdx]);
         }
 
-        if (surface) {
-            route[route.length - 1].setSurface(surface);
-        }
+        route[route.length - 1].setExtensions(tags);
     }
 
     return route;
 }
 
-function getSurface(message: string): string | undefined {
+function getTags(message: string): { [key: string]: string } {
     const fields = message.split(" ");
-    for (let i = 0; i < fields.length; i++) if (fields[i].startsWith("surface=")) {
-        return fields[i].substring(8);
+    let tags: { [key: string]: string } = {};
+    for (let i = 0; i < fields.length; i++) {
+        let tag = fields[i].split("=");
+        tags[tag[0]] = tag[1];
     }
-    return undefined;
-};
+    return tags;
+}
 
 function getIntermediatePoints(points: Coordinates[]): Promise<TrackPoint[]> {
     let route: TrackPoint[] = [];

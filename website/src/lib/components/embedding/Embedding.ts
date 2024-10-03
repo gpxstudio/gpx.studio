@@ -10,7 +10,7 @@ export type EmbeddingOptions = {
         show: boolean;
         height: number;
         controls: boolean;
-        fill: 'slope' | 'surface' | undefined;
+        fill: 'slope' | 'surface' | 'highway' | undefined;
         speed: boolean;
         hr: boolean;
         cad: boolean;

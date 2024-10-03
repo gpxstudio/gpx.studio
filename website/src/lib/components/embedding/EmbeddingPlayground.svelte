@@ -142,7 +142,7 @@
 								let value = selected?.value;
 								if (value === 'none') {
 									options.elevation.fill = undefined;
-								} else if (value === 'slope' || value === 'surface') {
+								} else if (value === 'slope' || value === 'surface' || value === 'highway') {
 									options.elevation.fill = value;
 								}
 							}}
@@ -153,6 +153,7 @@
 							<Select.Content>
 								<Select.Item value="slope">{$_('quantities.slope')}</Select.Item>
 								<Select.Item value="surface">{$_('quantities.surface')}</Select.Item>
+								<Select.Item value="highway">{$_('quantities.highway')}</Select.Item>
 								<Select.Item value="none">{$_('embedding.none')}</Select.Item>
 							</Select.Content>
 						</Select.Root>

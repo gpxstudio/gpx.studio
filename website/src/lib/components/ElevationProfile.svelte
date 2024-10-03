@@ -16,9 +16,10 @@
 		Zap,
 		Circle,
 		Check,
-		ChartNoAxesColumn
+		ChartNoAxesColumn,
+		Construction
 	} from 'lucide-svelte';
-	import { surfaceColors } from '$lib/assets/surfaces';
+	import { surfaceColors, highwayColors } from '$lib/assets/colors';
 	import { _, locale } from 'svelte-i18n';
 	import {
 		getCadenceWithUnits,
@@ -43,7 +44,7 @@
 	export let gpxStatistics: Writable<GPXStatistics>;
 	export let slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined>;
 	export let additionalDatasets: string[];
-	export let elevationFill: 'slope' | 'surface' | undefined;
+	export let elevationFill: 'slope' | 'surface' | 'highway' | undefined;
 	export let showControls: boolean = true;
 
 	const { distanceUnits, velocityUnits, temperatureUnits } = settings;
@@ -151,7 +152,10 @@
 							segment: point.slope.segment.toFixed(1),
 							length: getDistanceWithUnits(point.slope.length)
 						};
-						let surface = point.surface ? point.surface : 'unknown';
+						let surface = point.extensions.surface ? point.extensions.surface : 'unknown';
+						let highway = point.extensions.highway ? point.extensions.highway : 'unknown';
+						let sacScale = point.extensions.sac_scale;
+						let mtbScale = point.extensions['mtb:scale'];
 
 						let labels = [
 							`    ${$_('quantities.distance')}: ${getDistanceWithUnits(point.x, false)}`,
@@ -162,6 +166,17 @@
 							labels.push(
 								`    ${$_('quantities.surface')}: ${$_(`toolbar.routing.surface.${surface}`)}`
 							);
+						}
+
+						if (elevationFill === 'highway') {
+							labels.push(
+								`    ${$_('quantities.highway')}: ${$_(`toolbar.routing.highway.${highway}`)}${
+									sacScale ? ` (${$_(`toolbar.routing.sac_scale.${sacScale}`)})` : ''
+								}`
+							);
+							if (mtbScale) {
+								labels.push(`    ${$_('toolbar.routing.mtb_scale')}: ${mtbScale}`);
+							}
 						}
 
 						if (point.time) {
@@ -353,7 +368,7 @@
 						segment: data.local.slope.segment[index],
 						length: data.local.slope.length[index]
 					},
-					surface: point.getSurface(),
+					extensions: point.getExtensions(),
 					coordinates: point.getCoordinates(),
 					index: index
 				};
@@ -448,8 +463,13 @@
 	}
 
 	function surfaceFillCallback(context) {
-		let surface = context.p0.raw.surface;
+		let surface = context.p0.raw.extensions.surface;
 		return surfaceColors[surface] ? surfaceColors[surface] : surfaceColors.missing;
+	}
+
+	function highwayFillCallback(context) {
+		let highway = context.p0.raw.extensions.highway;
+		return highwayColors[highway] ? highwayColors[highway] : highwayColors.missing;
 	}
 
 	$: if (chart) {
@@ -460,6 +480,10 @@
 		} else if (elevationFill === 'surface') {
 			chart.data.datasets[0]['segment'] = {
 				backgroundColor: surfaceFillCallback
+			};
+		} else if (elevationFill === 'highway') {
+			chart.data.datasets[0]['segment'] = {
+				backgroundColor: highwayFillCallback
 			};
 		} else {
 			chart.data.datasets[0]['segment'] = {};
@@ -551,7 +575,7 @@
 						<ChartNoAxesColumn size="18" />
 					</ButtonWithTooltip>
 				</Popover.Trigger>
-				<Popover.Content class="w-fit p-0 flex flex-col divide-y" side="left" sideOffset={-32}>
+				<Popover.Content class="w-fit p-0 flex flex-col divide-y" side="top" sideOffset={-32}>
 					<ToggleGroup.Root
 						class="flex flex-col items-start gap-0 p-1"
 						type="single"
@@ -581,6 +605,19 @@
 							</div>
 							<BrickWall size="15" class="mr-1" />
 							{$_('quantities.surface')}
+						</ToggleGroup.Item>
+						<ToggleGroup.Item
+							class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
+							value="highway"
+							variant="outline"
+						>
+							<div class="w-6 flex justify-center items-center">
+								{#if elevationFill === 'highway'}
+									<Circle class="h-1.5 w-1.5 fill-current text-current" />
+								{/if}
+							</div>
+							<Construction size="15" class="mr-1" />
+							{$_('quantities.highway')}
 						</ToggleGroup.Item>
 					</ToggleGroup.Root>
 					<ToggleGroup.Root

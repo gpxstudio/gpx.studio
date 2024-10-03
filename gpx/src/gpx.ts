@@ -775,12 +775,16 @@ export class TrackSegment extends GPXTreeLeaf {
                 }
             }
 
-            if (i > 0 && points[i - 1].extensions && points[i - 1].extensions["gpxtpx:TrackPointExtension"] && points[i - 1].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"] && points[i - 1].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"].surface) {
-                let surface = points[i - 1].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"].surface;
-                if (statistics.global.surface[surface] === undefined) {
-                    statistics.global.surface[surface] = 0;
-                }
-                statistics.global.surface[surface] += dist;
+            if (i > 0 && points[i - 1].extensions && points[i - 1].extensions["gpxtpx:TrackPointExtension"] && points[i - 1].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"]) {
+                Object.entries(points[i - 1].extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"]).forEach(([key, value]) => {
+                    if (statistics.global.extensions[key] === undefined) {
+                        statistics.global.extensions[key] = {};
+                    }
+                    if (statistics.global.extensions[key][value] === undefined) {
+                        statistics.global.extensions[key][value] = 0;
+                    }
+                    statistics.global.extensions[key][value] += dist;
+                });
             }
         }
 
@@ -1075,11 +1079,10 @@ export class TrackPoint {
         return this.extensions && this.extensions["gpxpx:PowerExtension"] && this.extensions["gpxpx:PowerExtension"]["gpxpx:PowerInWatts"] ? this.extensions["gpxpx:PowerExtension"]["gpxpx:PowerInWatts"] : undefined;
     }
 
-    getSurface(): string {
-        return this.extensions && this.extensions["gpxtpx:TrackPointExtension"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"].surface ? this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"].surface : undefined;
-    }
-
-    setSurface(surface: string): void {
+    setExtensions(extensions: Record<string, string>) {
+        if (Object.keys(extensions).length === 0) {
+            return;
+        }
         if (!this.extensions) {
             this.extensions = {};
         }
@@ -1089,7 +1092,13 @@ export class TrackPoint {
         if (!this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"]) {
             this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"] = {};
         }
-        this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"]["surface"] = surface;
+        Object.entries(extensions).forEach(([key, value]) => {
+            this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"][key] = value;
+        });
+    }
+
+    getExtensions(): Record<string, string> {
+        return this.extensions && this.extensions["gpxtpx:TrackPointExtension"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"] ? this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"] : {};
     }
 
     toTrackPointType(exclude: string[] = []): TrackPointType {
@@ -1119,8 +1128,11 @@ export class TrackPoint {
             if (this.extensions["gpxpx:PowerExtension"] && this.extensions["gpxpx:PowerExtension"]["gpxpx:PowerInWatts"] && !exclude.includes('power')) {
                 trkpt.extensions["gpxpx:PowerExtension"]["gpxpx:PowerInWatts"] = this.extensions["gpxpx:PowerExtension"]["gpxpx:PowerInWatts"];
             }
-            if (this.extensions["gpxtpx:TrackPointExtension"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"].surface && !exclude.includes('surface')) {
-                trkpt.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"] = { surface: this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"].surface };
+            if (this.extensions["gpxtpx:TrackPointExtension"] && this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"] && !exclude.includes('extensions')) {
+                trkpt.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"] = {};
+                Object.entries(this.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"]).forEach(([key, value]) => {
+                    trkpt.extensions["gpxtpx:TrackPointExtension"]["gpxtpx:Extensions"][key] = value;
+                });
             }
         }
         return trkpt;
@@ -1270,7 +1282,7 @@ export class GPXStatistics {
             avg: number,
             count: number,
         },
-        surface: Record<string, number>,
+        extensions: Record<string, Record<string, number>>,
     };
     local: {
         points: TrackPoint[],
@@ -1341,7 +1353,7 @@ export class GPXStatistics {
                 avg: 0,
                 count: 0,
             },
-            surface: {},
+            extensions: {},
         };
         this.local = {
             points: [],
@@ -1411,11 +1423,16 @@ export class GPXStatistics {
         this.global.cad.count += other.global.cad.count;
         this.global.power.avg = (this.global.power.count * this.global.power.avg + other.global.power.count * other.global.power.avg) / Math.max(1, this.global.power.count + other.global.power.count);
         this.global.power.count += other.global.power.count;
-        Object.keys(other.global.surface).forEach((surface) => {
-            if (this.global.surface[surface] === undefined) {
-                this.global.surface[surface] = 0;
+        Object.keys(other.global.extensions).forEach((extension) => {
+            if (this.global.extensions[extension] === undefined) {
+                this.global.extensions[extension] = {};
             }
-            this.global.surface[surface] += other.global.surface[surface];
+            Object.keys(other.global.extensions[extension]).forEach((value) => {
+                if (this.global.extensions[extension][value] === undefined) {
+                    this.global.extensions[extension][value] = 0;
+                }
+                this.global.extensions[extension][value] += other.global.extensions[extension][value];
+            });
         });
     }
 

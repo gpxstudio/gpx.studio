@@ -16,7 +16,7 @@
 	import {
 		Download,
 		Zap,
-		BrickWall,
+		Earth,
 		HeartPulse,
 		Orbit,
 		Thermometer,
@@ -31,19 +31,19 @@
 	let open = false;
 	let exportOptions: Record<string, boolean> = {
 		time: true,
-		surface: true,
 		hr: true,
 		cad: true,
 		atemp: true,
-		power: true
+		power: true,
+		extensions: true
 	};
 	let hide: Record<string, boolean> = {
 		time: false,
-		surface: false,
 		hr: false,
 		cad: false,
 		atemp: false,
-		power: false
+		power: false,
+		extensions: false
 	};
 
 	$: if ($exportState !== ExportState.NONE) {
@@ -63,11 +63,11 @@
 		}
 
 		hide.time = statistics.global.time.total === 0;
-		hide.surface = !Object.keys(statistics.global.surface).some((key) => key !== 'unknown');
 		hide.hr = statistics.global.hr.count === 0;
 		hide.cad = statistics.global.cad.count === 0;
 		hide.atemp = statistics.global.atemp.count === 0;
 		hide.power = statistics.global.power.count === 0;
+		hide.extensions = Object.keys(statistics.global.extensions).length === 0;
 	}
 
 	$: exclude = Object.keys(exportOptions).filter((key) => !exportOptions[key]);
@@ -144,11 +144,11 @@
 							{$_('quantities.time')}
 						</Label>
 					</div>
-					<div class="flex flex-row items-center gap-1.5 {hide.surface ? 'hidden' : ''}">
-						<Checkbox id="export-surface" bind:checked={exportOptions.surface} />
-						<Label for="export-surface" class="flex flex-row items-center gap-1">
-							<BrickWall size="16" />
-							{$_('quantities.surface')}
+					<div class="flex flex-row items-center gap-1.5 {hide.extensions ? 'hidden' : ''}">
+						<Checkbox id="export-extensions" bind:checked={exportOptions.extensions} />
+						<Label for="export-extensions" class="flex flex-row items-center gap-1">
+							<Earth size="16" />
+							{$_('quantities.osm_extensions')}
 						</Label>
 					</div>
 					<div class="flex flex-row items-center gap-1.5 {hide.hr ? 'hidden' : ''}">

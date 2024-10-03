@@ -92,9 +92,7 @@ export type TrackPointExtension = {
     'gpxtpx:atemp'?: number;
     'gpxtpx:hr'?: number;
     'gpxtpx:cad'?: number;
-    'gpxtpx:Extensions'?: {
-        surface?: string;
-    };
+    'gpxtpx:Extensions'?: Record<string, string>;
 }
 
 export type PowerExtension = {
