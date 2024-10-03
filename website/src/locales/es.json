@@ -136,8 +136,8 @@
                 "sand": "Arena",
                 "grass": "Hierba",
                 "grass_paver": "Pavimento con césped",
-                "clay": "Clay",
-                "stone": "Stone"
+                "clay": "Arcilla",
+                "stone": "Piedra"
             },
             "error": {
                 "from": "El punto de inicio está demasiado lejos de la carretera más cercana",
