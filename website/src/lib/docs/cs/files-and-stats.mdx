@@ -3,7 +3,7 @@ title: Soubory a statistiky
 ---
 
 <script>
-    import { TriangleRight, BrickWall, Zap, HeartPulse, Orbit, Thermometer, SquareActivity } from 'lucide-svelte';
+    import { ChartNoAxesColumn } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -73,10 +73,10 @@ You can also use the mouse wheel to zoom in and out on the elevation profile, an
 
 ### Additional data
 
-Pomocí tlačítek vpravo od výškového profilu můžete volitelně obarvit výškový profil podle:
+Using the <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> button at the bottom-right of the elevation profile, you can optionally color the elevation profile by:
 
-- **slope** <TriangleRight size="16" class="inline-block" style="margin-bottom: 2px" /> information computed from the elevation data, or
-- **surface** <BrickWall size="16" class="inline-block" style="margin-bottom: 2px" /> data coming from <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> tags.
+- **slope** information computed from the elevation data, or
+- **surface** or **category** data coming from <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> and <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> tags.
   This is only available for files created with **gpx.studio**.
 
-If your selection includes it, you can also visualize: **speed** <Zap size="16" class="inline-block" style="margin-bottom: 2px" />, **heart rate** <HeartPulse size="16" class="inline-block" style="margin-bottom: 2px" />, **cadence** <Orbit size="16" class="inline-block" style="margin-bottom: 2px" />, **temperature** <Thermometer size="16" class="inline-block" style="margin-bottom: 2px" />, and **power** <SquareActivity size="16" class="inline-block" style="margin-bottom: 2px" /> data on the elevation profile.
+If your selection includes it, you can also visualize: **speed**, **heart rate**, **cadence**, **temperature** and **power** data on the elevation profile.
