@@ -17,7 +17,6 @@
 	import { surfaceColors } from '$lib/assets/surfaces';
 	import { _, locale } from 'svelte-i18n';
 	import {
-		getCadenceUnits,
 		getCadenceWithUnits,
 		getConvertedDistance,
 		getConvertedElevation,
@@ -26,13 +25,9 @@
 		getDistanceUnits,
 		getDistanceWithUnits,
 		getElevationWithUnits,
-		getHeartRateUnits,
 		getHeartRateWithUnits,
-		getPowerUnits,
 		getPowerWithUnits,
-		getTemperatureUnits,
 		getTemperatureWithUnits,
-		getVelocityUnits,
 		getVelocityWithUnits,
 		secondsToHHMMSS
 	} from '$lib/units';
@@ -61,10 +56,6 @@
 	}
 
 	let canvas: HTMLCanvasElement;
-	let showAdditionalScales = true;
-	let updateShowAdditionalScales = () => {
-		showAdditionalScales = canvas.width / window.devicePixelRatio >= 600;
-	};
 	let overlay: HTMLCanvasElement;
 	let chart: Chart;
 
@@ -226,72 +217,21 @@
 		stacked: false,
 		onResize: function () {
 			updateOverlay();
-			updateShowAdditionalScales();
 		}
 	};
 
-	let datasets: {
-		[key: string]: {
-			id: string;
-			getLabel: () => string;
-			getUnits: () => string;
-		};
-	} = {
-		speed: {
-			id: 'speed',
-			getLabel: () => ($velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')),
-			getUnits: () => getVelocityUnits()
-		},
-		hr: {
-			id: 'hr',
-			getLabel: () => $_('quantities.heartrate'),
-			getUnits: () => getHeartRateUnits()
-		},
-		cad: {
-			id: 'cad',
-			getLabel: () => $_('quantities.cadence'),
-			getUnits: () => getCadenceUnits()
-		},
-		atemp: {
-			id: 'atemp',
-			getLabel: () => $_('quantities.temperature'),
-			getUnits: () => getTemperatureUnits()
-		},
-		power: {
-			id: 'power',
-			getLabel: () => $_('quantities.power'),
-			getUnits: () => getPowerUnits()
-		}
-	};
-
-	for (let [id, dataset] of Object.entries(datasets)) {
+	let datasets: string[] = ['speed', 'hr', 'cad', 'atemp', 'power'];
+	datasets.forEach((id) => {
 		options.scales[`y${id}`] = {
 			type: 'linear',
 			position: 'right',
-			title: {
-				display: true,
-				text: dataset.getLabel() + ' (' + dataset.getUnits() + ')',
-				padding: {
-					top: 6,
-					bottom: 0
-				}
-			},
 			grid: {
 				display: false
 			},
 			reverse: () => id === 'speed' && $velocityUnits === 'pace',
 			display: false
 		};
-	}
-	options.scales.yspeed['ticks'] = {
-		callback: function (value: number) {
-			if ($velocityUnits === 'speed') {
-				return value;
-			} else {
-				return secondsToHHMMSS(value);
-			}
-		}
-	};
+	});
 
 	onMount(async () => {
 		Chart.register((await import('chartjs-plugin-zoom')).default); // dynamic import to avoid SSR and 'window is not defined' error
@@ -323,8 +263,6 @@
 		marker = new mapboxgl.Marker({
 			element
 		});
-
-		updateShowAdditionalScales();
 
 		let startIndex = 0;
 		let endIndex = 0;
@@ -424,7 +362,6 @@
 			order: 1
 		};
 		chart.data.datasets[1] = {
-			label: datasets.speed.getLabel(),
 			data: data.local.points.map((point, index) => {
 				return {
 					x: getConvertedDistance(data.local.distance.total[index]),
@@ -433,11 +370,10 @@
 				};
 			}),
 			normalized: true,
-			yAxisID: `y${datasets.speed.id}`,
+			yAxisID: 'yspeed',
 			hidden: true
 		};
 		chart.data.datasets[2] = {
-			label: datasets.hr.getLabel(),
 			data: data.local.points.map((point, index) => {
 				return {
 					x: getConvertedDistance(data.local.distance.total[index]),
@@ -446,11 +382,10 @@
 				};
 			}),
 			normalized: true,
-			yAxisID: `y${datasets.hr.id}`,
+			yAxisID: 'yhr',
 			hidden: true
 		};
 		chart.data.datasets[3] = {
-			label: datasets.cad.getLabel(),
 			data: data.local.points.map((point, index) => {
 				return {
 					x: getConvertedDistance(data.local.distance.total[index]),
@@ -459,11 +394,10 @@
 				};
 			}),
 			normalized: true,
-			yAxisID: `y${datasets.cad.id}`,
+			yAxisID: 'ycad',
 			hidden: true
 		};
 		chart.data.datasets[4] = {
-			label: datasets.atemp.getLabel(),
 			data: data.local.points.map((point, index) => {
 				return {
 					x: getConvertedDistance(data.local.distance.total[index]),
@@ -472,11 +406,10 @@
 				};
 			}),
 			normalized: true,
-			yAxisID: `y${datasets.atemp.id}`,
+			yAxisID: 'yatemp',
 			hidden: true
 		};
 		chart.data.datasets[5] = {
-			label: datasets.power.getLabel(),
 			data: data.local.points.map((point, index) => {
 				return {
 					x: getConvertedDistance(data.local.distance.total[index]),
@@ -485,17 +418,11 @@
 				};
 			}),
 			normalized: true,
-			yAxisID: `y${datasets.power.id}`,
+			yAxisID: 'ypower',
 			hidden: true
 		};
 		chart.options.scales.x['min'] = 0;
 		chart.options.scales.x['max'] = getConvertedDistance(data.global.distance.total);
-
-		// update units
-		for (let [id, dataset] of Object.entries(datasets)) {
-			chart.options.scales[`y${id}`].title.text =
-				dataset.getLabel() + ' (' + dataset.getUnits() + ')';
-		}
 
 		chart.update();
 	}
@@ -552,12 +479,6 @@
 			chart.data.datasets[4].hidden = !includeTemperature;
 			chart.data.datasets[5].hidden = !includePower;
 		}
-		chart.options.scales[`y${datasets.speed.id}`].display = includeSpeed && showAdditionalScales;
-		chart.options.scales[`y${datasets.hr.id}`].display = includeHeartRate && showAdditionalScales;
-		chart.options.scales[`y${datasets.cad.id}`].display = includeCadence && showAdditionalScales;
-		chart.options.scales[`y${datasets.atemp.id}`].display =
-			includeTemperature && showAdditionalScales;
-		chart.options.scales[`y${datasets.power.id}`].display = includePower && showAdditionalScales;
 		chart.update();
 	}
 
