@@ -19,7 +19,7 @@
 		ChartNoAxesColumn,
 		Construction
 	} from 'lucide-svelte';
-	import { surfaceColors, highwayColors } from '$lib/assets/colors';
+	import { getSlopeColor, getSurfaceColor, getHighwayColor } from '$lib/assets/colors';
 	import { _, locale } from 'svelte-i18n';
 	import {
 		getCadenceWithUnits,
@@ -443,33 +443,20 @@
 		chart.update();
 	}
 
-	let maxSlope = 20;
 	function slopeFillCallback(context) {
-		let slope = context.p0.raw.slope.segment;
-		if (slope > maxSlope) {
-			slope = maxSlope;
-		} else if (slope < -maxSlope) {
-			slope = -maxSlope;
-		}
-
-		let v = slope / maxSlope;
-		v = 1 / (1 + Math.exp(-6 * v));
-		v = v - 0.5;
-
-		let hue = ((0.5 - v) * 120).toString(10);
-		let lightness = 90 - Math.abs(v) * 70;
-
-		return ['hsl(', hue, ',70%,', lightness, '%)'].join('');
+		return getSlopeColor(context.p0.raw.slope.segment);
 	}
 
 	function surfaceFillCallback(context) {
-		let surface = context.p0.raw.extensions.surface;
-		return surfaceColors[surface] ? surfaceColors[surface] : surfaceColors.missing;
+		return getSurfaceColor(context.p0.raw.extensions.surface);
 	}
 
 	function highwayFillCallback(context) {
-		let highway = context.p0.raw.extensions.highway;
-		return highwayColors[highway] ? highwayColors[highway] : highwayColors.missing;
+		return getHighwayColor(
+			context.p0.raw.extensions.highway,
+			context.p0.raw.extensions.sac_scale,
+			context.p0.raw.extensions['mtb:scale']
+		);
 	}
 
 	$: if (chart) {
