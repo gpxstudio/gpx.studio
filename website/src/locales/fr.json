@@ -140,8 +140,8 @@
                 "stone": "Pierre"
             },
             "highway": {
-                "unknown": "Unknown",
-                "residential": "Residential",
+                "unknown": "Inconnu",
+                "residential": "Résidentiel",
                 "service": "Service",
                 "track": "Track",
                 "unclassified": "Unclassified",
@@ -157,7 +157,7 @@
                 "motorway_link": "Motorway Link",
                 "steps": "Steps",
                 "road": "Road",
-                "pedestrian": "Pedestrian",
+                "pedestrian": "Pédestre",
                 "trunk_link": "Trunk Link",
                 "primary_link": "Primary Link",
                 "secondary_link": "Secondary Link",
@@ -387,7 +387,7 @@
         }
     },
     "chart": {
-        "settings": "Elevation profile settings"
+        "settings": "Réglages du profil altimétrique"
     },
     "quantities": {
         "distance": "Distance",
@@ -401,11 +401,11 @@
         "power": "Puissance",
         "slope": "Pente",
         "surface": "Surface",
-        "highway": "Category",
+        "highway": "Catégorie",
         "time": "Temps",
         "moving": "En mouvement",
         "total": "Total",
-        "osm_extensions": "OpenStreetMap data"
+        "osm_extensions": "Données d'OpenStreetMap"
     },
     "units": {
         "meters": "m",
