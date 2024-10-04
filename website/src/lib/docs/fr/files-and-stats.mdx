@@ -3,7 +3,7 @@ title: Fichiers et statistiques
 ---
 
 <script>
-    import { TriangleRight, BrickWall, Zap, HeartPulse, Orbit, Thermometer, SquareActivity } from 'lucide-svelte';
+    import { ChartNoAxesColumn } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -73,10 +73,10 @@ Vous pouvez également utiliser la molette de la souris pour zoomer ou dézoomer
 
 ### Données supplémentaires
 
-En utilisant les boutons à droite du profil d'altitude, vous pouvez optionnellement colorier le profil d'altitude en fonction de :
+En utilisant le bouton <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> en bas à droite du profil d'altitude, vous pouvez optionnellement colorier le profil altimétrique en fonction :
 
-- des données de **pente** <TriangleRight size="16" class="inline-block" style="margin-bottom: 2px" /> calculées à partir des données d'altitude, ou
-- des données de **revêtement** <BrickWall size="16" class="inline-block" style="margin-bottom: 2px" /> venant des tags de <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> d'<a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>.
+- des données de **pente** calculées à partir des données d'altitude, ou
+- des données de **revêtement** ou de **catégorie** venant des tags <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> et <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> d'<a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>.
   Ceci est uniquement disponible pour les fichiers créés avec **gpx.studio**.
 
-Si votre sélection possède ces données, vous pouvez également visualiser les données de : **vitesse** <Zap size="16" class="inline-block" style="margin-bottom: 2px" />, **fréquence cardiaque** <HeartPulse size="16" class="inline-block" style="margin-bottom: 2px" />, **cadence** <Orbit size="16" class="inline-block" style="margin-bottom: 2px" />, **température** <Thermometer size="16" class="inline-block" style="margin-bottom: 2px" /> et **puissance** <SquareActivity size="16" class="inline-block" style="margin-bottom: 2px" /> sur le profil altimétrique.
+Si votre sélection possède ces données, vous pouvez également visualiser les données de : **vitesse** , **fréquence cardiaque** , **cadence** , **température** et **puissance** sur le profil altimétrique.

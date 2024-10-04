@@ -3,7 +3,7 @@ title: Bestanden en statistieken
 ---
 
 <script>
-    import { TriangleRight, BrickWall, Zap, HeartPulse, Orbit, Thermometer, SquareActivity } from 'lucide-svelte';
+    import { ChartNoAxesColumn } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -73,10 +73,10 @@ Je kunt het muiswiel ook gebruiken om in en uit te zoomen op het hoogte profiel,
 
 ### Aanvullende gegevens
 
-Met behulp van de knoppen aan de rechterkant van het hoogteprofiel kunt u het hoogteprofiel optioneel kleuren door:
+Met behulp van de <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> knoppen aan de rechterkant van het hoogteprofiel kunt u het hoogteprofiel optioneel kleuren door:
 
-- **slope** <TriangleRight size="16" class="inline-block" style="margin-bottom: 2px" /> informatie berekend op basis van de hoogtegegevens, of
-- **oppervlak** <BrickWall size="16" class="inline-block" style="margin-bottom: 2px" /> data afkomstig van <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> tags.
+- **helling** informatie berekend uit de hoogtegegevens, of
+- **oppervlakte** of **categorie** gegevens afkomstig van <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>zijn <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">oppervlak</a> en <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">snelweg</a> tags.
   Dit is alleen beschikbaar voor bestanden gemaakt met **gpx.studio**.
 
-Als je selectie het bevat, kun je ook visualiseren: **snelheid** <Zap size="16" class="inline-block" style="margin-bottom: 2px" />, **hartsnelheid** <HeartPulse size="16" class="inline-block" style="margin-bottom: 2px" />, **cadence** <Orbit size="16" class="inline-block" style="margin-bottom: 2px" />, **temperature** <Thermometer size="16" class="inline-block" style="margin-bottom: 2px" />, en **power** <SquareActivity size="16" class="inline-block" style="margin-bottom: 2px" /> data op het hoogteprofiel.
+Als je selectie het bevat, kun je ook de volgende gegevens zichtbaar maken op het hoogteprofiel: **snelheid**, **hartritme**, **tempo**, **temperatuur**, en **vermogen**.

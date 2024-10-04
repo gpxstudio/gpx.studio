@@ -3,7 +3,7 @@ title: Arquivos e estatísticas
 ---
 
 <script>
-    import { TriangleRight, BrickWall, Zap, HeartPulse, Orbit, Thermometer, SquareActivity } from 'lucide-svelte';
+    import { ChartNoAxesColumn } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -73,10 +73,10 @@ Você também pode usar a roda do mouse para aumentar e diminuir o zoom no perfi
 
 ### Dados adicionais
 
-Usando os botões à direita do perfil de elevação, você pode opcionalmente colorir o perfil de elevação por:
+Using the <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> button at the bottom-right of the elevation profile, you can optionally color the elevation profile by:
 
-- **inclinação** <TriangleRight size="16" class="inline-block" style="margin-bottom: 2px" /> informação computada a partir dos dados de elevação, ou
-- **superfície** <BrickWall size="16" class="inline-block" style="margin-bottom: 2px" /> dados vindos dos marcadores de <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">superfície</a> do <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>.
+- **slope** information computed from the elevation data, or
+- **surface** or **category** data coming from <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> and <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> tags.
   Isso só está disponível para arquivos criados com **gpx.studio**.
 
-Se sua seleção incluir, você também pode visualizar: **velocidade** <Zap size="16" class="inline-block" style="margin-bottom: 2px" />, **frequência cardíaca** <HeartPulse size="16" class="inline-block" style="margin-bottom: 2px" />, **cadência** <Orbit size="16" class="inline-block" style="margin-bottom: 2px" />, **temperatura** <Thermometer size="16" class="inline-block" style="margin-bottom: 2px" />e **energia** <SquareActivity size="16" class="inline-block" style="margin-bottom: 2px" /> dados sobre o perfil de elevação.
+If your selection includes it, you can also visualize: **speed**, **heart rate**, **cadence**, **temperature** and **power** data on the elevation profile.
