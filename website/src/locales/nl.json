@@ -140,7 +140,7 @@
                 "stone": "Steen"
             },
             "highway": {
-                "unknown": "Unknown",
+                "unknown": "Onbekend",
                 "residential": "Residential",
                 "service": "Service",
                 "track": "Track",
