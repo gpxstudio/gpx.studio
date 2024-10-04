@@ -141,20 +141,20 @@
             },
             "highway": {
                 "unknown": "Onbekend",
-                "motorway": "Highway",
-                "motorway_link": "Highway link",
-                "trunk": "Primary road",
-                "trunk_link": "Primary road link",
-                "primary": "Primary road",
-                "primary_link": "Primary road link",
-                "secondary": "Secondary road",
-                "secondary_link": "Secondary road link",
-                "tertiary": "Tertiary road",
-                "tertiary_link": "Tertiary road link",
-                "unclassified": "Minor road",
-                "residential": "Residential road",
-                "living_street": "Living street",
-                "service": "Service road",
+                "motorway": "Snelweg",
+                "motorway_link": "Snelweg aansluiting",
+                "trunk": "Primaire weg",
+                "trunk_link": "Aansluiting primaire weg",
+                "primary": "Primaire weg",
+                "primary_link": "Aansluiting primaire weg",
+                "secondary": "Secundaire weg",
+                "secondary_link": "Aansluiting secundaire weg",
+                "tertiary": "Tertiaire weg",
+                "tertiary_link": "Aansluiting tertiaire weg",
+                "unclassified": "Kleine weg",
+                "residential": "Bebouwde kom",
+                "living_street": "Woonstraat",
+                "service": "Ventweg",
                 "track": "Track",
                 "footway": "Voetpad",
                 "path": "Pad",
@@ -162,19 +162,19 @@
                 "cycleway": "Fietspad",
                 "steps": "Trappen",
                 "road": "Weg",
-                "bridleway": "Horseriding path",
+                "bridleway": "Ruiterpad",
                 "platform": "Platform",
-                "raceway": "Racing circuit",
-                "rest_area": "Rest area",
+                "raceway": "Race circuit",
+                "rest_area": "Pauzeplek",
                 "abandoned": "Verlaten",
                 "services": "Services",
                 "corridor": "Corridor",
-                "bus_stop": "Bus stop",
+                "bus_stop": "Bushalte",
                 "busway": "Busbaan",
                 "elevator": "Lift",
                 "via_ferrata": "Via ferrata",
-                "proposed": "Road to be built",
-                "construction": "Road under construction"
+                "proposed": "Geplande weg",
+                "construction": "Weg in aanleg"
             },
             "sac_scale": {
                 "hiking": "Hiken",
@@ -182,9 +182,9 @@
                 "demanding_mountain_hiking": "Veeleisend bergwandelen",
                 "alpine_hiking": "Alpine wandelen",
                 "demanding_alpine_hiking": "Veeleisend alpine wandelen",
-                "difficult_alpine_hiking": "Difficult alpine hiking"
+                "difficult_alpine_hiking": "Moeilijke alpiene wandeling"
             },
-            "mtb_scale": "MTB scale",
+            "mtb_scale": "MTB schaal",
             "error": {
                 "from": "Het startpunt ligt te ver van de dichtstbijzijnde weg",
                 "via": "Het via punt ligt te ver van de dichtstbijzijnde weg",
@@ -214,7 +214,7 @@
             "merge_traces": "Verbind de routes",
             "merge_contents": "Voeg de inhoud samen en houd de sporen gescheiden",
             "merge_selection": "Voeg selectie samen",
-            "remove_gaps": "Remove time gaps between traces",
+            "remove_gaps": "Verwijder tijdsprongen tussen sporen",
             "tooltip": "Items samenvoegen",
             "help_merge_traces": "Het verbinden van de geselecteerde sporen creëert één continu spoor.",
             "help_cannot_merge_traces": "Uw selectie moet meerdere sporen bevatten om ze te verbinden.",
@@ -387,7 +387,7 @@
         }
     },
     "chart": {
-        "settings": "Elevation profile settings"
+        "settings": "Instellingen hoogteprofiel"
     },
     "quantities": {
         "distance": "Afstand",
@@ -401,11 +401,11 @@
         "power": "Kracht",
         "slope": "Helling",
         "surface": "Oppervlak",
-        "highway": "Category",
+        "highway": "Categorie",
         "time": "Tijd",
         "moving": "Beweging",
         "total": "Totaal",
-        "osm_extensions": "OpenStreetMap data"
+        "osm_extensions": "OpenStreetMap gegevens"
     },
     "units": {
         "meters": "m",
