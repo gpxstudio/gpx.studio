@@ -158,13 +158,30 @@ export const basemaps: { [key: string]: string | StyleSpecification; } = {
                 tiles: ['https://www.ign.es/wmts/mapa-raster?layer=MTN&style=default&tilematrixset=GoogleMapsCompatible&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/jpeg&TileMatrix={z}&TileCol={x}&TileRow={y}'],
                 tileSize: 256,
                 maxzoom: 20,
-                attribution: 'IGN-F/Géoportail'
+                attribution: '&copy; <a href="https://www.ign.es" target="_blank">IGN</a>'
             }
         },
         layers: [{
             id: 'ignEs',
             type: 'raster',
             source: 'ignEs',
+        }],
+    },
+    ignEsSatellite: {
+        version: 8,
+        sources: {
+            ignEsSatellite: {
+                type: 'raster',
+                tiles: ['https://www.ign.es/wmts/pnoa-ma?layer=OI.OrthoimageCoverage&style=default&tilematrixset=GoogleMapsCompatible&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/jpeg&TileMatrix={z}&TileCol={x}&TileRow={y}'],
+                tileSize: 256,
+                maxzoom: 20,
+                attribution: '&copy; <a href="https://www.ign.es" target="_blank">IGN</a>'
+            }
+        },
+        layers: [{
+            id: 'ignEsSatellite',
+            type: 'raster',
+            source: 'ignEsSatellite',
         }],
     },
     ordnanceSurvey: "https://api.os.uk/maps/vector/v1/vts/resources/styles?srs=3857&key=piCT8WysfuC3xLSUW7sGLfrAAJoYDvQz",
@@ -636,6 +653,7 @@ export const basemapTree: LayerTreeType = {
             },
             spain: {
                 ignEs: true,
+                ignEsSatellite: true,
             },
             sweden: {
                 swedenTopo: true,
@@ -855,6 +873,7 @@ export const defaultBasemapTree: LayerTreeType = {
             },
             spain: {
                 ignEs: false,
+                ignEsSatellite: false,
             },
             sweden: {
                 swedenTopo: false,
