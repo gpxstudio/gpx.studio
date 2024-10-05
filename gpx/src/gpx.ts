@@ -133,22 +133,21 @@ export class GPXFile extends GPXTreeNode<Track> {
             }
             if (gpx.hasOwnProperty('_data')) {
                 this._data = gpx._data;
-
-                if (!this._data.hasOwnProperty('style')) {
-                    let style = this.getStyle();
-                    let fileStyle = {};
-                    if (style.color.length === 1) {
-                        fileStyle['color'] = style.color[0];
-                    }
-                    if (style.weight.length === 1) {
-                        fileStyle['weight'] = style.weight[0];
-                    }
-                    if (style.opacity.length === 1) {
-                        fileStyle['opacity'] = style.opacity[0];
-                    }
-                    if (Object.keys(fileStyle).length > 0) {
-                        this.setStyle(fileStyle);
-                    }
+            }
+            if (!this._data.hasOwnProperty('style')) {
+                let style = this.getStyle();
+                let fileStyle = {};
+                if (style.color.length === 1) {
+                    fileStyle['color'] = style.color[0];
+                }
+                if (style.weight.length === 1) {
+                    fileStyle['weight'] = style.weight[0];
+                }
+                if (style.opacity.length === 1) {
+                    fileStyle['opacity'] = style.opacity[0];
+                }
+                if (Object.keys(fileStyle).length > 0) {
+                    this.setStyle(fileStyle);
                 }
             }
         } else {
