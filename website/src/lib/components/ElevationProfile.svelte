@@ -501,8 +501,8 @@
 
 		overlay.width = canvas.width / window.devicePixelRatio;
 		overlay.height = canvas.height / window.devicePixelRatio;
-		overlay.style.width = `${canvas.width}px`;
-		overlay.style.height = `${canvas.height}px`;
+		overlay.style.width = `${overlay.width}px`;
+		overlay.style.height = `${overlay.height}px`;
 
 		if ($slicedGPXStatistics) {
 			let startIndex = $slicedGPXStatistics[1];
