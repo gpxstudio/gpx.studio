@@ -102,7 +102,7 @@
             },
             "start_loop_here": "Schleife hier starten",
             "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
-            "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
+            "help": "Klicke auf die Karte, um einen neuen Punkt zu setzen oder ziehe existierende, um die Route zu ändern",
             "activities": {
                 "bike": "Fahrrad",
                 "racing_bike": "Rennrad",
@@ -111,7 +111,7 @@
                 "foot": "Laufen/Wandern",
                 "motorcycle": "Motorrad",
                 "water": "Wasser",
-                "railway": "Railway"
+                "railway": "Bahnschiene"
             },
             "surface": {
                 "unknown": "Unbekannt",
@@ -136,7 +136,7 @@
                 "sand": "Sand",
                 "grass": "Gras",
                 "grass_paver": "Grass paver",
-                "clay": "Clay",
+                "clay": "Ton",
                 "stone": "Stone"
             },
             "highway": {
@@ -168,9 +168,9 @@
                 "rest_area": "Rest area",
                 "abandoned": "Abandoned",
                 "services": "Services",
-                "corridor": "Corridor",
+                "corridor": "Gang",
                 "bus_stop": "Bushaltestelle",
-                "busway": "Busway",
+                "busway": "Busspur",
                 "elevator": "Anstieg",
                 "via_ferrata": "Klettersteig",
                 "proposed": "Zu bauende Straße",
@@ -178,11 +178,11 @@
             },
             "sac_scale": {
                 "hiking": "Wandern",
-                "mountain_hiking": "Mountain hiking",
-                "demanding_mountain_hiking": "Demanding mountain hiking",
-                "alpine_hiking": "Alpine hiking",
-                "demanding_alpine_hiking": "Demanding alpine hiking",
-                "difficult_alpine_hiking": "Difficult alpine hiking"
+                "mountain_hiking": "Bergwanderung",
+                "demanding_mountain_hiking": "Anspruchsvolle Bergwanderung",
+                "alpine_hiking": "Alpine Wanderung",
+                "demanding_alpine_hiking": "Anspruchsvolle alpine Wanderung",
+                "difficult_alpine_hiking": "Schwierige alpine Wanderung"
             },
             "mtb_scale": "MTB scale",
             "error": {
@@ -195,19 +195,19 @@
         "scissors": {
             "tooltip": "Schneiden oder Teilen",
             "crop": "Schneiden",
-            "split_as": "Split the trace into",
+            "split_as": "Track teilen in",
             "help_invalid_selection": "Select a trace to crop or split.",
             "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
         },
         "time": {
-            "tooltip": "Manage time data",
+            "tooltip": "Zeitdaten verwalten",
             "start": "Start",
             "end": "Ziel",
             "total_time": "Zeit in Bewegung",
             "pick_date": "Datum auswählen",
             "artificial": "Erstelle realistische Zeitdaten",
             "update": "Aktualisiere Zeitdaten",
-            "help": "Use the form to set new time data.",
+            "help": "Verwenden Sie das Formular, um neue Zeitdaten festzulegen.",
             "help_invalid_selection": "Select a single trace to manage its time data."
         },
         "merge": {
@@ -239,13 +239,13 @@
             "link": "Link",
             "longitude": "Längengrad",
             "latitude": "Breitengrad",
-            "create": "Create point of interest",
-            "add": "Add point of interest to file",
+            "create": "POI erstellen",
+            "add": "POI hinzufügen",
             "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
             "help_no_selection": "Select a file to create or edit points of interest."
         },
         "reduce": {
-            "tooltip": "Reduce the number of GPS points",
+            "tooltip": "Die Anzahl Wegpunkte verringern",
             "tolerance": "Toleranz",
             "number_of_points": "Anzahl der GPS-Punkte",
             "button": "Minify",
@@ -255,7 +255,7 @@
         "clean": {
             "tooltip": "Clean GPS points and points of interest with a rectangle selection",
             "delete_trackpoints": "GPS-Punkte löschen",
-            "delete_waypoints": "Delete points of interest",
+            "delete_waypoints": "POIs löschen",
             "delete_inside": "Delete inside selection",
             "delete_outside": "Delete outside selection",
             "button": "Löschen",
@@ -264,13 +264,13 @@
         }
     },
     "layers": {
-        "settings": "Layer settings",
+        "settings": "Einstellungen der Ebenen",
         "settings_help": "Select the map layers you want to show in the interface, add custom ones, and adjust their settings.",
-        "selection": "Layer selection",
+        "selection": "Ebenenauswahl",
         "custom_layers": {
-            "title": "Custom layers",
-            "new": "New custom layer",
-            "edit": "Edit custom layer",
+            "title": "Eigene Ebenen",
+            "new": "Neue benutzerdefinierte Ebene",
+            "edit": "Eigene Ebene bearbeiten",
             "urls": "URL(s)",
             "url_placeholder": "WMTS, WMS or Mapbox style JSON",
             "max_zoom": "Max zoom",
