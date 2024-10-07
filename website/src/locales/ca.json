@@ -136,8 +136,8 @@
                 "sand": "Sorra",
                 "grass": "Herba",
                 "grass_paver": "Gespa",
-                "clay": "Clay",
-                "stone": "Stone"
+                "clay": "Argila",
+                "stone": "Pedra"
             },
             "highway": {
                 "unknown": "Desconegut",
@@ -235,25 +235,25 @@
         },
         "waypoint": {
             "tooltip": "Create and edit points of interest",
-            "icon": "Icon",
-            "link": "Link",
-            "longitude": "Longitude",
-            "latitude": "Latitude",
-            "create": "Create point of interest",
-            "add": "Add point of interest to file",
-            "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
-            "help_no_selection": "Select a file to create or edit points of interest."
+            "icon": "Icona",
+            "link": "Enllaç",
+            "longitude": "Longitud",
+            "latitude": "Latitud",
+            "create": "Crea un punt d'interès",
+            "add": "Afegeix un punt d'interès a un fitxer",
+            "help": "Ompliu el formulari per crear un nou punt d'interès o cliqueu en un existent per editar-lo. Cliqueu al mapa per omplir les coordenades o arrossegueu els punts d'interès per moure'ls.",
+            "help_no_selection": "Selecciona un fitxer per crear o editar punts d'interès."
         },
         "reduce": {
-            "tooltip": "Reduce the number of GPS points",
-            "tolerance": "Tolerance",
-            "number_of_points": "Number of GPS points",
-            "button": "Minify",
-            "help": "Use the slider to choose the number of GPS points to keep.",
-            "help_no_selection": "Select a trace to reduce the number of its GPS points."
+            "tooltip": "Redueix el nombre de punts GPS",
+            "tolerance": "Tolerància",
+            "number_of_points": "Nombre de punts GPS",
+            "button": "Minimitza",
+            "help": "Useu el lliscador per escollir el nombre de punts GPS que cal mantenir.",
+            "help_no_selection": "Seleccioneu una traça per reduir el nombre de punts GPS."
         },
         "clean": {
-            "tooltip": "Clean GPS points and points of interest with a rectangle selection",
+            "tooltip": "Neteja els punts GPS i els punts d'interès amb una selecció rectangular",
             "delete_trackpoints": "Elimina punts GPS",
             "delete_waypoints": "Elimina punts d'interès",
             "delete_inside": "Elimina dins la selecció",
@@ -336,7 +336,7 @@
             "ignFrCadastre": "IGN Cadastre",
             "ignSlope": "IGN Slope",
             "ignSkiTouring": "IGN Ski Touring",
-            "waymarked_trails": "Waymarked Trails",
+            "waymarked_trails": "Senders senyalitzats",
             "waymarkedTrailsHiking": "Senderisme",
             "waymarkedTrailsCycling": "Ciclisme",
             "waymarkedTrailsMTB": "BTT",
@@ -482,17 +482,17 @@
         "website": "Lloc web",
         "home": "Inici",
         "app": "App",
-        "contact": "Contact",
+        "contact": "Contacte",
         "reddit": "Reddit",
         "x": "X",
         "facebook": "Facebook",
         "github": "GitHub",
         "crowdin": "Crowdin",
-        "email": "Email",
-        "contribute": "Contribute",
-        "supported_by": "supported by",
-        "support_button": "Support gpx.studio on Ko-fi",
-        "route_planning": "Route planning",
+        "email": "Correu electrònic",
+        "contribute": "Contribuir-hi",
+        "supported_by": "amb la col·laboració de",
+        "support_button": "Doneu suport a gpx.studio a Ko-fi",
+        "route_planning": "Planificació de rutes",
         "route_planning_description": "An intuitive interface to create itineraries tailored to each sport, based on OpenStreetMap data.",
         "file_processing": "Advanced file processing",
         "file_processing_description": "A suite of tools for performing all common file processing tasks, and which can be applied to multiple files at once.",
@@ -539,12 +539,12 @@
         "latitude": "Latitud",
         "longitude": "Longitud",
         "zoom": "Zoom",
-        "pitch": "Pitch",
-        "bearing": "Bearing",
+        "pitch": "Capcineig",
+        "bearing": "Azimut",
         "preview": "Vista prèvia",
-        "code": "Integration code"
+        "code": "Codi d'integració"
     },
-    "webgl2_required": "WebGL 2 is required to display the map.",
-    "enable_webgl2": "Learn how to enable WebGL 2 in your browser",
-    "page_not_found": "page not found"
+    "webgl2_required": "Es necessita WebGL 2 per mostrar el mapa.",
+    "enable_webgl2": "Mireu com permetre el WebGL 2 al vostre navegador",
+    "page_not_found": "no s'ha trobat la pàgina"
 }
