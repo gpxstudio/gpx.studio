@@ -493,18 +493,18 @@
         "supported_by": "amb la col·laboració de",
         "support_button": "Doneu suport a gpx.studio a Ko-fi",
         "route_planning": "Planificació de rutes",
-        "route_planning_description": "An intuitive interface to create itineraries tailored to each sport, based on OpenStreetMap data.",
-        "file_processing": "Advanced file processing",
-        "file_processing_description": "A suite of tools for performing all common file processing tasks, and which can be applied to multiple files at once.",
-        "maps": "Global and local maps",
-        "maps_description": "A large collection of basemaps, overlays and points of interest to help you craft your next outdoor adventure, or visualize your latest achievement.",
-        "data_visualization": "Data visualization",
-        "data_visualization_description": "An interactive elevation profile with detailed statistics to analyze recorded activities and future objectives.",
-        "identity": "Free, ad-free and open source",
-        "identity_description": "The website is free to use, without ads, and the source code is publicly available on GitHub. This is only possible thanks to the incredible support of the community."
+        "route_planning_description": "Una interfície intuïtiva per crear itineraris a mida per cada esport basat en les dades d'OpenStreetMap.",
+        "file_processing": "Processament avançat de fitxers",
+        "file_processing_description": "Un conjunt d'eines per fer tasques de processament de fitxers que es poden aplicar a múltiples fitxers a la vegada.",
+        "maps": "Mapes globals i locals",
+        "maps_description": "Una gran col·lecció de mapes base, capes i punts d'interès per ajudar-vos a crear la vostra propera aventura a l'aire lliure o visualitzar els vostres últims reptes.",
+        "data_visualization": "Visualització de dades",
+        "data_visualization_description": "Un perfil d'altimetria interactiu amb estadístiques detallades per analitzar activitats enregistrades i futurs objectius.",
+        "identity": "Gratuït, sense anuncis i de codi obert",
+        "identity_description": "Aquest lloc web es pot usar gratuïtament, sense publicitat i el codi font es pot trobar a GitHub. Això és possible gràcies a l'increïble suport de la comunitat."
     },
     "docs": {
-        "translate": "Improve the translation on Crowdin",
+        "translate": "Milloreu la traducció a Crowdin",
         "answer_not_found": "Did not find what you were looking for?",
         "ask_on_reddit": "Ask the community on Reddit",
         "search": {
