@@ -5,6 +5,8 @@ import { get } from "svelte/store";
 
 const { distanceMarkers, distanceUnits } = settings;
 
+const stops = [[100, 0], [50, 7], [25, 8, 10], [10, 10], [5, 11], [1, 13]];
+
 export class DistanceMarkers {
     map: mapboxgl.Map;
     updateBinded: () => void = this.update.bind(this);
@@ -31,30 +33,36 @@ export class DistanceMarkers {
                         data: this.getDistanceMarkersGeoJSON()
                     });
                 }
-                if (!this.map.getLayer('distance-markers')) {
-                    this.map.addLayer({
-                        id: 'distance-markers',
-                        type: 'symbol',
-                        source: 'distance-markers',
-                        layout: {
-                            'text-field': ['get', 'distance'],
-                            'text-size': 14,
-                            'text-font': ['Open Sans Bold'],
-                            'text-padding': 20,
-                        },
-                        paint: {
-                            'text-color': 'black',
-                            'text-halo-width': 2,
-                            'text-halo-color': 'white',
-                        }
-                    });
-                } else {
-                    this.map.moveLayer('distance-markers');
-                }
+                stops.forEach(([d, minzoom, maxzoom]) => {
+                    if (!this.map.getLayer(`distance-markers-${d}`)) {
+                        this.map.addLayer({
+                            id: `distance-markers-${d}`,
+                            type: 'symbol',
+                            source: 'distance-markers',
+                            filter: d === 5 ? ['any', ['==', ['get', 'level'], 5], ['==', ['get', 'level'], 25]] : ['==', ['get', 'level'], d],
+                            minzoom: minzoom,
+                            maxzoom: maxzoom ?? 24,
+                            layout: {
+                                'text-field': ['get', 'distance'],
+                                'text-size': 14,
+                                'text-font': ['Open Sans Bold'],
+                            },
+                            paint: {
+                                'text-color': 'black',
+                                'text-halo-width': 2,
+                                'text-halo-color': 'white',
+                            }
+                        });
+                    } else {
+                        this.map.moveLayer(`distance-markers-${d}`);
+                    }
+                });
             } else {
-                if (this.map.getLayer('distance-markers')) {
-                    this.map.removeLayer('distance-markers');
-                }
+                stops.forEach(([d]) => {
+                    if (this.map.getLayer(`distance-markers-${d}`)) {
+                        this.map.removeLayer(`distance-markers-${d}`);
+                    }
+                });
             }
         } catch (e) { // No reliable way to check if the map is ready to add sources and layers
             return;
@@ -73,6 +81,7 @@ export class DistanceMarkers {
         for (let i = 0; i < statistics.local.distance.total.length; i++) {
             if (statistics.local.distance.total[i] >= currentTargetDistance * (get(distanceUnits) === 'metric' ? 1 : 1.60934)) {
                 let distance = currentTargetDistance.toFixed(0);
+                let [level, minzoom] = stops.find(([d]) => currentTargetDistance % d === 0) ?? [0, 0];
                 features.push({
                     type: 'Feature',
                     geometry: {
@@ -81,6 +90,8 @@ export class DistanceMarkers {
                     },
                     properties: {
                         distance,
+                        level,
+                        minzoom,
                     }
                 } as GeoJSON.Feature);
                 currentTargetDistance += 1;
