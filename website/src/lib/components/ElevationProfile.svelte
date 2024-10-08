@@ -155,7 +155,7 @@
 						let surface = point.extensions.surface ? point.extensions.surface : 'unknown';
 						let highway = point.extensions.highway ? point.extensions.highway : 'unknown';
 						let sacScale = point.extensions.sac_scale;
-						let mtbScale = point.extensions['mtb:scale'];
+						let mtbScale = point.extensions.mtb_scale;
 
 						let labels = [
 							`    ${$_('quantities.distance')}: ${getDistanceWithUnits(point.x, false)}`,
@@ -455,7 +455,7 @@
 		return getHighwayColor(
 			context.p0.raw.extensions.highway,
 			context.p0.raw.extensions.sac_scale,
-			context.p0.raw.extensions['mtb:scale']
+			context.p0.raw.extensions.mtb_scale
 		);
 	}
 

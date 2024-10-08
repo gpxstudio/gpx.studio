@@ -96,8 +96,9 @@ function getTags(message: string): { [key: string]: string } {
     const fields = message.split(" ");
     let tags: { [key: string]: string } = {};
     for (let i = 0; i < fields.length; i++) {
-        let tag = fields[i].split("=");
-        tags[tag[0]] = tag[1];
+        let [key, value] = fields[i].split("=");
+        key = key.replace(/:/g, '_');
+        tags[key] = value;
     }
     return tags;
 }
