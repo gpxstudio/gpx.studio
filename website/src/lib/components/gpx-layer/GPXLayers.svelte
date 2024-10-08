@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { map, gpxLayers } from '$lib/stores';
 	import { GPXLayer } from './GPXLayer';
-	import WaypointPopup from './WaypointPopup.svelte';
 	import { fileObservers } from '$lib/db';
 	import { DistanceMarkers } from './DistanceMarkers';
 	import { StartEndMarkers } from './StartEndMarkers';
 	import { onDestroy } from 'svelte';
+	import { createPopups, removePopups } from './GPXLayerPopup';
 
 	let distanceMarkers: DistanceMarkers | undefined = undefined;
 	let startEndMarkers: StartEndMarkers | undefined = undefined;
@@ -35,6 +35,7 @@
 		if (startEndMarkers) {
 			startEndMarkers.remove();
 		}
+		createPopups($map);
 		distanceMarkers = new DistanceMarkers($map);
 		startEndMarkers = new StartEndMarkers($map);
 	}
@@ -42,17 +43,14 @@
 	onDestroy(() => {
 		gpxLayers.forEach((layer) => layer.remove());
 		gpxLayers.clear();
-
+		removePopups();
 		if (distanceMarkers) {
 			distanceMarkers.remove();
 			distanceMarkers = undefined;
 		}
-
 		if (startEndMarkers) {
 			startEndMarkers.remove();
 			startEndMarkers = undefined;
 		}
 	});
 </script>
-
-<WaypointPopup />

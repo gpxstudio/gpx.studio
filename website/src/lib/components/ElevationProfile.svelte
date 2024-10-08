@@ -20,7 +20,7 @@
 		Construction
 	} from 'lucide-svelte';
 	import { getSlopeColor, getSurfaceColor, getHighwayColor } from '$lib/assets/colors';
-	import { _, locale } from 'svelte-i18n';
+	import { _ } from 'svelte-i18n';
 	import {
 		getCadenceWithUnits,
 		getConvertedDistance,
@@ -36,10 +36,10 @@
 		getVelocityWithUnits
 	} from '$lib/units';
 	import type { Writable } from 'svelte/store';
-	import { DateFormatter } from '@internationalized/date';
 	import type { GPXStatistics } from 'gpx';
 	import { settings } from '$lib/db';
 	import { mode } from 'mode-watcher';
+	import { df } from '$lib/utils';
 
 	export let gpxStatistics: Writable<GPXStatistics>;
 	export let slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined>;
@@ -48,15 +48,6 @@
 	export let showControls: boolean = true;
 
 	const { distanceUnits, velocityUnits, temperatureUnits } = settings;
-
-	let df: DateFormatter;
-
-	$: if ($locale) {
-		df = new DateFormatter($locale, {
-			dateStyle: 'medium',
-			timeStyle: 'medium'
-		});
-	}
 
 	let canvas: HTMLCanvasElement;
 	let overlay: HTMLCanvasElement;

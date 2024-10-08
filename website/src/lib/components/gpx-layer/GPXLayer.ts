@@ -2,15 +2,13 @@ import { currentTool, map, Tool } from "$lib/stores";
 import { settings, type GPXFileWithStatistics, dbUtils } from "$lib/db";
 import { get, type Readable } from "svelte/store";
 import mapboxgl from "mapbox-gl";
-import { currentPopupWaypoint, deleteWaypoint, waypointPopup } from "./WaypointPopup";
+import { waypointPopup, deleteWaypoint, trackpointPopup } from "./GPXLayerPopup";
 import { addSelectItem, selectItem, selection } from "$lib/components/file-list/Selection";
 import { ListTrackSegmentItem, ListWaypointItem, ListWaypointsItem, ListTrackItem, ListFileItem, ListRootItem } from "$lib/components/file-list/FileList";
-import type { Waypoint } from "gpx";
-import { getElevation, resetCursor, setGrabbingCursor, setPointerCursor, setScissorsCursor } from "$lib/utils";
+import { getClosestLinePoint, getElevation, resetCursor, setGrabbingCursor, setPointerCursor, setScissorsCursor } from "$lib/utils";
 import { selectedWaypoint } from "$lib/components/toolbar/tools/Waypoint.svelte";
 import { MapPin, Square } from "lucide-static";
 import { getSymbolKey, symbols } from "$lib/assets/symbols";
-import { tick } from "svelte";
 
 const colors = [
     '#ff0000',
@@ -41,6 +39,31 @@ function getColor() {
 function decrementColor(color: string) {
     if (colorCount.hasOwnProperty(color)) {
         colorCount[color]--;
+    }
+}
+
+const inspectKey = 'Shift';
+let inspectKeyDown: KeyDown | null = null;
+class KeyDown {
+    key: string;
+    down: boolean = false;
+    constructor(key: string) {
+        this.key = key;
+        document.addEventListener('keydown', this.onKeyDown);
+        document.addEventListener('keyup', this.onKeyUp);
+    }
+    onKeyDown = (e: KeyboardEvent) => {
+        if (e.key === this.key) {
+            this.down = true;
+        }
+    }
+    onKeyUp = (e: KeyboardEvent) => {
+        if (e.key === this.key) {
+            this.down = false;
+        }
+    }
+    isDown() {
+        return this.down;
     }
 }
 
@@ -81,9 +104,9 @@ export class GPXLayer {
     updateBinded: () => void = this.update.bind(this);
     layerOnMouseEnterBinded: (e: any) => void = this.layerOnMouseEnter.bind(this);
     layerOnMouseLeaveBinded: () => void = this.layerOnMouseLeave.bind(this);
+    layerOnMouseMoveBinded: (e: any) => void = this.layerOnMouseMove.bind(this);
     layerOnClickBinded: (e: any) => void = this.layerOnClick.bind(this);
     layerOnContextMenuBinded: (e: any) => void = this.layerOnContextMenu.bind(this);
-    maybeHideWaypointPopupBinded: (e: any) => void = this.maybeHideWaypointPopup.bind(this);
 
     constructor(map: mapboxgl.Map, fileId: string, file: Readable<GPXFileWithStatistics | undefined>) {
         this.map = map;
@@ -114,6 +137,10 @@ export class GPXLayer {
         this.draggable = get(currentTool) === Tool.WAYPOINT;
 
         this.map.on('style.import.load', this.updateBinded);
+
+        if (inspectKeyDown === null) {
+            inspectKeyDown = new KeyDown(inspectKey);
+        }
     }
 
     update() {
@@ -158,6 +185,7 @@ export class GPXLayer {
                 this.map.on('contextmenu', this.fileId, this.layerOnContextMenuBinded);
                 this.map.on('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
                 this.map.on('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
+                this.map.on('mousemove', this.fileId, this.layerOnMouseMoveBinded);
             }
 
             if (get(directionMarkers)) {
@@ -225,11 +253,11 @@ export class GPXLayer {
                     }).setLngLat(waypoint.getCoordinates());
                     Object.defineProperty(marker, '_waypoint', { value: waypoint, writable: true });
                     let dragEndTimestamp = 0;
-                    marker.getElement().addEventListener('mouseover', (e) => {
+                    marker.getElement().addEventListener('mousemove', (e) => {
                         if (marker._isDragging) {
                             return;
                         }
-                        this.showWaypointPopup(marker._waypoint);
+                        waypointPopup?.setItem({ item: marker._waypoint, fileId: this.fileId });
                         e.stopPropagation();
                     });
                     marker.getElement().addEventListener('click', (e) => {
@@ -252,14 +280,14 @@ export class GPXLayer {
                         } else if (get(currentTool) === Tool.WAYPOINT) {
                             selectedWaypoint.set([marker._waypoint, this.fileId]);
                         } else {
-                            this.showWaypointPopup(marker._waypoint);
+                            waypointPopup?.setItem({ item: marker._waypoint, fileId: this.fileId });
                         }
                         e.stopPropagation();
                     });
                     marker.on('dragstart', () => {
                         setGrabbingCursor();
                         marker.getElement().style.cursor = 'grabbing';
-                        this.hideWaypointPopup();
+                        waypointPopup?.hide();
                     });
                     marker.on('dragend', (e) => {
                         resetCursor();
@@ -308,6 +336,7 @@ export class GPXLayer {
             this.map.off('contextmenu', this.fileId, this.layerOnContextMenuBinded);
             this.map.off('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
             this.map.off('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
+            this.map.off('mousemove', this.fileId, this.layerOnMouseMoveBinded);
             this.map.off('style.import.load', this.updateBinded);
 
             if (this.map.getLayer(this.fileId + '-direction')) {
@@ -354,6 +383,19 @@ export class GPXLayer {
         resetCursor();
     }
 
+    layerOnMouseMove(e: any) {
+        if (inspectKeyDown?.isDown()) {
+            let trackIndex = e.features[0].properties.trackIndex;
+            let segmentIndex = e.features[0].properties.segmentIndex;
+
+            const file = get(this.file)?.file;
+            if (file) {
+                const closest = getClosestLinePoint(file.trk[trackIndex].trkseg[segmentIndex].trkpt, { lat: e.lngLat.lat, lon: e.lngLat.lng });
+                trackpointPopup?.setItem({ item: closest, fileId: this.fileId });
+            }
+        }
+    }
+
     layerOnClick(e: any) {
         if (get(currentTool) === Tool.ROUTING && get(selection).hasAnyChildren(new ListRootItem(), true, ['waypoints'])) {
             return;
@@ -389,48 +431,6 @@ export class GPXLayer {
     layerOnContextMenu(e: any) {
         if (e.originalEvent.ctrlKey) {
             this.layerOnClick(e);
-        }
-    }
-
-    showWaypointPopup(waypoint: Waypoint) {
-        if (get(currentPopupWaypoint) !== null) {
-            this.hideWaypointPopup();
-        } else if (waypoint === get(currentPopupWaypoint)?.[0]) {
-            return;
-        }
-        let marker = this.markers[waypoint._data.index];
-        if (marker) {
-            currentPopupWaypoint.set([waypoint, this.fileId]);
-            tick().then(() => {
-                // Show popup once the content component has been rendered
-                marker.setPopup(waypointPopup);
-                marker.togglePopup();
-                this.map.on('mousemove', this.maybeHideWaypointPopupBinded);
-            });
-        }
-    }
-
-    maybeHideWaypointPopup(e: any) {
-        let waypoint = get(currentPopupWaypoint)?.[0];
-        if (waypoint) {
-            let marker = this.markers[waypoint._data.index];
-            if (marker) {
-                if (this.map.project(marker.getLngLat()).dist(this.map.project(e.lngLat)) > 60) {
-                    this.hideWaypointPopup();
-                }
-            } else {
-                this.hideWaypointPopup();
-            }
-        }
-    }
-
-    hideWaypointPopup() {
-        let waypoint = get(currentPopupWaypoint)?.[0];
-        if (waypoint) {
-            let marker = this.markers[waypoint._data.index];
-            marker?.getPopup()?.remove();
-            currentPopupWaypoint.set(null);
-            this.map.off('mousemove', this.maybeHideWaypointPopupBinded);
         }
     }
 

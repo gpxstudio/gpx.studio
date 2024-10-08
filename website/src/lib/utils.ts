@@ -12,6 +12,7 @@ import mapboxgl from "mapbox-gl";
 import tilebelt from "@mapbox/tilebelt";
 import { PUBLIC_MAPBOX_TOKEN } from "$env/static/public";
 import PNGReader from "png.js";
+import type { DateFormatter } from "@internationalized/date";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -216,3 +217,15 @@ export function getURLForLanguage(lang: string | null | undefined, path: string)
         }
     }
 }
+
+function getDateFormatter(locale: string) {
+    return new Intl.DateTimeFormat(locale, {
+        dateStyle: 'medium',
+        timeStyle: 'medium'
+    });
+}
+
+export let df: DateFormatter = getDateFormatter('en');
+locale.subscribe((l) => {
+    df = getDateFormatter(l ?? 'en');
+});

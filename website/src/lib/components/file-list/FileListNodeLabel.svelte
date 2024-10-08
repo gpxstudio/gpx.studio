@@ -49,17 +49,11 @@
 		gpxLayers,
 		map
 	} from '$lib/stores';
-	import {
-		GPXTreeElement,
-		Track,
-		TrackSegment,
-		type AnyGPXTreeElement,
-		Waypoint,
-		GPXFile
-	} from 'gpx';
+	import { GPXTreeElement, Track, type AnyGPXTreeElement, Waypoint, GPXFile } from 'gpx';
 	import { _ } from 'svelte-i18n';
 	import MetadataDialog from './MetadataDialog.svelte';
 	import StyleDialog from './StyleDialog.svelte';
+	import { waypointPopup } from '$lib/components/gpx-layer/GPXLayerPopup';
 
 	export let node: GPXTreeElement<AnyGPXTreeElement> | Waypoint[] | Waypoint;
 	export let item: ListItem;
@@ -179,7 +173,7 @@
 						if (layer && file) {
 							let waypoint = file.wpt[item.getWaypointIndex()];
 							if (waypoint) {
-								layer.showWaypointPopup(waypoint);
+								waypointPopup?.setItem({ item: waypoint, fileId: item.getFileId() });
 							}
 						}
 					}
@@ -188,7 +182,7 @@
 					if (item instanceof ListWaypointItem) {
 						let layer = gpxLayers.get(item.getFileId());
 						if (layer) {
-							layer.hideWaypointPopup();
+							waypointPopup?.setItem(null);
 						}
 					}
 				}}

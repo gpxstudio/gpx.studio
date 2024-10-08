@@ -1,11 +1,10 @@
 import SphericalMercator from "@mapbox/sphericalmercator";
 import { getLayers } from "./utils";
-import mapboxgl from "mapbox-gl";
 import { get, writable } from "svelte/store";
 import { liveQuery } from "dexie";
 import { db, settings } from "$lib/db";
 import { overpassQueryData } from "$lib/assets/layers";
-import { tick } from "svelte";
+import { MapPopup } from "$lib/components/MapPopup";
 
 const {
     currentOverpassQueries
@@ -13,15 +12,6 @@ const {
 
 const mercator = new SphericalMercator({
     size: 256,
-});
-
-export const overpassPopupPOI = writable<Record<string, any> | null>(null);
-
-export const overpassPopup = new mapboxgl.Popup({
-    closeButton: false,
-    focusAfterOpen: false,
-    maxWidth: undefined,
-    offset: 15,
 });
 
 let data = writable<GeoJSON.FeatureCollection>({ type: 'FeatureCollection', features: [] });
@@ -36,6 +26,7 @@ export class OverpassLayer {
     queryZoom = 12;
     expirationTime = 7 * 24 * 3600 * 1000;
     map: mapboxgl.Map;
+    popup: MapPopup;
 
     currentQueries: Set<string> = new Set();
     nextQueries: Map<string, { x: number, y: number, queries: string[] }> = new Map();
@@ -44,10 +35,15 @@ export class OverpassLayer {
     queryIfNeededBinded = this.queryIfNeeded.bind(this);
     updateBinded = this.update.bind(this);
     onHoverBinded = this.onHover.bind(this);
-    maybeHidePopupBinded = this.maybeHidePopup.bind(this);
 
     constructor(map: mapboxgl.Map) {
         this.map = map;
+        this.popup = new MapPopup(map, {
+            closeButton: false,
+            focusAfterOpen: false,
+            maxWidth: undefined,
+            offset: 15,
+        });
     }
 
     add() {
@@ -127,30 +123,12 @@ export class OverpassLayer {
     }
 
     onHover(e: any) {
-        overpassPopupPOI.set({
-            ...e.features[0].properties,
-            sym: overpassQueryData[e.features[0].properties.query].symbol ?? ''
+        this.popup.setItem({
+            item: {
+                ...e.features[0].properties,
+                sym: overpassQueryData[e.features[0].properties.query].symbol ?? ''
+            }
         });
-        tick().then(() => {
-            // Show the popup once the content component has been rendered
-            overpassPopup.setLngLat(e.features[0].geometry.coordinates);
-            overpassPopup.addTo(this.map);
-            this.map.on('mousemove', this.maybeHidePopupBinded);
-        });
-    }
-
-    maybeHidePopup(e: any) {
-        let poi = get(overpassPopupPOI);
-        if (poi && this.map.project([poi.lon, poi.lat]).dist(this.map.project(e.lngLat)) > 60) {
-            this.hideWaypointPopup();
-        }
-    }
-
-    hideWaypointPopup() {
-        overpassPopupPOI.set(null);
-        overpassPopup.remove();
-
-        this.map.off('mousemove', this.maybeHidePopupBinded);
     }
 
     query(bbox: [number, number, number, number]) {

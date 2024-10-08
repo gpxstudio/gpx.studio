@@ -13,7 +13,6 @@
 	import { get, writable } from 'svelte/store';
 	import { customBasemapUpdate, getLayers } from './utils';
 	import { OverpassLayer } from './OverpassLayer';
-	import OverpassPopup from './OverpassPopup.svelte';
 
 	let container: HTMLDivElement;
 	let overpassLayer: OverpassLayer;
@@ -34,7 +33,7 @@
 		if ($map) {
 			let basemap = basemaps.hasOwnProperty($currentBasemap)
 				? basemaps[$currentBasemap]
-				: $customLayers[$currentBasemap]?.value ?? basemaps[defaultBasemap];
+				: ($customLayers[$currentBasemap]?.value ?? basemaps[defaultBasemap]);
 			$map.removeImport('basemap');
 			if (typeof basemap === 'string') {
 				$map.addImport({ id: 'basemap', url: basemap }, 'overlays');
@@ -210,8 +209,6 @@
 		</div>
 	</div>
 </CustomControl>
-
-<OverpassPopup />
 
 <svelte:window
 	on:click={(e) => {
