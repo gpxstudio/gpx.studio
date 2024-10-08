@@ -4,5 +4,9 @@ import { defineConfig } from 'vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 export default defineConfig({
-    plugins: [nodePolyfills(), enhancedImages(), sveltekit()]
+    plugins: [nodePolyfills({
+        globals: {
+            Buffer: true,
+        },
+    }), enhancedImages(), sveltekit()]
 });
