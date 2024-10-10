@@ -45,24 +45,9 @@ export async function handle({ event, resolve }) {
 `;
     }
 
-    const stringsHTML = page === 'app' ? stringsToHTML(strings) : '';
-
     const response = await resolve(event, {
-        transformPageChunk: ({ html }) => html.replace('<html>', htmlTag).replace('<head>', headTag).replace('</body>', `<div class="fixed -z-10 text-transparent">${stringsHTML}</div></body>`)
+        transformPageChunk: ({ html }) => html.replace('<html>', htmlTag).replace('<head>', headTag),
     });
 
     return response;
-}
-
-function stringsToHTML(dictionary, strings = new Set(), root = true) {
-    Object.values(dictionary).forEach((value) => {
-        if (typeof value === 'object') {
-            stringsToHTML(value, strings, false);
-        } else {
-            strings.add(value);
-        }
-    });
-    if (root) {
-        return Array.from(strings).map((string) => `<p>${string}</p>`).join('');
-    }
 }
