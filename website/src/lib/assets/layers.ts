@@ -758,7 +758,7 @@ export const overpassTree: LayerTreeType = {
 export const defaultBasemap = 'mapboxOutdoors';
 
 // Default overlays used (none)
-export const defaultOverlays = {
+export const defaultOverlays: LayerTreeType = {
     overlays: {
         world: {
             waymarked_trails: {

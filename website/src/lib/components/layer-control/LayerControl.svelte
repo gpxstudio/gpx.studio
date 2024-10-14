@@ -84,18 +84,21 @@
 	}
 
 	function updateOverlays() {
-		if ($map && $currentOverlays) {
+		if ($map && $currentOverlays && $opacities) {
 			let overlayLayers = getLayers($currentOverlays);
 			try {
-				let activeOverlays = $map
-					.getStyle()
-					.imports.filter((i) => i.id !== 'basemap' && i.id !== 'overlays');
-				let toRemove = activeOverlays.filter((i) => !overlayLayers[i.id]);
-				toRemove.forEach((i) => {
-					$map.removeImport(i.id);
+				let activeOverlays = $map.getStyle().imports.reduce((acc, i) => {
+					if (!['basemap', 'overlays', 'glyphs-and-sprite'].includes(i.id)) {
+						acc[i.id] = i;
+					}
+					return acc;
+				}, {});
+				let toRemove = Object.keys(activeOverlays).filter((id) => !overlayLayers[id]);
+				toRemove.forEach((id) => {
+					$map.removeImport(id);
 				});
 				let toAdd = Object.entries(overlayLayers)
-					.filter(([id, selected]) => selected && !activeOverlays.some((j) => j.id === id))
+					.filter(([id, selected]) => selected && !activeOverlays.hasOwnProperty(id))
 					.map(([id]) => id);
 				toAdd.forEach((id) => {
 					addOverlay(id);
@@ -106,7 +109,7 @@
 		}
 	}
 
-	$: if ($map && $currentOverlays) {
+	$: if ($map && $currentOverlays && $opacities) {
 		updateOverlays();
 	}
 

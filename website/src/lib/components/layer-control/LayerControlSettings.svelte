@@ -157,15 +157,16 @@
 										max={1}
 										step={0.1}
 										disabled={$selectedOverlay === undefined}
-										onValueChange={() => {
+										onValueChange={(value) => {
 											if ($selectedOverlay) {
-												$opacities[$selectedOverlay.value] = $overlayOpacity[0];
-												if ($map) {
-													if ($map.getLayer($selectedOverlay.value)) {
-														$map.removeLayer($selectedOverlay.value);
-														$currentOverlays = $currentOverlays;
+												if ($map && isSelected($currentOverlays, $selectedOverlay.value)) {
+													try {
+														$map.removeImport($selectedOverlay.value);
+													} catch (e) {
+														// No reliable way to check if the map is ready to remove sources and layers
 													}
 												}
+												$opacities[$selectedOverlay.value] = value[0];
 											}
 										}}
 									/>
