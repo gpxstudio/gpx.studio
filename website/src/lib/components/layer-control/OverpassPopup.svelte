@@ -6,6 +6,7 @@
 	import { _ } from 'svelte-i18n';
 	import { dbUtils } from '$lib/db';
 	import type { PopupItem } from '$lib/components/MapPopup';
+	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 
 	export let poi: PopupItem<any>;
 
@@ -42,29 +43,31 @@
 			</div>
 		</Card.Title>
 	</Card.Header>
-	{#if tags.image || tags['image:0']}
-		<div class="w-full rounded-md overflow-clip my-2 max-w-96 mx-auto">
-			<!-- svelte-ignore a11y-missing-attribute -->
-			<img src={tags.image ?? tags['image:0']} />
-		</div>
-	{/if}
 	<Card.Content class="flex flex-col p-0 text-sm mt-1 whitespace-normal break-all">
-		<div class="grid grid-cols-[auto_auto] gap-x-3">
-			{#each Object.entries(tags) as [key, value]}
-				{#if key !== 'name' && !key.includes('image')}
-					<span class="font-mono">{key}</span>
-					{#if key === 'website' || key === 'contact:website' || key === 'contact:facebook' || key === 'contact:instagram' || key === 'contact:twitter'}
-						<a href={value} target="_blank" class="text-link underline">{value}</a>
-					{:else if key === 'phone' || key === 'contact:phone'}
-						<a href={'tel:' + value} class="text-link underline">{value}</a>
-					{:else if key === 'email' || key === 'contact:email'}
-						<a href={'mailto:' + value} class="text-link underline">{value}</a>
-					{:else}
-						<span>{value}</span>
+		<ScrollArea class="flex flex-col" viewportClasses="max-h-[30dvh]">
+			{#if tags.image || tags['image:0']}
+				<div class="w-full rounded-md overflow-clip my-2 max-w-96 mx-auto">
+					<!-- svelte-ignore a11y-missing-attribute -->
+					<img src={tags.image ?? tags['image:0']} />
+				</div>
+			{/if}
+			<div class="grid grid-cols-[auto_auto] gap-x-3">
+				{#each Object.entries(tags) as [key, value]}
+					{#if key !== 'name' && !key.includes('image')}
+						<span class="font-mono">{key}</span>
+						{#if key === 'website' || key.startsWith('website:') || key === 'contact:website' || key === 'contact:facebook' || key === 'contact:instagram' || key === 'contact:twitter'}
+							<a href={value} target="_blank" class="text-link underline">{value}</a>
+						{:else if key === 'phone' || key === 'contact:phone'}
+							<a href={'tel:' + value} class="text-link underline">{value}</a>
+						{:else if key === 'email' || key === 'contact:email'}
+							<a href={'mailto:' + value} class="text-link underline">{value}</a>
+						{:else}
+							<span>{value}</span>
+						{/if}
 					{/if}
-				{/if}
-			{/each}
-		</div>
+				{/each}
+			</div>
+		</ScrollArea>
 		<Button
 			class="mt-2"
 			variant="outline"

@@ -11,6 +11,7 @@
 	import sanitizeHtml from 'sanitize-html';
 	import type { Waypoint } from 'gpx';
 	import type { PopupItem } from '$lib/components/MapPopup';
+	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 
 	export let waypoint: PopupItem<Waypoint>;
 
@@ -43,7 +44,7 @@
 			{/if}
 		</Card.Title>
 	</Card.Header>
-	<Card.Content class="flex flex-col p-0 text-sm">
+	<Card.Content class="flex flex-col text-sm p-0">
 		<div class="flex flex-row items-center text-muted-foreground text-xs whitespace-nowrap">
 			{#if symbolKey}
 				<span>
@@ -66,12 +67,14 @@
 				<WithUnits value={waypoint.item.ele} type="elevation" />
 			{/if}
 		</div>
-		{#if waypoint.item.desc}
-			<span class="whitespace-pre-wrap">{@html sanitize(waypoint.item.desc)}</span>
-		{/if}
-		{#if waypoint.item.cmt && waypoint.item.cmt !== waypoint.item.desc}
-			<span class="whitespace-pre-wrap">{@html sanitize(waypoint.item.cmt)}</span>
-		{/if}
+		<ScrollArea class="flex flex-col" viewportClasses="max-h-[30dvh]">
+			{#if waypoint.item.desc}
+				<span class="whitespace-pre-wrap">{@html sanitize(waypoint.item.desc)}</span>
+			{/if}
+			{#if waypoint.item.cmt && waypoint.item.cmt !== waypoint.item.desc}
+				<span class="whitespace-pre-wrap">{@html sanitize(waypoint.item.cmt)}</span>
+			{/if}
+		</ScrollArea>
 		{#if $currentTool === Tool.WAYPOINT}
 			<Button
 				class="mt-2 w-full px-2 py-1 h-8 justify-start"
