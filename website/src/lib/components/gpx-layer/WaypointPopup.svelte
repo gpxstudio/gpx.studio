@@ -39,7 +39,7 @@
 					<ExternalLink size="12" class="inline-block mb-1.5" />
 				</a>
 			{:else}
-				{waypoint.item.name ?? $_('gpx.waypoint.item')}
+				{waypoint.item.name ?? $_('gpx.waypoint')}
 			{/if}
 		</Card.Title>
 	</Card.Header>
