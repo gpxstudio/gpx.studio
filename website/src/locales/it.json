@@ -325,14 +325,14 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
-            "swisstopoSlope": "swisstopo Slope",
-            "swisstopoHiking": "swisstopo Escursioni",
-            "swisstopoHikingClosures": "swisstopo Hiking Closures",
-            "swisstopoCycling": "swisstopo Cycling",
-            "swisstopoCyclingClosures": "swisstopo Cycling Closures",
-            "swisstopoMountainBike": "swisstopo MTB",
-            "swisstopoMountainBikeClosures": "swisstopo MTB Closures",
-            "swisstopoSkiTouring": "swisstopo Ski Touring",
+            "swisstopoSlope": "Carta topografica Svizzera Pendenza",
+            "swisstopoHiking": "Carta topografica Svedese Escursione",
+            "swisstopoHikingClosures": "Carta topografica Svizzera Fine escursione",
+            "swisstopoCycling": "Carta topografica Svizzera Ciclabile",
+            "swisstopoCyclingClosures": "Carta topografica Svizzera fine ciclabile",
+            "swisstopoMountainBike": "Carta topografica Svizzera MTB",
+            "swisstopoMountainBikeClosures": "Carta topografica Svizzera fine MTB",
+            "swisstopoSkiTouring": "Carta topografica Svizzera pista sci",
             "ignFrCadastre": "IGN Cadastre",
             "ignSlope": "Pendenza IGN",
             "ignSkiTouring": "IGN Ski Touring",
@@ -363,9 +363,9 @@
             "viewpoint": "Punto di vista",
             "hotel": "Hotel",
             "campsite": "Campeggio",
-            "hut": "Hut",
+            "hut": "Rifugio",
             "picnic": "Area Picnic",
-            "summit": "Summit",
+            "summit": "Cima",
             "pass": "Pass",
             "climbing": "Arrampicata",
             "bicycle": "Bicicletta",
@@ -388,7 +388,7 @@
         }
     },
     "chart": {
-        "settings": "Elevation profile settings"
+        "settings": "Impostazioni profilo elevazione"
     },
     "quantities": {
         "distance": "Distanza",
@@ -402,11 +402,11 @@
         "power": "Potenza",
         "slope": "Pendenza",
         "surface": "Superficie",
-        "highway": "Category",
+        "highway": "Categoria",
         "time": "Dati temporali",
         "moving": "Movimento",
         "total": "Totale",
-        "osm_extensions": "OpenStreetMap data"
+        "osm_extensions": "Dati OpenStreetMap"
     },
     "units": {
         "meters": "m",
@@ -495,13 +495,13 @@
         "route_planning": "Pianificazione del percorso",
         "route_planning_description": "Un'interfaccia intuitiva per creare itinerari su misura per ogni sport, basati sui dati OpenStreetMap.",
         "file_processing": "Elaborazione avanzata dei file",
-        "file_processing_description": "A suite of tools for performing all common file processing tasks, and which can be applied to multiple files at once.",
+        "file_processing_description": "Una serie di strumenti per eseguire tutte le attività comuni di elaborazione dei file e che possono essere applicati a più file contemporaneamente.",
         "maps": "Mappe globali e locali",
         "maps_description": "Una vasta collezione di mappe di base, sovrapposizioni e punti d'interesse per aiutarti a creare la tua prossima avventura all'aperto o visualizzare il tuo ultimo risultato.",
         "data_visualization": "Visualizzazione dei dati",
-        "data_visualization_description": "An interactive elevation profile with detailed statistics to analyze recorded activities and future objectives.",
+        "data_visualization_description": "Un profilo di elevazione interattivo con statistiche dettagliate per analizzare attività registrate e obiettivi futuri.",
         "identity": "Gratuito, senza pubblicità e open source",
-        "identity_description": "The website is free to use, without ads, and the source code is publicly available on GitHub. This is only possible thanks to the incredible support of the community."
+        "identity_description": "Il sito web è gratuito da usare, senza pubblicità, e il codice sorgente è pubblicamente disponibile su GitHub. Questo è possibile solo grazie all'incredibile sostegno della comunità."
     },
     "docs": {
         "translate": "Migliora la traduzione su Crowdin",
@@ -535,7 +535,7 @@
         "none": "Nessuno",
         "show_controls": "Visualizza controlli",
         "manual_camera": "Manual camera",
-        "manual_camera_description": "You can move the map below to adjust the camera position.",
+        "manual_camera_description": "È possibile spostare la mappa qui sotto per regolare la posizione della fotocamera.",
         "latitude": "Latitudine",
         "longitude": "Longitudine",
         "zoom": "Zoom",
