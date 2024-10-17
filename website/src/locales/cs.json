@@ -406,7 +406,7 @@
         "time": "Čas",
         "moving": "V pohybu",
         "total": "Celkem",
-        "osm_extensions": "OpenStreetMap data"
+        "osm_extensions": "OpenStreetMap údaje"
     },
     "units": {
         "meters": "m",
