@@ -429,8 +429,8 @@
     "gpx": {
         "file": "Fichier",
         "files": "Fichiers",
-        "track": "Track",
-        "tracks": "Tracks",
+        "track": "Piste",
+        "tracks": "Pistes",
         "segment": "Segment",
         "segments": "Segments",
         "waypoint": "Point d'intérêt",
