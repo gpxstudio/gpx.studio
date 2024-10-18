@@ -278,7 +278,7 @@
             "basemap": "Basiskarte",
             "overlay": "Einblendung",
             "create": "Create layer",
-            "update": "Update layer"
+            "update": "Layer aktualisieren"
         },
         "opacity": "Overlay opacity",
         "label": {
