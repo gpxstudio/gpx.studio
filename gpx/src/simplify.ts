@@ -1,5 +1,5 @@
-import { TrackPoint } from "./gpx";
-import { Coordinates } from "./types";
+import { TrackPoint } from "./gpx.ts";
+import type { Coordinates } from "./types.ts";
 
 export type SimplifiedTrackPoint = { point: TrackPoint, distance?: number };
 
