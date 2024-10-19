@@ -208,7 +208,7 @@
             "artificial": "Erstelle realistische Zeitdaten",
             "update": "Aktualisiere Zeitdaten",
             "help": "Verwenden Sie das Formular, um neue Zeitdaten festzulegen.",
-            "help_invalid_selection": "Select a single trace to manage its time data."
+            "help_invalid_selection": ""
         },
         "merge": {
             "merge_traces": "Verbinde die Spuren",
