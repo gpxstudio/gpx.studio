@@ -196,8 +196,8 @@
             "tooltip": "Schneiden oder Teilen",
             "crop": "Schneiden",
             "split_as": "Track teilen in",
-            "help_invalid_selection": "Select a trace to crop or split.",
-            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
+            "help_invalid_selection": "Eine Route auswählen zum Kürzen oder Aufteilen.",
+            "help": "Benützen Sie den Schieber, um die Route am Anfang oder am Ende zu kürzen. Oder teilen Sie sie auf, indem Sie auf eine der \"Schere\" Markierungen klicken oder selber bestimmte Punkte entlang der Route klicken."
         },
         "time": {
             "tooltip": "Zeitdaten verwalten",
