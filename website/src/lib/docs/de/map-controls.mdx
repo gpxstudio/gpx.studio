@@ -10,61 +10,61 @@ title: Kartensteuerungen
 
 # { title }
 
-The map controls are located on the right side of the interface.
+Die Kartensteuerung befindet sich auf der rechten Seite der Schnittstelle.
 Mit diesen Steuerelementen können Sie auf der Karte navigieren, vergrößern und zwischen verschiedenen Kartenstilen wechseln.
 
-### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Map navigation
+### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Kartennavigation
 
-The controls at the top allow you to zoom in <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> and out <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, and to change the orientation and tilt of the map <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
-
-<DocsNote>
-
-To control the orientation and tilt of the map, you can also drag the map while holding <kbd>Ctrl</kbd>.
-
-</DocsNote>
-
-### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Search bar
-
-You can use the search bar to look for an address and navigate to it on the map.
-
-### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Locate button
-
-The locate button centers the map on your current location.
+Die Steuerelemente am oberen Rand erlauben es <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> zu vergrößern und <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, und um die Orientierung und Neigung der Karte <Compass size="16" class="inline-block" style="margin-bottom: 2px" /> zu ändern.
 
 <DocsNote>
 
-This only works if you have allowed your browser and <b>gpx.studio</b> to access your location.
+Um die Ausrichtung und Neigung der Karte zu steuern, können Sie die Karte auch ziehen, während Sie <kbd>die Strg-Taste</kbd> gedrückt halten.
 
 </DocsNote>
 
-### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Street view
+### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Suchleiste
 
-This button can be used to enable street view mode on the map.
-Depending on the street view source chosen in the [settings](./menu/settings), street view imagery can be accessed differently.
+Sie können die Suchleiste benutzen, um nach einer Adresse zu suchen und auf der Karte zu navigieren.
 
-- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: the street view coverage will appear as green lines on the map. When zoomed in enough, green dots will show the exact locations where street view imagery is available. Hovering over a green dot will show the street view image at that location.
-- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: click on the map to open a new tab with the street view imagery at that location.
+### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Suche Taste
+
+Die Schaltfläche "suchen" zentriert die Karte an Ihrem aktuellen Standort.
+
+<DocsNote>
+
+Dies funktioniert nur, wenn Sie Ihrem Browser und <b>gpx.studio</b> erlaubt haben, auf Ihren Standort zuzugreifen.
+
+</DocsNote>
+
+### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Straßenansicht
+
+Diese Schaltfläche kann benutzt werden, um den Straßenansicht Modus auf der Karte zu aktivieren.
+Abhängig von der in der [settings]gewählten Straßenansicht (./Menü/Einstellungen) kann auf Straßenansicht anders zugegriffen werden.
+
+- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: Die Straßenansicht wird als grüne Linien auf der Karte angezeigt. Wenn man genug zoomt, werden grüne Punkte die genauen Stellen anzeigen, an denen Straßenansicht Bilder verfügbar sind. Wenn Sie über einen grünen Punkt schweben wird das Straßenansicht Bild an dieser Stelle angezeigt.
+- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: Klicken Sie auf die Karte, um einen neuen Tab mit dem Straßenansicht Bild an dieser Stelle zu öffnen.
 
 ### <Layers size="16" class="inline-block" style="margin-bottom: 2px" /> Karten-Ebenen
 
-The map layers button allows you to switch between different basemaps, and toggle map overlays and categories of points of interest.
+Mit der Schaltfläche Karten-Ebenen können Sie zwischen verschiedenen Basemaps wechseln und Kartenüberlagerungen und Kategorien von Punkten ein-/ausblenden.
 
-- **Basemaps** are background maps that present the main geographic features of the world.
-  Depending on their purpose, basemaps have different styles and levels of detail.
-  Only one basemap can be displayed at a time.
-- **Overlays** are additional layers that can be displayed on top of the basemap to provide complementary information.
-- **Points of interest** can be added to the map to show different categories of places, such as shops, restaurants, or accommodations.
+- **Basemaps** sind Hintergrundkarten, die die wichtigsten geografischen Merkmale der Welt darstellen.
+  Basemaps haben je nach Zweck unterschiedliche Stile und Detailstufen.
+  Es kann jeweils nur eine Basemap angezeigt werden.
+- **Overlays** sind zusätzliche Ebenen, die über der Basemap angezeigt werden können, um ergänzende Informationen bereitzustellen.
+- **Punkte von Interesse** können auf der Karte angezeigt werden, um verschiedene Kategorien von Orten wie Geschäfte, Restaurants oder Unterkünfte anzuzeigen.
 
 <div class="flex flex-col items-center">
     <DocsLayers />
     <span class="text-sm text-center mt-2">
-        Hover over the map to show the <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> overlay on top of the <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> basemap.
+        Fahren Sie über der Karte, um die <a href="https://hiking.waymarkedtrails.org" target="_blank">Wegmarkierte Wanderwege</a> Overlay oben auf die <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> Basemap anzuzeigen.
     </span>
 </div>
 
-A large collection of global and local basemaps and overlays is available in **gpx.studio**, as well as a selection of point-of-interest categories.
-They can be enabled in the [map layer settings dialog](./menu/settings).
+Eine große Sammlung globaler und lokaler Basemaps und Overlays ist im **gpx.studio** sowie eine Auswahl von Point-of-Interest Kategorien verfügbar.
+Sie können im [Einstellungsdialog für die Kartenlayer Einstellungen](./menu/settings) aktiviert werden.
 
-In these settings, you can also manage the opacity of the overlays.
+In diesen Einstellungen können Sie auch die Deckkraft der Overlays verwalten.
 
-For advanced users, it is possible to add custom basemaps and overlays by providing <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, or <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox style JSON</a> URLs.
+Für fortgeschrittene Benutzer ist es möglich, benutzerdefinierte Basemaps und Overlays durch die Bereitstellung von <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>hinzuzufügen, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>oder <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox Stil JSON</a> URLs.
