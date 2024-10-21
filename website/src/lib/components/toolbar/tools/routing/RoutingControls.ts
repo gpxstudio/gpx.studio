@@ -9,8 +9,10 @@ import { getOrderedSelection, selection } from "$lib/components/file-list/Select
 import { ListFileItem, ListTrackItem, ListTrackSegmentItem } from "$lib/components/file-list/FileList";
 import { currentTool, streetViewEnabled, Tool } from "$lib/stores";
 import { getClosestLinePoint, resetCursor, setGrabbingCursor } from "$lib/utils";
+import { TimestampsMode } from "$lib/types";
 
-const { streetViewSource } = settings;
+const { streetViewSource, timestampsMode } = settings;
+
 export const canChangeStart = writable(false);
 
 function stopPropagation(e: any) {
@@ -573,9 +575,11 @@ export class RoutingControls {
         }
 
         if (anchors[0].point._data.index === 0) { // First anchor is the first point of the segment
+            response[0].time = anchors[0].point.time;
             anchors[0].point = response[0]; // replace the first anchor
             anchors[0].point._data.index = 0;
         } else if (anchors[0].point._data.index === segment.trkpt.length - 1 && distance(anchors[0].point.getCoordinates(), response[0].getCoordinates()) < 1) { // First anchor is the last point of the segment, and the new point is close enough
+            response[0].time = anchors[0].point.time;
             anchors[0].point = response[0]; // replace the first anchor
             anchors[0].point._data.index = segment.trkpt.length - 1;
         } else {
@@ -584,6 +588,7 @@ export class RoutingControls {
         }
 
         if (anchors[anchors.length - 1].point._data.index === segment.trkpt.length - 1) { // Last anchor is the last point of the segment
+            response[response.length - 1].time = anchors[anchors.length - 1].point.time;
             anchors[anchors.length - 1].point = response[response.length - 1]; // replace the last anchor
             anchors[anchors.length - 1].point._data.index = segment.trkpt.length - 1;
         } else {
@@ -607,20 +612,40 @@ export class RoutingControls {
         let startTime = anchors[0].point.time;
 
         if (stats.global.speed.moving > 0) {
+            let replacingTime = 0;
+
+            if (get(timestampsMode) === TimestampsMode.PRESERVE_TIMESTAMPS) {
+                this.extendResponseToContiguousAdaptedTimePoints(segment, anchors, response);
+
+                response.forEach((point) => point.time = undefined);
+                startTime = anchors[0].point.time;
+
+                replacingTime = stats.local.time.total[anchors[anchors.length - 1].point._data.index] - stats.local.time.total[anchors[0].point._data.index];
+
+                if (replacingTime > 0) {
+                    for (let i = 1; i < anchors.length - 1; i++) {
+                        anchors[i].point._data['adapted_time'] = true;
+                    }
+                }
+            }
+
             let replacingDistance = 0;
             for (let i = 1; i < response.length; i++) {
                 replacingDistance += distance(response[i - 1].getCoordinates(), response[i].getCoordinates()) / 1000;
             }
-            let replacedDistance = stats.local.distance.moving[anchors[anchors.length - 1].point._data.index] - stats.local.distance.moving[anchors[0].point._data.index];
 
-            let newDistance = stats.global.distance.moving + replacingDistance - replacedDistance;
-            let newTime = newDistance / stats.global.speed.moving * 3600;
+            if (get(timestampsMode) === TimestampsMode.PRESERVE_AVERAGE_SPEED || replacingTime === 0) {
+                let replacedDistance = stats.local.distance.moving[anchors[anchors.length - 1].point._data.index] - stats.local.distance.moving[anchors[0].point._data.index];
 
-            let remainingTime = stats.global.time.moving - (stats.local.time.moving[anchors[anchors.length - 1].point._data.index] - stats.local.time.moving[anchors[0].point._data.index]);
-            let replacingTime = newTime - remainingTime;
+                let newDistance = stats.global.distance.moving + replacingDistance - replacedDistance;
+                let newTime = newDistance / stats.global.speed.moving * 3600;
 
-            if (replacingTime <= 0) { // Fallback to simple time difference
-                replacingTime = stats.local.time.total[anchors[anchors.length - 1].point._data.index] - stats.local.time.total[anchors[0].point._data.index];
+                let remainingTime = stats.global.time.moving - (stats.local.time.moving[anchors[anchors.length - 1].point._data.index] - stats.local.time.moving[anchors[0].point._data.index]);
+                replacingTime = newTime - remainingTime;
+
+                if (replacingTime <= 0) { // Fallback to simple time difference
+                    replacingTime = stats.local.time.total[anchors[anchors.length - 1].point._data.index] - stats.local.time.total[anchors[0].point._data.index];
+                }
             }
 
             speed = replacingDistance / replacingTime * 3600;
@@ -634,6 +659,41 @@ export class RoutingControls {
         dbUtils.applyToFile(this.fileId, (file) => file.replaceTrackPoints(anchors[0].trackIndex, anchors[0].segmentIndex, anchors[0].point._data.index, anchors[anchors.length - 1].point._data.index, response, speed, startTime));
 
         return true;
+    }
+
+    extendResponseToContiguousAdaptedTimePoints(segment: TrackSegment, anchors: Anchor[], response: TrackPoint[]) {
+        while (anchors[0].point._data.adapted_time) {
+            let previousAnchor = null;
+            for (let i = 0; i < this.anchors.length; i++) {
+                if (this.anchors[i].point._data.index < anchors[0].point._data.index) {
+                    previousAnchor = this.anchors[i];
+                } else {
+                    break;
+                }
+            }
+            if (previousAnchor === null) {
+                break;
+            } else {
+                response.splice(0, 0, ...segment.trkpt.slice(previousAnchor.point._data.index, anchors[0].point._data.index).map((point) => point.clone()));
+                anchors.splice(0, 0, previousAnchor);
+            }
+        }
+        while (anchors[anchors.length - 1].point._data.adapted_time) {
+            let nextAnchor = null;
+            for (let i = this.anchors.length - 1; i >= 0; i--) {
+                if (this.anchors[i].point._data.index > anchors[anchors.length - 1].point._data.index) {
+                    nextAnchor = this.anchors[i];
+                } else {
+                    break;
+                }
+            }
+            if (nextAnchor === null) {
+                break;
+            } else {
+                response.push(...segment.trkpt.slice(anchors[anchors.length - 1].point._data.index + 1, nextAnchor.point._data.index + 1).map((point) => point.clone()));
+                anchors.push(nextAnchor);
+            }
+        }
     }
 
     destroy() {

@@ -9,6 +9,7 @@ import { ListFileItem, ListItem, ListTrackItem, ListLevel, ListTrackSegmentItem,
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
 import { SplitType } from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
 import { getClosestLinePoint, getElevation } from '$lib/utils';
+import { TimestampsMode } from '$lib/types';
 import { browser } from '$app/environment';
 
 enableMapSet();
@@ -90,6 +91,7 @@ export const settings = {
     routing: dexieSettingStore('routing', true),
     routingProfile: dexieSettingStore('routingProfile', 'bike'),
     privateRoads: dexieSettingStore('privateRoads', false),
+    timestampsMode: dexieSettingStore('timestampsMode', TimestampsMode.PRESERVE_AVERAGE_SPEED),
     currentBasemap: dexieSettingStore('currentBasemap', defaultBasemap),
     previousBasemap: dexieSettingStore('previousBasemap', defaultBasemap),
     selectedBasemapTree: dexieSettingStore('selectedBasemapTree', defaultBasemapTree),

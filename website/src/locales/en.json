@@ -88,6 +88,8 @@
             "use_routing": "Routing",
             "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
             "allow_private": "Allow private roads",
+            "preserve_average_speed": "Maintain average speed",
+            "preserve_timestamps": "Adjust timestamps to fill gaps",
             "reverse": {
                 "button": "Reverse",
                 "tooltip": "Reverse the direction of the route"

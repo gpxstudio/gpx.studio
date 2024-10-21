@@ -3,6 +3,7 @@
 	import { Switch } from '$lib/components/ui/switch';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Button } from '$lib/components/ui/button';
+	import * as RadioGroup from '$lib/components/ui/radio-group';
 	import Help from '$lib/components/Help.svelte';
 	import ButtonWithTooltip from '$lib/components/ButtonWithTooltip.svelte';
 	import Tooltip from '$lib/components/Tooltip.svelte';
@@ -19,16 +20,22 @@
 		RouteOff,
 		Repeat,
 		SquareArrowUpLeft,
-		SquareArrowOutDownRight
+		SquareArrowOutDownRight,
+		Timer
 	} from 'lucide-svelte';
 
-	import { map, newGPXFile, routingControls, selectFileWhenLoaded } from '$lib/stores';
+	import {
+		gpxStatistics,
+		map,
+		newGPXFile,
+		routingControls,
+		selectFileWhenLoaded
+	} from '$lib/stores';
 	import { dbUtils, getFile, getFileIds, settings } from '$lib/db';
 	import { brouterProfiles, routingProfileSelectItem } from './Routing';
 
 	import { _, locale } from 'svelte-i18n';
 	import { RoutingControls } from './RoutingControls';
-	import mapboxgl from 'mapbox-gl';
 	import { fileObservers } from '$lib/db';
 	import { slide } from 'svelte/transition';
 	import { getOrderedSelection, selection } from '$lib/components/file-list/Selection';
@@ -40,6 +47,7 @@
 		type ListItem
 	} from '$lib/components/file-list/FileList';
 	import { flyAndScale, getURLForLanguage, resetCursor, setCrosshairCursor } from '$lib/utils';
+	import { TimestampsMode } from '$lib/types';
 	import { onDestroy, onMount } from 'svelte';
 	import { TrackPoint } from 'gpx';
 
@@ -49,7 +57,7 @@
 	export let popupElement: HTMLElement | undefined = undefined;
 	let selectedItem: ListItem | null = null;
 
-	const { privateRoads, routing } = settings;
+	const { privateRoads, routing, timestampsMode } = settings;
 
 	$: if ($map && popup && popupElement) {
 		// remove controls for deleted files
@@ -161,13 +169,35 @@
 						</Select.Root>
 					</Label>
 					<Label class="flex flex-row justify-between items-center gap-2">
-						<span class="flex flex-row gap-1">
+						<span class="flex flex-row items-center gap-1">
 							<TriangleAlert size="16" />
 							{$_('toolbar.routing.allow_private')}
 						</span>
 						<Switch class="scale-90" bind:checked={$privateRoads} />
 					</Label>
 				</div>
+			{/if}
+			{#if $gpxStatistics.global.time.total > 0}
+				<RadioGroup.Root bind:value={$timestampsMode}>
+					<div class="flex flex-row items-center gap-2">
+						<RadioGroup.Item
+							value={TimestampsMode.PRESERVE_AVERAGE_SPEED}
+							id={TimestampsMode.PRESERVE_AVERAGE_SPEED}
+						/>
+						<Label for={TimestampsMode.PRESERVE_AVERAGE_SPEED}>
+							{$_('toolbar.routing.preserve_average_speed')}
+						</Label>
+					</div>
+					<div class="flex flex-row items-center gap-2">
+						<RadioGroup.Item
+							value={TimestampsMode.PRESERVE_TIMESTAMPS}
+							id={TimestampsMode.PRESERVE_TIMESTAMPS}
+						/>
+						<Label for={TimestampsMode.PRESERVE_TIMESTAMPS}>
+							{$_('toolbar.routing.preserve_timestamps')}
+						</Label>
+					</div>
+				</RadioGroup.Root>
 			{/if}
 		</div>
 		<div class="flex flex-row flex-wrap justify-center gap-1">
