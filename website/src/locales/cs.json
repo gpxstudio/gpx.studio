@@ -54,7 +54,7 @@
         "street_view_source": "Zdroj panoramatického zobrazení",
         "mapillary": "Mapillary",
         "google": "Google",
-        "toggle_street_view": "Street view",
+        "toggle_street_view": "Pohled na ulici",
         "layers": "Mapové vrstvy...",
         "distance_markers": "Značky vzdálenosti",
         "direction_markers": "Směrové šipky",
@@ -136,11 +136,11 @@
                 "sand": "Písek",
                 "grass": "Tráva",
                 "grass_paver": "Zatravňovací dlažba",
-                "clay": "Clay",
-                "stone": "Stone"
+                "clay": "Jíl",
+                "stone": "Kámen"
             },
             "highway": {
-                "unknown": "Unknown",
+                "unknown": "Neznámý",
                 "motorway": "Highway",
                 "motorway_link": "Highway link",
                 "trunk": "Primary road",
@@ -406,7 +406,7 @@
         "time": "Čas",
         "moving": "V pohybu",
         "total": "Celkem",
-        "osm_extensions": "OpenStreetMap data"
+        "osm_extensions": "OpenStreetMap údaje"
     },
     "units": {
         "meters": "m",
