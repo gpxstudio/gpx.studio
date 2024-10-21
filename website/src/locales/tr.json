@@ -83,10 +83,10 @@
     },
     "toolbar": {
         "routing": {
-            "tooltip": "Plan or edit a route",
+            "tooltip": "Bir güzergah planla veya düzenle",
             "activity": "Etkinlik",
             "use_routing": "Yönlendirme",
-            "use_routing_tooltip": "Bağlantı noktalarını yol güzergahı veya devre dışı bırakılmışsa düz bir hat üzerinden birleştir",
+            "use_routing_tooltip": "İstasyon noktalarını yol güzergahı üzerinden veya devre dışı bırakılmışsa düz bir hat üzerinden birleştir",
             "allow_private": "Özel yollara izin ver",
             "reverse": {
                 "button": "Tersine çevir",
@@ -97,12 +97,12 @@
                 "tooltip": "Connect the last point of the route with the starting point"
             },
             "round_trip": {
-                "button": "Round trip",
+                "button": "Gidiş-dönüş",
                 "tooltip": "Return to the starting point by the same route"
             },
-            "start_loop_here": "Start loop here",
-            "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
-            "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
+            "start_loop_here": "Döngüyü buradan başlat",
+            "help_no_file": "Yönlendirme özelliğini kullanmak için bir iz seçin veya yeni bir güzergah oluşturmaya başlamak için haritaya tıklayın.",
+            "help": "Yeni bir istasyon noktası eklemek için haritaya tıklayın veya mevcut olanları sürükleyerek güzergahı değiştirin.",
             "activities": {
                 "bike": "Bike",
                 "racing_bike": "Road bike",
@@ -114,7 +114,7 @@
                 "railway": "Railway"
             },
             "surface": {
-                "unknown": "Unknown",
+                "unknown": "Bilinmiyor",
                 "paved": "Paved",
                 "unpaved": "Unpaved",
                 "asphalt": "Asphalt",
@@ -126,12 +126,12 @@
                 "wood": "Wood",
                 "compacted": "Compacted gravel",
                 "fine_gravel": "Fine gravel",
-                "gravel": "Gravel",
-                "pebblestone": "Pebblestone",
+                "gravel": "Çakıl",
+                "pebblestone": "Çakıl taşı",
                 "rock": "Rock",
                 "dirt": "Dirt",
-                "ground": "Ground",
-                "earth": "Earth",
+                "ground": "Toprak zemin",
+                "earth": "Kara",
                 "mud": "Mud",
                 "sand": "Sand",
                 "grass": "Grass",
