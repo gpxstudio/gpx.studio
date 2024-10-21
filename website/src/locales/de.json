@@ -216,40 +216,40 @@
             "merge_selection": "Auswahl zusammenführen",
             "remove_gaps": "Entferne Zeitsprünge zwischen den Spuren",
             "tooltip": "Elemente zusammenführen",
-            "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
-            "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
-            "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
-            "help_cannot_merge_contents": "Your selection must contain several items to merge their contents.",
-            "selection_tip": "Tip: use {KEYBOARD_SHORTCUT} to add items to the selection."
+            "help_merge_traces": "Durch die Verbindung der ausgewählten Leiterbahnen wird eine einzige kontinuierliche Spur erzeugt.",
+            "help_cannot_merge_traces": "Ihre Auswahl muss mehrere Spuren enthalten, um sie zu verbinden.",
+            "help_merge_contents": "Durch das Zusammenführen der Inhalte der ausgewählten Elemente werden alle Inhalte innerhalb des ersten Elements gruppiert.",
+            "help_cannot_merge_contents": "Ihre Auswahl muss mehrere Elemente enthalten, um deren Inhalt zusammenzuführen.",
+            "selection_tip": "Tipp: Verwenden Sie {KEYBOARD_SHORTCUT} um Elemente zur Auswahl hinzuzufügen."
         },
         "extract": {
-            "tooltip": "Extract contents to separate items",
+            "tooltip": "Inhalte entpacken, um Elemente zu trennen",
             "button": "Extrahieren",
-            "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
-            "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
+            "help": "Das Extrahieren des Inhalts der ausgewählten Elemente erzeugt für jeden ihrer Inhalte ein separates Element.",
+            "help_invalid_selection": "Ihre Auswahl muss Elemente mit mehreren Spuren enthalten, um sie zu extrahieren."
         },
         "elevation": {
-            "button": "Request elevation data",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
-            "help_no_selection": "Select a file item to request elevation data."
+            "button": "Höhendaten anfragen",
+            "help": "Das Anfordern von Höhendaten löscht die vorhandenen Höhendaten, falls vorhanden, und ersetzt diese durch Daten von Mapbox.",
+            "help_no_selection": "Wählen Sie ein Datei-Element, um Höhendaten anzufordern."
         },
         "waypoint": {
-            "tooltip": "Create and edit points of interest",
+            "tooltip": "Punkte von Interesse erstellen und bearbeiten",
             "icon": "Icon",
             "link": "Link",
             "longitude": "Längengrad",
             "latitude": "Breitengrad",
             "create": "POI erstellen",
             "add": "POI hinzufügen",
-            "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
-            "help_no_selection": "Select a file to create or edit points of interest."
+            "help": "Füllen Sie das Formular aus, um einen neuen Point of Interest zu erstellen, oder klicken Sie auf einen bestehenden zu bearbeiten. Klicken Sie auf die Karte, um die Koordinaten zu füllen, oder ziehen Sie Punkte von Interesse um sie zu verschieben.",
+            "help_no_selection": "Wählen Sie eine Datei aus, um interessante Punkte zu erstellen oder zu bearbeiten."
         },
         "reduce": {
             "tooltip": "Die Anzahl Wegpunkte verringern",
             "tolerance": "Toleranz",
             "number_of_points": "Anzahl der GPS-Punkte",
             "button": "Minify",
-            "help": "Use the slider to choose the number of GPS points to keep.",
+            "help": ".",
             "help_no_selection": "Select a trace to reduce the number of its GPS points."
         },
         "clean": {
