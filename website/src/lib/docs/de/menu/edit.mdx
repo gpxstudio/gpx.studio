@@ -1,5 +1,5 @@
 ---
-title: Edit actions
+title: Bearbeite Aktionen
 ---
 
 <script lang="ts">
@@ -12,7 +12,7 @@ title: Edit actions
 Im Gegensatz zu den Datei-Aktionen können die Bearbeitungs-Aktionen möglicherweise den Inhalt der aktuell ausgewählten Dateien verändern.
 Wenn das vertikale Layout der Dateiliste aktiviert ist (siehe [Dateien und Statistik](.. files-and-stats)), können dieses auch auf [Tracks, Segmente und Points-of-Interest](../gpx) angewendet werden.
 Daher bezeichnen wir die Elemente, die durch diese Aktionen geändert werden können, als _file items_.
-Beachten Sie, dass außer den Rückgängig- und Wiederholen-Aktionen die Bearbeitungsaktionen auch über das Kontextmenü (Rechtsklick) der Dateielemente zugänglich sind.
+Beachte, dass die Bearbeitungsaktionen auch über das Kontextmenü (Rechtsklick) der Dateielemente zugänglich sind, ausgenommen von "rückgängig" und "wiederholen".
 
 ### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Rückgängig und Wiederholen
 
@@ -31,25 +31,25 @@ Dies gilt für alle Aktionen der Bedienoberfläche, aber nicht für Optionen, An
 
 Konfigurieren Sie die Sichtbarkeit der ausgewählten Dateielemente auf der Karte.
 
-### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New track
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Neuer Track
 
-Create a new track in the selected file.
+Erstelle ein neues Segment im ausgewählten Track.
 
 <DocsNote>
 
 Diese Aktion ist nur verfügbar, wenn das vertikale Layout der Dateiliste aktiviert ist.
-Additionally, the selection must be a single file.
+Außerdem muss die Auswahl aus einem einzelnen Track bestehen.
 
 </DocsNote>
 
-### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New segment
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Neues Segment
 
-Create a new segment in the selected track.
+Erstelle ein neues Segment im ausgewählten Track.
 
 <DocsNote>
 
 Diese Aktion ist nur verfügbar, wenn das vertikale Layout der Dateiliste aktiviert ist.
-Additionally, the selection must be a single track.
+Außerdem muss die Auswahl aus einem einzelnen Track bestehen.
 
 </DocsNote>
 
@@ -57,9 +57,9 @@ Additionally, the selection must be a single track.
 
 Alle Dateielemente in der aktuellen Hierarchieebene zur Auswahl hinzufügen.
 
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Zentrieren
 
-Center the map on the selected file items.
+Zentrieren der Karte auf den ausgewählten Dateielementen.
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Kopieren
 
