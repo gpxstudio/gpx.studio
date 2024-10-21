@@ -1,5 +1,5 @@
 ---
-title: Route planning and editing
+title: Routenplanung und Bearbeitung
 ---
 
 <script>
@@ -11,12 +11,12 @@ title: Route planning and editing
 
 # <Pencil size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
 
-The route planning and editing tool allows you to create and edit routes by placing or moving anchor points on the map.
+Mit dem Routenplanungs- und Bearbeitungswerkzeug können Routen erstellt und bearbeitet werden, indem Sie Ankerpunkte auf der Karte platzieren oder verschieben.
 
 ## Einstellungen
 
-As shown below, the tool dialog contains a few settings to control the routing behavior.
-You can minimize the dialog to save space by clicking on <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
+Wie unten dargestellt, enthält der Werkzeugdialog einige Einstellungen, um das Routingverhalten zu steuern.
+Sie können den Dialog minimieren, um Speicherplatz zu sparen, indem Sie auf <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button> klicken.
 
 <div class="flex flex-row justify-center">
     <Routing minimizable={false} class="text-foreground p-3 border rounded-md shadow-lg" />
@@ -24,61 +24,61 @@ You can minimize the dialog to save space by clicking on <button><SquareArrowUpL
 
 ### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routing
 
-When routing is enabled, anchor points placed or moved on the map will be connected by a route calculated on the <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> road network.
-Disable routing to connect anchor points with straight lines.
-This setting can also be toggled by pressing <kbd>F5</kbd>.
+Wenn das Routing aktiviert ist, Ankerpunkte, die auf der Karte platziert oder verschoben werden, werden durch eine Strecke, die auf dem <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> Straßennetz berechnet wird, verbunden.
+Deaktivieren Sie die Route, um Ankerpunkte mit gerade Linien zu verbinden.
+Diese Einstellung kann auch durch Drücken von <kbd>F5</kbd> umgeschaltet werden.
 
-### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Activity
+### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Aktivität
 
-Select the activity type to tailor the routes for.
+Wählen Sie den Aktivitätstyp aus, für den die Routen angepasst werden sollen.
 
-### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Allow private roads
+### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Private Straßen erlauben
 
-When enabled, the routing engine will consider private roads when computing routes.
+Wenn aktiviert, berücksichtigt die Routing-Engine bei der Berechnung von Routen private Straßen.
 
 <DocsNote type="warning">
 
-Only use this option if you have local knowledge of the area and have permission to use the roads in question.
+Benutzen Sie diese Option nur, wenn Sie über lokale Kenntnisse der Gegend verfügen und die entsprechenden Straßen benutzen dürfen.
 
 </DocsNote>
 
-## Plotting and editing routes
+## Routen zeichnen und bearbeiten
 
-Creating a route or extending an existing one is as simple as clicking on the map to place a new anchor point.
+Eine Route zu erstellen oder eine bestehende zu erweitern, ist so einfach wie ein Klick auf die Karte, um einen neuen Ankerpunkt zu platzieren.
 
-You can also drag an existing anchor point to reroute the segment connecting it with the previous and next anchor point.
+Sie können auch einen bestehenden Ankerpunkt ziehen, um das Segment umzuleiten, das es mit dem vorherigen und dem nächsten Ankerpunkt verbindet.
 
-Furthermore, new anchor points can be inserted between existing ones by hovering over the segment connecting them and dragging the anchor point that appears to the desired location.
-On touch devices, you can tap on the segment to insert a new anchor point.
+Außerdem neue Ankerpunkte können zwischen bestehenden eingefügt werden, indem man über das Segment schwebt und den Ankerpunkt an die gewünschte Stelle zieht.
+Bei Touchgeräten können Sie auf das Segment tippen, um einen neuen Ankerpunkt einzufügen.
 
 <DocsNote>
 
-When editing imported GPX files, an initial set of anchor points is created automatically.
-To ease the editing process, the more the map is zoomed in, the more anchor points are displayed.
-This allows the route to be edited at different levels of detail.
+Beim Bearbeiten importierter GPX-Dateien wird automatisch ein anfänglicher Satz von Ankerpunkten erstellt.
+Um den Bearbeitungsprozess zu vereinfachen, werden je mehr Ankerpunkte angezeigt, je mehr die Karte vergrößert wird.
+Dadurch kann die Route auf verschiedenen Detailstufen bearbeitet werden.
 
 </DocsNote>
 
-Finally, you can delete anchor points by clicking on them and selecting <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Delete</button> from the context menu.
+Schließlich können Sie Ankerpunkte löschen, indem Sie auf sie klicken und <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Löschen</button> aus dem Kontextmenü auswählen.
 
-<DocsImage src="tools/routing" alt="Anchor points allow you to easily edit a route." />
+<DocsImage src="tools/routing" alt="Ankerpunkte erlauben es dir, einfach eine Route zu bearbeiten." />
 
-## Additional tools
+## Zusätzliche Werkzeuge
 
-The following tools automate some common route modification operations.
+Die folgenden Tools automatisieren einige gemeinsame Routenmodifikationsoperationen.
 
-### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Reverse
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Umkehren
 
-Reverse the direction of the route.
+Die Richtung der Route umkehren.
 
-### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Back to start
+### Zurück zum Start
 
-Connect the last point of the route with the starting point, using the chosen routing settings.
+Verbinden Sie den letzten Punkt der Route mit dem Startpunkt mit den gewählten Routing-Einstellungen.
 
-### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Round trip
+### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Rundreise
 
-Return to the starting point by the same route.
+Zurück zum Startpunkt mit der gleichen Route.
 
-### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Change the start of the loop
+### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Ändere den Anfang der Schleife
 
-When the end point of the route is close enough to the start, you can change the start of the loop by clicking on any anchor point and selecting <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Start loop here</button> from the context menu.
+Wenn der Endpunkt der Route nahe genug am Start ist, können Sie den Start der Schleife ändern, indem Sie auf einen beliebigen Ankerpunkt klicken und <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Starten Sie die Schleife hier</button> aus dem Kontextmenü.
