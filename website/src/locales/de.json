@@ -248,7 +248,7 @@
             "tooltip": "Die Anzahl Wegpunkte verringern",
             "tolerance": "Toleranz",
             "number_of_points": "Anzahl der GPS-Punkte",
-            "button": "Minify",
+            "button": "Minimieren",
             "help": ".",
             "help_no_selection": "Wählen Sie eine Spur aus, um die Anzahl der GPS-Punkte zu reduzieren."
         },
