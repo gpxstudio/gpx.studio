@@ -71,13 +71,13 @@
             "save": "Захаваць"
         },
         "style": {
-            "button": "Appearance...",
-            "color": "Color",
-            "opacity": "Opacity",
-            "width": "Width"
+            "button": "Знешні выгляд...",
+            "color": "Колер",
+            "opacity": "Празрыстасць",
+            "width": "Шырыня"
         },
-        "hide": "Hide",
-        "unhide": "Unhide",
+        "hide": "Схаваць",
+        "unhide": "Паказаць",
         "center": "Center",
         "open_in": "Open in"
     },
@@ -100,30 +100,30 @@
                 "button": "Round trip",
                 "tooltip": "Return to the starting point by the same route"
             },
-            "start_loop_here": "Start loop here",
+            "start_loop_here": "Пачаць цыкл тут",
             "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
             "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
             "activities": {
-                "bike": "Bike",
-                "racing_bike": "Road bike",
+                "bike": "Ровар",
+                "racing_bike": "Дарожны ровар",
                 "gravel_bike": "Gravel bike",
                 "mountain_bike": "Mountain bike",
                 "foot": "Run/hike",
                 "motorcycle": "Motorcycle",
                 "water": "Water",
-                "railway": "Railway"
+                "railway": "Чыгунка"
             },
             "surface": {
-                "unknown": "Unknown",
+                "unknown": "Невядома",
                 "paved": "Paved",
                 "unpaved": "Unpaved",
                 "asphalt": "Asphalt",
-                "concrete": "Concrete",
-                "cobblestone": "Cobblestone",
+                "concrete": "Бетон",
+                "cobblestone": "Брукаванка",
                 "paving_stones": "Paving stones",
                 "sett": "Sett",
                 "metal": "Metal",
-                "wood": "Wood",
+                "wood": "Лес",
                 "compacted": "Compacted gravel",
                 "fine_gravel": "Fine gravel",
                 "gravel": "Gravel",
