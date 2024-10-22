@@ -106,12 +106,12 @@
             "activities": {
                 "bike": "Fahrrad",
                 "racing_bike": "Rennrad",
-                "gravel_bike": "Gravel Bike",
+                "gravel_bike": "Schotterrad",
                 "mountain_bike": "Mountainbike",
                 "foot": "Laufen/Wandern",
                 "motorcycle": "Motorrad",
                 "water": "Wasser",
-                "railway": "Bahnschiene"
+                "railway": "Eisenbahn"
             },
             "surface": {
                 "unknown": "Unbekannt",
