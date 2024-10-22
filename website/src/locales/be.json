@@ -46,9 +46,9 @@
         "temperature_units": "Temperature units",
         "celsius": "Celsius",
         "fahrenheit": "Fahrenheit",
-        "language": "Language",
+        "language": "Мова",
         "mode": "Тэма",
-        "system": "System",
+        "system": "Сістэма",
         "light": "Светлая",
         "dark": "Цёмная",
         "street_view_source": "Street view source",
@@ -58,9 +58,9 @@
         "layers": "Map layers...",
         "distance_markers": "Distance markers",
         "direction_markers": "Direction arrows",
-        "help": "Help",
-        "more": "More...",
-        "donate": "Donate",
+        "help": "Даведка",
+        "more": "Яшчэ...",
+        "donate": "Ахвяраваць",
         "ctrl": "Ctrl",
         "click": "Click",
         "drag": "Drag",
@@ -68,7 +68,7 @@
             "button": "Info...",
             "name": "Name",
             "description": "Description",
-            "save": "Save"
+            "save": "Захаваць"
         },
         "style": {
             "button": "Appearance...",
