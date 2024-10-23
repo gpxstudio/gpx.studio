@@ -97,6 +97,7 @@
 					}
 				]
 			},
+			projection: 'globe',
 			zoom: 0,
 			hash: hash,
 			language,
