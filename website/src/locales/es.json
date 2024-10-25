@@ -195,9 +195,9 @@
         "scissors": {
             "tooltip": "Recortar o dividir",
             "crop": "Recortar",
-            "split_as": "Dividir el rastro en",
-            "help_invalid_selection": "Seleccione un rastro para recortar o dividir.",
-            "help": "Use el control deslizante para recortar el trazado o dividirlo haciendo clic en uno de los marcadores o en el propio trazado."
+            "split_as": "Dividir la traza en",
+            "help_invalid_selection": "Seleccione una traza para recortar o dividir.",
+            "help": "Use el control deslizante para recortar la traza o dividirla haciendo clic en uno de los marcadores o en la propia traza."
         },
         "time": {
             "tooltip": "Gestionar datos de tiempo",
@@ -250,7 +250,7 @@
             "number_of_points": "Cantidad de puntos GPS",
             "button": "Minimizar",
             "help": "Use la barra deslizante para elegir la cantidad de puntos GPS a conservar.",
-            "help_no_selection": "Seleccione un rastro para reducir su cantidad de puntos GPS."
+            "help_no_selection": "Seleccione un trazo para reducir su cantidad de puntos GPS."
         },
         "clean": {
             "tooltip": "Limpiar puntos GPS y puntos de interés con una selección rectangular",
@@ -260,7 +260,7 @@
             "delete_outside": "Eliminar exterior de la selección",
             "button": "Eliminar track",
             "help": "Seleccione un área rectangular en el mapa para eliminar puntos GPS y puntos de interés.",
-            "help_no_selection": "Seleccione un rastro para limpiar puntos GPS y puntos de interés."
+            "help_no_selection": "Seleccione un trazo para limpiar puntos GPS y puntos de interés."
         }
     },
     "layers": {
