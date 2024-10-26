@@ -1,7 +1,7 @@
 {
     "metadata": {
         "home_title": "在线GPX 文件编辑器",
-        "app_title": "app",
+        "app_title": "应用",
         "embed_title": "在线GPX 文件编辑器",
         "help_title": "帮助",
         "404_title": "找不到页面",
@@ -48,13 +48,13 @@
         "fahrenheit": "华氏度",
         "language": "语言",
         "mode": "主题",
-        "system": "System",
+        "system": "系统",
         "light": "浅色",
         "dark": "暗色",
         "street_view_source": "街景来源",
         "mapillary": "Mapillary",
         "google": "Google",
-        "toggle_street_view": "Street view",
+        "toggle_street_view": "街景",
         "layers": "地图图层...",
         "distance_markers": "距离标记",
         "direction_markers": "方向箭头",
@@ -208,11 +208,11 @@
             "artificial": "创建实际时间数据",
             "update": "更新时间数据",
             "help": "Use the form to set new time data.",
-            "help_invalid_selection": "Select a single trace to manage its time data."
+            "help_invalid_selection": "选择一个单一的轨迹来管理其时间数据。"
         },
         "merge": {
             "merge_traces": "连接轨迹",
-            "merge_contents": "Merge the contents and keep the traces disconnected",
+            "merge_contents": "合并内容并保持轨迹断开",
             "merge_selection": "合并选择项",
             "remove_gaps": "Remove time gaps between traces",
             "tooltip": "Merge items together",
