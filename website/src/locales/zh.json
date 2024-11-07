@@ -78,7 +78,7 @@
         },
         "hide": "隐藏",
         "unhide": "显示",
-        "center": "Center",
+        "center": "",
         "open_in": "打开"
     },
     "toolbar": {
@@ -136,7 +136,7 @@
                 "sand": "沙粒",
                 "grass": "草地",
                 "grass_paver": "草坪",
-                "clay": "Clay",
+                "clay": "土地",
                 "stone": "Stone"
             },
             "highway": {
@@ -156,11 +156,11 @@
                 "living_street": "Living street",
                 "service": "Service road",
                 "track": "Track",
-                "footway": "Footway",
-                "path": "Path",
-                "pedestrian": "Pedestrian",
+                "footway": "人行道",
+                "path": "路径",
+                "pedestrian": "行人",
                 "cycleway": "Cycleway",
-                "steps": "Steps",
+                "steps": "行使步骤",
                 "road": "Road",
                 "bridleway": "Horseriding path",
                 "platform": "Platform",
@@ -179,7 +179,7 @@
             "sac_scale": {
                 "hiking": "Hiking",
                 "mountain_hiking": "Mountain hiking",
-                "demanding_mountain_hiking": "Demanding mountain hiking",
+                "demanding_mountain_hiking": "",
                 "alpine_hiking": "Alpine hiking",
                 "demanding_alpine_hiking": "Demanding alpine hiking",
                 "difficult_alpine_hiking": "Difficult alpine hiking"
@@ -214,7 +214,7 @@
             "merge_traces": "连接轨迹",
             "merge_contents": "合并内容并保持轨迹断开",
             "merge_selection": "合并选择项",
-            "remove_gaps": "Remove time gaps between traces",
+            "remove_gaps": "去除轨迹时间间隔。",
             "tooltip": "Merge items together",
             "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
             "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
