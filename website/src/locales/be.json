@@ -3,17 +3,17 @@
         "home_title": "the online GPX file editor",
         "app_title": "app",
         "embed_title": "the online GPX file editor",
-        "help_title": "help",
+        "help_title": "даведка",
         "404_title": "старонка не знойдзена",
         "description": "View, edit, and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations."
     },
     "menu": {
         "new": "New",
         "new_file": "Стварыць новы файл",
-        "new_track": "New track",
-        "new_segment": "New segment",
+        "new_track": "Стварыць маршрут",
+        "new_segment": "Стварыць сегмент",
         "open": "Адкрыць...",
-        "duplicate": "Duplicate",
+        "duplicate": "Дубляваць",
         "close": "Закрыць",
         "close_all": "Закрыць усе",
         "copy": "Капіяваць",
@@ -28,7 +28,7 @@
         "download_files": "Спампаваць файлы",
         "edit": "Рэдагаваць",
         "undo": "Адрабіць",
-        "redo": "Redo",
+        "redo": "Вярнуць",
         "delete": "Выдаліць",
         "select_all": "Абраць усё",
         "view": "View",
@@ -38,14 +38,14 @@
         "toggle_overlays": "Toggle overlays",
         "toggle_3d": "Toggle 3D",
         "settings": "Налады",
-        "distance_units": "Distance units",
-        "metric": "Metric",
-        "imperial": "Imperial",
+        "distance_units": "Адзінкі вымярэння адлегласці",
+        "metric": "Метрычная",
+        "imperial": "Імперская",
         "nautical": "Nautical",
         "velocity_units": "Velocity units",
-        "temperature_units": "Temperature units",
-        "celsius": "Celsius",
-        "fahrenheit": "Fahrenheit",
+        "temperature_units": "Адзінкі вымярэння тэмпературы",
+        "celsius": "Па Цэльсію",
+        "fahrenheit": "Па Фарэнгейце",
         "language": "Мова",
         "mode": "Тэма",
         "system": "Сістэма",
@@ -65,9 +65,9 @@
         "click": "Click",
         "drag": "Drag",
         "metadata": {
-            "button": "Info...",
-            "name": "Name",
-            "description": "Description",
+            "button": "Інфармацыя...",
+            "name": "Назва",
+            "description": "Апісанне",
             "save": "Захаваць"
         },
         "style": {
@@ -79,15 +79,15 @@
         "hide": "Схаваць",
         "unhide": "Паказаць",
         "center": "Center",
-        "open_in": "Open in"
+        "open_in": "Адчыніць у"
     },
     "toolbar": {
         "routing": {
             "tooltip": "Plan or edit a route",
-            "activity": "Activity",
+            "activity": "Актыўнасць",
             "use_routing": "Routing",
             "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
-            "allow_private": "Allow private roads",
+            "allow_private": "Дазволіць прыватныя дарогі",
             "reverse": {
                 "button": "Reverse",
                 "tooltip": "Reverse the direction of the route"
