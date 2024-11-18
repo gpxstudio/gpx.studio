@@ -1,4 +1,4 @@
-import { TramFront, Utensils, ShoppingBasket, Droplet, ShowerHead, Fuel, CircleParking, Fence, FerrisWheel, Bed, Mountain, Pickaxe, Store, TrainFront, Bus, Ship, Croissant, House, Tent, Wrench, Binoculars } from 'lucide-static';
+import { TramFront, Utensils, ShoppingBasket, Droplet, ShowerHead, Fuel, CircleParking, Fence, FerrisWheel, Bed, Mountain, Pickaxe, Store, TrainFront, Bus, Ship, Croissant, House, Tent, Wrench, Binoculars, Toilet } from 'lucide-static';
 import { type StyleSpecification } from 'mapbox-gl';
 import ignFrTopo from './custom/ign-fr-topo.json';
 import ignFrPlan from './custom/ign-fr-plan.json';
@@ -1026,7 +1026,7 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
     },
     toilets: {
         icon: {
-            svg: Droplet,
+            svg: Toilet,
             color: "DeepSkyBlue",
         },
         tags: {

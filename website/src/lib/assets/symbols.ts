@@ -1,5 +1,5 @@
-import { Landmark, Icon, Shell, Bike, Building, Tent, Car, Wrench, ShoppingBasket, Droplet, DoorOpen, Trees, Fuel, Home, Info, TreeDeciduous, CircleParking, Cross, Utensils, Construction, BrickWall, ShowerHead, Mountain, Phone, TrainFront, Bed, Binoculars, TriangleAlert, Anchor } from "lucide-svelte";
-import { Landmark as LandmarkSvg, Shell as ShellSvg, Bike as BikeSvg, Building as BuildingSvg, Tent as TentSvg, Car as CarSvg, Wrench as WrenchSvg, ShoppingBasket as ShoppingBasketSvg, Droplet as DropletSvg, DoorOpen as DoorOpenSvg, Trees as TreesSvg, Fuel as FuelSvg, Home as HomeSvg, Info as InfoSvg, TreeDeciduous as TreeDeciduousSvg, CircleParking as CircleParkingSvg, Cross as CrossSvg, Utensils as UtensilsSvg, Construction as ConstructionSvg, BrickWall as BrickWallSvg, ShowerHead as ShowerHeadSvg, Mountain as MountainSvg, Phone as PhoneSvg, TrainFront as TrainFrontSvg, Bed as BedSvg, Binoculars as BinocularsSvg, TriangleAlert as TriangleAlertSvg, Anchor as AnchorSvg } from "lucide-static";
+import { Landmark, Icon, Shell, Bike, Building, Tent, Car, Wrench, ShoppingBasket, Droplet, DoorOpen, Trees, Fuel, Home, Info, TreeDeciduous, CircleParking, Cross, Utensils, Construction, BrickWall, ShowerHead, Mountain, Phone, TrainFront, Bed, Binoculars, TriangleAlert, Anchor, Toilet } from "lucide-svelte";
+import { Landmark as LandmarkSvg, Shell as ShellSvg, Bike as BikeSvg, Building as BuildingSvg, Tent as TentSvg, Car as CarSvg, Wrench as WrenchSvg, ShoppingBasket as ShoppingBasketSvg, Droplet as DropletSvg, DoorOpen as DoorOpenSvg, Trees as TreesSvg, Fuel as FuelSvg, Home as HomeSvg, Info as InfoSvg, TreeDeciduous as TreeDeciduousSvg, CircleParking as CircleParkingSvg, Cross as CrossSvg, Utensils as UtensilsSvg, Construction as ConstructionSvg, BrickWall as BrickWallSvg, ShowerHead as ShowerHeadSvg, Mountain as MountainSvg, Phone as PhoneSvg, TrainFront as TrainFrontSvg, Bed as BedSvg, Binoculars as BinocularsSvg, TriangleAlert as TriangleAlertSvg, Anchor as AnchorSvg, Toilet as ToiletSvg } from "lucide-static";
 import type { ComponentType } from "svelte";
 
 export type Symbol = {
@@ -39,7 +39,7 @@ export const symbols: { [key: string]: Symbol } = {
     picnic_area: { value: 'Picnic Area', icon: Utensils, iconSvg: UtensilsSvg },
     restaurant: { value: 'Restaurant', icon: Utensils, iconSvg: UtensilsSvg },
     restricted_area: { value: 'Restricted Area', icon: Construction, iconSvg: ConstructionSvg },
-    restroom: { value: 'Restroom' },
+    restroom: { value: 'Restroom', icon: Toilet, iconSvg: ToiletSvg },
     road: { value: 'Road', icon: BrickWall, iconSvg: BrickWallSvg },
     scenic_area: { value: 'Scenic Area', icon: Binoculars, iconSvg: BinocularsSvg },
     shelter: { value: 'Shelter', icon: Tent, iconSvg: TentSvg },
