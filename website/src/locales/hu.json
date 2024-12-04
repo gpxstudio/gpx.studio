@@ -136,12 +136,12 @@
                 "sand": "Homok",
                 "grass": "Fű",
                 "grass_paver": "Gyephézagos térkő",
-                "clay": "Clay",
-                "stone": "Stone"
+                "clay": "Agyag",
+                "stone": "Kőves"
             },
             "highway": {
-                "unknown": "Unknown",
-                "motorway": "Highway",
+                "unknown": "Ismeretlen",
+                "motorway": "Autópálya",
                 "motorway_link": "Highway link",
                 "trunk": "Primary road",
                 "trunk_link": "Primary road link",
