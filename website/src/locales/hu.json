@@ -97,35 +97,35 @@
                 "tooltip": "Kapcsolja össze az útvonal utolsó pontját a kiindulási ponttal "
             },
             "round_trip": {
-                "button": "Körút",
-                "tooltip": "Ugyanezen az útvonalon vissza a kiindulóponthoz"
+                "button": "Körút ",
+                "tooltip": "Ugyanezen az útvonalon vissza a kiindulóponthoz "
             },
             "start_loop_here": "Rajt áthelyezése ide",
-            "help_no_file": "Válasszon egy nyomkövetést az útválasztó eszköz használatához, vagy kattintson a térképre egy új útvonal létrehozásához.",
-            "help": "Kattintson a térképre új rögzítési pont hozzáadásához, vagy húzza a meglévőket az útvonal módosításához.",
+            "help_no_file": "Válasszon egy útvonalat az útvonal eszköz használatához, vagy kattintson a térképre egy új útvonal létrehozásához.",
+            "help": "Kattintson a térképre új rögzítési pont hozzáadásához, vagy húzza a meglévőket az útvonal módosításához. ",
             "activities": {
                 "bike": "Kerékpár",
-                "racing_bike": "Országúti kerékpár",
-                "gravel_bike": "Terep kerékpár",
+                "racing_bike": "Országúti kerékpár ",
+                "gravel_bike": "Terep kerékpár ",
                 "mountain_bike": "Hegyi kerékpár",
                 "foot": "Futás/Túrázás",
                 "motorcycle": "Motorkerékpár",
-                "water": "Víz",
-                "railway": "Vasút"
+                "water": "Víz ",
+                "railway": "Vasút "
             },
             "surface": {
-                "unknown": "Ismeretlen",
+                "unknown": "Ismeretlen ",
                 "paved": "Szilárd burkolatú",
                 "unpaved": "Földes",
                 "asphalt": "Aszfalt",
                 "concrete": "Beton",
                 "cobblestone": "Macskaköves",
-                "paving_stones": "Térkő",
-                "sett": "Kőlap",
+                "paving_stones": "Térkő ",
+                "sett": "Kőlap ",
                 "metal": "Fém",
                 "wood": "Fa",
-                "compacted": "Tömörített zúzott kő",
-                "fine_gravel": "Murva",
+                "compacted": "Tömörített zúzott kő ",
+                "fine_gravel": "Murva ",
                 "gravel": "Kavics",
                 "pebblestone": "Kavicsos kő",
                 "rock": "Szikla",
@@ -135,7 +135,7 @@
                 "mud": "Sár",
                 "sand": "Homok",
                 "grass": "Fű",
-                "grass_paver": "Gyephézagos térkő",
+                "grass_paver": "Gyephézagos térkő ",
                 "clay": "Agyag",
                 "stone": "Kőves"
             },
