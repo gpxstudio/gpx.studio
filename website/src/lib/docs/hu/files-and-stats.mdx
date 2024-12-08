@@ -1,5 +1,5 @@
 ---
-title: Files and statistics
+title: Fájlok és statisztikák
 ---
 
 <script>
@@ -9,74 +9,74 @@ title: Files and statistics
 
 # { title }
 
-## File list
+## Fájl lista
 
-Once you have [opened](./menu/file) files, they will be shown as tabs in the file list located at the bottom of the map.
-You can reorder them by dragging and dropping the tabs.
-And when many files are open, you can scroll through the list of tabs to navigate between them.
-
-<DocsNote>
-
-When using a mouse, you need to hold <kbd>Shift</kbd> to scroll horizontally.
-
-</DocsNote>
-
-### File selection
-
-By clicking on a tab, you can switch between the files to inspect their statistics, and apply [edit actions](./menu/edit) and [tools](./toolbar) to them.
-By holding the <kbd>Ctrl/Cmd</kbd> key, you can add files to the selection or remove them, and by holding <kbd>Shift</kbd>, you can select a range of files.
-Most of the [edit actions](./menu/edit) and [tools](./toolbar) can be applied to multiple files at once.
+Miután [megnyitotta](./menu/file) fájlokat, azok fülekként jelennek meg a térkép alján található fájllistában.
+A fülek húzásával átrendezheti őket.
+Ha pedig sok fájl van nyitva, a lapok listájában görgetve navigálhat közöttük.
 
 <DocsNote>
 
-You can also navigate through the files using the arrow keys on your keyboard, and use <kbd>Shift</kbd> to add files to the selection.
+Egér használatakor a <kbd>Shift</kbd> billentyűt lenyomva kell tartania a vízszintes görgetéshez.
 
 </DocsNote>
 
-### Edit actions
+### Fájl kiválasztása
 
-By right-clicking on a file tab, you can access the same actions as in the [edit menu](./menu/edit).
-
-### Vertical layout
-
-As mentioned in the [view options section](./menu/view), you can switch between a horizontal and a vertical layout for the file list.
-The vertical file list is useful when you have many files open, or files with multiple [tracks, segments, or points of interest](./gpx).
-Indeed, this layout allows you to inspect the content of the files through collapsible sections.
-
-You can also apply [edit actions](./menu/edit) and [tools](./toolbar) to internal file items.
-Furthermore, you can drag and drop the inner items to reorder them, or move them in the hierarchy or even to another file.
+Ha egy lapra kattint, válthat a fájlok között, megtekintheti a statisztikáikat, és alkalmazhatja a [szerkesztési műveleteket] (./menu/edit) és az [eszközöket] (./toolbar).
+A <kbd>Ctrl/Cmd</kbd> billentyű lenyomva tartásával fájlokat adhat hozzá vagy eltávolíthat a kijelöléshez, a <kbd>Shift</kbd> billentyű lenyomva tartása mellett pedig fájlok tartományát választhatja ki.
+A legtöbb [szerkesztési művelet] (./menu/edit) és [eszközök] (./toolbar) egyszerre több fájlra is alkalmazható.
 
 <DocsNote>
 
-The size of the file list can be adjusted by dragging the separator between the map and the file list.
+A fájlok között a billentyűzet nyílbillentyűivel is navigálhat, és a <kbd>Shift</kbd> billentyűvel is hozzáadhat fájlokat a kijelöléshez.
 
 </DocsNote>
 
-## Elevation profile and statistics
+### Műveletek szerkesztése
 
-At the bottom of the interface, you can find the elevation profile and statistics for the current selection.
+A jobb gombbal egy fájl fülre kattintva ugyanazokat a műveleteket érheti el, mint a [szerkesztés menü](./menu/edit).
+
+### Függőleges elrendezés
+
+A [nézetbeállítások szakaszban](./menu/view) leírtak szerint a fájllista vízszintes és függőleges elrendezése között válthat.
+A függőleges fájllista akkor hasznos, ha sok fájl van megnyitva, vagy ha több [sávot, szegmenst vagy érdekes pontot] tartalmaz (./gpx).
+Valójában ez az elrendezés lehetővé teszi a fájlok tartalmának az összecsukható szakaszokon keresztül történő ellenőrzését.
+
+A belső fájlelemekre [szerkesztési műveleteket] (./menu/edit) és [eszközöket] (./toolbar) is alkalmazhat.
+Ezenkívül a belső elemek áthúzásával átrendezheti őket, vagy áthelyezheti őket a hierarchiába vagy akár egy másik fájlba.
 
 <DocsNote>
 
-The size of the elevation profile can be adjusted by dragging the separator between the map and the elevation profile.
+A fájllista mérete a térkép és a fájllista közötti elválasztó elhúzásával módosítható.
 
 </DocsNote>
 
-### Interactive statistics
+## Magassági profil és statisztikák
 
-When hovering over the elevation profile, a tooltip will show statistics at the cursor position.
+A térképfelület alján találja az aktuális kijelölés magassági profilját és statisztikáit.
 
-To get the statistics for a specific section of the elevation profile, you can drag a selection rectangle on the profile.
-Click on the profile to reset the selection.
+<DocsNote>
+
+A magassági profil mérete a térkép és a magassági profil közötti elválasztó elhúzásával állítható be.
+
+</DocsNote>
+
+### Interaktív statisztikák
+
+Amikor az egeret a magassági profil fölé viszi, egy eszköztipp a kurzor pozíciójában mutatja a statisztikákat.
+
+A magassági profil egy adott szakaszára vonatkozó statisztikák megtekintéséhez húzhat egy kijelölő téglalapot a profilra.
+Kattintson a profilra a kijelölés visszaállításához.
 
 Az egérgörgővel is méretezheti a magassági profilt. Balra és jobbra mozoghat a profil húzásával, miközben lenyomva tartja a <kbd>Shift</kbd> billentyűt.
 
-### Additional data
+### További adatok
 
-Using the <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> button at the bottom-right of the elevation profile, you can optionally color the elevation profile by:
+A magassági profil jobb alsó sarkában található <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> gombbal opcionálisan színezheti a magassági profil:
 
-- **slope** information computed from the elevation data, or
-- **surface** or **category** data coming from <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> and <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> tags.
-  This is only available for files created with **gpx.studio**.
+- **lejtő** információ a magassági adatokból számítva, vagy
+- **felületi** vagy **kategória** adatok az <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> <a href="https: //wiki.openstreetmap.org/wiki/Key:surface" target="_blank">felület</a> és <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">autópálya</a> címkék.
+  Ez csak a **gpx.studio** segítségével létrehozott fájlok esetén érhető el.
 
-If your selection includes it, you can also visualize: **speed**, **heart rate**, **cadence**, **temperature** and **power** data on the elevation profile.
+Ha a választása tartalmazza, akkor a magassági profilon megjelenítheti a következőket is: **sebesség**, **pulzusszám**, **fordulatszám**, **hőmérséklet** és **teljesítmény**.
