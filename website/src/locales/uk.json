@@ -73,31 +73,31 @@
         "style": {
             "button": "Зовнішність...",
             "color": "Колір",
-            "opacity": "Opacity",
+            "opacity": "Непрозорість",
             "width": "Ширина"
         },
         "hide": "Приховати",
         "unhide": "Unhide",
-        "center": "Center",
-        "open_in": "Open in"
+        "center": "Центр",
+        "open_in": "Відкрити в"
     },
     "toolbar": {
         "routing": {
-            "tooltip": "Plan or edit a route",
+            "tooltip": "Спланувати або відредагувати маршрут",
             "activity": "Activity",
-            "use_routing": "Routing",
-            "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
-            "allow_private": "Allow private roads",
+            "use_routing": "Маршрутизація",
+            "use_routing_tooltip": "З'єднати опорні точки через мережу доріг або по прямій лінії, якщо вони недоступні",
+            "allow_private": "Дозволити приватні дороги",
             "reverse": {
                 "button": "Reverse",
-                "tooltip": "Reverse the direction of the route"
+                "tooltip": "Змінити напрямок маршруту"
             },
             "route_back_to_start": {
-                "button": "Back to start",
-                "tooltip": "Connect the last point of the route with the starting point"
+                "button": "Повернутися до старту",
+                "tooltip": "З'єднати останню точку маршруту з початковою точкою"
             },
             "round_trip": {
-                "button": "Round trip",
+                "button": "Туди і назад",
                 "tooltip": "Return to the starting point by the same route"
             },
             "start_loop_here": "Start loop here",
