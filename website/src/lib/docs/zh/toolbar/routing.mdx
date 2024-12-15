@@ -1,5 +1,5 @@
 ---
-title: 路线规划和编辑
+title: 路线规划与编辑
 ---
 
 <script>
@@ -11,51 +11,51 @@ title: 路线规划和编辑
 
 # <Pencil size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
 
-The route planning and editing tool allows you to create and edit routes by placing or moving anchor points on the map.
+该工具允许您通过在地图上放置或移动锚点来创建和编辑路线。
 
 ## 设置
 
-As shown below, the tool dialog contains a few settings to control the routing behavior.
-You can minimize the dialog to save space by clicking on <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
+如下所示，工具对话框包含一些控制路线行为的设置。
+您可以点击 <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button> 来最小化该窗口以节省空间。
 
 <div class="flex flex-row justify-center">
     <Routing minimizable={false} class="text-foreground p-3 border rounded-md shadow-lg" />
 </div>
 
-### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routing
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> 路线
 
-When routing is enabled, anchor points placed or moved on the map will be connected by a route calculated on the <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> road network.
-Disable routing to connect anchor points with straight lines.
-This setting can also be toggled by pressing <kbd>F5</kbd>.
+启用路线时， 地图上放置或移动的锚点将通过 <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> 路网上计算的路线连接。
+禁用路线则以直线连接锚点。
+也可通过按 <kbd>F5</kbd> 切换此按钮。
 
-### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Activity
+### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> 活动
 
-Select the activity type to tailor the routes for.
+选择活动类型。
 
-### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Allow private roads
+### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> 允许私有道路
 
-When enabled, the routing engine will consider private roads when computing routes.
+启用后，规划路线时将考虑私有道路。
 
 <DocsNote type="warning">
 
-Only use this option if you have local knowledge of the area and have permission to use the roads in question.
+仅当您了解该地区的当地情况并有权使用相关道路时才启用此选项。
 
 </DocsNote>
 
 ## 绘制和编辑路线
 
-Creating a route or extending an existing one is as simple as clicking on the map to place a new anchor point.
+创建路线或扩展现有路线就像在地图上放置新锚点一样简单。
 
-You can also drag an existing anchor point to reroute the segment connecting it with the previous and next anchor point.
+还可以拖动现有锚点，将与之相连的前后两个锚点的路段重新规划。
 
-Furthermore, new anchor points can be inserted between existing ones by hovering over the segment connecting them and dragging the anchor point that appears to the desired location.
-On touch devices, you can tap on the segment to insert a new anchor point.
+此外，若要在现有锚点之间插入新锚点，可将鼠标悬停在连接它们的路段上并将出现的锚点拖动到所需位置。
+在可触摸设备上，您可以点击该路段来插入新锚点。
 
 <DocsNote>
 
-When editing imported GPX files, an initial set of anchor points is created automatically.
-To ease the editing process, the more the map is zoomed in, the more anchor points are displayed.
-This allows the route to be edited at different levels of detail.
+编辑导入的 GPX 文件时，系统将自动创建一组初始锚点。
+为了简化编辑过程，地图缩放的等级越大，锚点显示得就越多。
+这使得路线能够按不同的详细程度进行编辑。
 
 </DocsNote>
 
