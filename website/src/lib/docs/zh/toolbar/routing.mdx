@@ -11,12 +11,12 @@ title: 路线规划与编辑
 
 # <Pencil size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
 
-该工具允许您通过在地图上放置或移动轨迹点来创建和编辑路线。
+使用该工具在地图上添加或移动轨迹点，以创建和编辑路线。
 
 ## 设置
 
 如下所示，工具对话框包含一些控制路线行为的设置。
-您可以点击 <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button> 来最小化该窗口以节省空间。
+点击 <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button> 使窗口最小化以节省空间。
 
 <div class="flex flex-row justify-center">
     <Routing minimizable={false} class="text-foreground p-3 border rounded-md shadow-lg" />
@@ -24,9 +24,9 @@ title: 路线规划与编辑
 
 ### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> 路线
 
-启用路线时， 地图上放置或移动的轨迹点将通过 <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> 路网上计算的路线连接。
-禁用路线则以直线连接锚点。
-也可通过按 <kbd>F5</kbd> 切换此按钮。
+启用路线时， 地图上添加或移动的轨迹点将通过 <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> 路网的计算结果连接。
+禁用路线则以直线连接轨迹点。
+也可通过按 <kbd>F5</kbd> 切换设置。
 
 ### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> 活动
 
@@ -46,39 +46,39 @@ title: 路线规划与编辑
 
 创建路线或扩展现有路线就像在地图上添加新轨迹点一样简单。
 
-还可以拖动现有锚点，将与之相连的前后两个锚点的路段重新规划。
+还可以拖动现有轨迹点，将与之相连的前后两个轨迹点的路段重新规划。
 
-此外，若要在现有锚点之间插入新锚点，可将鼠标悬停在连接它们的路段上并将出现的锚点拖动到所需位置。
-在可触摸设备上，您可以点击该路段来插入新锚点。
+此外，若要在现有轨迹点之间插入新点，可将鼠标悬停在连接它们的路段上，并将出现的轨迹点拖动到所需位置。
+在可触摸设备上，支持点击路段以插入新轨迹点。
 
 <DocsNote>
 
-编辑导入的 GPX 文件时，系统将自动创建一组初始锚点。
-为了简化编辑过程，地图缩放的等级越大，锚点显示得就越多。
+编辑导入的 GPX 文件时，系统将自动创建一组初始轨迹点。
+为了简化编辑过程，地图缩放的等级越大，轨迹点显示得就越多。
 这使得路线能够按不同的详细程度进行编辑。
 
 </DocsNote>
 
-最后，您可以通过点击锚点，然后在菜单中选择 <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> 删除</button> 来删除它们。
+最后，若要删除轨迹点，可先点击选中它们，并点击菜单中的 <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> 删除</button> 完成删除操作。
 
-<DocsImage src="tools/routing" alt="Anchor points allow you to easily edit a route." />
+<DocsImage src="tools/routing" alt="轨迹点让您可以轻松编辑路线。" />
 
-## Additional tools
+## 其他工具
 
-The following tools automate some common route modification operations.
+以下工具可自动执行一些常见的路线修改操作。
 
-### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Reverse
+### 反向
 
-Reverse the direction of the route.
+反转路线方向。
 
-### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Back to start
+### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> 返回起点
 
-Connect the last point of the route with the starting point, using the chosen routing settings.
+使用所选的路线设置将终点和起点连接起来。
 
-### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Round trip
+### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> 往返路线
 
-通过相同路线返回起始点.
+按原路返回起点。
 
-### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Change the start of the loop
+### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> 更改环线起点
 
-When the end point of the route is close enough to the start, you can change the start of the loop by clicking on any anchor point and selecting <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Start loop here</button> from the context menu.
+当路线的起点和终点非常接近时，您可以点击任意轨迹点并选择 <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> 设为起点 </button> 来更改路线起点。
