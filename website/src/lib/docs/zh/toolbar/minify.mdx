@@ -1,5 +1,5 @@
 ---
-title: 最小化
+title: 简化
 ---
 
 <script>
@@ -10,9 +10,9 @@ title: 最小化
 
 # <Filter size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
 
-此工具可用来减少轨迹中GPS点的数量，这对缩小其大小是有用的。
+该工具通过减少轨迹中 GPS 点的数量来压缩其文件大小。
 
-您可使用滑块调整简化算法的容差值，并在地图中查看精简的 Gps 点数和简化轨迹。
+使用滑块调整简化算法的阈值，查看将保留的轨迹点数量，并在地图中查看简化后的轨迹。
 
 <div class="flex flex-row justify-center">
     <Reduce class="text-foreground p-3 border rounded-md shadow-lg" />
@@ -20,7 +20,7 @@ title: 最小化
 
 <DocsNote>
 
-容差值代表原始轨迹与简化轨迹之间允许的最大偏差。
-您可以在<a href="https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm" target="_blank">此处</a>查看有关算法的更多信息。
+该阈值为原始迹线和简化后的迹线之间允许的最大距离。
+点击 <a href="https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm" target="_blank"> 此处 </a> 查阅有关简化算法的更多信息。
 
 </DocsNote>
