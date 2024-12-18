@@ -10,55 +10,52 @@ title: Map controls
 
 # { title }
 
-The map controls are located on the right side of the interface.
+地图控件位于界面右侧。
 These controls allow you to navigate the map, zoom in and out, and switch between different map styles.
 
-### 
+### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> 导航
 
-顶部菜单可以放大和缩小，更改地图的方向和倾斜角度。
-
-<DocsNote>
-
-To control the orientation and tilt of the map, you can also drag the map while holding <kbd>Ctrl</kbd>.
-
-</DocsNote>
-
-### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Search bar
-
-You can use the search bar to look for an address and navigate to it on the map.
-
-### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Locate button
-
-The locate button centers the map on your current location.
+顶部的控件用于放大 <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> 和缩小 <Minus size="16" class="inline-block" style="margin-bottom: 2px" />，以及更改地图的方向和倾斜度<Compass size="16" class="inline-block" style="margin-bottom: 2px" />。
 
 <DocsNote>
 
-This only works if you have allowed your browser and <b>gpx.studio</b> to access your location.
+按住 <kbd>Ctrl</kbd> 的同时用鼠标拖动地图，也可控制地图的方向和倾斜度。
 
 </DocsNote>
 
-### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Street view
+### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> 搜索
 
-This button can be used to enable street view mode on the map.
-Depending on the street view source chosen in the [settings](./menu/settings), street view imagery can be accessed differently.
+使用搜索栏查找地址并在地图上导航。
 
-- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: the street view coverage will appear as green lines on the map. When zoomed in enough, green dots will show the exact locations where street view imagery is available. Hovering over a green dot will show the street view image at that location.
-- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: click on the map to open a new tab with the street view imagery at that location.
+### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> 定位
 
-### <Layers size="16" class="inline-block" style="margin-bottom: 2px" /> Map layers
+点击定位按钮，地图将以您的当前位置为中心。
 
-The map layers button allows you to switch between different basemaps, and toggle map overlays and categories of points of interest.
+<DocsNote>
 
-- **Basemaps** are background maps that present the main geographic features of the world.
-  Depending on their purpose, basemaps have different styles and levels of detail.
-  Only one basemap can be displayed at a time.
-- **Overlays** are additional layers that can be displayed on top of the basemap to provide complementary information.
-- **Points of interest** can be added to the map to show different categories of places, such as shops, restaurants, or accommodations.
+该操作仅在浏览器和 <b>gpx.studio</b> 被允许访问您的位置时生效。
 
-<div class="flex flex-col items-center">
-    <DocsLayers />
-    <span class="text-sm text-center mt-2">
-        Hover over the map to show the <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> overlay on top of the <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> basemap.
+</DocsNote>
+
+### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> 街景
+
+用于在地图上启用街景模式。
+根据 [设置](./menu/settings) 中选择的街头视图源，以不同的方式访问街景图像。
+
+- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: 街景覆盖范围显示为绿线。 当放大到足够大时，街景可用的准确位置将以绿点表示。 将鼠标悬停其上，将显示该位置的街景。
+- <a href="https://www.google.com/streetview/" target="_blank">Google 街景</a>: 点击地图可打开一个带有当前位置街景的新标签页。
+
+### <Layers size="16" class="inline-block" style="margin-bottom: 2px" /> 图层
+
+地图图层按钮支持切换底图，以及切换叠加层和兴趣点类别。
+
+- **底图**是显示世界主要地理特征的背景图。
+  根据其用途，底图具有不同的样式和详细程度。
+  但一次只能显示一张底图。
+- **叠加层**位于底图上方，提供补充信息。
+- 可将**兴趣点**添加到地图上，以显示不同类别的地点，如商店、餐馆或住宿。
+
+将鼠标悬停在地图上可在 <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> 底图上叠加 <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> 数据.
     </span>
 </div>
 
