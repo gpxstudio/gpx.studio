@@ -10,61 +10,61 @@ title: Map controls
 
 # { title }
 
-The map controls are located on the right side of the interface.
+Элементы кіравання картай знаходзяцца ў правай частцы інтэрфэйсу.
 These controls allow you to navigate the map, zoom in and out, and switch between different map styles.
 
-### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Map navigation
+### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Навігацыя па карце
 
-The controls at the top allow you to zoom in <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> and out <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, and to change the orientation and tilt of the map <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
-
-<DocsNote>
-
-To control the orientation and tilt of the map, you can also drag the map while holding <kbd>Ctrl</kbd>.
-
-</DocsNote>
-
-### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Search bar
-
-You can use the search bar to look for an address and navigate to it on the map.
-
-### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Locate button
-
-The locate button centers the map on your current location.
+Элементы кіравання ўверсе дазваляюць павялічваць <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> і памяншаць <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, а таксама змяняць арыентацыю і нахіл карты <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
 
 <DocsNote>
 
-This only works if you have allowed your browser and <b>gpx.studio</b> to access your location.
+Каб кіраваць арыентацыяй і нахілам карты, вы таксама можаце перацягнуць карту, утрымліваючы <kbd>Ctrl</kbd>.
 
 </DocsNote>
 
-### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Street view
+### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Пошукавы радок
 
-This button can be used to enable street view mode on the map.
-Depending on the street view source chosen in the [settings](./menu/settings), street view imagery can be accessed differently.
+Вы можаце выкарыстоўваць пошукавы радок, каб знайсці адрас і перайсці да яго на карце.
 
-- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: the street view coverage will appear as green lines on the map. When zoomed in enough, green dots will show the exact locations where street view imagery is available. Hovering over a green dot will show the street view image at that location.
-- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: click on the map to open a new tab with the street view imagery at that location.
+### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Кнопка месцазнаходжання
 
-### <Layers size="16" class="inline-block" style="margin-bottom: 2px" /> Map layers
+Кнопка цэнтруе карту на вашым бягучым месцазнаходжанні.
 
-The map layers button allows you to switch between different basemaps, and toggle map overlays and categories of points of interest.
+<DocsNote>
 
-- **Basemaps** are background maps that present the main geographic features of the world.
-  Depending on their purpose, basemaps have different styles and levels of detail.
-  Only one basemap can be displayed at a time.
-- **Overlays** are additional layers that can be displayed on top of the basemap to provide complementary information.
-- **Points of interest** can be added to the map to show different categories of places, such as shops, restaurants, or accommodations.
+Гэта працуе, толькі калі вы дазволілі вашаму браўзеру і <b>gpx.studio</b> доступ да вашага месцазнаходжання.
+
+</DocsNote>
+
+### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Прагляд вуліц
+
+Гэтую кнопку можна выкарыстоўваць для ўключэння рэжыму прагляду вуліц на карце.
+У залежнасці ад крыніцы прагляду вуліц, абранай у [наладах](./menu/settings), да прагляду вуліц можна атрымаць доступ па-рознаму.
+
+- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: прагляд вуліц будзе адлюстроўвацца на карце ў выглядзе зялёных ліній. Пры дастатковым павелічэнні зялёныя кропкі будуць паказваць дакладныя месцы, дзе даступныя здымкі вуліц. Пры навядзенні курсора на зялёную кропку будзе паказаны здымак вуліцы ў гэтым месцы.
+- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: націсніце на карту, каб адкрыць новую ўкладку са здымкамі вуліц у гэтым месцы.
+
+### <Layers size="16" class="inline-block" style="margin-bottom: 2px" /> Слаі карты
+
+Кнопка слаёў карты дазваляе вам пераключацца паміж рознымі базавымі картамі, а таксама пераключаць слаі карты і катэгорыі кропак цікавасці.
+
+- **Базавыя карты** - гэта фонавыя карты, якія прадстаўляюць асноўныя геаграфічныя аб'екты свету.
+  У залежнасці ад прызначэння базавыя карты маюць розныя стылі і ўзроўні дэталізацыі.
+  Адначасова можа быць адлюстравана толькі адна базавая карта.
+- **Накладкі** - гэта дадатковыя слаі, якія могуць адлюстроўвацца паверх базавай карты для атрымання дадатковай інфармацыі.
+- **Кропкі цікавасці** можна дадаць на карту, каб паказаць розныя катэгорыі месцаў, такіх як крамы, рэстараны або жыллё.
 
 <div class="flex flex-col items-center">
     <DocsLayers />
     <span class="text-sm text-center mt-2">
-        Hover over the map to show the <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> overlay on top of the <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> basemap.
+        Навядзіце курсор мышы на карту, каб паказаць накладанне <a href="https://hiking.waymarkedtrails.org" target="_blank">Пешаходных Сцежак</a> на базавай карце <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a>.
     </span>
 </div>
 
-A large collection of global and local basemaps and overlays is available in **gpx.studio**, as well as a selection of point-of-interest categories.
-They can be enabled in the [map layer settings dialog](./menu/settings).
+Вялікая калекцыя глабальных і лакальных базавых карт і накладанняў даступная ў **gpx.studio**, а таксама выбар катэгорый кропак цікавасці.
+Іх можна ўключыць у [дыялогавым акне налад слаёў карты](./menu/settings).
 
-In these settings, you can also manage the opacity of the overlays.
+У гэтых наладах вы таксама можаце кіраваць непразрыстасцю накладанняў.
 
-For advanced users, it is possible to add custom basemaps and overlays by providing <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, or <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox style JSON</a> URLs.
+Для прасунутых карыстальнікаў можна дадаваць карыстальніцкія базавыя карты і накладкі, дадаўшы URL-адрасы <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a> або <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">JSON у стылі Mapbox</a>.
