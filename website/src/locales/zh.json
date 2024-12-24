@@ -1,7 +1,7 @@
 {
     "metadata": {
         "home_title": "在线GPX 文件编辑器",
-        "app_title": "app",
+        "app_title": "应用",
         "embed_title": "在线GPX 文件编辑器",
         "help_title": "帮助",
         "404_title": "找不到页面",
@@ -22,7 +22,7 @@
         "export": "导出...",
         "export_all": "全部导出...",
         "export_options": "导出选项",
-        "support_message": "本工具免费使用，但运行需要消耗成本。若您经常使用，请捐助支持本网站。谢谢！",
+        "support_message": "本工具免费使用，但网站运行需要资金。若您经常使用，请通过捐赠支持本站。非常感谢！",
         "support_button": "帮助网站保持免费",
         "download_file": "下载文件",
         "download_files": "下载文件",
@@ -41,20 +41,20 @@
         "distance_units": "长度单位",
         "metric": "公制",
         "imperial": "英制",
-        "nautical": "Nautical",
+        "nautical": "航海",
         "velocity_units": "速度单位",
         "temperature_units": "温度单位",
         "celsius": "摄氏度",
         "fahrenheit": "华氏度",
         "language": "语言",
         "mode": "主题",
-        "system": "System",
+        "system": "系统",
         "light": "浅色",
         "dark": "暗色",
         "street_view_source": "街景来源",
         "mapillary": "Mapillary",
         "google": "Google",
-        "toggle_street_view": "Street view",
+        "toggle_street_view": "街景",
         "layers": "地图图层...",
         "distance_markers": "距离标记",
         "direction_markers": "方向箭头",
@@ -78,7 +78,7 @@
         },
         "hide": "隐藏",
         "unhide": "显示",
-        "center": "Center",
+        "center": "",
         "open_in": "打开"
     },
     "toolbar": {
@@ -136,7 +136,7 @@
                 "sand": "沙粒",
                 "grass": "草地",
                 "grass_paver": "草坪",
-                "clay": "Clay",
+                "clay": "土地",
                 "stone": "Stone"
             },
             "highway": {
@@ -156,11 +156,11 @@
                 "living_street": "Living street",
                 "service": "Service road",
                 "track": "Track",
-                "footway": "Footway",
-                "path": "Path",
-                "pedestrian": "Pedestrian",
+                "footway": "人行道",
+                "path": "路径",
+                "pedestrian": "行人",
                 "cycleway": "Cycleway",
-                "steps": "Steps",
+                "steps": "行使步骤",
                 "road": "Road",
                 "bridleway": "Horseriding path",
                 "platform": "Platform",
@@ -179,7 +179,7 @@
             "sac_scale": {
                 "hiking": "Hiking",
                 "mountain_hiking": "Mountain hiking",
-                "demanding_mountain_hiking": "Demanding mountain hiking",
+                "demanding_mountain_hiking": "",
                 "alpine_hiking": "Alpine hiking",
                 "demanding_alpine_hiking": "Demanding alpine hiking",
                 "difficult_alpine_hiking": "Difficult alpine hiking"
@@ -208,19 +208,19 @@
             "artificial": "创建实际时间数据",
             "update": "更新时间数据",
             "help": "Use the form to set new time data.",
-            "help_invalid_selection": "Select a single trace to manage its time data."
+            "help_invalid_selection": "选择一个单一的轨迹来管理其时间数据。"
         },
         "merge": {
             "merge_traces": "连接轨迹",
-            "merge_contents": "Merge the contents and keep the traces disconnected",
+            "merge_contents": "合并内容并保持轨迹断开",
             "merge_selection": "合并选择项",
-            "remove_gaps": "Remove time gaps between traces",
+            "remove_gaps": "去除轨迹时间间隔。",
             "tooltip": "Merge items together",
             "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
             "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
             "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
             "help_cannot_merge_contents": "Your selection must contain several items to merge their contents.",
-            "selection_tip": "Tip: use {KEYBOARD_SHORTCUT} to add items to the selection."
+            "selection_tip": "提示：使用 {KEYBOARD_SHORTCUT} 添加选中项目。"
         },
         "extract": {
             "tooltip": "Extract contents to separate items",

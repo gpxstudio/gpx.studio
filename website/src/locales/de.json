@@ -106,12 +106,12 @@
             "activities": {
                 "bike": "Fahrrad",
                 "racing_bike": "Rennrad",
-                "gravel_bike": "Gravel Bike",
+                "gravel_bike": "Schotterrad",
                 "mountain_bike": "Mountainbike",
                 "foot": "Laufen/Wandern",
                 "motorcycle": "Motorrad",
                 "water": "Wasser",
-                "railway": "Bahnschiene"
+                "railway": "Eisenbahn"
             },
             "surface": {
                 "unknown": "Unbekannt",
@@ -248,7 +248,7 @@
             "tooltip": "Die Anzahl Wegpunkte verringern",
             "tolerance": "Toleranz",
             "number_of_points": "Anzahl der GPS-Punkte",
-            "button": "Minify",
+            "button": "Minimieren",
             "help": ".",
             "help_no_selection": "Wählen Sie eine Spur aus, um die Anzahl der GPS-Punkte zu reduzieren."
         },
