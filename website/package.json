@@ -65,7 +65,7 @@
         "immer": "^10.1.1",
         "lucide-static": "^0.460.0",
         "lucide-svelte": "^0.460.1",
-        "mapbox-gl": "^3.7.0",
+        "mapbox-gl": "^3.9.1",
         "mapillary-js": "^4.1.2",
         "mode-watcher": "^0.3.1",
         "png.js": "^0.2.1",
