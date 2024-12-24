@@ -18,10 +18,13 @@
 	let sliderValue = [50];
 	let maxPoints = 0;
 	let currentPoints = 0;
+	const minTolerance = 0.1;
+	const maxTolerance = 10000;
 
 	$: validSelection = $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints']);
 
-	$: tolerance = 2 ** (sliderValue[0] / (100 / Math.log2(10000)));
+	$: tolerance =
+		minTolerance * 2 ** (sliderValue[0] / (100 / Math.log2(maxTolerance / minTolerance)));
 
 	let simplified = new Map<string, [ListItem, number, SimplifiedTrackPoint[]]>();
 	let unsubscribes = new Map<string, () => void>();
@@ -101,7 +104,7 @@
 									simplified.set(segmentItem.getFullId(), [
 										segmentItem,
 										statistics.local.points.length,
-										ramerDouglasPeucker(statistics.local.points, 1)
+										ramerDouglasPeucker(statistics.local.points, minTolerance)
 									]);
 									update();
 								} else if (simplified.has(segmentItem.getFullId())) {
@@ -154,7 +157,7 @@
 	</div>
 	<Label class="flex flex-row justify-between">
 		<span>{$_('toolbar.reduce.tolerance')}</span>
-		<WithUnits value={tolerance / 1000} type="distance" decimals={3} class="font-normal" />
+		<WithUnits value={tolerance / 1000} type="distance" decimals={4} class="font-normal" />
 	</Label>
 	<Label class="flex flex-row justify-between">
 		<span>{$_('toolbar.reduce.number_of_points')}</span>
