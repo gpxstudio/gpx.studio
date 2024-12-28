@@ -33,7 +33,7 @@
         "select_all": "Izaberi sve",
         "view": "Pogledaj",
         "elevation_profile": "Visinski profil",
-        "vertical_file_view": "Vertikalna lista datoteka",
+        "tree_file_view": "File tree",
         "switch_basemap": "Vrati prethodnu osnovnu mapu",
         "toggle_overlays": "Sakrij/Prikaži preklapanja",
         "toggle_3d": "Sakrij/Prikaži 3D",
