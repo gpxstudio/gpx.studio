@@ -33,7 +33,7 @@
         "select_all": "Seleccionar-ho tot",
         "view": "Vista",
         "elevation_profile": "Perfil d’elevacions",
-        "vertical_file_view": "Llista de fitxers vertical",
+        "tree_file_view": "File tree",
         "switch_basemap": "Canviar al mapa base anterior",
         "toggle_overlays": "Intercanvia capes",
         "toggle_3d": "Canvia a 3D",
