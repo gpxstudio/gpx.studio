@@ -33,7 +33,7 @@
         "select_all": "Select all",
         "view": "View",
         "elevation_profile": "Elevation profile",
-        "vertical_file_view": "Vertical file list",
+        "tree_file_view": "File tree",
         "switch_basemap": "Switch to previous basemap",
         "toggle_overlays": "Toggle overlays",
         "toggle_3d": "Toggle 3D",

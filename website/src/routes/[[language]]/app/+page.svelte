@@ -20,7 +20,7 @@
 	import { _ } from 'svelte-i18n';
 
 	const {
-		verticalFileView,
+		treeFileView,
 		elevationProfile,
 		bottomPanelSize,
 		rightPanelSize,
@@ -95,12 +95,12 @@
 			>
 				<Toolbar />
 			</div>
-			<Map class="h-full {$verticalFileView ? '' : 'horizontal'}" />
+			<Map class="h-full {$treeFileView ? '' : 'horizontal'}" />
 			<StreetViewControl />
 			<LayerControl />
 			<GPXLayers />
 			<Toaster richColors />
-			{#if !$verticalFileView}
+			{#if !$treeFileView}
 				<div class="h-10 -translate-y-10 w-full pointer-events-none absolute z-30">
 					<FileList orientation="horizontal" />
 				</div>
@@ -129,7 +129,7 @@
 			{/if}
 		</div>
 	</div>
-	{#if $verticalFileView}
+	{#if $treeFileView}
 		<Resizer orientation="col" bind:after={$rightPanelSize} minAfter={100} maxAfter={400} />
 		<FileList orientation="vertical" recursive={true} style="width: {$rightPanelSize}px" />
 	{/if}

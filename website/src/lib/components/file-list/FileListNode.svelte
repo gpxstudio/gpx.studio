@@ -39,19 +39,19 @@
 		node instanceof GPXFile && item instanceof ListFileItem
 			? node.metadata.name
 			: node instanceof Track
-				? node.name ?? `${$_('gpx.track')} ${(item as ListTrackItem).trackIndex + 1}`
+				? (node.name ?? `${$_('gpx.track')} ${(item as ListTrackItem).trackIndex + 1}`)
 				: node instanceof TrackSegment
 					? `${$_('gpx.segment')} ${(item as ListTrackSegmentItem).segmentIndex + 1}`
 					: node instanceof Waypoint
-						? node.name ?? `${$_('gpx.waypoint')} ${(item as ListWaypointItem).waypointIndex + 1}`
+						? (node.name ?? `${$_('gpx.waypoint')} ${(item as ListWaypointItem).waypointIndex + 1}`)
 						: node instanceof GPXFile && item instanceof ListWaypointsItem
 							? $_('gpx.waypoints')
 							: '';
 
-	const { verticalFileView } = settings;
+	const { treeFileView } = settings;
 
 	function openIfSelectedChild() {
-		if (collapsible && get(verticalFileView) && $selection.hasAnyChildren(item, false)) {
+		if (collapsible && get(treeFileView) && $selection.hasAnyChildren(item, false)) {
 			collapsible.openNode();
 		}
 	}

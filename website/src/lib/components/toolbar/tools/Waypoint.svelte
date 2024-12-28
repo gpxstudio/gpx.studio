@@ -34,11 +34,11 @@
 		label: ''
 	};
 
-	const { verticalFileView } = settings;
+	const { treeFileView } = settings;
 
 	$: canCreate = $selection.size > 0;
 
-	$: if ($verticalFileView && $selection) {
+	$: if ($treeFileView && $selection) {
 		selectedWaypoint.update(() => {
 			if ($selection.size === 1) {
 				let item = $selection.getSelected()[0];

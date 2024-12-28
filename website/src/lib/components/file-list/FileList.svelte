@@ -17,9 +17,9 @@
 	setContext('orientation', orientation);
 	setContext('recursive', recursive);
 
-	const { verticalFileView } = settings;
+	const { treeFileView } = settings;
 
-	verticalFileView.subscribe(($vertical) => {
+	treeFileView.subscribe(($vertical) => {
 		if ($vertical) {
 			selection.update(($selection) => {
 				$selection.forEach((item) => {

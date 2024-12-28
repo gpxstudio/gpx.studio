@@ -85,7 +85,7 @@ export const settings = {
     elevationProfile: dexieSettingStore('elevationProfile', true),
     additionalDatasets: dexieSettingStore<string[]>('additionalDatasets', []),
     elevationFill: dexieSettingStore<'slope' | 'surface' | undefined>('elevationFill', undefined),
-    verticalFileView: dexieSettingStore<boolean>('fileView', false),
+    treeFileView: dexieSettingStore<boolean>('fileView', false),
     minimizeRoutingMenu: dexieSettingStore('minimizeRoutingMenu', false),
     routing: dexieSettingStore('routing', true),
     routingProfile: dexieSettingStore('routingProfile', 'bike'),

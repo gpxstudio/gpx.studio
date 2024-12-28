@@ -89,7 +89,7 @@ function getMarkerForSymbol(symbol: string | undefined, layerColor: string) {
     </svg>`;
 }
 
-const { directionMarkers, verticalFileView, defaultOpacity, defaultWeight } = settings;
+const { directionMarkers, treeFileView, defaultOpacity, defaultWeight } = settings;
 
 export class GPXLayer {
     map: mapboxgl.Map;
@@ -271,7 +271,7 @@ export class GPXLayer {
                             return;
                         }
 
-                        if (get(verticalFileView)) {
+                        if (get(treeFileView)) {
                             if ((e.ctrlKey || e.metaKey) && get(selection).hasAnyChildren(new ListWaypointsItem(this.fileId), false)) {
                                 addSelectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
                             } else {
@@ -415,7 +415,7 @@ export class GPXLayer {
         }
 
         let item = undefined;
-        if (get(verticalFileView) && file.getSegments().length > 1) { // Select inner item
+        if (get(treeFileView) && file.getSegments().length > 1) { // Select inner item
             item = file.children[trackIndex].children.length > 1 ? new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex) : new ListTrackItem(this.fileId, trackIndex);
         } else {
             item = new ListFileItem(this.fileId);

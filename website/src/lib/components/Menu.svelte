@@ -22,7 +22,7 @@
 		Sun,
 		Moon,
 		Layers,
-		GalleryVertical,
+		ListTree,
 		Languages,
 		Settings,
 		Info,
@@ -83,7 +83,7 @@
 		velocityUnits,
 		temperatureUnits,
 		elevationProfile,
-		verticalFileView,
+		treeFileView,
 		currentBasemap,
 		previousBasemap,
 		currentOverlays,
@@ -243,7 +243,7 @@
 						{/if}
 						<Shortcut key="H" ctrl={true} />
 					</Menubar.Item>
-					{#if $verticalFileView}
+					{#if $treeFileView}
 						{#if $selection.getSelected().some((item) => item instanceof ListFileItem)}
 							<Menubar.Separator />
 							<Menubar.Item
@@ -284,7 +284,7 @@
 						{$_('menu.center')}
 						<Shortcut key="⏎" ctrl={true} />
 					</Menubar.Item>
-					{#if $verticalFileView}
+					{#if $treeFileView}
 						<Menubar.Separator />
 						<Menubar.Item on:click={copySelection} disabled={$selection.size === 0}>
 							<ClipboardCopy size="16" class="mr-1" />
@@ -327,9 +327,9 @@
 						{$_('menu.elevation_profile')}
 						<Shortcut key="P" ctrl={true} />
 					</Menubar.CheckboxItem>
-					<Menubar.CheckboxItem bind:checked={$verticalFileView}>
-						<GalleryVertical size="16" class="mr-1" />
-						{$_('menu.vertical_file_view')}
+					<Menubar.CheckboxItem bind:checked={$treeFileView}>
+						<ListTree size="16" class="mr-1" />
+						{$_('menu.tree_file_view')}
 						<Shortcut key="L" ctrl={true} />
 					</Menubar.CheckboxItem>
 					<Menubar.Separator />
@@ -567,7 +567,7 @@
 			$elevationProfile = !$elevationProfile;
 			e.preventDefault();
 		} else if (e.key === 'l' && (e.metaKey || e.ctrlKey)) {
-			$verticalFileView = !$verticalFileView;
+			$treeFileView = !$treeFileView;
 			e.preventDefault();
 		} else if (e.key === 'h' && (e.metaKey || e.ctrlKey)) {
 			if ($allHidden) {
