@@ -33,7 +33,7 @@
         "select_all": "全选",
         "view": "视图",
         "elevation_profile": "海拔",
-        "vertical_file_view": "垂直文件列表",
+        "tree_file_view": "File tree",
         "switch_basemap": "切换到上一个底图",
         "toggle_overlays": "切换覆盖",
         "toggle_3d": "切换3D",
