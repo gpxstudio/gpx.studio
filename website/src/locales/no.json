@@ -33,7 +33,7 @@
         "select_all": "Velg alle",
         "view": "Visning",
         "elevation_profile": "Høydeprofil",
-        "vertical_file_view": "Vertical file list",
+        "tree_file_view": "File tree",
         "switch_basemap": "Bytt til forrige basekart",
         "toggle_overlays": "Vis/skjul kartlag",
         "toggle_3d": "Skru av/på 3D",
