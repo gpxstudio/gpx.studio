@@ -33,7 +33,7 @@
         "select_all": "Seleccionar todo",
         "view": "Vista",
         "elevation_profile": "Perfil de altura",
-        "vertical_file_view": "Panel vertical de archivos",
+        "tree_file_view": "File tree",
         "switch_basemap": "Cambiar al mapa base anterior",
         "toggle_overlays": "Alternar capas",
         "toggle_3d": "Alternar 3D",

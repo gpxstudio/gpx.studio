@@ -33,7 +33,7 @@
         "select_all": "Вибрати все",
         "view": "Вигляд",
         "elevation_profile": "Профіль рельєфу",
-        "vertical_file_view": "Вертикальний список файлів",
+        "tree_file_view": "File tree",
         "switch_basemap": "Перехід до попередньої базової карти",
         "toggle_overlays": "Перемикання накладок",
         "toggle_3d": "Перемикнути 3D",

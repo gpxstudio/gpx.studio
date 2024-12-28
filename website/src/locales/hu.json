@@ -33,7 +33,7 @@
         "select_all": "Összes kijelölése",
         "view": "Nézet",
         "elevation_profile": "Magassági profil",
-        "vertical_file_view": "Függőleges fájl lista",
+        "tree_file_view": "File tree",
         "switch_basemap": "Váltás az előző alaptérképre",
         "toggle_overlays": "Átfedés váltása",
         "toggle_3d": "3D nézet bekapcsolása",

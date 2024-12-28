@@ -3,7 +3,7 @@ title: Nézet beállításai
 ---
 
 <script lang="ts">
-    import { ChartArea, GalleryVertical, Map, Layers2, Coins, Milestone, Box } from 'lucide-svelte';
+    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, Box } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -15,10 +15,11 @@ Ebben a menüben lehetőség nyílik a felület és a térképnézet átrendezé
 
 Rejtje el a magassági profilt, hogy helyet adjon a térképnek, vagy mutassa meg az aktuális kijelölés ellenőrzéséhez.
 
-### Függőleges fájl lista
+### <ListTree size="16" class="inline-block" style="margin-bottom: 2px" /> File tree
 
-Váltás a fájllista függőleges és vízszintes elrendezése között.
-A függőleges fájllista akkor hasznos, ha sok fájl van megnyitva, vagy ha több [sávot, szegmenst vagy érdekes pontot] tartalmaz (./gpx).
+Toggle the tree layout for the [file list](../files-and-stats).
+This layout is ideal for managing a large number of open files, as it organizes them into a vertical list on the right side of the map.
+In addition, the file tree view enables you to inspect the [tracks, segments, and points of interest](../gpx) contained inside the files through collapsible sections.
 
 ### Váltás az előző alaptérképre
 

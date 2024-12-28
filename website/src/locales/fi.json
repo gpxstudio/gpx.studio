@@ -33,7 +33,7 @@
         "select_all": "Valitse kaikki",
         "view": "Näkymä",
         "elevation_profile": "Korkeusprofiili",
-        "vertical_file_view": "Pystysuuntainen tiedostoluettelo",
+        "tree_file_view": "File tree",
         "switch_basemap": "Vaihda edelliseen taustakarttaan",
         "toggle_overlays": "Peiteaineistot päälle/pois",
         "toggle_3d": "3D päälle/pois",

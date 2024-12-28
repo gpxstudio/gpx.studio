@@ -33,7 +33,7 @@
         "select_all": "Vybrat vše",
         "view": "Zobrazit",
         "elevation_profile": "Profil převýšení",
-        "vertical_file_view": "Svislý seznam souborů",
+        "tree_file_view": "File tree",
         "switch_basemap": "Přepnout na předchozí mapový podklad",
         "toggle_overlays": "Přepnout překrytí",
         "toggle_3d": "Přepnout 3D",

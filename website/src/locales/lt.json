@@ -33,7 +33,7 @@
         "select_all": "Pasirinkti viską",
         "view": "Rodyti",
         "elevation_profile": "Aukščio profilis",
-        "vertical_file_view": "Failų sąrašas verikaliai",
+        "tree_file_view": "File tree",
         "switch_basemap": "Grįžti į ankstesnį bazinį žemėlapį",
         "toggle_overlays": "Kaitalioti sluoksnius",
         "toggle_3d": "Kaitalioti rodymą 3D",
