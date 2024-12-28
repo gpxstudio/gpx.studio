@@ -33,7 +33,7 @@
         "select_all": "Seleziona tutto",
         "view": "Visualizza",
         "elevation_profile": "Profilo altimetrico",
-        "vertical_file_view": "Elenco file verticale",
+        "tree_file_view": "File tree",
         "switch_basemap": "Passa alla mappa di base precedente",
         "toggle_overlays": "Attiva le sovrapposizioni",
         "toggle_3d": "Attiva/disattiva 3D",
