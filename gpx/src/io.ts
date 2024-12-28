@@ -34,7 +34,8 @@ export function parseGPX(gpxData: string): GPXFile {
                     return new Date(tagValue);
                 }
 
-                if (tagName === 'gpxtpx:atemp' || tagName === 'gpxtpx:hr' || tagName === 'gpxtpx:cad' || tagName === 'gpxpx:PowerInWatts' || tagName === 'opacity' || tagName === 'weight') {
+                if (tagName === 'gpxtpx:atemp' || tagName === 'gpxtpx:hr' || tagName === 'gpxtpx:cad' || tagName === 'gpxpx:PowerInWatts' ||
+                    tagName === 'gpx_style:opacity' || tagName === 'gpx_style:weight') {
                     return parseFloat(tagValue);
                 }
 

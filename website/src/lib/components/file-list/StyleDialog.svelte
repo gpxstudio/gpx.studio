@@ -60,14 +60,14 @@
 					let track = file.trk[item.getTrackIndex()];
 					let style = track.getStyle();
 					if (style) {
-						if (style.color && !colors.includes(style.color)) {
-							colors.push(style.color);
+						if (style['gpx_style:color'] && !colors.includes(style['gpx_style:color'])) {
+							colors.push(style['gpx_style:color']);
 						}
-						if (style.opacity && !opacity.includes(style.opacity)) {
-							opacity.push(style.opacity);
+						if (style['gpx_style:opacity'] && !opacity.includes(style['gpx_style:opacity'])) {
+							opacity.push(style['gpx_style:opacity']);
 						}
-						if (style.weight && !weight.includes(style.weight)) {
-							weight.push(style.weight);
+						if (style['gpx_style:weight'] && !weight.includes(style['gpx_style:weight'])) {
+							weight.push(style['gpx_style:weight']);
 						}
 					}
 					if (!colors.includes(layer.layerColor)) {
@@ -138,22 +138,22 @@
 			on:click={() => {
 				let style = {};
 				if (colorChanged) {
-					style.color = color;
+					style['gpx_style:color'] = color;
 				}
 				if (opacityChanged) {
-					style.opacity = opacity[0];
+					style['gpx_style:opacity'] = opacity[0];
 				}
 				if (weightChanged) {
-					style.weight = weight[0];
+					style['gpx_style:weight'] = weight[0];
 				}
 				dbUtils.setStyleToSelection(style);
 
 				if (item instanceof ListFileItem && $selection.size === gpxLayers.size) {
-					if (style.opacity) {
-						$defaultOpacity = style.opacity;
+					if (style['gpx_style:opacity']) {
+						$defaultOpacity = style['gpx_style:opacity'];
 					}
-					if (style.weight) {
-						$defaultWeight = style.weight;
+					if (style['gpx_style:weight']) {
+						$defaultWeight = style['gpx_style:weight'];
 					}
 				}
 

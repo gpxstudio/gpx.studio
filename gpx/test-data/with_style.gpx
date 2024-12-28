@@ -16,9 +16,9 @@
         <type>Cycling</type>
         <extensions>
             <gpx_style:line>
-                <color>#2d3ee9</color>
-                <opacity>0.5</opacity>
-                <weight>6</weight>
+                <gpx_style:color>2d3ee9</gpx_style:color>
+                <gpx_style:opacity>0.5</gpx_style:opacity>
+                <gpx_style:weight>6</gpx_style:weight>
             </gpx_style:line>
         </extensions>
         <trkseg>

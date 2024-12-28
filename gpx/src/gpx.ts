@@ -138,13 +138,13 @@ export class GPXFile extends GPXTreeNode<Track> {
                 let style = this.getStyle();
                 let fileStyle = {};
                 if (style.color.length === 1) {
-                    fileStyle['color'] = style.color[0];
+                    fileStyle['gpx_style:color'] = style.color[0];
                 }
                 if (style.weight.length === 1) {
-                    fileStyle['weight'] = style.weight[0];
+                    fileStyle['gpx_style:weight'] = style.weight[0];
                 }
                 if (style.opacity.length === 1) {
-                    fileStyle['opacity'] = style.opacity[0];
+                    fileStyle['gpx_style:opacity'] = style.opacity[0];
                 }
                 if (Object.keys(fileStyle).length > 0) {
                     this.setStyle(fileStyle);
@@ -188,14 +188,14 @@ export class GPXFile extends GPXTreeNode<Track> {
     getStyle(): MergedLineStyles {
         return this.trk.map((track) => track.getStyle()).reduce((acc, style) => {
             if (style) {
-                if (style.color && !acc.color.includes(style.color)) {
-                    acc.color.push(style.color);
+                if (style["gpx_style:color"] && !acc.color.includes(style["gpx_style:color"])) {
+                    acc.color.push(style["gpx_style:color"]);
                 }
-                if (style.opacity && !acc.opacity.includes(style.opacity)) {
-                    acc.opacity.push(style.opacity);
+                if (style["gpx_style:opacity"] && !acc.opacity.includes(style["gpx_style:opacity"])) {
+                    acc.opacity.push(style["gpx_style:opacity"]);
                 }
-                if (style.weight && !acc.weight.includes(style.weight)) {
-                    acc.weight.push(style.weight);
+                if (style["gpx_style:weight"] && !acc.weight.includes(style["gpx_style:weight"])) {
+                    acc.weight.push(style["gpx_style:weight"]);
                 }
             }
             return acc;
@@ -399,14 +399,14 @@ export class GPXFile extends GPXTreeNode<Track> {
         if (!this._data.style) {
             this._data.style = {};
         }
-        if (style.color) {
-            this._data.style.color = style.color.replace('#', '');
+        if (style["gpx_style:color"]) {
+            this._data.style.color = style["gpx_style:color"].replace('#', '');
         }
-        if (style.opacity) {
-            this._data.style.opacity = style.opacity;
+        if (style["gpx_style:opacity"]) {
+            this._data.style.opacity = style["gpx_style:opacity"];
         }
-        if (style.weight) {
-            this._data.style.weight = style.weight;
+        if (style["gpx_style:weight"]) {
+            this._data.style.weight = style["gpx_style:weight"];
         }
     }
 
@@ -506,10 +506,10 @@ export class Track extends GPXTreeNode<TrackSegment> {
 
     getStyle(): LineStyleExtension | undefined {
         if (this.extensions && this.extensions['gpx_style:line']) {
-            if (this.extensions["gpx_style:line"].color) {
+            if (this.extensions["gpx_style:line"]["gpx_style:color"]) {
                 return {
                     ...this.extensions["gpx_style:line"],
-                    color: `#${this.extensions["gpx_style:line"].color}`
+                    ["gpx_style:color"]: `#${this.extensions["gpx_style:line"]["gpx_style:color"]}`
                 }
             }
             return this.extensions['gpx_style:line'];
@@ -521,14 +521,14 @@ export class Track extends GPXTreeNode<TrackSegment> {
         return this.children.map((child) => {
             let geoJSON = child.toGeoJSON();
             if (this.extensions && this.extensions['gpx_style:line']) {
-                if (this.extensions['gpx_style:line'].color) {
-                    geoJSON.properties['color'] = `#${this.extensions['gpx_style:line'].color}`;
+                if (this.extensions['gpx_style:line']["gpx_style:color"]) {
+                    geoJSON.properties['color'] = `#${this.extensions['gpx_style:line']["gpx_style:color"]}`;
                 }
-                if (this.extensions['gpx_style:line'].opacity) {
-                    geoJSON.properties['opacity'] = this.extensions['gpx_style:line'].opacity;
+                if (this.extensions['gpx_style:line']["gpx_style:opacity"]) {
+                    geoJSON.properties['opacity'] = this.extensions['gpx_style:line']["gpx_style:opacity"];
                 }
-                if (this.extensions['gpx_style:line'].weight) {
-                    geoJSON.properties['weight'] = this.extensions['gpx_style:line'].weight;
+                if (this.extensions['gpx_style:line']["gpx_style:weight"]) {
+                    geoJSON.properties['weight'] = this.extensions['gpx_style:line']["gpx_style:weight"];
                 }
             }
             return geoJSON;
@@ -641,14 +641,14 @@ export class Track extends GPXTreeNode<TrackSegment> {
         if (!this.extensions['gpx_style:line']) {
             this.extensions['gpx_style:line'] = {};
         }
-        if (style.color !== undefined && (force || this.extensions['gpx_style:line'].color === undefined)) {
-            this.extensions['gpx_style:line'].color = style.color.replace('#', '');
+        if (style["gpx_style:color"] !== undefined && (force || this.extensions['gpx_style:line']["gpx_style:color"] === undefined)) {
+            this.extensions['gpx_style:line']["gpx_style:color"] = style["gpx_style:color"].replace('#', '');
         }
-        if (style.opacity !== undefined && (force || this.extensions['gpx_style:line'].opacity === undefined)) {
-            this.extensions['gpx_style:line'].opacity = style.opacity;
+        if (style["gpx_style:opacity"] !== undefined && (force || this.extensions['gpx_style:line']["gpx_style:opacity"] === undefined)) {
+            this.extensions['gpx_style:line']["gpx_style:opacity"] = style["gpx_style:opacity"];
         }
-        if (style.weight !== undefined && (force || this.extensions['gpx_style:line'].weight === undefined)) {
-            this.extensions['gpx_style:line'].weight = style.weight;
+        if (style["gpx_style:weight"] !== undefined && (force || this.extensions['gpx_style:line']["gpx_style:weight"] === undefined)) {
+            this.extensions['gpx_style:line']["gpx_style:weight"] = style["gpx_style:weight"];
         }
     }
 
