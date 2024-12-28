@@ -33,7 +33,7 @@
         "select_all": "Sélectionner tout",
         "view": "Affichage",
         "elevation_profile": "Profil altimétrique",
-        "vertical_file_view": "Liste de fichiers verticale",
+        "tree_file_view": "File tree",
         "switch_basemap": "Basculer au fond de carte précédent",
         "toggle_overlays": "Afficher/cacher les surcouches",
         "toggle_3d": "Activer/désactiver la 3D",
