@@ -3,7 +3,7 @@ title: View options
 ---
 
 <script lang="ts">
-    import { ChartArea, GalleryVertical, Map, Layers2, Coins, Milestone, Box } from 'lucide-svelte';
+    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, Box } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -15,10 +15,11 @@ Aquest menú ofereix opcions per reorganitzar la interfície i la vista del mapa
 
 Amagar el perfil d'elevació per fer espai al mapa o mostra-lo per inspeccionar la selecció actual.
 
-### <GalleryVertical size="16" class="inline-block" style="margin-bottom: 2px" /> Vertical file list
+### <ListTree size="16" class="inline-block" style="margin-bottom: 2px" /> File tree
 
-Switch between a vertical and a horizontal layout for the file list.
-The [vertical file list](../files-and-stats) is useful when you have many files open, or files with multiple [tracks, segments, or points of interest](../gpx).
+Toggle the tree layout for the [file list](../files-and-stats).
+This layout is ideal for managing a large number of open files, as it organizes them into a vertical list on the right side of the map.
+In addition, the file tree view enables you to inspect the [tracks, segments, and points of interest](../gpx) contained inside the files through collapsible sections.
 
 ### <Map size="16" class="inline-block" style="margin-bottom: 2px" /> Switch to previous basemap
 
