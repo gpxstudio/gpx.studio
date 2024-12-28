@@ -33,7 +33,7 @@
         "select_all": "Markera allt",
         "view": "Visa",
         "elevation_profile": "Höjdprofil",
-        "vertical_file_view": "Vertikal fillista",
+        "tree_file_view": "File tree",
         "switch_basemap": "Växla till föregående baskarta",
         "toggle_overlays": "Växla överlagring",
         "toggle_3d": "Växla 3D",
