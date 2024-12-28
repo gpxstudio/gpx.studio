@@ -33,7 +33,7 @@
         "select_all": "전체 선택",
         "view": "보기",
         "elevation_profile": "고도 정보",
-        "vertical_file_view": "수직 파일 목록",
+        "tree_file_view": "File tree",
         "switch_basemap": "이전 배경 지도로 전환",
         "toggle_overlays": "오버레이 전환",
         "toggle_3d": "3D 전환",
