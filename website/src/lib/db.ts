@@ -593,7 +593,11 @@ export const dbUtils = {
                 if (file && originalFile) {
                     if (level === ListLevel.FILE) {
                         toMerge.trk.push(...originalFile.trk.map((track) => track.clone()));
-                        toMerge.wpt.push(...originalFile.wpt.map((wpt) => wpt.clone()));
+                        for (const wpt of originalFile.wpt) {
+                            if (!toMerge.wpt.some((w) => w.equals(wpt))) {
+                                toMerge.wpt.push(wpt.clone());
+                            }
+                        }
                         if (first) {
                             target = items[0];
                             targetFile = file;

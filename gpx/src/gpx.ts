@@ -1235,6 +1235,23 @@ export class Waypoint {
         });
     }
 
+    equals(other: Waypoint): boolean {
+        if (this.attributes.lat !== other.attributes.lat || this.attributes.lon !== other.attributes.lon || this.ele !== other.ele ||
+            this.name !== other.name || this.cmt !== other.cmt || this.desc !== other.desc || this.sym !== other.sym || this.type !== other.type) {
+            return false;
+        }
+
+        if (this.time === undefined && other.time !== undefined || this.time !== undefined && other.time === undefined || this.time !== undefined && other.time !== undefined && this.time.getTime() !== other.time.getTime()) {
+            return false;
+        }
+
+        if (JSON.stringify(this.link) !== JSON.stringify(other.link)) {
+            return false;
+        }
+
+        return true;
+    }
+
     // Producers
     setHidden(hidden: boolean) {
         this._data.hidden = hidden;
