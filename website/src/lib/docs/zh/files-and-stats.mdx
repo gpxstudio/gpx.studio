@@ -44,39 +44,39 @@ title: 文件和统计
 在文件树视图中，支持通过可折叠部分检查文件中所包含的 [轨迹、路段和兴趣点](./gpx)。
 
 [编辑操作] (./menu/edit) 和 [工具](./toolbar) 亦可被用于内部文件项目。
-Furthermore, you can drag and drop the inner items to reorder them, or move them in the hierarchy or even to another file.
+此外，拖放内部项目可对其重新排序，或将它们移动到层次结构或另一个文件中。
 
 <DocsNote>
 
-The size of the file list can be adjusted by dragging the separator between the map and the file list.
+拖动地图和文件列表之间的分隔符可以调整后者大小。
 
 </DocsNote>
 
-## Elevation profile and statistics
+## 高程剖面和统计数据
 
-At the bottom of the interface, you can find the elevation profile and statistics for the current selection.
+已选择文件的高程剖面和统计数据位于界面底部。
 
 <DocsNote>
 
-The size of the elevation profile can be adjusted by dragging the separator between the map and the elevation profile.
+拖动地图和高程剖面图之间的分隔符可以调整后者大小。
 
 </DocsNote>
 
 ### 交互式统计
 
-When hovering over the elevation profile, a tooltip will show statistics at the cursor position.
+将鼠标悬停在高程剖面图上时，光标位置将显示相关统计数据。
 
-To get the statistics for a specific section of the elevation profile, you can drag a selection rectangle on the profile.
-Click on the profile to reset the selection.
+若想获取高程剖面图特定部分的统计数据，可在图上拖动形成一个矩形选区。
+点击剖面图将重置选择。
 
-You can also use the mouse wheel to zoom in and out on the elevation profile, and move left and right by dragging the profile while holding the <kbd>Shift</kbd> key.
+还可以使用鼠标滚轮对高程剖面图进行缩放， 或在按住 <kbd>Shift</kbd> 键的同时用鼠标拖动剖面图实现左右移动。
 
-### Additional data
+### 附加数据
 
-Using the <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> button at the bottom-right of the elevation profile, you can optionally color the elevation profile by:
+使用高程剖面图右下方的 <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> 按钮，您可以选择通过以下方式为高程剖面图着色：
 
-- **slope** information computed from the elevation data, or
-- **surface** or **category** data coming from <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> and <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> tags.
-  This is only available for files created with **gpx.studio**.
+- 根据海拔数据计算得到的 **坡度** 信息
+- 或来自 <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> 的 <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> 和 <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> 标签。
+  注意，该方法仅适用于通过 **gpx.studio** 创建的文件。
 
-If your selection includes it, you can also visualize: **speed**, **heart rate**, **cadence**, **temperature** and **power** data on the elevation profile.
+高程剖面图上亦可展示 **速度**、**心率**、**节奏**、**温度** 和 **功率** 等数据。
