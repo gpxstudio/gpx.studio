@@ -63,6 +63,7 @@
         "dexie": "^4.0.8",
         "gpx": "file:../gpx",
         "immer": "^10.1.1",
+        "jszip": "^3.10.1",
         "lucide-static": "^0.460.0",
         "lucide-svelte": "^0.460.1",
         "mapbox-gl": "^3.9.1",

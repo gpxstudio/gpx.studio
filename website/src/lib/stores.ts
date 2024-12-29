@@ -23,6 +23,7 @@ import {
 } from '$lib/components/file-list/FileList';
 import type { RoutingControls } from '$lib/components/toolbar/tools/routing/RoutingControls';
 import { SplitType } from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
+import JSZip from 'jszip';
 
 const { fileOrder } = settings;
 
@@ -406,26 +407,52 @@ export function updateSelectionFromKey(down: boolean, shift: boolean) {
     }
 }
 
-async function exportFiles(fileIds: string[], exclude: string[]) {
-    for (let fileId of fileIds) {
-        let file = getFile(fileId);
+async function exportFilesAsZip(fileIds: string[], exclude: string[]) {
+    const zip = new JSZip();
+    for (const fileId of fileIds) {
+        const file = getFile(fileId);
         if (file) {
-            exportFile(file, exclude);
-            await new Promise((resolve) => setTimeout(resolve, 200));
+            const gpx = buildGPX(file, exclude);
+            zip.file(file.metadata.name + '.gpx', gpx);
+        }
+    }
+    if (Object.keys(zip.files).length > 0) {
+        const content = await zip.generateAsync({ type: 'blob' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(content);
+        link.download = 'gpx-export.zip';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    }
+}
+
+async function exportFiles(fileIds: string[], exclude: string[]) {
+    if (fileIds.length > 1) {
+        await exportFilesAsZip(fileIds, exclude)
+    } else {
+        const firstFileId = fileIds.at(0);
+        if (firstFileId != null) {
+            const file = getFile(firstFileId);
+            if (file) {
+                exportFile(file, exclude);
+            }
         }
     }
 }
 
-export function exportSelectedFiles(exclude: string[]) {
-    let fileIds: string[] = [];
+export async function exportSelectedFiles(exclude: string[]) {
+    const fileIds: string[] = [];
     applyToOrderedSelectedItemsFromFile(async (fileId, level, items) => {
         fileIds.push(fileId);
     });
-    exportFiles(fileIds, exclude);
+    await exportFiles(fileIds, exclude);
 }
 
-export function exportAllFiles(exclude: string[]) {
-    exportFiles(get(fileOrder), exclude);
+export async function exportAllFiles(exclude: string[]) {
+    await exportFiles(get(fileOrder), exclude);
 }
 
 export function exportFile(file: GPXFile, exclude: string[]) {
