@@ -1,5 +1,5 @@
-export * from './gpx';
-export { Coordinates, LineStyleExtension, WaypointType } from './types';
-export { parseGPX, buildGPX } from './io';
-export * from './simplify';
+export * from './gpx.ts';
+export type { Coordinates, LineStyleExtension, WaypointType } from './types.ts';
+export { parseGPX, buildGPX } from './io.ts';
+export * from './simplify.ts';
 

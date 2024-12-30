@@ -1,5 +1,5 @@
-import { ramerDouglasPeucker } from "./simplify";
-import { Coordinates, GPXFileAttributes, GPXFileType, LineStyleExtension, Link, Metadata, RouteType, TrackExtensions, TrackPointExtensions, TrackPointType, TrackSegmentType, TrackType, WaypointType } from "./types";
+import { ramerDouglasPeucker } from "./simplify.ts";
+import type { Coordinates, GPXFileAttributes, GPXFileType, LineStyleExtension, Link, Metadata, RouteType, TrackExtensions, TrackPointExtensions, TrackPointType, TrackSegmentType, TrackType, WaypointType } from "./types.ts";
 import { immerable, isDraft, original, freeze } from "immer";
 
 function cloneJSON<T>(obj: T): T {
