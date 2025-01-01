@@ -453,11 +453,11 @@ export class GPXLayer {
             if (!feature.properties.color) {
                 feature.properties.color = this.layerColor;
             }
-            if (!feature.properties.width) {
-                feature.properties.width = get(defaultWidth);
-            }
             if (!feature.properties.opacity) {
                 feature.properties.opacity = get(defaultOpacity);
+            }
+            if (!feature.properties.width) {
+                feature.properties.width = get(defaultWidth);
             }
             if (get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)) || get(selection).hasAnyChildren(new ListWaypointsItem(this.fileId), true)) {
                 feature.properties.width = feature.properties.width + 2;

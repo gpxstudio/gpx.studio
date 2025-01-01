@@ -21,6 +21,19 @@ export function parseGPX(gpxData: string): GPXFile {
                 // Transform the simple <power> tag to the more complex <gpxpx:PowerExtension> tag, the nested <gpxpx:PowerInWatts> tag is then handled by the tagValueProcessor
                 return 'gpxpx:PowerExtension';
             }
+            // Add the gpx_style namespace to the line style tags
+            if (tagName === 'line') {
+                return 'gpx_style:line';
+            }
+            if (tagName === 'color') {
+                return 'gpx_style:color';
+            }
+            if (tagName === 'opacity') {
+                return 'gpx_style:opacity';
+            }
+            if (tagName === 'width') {
+                return 'gpx_style:width';
+            }
             return tagName;
         },
         parseTagValue: false,

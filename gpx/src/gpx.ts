@@ -140,11 +140,11 @@ export class GPXFile extends GPXTreeNode<Track> {
                 if (style.color.length === 1) {
                     fileStyle['gpx_style:color'] = style.color[0];
                 }
-                if (style.width.length === 1) {
-                    fileStyle['gpx_style:width'] = style.width[0];
-                }
                 if (style.opacity.length === 1) {
                     fileStyle['gpx_style:opacity'] = style.opacity[0];
+                }
+                if (style.width.length === 1) {
+                    fileStyle['gpx_style:width'] = style.width[0];
                 }
                 if (Object.keys(fileStyle).length > 0) {
                     this.setStyle(fileStyle);
@@ -517,6 +517,17 @@ export class Track extends GPXTreeNode<TrackSegment> {
         return undefined;
     }
 
+    getValidStyle(): LineStyleExtension | undefined {
+        if (this.extensions && this.extensions['gpx_style:line']) {
+            return {
+                "gpx_style:color": this.extensions['gpx_style:line']["gpx_style:color"],
+                "gpx_style:opacity": this.extensions['gpx_style:line']["gpx_style:opacity"],
+                "gpx_style:width": this.extensions['gpx_style:line']["gpx_style:width"]
+            };
+        }
+        return undefined;
+    }
+
     toGeoJSON(): GeoJSON.Feature[] {
         return this.children.map((child) => {
             let geoJSON = child.toGeoJSON();
@@ -543,7 +554,9 @@ export class Track extends GPXTreeNode<TrackSegment> {
             src: this.src,
             link: this.link,
             type: this.type,
-            extensions: this.extensions,
+            extensions: this.extensions && this.extensions['gpx_style:line'] ? {
+                'gpx_style:line': this.getValidStyle()
+            } : undefined,
             trkseg: this.trkseg.map((seg) => seg.toTrackSegmentType(exclude)),
         };
     }
