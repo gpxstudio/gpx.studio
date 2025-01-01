@@ -107,7 +107,7 @@ export const settings = {
     streetViewSource: dexieSettingStore('streetViewSource', 'mapillary'),
     fileOrder: dexieSettingStore<string[]>('fileOrder', []),
     defaultOpacity: dexieSettingStore('defaultOpacity', 0.7),
-    defaultWeight: dexieSettingStore('defaultWeight', (browser && window.innerWidth < 600) ? 8 : 5),
+    defaultWidth: dexieSettingStore('defaultWidth', (browser && window.innerWidth < 600) ? 8 : 5),
     bottomPanelSize: dexieSettingStore('bottomPanelSize', 170),
     rightPanelSize: dexieSettingStore('rightPanelSize', 240),
 };

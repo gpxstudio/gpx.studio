@@ -89,7 +89,7 @@ function getMarkerForSymbol(symbol: string | undefined, layerColor: string) {
     </svg>`;
 }
 
-const { directionMarkers, treeFileView, defaultOpacity, defaultWeight } = settings;
+const { directionMarkers, treeFileView, defaultOpacity, defaultWidth } = settings;
 
 export class GPXLayer {
     map: mapboxgl.Map;
@@ -176,7 +176,7 @@ export class GPXLayer {
                     },
                     paint: {
                         'line-color': ['get', 'color'],
-                        'line-width': ['get', 'weight'],
+                        'line-width': ['get', 'width'],
                         'line-opacity': ['get', 'opacity']
                     }
                 });
@@ -453,14 +453,14 @@ export class GPXLayer {
             if (!feature.properties.color) {
                 feature.properties.color = this.layerColor;
             }
-            if (!feature.properties.weight) {
-                feature.properties.weight = get(defaultWeight);
+            if (!feature.properties.width) {
+                feature.properties.width = get(defaultWidth);
             }
             if (!feature.properties.opacity) {
                 feature.properties.opacity = get(defaultOpacity);
             }
             if (get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)) || get(selection).hasAnyChildren(new ListWaypointsItem(this.fileId), true)) {
-                feature.properties.weight = feature.properties.weight + 2;
+                feature.properties.width = feature.properties.width + 2;
                 feature.properties.opacity = Math.min(1, feature.properties.opacity + 0.1);
             }
             feature.properties.trackIndex = trackIndex;

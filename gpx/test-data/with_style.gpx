@@ -18,7 +18,7 @@
             <gpx_style:line>
                 <gpx_style:color>2d3ee9</gpx_style:color>
                 <gpx_style:opacity>0.5</gpx_style:opacity>
-                <gpx_style:weight>6</gpx_style:weight>
+                <gpx_style:width>6</gpx_style:width>
             </gpx_style:line>
         </extensions>
         <trkseg>

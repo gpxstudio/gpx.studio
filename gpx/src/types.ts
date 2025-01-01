@@ -69,7 +69,7 @@ export type TrackExtensions = {
 export type LineStyleExtension = {
     'gpx_style:color'?: string;
     'gpx_style:opacity'?: number;
-    'gpx_style:weight'?: number;
+    'gpx_style:width'?: number;
 };
 
 export type TrackSegmentType = {
