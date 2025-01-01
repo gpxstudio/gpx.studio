@@ -1,5 +1,5 @@
 ---
-title: Files and statistics
+title: 文件和统计
 ---
 
 <script>
@@ -11,72 +11,72 @@ title: Files and statistics
 
 ## 文件列表
 
-Once you have [opened](./menu/file) files, they will be shown as tabs in the file list located at the bottom of the map.
-You can reorder them by dragging and dropping the tabs.
-And when many files are open, you can scroll through the list of tabs to navigate between them.
+所有被[打开](./menu/file) 文件将出现在地图底部的文件列表中，并显示为不同选项卡。
+拖拽选项卡可重新排序。
+当文件较多时，支持在选项卡列表中进行滚动。
 
 <DocsNote>
 
-When using a mouse, you need to hold <kbd>Shift</kbd> to scroll horizontally.
+使用鼠标时，需按住 <kbd>Shift</kbd> 以水平滚动。
 
 </DocsNote>
 
-### File selection
+### 文件选择
 
-By clicking on a tab, you can switch between the files to inspect their statistics, and apply [edit actions](./menu/edit) and [tools](./toolbar) to them.
-By holding the <kbd>Ctrl/Cmd</kbd> key, you can add files to the selection or remove them, and by holding <kbd>Shift</kbd>, you can select a range of files.
-Most of the [edit actions](./menu/edit) and [tools](./toolbar) can be applied to multiple files at once.
+点击选项卡，可在文件之间切换以检查其统计数据，或应用 [编辑操作] (./menu/edit) 和 [工具](./toolbar)。
+按住 <kbd>Ctrl/Cmd</kbd> 键，将文件添加到选区或删除。按住 <kbd>Shift</kbd> 以多选。
+大多数[编辑操作](./menu/edit) 和 [工具](./toolbar) 支持同时应用于多个文件。
 
 <DocsNote>
 
-You can also navigate through the files using the arrow keys on your keyboard, and use <kbd>Shift</kbd> to add files to the selection.
+还可以使用键盘上的箭头键浏览文件，并使用 <kbd>Shift</kbd> 将文件添加到选区中。
 
 </DocsNote>
 
-### Edit actions
+### 编辑
 
-By right-clicking on a file tab, you can access the same actions as in the [edit menu](./menu/edit).
+右键点击文件选项卡以访问与[编辑菜单](./menu/edit)中相同的操作。
 
-### Tree layout
+### 树形布局
 
-As mentioned in the [view options section](./menu/view), you can switch to a tree layout for the files list.
-This layout is ideal for managing a large number of open files, as it organizes them into a vertical list on the right side of the map.
-In addition, the file tree view enables you to inspect the [tracks, segments, and points of interest](./gpx) contained inside the files through collapsible sections.
+正如[视图选项章节](./menu/view)所述，文件列表可切换为树形布局。
+此布局非常适合管理大量已打开的文件，文件将被组织成一个纵向列表并显示在地图右侧。
+在文件树视图中，支持通过可折叠部分检查文件中所包含的 [轨迹、路段和兴趣点](./gpx)。
 
-You can also apply [edit actions](./menu/edit) and [tools](./toolbar) to internal file items.
-Furthermore, you can drag and drop the inner items to reorder them, or move them in the hierarchy or even to another file.
+[编辑操作] (./menu/edit) 和 [工具](./toolbar) 亦可被用于内部文件项目。
+此外，拖放内部项目可对其重新排序，或将它们移动到层次结构或另一个文件中。
 
 <DocsNote>
 
-The size of the file list can be adjusted by dragging the separator between the map and the file list.
+拖动地图和文件列表之间的分隔符可以调整后者大小。
 
 </DocsNote>
 
-## Elevation profile and statistics
+## 高程剖面和统计数据
 
-At the bottom of the interface, you can find the elevation profile and statistics for the current selection.
+已选择文件的高程剖面和统计数据位于界面底部。
 
 <DocsNote>
 
-The size of the elevation profile can be adjusted by dragging the separator between the map and the elevation profile.
+拖动地图和高程剖面图之间的分隔符可以调整后者大小。
 
 </DocsNote>
 
 ### 交互式统计
 
-When hovering over the elevation profile, a tooltip will show statistics at the cursor position.
+将鼠标悬停在高程剖面图上时，光标位置将显示相关统计数据。
 
-To get the statistics for a specific section of the elevation profile, you can drag a selection rectangle on the profile.
-Click on the profile to reset the selection.
+若想获取高程剖面图特定部分的统计数据，可在图上拖动形成一个矩形选区。
+点击剖面图将重置选择。
 
-You can also use the mouse wheel to zoom in and out on the elevation profile, and move left and right by dragging the profile while holding the <kbd>Shift</kbd> key.
+还可以使用鼠标滚轮对高程剖面图进行缩放， 或在按住 <kbd>Shift</kbd> 键的同时用鼠标拖动剖面图实现左右移动。
 
-### Additional data
+### 附加数据
 
-Using the <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> button at the bottom-right of the elevation profile, you can optionally color the elevation profile by:
+使用高程剖面图右下方的 <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> 按钮，您可以选择通过以下方式为高程剖面图着色：
 
-- **slope** information computed from the elevation data, or
-- **surface** or **category** data coming from <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> and <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> tags.
-  This is only available for files created with **gpx.studio**.
+- 根据海拔数据计算得到的 **坡度** 信息
+- 或来自 <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> 的 <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> 和 <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> 标签。
+  注意，该方法仅适用于通过 **gpx.studio** 创建的文件。
 
-If your selection includes it, you can also visualize: **speed**, **heart rate**, **cadence**, **temperature** and **power** data on the elevation profile.
+高程剖面图上亦可展示 **速度**、**心率**、**节奏**、**温度** 和 **功率** 等数据。

@@ -1,5 +1,5 @@
 ---
-title: Edit actions
+title: 编辑
 ---
 
 <script lang="ts">
@@ -9,88 +9,88 @@ title: Edit actions
 
 # { title }
 
-Unlike the file actions, the edit actions can potentially modify the content of the currently selected files.
-Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, and points of interest](../gpx).
-总之，我们将可通过以上操作进行修改的对象称为_文件项_。
-Note that except for the undo and redo actions, the edit actions are also accessible through the context menu (right-click) of the file items.
+与文件操作不同的是，编辑操作可能会修改当前所选文件的内容。
+此外，当启用文件列表的树状布局时（详见 [文件和统计](../files-and-stats)），它们也适用于[轨迹、路段和兴趣点](../gpx)。
+因此，我们将可以通过以上操作修改的元素称为 _文件项_。
+注意，除撤消和重做操作外，编辑操作也可通过文件项的上下文菜单（右键单击）来访问。
 
-### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Undo and redo
+### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> 撤销和重做
 
-Using these buttons, you can undo or redo the last actions you performed.
-This applies to all actions of the interface but not to view options, application settings, or map navigation.
+使用这些按钮，将会撤销或重做最后一次执行的操作。
+但仅适用于界面上的所有操作，不适用于视图选项、应用程序设置或地图导航。
 
-### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> Info...
+### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> 信息……
 
-您可在当前选定文件项的信息窗口中，查看并编辑项目名称和描述。
+打开当前选定文件项的信息窗口，查看或编辑其名称和描述信息。
 
-### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Appearance...
+### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> 外观……
 
-Open the appearance dialog, where you can change the color, opacity, and width of the selected file items on the map.
+在外观窗口中，可以调整地图上所选文件项的颜色、不透明度和宽度等属性。
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> 隐藏/取消隐藏
 
-Toggle the visibility of the selected file items on the map.
+切换所选文件项在地图上的可见性。
 
-### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New track
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> 新建轨迹
 
-Create a new track in the selected file.
-
-<DocsNote>
-
-This action is only available when the tree layout of the files list is enabled.
-Additionally, the selection must be a single file.
-
-</DocsNote>
-
-### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New segment
-
-Create a new segment in the selected track.
+在所选文件中创建一个新轨迹。
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
-Additionally, the selection must be a single track.
+此操作仅在启用文件列表树布局时可用。
+且所选内容必须是单个文件。
 
 </DocsNote>
 
-### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Select all
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> 新建路线
 
-Add all file items in the current hierarchy level to the selection.
+在所选轨迹中创建一个新路段。
 
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+<DocsNote>
 
-Center the map on the selected file items.
+此操作仅在启用文件列表树布局时可用。
+所选内容必须是单个轨迹。
+
+</DocsNote>
+
+### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> 全选
+
+将当前层次结构级别中的所有文件项添加到选择中。
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> 中心
+
+根据所选内容调整地图显示中心。
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> 复制
 
-Copy the selected file items to the clipboard.
+复制所选内容到剪贴板。
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
+此操作仅在启用文件列表树布局时可用。
 
 </DocsNote>
 
-### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Cut
+### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> 剪切
 
-Cut the selected file items to the clipboard.
+剪切所选内容到剪贴板。
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
+此操作仅在启用文件列表树布局时可用。
 
 </DocsNote>
 
-### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Paste
+### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> 粘贴
 
-Paste the file items from the clipboard to the current hierarchy level if they are compatible with it.
+若文件项与当前层次结构级别兼容，则进行粘贴操作。
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
+此操作仅在启用文件列表树布局时可用。
 
 </DocsNote>
 
-### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Delete
+### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> 删除
 
-Delete the selected file items.
+删除所选内容。
