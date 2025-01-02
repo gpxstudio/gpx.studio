@@ -121,7 +121,7 @@
                 "concrete": "混凝土",
                 "cobblestone": "鹅卵石",
                 "paving_stones": "铺路石",
-                "sett": "Sett",
+                "sett": "石板",
                 "metal": "金属",
                 "wood": "木材",
                 "compacted": "紧凑的砾石",
@@ -136,7 +136,7 @@
                 "sand": "沙粒",
                 "grass": "草地",
                 "grass_paver": "草坪",
-                "clay": "土地",
+                "clay": "黏土",
                 "stone": "Stone"
             },
             "highway": {
