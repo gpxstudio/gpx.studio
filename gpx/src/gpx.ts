@@ -185,18 +185,18 @@ export class GPXFile extends GPXTreeNode<Track> {
         });
     }
 
-    getStyle(): MergedLineStyles {
+    getStyle(defaultColor?: string): MergedLineStyles {
         return this.trk.map((track) => track.getStyle()).reduce((acc, style) => {
-            if (style) {
-                if (style["gpx_style:color"] && !acc.color.includes(style["gpx_style:color"])) {
-                    acc.color.push(style["gpx_style:color"]);
-                }
-                if (style["gpx_style:opacity"] && !acc.opacity.includes(style["gpx_style:opacity"])) {
-                    acc.opacity.push(style["gpx_style:opacity"]);
-                }
-                if (style["gpx_style:width"] && !acc.width.includes(style["gpx_style:width"])) {
-                    acc.width.push(style["gpx_style:width"]);
-                }
+            if (style && style["gpx_style:color"] && !acc.color.includes(style["gpx_style:color"])) {
+                acc.color.push(style["gpx_style:color"]);
+            } else if (defaultColor && !acc.color.includes(defaultColor)) {
+                acc.color.push(defaultColor);
+            }
+            if (style && style["gpx_style:opacity"] && !acc.opacity.includes(style["gpx_style:opacity"])) {
+                acc.opacity.push(style["gpx_style:opacity"]);
+            }
+            if (style && style["gpx_style:width"] && !acc.width.includes(style["gpx_style:width"])) {
+                acc.width.push(style["gpx_style:width"]);
             }
             return acc;
         }, {

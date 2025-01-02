@@ -69,13 +69,14 @@
 		nodeColors = [];
 
 		if (node instanceof GPXFile) {
-			let style = node.getStyle();
+			let defaultColor = undefined;
 
 			let layer = gpxLayers.get(item.getFileId());
 			if (layer) {
-				style.color.push(layer.layerColor);
+				defaultColor = layer.layerColor;
 			}
 
+			let style = node.getStyle(defaultColor);
 			style.color.forEach((c) => {
 				if (!nodeColors.includes(c)) {
 					nodeColors.push(c);
