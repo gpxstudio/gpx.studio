@@ -377,14 +377,6 @@
             "tram-stop": "Straßenbahnhaltestelle",
             "bus-stop": "Bushaltestelle",
             "ferry": "Fähre"
-        },
-        "color": {
-            "blue": "Blau",
-            "bluered": "Blau Rot",
-            "gray": "Grau",
-            "hot": "Heiß",
-            "purple": "Lila",
-            "orange": "Orange"
         }
     },
     "chart": {
