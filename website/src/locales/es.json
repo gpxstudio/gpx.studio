@@ -377,14 +377,6 @@
             "tram-stop": "Parada de tranvía",
             "bus-stop": "Parada de autobús",
             "ferry": "Ferri"
-        },
-        "color": {
-            "blue": "Azul",
-            "bluered": "Azul Rojo",
-            "gray": "Gris",
-            "hot": "Destacado",
-            "purple": "Morado",
-            "orange": "Naranja"
         }
     },
     "chart": {
