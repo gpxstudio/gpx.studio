@@ -377,14 +377,6 @@
             "tram-stop": "트램 정류장",
             "bus-stop": "버스 정류장",
             "ferry": "페리"
-        },
-        "color": {
-            "blue": "Blue",
-            "bluered": "Blue Red",
-            "gray": "Gray",
-            "hot": "Hot",
-            "purple": "Purple",
-            "orange": "Orange"
         }
     },
     "chart": {
