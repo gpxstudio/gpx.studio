@@ -377,14 +377,6 @@
             "tram-stop": "Arrêt de tram",
             "bus-stop": "Arrêt de bus",
             "ferry": "Ferry"
-        },
-        "color": {
-            "blue": "Bleu",
-            "bluered": "Bleu rouge",
-            "gray": "Gris",
-            "hot": "Vif",
-            "purple": "Violet",
-            "orange": "Orange"
         }
     },
     "chart": {
