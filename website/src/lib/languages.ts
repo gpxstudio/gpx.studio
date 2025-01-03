@@ -5,4 +5,5 @@ export const languages: Record<string, string> = {
     'fr': 'Français',
     'nl': 'Nederlands',
     'pt-BR': 'Português (Brasil)',
+    'zh': '简体中文',
 };
