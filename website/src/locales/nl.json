@@ -377,14 +377,6 @@
             "tram-stop": "Tramhalte",
             "bus-stop": "Bushalte",
             "ferry": "Veerboot"
-        },
-        "color": {
-            "blue": "Blauw",
-            "bluered": "Blauw-rood",
-            "gray": "Grijs",
-            "hot": "Populair",
-            "purple": "Paars",
-            "orange": "Oranje"
         }
     },
     "chart": {
