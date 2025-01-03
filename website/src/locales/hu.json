@@ -377,14 +377,6 @@
             "tram-stop": "Villamos megálló",
             "bus-stop": "Buszmegálló",
             "ferry": "Komp"
-        },
-        "color": {
-            "blue": "Kék",
-            "bluered": "Blue Red",
-            "gray": "Szürke",
-            "hot": "Legérdekesebb",
-            "purple": "Lila",
-            "orange": "Narancssárga"
         }
     },
     "chart": {

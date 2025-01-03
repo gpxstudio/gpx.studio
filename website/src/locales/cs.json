@@ -377,14 +377,6 @@
             "tram-stop": "Zastávka tramvaje",
             "bus-stop": "Autobusová zastávka",
             "ferry": "Trajekt"
-        },
-        "color": {
-            "blue": "Modrá",
-            "bluered": "Modrá Červená",
-            "gray": "Šedá",
-            "hot": "Horké",
-            "purple": "Fialová",
-            "orange": "Oranžová"
         }
     },
     "chart": {

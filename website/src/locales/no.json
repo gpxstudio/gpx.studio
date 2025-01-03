@@ -377,14 +377,6 @@
             "tram-stop": "Tram Stop",
             "bus-stop": "Bus Stop",
             "ferry": "Ferry"
-        },
-        "color": {
-            "blue": "Blå",
-            "bluered": "Blue Red",
-            "gray": "Grå",
-            "hot": "Hot",
-            "purple": "Lilla",
-            "orange": "Orange"
         }
     },
     "chart": {

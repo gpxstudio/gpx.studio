@@ -377,14 +377,6 @@
             "tram-stop": "Tramvajaus stotelė",
             "bus-stop": "Autobusų stotelė",
             "ferry": "Keltas"
-        },
-        "color": {
-            "blue": "Mėlyna",
-            "bluered": "Mėlyna raudona",
-            "gray": "Pilka",
-            "hot": "Karšta",
-            "purple": "Violetinė",
-            "orange": "Oranžinė"
         }
     },
     "chart": {

@@ -377,14 +377,6 @@
             "tram-stop": "Tramvajsko stajalište",
             "bus-stop": "Autobusko stajalište",
             "ferry": "Trajekt"
-        },
-        "color": {
-            "blue": "Plava",
-            "bluered": "Plava Crvena",
-            "gray": "Siva",
-            "hot": "Vruće",
-            "purple": "Ljubičasta",
-            "orange": "Narandžasta"
         }
     },
     "chart": {

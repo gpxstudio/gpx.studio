@@ -377,14 +377,6 @@
             "tram-stop": "Parada de tramvia",
             "bus-stop": "Parada d'autobús",
             "ferry": "Ferri"
-        },
-        "color": {
-            "blue": "Blau",
-            "bluered": "Blau vermell",
-            "gray": "Gris",
-            "hot": "Popular",
-            "purple": "Lila",
-            "orange": "Taronja"
         }
     },
     "chart": {

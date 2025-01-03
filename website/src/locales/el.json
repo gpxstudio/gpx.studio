@@ -377,14 +377,6 @@
             "tram-stop": "Tram Stop",
             "bus-stop": "Bus Stop",
             "ferry": "Ferry"
-        },
-        "color": {
-            "blue": "Μπλέ",
-            "bluered": "Blue Red",
-            "gray": "Γκρίζο",
-            "hot": "Ζεστό",
-            "purple": "Μωβ",
-            "orange": "Orange"
         }
     },
     "chart": {

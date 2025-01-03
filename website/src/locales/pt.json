@@ -377,14 +377,6 @@
             "tram-stop": "Parada de bonde",
             "bus-stop": "Parada de Ônibus",
             "ferry": "Balsa"
-        },
-        "color": {
-            "blue": "Azul",
-            "bluered": "Blue Red",
-            "gray": "Cinzento",
-            "hot": "Popular",
-            "purple": "Roxo",
-            "orange": "Orange"
         }
     },
     "chart": {
