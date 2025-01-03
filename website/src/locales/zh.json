@@ -396,8 +396,8 @@
         "surface": "表面",
         "highway": "类型",
         "time": "时间",
-        "moving": "运动",
-        "total": "全部",
+        "moving": "运动时间",
+        "total": "总时间",
         "osm_extensions": "OpenStreetMap 数据"
     },
     "units": {
