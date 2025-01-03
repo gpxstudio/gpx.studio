@@ -377,14 +377,6 @@
             "tram-stop": "Raitiovaunupysäkit",
             "bus-stop": "Linja-autopysäkit",
             "ferry": "Lautat"
-        },
-        "color": {
-            "blue": "Sininen",
-            "bluered": "Blue Red",
-            "gray": "Harmaa",
-            "hot": "Hot",
-            "purple": "Violetti",
-            "orange": "Oranssi"
         }
     },
     "chart": {
