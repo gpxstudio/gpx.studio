@@ -137,14 +137,14 @@
                 "grass": "草地",
                 "grass_paver": "草坪",
                 "clay": "黏土",
-                "stone": "Stone"
+                "stone": "石头"
             },
             "highway": {
-                "unknown": "Unknown",
-                "motorway": "Highway",
-                "motorway_link": "Highway link",
-                "trunk": "Primary road",
-                "trunk_link": "Primary road link",
+                "unknown": "未知的",
+                "motorway": "高速公路",
+                "motorway_link": "高速公路匝道",
+                "trunk": "国道/城市快速路",
+                "trunk_link": "国道/城市快速路的连接路段",
                 "primary": "Primary road",
                 "primary_link": "Primary road link",
                 "secondary": "Secondary road",
