@@ -110,7 +110,7 @@
                 "mountain_bike": "山地自行车",
                 "foot": "跑步/徒步",
                 "motorcycle": "摩托车",
-                "water": "水域",
+                "water": "水上活动",
                 "railway": "铁路"
             },
             "surface": {
@@ -485,7 +485,7 @@
         "supported_by": "技术支持：",
         "support_button": "在 Ko-fi 上支持 gpx.studio",
         "route_planning": "路线规划",
-        "route_planning_description": "An intuitive interface to create itineraries tailored to each sport, based on OpenStreetMap data.",
+        "route_planning_description": "基于 OpenStreetMap 数据，在直观的界面中为每项运动创建量身定制的行程。",
         "file_processing": "Advanced file processing",
         "file_processing_description": "A suite of tools for performing all common file processing tasks, and which can be applied to multiple files at once.",
         "maps": "全球和本地地图",
