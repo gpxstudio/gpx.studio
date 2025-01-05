@@ -276,7 +276,7 @@
             "max_zoom": "最大缩放等级",
             "layer_type": "图层类型",
             "basemap": "底图",
-            "overlay": "叠加",
+            "overlay": "叠加层",
             "create": "创建图层",
             "update": "更新图层"
         },
