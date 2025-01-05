@@ -196,8 +196,8 @@
             "tooltip": "裁剪或拆分",
             "crop": "裁剪",
             "split_as": "将轨迹拆分为",
-            "help_invalid_selection": "选择要裁剪或拆分的轨迹。",
-            "help": "使用滑块来裁剪轨迹，或点击轨迹上的分割标记以拆分。"
+            "help_invalid_selection": "须先选择要裁剪或拆分的轨迹。",
+            "help": "移动滑块以确认裁剪范围，或点击轨迹上的分割标记以拆分。"
         },
         "time": {
             "tooltip": "管理时间数据",
@@ -211,26 +211,26 @@
             "help_invalid_selection": "选择一个单一的轨迹来管理其时间数据。"
         },
         "merge": {
-            "merge_traces": "连接轨迹",
-            "merge_contents": "合并内容并保持轨迹断开",
+            "merge_traces": "合并为一条连续轨迹",
+            "merge_contents": "合并但保持轨迹独立",
             "merge_selection": "合并选择项",
             "remove_gaps": "删除轨迹间的时间间隔",
-            "tooltip": "合并项目",
-            "help_merge_traces": "连接所有选中的轨迹将创建一个单一的连续轨迹。",
-            "help_cannot_merge_traces": "必须先选择多个轨迹才能进行连接。",
-            "help_merge_contents": "合并所选内容会将所有内容归于第一个项目。",
-            "help_cannot_merge_contents": "必须先选择多个项目才能进行合并。",
-            "selection_tip": "提示：使用 {KEYBOARD_SHORTCUT} 以添加选中项。"
+            "tooltip": "合并",
+            "help_merge_traces": "连接所选内容并生成一个连续轨迹。",
+            "help_cannot_merge_traces": "须先选择多个文件以合并，",
+            "help_merge_contents": "合并所选内容并将结果存储于第一个文件。",
+            "help_cannot_merge_contents": "须先选择多个文件以合并，",
+            "selection_tip": "可使用 {KEYBOARD_SHORTCUT} 进行多选。"
         },
         "extract": {
-            "tooltip": "将内容拆分为多个项目",
+            "tooltip": "将内容提取为多个独立文件",
             "button": "提取",
-            "help": "提取所选项内容将为每个内容创建一个单独的项目。",
-            "help_invalid_selection": "必须先选择包含多个轨迹的项目才能进行提取。"
+            "help": "该操作将为每个轨迹创建一个单独的文件。",
+            "help_invalid_selection": "须先选择包含多个轨迹的文件以提取。"
         },
         "elevation": {
             "button": "请求海拔数据",
-            "help": "该操作将会删除现有的海拔数据。若请求成功，则使用 Mapbox 海拔数据进行替换。",
+            "help": "该操作将使用 Mapbox 海拔数据替换原有数据。",
             "help_no_selection": "选择要请求海拔数据的文件。"
         },
         "waypoint": {
@@ -241,7 +241,7 @@
             "latitude": "纬度",
             "create": "创建兴趣点",
             "add": "将兴趣点添加到文件",
-            "help": "填写表单以创建新的兴趣点，或点击现有兴趣点进行编辑。 点击地图并填充坐标点，或拖动兴趣点以移动坐标。",
+            "help": "通过表单创建新兴趣点，或点击现有兴趣点以编辑。 点击地图并填充坐标点，或拖动兴趣点以移动坐标。",
             "help_no_selection": "选择文件以创建或编辑兴趣点。"
         },
         "reduce": {
@@ -249,23 +249,23 @@
             "tolerance": "距离阈值",
             "number_of_points": "GPS 点数量",
             "button": "简化",
-            "help": "使用滑块选择要保留的 GPS 点的数量。",
+            "help": "移动滑块以选择要保留的 GPS 点数量。",
             "help_no_selection": "选择一个轨迹以减少其 GPS 点的数量。"
         },
         "clean": {
-            "tooltip": "使用矩形选区清除 GPS 点和兴趣点",
+            "tooltip": "使用矩形选区清除要素",
             "delete_trackpoints": "删除 GPS 点",
             "delete_waypoints": "删除兴趣点",
             "delete_inside": "清除选区内部要素",
             "delete_outside": "清除选区外部要素",
             "button": "删除",
-            "help": "在地图上绘制矩形选区以清除 GPS 点和兴趣点",
+            "help": "在地图上绘制矩形选区以清除",
             "help_no_selection": "选择一个轨迹以清除其 GPS 点和兴趣点"
         }
     },
     "layers": {
         "settings": "图层设置",
-        "settings_help": "选择要在界面中显示的地图图层，添加自定义图层，并作出必要调整。",
+        "settings_help": "选择要在界面中显示的地图图层，或添加自定义图层，并作出必要调整。",
         "selection": "图层选择",
         "custom_layers": {
             "title": "自定义图层",
