@@ -213,7 +213,7 @@
         "merge": {
             "merge_traces": "合并为一条连续轨迹",
             "merge_contents": "合并但保持轨迹独立",
-            "merge_selection": "合并选择项",
+            "merge_selection": "合并",
             "remove_gaps": "删除轨迹间的时间间隔",
             "tooltip": "合并",
             "help_merge_traces": "连接所选内容并生成一个连续轨迹。",
