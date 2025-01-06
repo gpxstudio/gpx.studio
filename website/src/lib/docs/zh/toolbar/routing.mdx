@@ -15,7 +15,7 @@ title: 路线规划与编辑
 
 ## 设置
 
-如下所示，工具对话框包含一些控制路线行为的设置。
+常见控制路线行为的设置可见下图，
 点击 <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button> 使窗口最小化以节省空间。
 
 <div class="flex flex-row justify-center">
@@ -24,9 +24,9 @@ title: 路线规划与编辑
 
 ### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> 路线
 
-启用路线时， 地图上添加或移动的轨迹点将通过 <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> 路网的计算结果连接。
-禁用则以直线连接轨迹点。
-也可通过按 <kbd>F5</kbd> 切换设置。
+启用路线时， 网站将根据 <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> 路网的计算结果来连接在地图上添加或移动的轨迹点，
+禁用则以直线连接。
+也可使用 <kbd>F5</kbd> 切换设置。
 
 ### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> 活动
 
@@ -38,30 +38,30 @@ title: 路线规划与编辑
 
 <DocsNote type="warning">
 
-仅当您了解该地区的当地情况并有权使用相关道路时才启用此选项。
+建议仅当您了解当地情况并有权使用相关道路时才启用此选项。
 
 </DocsNote>
 
 ## 绘制和编辑路线
 
-创建路线或扩展现有路线就像在地图上添加新轨迹点一样简单。
+创建新路线或扩展已有路线就像在地图上添加新轨迹点一样简单。
 
-还可以拖动现有轨迹点，将与之相连的前后两个轨迹点的路段重新规划。
+拖动现有轨迹点后，与之相连的前后两个轨迹点所构成的路段将被重新规划。
 
-此外，若要在现有轨迹点之间插入新点，可将鼠标悬停在连接它们的路段上，并将出现的轨迹点拖动到所需位置。
+若要在现有轨迹点之间插入新点，可将鼠标悬停在相关路段上，并将出现的新点拖动到所需位置。
 在可触摸设备上，支持点击路段以插入新轨迹点。
 
 <DocsNote>
 
-编辑导入的 GPX 文件时，系统将自动创建一组初始轨迹点。
+编辑导入的 GPX 文件时，网站将自动创建一组初始轨迹点。
 为了简化编辑过程，地图缩放的等级越大，轨迹点显示得就越多。
 这使得路线能够按不同的详细程度进行编辑。
 
 </DocsNote>
 
-最后，若要删除轨迹点，可先点击选中它们，并点击菜单中的 <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> 删除</button> 完成删除操作。
+最后，若要删除轨迹点，须先选中它们，然后点击菜单中的 <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> 删除</button> 按钮。
 
-<DocsImage src="tools/routing" alt="轨迹点让您可以轻松编辑路线。" />
+<DocsImage src="tools/routing" alt="轨迹点让路线编辑更轻松" />
 
 ## 其他工具
 
@@ -81,4 +81,4 @@ title: 路线规划与编辑
 
 ### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> 更改环线起点
 
-当路线的起点和终点非常接近时，您可以点击任意轨迹点并选择 <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> 设为起点 </button> 来更改路线起点。
+当路线的起点和终点非常接近时，支持点击任意轨迹点并选择 <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> 设为起点 </button> 来改变它。
