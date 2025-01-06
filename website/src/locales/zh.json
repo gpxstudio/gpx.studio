@@ -387,7 +387,7 @@
         "elevation": "海拔",
         "elevation_gain_loss": "累计爬升和下降",
         "temperature": "温度",
-        "speed": "速度",
+        "speed": "时速",
         "pace": "配速",
         "heartrate": "心率",
         "cadence": "踏频",
