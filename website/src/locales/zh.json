@@ -215,7 +215,7 @@
             "merge_contents": "合并但保持轨迹独立",
             "merge_selection": "合并",
             "remove_gaps": "删除轨迹间的时间间隔",
-            "tooltip": "合并",
+            "tooltip": "合并要素",
             "help_merge_traces": "连接所选内容并生成一个连续轨迹。",
             "help_cannot_merge_traces": "须先选择多个文件以合并，",
             "help_merge_contents": "合并所选内容并将结果存储于第一个文件。",
@@ -234,7 +234,7 @@
             "help_no_selection": "选择要请求海拔数据的文件。"
         },
         "waypoint": {
-            "tooltip": "创建并编辑兴趣点",
+            "tooltip": "创建或编辑兴趣点",
             "icon": "图标",
             "link": "链接",
             "longitude": "经度",
