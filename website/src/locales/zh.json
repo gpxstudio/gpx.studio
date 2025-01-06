@@ -223,14 +223,14 @@
             "selection_tip": "可使用 {KEYBOARD_SHORTCUT} 进行多选。"
         },
         "extract": {
-            "tooltip": "将内容提取为多个独立文件",
+            "tooltip": "提取为多个独立要素",
             "button": "提取",
             "help": "该操作将为每个轨迹创建一个单独的文件。",
             "help_invalid_selection": "须先选择包含多个轨迹的文件以提取。"
         },
         "elevation": {
-            "button": "请求海拔数据",
-            "help": "该操作将使用 Mapbox 海拔数据替换原有数据。",
+            "button": "请求数据",
+            "help": "请求成功后将使用 Mapbox 海拔数据替换原有数据。",
             "help_no_selection": "选择要请求海拔数据的文件。"
         },
         "waypoint": {
@@ -246,7 +246,7 @@
         },
         "reduce": {
             "tooltip": "精简 GPS 点数量",
-            "tolerance": "最小间距",
+            "tolerance": "最大间距",
             "number_of_points": "GPS 点数量",
             "button": "简化",
             "help": "移动滑块以调整要保留的 GPS 点数量。",
@@ -319,7 +319,7 @@
             "ordnanceSurvey": "Ordnance Survey（英国地形测量局）",
             "norwayTopo": "Topografisk Norgeskart 4",
             "swedenTopo": "Lantmäteriet Topo",
-            "swedenSatellite": "Lantmäteriet 卫星图",
+            "swedenSatellite": "Lantmäteriet Satellite",
             "finlandTopo": "Lantmäteriverket Topo",
             "bgMountains": "BGMountains",
             "usgs": "USGS",
