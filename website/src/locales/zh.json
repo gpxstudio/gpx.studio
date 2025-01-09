@@ -5,7 +5,7 @@
         "embed_title": "在线 GPX 文件编辑器",
         "help_title": "帮助",
         "404_title": "无法找到相关页面",
-        "description": "在线查看、编辑和创建 GPX 文件，\n包含高级路线规划、文件管理器、精美的地图和详细的数据可视化功能。"
+        "description": "在线查看、编辑和创建 GPX 文件，包含高级路线规划、文件管理器、精美的地图和详细的数据可视化功能。"
     },
     "menu": {
         "new": "新建",
@@ -215,7 +215,7 @@
             "merge_contents": "合并但保持轨迹独立",
             "merge_selection": "合并",
             "remove_gaps": "删除轨迹间的时间间隔",
-            "tooltip": "合并",
+            "tooltip": "合并要素",
             "help_merge_traces": "连接所选内容并生成一个连续轨迹。",
             "help_cannot_merge_traces": "须先选择多个文件以合并，",
             "help_merge_contents": "合并所选内容并将结果存储于第一个文件。",
@@ -223,18 +223,18 @@
             "selection_tip": "可使用 {KEYBOARD_SHORTCUT} 进行多选。"
         },
         "extract": {
-            "tooltip": "将内容提取为多个独立文件",
+            "tooltip": "提取为多个独立要素",
             "button": "提取",
             "help": "该操作将为每个轨迹创建一个单独的文件。",
             "help_invalid_selection": "须先选择包含多个轨迹的文件以提取。"
         },
         "elevation": {
-            "button": "请求海拔数据",
-            "help": "该操作将使用 Mapbox 海拔数据替换原有数据。",
+            "button": "请求数据",
+            "help": "请求成功后将使用 Mapbox 海拔数据替换原有数据。",
             "help_no_selection": "选择要请求海拔数据的文件。"
         },
         "waypoint": {
-            "tooltip": "创建并编辑兴趣点",
+            "tooltip": "创建或编辑兴趣点",
             "icon": "图标",
             "link": "链接",
             "longitude": "经度",
@@ -246,7 +246,7 @@
         },
         "reduce": {
             "tooltip": "精简 GPS 点数量",
-            "tolerance": "最小间距",
+            "tolerance": "最大间距",
             "number_of_points": "GPS 点数量",
             "button": "简化",
             "help": "移动滑块以调整要保留的 GPS 点数量。",
@@ -319,7 +319,7 @@
             "ordnanceSurvey": "Ordnance Survey（英国地形测量局）",
             "norwayTopo": "Topografisk Norgeskart 4",
             "swedenTopo": "Lantmäteriet Topo",
-            "swedenSatellite": "Lantmäteriet 卫星图",
+            "swedenSatellite": "Lantmäteriet Satellite",
             "finlandTopo": "Lantmäteriverket Topo",
             "bgMountains": "BGMountains",
             "usgs": "USGS",
@@ -387,7 +387,7 @@
         "elevation": "海拔",
         "elevation_gain_loss": "累计爬升和下降",
         "temperature": "温度",
-        "speed": "速度",
+        "speed": "时速",
         "pace": "配速",
         "heartrate": "心率",
         "cadence": "踏频",
@@ -433,7 +433,7 @@
             "bank": "银行",
             "beach": "海滩",
             "bike_trail": "自行车道",
-            "binoculars": "观景点",
+            "binoculars": "观察点",
             "bridge": "桥",
             "building": "建筑物",
             "campground": "营地",
