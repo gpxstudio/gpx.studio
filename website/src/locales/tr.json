@@ -66,20 +66,20 @@
         "drag": "Sürükle",
         "metadata": {
             "button": "Bilgi...",
-            "name": "Name",
-            "description": "Description",
-            "save": "Save"
+            "name": "Ad",
+            "description": "Açıklama",
+            "save": "Kaydet"
         },
         "style": {
             "button": "Görünüş...",
-            "color": "Color",
-            "opacity": "Opacity",
-            "width": "Width"
+            "color": "Renk",
+            "opacity": "Şeffaflık",
+            "width": "Genişlik"
         },
-        "hide": "Hide",
-        "unhide": "Unhide",
-        "center": "Center",
-        "open_in": "Open in"
+        "hide": "Gizle",
+        "unhide": "Göster",
+        "center": "Orta",
+        "open_in": "Uygulamada Aç"
     },
     "toolbar": {
         "routing": {
@@ -93,7 +93,7 @@
                 "tooltip": "Rotanın yönünü tersine çevir"
             },
             "route_back_to_start": {
-                "button": "Back to start",
+                "button": "Başlangıca geri dön",
                 "tooltip": "Connect the last point of the route with the starting point"
             },
             "round_trip": {
@@ -104,44 +104,44 @@
             "help_no_file": "Yönlendirme özelliğini kullanmak için bir iz seçin veya yeni bir güzergah oluşturmaya başlamak için haritaya tıklayın.",
             "help": "Yeni bir istasyon noktası eklemek için haritaya tıklayın veya mevcut olanları sürükleyerek güzergahı değiştirin.",
             "activities": {
-                "bike": "Bike",
+                "bike": "Bisiklet",
                 "racing_bike": "Road bike",
                 "gravel_bike": "Gravel bike",
                 "mountain_bike": "Mountain bike",
                 "foot": "Run/hike",
                 "motorcycle": "Motorcycle",
-                "water": "Water",
-                "railway": "Railway"
+                "water": "Su",
+                "railway": "Tren yolu"
             },
             "surface": {
                 "unknown": "Bilinmiyor",
                 "paved": "Paved",
                 "unpaved": "Unpaved",
-                "asphalt": "Asphalt",
+                "asphalt": "Asfalt",
                 "concrete": "Concrete",
                 "cobblestone": "Cobblestone",
                 "paving_stones": "Paving stones",
                 "sett": "Sett",
                 "metal": "Metal",
-                "wood": "Wood",
+                "wood": "Odun",
                 "compacted": "Compacted gravel",
                 "fine_gravel": "Fine gravel",
                 "gravel": "Çakıl",
                 "pebblestone": "Çakıl taşı",
-                "rock": "Rock",
+                "rock": "Kaya",
                 "dirt": "Dirt",
                 "ground": "Toprak zemin",
                 "earth": "Kara",
                 "mud": "Mud",
                 "sand": "Sand",
-                "grass": "Grass",
+                "grass": "Çimen",
                 "grass_paver": "Grass paver",
                 "clay": "Clay",
-                "stone": "Stone"
+                "stone": "Taş"
             },
             "highway": {
-                "unknown": "Unknown",
-                "motorway": "Highway",
+                "unknown": "Bilinmiyor",
+                "motorway": "Otoyol",
                 "motorway_link": "Highway link",
                 "trunk": "Primary road",
                 "trunk_link": "Primary road link",
