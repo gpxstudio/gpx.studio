@@ -214,7 +214,7 @@
             "merge_traces": "Соединить треки",
             "merge_contents": "Объедините содержимое и оставьте треки несоединенными",
             "merge_selection": "Объединить выбранное",
-            "remove_gaps": "Remove time gaps between traces",
+            "remove_gaps": "Удалить промежутки времени между треками",
             "tooltip": "Объединить элементы вместе",
             "help_merge_traces": "Соединение выбранных треков создаст единый непрерывный трек.",
             "help_cannot_merge_traces": "Ваша выборка должна содержать несколько треков для их подключения.",
@@ -498,7 +498,7 @@
     "docs": {
         "translate": "Improve the translation on Crowdin",
         "answer_not_found": "Did not find what you were looking for?",
-        "ask_on_reddit": "Ask the community on Reddit",
+        "ask_on_reddit": "Спросите сообщество на Reddit",
         "search": {
             "search": "Search",
             "clear": "Clear",
@@ -509,10 +509,10 @@
             "remove": "Remove this search from history",
             "favorites": "Favorites",
             "remove_favorite": "Remove this search from favorites",
-            "to_select": "to select",
+            "to_select": "выбрать",
             "to_navigate": "to navigate",
             "to_close": "to close",
-            "no_results": "No results for",
+            "no_results": "Нет результатов по запросу",
             "no_results_suggestion": "Try searching for"
         }
     },

@@ -10,7 +10,7 @@
     "menu": {
         "new": "Nieuw",
         "new_file": "Nieuw bestand",
-        "new_track": "Nieuwe track",
+        "new_track": "Nieuwe route",
         "new_segment": "Nieuw segment",
         "open": "Openen...",
         "duplicate": "Dupliceren",
@@ -33,7 +33,7 @@
         "select_all": "Alles selecteren",
         "view": "Weergave",
         "elevation_profile": "Hoogteprofiel",
-        "tree_file_view": "Bestand structuur",
+        "tree_file_view": "Bestandsboom",
         "switch_basemap": "Schakel over naar vorige basiskaart",
         "toggle_overlays": "Schermlagen in- of uitschakelen",
         "toggle_3d": "3D aan/uit",
@@ -97,7 +97,7 @@
                 "tooltip": "Verbind het laatste punt van de route met het startpunt"
             },
             "round_trip": {
-                "button": "Rondtrip",
+                "button": "Rondreis",
                 "tooltip": "Terug naar het startpunt via dezelfde route"
             },
             "start_loop_here": "Start lus hier",
@@ -106,7 +106,7 @@
             "activities": {
                 "bike": "Fiets",
                 "racing_bike": "Racefiets",
-                "gravel_bike": "Gravel fiets",
+                "gravel_bike": "Gravelfiets",
                 "mountain_bike": "Mountainbike",
                 "foot": "Hardlopen/wandelen",
                 "motorcycle": "Motorfiets",
@@ -155,7 +155,7 @@
                 "residential": "Bebouwde kom",
                 "living_street": "Woonstraat",
                 "service": "Ventweg",
-                "track": "Track",
+                "track": "Route",
                 "footway": "Voetpad",
                 "path": "Pad",
                 "pedestrian": "Voetganger",
@@ -164,7 +164,7 @@
                 "road": "Weg",
                 "bridleway": "Ruiterpad",
                 "platform": "Platform",
-                "raceway": "Race circuit",
+                "raceway": "Racecircuit",
                 "rest_area": "Pauzeplek",
                 "abandoned": "Verlaten",
                 "services": "Services",
@@ -217,7 +217,7 @@
             "remove_gaps": "Verwijder tijdsprongen tussen sporen",
             "tooltip": "Items samenvoegen",
             "help_merge_traces": "Het verbinden van de geselecteerde sporen creëert één continu spoor.",
-            "help_cannot_merge_traces": "Uw selectie moet meerdere sporen bevatten om ze te verbinden.",
+            "help_cannot_merge_traces": "Je selectie moet meerdere sporen bevatten om ze te verbinden.",
             "help_merge_contents": "Het samenvoegen van de inhoud van de geselecteerde items zal alle inhoud binnen het eerste item groeperen.",
             "help_cannot_merge_contents": "Je selectie moet meerdere items bevatten om hun inhoud samen te voegen.",
             "selection_tip": "Tip: gebruik {KEYBOARD_SHORTCUT} om items toe te voegen aan de selectie."
@@ -245,16 +245,16 @@
             "help_no_selection": "Selecteer een bestand om bezienswaardigheden te maken of te bewerken."
         },
         "reduce": {
-            "tooltip": "Verminder het aantal trackpunten",
+            "tooltip": "Verminder het aantal GPS-punten",
             "tolerance": "Tolerantie",
             "number_of_points": "Aantal gps-punten",
             "button": "Minimaliseren",
-            "help": "Gebruik de slider om het aantal te behouden trackpunten te kiezen.",
-            "help_no_selection": "Selecteer een spoor om het aantal trackpunten te verminderen."
+            "help": "Gebruik de schuifregelaar om het aantal te behouden GPS-punten te kiezen.",
+            "help_no_selection": "Selecteer een spoor om het aantal GPS-punten te verminderen."
         },
         "clean": {
             "tooltip": "Verwijder GPS-punten en aandachtspunten punten op met een selectie ( rechthoek )",
-            "delete_trackpoints": "Verwijder GPS punten",
+            "delete_trackpoints": "Verwijder GPS-punten",
             "delete_waypoints": "Verwijder aandachtspunten",
             "delete_inside": "Binnen selectie verwijderen",
             "delete_outside": "Verwijderen buiten selectie",
@@ -265,7 +265,7 @@
     },
     "layers": {
         "settings": "Kaartlagen instellingen",
-        "settings_help": "Selecteer de kaart lagen die u wilt laten zien op het scherm, voeg aangepaste lagen toe en pas hun instellingen aan.",
+        "settings_help": "Selecteer de kaart lagen die je wilt laten zien op het scherm, voeg aangepaste lagen toe en pas hun instellingen aan.",
         "selection": "Laagselectie",
         "custom_layers": {
             "title": "Eigen lagen",
@@ -280,7 +280,7 @@
             "create": "Maak Laag",
             "update": "Update laag"
         },
-        "opacity": "Overlay Transparantie",
+        "opacity": "Laag Transparantie",
         "label": {
             "basemaps": "Basis kaarten",
             "overlays": "Lagen",
@@ -364,7 +364,7 @@
             "hotel": "Hotel",
             "campsite": "Camping",
             "hut": "Hut",
-            "picnic": "Picknick plaats",
+            "picnic": "Picknickplaats",
             "summit": "Top",
             "pass": "Bergpas",
             "climbing": "Klimmen",
@@ -432,7 +432,7 @@
             "anchor": "Anker",
             "bank": "Bank",
             "beach": "Strand",
-            "bike_trail": "Fiets route",
+            "bike_trail": "Fietsroute",
             "binoculars": "Verrekijker",
             "bridge": "Brug",
             "building": "Gebouw",
@@ -448,14 +448,14 @@
             "lodging": "Accommodatie",
             "forest": "Bos",
             "gas_station": "Tankstation",
-            "ground_transportation": "Grond vervoer",
+            "ground_transportation": "Grondvervoer",
             "hotel": "Hotel",
             "house": "Huis",
             "information": "Informatie",
             "park": "Park",
             "parking_area": "Parkeren",
             "pharmacy": "Apotheek",
-            "picnic_area": "Picknick plaats",
+            "picnic_area": "Picknickplaats",
             "restaurant": "Restaurant",
             "restricted_area": "Afgesloten gebied",
             "restroom": "Toiletten",
@@ -489,7 +489,7 @@
         "file_processing": "Geavanceerde bestandsverwerking",
         "file_processing_description": "Een pakket hulpmiddelen voor het uitvoeren van alle gebruikelijke bestandsverwerking, toepasbaar op meerdere bestanden tegelijk.",
         "maps": "Globale en lokale kaarten",
-        "maps_description": "Een grote verzameling van basemaps, overlays en interessante punten om je te helpen je volgende outdoor avontuur te maken, of om je laatste prestatie te visualiseren.",
+        "maps_description": "Een grote verzameling van basiskaarten, lagen en interessante punten om je te helpen je volgende avontuur op te zetten, of om je laatste prestatie te visualiseren.",
         "data_visualization": "Data visualisatie",
         "data_visualization_description": "Een interactief hoogteprofiel met gedetailleerde statistieken om opgenomen activiteiten en toekomstige doelstellingen te analyseren.",
         "identity": "Vrij, advertentievrij en open source",
@@ -537,6 +537,6 @@
         "code": "Integratie code"
     },
     "webgl2_required": "WebGL 2 is vereist om de kaart weer te geven.",
-    "enable_webgl2": "Leer hoe u WebGL 2 instelt in uw browser",
+    "enable_webgl2": "Leer hoe je WebGL 2 instelt in uw browser",
     "page_not_found": "pagina niet gevonden"
 }
