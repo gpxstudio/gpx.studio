@@ -79,7 +79,8 @@
         "hide": "Slėpti",
         "unhide": "Rodyti",
         "center": "Center",
-        "open_in": "Atverti naudojant"
+        "open_in": "Atverti naudojant",
+        "copy_coordinates": "Copy coordinates"
     },
     "toolbar": {
         "routing": {
