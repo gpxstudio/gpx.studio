@@ -79,7 +79,8 @@
         "hide": "숨기기",
         "unhide": "표시",
         "center": "중앙",
-        "open_in": "Open in"
+        "open_in": "Open in",
+        "copy_coordinates": "Copy coordinates"
     },
     "toolbar": {
         "routing": {

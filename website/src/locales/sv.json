@@ -79,7 +79,8 @@
         "hide": "Dölj",
         "unhide": "Visa",
         "center": "Center",
-        "open_in": "Öppna i"
+        "open_in": "Öppna i",
+        "copy_coordinates": "Copy coordinates"
     },
     "toolbar": {
         "routing": {

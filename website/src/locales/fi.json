@@ -79,7 +79,8 @@
         "hide": "Piilota",
         "unhide": "Näytä",
         "center": "Keskitä",
-        "open_in": "Avaa"
+        "open_in": "Avaa",
+        "copy_coordinates": "Copy coordinates"
     },
     "toolbar": {
         "routing": {

@@ -79,7 +79,8 @@
         "hide": "Скрыть",
         "unhide": "Отобразить",
         "center": "По центру",
-        "open_in": "Открыть в"
+        "open_in": "Открыть в",
+        "copy_coordinates": "Copy coordinates"
     },
     "toolbar": {
         "routing": {

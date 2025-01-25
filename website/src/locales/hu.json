@@ -79,7 +79,8 @@
         "hide": "Elrejtés ",
         "unhide": "Felfedés ",
         "center": "Középre ",
-        "open_in": "Megnyitás itt "
+        "open_in": "Megnyitás itt ",
+        "copy_coordinates": "Copy coordinates"
     },
     "toolbar": {
         "routing": {

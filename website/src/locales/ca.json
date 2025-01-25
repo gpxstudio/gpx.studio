@@ -79,7 +79,8 @@
         "hide": "Amagar",
         "unhide": "Veure",
         "center": "Centrar",
-        "open_in": "Obrir amb"
+        "open_in": "Obrir amb",
+        "copy_coordinates": "Copy coordinates"
     },
     "toolbar": {
         "routing": {
