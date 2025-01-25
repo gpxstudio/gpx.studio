@@ -79,7 +79,8 @@
         "hide": "Gizle",
         "unhide": "Göster",
         "center": "Orta",
-        "open_in": "Uygulamada Aç"
+        "open_in": "Uygulamada Aç",
+        "copy_coordinates": "Copy coordinates"
     },
     "toolbar": {
         "routing": {
