@@ -79,7 +79,8 @@
         "hide": "Cacher",
         "unhide": "Afficher",
         "center": "Centrer",
-        "open_in": "Ouvrir dans"
+        "open_in": "Ouvrir dans",
+        "copy_coordinates": "Copy coordinates"
     },
     "toolbar": {
         "routing": {
