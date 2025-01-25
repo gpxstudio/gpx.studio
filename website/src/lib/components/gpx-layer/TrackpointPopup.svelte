@@ -2,9 +2,11 @@
 	import type { TrackPoint } from 'gpx';
 	import type { PopupItem } from '$lib/components/MapPopup';
 	import * as Card from '$lib/components/ui/card';
+	import { Button } from '$lib/components/ui/button';
 	import WithUnits from '$lib/components/WithUnits.svelte';
-	import { Compass, Mountain, Timer } from 'lucide-svelte';
+	import { Compass, Mountain, Timer, ClipboardCopy } from 'lucide-svelte';
 	import { df } from '$lib/utils';
+	import { _ } from 'svelte-i18n';
 
 	export let trackpoint: PopupItem<TrackPoint>;
 </script>
@@ -32,5 +34,18 @@
 				{df.format(trackpoint.item.time)}
 			</div>
 		{/if}
+		<Button
+			class="w-full px-2 py-1 h-6 justify-start mt-0.5"
+			variant="secondary"
+			on:click={() => {
+				navigator.clipboard.writeText(
+					`${trackpoint.item.getLatitude().toFixed(6)}, ${trackpoint.item.getLongitude().toFixed(6)}`
+				);
+				trackpoint.hide?.();
+			}}
+		>
+			<ClipboardCopy size="16" class="mr-1" />
+			{$_('menu.copy_coordinates')}
+		</Button>
 	</Card.Content>
 </Card.Root>

@@ -7,6 +7,7 @@ import MapPopupComponent from "./MapPopup.svelte";
 export type PopupItem<T = Waypoint | TrackPoint | any> = {
     item: T;
     fileId?: string;
+    hide?: () => void;
 };
 
 export class MapPopup {
@@ -30,6 +31,8 @@ export class MapPopup {
     }
 
     setItem(item: PopupItem | null) {
+        if (item)
+            item.hide = () => this.hide();
         this.item.set(item);
         if (item === null) {
             this.hide();
