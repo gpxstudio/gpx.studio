@@ -79,7 +79,8 @@
         "hide": "隐藏",
         "unhide": "显示",
         "center": "居中",
-        "open_in": "打开于"
+        "open_in": "打开于",
+        "copy_coordinates": "Copy coordinates"
     },
     "toolbar": {
         "routing": {
