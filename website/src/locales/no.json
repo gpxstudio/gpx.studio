@@ -79,7 +79,8 @@
         "hide": "Skjul",
         "unhide": "Vis",
         "center": "Center",
-        "open_in": "Åpne I"
+        "open_in": "Åpne I",
+        "copy_coordinates": "Copy coordinates"
     },
     "toolbar": {
         "routing": {
