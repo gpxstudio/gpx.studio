@@ -79,7 +79,8 @@
         "hide": "Sakrij",
         "unhide": "Prikaži",
         "center": "Centar",
-        "open_in": "Otvorite u"
+        "open_in": "Otvorite u",
+        "copy_coordinates": "Copy coordinates"
     },
     "toolbar": {
         "routing": {
