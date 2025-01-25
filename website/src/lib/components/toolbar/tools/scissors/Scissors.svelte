@@ -96,7 +96,7 @@
 		{ value: SplitType.SEGMENTS, label: $_('gpx.segments') }
 	];
 
-	let splitType = splitTypes[0];
+	let splitType = splitTypes.find((type) => type.value === $splitAs) ?? splitTypes[0];
 
 	$: splitAs.set(splitType.value);
 
