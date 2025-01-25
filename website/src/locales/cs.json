@@ -79,7 +79,8 @@
         "hide": "Skrýt",
         "unhide": "Zobrazit skryté",
         "center": "Vycentrovat",
-        "open_in": "Otevřít v"
+        "open_in": "Otevřít v",
+        "copy_coordinates": "Copy coordinates"
     },
     "toolbar": {
         "routing": {
