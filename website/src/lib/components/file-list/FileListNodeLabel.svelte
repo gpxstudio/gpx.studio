@@ -54,6 +54,7 @@
 	import MetadataDialog from './MetadataDialog.svelte';
 	import StyleDialog from './StyleDialog.svelte';
 	import { waypointPopup } from '$lib/components/gpx-layer/GPXLayerPopup';
+	import { getSymbolKey, symbols } from '$lib/assets/symbols';
 
 	export let node: GPXTreeElement<AnyGPXTreeElement> | Waypoint[] | Waypoint;
 	export let item: ListItem;
@@ -97,6 +98,8 @@
 			}
 		}
 	}
+
+	$: symbolKey = node instanceof Waypoint ? getSymbolKey(node.sym) : undefined;
 
 	let openEditMetadata: boolean = false;
 	let openEditStyle: boolean = false;
@@ -191,7 +194,11 @@
 				{#if item.level === ListLevel.SEGMENT}
 					<Waypoints size="16" class="mr-1 shrink-0" />
 				{:else if item.level === ListLevel.WAYPOINT}
-					<MapPin size="16" class="mr-1 shrink-0" />
+					{#if symbolKey && symbols[symbolKey].icon}
+						<svelte:component this={symbols[symbolKey].icon} size="16" class="mr-1 shrink-0" />
+					{:else}
+						<MapPin size="16" class="mr-1 shrink-0" />
+					{/if}
 				{/if}
 				<span class="grow select-none truncate {orientation === 'vertical' ? 'last:mr-2' : ''}">
 					{label}
