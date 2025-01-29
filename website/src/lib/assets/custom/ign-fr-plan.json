@@ -9,14 +9,16 @@
             "type": "vector",
             "tiles": [
                 "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/{z}/{x}/{y}.pbf"
-            ]
+            ],
+            "attribution": "IGN-F/Géoportail"
         },
         "terrain": {
             "type": "raster",
             "tiles": [
                 "https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TILEMATRIXSET=PM&TILEMATRIX={z}&TILECOL={x}&TILEROW={y}&LAYER=ELEVATION.ELEVATIONGRIDCOVERAGE.SHADOW&FORMAT=image/png&STYLE=estompage_grayscale"
             ],
-            "maxzoom": 15
+            "maxzoom": 15,
+            "attribution": "IGN-F/Géoportail"
         }
     },
     "transition": {

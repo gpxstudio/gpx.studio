@@ -9,7 +9,8 @@
             "type": "vector",
             "tiles": [
                 "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/{z}/{x}/{y}.pbf"
-            ]
+            ],
+            "attribution": "IGN-F/Géoportail"
         },
         "satellite": {
             "type": "raster",
@@ -17,7 +18,8 @@
                 "https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/jpeg&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}"
             ],
             "tileSize": 256,
-            "maxzoom": 19
+            "maxzoom": 19,
+            "attribution": "IGN-F/Géoportail"
         }
     },
     "transition": {
