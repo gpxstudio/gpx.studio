@@ -10,7 +10,7 @@ title: Edit actions
 # { title }
 
 A diferència de les accions de l'arxiu, les accions d'edició poden potencialment modificar el contingut dels arxius seleccionats actualment.
-A més a més, quan està habilitada la disposició de l'arbre de la llista d'arxius (veure [Arxius i estadístiques](../files-and-stats)), també es poden aplicar a [rutes, segments i punts d'interès](../gpx).
+A més a més, quan està habilitada la disposició de l'arbre de la llista d'arxius (veure [Arxius i estadístiques](../files-and-stats)), també es poden aplicar a [tracs, segments i punts d'interès](../gpx).
 Per tant, ens referirem als elements que poden ser modificats per aquestes accions com a _elements d'arxiu_.
 Tingui en compte que excepte per a les accions de desfer i refer, les accions d'edició també són accessibles a través del menú contextual (clic dret) dels elements de l'arxiu.
 
@@ -23,7 +23,7 @@ Això aplica a totes les accions de la interfície però no a les opcions de vis
 
 Obre el quadre de diàleg d'informació de l'element de l'arxiu seleccionat, on pots veure i editar el seu nom i descripció.
 
-### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Appearance...
+### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Aparença...
 
 Obre el diàleg d'aparença, on pots canviar el color, l'opacitat i l'amplada del mapa dels elements de l'arxiu seleccionat.
 
@@ -31,7 +31,7 @@ Obre el diàleg d'aparença, on pots canviar el color, l'opacitat i l'amplada de
 
 Alterna la visibilitat dels elements de l'arxiu seleccionat en el mapa.
 
-### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Nova ruta
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Nou trac
 
 Crear nova ruta en l'arxiu seleccionat.
 
@@ -49,21 +49,21 @@ Crear un nou segment en el trac seleccionat.
 <DocsNote>
 
 This action is only available when the tree layout of the files list is enabled.
-Additionally, the selection must be a single track.
+A més, la selecció ha de ser un trac únic.
 
 </DocsNote>
 
-### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Select all
+### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Selecciona tot
 
-Add all file items in the current hierarchy level to the selection.
+Afegeix a la selecció tots els elements de l'arxiu en el nivell de jerarquia actual.
 
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Centrar
 
-Center the map on the selected file items.
+Centrar el mapa en els elements de l'arxiu seleccionat.
 
-### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copy
+### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copia
 
-Copy the selected file items to the clipboard.
+Copia els elements de l'arxiu seleccionat en el porta-retalls.
 
 <DocsNote>
 
@@ -71,19 +71,9 @@ This action is only available when the tree layout of the files list is enabled.
 
 </DocsNote>
 
-### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Cut
+### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Tallar
 
-Cut the selected file items to the clipboard.
-
-<DocsNote>
-
-This action is only available when the tree layout of the files list is enabled.
-
-</DocsNote>
-
-### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Paste
-
-Paste the file items from the clipboard to the current hierarchy level if they are compatible with it.
+Talla els elements de l'arxiu seleccionat al porta-retalls.
 
 <DocsNote>
 
@@ -91,6 +81,16 @@ This action is only available when the tree layout of the files list is enabled.
 
 </DocsNote>
 
-### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Delete
+### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Enganxa
 
-Delete the selected file items.
+Enganxa els elements de l'arxiu del porta-retalls al nivell de jerarquia actual si són compatibles amb ell.
+
+<DocsNote>
+
+This action is only available when the tree layout of the files list is enabled.
+
+</DocsNote>
+
+### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Esborra
+
+Esborra els elements de l'arxiu seleccionat.
