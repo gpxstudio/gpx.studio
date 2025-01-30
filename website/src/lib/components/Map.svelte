@@ -22,6 +22,7 @@
 	mapboxgl.accessToken = accessToken;
 
 	let webgl2Supported = true;
+	let embeddedApp = false;
 	let fitBoundsOptions: mapboxgl.FitBoundsOptions = {
 		maxZoom: 15,
 		linear: true,
@@ -38,6 +39,10 @@
 		let gl = document.createElement('canvas').getContext('webgl2');
 		if (!gl) {
 			webgl2Supported = false;
+			return;
+		}
+		if (window.top !== window.self && !$page.route.id?.includes('embed')) {
+			embeddedApp = true;
 			return;
 		}
 
@@ -208,14 +213,23 @@
 </script>
 
 <div {...$$restProps}>
-	<div id="map" class="h-full {webgl2Supported ? '' : 'hidden'}"></div>
+	<div id="map" class="h-full {webgl2Supported && !embeddedApp ? '' : 'hidden'}"></div>
 	<div
-		class="flex flex-col items-center justify-center gap-3 h-full {webgl2Supported ? 'hidden' : ''}"
+		class="flex flex-col items-center justify-center gap-3 h-full {webgl2Supported && !embeddedApp
+			? 'hidden'
+			: ''} {embeddedApp ? 'z-30' : ''}"
 	>
-		<p>{$_('webgl2_required')}</p>
-		<Button href="https://get.webgl.org/webgl2/" target="_blank">
-			{$_('enable_webgl2')}
-		</Button>
+		{#if !webgl2Supported}
+			<p>{$_('webgl2_required')}</p>
+			<Button href="https://get.webgl.org/webgl2/" target="_blank">
+				{$_('enable_webgl2')}
+			</Button>
+		{:else if embeddedApp}
+			<p>The app cannot be embedded in an iframe.</p>
+			<Button href="https://gpx.studio/help/integration" target="_blank">
+				Learn how to create a map for your website
+			</Button>
+		{/if}
 	</div>
 </div>
 
