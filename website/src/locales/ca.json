@@ -10,7 +10,7 @@
     "menu": {
         "new": "Nou",
         "new_file": "Nou fitxer",
-        "new_track": "Nou itinerari",
+        "new_track": "Nou trac",
         "new_segment": "Nou segment",
         "open": "Obrir...",
         "duplicate": "Duplica el track",
@@ -196,7 +196,7 @@
         "scissors": {
             "tooltip": "Retallar o dividir",
             "crop": "Retallar",
-            "split_as": "Dividir la sala en",
+            "split_as": "Dividir la traça en",
             "help_invalid_selection": "Seleccioneu una traça per retallar o dividir.",
             "help": "Utilitzeu el control lliscant per retallar la traça, o talleu-la clicant en un dels marcadors de tall o a la mateixa traça."
         },
