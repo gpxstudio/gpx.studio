@@ -10,61 +10,58 @@ title: Controls del mapa
 
 # { title }
 
-The map controls are located on the right side of the interface.
+Els controls del mapa estan situats a la banda dreta de la interfície.
 Aquests controls et permetran navegar pel mapa, apropar-te, allunyar-te i canviar entre diferents estils de mapa.
 
-### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Map navigation
+### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Navegació en el mapa
 
-The controls at the top allow you to zoom in <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> and out <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, and to change the orientation and tilt of the map <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
+Els controls de la part superior permeten apropar <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> i allunyar<Minus size="16" class="inline-block" style="margin-bottom: 2px" />, i canviar l'orientació i la inclinació del mapa <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
 
 <DocsNote>
 
-To control the orientation and tilt of the map, you can also drag the map while holding <kbd>Ctrl</kbd>.
+Per controlar l'orientació i inclinació del mapa, pots arrossegar el mapa mentre prems <kbd>Ctrl</kbd>.
 
 </DocsNote>
 
-### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Search bar
+### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Barra de cerca
 
-You can use the search bar to look for an address and navigate to it on the map.
+Pots utilitzar la barra de cerca per buscar una direcció i navegar cap a ella sobre el mapa.
 
-### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Locate button
+### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Botó d'ubicació
 
-The locate button centers the map on your current location.
+El botó d'ubicació centra el mapa en la ubicació actual.
 
 <DocsNote>
 
-This only works if you have allowed your browser and <b>gpx.studio</b> to access your location.
+Això només funciona si permets al teu navegador i a <b>gpx.studio</b> a accedir a la teva ubicació.
 
 </DocsNote>
 
 ### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Street view
 
-This button can be used to enable street view mode on the map.
-Depending on the street view source chosen in the [settings](./menu/settings), street view imagery can be accessed differently.
+Aquest botó es pot utilitzar per activar el mode street view en el mapa.
+Depenent de la font de street view triada en la [configuració](./menu/settings), s'accedirà de forma diferent a la imatgeria d'street view.
 
-- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: the street view coverage will appear as green lines on the map. When zoomed in enough, green dots will show the exact locations where street view imagery is available. Hovering over a green dot will show the street view image at that location.
-- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: click on the map to open a new tab with the street view imagery at that location.
+- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: la cobertura de street view aparaixerà com a línies verdes sobre el mapa. Quan t'apropis prou, es mostraran les ubicacions exactes amb punts verds on estiguin disponibles la imatgeria de street view. En passar el cursor sobre un punt verd es mostrarà la imatge del carrer en aquella ubicació.
+- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: clica en el mapa per obrir una nova pestanya amb la imatgeria de street view de la ubicació.
 
-### <Layers size="16" class="inline-block" style="margin-bottom: 2px" /> Map layers
+### <Layers size="16" class="inline-block" style="margin-bottom: 2px" /> Capes de Mapa
 
-The map layers button allows you to switch between different basemaps, and toggle map overlays and categories of points of interest.
+El botó de capa de mapa permet canviar entre diferents mapes base i alternar capes sobreposades del mapa i categories de punts d'interès.
 
-- **Basemaps** are background maps that present the main geographic features of the world.
-  Depending on their purpose, basemaps have different styles and levels of detail.
-  Only one basemap can be displayed at a time.
-- **Overlays** are additional layers that can be displayed on top of the basemap to provide complementary information.
-- **Points of interest** can be added to the map to show different categories of places, such as shops, restaurants, or accommodations.
+- Els **Mapes base** són mapes de fons que presenten les principals característiques geogràfiques del món.
+  Depenent del teu propòsit, els mapes base tenen diferents estils i nivells de detall.
+  Només es pot mostrar un mapa base alhora.
+- Les **Capes sobreposades** són capes addicionals que es poden mostrar sobre el mapa base per proporcionar informació complementària.
+- Els **Punts d'interès** es poden afegir al mapa per mostrar diferents categories de llocs, com botigues, restaurants o allotjaments.
 
-<div class="flex flex-col items-center">
-    <DocsLayers />
-    <span class="text-sm text-center mt-2">
-        Hover over the map to show the <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> overlay on top of the <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> basemap.
+<div class="flex flex-col items-center"><DocsLayers /><span class="text-sm text-center mt-2">Situa el cursor sobre el mapa per mostrar la capa <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> sobreposada sobre del <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> mapa base.
     </span>
 </div>
 
-A large collection of global and local basemaps and overlays is available in **gpx.studio**, as well as a selection of point-of-interest categories.
-They can be enabled in the [map layer settings dialog](./menu/settings).
+Una gran col·lecció de mapes i capes sobreposades globals i locals està disponible a **gpx.studio**, així com una selecció de categories de punts d'interès.
+Poden activar-se en el [configuració de capes del mapa](./menu/settings).
 
-In these settings, you can also manage the opacity of the overlays.
+En aquests ajustaments pots gestionar l'opacitat de les capes sobreposades.
 
-For advanced users, it is possible to add custom basemaps and overlays by providing <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, or <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox style JSON</a> URLs.
+Per a usuaris avançats és possible afegir mapes base i sobreposicions personalitzades proporcionant <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTX</a>,<a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, o <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">JSON tipus Mapbox</a> URLs.
