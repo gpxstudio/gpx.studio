@@ -1,5 +1,5 @@
 ---
-title: GPX file format
+title: GPX format datoteke
 ---
 
 <script>
@@ -8,27 +8,27 @@ title: GPX file format
 
 # { title }
 
-The <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX file format</a> is an open standard for exchanging GPS data between applications and GPS devices.
-It essentially consists of a series of GPS points encoding one or multiple GPS traces, and, optionally, some points of interest.
+<a href="https://www.topografix.com/gpx.asp" target="_blank">Format GPX datoteke</a> je otvoreni standard za razmenu GPS podataka između aplikacija i GPS uređaja
+U suštini se sastoji od niza GPS tačaka koje kodiraju jedan ili više GPS trekova, i, opciono, neke interesantne tačke.
 
-GPX files may also contain metadata, of which the **name** and **description** fields are the most useful for users.
+GPX datoteke mogu da sadrže i metapodatke, od kojih su polja **naziv** i **opis** najkorisnija za korisnike.
 
-### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Tracks, segments, and GPS points
+### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Putanje, segmenti i GPS tačke
 
-As mentioned above, a GPX file can contain multiple GPS traces.
-These are organized in a hierarchical structure, with tracks at the top level.
+Kao što je gore pomenuto, GPX datoteka može sadržati više GPS trekova.
+Oni su organizovani u hijerarhijsku strukturu, sa putanjama na najvišem nivou.
 
-- A **track** is made of a sequence of disconnected segments.
-  Furthermore, it can contain metadata such as a **name**, a **description**, and **appearance properties**.
-- A **segment** is a sequence of GPS points that form a continuous path.
-- A **GPS point** is a location with a latitude, a longitude, and optionally a timestamp and an altitude.
-  Some devices also store additional information such as heart rate, cadence, temperature, and power.
+- **Putanja** je napravljena od niza nepovezanih segmenata.
+  Štaviše, može da sadrži metapodatke kao što su **ime**, **opis** i **svojstva izgleda**.
+- **Segment** je niz GPS tačaka koje čine neprekidnu putanju.
+- **GPS tačka** je lokacija sa geografskom širinom, dužinom i opciono vremenskom oznakom i visinom.
+  Neki uređaji takođe čuvaju dodatne informacije kao što su otkucaji srca, kadenca, temperatura i snaga.
 
-In most cases, GPX files contain a single track with a single segment.
-However, the hierarchy described above allows for more advanced use cases, such as planning multi-day trips with several variants for each day.
+U većini slučajeva, GPX datoteke sadrže jednu stazu sa jednim segmentom.
+Međutim, gore opisana hijerarhija omogućava naprednije slučajeve upotrebe, kao što je planiranje višednevnih putovanja sa nekoliko varijanti za svaki dan.
 
-### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Points of interest
+### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Tačke od interesa
 
-**Points of interest** (technically called _waypoints_) represent locations of interest to show either on a GPS device or on a digital map.
+**Tačke od interesa** (tehnički nazvane _putne tačke_) predstavljaju lokacije od interesa koje se prikazuju na GPS uređaju ili na digitalnoj mapi.
 
-In addition to its coordinates, a point of interest can have a **name** and a **description**.
+Pored svojih koordinata, tačka interesovanja može imati **naziv** i **opis**.
