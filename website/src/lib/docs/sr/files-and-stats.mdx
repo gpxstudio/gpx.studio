@@ -1,5 +1,5 @@
 ---
-title: Files and statistics
+title: Datoteke i statistike
 ---
 
 <script>
@@ -9,74 +9,74 @@ title: Files and statistics
 
 # { title }
 
-## File list
+## Lista datoteka
 
-Once you have [opened](./menu/file) files, they will be shown as tabs in the file list located at the bottom of the map.
-You can reorder them by dragging and dropping the tabs.
-And when many files are open, you can scroll through the list of tabs to navigate between them.
-
-<DocsNote>
-
-When using a mouse, you need to hold <kbd>Shift</kbd> to scroll horizontally.
-
-</DocsNote>
-
-### File selection
-
-By clicking on a tab, you can switch between the files to inspect their statistics, and apply [edit actions](./menu/edit) and [tools](./toolbar) to them.
-By holding the <kbd>Ctrl/Cmd</kbd> key, you can add files to the selection or remove them, and by holding <kbd>Shift</kbd>, you can select a range of files.
-Most of the [edit actions](./menu/edit) and [tools](./toolbar) can be applied to multiple files at once.
+Jednom kada [otvorite](./menu/file) datoteke, biće prikazane kao kartice na listi datoteka lociranih na dnu mape
+Možete im promeniti redosled tako što ćete prevući i pustiti kartice.
+Ukoliko je mnogo datoteka otvoreno, možete se kretati kroz njih skrolovanjem.
 
 <DocsNote>
 
-You can also navigate through the files using the arrow keys on your keyboard, and use <kbd>Shift</kbd> to add files to the selection.
+Pri korišćenju miša, neophodno je držati pritisnuto <kbd>Shift</kbd> da bi se pomeralo horizontalno.
 
 </DocsNote>
 
-### Edit actions
+### Izbor datoteka
 
-By right-clicking on a file tab, you can access the same actions as in the [edit menu](./menu/edit).
-
-### Tree layout
-
-As mentioned in the [view options section](./menu/view), you can switch to a tree layout for the files list.
-This layout is ideal for managing a large number of open files, as it organizes them into a vertical list on the right side of the map.
-In addition, the file tree view enables you to inspect the [tracks, segments, and points of interest](./gpx) contained inside the files through collapsible sections.
-
-You can also apply [edit actions](./menu/edit) and [tools](./toolbar) to internal file items.
-Furthermore, you can drag and drop the inner items to reorder them, or move them in the hierarchy or even to another file.
+Klikom na karticu, možete da prelazite između datoteka da biste pregledali njihovu statistiku i primenili [akcije uređivanja](./menu/edit) i [alate](./toolbar) na njih.
+Držeći taster <kbd>Ctrl/Cmd</kbd>, možete dodati datoteke u izbor ili ih ukloniti, a držanjem <kbd>Shift</kbd> možete izabrati niz datoteka.
+Većina [radnji za uređivanje](./menu/edit) i [alata](./toolbar) može se primeniti na više datoteka odjednom.
 
 <DocsNote>
 
-The size of the file list can be adjusted by dragging the separator between the map and the file list.
+Takođe možete se kretati kroz datoteke pomoću tastera sa strelicama na tastaturi i koristite <kbd>Shift</kbd> da dodate datoteke u izbor.
 
 </DocsNote>
 
-## Elevation profile and statistics
+### Akcije uređivanja
 
-At the bottom of the interface, you can find the elevation profile and statistics for the current selection.
+Desnim klikom na karticu datoteke možete pristupiti istim radnjama kao u [meniju za uređivanje](./menu/edit).
+
+### Izgled drveta
+
+Kao što je pomenuto u [odeljku sa opcijama prikaza](./menu/view), možete da pređete na izgled stabla za listu datoteka.
+Ovaj raspored je idealan za upravljanje velikim brojem otvorenih datoteka, jer ih organizuje u vertikalnu listu na desnoj strani mape.
+Pored toga, prikaz stabla datoteka vam omogućava da pregledate [trake, segmente i tačke interesovanja](./gpx) koje se nalaze unutar datoteka kroz sklopive segmente.
+
+Takođe možete primeniti [radnje uređivanja](./menu/edit) i [tools](./toolbar) na interne stavke datoteke.
+Štaviše, možete da prevučete i otpustite unutrašnje stavke da biste ih promenili, ili da ih premestite u hijerarhiji ili čak u drugu datoteku.
 
 <DocsNote>
 
-The size of the elevation profile can be adjusted by dragging the separator between the map and the elevation profile.
+Veličina liste datoteka se može podesiti prevlačenjem separatora između mape i liste datoteka.
 
 </DocsNote>
 
-### Interactive statistics
+## Visinski profil i statistika
 
-When hovering over the elevation profile, a tooltip will show statistics at the cursor position.
+Na dnu interfejsa možete pronaći profil nadmorske visine i statistiku za trenutni izbor.
 
-To get the statistics for a specific section of the elevation profile, you can drag a selection rectangle on the profile.
-Click on the profile to reset the selection.
+<DocsNote>
 
-You can also use the mouse wheel to zoom in and out on the elevation profile, and move left and right by dragging the profile while holding the <kbd>Shift</kbd> key.
+Veličina profila nadmorske visine može se podesiti prevlačenjem separatora između mape i profila nadmorske visine.
 
-### Additional data
+</DocsNote>
 
-Using the <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> button at the bottom-right of the elevation profile, you can optionally color the elevation profile by:
+### Interaktivna statistika
 
-- **slope** information computed from the elevation data, or
-- **surface** or **category** data coming from <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> and <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> tags.
-  This is only available for files created with **gpx.studio**.
+Kada pređete mišem preko profila nadmorske visine, opis alata će prikazati statistiku na poziciji kursora.
 
-If your selection includes it, you can also visualize: **speed**, **heart rate**, **cadence**, **temperature** and **power** data on the elevation profile.
+Da biste dobili statistiku za određeni deo profila nadmorske visine, možete prevući pravougaonik za izbor na profilu
+Kliknite na profil da resetujete izbor.
+
+Takođe možete da koristite točkić miša da zumirate i umanjite profil nadmorske visine i da se pomerate levo i desno prevlačenjem profila dok držite taster <kbd>Shift</kbd>.
+
+### Dodatni podaci
+
+Koristeći dugme <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> u donjem desnom uglu profila nadmorske visine, opciono možete da obojite profil nadmorske visine prema:
+
+- **nagib** izračunat iz podataka o nadmorskoj visini, ili
+- podaci o **površini** ili **kategoriji** koji dolaze iz <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>-ovih tagova<a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank"> površine</a> i <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">autoputa</a>.
+  Ovo je dostupno jedino za datoteke kreirane korišćenjem alata **gpx.studio**
+
+ako vaš izbor to uključuje, takođe možete da vizuelizujete: **brzinu**, **otkucaje srca**, **kadencu**, **temperaturu** i **snagu** na profilu nadmorske visine.
