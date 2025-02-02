@@ -1,5 +1,5 @@
 ---
-title: Route planning and editing
+title: Planificació i edició de rutes
 ---
 
 <script>
@@ -11,74 +11,74 @@ title: Route planning and editing
 
 # <Pencil size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
 
-The route planning and editing tool allows you to create and edit routes by placing or moving anchor points on the map.
+L'eina de planificació i edició de rutes permet crear i editar rutes col·locant o movent punts d'ancoratge en el mapa.
 
-## Settings
+## Configuració
 
-As shown below, the tool dialog contains a few settings to control the routing behavior.
-You can minimize the dialog to save space by clicking on <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
+Com es mostra sota, el quadre de diàleg de l'eina conté algunes opcions per a controlar el comportament d'encaminament.
+Pots minimitzar el quadre de diàleg per estalviar espai fent clic a<button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
 
 <div class="flex flex-row justify-center">
     <Routing minimizable={false} class="text-foreground p-3 border rounded-md shadow-lg" />
 </div>
 
-### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routing
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Encaminador
 
-When routing is enabled, anchor points placed or moved on the map will be connected by a route calculated on the <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> road network.
-Disable routing to connect anchor points with straight lines.
-This setting can also be toggled by pressing <kbd>F5</kbd>.
+Quan l'encaminador està habilitat, els punts d'ancoratge posats o moguts en el mapa es connectaran mitjançant una ruta calculada sobre la xarxa viària de <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> xarxa de carreteres.
+Deshabilita l'encaminador per tal de connectar punts d'ancoratge amb línies rectes.
+Aquesta opció també es pot canviar clicant <kbd>F5</kbd>.
 
-### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Activity
+### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Activitat
 
-Select the activity type to tailor the routes for.
+Selecciona el tipus d'activitat a la qual s'ajustaran les rutes.
 
-### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Allow private roads
+### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Permet camins privats
 
-When enabled, the routing engine will consider private roads when computing routes.
+Quan està activat, l'encaminador tindrà en compte els camins privats quan calculi rutes.
 
 <DocsNote type="warning">
 
-Only use this option if you have local knowledge of the area and have permission to use the roads in question.
+Utilitza aquesta opció si coneixes la zona i tens permís per passar pels camins en qüestió.
 
 </DocsNote>
 
-## Plotting and editing routes
+## Traçat i edició de rutes
 
-Creating a route or extending an existing one is as simple as clicking on the map to place a new anchor point.
+Crear una ruta o estendre'n una d'existent és tan simple com clicar sobre el mapa per col·locar un nou punt d'ancoratge.
 
-You can also drag an existing anchor point to reroute the segment connecting it with the previous and next anchor point.
+També es pot arrossegar un punt d'ancoratge existent per reconduir el segment i connectar-lo amb l'anterior i amb el següent.
 
-Furthermore, new anchor points can be inserted between existing ones by hovering over the segment connecting them and dragging the anchor point that appears to the desired location.
-On touch devices, you can tap on the segment to insert a new anchor point.
+A més, es pot inserir punts nous d'ancoratge entre d'altres d'existents situant el cursor sobre el segment i arrossegant el punt d'ancoratge cap a la ubicació desitjada.
+En dispositius tàctils, pots tocar sobre el segment per tal d'inserir un nou punt d'ancoratge.
 
 <DocsNote>
 
-When editing imported GPX files, an initial set of anchor points is created automatically.
-To ease the editing process, the more the map is zoomed in, the more anchor points are displayed.
-This allows the route to be edited at different levels of detail.
+En l'edició d'arxius GPX, es creen automàticament un conjunt inicial de punts d'ancoratge.
+Per tal de facilitar el procés d'edició, com més ampliat sigui el mapa, més punts d'ancoratge es mostraran.
+Això permet que la ruta sigui editada amb diferents nivells de detall.
 
 </DocsNote>
 
-Finally, you can delete anchor points by clicking on them and selecting <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Delete</button> from the context menu.
+Finalment, es poden eliminar punts d'ancoratge clicant sobre ells i seleccionant <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Eliminar</button> del menú contextual.
 
-<DocsImage src="tools/routing" alt="Anchor points allow you to easily edit a route." />
+<DocsImage src="tools/routing" alt="Els punts d'ancoratge permeten editar una ruta fàcilment." />
 
-## Additional tools
+## Eines addicionals
 
-The following tools automate some common route modification operations.
+Les eines següents automatitzen algunes operacions comunes de modificació de rutes.
 
-### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Reverse
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Inverteix
 
-Reverse the direction of the route.
+Inverteix el sentit de la ruta.
 
-### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Back to start
+### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Tornar a l'inici
 
-Connect the last point of the route with the starting point, using the chosen routing settings.
+Connecta l'últim punt de la ruta amb el punt d'inici, utilitzant la configuració de ruta escollida.
 
-### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Round trip
+### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Ruta circular
 
-Return to the starting point by the same route.
+Torna al punt d'inici per la mateixa ruta.
 
-### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Change the start of the loop
+### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Canvia el punt d'inici de la volta
 
-When the end point of the route is close enough to the start, you can change the start of the loop by clicking on any anchor point and selecting <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Start loop here</button> from the context menu.
+Quan el punt final de la ruta és suficientment a prop de l'inici, pots canviar l'inici de la volta clicant en qualsevol punt d'ancoratge i seleccionant <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Iniciar volta aquí</button> des del menú contextual.
