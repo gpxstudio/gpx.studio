@@ -33,7 +33,7 @@
         "select_all": "Izaberi sve",
         "view": "Pogledaj",
         "elevation_profile": "Visinski profil",
-        "tree_file_view": "File tree",
+        "tree_file_view": "Stablo datoteke",
         "switch_basemap": "Vrati prethodnu osnovnu mapu",
         "toggle_overlays": "Sakrij/Prikaži preklapanja",
         "toggle_3d": "Sakrij/Prikaži 3D",
@@ -80,7 +80,7 @@
         "unhide": "Prikaži",
         "center": "Centar",
         "open_in": "Otvorite u",
-        "copy_coordinates": "Copy coordinates"
+        "copy_coordinates": "Kopiraj koordinate"
     },
     "toolbar": {
         "routing": {
