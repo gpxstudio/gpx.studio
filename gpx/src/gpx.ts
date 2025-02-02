@@ -2006,6 +2006,8 @@ function withTimestamps(
     if (last === undefined) {
         last = points[0].clone();
         last.time = startTime;
+    } else if (last.time === undefined) {
+        last.time = startTime;
     }
     return points.map((point) => {
         let time = getTimestamp(last, point, speed);
@@ -2070,6 +2072,9 @@ function withArtificialTimestamps(
 }
 
 function getTimestamp(a: TrackPoint, b: TrackPoint, speed: number): Date {
+    if (a.time === undefined) {
+        return undefined;
+    }
     let dist = distance(a.getCoordinates(), b.getCoordinates()) / 1000;
     return new Date(a.time.getTime() + (1000 * 3600 * dist) / speed);
 }
