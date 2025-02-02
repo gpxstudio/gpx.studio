@@ -1,14 +1,28 @@
-import { currentTool, map, Tool } from "$lib/stores";
-import { settings, type GPXFileWithStatistics, dbUtils } from "$lib/db";
-import { get, type Readable } from "svelte/store";
-import mapboxgl from "mapbox-gl";
-import { waypointPopup, deleteWaypoint, trackpointPopup } from "./GPXLayerPopup";
-import { addSelectItem, selectItem, selection } from "$lib/components/file-list/Selection";
-import { ListTrackSegmentItem, ListWaypointItem, ListWaypointsItem, ListTrackItem, ListFileItem, ListRootItem } from "$lib/components/file-list/FileList";
-import { getClosestLinePoint, getElevation, resetCursor, setGrabbingCursor, setPointerCursor, setScissorsCursor } from "$lib/utils";
-import { selectedWaypoint } from "$lib/components/toolbar/tools/Waypoint.svelte";
-import { MapPin, Square } from "lucide-static";
-import { getSymbolKey, symbols } from "$lib/assets/symbols";
+import { currentTool, map, Tool } from '$lib/stores';
+import { settings, type GPXFileWithStatistics, dbUtils } from '$lib/db';
+import { get, type Readable } from 'svelte/store';
+import mapboxgl from 'mapbox-gl';
+import { waypointPopup, deleteWaypoint, trackpointPopup } from './GPXLayerPopup';
+import { addSelectItem, selectItem, selection } from '$lib/components/file-list/Selection';
+import {
+    ListTrackSegmentItem,
+    ListWaypointItem,
+    ListWaypointsItem,
+    ListTrackItem,
+    ListFileItem,
+    ListRootItem,
+} from '$lib/components/file-list/FileList';
+import {
+    getClosestLinePoint,
+    getElevation,
+    resetCursor,
+    setGrabbingCursor,
+    setPointerCursor,
+    setScissorsCursor,
+} from '$lib/utils';
+import { selectedWaypoint } from '$lib/components/toolbar/tools/Waypoint.svelte';
+import { MapPin, Square } from 'lucide-static';
+import { getSymbolKey, symbols } from '$lib/assets/symbols';
 
 const colors = [
     '#ff0000',
@@ -21,7 +35,7 @@ const colors = [
     '#288228',
     '#9933ff',
     '#50f0be',
-    '#8c645a'
+    '#8c645a',
 ];
 
 const colorCount: { [key: string]: number } = {};
@@ -56,12 +70,12 @@ class KeyDown {
         if (e.key === this.key) {
             this.down = true;
         }
-    }
+    };
     onKeyUp = (e: KeyboardEvent) => {
         if (e.key === this.key) {
             this.down = false;
         }
-    }
+    };
     isDown() {
         return this.down;
     }
@@ -70,22 +84,26 @@ class KeyDown {
 function getMarkerForSymbol(symbol: string | undefined, layerColor: string) {
     let symbolSvg = symbol ? symbols[symbol]?.iconSvg : undefined;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-    ${Square
-            .replace('width="24"', 'width="12"')
-            .replace('height="24"', 'height="12"')
-            .replace('stroke="currentColor"', 'stroke="SteelBlue"')
-            .replace('stroke-width="2"', 'stroke-width="1.5" x="9.6" y="0.4"')
-            .replace('fill="none"', `fill="${layerColor}"`)}
-    ${MapPin
-            .replace('width="24"', '')
-            .replace('height="24"', '')
-            .replace('stroke="currentColor"', '')
-            .replace('path', `path fill="#3fb1ce" stroke="SteelBlue" stroke-width="1"`)
-            .replace('circle', `circle fill="${symbolSvg ? 'none' : 'white'}" stroke="${symbolSvg ? 'none' : 'white'}" stroke-width="2"`)} 
-    ${symbolSvg?.replace('width="24"', 'width="10"')
+    ${Square.replace('width="24"', 'width="12"')
+        .replace('height="24"', 'height="12"')
+        .replace('stroke="currentColor"', 'stroke="SteelBlue"')
+        .replace('stroke-width="2"', 'stroke-width="1.5" x="9.6" y="0.4"')
+        .replace('fill="none"', `fill="${layerColor}"`)}
+    ${MapPin.replace('width="24"', '')
+        .replace('height="24"', '')
+        .replace('stroke="currentColor"', '')
+        .replace('path', `path fill="#3fb1ce" stroke="SteelBlue" stroke-width="1"`)
+        .replace(
+            'circle',
+            `circle fill="${symbolSvg ? 'none' : 'white'}" stroke="${symbolSvg ? 'none' : 'white'}" stroke-width="2"`
+        )} 
+    ${
+        symbolSvg
+            ?.replace('width="24"', 'width="10"')
             .replace('height="24"', 'height="10"')
             .replace('stroke="currentColor"', 'stroke="white"')
-            .replace('stroke-width="2"', 'stroke-width="2.5" x="7" y="5"') ?? ''}
+            .replace('stroke-width="2"', 'stroke-width="2.5" x="7" y="5"') ?? ''
+    }
     </svg>`;
 }
 
@@ -108,32 +126,40 @@ export class GPXLayer {
     layerOnClickBinded: (e: any) => void = this.layerOnClick.bind(this);
     layerOnContextMenuBinded: (e: any) => void = this.layerOnContextMenu.bind(this);
 
-    constructor(map: mapboxgl.Map, fileId: string, file: Readable<GPXFileWithStatistics | undefined>) {
+    constructor(
+        map: mapboxgl.Map,
+        fileId: string,
+        file: Readable<GPXFileWithStatistics | undefined>
+    ) {
         this.map = map;
         this.fileId = fileId;
         this.file = file;
         this.layerColor = getColor();
         this.unsubscribe.push(file.subscribe(this.updateBinded));
-        this.unsubscribe.push(selection.subscribe($selection => {
-            let newSelected = $selection.hasAnyChildren(new ListFileItem(this.fileId));
-            if (this.selected || newSelected) {
-                this.selected = newSelected;
-                this.update();
-            }
-            if (newSelected) {
-                this.moveToFront();
-            }
-        }));
+        this.unsubscribe.push(
+            selection.subscribe(($selection) => {
+                let newSelected = $selection.hasAnyChildren(new ListFileItem(this.fileId));
+                if (this.selected || newSelected) {
+                    this.selected = newSelected;
+                    this.update();
+                }
+                if (newSelected) {
+                    this.moveToFront();
+                }
+            })
+        );
         this.unsubscribe.push(directionMarkers.subscribe(this.updateBinded));
-        this.unsubscribe.push(currentTool.subscribe(tool => {
-            if (tool === Tool.WAYPOINT && !this.draggable) {
-                this.draggable = true;
-                this.markers.forEach(marker => marker.setDraggable(true));
-            } else if (tool !== Tool.WAYPOINT && this.draggable) {
-                this.draggable = false;
-                this.markers.forEach(marker => marker.setDraggable(false));
-            }
-        }));
+        this.unsubscribe.push(
+            currentTool.subscribe((tool) => {
+                if (tool === Tool.WAYPOINT && !this.draggable) {
+                    this.draggable = true;
+                    this.markers.forEach((marker) => marker.setDraggable(true));
+                } else if (tool !== Tool.WAYPOINT && this.draggable) {
+                    this.draggable = false;
+                    this.markers.forEach((marker) => marker.setDraggable(false));
+                }
+            })
+        );
         this.draggable = get(currentTool) === Tool.WAYPOINT;
 
         this.map.on('style.import.load', this.updateBinded);
@@ -149,7 +175,11 @@ export class GPXLayer {
             return;
         }
 
-        if (file._data.style && file._data.style.color && this.layerColor !== `#${file._data.style.color}`) {
+        if (
+            file._data.style &&
+            file._data.style.color &&
+            this.layerColor !== `#${file._data.style.color}`
+        ) {
             decrementColor(this.layerColor);
             this.layerColor = `#${file._data.style.color}`;
         }
@@ -161,7 +191,7 @@ export class GPXLayer {
             } else {
                 this.map.addSource(this.fileId, {
                     type: 'geojson',
-                    data: this.getGeoJSON()
+                    data: this.getGeoJSON(),
                 });
             }
 
@@ -172,13 +202,13 @@ export class GPXLayer {
                     source: this.fileId,
                     layout: {
                         'line-join': 'round',
-                        'line-cap': 'round'
+                        'line-cap': 'round',
                     },
                     paint: {
                         'line-color': ['get', 'color'],
                         'line-width': ['get', 'width'],
-                        'line-opacity': ['get', 'opacity']
-                    }
+                        'line-opacity': ['get', 'opacity'],
+                    },
                 });
 
                 this.map.on('click', this.fileId, this.layerOnClickBinded);
@@ -190,27 +220,30 @@ export class GPXLayer {
 
             if (get(directionMarkers)) {
                 if (!this.map.getLayer(this.fileId + '-direction')) {
-                    this.map.addLayer({
-                        id: this.fileId + '-direction',
-                        type: 'symbol',
-                        source: this.fileId,
-                        layout: {
-                            'text-field': '»',
-                            'text-offset': [0, -0.1],
-                            'text-keep-upright': false,
-                            'text-max-angle': 361,
-                            'text-allow-overlap': true,
-                            'text-font': ['Open Sans Bold'],
-                            'symbol-placement': 'line',
-                            'symbol-spacing': 20,
+                    this.map.addLayer(
+                        {
+                            id: this.fileId + '-direction',
+                            type: 'symbol',
+                            source: this.fileId,
+                            layout: {
+                                'text-field': '»',
+                                'text-offset': [0, -0.1],
+                                'text-keep-upright': false,
+                                'text-max-angle': 361,
+                                'text-allow-overlap': true,
+                                'text-font': ['Open Sans Bold'],
+                                'symbol-placement': 'line',
+                                'symbol-spacing': 20,
+                            },
+                            paint: {
+                                'text-color': 'white',
+                                'text-opacity': 0.7,
+                                'text-halo-width': 0.2,
+                                'text-halo-color': 'white',
+                            },
                         },
-                        paint: {
-                            'text-color': 'white',
-                            'text-opacity': 0.7,
-                            'text-halo-width': 0.2,
-                            'text-halo-color': 'white'
-                        }
-                    }, this.map.getLayer('distance-markers') ? 'distance-markers' : undefined);
+                        this.map.getLayer('distance-markers') ? 'distance-markers' : undefined
+                    );
                 }
             } else {
                 if (this.map.getLayer(this.fileId + '-direction')) {
@@ -225,23 +258,53 @@ export class GPXLayer {
                 }
             });
 
-            this.map.setFilter(this.fileId, ['any', ...visibleItems.map(([trackIndex, segmentIndex]) => ['all', ['==', 'trackIndex', trackIndex], ['==', 'segmentIndex', segmentIndex]])], { validate: false });
+            this.map.setFilter(
+                this.fileId,
+                [
+                    'any',
+                    ...visibleItems.map(([trackIndex, segmentIndex]) => [
+                        'all',
+                        ['==', 'trackIndex', trackIndex],
+                        ['==', 'segmentIndex', segmentIndex],
+                    ]),
+                ],
+                { validate: false }
+            );
             if (this.map.getLayer(this.fileId + '-direction')) {
-                this.map.setFilter(this.fileId + '-direction', ['any', ...visibleItems.map(([trackIndex, segmentIndex]) => ['all', ['==', 'trackIndex', trackIndex], ['==', 'segmentIndex', segmentIndex]])], { validate: false });
+                this.map.setFilter(
+                    this.fileId + '-direction',
+                    [
+                        'any',
+                        ...visibleItems.map(([trackIndex, segmentIndex]) => [
+                            'all',
+                            ['==', 'trackIndex', trackIndex],
+                            ['==', 'segmentIndex', segmentIndex],
+                        ]),
+                    ],
+                    { validate: false }
+                );
             }
-        } catch (e) { // No reliable way to check if the map is ready to add sources and layers
+        } catch (e) {
+            // No reliable way to check if the map is ready to add sources and layers
             return;
         }
 
         let markerIndex = 0;
 
         if (get(selection).hasAnyChildren(new ListFileItem(this.fileId))) {
-            file.wpt.forEach((waypoint) => { // Update markers
+            file.wpt.forEach((waypoint) => {
+                // Update markers
                 let symbolKey = getSymbolKey(waypoint.sym);
                 if (markerIndex < this.markers.length) {
-                    this.markers[markerIndex].getElement().innerHTML = getMarkerForSymbol(symbolKey, this.layerColor);
+                    this.markers[markerIndex].getElement().innerHTML = getMarkerForSymbol(
+                        symbolKey,
+                        this.layerColor
+                    );
                     this.markers[markerIndex].setLngLat(waypoint.getCoordinates());
-                    Object.defineProperty(this.markers[markerIndex], '_waypoint', { value: waypoint, writable: true });
+                    Object.defineProperty(this.markers[markerIndex], '_waypoint', {
+                        value: waypoint,
+                        writable: true,
+                    });
                 } else {
                     let element = document.createElement('div');
                     element.classList.add('w-8', 'h-8', 'drop-shadow-xl');
@@ -249,7 +312,7 @@ export class GPXLayer {
                     let marker = new mapboxgl.Marker({
                         draggable: this.draggable,
                         element,
-                        anchor: 'bottom'
+                        anchor: 'bottom',
                     }).setLngLat(waypoint.getCoordinates());
                     Object.defineProperty(marker, '_waypoint', { value: waypoint, writable: true });
                     let dragEndTimestamp = 0;
@@ -272,10 +335,20 @@ export class GPXLayer {
                         }
 
                         if (get(treeFileView)) {
-                            if ((e.ctrlKey || e.metaKey) && get(selection).hasAnyChildren(new ListWaypointsItem(this.fileId), false)) {
-                                addSelectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
+                            if (
+                                (e.ctrlKey || e.metaKey) &&
+                                get(selection).hasAnyChildren(
+                                    new ListWaypointsItem(this.fileId),
+                                    false
+                                )
+                            ) {
+                                addSelectItem(
+                                    new ListWaypointItem(this.fileId, marker._waypoint._data.index)
+                                );
                             } else {
-                                selectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
+                                selectItem(
+                                    new ListWaypointItem(this.fileId, marker._waypoint._data.index)
+                                );
                             }
                         } else if (get(currentTool) === Tool.WAYPOINT) {
                             selectedWaypoint.set([marker._waypoint, this.fileId]);
@@ -298,12 +371,12 @@ export class GPXLayer {
                                 let wpt = file.wpt[marker._waypoint._data.index];
                                 wpt.setCoordinates({
                                     lat: latLng.lat,
-                                    lon: latLng.lng
+                                    lon: latLng.lng,
                                 });
                                 wpt.ele = ele[0];
                             });
                         });
-                        dragEndTimestamp = Date.now()
+                        dragEndTimestamp = Date.now();
                     });
                     this.markers.push(marker);
                 }
@@ -311,7 +384,8 @@ export class GPXLayer {
             });
         }
 
-        while (markerIndex < this.markers.length) { // Remove extra markers
+        while (markerIndex < this.markers.length) {
+            // Remove extra markers
             this.markers.pop()?.remove();
         }
 
@@ -364,7 +438,10 @@ export class GPXLayer {
             this.map.moveLayer(this.fileId);
         }
         if (this.map.getLayer(this.fileId + '-direction')) {
-            this.map.moveLayer(this.fileId + '-direction', this.map.getLayer('distance-markers') ? 'distance-markers' : undefined);
+            this.map.moveLayer(
+                this.fileId + '-direction',
+                this.map.getLayer('distance-markers') ? 'distance-markers' : undefined
+            );
         }
     }
 
@@ -372,7 +449,12 @@ export class GPXLayer {
         let trackIndex = e.features[0].properties.trackIndex;
         let segmentIndex = e.features[0].properties.segmentIndex;
 
-        if (get(currentTool) === Tool.SCISSORS && get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex))) {
+        if (
+            get(currentTool) === Tool.SCISSORS &&
+            get(selection).hasAnyParent(
+                new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)
+            )
+        ) {
             setScissorsCursor();
         } else {
             setPointerCursor();
@@ -390,22 +472,36 @@ export class GPXLayer {
 
             const file = get(this.file)?.file;
             if (file) {
-                const closest = getClosestLinePoint(file.trk[trackIndex].trkseg[segmentIndex].trkpt, { lat: e.lngLat.lat, lon: e.lngLat.lng });
+                const closest = getClosestLinePoint(
+                    file.trk[trackIndex].trkseg[segmentIndex].trkpt,
+                    { lat: e.lngLat.lat, lon: e.lngLat.lng }
+                );
                 trackpointPopup?.setItem({ item: closest, fileId: this.fileId });
             }
         }
     }
 
     layerOnClick(e: any) {
-        if (get(currentTool) === Tool.ROUTING && get(selection).hasAnyChildren(new ListRootItem(), true, ['waypoints'])) {
+        if (
+            get(currentTool) === Tool.ROUTING &&
+            get(selection).hasAnyChildren(new ListRootItem(), true, ['waypoints'])
+        ) {
             return;
         }
 
         let trackIndex = e.features[0].properties.trackIndex;
         let segmentIndex = e.features[0].properties.segmentIndex;
 
-        if (get(currentTool) === Tool.SCISSORS && get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex))) {
-            dbUtils.split(this.fileId, trackIndex, segmentIndex, { lat: e.lngLat.lat, lon: e.lngLat.lng });
+        if (
+            get(currentTool) === Tool.SCISSORS &&
+            get(selection).hasAnyParent(
+                new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)
+            )
+        ) {
+            dbUtils.split(this.fileId, trackIndex, segmentIndex, {
+                lat: e.lngLat.lat,
+                lon: e.lngLat.lng,
+            });
             return;
         }
 
@@ -415,8 +511,12 @@ export class GPXLayer {
         }
 
         let item = undefined;
-        if (get(treeFileView) && file.getSegments().length > 1) { // Select inner item
-            item = file.children[trackIndex].children.length > 1 ? new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex) : new ListTrackItem(this.fileId, trackIndex);
+        if (get(treeFileView) && file.getSegments().length > 1) {
+            // Select inner item
+            item =
+                file.children[trackIndex].children.length > 1
+                    ? new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)
+                    : new ListTrackItem(this.fileId, trackIndex);
         } else {
             item = new ListFileItem(this.fileId);
         }
@@ -439,13 +539,14 @@ export class GPXLayer {
         if (!file) {
             return {
                 type: 'FeatureCollection',
-                features: []
+                features: [],
             };
         }
 
         let data = file.toGeoJSON();
 
-        let trackIndex = 0, segmentIndex = 0;
+        let trackIndex = 0,
+            segmentIndex = 0;
         for (let feature of data.features) {
             if (!feature.properties) {
                 feature.properties = {};
@@ -459,7 +560,12 @@ export class GPXLayer {
             if (!feature.properties.width) {
                 feature.properties.width = get(defaultWidth);
             }
-            if (get(selection).hasAnyParent(new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)) || get(selection).hasAnyChildren(new ListWaypointsItem(this.fileId), true)) {
+            if (
+                get(selection).hasAnyParent(
+                    new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)
+                ) ||
+                get(selection).hasAnyChildren(new ListWaypointsItem(this.fileId), true)
+            ) {
                 feature.properties.width = feature.properties.width + 2;
                 feature.properties.opacity = Math.min(1, feature.properties.opacity + 0.1);
             }

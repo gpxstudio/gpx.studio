@@ -1,5 +1,5 @@
-import { resetCursor, setCrosshairCursor } from "$lib/utils";
-import type mapboxgl from "mapbox-gl";
+import { resetCursor, setCrosshairCursor } from '$lib/utils';
+import type mapboxgl from 'mapbox-gl';
 
 export class GoogleRedirect {
     map: mapboxgl.Map;

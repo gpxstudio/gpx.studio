@@ -17,15 +17,15 @@
 
     let name: string =
         node instanceof GPXFile
-            ? node.metadata.name ?? ''
+            ? (node.metadata.name ?? '')
             : node instanceof Track
-              ? node.name ?? ''
+              ? (node.name ?? '')
               : '';
     let description: string =
         node instanceof GPXFile
-            ? node.metadata.desc ?? ''
+            ? (node.metadata.desc ?? '')
             : node instanceof Track
-              ? node.desc ?? ''
+              ? (node.desc ?? '')
               : '';
 
     $: if (!open) {

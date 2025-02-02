@@ -1,6 +1,6 @@
-import { gpxStatistics, slicedGPXStatistics, currentTool, Tool } from "$lib/stores";
-import mapboxgl from "mapbox-gl";
-import { get } from "svelte/store";
+import { gpxStatistics, slicedGPXStatistics, currentTool, Tool } from '$lib/stores';
+import mapboxgl from 'mapbox-gl';
+import { get } from 'svelte/store';
 
 export class StartEndMarkers {
     map: mapboxgl.Map;
@@ -16,7 +16,8 @@ export class StartEndMarkers {
         let endElement = document.createElement('div');
         startElement.className = `h-4 w-4 rounded-full bg-green-500 border-2 border-white`;
         endElement.className = `h-4 w-4 rounded-full border-2 border-white`;
-        endElement.style.background = 'repeating-conic-gradient(#fff 0 90deg, #000 0 180deg) 0 0/8px 8px round';
+        endElement.style.background =
+            'repeating-conic-gradient(#fff 0 90deg, #000 0 180deg) 0 0/8px 8px round';
 
         this.start = new mapboxgl.Marker({ element: startElement });
         this.end = new mapboxgl.Marker({ element: endElement });
@@ -31,7 +32,11 @@ export class StartEndMarkers {
         let statistics = get(slicedGPXStatistics)?.[0] ?? get(gpxStatistics);
         if (statistics.local.points.length > 0 && tool !== Tool.ROUTING) {
             this.start.setLngLat(statistics.local.points[0].getCoordinates()).addTo(this.map);
-            this.end.setLngLat(statistics.local.points[statistics.local.points.length - 1].getCoordinates()).addTo(this.map);
+            this.end
+                .setLngLat(
+                    statistics.local.points[statistics.local.points.length - 1].getCoordinates()
+                )
+                .addTo(this.map);
         } else {
             this.start.remove();
             this.end.remove();
@@ -39,7 +44,7 @@ export class StartEndMarkers {
     }
 
     remove() {
-        this.unsubscribes.forEach(unsubscribe => unsubscribe());
+        this.unsubscribes.forEach((unsubscribe) => unsubscribe());
 
         this.start.remove();
         this.end.remove();

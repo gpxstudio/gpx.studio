@@ -34,19 +34,7 @@
             "type": "line",
             "source": "openmaptiles",
             "source-layer": "transportation",
-            "filter": [
-                "all",
-                [
-                    "==",
-                    "$type",
-                    "LineString"
-                ],
-                [
-                    "in",
-                    "class",
-                    "rail"
-                ]
-            ],
+            "filter": ["all", ["==", "$type", "LineString"], ["in", "class", "rail"]],
             "layout": {
                 "visibility": "none"
             },
@@ -61,11 +49,7 @@
             "source-layer": "transportation",
             "filter": [
                 "all",
-                [
-                    "==",
-                    "$type",
-                    "LineString"
-                ],
+                ["==", "$type", "LineString"],
                 [
                     "in",
                     "class",
@@ -87,14 +71,8 @@
                 "line-color": "rgba(204, 204, 204, 1)",
                 "line-width": {
                     "stops": [
-                        [
-                            10,
-                            0.5
-                        ],
-                        [
-                            12,
-                            1
-                        ]
+                        [10, 0.5],
+                        [12, 1]
                     ]
                 }
             }
@@ -107,68 +85,15 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    [
-                        "geometry-type"
-                    ],
-                    "LineString"
-                ],
-                [
-                    "match",
-                    [
-                        "get",
-                        "class"
-                    ],
-                    [
-                        "track"
-                    ],
-                    true,
-                    false
-                ],
+                ["==", ["geometry-type"], "LineString"],
+                ["match", ["get", "class"], ["track"], true, false],
                 [
                     "any",
-                    [
-                        "match",
-                        [
-                            "get",
-                            "tracktype"
-                        ],
-                        [
-                            "grade5"
-                        ],
-                        true,
-                        false
-                    ],
+                    ["match", ["get", "tracktype"], ["grade5"], true, false],
                     [
                         "all",
-                        [
-                            "match",
-                            [
-                                "get",
-                                "tracktype"
-                            ],
-                            [
-                                "grade4"
-                            ],
-                            true,
-                            false
-                        ],
-                        [
-                            "match",
-                            [
-                                "get",
-                                "surface"
-                            ],
-                            [
-                                "dirt",
-                                "grass",
-                                "mud",
-                                "sand"
-                            ],
-                            true,
-                            false
-                        ]
+                        ["match", ["get", "tracktype"], ["grade4"], true, false],
+                        ["match", ["get", "surface"], ["dirt", "grass", "mud", "sand"], true, false]
                     ]
                 ]
             ],
@@ -182,41 +107,18 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.4
-                        ],
-                        [
-                            12,
-                            1.3
-                        ],
-                        [
-                            14,
-                            1.7
-                        ]
+                        [10, 0.4],
+                        [12, 1.3],
+                        [14, 1.7]
                     ]
                 },
-                "line-dasharray": [
-                    1
-                ],
+                "line-dasharray": [1],
                 "line-offset": {
                     "stops": [
-                        [
-                            12,
-                            0
-                        ],
-                        [
-                            13,
-                            1.8
-                        ],
-                        [
-                            15,
-                            3
-                        ],
-                        [
-                            16,
-                            4
-                        ]
+                        [12, 0],
+                        [13, 1.8],
+                        [15, 3],
+                        [16, 4]
                     ],
                     "base": 1.55
                 }
@@ -230,68 +132,15 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    [
-                        "geometry-type"
-                    ],
-                    "LineString"
-                ],
-                [
-                    "match",
-                    [
-                        "get",
-                        "class"
-                    ],
-                    [
-                        "track"
-                    ],
-                    true,
-                    false
-                ],
+                ["==", ["geometry-type"], "LineString"],
+                ["match", ["get", "class"], ["track"], true, false],
                 [
                     "any",
-                    [
-                        "match",
-                        [
-                            "get",
-                            "tracktype"
-                        ],
-                        [
-                            "grade5"
-                        ],
-                        true,
-                        false
-                    ],
+                    ["match", ["get", "tracktype"], ["grade5"], true, false],
                     [
                         "all",
-                        [
-                            "match",
-                            [
-                                "get",
-                                "tracktype"
-                            ],
-                            [
-                                "grade4"
-                            ],
-                            true,
-                            false
-                        ],
-                        [
-                            "match",
-                            [
-                                "get",
-                                "surface"
-                            ],
-                            [
-                                "dirt",
-                                "grass",
-                                "mud",
-                                "sand"
-                            ],
-                            true,
-                            false
-                        ]
+                        ["match", ["get", "tracktype"], ["grade4"], true, false],
+                        ["match", ["get", "surface"], ["dirt", "grass", "mud", "sand"], true, false]
                     ]
                 ]
             ],
@@ -305,42 +154,18 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.4
-                        ],
-                        [
-                            12,
-                            1.3
-                        ],
-                        [
-                            14,
-                            1.7
-                        ]
+                        [10, 0.4],
+                        [12, 1.3],
+                        [14, 1.7]
                     ]
                 },
-                "line-dasharray": [
-                    2,
-                    2
-                ],
+                "line-dasharray": [2, 2],
                 "line-offset": {
                     "stops": [
-                        [
-                            12,
-                            0
-                        ],
-                        [
-                            13,
-                            1.8
-                        ],
-                        [
-                            15,
-                            3
-                        ],
-                        [
-                            16,
-                            4
-                        ]
+                        [12, 0],
+                        [13, 1.8],
+                        [15, 3],
+                        [16, 4]
                     ],
                     "base": 1.55
                 }
@@ -354,60 +179,16 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    [
-                        "geometry-type"
-                    ],
-                    "LineString"
-                ],
-                [
-                    "==",
-                    [
-                        "get",
-                        "class"
-                    ],
-                    "track"
-                ],
-                [
-                    "match",
-                    [
-                        "get",
-                        "tracktype"
-                    ],
-                    [
-                        "grade3"
-                    ],
-                    true,
-                    false
-                ],
+                ["==", ["geometry-type"], "LineString"],
+                ["==", ["get", "class"], "track"],
+                ["match", ["get", "tracktype"], ["grade3"], true, false],
                 [
                     "any",
+                    ["match", ["get", "smoothness"], ["bad", "good", "intermediate"], true, false],
                     [
                         "match",
-                        [
-                            "get",
-                            "smoothness"
-                        ],
-                        [
-                            "bad",
-                            "good",
-                            "intermediate"
-                        ],
-                        true,
-                        false
-                    ],
-                    [
-                        "match",
-                        [
-                            "get",
-                            "surface"
-                        ],
-                        [
-                            "compacted",
-                            "fine_gravel",
-                            "gravel"
-                        ],
+                        ["get", "surface"],
+                        ["compacted", "fine_gravel", "gravel"],
                         true,
                         false
                     ]
@@ -423,45 +204,21 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.4
-                        ],
-                        [
-                            12,
-                            1.3
-                        ],
-                        [
-                            14,
-                            1.7
-                        ]
+                        [10, 0.4],
+                        [12, 1.3],
+                        [14, 1.7]
                     ]
                 },
                 "line-offset": {
                     "stops": [
-                        [
-                            12,
-                            0
-                        ],
-                        [
-                            13,
-                            2
-                        ],
-                        [
-                            15,
-                            4
-                        ],
-                        [
-                            16,
-                            5
-                        ]
+                        [12, 0],
+                        [13, 2],
+                        [15, 4],
+                        [16, 5]
                     ],
                     "base": 1.55
                 },
-                "line-dasharray": [
-                    3,
-                    1.5
-                ]
+                "line-dasharray": [3, 1.5]
             }
         },
         {
@@ -472,47 +229,11 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    [
-                        "geometry-type"
-                    ],
-                    "LineString"
-                ],
-                [
-                    "==",
-                    [
-                        "get",
-                        "class"
-                    ],
-                    "track"
-                ],
-                [
-                    "match",
-                    [
-                        "get",
-                        "tracktype"
-                    ],
-                    [
-                        "grade2"
-                    ],
-                    true,
-                    false
-                ],
-                [
-                    "!",
-                    [
-                        "has",
-                        "surface"
-                    ]
-                ],
-                [
-                    "!",
-                    [
-                        "has",
-                        "smoothness"
-                    ]
-                ]
+                ["==", ["geometry-type"], "LineString"],
+                ["==", ["get", "class"], "track"],
+                ["match", ["get", "tracktype"], ["grade2"], true, false],
+                ["!", ["has", "surface"]],
+                ["!", ["has", "smoothness"]]
             ],
             "layout": {
                 "line-cap": "butt",
@@ -524,38 +245,17 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.8
-                        ],
-                        [
-                            12,
-                            3
-                        ],
-                        [
-                            14,
-                            4
-                        ]
+                        [10, 0.8],
+                        [12, 3],
+                        [14, 4]
                     ]
                 },
                 "line-offset": {
                     "stops": [
-                        [
-                            12,
-                            0
-                        ],
-                        [
-                            13,
-                            1.5
-                        ],
-                        [
-                            15,
-                            3
-                        ],
-                        [
-                            16,
-                            4
-                        ]
+                        [12, 0],
+                        [13, 1.5],
+                        [15, 3],
+                        [16, 4]
                     ],
                     "base": 1.55
                 }
@@ -569,47 +269,11 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    [
-                        "geometry-type"
-                    ],
-                    "LineString"
-                ],
-                [
-                    "==",
-                    [
-                        "get",
-                        "class"
-                    ],
-                    "track"
-                ],
-                [
-                    "match",
-                    [
-                        "get",
-                        "tracktype"
-                    ],
-                    [
-                        "grade2"
-                    ],
-                    true,
-                    false
-                ],
-                [
-                    "!",
-                    [
-                        "has",
-                        "surface"
-                    ]
-                ],
-                [
-                    "!",
-                    [
-                        "has",
-                        "smoothness"
-                    ]
-                ]
+                ["==", ["geometry-type"], "LineString"],
+                ["==", ["get", "class"], "track"],
+                ["match", ["get", "tracktype"], ["grade2"], true, false],
+                ["!", ["has", "surface"]],
+                ["!", ["has", "smoothness"]]
             ],
             "layout": {
                 "line-cap": "butt",
@@ -621,45 +285,21 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.5
-                        ],
-                        [
-                            12,
-                            1.5
-                        ],
-                        [
-                            14,
-                            2
-                        ]
+                        [10, 0.5],
+                        [12, 1.5],
+                        [14, 2]
                     ]
                 },
                 "line-offset": {
                     "stops": [
-                        [
-                            12,
-                            0
-                        ],
-                        [
-                            13,
-                            1.5
-                        ],
-                        [
-                            15,
-                            3
-                        ],
-                        [
-                            16,
-                            4
-                        ]
+                        [12, 0],
+                        [13, 1.5],
+                        [15, 3],
+                        [16, 4]
                     ],
                     "base": 1.55
                 },
-                "line-dasharray": [
-                    5,
-                    1
-                ]
+                "line-dasharray": [5, 1]
             }
         },
         {
@@ -670,63 +310,19 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    [
-                        "geometry-type"
-                    ],
-                    "LineString"
-                ],
-                [
-                    "==",
-                    [
-                        "get",
-                        "class"
-                    ],
-                    "track"
-                ],
-                [
-                    "match",
-                    [
-                        "get",
-                        "tracktype"
-                    ],
-                    [
-                        "grade2"
-                    ],
-                    true,
-                    false
-                ],
+                ["==", ["geometry-type"], "LineString"],
+                ["==", ["get", "class"], "track"],
+                ["match", ["get", "tracktype"], ["grade2"], true, false],
                 [
                     "any",
                     [
                         "match",
-                        [
-                            "get",
-                            "surface"
-                        ],
-                        [
-                            "compacted",
-                            "fine_gravel",
-                            "gravel"
-                        ],
+                        ["get", "surface"],
+                        ["compacted", "fine_gravel", "gravel"],
                         true,
                         false
                     ],
-                    [
-                        "match",
-                        [
-                            "get",
-                            "smoothness"
-                        ],
-                        [
-                            "bad",
-                            "good",
-                            "intermediate"
-                        ],
-                        true,
-                        false
-                    ]
+                    ["match", ["get", "smoothness"], ["bad", "good", "intermediate"], true, false]
                 ]
             ],
             "layout": {
@@ -739,38 +335,17 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.8
-                        ],
-                        [
-                            12,
-                            3
-                        ],
-                        [
-                            14,
-                            4
-                        ]
+                        [10, 0.8],
+                        [12, 3],
+                        [14, 4]
                     ]
                 },
                 "line-offset": {
                     "stops": [
-                        [
-                            12,
-                            0
-                        ],
-                        [
-                            13,
-                            2
-                        ],
-                        [
-                            15,
-                            4
-                        ],
-                        [
-                            16,
-                            5
-                        ]
+                        [12, 0],
+                        [13, 2],
+                        [15, 4],
+                        [16, 5]
                     ],
                     "base": 1.55
                 }
@@ -784,63 +359,19 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    [
-                        "geometry-type"
-                    ],
-                    "LineString"
-                ],
-                [
-                    "==",
-                    [
-                        "get",
-                        "class"
-                    ],
-                    "track"
-                ],
-                [
-                    "match",
-                    [
-                        "get",
-                        "tracktype"
-                    ],
-                    [
-                        "grade2"
-                    ],
-                    true,
-                    false
-                ],
+                ["==", ["geometry-type"], "LineString"],
+                ["==", ["get", "class"], "track"],
+                ["match", ["get", "tracktype"], ["grade2"], true, false],
                 [
                     "any",
                     [
                         "match",
-                        [
-                            "get",
-                            "surface"
-                        ],
-                        [
-                            "compacted",
-                            "fine_gravel",
-                            "gravel"
-                        ],
+                        ["get", "surface"],
+                        ["compacted", "fine_gravel", "gravel"],
                         true,
                         false
                     ],
-                    [
-                        "match",
-                        [
-                            "get",
-                            "smoothness"
-                        ],
-                        [
-                            "bad",
-                            "good",
-                            "intermediate"
-                        ],
-                        true,
-                        false
-                    ]
+                    ["match", ["get", "smoothness"], ["bad", "good", "intermediate"], true, false]
                 ]
             ],
             "layout": {
@@ -853,38 +384,17 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.5
-                        ],
-                        [
-                            12,
-                            1.5
-                        ],
-                        [
-                            14,
-                            2
-                        ]
+                        [10, 0.5],
+                        [12, 1.5],
+                        [14, 2]
                     ]
                 },
                 "line-offset": {
                     "stops": [
-                        [
-                            12,
-                            0
-                        ],
-                        [
-                            13,
-                            2
-                        ],
-                        [
-                            15,
-                            4
-                        ],
-                        [
-                            16,
-                            5
-                        ]
+                        [12, 0],
+                        [13, 2],
+                        [15, 4],
+                        [16, 5]
                     ],
                     "base": 1.55
                 }
@@ -898,30 +408,10 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    "$type",
-                    "LineString"
-                ],
-                [
-                    "in",
-                    "class",
-                    "path"
-                ],
-                [
-                    "in",
-                    "smoothness",
-                    "very_bad",
-                    "horrible",
-                    "very_horrible",
-                    "impassable"
-                ],
-                [
-                    "!in",
-                    "tracktype",
-                    "grade5",
-                    "grade4"
-                ]
+                ["==", "$type", "LineString"],
+                ["in", "class", "path"],
+                ["in", "smoothness", "very_bad", "horrible", "very_horrible", "impassable"],
+                ["!in", "tracktype", "grade5", "grade4"]
             ],
             "layout": {
                 "line-cap": "square",
@@ -933,38 +423,17 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.4
-                        ],
-                        [
-                            12,
-                            1.1
-                        ],
-                        [
-                            14,
-                            1.5
-                        ]
+                        [10, 0.4],
+                        [12, 1.1],
+                        [14, 1.5]
                     ]
                 },
                 "line-offset": {
                     "stops": [
-                        [
-                            12,
-                            0
-                        ],
-                        [
-                            13,
-                            1.8
-                        ],
-                        [
-                            15,
-                            3
-                        ],
-                        [
-                            16,
-                            4
-                        ]
+                        [12, 0],
+                        [13, 1.8],
+                        [15, 3],
+                        [16, 4]
                     ],
                     "base": 1.55
                 }
@@ -978,30 +447,10 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    "$type",
-                    "LineString"
-                ],
-                [
-                    "in",
-                    "class",
-                    "path"
-                ],
-                [
-                    "in",
-                    "smoothness",
-                    "very_bad",
-                    "horrible",
-                    "very_horrible",
-                    "impassable"
-                ],
-                [
-                    "!in",
-                    "tracktype",
-                    "grade5",
-                    "grade4"
-                ]
+                ["==", "$type", "LineString"],
+                ["in", "class", "path"],
+                ["in", "smoothness", "very_bad", "horrible", "very_horrible", "impassable"],
+                ["!in", "tracktype", "grade5", "grade4"]
             ],
             "layout": {
                 "line-cap": "square",
@@ -1013,42 +462,18 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.4
-                        ],
-                        [
-                            12,
-                            1.1
-                        ],
-                        [
-                            14,
-                            1.5
-                        ]
+                        [10, 0.4],
+                        [12, 1.1],
+                        [14, 1.5]
                     ]
                 },
-                "line-dasharray": [
-                    2,
-                    2
-                ],
+                "line-dasharray": [2, 2],
                 "line-offset": {
                     "stops": [
-                        [
-                            12,
-                            0
-                        ],
-                        [
-                            13,
-                            1.8
-                        ],
-                        [
-                            15,
-                            3
-                        ],
-                        [
-                            16,
-                            4
-                        ]
+                        [12, 0],
+                        [13, 1.8],
+                        [15, 3],
+                        [16, 4]
                     ],
                     "base": 1.55
                 }
@@ -1062,23 +487,9 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    "$type",
-                    "LineString"
-                ],
-                [
-                    "==",
-                    "class",
-                    "path"
-                ],
-                [
-                    "in",
-                    "smoothness",
-                    "good",
-                    "intermediate",
-                    "bad"
-                ],
+                ["==", "$type", "LineString"],
+                ["==", "class", "path"],
+                ["in", "smoothness", "good", "intermediate", "bad"],
                 [
                     "!in",
                     "surface",
@@ -1090,16 +501,8 @@
                     "unhewn_cobblestone",
                     "paving_stones"
                 ],
-                [
-                    "!in",
-                    "bicycle",
-                    "no"
-                ],
-                [
-                    "!in",
-                    "access",
-                    "no"
-                ]
+                ["!in", "bicycle", "no"],
+                ["!in", "access", "no"]
             ],
             "layout": {
                 "line-cap": "butt",
@@ -1111,45 +514,21 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.4
-                        ],
-                        [
-                            12,
-                            1.1
-                        ],
-                        [
-                            14,
-                            1.5
-                        ]
+                        [10, 0.4],
+                        [12, 1.1],
+                        [14, 1.5]
                     ]
                 },
                 "line-offset": {
                     "stops": [
-                        [
-                            12,
-                            0
-                        ],
-                        [
-                            13,
-                            2
-                        ],
-                        [
-                            15,
-                            4
-                        ],
-                        [
-                            16,
-                            5
-                        ]
+                        [12, 0],
+                        [13, 2],
+                        [15, 4],
+                        [16, 5]
                     ],
                     "base": 1.55
                 },
-                "line-dasharray": [
-                    1.5,
-                    1
-                ]
+                "line-dasharray": [1.5, 1]
             }
         },
         {
@@ -1163,90 +542,25 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    [
-                        "geometry-type"
-                    ],
-                    "LineString"
-                ],
-                [
-                    "==",
-                    [
-                        "get",
-                        "class"
-                    ],
-                    "path"
-                ],
+                ["==", ["geometry-type"], "LineString"],
+                ["==", ["get", "class"], "path"],
                 [
                     "any",
-                    [
-                        "match",
-                        [
-                            "get",
-                            "surface"
-                        ],
-                        [
-                            "compacted",
-                            "fine_gravel"
-                        ],
-                        true,
-                        false
-                    ],
+                    ["match", ["get", "surface"], ["compacted", "fine_gravel"], true, false],
                     [
                         "all",
+                        ["match", ["get", "surface"], ["gravel"], true, false],
                         [
                             "match",
-                            [
-                                "get",
-                                "surface"
-                            ],
-                            [
-                                "gravel"
-                            ],
-                            true,
-                            false
-                        ],
-                        [
-                            "match",
-                            [
-                                "get",
-                                "smoothness"
-                            ],
-                            [
-                                "bad",
-                                "good",
-                                "intermediate"
-                            ],
+                            ["get", "smoothness"],
+                            ["bad", "good", "intermediate"],
                             true,
                             false
                         ]
                     ]
                 ],
-                [
-                    "match",
-                    [
-                        "get",
-                        "bicycle"
-                    ],
-                    [
-                        "no"
-                    ],
-                    false,
-                    true
-                ],
-                [
-                    "match",
-                    [
-                        "get",
-                        "access"
-                    ],
-                    [
-                        "no"
-                    ],
-                    false,
-                    true
-                ]
+                ["match", ["get", "bicycle"], ["no"], false, true],
+                ["match", ["get", "access"], ["no"], false, true]
             ],
             "layout": {
                 "line-cap": "butt",
@@ -1258,38 +572,17 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.7
-                        ],
-                        [
-                            12,
-                            2.5
-                        ],
-                        [
-                            14,
-                            3.2
-                        ]
+                        [10, 0.7],
+                        [12, 2.5],
+                        [14, 3.2]
                     ]
                 },
                 "line-offset": {
                     "stops": [
-                        [
-                            12,
-                            0
-                        ],
-                        [
-                            13,
-                            2
-                        ],
-                        [
-                            15,
-                            4
-                        ],
-                        [
-                            16,
-                            5
-                        ]
+                        [12, 0],
+                        [13, 2],
+                        [15, 4],
+                        [16, 5]
                     ],
                     "base": 1.55
                 }
@@ -1306,90 +599,25 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    [
-                        "geometry-type"
-                    ],
-                    "LineString"
-                ],
-                [
-                    "==",
-                    [
-                        "get",
-                        "class"
-                    ],
-                    "path"
-                ],
+                ["==", ["geometry-type"], "LineString"],
+                ["==", ["get", "class"], "path"],
                 [
                     "any",
-                    [
-                        "match",
-                        [
-                            "get",
-                            "surface"
-                        ],
-                        [
-                            "compacted",
-                            "fine_gravel"
-                        ],
-                        true,
-                        false
-                    ],
+                    ["match", ["get", "surface"], ["compacted", "fine_gravel"], true, false],
                     [
                         "all",
+                        ["match", ["get", "surface"], ["gravel"], true, false],
                         [
                             "match",
-                            [
-                                "get",
-                                "surface"
-                            ],
-                            [
-                                "gravel"
-                            ],
-                            true,
-                            false
-                        ],
-                        [
-                            "match",
-                            [
-                                "get",
-                                "smoothness"
-                            ],
-                            [
-                                "bad",
-                                "good",
-                                "intermediate"
-                            ],
+                            ["get", "smoothness"],
+                            ["bad", "good", "intermediate"],
                             true,
                             false
                         ]
                     ]
                 ],
-                [
-                    "match",
-                    [
-                        "get",
-                        "bicycle"
-                    ],
-                    [
-                        "no"
-                    ],
-                    false,
-                    true
-                ],
-                [
-                    "match",
-                    [
-                        "get",
-                        "access"
-                    ],
-                    [
-                        "no"
-                    ],
-                    false,
-                    true
-                ]
+                ["match", ["get", "bicycle"], ["no"], false, true],
+                ["match", ["get", "access"], ["no"], false, true]
             ],
             "layout": {
                 "line-cap": "butt",
@@ -1401,38 +629,17 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.5
-                        ],
-                        [
-                            12,
-                            1.5
-                        ],
-                        [
-                            14,
-                            2
-                        ]
+                        [10, 0.5],
+                        [12, 1.5],
+                        [14, 2]
                     ]
                 },
                 "line-offset": {
                     "stops": [
-                        [
-                            12,
-                            0
-                        ],
-                        [
-                            13,
-                            2
-                        ],
-                        [
-                            15,
-                            4
-                        ],
-                        [
-                            16,
-                            5
-                        ]
+                        [12, 0],
+                        [13, 2],
+                        [15, 4],
+                        [16, 5]
                     ],
                     "base": 1.55
                 }
@@ -1446,32 +653,10 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    "$type",
-                    "LineString"
-                ],
-                [
-                    "in",
-                    "class",
-                    "minor",
-                    "service",
-                    "track",
-                    "path",
-                    "residential"
-                ],
-                [
-                    "in",
-                    "surface",
-                    "sett",
-                    "cobblestone",
-                    "unhewn_cobblestone"
-                ],
-                [
-                    "!in",
-                    "service",
-                    "driveway"
-                ]
+                ["==", "$type", "LineString"],
+                ["in", "class", "minor", "service", "track", "path", "residential"],
+                ["in", "surface", "sett", "cobblestone", "unhewn_cobblestone"],
+                ["!in", "service", "driveway"]
             ],
             "layout": {
                 "line-cap": "butt",
@@ -1483,18 +668,9 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.5
-                        ],
-                        [
-                            12,
-                            1.5
-                        ],
-                        [
-                            14,
-                            2
-                        ]
+                        [10, 0.5],
+                        [12, 1.5],
+                        [14, 2]
                     ]
                 }
             }
@@ -1507,32 +683,10 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    "$type",
-                    "LineString"
-                ],
-                [
-                    "in",
-                    "class",
-                    "minor",
-                    "service",
-                    "track",
-                    "path",
-                    "residential"
-                ],
-                [
-                    "in",
-                    "surface",
-                    "sett",
-                    "cobblestone",
-                    "unhewn_cobblestone"
-                ],
-                [
-                    "!in",
-                    "service",
-                    "driveway"
-                ]
+                ["==", "$type", "LineString"],
+                ["in", "class", "minor", "service", "track", "path", "residential"],
+                ["in", "surface", "sett", "cobblestone", "unhewn_cobblestone"],
+                ["!in", "service", "driveway"]
             ],
             "layout": {
                 "line-cap": "butt",
@@ -1544,24 +698,12 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.5
-                        ],
-                        [
-                            12,
-                            1.5
-                        ],
-                        [
-                            14,
-                            2
-                        ]
+                        [10, 0.5],
+                        [12, 1.5],
+                        [14, 2]
                     ]
                 },
-                "line-dasharray": [
-                    1.5,
-                    1
-                ]
+                "line-dasharray": [1.5, 1]
             }
         },
         {
@@ -1572,31 +714,10 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    "$type",
-                    "LineString"
-                ],
-                [
-                    "in",
-                    "class",
-                    "minor"
-                ],
-                [
-                    "in",
-                    "smoothness",
-                    "very_bad",
-                    "horrible",
-                    "very_horrible",
-                    "impassable"
-                ],
-                [
-                    "!in",
-                    "surface",
-                    "sett",
-                    "cobblestone",
-                    "unhewn_cobblestone"
-                ]
+                ["==", "$type", "LineString"],
+                ["in", "class", "minor"],
+                ["in", "smoothness", "very_bad", "horrible", "very_horrible", "impassable"],
+                ["!in", "surface", "sett", "cobblestone", "unhewn_cobblestone"]
             ],
             "layout": {
                 "line-cap": "square",
@@ -1608,18 +729,9 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.4
-                        ],
-                        [
-                            12,
-                            1.1
-                        ],
-                        [
-                            14,
-                            1.5
-                        ]
+                        [10, 0.4],
+                        [12, 1.1],
+                        [14, 1.5]
                     ]
                 }
             }
@@ -1632,31 +744,10 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    "$type",
-                    "LineString"
-                ],
-                [
-                    "in",
-                    "class",
-                    "minor"
-                ],
-                [
-                    "in",
-                    "smoothness",
-                    "very_bad",
-                    "horrible",
-                    "very_horrible",
-                    "impassable"
-                ],
-                [
-                    "!in",
-                    "surface",
-                    "sett",
-                    "cobblestone",
-                    "unhewn_cobblestone"
-                ]
+                ["==", "$type", "LineString"],
+                ["in", "class", "minor"],
+                ["in", "smoothness", "very_bad", "horrible", "very_horrible", "impassable"],
+                ["!in", "surface", "sett", "cobblestone", "unhewn_cobblestone"]
             ],
             "layout": {
                 "line-cap": "square",
@@ -1668,24 +759,12 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.4
-                        ],
-                        [
-                            12,
-                            1.1
-                        ],
-                        [
-                            14,
-                            1.5
-                        ]
+                        [10, 0.4],
+                        [12, 1.1],
+                        [14, 1.5]
                     ]
                 },
-                "line-dasharray": [
-                    2,
-                    2
-                ]
+                "line-dasharray": [2, 2]
             }
         },
         {
@@ -1696,33 +775,10 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    "$type",
-                    "LineString"
-                ],
-                [
-                    "in",
-                    "class",
-                    "minor",
-                    "residential",
-                    "service"
-                ],
-                [
-                    "in",
-                    "surface",
-                    "gravel",
-                    "compacted",
-                    "fine_gravel"
-                ],
-                [
-                    "!in",
-                    "service",
-                    "driveway",
-                    "parking_aisle",
-                    "drive-through",
-                    "emergency_access"
-                ]
+                ["==", "$type", "LineString"],
+                ["in", "class", "minor", "residential", "service"],
+                ["in", "surface", "gravel", "compacted", "fine_gravel"],
+                ["!in", "service", "driveway", "parking_aisle", "drive-through", "emergency_access"]
             ],
             "layout": {
                 "line-cap": "square",
@@ -1734,18 +790,9 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.8
-                        ],
-                        [
-                            12,
-                            3
-                        ],
-                        [
-                            14,
-                            4
-                        ]
+                        [10, 0.8],
+                        [12, 3],
+                        [14, 4]
                     ]
                 }
             }
@@ -1758,33 +805,10 @@
             "minzoom": 10,
             "filter": [
                 "all",
-                [
-                    "==",
-                    "$type",
-                    "LineString"
-                ],
-                [
-                    "in",
-                    "class",
-                    "minor",
-                    "residential",
-                    "service"
-                ],
-                [
-                    "in",
-                    "surface",
-                    "gravel",
-                    "compacted",
-                    "fine_gravel"
-                ],
-                [
-                    "!in",
-                    "service",
-                    "driveway",
-                    "parking_aisle",
-                    "drive-through",
-                    "emergency_access"
-                ]
+                ["==", "$type", "LineString"],
+                ["in", "class", "minor", "residential", "service"],
+                ["in", "surface", "gravel", "compacted", "fine_gravel"],
+                ["!in", "service", "driveway", "parking_aisle", "drive-through", "emergency_access"]
             ],
             "layout": {
                 "line-cap": "square",
@@ -1796,18 +820,9 @@
                 "line-width": {
                     "base": 1.55,
                     "stops": [
-                        [
-                            10,
-                            0.5
-                        ],
-                        [
-                            12,
-                            1.5
-                        ],
-                        [
-                            14,
-                            2
-                        ]
+                        [10, 0.5],
+                        [12, 1.5],
+                        [14, 2]
                     ]
                 }
             }
@@ -1817,14 +832,7 @@
             "type": "symbol",
             "source": "openmaptiles",
             "source-layer": "landuse",
-            "filter": [
-                "all",
-                [
-                    "==",
-                    "class",
-                    "cemetery"
-                ]
-            ],
+            "filter": ["all", ["==", "class", "cemetery"]],
             "layout": {
                 "icon-image": "cemetery_11",
                 "icon-rotation-alignment": "map",
@@ -1840,16 +848,8 @@
             "maxzoom": 20,
             "filter": [
                 "any",
-                [
-                    "==",
-                    "class",
-                    "drinking_water"
-                ],
-                [
-                    "==",
-                    "subclass",
-                    "drinking_water"
-                ]
+                ["==", "class", "drinking_water"],
+                ["==", "subclass", "drinking_water"]
             ],
             "layout": {
                 "icon-image": "drinking_water_11",

@@ -39,14 +39,14 @@ export const defaultEmbeddingOptions = {
         hr: false,
         cad: false,
         temp: false,
-        power: false
+        power: false,
     },
     distanceMarkers: false,
     directionMarkers: false,
     distanceUnits: 'metric',
     velocityUnits: 'speed',
     temperatureUnits: 'celsius',
-    theme: 'system'
+    theme: 'system',
 };
 
 export function getDefaultEmbeddingOptions(): EmbeddingOptions {
@@ -59,7 +59,11 @@ export function getMergedEmbeddingOptions(
 ): EmbeddingOptions {
     const mergedOptions = JSON.parse(JSON.stringify(defaultOptions));
     for (const key in options) {
-        if (typeof options[key] === 'object' && options[key] !== null && !Array.isArray(options[key])) {
+        if (
+            typeof options[key] === 'object' &&
+            options[key] !== null &&
+            !Array.isArray(options[key])
+        ) {
             mergedOptions[key] = getMergedEmbeddingOptions(options[key], defaultOptions[key]);
         } else {
             mergedOptions[key] = options[key];
@@ -79,7 +83,10 @@ export function getCleanedEmbeddingOptions(
             cleanedOptions[key] !== null &&
             !Array.isArray(cleanedOptions[key])
         ) {
-            cleanedOptions[key] = getCleanedEmbeddingOptions(cleanedOptions[key], defaultOptions[key]);
+            cleanedOptions[key] = getCleanedEmbeddingOptions(
+                cleanedOptions[key],
+                defaultOptions[key]
+            );
             if (Object.keys(cleanedOptions[key]).length === 0) {
                 delete cleanedOptions[key];
             }
@@ -141,7 +148,7 @@ export function convertOldEmbeddingOptions(options: URLSearchParams): any {
     }
     if (options.has('slope')) {
         newOptions.elevation = {
-            fill: 'slope'
+            fill: 'slope',
         };
     }
     return newOptions;

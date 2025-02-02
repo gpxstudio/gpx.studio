@@ -1,12 +1,23 @@
-import { get, writable } from "svelte/store";
-import { ListFileItem, ListItem, ListRootItem, ListTrackItem, ListTrackSegmentItem, ListWaypointItem, ListLevel, sortItems, ListWaypointsItem, moveItems } from "./FileList";
-import { fileObservers, getFile, getFileIds, settings } from "$lib/db";
+import { get, writable } from 'svelte/store';
+import {
+    ListFileItem,
+    ListItem,
+    ListRootItem,
+    ListTrackItem,
+    ListTrackSegmentItem,
+    ListWaypointItem,
+    ListLevel,
+    sortItems,
+    ListWaypointsItem,
+    moveItems,
+} from './FileList';
+import { fileObservers, getFile, getFileIds, settings } from '$lib/db';
 
 export class SelectionTreeType {
     item: ListItem;
     selected: boolean;
     children: {
-        [key: string | number]: SelectionTreeType
+        [key: string | number]: SelectionTreeType;
     };
     size: number = 0;
 
@@ -67,7 +78,11 @@ export class SelectionTreeType {
     }
 
     hasAnyParent(item: ListItem, self: boolean = true): boolean {
-        if (this.selected && this.item.level <= item.level && (self || this.item.level < item.level)) {
+        if (
+            this.selected &&
+            this.item.level <= item.level &&
+            (self || this.item.level < item.level)
+        ) {
             return this.selected;
         }
         let id = item.getIdAtLevel(this.item.level);
@@ -80,7 +95,11 @@ export class SelectionTreeType {
     }
 
     hasAnyChildren(item: ListItem, self: boolean = true, ignoreIds?: (string | number)[]): boolean {
-        if (this.selected && this.item.level >= item.level && (self || this.item.level > item.level)) {
+        if (
+            this.selected &&
+            this.item.level >= item.level &&
+            (self || this.item.level > item.level)
+        ) {
             return this.selected;
         }
         let id = item.getIdAtLevel(this.item.level);
@@ -131,7 +150,7 @@ export class SelectionTreeType {
             delete this.children[id];
         }
     }
-};
+}
 
 export const selection = writable<SelectionTreeType>(new SelectionTreeType(new ListRootItem()));
 
@@ -181,7 +200,10 @@ export function selectAll() {
             let file = getFile(item.getFileId());
             if (file) {
                 file.trk[item.getTrackIndex()].trkseg.forEach((_segment, segmentId) => {
-                    $selection.set(new ListTrackSegmentItem(item.getFileId(), item.getTrackIndex(), segmentId), true);
+                    $selection.set(
+                        new ListTrackSegmentItem(item.getFileId(), item.getTrackIndex(), segmentId),
+                        true
+                    );
                 });
             }
         } else if (item instanceof ListWaypointItem) {
@@ -205,14 +227,24 @@ export function getOrderedSelection(reverse: boolean = false): ListItem[] {
     return selected;
 }
 
-export function applyToOrderedItemsFromFile(selectedItems: ListItem[], callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void, reverse: boolean = true) {
+export function applyToOrderedItemsFromFile(
+    selectedItems: ListItem[],
+    callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void,
+    reverse: boolean = true
+) {
     get(settings.fileOrder).forEach((fileId) => {
         let level: ListLevel | undefined = undefined;
         let items: ListItem[] = [];
         selectedItems.forEach((item) => {
             if (item.getFileId() === fileId) {
                 level = item.level;
-                if (item instanceof ListFileItem || item instanceof ListTrackItem || item instanceof ListTrackSegmentItem || item instanceof ListWaypointsItem || item instanceof ListWaypointItem) {
+                if (
+                    item instanceof ListFileItem ||
+                    item instanceof ListTrackItem ||
+                    item instanceof ListTrackSegmentItem ||
+                    item instanceof ListWaypointsItem ||
+                    item instanceof ListWaypointItem
+                ) {
                     items.push(item);
                 }
             }
@@ -225,7 +257,10 @@ export function applyToOrderedItemsFromFile(selectedItems: ListItem[], callback:
     });
 }
 
-export function applyToOrderedSelectedItemsFromFile(callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void, reverse: boolean = true) {
+export function applyToOrderedSelectedItemsFromFile(
+    callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void,
+    reverse: boolean = true
+) {
     applyToOrderedItemsFromFile(get(selection).getSelected(), callback, reverse);
 }
 
@@ -270,7 +305,11 @@ export function pasteSelection() {
     let startIndex: number | undefined = undefined;
 
     if (fromItems[0].level === toParent.level) {
-        if (toParent instanceof ListTrackItem || toParent instanceof ListTrackSegmentItem || toParent instanceof ListWaypointItem) {
+        if (
+            toParent instanceof ListTrackItem ||
+            toParent instanceof ListTrackSegmentItem ||
+            toParent instanceof ListWaypointItem
+        ) {
             startIndex = toParent.getId() + 1;
         }
         toParent = toParent.getParent();
@@ -288,20 +327,41 @@ export function pasteSelection() {
             fromItems.forEach((item, index) => {
                 if (toParent instanceof ListFileItem) {
                     if (item instanceof ListTrackItem || item instanceof ListTrackSegmentItem) {
-                        toItems.push(new ListTrackItem(toParent.getFileId(), (startIndex ?? toFile.trk.length) + index));
+                        toItems.push(
+                            new ListTrackItem(
+                                toParent.getFileId(),
+                                (startIndex ?? toFile.trk.length) + index
+                            )
+                        );
                     } else if (item instanceof ListWaypointsItem) {
                         toItems.push(new ListWaypointsItem(toParent.getFileId()));
                     } else if (item instanceof ListWaypointItem) {
-                        toItems.push(new ListWaypointItem(toParent.getFileId(), (startIndex ?? toFile.wpt.length) + index));
+                        toItems.push(
+                            new ListWaypointItem(
+                                toParent.getFileId(),
+                                (startIndex ?? toFile.wpt.length) + index
+                            )
+                        );
                     }
                 } else if (toParent instanceof ListTrackItem) {
                     if (item instanceof ListTrackSegmentItem) {
                         let toTrackIndex = toParent.getTrackIndex();
-                        toItems.push(new ListTrackSegmentItem(toParent.getFileId(), toTrackIndex, (startIndex ?? toFile.trk[toTrackIndex].trkseg.length) + index));
+                        toItems.push(
+                            new ListTrackSegmentItem(
+                                toParent.getFileId(),
+                                toTrackIndex,
+                                (startIndex ?? toFile.trk[toTrackIndex].trkseg.length) + index
+                            )
+                        );
                     }
                 } else if (toParent instanceof ListWaypointsItem) {
                     if (item instanceof ListWaypointItem) {
-                        toItems.push(new ListWaypointItem(toParent.getFileId(), (startIndex ?? toFile.wpt.length) + index));
+                        toItems.push(
+                            new ListWaypointItem(
+                                toParent.getFileId(),
+                                (startIndex ?? toFile.wpt.length) + index
+                            )
+                        );
                     }
                 }
             });

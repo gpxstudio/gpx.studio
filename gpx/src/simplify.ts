@@ -1,33 +1,48 @@
-import { TrackPoint } from "./gpx";
-import { Coordinates } from "./types";
+import { TrackPoint } from './gpx';
+import { Coordinates } from './types';
 
-export type SimplifiedTrackPoint = { point: TrackPoint, distance?: number };
+export type SimplifiedTrackPoint = { point: TrackPoint; distance?: number };
 
 const earthRadius = 6371008.8;
 
-export function ramerDouglasPeucker(points: TrackPoint[], epsilon: number = 50, measure: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => number = crossarcDistance): SimplifiedTrackPoint[] {
+export function ramerDouglasPeucker(
+    points: TrackPoint[],
+    epsilon: number = 50,
+    measure: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => number = crossarcDistance
+): SimplifiedTrackPoint[] {
     if (points.length == 0) {
         return [];
     } else if (points.length == 1) {
-        return [{
-            point: points[0]
-        }];
+        return [
+            {
+                point: points[0],
+            },
+        ];
     }
 
-    let simplified = [{
-        point: points[0]
-    }];
+    let simplified = [
+        {
+            point: points[0],
+        },
+    ];
     ramerDouglasPeuckerRecursive(points, epsilon, measure, 0, points.length - 1, simplified);
     simplified.push({
-        point: points[points.length - 1]
+        point: points[points.length - 1],
     });
     return simplified;
 }
 
-function ramerDouglasPeuckerRecursive(points: TrackPoint[], epsilon: number, measure: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => number, start: number, end: number, simplified: SimplifiedTrackPoint[]) {
+function ramerDouglasPeuckerRecursive(
+    points: TrackPoint[],
+    epsilon: number,
+    measure: (a: TrackPoint, b: TrackPoint, c: TrackPoint) => number,
+    start: number,
+    end: number,
+    simplified: SimplifiedTrackPoint[]
+) {
     let largest = {
         index: 0,
-        distance: 0
+        distance: 0,
     };
 
     for (let i = start + 1; i < end; i++) {
@@ -45,12 +60,20 @@ function ramerDouglasPeuckerRecursive(points: TrackPoint[], epsilon: number, mea
     }
 }
 
-export function crossarcDistance(point1: TrackPoint, point2: TrackPoint, point3: TrackPoint | Coordinates): number {
-    return crossarc(point1.getCoordinates(), point2.getCoordinates(), point3 instanceof TrackPoint ? point3.getCoordinates() : point3);
+export function crossarcDistance(
+    point1: TrackPoint,
+    point2: TrackPoint,
+    point3: TrackPoint | Coordinates
+): number {
+    return crossarc(
+        point1.getCoordinates(),
+        point2.getCoordinates(),
+        point3 instanceof TrackPoint ? point3.getCoordinates() : point3
+    );
 }
 
 function crossarc(coord1: Coordinates, coord2: Coordinates, coord3: Coordinates): number {
-    // Calculates the shortest distance in meters 
+    // Calculates the shortest distance in meters
     // between an arc (defined by p1 and p2) and a third point, p3.
     // Input lat1,lon1,lat2,lon2,lat3,lon3 in degrees.
 
@@ -74,7 +97,7 @@ function crossarc(coord1: Coordinates, coord2: Coordinates, coord3: Coordinates)
     }
 
     // Is relative bearing obtuse?
-    if (diff > (Math.PI / 2)) {
+    if (diff > Math.PI / 2) {
         return dis13;
     }
 
@@ -83,7 +106,8 @@ function crossarc(coord1: Coordinates, coord2: Coordinates, coord3: Coordinates)
 
     // Is p4 beyond the arc?
     let dis12 = distance(lat1, lon1, lat2, lon2);
-    let dis14 = Math.acos(Math.cos(dis13 / earthRadius) / Math.cos(dxt / earthRadius)) * earthRadius;
+    let dis14 =
+        Math.acos(Math.cos(dis13 / earthRadius) / Math.cos(dxt / earthRadius)) * earthRadius;
     if (dis14 > dis12) {
         return distance(lat2, lon2, lat3, lon3);
     } else {
@@ -93,18 +117,32 @@ function crossarc(coord1: Coordinates, coord2: Coordinates, coord3: Coordinates)
 
 function distance(latA: number, lonA: number, latB: number, lonB: number): number {
     // Finds the distance between two lat / lon points.
-    return Math.acos(Math.sin(latA) * Math.sin(latB) + Math.cos(latA) * Math.cos(latB) * Math.cos(lonB - lonA)) * earthRadius;
+    return (
+        Math.acos(
+            Math.sin(latA) * Math.sin(latB) +
+                Math.cos(latA) * Math.cos(latB) * Math.cos(lonB - lonA)
+        ) * earthRadius
+    );
 }
-
 
 function bearing(latA: number, lonA: number, latB: number, lonB: number): number {
     // Finds the bearing from one lat / lon point to another.
-    return Math.atan2(Math.sin(lonB - lonA) * Math.cos(latB),
-        Math.cos(latA) * Math.sin(latB) - Math.sin(latA) * Math.cos(latB) * Math.cos(lonB - lonA));
+    return Math.atan2(
+        Math.sin(lonB - lonA) * Math.cos(latB),
+        Math.cos(latA) * Math.sin(latB) - Math.sin(latA) * Math.cos(latB) * Math.cos(lonB - lonA)
+    );
 }
 
-export function projectedPoint(point1: TrackPoint, point2: TrackPoint, point3: TrackPoint | Coordinates): Coordinates {
-    return projected(point1.getCoordinates(), point2.getCoordinates(), point3 instanceof TrackPoint ? point3.getCoordinates() : point3);
+export function projectedPoint(
+    point1: TrackPoint,
+    point2: TrackPoint,
+    point3: TrackPoint | Coordinates
+): Coordinates {
+    return projected(
+        point1.getCoordinates(),
+        point2.getCoordinates(),
+        point3 instanceof TrackPoint ? point3.getCoordinates() : point3
+    );
 }
 
 function projected(coord1: Coordinates, coord2: Coordinates, coord3: Coordinates): Coordinates {
@@ -132,7 +170,7 @@ function projected(coord1: Coordinates, coord2: Coordinates, coord3: Coordinates
     }
 
     // Is relative bearing obtuse?
-    if (diff > (Math.PI / 2)) {
+    if (diff > Math.PI / 2) {
         return coord1;
     }
 
@@ -141,14 +179,22 @@ function projected(coord1: Coordinates, coord2: Coordinates, coord3: Coordinates
 
     // Is p4 beyond the arc?
     let dis12 = distance(lat1, lon1, lat2, lon2);
-    let dis14 = Math.acos(Math.cos(dis13 / earthRadius) / Math.cos(dxt / earthRadius)) * earthRadius;
+    let dis14 =
+        Math.acos(Math.cos(dis13 / earthRadius) / Math.cos(dxt / earthRadius)) * earthRadius;
     if (dis14 > dis12) {
         return coord2;
     } else {
         // Determine the closest point (p4) on the great circle
         const f = dis14 / earthRadius;
-        const lat4 = Math.asin(Math.sin(lat1) * Math.cos(f) + Math.cos(lat1) * Math.sin(f) * Math.cos(bear12));
-        const lon4 = lon1 + Math.atan2(Math.sin(bear12) * Math.sin(f) * Math.cos(lat1), Math.cos(f) - Math.sin(lat1) * Math.sin(lat4));
+        const lat4 = Math.asin(
+            Math.sin(lat1) * Math.cos(f) + Math.cos(lat1) * Math.sin(f) * Math.cos(bear12)
+        );
+        const lon4 =
+            lon1 +
+            Math.atan2(
+                Math.sin(bear12) * Math.sin(f) * Math.cos(lat1),
+                Math.cos(f) - Math.sin(lat1) * Math.sin(lat4)
+            );
 
         return { lat: lat4 / rad, lon: lon4 / rad };
     }

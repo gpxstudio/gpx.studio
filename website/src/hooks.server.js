@@ -46,7 +46,8 @@ export async function handle({ event, resolve }) {
     }
 
     const response = await resolve(event, {
-        transformPageChunk: ({ html }) => html.replace('<html>', htmlTag).replace('<head>', headTag),
+        transformPageChunk: ({ html }) =>
+            html.replace('<html>', htmlTag).replace('<head>', headTag),
     });
 
     return response;

@@ -1,12 +1,14 @@
-import mapboxgl, { type LayerSpecification, type VectorSourceSpecification } from "mapbox-gl";
+import mapboxgl, { type LayerSpecification, type VectorSourceSpecification } from 'mapbox-gl';
 import { Viewer, type ViewerBearingEvent } from 'mapillary-js/dist/mapillary.module';
 import 'mapillary-js/dist/mapillary.css';
-import { resetCursor, setPointerCursor } from "$lib/utils";
-import type { Writable } from "svelte/store";
+import { resetCursor, setPointerCursor } from '$lib/utils';
+import type { Writable } from 'svelte/store';
 
 const mapillarySource: VectorSourceSpecification = {
     type: 'vector',
-    tiles: ['https://tiles.mapillary.com/maps/vtp/mly1_computed_public/2/{z}/{x}/{y}?access_token=MLY|4381405525255083|3204871ec181638c3c31320490f03011'],
+    tiles: [
+        'https://tiles.mapillary.com/maps/vtp/mly1_computed_public/2/{z}/{x}/{y}?access_token=MLY|4381405525255083|3204871ec181638c3c31320490f03011',
+    ],
     minzoom: 6,
     maxzoom: 14,
 };
@@ -70,7 +72,7 @@ export class MapillaryLayer {
 
         this.marker = new mapboxgl.Marker({
             rotationAlignment: 'map',
-            element
+            element,
         });
 
         this.viewer.on('position', async () => {

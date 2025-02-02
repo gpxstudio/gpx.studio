@@ -4,7 +4,7 @@ import { mdsvex } from 'mdsvex';
 
 /** @type {import('mdsvex').MdsvexOptions} */
 const mdsvexOptions = {
-    extensions: ['.mdx']
+    extensions: ['.mdx'],
 };
 
 /** @type {import('@sveltejs/kit').Config} */
@@ -16,7 +16,7 @@ const config = {
             pages: 'build',
             assets: 'build',
             precompress: false,
-            strict: true
+            strict: true,
         }),
         paths: {
             base: process.argv.includes('dev') ? '' : process.env.BASE_PATH,
@@ -25,8 +25,8 @@ const config = {
         prerender: {
             entries: ['/', '/404'],
             crawl: true,
-        }
-    }
+        },
+    },
 };
 
 export default config;

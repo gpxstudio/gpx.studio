@@ -1,5 +1,5 @@
-import { dbUtils } from "$lib/db";
-import { MapPopup } from "$lib/components/MapPopup";
+import { dbUtils } from '$lib/db';
+import { MapPopup } from '$lib/components/MapPopup';
 
 export let waypointPopup: MapPopup | null = null;
 export let trackpointPopup: MapPopup | null = null;
@@ -11,14 +11,14 @@ export function createPopups(map: mapboxgl.Map) {
         focusAfterOpen: false,
         maxWidth: undefined,
         offset: {
-            'top': [0, 0],
+            top: [0, 0],
             'top-left': [0, 0],
             'top-right': [0, 0],
-            'bottom': [0, -30],
+            bottom: [0, -30],
             'bottom-left': [0, -30],
             'bottom-right': [0, -30],
-            'left': [10, -15],
-            'right': [-10, -15],
+            left: [10, -15],
+            right: [-10, -15],
         },
     });
     trackpointPopup = new MapPopup(map, {

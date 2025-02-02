@@ -11,7 +11,7 @@ import {
     applyToOrderedSelectedItemsFromFile,
     selectFile,
     selectItem,
-    selection
+    selection,
 } from '$lib/components/file-list/Selection';
 import {
     ListFileItem,
@@ -19,7 +19,7 @@ import {
     ListTrackItem,
     ListTrackSegmentItem,
     ListWaypointItem,
-    ListWaypointsItem
+    ListWaypointsItem,
 } from '$lib/components/file-list/FileList';
 import type { RoutingControls } from '$lib/components/toolbar/tools/routing/RoutingControls';
 import { SplitType } from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
@@ -43,7 +43,10 @@ export function updateGPXData() {
         if (stats) {
             let first = true;
             items.forEach((item) => {
-                if (!(item instanceof ListWaypointItem || item instanceof ListWaypointsItem) || first) {
+                if (
+                    !(item instanceof ListWaypointItem || item instanceof ListWaypointsItem) ||
+                    first
+                ) {
                     statistics.mergeWith(stats.getStatisticsFor(item));
                     first = false;
                 }
@@ -110,7 +113,8 @@ derived([targetMapBounds, map], (x) => x).subscribe(([bounds, $map]) => {
 
     let currentZoom = $map.getZoom();
     let currentBounds = $map.getBounds();
-    if (bounds.total !== get(fileObservers).size &&
+    if (
+        bounds.total !== get(fileObservers).size &&
         currentBounds &&
         currentZoom > 2 // Extend current bounds only if the map is zoomed in
     ) {
@@ -137,7 +141,10 @@ export function initTargetMapBounds(ids: string[]) {
     });
 }
 
-export function updateTargetMapBounds(id: string, bounds: { southWest: Coordinates; northEast: Coordinates }) {
+export function updateTargetMapBounds(
+    id: string,
+    bounds: { southWest: Coordinates; northEast: Coordinates }
+) {
     if (get(targetMapBounds).ids.indexOf(id) === -1) {
         return;
     }
@@ -159,8 +166,7 @@ export function updateTargetMapBounds(id: string, bounds: { southWest: Coordinat
     });
 }
 
-export function centerMapOnSelection(
-) {
+export function centerMapOnSelection() {
     let selected = get(selection).getSelected();
     let bounds = new mapboxgl.LngLatBounds();
 
@@ -187,7 +193,7 @@ export function centerMapOnSelection(
     get(map)?.fitBounds(bounds, {
         padding: 80,
         easing: () => 1,
-        maxZoom: 15
+        maxZoom: 15,
     });
 }
 
@@ -203,7 +209,7 @@ export enum Tool {
     EXTRACT,
     ELEVATION,
     REDUCE,
-    CLEAN
+    CLEAN,
 }
 export const currentTool = writable<Tool | null>(null);
 export const splitAs = writable(SplitType.FILES);
@@ -410,7 +416,7 @@ export function updateSelectionFromKey(down: boolean, shift: boolean) {
 
 async function exportFiles(fileIds: string[], exclude: string[]) {
     if (fileIds.length > 1) {
-        await exportFilesAsZip(fileIds, exclude)
+        await exportFilesAsZip(fileIds, exclude);
     } else {
         const firstFileId = fileIds.at(0);
         if (firstFileId != null) {
@@ -468,7 +474,10 @@ export function updateAllHidden() {
 
                 if (item instanceof ListFileItem) {
                     hidden = hidden && file._data.hidden === true;
-                } else if (item instanceof ListTrackItem && item.getTrackIndex() < file.trk.length) {
+                } else if (
+                    item instanceof ListTrackItem &&
+                    item.getTrackIndex() < file.trk.length
+                ) {
                     hidden = hidden && file.trk[item.getTrackIndex()]._data.hidden === true;
                 } else if (
                     item instanceof ListTrackSegmentItem &&
@@ -477,10 +486,14 @@ export function updateAllHidden() {
                 ) {
                     hidden =
                         hidden &&
-                        file.trk[item.getTrackIndex()].trkseg[item.getSegmentIndex()]._data.hidden === true;
+                        file.trk[item.getTrackIndex()].trkseg[item.getSegmentIndex()]._data
+                            .hidden === true;
                 } else if (item instanceof ListWaypointsItem) {
                     hidden = hidden && file._data.hiddenWpt === true;
-                } else if (item instanceof ListWaypointItem && item.getWaypointIndex() < file.wpt.length) {
+                } else if (
+                    item instanceof ListWaypointItem &&
+                    item.getWaypointIndex() < file.wpt.length
+                ) {
                     hidden = hidden && file.wpt[item.getWaypointIndex()]._data.hidden === true;
                 }
             }
@@ -496,6 +509,6 @@ export const editStyle = writable(false);
 export enum ExportState {
     NONE,
     SELECTION,
-    ALL
+    ALL,
 }
 export const exportState = writable<ExportState>(ExportState.NONE);

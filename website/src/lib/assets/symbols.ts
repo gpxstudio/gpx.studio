@@ -1,6 +1,67 @@
-import { Landmark, Icon, Shell, Bike, Building, Tent, Car, Wrench, ShoppingBasket, Droplet, DoorOpen, Trees, Fuel, Home, Info, TreeDeciduous, CircleParking, Cross, Utensils, Construction, BrickWall, ShowerHead, Mountain, Phone, TrainFront, Bed, Binoculars, TriangleAlert, Anchor, Toilet } from "lucide-svelte";
-import { Landmark as LandmarkSvg, Shell as ShellSvg, Bike as BikeSvg, Building as BuildingSvg, Tent as TentSvg, Car as CarSvg, Wrench as WrenchSvg, ShoppingBasket as ShoppingBasketSvg, Droplet as DropletSvg, DoorOpen as DoorOpenSvg, Trees as TreesSvg, Fuel as FuelSvg, Home as HomeSvg, Info as InfoSvg, TreeDeciduous as TreeDeciduousSvg, CircleParking as CircleParkingSvg, Cross as CrossSvg, Utensils as UtensilsSvg, Construction as ConstructionSvg, BrickWall as BrickWallSvg, ShowerHead as ShowerHeadSvg, Mountain as MountainSvg, Phone as PhoneSvg, TrainFront as TrainFrontSvg, Bed as BedSvg, Binoculars as BinocularsSvg, TriangleAlert as TriangleAlertSvg, Anchor as AnchorSvg, Toilet as ToiletSvg } from "lucide-static";
-import type { ComponentType } from "svelte";
+import {
+    Landmark,
+    Icon,
+    Shell,
+    Bike,
+    Building,
+    Tent,
+    Car,
+    Wrench,
+    ShoppingBasket,
+    Droplet,
+    DoorOpen,
+    Trees,
+    Fuel,
+    Home,
+    Info,
+    TreeDeciduous,
+    CircleParking,
+    Cross,
+    Utensils,
+    Construction,
+    BrickWall,
+    ShowerHead,
+    Mountain,
+    Phone,
+    TrainFront,
+    Bed,
+    Binoculars,
+    TriangleAlert,
+    Anchor,
+    Toilet,
+} from 'lucide-svelte';
+import {
+    Landmark as LandmarkSvg,
+    Shell as ShellSvg,
+    Bike as BikeSvg,
+    Building as BuildingSvg,
+    Tent as TentSvg,
+    Car as CarSvg,
+    Wrench as WrenchSvg,
+    ShoppingBasket as ShoppingBasketSvg,
+    Droplet as DropletSvg,
+    DoorOpen as DoorOpenSvg,
+    Trees as TreesSvg,
+    Fuel as FuelSvg,
+    Home as HomeSvg,
+    Info as InfoSvg,
+    TreeDeciduous as TreeDeciduousSvg,
+    CircleParking as CircleParkingSvg,
+    Cross as CrossSvg,
+    Utensils as UtensilsSvg,
+    Construction as ConstructionSvg,
+    BrickWall as BrickWallSvg,
+    ShowerHead as ShowerHeadSvg,
+    Mountain as MountainSvg,
+    Phone as PhoneSvg,
+    TrainFront as TrainFrontSvg,
+    Bed as BedSvg,
+    Binoculars as BinocularsSvg,
+    TriangleAlert as TriangleAlertSvg,
+    Anchor as AnchorSvg,
+    Toilet as ToiletSvg,
+} from 'lucide-static';
+import type { ComponentType } from 'svelte';
 
 export type Symbol = {
     value: string;
@@ -20,16 +81,28 @@ export const symbols: { [key: string]: Symbol } = {
     campground: { value: 'Campground', icon: Tent, iconSvg: TentSvg },
     car: { value: 'Car', icon: Car, iconSvg: CarSvg },
     car_repair: { value: 'Car Repair', icon: Wrench, iconSvg: WrenchSvg },
-    convenience_store: { value: 'Convenience Store', icon: ShoppingBasket, iconSvg: ShoppingBasketSvg },
+    convenience_store: {
+        value: 'Convenience Store',
+        icon: ShoppingBasket,
+        iconSvg: ShoppingBasketSvg,
+    },
     crossing: { value: 'Crossing' },
-    department_store: { value: 'Department Store', icon: ShoppingBasket, iconSvg: ShoppingBasketSvg },
+    department_store: {
+        value: 'Department Store',
+        icon: ShoppingBasket,
+        iconSvg: ShoppingBasketSvg,
+    },
     drinking_water: { value: 'Drinking Water', icon: Droplet, iconSvg: DropletSvg },
     exit: { value: 'Exit', icon: DoorOpen, iconSvg: DoorOpenSvg },
     lodge: { value: 'Lodge', icon: Home, iconSvg: HomeSvg },
     lodging: { value: 'Lodging', icon: Bed, iconSvg: BedSvg },
     forest: { value: 'Forest', icon: Trees, iconSvg: TreesSvg },
     gas_station: { value: 'Gas Station', icon: Fuel, iconSvg: FuelSvg },
-    ground_transportation: { value: 'Ground Transportation', icon: TrainFront, iconSvg: TrainFrontSvg },
+    ground_transportation: {
+        value: 'Ground Transportation',
+        icon: TrainFront,
+        iconSvg: TrainFrontSvg,
+    },
     hotel: { value: 'Hotel', icon: Bed, iconSvg: BedSvg },
     house: { value: 'House', icon: Home, iconSvg: HomeSvg },
     information: { value: 'Information', icon: Info, iconSvg: InfoSvg },
@@ -55,6 +128,6 @@ export function getSymbolKey(value: string | undefined): string | undefined {
     if (value === undefined) {
         return undefined;
     } else {
-        return Object.keys(symbols).find(key => symbols[key].value === value);
+        return Object.keys(symbols).find((key) => symbols[key].value === value);
     }
 }

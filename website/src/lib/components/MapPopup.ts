@@ -1,8 +1,8 @@
-import { TrackPoint, Waypoint } from "gpx";
-import mapboxgl from "mapbox-gl";
-import { tick } from "svelte";
-import { get, writable, type Writable } from "svelte/store";
-import MapPopupComponent from "./MapPopup.svelte";
+import { TrackPoint, Waypoint } from 'gpx';
+import mapboxgl from 'mapbox-gl';
+import { tick } from 'svelte';
+import { get, writable, type Writable } from 'svelte/store';
+import MapPopupComponent from './MapPopup.svelte';
 
 export type PopupItem<T = Waypoint | TrackPoint | any> = {
     item: T;
@@ -23,16 +23,15 @@ export class MapPopup {
         let component = new MapPopupComponent({
             target: document.body,
             props: {
-                item: this.item
-            }
+                item: this.item,
+            },
         });
 
         tick().then(() => this.popup.setDOMContent(component.container));
     }
 
     setItem(item: PopupItem | null) {
-        if (item)
-            item.hide = () => this.hide();
+        if (item) item.hide = () => this.hide();
         this.item.set(item);
         if (item === null) {
             this.hide();
@@ -76,6 +75,8 @@ export class MapPopup {
         if (i === null) {
             return new mapboxgl.LngLat(0, 0);
         }
-        return (i.item instanceof Waypoint || i.item instanceof TrackPoint) ? i.item.getCoordinates() : new mapboxgl.LngLat(i.item.lon, i.item.lat);
+        return i.item instanceof Waypoint || i.item instanceof TrackPoint
+            ? i.item.getCoordinates()
+            : new mapboxgl.LngLat(i.item.lon, i.item.lat);
     }
 }

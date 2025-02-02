@@ -10,13 +10,19 @@ function generateSitemap() {
     const pages = glob.sync('**/*.html', { cwd: 'build' }).map((page) => `/${page}`);
 
     let sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n';
-    sitemap += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n';
+    sitemap +=
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n';
 
     pages.forEach((page) => {
         const path = page.replace('/index.html', '').replace('.html', '');
 
         const rootDir = path.split('/')[1];
-        if (path.includes('embed') || path.includes('404') || languages[path] || languages[rootDir]) {
+        if (
+            path.includes('embed') ||
+            path.includes('404') ||
+            languages[path] ||
+            languages[rootDir]
+        ) {
             // Skip localized pages
             return;
         }

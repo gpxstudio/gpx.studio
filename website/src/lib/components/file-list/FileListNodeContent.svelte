@@ -19,7 +19,7 @@
         ListWaypointsItem,
         allowedMoves,
         moveItems,
-        type ListItem
+        type ListItem,
     } from './FileList';
     import { selection } from './Selection';
     import { isMac } from '$lib/utils';
@@ -113,7 +113,7 @@
                     Sortable.utils.select(element);
                     element.scrollIntoView({
                         behavior: 'smooth',
-                        block: 'nearest'
+                        block: 'nearest',
                     });
                 } else {
                     Sortable.utils.deselect(element);
@@ -155,7 +155,7 @@
             group: {
                 name: sortableLevel,
                 pull: allowedMoves[sortableLevel],
-                put: true
+                put: true,
             },
             direction: orientation,
             forceAutoScrollFallback: true,
@@ -233,16 +233,16 @@
 
                     moveItems(fromItem, toItem, fromItems, toItems);
                 }
-            }
+            },
         });
         Object.defineProperty(sortable, '_item', {
             value: item,
-            writable: true
+            writable: true,
         });
 
         Object.defineProperty(sortable, '_waypointRoot', {
             value: waypointRoot,
-            writable: true
+            writable: true,
         });
     }
 

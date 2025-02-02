@@ -1,12 +1,15 @@
-import { TrackPoint, TrackSegment } from "gpx";
-import { get } from "svelte/store";
-import mapboxgl from "mapbox-gl";
-import { dbUtils, getFile } from "$lib/db";
-import { applyToOrderedSelectedItemsFromFile, selection } from "$lib/components/file-list/Selection";
-import { ListTrackSegmentItem } from "$lib/components/file-list/FileList";
-import { currentTool, gpxStatistics, Tool } from "$lib/stores";
-import { _ } from "svelte-i18n";
-import { Scissors } from "lucide-static";
+import { TrackPoint, TrackSegment } from 'gpx';
+import { get } from 'svelte/store';
+import mapboxgl from 'mapbox-gl';
+import { dbUtils, getFile } from '$lib/db';
+import {
+    applyToOrderedSelectedItemsFromFile,
+    selection,
+} from '$lib/components/file-list/Selection';
+import { ListTrackSegmentItem } from '$lib/components/file-list/FileList';
+import { currentTool, gpxStatistics, Tool } from '$lib/stores';
+import { _ } from 'svelte-i18n';
+import { Scissors } from 'lucide-static';
 
 export class SplitControls {
     active: boolean = false;
@@ -15,7 +18,8 @@ export class SplitControls {
     shownControls: ControlWithMarker[] = [];
     unsubscribes: Function[] = [];
 
-    toggleControlsForZoomLevelAndBoundsBinded: () => void = this.toggleControlsForZoomLevelAndBounds.bind(this);
+    toggleControlsForZoomLevelAndBoundsBinded: () => void =
+        this.toggleControlsForZoomLevelAndBounds.bind(this);
 
     constructor(map: mapboxgl.Map) {
         this.map = map;
@@ -48,15 +52,21 @@ export class SplitControls {
         this.map.on('move', this.toggleControlsForZoomLevelAndBoundsBinded);
     }
 
-    updateControls() { // Update the markers when the files change
+    updateControls() {
+        // Update the markers when the files change
         let controlIndex = 0;
         applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
             let file = getFile(fileId);
 
             if (file) {
                 file.forEachSegment((segment, trackIndex, segmentIndex) => {
-                    if (get(selection).hasAnyParent(new ListTrackSegmentItem(fileId, trackIndex, segmentIndex))) {
-                        for (let point of segment.trkpt.slice(1, -1)) { // Update the existing controls (could be improved by matching the existing controls with the new ones?)
+                    if (
+                        get(selection).hasAnyParent(
+                            new ListTrackSegmentItem(fileId, trackIndex, segmentIndex)
+                        )
+                    ) {
+                        for (let point of segment.trkpt.slice(1, -1)) {
+                            // Update the existing controls (could be improved by matching the existing controls with the new ones?)
                             if (point._data.anchor) {
                                 if (controlIndex < this.controls.length) {
                                     this.controls[controlIndex].fileId = fileId;
@@ -64,20 +74,30 @@ export class SplitControls {
                                     this.controls[controlIndex].segment = segment;
                                     this.controls[controlIndex].trackIndex = trackIndex;
                                     this.controls[controlIndex].segmentIndex = segmentIndex;
-                                    this.controls[controlIndex].marker.setLngLat(point.getCoordinates());
+                                    this.controls[controlIndex].marker.setLngLat(
+                                        point.getCoordinates()
+                                    );
                                 } else {
-                                    this.controls.push(this.createControl(point, segment, fileId, trackIndex, segmentIndex));
+                                    this.controls.push(
+                                        this.createControl(
+                                            point,
+                                            segment,
+                                            fileId,
+                                            trackIndex,
+                                            segmentIndex
+                                        )
+                                    );
                                 }
                                 controlIndex++;
                             }
                         }
                     }
                 });
-
             }
         }, false);
 
-        while (controlIndex < this.controls.length) { // Remove the extra controls
+        while (controlIndex < this.controls.length) {
+            // Remove the extra controls
             this.controls.pop()?.marker.remove();
         }
 
@@ -94,7 +114,8 @@ export class SplitControls {
         this.map.off('move', this.toggleControlsForZoomLevelAndBoundsBinded);
     }
 
-    toggleControlsForZoomLevelAndBounds() { // Show markers only if they are in the current zoom level and bounds
+    toggleControlsForZoomLevelAndBounds() {
+        // Show markers only if they are in the current zoom level and bounds
         this.shownControls.splice(0, this.shownControls.length);
 
         let southWest = this.map.unproject([0, this.map.getCanvas().height]);
@@ -113,15 +134,23 @@ export class SplitControls {
         });
     }
 
-    createControl(point: TrackPoint, segment: TrackSegment, fileId: string, trackIndex: number, segmentIndex: number): ControlWithMarker {
+    createControl(
+        point: TrackPoint,
+        segment: TrackSegment,
+        fileId: string,
+        trackIndex: number,
+        segmentIndex: number
+    ): ControlWithMarker {
         let element = document.createElement('div');
         element.className = `h-6 w-6 p-0.5 rounded-full bg-white border-2 border-black cursor-pointer`;
-        element.innerHTML = Scissors.replace('width="24"', "").replace('height="24"', "").replace('stroke="currentColor"', 'stroke="black"');
+        element.innerHTML = Scissors.replace('width="24"', '')
+            .replace('height="24"', '')
+            .replace('stroke="currentColor"', 'stroke="black"');
 
         let marker = new mapboxgl.Marker({
             draggable: true,
             className: 'z-10',
-            element
+            element,
         }).setLngLat(point.getCoordinates());
 
         let control = {
@@ -131,12 +160,18 @@ export class SplitControls {
             trackIndex,
             segmentIndex,
             marker,
-            inZoom: false
+            inZoom: false,
         };
 
         marker.getElement().addEventListener('click', (e) => {
             e.stopPropagation();
-            dbUtils.split(control.fileId, control.trackIndex, control.segmentIndex, control.point.getCoordinates(), control.point._data.index);
+            dbUtils.split(
+                control.fileId,
+                control.trackIndex,
+                control.segmentIndex,
+                control.point.getCoordinates(),
+                control.point._data.index
+            );
         });
 
         return control;

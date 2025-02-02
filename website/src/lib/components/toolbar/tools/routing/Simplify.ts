@@ -1,4 +1,4 @@
-import { ramerDouglasPeucker, type GPXFile, type TrackSegment } from "gpx";
+import { ramerDouglasPeucker, type GPXFile, type TrackSegment } from 'gpx';
 
 const earthRadius = 6371008.8;
 
@@ -17,7 +17,8 @@ export function updateAnchorPoints(file: GPXFile) {
     let segments = file.getSegments();
 
     for (let segment of segments) {
-        if (!segment._data.anchors) { // New segment, compute anchor points for it
+        if (!segment._data.anchors) {
+            // New segment, compute anchor points for it
             computeAnchorPoints(segment);
             continue;
         }
@@ -42,4 +43,3 @@ function computeAnchorPoints(segment: TrackSegment) {
     });
     segment._data.anchors = true;
 }
-

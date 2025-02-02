@@ -1,18 +1,18 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { cubicOut } from "svelte/easing";
-import type { TransitionConfig } from "svelte/transition";
-import { get } from "svelte/store";
-import { map } from "./stores";
-import { base } from "$app/paths";
-import { languages } from "$lib/languages";
-import { locale } from "svelte-i18n";
-import { TrackPoint, Waypoint, type Coordinates, crossarcDistance, distance } from "gpx";
-import mapboxgl from "mapbox-gl";
-import tilebelt from "@mapbox/tilebelt";
-import { PUBLIC_MAPBOX_TOKEN } from "$env/static/public";
-import PNGReader from "png.js";
-import type { DateFormatter } from "@internationalized/date";
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+import { cubicOut } from 'svelte/easing';
+import type { TransitionConfig } from 'svelte/transition';
+import { get } from 'svelte/store';
+import { map } from './stores';
+import { base } from '$app/paths';
+import { languages } from '$lib/languages';
+import { locale } from 'svelte-i18n';
+import { TrackPoint, Waypoint, type Coordinates, crossarcDistance, distance } from 'gpx';
+import mapboxgl from 'mapbox-gl';
+import tilebelt from '@mapbox/tilebelt';
+import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
+import PNGReader from 'png.js';
+import type { DateFormatter } from '@internationalized/date';
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -30,7 +30,7 @@ export const flyAndScale = (
     params: FlyAndScaleParams = { y: -8, x: 0, start: 0.95, duration: 50 }
 ): TransitionConfig => {
     const style = getComputedStyle(node);
-    const transform = style.transform === "none" ? "" : style.transform;
+    const transform = style.transform === 'none' ? '' : style.transform;
 
     const scaleConversion = (
         valueA: number,
@@ -46,13 +46,11 @@ export const flyAndScale = (
         return valueB;
     };
 
-    const styleToString = (
-        style: Record<string, number | string | undefined>
-    ): string => {
+    const styleToString = (style: Record<string, number | string | undefined>): string => {
         return Object.keys(style).reduce((str, key) => {
             if (style[key] === undefined) return str;
             return str + `${key}:${style[key]};`;
-        }, "");
+        }, '');
     };
 
     return {
@@ -65,14 +63,18 @@ export const flyAndScale = (
 
             return styleToString({
                 transform: `${transform} translate3d(${x}px, ${y}px, 0) scale(${scale})`,
-                opacity: t
+                opacity: t,
             });
         },
-        easing: cubicOut
+        easing: cubicOut,
     };
 };
 
-export function getClosestLinePoint(points: TrackPoint[], point: TrackPoint | Coordinates, details: any = {}): TrackPoint {
+export function getClosestLinePoint(
+    points: TrackPoint[],
+    point: TrackPoint | Coordinates,
+    details: any = {}
+): TrackPoint {
     let closest = points[0];
     let closestDist = Number.MAX_VALUE;
     for (let i = 0; i < points.length - 1; i++) {
@@ -94,55 +96,85 @@ export function getClosestLinePoint(points: TrackPoint[], point: TrackPoint | Co
     return closest;
 }
 
-export function getElevation(points: (TrackPoint | Waypoint | Coordinates)[], ELEVATION_ZOOM: number = 13, tileSize = 512): Promise<number[]> {
-    let coordinates = points.map((point) => (point instanceof TrackPoint || point instanceof Waypoint) ? point.getCoordinates() : point);
+export function getElevation(
+    points: (TrackPoint | Waypoint | Coordinates)[],
+    ELEVATION_ZOOM: number = 13,
+    tileSize = 512
+): Promise<number[]> {
+    let coordinates = points.map((point) =>
+        point instanceof TrackPoint || point instanceof Waypoint ? point.getCoordinates() : point
+    );
     let bbox = new mapboxgl.LngLatBounds();
     coordinates.forEach((coord) => bbox.extend(coord));
 
-    let tiles = coordinates.map((coord) => tilebelt.pointToTile(coord.lon, coord.lat, ELEVATION_ZOOM));
-    let uniqueTiles = Array.from(new Set(tiles.map((tile) => tile.join(',')))).map((tile) => tile.split(',').map((x) => parseInt(x)));
+    let tiles = coordinates.map((coord) =>
+        tilebelt.pointToTile(coord.lon, coord.lat, ELEVATION_ZOOM)
+    );
+    let uniqueTiles = Array.from(new Set(tiles.map((tile) => tile.join(',')))).map((tile) =>
+        tile.split(',').map((x) => parseInt(x))
+    );
     let pngs = new Map<string, any>();
 
-    let promises = uniqueTiles.map((tile) => fetch(`https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/${ELEVATION_ZOOM}/${tile[0]}/${tile[1]}@2x.pngraw?access_token=${PUBLIC_MAPBOX_TOKEN}`, { cache: 'force-cache' }).then((response) => response.arrayBuffer()).then((buffer) => new Promise((resolve) => {
-        let png = new PNGReader(new Uint8Array(buffer));
-        png.parse((err, png) => {
-            if (err) {
-                resolve(false); // Also resolve so that Promise.all doesn't fail
-            } else {
-                pngs.set(tile.join(','), png);
-                resolve(true);
+    let promises = uniqueTiles.map((tile) =>
+        fetch(
+            `https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/${ELEVATION_ZOOM}/${tile[0]}/${tile[1]}@2x.pngraw?access_token=${PUBLIC_MAPBOX_TOKEN}`,
+            { cache: 'force-cache' }
+        )
+            .then((response) => response.arrayBuffer())
+            .then(
+                (buffer) =>
+                    new Promise((resolve) => {
+                        let png = new PNGReader(new Uint8Array(buffer));
+                        png.parse((err, png) => {
+                            if (err) {
+                                resolve(false); // Also resolve so that Promise.all doesn't fail
+                            } else {
+                                pngs.set(tile.join(','), png);
+                                resolve(true);
+                            }
+                        });
+                    })
+            )
+    );
+
+    return Promise.all(promises).then(() =>
+        coordinates.map((coord, index) => {
+            let tile = tiles[index];
+            let png = pngs.get(tile.join(','));
+
+            if (!png) {
+                return 0;
             }
-        });
-    })));
 
-    return Promise.all(promises).then(() => coordinates.map((coord, index) => {
-        let tile = tiles[index];
-        let png = pngs.get(tile.join(','));
+            let tf = tilebelt.pointToTileFraction(coord.lon, coord.lat, ELEVATION_ZOOM);
+            let x = tileSize * (tf[0] - tile[0]);
+            let y = tileSize * (tf[1] - tile[1]);
+            let _x = Math.floor(x);
+            let _y = Math.floor(y);
+            let dx = x - _x;
+            let dy = y - _y;
 
-        if (!png) {
-            return 0;
-        }
+            const p00 = png.getPixel(_x, _y);
+            const p01 = png.getPixel(_x, _y + (_y + 1 == tileSize ? 0 : 1));
+            const p10 = png.getPixel(_x + (_x + 1 == tileSize ? 0 : 1), _y);
+            const p11 = png.getPixel(
+                _x + (_x + 1 == tileSize ? 0 : 1),
+                _y + (_y + 1 == tileSize ? 0 : 1)
+            );
 
-        let tf = tilebelt.pointToTileFraction(coord.lon, coord.lat, ELEVATION_ZOOM);
-        let x = tileSize * (tf[0] - tile[0]);
-        let y = tileSize * (tf[1] - tile[1]);
-        let _x = Math.floor(x);
-        let _y = Math.floor(y);
-        let dx = x - _x;
-        let dy = y - _y;
+            let ele00 = -10000 + (p00[0] * 256 * 256 + p00[1] * 256 + p00[2]) * 0.1;
+            let ele01 = -10000 + (p01[0] * 256 * 256 + p01[1] * 256 + p01[2]) * 0.1;
+            let ele10 = -10000 + (p10[0] * 256 * 256 + p10[1] * 256 + p10[2]) * 0.1;
+            let ele11 = -10000 + (p11[0] * 256 * 256 + p11[1] * 256 + p11[2]) * 0.1;
 
-        const p00 = png.getPixel(_x, _y);
-        const p01 = png.getPixel(_x, _y + (_y + 1 == tileSize ? 0 : 1));
-        const p10 = png.getPixel(_x + (_x + 1 == tileSize ? 0 : 1), _y);
-        const p11 = png.getPixel(_x + (_x + 1 == tileSize ? 0 : 1), _y + (_y + 1 == tileSize ? 0 : 1));
-
-        let ele00 = -10000 + ((p00[0] * 256 * 256 + p00[1] * 256 + p00[2]) * 0.1);
-        let ele01 = -10000 + ((p01[0] * 256 * 256 + p01[1] * 256 + p01[2]) * 0.1);
-        let ele10 = -10000 + ((p10[0] * 256 * 256 + p10[1] * 256 + p10[2]) * 0.1);
-        let ele11 = -10000 + ((p11[0] * 256 * 256 + p11[1] * 256 + p11[2]) * 0.1);
-
-        return ele00 * (1 - dx) * (1 - dy) + ele01 * (1 - dx) * dy + ele10 * dx * (1 - dy) + ele11 * dx * dy;
-    }));
+            return (
+                ele00 * (1 - dx) * (1 - dy) +
+                ele01 * (1 - dx) * dy +
+                ele10 * dx * (1 - dy) +
+                ele11 * dx * dy
+            );
+        })
+    );
 }
 
 let previousCursors: string[] = [];
@@ -226,7 +258,7 @@ export function getURLForLanguage(lang: string | null | undefined, path: string)
 function getDateFormatter(locale: string) {
     return new Intl.DateTimeFormat(locale, {
         dateStyle: 'medium',
-        timeStyle: 'medium'
+        timeStyle: 'medium',
     });
 }
 

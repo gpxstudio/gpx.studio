@@ -1,14 +1,12 @@
-import SphericalMercator from "@mapbox/sphericalmercator";
-import { getLayers } from "./utils";
-import { get, writable } from "svelte/store";
-import { liveQuery } from "dexie";
-import { db, settings } from "$lib/db";
-import { overpassQueryData } from "$lib/assets/layers";
-import { MapPopup } from "$lib/components/MapPopup";
+import SphericalMercator from '@mapbox/sphericalmercator';
+import { getLayers } from './utils';
+import { get, writable } from 'svelte/store';
+import { liveQuery } from 'dexie';
+import { db, settings } from '$lib/db';
+import { overpassQueryData } from '$lib/assets/layers';
+import { MapPopup } from '$lib/components/MapPopup';
 
-const {
-    currentOverpassQueries
-} = settings;
+const { currentOverpassQueries } = settings;
 
 const mercator = new SphericalMercator({
     size: 256,
@@ -29,7 +27,7 @@ export class OverpassLayer {
     popup: MapPopup;
 
     currentQueries: Set<string> = new Set();
-    nextQueries: Map<string, { x: number, y: number, queries: string[] }> = new Map();
+    nextQueries: Map<string, { x: number; y: number; queries: string[] }> = new Map();
 
     unsubscribes: (() => void)[] = [];
     queryIfNeededBinded = this.queryIfNeeded.bind(this);
@@ -50,10 +48,12 @@ export class OverpassLayer {
         this.map.on('moveend', this.queryIfNeededBinded);
         this.map.on('style.import.load', this.updateBinded);
         this.unsubscribes.push(data.subscribe(this.updateBinded));
-        this.unsubscribes.push(currentOverpassQueries.subscribe(() => {
-            this.updateBinded();
-            this.queryIfNeededBinded();
-        }));
+        this.unsubscribes.push(
+            currentOverpassQueries.subscribe(() => {
+                this.updateBinded();
+                this.queryIfNeededBinded();
+            })
+        );
 
         this.update();
     }
@@ -126,8 +126,8 @@ export class OverpassLayer {
         this.popup.setItem({
             item: {
                 ...e.features[0].properties,
-                sym: overpassQueryData[e.features[0].properties.query].symbol ?? ''
-            }
+                sym: overpassQueryData[e.features[0].properties.query].symbol ?? '',
+            },
         });
     }
 
@@ -146,12 +146,23 @@ export class OverpassLayer {
                     continue;
                 }
 
-                db.overpasstiles.where('[x+y]').equals([x, y]).toArray().then((querytiles) => {
-                    let missingQueries = queries.filter((query) => !querytiles.some((querytile) => querytile.query === query && time - querytile.time < this.expirationTime));
-                    if (missingQueries.length > 0) {
-                        this.queryTile(x, y, missingQueries);
-                    }
-                });
+                db.overpasstiles
+                    .where('[x+y]')
+                    .equals([x, y])
+                    .toArray()
+                    .then((querytiles) => {
+                        let missingQueries = queries.filter(
+                            (query) =>
+                                !querytiles.some(
+                                    (querytile) =>
+                                        querytile.query === query &&
+                                        time - querytile.time < this.expirationTime
+                                )
+                        );
+                        if (missingQueries.length > 0) {
+                            this.queryTile(x, y, missingQueries);
+                        }
+                    });
             }
         }
     }
@@ -165,13 +176,16 @@ export class OverpassLayer {
 
         const bounds = mercator.bbox(x, y, this.queryZoom);
         fetch(`${this.overpassUrl}?data=${getQueryForBounds(bounds, queries)}`)
-            .then((response) => {
-                if (response.ok) {
-                    return response.json();
-                }
-                this.currentQueries.delete(`${x},${y}`);
-                return Promise.reject();
-            }, () => (this.currentQueries.delete(`${x},${y}`)))
+            .then(
+                (response) => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    this.currentQueries.delete(`${x},${y}`);
+                    return Promise.reject();
+                },
+                () => this.currentQueries.delete(`${x},${y}`)
+            )
             .then((data) => this.storeOverpassData(x, y, queries, data))
             .catch(() => this.currentQueries.delete(`${x},${y}`));
     }
@@ -179,7 +193,7 @@ export class OverpassLayer {
     storeOverpassData(x: number, y: number, queries: string[], data: any) {
         let time = Date.now();
         let queryTiles = queries.map((query) => ({ x, y, query, time }));
-        let pois: { query: string, id: number, poi: GeoJSON.Feature }[] = [];
+        let pois: { query: string; id: number; poi: GeoJSON.Feature }[] = [];
 
         if (data.elements === undefined) {
             return;
@@ -195,7 +209,9 @@ export class OverpassLayer {
                             type: 'Feature',
                             geometry: {
                                 type: 'Point',
-                                coordinates: element.center ? [element.center.lon, element.center.lat] : [element.lon, element.lat],
+                                coordinates: element.center
+                                    ? [element.center.lon, element.center.lat]
+                                    : [element.lon, element.lat],
                             },
                             properties: {
                                 id: element.id,
@@ -203,9 +219,9 @@ export class OverpassLayer {
                                 lon: element.center ? element.center.lon : element.lon,
                                 query: query,
                                 icon: `overpass-${query}`,
-                                tags: element.tags
+                                tags: element.tags,
                             },
-                        }
+                        },
                     });
                 }
             }
@@ -228,11 +244,13 @@ export class OverpassLayer {
                     if (!this.map.hasImage(`overpass-${query}`)) {
                         this.map.addImage(`overpass-${query}`, icon);
                     }
-                }
+                };
 
                 // Lucide icons are SVG files with a 24x24 viewBox
                 // Create a new SVG with a 32x32 viewBox and center the icon in a circle
-                icon.src = 'data:image/svg+xml,' + encodeURIComponent(`
+                icon.src =
+                    'data:image/svg+xml,' +
+                    encodeURIComponent(`
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
                     <circle cx="20" cy="20" r="20" fill="${overpassQueryData[query].icon.color}" />
                     <g transform="translate(8 8)">
@@ -264,9 +282,14 @@ function getQuery(query: string) {
 function getQueryItem(tags: Record<string, string | boolean | string[]>) {
     let arrayEntry = Object.entries(tags).find(([_, value]) => Array.isArray(value));
     if (arrayEntry !== undefined) {
-        return arrayEntry[1].map((val) => `nwr${Object.entries(tags)
-            .map(([tag, value]) => `[${tag}=${tag === arrayEntry[0] ? val : value}]`)
-            .join('')};`).join('');
+        return arrayEntry[1]
+            .map(
+                (val) =>
+                    `nwr${Object.entries(tags)
+                        .map(([tag, value]) => `[${tag}=${tag === arrayEntry[0] ? val : value}]`)
+                        .join('')};`
+            )
+            .join('');
     } else {
         return `nwr${Object.entries(tags)
             .map(([tag, value]) => `[${tag}=${value}]`)
@@ -283,8 +306,9 @@ function belongsToQuery(element: any, query: string) {
 }
 
 function belongsToQueryItem(element: any, tags: Record<string, string | boolean | string[]>) {
-    return Object.entries(tags)
-        .every(([tag, value]) => Array.isArray(value) ? value.includes(element.tags[tag]) : element.tags[tag] === value);
+    return Object.entries(tags).every(([tag, value]) =>
+        Array.isArray(value) ? value.includes(element.tags[tag]) : element.tags[tag] === value
+    );
 }
 
 function getCurrentQueries() {
@@ -293,5 +317,7 @@ function getCurrentQueries() {
         return [];
     }
 
-    return Object.entries(getLayers(currentQueries)).filter(([_, selected]) => selected).map(([query, _]) => query);
+    return Object.entries(getLayers(currentQueries))
+        .filter(([_, selected]) => selected)
+        .map(([query, _]) => query);
 }
