@@ -2074,6 +2074,8 @@ function withArtificialTimestamps(
 function getTimestamp(a: TrackPoint, b: TrackPoint, speed: number): Date {
     if (a.time === undefined) {
         return undefined;
+    } else if (speed === undefined) {
+        return new Date(a.time.getTime() + 1000);
     }
     let dist = distance(a.getCoordinates(), b.getCoordinates()) / 1000;
     return new Date(a.time.getTime() + (1000 * 3600 * dist) / speed);
