@@ -87,7 +87,7 @@
             "tooltip": "Planifier ou modifier un itinéraire",
             "activity": "Activité",
             "use_routing": "Routage",
-            "use_routing_tooltip": "Connecter les points d'ancrage via le réseau routier ou en ligne droite si désactivé",
+            "use_routing_tooltip": "Connectez les points d'ancrage via le réseau routier ou en ligne droite si désactivé",
             "allow_private": "Autoriser les routes privées",
             "reverse": {
                 "button": "Inverser",
