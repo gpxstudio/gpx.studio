@@ -16,69 +16,69 @@ Lo strumento di pianificazione e modifica del percorso consente di creare e modi
 ## Impostazioni
 
 Come mostrato di seguito, la finestra di dialogo dello strumento contiene alcune impostazioni per controllare il comportamento del motore di tracciamento.
-You can minimize the dialog to save space by clicking on <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
+È possibile ridurre al minimo la finestra di dialogo per risparmiare spazio facendo clic su <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
 
 <div class="flex flex-row justify-center">
     <Routing minimizable={false} class="text-foreground p-3 border rounded-md shadow-lg" />
 </div>
 
-### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routing
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" />Segui strade
 
-When routing is enabled, anchor points placed or moved on the map will be connected by a route calculated on the <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> road network.
-Disable routing to connect anchor points with straight lines.
+Quando "segui strade" è abilitato, i punti di ancoraggio posizionati o spostati sulla mappa saranno collegati da un percorso calcolato sulla rete stradale <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a>.
+Disabilita "segui strade" per collegare i punti di ancoraggio con le linee rette.
 Questa impostazione può anche essere attivata premendo <kbd>F5</kbd>.
 
-### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Activity
+### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Attività
 
-Select the activity type to tailor the routes for.
+Seleziona il tipo di attività per cui personalizzare i percorsi.
 
-### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Allow private roads
+### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" />Permetti strade private
 
 Se abilitato, il motore di tracciamento prenderà in considerazione le strade private durante i percorsi di calcolo.
 
 <DocsNote type="warning">
 
-Only use this option if you have local knowledge of the area and have permission to use the roads in question.
+Utilizzare questa opzione solo se si dispone di conoscenza locale della zona e si ha il permesso di utilizzare le strade in questione.
 
 </DocsNote>
 
-## Plotting and editing routes
+## Tracciare e modificare i percorsi
 
-Creare un percorso o estendere un percorso esistente è semplice come fare clic sulla mappa per posizionare un nuovo punto di ancoraggio.
+Per creare o estendere un percorso esistente semplicemente fare clic sulla mappa per posizionare un nuovo punto di ancoraggio.
 
 È inoltre possibile trascinare un punto di ancoraggio esistente per reindirizzare il segmento collegandolo con il punto di ancoraggio precedente e successivo.
 
-Furthermore, new anchor points can be inserted between existing ones by hovering over the segment connecting them and dragging the anchor point that appears to the desired location.
-Sui dispositivi touch, è possibile toccare il segmento per inserire un nuovo punto di ancoraggio.
+Inoltre, nuovi punti di ancoraggio possono essere inseriti tra quelli esistenti passando sopra il segmento collegandoli e trascinando il punto di ancoraggio che appare nella posizione desiderata.
+Sui dispositivi tattili, è possibile toccare il segmento per inserire un nuovo punto di ancoraggio.
 
 <DocsNote>
 
-When editing imported GPX files, an initial set of anchor points is created automatically.
-To ease the editing process, the more the map is zoomed in, the more anchor points are displayed.
-This allows the route to be edited at different levels of detail.
+Quando si modificano i file GPX importati, viene creato automaticamente un set iniziale di punti di ancoraggio.
+Per facilitare il processo di modifica, più la mappa viene ingrandita, più grande sarà il numero di punti di ancoraggio visualizzati.
+Questo permette di modificare il percorso a diversi livelli di dettaglio.
 
 </DocsNote>
 
-Finally, you can delete anchor points by clicking on them and selecting <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Delete</button> from the context menu.
+Infine, puoi eliminare i punti di ancoraggio cliccando su di essi e selezionando <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Elimina</button> dal menu contestuale.
 
-<DocsImage src="tools/routing" alt="Anchor points allow you to easily edit a route." />
+<DocsImage src="tools/routing" alt="I punti di ancoraggio ti permettono di modificare facilmente un percorso." />
 
-## Additional tools
+## Strumenti aggiuntivi
 
 I seguenti strumenti automatizzano alcune operazioni comuni di modifica del percorso.
 
-### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Reverse
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Inverti
 
-Reverse the direction of the route.
+Inverte la direzione del percorso.
 
-### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Back to start
+### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Torna all'inizio
 
-Connect the last point of the route with the starting point, using the chosen routing settings.
+Collega l'ultimo punto del percorso con il punto di partenza, utilizzando le impostazioni di routing scelte.
 
-### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Round trip
+### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Percorso ad anello
 
-Return to the starting point by the same route.
+Ritorna al punto di partenza per lo stesso percorso.
 
-### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Change the start of the loop
+### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Cambia l'inizio del giro
 
 Quando il punto finale del percorso è abbastanza vicino all'inizio, è possibile modificare l'inizio del giro facendo clic su qualsiasi punto di ancoraggio e selezionando <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Parti da qui con il giro</button> dal menu contestuale.
