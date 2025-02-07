@@ -10,12 +10,12 @@ title: Controlli Mappa
 
 # { title }
 
-The map controls are located on the right side of the interface.
+I comandi della mappa si trovano sul lato destro dell'interfaccia.
 Questi controlli ti consentono di navigare sulla mappa, ingrandire e rimpicciolire e passare da uno stile di mappa all'altro.
 
-### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Map navigation
+### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Navigazione mappa
 
-The controls at the top allow you to zoom in <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> and out <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, and to change the orientation and tilt of the map <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
+I controlli in alto consentono di ingrandire <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> o ridurre <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, e modificare l'orientamento e l'inclinazione della mappa <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
 
 <DocsNote>
 
@@ -23,48 +23,48 @@ Per controllare l'orientamento e l'inclinazione della mappa, puoi anche trascina
 
 </DocsNote>
 
-### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Search bar
+### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Barra di ricerca
 
-You can use the search bar to look for an address and navigate to it on the map.
+È possibile utilizzare la barra di ricerca per cercare un indirizzo e navigare fino ad esso sulla cartina.
 
-### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Locate button
+### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Pulsante di localizzazione della posizione
 
 Il pulsante di localizzazione centra la mappa sulla posizione corrente.
 
 <DocsNote>
 
-This only works if you have allowed your browser and <b>gpx.studio</b> to access your location.
+Questo funziona solo se hai consentito al tuo browser e a <b>gpx.studio</b> di accedere alla tua posizione.
 
 </DocsNote>
 
-### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Street view
+### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Vista strada
 
-This button can be used to enable street view mode on the map.
-Depending on the street view source chosen in the [settings](./menu/settings), street view imagery can be accessed differently.
+Questo pulsante può essere usato per abilitare la modalità di visualizzazione stradale sulla mappa.
+A seconda della fonte di visualizzazione della strada scelta nella [settings](./menu/settings), le immagini di visualizzazione della strada possono essere accessibili in modo diverso.
 
-- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: the street view coverage will appear as green lines on the map. When zoomed in enough, green dots will show the exact locations where street view imagery is available. Il passaggio su un punto verde mostrerà l'immagine di street view in quella posizione.
-- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: click on the map to open a new tab with the street view imagery at that location.
+- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: la copertura della vista stradale apparirà come linee verdi sulla mappa. Quando ingrandito abbastanza, i punti verdi mostreranno le posizioni esatte in cui è disponibile l'immagine della vista stradale. Il passaggio su un punto verde mostrerà l'immagine stradale in quella posizione.
+- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: clicca sulla mappa per aprire una nuova scheda con le immagini della vista stradale in quella posizione.
 
 ### <Layers size="16" class="inline-block" style="margin-bottom: 2px" /> Livelli mappa
 
-The map layers button allows you to switch between different basemaps, and toggle map overlays and categories of points of interest.
+Il pulsante dei livelli di mappa consente di passare da una basemap all'altra, e di accendere o spegnere le mappe di sovrapposizione e le categorie di punti d'interesse.
 
-- **Basemaps** are background maps that present the main geographic features of the world.
-  Depending on their purpose, basemaps have different styles and levels of detail.
-  Only one basemap can be displayed at a time.
-- **Overlays** are additional layers that can be displayed on top of the basemap to provide complementary information.
-- **Points of interest** can be added to the map to show different categories of places, such as shops, restaurants, or accommodations.
+- **Basemaps** sono mappe di sfondo che presentano le principali caratteristiche geografiche del mondo.
+  A seconda del loro scopo, le basemaps hanno diversi stili e livelli di dettaglio.
+  È possibile visualizzare una sola basemap alla volta.
+- **Overlays** sono dei livelli aggiuntivi che possono essere visualizzati sovrapposti al basemap per fornire informazioni complementari.
+- **Punti di interesse** possono essere aggiunti alla mappa per mostrare diverse categorie di luoghi, come negozi, ristoranti, o alloggi.
 
 <div class="flex flex-col items-center">
     <DocsLayers />
     <span class="text-sm text-center mt-2">
-        Hover over the map to show the <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> overlay on top of the <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> basemap.
+        Passa sulla mappa per mostrare  <a href="https://hiking.waymarkedtrails.org" target="_blank">i sentieri escursionistici marcati</a> sulla <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> basemap.
     </span>
 </div>
 
-A large collection of global and local basemaps and overlays is available in **gpx.studio**, as well as a selection of point-of-interest categories.
-They can be enabled in the [map layer settings dialog](./menu/settings).
+Una vasta collezione di basemaps e sovrapposizioni globali e locali è disponibile in **gpx.studio**, così come una selezione di categorie di punti di interesse.
+Possono essere abilitati nella [finestra delle impostazioni dei livelli mappa](./menu/settings).
 
-In these settings, you can also manage the opacity of the overlays.
+In queste impostazioni è anche possibile gestire l'opacità delle sovrapposizioni.
 
-For advanced users, it is possible to add custom basemaps and overlays by providing <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, or <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox style JSON</a> URLs.
+Per gli utenti avanzati, è possibile aggiungere basemaps personalizzati e sovrapposizioni fornendo <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, URL JSON</a> , <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>o <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank"> JSON in stile Mapbox.</a> URLs.

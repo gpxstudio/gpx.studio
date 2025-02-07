@@ -33,7 +33,7 @@
         "select_all": "Zaznacz wszystko",
         "view": "Wyświetl",
         "elevation_profile": "Profil wysokości",
-        "tree_file_view": "File tree",
+        "tree_file_view": "Drzewo Plików",
         "switch_basemap": "Przełącz na poprzednią mapę",
         "toggle_overlays": "Przełącz nakładki",
         "toggle_3d": "Przełącz widok 3D",
@@ -41,7 +41,7 @@
         "distance_units": "Jednostki odległości",
         "metric": "Metryczne",
         "imperial": "Imperialne",
-        "nautical": "Nautical",
+        "nautical": "Milowe",
         "velocity_units": "Jednostki prędkości",
         "temperature_units": "Jednostki temperatury",
         "celsius": "Stopnie Celsjusza",
@@ -54,7 +54,7 @@
         "street_view_source": "Źródło widoku ulicznego",
         "mapillary": "Mapillary",
         "google": "Google",
-        "toggle_street_view": "Street view",
+        "toggle_street_view": "Widok z ulicy",
         "layers": "Warstwy mapy...",
         "distance_markers": "Znaczniki odległości",
         "direction_markers": "Strzałki kierunku",
@@ -80,7 +80,7 @@
         "unhide": "Pokaż",
         "center": "Wyśrodkuj",
         "open_in": "Otwórz w",
-        "copy_coordinates": "Copy coordinates"
+        "copy_coordinates": "Kopiuj współrzędne"
     },
     "toolbar": {
         "routing": {
@@ -137,17 +137,17 @@
                 "sand": "Piasek",
                 "grass": "Trawa",
                 "grass_paver": "Płyta ażurowa",
-                "clay": "Clay",
-                "stone": "Stone"
+                "clay": "Glinowa",
+                "stone": "Kamienna"
             },
             "highway": {
-                "unknown": "Unknown",
-                "motorway": "Highway",
-                "motorway_link": "Highway link",
-                "trunk": "Primary road",
-                "trunk_link": "Primary road link",
-                "primary": "Primary road",
-                "primary_link": "Primary road link",
+                "unknown": "Nieznana",
+                "motorway": "Autostrada",
+                "motorway_link": "Link do autostrady",
+                "trunk": "Główna droga",
+                "trunk_link": "Link do głównej drogi",
+                "primary": "Główna droga",
+                "primary_link": "Link do głównej drogi",
                 "secondary": "Secondary road",
                 "secondary_link": "Secondary road link",
                 "tertiary": "Tertiary road",
