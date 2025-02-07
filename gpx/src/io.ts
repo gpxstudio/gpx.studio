@@ -96,14 +96,19 @@ export function parseGPX(gpxData: string): GPXFile {
 export function buildGPX(file: GPXFile, exclude: string[]): string {
     const gpx = file.toGPXFileType(exclude);
 
+    let lastDate = undefined;
     const builder = new XMLBuilder({
         format: true,
         ignoreAttributes: false,
         attributeNamePrefix: '',
         attributesGroupName: 'attributes',
         suppressEmptyNode: true,
-        tagValueProcessor: (tagName: string, tagValue: unknown): string => {
+        tagValueProcessor: (tagName: string, tagValue: unknown): string | undefined => {
             if (tagValue instanceof Date) {
+                if (isNaN(tagValue.getTime())) {
+                    return lastDate?.toISOString();
+                }
+                lastDate = tagValue;
                 return tagValue.toISOString();
             }
             return tagValue.toString();
