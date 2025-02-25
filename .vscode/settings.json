@@ -1,5 +1,17 @@
 {
     "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true
+    },
+    "eslint.validate": [
+      "javascript",
+      "typescript",
+      "svelte"
+    ],
+    "eslint.workingDirectories": [
+      "./website",
+      "./gpx"
+    ],
     "[javascript]": {
       "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
@@ -10,4 +22,3 @@
       "editor.defaultFormatter": "svelte.svelte-vscode"
     }
   }
-  
