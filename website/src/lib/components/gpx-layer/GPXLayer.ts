@@ -39,13 +39,13 @@ const colors = [
 ];
 
 const colorCount: { [key: string]: number } = {};
-for (let color of colors) {
+for (const color of colors) {
     colorCount[color] = 0;
 }
 
 // Get the color with the least amount of uses
 function getColor() {
-    let color = colors.reduce((a, b) => (colorCount[a] <= colorCount[b] ? a : b));
+    const color = colors.reduce((a, b) => (colorCount[a] <= colorCount[b] ? a : b));
     colorCount[color]++;
     return color;
 }
@@ -82,7 +82,7 @@ class KeyDown {
 }
 
 function getMarkerForSymbol(symbol: string | undefined, layerColor: string) {
-    let symbolSvg = symbol ? symbols[symbol]?.iconSvg : undefined;
+    const symbolSvg = symbol ? symbols[symbol]?.iconSvg : undefined;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
     ${Square.replace('width="24"', 'width="12"')
         .replace('height="24"', 'height="12"')
@@ -138,7 +138,7 @@ export class GPXLayer {
         this.unsubscribe.push(file.subscribe(this.updateBinded));
         this.unsubscribe.push(
             selection.subscribe(($selection) => {
-                let newSelected = $selection.hasAnyChildren(new ListFileItem(this.fileId));
+                const newSelected = $selection.hasAnyChildren(new ListFileItem(this.fileId));
                 if (this.selected || newSelected) {
                     this.selected = newSelected;
                     this.update();
@@ -170,7 +170,7 @@ export class GPXLayer {
     }
 
     update() {
-        let file = get(this.file)?.file;
+        const file = get(this.file)?.file;
         if (!file) {
             return;
         }
@@ -185,7 +185,7 @@ export class GPXLayer {
         }
 
         try {
-            let source = this.map.getSource(this.fileId);
+            const source = this.map.getSource(this.fileId);
             if (source) {
                 source.setData(this.getGeoJSON());
             } else {
@@ -251,7 +251,7 @@ export class GPXLayer {
                 }
             }
 
-            let visibleItems: [number, number][] = [];
+            const visibleItems: [number, number][] = [];
             file.forEachSegment((segment, trackIndex, segmentIndex) => {
                 if (!segment._data.hidden) {
                     visibleItems.push([trackIndex, segmentIndex]);
@@ -294,7 +294,7 @@ export class GPXLayer {
         if (get(selection).hasAnyChildren(new ListFileItem(this.fileId))) {
             file.wpt.forEach((waypoint) => {
                 // Update markers
-                let symbolKey = getSymbolKey(waypoint.sym);
+                const symbolKey = getSymbolKey(waypoint.sym);
                 if (markerIndex < this.markers.length) {
                     this.markers[markerIndex].getElement().innerHTML = getMarkerForSymbol(
                         symbolKey,
@@ -306,10 +306,10 @@ export class GPXLayer {
                         writable: true,
                     });
                 } else {
-                    let element = document.createElement('div');
+                    const element = document.createElement('div');
                     element.classList.add('w-8', 'h-8', 'drop-shadow-xl');
                     element.innerHTML = getMarkerForSymbol(symbolKey, this.layerColor);
-                    let marker = new mapboxgl.Marker({
+                    const marker = new mapboxgl.Marker({
                         draggable: this.draggable,
                         element,
                         anchor: 'bottom',
@@ -367,8 +367,8 @@ export class GPXLayer {
                         marker.getElement().style.cursor = '';
                         getElevation([marker._waypoint]).then((ele) => {
                             dbUtils.applyToFile(this.fileId, (file) => {
-                                let latLng = marker.getLngLat();
-                                let wpt = file.wpt[marker._waypoint._data.index];
+                                const latLng = marker.getLngLat();
+                                const wpt = file.wpt[marker._waypoint._data.index];
                                 wpt.setCoordinates({
                                     lat: latLng.lat,
                                     lon: latLng.lng,
@@ -446,8 +446,8 @@ export class GPXLayer {
     }
 
     layerOnMouseEnter(e: any) {
-        let trackIndex = e.features[0].properties.trackIndex;
-        let segmentIndex = e.features[0].properties.segmentIndex;
+        const trackIndex = e.features[0].properties.trackIndex;
+        const segmentIndex = e.features[0].properties.segmentIndex;
 
         if (
             get(currentTool) === Tool.SCISSORS &&
@@ -467,8 +467,8 @@ export class GPXLayer {
 
     layerOnMouseMove(e: any) {
         if (inspectKeyDown?.isDown()) {
-            let trackIndex = e.features[0].properties.trackIndex;
-            let segmentIndex = e.features[0].properties.segmentIndex;
+            const trackIndex = e.features[0].properties.trackIndex;
+            const segmentIndex = e.features[0].properties.segmentIndex;
 
             const file = get(this.file)?.file;
             if (file) {
@@ -489,8 +489,8 @@ export class GPXLayer {
             return;
         }
 
-        let trackIndex = e.features[0].properties.trackIndex;
-        let segmentIndex = e.features[0].properties.segmentIndex;
+        const trackIndex = e.features[0].properties.trackIndex;
+        const segmentIndex = e.features[0].properties.segmentIndex;
 
         if (
             get(currentTool) === Tool.SCISSORS &&
@@ -505,7 +505,7 @@ export class GPXLayer {
             return;
         }
 
-        let file = get(this.file)?.file;
+        const file = get(this.file)?.file;
         if (!file) {
             return;
         }
@@ -535,7 +535,7 @@ export class GPXLayer {
     }
 
     getGeoJSON(): GeoJSON.FeatureCollection {
-        let file = get(this.file)?.file;
+        const file = get(this.file)?.file;
         if (!file) {
             return {
                 type: 'FeatureCollection',
@@ -543,11 +543,11 @@ export class GPXLayer {
             };
         }
 
-        let data = file.toGeoJSON();
+        const data = file.toGeoJSON();
 
         let trackIndex = 0,
             segmentIndex = 0;
-        for (let feature of data.features) {
+        for (const feature of data.features) {
             if (!feature.properties) {
                 feature.properties = {};
             }

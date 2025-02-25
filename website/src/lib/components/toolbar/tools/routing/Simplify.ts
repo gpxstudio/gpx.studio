@@ -14,9 +14,9 @@ export function getZoomLevelForDistance(latitude: number, distance?: number): nu
 }
 
 export function updateAnchorPoints(file: GPXFile) {
-    let segments = file.getSegments();
+    const segments = file.getSegments();
 
-    for (let segment of segments) {
+    for (const segment of segments) {
         if (!segment._data.anchors) {
             // New segment, compute anchor points for it
             computeAnchorPoints(segment);
@@ -34,10 +34,10 @@ export function updateAnchorPoints(file: GPXFile) {
 }
 
 function computeAnchorPoints(segment: TrackSegment) {
-    let points = segment.trkpt;
-    let anchors = ramerDouglasPeucker(points, 1);
+    const points = segment.trkpt;
+    const anchors = ramerDouglasPeucker(points, 1);
     anchors.forEach((anchor) => {
-        let point = anchor.point;
+        const point = anchor.point;
         point._data.anchor = true;
         point._data.zoom = getZoomLevelForDistance(point.getLatitude(), anchor.distance);
     });

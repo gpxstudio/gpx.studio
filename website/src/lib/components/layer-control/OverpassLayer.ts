@@ -12,7 +12,7 @@ const mercator = new SphericalMercator({
     size: 256,
 });
 
-let data = writable<GeoJSON.FeatureCollection>({ type: 'FeatureCollection', features: [] });
+const data = writable<GeoJSON.FeatureCollection>({ type: 'FeatureCollection', features: [] });
 
 liveQuery(() => db.overpassdata.toArray()).subscribe((pois) => {
     data.set({ type: 'FeatureCollection', features: pois.map((poi) => poi.poi) });
@@ -68,10 +68,10 @@ export class OverpassLayer {
     update() {
         this.loadIcons();
 
-        let d = get(data);
+        const d = get(data);
 
         try {
-            let source = this.map.getSource('overpass');
+            const source = this.map.getSource('overpass');
             if (source) {
                 source.setData(d);
             } else {
@@ -132,13 +132,13 @@ export class OverpassLayer {
     }
 
     query(bbox: [number, number, number, number]) {
-        let queries = getCurrentQueries();
+        const queries = getCurrentQueries();
         if (queries.length === 0) {
             return;
         }
 
-        let tileLimits = mercator.xyz(bbox, this.queryZoom);
-        let time = Date.now();
+        const tileLimits = mercator.xyz(bbox, this.queryZoom);
+        const time = Date.now();
 
         for (let x = tileLimits.minX; x <= tileLimits.maxX; x++) {
             for (let y = tileLimits.minY; y <= tileLimits.maxY; y++) {
@@ -151,7 +151,7 @@ export class OverpassLayer {
                     .equals([x, y])
                     .toArray()
                     .then((querytiles) => {
-                        let missingQueries = queries.filter(
+                        const missingQueries = queries.filter(
                             (query) =>
                                 !querytiles.some(
                                     (querytile) =>
@@ -191,16 +191,16 @@ export class OverpassLayer {
     }
 
     storeOverpassData(x: number, y: number, queries: string[], data: any) {
-        let time = Date.now();
-        let queryTiles = queries.map((query) => ({ x, y, query, time }));
-        let pois: { query: string; id: number; poi: GeoJSON.Feature }[] = [];
+        const time = Date.now();
+        const queryTiles = queries.map((query) => ({ x, y, query, time }));
+        const pois: { query: string; id: number; poi: GeoJSON.Feature }[] = [];
 
         if (data.elements === undefined) {
             return;
         }
 
-        for (let element of data.elements) {
-            for (let query of queries) {
+        for (const element of data.elements) {
+            for (const query of queries) {
                 if (belongsToQuery(element, query)) {
                     pois.push({
                         query,
@@ -236,10 +236,10 @@ export class OverpassLayer {
     }
 
     loadIcons() {
-        let currentQueries = getCurrentQueries();
+        const currentQueries = getCurrentQueries();
         currentQueries.forEach((query) => {
             if (!this.map.hasImage(`overpass-${query}`)) {
-                let icon = new Image(100, 100);
+                const icon = new Image(100, 100);
                 icon.onload = () => {
                     if (!this.map.hasImage(`overpass-${query}`)) {
                         this.map.addImage(`overpass-${query}`, icon);
@@ -280,7 +280,7 @@ function getQuery(query: string) {
 }
 
 function getQueryItem(tags: Record<string, string | boolean | string[]>) {
-    let arrayEntry = Object.entries(tags).find(([_, value]) => Array.isArray(value));
+    const arrayEntry = Object.entries(tags).find(([_, value]) => Array.isArray(value));
     if (arrayEntry !== undefined) {
         return arrayEntry[1]
             .map(
@@ -312,7 +312,7 @@ function belongsToQueryItem(element: any, tags: Record<string, string | boolean 
 }
 
 function getCurrentQueries() {
-    let currentQueries = get(currentOverpassQueries);
+    const currentQueries = get(currentOverpassQueries);
     if (currentQueries === undefined) {
         return [];
     }

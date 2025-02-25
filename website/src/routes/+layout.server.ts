@@ -15,9 +15,9 @@ export async function load({ params }) {
     const { language } = params;
 
     const guideTitles: Record<string, string> = {};
-    for (let guide of Object.keys(guides)) {
+    for (const guide of Object.keys(guides)) {
         guideTitles[guide] = (await getModule(language, guide)).metadata.title;
-        for (let subguide of guides[guide]) {
+        for (const subguide of guides[guide]) {
             guideTitles[`${guide}/${subguide}`] = (
                 await getModule(language, `${guide}/${subguide}`)
             ).metadata.title;

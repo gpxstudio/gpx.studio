@@ -69,7 +69,7 @@ export type Symbol = {
     iconSvg?: string;
 };
 
-export const symbols: { [key: string]: Symbol } = {
+export const symbols: { [key: string]: symbol } = {
     alert: { value: 'Alert', icon: TriangleAlert, iconSvg: TriangleAlertSvg },
     anchor: { value: 'Anchor', icon: Anchor, iconSvg: AnchorSvg },
     bank: { value: 'Bank', icon: Landmark, iconSvg: LandmarkSvg },

@@ -59,20 +59,20 @@ async function getRoute(
     brouterProfile: string,
     privateRoads: boolean
 ): Promise<TrackPoint[]> {
-    let url = `https://routing.gpx.studio?lonlats=${points.map((point) => `${point.lon.toFixed(8)},${point.lat.toFixed(8)}`).join('|')}&profile=${brouterProfile + (privateRoads ? '-private' : '')}&format=geojson&alternativeidx=0`;
+    const url = `https://routing.gpx.studio?lonlats=${points.map((point) => `${point.lon.toFixed(8)},${point.lat.toFixed(8)}`).join('|')}&profile=${brouterProfile + (privateRoads ? '-private' : '')}&format=geojson&alternativeidx=0`;
 
-    let response = await fetch(url);
+    const response = await fetch(url);
 
     // Check if the response is ok
     if (!response.ok) {
         throw new Error(`${await response.text()}`);
     }
 
-    let geojson = await response.json();
+    const geojson = await response.json();
 
-    let route: TrackPoint[] = [];
-    let coordinates = geojson.features[0].geometry.coordinates;
-    let messages = geojson.features[0].properties.messages;
+    const route: TrackPoint[] = [];
+    const coordinates = geojson.features[0].geometry.coordinates;
+    const messages = geojson.features[0].properties.messages;
 
     const lngIdx = messages[0].indexOf('Longitude');
     const latIdx = messages[0].indexOf('Latitude');
@@ -81,7 +81,7 @@ async function getRoute(
     let tags = messageIdx < messages.length ? getTags(messages[messageIdx][tagIdx]) : {};
 
     for (let i = 0; i < coordinates.length; i++) {
-        let coord = coordinates[i];
+        const coord = coordinates[i];
         route.push(
             new TrackPoint({
                 attributes: {
@@ -111,7 +111,7 @@ async function getRoute(
 
 function getTags(message: string): { [key: string]: string } {
     const fields = message.split(' ');
-    let tags: { [key: string]: string } = {};
+    const tags: { [key: string]: string } = {};
     for (let i = 0; i < fields.length; i++) {
         let [key, value] = fields[i].split('=');
         key = key.replace(/:/g, '_');
@@ -121,15 +121,15 @@ function getTags(message: string): { [key: string]: string } {
 }
 
 function getIntermediatePoints(points: Coordinates[]): Promise<TrackPoint[]> {
-    let route: TrackPoint[] = [];
-    let step = 0.05;
+    const route: TrackPoint[] = [];
+    const step = 0.05;
 
     for (let i = 0; i < points.length - 1; i++) {
         // Add intermediate points between each pair of points
-        let dist = distance(points[i], points[i + 1]) / 1000;
+        const dist = distance(points[i], points[i + 1]) / 1000;
         for (let d = 0; d < dist; d += step) {
-            let lat = points[i].lat + (d / dist) * (points[i + 1].lat - points[i].lat);
-            let lon = points[i].lon + (d / dist) * (points[i + 1].lon - points[i].lon);
+            const lat = points[i].lat + (d / dist) * (points[i + 1].lat - points[i].lat);
+            const lon = points[i].lon + (d / dist) * (points[i + 1].lon - points[i].lon);
             route.push(
                 new TrackPoint({
                     attributes: {

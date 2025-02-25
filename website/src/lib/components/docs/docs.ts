@@ -62,15 +62,15 @@ export const guideIcons: Record<string, string | ComponentType<Icon>> = {
 };
 
 export function getPreviousGuide(currentGuide: string): string | undefined {
-    let subguides = currentGuide.split('/');
+    const subguides = currentGuide.split('/');
 
     if (subguides.length === 1) {
-        let keys = Object.keys(guides);
-        let index = keys.indexOf(currentGuide);
+        const keys = Object.keys(guides);
+        const index = keys.indexOf(currentGuide);
         if (index === 0) {
             return undefined;
         }
-        let previousGuide = keys[index - 1];
+        const previousGuide = keys[index - 1];
         if (previousGuide === undefined) {
             return undefined;
         } else if (guides[previousGuide].length === 0) {
@@ -80,7 +80,7 @@ export function getPreviousGuide(currentGuide: string): string | undefined {
         }
     } else {
         if (guides.hasOwnProperty(subguides[0])) {
-            let subguideIndex = guides[subguides[0]].indexOf(subguides[1]);
+            const subguideIndex = guides[subguides[0]].indexOf(subguides[1]);
             if (subguideIndex > 0) {
                 return `${subguides[0]}/${guides[subguides[0]][subguideIndex - 1]}`;
             } else {
@@ -93,13 +93,13 @@ export function getPreviousGuide(currentGuide: string): string | undefined {
 }
 
 export function getNextGuide(currentGuide: string): string | undefined {
-    let subguides = currentGuide.split('/');
+    const subguides = currentGuide.split('/');
 
     if (subguides.length === 1) {
         if (guides.hasOwnProperty(currentGuide)) {
             if (guides[currentGuide].length === 0) {
-                let keys = Object.keys(guides);
-                let index = keys.indexOf(currentGuide);
+                const keys = Object.keys(guides);
+                const index = keys.indexOf(currentGuide);
                 return keys[index + 1];
             } else {
                 return `${currentGuide}/${guides[currentGuide][0]}`;
@@ -109,12 +109,12 @@ export function getNextGuide(currentGuide: string): string | undefined {
         }
     } else {
         if (guides.hasOwnProperty(subguides[0])) {
-            let subguideIndex = guides[subguides[0]].indexOf(subguides[1]);
+            const subguideIndex = guides[subguides[0]].indexOf(subguides[1]);
             if (subguideIndex < guides[subguides[0]].length - 1) {
                 return `${subguides[0]}/${guides[subguides[0]][subguideIndex + 1]}`;
             } else {
-                let keys = Object.keys(guides);
-                let index = keys.indexOf(subguides[0]);
+                const keys = Object.keys(guides);
+                const index = keys.indexOf(subguides[0]);
                 return keys[index + 1];
             }
         } else {

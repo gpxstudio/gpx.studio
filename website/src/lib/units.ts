@@ -36,9 +36,9 @@ export function distancePerHourToSecondsPerDistance(value: number) {
 }
 
 export function secondsToHHMMSS(value: number) {
-    var hours = Math.floor(value / 3600);
-    var minutes = Math.floor(value / 60) % 60;
-    var seconds = Math.min(59, Math.round(value % 60));
+    const hours = Math.floor(value / 3600);
+    const minutes = Math.floor(value / 60) % 60;
+    const seconds = Math.min(59, Math.round(value % 60));
 
     return [hours, minutes, seconds]
         .map((v) => (v < 10 ? '0' + v : v))

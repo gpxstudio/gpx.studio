@@ -30,7 +30,7 @@ export class SplitControls {
     }
 
     addIfNeeded() {
-        let scissors = get(currentTool) === Tool.SCISSORS;
+        const scissors = get(currentTool) === Tool.SCISSORS;
         if (!scissors) {
             if (this.active) {
                 this.remove();
@@ -56,7 +56,7 @@ export class SplitControls {
         // Update the markers when the files change
         let controlIndex = 0;
         applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-            let file = getFile(fileId);
+            const file = getFile(fileId);
 
             if (file) {
                 file.forEachSegment((segment, trackIndex, segmentIndex) => {
@@ -65,7 +65,7 @@ export class SplitControls {
                             new ListTrackSegmentItem(fileId, trackIndex, segmentIndex)
                         )
                     ) {
-                        for (let point of segment.trkpt.slice(1, -1)) {
+                        for (const point of segment.trkpt.slice(1, -1)) {
                             // Update the existing controls (could be improved by matching the existing controls with the new ones?)
                             if (point._data.anchor) {
                                 if (controlIndex < this.controls.length) {
@@ -107,7 +107,7 @@ export class SplitControls {
     remove() {
         this.active = false;
 
-        for (let control of this.controls) {
+        for (const control of this.controls) {
             control.marker.remove();
         }
         this.map.off('zoom', this.toggleControlsForZoomLevelAndBoundsBinded);
@@ -118,11 +118,11 @@ export class SplitControls {
         // Show markers only if they are in the current zoom level and bounds
         this.shownControls.splice(0, this.shownControls.length);
 
-        let southWest = this.map.unproject([0, this.map.getCanvas().height]);
-        let northEast = this.map.unproject([this.map.getCanvas().width, 0]);
-        let bounds = new mapboxgl.LngLatBounds(southWest, northEast);
+        const southWest = this.map.unproject([0, this.map.getCanvas().height]);
+        const northEast = this.map.unproject([this.map.getCanvas().width, 0]);
+        const bounds = new mapboxgl.LngLatBounds(southWest, northEast);
 
-        let zoom = this.map.getZoom();
+        const zoom = this.map.getZoom();
         this.controls.forEach((control) => {
             control.inZoom = control.point._data.zoom <= zoom;
             if (control.inZoom && bounds.contains(control.marker.getLngLat())) {
@@ -141,19 +141,19 @@ export class SplitControls {
         trackIndex: number,
         segmentIndex: number
     ): ControlWithMarker {
-        let element = document.createElement('div');
+        const element = document.createElement('div');
         element.className = `h-6 w-6 p-0.5 rounded-full bg-white border-2 border-black cursor-pointer`;
         element.innerHTML = Scissors.replace('width="24"', '')
             .replace('height="24"', '')
             .replace('stroke="currentColor"', 'stroke="black"');
 
-        let marker = new mapboxgl.Marker({
+        const marker = new mapboxgl.Marker({
             draggable: true,
             className: 'z-10',
             element,
         }).setLngLat(point.getCoordinates());
 
-        let control = {
+        const control = {
             point,
             segment,
             fileId,

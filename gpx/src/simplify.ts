@@ -20,7 +20,7 @@ export function ramerDouglasPeucker(
         ];
     }
 
-    let simplified = [
+    const simplified = [
         {
             point: points[0],
         },
@@ -40,13 +40,13 @@ function ramerDouglasPeuckerRecursive(
     end: number,
     simplified: SimplifiedTrackPoint[]
 ) {
-    let largest = {
+    const largest = {
         index: 0,
         distance: 0,
     };
 
     for (let i = start + 1; i < end; i++) {
-        let distance = measure(points[start], points[end], points[i]);
+        const distance = measure(points[start], points[end], points[i]);
         if (distance > largest.distance) {
             largest.index = i;
             largest.distance = distance;
@@ -89,7 +89,7 @@ function crossarc(coord1: Coordinates, coord2: Coordinates, coord3: Coordinates)
     // Prerequisites for the formulas
     const bear12 = bearing(lat1, lon1, lat2, lon2);
     const bear13 = bearing(lat1, lon1, lat3, lon3);
-    let dis13 = distance(lat1, lon1, lat3, lon3);
+    const dis13 = distance(lat1, lon1, lat3, lon3);
 
     let diff = Math.abs(bear13 - bear12);
     if (diff > Math.PI) {
@@ -102,11 +102,11 @@ function crossarc(coord1: Coordinates, coord2: Coordinates, coord3: Coordinates)
     }
 
     // Find the cross-track distance.
-    let dxt = Math.asin(Math.sin(dis13 / earthRadius) * Math.sin(bear13 - bear12)) * earthRadius;
+    const dxt = Math.asin(Math.sin(dis13 / earthRadius) * Math.sin(bear13 - bear12)) * earthRadius;
 
     // Is p4 beyond the arc?
-    let dis12 = distance(lat1, lon1, lat2, lon2);
-    let dis14 =
+    const dis12 = distance(lat1, lon1, lat2, lon2);
+    const dis14 =
         Math.acos(Math.cos(dis13 / earthRadius) / Math.cos(dxt / earthRadius)) * earthRadius;
     if (dis14 > dis12) {
         return distance(lat2, lon2, lat3, lon3);
@@ -162,7 +162,7 @@ function projected(coord1: Coordinates, coord2: Coordinates, coord3: Coordinates
     // Prerequisites for the formulas
     const bear12 = bearing(lat1, lon1, lat2, lon2);
     const bear13 = bearing(lat1, lon1, lat3, lon3);
-    let dis13 = distance(lat1, lon1, lat3, lon3);
+    const dis13 = distance(lat1, lon1, lat3, lon3);
 
     let diff = Math.abs(bear13 - bear12);
     if (diff > Math.PI) {
@@ -175,11 +175,11 @@ function projected(coord1: Coordinates, coord2: Coordinates, coord3: Coordinates
     }
 
     // Find the cross-track distance.
-    let dxt = Math.asin(Math.sin(dis13 / earthRadius) * Math.sin(bear13 - bear12)) * earthRadius;
+    const dxt = Math.asin(Math.sin(dis13 / earthRadius) * Math.sin(bear13 - bear12)) * earthRadius;
 
     // Is p4 beyond the arc?
-    let dis12 = distance(lat1, lon1, lat2, lon2);
-    let dis14 =
+    const dis12 = distance(lat1, lon1, lat2, lon2);
+    const dis14 =
         Math.acos(Math.cos(dis13 / earthRadius) / Math.cos(dxt / earthRadius)) * earthRadius;
     if (dis14 > dis12) {
         return coord2;

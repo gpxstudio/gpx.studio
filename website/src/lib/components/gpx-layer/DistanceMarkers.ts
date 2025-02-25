@@ -30,7 +30,7 @@ export class DistanceMarkers {
     update() {
         try {
             if (get(distanceMarkers)) {
-                let distanceSource = this.map.getSource('distance-markers');
+                const distanceSource = this.map.getSource('distance-markers');
                 if (distanceSource) {
                     distanceSource.setData(this.getDistanceMarkersGeoJSON());
                 } else {
@@ -88,17 +88,17 @@ export class DistanceMarkers {
     }
 
     getDistanceMarkersGeoJSON(): GeoJSON.FeatureCollection {
-        let statistics = get(gpxStatistics);
+        const statistics = get(gpxStatistics);
 
-        let features = [];
+        const features = [];
         let currentTargetDistance = 1;
         for (let i = 0; i < statistics.local.distance.total.length; i++) {
             if (
                 statistics.local.distance.total[i] >=
                 currentTargetDistance * (get(distanceUnits) === 'metric' ? 1 : 1.60934)
             ) {
-                let distance = currentTargetDistance.toFixed(0);
-                let [level, minzoom] = stops.find(([d]) => currentTargetDistance % d === 0) ?? [
+                const distance = currentTargetDistance.toFixed(0);
+                const [level, minzoom] = stops.find(([d]) => currentTargetDistance % d === 0) ?? [
                     0, 0,
                 ];
                 features.push({

@@ -54,7 +54,7 @@ export class RoutingControls {
         this.popup = popup;
         this.popupElement = popupElement;
 
-        let point = new TrackPoint({
+        const point = new TrackPoint({
             attributes: {
                 lat: 0,
                 lon: 0,
@@ -68,7 +68,7 @@ export class RoutingControls {
     }
 
     addIfNeeded() {
-        let routing = get(currentTool) === Tool.ROUTING;
+        const routing = get(currentTool) === Tool.ROUTING;
         if (!routing) {
             if (this.active) {
                 this.remove();
@@ -76,7 +76,7 @@ export class RoutingControls {
             return;
         }
 
-        let selected = get(selection).hasAnyChildren(new ListFileItem(this.fileId), true, [
+        const selected = get(selection).hasAnyChildren(new ListFileItem(this.fileId), true, [
             'waypoints',
         ]);
         if (selected) {
@@ -103,7 +103,7 @@ export class RoutingControls {
 
     updateControls() {
         // Update the markers when the file changes
-        let file = get(this.file)?.file;
+        const file = get(this.file)?.file;
         if (!file) {
             return;
         }
@@ -115,7 +115,7 @@ export class RoutingControls {
                     new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)
                 )
             ) {
-                for (let point of segment.trkpt) {
+                for (const point of segment.trkpt) {
                     // Update the existing anchors (could be improved by matching the existing anchors with the new ones?)
                     if (point._data.anchor) {
                         if (anchorIndex < this.anchors.length) {
@@ -146,7 +146,7 @@ export class RoutingControls {
     remove() {
         this.active = false;
 
-        for (let anchor of this.anchors) {
+        for (const anchor of this.anchors) {
             anchor.marker.remove();
         }
         this.map.off('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
@@ -169,16 +169,16 @@ export class RoutingControls {
         trackIndex: number,
         segmentIndex: number
     ): AnchorWithMarker {
-        let element = document.createElement('div');
+        const element = document.createElement('div');
         element.className = `h-5 w-5 xs:h-4 xs:w-4 md:h-3 md:w-3 rounded-full bg-white border-2 border-black cursor-pointer`;
 
-        let marker = new mapboxgl.Marker({
+        const marker = new mapboxgl.Marker({
             draggable: true,
             className: 'z-10',
             element,
         }).setLngLat(point.getCoordinates());
 
-        let anchor = {
+        const anchor = {
             point,
             segment,
             trackIndex,
@@ -200,7 +200,7 @@ export class RoutingControls {
             element.classList.add('cursor-pointer');
             this.moveAnchor(anchor);
         });
-        let handleAnchorClick = this.handleClickForAnchor(anchor, marker);
+        const handleAnchorClick = this.handleClickForAnchor(anchor, marker);
         marker.getElement().addEventListener('click', handleAnchorClick);
         marker.getElement().addEventListener('contextmenu', handleAnchorClick);
 
@@ -231,7 +231,7 @@ export class RoutingControls {
                 if (anchor.point._data.index === 0) {
                     return false;
                 }
-                let segment = anchor.segment;
+                const segment = anchor.segment;
                 if (
                     distance(
                         segment.trkpt[0].getCoordinates(),
@@ -246,9 +246,9 @@ export class RoutingControls {
             marker.setPopup(this.popup);
             marker.togglePopup();
 
-            let deleteThisAnchor = this.getDeleteAnchor(anchor);
+            const deleteThisAnchor = this.getDeleteAnchor(anchor);
             this.popupElement.addEventListener('delete', deleteThisAnchor); // Register the delete event for this anchor
-            let startLoopAtThisAnchor = this.getStartLoopAtAnchor(anchor);
+            const startLoopAtThisAnchor = this.getStartLoopAtAnchor(anchor);
             this.popupElement.addEventListener('change-start', startLoopAtThisAnchor); // Register the start loop event for this anchor
             this.popup.once('close', () => {
                 this.popupElement.removeEventListener('delete', deleteThisAnchor);
@@ -261,12 +261,12 @@ export class RoutingControls {
         // Show markers only if they are in the current zoom level and bounds
         this.shownAnchors.splice(0, this.shownAnchors.length);
 
-        let center = this.map.getCenter();
-        let bottomLeft = this.map.unproject([0, this.map.getCanvas().height]);
-        let topRight = this.map.unproject([this.map.getCanvas().width, 0]);
-        let diagonal = bottomLeft.distanceTo(topRight);
+        const center = this.map.getCenter();
+        const bottomLeft = this.map.unproject([0, this.map.getCanvas().height]);
+        const topRight = this.map.unproject([this.map.getCanvas().width, 0]);
+        const diagonal = bottomLeft.distanceTo(topRight);
 
-        let zoom = this.map.getZoom();
+        const zoom = this.map.getZoom();
         this.anchors.forEach((anchor) => {
             anchor.inZoom = anchor.point._data.zoom <= zoom;
             if (anchor.inZoom && center.distanceTo(anchor.marker.getLngLat()) < diagonal) {
@@ -334,7 +334,7 @@ export class RoutingControls {
     }
 
     temporaryAnchorCloseToOtherAnchor(e: any) {
-        for (let anchor of this.shownAnchors) {
+        for (const anchor of this.shownAnchors) {
             if (e.point.dist(this.map.project(anchor.marker.getLngLat())) < 10) {
                 return true;
             }
@@ -344,7 +344,7 @@ export class RoutingControls {
 
     async moveAnchor(anchorWithMarker: AnchorWithMarker) {
         // Move the anchor and update the route from and to the neighbouring anchors
-        let coordinates = {
+        const coordinates = {
             lat: anchorWithMarker.marker.getLngLat().lat,
             lon: anchorWithMarker.marker.getLngLat().lng,
         };
@@ -356,10 +356,10 @@ export class RoutingControls {
             anchor = this.getPermanentAnchor();
         }
 
-        let [previousAnchor, nextAnchor] = this.getNeighbouringAnchors(anchor);
+        const [previousAnchor, nextAnchor] = this.getNeighbouringAnchors(anchor);
 
-        let anchors = [];
-        let targetCoordinates = [];
+        const anchors = [];
+        const targetCoordinates = [];
 
         if (previousAnchor !== null) {
             anchors.push(previousAnchor);
@@ -374,7 +374,7 @@ export class RoutingControls {
             targetCoordinates.push(nextAnchor.point.getCoordinates());
         }
 
-        let success = await this.routeBetweenAnchors(anchors, targetCoordinates);
+        const success = await this.routeBetweenAnchors(anchors, targetCoordinates);
 
         if (!success) {
             // Route failed, revert the anchor to the previous position
@@ -383,7 +383,7 @@ export class RoutingControls {
     }
 
     getPermanentAnchor(): Anchor {
-        let file = get(this.file)?.file;
+        const file = get(this.file)?.file;
 
         // Find the point closest to the temporary anchor
         let minDetails: any = { distance: Number.MAX_VALUE };
@@ -394,8 +394,8 @@ export class RoutingControls {
                     new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)
                 )
             ) {
-                let details: any = {};
-                let closest = getClosestLinePoint(
+                const details: any = {};
+                const closest = getClosestLinePoint(
                     segment.trkpt,
                     this.temporaryAnchor.point,
                     details
@@ -425,7 +425,7 @@ export class RoutingControls {
     }
 
     turnIntoPermanentAnchor() {
-        let file = get(this.file)?.file;
+        const file = get(this.file)?.file;
 
         // Find the point closest to the temporary anchor
         let minDetails: any = { distance: Number.MAX_VALUE };
@@ -442,22 +442,22 @@ export class RoutingControls {
                     new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)
                 )
             ) {
-                let details: any = {};
+                const details: any = {};
                 getClosestLinePoint(segment.trkpt, this.temporaryAnchor.point, details);
                 if (details.distance < minDetails.distance) {
                     minDetails = details;
-                    let before = details.before ? details.index : details.index - 1;
+                    const before = details.before ? details.index : details.index - 1;
 
-                    let projectedPt = projectedPoint(
+                    const projectedPt = projectedPoint(
                         segment.trkpt[before],
                         segment.trkpt[before + 1],
                         this.temporaryAnchor.point
                     );
-                    let ratio =
+                    const ratio =
                         distance(segment.trkpt[before], projectedPt) /
                         distance(segment.trkpt[before], segment.trkpt[before + 1]);
 
-                    let point = segment.trkpt[before].clone();
+                    const point = segment.trkpt[before].clone();
                     point.setCoordinates(projectedPt);
                     point.ele =
                         (1 - ratio) * (segment.trkpt[before].ele ?? 0) +
@@ -505,7 +505,7 @@ export class RoutingControls {
         // Remove the anchor and route between the neighbouring anchors if they exist
         this.popup.remove();
 
-        let [previousAnchor, nextAnchor] = this.getNeighbouringAnchors(anchor);
+        const [previousAnchor, nextAnchor] = this.getNeighbouringAnchors(anchor);
 
         if (previousAnchor === null && nextAnchor === null) {
             // Only one point, remove it
@@ -526,7 +526,7 @@ export class RoutingControls {
         } else if (nextAnchor === null) {
             // Last point, remove trackpoints from previousAnchor
             dbUtils.applyToFile(this.fileId, (file) => {
-                let segment = file.getSegment(anchor.trackIndex, anchor.segmentIndex);
+                const segment = file.getSegment(anchor.trackIndex, anchor.segmentIndex);
                 file.replaceTrackPoints(
                     anchor.trackIndex,
                     anchor.segmentIndex,
@@ -551,16 +551,16 @@ export class RoutingControls {
     startLoopAtAnchor(anchor: Anchor) {
         this.popup.remove();
 
-        let fileWithStats = get(this.file);
+        const fileWithStats = get(this.file);
         if (!fileWithStats) {
             return;
         }
 
-        let speed = fileWithStats.statistics.getStatisticsFor(
+        const speed = fileWithStats.statistics.getStatisticsFor(
             new ListTrackSegmentItem(this.fileId, anchor.trackIndex, anchor.segmentIndex)
         ).global.speed.moving;
 
-        let segment = anchor.segment;
+        const segment = anchor.segment;
         dbUtils.applyToFile(this.fileId, (file) => {
             file.replaceTrackPoints(
                 anchor.trackIndex,
@@ -593,15 +593,15 @@ export class RoutingControls {
 
     async appendAnchorWithCoordinates(coordinates: Coordinates) {
         // Add a new anchor to the end of the last segment
-        let selected = getOrderedSelection();
+        const selected = getOrderedSelection();
         if (selected.length === 0 || selected[selected.length - 1].getFileId() !== this.fileId) {
             return;
         }
-        let item = selected[selected.length - 1];
+        const item = selected[selected.length - 1];
 
-        let lastAnchor = this.anchors[this.anchors.length - 1];
+        const lastAnchor = this.anchors[this.anchors.length - 1];
 
-        let newPoint = new TrackPoint({
+        const newPoint = new TrackPoint({
             attributes: coordinates,
         });
         newPoint._data.anchor = true;
@@ -621,11 +621,11 @@ export class RoutingControls {
                     segmentIndex = item.getSegmentIndex();
                 }
                 if (file.trk.length === 0) {
-                    let track = new Track();
+                    const track = new Track();
                     track.replaceTrackPoints(0, 0, 0, [newPoint]);
                     file.replaceTracks(0, 0, [track]);
                 } else if (file.trk[trackIndex].trkseg.length === 0) {
-                    let segment = new TrackSegment();
+                    const segment = new TrackSegment();
                     segment.replaceTrackPoints(0, 0, [newPoint]);
                     file.replaceTrackSegments(trackIndex, 0, 0, [segment]);
                 } else {
@@ -636,7 +636,7 @@ export class RoutingControls {
         }
 
         newPoint._data.index = lastAnchor.segment.trkpt.length - 1; // Do as if the point was the last point in the segment
-        let newAnchor = {
+        const newAnchor = {
             point: newPoint,
             segment: lastAnchor.segment,
             trackIndex: lastAnchor.trackIndex,
@@ -680,9 +680,9 @@ export class RoutingControls {
         anchors: Anchor[],
         targetCoordinates: Coordinates[]
     ): Promise<boolean> {
-        let segment = anchors[0].segment;
+        const segment = anchors[0].segment;
 
-        let fileWithStats = get(this.file);
+        const fileWithStats = get(this.file);
         if (!fileWithStats) {
             return false;
         }
@@ -753,7 +753,7 @@ export class RoutingControls {
             anchor.point._data.zoom = 0; // Make these anchors permanent
         });
 
-        let stats = fileWithStats.statistics.getStatisticsFor(
+        const stats = fileWithStats.statistics.getStatisticsFor(
             new ListTrackSegmentItem(this.fileId, anchors[0].trackIndex, anchors[0].segmentIndex)
         );
         let speed: number | undefined = undefined;
@@ -765,14 +765,14 @@ export class RoutingControls {
                 replacingDistance +=
                     distance(response[i - 1].getCoordinates(), response[i].getCoordinates()) / 1000;
             }
-            let replacedDistance =
+            const replacedDistance =
                 stats.local.distance.moving[anchors[anchors.length - 1].point._data.index] -
                 stats.local.distance.moving[anchors[0].point._data.index];
 
-            let newDistance = stats.global.distance.moving + replacingDistance - replacedDistance;
-            let newTime = (newDistance / stats.global.speed.moving) * 3600;
+            const newDistance = stats.global.distance.moving + replacingDistance - replacedDistance;
+            const newTime = (newDistance / stats.global.speed.moving) * 3600;
 
-            let remainingTime =
+            const remainingTime =
                 stats.global.time.moving -
                 (stats.local.time.moving[anchors[anchors.length - 1].point._data.index] -
                     stats.local.time.moving[anchors[0].point._data.index]);
@@ -789,7 +789,7 @@ export class RoutingControls {
 
             if (startTime === undefined) {
                 // Replacing the first point
-                let endIndex = anchors[anchors.length - 1].point._data.index;
+                const endIndex = anchors[anchors.length - 1].point._data.index;
                 startTime = new Date(
                     (segment.trkpt[endIndex].time?.getTime() ?? 0) -
                         (replacingTime +

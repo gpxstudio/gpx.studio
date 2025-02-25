@@ -20,7 +20,7 @@ export class MapPopup {
         this.map = map;
         this.popup = new mapboxgl.Popup(options);
 
-        let component = new MapPopupComponent({
+        const component = new MapPopupComponent({
             target: document.body,
             props: {
                 item: this.item,

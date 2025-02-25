@@ -37,9 +37,9 @@ export const slicedGPXStatistics: Writable<[GPXStatistics, number, number] | und
     writable(undefined);
 
 export function updateGPXData() {
-    let statistics = new GPXStatistics();
+    const statistics = new GPXStatistics();
     applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-        let stats = getStatistics(fileId);
+        const stats = getStatistics(fileId);
         if (stats) {
             let first = true;
             items.forEach((item) => {
@@ -56,21 +56,21 @@ export function updateGPXData() {
     gpxStatistics.set(statistics);
 }
 
-let unsubscribes: Map<string, () => void> = new Map();
+const unsubscribes: Map<string, () => void> = new Map();
 selection.subscribe(($selection) => {
     // Maintain up-to-date statistics for the current selection
     updateGPXData();
 
     while (unsubscribes.size > 0) {
-        let [fileId, unsubscribe] = unsubscribes.entries().next().value;
+        const [fileId, unsubscribe] = unsubscribes.entries().next().value;
         unsubscribe();
         unsubscribes.delete(fileId);
     }
 
     $selection.forEach((item) => {
-        let fileId = item.getFileId();
+        const fileId = item.getFileId();
         if (!unsubscribes.has(fileId)) {
-            let fileObserver = get(fileObservers).get(fileId);
+            const fileObserver = get(fileObservers).get(fileId);
             if (fileObserver) {
                 let first = true;
                 unsubscribes.set(
@@ -111,8 +111,8 @@ derived([targetMapBounds, map], (x) => x).subscribe(([bounds, $map]) => {
         return;
     }
 
-    let currentZoom = $map.getZoom();
-    let currentBounds = $map.getBounds();
+    const currentZoom = $map.getZoom();
+    const currentBounds = $map.getBounds();
     if (
         bounds.total !== get(fileObservers).size &&
         currentBounds &&
@@ -167,16 +167,16 @@ export function updateTargetMapBounds(
 }
 
 export function centerMapOnSelection() {
-    let selected = get(selection).getSelected();
-    let bounds = new mapboxgl.LngLatBounds();
+    const selected = get(selection).getSelected();
+    const bounds = new mapboxgl.LngLatBounds();
 
     if (selected.find((item) => item instanceof ListWaypointItem)) {
         applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-            let file = getFile(fileId);
+            const file = getFile(fileId);
             if (file) {
                 items.forEach((item) => {
                     if (item instanceof ListWaypointItem) {
-                        let waypoint = file.wpt[item.getWaypointIndex()];
+                        const waypoint = file.wpt[item.getWaypointIndex()];
                         if (waypoint) {
                             bounds.extend([waypoint.getLongitude(), waypoint.getLatitude()]);
                         }
@@ -185,7 +185,7 @@ export function centerMapOnSelection() {
             }
         });
     } else {
-        let selectionBounds = get(gpxStatistics).global.bounds;
+        const selectionBounds = get(gpxStatistics).global.bounds;
         bounds.setNorthEast(selectionBounds.northEast);
         bounds.setSouthWest(selectionBounds.southWest);
     }
@@ -218,13 +218,13 @@ export const streetViewEnabled = writable(false);
 export function newGPXFile() {
     const newFileName = get(_)('menu.new_file');
 
-    let file = new GPXFile();
+    const file = new GPXFile();
 
     let maxNewFileNumber = 0;
     get(fileObservers).forEach((f) => {
-        let file = get(f)?.file;
+        const file = get(f)?.file;
         if (file && file.metadata.name && file.metadata.name.startsWith(newFileName)) {
-            let number = parseInt(file.metadata.name.split(' ').pop() ?? '0');
+            const number = parseInt(file.metadata.name.split(' ').pop() ?? '0');
             if (!isNaN(number) && number > maxNewFileNumber) {
                 maxNewFileNumber = number;
             }
@@ -237,7 +237,7 @@ export function newGPXFile() {
 }
 
 export function createFile() {
-    let file = newGPXFile();
+    const file = newGPXFile();
 
     dbUtils.add(file);
 
@@ -260,27 +260,27 @@ export function triggerFileInput() {
 }
 
 export async function loadFiles(list: FileList | File[]) {
-    let files: GPXFile[] = [];
+    const files: GPXFile[] = [];
     for (let i = 0; i < list.length; i++) {
-        let file = await loadFile(list[i]);
+        const file = await loadFile(list[i]);
         if (file) {
             files.push(file);
         }
     }
 
-    let ids = dbUtils.addMultiple(files);
+    const ids = dbUtils.addMultiple(files);
 
     initTargetMapBounds(ids);
     selectFileWhenLoaded(ids[0]);
 }
 
 export async function loadFile(file: File): Promise<GPXFile | null> {
-    let result = await new Promise<GPXFile | null>((resolve) => {
+    const result = await new Promise<GPXFile | null>((resolve) => {
         const reader = new FileReader();
         reader.onload = () => {
-            let data = reader.result?.toString() ?? null;
+            const data = reader.result?.toString() ?? null;
             if (data) {
-                let gpx = parseGPX(data);
+                const gpx = parseGPX(data);
                 if (gpx.metadata === undefined) {
                     gpx.metadata = {};
                 }
@@ -309,17 +309,17 @@ export function selectFileWhenLoaded(fileId: string) {
 }
 
 export function updateSelectionFromKey(down: boolean, shift: boolean) {
-    let selected = get(selection).getSelected();
+    const selected = get(selection).getSelected();
     if (selected.length === 0) {
         return;
     }
 
     let next: ListItem | undefined = undefined;
     if (selected[0] instanceof ListFileItem) {
-        let order = get(fileOrder);
+        const order = get(fileOrder);
         let limitIndex: number | undefined = undefined;
         selected.forEach((item) => {
-            let index = order.indexOf(item.getFileId());
+            const index = order.indexOf(item.getFileId());
             if (
                 limitIndex === undefined ||
                 (down && index > limitIndex) ||
@@ -355,11 +355,11 @@ export function updateSelectionFromKey(down: boolean, shift: boolean) {
         selected[0] instanceof ListTrackItem &&
         selected[selected.length - 1] instanceof ListTrackItem
     ) {
-        let fileId = selected[0].getFileId();
-        let file = getFile(fileId);
+        const fileId = selected[0].getFileId();
+        const file = getFile(fileId);
         if (file) {
-            let numberOfTracks = file.trk.length;
-            let trackIndex = down
+            const numberOfTracks = file.trk.length;
+            const trackIndex = down
                 ? selected[selected.length - 1].getTrackIndex()
                 : selected[0].getTrackIndex();
             if (down && trackIndex < numberOfTracks - 1) {
@@ -372,12 +372,12 @@ export function updateSelectionFromKey(down: boolean, shift: boolean) {
         selected[0] instanceof ListTrackSegmentItem &&
         selected[selected.length - 1] instanceof ListTrackSegmentItem
     ) {
-        let fileId = selected[0].getFileId();
-        let file = getFile(fileId);
+        const fileId = selected[0].getFileId();
+        const file = getFile(fileId);
         if (file) {
-            let trackIndex = selected[0].getTrackIndex();
-            let numberOfSegments = file.trk[trackIndex].trkseg.length;
-            let segmentIndex = down
+            const trackIndex = selected[0].getTrackIndex();
+            const numberOfSegments = file.trk[trackIndex].trkseg.length;
+            const segmentIndex = down
                 ? selected[selected.length - 1].getSegmentIndex()
                 : selected[0].getSegmentIndex();
             if (down && segmentIndex < numberOfSegments - 1) {
@@ -390,11 +390,11 @@ export function updateSelectionFromKey(down: boolean, shift: boolean) {
         selected[0] instanceof ListWaypointItem &&
         selected[selected.length - 1] instanceof ListWaypointItem
     ) {
-        let fileId = selected[0].getFileId();
-        let file = getFile(fileId);
+        const fileId = selected[0].getFileId();
+        const file = getFile(fileId);
         if (file) {
-            let numberOfWaypoints = file.wpt.length;
-            let waypointIndex = down
+            const numberOfWaypoints = file.wpt.length;
+            const waypointIndex = down
                 ? selected[selected.length - 1].getWaypointIndex()
                 : selected[0].getWaypointIndex();
             if (down && waypointIndex < numberOfWaypoints - 1) {
@@ -465,9 +465,9 @@ export const allHidden = writable(false);
 export function updateAllHidden() {
     let hidden = true;
     applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-        let file = getFile(fileId);
+        const file = getFile(fileId);
         if (file) {
-            for (let item of items) {
+            for (const item of items) {
                 if (!hidden) {
                     return;
                 }

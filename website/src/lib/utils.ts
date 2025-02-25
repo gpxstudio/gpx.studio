@@ -78,7 +78,7 @@ export function getClosestLinePoint(
     let closest = points[0];
     let closestDist = Number.MAX_VALUE;
     for (let i = 0; i < points.length - 1; i++) {
-        let dist = crossarcDistance(points[i], points[i + 1], point);
+        const dist = crossarcDistance(points[i], points[i + 1], point);
         if (dist < closestDist) {
             closestDist = dist;
             if (distance(points[i], point) <= distance(points[i + 1], point)) {
@@ -101,21 +101,21 @@ export function getElevation(
     ELEVATION_ZOOM: number = 13,
     tileSize = 512
 ): Promise<number[]> {
-    let coordinates = points.map((point) =>
+    const coordinates = points.map((point) =>
         point instanceof TrackPoint || point instanceof Waypoint ? point.getCoordinates() : point
     );
-    let bbox = new mapboxgl.LngLatBounds();
+    const bbox = new mapboxgl.LngLatBounds();
     coordinates.forEach((coord) => bbox.extend(coord));
 
-    let tiles = coordinates.map((coord) =>
+    const tiles = coordinates.map((coord) =>
         tilebelt.pointToTile(coord.lon, coord.lat, ELEVATION_ZOOM)
     );
-    let uniqueTiles = Array.from(new Set(tiles.map((tile) => tile.join(',')))).map((tile) =>
+    const uniqueTiles = Array.from(new Set(tiles.map((tile) => tile.join(',')))).map((tile) =>
         tile.split(',').map((x) => parseInt(x))
     );
-    let pngs = new Map<string, any>();
+    const pngs = new Map<string, any>();
 
-    let promises = uniqueTiles.map((tile) =>
+    const promises = uniqueTiles.map((tile) =>
         fetch(
             `https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/${ELEVATION_ZOOM}/${tile[0]}/${tile[1]}@2x.pngraw?access_token=${PUBLIC_MAPBOX_TOKEN}`,
             { cache: 'force-cache' }
@@ -124,7 +124,7 @@ export function getElevation(
             .then(
                 (buffer) =>
                     new Promise((resolve) => {
-                        let png = new PNGReader(new Uint8Array(buffer));
+                        const png = new PNGReader(new Uint8Array(buffer));
                         png.parse((err, png) => {
                             if (err) {
                                 resolve(false); // Also resolve so that Promise.all doesn't fail
@@ -139,20 +139,20 @@ export function getElevation(
 
     return Promise.all(promises).then(() =>
         coordinates.map((coord, index) => {
-            let tile = tiles[index];
-            let png = pngs.get(tile.join(','));
+            const tile = tiles[index];
+            const png = pngs.get(tile.join(','));
 
             if (!png) {
                 return 0;
             }
 
-            let tf = tilebelt.pointToTileFraction(coord.lon, coord.lat, ELEVATION_ZOOM);
-            let x = tileSize * (tf[0] - tile[0]);
-            let y = tileSize * (tf[1] - tile[1]);
-            let _x = Math.floor(x);
-            let _y = Math.floor(y);
-            let dx = x - _x;
-            let dy = y - _y;
+            const tf = tilebelt.pointToTileFraction(coord.lon, coord.lat, ELEVATION_ZOOM);
+            const x = tileSize * (tf[0] - tile[0]);
+            const y = tileSize * (tf[1] - tile[1]);
+            const _x = Math.floor(x);
+            const _y = Math.floor(y);
+            const dx = x - _x;
+            const dy = y - _y;
 
             const p00 = png.getPixel(_x, _y);
             const p01 = png.getPixel(_x, _y + (_y + 1 == tileSize ? 0 : 1));
@@ -162,10 +162,10 @@ export function getElevation(
                 _y + (_y + 1 == tileSize ? 0 : 1)
             );
 
-            let ele00 = -10000 + (p00[0] * 256 * 256 + p00[1] * 256 + p00[2]) * 0.1;
-            let ele01 = -10000 + (p01[0] * 256 * 256 + p01[1] * 256 + p01[2]) * 0.1;
-            let ele10 = -10000 + (p10[0] * 256 * 256 + p10[1] * 256 + p10[2]) * 0.1;
-            let ele11 = -10000 + (p11[0] * 256 * 256 + p11[1] * 256 + p11[2]) * 0.1;
+            const ele00 = -10000 + (p00[0] * 256 * 256 + p00[1] * 256 + p00[2]) * 0.1;
+            const ele01 = -10000 + (p01[0] * 256 * 256 + p01[1] * 256 + p01[2]) * 0.1;
+            const ele10 = -10000 + (p10[0] * 256 * 256 + p10[1] * 256 + p10[2]) * 0.1;
+            const ele11 = -10000 + (p11[0] * 256 * 256 + p11[1] * 256 + p11[2]) * 0.1;
 
             return (
                 ele00 * (1 - dx) * (1 - dy) +
@@ -177,9 +177,9 @@ export function getElevation(
     );
 }
 
-let previousCursors: string[] = [];
+const previousCursors: string[] = [];
 export function setCursor(cursor: string) {
-    let m = get(map);
+    const m = get(map);
     if (m) {
         previousCursors.push(m.getCanvas().style.cursor);
         m.getCanvas().style.cursor = cursor;
@@ -187,7 +187,7 @@ export function setCursor(cursor: string) {
 }
 
 export function resetCursor() {
-    let m = get(map);
+    const m = get(map);
     if (m) {
         m.getCanvas().style.cursor = previousCursors.pop() ?? '';
     }

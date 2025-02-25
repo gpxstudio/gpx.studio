@@ -74,8 +74,8 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
     }
 
     getStatistics(): GPXStatistics {
-        let statistics = new GPXStatistics();
-        for (let child of this.children) {
+        const statistics = new GPXStatistics();
+        for (const child of this.children) {
             statistics.mergeWith(child.getStatistics());
         }
         return statistics;
@@ -91,7 +91,7 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
 
     // Producers
     _reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date) {
-        let og = getOriginal(this);
+        const og = getOriginal(this);
         if (!originalNextTimestamp && !newPreviousTimestamp) {
             originalNextTimestamp = og.getEndTimestamp();
             newPreviousTimestamp = og.getStartTimestamp();
@@ -100,7 +100,7 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
         this.children.reverse();
 
         for (let i = 0; i < og.children.length; i++) {
-            let originalStartTimestamp =
+            const originalStartTimestamp =
                 og.children[og.children.length - i - 1].getStartTimestamp();
 
             this.children[i]._reverse(originalNextTimestamp, newPreviousTimestamp);
@@ -154,8 +154,8 @@ export class GPXFile extends GPXTreeNode<Track> {
                 this._data = gpx._data;
             }
             if (!this._data.hasOwnProperty('style')) {
-                let style = this.getStyle();
-                let fileStyle = {};
+                const style = this.getStyle();
+                const fileStyle = {};
                 if (style.color.length === 1) {
                     fileStyle['gpx_style:color'] = style.color[0];
                 }
@@ -263,7 +263,7 @@ export class GPXFile extends GPXTreeNode<Track> {
     }
 
     toGPXFileType(exclude: string[] = []): GPXFileType {
-        let file: GPXFileType = {
+        const file: GPXFileType = {
             attributes: cloneJSON(this.attributes),
             metadata: {},
             wpt: this.wpt.map((wpt) => wpt.toWaypointType(exclude)),
@@ -348,7 +348,7 @@ export class GPXFile extends GPXTreeNode<Track> {
         let i = 0;
         let trackIndex = 0;
         while (i < this.trk.length) {
-            let length = this.trk[i].getNumberOfTrackPoints();
+            const length = this.trk[i].getNumberOfTrackPoints();
             if (trackIndices === undefined || trackIndices.includes(trackIndex)) {
                 if (start >= length || end < 0) {
                     this.trk.splice(i, 1);
@@ -398,10 +398,10 @@ export class GPXFile extends GPXTreeNode<Track> {
             }
         }
         if (deleteWaypoints) {
-            let og = getOriginal(this); // Read as much as possible from the original object because it is faster
-            let wpt = og.wpt.filter((point, waypointIndex) => {
+            const og = getOriginal(this); // Read as much as possible from the original object because it is faster
+            const wpt = og.wpt.filter((point, waypointIndex) => {
                 if (waypointIndices === undefined || waypointIndices.includes(waypointIndex)) {
-                    let inBounds =
+                    const inBounds =
                         point.attributes.lat >= bounds[0].lat &&
                         point.attributes.lat <= bounds[1].lat &&
                         point.attributes.lon >= bounds[0].lon &&
@@ -422,7 +422,7 @@ export class GPXFile extends GPXTreeNode<Track> {
         trackIndex?: number,
         segmentIndex?: number
     ) {
-        let lastPoint = undefined;
+        const lastPoint = undefined;
         this.trk.forEach((track, index) => {
             if (trackIndex === undefined || trackIndex === index) {
                 track.changeTimestamps(startTime, speed, ratio, lastPoint, segmentIndex);
@@ -436,7 +436,7 @@ export class GPXFile extends GPXTreeNode<Track> {
         trackIndex?: number,
         segmentIndex?: number
     ) {
-        let lastPoint = undefined;
+        const lastPoint = undefined;
         this.trk.forEach((track, index) => {
             if (trackIndex === undefined || trackIndex === index) {
                 track.createArtificialTimestamps(startTime, totalTime, lastPoint, segmentIndex);
@@ -608,7 +608,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
 
     toGeoJSON(): GeoJSON.Feature[] {
         return this.children.map((child) => {
-            let geoJSON = child.toGeoJSON();
+            const geoJSON = child.toGeoJSON();
             if (this.extensions && this.extensions['gpx_style:line']) {
                 if (this.extensions['gpx_style:line']['gpx_style:color']) {
                     geoJSON.properties['color'] =
@@ -682,7 +682,7 @@ export class Track extends GPXTreeNode<TrackSegment> {
         let i = 0;
         let segmentIndex = 0;
         while (i < this.trkseg.length) {
-            let length = this.trkseg[i].getNumberOfTrackPoints();
+            const length = this.trkseg[i].getNumberOfTrackPoints();
             if (segmentIndices === undefined || segmentIndices.includes(segmentIndex)) {
                 if (start >= length || end < 0) {
                     this.trkseg.splice(i, 1);
@@ -814,7 +814,7 @@ export class TrackSegment extends GPXTreeLeaf {
     }
 
     _computeStatistics(): GPXStatistics {
-        let statistics = new GPXStatistics();
+        const statistics = new GPXStatistics();
 
         statistics.local.points = this.trkpt.map((point) => point);
 
@@ -902,7 +902,7 @@ export class TrackSegment extends GPXTreeLeaf {
                     points[i].extensions['gpxtpx:TrackPointExtension'] &&
                     points[i].extensions['gpxtpx:TrackPointExtension']['gpxtpx:atemp']
                 ) {
-                    let atemp = points[i].extensions['gpxtpx:TrackPointExtension']['gpxtpx:atemp'];
+                    const atemp = points[i].extensions['gpxtpx:TrackPointExtension']['gpxtpx:atemp'];
                     statistics.global.atemp.avg =
                         (statistics.global.atemp.count * statistics.global.atemp.avg + atemp) /
                         (statistics.global.atemp.count + 1);
@@ -912,7 +912,7 @@ export class TrackSegment extends GPXTreeLeaf {
                     points[i].extensions['gpxtpx:TrackPointExtension'] &&
                     points[i].extensions['gpxtpx:TrackPointExtension']['gpxtpx:hr']
                 ) {
-                    let hr = points[i].extensions['gpxtpx:TrackPointExtension']['gpxtpx:hr'];
+                    const hr = points[i].extensions['gpxtpx:TrackPointExtension']['gpxtpx:hr'];
                     statistics.global.hr.avg =
                         (statistics.global.hr.count * statistics.global.hr.avg + hr) /
                         (statistics.global.hr.count + 1);
@@ -922,7 +922,7 @@ export class TrackSegment extends GPXTreeLeaf {
                     points[i].extensions['gpxtpx:TrackPointExtension'] &&
                     points[i].extensions['gpxtpx:TrackPointExtension']['gpxtpx:cad']
                 ) {
-                    let cad = points[i].extensions['gpxtpx:TrackPointExtension']['gpxtpx:cad'];
+                    const cad = points[i].extensions['gpxtpx:TrackPointExtension']['gpxtpx:cad'];
                     statistics.global.cad.avg =
                         (statistics.global.cad.count * statistics.global.cad.avg + cad) /
                         (statistics.global.cad.count + 1);
@@ -932,7 +932,7 @@ export class TrackSegment extends GPXTreeLeaf {
                     points[i].extensions['gpxpx:PowerExtension'] &&
                     points[i].extensions['gpxpx:PowerExtension']['gpxpx:PowerInWatts']
                 ) {
-                    let power = points[i].extensions['gpxpx:PowerExtension']['gpxpx:PowerInWatts'];
+                    const power = points[i].extensions['gpxpx:PowerExtension']['gpxpx:PowerInWatts'];
                     statistics.global.power.avg =
                         (statistics.global.power.count * statistics.global.power.avg + power) /
                         (statistics.global.power.count + 1);
@@ -993,7 +993,7 @@ export class TrackSegment extends GPXTreeLeaf {
     _computeSmoothedElevation(): number[] {
         const points = this.trkpt;
 
-        let smoothed = distanceWindowSmoothing(
+        const smoothed = distanceWindowSmoothing(
             points,
             100,
             (index) => points[index].ele ?? 0,
@@ -1021,21 +1021,21 @@ export class TrackSegment extends GPXTreeLeaf {
     }
 
     _computeSlopeSegments(statistics: GPXStatistics): [number[], number[]] {
-        let simplified = ramerDouglasPeucker(
+        const simplified = ramerDouglasPeucker(
             this.trkpt,
             20,
             getElevationDistanceFunction(statistics)
         );
 
-        let slope = [];
-        let length = [];
+        const slope = [];
+        const length = [];
 
         for (let i = 0; i < simplified.length - 1; i++) {
-            let start = simplified[i].point._data.index;
-            let end = simplified[i + 1].point._data.index;
-            let dist =
+            const start = simplified[i].point._data.index;
+            const end = simplified[i + 1].point._data.index;
+            const dist =
                 statistics.local.distance.total[end] - statistics.local.distance.total[start];
-            let ele = (simplified[i + 1].point.ele ?? 0) - (simplified[i].point.ele ?? 0);
+            const ele = (simplified[i + 1].point.ele ?? 0) - (simplified[i].point.ele ?? 0);
 
             for (let j = start; j < end + (i + 1 === simplified.length - 1 ? 1 : 0); j++) {
                 slope.push((0.1 * ele) / dist);
@@ -1112,8 +1112,8 @@ export class TrackSegment extends GPXTreeLeaf {
         startTime?: Date,
         removeGaps?: boolean
     ) {
-        let og = getOriginal(this); // Read as much as possible from the original object because it is faster
-        let trkpt = og.trkpt.slice();
+        const og = getOriginal(this); // Read as much as possible from the original object because it is faster
+        const trkpt = og.trkpt.slice();
 
         if (speed !== undefined || (trkpt.length > 0 && trkpt[0].time !== undefined)) {
             // Must handle timestamps (either segment has timestamps or the new points will have timestamps)
@@ -1127,7 +1127,7 @@ export class TrackSegment extends GPXTreeLeaf {
             }
             if (points.length > 0) {
                 // Adapt timestamps of the new points
-                let last = start > 0 ? trkpt[start - 1] : undefined;
+                const last = start > 0 ? trkpt[start - 1] : undefined;
                 if (
                     points[0].time === undefined ||
                     (points.length > 1 && points[1].time === undefined)
@@ -1155,7 +1155,7 @@ export class TrackSegment extends GPXTreeLeaf {
                     } else {
                         // Different points, make the new points start one second after the previous point
                         if (points[0].time.getTime() - last.time.getTime() > 1000) {
-                            let artificialLast = points[0].clone();
+                            const artificialLast = points[0].clone();
                             artificialLast.time = new Date(last.time.getTime() + 1000);
                             points = withShiftedAndCompressedTimestamps(
                                 points,
@@ -1169,7 +1169,7 @@ export class TrackSegment extends GPXTreeLeaf {
             }
             if (end < trkpt.length - 1) {
                 // Adapt timestamps of points after [start, end]
-                let last =
+                const last =
                     points.length > 0
                         ? points[points.length - 1]
                         : start > 0
@@ -1198,9 +1198,9 @@ export class TrackSegment extends GPXTreeLeaf {
     }
 
     _reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date) {
-        let og = getOriginal(this); // Read as much as possible from the original object because it is faster
-        let originalStartTimestamp = og.getStartTimestamp();
-        let originalEndTimestamp = og.getEndTimestamp();
+        const og = getOriginal(this); // Read as much as possible from the original object because it is faster
+        const originalStartTimestamp = og.getStartTimestamp();
+        const originalEndTimestamp = og.getEndTimestamp();
         if (!newPreviousTimestamp) {
             newPreviousTimestamp = originalStartTimestamp;
         }
@@ -1216,13 +1216,13 @@ export class TrackSegment extends GPXTreeLeaf {
             newPreviousTimestamp !== undefined &&
             originalEndTimestamp !== undefined
         ) {
-            let newStartTimestamp = new Date(
+            const newStartTimestamp = new Date(
                 newPreviousTimestamp.getTime() +
                     originalNextTimestamp.getTime() -
                     originalEndTimestamp.getTime()
             );
 
-            let trkpt = og.trkpt.map(
+            const trkpt = og.trkpt.map(
                 (point, i) =>
                     new TrackPoint({
                         attributes: cloneJSON(point.attributes),
@@ -1245,8 +1245,8 @@ export class TrackSegment extends GPXTreeLeaf {
     }
 
     roundTrip() {
-        let og = getOriginal(this); // Read as much as possible from the original object because it is faster
-        let newSegment = og.clone();
+        const og = getOriginal(this); // Read as much as possible from the original object because it is faster
+        const newSegment = og.clone();
         newSegment._reverse(newSegment.getEndTimestamp(), newSegment.getEndTimestamp());
         this.replaceTrackPoints(this.trkpt.length, this.trkpt.length, newSegment.trkpt);
     }
@@ -1256,9 +1256,9 @@ export class TrackSegment extends GPXTreeLeaf {
     }
 
     clean(bounds: [Coordinates, Coordinates], inside: boolean) {
-        let og = getOriginal(this); // Read as much as possible from the original object because it is faster
-        let trkpt = og.trkpt.filter((point) => {
-            let inBounds =
+        const og = getOriginal(this); // Read as much as possible from the original object because it is faster
+        const trkpt = og.trkpt.filter((point) => {
+            const inBounds =
                 point.attributes.lat >= bounds[0].lat &&
                 point.attributes.lat <= bounds[1].lat &&
                 point.attributes.lon >= bounds[0].lon &&
@@ -1274,12 +1274,12 @@ export class TrackSegment extends GPXTreeLeaf {
             lastPoint.time = startTime;
         }
 
-        let og = getOriginal(this); // Read as much as possible from the original object because it is faster
+        const og = getOriginal(this); // Read as much as possible from the original object because it is faster
         if (og.trkpt.length > 0 && og.trkpt[0].time === undefined) {
-            let trkpt = withTimestamps(og.trkpt, speed, lastPoint, startTime);
+            const trkpt = withTimestamps(og.trkpt, speed, lastPoint, startTime);
             this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
         } else {
-            let trkpt = withShiftedAndCompressedTimestamps(og.trkpt, speed, ratio, lastPoint);
+            const trkpt = withShiftedAndCompressedTimestamps(og.trkpt, speed, ratio, lastPoint);
             this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
         }
     }
@@ -1289,9 +1289,9 @@ export class TrackSegment extends GPXTreeLeaf {
         totalTime: number,
         lastPoint: TrackPoint | undefined
     ) {
-        let og = getOriginal(this); // Read as much as possible from the original object because it is faster
-        let slope = og._computeSlope();
-        let trkpt = withArtificialTimestamps(og.trkpt, totalTime, lastPoint, startTime, slope);
+        const og = getOriginal(this); // Read as much as possible from the original object because it is faster
+        const slope = og._computeSlope();
+        const trkpt = withArtificialTimestamps(og.trkpt, totalTime, lastPoint, startTime, slope);
         this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
     }
 
@@ -1854,7 +1854,7 @@ export class GPXStatistics {
             end = this.local.points.length - 1;
         }
 
-        let statistics = new GPXStatistics();
+        const statistics = new GPXStatistics();
 
         statistics.local.points = this.local.points.slice(start, end + 1);
 
@@ -1926,14 +1926,14 @@ export function getElevationDistanceFunction(statistics: GPXStatistics) {
         if (point1.ele === undefined || point2.ele === undefined || point3.ele === undefined) {
             return 0;
         }
-        let x1 = statistics.local.distance.total[point1._data.index] * 1000;
-        let x2 = statistics.local.distance.total[point2._data.index] * 1000;
-        let x3 = statistics.local.distance.total[point3._data.index] * 1000;
-        let y1 = point1.ele;
-        let y2 = point2.ele;
-        let y3 = point3.ele;
+        const x1 = statistics.local.distance.total[point1._data.index] * 1000;
+        const x2 = statistics.local.distance.total[point2._data.index] * 1000;
+        const x3 = statistics.local.distance.total[point3._data.index] * 1000;
+        const y1 = point1.ele;
+        const y2 = point2.ele;
+        const y3 = point3.ele;
 
-        let dist = Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
+        const dist = Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
         if (dist === 0) {
             return Math.sqrt(Math.pow(x3 - x1, 2) + Math.pow(y3 - y1, 2));
         }
@@ -1949,12 +1949,12 @@ function distanceWindowSmoothing(
     compute: (accumulated: number, start: number, end: number) => number,
     remove?: (index: number) => number
 ): number[] {
-    let result = [];
+    const result = [];
 
     let start = 0,
         end = 0,
         accumulated = 0;
-    for (var i = 0; i < points.length; i++) {
+    for (let i = 0; i < points.length; i++) {
         while (
             start + 1 < i &&
             distance(points[start].getCoordinates(), points[i].getCoordinates()) > distanceWindow
@@ -2010,7 +2010,7 @@ function withTimestamps(
         last.time = startTime;
     }
     return points.map((point) => {
-        let time = getTimestamp(last, point, speed);
+        const time = getTimestamp(last, point, speed);
         last = point.clone();
         last.time = time;
         return last;
@@ -2023,10 +2023,10 @@ function withShiftedAndCompressedTimestamps(
     ratio: number,
     lastPoint: TrackPoint
 ): TrackPoint[] {
-    let start = getTimestamp(lastPoint, points[0], speed);
+    const start = getTimestamp(lastPoint, points[0], speed);
     let last = points[0];
     return points.map((point) => {
-        let pt = point.clone();
+        const pt = point.clone();
         if (point.time === undefined) {
             pt.time = getTimestamp(last, point, speed);
         } else {
@@ -2046,19 +2046,19 @@ function withArtificialTimestamps(
     startTime: Date,
     slope: number[]
 ): TrackPoint[] {
-    let weight = [];
+    const weight = [];
     let totalWeight = 0;
 
     for (let i = 0; i < points.length - 1; i++) {
-        let dist = distance(points[i].getCoordinates(), points[i + 1].getCoordinates());
-        let w = dist * (0.5 + 1 / (1 + Math.exp(-0.2 * slope[i])));
+        const dist = distance(points[i].getCoordinates(), points[i + 1].getCoordinates());
+        const w = dist * (0.5 + 1 / (1 + Math.exp(-0.2 * slope[i])));
         weight.push(w);
         totalWeight += w;
     }
 
     let last = lastPoint;
     return points.map((point, i) => {
-        let pt = point.clone();
+        const pt = point.clone();
         if (i === 0) {
             pt.time = lastPoint?.time ?? startTime;
         } else {
@@ -2077,7 +2077,7 @@ function getTimestamp(a: TrackPoint, b: TrackPoint, speed: number): Date {
     } else if (speed === undefined) {
         return new Date(a.time.getTime() + 1000);
     }
-    let dist = distance(a.getCoordinates(), b.getCoordinates()) / 1000;
+    const dist = distance(a.getCoordinates(), b.getCoordinates()) / 1000;
     return new Date(a.time.getTime() + (1000 * 3600 * dist) / speed);
 }
 

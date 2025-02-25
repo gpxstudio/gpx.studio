@@ -12,8 +12,8 @@ export class StartEndMarkers {
     constructor(map: mapboxgl.Map) {
         this.map = map;
 
-        let startElement = document.createElement('div');
-        let endElement = document.createElement('div');
+        const startElement = document.createElement('div');
+        const endElement = document.createElement('div');
         startElement.className = `h-4 w-4 rounded-full bg-green-500 border-2 border-white`;
         endElement.className = `h-4 w-4 rounded-full border-2 border-white`;
         endElement.style.background =
@@ -28,8 +28,8 @@ export class StartEndMarkers {
     }
 
     update() {
-        let tool = get(currentTool);
-        let statistics = get(slicedGPXStatistics)?.[0] ?? get(gpxStatistics);
+        const tool = get(currentTool);
+        const statistics = get(slicedGPXStatistics)?.[0] ?? get(gpxStatistics);
         if (statistics.local.points.length > 0 && tool !== Tool.ROUTING) {
             this.start.setLngLat(statistics.local.points[0].getCoordinates()).addTo(this.map);
             this.end
