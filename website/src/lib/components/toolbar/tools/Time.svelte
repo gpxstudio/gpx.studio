@@ -69,14 +69,14 @@
             endDate = undefined;
             endTime = undefined;
         }
-        if ($gpxStatistics.global.time.moving) {
+        if ($gpxStatistics.global.time.moving && $gpxStatistics.global.speed.moving) {
             movingTime = $gpxStatistics.global.time.moving;
+            setSpeed($gpxStatistics.global.speed.moving);
+        } else if ($gpxStatistics.global.time.total && $gpxStatistics.global.speed.total) {
+            movingTime = $gpxStatistics.global.time.total;
+            setSpeed($gpxStatistics.global.speed.total);
         } else {
             movingTime = undefined;
-        }
-        if ($gpxStatistics.global.speed.moving) {
-            setSpeed($gpxStatistics.global.speed.moving);
-        } else {
             speed = undefined;
         }
     }
@@ -329,7 +329,7 @@
                 let fileId = item.getFileId();
                 dbUtils.applyToFile(fileId, (file) => {
                     if (item instanceof ListFileItem) {
-                        if (artificial) {
+                        if (artificial || !$gpxStatistics.global.time.moving) {
                             file.createArtificialTimestamps(
                                 getDate(startDate, startTime),
                                 movingTime
@@ -342,7 +342,7 @@
                             );
                         }
                     } else if (item instanceof ListTrackItem) {
-                        if (artificial) {
+                        if (artificial || !$gpxStatistics.global.time.moving) {
                             file.createArtificialTimestamps(
                                 getDate(startDate, startTime),
                                 movingTime,
@@ -357,7 +357,7 @@
                             );
                         }
                     } else if (item instanceof ListTrackSegmentItem) {
-                        if (artificial) {
+                        if (artificial || !$gpxStatistics.global.time.moving) {
                             file.createArtificialTimestamps(
                                 getDate(startDate, startTime),
                                 movingTime,
