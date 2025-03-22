@@ -2,6 +2,7 @@
     import * as Card from '$lib/components/ui/card';
     import { Button } from '$lib/components/ui/button';
     import Shortcut from '$lib/components/Shortcut.svelte';
+    import CopyCoordinates from '$lib/components/gpx-layer/CopyCoordinates.svelte';
     import { deleteWaypoint } from './GPXLayerPopup';
     import WithUnits from '$lib/components/WithUnits.svelte';
     import { Dot, ExternalLink, Trash2 } from 'lucide-svelte';
@@ -77,17 +78,20 @@
                 <span class="whitespace-pre-wrap">{@html sanitize(waypoint.item.cmt)}</span>
             {/if}
         </ScrollArea>
-        {#if $currentTool === Tool.WAYPOINT}
-            <Button
-                class="mt-2 w-full px-2 py-1 h-8 justify-start"
-                variant="outline"
-                on:click={() => deleteWaypoint(waypoint.fileId, waypoint.item._data.index)}
-            >
-                <Trash2 size="16" class="mr-1" />
-                {$_('menu.delete')}
-                <Shortcut shift={true} click={true} />
-            </Button>
-        {/if}
+        <div class="mt-2 flex flex-col gap-1">
+            <CopyCoordinates coordinates={waypoint.item.attributes} />
+            {#if $currentTool === Tool.WAYPOINT}
+                <Button
+                    class="w-full px-2 py-1 h-8 justify-start"
+                    variant="outline"
+                    on:click={() => deleteWaypoint(waypoint.fileId, waypoint.item._data.index)}
+                >
+                    <Trash2 size="16" class="mr-1" />
+                    {$_('menu.delete')}
+                    <Shortcut shift={true} click={true} />
+                </Button>
+            {/if}
+        </div>
     </Card.Content>
 </Card.Root>
 

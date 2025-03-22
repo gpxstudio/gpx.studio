@@ -1,10 +1,10 @@
 <script lang="ts">
     import type { TrackPoint } from 'gpx';
     import type { PopupItem } from '$lib/components/MapPopup';
+    import CopyCoordinates from '$lib/components/gpx-layer/CopyCoordinates.svelte';
     import * as Card from '$lib/components/ui/card';
-    import { Button } from '$lib/components/ui/button';
     import WithUnits from '$lib/components/WithUnits.svelte';
-    import { Compass, Mountain, Timer, ClipboardCopy } from 'lucide-svelte';
+    import { Compass, Mountain, Timer } from 'lucide-svelte';
     import { df } from '$lib/utils';
     import { _ } from 'svelte-i18n';
 
@@ -34,18 +34,10 @@
                 {df.format(trackpoint.item.time)}
             </div>
         {/if}
-        <Button
-            class="w-full px-2 py-1 h-6 justify-start mt-0.5"
-            variant="secondary"
-            on:click={() => {
-                navigator.clipboard.writeText(
-                    `${trackpoint.item.getLatitude().toFixed(6)}, ${trackpoint.item.getLongitude().toFixed(6)}`
-                );
-                trackpoint.hide?.();
-            }}
-        >
-            <ClipboardCopy size="16" class="mr-1" />
-            {$_('menu.copy_coordinates')}
-        </Button>
+        <CopyCoordinates
+            coordinates={trackpoint.item.attributes}
+            onCopy={() => trackpoint.hide?.()}
+            class="mt-0.5"
+        />
     </Card.Content>
 </Card.Root>
