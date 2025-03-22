@@ -59,7 +59,7 @@ async function getRoute(
     brouterProfile: string,
     privateRoads: boolean
 ): Promise<TrackPoint[]> {
-    let url = `https://routing.gpx.studio?lonlats=${points.map((point) => `${point.lon.toFixed(8)},${point.lat.toFixed(8)}`).join('|')}&profile=${brouterProfile + (privateRoads ? '-private' : '')}&format=geojson&alternativeidx=0`;
+    let url = `http://ns339329.ip-37-187-249.eu?lonlats=${points.map((point) => `${point.lon.toFixed(8)},${point.lat.toFixed(8)}`).join('|')}&profile=${brouterProfile + (privateRoads ? '-private' : '')}&format=geojson&alternativeidx=0`;
 
     let response = await fetch(url);
 
