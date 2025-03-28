@@ -513,22 +513,22 @@
             "to_select": "to select",
             "to_navigate": "to navigate",
             "to_close": "to close",
-            "no_results": "No results for",
-            "no_results_suggestion": "Try searching for"
+            "no_results": "",
+            "no_results_suggestion": "Tente pesquisar por"
         }
     },
     "embedding": {
-        "title": "Create your own map",
+        "title": "Criar o seu próprio mapa",
         "mapbox_token": "Mapbox access token",
-        "file_urls": "File URLs (separated by commas)",
-        "drive_ids": "Google Drive file IDs (separated by commas)",
+        "file_urls": "Ficheiros URLs (separados por vírgulas)",
+        "drive_ids": "‘IDs’ de ficheiro Google Drive (separados por vírgulas)",
         "basemap": "Mapa-base",
         "height": "Altura",
-        "fill_by": "Fill by",
+        "fill_by": "Preencher por",
         "none": "Nenhum",
         "show_controls": "Mostrar controles",
         "manual_camera": "Câmera manual",
-        "manual_camera_description": "You can move the map below to adjust the camera position.",
+        "manual_camera_description": "Pode mexer o mapa abaixo para ajustar a posição da câmara.",
         "latitude": "Latitude",
         "longitude": "Longitude",
         "zoom": "Zoom",
@@ -537,7 +537,7 @@
         "preview": "Prévia",
         "code": "Integration code"
     },
-    "webgl2_required": "WebGL 2 is required to display the map.",
-    "enable_webgl2": "Learn how to enable WebGL 2 in your browser",
-    "page_not_found": "page not found"
+    "webgl2_required": "WebGL 2 é requerido para exibir o mapa.",
+    "enable_webgl2": "Aprender como ativar WebGL 2 no seu navegador",
+    "page_not_found": "página não encontrada"
 }
