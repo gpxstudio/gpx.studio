@@ -166,8 +166,8 @@
                 "bridleway": "Caminho para cavalos",
                 "platform": "Plataforma",
                 "raceway": "Circuito de corrida",
-                "rest_area": "Rest area",
-                "abandoned": "Abandoned",
+                "rest_area": "Área de descanso",
+                "abandoned": "Abandonado",
                 "services": "Serviços",
                 "corridor": "Corredor",
                 "bus_stop": "Paragem de autocarro",
@@ -188,9 +188,9 @@
             "mtb_scale": "MTB scale",
             "error": {
                 "from": "O ponto de partida está muito longe da estrada mais próxima",
-                "via": "The via point is too far from the nearest road",
-                "to": "The end point is too far from the nearest road",
-                "timeout": "Route calculation took too long, try adding points closer together"
+                "via": "O ponto de partida está muito longe da estrada mais próxima",
+                "to": "O ponto final está muito longe do ponto de chegada",
+                "timeout": "O recalculo da demorou muito tempo, tente adicionar ponto mais próximos"
             }
         },
         "scissors": {
@@ -225,7 +225,7 @@
         },
         "extract": {
             "tooltip": "Extract contents to separate items",
-            "button": "Extract",
+            "button": "Extrair",
             "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
             "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
         },
@@ -248,7 +248,7 @@
         "reduce": {
             "tooltip": "Reduce the number of GPS points",
             "tolerance": "Tolerância",
-            "number_of_points": "Number of GPS points",
+            "number_of_points": "Número de pontos GPS",
             "button": "Minify",
             "help": "Use the slider to choose the number of GPS points to keep.",
             "help_no_selection": "Select a trace to reduce the number of its GPS points."
