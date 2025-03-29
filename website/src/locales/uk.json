@@ -1,7 +1,7 @@
 {
     "metadata": {
         "home_title": "онлайн-редактор файлів GPX",
-        "app_title": "app",
+        "app_title": "додаток",
         "embed_title": "онлайн-редактор файлів GPX",
         "help_title": "допомога",
         "404_title": "сторінку не знайдено",
@@ -33,7 +33,7 @@
         "select_all": "Вибрати все",
         "view": "Вигляд",
         "elevation_profile": "Профіль рельєфу",
-        "tree_file_view": "File tree",
+        "tree_file_view": "Дерево файлів",
         "switch_basemap": "Перехід до попередньої базової карти",
         "toggle_overlays": "Перемикання накладок",
         "toggle_3d": "Перемикнути 3D",
@@ -77,20 +77,20 @@
             "width": "Ширина"
         },
         "hide": "Приховати",
-        "unhide": "Unhide",
+        "unhide": "Показати",
         "center": "Центр",
         "open_in": "Відкрити в",
-        "copy_coordinates": "Copy coordinates"
+        "copy_coordinates": "Копіювати координати"
     },
     "toolbar": {
         "routing": {
             "tooltip": "Спланувати або відредагувати маршрут",
-            "activity": "Activity",
+            "activity": "Активність",
             "use_routing": "Маршрутизація",
             "use_routing_tooltip": "З'єднати опорні точки через мережу доріг або по прямій лінії, якщо вони недоступні",
             "allow_private": "Дозволити приватні дороги",
             "reverse": {
-                "button": "Reverse",
+                "button": "У зворотньому порядку",
                 "tooltip": "Змінити напрямок маршруту"
             },
             "route_back_to_start": {
@@ -103,23 +103,23 @@
             },
             "start_loop_here": "Почати цикл тут",
             "help_no_file": "Виберіть трасу, щоб скористатися інструментом прокладання маршруту, або клацніть на мапі, щоб почати створювати новий маршрут.",
-            "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
+            "help": "Натисніть на карті, щоб додати нову точку прив’язки або перетягніть існуючі, щоб змінити маршрут.",
             "activities": {
-                "bike": "Bike",
-                "racing_bike": "Road bike",
-                "gravel_bike": "Gravel bike",
-                "mountain_bike": "Mountain bike",
-                "foot": "Run/hike",
-                "motorcycle": "Motorcycle",
-                "water": "Water",
-                "railway": "Railway"
+                "bike": "Велосипед",
+                "racing_bike": "Шосейний велосипед",
+                "gravel_bike": "Гравійний велосипед",
+                "mountain_bike": "Гірський велосипед",
+                "foot": "Біг/хайкінг",
+                "motorcycle": "Мотоцикл",
+                "water": "Вода",
+                "railway": "Залізнична дорога"
             },
             "surface": {
-                "unknown": "Unknown",
-                "paved": "Paved",
-                "unpaved": "Unpaved",
-                "asphalt": "Asphalt",
-                "concrete": "Concrete",
+                "unknown": "Невідомо",
+                "paved": "Асфальтоване",
+                "unpaved": "Ґрунт",
+                "asphalt": "Асфальт",
+                "concrete": "Бетон",
                 "cobblestone": "Бруківка",
                 "paving_stones": "Тротуарна плитка",
                 "sett": "Sett",
