@@ -19,6 +19,24 @@ const attributesWithNamespace = {
     width: 'gpx_style:width',
 };
 
+const floatPatterns = [
+    /[-+]?\d*\.\d+$/, // decimal
+    /[-+]?\d+$/, // integer
+];
+function safeParseFloat(value: string): number {
+    const parsed = parseFloat(value);
+    if (!isNaN(parsed)) {
+        return parsed;
+    }
+    for (const pattern of floatPatterns) {
+        const match = value.match(pattern);
+        if (match) {
+            return parseFloat(match[0]);
+        }
+    }
+    return 0.0;
+}
+
 export function parseGPX(gpxData: string): GPXFile {
     const parser = new XMLParser({
         ignoreAttributes: false,
@@ -38,7 +56,7 @@ export function parseGPX(gpxData: string): GPXFile {
         },
         attributeValueProcessor(attrName, attrValue, jPath) {
             if (attrName === 'lat' || attrName === 'lon') {
-                return parseFloat(attrValue);
+                return safeParseFloat(attrValue);
             }
             return attrValue;
         },
@@ -52,7 +70,7 @@ export function parseGPX(gpxData: string): GPXFile {
         tagValueProcessor(tagName, tagValue, jPath, hasAttributes, isLeafNode) {
             if (isLeafNode) {
                 if (tagName === 'ele') {
-                    return parseFloat(tagValue);
+                    return safeParseFloat(tagValue);
                 }
 
                 if (tagName === 'time') {
@@ -67,14 +85,14 @@ export function parseGPX(gpxData: string): GPXFile {
                     tagName === 'gpx_style:opacity' ||
                     tagName === 'gpx_style:width'
                 ) {
-                    return parseFloat(tagValue);
+                    return safeParseFloat(tagValue);
                 }
 
                 if (tagName === 'gpxpx:PowerExtension') {
                     // Finish the transformation of the simple <power> tag to the more complex <gpxpx:PowerExtension> tag
                     // Note that this only targets the transformed <power> tag, since it must be a leaf node
                     return {
-                        'gpxpx:PowerInWatts': parseFloat(tagValue),
+                        'gpxpx:PowerInWatts': safeParseFloat(tagValue),
                     };
                 }
             }
