@@ -53,7 +53,15 @@
         }
     }
     $: showNavAndFooter = $page.route.id === null || !appRoutes.includes($page.route.id);
+
+    import { pwaInfo } from 'virtual:pwa-info';
+    $: webManifestLink = pwaInfo ? pwaInfo.webManifest.linkTag : '';
 </script>
+
+<svelte:head>
+    <link rel="apple-touch-icon" href="%sveltekit.assets%/favicon.png" />
+    {@html webManifestLink}
+</svelte:head>
 
 <ModeWatcher />
 
