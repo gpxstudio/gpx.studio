@@ -220,6 +220,7 @@ export class OverpassLayer {
                                 query: query,
                                 icon: `overpass-${query}`,
                                 tags: element.tags,
+                                type: element.type,
                             },
                         },
                     });

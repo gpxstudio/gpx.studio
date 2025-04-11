@@ -35,7 +35,8 @@
                 <Button
                     class="ml-auto p-1.5 h-8"
                     variant="outline"
-                    href="https://www.openstreetmap.org/edit?editor=id&node={poi.item.id}"
+                    href="https://www.openstreetmap.org/edit?editor=id&{poi.item.type ??
+                        'node'}={poi.item.id}"
                     target="_blank"
                 >
                     <PencilLine size="16" />
