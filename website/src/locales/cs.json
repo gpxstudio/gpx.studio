@@ -34,8 +34,8 @@
         "view": "Zobrazit",
         "elevation_profile": "Profil nadmořské výšky",
         "tree_file_view": "Strom souborů",
-        "switch_basemap": "Přepnout na předchozí mapový podklad",
-        "toggle_overlays": "Přepnout překrytí",
+        "switch_basemap": "Přepnout na předchozí podkladovou mapu",
+        "toggle_overlays": "Přepnout překryv",
         "toggle_3d": "Přepnout 3D",
         "settings": "Nastavení",
         "distance_units": "Jednotky vzdálenosti",
@@ -99,11 +99,11 @@
             },
             "round_trip": {
                 "button": "Cesta tam a zpět",
-                "tooltip": "Vrátit se na výchozí bod stejnou trasou"
+                "tooltip": "Vrátit se do výchozího bodu stejnou trasou"
             },
             "start_loop_here": "Spustit cyklus zde",
-            "help_no_file": "Vyberte trasu pro použití nástroje pro plánování trasy nebo klikněte na mapu a začněte vytvářet novou trasu.",
-            "help": "Klikněte na mapu pro přidání nového kotevního bodu nebo přetáhněte existující bod pro změnu trasy.",
+            "help_no_file": "Vyberte stopu a použijte nástroj pro plánování trasy nebo klikněte na mapu a začněte vytvářet novou trasu.",
+            "help": "Kliknutím na mapu přidáte nový kotevní bod nebo přetažením stávajících změníte trasu.",
             "activities": {
                 "bike": "Kolo",
                 "racing_bike": "Silniční kolo",
@@ -137,7 +137,7 @@
                 "sand": "Písek",
                 "grass": "Tráva",
                 "grass_paver": "Zatravňovací dlažba",
-                "clay": "Jíl",
+                "clay": "Jíl/antuka",
                 "stone": "Kámen"
             },
             "highway": {
@@ -201,30 +201,30 @@
             "help": "Použijte posuvník k oříznutí trasy nebo ji rozdělte kliknutím na jednu z rozdělovacích značek nebo na trasu samotnou."
         },
         "time": {
-            "tooltip": "Správa časových dat",
+            "tooltip": "Spravovat časové údaje",
             "start": "Začátek",
             "end": "Konec",
             "total_time": "Doba v pohybu",
             "pick_date": "Zvolte datum",
             "artificial": "Vytvořit realistické časové údaje",
-            "update": "Aktualizace časových dat",
-            "help": "Použijte formulář pro nastavení nových časových dat.",
-            "help_invalid_selection": "Vyberte jednu trasu pro správu časových dat."
+            "update": "Aktualizovat časové údaje",
+            "help": "Pomocí formuláře nastavte nové časové údaje.",
+            "help_invalid_selection": "Vyberte jednu stopu pro správu časových údajů."
         },
         "merge": {
-            "merge_traces": "Připojit trasy",
+            "merge_traces": "Spojit stopy",
             "merge_contents": "Sloučit obsah a zachovat trasy oddělené",
             "merge_selection": "Sloučit výběr",
             "remove_gaps": "Odstranit časové mezery mezi stopami",
-            "tooltip": "Sloučit položky",
-            "help_merge_traces": "Připojení vybraných tras vytvoří jednu spojitou trasu.",
-            "help_cannot_merge_traces": "Váš výběr musí obsahovat několik tras, které je chcete připojit.",
-            "help_merge_contents": "Slučování obsahu vybraných položek seskupí veškerý obsah do první položky.",
-            "help_cannot_merge_contents": "",
+            "tooltip": "Sloučit prvky",
+            "help_merge_traces": "Spojení vybraných stop vytvoří jednu spojitou stopu.",
+            "help_cannot_merge_traces": "Váš výběr musí obsahovat několik stop, aby se spojily.",
+            "help_merge_contents": "Sloučení obsahu vybraných prvků seskupí veškerý obsah do prvního z prvků.",
+            "help_cannot_merge_contents": "Váš výběr musí obsahovat několik prvků, aby se jejich obsah sloučil.",
             "selection_tip": "Tip: pro přidání prvků do výběru použijte {KEYBOARD_SHORTCUT}."
         },
         "extract": {
-            "tooltip": "Extrahovat obsah do oddělených položek",
+            "tooltip": "Extrahovat obsah do oddělených prvků",
             "button": "Extrahovat",
             "help": "Rozbalení obsahu vybraných položek vytvoří samostatnou položku pro každou část obsahu.",
             "help_invalid_selection": "Váš výběr musí obsahovat položky s více trasami, které je chcete extrahovat."
