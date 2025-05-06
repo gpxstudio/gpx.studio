@@ -226,12 +226,12 @@
         "extract": {
             "tooltip": "Extrahovat obsah do oddělených prvků",
             "button": "Extrahovat",
-            "help": "Rozbalení obsahu vybraných položek vytvoří samostatnou položku pro každou část obsahu.",
-            "help_invalid_selection": "Váš výběr musí obsahovat položky s více trasami, které je chcete extrahovat."
+            "help": "Extrahování obsahu vybraných prvků vytvoří samostatný prvek pro každou část jejich obsahu.",
+            "help_invalid_selection": "Váš výběr musí obsahovat prvky s více stopami, abyste je mohli extrahovat."
         },
         "elevation": {
-            "button": "Požadavek na výšková data",
-            "help": "Požadavek na výšková data vymaže stávající data nadmořské výšky, pokud existují, a nahradí je daty z Mapboxu.",
+            "button": "Vyžádat si výškové údaje",
+            "help": "Vyžádáte-li si údaje o nadmořské výšce, vymažou se stávající výškové údaje, pokud existují, a nahradí se údaji z Mapboxu.",
             "help_no_selection": "Vyberte položku souboru pro vyžádání výškových dat."
         },
         "waypoint": {
@@ -392,7 +392,7 @@
         "pace": "Tempo",
         "heartrate": "Tepová frekvence",
         "cadence": "Kadence",
-        "power": "Energie",
+        "power": "Výkon",
         "slope": "Sklon",
         "surface": "Povrch",
         "highway": "Kategorie cesty",
