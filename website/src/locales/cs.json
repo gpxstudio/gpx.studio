@@ -29,7 +29,7 @@
         "edit": "Upravit",
         "undo": "Zpět",
         "redo": "Opakovat",
-        "delete": "Smazat",
+        "delete": "Odstranit",
         "select_all": "Vybrat vše",
         "view": "Zobrazit",
         "elevation_profile": "Profil nadmořské výšky",
@@ -101,7 +101,7 @@
                 "button": "Cesta tam a zpět",
                 "tooltip": "Vrátit se do výchozího bodu stejnou trasou"
             },
-            "start_loop_here": "Spustit cyklus zde",
+            "start_loop_here": "Zde začít okruh",
             "help_no_file": "Vyberte stopu a použijte nástroj pro plánování trasy nebo klikněte na mapu a začněte vytvářet novou trasu.",
             "help": "Kliknutím na mapu přidáte nový kotevní bod nebo přetažením stávajících změníte trasu.",
             "activities": {
@@ -116,7 +116,7 @@
             },
             "surface": {
                 "unknown": "Neznámý",
-                "paved": "Dlážděné",
+                "paved": "Zpevněné",
                 "unpaved": "Nezpevněné",
                 "asphalt": "Asfalt",
                 "concrete": "Beton",
@@ -128,10 +128,10 @@
                 "compacted": "Zhutněný štěrk",
                 "fine_gravel": "Jemný štěrk",
                 "gravel": "Štěrk",
-                "pebblestone": "Oblázek",
+                "pebblestone": "Oblázky",
                 "rock": "Skála",
                 "dirt": "Hlína",
-                "ground": "Pozemek",
+                "ground": "Země",
                 "earth": "Země",
                 "mud": "Bláto",
                 "sand": "Písek",
@@ -259,7 +259,7 @@
             "delete_waypoints": "Odstranit body zájmu",
             "delete_inside": "Odstranit uvnitř výběru",
             "delete_outside": "Odstranit mimo výběr",
-            "button": "Smazat",
+            "button": "Odstranit",
             "help": "Vyberte obdélníkovou oblast na mapě pro odstranění bodů GPS a bodů zájmu.",
             "help_no_selection": "Vyberte trasu pro vyčištění bodů GPS a bodů zájmu."
         }
