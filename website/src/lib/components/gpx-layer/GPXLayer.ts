@@ -1,7 +1,7 @@
 import { currentTool, map, Tool } from '$lib/stores';
 import { settings, type GPXFileWithStatistics, dbUtils } from '$lib/db';
 import { get, type Readable } from 'svelte/store';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl, { type GeoJSONSource, type MapMouseEvent } from 'mapbox-gl';
 import { waypointPopup, deleteWaypoint, trackpointPopup } from './GPXLayerPopup';
 import { addSelectItem, selectItem, selection } from '$lib/components/file-list/Selection';
 import {
@@ -39,19 +39,19 @@ const colors = [
 ];
 
 const colorCount: { [key: string]: number } = {};
-for (let color of colors) {
+for (const color of colors) {
     colorCount[color] = 0;
 }
 
 // Get the color with the least amount of uses
 function getColor() {
-    let color = colors.reduce((a, b) => (colorCount[a] <= colorCount[b] ? a : b));
+    const color = colors.reduce((a, b) => (colorCount[a] <= colorCount[b] ? a : b));
     colorCount[color]++;
     return color;
 }
 
 function decrementColor(color: string) {
-    if (colorCount.hasOwnProperty(color)) {
+    if (Object.hasOwn(colorCount, color)) {
         colorCount[color]--;
     }
 }
@@ -82,7 +82,7 @@ class KeyDown {
 }
 
 function getMarkerForSymbol(symbol: string | undefined, layerColor: string) {
-    let symbolSvg = symbol ? symbols[symbol]?.iconSvg : undefined;
+    const symbolSvg = symbol ? symbols[symbol]?.iconSvg : undefined;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
     ${Square.replace('width="24"', 'width="12"')
         .replace('height="24"', 'height="12"')
@@ -117,14 +117,14 @@ export class GPXLayer {
     markers: mapboxgl.Marker[] = [];
     selected: boolean = false;
     draggable: boolean;
-    unsubscribe: Function[] = [];
+    unsubscribe: (() => void)[] = [];
 
     updateBinded: () => void = this.update.bind(this);
-    layerOnMouseEnterBinded: (e: any) => void = this.layerOnMouseEnter.bind(this);
+    layerOnMouseEnterBinded: (e: MapMouseEvent) => void = this.layerOnMouseEnter.bind(this);
     layerOnMouseLeaveBinded: () => void = this.layerOnMouseLeave.bind(this);
-    layerOnMouseMoveBinded: (e: any) => void = this.layerOnMouseMove.bind(this);
-    layerOnClickBinded: (e: any) => void = this.layerOnClick.bind(this);
-    layerOnContextMenuBinded: (e: any) => void = this.layerOnContextMenu.bind(this);
+    layerOnMouseMoveBinded: (e: MapMouseEvent) => void = this.layerOnMouseMove.bind(this);
+    layerOnClickBinded: (e: MapMouseEvent) => void = this.layerOnClick.bind(this);
+    layerOnContextMenuBinded: (e: MapMouseEvent) => void = this.layerOnContextMenu.bind(this);
 
     constructor(
         map: mapboxgl.Map,
@@ -138,7 +138,7 @@ export class GPXLayer {
         this.unsubscribe.push(file.subscribe(this.updateBinded));
         this.unsubscribe.push(
             selection.subscribe(($selection) => {
-                let newSelected = $selection.hasAnyChildren(new ListFileItem(this.fileId));
+                const newSelected = $selection.hasAnyChildren(new ListFileItem(this.fileId));
                 if (this.selected || newSelected) {
                     this.selected = newSelected;
                     this.update();
@@ -170,7 +170,7 @@ export class GPXLayer {
     }
 
     update() {
-        let file = get(this.file)?.file;
+        const file = get(this.file)?.file;
         if (!file) {
             return;
         }
@@ -185,9 +185,9 @@ export class GPXLayer {
         }
 
         try {
-            let source = this.map.getSource(this.fileId);
+            const source = this.map.getSource(this.fileId);
             if (source) {
-                source.setData(this.getGeoJSON());
+                (source as GeoJSONSource).setData(this.getGeoJSON());
             } else {
                 this.map.addSource(this.fileId, {
                     type: 'geojson',
@@ -251,7 +251,7 @@ export class GPXLayer {
                 }
             }
 
-            let visibleItems: [number, number][] = [];
+            const visibleItems: [number, number][] = [];
             file.forEachSegment((segment, trackIndex, segmentIndex) => {
                 if (!segment._data.hidden) {
                     visibleItems.push([trackIndex, segmentIndex]);
@@ -294,7 +294,7 @@ export class GPXLayer {
         if (get(selection).hasAnyChildren(new ListFileItem(this.fileId))) {
             file.wpt.forEach((waypoint) => {
                 // Update markers
-                let symbolKey = getSymbolKey(waypoint.sym);
+                const symbolKey = getSymbolKey(waypoint.sym);
                 if (markerIndex < this.markers.length) {
                     this.markers[markerIndex].getElement().innerHTML = getMarkerForSymbol(
                         symbolKey,
@@ -306,10 +306,10 @@ export class GPXLayer {
                         writable: true,
                     });
                 } else {
-                    let element = document.createElement('div');
+                    const element = document.createElement('div');
                     element.classList.add('w-8', 'h-8', 'drop-shadow-xl');
                     element.innerHTML = getMarkerForSymbol(symbolKey, this.layerColor);
-                    let marker = new mapboxgl.Marker({
+                    const marker = new mapboxgl.Marker({
                         draggable: this.draggable,
                         element,
                         anchor: 'bottom',
@@ -329,7 +329,9 @@ export class GPXLayer {
                         }
 
                         if (get(currentTool) === Tool.WAYPOINT && e.shiftKey) {
-                            deleteWaypoint(this.fileId, marker._waypoint._data.index);
+                            if (marker._waypoint) {
+                                deleteWaypoint(this.fileId, marker._waypoint._data.index);
+                            }
                             e.stopPropagation();
                             return;
                         }
@@ -342,16 +344,28 @@ export class GPXLayer {
                                     false
                                 )
                             ) {
-                                addSelectItem(
-                                    new ListWaypointItem(this.fileId, marker._waypoint._data.index)
-                                );
+                                if (marker._waypoint) {
+                                    addSelectItem(
+                                        new ListWaypointItem(
+                                            this.fileId,
+                                            marker._waypoint._data.index
+                                        )
+                                    );
+                                }
+                            } else if (get(currentTool) === Tool.WAYPOINT) {
+                                if (marker._waypoint) {
+                                    selectedWaypoint.set([marker._waypoint, this.fileId]);
+                                }
                             } else {
-                                selectItem(
-                                    new ListWaypointItem(this.fileId, marker._waypoint._data.index)
-                                );
+                                waypointPopup?.setItem({
+                                    item: marker._waypoint,
+                                    fileId: this.fileId,
+                                });
                             }
                         } else if (get(currentTool) === Tool.WAYPOINT) {
-                            selectedWaypoint.set([marker._waypoint, this.fileId]);
+                            if (marker._waypoint) {
+                                selectedWaypoint.set([marker._waypoint, this.fileId]);
+                            }
                         } else {
                             waypointPopup?.setItem({ item: marker._waypoint, fileId: this.fileId });
                         }
@@ -362,20 +376,24 @@ export class GPXLayer {
                         marker.getElement().style.cursor = 'grabbing';
                         waypointPopup?.hide();
                     });
-                    marker.on('dragend', (e) => {
+                    marker.on('dragend', () => {
                         resetCursor();
                         marker.getElement().style.cursor = '';
-                        getElevation([marker._waypoint]).then((ele) => {
-                            dbUtils.applyToFile(this.fileId, (file) => {
-                                let latLng = marker.getLngLat();
-                                let wpt = file.wpt[marker._waypoint._data.index];
-                                wpt.setCoordinates({
-                                    lat: latLng.lat,
-                                    lon: latLng.lng,
+                        if (marker._waypoint) {
+                            getElevation([marker._waypoint]).then((ele) => {
+                                dbUtils.applyToFile(this.fileId, (file) => {
+                                    const latLng = marker.getLngLat();
+                                    if (marker._waypoint) {
+                                        const wpt = file.wpt[marker._waypoint._data.index];
+                                        wpt.setCoordinates({
+                                            lat: latLng.lat,
+                                            lon: latLng.lng,
+                                        });
+                                        wpt.ele = ele[0];
+                                    }
                                 });
-                                wpt.ele = ele[0];
                             });
-                        });
+                        }
                         dragEndTimestamp = Date.now();
                     });
                     this.markers.push(marker);
@@ -390,7 +408,7 @@ export class GPXLayer {
         }
 
         this.markers.forEach((marker) => {
-            if (!marker._waypoint._data.hidden) {
+            if (marker._waypoint && !marker._waypoint._data.hidden) {
                 marker.addTo(this.map);
             } else {
                 marker.remove();
@@ -445,9 +463,13 @@ export class GPXLayer {
         }
     }
 
-    layerOnMouseEnter(e: any) {
-        let trackIndex = e.features[0].properties.trackIndex;
-        let segmentIndex = e.features[0].properties.segmentIndex;
+    layerOnMouseEnter(e: MapMouseEvent) {
+        const feature = e.features?.[0];
+        if (!feature) return;
+        const trackIndex = feature.properties?.trackIndex;
+        const segmentIndex = feature.properties?.segmentIndex;
+
+        if (trackIndex === undefined || segmentIndex === undefined) return;
 
         if (
             get(currentTool) === Tool.SCISSORS &&
@@ -465,10 +487,14 @@ export class GPXLayer {
         resetCursor();
     }
 
-    layerOnMouseMove(e: any) {
+    layerOnMouseMove(e: MapMouseEvent) {
         if (inspectKeyDown?.isDown()) {
-            let trackIndex = e.features[0].properties.trackIndex;
-            let segmentIndex = e.features[0].properties.segmentIndex;
+            const feature = e.features?.[0];
+            if (!feature) return;
+            const trackIndex = feature.properties?.trackIndex;
+            const segmentIndex = feature.properties?.segmentIndex;
+
+            if (trackIndex === undefined || segmentIndex === undefined) return;
 
             const file = get(this.file)?.file;
             if (file) {
@@ -481,7 +507,7 @@ export class GPXLayer {
         }
     }
 
-    layerOnClick(e: any) {
+    layerOnClick(e: MapMouseEvent) {
         if (
             get(currentTool) === Tool.ROUTING &&
             get(selection).hasAnyChildren(new ListRootItem(), true, ['waypoints'])
@@ -489,8 +515,12 @@ export class GPXLayer {
             return;
         }
 
-        let trackIndex = e.features[0].properties.trackIndex;
-        let segmentIndex = e.features[0].properties.segmentIndex;
+        const feature = e.features?.[0];
+        if (!feature) return;
+        const trackIndex = feature.properties?.trackIndex;
+        const segmentIndex = feature.properties?.segmentIndex;
+
+        if (trackIndex === undefined || segmentIndex === undefined) return;
 
         if (
             get(currentTool) === Tool.SCISSORS &&
@@ -505,7 +535,7 @@ export class GPXLayer {
             return;
         }
 
-        let file = get(this.file)?.file;
+        const file = get(this.file)?.file;
         if (!file) {
             return;
         }
@@ -528,14 +558,14 @@ export class GPXLayer {
         }
     }
 
-    layerOnContextMenu(e: any) {
+    layerOnContextMenu(e: MapMouseEvent) {
         if (e.originalEvent.ctrlKey) {
             this.layerOnClick(e);
         }
     }
 
     getGeoJSON(): GeoJSON.FeatureCollection {
-        let file = get(this.file)?.file;
+        const file = get(this.file)?.file;
         if (!file) {
             return {
                 type: 'FeatureCollection',
@@ -543,11 +573,11 @@ export class GPXLayer {
             };
         }
 
-        let data = file.toGeoJSON();
+        const data = file.toGeoJSON();
 
         let trackIndex = 0,
             segmentIndex = 0;
-        for (let feature of data.features) {
+        for (const feature of data.features) {
             if (!feature.properties) {
                 feature.properties = {};
             }

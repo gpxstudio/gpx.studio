@@ -1,25 +1,63 @@
 <script lang="ts">
     import * as Card from '$lib/components/ui/card';
     import { Button } from '$lib/components/ui/button';
-    import { selection } from '$lib/components/file-list/Selection';
-    import { PencilLine, MapPin } from 'lucide-svelte';
+    import { PencilLine } from 'lucide-svelte';
     import { _ } from 'svelte-i18n';
     import { dbUtils } from '$lib/db';
     import type { PopupItem } from '$lib/components/MapPopup';
-    import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
+    import { ScrollArea } from '$lib/components/ui/scroll-area';
 
-    export let poi: PopupItem<any>;
-
-    let tags = {};
-    let name = '';
-    $: if (poi) {
-        tags = JSON.parse(poi.item.tags);
-        if (tags.name !== undefined && tags.name !== '') {
-            name = tags.name;
-        } else {
-            name = $_(`layers.label.${poi.item.query}`);
-        }
+    interface OverpassTags {
+        name?: string;
+        image?: string;
+        'image:0'?: string;
+        website?: string;
+        'contact:website'?: string;
+        'contact:facebook'?: string;
+        'contact:instagram'?: string;
+        'contact:twitter'?: string;
+        phone?: string;
+        'contact:phone'?: string;
+        [key: string]: unknown; // Allow other string keys
     }
+
+    interface OverpassPoiItem {
+        tags: string; // JSON string
+        name?: string; // Used as fallback name
+        query?: string; // Used as fallback name key
+        lat?: number; // Added
+        lon?: number; // Added
+        type?: string; // Added (osm type: node/way/relation?)
+        id?: number | string; // Added (osm id)
+        osmType?: string; // Added (used in href)
+        sym?: string; // Added (used in edit save)
+        [key: string]: unknown; // Allow other properties
+    }
+
+    export let poi: PopupItem<unknown>;
+
+    // Assert the type of poi.item
+    const item = poi.item as OverpassPoiItem;
+
+    let tags: OverpassTags = {};
+    let name: string = '';
+    try {
+        // Use item.tags
+        tags = JSON.parse(item.tags || '{}') as OverpassTags;
+    } catch (e) {
+        console.error('Failed to parse Overpass tags:', item.tags, e);
+        tags = {}; // Assign empty object on error
+    }
+
+    $: if (tags.name !== undefined && tags.name !== '') {
+        name = tags.name;
+    } else {
+        // Use item.name or item.query
+        name = item.name ?? $_(`layers.label.${item.query ?? 'poi'}`);
+    }
+
+    // Convert tags object to array for easier iteration in template
+    $: tagEntries = Object.entries(tags);
 </script>
 
 <Card.Root class="border-none shadow-md text-base p-2 max-w-[50dvw]">
@@ -28,15 +66,17 @@
             <div class="flex flex-row gap-3">
                 <div class="flex flex-col">
                     {name}
-                    <div class="text-muted-foreground text-sm font-normal">
-                        {poi.item.lat.toFixed(6)}&deg; {poi.item.lon.toFixed(6)}&deg;
-                    </div>
+                    {#if item.lat !== undefined && item.lon !== undefined}
+                        <div class="text-muted-foreground text-sm font-normal">
+                            {item.lat.toFixed(6)}&deg; {item.lon.toFixed(6)}&deg;
+                        </div>
+                    {/if}
                 </div>
                 <Button
                     class="ml-auto p-1.5 h-8"
                     variant="outline"
-                    href="https://www.openstreetmap.org/edit?editor=id&{poi.item.type ??
-                        'node'}={poi.item.id}"
+                    href="https://www.openstreetmap.org/edit?editor=id&{item.type ??
+                        'node'}={item.id}"
                     target="_blank"
                 >
                     <PencilLine size="16" />
@@ -52,45 +92,45 @@
                     <img src={tags.image ?? tags['image:0']} />
                 </div>
             {/if}
-            <div class="grid grid-cols-[auto_auto] gap-x-3">
-                {#each Object.entries(tags) as [key, value]}
-                    {#if key !== 'name' && !key.includes('image')}
-                        <span class="font-mono">{key}</span>
+            {#each tagEntries as [key, value]}
+                {#if value !== undefined && value !== '' && typeof value === 'string'}
+                    <!-- Check value is string and not empty -->
+                    <div class="text-sm">
+                        <span class="font-semibold">{key}:</span>
                         {#if key === 'website' || key.startsWith('website:') || key === 'contact:website' || key === 'contact:facebook' || key === 'contact:instagram' || key === 'contact:twitter'}
                             <a href={value} target="_blank" class="text-link underline">{value}</a>
                         {:else if key === 'phone' || key === 'contact:phone'}
-                            <a href={'tel:' + value} class="text-link underline">{value}</a>
-                        {:else if key === 'email' || key === 'contact:email'}
-                            <a href={'mailto:' + value} class="text-link underline">{value}</a>
+                            <a href={`tel:${value}`} class="text-link underline">{value}</a>
                         {:else}
-                            <span>{value}</span>
+                            {value}
                         {/if}
-                    {/if}
-                {/each}
-            </div>
+                    </div>
+                {/if}
+            {/each}
         </ScrollArea>
-        <Button
-            class="mt-2"
-            variant="outline"
-            disabled={$selection.size === 0}
-            on:click={() => {
-                let desc = Object.entries(tags)
-                    .map(([key, value]) => `${key}: ${value}`)
-                    .join('\n');
-                dbUtils.addOrUpdateWaypoint({
-                    attributes: {
-                        lat: poi.item.lat,
-                        lon: poi.item.lon,
-                    },
-                    name: name,
-                    desc: desc,
-                    cmt: desc,
-                    sym: poi.item.sym,
-                });
-            }}
-        >
-            <MapPin size="16" class="mr-1" />
-            {$_('toolbar.waypoint.add')}
-        </Button>
+        {#if item.id}
+            <Button
+                variant="link"
+                class="p-0 h-fit text-xs mt-1 float-right"
+                on:click={() => {
+                    if (item.lat !== undefined && item.lon !== undefined) {
+                        // Ensure desc defaults to string using String()
+                        let desc = String(tags.description ?? tags.note ?? '');
+                        dbUtils.addOrUpdateWaypoint({
+                            attributes: {
+                                lat: item.lat, // Now safe within the check
+                                lon: item.lon, // Now safe within the check
+                            },
+                            name: name,
+                            desc: desc,
+                            cmt: desc,
+                            sym: item.sym,
+                        });
+                    }
+                }}
+            >
+                {$_('dialog.add_waypoint')}
+            </Button>
+        {/if}
     </Card.Content>
 </Card.Root>

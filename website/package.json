@@ -21,6 +21,7 @@
         "@types/eslint": "^8.56.12",
         "@types/events": "^3.0.3",
         "@types/file-saver": "^2.0.7",
+        "@types/mapbox__mapbox-gl-geocoder": "^5.0.0",
         "@types/mapbox__tilebelt": "^1.0.4",
         "@types/mapbox-gl": "^3.4.0",
         "@types/node": "^20.16.10",

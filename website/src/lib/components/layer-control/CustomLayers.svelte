@@ -22,7 +22,7 @@
     import { defaultBasemap, type CustomLayer } from '$lib/assets/layers';
     import { map } from '$lib/stores';
     import { onDestroy, onMount } from 'svelte';
-    import Sortable from 'sortablejs/Sortable';
+    import Sortable from 'sortablejs';
     import { customBasemapUpdate } from './utils';
 
     const {
@@ -62,21 +62,35 @@
         }
 
         basemapSortable = Sortable.create(basemapContainer, {
-            onSort: (e) => {
+            onSort: () => {
                 $customBasemapOrder = basemapSortable.toArray();
-                $selectedBasemapTree.basemaps['custom'] = $customBasemapOrder.reduce((acc, id) => {
-                    acc[id] = true;
-                    return acc;
-                }, {});
+                selectedBasemapTree.update(($tree) => {
+                    if (typeof $tree.basemaps !== 'object' || !$tree.basemaps) $tree.basemaps = {};
+                    ($tree.basemaps as any)['custom'] = $customBasemapOrder.reduce(
+                        (acc, id) => {
+                            acc[id] = true;
+                            return acc;
+                        },
+                        {} as Record<string, boolean>
+                    );
+                    return $tree;
+                });
             },
         });
         overlaySortable = Sortable.create(overlayContainer, {
-            onSort: (e) => {
+            onSort: () => {
                 $customOverlayOrder = overlaySortable.toArray();
-                $selectedOverlayTree.overlays['custom'] = $customOverlayOrder.reduce((acc, id) => {
-                    acc[id] = true;
-                    return acc;
-                }, {});
+                selectedOverlayTree.update(($tree) => {
+                    if (typeof $tree.overlays !== 'object' || !$tree.overlays) $tree.overlays = {};
+                    ($tree.overlays as any)['custom'] = $customOverlayOrder.reduce(
+                        (acc, id) => {
+                            acc[id] = true;
+                            return acc;
+                        },
+                        {} as Record<string, boolean>
+                    );
+                    return $tree;
+                });
             },
         });
 
@@ -151,7 +165,7 @@
 
     function getLayerId() {
         for (let id = 0; ; id++) {
-            if (!$customLayers.hasOwnProperty(`custom-${id}`)) {
+            if (!Object.hasOwn($customLayers, `custom-${id}`)) {
                 return `custom-${id}`;
             }
         }
@@ -160,10 +174,13 @@
     function addLayer(layerId: string) {
         if (layerType === 'basemap') {
             selectedBasemapTree.update(($tree) => {
-                if (!$tree.basemaps.hasOwnProperty('custom')) {
-                    $tree.basemaps['custom'] = {};
+                if (typeof $tree.basemaps !== 'object' || !$tree.basemaps) $tree.basemaps = {};
+                if (!Object.hasOwn($tree.basemaps, 'custom')) {
+                    ($tree.basemaps as any)['custom'] = {};
                 }
-                $tree.basemaps['custom'][layerId] = true;
+                if (typeof ($tree.basemaps as any)?.['custom'] !== 'object')
+                    ($tree.basemaps as any)['custom'] = {};
+                (($tree.basemaps as any)['custom'] as any)[layerId] = true;
                 return $tree;
             });
 
@@ -178,16 +195,19 @@
             }
         } else {
             selectedOverlayTree.update(($tree) => {
-                if (!$tree.overlays.hasOwnProperty('custom')) {
-                    $tree.overlays['custom'] = {};
+                if (typeof $tree.overlays !== 'object' || !$tree.overlays) $tree.overlays = {};
+                if (!Object.hasOwn($tree.overlays, 'custom')) {
+                    ($tree.overlays as any)['custom'] = {};
                 }
-                $tree.overlays['custom'][layerId] = true;
+                if (typeof ($tree.overlays as any)?.['custom'] !== 'object')
+                    ($tree.overlays as any)['custom'] = {};
+                (($tree.overlays as any)['custom'] as any)[layerId] = true;
                 return $tree;
             });
 
             if (
-                $currentOverlays.overlays['custom'] &&
-                $currentOverlays.overlays['custom'][layerId] &&
+                typeof ($currentOverlays.overlays as any)?.['custom'] === 'object' &&
+                (($currentOverlays.overlays as any)['custom'] as any)?.[layerId] &&
                 $map
             ) {
                 try {
@@ -197,10 +217,14 @@
                 }
             }
 
-            if (!$currentOverlays.overlays.hasOwnProperty('custom')) {
-                $currentOverlays.overlays['custom'] = {};
+            if (typeof $currentOverlays.overlays !== 'object' || !$currentOverlays.overlays)
+                $currentOverlays.overlays = {};
+            if (!Object.hasOwn($currentOverlays.overlays, 'custom')) {
+                ($currentOverlays.overlays as any)['custom'] = {};
             }
-            $currentOverlays.overlays['custom'][layerId] = true;
+            if (typeof ($currentOverlays.overlays as any)?.['custom'] !== 'object')
+                ($currentOverlays.overlays as any)['custom'] = {};
+            (($currentOverlays.overlays as any)['custom'] as any)[layerId] = true;
 
             if (!$customOverlayOrder.includes(layerId)) {
                 $customOverlayOrder = [...$customOverlayOrder, layerId];
@@ -209,7 +233,7 @@
     }
 
     function tryDeleteLayer(node: any, id: string): any {
-        if (node.hasOwnProperty(id)) {
+        if (typeof node === 'object' && node && Object.hasOwn(node, id)) {
             delete node[id];
         }
         return node;
@@ -225,41 +249,64 @@
                 $previousBasemap = defaultBasemap;
             }
 
-            $selectedBasemapTree.basemaps['custom'] = tryDeleteLayer(
-                $selectedBasemapTree.basemaps['custom'],
-                layerId
-            );
-            if (Object.keys($selectedBasemapTree.basemaps['custom']).length === 0) {
-                $selectedBasemapTree.basemaps = tryDeleteLayer(
-                    $selectedBasemapTree.basemaps,
-                    'custom'
-                );
+            if (
+                typeof $selectedBasemapTree.basemaps === 'object' &&
+                $selectedBasemapTree.basemaps
+            ) {
+                const customBasemaps = ($selectedBasemapTree.basemaps as any)?.['custom'];
+                if (typeof customBasemaps === 'object' && customBasemaps) {
+                    ($selectedBasemapTree.basemaps as any)['custom'] = tryDeleteLayer(
+                        customBasemaps,
+                        layerId
+                    );
+                    if (Object.keys(customBasemaps).length === 0) {
+                        ($selectedBasemapTree.basemaps as any) = tryDeleteLayer(
+                            $selectedBasemapTree.basemaps,
+                            'custom'
+                        );
+                    }
+                }
             }
             $customBasemapOrder = $customBasemapOrder.filter((id) => id !== layerId);
         } else {
-            $currentOverlays.overlays['custom'][layerId] = false;
-            if ($previousOverlays.overlays['custom']) {
-                $previousOverlays.overlays['custom'] = tryDeleteLayer(
-                    $previousOverlays.overlays['custom'],
-                    layerId
-                );
+            ($currentOverlays.overlays as any)['custom'][layerId] = false;
+            if (
+                typeof $previousOverlays.overlays === 'object' &&
+                $previousOverlays.overlays &&
+                Object.hasOwn($previousOverlays.overlays, 'custom')
+            ) {
+                const customPrevOverlays = ($previousOverlays.overlays as any)?.['custom'];
+                if (typeof customPrevOverlays === 'object' && customPrevOverlays) {
+                    ($previousOverlays.overlays as any)['custom'] = tryDeleteLayer(
+                        customPrevOverlays,
+                        layerId
+                    );
+                }
             }
 
-            $selectedOverlayTree.overlays['custom'] = tryDeleteLayer(
-                $selectedOverlayTree.overlays['custom'],
-                layerId
-            );
-            if (Object.keys($selectedOverlayTree.overlays['custom']).length === 0) {
-                $selectedOverlayTree.overlays = tryDeleteLayer(
-                    $selectedOverlayTree.overlays,
-                    'custom'
-                );
+            if (
+                typeof $selectedOverlayTree.overlays === 'object' &&
+                $selectedOverlayTree.overlays
+            ) {
+                const customSelOverlays = ($selectedOverlayTree.overlays as any)?.['custom'];
+                if (typeof customSelOverlays === 'object' && customSelOverlays) {
+                    ($selectedOverlayTree.overlays as any)['custom'] = tryDeleteLayer(
+                        customSelOverlays,
+                        layerId
+                    );
+                    if (Object.keys(customSelOverlays).length === 0) {
+                        ($selectedOverlayTree.overlays as any) = tryDeleteLayer(
+                            $selectedOverlayTree.overlays,
+                            'custom'
+                        );
+                    }
+                }
             }
             $customOverlayOrder = $customOverlayOrder.filter((id) => id !== layerId);
 
             if (
-                $currentOverlays.overlays['custom'] &&
-                $currentOverlays.overlays['custom'][layerId] &&
+                typeof ($currentOverlays.overlays as any)?.['custom'] === 'object' &&
+                (($currentOverlays.overlays as any)['custom'] as any)?.[layerId] &&
                 $map
             ) {
                 try {
