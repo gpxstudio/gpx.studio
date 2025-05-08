@@ -43,6 +43,7 @@
     :global(.markdown > a) {
         @apply text-link;
         @apply hover:underline;
+        @apply contents;
     }
 
     :global(.markdown p > a) {

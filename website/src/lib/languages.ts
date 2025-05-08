@@ -1,5 +1,6 @@
 export const languages: Record<string, string> = {
     ca: 'Català',
+    cs: 'Čeština',
     en: 'English',
     es: 'Español',
     de: 'Deutsch',
