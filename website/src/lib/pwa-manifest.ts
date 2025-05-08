@@ -8,12 +8,16 @@ function localizeManifest(manifestTemplateData: any, language: string) {
 
     manifestTemplateData.description = localizedStrings.metadata.description;
     manifestTemplateData.lang = language;
+    manifestTemplateData.start_url = `/${language}/app`;
+    manifestTemplateData.scope = `/${language}/app`;
+    manifestTemplateData.id = `https://gpx.studio/${language}/app`;
 
     fs.writeFileSync(localizedManifestFile, JSON.stringify(manifestTemplateData, null, 2));
 }
 
+const manifestTemplateFile = 'static/en.manifest.webmanifest';
+const manifestTemplateData = JSON.parse(fs.readFileSync(manifestTemplateFile, 'utf8'));
 for (const language of Object.keys(languages)) {
-    const manifestTemplateFile = 'static/en.manifest.webmanifest';
-    const manifestTemplateData = JSON.parse(fs.readFileSync(manifestTemplateFile, 'utf8'));
+    if (language === 'en') continue;
     localizeManifest(manifestTemplateData, language);
 }
