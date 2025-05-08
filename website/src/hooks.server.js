@@ -39,7 +39,6 @@ export async function handle({ event, resolve }) {
     <meta name="twitter:site" content="@gpxstudio" />
     <meta name="twitter:creator" content="@gpxstudio" />
     <link rel="alternate" hreflang="x-default" href="https://gpx.studio${getURLForLanguage('en', path)}" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/${language}.manifest.webmanifest" />`;
 
     for (let lang of Object.keys(languages)) {
