@@ -85,7 +85,7 @@
     "toolbar": {
         "routing": {
             "tooltip": "Een route plannen of bewerken",
-            "activity": "activiteit",
+            "activity": "Activiteit",
             "use_routing": "Routeberekening",
             "use_routing_tooltip": "Verbind ankerpunten via wegen, of in een rechte lijn indien routing uitgeschakeld",
             "allow_private": "Sta privéwegen toe",
