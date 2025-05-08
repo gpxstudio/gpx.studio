@@ -47,7 +47,7 @@
            id="g106"
            transform="translate(543.2061,399.4458)">
           <path
-             d="m 0,0 17.2,8.399 4.621,-18.574 z"
+             d="M 0.1985,-0.0925 17.2,8.399 21.6225,-10.0825 Z"
              style="fill:#3b3735;fill-opacity:1;fill-rule:nonzero;stroke:none"
              id="path108" />
         </g>
@@ -63,7 +63,7 @@
            id="g114"
            transform="translate(490.9443,230.3984)">
           <path
-             d="m 0,0 -17.2,-8.398 -4.622,18.574 z"
+             d="M -0.1995,0.093 -17.2,-8.398 -21.6225,10.083 Z"
              style="fill:#e62d2d;fill-opacity:1;fill-rule:nonzero;stroke:none"
              id="path116" />
         </g>
