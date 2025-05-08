@@ -1,5 +1,5 @@
 ---
-title: Map controls
+title: Ovládací prvky mapy
 ---
 
 <script>
@@ -10,61 +10,61 @@ title: Map controls
 
 # { title }
 
-The map controls are located on the right side of the interface.
-These controls allow you to navigate the map, zoom in and out, and switch between different map styles.
+Ovládací prvky mapy jsou umístěny na pravé straně rozhraní.
+Tyto ovládací prvky vám umožňují procházet mapu, přibližování a oddalování a přepínání mezi různými styly mapy.
 
-### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Map navigation
+### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Procházení mapy
 
-The controls at the top allow you to zoom in <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> and out <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, and to change the orientation and tilt of the map <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
-
-<DocsNote>
-
-To control the orientation and tilt of the map, you can also drag the map while holding <kbd>Ctrl</kbd>.
-
-</DocsNote>
-
-### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Search bar
-
-You can use the search bar to look for an address and navigate to it on the map.
-
-### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Locate button
-
-The locate button centers the map on your current location.
+Ovládací prvky nahoře umožňují přiblížení <Plus size="16" class="inline-block" style="margin-bottom: 2px" />, oddálení <Minus size="16" class="inline-block" style="margin-bottom: 2px" /> a změnit orientaci a naklonění mapy <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
 
 <DocsNote>
 
-This only works if you have allowed your browser and <b>gpx.studio</b> to access your location.
+Chcete-li ovládat orientaci a náklon mapy, můžete ji také potáhnout s přidržením klávesy <kbd>Ctrl</kbd>.
 
 </DocsNote>
 
-### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Street view
+### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Vyhledávací lišta
 
-This button can be used to enable street view mode on the map.
-Depending on the street view source chosen in the [settings](./menu/settings), street view imagery can be accessed differently.
+Pomocí vyhledávací lišty můžete vyhledat adresu a přejít k ní na mapě.
 
-- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: the street view coverage will appear as green lines on the map. When zoomed in enough, green dots will show the exact locations where street view imagery is available. Hovering over a green dot will show the street view image at that location.
-- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: click on the map to open a new tab with the street view imagery at that location.
+### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Tlačítko lokalizovat
 
-### <Layers size="16" class="inline-block" style="margin-bottom: 2px" /> Map layers
+Tlačítko lokalizovat vycentruje mapu na vaši aktuální polohu.
 
-The map layers button allows you to switch between different basemaps, and toggle map overlays and categories of points of interest.
+<DocsNote>
 
-- **Basemaps** are background maps that present the main geographic features of the world.
-  Depending on their purpose, basemaps have different styles and levels of detail.
-  Only one basemap can be displayed at a time.
-- **Overlays** are additional layers that can be displayed on top of the basemap to provide complementary information.
-- **Points of interest** can be added to the map to show different categories of places, such as shops, restaurants, or accommodations.
+To funguje, pouze pokud jste povolili vašemu prohlížeči a <b>gpx.studio</b> přístup k vaší poloze.
+
+</DocsNote>
+
+### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Panoramatické zobrazení
+
+Toto tlačítko slouží k zapnutí režimu panoramatického zobrazení na mapě.
+V závislosti na zdroji panoramatického zobrazení zvoleném v [nastavení](./menu/settings) mohou být snímky panoramatického zobrazení rozdílně přístupné.
+
+- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: pokrytí panoramatického zobrazení se na mapě zobrazí jako zelené čáry. Při dostatečném přiblížení budou zelené tečky zobrazovat přesná místa, kde jsou dostupné snímky panoramatického zobrazení. Po najetí kurzorem myši na zelený bod se zobrazí panoramatický snímek v daném místě.
+- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: kliknutím na mapu otevřete novou kartu s panoramatickými snímky v daném místě.
+
+### <Layers size="16" class="inline-block" style="margin-bottom: 2px" /> Mapové vrstvy
+
+Tlačítko mapové vrstvy umožňuje přepínat mezi různými podkladovými mapami a přepínat mapové překryvy a kategorie bodů zájmu.
+
+- **Podkladové mapy** jsou mapy na pozadí, které představují hlavní geografické vlastnosti světa.
+  Podkladové mapy mají v závislosti na svém účelu různé styly a úrovně podrobnosti.
+  V daném okamžiku lze zobrazit pouze jednu podkladovou mapu.
+- **Překryvy** jsou další vrstvy, které lze zobrazit nad podkladovou mapou a poskytnout tak doplňující informace.
+- **Body zájmu** lze přidat do mapy a zobrazit tak různé kategorie míst, jako jsou obchody, restaurace nebo ubytování.
 
 <div class="flex flex-col items-center">
     <DocsLayers />
     <span class="text-sm text-center mt-2">
-        Hover over the map to show the <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> overlay on top of the <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> basemap.
+        Po najetí myší nad mapu se zobrazí překryv<a href="https://hiking.waymarkedtrails.org" target="_blank">značených stezek pro pěší turistiku</a> na podkladové mapě <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a>.
     </span>
 </div>
 
-A large collection of global and local basemaps and overlays is available in **gpx.studio**, as well as a selection of point-of-interest categories.
-They can be enabled in the [map layer settings dialog](./menu/settings).
+V **gpx.studio** je k dispozici rozsáhlá sbírka globálních a místních podkladových map a překryvů a také řada kategorií bodů zájmu.
+Lze je povolit v nabídce [nastavení mapových vrstev](./menu/settings).
 
-In these settings, you can also manage the opacity of the overlays.
+V tomto nastavení můžete také spravovat neprůhlednost překryvů.
 
-For advanced users, it is possible to add custom basemaps and overlays by providing <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, or <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox style JSON</a> URLs.
+Pokročilí uživatelé mohou přidávat vlastní podkladové mapy a překryvy pomocí <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a> nebo URL <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox stylu JSON</a>.

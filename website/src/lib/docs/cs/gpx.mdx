@@ -1,5 +1,5 @@
 ---
-title: GPX file format
+title: Formát souboru GPX
 ---
 
 <script>
@@ -8,27 +8,27 @@ title: GPX file format
 
 # { title }
 
-The <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX file format</a> is an open standard for exchanging GPS data between applications and GPS devices.
-It essentially consists of a series of GPS points encoding one or multiple GPS traces, and, optionally, some points of interest.
+<a href="https://www.topografix.com/gpx.asp" target="_blank">GPX formát</a> je otevřeným standardem pro výměnu GPS dat mezi aplikacemi a GPS zařízeními.
+V podstatě se skládá z řady GPS bodů kódujících jednu nebo více GPS stop a volitelně i nějaké body zájmu.
 
-GPX files may also contain metadata, of which the **name** and **description** fields are the most useful for users.
+GPX soubory mohou obsahovat také metadata, z nichž pole **název** a **popis** jsou pro uživatele nejužitečnější.
 
-### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Tracks, segments, and GPS points
+### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Trasy, úseky a body GPS
 
-As mentioned above, a GPX file can contain multiple GPS traces.
-These are organized in a hierarchical structure, with tracks at the top level.
+Jak je uvedeno výše, GPX soubor může obsahovat více GPS stop.
+Ty jsou uspořádány v hierarchické struktuře, přičemž trasy jsou na nejvyšší úrovni.
 
-- A **track** is made of a sequence of disconnected segments.
-  Furthermore, it can contain metadata such as a **name**, a **description**, and **appearance properties**.
-- A **segment** is a sequence of GPS points that form a continuous path.
-- A **GPS point** is a location with a latitude, a longitude, and optionally a timestamp and an altitude.
-  Some devices also store additional information such as heart rate, cadence, temperature, and power.
+- **Trasa** je tvořena řadou nepropojených úseků.
+  Kromě toho může obsahovat metadata jako **název**, **popis**, a **vlastnosti vzhledu**.
+- **Úsek** je řada bodů GPS, které tvoří souvislou cestu.
+- **Bod GPS** je poloha se zeměpisnou šířkou, délkou a volitelně časovou značkou a nadmořskou výškou.
+  Některá zařízení také ukládají další informace, jako je srdeční frekvence, kadence, teplota a výkon.
 
-In most cases, GPX files contain a single track with a single segment.
-However, the hierarchy described above allows for more advanced use cases, such as planning multi-day trips with several variants for each day.
+Ve většině případů obsahují GPX soubory pouze jednu trasu s jedním úsekem.
+Nicméně výše popsaná hierarchie umožňuje pokročilejší případy použití, například plánování vícedenních výletů s několika variantami pro každý den.
 
-### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Points of interest
+### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Body zájmu
 
-**Points of interest** (technically called _waypoints_) represent locations of interest to show either on a GPS device or on a digital map.
+**Body zájmu** (odborně nazývané _waypoints_) představují zajímavá místa, která se zobrazí buď na zařízení GPS, nebo na digitální mapě.
 
-In addition to its coordinates, a point of interest can have a **name** and a **description**.
+Vedle svých souřadnic může mít bod zájmu **název** a **popis**.

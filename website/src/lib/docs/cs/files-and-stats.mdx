@@ -9,46 +9,46 @@ title: Soubory a statistiky
 
 # { title }
 
-## File list
+## Seznam souborů
 
-Once you have [opened](./menu/file) files, they will be shown as tabs in the file list located at the bottom of the map.
-You can reorder them by dragging and dropping the tabs.
-And when many files are open, you can scroll through the list of tabs to navigate between them.
+Jakmile budete mít [otevřené](./menu/file) soubory, zobrazí se jako karty v seznamu souborů umístěném v dolní části mapy.
+Jejich pořadí můžete změnit přetažením karet.
+A pokud je otevřeno mnoho souborů, můžete posouvat seznam karet a procházet mezi nimi.
 
 <DocsNote>
 
-When using a mouse, you need to hold <kbd>Shift</kbd> to scroll horizontally.
+Pokud používáte myš, musíte pro vodorovné posouvání podržet klávesu <kbd>Shift</kbd>.
 
 </DocsNote>
 
-### File selection
+### Výběr souboru
 
-By clicking on a tab, you can switch between the files to inspect their statistics, and apply [edit actions](./menu/edit) and [tools](./toolbar) to them.
-By holding the <kbd>Ctrl/Cmd</kbd> key, you can add files to the selection or remove them, and by holding <kbd>Shift</kbd>, you can select a range of files.
-Most of the [edit actions](./menu/edit) and [tools](./toolbar) can be applied to multiple files at once.
+Kliknutím na kartu můžete přepínat mezi soubory, kontrolovat jejich statistiky a používat na ně [akce úprav](./menu/edit) a [nástroje](./toolbar).
+Podržením klávesy <kbd>Ctrl/Cmd</kbd> můžete do výběru přidat soubory nebo je odebrat a podržením klávesy <kbd>Shift</kbd> můžete vybrat skupinu souborů.
+Většina [akcí úprav](./menu/edit) a [nástrojů](./toolbar) může být použita na více souborů najednou.
 
 <DocsNote>
 
-You can also navigate through the files using the arrow keys on your keyboard, and use <kbd>Shift</kbd> to add files to the selection.
+Můžete také procházet soubory pomocí kláves se šipkami na vaší klávesnici a použít <kbd>Shift</kbd> pro přidání souborů do výběru.
 
 </DocsNote>
 
-### Edit actions
+### Akce úprav
 
-By right-clicking on a file tab, you can access the same actions as in the [edit menu](./menu/edit).
+Kliknutím pravým tlačítkem myši na kartu souboru můžete provést stejné akce jako v [nabídce úpravy](./menu/edit).
 
-### Tree layout
+### Rozvržení stromu
 
-As mentioned in the [view options section](./menu/view), you can switch to a tree layout for the files list.
-This layout is ideal for managing a large number of open files, as it organizes them into a vertical list on the right side of the map.
-In addition, the file tree view enables you to inspect the [tracks, segments, and points of interest](./gpx) contained inside the files through collapsible sections.
+Jak je uvedeno v části [možnosti zobrazení](./menu/view), můžete přepnout na stromové rozvržení seznamu souborů.
+Toto zobrazení je ideální pro správu velkého počtu otevřených souborů, protože je uspořádá do svislého seznamu na pravé straně mapy.
+Stromové rozvržení souborů navíc umožňuje zkontrolovat [trasy, úseky a body zájmu](./gpx) obsažené v souborech prostřednictvím sbalitelných sekcí.
 
-You can also apply [edit actions](./menu/edit) and [tools](./toolbar) to internal file items.
-Furthermore, you can drag and drop the inner items to reorder them, or move them in the hierarchy or even to another file.
+Rovněž můžete využít [akce úprav](./menu/edit) a [nástroje](./toolbar) na prvky uvnitř souborů.
+Navíc přetažením prvků uvnitř souborů můžete změnit jejich pořadí nebo je přesunout v hierarchii či dokonce do jiného souboru.
 
 <DocsNote>
 
-The size of the file list can be adjusted by dragging the separator between the map and the file list.
+Velikost seznamu souborů lze upravit přetažením oddělovače mezi mapou a seznamem souborů.
 
 </DocsNote>
 
@@ -58,25 +58,25 @@ V dolní části rozhraní naleznete profil nadmořské výšky a statistiky pro
 
 <DocsNote>
 
-The size of the elevation profile can be adjusted by dragging the separator between the map and the elevation profile.
+Velikost výškového profilu lze upravit přetažením oddělovače mezi mapou a výškovým profilem.
 
 </DocsNote>
 
-### Interactive statistics
+### Interaktivní statistiky
 
-When hovering over the elevation profile, a tooltip will show statistics at the cursor position.
+Při najetí myší na výškový profil se na pozici kurzoru zobrazí popisek se statistikami.
 
-To get the statistics for a specific section of the elevation profile, you can drag a selection rectangle on the profile.
-Click on the profile to reset the selection.
+Chcete-li získat statistiky pro určitou část výškového profilu, můžete přes profil přetáhnout výběrový obdélník.
+Kliknutím na profil výběr zrušíte.
 
-You can also use the mouse wheel to zoom in and out on the elevation profile, and move left and right by dragging the profile while holding the <kbd>Shift</kbd> key.
+Pomocí kolečka myši můžete také výškový profil přiblížit a oddálit a posouvat se vlevo a vpravo přetahováním profilu při stisknuté klávese <kbd>Shift</kbd>.
 
-### Additional data
+### Doplňující údaje
 
-Using the <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> button at the bottom-right of the elevation profile, you can optionally color the elevation profile by:
+Pomocí tlačítka <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> v pravé dolní části výškového profilu můžete volitelně obarvit výškový profil podle:
 
-- **slope** information computed from the elevation data, or
-- **surface** or **category** data coming from <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> and <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> tags.
-  This is only available for files created with **gpx.studio**.
+- **sklonu** informace vypočítané z výškových údajů nebo podle
+- **povrchu** či **kategorie** údaje pocházející z <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> značek (tagů) <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">povrch</a> a <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">silnice</a>.
+  Toto je dostupné pouze pro soubory vytvořené pomocí **gpx.studio**.
 
-If your selection includes it, you can also visualize: **speed**, **heart rate**, **cadence**, **temperature** and **power** data on the elevation profile.
+Pokud to váš výběr obsahuje, můžete také na výškovém profilu znázornit údaje o: **rychlosti**, **tepové frekvenci**, **kadenci**, **teplotě** a **výkonu**.

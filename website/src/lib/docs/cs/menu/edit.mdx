@@ -1,5 +1,5 @@
 ---
-title: Edit actions
+title: Akce úprav
 ---
 
 <script lang="ts">
@@ -9,15 +9,15 @@ title: Edit actions
 
 # { title }
 
-Na rozdíl od akcí v menu Soubor, editační akce mohou změnit obsah aktuálně otevřených souborů.
-Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, and points of interest](../gpx).
+Na rozdíl od akcí v menu Soubor, mohou akce úprav potenciálně změnit obsah aktuálně vybraných souborů.
+Navíc pokud je povoleno rozvržení stromu seznamu souborů (viz [Soubory a statistiky](../files-and-stats)), mohou být také použity na [trasy, segmenty a body zájmu](../gpx).
 Proto budeme všechny prvky, které mohou být těmito akcemi upraveny, označovat jako _prvky souborů_.
 Všechny akce kromě zpět a opakovat jsou také dostupné z kontextového menu (klik pravým tlačítkem) prvků souborů.
 
 ### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Zpět a opakovat
 
 Těmito tlačítky můžete vrátit nebo opakovat poslední vykonané akce.
-To platí pro všechny akce v rozhraní kromě nastavení zobrazení, nastavení aplikace nebo pohybů mapy.
+To platí pro všechny akce v rozhraní kromě možností zobrazení, nastavení aplikace nebo pohybů mapy.
 
 ### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> Informace...
 
@@ -25,31 +25,31 @@ Otevře informační dialog zvoleného prvku souborů, kde lze zobrazit a změni
 
 ### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Vzhled...
 
-Otevře dialog vzhledu, kde můžete změnit barvu, průhlednost a tloušťku zvolených prvků souborů v mapě.
+Otevře dialog vzhledu, kde můžete změnit barvu, neprůhlednost a tloušťku zvolených prvků souborů v mapě.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Zobrazit / skrýt
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Skrýt/zobrazit
 
-Přepínání viditelnosti zvolených prvků souborů v mapě.
+Přepnout viditelnost zvolených prvků souborů v mapě.
 
 ### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Nová trasa
 
-Vytvoří novou trasu ve zvoleném souboru.
+Vytvořit novou trasu ve zvoleném souboru.
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
-Musí být zvolen právě jeden soubor.
+Tato akce je dostupná pouze v případě, že je povoleno rozvržení stromu seznamu souborů.
+Kromě toho musí být vybrán právě jeden soubor.
 
 </DocsNote>
 
 ### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Nový úsek
 
-Ve zvolené trase vytvoří nový úsek.
+Vytvořit nový úsek na zvolené trase.
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
-Musí být zvolena právě jedna trasa.
+Tato akce je dostupná pouze v případě, že je povoleno rozvržení stromu seznamu souborů.
+Kromě toho musí být zvolena právě jedna trasa.
 
 </DocsNote>
 
@@ -67,7 +67,7 @@ Zkopíruje zvolené prvky souborů do schránky.
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
+Tato akce je dostupná pouze v případě, že je povoleno rozvržení stromu seznamu souborů.
 
 </DocsNote>
 
@@ -77,20 +77,20 @@ Vyjme zvolené prvky souborů do schránky.
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
+Tato akce je dostupná pouze v případě, že je povoleno rozvržení stromu seznamu souborů.
 
 </DocsNote>
 
 ### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Vložit
 
-Vloží prvky souborů ze schránky do stávající úrovně hierarchie.
+Vloží prvky souborů ze schránky do stávající úrovně hierarchie, pokud jsou kompatibilní.
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
+Tato akce je dostupná pouze v případě, že je povoleno rozvržení stromu seznamu souborů.
 
 </DocsNote>
 
-### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Smazat
+### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Odstranit
 
-Smaže všechny zvolené prvky souborů.
+Odstranit vybrané prvky souboru.
