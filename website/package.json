@@ -5,6 +5,7 @@
     "scripts": {
         "dev": "vite dev",
         "build": "vite build",
+        "prebuild": "npx tsx src/lib/pwa-manifest.ts",
         "postbuild": "npx tsx src/lib/sitemap.ts",
         "preview": "vite preview",
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
