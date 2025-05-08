@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { languages } from '$lib/languages';
+import { languages } from './languages';
 
 function localizeManifest(manifestTemplateData: any, language: string) {
     const localizedManifestFile = `static/${language}.manifest.webmanifest`;
