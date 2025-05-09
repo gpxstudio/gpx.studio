@@ -197,8 +197,8 @@
                         fromItems = [fromItem.extend('waypoints')];
                     } else {
                         let oldIndices: number[] =
-                            e.oldIndicies.length > 0
-                                ? e.oldIndicies.map((i) => i.index)
+                            e.oldIndices.length > 0
+                                ? e.oldIndices.map((i) => i.index)
                                 : [e.oldIndex];
                         oldIndices = oldIndices.filter((i) => i >= 0);
                         oldIndices.sort((a, b) => a - b);
@@ -214,8 +214,8 @@
                         }
 
                         let newIndices: number[] =
-                            e.newIndicies.length > 0
-                                ? e.newIndicies.map((i) => i.index)
+                            e.newIndices.length > 0
+                                ? e.newIndices.map((i) => i.index)
                                 : [e.newIndex];
                         newIndices = newIndices.filter((i) => i >= 0);
                         newIndices.sort((a, b) => a - b);

@@ -4,7 +4,6 @@
     import FileList from '$lib/components/file-list/FileList.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
     import Map from '$lib/components/Map.svelte';
-    import LayerControl from '$lib/components/layer-control/LayerControl.svelte';
     import OpenIn from '$lib/components/embedding/OpenIn.svelte';
     import {
         gpxStatistics,
@@ -203,19 +202,19 @@
         }
 
         if ($distanceUnits !== prevSettings.distanceUnits) {
-            $distanceUnits = prevSettings.distanceUnits;
+            $distanceUnits = prevSettings.distanceUnits as 'metric' | 'imperial' | 'nautical';
         }
 
         if ($velocityUnits !== prevSettings.velocityUnits) {
-            $velocityUnits = prevSettings.velocityUnits;
+            $velocityUnits = prevSettings.velocityUnits as 'speed' | 'pace';
         }
 
         if ($temperatureUnits !== prevSettings.temperatureUnits) {
-            $temperatureUnits = prevSettings.temperatureUnits;
+            $temperatureUnits = prevSettings.temperatureUnits as 'celsius' | 'fahrenheit';
         }
 
         if ($mode !== prevSettings.theme) {
-            setMode(prevSettings.theme);
+            setMode(prevSettings.theme as 'light' | 'system' | 'dark');
         }
 
         $selection.clear();
