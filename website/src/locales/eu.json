@@ -235,15 +235,15 @@
             "help_no_selection": "Aukeratu fitxategi bat altuera datuak eskatzeko."
         },
         "waypoint": {
-            "tooltip": "Sortu eta editatu intereseko-puntuak",
+            "tooltip": "Sortu eta editatu interes-puntuak",
             "icon": "Ikonoa",
             "link": "Esteka",
             "longitude": "Longitudea",
             "latitude": "Latitudea",
-            "create": "Sortu intereseko-puntua",
-            "add": "Gehitu intereseko-puntua fitxategiari",
-            "help": "Bete formularioa intereseko-puntua gehitzeko edo egin klik baten editatzeko. Egin klik mapan koordenatuak betetzeko edo arrastatu puntuak mugitzeko.",
-            "help_no_selection": "Aukeratu fitxategia intereseko-puntuak sortu edo editatzeko."
+            "create": "Sortu interes-puntua",
+            "add": "Gehitu interes-puntua fitxategiari",
+            "help": "Bete formularioa interes-puntua gehitzeko edo egin klik baten editatzeko. Egin klik mapan koordenatuak betetzeko edo arrastatu puntuak mugitzeko.",
+            "help_no_selection": "Aukeratu fitxategia interes-puntuak sortu edo editatzeko."
         },
         "reduce": {
             "tooltip": "Gutxitu GPS puntu kopurua",
@@ -254,9 +254,9 @@
             "help_no_selection": "Aukeratu traza bat bere GPS puntu kopurua murrizteko."
         },
         "clean": {
-            "tooltip": "Garbitu GPS puntuak eta intereseko-puntuak aukeratutako laukiaren barruan",
+            "tooltip": "Garbitu GPS puntuak eta interes-puntuak aukeratutako laukiaren barruan",
             "delete_trackpoints": "Ezabatu GPS puntuak",
-            "delete_waypoints": "Ezabatu intereseko-puntuak",
+            "delete_waypoints": "Ezabatu interes-puntuak",
             "delete_inside": "Ezabatu barneko aukeraketa",
             "delete_outside": "Ezabatu kanpoko aukeraketa",
             "button": "Ezabatu",
@@ -344,7 +344,7 @@
             "waymarkedTrailsSkating": "Skate",
             "waymarkedTrailsHorseRiding": "Zaldi-ibiliak",
             "waymarkedTrailsWinter": "Negua",
-            "points_of_interest": "Intereseko puntuak",
+            "points_of_interest": "Interes-puntuak",
             "food": "Janaria",
             "bakery": "Okindegiak",
             "food-store": "Janari-dendak",
