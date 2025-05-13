@@ -1,5 +1,5 @@
 ---
-title: GPX file format
+title: GPX fitxategi formatua
 ---
 
 <script>
@@ -8,19 +8,19 @@ title: GPX file format
 
 # { title }
 
-The <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX file format</a> is an open standard for exchanging GPS data between applications and GPS devices.
-It essentially consists of a series of GPS points encoding one or multiple GPS traces, and, optionally, some points of interest.
+<a href="https://www.topografix.com/gpx.asp" target="_blank">GPX fitxategi formatua</a> GPS datuak aplikazioen eta GPS gailuen artean trukatzeko formatu ireki estandarra da.
+GPS puntu serie bat GPS arrasto bat edo gehiagotan bildua, eta, aukeran, interesgune batzuk.
 
-GPX files may also contain metadata, of which the **name** and **description** fields are the most useful for users.
+GPX fitxategiek metadatuak ere izan ditzakete, horien artean **izena** eta **deskribapena** eremuak erabiltzaileentzat erabilgarrienak izaten dira.
 
-### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Tracks, segments, and GPS points
+### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Arrastoak, segmentuak eta GPS puntuak
 
-As mentioned above, a GPX file can contain multiple GPS traces.
-These are organized in a hierarchical structure, with tracks at the top level.
+Arestian esan bezala, GPX fitxategi batek GPS serie ugari izan ditzake.
+Egitura hierarkiko batean antolatuta daude, goiko mailan:
 
-- A **track** is made of a sequence of disconnected segments.
-  Furthermore, it can contain metadata such as a **name**, a **description**, and **appearance properties**.
-- A **segment** is a sequence of GPS points that form a continuous path.
+- **arrasto** bat deskonektatutako segmentuen sekuentzia batez egina dago.
+  Gainera, **izena**, **deskribapena** eta **itxura propietateak** bezalako metadatuak izan ditzake.
+- **Segmentua** bat bide jarraia osatzen duten GPS puntu sekuentzia da.
 - A **GPS point** is a location with a latitude, a longitude, and optionally a timestamp and an altitude.
   Some devices also store additional information such as heart rate, cadence, temperature, and power.
 
