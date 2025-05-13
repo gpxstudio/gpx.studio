@@ -23,61 +23,61 @@ Behean ikusten den bezala, tresnaren leihoak ibilbide-sorkuntzarako ezarpen batz
 
 ### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Bideratzea
 
-Bideratzea aktibatuta dagoenean, mapan kokatu edo mugitzen dituzun puntuak <a href="https://www.openstreetmap.org" target="_blank">OpenStreeMap</a>en bide sarearen bidez kalkkulatutako ibilbidearekin lotuko dira.
-Disable routing to connect anchor points with straight lines.
-This setting can also be toggled by pressing <kbd>F5</kbd>.
+Bideratzea aktibatuta dagoenean, mapan kokatu edo mugitzen dituzun puntuak <a href="https://www.openstreetmap.org" target="_blank">OpenStreeMap</a>en bide sarearen bidez kalkulatutako ibilbidearekin lotuko dira.
+Desaktibatu bideratzea kurtsorearen puntuak lerro zuzen bidez lotzeko.
+Hau lor daiteke ere <kbd>F5</kbd> tekla sakatuta.
 
-### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Activity
+### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Aktibitate mota
 
-Select the activity type to tailor the routes for.
+Aukeratu aktibitate mota bideak egokitzeko.
 
-### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Allow private roads
+### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Baimendu bide pribatuak
 
-When enabled, the routing engine will consider private roads when computing routes.
+Baimenduta badago, bideratzeko motorrak bide pribatuak onartuko ditu ibilbideak kalkulatzean.
 
 <DocsNote type="warning">
 
-Only use this option if you have local knowledge of the area and have permission to use the roads in question.
+Aukera hau erabili bakarrik eremua ezagutzen baduzu eta bideok erabiltzeko baimena baduzu.
 
 </DocsNote>
 
-## Plotting and editing routes
+## Ibilbideak irudikatzen eta editatzen
 
-Creating a route or extending an existing one is as simple as clicking on the map to place a new anchor point.
+Ibilbidea sortzea edo lehendik dagoen bat luzatzea, mapan klik egitea bezain erraza da aingura puntu berri bat jartzeko.
 
-You can also drag an existing anchor point to reroute the segment connecting it with the previous and next anchor point.
+Lehendik dagoen aingura puntu bat ere arrastatu dezakezu aurreko eta hurrengo aingura puntuekin konektatzen den segmentua birbideratzeko.
 
-Furthermore, new anchor points can be inserted between existing ones by hovering over the segment connecting them and dragging the anchor point that appears to the desired location.
-On touch devices, you can tap on the segment to insert a new anchor point.
+Gainera, aingura puntu berriak lehendik daudenen artean txertatu daitezke, segmentuan zehar konektatuz eta agertzen den aingura puntua nahi duzun tokira arrastatuz.
+Ukipen gailuetan, segmentuan ukitu dezakezu aingura puntu berri bat txertatzeko.
 
 <DocsNote>
 
-When editing imported GPX files, an initial set of anchor points is created automatically.
-To ease the editing process, the more the map is zoomed in, the more anchor points are displayed.
-This allows the route to be edited at different levels of detail.
+Inportatutako GPX fitxategiak editatzean, aingura puntuen hasierako multzoa automatikoki sortzen da.
+Edizio prozesua errazteko, zenbat eta mapa handitu, orduan eta aingura puntu gehiago agertzen dira.
+Horrek xehetasun maila desberdinetan editatzeko aukera ematen du.
 
 </DocsNote>
 
-Finally, you can delete anchor points by clicking on them and selecting <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Delete</button> from the context menu.
+Azkenik, aingura puntuak ezabatu ditzakezu gainean klik eginez eta <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Ezabatu</button> hautatuta testuinguru menuan.
 
-<DocsImage src="tools/routing" alt="Anchor points allow you to easily edit a route." />
+<Docsimage src="Tresnak/bideratzeak" Alt="Aingura puntuek bide bat erraz editatzeko aukera ematen dute." />
 
-## Additional tools
+## Tresna osagarriak
 
-The following tools automate some common route modification operations.
+Hurrengo tresnek ibilbidearen aldaketa arrunt batzuk automatizatzen dituzte.
 
-### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Reverse
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Alderantzikatu
 
-Reverse the direction of the route.
+Ibilbidearen norabidea alderantzikatu.
 
-### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Back to start
+### <Home size="16" class="inline-block" style="margin-bottom: 2px" />Bueltatu abiapuntura
 
-Connect the last point of the route with the starting point, using the chosen routing settings.
+Konektatu ibilbidearen azken puntua abiapuntuarekin, aukeratutako bideratze ezarpenak erabiliz.
 
-### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Round trip
+### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Bueltatu bide beretik
 
-Return to the starting point by the same route.
+Bueltatu abiapuntura ibilitako bide beretik.
 
-### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Change the start of the loop
+### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Aldatu bueltaren abiapuntua
 
-When the end point of the route is close enough to the start, you can change the start of the loop by clicking on any anchor point and selecting <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Start loop here</button> from the context menu.
+Ibilbidearen amaierako puntua abiapuntutik nahiko gertu dagoenean, bueltaren hasiera alda dezakezu edozein ainguraren puntuan klik eginez eta hautatu <button> <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Hasi ibilbidea hemen </button> testuinguruko menuan.
