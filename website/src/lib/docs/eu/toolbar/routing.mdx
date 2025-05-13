@@ -1,5 +1,5 @@
 ---
-title: Route planning and editing
+title: Ibilbideak planifikatu eta editatu
 ---
 
 <script>
@@ -11,20 +11,19 @@ title: Route planning and editing
 
 # <Pencil size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
 
-The route planning and editing tool allows you to create and edit routes by placing or moving anchor points on the map.
+Ibilbideak planifikatu eta editatzeko tresnak, puntuak mapa baten kokatuz ibilbideak sortu eta editatzeko aukera ematen dizu.
 
 ## Ezarpenak
 
-As shown below, the tool dialog contains a few settings to control the routing behavior.
-You can minimize the dialog to save space by clicking on <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
+Behean ikusten den bezala, tresnaren leihoak ibilbide-sorkuntzarako ezarpen batzuk ditu.<button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>-n klik eginez leihoa txikitu egin dezakezu.
 
 <div class="flex flex-row justify-center">
     <Routing minimizable={false} class="text-foreground p-3 border rounded-md shadow-lg" />
 </div>
 
-### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routing
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Bideratzea
 
-When routing is enabled, anchor points placed or moved on the map will be connected by a route calculated on the <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> road network.
+Bideratzea aktibatuta dagoenean, mapan kokatu edo mugitzen dituzun puntuak <a href="https://www.openstreetmap.org" target="_blank">OpenStreeMap</a>en bide sarearen bidez kalkkulatutako ibilbidearekin lotuko dira.
 Disable routing to connect anchor points with straight lines.
 This setting can also be toggled by pressing <kbd>F5</kbd>.
 
