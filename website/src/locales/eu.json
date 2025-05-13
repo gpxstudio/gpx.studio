@@ -1,8 +1,8 @@
 {
     "metadata": {
         "home_title": "GPX fitxategi editorea",
-        "app_title": "app",
-        "embed_title": "GPX fitxategi editorea",
+        "app_title": "aplikazioa",
+        "embed_title": "lineako GPX fitxategi editorea",
         "help_title": "laguntza",
         "404_title": "Ez da orrialdea aurkitu",
         "description": "Ikusi, editatu eta sortu GPX fitxategiak bideak bilatzeko aukera aurreratuarekin eta fitxategiak prozesatzeko tresnekin, mapa ederrekin eta datuak ikusteko xehetasun handiarekin."
@@ -11,7 +11,7 @@
         "new": "Berria",
         "new_file": "Fitxategi berria",
         "new_track": "Arrasto berria",
-        "new_segment": "Segmento berria",
+        "new_segment": "Segmentu berria",
         "open": "Ireki...",
         "duplicate": "Kopia egin",
         "close": "Itxi",
@@ -22,7 +22,7 @@
         "export": "Esportatu...",
         "export_all": "Esportatu guztia...",
         "export_options": "Esportazio-aukerak",
-        "support_message": "Tresna erabiltzea doakoa da baina martxan edukitzea ez. Webgunea babestu dezakezu sarri erablitzen baduzu. Eskerrik asko!",
+        "support_message": "Tresna erabiltzea doakoa da baina martxan edukitzea ez. Webgunea babestu dezakezu sarri erabiltzen baduzu. Eskerrik asko!",
         "support_button": "Lagundu webgunea doakoa izaten",
         "download_file": "Deskargatu fitxategia",
         "download_files": "Deskargatu fitxategiak",
@@ -57,7 +57,7 @@
         "toggle_street_view": "Kale-bista",
         "layers": "Maparen geruzak...",
         "distance_markers": "Distantzia markagailuak",
-        "direction_markers": "Norantza-geziak",
+        "direction_markers": "Noranzko-geziak",
         "help": "Laguntza",
         "more": "Gehiago...",
         "donate": "Dohaintza eman",
@@ -80,30 +80,30 @@
         "unhide": "Erakutsi",
         "center": "Erdiratu",
         "open_in": "Ireki hemen",
-        "copy_coordinates": "Kopiatu koordinatuak"
+        "copy_coordinates": "Kopiatu koordenatuak"
     },
     "toolbar": {
         "routing": {
             "tooltip": "Planifikatu edo editatu ibilbidea",
             "activity": "Ekintza",
             "use_routing": "Bideratzea",
-            "use_routing_tooltip": "Konektuatu puntuak errepide sarea erabiliz, edo desaktibatuta badago lerro zuzenarekin",
+            "use_routing_tooltip": "Konektatu puntuak errepide sarea erabiliz, edo desaktibatuta badago lerro zuzenarekin",
             "allow_private": "Baimendu bide pribatuak erabiltzea",
             "reverse": {
                 "button": "Alderantzikatu",
-                "tooltip": "Alderantzikatu ibilbidearen norantza"
+                "tooltip": "Alderantzikatu ibilbidearen noranzkoa"
             },
             "route_back_to_start": {
                 "button": "Itzuli hasierara",
-                "tooltip": "Konektatu ibilbidearen azken puntua hasiera puntuarekin"
+                "tooltip": "Konektatu ibilbidearen azken puntua abiapuntuarekin"
             },
             "round_trip": {
                 "button": "Ibilbide zirkularra",
-                "tooltip": "Itzuli hasiera puntura ibilbide berberarekin"
+                "tooltip": "Itzuli abiapuntura bide beretik"
             },
             "start_loop_here": "Hasi begizta hemen",
             "help_no_file": "Aukeratu bideratze-tresnak erabiliko duen traza, edo mapan klik egin ibilbide berria sortzen hasteko.",
-            "help": "Egin klik mapan puntu berria gehitzeko edo arrasatatu jada gehitutakoak ibilbidea aldatzeko.",
+            "help": "Egin klik mapan puntu berria gehitzeko edo arrastatu jada gehitutakoak ibilbidea aldatzeko.",
             "activities": {
                 "bike": "Bizikleta",
                 "racing_bike": "Errepideko bizikleta",
@@ -119,13 +119,13 @@
                 "paved": "Zoladuraduna",
                 "unpaved": "Zoladura gabea",
                 "asphalt": "Asfaltoa",
-                "concrete": "Zementoa",
+                "concrete": "Zementua",
                 "cobblestone": "Harri-koskorrak",
-                "paving_stones": "Zoladura-harriak",
-                "sett": "Zoladura-harri handiak",
+                "paving_stones": "Harbidea",
+                "sett": "Harlauzak",
                 "metal": "Metalikoa",
                 "wood": "Egurrezkoa",
-                "compacted": "Hartxintxar konpaktua",
+                "compacted": "Hartxintxar trinkoa",
                 "fine_gravel": "Hartxintxar soltea",
                 "gravel": "Hartxintxarra",
                 "pebblestone": "Harrikoskorrak",
@@ -144,10 +144,10 @@
                 "unknown": "Ezezaguna",
                 "motorway": "Autobidea",
                 "motorway_link": "Autobidearen lotunea",
-                "trunk": "Lehenengo mailako errepidea",
-                "trunk_link": "Lehenengo mailako errepidearen sarbidea",
-                "primary": "Lehenengo mailako errepidea",
-                "primary_link": "Lehenengo mailako errepidearen sarbidea",
+                "trunk": "Lehen mailako errepidea",
+                "trunk_link": "Lehen mailako errepidearen sarbidea",
+                "primary": "Lehen mailako errepidea",
+                "primary_link": "Lehen mailako errepidearen sarbidea",
                 "secondary": "Bigarren mailako errepidea",
                 "secondary_link": "Bigarren mailako errepidearen sarbidea",
                 "tertiary": "Hirugarren mailako errepidea",
@@ -155,14 +155,14 @@
                 "unclassified": "Maila txikiko errepidea",
                 "residential": "Bizilagunen errepidea",
                 "living_street": "Bizileku-kalea",
-                "service": "Laguntza-bidea",
-                "track": "Bidea",
-                "footway": "Oinezko-bidea",
+                "service": "Zerbitzu-bidea",
+                "track": "Arrastoa",
+                "footway": "Xenda",
                 "path": "Bidea",
                 "pedestrian": "Oinezko-bidea",
-                "cycleway": "Bizikleta-bidea",
+                "cycleway": "Bidegorria",
                 "steps": "Eskailerak",
-                "road": "Bidea",
+                "road": "Errepidea",
                 "bridleway": "Zaldi-bidea",
                 "platform": "Plataforma",
                 "raceway": "Lasterketa zirkuitua",
