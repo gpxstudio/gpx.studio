@@ -1,5 +1,5 @@
 ---
-title: Edit actions
+title: Edizio ekintzak
 ---
 
 <script lang="ts">
@@ -9,88 +9,88 @@ title: Edit actions
 
 # { title }
 
-Unlike the file actions, the edit actions can potentially modify the content of the currently selected files.
-Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, and points of interest](../gpx).
-Therefore, we will refer to the elements that can be modified by these actions as _file items_.
-Note that except for the undo and redo actions, the edit actions are also accessible through the context menu (right-click) of the file items.
+Fitxategi-ekintzak ez bezala, edizio-ekintzek hautatutako fitxategien edukia alda dezakete.
+Are gehiago, fitxategien zerrendaren zuhaitzaren diseinua gaituta dagoenean (Ikusi [Fitxategiak eta estatistikak](../files-and-stats)), ekintzek [arrasto, segmentu eta interesgunetan](../gpx) ere aplikatu daitezke.
+Hori dela eta, ekintza hauek alda dezaketen elementuei _fitxategi-elementuak_ izendatzen ditugu.
+Ohar zaitez, desegin eta berregin ekintzak ez, beste guztiak fitxategi-elementu hauen alboko menuaren bidez (eskuin-klik) ere erabili daitezke.
 
-### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Undo and redo
+### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Desegin eta berregin
 
-Using these buttons, you can undo or redo the last actions you performed.
-This applies to all actions of the interface but not to view options, application settings, or map navigation.
+Botoi hauei esker eragindako azken ekintzak desegin eta berregin daitezke.
+Hau interfazearen ekintza guztiei aplikatzen zaie, baina ez ikusteko aukerei, aplikazioaren ezarpenei edo maparen nabigazioari.
 
-### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> Info...
+### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> Informazioa...
 
-Open the information dialog of the currently selected file item, where you can see and edit its name and description.
+Ireki hautatutako fitxategiaren elementuaren elkarrizketa-koadroa, non bere izena eta deskribapena ikusi eta editatu ahal izango dituzu.
 
-### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Appearance...
+### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Itxura...
 
-Open the appearance dialog, where you can change the color, opacity, and width of the selected file items on the map.
+Ireki Itxuraren elkarrizketa-koadroa, eta bertan mapan hautatutako elementuaren kolorea, opakotasuna eta zabalera alda ditzakezu.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Ezkutatu/erakutsi
 
-Toggle the visibility of the selected file items on the map.
+Aldatu mapan hautatutako elementuen ikusgarritasuna.
 
-### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New track
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Arrasto berria
 
-Create a new track in the selected file.
-
-<DocsNote>
-
-This action is only available when the tree layout of the files list is enabled.
-Additionally, the selection must be a single file.
-
-</DocsNote>
-
-### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New segment
-
-Create a new segment in the selected track.
+Sortu arrasto berri bat hautatutako fitxategian.
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
-Additionally, the selection must be a single track.
+Ekintza hau soilik aktibatuko da fitxategien zerrendako zuhaitz-geruza gaituta dagoenean.
+Gainera, fitxategi bakarra egon behar du hautatuta.
 
 </DocsNote>
 
-### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Select all
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Segmentu berria
 
-Add all file items in the current hierarchy level to the selection.
-
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
-
-Center the map on the selected file items.
-
-### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copy
-
-Copy the selected file items to the clipboard.
+Sortu segmentu berri bat hautatutako arrastoan.
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
+Ekintza hau soilik aktibatuko da fitxategien zerrendako zuhaitz-geruza gaituta dagoenean.
+Gainera, arrasto bakarra egon behar du hautatuta.
 
 </DocsNote>
 
-### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Cut
+### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Hautatu denak
 
-Cut the selected file items to the clipboard.
+Gehitu hautapenera uneko hierarkia mailako fitxategi elementu guztiak.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Erdiratu
+
+Erdiratu mapan hautatutako fitxategi-elementuak.
+
+### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Kopiatu
+
+Kopiatu arbelean hautatutako fitxategi-elementuak.
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
+Ekintza hau soilik aktibatuko da fitxategien zerrendako zuhaitz-geruza gaituta dagoenean.
 
 </DocsNote>
 
-### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Paste
+### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Ebaki
 
-Paste the file items from the clipboard to the current hierarchy level if they are compatible with it.
+Ebaki arbelera hautatutako fitxategi-elementuak.
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
+Ekintza hau soilik aktibatuko da fitxategien zerrendako zuhaitz-geruza gaituta dagoenean.
 
 </DocsNote>
 
-### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Delete
+### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Itsatsi
 
-Delete the selected file items.
+Itsatsi arbeleko fitxategi-elementuak uneko hierarkia mailan, berarekin bateragarriak badira.
+
+<DocsNote>
+
+Ekintza hau soilik aktibatuko da fitxategien zerrendako zuhaitz-geruza gaituta dagoenean.
+
+</DocsNote>
+
+### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Ezabatu
+
+Ezabatu hautatutako fitxategi-elementuak.
