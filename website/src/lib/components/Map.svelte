@@ -14,6 +14,12 @@
     import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
     import { page } from '$app/stores';
 
+    interface NominatimResult {
+        lon: number;
+        lat: number;
+        display_name: string;
+    }
+
     export let accessToken = PUBLIC_MAPBOX_TOKEN;
     export let geolocate = true;
     export let geocoder = true;
@@ -115,7 +121,8 @@
         );
 
         if (geocoder) {
-            let geocoder = new MapboxGeocoder({
+            let geocoderInstance = new MapboxGeocoder({
+                accessToken: mapboxgl.accessToken ?? '',
                 mapboxgl: mapboxgl,
                 enableEventLogging: false,
                 collapsed: true,
@@ -129,7 +136,7 @@
                     )
                         .then((response) => response.json())
                         .then((data) => {
-                            return data.map((result: any) => {
+                            return data.map((result: NominatimResult) => {
                                 return {
                                     type: 'Feature',
                                     geometry: {
@@ -141,16 +148,7 @@
                             });
                         }),
             });
-            let onKeyDown = geocoder._onKeyDown;
-            geocoder._onKeyDown = (e: KeyboardEvent) => {
-                // Trigger search on Enter key only
-                if (e.key === 'Enter') {
-                    onKeyDown.apply(geocoder, [{ target: geocoder._inputEl }]);
-                } else if (geocoder._typeahead.data.length > 0) {
-                    geocoder._typeahead.clear();
-                }
-            };
-            newMap.addControl(geocoder);
+            newMap.addControl(geocoderInstance);
         }
 
         if (geolocate) {

@@ -132,9 +132,7 @@
                 </h1>
                 <p class="text-muted-foreground">{$_('homepage.maps_description')}</p>
             </div>
-            <div
-                class="relative h-60 xs:h-80 aspect-square rounded-2xl shadow-xl overflow-hidden overflow-clip"
-            >
+            <div class="relative h-60 xs:h-80 aspect-square rounded-2xl shadow-xl overflow-hidden">
                 <enhanced:img
                     src="/src/lib/assets/img/home/mapbox-outdoors.png"
                     alt="Mapbox Outdoors map screenshot."
@@ -220,7 +218,7 @@
         </div>
     </div>
     <div class="px-12 w-full">
-        <div class="w-full max-w-7xl mx-auto rounded-2xl shadow-xl overflow-hidden overflow-clip">
+        <div class="w-full max-w-7xl mx-auto rounded-2xl shadow-xl overflow-hidden">
             <enhanced:img
                 src="/src/lib/assets/img/home/map.png"
                 alt="Screenshot of the gpx.studio map in 3D."
