@@ -2,9 +2,18 @@
 title: Datoteke i statistike
 ---
 
-<script>
+<script lang="ts">
     import { ChartNoAxesColumn } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import ElevationProfile from '$lib/components/ElevationProfile.svelte';
+    import GPXStatistics from '$lib/components/GPXStatistics.svelte';
+    import { exampleGPXFile } from '$lib/assets/example';
+    import { writable } from 'svelte/store';
+
+    let gpxStatistics = writable(exampleGPXFile.getStatistics());
+    let slicedGPXStatistics = writable(undefined);
+    let additionalDatasets = writable(['speed', 'atemp']);
+    let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
 </script>
 
 # { title }
@@ -71,12 +80,31 @@ Kliknite na profil da resetujete izbor.
 
 Takođe možete da koristite točkić miša da zumirate i umanjite profil nadmorske visine i da se pomerate levo i desno prevlačenjem profila dok držite taster <kbd>Shift</kbd>.
 
-### Dodatni podaci
+<div class="h-48 w-full">
+    <ElevationProfile
+        {gpxStatistics}
+        {slicedGPXStatistics}
+        additionalDatasets={$additionalDatasets}
+        elevationFill={$elevationFill}
+    />
+</div>
+<div class="flex flex-col items-center -mt-6">
+    <div class="h-10 w-fit">
+        <GPXStatistics
+            {gpxStatistics}
+            {slicedGPXStatistics}
+            panelSize={120}
+            orientation={'horizontal'}
+        />
+    </div>
+</div>
 
-Koristeći dugme <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> u donjem desnom uglu profila nadmorske visine, opciono možete da obojite profil nadmorske visine prema:
+### Additional data
 
-- **nagib** izračunat iz podataka o nadmorskoj visini, ili
-- podaci o **površini** ili **kategoriji** koji dolaze iz <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>-ovih tagova<a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank"> površine</a> i <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">autoputa</a>.
-  Ovo je dostupno jedino za datoteke kreirane korišćenjem alata **gpx.studio**
+Using the <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> button at the bottom-right of the elevation profile, you can optionally color the elevation profile by:
 
-ako vaš izbor to uključuje, takođe možete da vizuelizujete: **brzinu**, **otkucaje srca**, **kadencu**, **temperaturu** i **snagu** na profilu nadmorske visine.
+- **slope** information computed from the elevation data, or
+- **surface** or **category** data coming from <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> and <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> tags.
+  This is only available for files created with **gpx.studio**.
+
+If your selection includes it, you can also visualize: **speed**, **heart rate**, **cadence**, **temperature** and **power** data on the elevation profile.
