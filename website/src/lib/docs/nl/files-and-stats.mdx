@@ -2,9 +2,18 @@
 title: Bestanden en statistieken
 ---
 
-<script>
+<script lang="ts">
     import { ChartNoAxesColumn } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import ElevationProfile from '$lib/components/ElevationProfile.svelte';
+    import GPXStatistics from '$lib/components/GPXStatistics.svelte';
+    import { exampleGPXFile } from '$lib/assets/example';
+    import { writable } from 'svelte/store';
+
+    let gpxStatistics = writable(exampleGPXFile.getStatistics());
+    let slicedGPXStatistics = writable(undefined);
+    let additionalDatasets = writable(['speed', 'atemp']);
+    let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
 </script>
 
 # { title }
@@ -71,12 +80,31 @@ Klik op het profiel om de selectie opnieuw in te stellen.
 
 Je kunt het muiswiel ook gebruiken om in en uit te zoomen op het hoogte profiel, of te verschuiven door het profiel te slepen terwijl je de <kbd>Shift</kbd> toets ingedrukt houdt.
 
+<div class="h-48 w-full">
+    <ElevationProfile
+        {gpxStatistics}
+        {slicedGPXStatistics}
+        additionalDatasets={$additionalDatasets}
+        elevationFill={$elevationFill}
+    />
+</div>
+<div class="flex flex-col items-center -mt-6">
+    <div class="h-10 w-fit">
+        <GPXStatistics
+            {gpxStatistics}
+            {slicedGPXStatistics}
+            panelSize={120}
+            orientation={'horizontal'}
+        />
+    </div>
+</div>
+
 ### Aanvullende gegevens
 
 Met behulp van de <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> knoppen aan de rechterkant van het hoogteprofiel kunt u het hoogteprofiel optioneel kleuren door:
 
-- **helling** informatie berekend uit de hoogtegegevens, of
-- **oppervlakte** of **categorie** gegevens afkomstig van <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>zijn <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">oppervlak</a> en <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">snelweg</a> tags.
-  Dit is alleen beschikbaar voor bestanden gemaakt met **gpx.studio**.
+- - **helling** informatie berekend uit de hoogtegegevens, of
+- - **oppervlakte** of **categorie** gegevens afkomstig van <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>zijn <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">oppervlak</a> en <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">snelweg</a> tags.
+    Dit is alleen beschikbaar voor bestanden gemaakt met **gpx.studio**.
 
 Als je selectie het bevat, kun je ook de volgende gegevens zichtbaar maken op het hoogteprofiel: **snelheid**, **hartritme**, **tempo**, **temperatuur**, en **vermogen**.

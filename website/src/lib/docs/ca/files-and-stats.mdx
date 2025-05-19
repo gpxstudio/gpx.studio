@@ -2,9 +2,18 @@
 title: Fitxers i estadístiques
 ---
 
-<script>
+<script lang="ts">
     import { ChartNoAxesColumn } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import ElevationProfile from '$lib/components/ElevationProfile.svelte';
+    import GPXStatistics from '$lib/components/GPXStatistics.svelte';
+    import { exampleGPXFile } from '$lib/assets/example';
+    import { writable } from 'svelte/store';
+
+    let gpxStatistics = writable(exampleGPXFile.getStatistics());
+    let slicedGPXStatistics = writable(undefined);
+    let additionalDatasets = writable(['speed', 'atemp']);
+    let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
 </script>
 
 # { title }
@@ -71,12 +80,31 @@ Clica en el perfil per restablir la selecció.
 
 També pots utilitzar la rodeta del ratolí per apropar o allunyar el perfil d'elevació i moure't cap a l'esquerra i dreta arrossegant el perfil, tot prement la tecla <kbd>Shift</kbd>.
 
+<div class="h-48 w-full">
+    <ElevationProfile
+        {gpxStatistics}
+        {slicedGPXStatistics}
+        additionalDatasets={$additionalDatasets}
+        elevationFill={$elevationFill}
+    />
+</div>
+<div class="flex flex-col items-center -mt-6">
+    <div class="h-10 w-fit">
+        <GPXStatistics
+            {gpxStatistics}
+            {slicedGPXStatistics}
+            panelSize={120}
+            orientation={'horizontal'}
+        />
+    </div>
+</div>
+
 ### Dades addicionals
 
 Utilitzant el botó <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> de la part inferior dreta del perfil d'elevació, pots pintar el perfil d'elevació en funció de:
 
-- informació de **pendent** calculada a partir de les dades d'elevació, o
-- dades de **superfície** o **categoria** provinents de <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">superfície</a> i <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">autopista</a> etiquetes.
-  Només disponible per arxius creats amb **gpx.studio**.
+- - informació de **pendent** calculada a partir de les dades d'elevació, o
+- - dades de **superfície** o **categoria** provinents de <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">superfície</a> i <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">autopista</a> etiquetes.
+    Només disponible per arxius creats amb **gpx.studio**.
 
 Si la teva selecció en té, també pots visualitzar: dades de **velocitat**, **ritme cardíac**, **cadència**, **temperatura** i **potència** en el perfil d'elevació.

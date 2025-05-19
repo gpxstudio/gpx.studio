@@ -2,9 +2,18 @@
 title: Dateien und Statistiken
 ---
 
-<script>
+<script lang="ts">
     import { ChartNoAxesColumn } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import ElevationProfile from '$lib/components/ElevationProfile.svelte';
+    import GPXStatistics from '$lib/components/GPXStatistics.svelte';
+    import { exampleGPXFile } from '$lib/assets/example';
+    import { writable } from 'svelte/store';
+
+    let gpxStatistics = writable(exampleGPXFile.getStatistics());
+    let slicedGPXStatistics = writable(undefined);
+    let additionalDatasets = writable(['speed', 'atemp']);
+    let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
 </script>
 
 # { title }
@@ -71,12 +80,31 @@ Klicken Sie auf das Profil, um die Auswahl zurückzusetzen.
 
 Sie können auch das Mausrad verwenden, um auf dem Höhenprofil heranzuzoomen und bewegen Sie sich nach links und rechts, indem Sie das Profil ziehen, während Sie die Taste <kbd>Shift</kbd> gedrückt halten.
 
+<div class="h-48 w-full">
+    <ElevationProfile
+        {gpxStatistics}
+        {slicedGPXStatistics}
+        additionalDatasets={$additionalDatasets}
+        elevationFill={$elevationFill}
+    />
+</div>
+<div class="flex flex-col items-center -mt-6">
+    <div class="h-10 w-fit">
+        <GPXStatistics
+            {gpxStatistics}
+            {slicedGPXStatistics}
+            panelSize={120}
+            orientation={'horizontal'}
+        />
+    </div>
+</div>
+
 ### Zusätzliche Daten
 
 Mit dem <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> Button unten rechts im Höhenprofil können Sie optional das Höhenprofil einfärben:
 
-- **slope** Informationen berechnet aus den Höhendaten oder
-- **Oberfläche** oder **Kategorie** Daten aus <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> and <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> tags.
-  Dies ist nur für Dateien verfügbar, die mit **gpx.studio** erstellt wurden.
+- - **slope** Informationen berechnet aus den Höhendaten oder
+- - **Oberfläche** oder **Kategorie** Daten aus <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> and <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> tags.
+    Dies ist nur für Dateien verfügbar, die mit **gpx.studio** erstellt wurden.
 
 Wenn deine Auswahl sie enthält, kannst du auch folgende Daten im Höhenprofil anzeigen: **Geschwindigkeit**, **Herzfrequenz**, **cadence**, **Temperatur** und **Kraft** Daten.
