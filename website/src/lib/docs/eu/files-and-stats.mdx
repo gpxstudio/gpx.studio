@@ -2,9 +2,18 @@
 title: Fitxategiak eta estatistikak
 ---
 
-<script>
+<script lang="ts">
     import { ChartNoAxesColumn } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import ElevationProfile from '$lib/components/ElevationProfile.svelte';
+    import GPXStatistics from '$lib/components/GPXStatistics.svelte';
+    import { exampleGPXFile } from '$lib/assets/example';
+    import { writable } from 'svelte/store';
+
+    let gpxStatistics = writable(exampleGPXFile.getStatistics());
+    let slicedGPXStatistics = writable(undefined);
+    let additionalDatasets = writable(['speed', 'atemp']);
+    let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
 </script>
 
 # { title }
@@ -70,12 +79,31 @@ Egin klik profilean aukeraketa berrezartzeko.
 
 Saguaren gurpila ere erabil dezakezu altueren profila handitzeko eta mugitzeko ezkerrera eta eskuinera profila arrastatuz <kbd>Maius</kbd> tekla sakatuta.
 
-### Datu osagarriak
+<div class="h-48 w-full">
+    <ElevationProfile
+        {gpxStatistics}
+        {slicedGPXStatistics}
+        additionalDatasets={$additionalDatasets}
+        elevationFill={$elevationFill}
+    />
+</div>
+<div class="flex flex-col items-center -mt-6">
+    <div class="h-10 w-fit">
+        <GPXStatistics
+            {gpxStatistics}
+            {slicedGPXStatistics}
+            panelSize={120}
+            orientation={'horizontal'}
+        />
+    </div>
+</div>
 
-Altueren profilaren beheko eskuin aldean dagoen <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> botoia sakatuta, altueren profilaren koloreak aukeratu ditzakezu:
+### Additional data
 
-- ** Malda**ren informazioa altuera datuetatik erauzita edo
-- **gainazala** edo **kategoria** datuak <a href="https://www.openstreetmap.org/" target="_blank"> OpenStreetMap</a>en <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">gainazala</a> eta <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank"> errepide</a> etiketetan oinarritzen dira.
-  Hau **gpx.studio**-ren bidez sortutako fitxategientzako bakarrik dago erabilgarri.
+Using the <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> button at the bottom-right of the elevation profile, you can optionally color the elevation profile by:
 
-Zure aukeraketa barne hartzen badu, **abiadura**, **bihotz-taupadak**, **kadentzia**, **tenperatura** eta **potentzia** datuak ikus ditzakezu altueren profilean.
+- **slope** information computed from the elevation data, or
+- **surface** or **category** data coming from <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> and <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> tags.
+  This is only available for files created with **gpx.studio**.
+
+If your selection includes it, you can also visualize: **speed**, **heart rate**, **cadence**, **temperature** and **power** data on the elevation profile.
