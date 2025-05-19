@@ -2,9 +2,18 @@
 title: 文件和统计
 ---
 
-<script>
+<script lang="ts">
     import { ChartNoAxesColumn } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import ElevationProfile from '$lib/components/ElevationProfile.svelte';
+    import GPXStatistics from '$lib/components/GPXStatistics.svelte';
+    import { exampleGPXFile } from '$lib/assets/example';
+    import { writable } from 'svelte/store';
+
+    let gpxStatistics = writable(exampleGPXFile.getStatistics());
+    let slicedGPXStatistics = writable(undefined);
+    let additionalDatasets = writable(['speed', 'atemp']);
+    let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
 </script>
 
 # { title }
@@ -71,12 +80,31 @@ title: 文件和统计
 
 海拔剖面图可通过鼠标滚轮进行缩放，或按住 <kbd>Shift</kbd> 键并用鼠标拖动以左右移动。
 
-### 补充数据
+<div class="h-48 w-full">
+    <ElevationProfile
+        {gpxStatistics}
+        {slicedGPXStatistics}
+        additionalDatasets={$additionalDatasets}
+        elevationFill={$elevationFill}
+    />
+</div>
+<div class="flex flex-col items-center -mt-6">
+    <div class="h-10 w-fit">
+        <GPXStatistics
+            {gpxStatistics}
+            {slicedGPXStatistics}
+            panelSize={120}
+            orientation={'horizontal'}
+        />
+    </div>
+</div>
 
-使用海拔剖面图右下方的 <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> 按钮，支持通过以下方式为其着色：
+### Additional data
 
-- 根据海拔数据计算得到的 **坡度** 信息
-- 或来自 <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> 的 <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> 和 <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> 标签。
-  注意，该方法仅适用于通过 **gpx.studio** 创建的文件。
+Using the <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> button at the bottom-right of the elevation profile, you can optionally color the elevation profile by:
 
-其中亦可展示 **速度**、**心率**、**节奏**、**温度** 和 **功率** 等数据。
+- **slope** information computed from the elevation data, or
+- **surface** or **category** data coming from <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> and <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> tags.
+  This is only available for files created with **gpx.studio**.
+
+If your selection includes it, you can also visualize: **speed**, **heart rate**, **cadence**, **temperature** and **power** data on the elevation profile.
