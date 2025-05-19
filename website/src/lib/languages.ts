@@ -3,6 +3,7 @@ export const languages: Record<string, string> = {
     cs: 'Čeština',
     en: 'English',
     es: 'Español',
+    eu: 'Euskara',
     de: 'Deutsch',
     fr: 'Français',
     it: 'Italiano',

@@ -1,5 +1,5 @@
 ---
-title: Map controls
+title: Maparen kontrolak
 ---
 
 <script>
@@ -10,61 +10,61 @@ title: Map controls
 
 # { title }
 
-The map controls are located on the right side of the interface.
-These controls allow you to navigate the map, zoom in and out, and switch between different map styles.
+Maparen kontrolak interfazearen eskuinaldean daude.
+Kontrol horiek mapan nabigatzeko aukera ematen dute, zooma eta aldatu mapa estilo desberdinen artean.
 
-### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Map navigation
+### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Mapako nabigazioa
 
-The controls at the top allow you to zoom in <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> and out <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, and to change the orientation and tilt of the map <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
-
-<DocsNote>
-
-To control the orientation and tilt of the map, you can also drag the map while holding <kbd>Ctrl</kbd>.
-
-</DocsNote>
-
-### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Search bar
-
-You can use the search bar to look for an address and navigate to it on the map.
-
-### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Locate button
-
-The locate button centers the map on your current location.
+Goialdean dauden kontrolek handiagotu <Plus size="16" class="inline-block" style="margin-bottom: 2px" />, txikiagotu <Minus size="16" class="inline-block" style="margin-bottom: 2px" /> eta maparen orientazioa eta okertzea <Compass size="16" class="inline-block" style="margin-bottom: 2px" /> aldatzeko aukera ematen dute.
 
 <DocsNote>
 
-This only works if you have allowed your browser and <b>gpx.studio</b> to access your location.
+Maparen orientazioa eta okertzea kontrolatzeko, mapa ere arrasta dezakezu <kbd> Ctrl</kbd> sakatzen duzun bitartean.
 
 </DocsNote>
 
-### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Street view
+### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Bilaketa barra
 
-This button can be used to enable street view mode on the map.
-Depending on the street view source chosen in the [settings](./menu/settings), street view imagery can be accessed differently.
+Bilaketa barra erabil dezakezu helbide bat bilatzeko eta mapan nabigatzeko.
 
-- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: the street view coverage will appear as green lines on the map. When zoomed in enough, green dots will show the exact locations where street view imagery is available. Hovering over a green dot will show the street view image at that location.
-- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: click on the map to open a new tab with the street view imagery at that location.
+### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Kokatze botoia
 
-### <Layers size="16" class="inline-block" style="margin-bottom: 2px" /> Map layers
+Kokatze-botoiak mapa zentratzen du uneko kokapenean.
 
-The map layers button allows you to switch between different basemaps, and toggle map overlays and categories of points of interest.
+<DocsNote>
 
-- **Basemaps** are background maps that present the main geographic features of the world.
-  Depending on their purpose, basemaps have different styles and levels of detail.
-  Only one basemap can be displayed at a time.
-- **Overlays** are additional layers that can be displayed on top of the basemap to provide complementary information.
-- **Points of interest** can be added to the map to show different categories of places, such as shops, restaurants, or accommodations.
+Horrek bakarrik funtzionatzen du zure nabigatzailea eta <b>gpx.studio</b> zure kokapenera sartzeko baimena badute.
+
+</DocsNote>
+
+### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" />Kaleko ikuspegia
+
+Botoi hau kaleko ikuspegia mapan gaitzeko erabil daiteke.
+[Ezarpenetan](./menu/settings) aukeratutako kaleko ikuspuntuaren iturburuaren arabera, kaleko ikuspegi irudiak hainbat modutan ikus daitezke.
+
+- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: kaleko ikuspegia estaldura marra berde gisa agertuko da mapan. Zooma nahikoa denean, puntu berdeek kale ikuspegi irudiak eskuragarri dauden kokapen zehatzak erakutsiko dituzte. Puntu berde baten gainean kokatzeak kokapen horretan kaleko ikuspegia erakutsiko du.
+- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: egin klik mapan, kaleko ikuspegi irudi berri bat irekitzeko toki horretan.
+
+### <Layers size="16" class="inline-block" style="margin-bottom: 2px" /> Maparen geruzak
+
+Maparen geruzen botoiak mapa-oinarri desberdinen artean aldatzeko aukera ematen du eta maparen gaineko gainjarriak eta interesguneen kategoriak txandakatzeko aukera ematen du.
+
+- **Mapa-oinarriak** munduko ezaugarri geografiko nagusiak aurkezten dituzten atzeko planoko mapak dira.
+  Haien xedearen arabera, oinarriek estilo eta xehetasun maila desberdinak dituzte.
+  Mapa-oinarri bakarra bistaratu daiteke aldiro.
+- **Gainjartzeak** mapa-oinarrien gainean bistaratu daitezkeen geruza osagarriak dira, informazio osagarria emateko.
+- **Interesguneak** mapan gehitu daiteke leku kategoria desberdinak erakusteko, hala nola dendak, jatetxeak edo ostatuak.
 
 <div class="flex flex-col items-center">
     <DocsLayers />
     <span class="text-sm text-center mt-2">
-        Hover over the map to show the <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> overlay on top of the <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> basemap.
+        Pasa maparen gainetik <a href="https://hiking.waymarkedtrails.org" target="_blank">mendiko bideak</a> ikusteko <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> mapa oinarriaren gainean.
     </span>
 </div>
 
-A large collection of global and local basemaps and overlays is available in **gpx.studio**, as well as a selection of point-of-interest categories.
-They can be enabled in the [map layer settings dialog](./menu/settings).
+Global eta tokiko mapa oinarri bilduma handia dago **gpx.studio**-n eskuragarri, bai eta interesguneen kategorien aukeraketa ere.
+[Mapen geruzen ezarpenen elkarrizketa koadroan](./menu/settings) gaitu daitezke.
 
-In these settings, you can also manage the opacity of the overlays.
+Ezarpen horietan, gainjartzeen opakutasuna ere kudeatu dezakezu.
 
-For advanced users, it is possible to add custom basemaps and overlays by providing <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, or <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox style JSON</a> URLs.
+Erabiltzaile aurreratuetarako, mapa oinarri pertsonalizatuak gehitu daitezke <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank"> WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, edo <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox Style Json</a> URLak gehituz.
