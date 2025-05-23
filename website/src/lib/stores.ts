@@ -451,7 +451,11 @@ async function exportFilesAsZip(fileIds: string[], exclude: string[]) {
         const file = getFile(fileId);
         if (file) {
             const gpx = buildGPX(file, exclude);
-            zip.file(file.metadata.name + '.gpx', gpx);
+            let filename = file.metadata.name;
+            for (let i = 1; zip.files[filename + '.gpx']; i++) {
+                filename = file.metadata.name + `-${i}`;
+            }
+            zip.file(filename + '.gpx', gpx);
         }
     }
     if (Object.keys(zip.files).length > 0) {
