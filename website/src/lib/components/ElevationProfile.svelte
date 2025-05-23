@@ -40,6 +40,26 @@
     import { settings } from '$lib/db';
     import { mode } from 'mode-watcher';
     import { df } from '$lib/utils';
+    import type { TooltipItem, ChartEvent, ChartDataset } from 'chart.js';
+
+    interface ChartDataContextPoint {
+        x: number;
+        y: number;
+        time?: Date;
+        slope: {
+            at: number;
+            segment: number;
+            length: number;
+        };
+        extensions: {
+            surface?: string;
+            highway?: string;
+            sac_scale?: string | number;
+            mtb_scale?: string | number;
+        };
+        coordinates: [number, number];
+        index: number;
+    }
 
     export let gpxStatistics: Writable<GPXStatistics>;
     export let slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined>;
@@ -61,25 +81,31 @@
     let panning = false;
 
     let options = {
-        animation: false,
-        parsing: false,
+        animation: false as const,
+        parsing: false as const,
         maintainAspectRatio: false,
         scales: {
             x: {
-                type: 'linear',
+                type: 'linear' as const,
                 ticks: {
-                    callback: function (value: number) {
-                        return `${value.toFixed(1).replace(/\.0+$/, '')} ${getDistanceUnits()}`;
+                    callback: function (tickValue: string | number) {
+                        if (typeof tickValue === 'number') {
+                            return `${tickValue.toFixed(1).replace(/\.0+$/, '')} ${getDistanceUnits()}`;
+                        }
+                        return String(tickValue);
                     },
-                    align: 'inner',
+                    align: 'inner' as const,
                     maxRotation: 0,
                 },
             },
             y: {
-                type: 'linear',
+                type: 'linear' as const,
                 ticks: {
-                    callback: function (value: number) {
-                        return getElevationWithUnits(value, false);
+                    callback: function (tickValue: string | number) {
+                        if (typeof tickValue === 'number') {
+                            return getElevationWithUnits(tickValue, false);
+                        }
+                        return String(tickValue);
                     },
                 },
             },
@@ -89,12 +115,12 @@
                 pointRadius: 0,
                 tension: 0.4,
                 borderWidth: 2,
-                cubicInterpolationMode: 'monotone',
+                cubicInterpolationMode: 'monotone' as const,
             },
         },
         interaction: {
-            mode: 'nearest',
-            axis: 'x',
+            mode: 'nearest' as const,
+            axis: 'x' as const,
             intersect: false,
         },
         plugins: {
@@ -110,8 +136,8 @@
                     title: function () {
                         return '';
                     },
-                    label: function (context: Chart.TooltipContext) {
-                        let point = context.raw;
+                    label: function (context: TooltipItem<'line'>) {
+                        let point = context.raw as ChartDataContextPoint;
                         if (context.datasetIndex === 0) {
                             if ($map && marker) {
                                 if (dragging) {
@@ -134,10 +160,10 @@
                             return `${$_('quantities.power')}: ${getPowerWithUnits(point.y)}`;
                         }
                     },
-                    afterBody: function (contexts: Chart.TooltipContext[]) {
-                        let context = contexts.filter((context) => context.datasetIndex === 0);
-                        if (context.length === 0) return;
-                        let point = context[0].raw;
+                    afterBody: function (contexts: TooltipItem<'line'>[]) {
+                        let relevantContexts = contexts.filter((ctx) => ctx.datasetIndex === 0);
+                        if (relevantContexts.length === 0) return;
+                        let point = relevantContexts[0].raw as ChartDataContextPoint;
                         let slope = {
                             at: point.slope.at.toFixed(1),
                             segment: point.slope.segment.toFixed(1),
@@ -187,12 +213,13 @@
             zoom: {
                 pan: {
                     enabled: true,
-                    mode: 'x',
-                    modifierKey: 'shift',
+                    mode: 'x' as const,
+                    modifierKey: 'shift' as const,
                     onPanStart: function () {
                         // hide tooltip
                         panning = true;
                         $slicedGPXStatistics = undefined;
+                        return undefined;
                     },
                     onPanComplete: function () {
                         panning = false;
@@ -202,14 +229,20 @@
                     wheel: {
                         enabled: true,
                     },
-                    mode: 'x',
-                    onZoomStart: function ({ chart, event }: { chart: Chart; event: any }) {
+                    mode: 'x' as const,
+                    onZoomStart: function (context: { chart: Chart; event: Event; point: any }) {
+                        const wheelEvent = context.event as WheelEvent;
+                        const minRangeOption =
+                            context.chart.options?.plugins?.zoom?.limits?.x?.minRange;
+                        const effectiveMinRange =
+                            typeof minRangeOption === 'number' && minRangeOption > 0
+                                ? minRangeOption
+                                : 1;
                         if (
-                            event.deltaY < 0 &&
+                            wheelEvent.deltaY < 0 &&
                             Math.abs(
-                                chart.getInitialScaleBounds().x.max /
-                                    chart.options.plugins.zoom.limits.x.minRange -
-                                    chart.getZoomLevel()
+                                context.chart.getInitialScaleBounds().x.max / effectiveMinRange -
+                                    context.chart.getZoomLevel()
                             ) < 0.01
                         ) {
                             // Disable wheel pan if zoomed in to the max, and zooming in
@@ -221,8 +254,8 @@
                 },
                 limits: {
                     x: {
-                        min: 'original',
-                        max: 'original',
+                        min: 'original' as const,
+                        max: 'original' as const,
                         minRange: 1,
                     },
                 },
@@ -236,7 +269,7 @@
 
     let datasets: string[] = ['speed', 'hr', 'cad', 'atemp', 'power'];
     datasets.forEach((id) => {
-        options.scales[`y${id}`] = {
+        (options.scales as any)[`y${id}`] = {
             type: 'linear',
             position: 'right',
             grid: {
@@ -260,7 +293,7 @@
                 {
                     id: 'toggleMarker',
                     events: ['mouseout'],
-                    afterEvent: function (chart: Chart, args: { event: Chart.ChartEvent }) {
+                    afterEvent: function (chart: Chart, args: { event: ChartEvent }) {
                         if (args.event.type === 'mouseout') {
                             if ($map && marker) {
                                 marker.remove();
@@ -278,10 +311,10 @@
             element,
         });
 
-        let startIndex = 0;
-        let endIndex = 0;
-        function getIndex(evt) {
-            const points = chart.getElementsAtEventForMode(
+        let startIndex: number | undefined = 0;
+        let endIndex: number | undefined = 0;
+        function getIndex(evt: PointerEvent): number | undefined {
+            const activeElements = chart.getElementsAtEventForMode(
                 evt,
                 'x',
                 {
@@ -290,27 +323,25 @@
                 true
             );
 
-            if (points.length === 0) {
-                const rect = canvas.getBoundingClientRect();
-                if (evt.x - rect.left <= chart.chartArea.left) {
-                    return 0;
-                } else if (evt.x - rect.left >= chart.chartArea.right) {
-                    return $gpxStatistics.local.points.length - 1;
-                } else {
-                    return undefined;
+            if (activeElements.length === 0) {
+                if (chart && chart.chartArea && canvas) {
+                    const rect = canvas.getBoundingClientRect();
+                    if (evt.x - rect.left <= chart.chartArea.left) {
+                        return 0;
+                    } else if (evt.x - rect.left >= chart.chartArea.right) {
+                        return $gpxStatistics?.local?.points?.length
+                            ? $gpxStatistics.local.points.length - 1
+                            : undefined;
+                    }
                 }
+                return undefined;
             }
 
-            let point = points.find((point) => point.element.raw);
-            if (point) {
-                return point.element.raw.index;
-            } else {
-                return points[0].index;
-            }
+            return activeElements[0].index;
         }
 
         let dragStarted = false;
-        function onMouseDown(evt) {
+        function onMouseDown(evt: PointerEvent) {
             if (evt.shiftKey) {
                 // Panning interaction
                 return;
@@ -319,7 +350,7 @@
             canvas.style.cursor = 'col-resize';
             startIndex = getIndex(evt);
         }
-        function onMouseMove(evt) {
+        function onMouseMove(evt: PointerEvent) {
             if (dragStarted) {
                 dragging = true;
                 endIndex = getIndex(evt);
@@ -339,7 +370,7 @@
                 }
             }
         }
-        function onMouseUp(evt) {
+        function onMouseUp(evt: PointerEvent) {
             dragStarted = false;
             dragging = false;
             canvas.style.cursor = '';
@@ -438,21 +469,25 @@
             yAxisID: 'ypower',
             hidden: true,
         };
-        chart.options.scales.x['min'] = 0;
-        chart.options.scales.x['max'] = getConvertedDistance(data.global.distance.total);
+
+        // Guard against undefined options/scales/x before assignment
+        if (chart.options?.scales?.x) {
+            chart.options.scales.x['min'] = 0;
+            chart.options.scales.x['max'] = getConvertedDistance(data.global.distance.total);
+        }
 
         chart.update();
     }
 
-    function slopeFillCallback(context) {
+    function slopeFillCallback(context: any) {
         return getSlopeColor(context.p0.raw.slope.segment);
     }
 
-    function surfaceFillCallback(context) {
+    function surfaceFillCallback(context: any) {
         return getSurfaceColor(context.p0.raw.extensions.surface);
     }
 
-    function highwayFillCallback(context) {
+    function highwayFillCallback(context: any) {
         return getHighwayColor(
             context.p0.raw.extensions.highway,
             context.p0.raw.extensions.sac_scale,
@@ -462,19 +497,19 @@
 
     $: if (chart) {
         if (elevationFill === 'slope') {
-            chart.data.datasets[0]['segment'] = {
+            (chart.data.datasets[0] as ChartDataset<'line'>).segment = {
                 backgroundColor: slopeFillCallback,
             };
         } else if (elevationFill === 'surface') {
-            chart.data.datasets[0]['segment'] = {
+            (chart.data.datasets[0] as ChartDataset<'line'>).segment = {
                 backgroundColor: surfaceFillCallback,
             };
         } else if (elevationFill === 'highway') {
-            chart.data.datasets[0]['segment'] = {
+            (chart.data.datasets[0] as ChartDataset<'line'>).segment = {
                 backgroundColor: highwayFillCallback,
             };
         } else {
-            chart.data.datasets[0]['segment'] = {};
+            (chart.data.datasets[0] as ChartDataset<'line'>).segment = {};
         }
         chart.update();
     }
