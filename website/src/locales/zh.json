@@ -36,7 +36,7 @@
         "tree_file_view": "文件树",
         "switch_basemap": "切换到上一个底图",
         "toggle_overlays": "切换叠加层",
-        "toggle_3d": "切换 3D",
+        "toggle_3d": "三维视图",
         "settings": "设置",
         "distance_units": "距离单位",
         "metric": "公制",
@@ -80,7 +80,7 @@
         "unhide": "显示",
         "center": "居中",
         "open_in": "打开于",
-        "copy_coordinates": ""
+        "copy_coordinates": "复制坐标"
     },
     "toolbar": {
         "routing": {
@@ -481,7 +481,7 @@
         "facebook": "Facebook",
         "github": "GitHub",
         "crowdin": "Crowdin",
-        "email": "Email",
+        "email": "电子邮箱",
         "contribute": "参与贡献",
         "supported_by": "技术支持",
         "support_button": "在 Ko-fi 上支持 gpx.studio",
