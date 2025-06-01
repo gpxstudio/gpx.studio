@@ -265,7 +265,7 @@
         }
     },
     "layers": {
-        "settings": "Layer settings",
+        "settings": "Lagerinställningar",
         "settings_help": "Select the map layers you want to show in the interface, add custom ones, and adjust their settings.",
         "selection": "Layer selection",
         "custom_layers": {
@@ -309,7 +309,7 @@
             "linzTopo": "LINZ Topo50",
             "swisstopoRaster": "swisstopo Raster",
             "swisstopoVector": "swisstopo Vector",
-            "swisstopoSatellite": "swisstopo Satellite",
+            "swisstopoSatellite": "swisstopo Satellit",
             "ignBe": "IGN Topo",
             "ignFrPlan": "IGN Plan",
             "ignFrTopo": "IGN Topo",
@@ -433,7 +433,7 @@
             "anchor": "Anchor",
             "bank": "Bank",
             "beach": "Beach",
-            "bike_trail": "Bike Trail",
+            "bike_trail": "Strandspår",
             "binoculars": "Binoculars",
             "bridge": "Bridge",
             "building": "Building",
