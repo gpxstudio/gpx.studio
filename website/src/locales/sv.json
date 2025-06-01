@@ -156,7 +156,7 @@
                 "residential": "Residential road",
                 "living_street": "Living street",
                 "service": "Service road",
-                "track": "Track",
+                "track": "Spår",
                 "footway": "Footway",
                 "path": "Path",
                 "pedestrian": "Pedestrian",
@@ -182,7 +182,7 @@
                 "mountain_hiking": "Mountain hiking",
                 "demanding_mountain_hiking": "Demanding mountain hiking",
                 "alpine_hiking": "Alpine hiking",
-                "demanding_alpine_hiking": "Demanding alpine hiking",
+                "demanding_alpine_hiking": "Krävande bergsbestigniung",
                 "difficult_alpine_hiking": "Difficult alpine hiking"
             },
             "mtb_scale": "MTB scale",
@@ -235,7 +235,7 @@
             "help_no_selection": "Select a file item to request elevation data."
         },
         "waypoint": {
-            "tooltip": "Create and edit points of interest",
+            "tooltip": "Skapa och ändra intressanta punkter",
             "icon": "Icon",
             "link": "Link",
             "longitude": "Longitude",
@@ -269,7 +269,7 @@
         "settings_help": "Select the map layers you want to show in the interface, add custom ones, and adjust their settings.",
         "selection": "Layer selection",
         "custom_layers": {
-            "title": "Custom layers",
+            "title": "Anpassade lager",
             "new": "New custom layer",
             "edit": "Edit custom layer",
             "urls": "URL(s)",
