@@ -7,10 +7,11 @@
     import { dbUtils } from '$lib/db';
     import type { PopupItem } from '$lib/components/MapPopup';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
+    import type { WaypointType } from 'gpx';
 
     export let poi: PopupItem<any>;
 
-    let tags = {};
+    let tags: { [key: string]: string } = {};
     let name = '';
     $: if (poi) {
         tags = JSON.parse(poi.item.tags);
@@ -19,6 +20,30 @@
         } else {
             name = $_(`layers.label.${poi.item.query}`);
         }
+    }
+
+    function addToFile() {
+        const desc = Object.entries(tags)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join('\n');
+        let wpt: WaypointType = {
+            attributes: {
+                lat: poi.item.lat,
+                lon: poi.item.lon,
+            },
+            name: name,
+            desc: desc,
+            cmt: desc,
+            sym: poi.item.sym,
+        };
+        if (tags.website) {
+            wpt.link = {
+                attributes: {
+                    href: tags.website,
+                },
+            };
+        }
+        dbUtils.addOrUpdateWaypoint(wpt);
     }
 </script>
 
@@ -73,21 +98,7 @@
             class="mt-2"
             variant="outline"
             disabled={$selection.size === 0}
-            on:click={() => {
-                let desc = Object.entries(tags)
-                    .map(([key, value]) => `${key}: ${value}`)
-                    .join('\n');
-                dbUtils.addOrUpdateWaypoint({
-                    attributes: {
-                        lat: poi.item.lat,
-                        lon: poi.item.lon,
-                    },
-                    name: name,
-                    desc: desc,
-                    cmt: desc,
-                    sym: poi.item.sym,
-                });
-            }}
+            on:click={addToFile}
         >
             <MapPin size="16" class="mr-1" />
             {$_('toolbar.waypoint.add')}
