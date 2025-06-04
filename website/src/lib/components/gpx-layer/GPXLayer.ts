@@ -56,31 +56,6 @@ function decrementColor(color: string) {
     }
 }
 
-const inspectKey = 'Shift';
-let inspectKeyDown: KeyDown | null = null;
-class KeyDown {
-    key: string;
-    down: boolean = false;
-    constructor(key: string) {
-        this.key = key;
-        document.addEventListener('keydown', this.onKeyDown);
-        document.addEventListener('keyup', this.onKeyUp);
-    }
-    onKeyDown = (e: KeyboardEvent) => {
-        if (e.key === this.key) {
-            this.down = true;
-        }
-    };
-    onKeyUp = (e: KeyboardEvent) => {
-        if (e.key === this.key) {
-            this.down = false;
-        }
-    };
-    isDown() {
-        return this.down;
-    }
-}
-
 function getMarkerForSymbol(symbol: string | undefined, layerColor: string) {
     let symbolSvg = symbol ? symbols[symbol]?.iconSvg : undefined;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -163,10 +138,6 @@ export class GPXLayer {
         this.draggable = get(currentTool) === Tool.WAYPOINT;
 
         this.map.on('style.import.load', this.updateBinded);
-
-        if (inspectKeyDown === null) {
-            inspectKeyDown = new KeyDown(inspectKey);
-        }
     }
 
     update() {
@@ -466,7 +437,7 @@ export class GPXLayer {
     }
 
     layerOnMouseMove(e: any) {
-        if (inspectKeyDown?.isDown()) {
+        if (e.originalEvent.shiftKey) {
             let trackIndex = e.features[0].properties.trackIndex;
             let segmentIndex = e.features[0].properties.segmentIndex;
 
