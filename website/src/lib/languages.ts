@@ -9,5 +9,6 @@ export const languages: Record<string, string> = {
     it: 'Italiano',
     nl: 'Nederlands',
     'pt-BR': 'Português (Brasil)',
+    tr: 'Türkçe',
     zh: '简体中文',
 };
