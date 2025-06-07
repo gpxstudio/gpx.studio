@@ -1,5 +1,5 @@
 ---
-title: GPX file format
+title: GPX dosya formatı
 ---
 
 <script>
@@ -8,27 +8,27 @@ title: GPX file format
 
 # { title }
 
-The <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX file format</a> is an open standard for exchanging GPS data between applications and GPS devices.
-It essentially consists of a series of GPS points encoding one or multiple GPS traces, and, optionally, some points of interest.
+<a href="https://www.topografix.com/gpx.asp" target="_blank">GPX dosya formatı</a> uygulamalar ve cihazlar arasında GPS verisi paylaşmak için kullanılan bir açık standardtır.
+Temelde bir veya birden çok GPS izini oluşturan bir dizi GPS noktasından oluşur, ve bazı ilgi noktaları içerebilir.
 
-GPX files may also contain metadata, of which the **name** and **description** fields are the most useful for users.
+GPX dosyaları **ad** ve açıklama gibi kullanışlı birçok üstveri de içerebilir.
 
-### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Tracks, segments, and GPS points
+### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> İzler, segmentler, ve GPS noktaları
 
-As mentioned above, a GPX file can contain multiple GPS traces.
-These are organized in a hierarchical structure, with tracks at the top level.
+Yukarda da belirtildiği üzre, bir GPX dosyarı birden fazla GPS izi barındırabilir.
+Harita verileri, en üst seviyede izlerin bulunduğu hiyerarşik bir yapıda düzenlenmiştir.
 
-- A **track** is made of a sequence of disconnected segments.
-  Furthermore, it can contain metadata such as a **name**, a **description**, and **appearance properties**.
-- A **segment** is a sequence of GPS points that form a continuous path.
-- A **GPS point** is a location with a latitude, a longitude, and optionally a timestamp and an altitude.
-  Some devices also store additional information such as heart rate, cadence, temperature, and power.
+- Bir **iz**, birbirinden kopuk bir dizi segmentten oluşur.
+  Ayrıca, **ad**, **açıklama** ve **görünüm özellikleri** gibi üstveriler içerebilir.
+- Bir **segment**, kesintisiz bir yol oluşturan bir dizi GPS noktasıdır.
+- Bir **GPS noktası**; enlem, boylam ve isteğe bağlı olarak zaman bilgisi ile yükseklik içeren bir konumdur.
+  Bazı cihazlar ayrıca kalp nabız, kadans, sıcaklık ve güç gibi ek bilgileri de depolar.
 
-In most cases, GPX files contain a single track with a single segment.
-However, the hierarchy described above allows for more advanced use cases, such as planning multi-day trips with several variants for each day.
+Çoğu zaman, GPX dosyası sadece bir yol ve sadece bir segment içerir.
+Ancak, yukarıda açıklanan hiyerarşi, her gün için birkaç farklı varyanta sahip birkaç günlük geziler planlamak gibi daha gelişmiş kullanım senaryolarına olanak tanır.
 
-### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Points of interest
+### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" />İlgi alanları
 
-**Points of interest** (technically called _waypoints_) represent locations of interest to show either on a GPS device or on a digital map.
+**İlgi noktaları** (teknik adıyla **ara noktalar**), bir GPS cihazında veya dijital haritada gösterilmeye yönelik önemli konumlardır.
 
-In addition to its coordinates, a point of interest can have a **name** and a **description**.
+Koordinata ek olarak bir ilgi noktası bir **ad** ve **açıklamaya** sahip olabilir.

@@ -1,5 +1,5 @@
 ---
-title: Edit actions
+title: Düzenleme işlemleri
 ---
 
 <script lang="ts">
@@ -9,88 +9,88 @@ title: Edit actions
 
 # { title }
 
-Unlike the file actions, the edit actions can potentially modify the content of the currently selected files.
-Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, and points of interest](../gpx).
-Therefore, we will refer to the elements that can be modified by these actions as _file items_.
-Note that except for the undo and redo actions, the edit actions are also accessible through the context menu (right-click) of the file items.
+Dosya işlemlerinin aksine, düzenleme işlemleri mevcut seçili dosyaların içeriklerini potansiyel olarak değiştirebilir.
+Ayrıca, dosya listesinin ağaç düzeni etkinleştirildiğinde (bkz. [Dosyalar ve istatistikler](../files-and-stats)), bunlar [izler, segmentler ve ilgi noktaları](../gpx)'na da uygulanabilirler.
+Bu nedenle, bu işlemlerle değiştirilebilen elemanları _file items_ olarak anacağız.
+Unutulmamalıdır ki, geri alma ve yineleme işlemleri hariç, düzenleme işlemlerine dosya öğelerinin içerik menüsü (sağ tıklama) aracılığıyla da erişilebilir.
 
-### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Undo and redo
+### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" />Geri al ve yinele
 
-Using these buttons, you can undo or redo the last actions you performed.
-This applies to all actions of the interface but not to view options, application settings, or map navigation.
+Bu butonları kullarak, geri alma ve yineleme işlemlerini yapabilirsiniz.
+Görüntüleme işlemleri, uygulama ayarları veya harita navigasyonu hariç bütün işlemler için gerçerlidir.
 
-### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> Info...
+### <Info size="16" class="inline-block" style="margin-bottom: 2px" />Bilgi...
 
-Open the information dialog of the currently selected file item, where you can see and edit its name and description.
+Mevcut seçili öğeyi görebileceğiniz, ismini ve açıklamasını değiştirebildiğiniz bilgi penceresini açın.
 
-### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Appearance...
+### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" />Görünüm...
 
-Open the appearance dialog, where you can change the color, opacity, and width of the selected file items on the map.
+Seçili harita öğesinin rengini, saydamlığını ve genişliğini değiştirebileceğiniz görünüm penceresini açın.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" />Sakla/göster
 
-Toggle the visibility of the selected file items on the map.
+Seçili harita öğesinin görünürlülüğünü değiştir.
 
-### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New track
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" />Yeni iz
 
-Create a new track in the selected file.
-
-<DocsNote>
-
-This action is only available when the tree layout of the files list is enabled.
-Additionally, the selection must be a single file.
-
-</DocsNote>
-
-### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New segment
-
-Create a new segment in the selected track.
+Seçili dosyada yeni iz oluştur.
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
-Additionally, the selection must be a single track.
+Bu işleme sadece dosya listesi ağaç görünümü aktif ise erişilebilir.
+Ayrıca, seçim tek bir dosya olmalıdır.
 
 </DocsNote>
 
-### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Select all
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" />Yeni segment
 
-Add all file items in the current hierarchy level to the selection.
-
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
-
-Center the map on the selected file items.
-
-### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copy
-
-Copy the selected file items to the clipboard.
+Seçili iz içinde yeni segment oluştur.
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
+Bu işleme sadece dosya listesi ağaç görünümü aktif ise erişilebilir.
+Ayrıca, seçim tek bir seçim olmalı.
 
 </DocsNote>
 
-### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Cut
+### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" />Hepsini seç
 
-Cut the selected file items to the clipboard.
+Mevcut hiyerarşi düzeyindeki tüm dosya öğelerini seçime ekleyin.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" />Ortala
+
+Seçili dosya öğelerini haritada ortala.
+
+### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" />Kopyala
+
+Seçili dosya öğelerini panoya kopyala.
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
+Bu işleme sadece dosya listesi ağaç görünümü aktif ise erişilebilir.
 
 </DocsNote>
 
-### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Paste
+### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" />Kes
 
-Paste the file items from the clipboard to the current hierarchy level if they are compatible with it.
+Seçili dosya öğelerini kes ve panoya al.
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
+Bu işleme sadece dosya listesi ağaç görünümü aktif ise erişilebilir.
 
 </DocsNote>
 
-### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Delete
+### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" />Yapıştır
 
-Delete the selected file items.
+Dosya öğeleri mevcut hiyerarşiyle uyumluysa yapıştır.
+
+<DocsNote>
+
+Bu işleme sadece dosya listesi ağaç görünümü aktif ise erişilebilir.
+
+</DocsNote>
+
+### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" />Sil
+
+Seçili dosya öğelerini sil.

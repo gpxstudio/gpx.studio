@@ -1,5 +1,5 @@
 ---
-title: Route planning and editing
+title: Güzergah planlama ve düzenleme
 ---
 
 <script>
@@ -11,74 +11,73 @@ title: Route planning and editing
 
 # <Pencil size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
 
-The route planning and editing tool allows you to create and edit routes by placing or moving anchor points on the map.
+Güzergah planlama ve düzenleme aracı haritaya mihenk noktaları yerleştirerek güzergah oluşturmanızı ve düzenlemenizi sağlar.
 
-## Settings
+## Ayarlar
 
-As shown below, the tool dialog contains a few settings to control the routing behavior.
-You can minimize the dialog to save space by clicking on <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
+Aşağıdaki gibi, araç penceresi güzergah belirleme yöntemi için birkaç seçenek içerir.<button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button> tıklayarak diyalog penceresini küçülterek alandan tasarruf sağlayabilirsiniz.
 
 <div class="flex flex-row justify-center">
     <Routing minimizable={false} class="text-foreground p-3 border rounded-md shadow-lg" />
 </div>
 
-### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routing
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" />Güzergah
 
-When routing is enabled, anchor points placed or moved on the map will be connected by a route calculated on the <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> road network.
-Disable routing to connect anchor points with straight lines.
-This setting can also be toggled by pressing <kbd>F5</kbd>.
+Güzergah aktif ise, haritaya yerleştirilen veya hareket ettirilen mihenk noktaları <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> yol ağı kullanılarak birbirine bağlanır.
+Güzergah kapatılırsa mihenk nokları birbirine bir çizgi ile bağlanır.
+Bu ayar ayrıca <kbd>F5</kbd> kısayolu ile açılır veya kapatılabilir.
 
-### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Activity
+### <Bike size="16" class="inline-block" style="margin-bottom: 2px" />Aktivite
 
-Select the activity type to tailor the routes for.
+Rotaların uyarlanacağı aktivite türünü seçin.
 
-### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Allow private roads
+### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" />Hususi yollara izin ver
 
-When enabled, the routing engine will consider private roads when computing routes.
+Aktif iken, güzergah motoru hususi yolları da hesaplamaya katar.
 
 <DocsNote type="warning">
 
-Only use this option if you have local knowledge of the area and have permission to use the roads in question.
+Sadece söz konusu bölge ile alakalı yeterli bilginiz ve söz konusu yolları kullanım izniniz var ise bu seçeneği kullanın.
 
 </DocsNote>
 
-## Plotting and editing routes
+## Güzergah çizme ve düzenleme
 
-Creating a route or extending an existing one is as simple as clicking on the map to place a new anchor point.
+Güzergah oluşturmak ve varolan bir güzergahı genişletmek haritaya yeni bir mihenk noktarı eklemek kadar basit.
 
-You can also drag an existing anchor point to reroute the segment connecting it with the previous and next anchor point.
+Ayrıca var olan bir mihenk noktarını sürükleyerek öncesindeki ve sonrasındaki mihenk noktalarını bağlayan güzergah kısmını yeniden oluşturabilirsiniz.
 
-Furthermore, new anchor points can be inserted between existing ones by hovering over the segment connecting them and dragging the anchor point that appears to the desired location.
-On touch devices, you can tap on the segment to insert a new anchor point.
+Dahası, yeni bir mihenk noktası varolan iki noktayı birleştiren güzergah kısmının üzerinde gezinerek ve güzergahı sürükleyerek istenlen yere eklenebilir.
+Dokunmatik cihazlarda, güzergah parçasının üzerine dokunarak yeni mihenk noktarı ekleyebilirsiniz.
 
 <DocsNote>
 
-When editing imported GPX files, an initial set of anchor points is created automatically.
-To ease the editing process, the more the map is zoomed in, the more anchor points are displayed.
-This allows the route to be edited at different levels of detail.
+İçe aktarılan bir GPX dosyasını düzenlerken, ilk mihenk noktaları otomatik oluşturulur.
+Düzenleme işlemini kolaylaştırmak için, ne kadar haritayı yaklaştırırsanız o kadar fazla mihenk noktası gösterilir.
+Böylelikle güzergah farklı hassaslık seviyelerinde düzenlenbilir.
 
 </DocsNote>
 
-Finally, you can delete anchor points by clicking on them and selecting <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Delete</button> from the context menu.
+Son olarak, mihenk noktalarını silmek için üzerlerine tıklayarak ilgili menüden <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" />Sil</button> seçeneğini kullanabilirsiniz.
 
-<DocsImage src="tools/routing" alt="Anchor points allow you to easily edit a route." />
+<DocsImage src="tools/routing" alt="Mihenk noktaları güzergahı kolayca düzenlemenizi sağlar." />
 
-## Additional tools
+## Ek araçlar
 
-The following tools automate some common route modification operations.
+Takip eden araçlar bazı güzergah düzenleme işlemlerini otomatikleştirir.
 
-### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Reverse
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" />Tersine çevir
 
-Reverse the direction of the route.
+Güzergah istikametini tersine çevirir.
 
-### <Home size="16" class="inline-block" style="margin-bottom: 2px" /> Back to start
+### <Home size="16" class="inline-block" style="margin-bottom: 2px" />Başlangıca geri dön
 
-Connect the last point of the route with the starting point, using the chosen routing settings.
+Sondaki ve başlangıç noktalarını seçili güzergah ayarlarını kullanarak birleştirir.
 
-### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Round trip
+### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" />Gidiş-geliş
 
-Return to the starting point by the same route.
+Aynı rota üzerinden başlangıç noktasına dön.
 
-### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Change the start of the loop
+### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" />Etap başlangıcını değiştir
 
-When the end point of the route is close enough to the start, you can change the start of the loop by clicking on any anchor point and selecting <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Start loop here</button> from the context menu.
+Bitiş noktası başlangıç noktarına yeteri kadar yakın ise, başlangıç noktısını herhangi bir mihenk noktasını seçip ilgili menüden <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" />Etapı burdan başlat</button> seçerek değiştirebilirsiniz.
