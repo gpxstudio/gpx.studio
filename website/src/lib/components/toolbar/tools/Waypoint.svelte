@@ -12,7 +12,7 @@
     import * as Select from '$lib/components/ui/select';
     import { selection } from '$lib/components/file-list/Selection';
     import { Waypoint } from 'gpx';
-    import { _, locale } from 'svelte-i18n';
+    import { _, locale } from '$lib/i18n';
     import { ListWaypointItem } from '$lib/components/file-list/FileList';
     import { dbUtils, fileObservers, getFile, settings, type GPXFileWithStatistics } from '$lib/db';
     import { get } from 'svelte/store';

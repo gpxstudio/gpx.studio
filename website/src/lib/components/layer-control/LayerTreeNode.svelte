@@ -6,7 +6,7 @@
     import { type LayerTreeType } from '$lib/assets/layers';
     import { anySelectedLayer } from './utils';
 
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
     import { settings } from '$lib/db';
     import { beforeUpdate } from 'svelte';
 

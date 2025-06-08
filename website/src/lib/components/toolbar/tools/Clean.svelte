@@ -11,7 +11,7 @@
     import * as RadioGroup from '$lib/components/ui/radio-group';
     import { Button } from '$lib/components/ui/button';
     import Help from '$lib/components/Help.svelte';
-    import { _, locale } from 'svelte-i18n';
+    import { _, locale } from '$lib/i18n';
     import { onDestroy, onMount } from 'svelte';
     import { getURLForLanguage, resetCursor, setCrosshairCursor } from '$lib/utils';
     import { Trash2 } from 'lucide-svelte';

@@ -11,7 +11,7 @@
     } from '$lib/components/file-list/FileList';
     import Help from '$lib/components/Help.svelte';
     import { dbUtils, getFile } from '$lib/db';
-    import { _, locale } from 'svelte-i18n';
+    import { _, locale } from '$lib/i18n';
     import { getURLForLanguage } from '$lib/utils';
 
     $: validSelection =

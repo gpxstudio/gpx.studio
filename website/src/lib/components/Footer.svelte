@@ -3,7 +3,7 @@
     import LanguageSelect from '$lib/components/LanguageSelect.svelte';
     import Logo from '$lib/components/Logo.svelte';
     import { AtSign, BookOpenText, Heart, Home, Map } from 'lucide-svelte';
-    import { _, locale } from 'svelte-i18n';
+    import { _, locale } from '$lib/i18n';
     import { getURLForLanguage } from '$lib/utils';
 </script>
 

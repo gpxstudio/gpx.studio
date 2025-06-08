@@ -16,7 +16,7 @@
     import { CalendarDate, type DateValue } from '@internationalized/date';
     import { CalendarClock, CirclePlay, CircleStop, CircleX, Timer, Zap } from 'lucide-svelte';
     import { tick } from 'svelte';
-    import { _, locale } from 'svelte-i18n';
+    import { _, locale } from '$lib/i18n';
     import { get } from 'svelte/store';
     import { selection } from '$lib/components/file-list/Selection';
     import {

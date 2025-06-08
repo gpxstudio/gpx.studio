@@ -2,7 +2,7 @@ import type { Coordinates } from 'gpx';
 import { TrackPoint, distance } from 'gpx';
 import { derived, get, writable } from 'svelte/store';
 import { settings } from '$lib/db';
-import { _, isLoading, locale } from 'svelte-i18n';
+import { _, locale, isLoadingLocale } from '$lib/i18n';
 import { getElevation } from '$lib/utils';
 
 const { routing, routingProfile, privateRoads } = settings;
@@ -22,7 +22,7 @@ export const routingProfileSelectItem = writable({
     label: '',
 });
 
-derived([routingProfile, locale, isLoading], ([profile, l, i]) => [profile, l, i]).subscribe(
+derived([routingProfile, locale, isLoadingLocale], ([profile, l, i]) => [profile, l, i]).subscribe(
     ([profile, l, i]) => {
         if (
             !i &&

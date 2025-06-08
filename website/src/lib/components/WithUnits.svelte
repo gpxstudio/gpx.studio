@@ -11,7 +11,7 @@
         secondsToHHMMSS,
     } from '$lib/units';
 
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
 
     export let value: number;
     export let type: 'distance' | 'elevation' | 'speed' | 'temperature' | 'time';

@@ -74,7 +74,7 @@
     import { allowedPastes, ListFileItem, ListTrackItem } from '$lib/components/file-list/FileList';
     import Export from '$lib/components/Export.svelte';
     import { mode, setMode, systemPrefersMode } from 'mode-watcher';
-    import { _, locale } from 'svelte-i18n';
+    import { _, locale } from '$lib/i18n';
     import { languages } from '$lib/languages';
     import { getURLForLanguage } from '$lib/utils';
 
@@ -450,7 +450,7 @@
                             {$_('menu.language')}
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
-                            <Menubar.RadioGroup bind:value={$locale}>
+                            <Menubar.RadioGroup value={$locale}>
                                 {#each Object.entries(languages) as [lang, label]}
                                     <a href={getURLForLanguage(lang, '/app')}>
                                         <Menubar.RadioItem value={lang}>{label}</Menubar.RadioItem>

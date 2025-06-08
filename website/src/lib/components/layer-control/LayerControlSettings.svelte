@@ -19,7 +19,7 @@
     import { getLayers, isSelected, toggle } from '$lib/components/layer-control/utils';
     import { settings } from '$lib/db';
 
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
     import { writable } from 'svelte/store';
     import { map } from '$lib/stores';
     import CustomLayers from './CustomLayers.svelte';

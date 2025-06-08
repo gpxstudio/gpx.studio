@@ -22,7 +22,7 @@
         Thermometer,
         SquareActivity,
     } from 'lucide-svelte';
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
     import { selection } from './file-list/Selection';
     import { get } from 'svelte/store';
     import { GPXStatistics } from 'gpx';

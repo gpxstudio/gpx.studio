@@ -17,7 +17,7 @@
         Map,
         Layers2,
     } from 'lucide-svelte';
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
     import { settings } from '$lib/db';
     import { defaultBasemap, type CustomLayer } from '$lib/assets/layers';
     import { map } from '$lib/stores';

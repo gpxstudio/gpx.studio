@@ -5,8 +5,7 @@
     import * as Card from '$lib/components/ui/card';
     import WithUnits from '$lib/components/WithUnits.svelte';
     import { Compass, Mountain, Timer } from 'lucide-svelte';
-    import { df } from '$lib/utils';
-    import { _ } from 'svelte-i18n';
+    import { _, df } from '$lib/i18n';
 
     export let trackpoint: PopupItem<TrackPoint>;
 </script>
@@ -31,7 +30,7 @@
         {#if trackpoint.item.time}
             <div class="flex flex-row items-center gap-1">
                 <Timer size="14" />
-                {df.format(trackpoint.item.time)}
+                {$df.format(trackpoint.item.time)}
             </div>
         {/if}
         <CopyCoordinates

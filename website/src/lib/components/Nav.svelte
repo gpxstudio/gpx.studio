@@ -4,7 +4,7 @@
     import AlgoliaDocSearch from '$lib/components/AlgoliaDocSearch.svelte';
     import ModeSwitch from '$lib/components/ModeSwitch.svelte';
     import { BookOpenText, Home, Map } from 'lucide-svelte';
-    import { _, locale } from 'svelte-i18n';
+    import { _, locale } from '$lib/i18n';
     import { getURLForLanguage } from '$lib/utils';
 </script>
 

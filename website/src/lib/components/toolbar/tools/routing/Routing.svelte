@@ -26,7 +26,7 @@
     import { dbUtils, getFile, getFileIds, settings } from '$lib/db';
     import { brouterProfiles, routingProfileSelectItem } from './Routing';
 
-    import { _, locale } from 'svelte-i18n';
+    import { _, locale } from '$lib/i18n';
     import { RoutingControls } from './RoutingControls';
     import mapboxgl from 'mapbox-gl';
     import { fileObservers } from '$lib/db';

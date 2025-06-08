@@ -5,7 +5,7 @@
 
     import { MoveDownRight, MoveUpRight, Ruler, Timer, Zap } from 'lucide-svelte';
 
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
     import type { GPXStatistics } from 'gpx';
     import type { Writable } from 'svelte/store';
     import { settings } from '$lib/db';

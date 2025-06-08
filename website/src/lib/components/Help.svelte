@@ -1,6 +1,6 @@
 <script lang="ts">
     import { CircleHelp } from 'lucide-svelte';
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
 
     export let link: string | undefined = undefined;
 </script>

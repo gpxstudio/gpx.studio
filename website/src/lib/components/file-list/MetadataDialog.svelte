@@ -8,7 +8,7 @@
     import { Save } from 'lucide-svelte';
     import { ListFileItem, ListTrackItem, type ListItem } from './FileList';
     import { GPXTreeElement, Track, type AnyGPXTreeElement, Waypoint, GPXFile } from 'gpx';
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
     import { editMetadata } from '$lib/stores';
 
     export let node: GPXTreeElement<AnyGPXTreeElement> | Waypoint[] | Waypoint;

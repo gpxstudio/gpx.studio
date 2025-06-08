@@ -10,7 +10,7 @@
     import { Button } from '$lib/components/ui/button';
     import { map } from '$lib/stores';
     import { settings } from '$lib/db';
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
     import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
     import { page } from '$app/stores';
 

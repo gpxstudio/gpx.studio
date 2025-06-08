@@ -3,7 +3,7 @@ import { writable, get, type Writable, derived } from 'svelte/store';
 import mapboxgl from 'mapbox-gl';
 import { GPXFile, buildGPX, parseGPX, GPXStatistics, type Coordinates } from 'gpx';
 import { tick } from 'svelte';
-import { _ } from 'svelte-i18n';
+import { _ } from '$lib/i18n';
 import type { GPXLayer } from '$lib/components/gpx-layer/GPXLayer';
 import { dbUtils, fileObservers, getFile, getStatistics, settings } from './db';
 import {

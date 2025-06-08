@@ -4,7 +4,7 @@
     import { languages } from '$lib/languages';
     import { getURLForLanguage } from '$lib/utils';
     import { Languages } from 'lucide-svelte';
-    import { _, locale } from 'svelte-i18n';
+    import { _, locale } from '$lib/i18n';
 
     let selected = {
         value: '',

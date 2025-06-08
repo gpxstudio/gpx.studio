@@ -3,7 +3,7 @@
     import { Button } from '$lib/components/ui/button';
     import { selection } from '$lib/components/file-list/Selection';
     import { PencilLine, MapPin } from 'lucide-svelte';
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
     import { dbUtils } from '$lib/db';
     import type { PopupItem } from '$lib/components/MapPopup';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';

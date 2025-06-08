@@ -1,7 +1,7 @@
 <script lang="ts">
     import { isMac, isSafari } from '$lib/utils';
     import { onMount } from 'svelte';
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
 
     export let key: string | undefined = undefined;
     export let shift: boolean = false;

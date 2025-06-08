@@ -6,13 +6,11 @@ import { get } from 'svelte/store';
 import { map } from './stores';
 import { base } from '$app/paths';
 import { languages } from '$lib/languages';
-import { locale } from 'svelte-i18n';
 import { TrackPoint, Waypoint, type Coordinates, crossarcDistance, distance } from 'gpx';
 import mapboxgl from 'mapbox-gl';
 import tilebelt from '@mapbox/tilebelt';
 import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
 import PNGReader from 'png.js';
-import type { DateFormatter } from '@internationalized/date';
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -219,19 +217,12 @@ export function isSafari() {
     return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 }
 
-export function getURLForLanguage(lang: string | null | undefined, path: string): string {
+export function getURLForLanguage(lang: string, path: string): string {
     let newPath = path.replace(base, '');
 
     let languageInPath = newPath.split('/')[1];
     if (!languages.hasOwnProperty(languageInPath)) {
         languageInPath = 'en';
-    }
-
-    if (lang === null || lang === undefined) {
-        lang = get(locale);
-        if (lang === null || lang === undefined) {
-            lang = 'en';
-        }
     }
 
     if (newPath === '/' && lang !== 'en') {
@@ -254,15 +245,3 @@ export function getURLForLanguage(lang: string | null | undefined, path: string)
         }
     }
 }
-
-function getDateFormatter(locale: string) {
-    return new Intl.DateTimeFormat(locale, {
-        dateStyle: 'medium',
-        timeStyle: 'medium',
-    });
-}
-
-export let df: DateFormatter = getDateFormatter('en');
-locale.subscribe((l) => {
-    df = getDateFormatter(l ?? 'en');
-});

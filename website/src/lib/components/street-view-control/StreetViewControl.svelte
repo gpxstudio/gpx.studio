@@ -7,7 +7,7 @@
     import { GoogleRedirect } from './Google';
     import { map, streetViewEnabled } from '$lib/stores';
     import { settings } from '$lib/db';
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
     import { writable } from 'svelte/store';
 
     const { streetViewSource } = settings;

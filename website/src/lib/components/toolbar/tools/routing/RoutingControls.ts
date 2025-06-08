@@ -3,7 +3,7 @@ import { get, writable, type Readable } from 'svelte/store';
 import mapboxgl from 'mapbox-gl';
 import { route } from './Routing';
 import { toast } from 'svelte-sonner';
-import { _ } from 'svelte-i18n';
+import { _ } from '$lib/i18n';
 import { dbUtils, settings, type GPXFileWithStatistics } from '$lib/db';
 import { getOrderedSelection, selection } from '$lib/components/file-list/Selection';
 import {

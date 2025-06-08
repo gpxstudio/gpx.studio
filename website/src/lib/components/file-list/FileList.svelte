@@ -8,7 +8,7 @@
     import { copied, pasteSelection, selectAll, selection } from './Selection';
     import { ClipboardPaste, FileStack, Plus } from 'lucide-svelte';
     import Shortcut from '$lib/components/Shortcut.svelte';
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
     import { createFile } from '$lib/stores';
 
     export let orientation: 'vertical' | 'horizontal';

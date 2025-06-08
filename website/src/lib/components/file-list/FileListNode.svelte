@@ -21,7 +21,7 @@
         type ListItem,
         type ListTrackItem,
     } from './FileList';
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
     import { selection } from './Selection';
 
     export let node:

@@ -1,6 +1,6 @@
 import { get } from 'svelte/store';
 import { settings } from '$lib/db';
-import { _ } from 'svelte-i18n';
+import { _ } from '$lib/i18n';
 
 const { distanceUnits, velocityUnits, temperatureUnits } = settings;
 

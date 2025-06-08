@@ -18,7 +18,7 @@
     import { languages } from '$lib/languages';
     import { getURLForLanguage } from '$lib/utils';
     import { getURLForGoogleDriveFile } from '$lib/components/embedding/Embedding';
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
 
     const {
         treeFileView,

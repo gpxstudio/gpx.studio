@@ -8,7 +8,7 @@
     import { Dot, ExternalLink, Trash2 } from 'lucide-svelte';
     import { Tool, currentTool } from '$lib/stores';
     import { getSymbolKey, symbols } from '$lib/assets/symbols';
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
     import sanitizeHtml from 'sanitize-html';
     import type { Waypoint } from 'gpx';
     import type { PopupItem } from '$lib/components/MapPopup';

@@ -20,7 +20,7 @@
         Construction,
     } from 'lucide-svelte';
     import { getSlopeColor, getSurfaceColor, getHighwayColor } from '$lib/assets/colors';
-    import { _ } from 'svelte-i18n';
+    import { _, df } from '$lib/i18n';
     import {
         getCadenceWithUnits,
         getConvertedDistance,
@@ -39,7 +39,6 @@
     import type { GPXStatistics } from 'gpx';
     import { settings } from '$lib/db';
     import { mode } from 'mode-watcher';
-    import { df } from '$lib/utils';
 
     export let gpxStatistics: Writable<GPXStatistics>;
     export let slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined>;
@@ -177,7 +176,7 @@
                         }
 
                         if (point.time) {
-                            labels.push(`    ${$_('quantities.time')}: ${df.format(point.time)}`);
+                            labels.push(`    ${$_('quantities.time')}: ${$df.format(point.time)}`);
                         }
 
                         return labels;

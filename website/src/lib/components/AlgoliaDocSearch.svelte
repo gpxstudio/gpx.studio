@@ -2,7 +2,7 @@
     import docsearch from '@docsearch/js';
     import '@docsearch/css';
     import { onMount } from 'svelte';
-    import { _, locale, waitLocale } from 'svelte-i18n';
+    import { _, locale, isLoadingLocale } from '$lib/i18n';
 
     let mounted = false;
 
@@ -13,7 +13,7 @@
             indexName: 'gpx',
             container: '#docsearch',
             searchParameters: {
-                facetFilters: ['lang:' + ($locale ?? 'en')],
+                facetFilters: ['lang:' + $locale],
             },
             placeholder: $_('docs.search.search'),
             disableUserPersonalization: true,
@@ -48,8 +48,8 @@
         mounted = true;
     });
 
-    $: if (mounted && $locale) {
-        waitLocale().then(initDocsearch);
+    $: if (mounted && $locale && !$isLoadingLocale) {
+        initDocsearch();
     }
 </script>
 

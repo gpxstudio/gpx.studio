@@ -3,7 +3,7 @@
     import Logo from '$lib/components/Logo.svelte';
     import { getURLForLanguage } from '$lib/utils';
     import { Home, Map, BookOpenText } from 'lucide-svelte';
-    import { _, locale } from 'svelte-i18n';
+    import { _, locale } from '$lib/i18n';
 </script>
 
 <div class="grow px-12 my-12 flex flex-col items-center justify-center gap-6">

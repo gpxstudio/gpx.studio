@@ -13,7 +13,7 @@
     import { Label } from '$lib/components/ui/label/index.js';
     import { Checkbox } from '$lib/components/ui/checkbox';
     import * as RadioGroup from '$lib/components/ui/radio-group';
-    import { _, locale } from 'svelte-i18n';
+    import { _, locale } from '$lib/i18n';
     import { dbUtils, getFile } from '$lib/db';
     import { Group } from 'lucide-svelte';
     import { getURLForLanguage } from '$lib/utils';

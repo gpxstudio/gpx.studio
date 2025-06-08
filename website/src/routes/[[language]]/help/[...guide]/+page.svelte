@@ -5,7 +5,7 @@
     import { Button } from '$lib/components/ui/button';
     import { getURLForLanguage } from '$lib/utils';
     import { ChevronLeft, ChevronRight, PenLine, CornerDownRight } from 'lucide-svelte';
-    import { _, locale } from 'svelte-i18n';
+    import { _, locale } from '$lib/i18n';
 
     export let data: {
         guideModule: any;

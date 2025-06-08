@@ -17,7 +17,7 @@
     import { Separator } from '$lib/components/ui/separator';
     import { gpxStatistics, map, slicedGPXStatistics, splitAs } from '$lib/stores';
     import { get } from 'svelte/store';
-    import { _, locale } from 'svelte-i18n';
+    import { _, locale } from '$lib/i18n';
     import { onDestroy, tick } from 'svelte';
     import { Crop } from 'lucide-svelte';
     import { dbUtils } from '$lib/db';

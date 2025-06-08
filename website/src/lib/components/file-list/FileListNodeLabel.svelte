@@ -50,7 +50,7 @@
         map,
     } from '$lib/stores';
     import { GPXTreeElement, Track, type AnyGPXTreeElement, Waypoint, GPXFile } from 'gpx';
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
     import MetadataDialog from './MetadataDialog.svelte';
     import StyleDialog from './StyleDialog.svelte';
     import { waypointPopup } from '$lib/components/gpx-layer/GPXLayerPopup';

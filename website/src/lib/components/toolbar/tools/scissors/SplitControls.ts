@@ -8,7 +8,7 @@ import {
 } from '$lib/components/file-list/Selection';
 import { ListTrackSegmentItem } from '$lib/components/file-list/FileList';
 import { currentTool, gpxStatistics, Tool } from '$lib/stores';
-import { _ } from 'svelte-i18n';
+import { _ } from '$lib/i18n';
 import { Scissors } from 'lucide-static';
 
 export class SplitControls {

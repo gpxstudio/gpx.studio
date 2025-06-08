@@ -15,7 +15,7 @@
         Route,
         Scale,
     } from 'lucide-svelte';
-    import { _, locale } from 'svelte-i18n';
+    import { _, locale } from '$lib/i18n';
     import { getURLForLanguage } from '$lib/utils';
     import { exampleGPXFile } from '$lib/assets/example';
     import { writable } from 'svelte/store';

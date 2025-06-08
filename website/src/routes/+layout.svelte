@@ -1,7 +1,7 @@
 <script lang="ts">
     import '../app.pcss';
     import { ModeWatcher } from 'mode-watcher';
-    import { isLoading, _, locale } from 'svelte-i18n';
+    import { _, locale, isLoadingInitialLocale, isLoadingLocale } from '$lib/i18n';
     import { page } from '$app/stores';
     import Nav from '$lib/components/Nav.svelte';
     import Footer from '$lib/components/Footer.svelte';
@@ -44,7 +44,7 @@
         }
     }
 
-    $: if (browser && !$isLoading && $locale) {
+    $: if (browser && !$isLoadingLocale && $locale) {
         let title = `gpx.studio — ${$_(`metadata.${$page.route.id?.replace('/[[language]]', '').split('/')[1] ?? 'home'}_title`)}`;
         if ($page.params.guide) {
             document.title = `${title} | ${data.guideTitles[$page.params.guide]}`;
@@ -58,7 +58,7 @@
 <ModeWatcher />
 
 <div class="flex flex-col min-h-screen">
-    {#if !$isLoading}
+    {#if !$isLoadingInitialLocale}
         {#if showNavAndFooter}
             <Nav />
         {/if}

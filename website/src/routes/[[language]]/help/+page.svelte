@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Button } from '$lib/components/ui/button';
     import { getURLForLanguage } from '$lib/utils';
-    import { locale } from 'svelte-i18n';
+    import { locale } from '$lib/i18n';
     import { guides, guideIcons } from '$lib/components/docs/docs';
 
     export let data: {

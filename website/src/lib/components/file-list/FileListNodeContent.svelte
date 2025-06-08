@@ -23,7 +23,7 @@
     } from './FileList';
     import { selection } from './Selection';
     import { isMac } from '$lib/utils';
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
 
     export let node:
         | Map<string, Readable<GPXFileWithStatistics | undefined>>

@@ -2,7 +2,7 @@
     import { Button } from '$lib/components/ui/button';
     import { Moon, Sun } from 'lucide-svelte';
     import { mode, setMode, systemPrefersMode } from 'mode-watcher';
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
 
     export let size = '20';
 

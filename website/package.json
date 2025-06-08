@@ -74,7 +74,6 @@
         "png.js": "^0.2.1",
         "sanitize-html": "^2.13.0",
         "sortablejs": "^1.15.3",
-        "svelte-i18n": "^4.0.0",
         "svelte-sonner": "^0.3.28",
         "tailwind-merge": "^2.5.2",
         "tailwind-variants": "^0.2.1"

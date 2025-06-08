@@ -9,7 +9,7 @@
     import { ListFileItem, ListTrackItem, type ListItem } from './FileList';
     import { selection } from './Selection';
     import { editStyle, gpxLayers } from '$lib/stores';
-    import { _ } from 'svelte-i18n';
+    import { _ } from '$lib/i18n';
 
     export let item: ListItem;
     export let open = false;

@@ -10,7 +10,7 @@
     } from '$lib/components/file-list/FileList';
     import Help from '$lib/components/Help.svelte';
     import { Filter } from 'lucide-svelte';
-    import { _, locale } from 'svelte-i18n';
+    import { _, locale } from '$lib/i18n';
     import WithUnits from '$lib/components/WithUnits.svelte';
     import { dbUtils, fileObservers } from '$lib/db';
     import { map } from '$lib/stores';
