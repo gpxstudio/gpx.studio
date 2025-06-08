@@ -39,4 +39,4 @@
         ? 'w-1 h-full cursor-col-resize border-l'
         : 'w-full h-1 cursor-row-resize border-t'} {orientation}"
     on:pointerdown={handleMouseDown}
-/>
+></div>

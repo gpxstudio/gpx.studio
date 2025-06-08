@@ -10,7 +10,7 @@ const mdsvexOptions = {
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
     extensions: ['.svelte', ...mdsvexOptions.extensions],
-    preprocess: [vitePreprocess(), mdsvex(mdsvexOptions)],
+    preprocess: [vitePreprocess({ script: true }), mdsvex(mdsvexOptions)],
     kit: {
         adapter: adapter({
             pages: 'build',

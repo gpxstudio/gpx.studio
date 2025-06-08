@@ -1,22 +1,20 @@
 <script lang="ts">
     import { base } from '$app/paths';
-    import { mode, systemPrefersMode } from 'mode-watcher';
+    import { mode } from 'mode-watcher';
 
     export let iconOnly = false;
     export let company = 'gpx.studio';
-
-    $: effectiveMode = $mode ?? $systemPrefersMode ?? 'light';
 </script>
 
 {#if company === 'gpx.studio'}
     <img
-        src="{base}/{iconOnly ? 'icon' : 'logo'}{effectiveMode === 'dark' ? '-dark' : ''}.svg"
+        src="{base}/{iconOnly ? 'icon' : 'logo'}{mode.current === 'dark' ? '-dark' : ''}.svg"
         alt="Logo of gpx.studio."
         {...$$restProps}
     />
 {:else if company === 'mapbox'}
     <img
-        src="{base}/mapbox-logo-{effectiveMode === 'dark' ? 'white' : 'black'}.svg"
+        src="{base}/mapbox-logo-{mode.current === 'dark' ? 'white' : 'black'}.svg"
         alt="Logo of Mapbox."
         {...$$restProps}
     />

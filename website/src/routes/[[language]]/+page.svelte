@@ -79,7 +79,7 @@
             />
             <div
                 class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-background via-transparent to-background"
-            />
+            ></div>
         </div>
     </div>
     <div class="px-12 sm:px-24 w-full flex flex-col items-center">

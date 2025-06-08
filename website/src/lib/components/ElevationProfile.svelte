@@ -511,8 +511,8 @@
             // Draw selection rectangle
             let selectionContext = overlay.getContext('2d');
             if (selectionContext) {
-                selectionContext.fillStyle = $mode === 'dark' ? 'white' : 'black';
-                selectionContext.globalAlpha = $mode === 'dark' ? 0.2 : 0.1;
+                selectionContext.fillStyle = mode.current === 'dark' ? 'white' : 'black';
+                selectionContext.globalAlpha = mode.current === 'dark' ? 0.2 : 0.1;
                 selectionContext.clearRect(0, 0, overlay.width, overlay.height);
 
                 let startPixel = chart.scales.x.getPixelForValue(
@@ -537,7 +537,7 @@
         }
     }
 
-    $: $slicedGPXStatistics, $mode, updateOverlay();
+    $: $slicedGPXStatistics, mode.current, updateOverlay();
 
     onDestroy(() => {
         if (chart) {

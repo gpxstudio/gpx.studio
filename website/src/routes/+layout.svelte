@@ -2,7 +2,7 @@
     import '../app.pcss';
     import { ModeWatcher } from 'mode-watcher';
     import { _, locale, isLoadingInitialLocale, isLoadingLocale } from '$lib/i18n';
-    import { page } from '$app/stores';
+    import { page } from '$app/state';
     import Nav from '$lib/components/Nav.svelte';
     import Footer from '$lib/components/Footer.svelte';
     import { onMount } from 'svelte';
@@ -20,18 +20,18 @@
     const appRoutes = ['/[[language]]/app', '/[[language]]/embed'];
 
     onMount(() => {
-        if ($page.url.searchParams.has('embed')) {
+        if (page.url.searchParams.has('embed')) {
             // convert old embedding options to new format and redirect to new embed page
-            let folders = $page.url.pathname.split('/');
+            let folders = page.url.pathname.split('/');
             let locale =
                 folders.indexOf('l') >= 0 ? (folders[folders.indexOf('l') + 1] ?? 'en') : 'en';
-            window.location.href = `${getURLForLanguage(locale, '/embed')}?options=${encodeURIComponent(JSON.stringify(convertOldEmbeddingOptions($page.url.searchParams)))}`;
+            window.location.href = `${getURLForLanguage(locale, '/embed')}?options=${encodeURIComponent(JSON.stringify(convertOldEmbeddingOptions(page.url.searchParams)))}`;
         }
     });
 
-    $: if ($page.route.id?.includes('[[language]]')) {
-        if ($page.params.language) {
-            let lang = $page.params.language.replace('/', '');
+    $: if (page.route.id?.includes('[[language]]')) {
+        if (page.params.language) {
+            let lang = page.params.language.replace('/', '');
             if ($locale !== lang) {
                 if (languages.hasOwnProperty(lang)) {
                     $locale = lang;
@@ -45,14 +45,14 @@
     }
 
     $: if (browser && !$isLoadingLocale && $locale) {
-        let title = `gpx.studio — ${$_(`metadata.${$page.route.id?.replace('/[[language]]', '').split('/')[1] ?? 'home'}_title`)}`;
-        if ($page.params.guide) {
-            document.title = `${title} | ${data.guideTitles[$page.params.guide]}`;
+        let title = `gpx.studio — ${$_(`metadata.${page.route.id?.replace('/[[language]]', '').split('/')[1] ?? 'home'}_title`)}`;
+        if (page.params.guide) {
+            document.title = `${title} | ${data.guideTitles[page.params.guide]}`;
         } else {
             document.title = title;
         }
     }
-    $: showNavAndFooter = $page.route.id === null || !appRoutes.includes($page.route.id);
+    $: showNavAndFooter = page.route.id === null || !appRoutes.includes(page.route.id);
 </script>
 
 <ModeWatcher />

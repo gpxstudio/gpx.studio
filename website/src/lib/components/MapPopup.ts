@@ -1,6 +1,6 @@
 import { TrackPoint, Waypoint } from 'gpx';
 import mapboxgl from 'mapbox-gl';
-import { tick } from 'svelte';
+import { tick, mount } from 'svelte';
 import { get, writable, type Writable } from 'svelte/store';
 import MapPopupComponent from './MapPopup.svelte';
 
@@ -20,12 +20,12 @@ export class MapPopup {
         this.map = map;
         this.popup = new mapboxgl.Popup(options);
 
-        let component = new MapPopupComponent({
-            target: document.body,
-            props: {
-                item: this.item,
-            },
-        });
+        let component = mount(MapPopupComponent, {
+                    target: document.body,
+                    props: {
+                        item: this.item,
+                    },
+                });
 
         tick().then(() => this.popup.setDOMContent(component.container));
     }

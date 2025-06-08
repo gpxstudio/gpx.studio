@@ -1,4 +1,4 @@
-import SphericalMercator from '@mapbox/sphericalmercator';
+import { SphericalMercator } from '@mapbox/sphericalmercator';
 import { getLayers } from './utils';
 import { get, writable } from 'svelte/store';
 import { liveQuery } from 'dexie';

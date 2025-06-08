@@ -247,6 +247,7 @@
 
     div :global(.mapboxgl-ctrl-icon) {
         @apply dark:brightness-[4.7];
+        @apply dark:bg-white;
     }
 
     div :global(.mapboxgl-ctrl-geocoder) {

@@ -73,7 +73,7 @@
     import LayerControlSettings from '$lib/components/layer-control/LayerControlSettings.svelte';
     import { allowedPastes, ListFileItem, ListTrackItem } from '$lib/components/file-list/FileList';
     import Export from '$lib/components/Export.svelte';
-    import { mode, setMode, systemPrefersMode } from 'mode-watcher';
+    import { mode, setMode } from 'mode-watcher';
     import { _, locale } from '$lib/i18n';
     import { languages } from '$lib/languages';
     import { getURLForLanguage } from '$lib/utils';
@@ -120,8 +120,6 @@
     }
 
     let layerSettingsOpen = false;
-
-    $: selectedMode = $mode ?? $systemPrefersMode ?? 'light';
 </script>
 
 <div class="absolute md:top-2 left-0 right-0 z-20 flex flex-row justify-center pointer-events-none">
@@ -461,7 +459,7 @@
                     </Menubar.Sub>
                     <Menubar.Sub>
                         <Menubar.SubTrigger>
-                            {#if selectedMode === 'light'}
+                            {#if mode.current === 'light' || !mode.current}
                                 <Sun size="16" class="mr-1" />
                             {:else}
                                 <Moon size="16" class="mr-1" />
@@ -470,7 +468,7 @@
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
                             <Menubar.RadioGroup
-                                bind:value={selectedMode}
+                                value={mode.current ?? 'light'}
                                 onValueChange={(value) => {
                                     setMode(value);
                                 }}

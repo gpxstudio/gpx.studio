@@ -213,7 +213,7 @@
                                     class="inline-block align-sub mr-0.5"
                                 />
                             {:else}
-                                <span class="w-4 inline-block" />
+                                <span class="w-4 inline-block"></span>
                             {/if}
                             {$_(`gpx.symbol.${key}`)}
                         </span>

@@ -148,7 +148,7 @@
                                 `${c} ${Math.floor((100 * i) / nodeColors.length)}% ${Math.floor((100 * (i + 1)) / nodeColors.length)}%`
                         )
                         .join(',')})"
-                />
+                ></div>
             {/if}
             <span
                 class="w-full text-left truncate py-1 flex flex-row items-center {hidden
