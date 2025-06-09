@@ -10,6 +10,7 @@
     import { selection } from './Selection';
     import { editStyle, gpxLayers } from '$lib/stores';
     import { _ } from 'svelte-i18n';
+    import type { LineStyleExtension } from 'gpx';
 
     export let item: ListItem;
     export let open = false;
@@ -23,6 +24,7 @@
     let colorChanged = false;
     let opacityChanged = false;
     let widthChanged = false;
+    let styleForDb: Partial<LineStyleExtension> = {};
 
     function setStyleInputs() {
         colors = [];
@@ -92,6 +94,31 @@
         widthChanged = false;
     }
 
+    function handleSaveClick() {
+        styleForDb = {};
+        if (colorChanged) {
+            styleForDb['gpx_style:color'] = color;
+        }
+        if (opacityChanged) {
+            styleForDb['gpx_style:opacity'] = opacity[0];
+        }
+        if (widthChanged) {
+            styleForDb['gpx_style:width'] = width[0];
+        }
+        dbUtils.setStyleToSelection(styleForDb);
+
+        if (item instanceof ListFileItem && $selection.size === gpxLayers.size) {
+            if (styleForDb['gpx_style:opacity'] !== undefined) {
+                $defaultOpacity = styleForDb['gpx_style:opacity'];
+            }
+            if (styleForDb['gpx_style:width'] !== undefined) {
+                $defaultWidth = styleForDb['gpx_style:width'];
+            }
+        }
+
+        open = false;
+    }
+
     $: if ($selection && open) {
         setStyleInputs();
     }
@@ -141,30 +168,7 @@
         <Button
             variant="outline"
             disabled={!colorChanged && !opacityChanged && !widthChanged}
-            on:click={() => {
-                let style = {};
-                if (colorChanged) {
-                    style['gpx_style:color'] = color;
-                }
-                if (opacityChanged) {
-                    style['gpx_style:opacity'] = opacity[0];
-                }
-                if (widthChanged) {
-                    style['gpx_style:width'] = width[0];
-                }
-                dbUtils.setStyleToSelection(style);
-
-                if (item instanceof ListFileItem && $selection.size === gpxLayers.size) {
-                    if (style['gpx_style:opacity']) {
-                        $defaultOpacity = style['gpx_style:opacity'];
-                    }
-                    if (style['gpx_style:width']) {
-                        $defaultWidth = style['gpx_style:width'];
-                    }
-                }
-
-                open = false;
-            }}
+            on:click={handleSaveClick}
         >
             <Save size="16" class="mr-1" />
             {$_('menu.metadata.save')}

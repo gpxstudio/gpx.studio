@@ -336,9 +336,9 @@ export function moveItems(
     sortItems(fromItems, false);
     sortItems(toItems, false);
 
-    let context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[] = [];
+    const context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[] = [];
     fromItems.forEach((item) => {
-        let file = getFile(item.getFileId());
+        const file = getFile(item.getFileId());
         if (file) {
             if (item instanceof ListFileItem) {
                 context.push(file.clone());
@@ -367,7 +367,7 @@ export function moveItems(
 
     let files = [fromParent.getFileId(), toParent.getFileId()];
     let callbacks = [
-        (file, context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
+        (file: GPXFile, context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
             fromItems.forEach((item) => {
                 if (item instanceof ListTrackItem) {
                     file.replaceTracks(item.getTrackIndex(), item.getTrackIndex(), []);
@@ -385,7 +385,7 @@ export function moveItems(
                 }
             });
         },
-        (file, context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
+        (file: GPXFile, context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
             toItems.forEach((item, i) => {
                 if (item instanceof ListTrackItem) {
                     if (context[i] instanceof Track) {
@@ -443,14 +443,14 @@ export function moveItems(
             toItems.forEach((item, i) => {
                 if (item instanceof ListFileItem) {
                     if (context[i] instanceof GPXFile) {
-                        let newFile = context[i];
+                        const newFile = context[i];
                         if (remove) {
                             files.delete(newFile._data.id);
                         }
                         newFile._data.id = item.getFileId();
                         files.set(item.getFileId(), freeze(newFile));
                     } else if (context[i] instanceof Track) {
-                        let newFile = newGPXFile();
+                        const newFile = newGPXFile();
                         newFile._data.id = item.getFileId();
                         if (context[i].name) {
                             newFile.metadata.name = context[i].name;
@@ -458,7 +458,7 @@ export function moveItems(
                         newFile.replaceTracks(0, 0, [context[i]]);
                         files.set(item.getFileId(), freeze(newFile));
                     } else if (context[i] instanceof TrackSegment) {
-                        let newFile = newGPXFile();
+                        const newFile = newGPXFile();
                         newFile._data.id = item.getFileId();
                         newFile.replaceTracks(0, 0, [
                             new Track({
