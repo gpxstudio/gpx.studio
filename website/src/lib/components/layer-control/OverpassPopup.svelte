@@ -1,44 +1,19 @@
 <script lang="ts">
     import * as Card from '$lib/components/ui/card';
     import { Button } from '$lib/components/ui/button';
-    import { PencilLine } from 'lucide-svelte';
+    import { PencilLine, MapPin } from 'lucide-svelte';
     import { _ } from 'svelte-i18n';
     import { dbUtils } from '$lib/db';
     import type { PopupItem } from '$lib/components/MapPopup';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
     import type { WaypointType } from 'gpx';
+    import { selection } from '$lib/components/file-list/Selection';
 
     export let poi: PopupItem<any>;
 
-    interface OverpassTags {
-        name?: string;
-        image?: string;
-        'image:0'?: string;
-        website?: string;
-        'contact:website'?: string;
-        'contact:facebook'?: string;
-        'contact:instagram'?: string;
-        'contact:twitter'?: string;
-        phone?: string;
-        'contact:phone'?: string;
-        [key: string]: unknown; // Allow other string keys
-    }
-
-    interface OverpassPoiItem {
-        tags: string; // JSON string
-        name?: string; // Used as fallback name
-        query?: string; // Used as fallback name key
-        lat?: number; // Added
-        lon?: number; // Added
-        type?: string; // Added (osm type: node/way/relation?)
-        id?: number | string; // Added (osm id)
-        osmType?: string; // Added (used in href)
-        sym?: string; // Added (used in edit save)
-        [key: string]: unknown; // Allow other properties
-    }
-
     let tags: { [key: string]: string } = {};
     let name = '';
+    $: tagEntries = Object.entries(tags);
     $: if (poi) {
         tags = JSON.parse(poi.item.tags);
         if (tags.name !== undefined && tags.name !== '') {
@@ -79,17 +54,17 @@
             <div class="flex flex-row gap-3">
                 <div class="flex flex-col">
                     {name}
-                    {#if item.lat !== undefined && item.lon !== undefined}
+                    {#if poi.item.lat !== undefined && poi.item.lon !== undefined}
                         <div class="text-muted-foreground text-sm font-normal">
-                            {item.lat.toFixed(6)}&deg; {item.lon.toFixed(6)}&deg;
+                            {poi.item.lat.toFixed(6)}&deg; {poi.item.lon.toFixed(6)}&deg;
                         </div>
                     {/if}
                 </div>
                 <Button
                     class="ml-auto p-1.5 h-8"
                     variant="outline"
-                    href="https://www.openstreetmap.org/edit?editor=id&{item.type ??
-                        'node'}={item.id}"
+                    href="https://www.openstreetmap.org/edit?editor=id&{poi.item.type ??
+                        'node'}={poi.item.id}"
                     target="_blank"
                 >
                     <PencilLine size="16" />
