@@ -38,7 +38,8 @@ export async function handle({ event, resolve }) {
     <meta name="twitter:url" content="https://gpx.studio/" />
     <meta name="twitter:site" content="@gpxstudio" />
     <meta name="twitter:creator" content="@gpxstudio" />
-    <link rel="alternate" hreflang="x-default" href="https://gpx.studio${getURLForLanguage('en', path)}" />`;
+    <link rel="alternate" hreflang="x-default" href="https://gpx.studio${getURLForLanguage('en', path)}" />
+    <link rel="manifest" href="/${language}.manifest.webmanifest" />`;
 
     for (let lang of Object.keys(languages)) {
         headTag += `   <link rel="alternate" hreflang="${lang}" href="https://gpx.studio${getURLForLanguage(lang, path)}" />

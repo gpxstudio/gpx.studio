@@ -2,9 +2,18 @@
 title: File e statistiche
 ---
 
-<script>
+<script lang="ts">
     import { ChartNoAxesColumn } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import ElevationProfile from '$lib/components/ElevationProfile.svelte';
+    import GPXStatistics from '$lib/components/GPXStatistics.svelte';
+    import { exampleGPXFile } from '$lib/assets/example';
+    import { writable } from 'svelte/store';
+
+    let gpxStatistics = writable(exampleGPXFile.getStatistics());
+    let slicedGPXStatistics = writable(undefined);
+    let additionalDatasets = writable(['speed', 'atemp']);
+    let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
 </script>
 
 # { title }
@@ -35,7 +44,7 @@ La maggior parte delle [azioni di modifica](./menu/edit) e [strumenti](./toolbar
 
 ### Azioni di modifica
 
-.
+Facendo clic destro su una scheda file, è possibile accedere alle stesse azioni del [menu di modifica](./menu/edit).
 
 ### Disposizione ad albero
 
@@ -71,12 +80,31 @@ Fare clic sul profilo per resettare la selezione.
 
 È inoltre possibile utilizzare la rotellina del mouse per ingrandire e rimpicciolire sul profilo di elevazione, e spostarsi a sinistra e a destra trascinando il profilo tenendo premuto il tasto <kbd>Maiusc</kbd>.
 
+<div class="h-48 w-full">
+    <ElevationProfile
+        {gpxStatistics}
+        {slicedGPXStatistics}
+        additionalDatasets={$additionalDatasets}
+        elevationFill={$elevationFill}
+    />
+</div>
+<div class="flex flex-col items-center -mt-6">
+    <div class="h-10 w-fit">
+        <GPXStatistics
+            {gpxStatistics}
+            {slicedGPXStatistics}
+            panelSize={120}
+            orientation={'horizontal'}
+        />
+    </div>
+</div>
+
 ### Dati aggiuntivi
 
-Utilizzando i pulsanti a destra del profilo di elevazione, è possibile colorare opzionalmente il profilo di elevazione mediante:
+Utilizzando il pulsante <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> in basso a destra del profilo di elevazione, è possibile colorare opzionalmente il profilo di elevazione mediante:
 
 - **slope** informazioni ricavate dai dati di elevazione, o
-- **superficie** o **categoria** dati provenienti da  <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">superficie</a> and <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">autostrada</a> di <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s.
+- **superficie** o **categoria** dati provenienti da <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">superficie</a> and <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">autostrada</a> di <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s.
   È disponibile solo per i file creati con **gpx.studio**.
 
-Se la tua selezione lo include puoi visualizzare anche i dati di: **velocità** , **frequenza cardiaca** , **cadenza** , **temperatura** , e **potenza**  sul profilo altimetrico.
+Se la tua selezione lo include puoi visualizzare anche i dati di: **velocità**, **frequenza cardiaca**, **cadenza**, **temperatura**, e **potenza** sul profilo altimetrico.

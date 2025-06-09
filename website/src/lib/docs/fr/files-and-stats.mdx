@@ -2,9 +2,18 @@
 title: Fichiers et statistiques
 ---
 
-<script>
+<script lang="ts">
     import { ChartNoAxesColumn } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import ElevationProfile from '$lib/components/ElevationProfile.svelte';
+    import GPXStatistics from '$lib/components/GPXStatistics.svelte';
+    import { exampleGPXFile } from '$lib/assets/example';
+    import { writable } from 'svelte/store';
+
+    let gpxStatistics = writable(exampleGPXFile.getStatistics());
+    let slicedGPXStatistics = writable(undefined);
+    let additionalDatasets = writable(['speed', 'atemp']);
+    let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
 </script>
 
 # { title }
@@ -70,6 +79,25 @@ Pour obtenir les statistiques d'une section donnée du profil altimétrique, vou
 Cliquez sur le profil pour réinitialiser la sélection.
 
 Vous pouvez également utiliser la molette de la souris pour zoomer ou dézoomer sur le profil d'altitude, et bouger à gauche et à droite en faisant glisser le profil tout en maintenant la touche <kbd>Shift</kbd>.
+
+<div class="h-48 w-full">
+    <ElevationProfile
+        {gpxStatistics}
+        {slicedGPXStatistics}
+        additionalDatasets={$additionalDatasets}
+        elevationFill={$elevationFill}
+    />
+</div>
+<div class="flex flex-col items-center -mt-6">
+    <div class="h-10 w-fit">
+        <GPXStatistics
+            {gpxStatistics}
+            {slicedGPXStatistics}
+            panelSize={120}
+            orientation={'horizontal'}
+        />
+    </div>
+</div>
 
 ### Données supplémentaires
 

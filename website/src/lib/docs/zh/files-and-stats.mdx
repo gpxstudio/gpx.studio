@@ -2,9 +2,18 @@
 title: 文件和统计
 ---
 
-<script>
+<script lang="ts">
     import { ChartNoAxesColumn } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import ElevationProfile from '$lib/components/ElevationProfile.svelte';
+    import GPXStatistics from '$lib/components/GPXStatistics.svelte';
+    import { exampleGPXFile } from '$lib/assets/example';
+    import { writable } from 'svelte/store';
+
+    let gpxStatistics = writable(exampleGPXFile.getStatistics());
+    let slicedGPXStatistics = writable(undefined);
+    let additionalDatasets = writable(['speed', 'atemp']);
+    let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
 </script>
 
 # { title }
@@ -70,6 +79,25 @@ title: 文件和统计
 点击剖面图将重置选区。
 
 海拔剖面图可通过鼠标滚轮进行缩放，或按住 <kbd>Shift</kbd> 键并用鼠标拖动以左右移动。
+
+<div class="h-48 w-full">
+    <ElevationProfile
+        {gpxStatistics}
+        {slicedGPXStatistics}
+        additionalDatasets={$additionalDatasets}
+        elevationFill={$elevationFill}
+    />
+</div>
+<div class="flex flex-col items-center -mt-6">
+    <div class="h-10 w-fit">
+        <GPXStatistics
+            {gpxStatistics}
+            {slicedGPXStatistics}
+            panelSize={120}
+            orientation={'horizontal'}
+        />
+    </div>
+</div>
 
 ### 补充数据
 

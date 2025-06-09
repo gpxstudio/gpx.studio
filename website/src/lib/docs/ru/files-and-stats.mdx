@@ -2,9 +2,18 @@
 title: Файлы и статистика
 ---
 
-<script>
+<script lang="ts">
     import { ChartNoAxesColumn } from 'lucide-svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import ElevationProfile from '$lib/components/ElevationProfile.svelte';
+    import GPXStatistics from '$lib/components/GPXStatistics.svelte';
+    import { exampleGPXFile } from '$lib/assets/example';
+    import { writable } from 'svelte/store';
+
+    let gpxStatistics = writable(exampleGPXFile.getStatistics());
+    let slicedGPXStatistics = writable(undefined);
+    let additionalDatasets = writable(['speed', 'atemp']);
+    let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
 </script>
 
 # { title }
@@ -71,12 +80,31 @@ In addition, the file tree view enables you to inspect the [tracks, segments, an
 
 Вы также можете использовать колесо мыши для увеличения и уменьшения масштаба профиля высоты, а перемещаться влево и вправо, перетаскивая профиль, удерживая клавишу <kbd>Shift</kbd>.
 
-### Дополнительные данные
+<div class="h-48 w-full">
+    <ElevationProfile
+        {gpxStatistics}
+        {slicedGPXStatistics}
+        additionalDatasets={$additionalDatasets}
+        elevationFill={$elevationFill}
+    />
+</div>
+<div class="flex flex-col items-center -mt-6">
+    <div class="h-10 w-fit">
+        <GPXStatistics
+            {gpxStatistics}
+            {slicedGPXStatistics}
+            panelSize={120}
+            orientation={'horizontal'}
+        />
+    </div>
+</div>
+
+### Additional data
 
 Using the <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> button at the bottom-right of the elevation profile, you can optionally color the elevation profile by:
 
 - **slope** information computed from the elevation data, or
 - **surface** or **category** data coming from <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> and <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> tags.
-  Это доступно только для файлов, созданных с помощью **gpx.studio**.
+  This is only available for files created with **gpx.studio**.
 
 If your selection includes it, you can also visualize: **speed**, **heart rate**, **cadence**, **temperature** and **power** data on the elevation profile.

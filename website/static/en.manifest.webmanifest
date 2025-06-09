@@ -1,0 +1,18 @@
+{
+  "name": "gpx.studio",
+  "short_name": "gpx.studio",
+  "description": "View, edit, and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations.",
+  "start_url": "/app",
+  "display": "standalone",
+  "lang": "en",
+  "scope": "/app",
+  "id": "https://gpx.studio/app",
+  "icons": [
+    {
+      "src": "pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

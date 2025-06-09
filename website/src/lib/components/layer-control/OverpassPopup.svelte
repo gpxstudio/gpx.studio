@@ -5,7 +5,10 @@
     import { _ } from 'svelte-i18n';
     import { dbUtils } from '$lib/db';
     import type { PopupItem } from '$lib/components/MapPopup';
-    import { ScrollArea } from '$lib/components/ui/scroll-area';
+    import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
+    import type { WaypointType } from 'gpx';
+
+    export let poi: PopupItem<any>;
 
     interface OverpassTags {
         name?: string;
@@ -34,30 +37,40 @@
         [key: string]: unknown; // Allow other properties
     }
 
-    export let poi: PopupItem<unknown>;
-
-    // Assert the type of poi.item
-    const item = poi.item as OverpassPoiItem;
-
-    let tags: OverpassTags = {};
-    let name: string = '';
-    try {
-        // Use item.tags
-        tags = JSON.parse(item.tags || '{}') as OverpassTags;
-    } catch (e) {
-        console.error('Failed to parse Overpass tags:', item.tags, e);
-        tags = {}; // Assign empty object on error
+    let tags: { [key: string]: string } = {};
+    let name = '';
+    $: if (poi) {
+        tags = JSON.parse(poi.item.tags);
+        if (tags.name !== undefined && tags.name !== '') {
+            name = tags.name;
+        } else {
+            name = $_(`layers.label.${poi.item.query}`);
+        }
     }
 
-    $: if (tags.name !== undefined && tags.name !== '') {
-        name = tags.name;
-    } else {
-        // Use item.name or item.query
-        name = item.name ?? $_(`layers.label.${item.query ?? 'poi'}`);
+    function addToFile() {
+        const desc = Object.entries(tags)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join('\n');
+        let wpt: WaypointType = {
+            attributes: {
+                lat: poi.item.lat,
+                lon: poi.item.lon,
+            },
+            name: name,
+            desc: desc,
+            cmt: desc,
+            sym: poi.item.sym,
+        };
+        if (tags.website) {
+            wpt.link = {
+                attributes: {
+                    href: tags.website,
+                },
+            };
+        }
+        dbUtils.addOrUpdateWaypoint(wpt);
     }
-
-    // Convert tags object to array for easier iteration in template
-    $: tagEntries = Object.entries(tags);
 </script>
 
 <Card.Root class="border-none shadow-md text-base p-2 max-w-[50dvw]">
@@ -108,29 +121,14 @@
                 {/if}
             {/each}
         </ScrollArea>
-        {#if item.id}
-            <Button
-                variant="link"
-                class="p-0 h-fit text-xs mt-1 float-right"
-                on:click={() => {
-                    if (item.lat !== undefined && item.lon !== undefined) {
-                        // Ensure desc defaults to string using String()
-                        let desc = String(tags.description ?? tags.note ?? '');
-                        dbUtils.addOrUpdateWaypoint({
-                            attributes: {
-                                lat: item.lat, // Now safe within the check
-                                lon: item.lon, // Now safe within the check
-                            },
-                            name: name,
-                            desc: desc,
-                            cmt: desc,
-                            sym: item.sym,
-                        });
-                    }
-                }}
-            >
-                {$_('dialog.add_waypoint')}
-            </Button>
-        {/if}
+        <Button
+            class="mt-2"
+            variant="outline"
+            disabled={$selection.size === 0}
+            on:click={addToFile}
+        >
+            <MapPin size="16" class="mr-1" />
+            {$_('toolbar.waypoint.add')}
+        </Button>
     </Card.Content>
 </Card.Root>
