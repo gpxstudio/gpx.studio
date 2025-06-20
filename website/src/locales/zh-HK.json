@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "home_title": "the online GPX file editor",
+        "home_title": "線上 GPX 檔案編輯器",
         "app_title": "app",
         "embed_title": "the online GPX file editor",
         "help_title": "help",
@@ -122,7 +122,7 @@
                 "concrete": "Concrete",
                 "cobblestone": "Cobblestone",
                 "paving_stones": "鋪路石",
-                "sett": "Sett",
+                "sett": "石板",
                 "metal": "Metal",
                 "wood": "Wood",
                 "compacted": "Compacted gravel",
@@ -165,7 +165,7 @@
                 "road": "Road",
                 "bridleway": "Horseriding path",
                 "platform": "Platform",
-                "raceway": "Racing circuit",
+                "raceway": "競賽賽道",
                 "rest_area": "Rest area",
                 "abandoned": "Abandoned",
                 "services": "Services",
@@ -174,14 +174,14 @@
                 "busway": "Busway",
                 "elevator": "Elevator",
                 "via_ferrata": "Via ferrata",
-                "proposed": "Road to be built",
+                "proposed": "已規劃但未興建的道路",
                 "construction": "Road under construction"
             },
             "sac_scale": {
-                "hiking": "Hiking",
-                "mountain_hiking": "Mountain hiking",
+                "hiking": "遠足",
+                "mountain_hiking": "登山遠足",
                 "demanding_mountain_hiking": "Demanding mountain hiking",
-                "alpine_hiking": "Alpine hiking",
+                "alpine_hiking": "高山遠足",
                 "demanding_alpine_hiking": "Demanding alpine hiking",
                 "difficult_alpine_hiking": "Difficult alpine hiking"
             },
@@ -249,7 +249,7 @@
             "tooltip": "Reduce the number of GPS points",
             "tolerance": "Tolerance",
             "number_of_points": "Number of GPS points",
-            "button": "Minify",
+            "button": "簡化",
             "help": "Use the slider to choose the number of GPS points to keep.",
             "help_no_selection": "Select a trace to reduce the number of its GPS points."
         },
