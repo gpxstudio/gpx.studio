@@ -10,18 +10,26 @@
         getVelocityUnits,
         secondsToHHMMSS,
     } from '$lib/units';
+    import { i18n } from '$lib/i18n.svelte';
 
-    import { _ } from '$lib/i18n';
-
-    export let value: number;
-    export let type: 'distance' | 'elevation' | 'speed' | 'temperature' | 'time';
-    export let showUnits: boolean = true;
-    export let decimals: number | undefined = undefined;
+    let {
+        value,
+        type,
+        showUnits = true,
+        decimals = undefined,
+        class: className = '',
+    }: {
+        value: number;
+        type: 'distance' | 'elevation' | 'speed' | 'temperature' | 'time';
+        showUnits?: boolean;
+        decimals?: number;
+        class?: string;
+    } = $props();
 
     const { distanceUnits, velocityUnits, temperatureUnits } = settings;
 </script>
 
-<span class={$$props.class}>
+<span class={className}>
     {#if type === 'distance'}
         {getConvertedDistance(value, $distanceUnits).toFixed(decimals ?? 2)}
         {showUnits ? getDistanceUnits($distanceUnits) : ''}
@@ -38,9 +46,9 @@
         {/if}
     {:else if type === 'temperature'}
         {#if $temperatureUnits === 'celsius'}
-            {value} {showUnits ? $_('units.celsius') : ''}
+            {value} {showUnits ? i18n._('units.celsius') : ''}
         {:else}
-            {celsiusToFahrenheit(value)} {showUnits ? $_('units.fahrenheit') : ''}
+            {celsiusToFahrenheit(value)} {showUnits ? i18n._('units.fahrenheit') : ''}
         {/if}
     {:else if type === 'time'}
         {secondsToHHMMSS(value)}

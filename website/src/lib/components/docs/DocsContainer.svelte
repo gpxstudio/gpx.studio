@@ -1,12 +1,16 @@
 <script lang="ts">
-    export let module;
+    import type { Component } from 'svelte';
+
+    let { module: Module }: { module: Component } = $props();
 </script>
 
 <div class="markdown flex flex-col gap-3">
-    <svelte:component this={module} />
+    <Module />
 </div>
 
 <style lang="postcss">
+    @reference "../../../app.css";
+
     :global(.markdown) {
         @apply text-muted-foreground;
     }

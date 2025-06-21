@@ -2,7 +2,6 @@ import {
     File,
     FilePen,
     View,
-    type Icon,
     Settings,
     Pencil,
     MapPin,
@@ -10,11 +9,12 @@ import {
     CalendarClock,
     Group,
     Ungroup,
-    Filter,
+    Funnel,
     SquareDashedMousePointer,
     MountainSnow,
-} from 'lucide-svelte';
-import type { ComponentType } from 'svelte';
+    type IconProps,
+} from '@lucide/svelte';
+import type { Component } from 'svelte';
 
 export const guides: Record<string, string[]> = {
     'getting-started': [],
@@ -37,7 +37,7 @@ export const guides: Record<string, string[]> = {
     faq: [],
 };
 
-export const guideIcons: Record<string, string | ComponentType<Icon>> = {
+export const guideIcons: Record<string, string | Component<IconProps>> = {
     'getting-started': '🚀',
     menu: '📂 ⚙️',
     file: File,
@@ -53,7 +53,7 @@ export const guideIcons: Record<string, string | ComponentType<Icon>> = {
     merge: Group,
     extract: Ungroup,
     elevation: MountainSnow,
-    minify: Filter,
+    minify: Funnel,
     clean: SquareDashedMousePointer,
     'map-controls': '🗺',
     gpx: '💾',

@@ -14,8 +14,8 @@
         Coins,
         Milestone,
         Video,
-    } from 'lucide-svelte';
-    import { _ } from '$lib/i18n';
+    } from '@lucide/svelte';
+    import { i18n } from '$lib/i18n.svelte';
     import {
         allowedEmbeddingBasemaps,
         getCleanedEmbeddingOptions,
@@ -94,19 +94,22 @@
 
 <Card.Root id="embedding-playground">
     <Card.Header>
-        <Card.Title>{$_('embedding.title')}</Card.Title>
+        <Card.Title>{i18n._('embedding.title')}</Card.Title>
     </Card.Header>
     <Card.Content>
         <fieldset class="flex flex-col gap-3">
-            <Label for="token">{$_('embedding.mapbox_token')}</Label>
+            <Label for="token">{i18n._('embedding.mapbox_token')}</Label>
             <Input id="token" type="text" class="h-8" bind:value={options.token} />
-            <Label for="file_urls">{$_('embedding.file_urls')}</Label>
+            <Label for="file_urls">{i18n._('embedding.file_urls')}</Label>
             <Input id="file_urls" type="text" class="h-8" bind:value={files} />
-            <Label for="drive_ids">{$_('embedding.drive_ids')}</Label>
+            <Label for="drive_ids">{i18n._('embedding.drive_ids')}</Label>
             <Input id="drive_ids" type="text" class="h-8" bind:value={driveIds} />
-            <Label for="basemap">{$_('embedding.basemap')}</Label>
+            <Label for="basemap">{i18n._('embedding.basemap')}</Label>
             <Select.Root
-                selected={{ value: options.basemap, label: $_(`layers.label.${options.basemap}`) }}
+                selected={{
+                    value: options.basemap,
+                    label: i18n._(`layers.label.${options.basemap}`),
+                }}
                 onSelectedChange={(selected) => {
                     if (selected?.value) {
                         options.basemap = selected?.value;
@@ -118,18 +121,20 @@
                 </Select.Trigger>
                 <Select.Content class="max-h-60 overflow-y-scroll">
                     {#each allowedEmbeddingBasemaps as basemap}
-                        <Select.Item value={basemap}>{$_(`layers.label.${basemap}`)}</Select.Item>
+                        <Select.Item value={basemap}
+                            >{i18n._(`layers.label.${basemap}`)}</Select.Item
+                        >
                     {/each}
                 </Select.Content>
             </Select.Root>
             <div class="flex flex-row items-center gap-2">
-                <Label for="profile">{$_('menu.elevation_profile')}</Label>
+                <Label for="profile">{i18n._('menu.elevation_profile')}</Label>
                 <Checkbox id="profile" bind:checked={options.elevation.show} />
             </div>
             {#if options.elevation.show}
                 <div class="grid grid-cols-2 gap-x-6 gap-y-3 rounded-md border p-3 mt-1">
                     <Label class="flex flex-row items-center gap-2">
-                        {$_('embedding.height')}
+                        {i18n._('embedding.height')}
                         <Input
                             type="number"
                             bind:value={options.elevation.height}
@@ -138,10 +143,10 @@
                     </Label>
                     <div class="flex flex-row items-center gap-2">
                         <span class="shrink-0">
-                            {$_('embedding.fill_by')}
+                            {i18n._('embedding.fill_by')}
                         </span>
                         <Select.Root
-                            selected={{ value: 'none', label: $_('embedding.none') }}
+                            selected={{ value: 'none', label: i18n._('embedding.none') }}
                             onSelectedChange={(selected) => {
                                 let value = selected?.value;
                                 if (value === 'none') {
@@ -159,52 +164,55 @@
                                 <Select.Value />
                             </Select.Trigger>
                             <Select.Content>
-                                <Select.Item value="slope">{$_('quantities.slope')}</Select.Item>
-                                <Select.Item value="surface">{$_('quantities.surface')}</Select.Item
+                                <Select.Item value="slope">{i18n._('quantities.slope')}</Select.Item
                                 >
-                                <Select.Item value="highway">{$_('quantities.highway')}</Select.Item
+                                <Select.Item value="surface"
+                                    >{i18n._('quantities.surface')}</Select.Item
                                 >
-                                <Select.Item value="none">{$_('embedding.none')}</Select.Item>
+                                <Select.Item value="highway"
+                                    >{i18n._('quantities.highway')}</Select.Item
+                                >
+                                <Select.Item value="none">{i18n._('embedding.none')}</Select.Item>
                             </Select.Content>
                         </Select.Root>
                     </div>
                     <div class="flex flex-row items-center gap-2">
                         <Checkbox id="controls" bind:checked={options.elevation.controls} />
-                        <Label for="controls">{$_('embedding.show_controls')}</Label>
+                        <Label for="controls">{i18n._('embedding.show_controls')}</Label>
                     </div>
                     <div class="flex flex-row items-center gap-2">
                         <Checkbox id="show-speed" bind:checked={options.elevation.speed} />
                         <Label for="show-speed" class="flex flex-row items-center gap-1">
                             <Zap size="16" />
-                            {$_('quantities.speed')}
+                            {i18n._('quantities.speed')}
                         </Label>
                     </div>
                     <div class="flex flex-row items-center gap-2">
                         <Checkbox id="show-hr" bind:checked={options.elevation.hr} />
                         <Label for="show-hr" class="flex flex-row items-center gap-1">
                             <HeartPulse size="16" />
-                            {$_('quantities.heartrate')}
+                            {i18n._('quantities.heartrate')}
                         </Label>
                     </div>
                     <div class="flex flex-row items-center gap-2">
                         <Checkbox id="show-cad" bind:checked={options.elevation.cad} />
                         <Label for="show-cad" class="flex flex-row items-center gap-1">
                             <Orbit size="16" />
-                            {$_('quantities.cadence')}
+                            {i18n._('quantities.cadence')}
                         </Label>
                     </div>
                     <div class="flex flex-row items-center gap-2">
                         <Checkbox id="show-temp" bind:checked={options.elevation.temp} />
                         <Label for="show-temp" class="flex flex-row items-center gap-1">
                             <Thermometer size="16" />
-                            {$_('quantities.temperature')}
+                            {i18n._('quantities.temperature')}
                         </Label>
                     </div>
                     <div class="flex flex-row items-center gap-2">
                         <Checkbox id="show-power" bind:checked={options.elevation.power} />
                         <Label for="show-power" class="flex flex-row items-center gap-1">
                             <SquareActivity size="16" />
-                            {$_('quantities.power')}
+                            {i18n._('quantities.power')}
                         </Label>
                     </div>
                 </div>
@@ -213,75 +221,75 @@
                 <Checkbox id="distance-markers" bind:checked={options.distanceMarkers} />
                 <Label for="distance-markers" class="flex flex-row items-center gap-1">
                     <Coins size="16" />
-                    {$_('menu.distance_markers')}
+                    {i18n._('menu.distance_markers')}
                 </Label>
             </div>
             <div class="flex flex-row items-center gap-2">
                 <Checkbox id="direction-markers" bind:checked={options.directionMarkers} />
                 <Label for="direction-markers" class="flex flex-row items-center gap-1">
                     <Milestone size="16" />
-                    {$_('menu.direction_markers')}
+                    {i18n._('menu.direction_markers')}
                 </Label>
             </div>
             <div class="flex flex-row flex-wrap justify-between gap-3">
                 <Label class="flex flex-col items-start gap-2">
-                    {$_('menu.distance_units')}
+                    {i18n._('menu.distance_units')}
                     <RadioGroup.Root bind:value={options.distanceUnits}>
                         <div class="flex items-center space-x-2">
                             <RadioGroup.Item value="metric" id="metric" />
-                            <Label for="metric">{$_('menu.metric')}</Label>
+                            <Label for="metric">{i18n._('menu.metric')}</Label>
                         </div>
                         <div class="flex items-center space-x-2">
                             <RadioGroup.Item value="imperial" id="imperial" />
-                            <Label for="imperial">{$_('menu.imperial')}</Label>
+                            <Label for="imperial">{i18n._('menu.imperial')}</Label>
                         </div>
                         <div class="flex items-center space-x-2">
                             <RadioGroup.Item value="nautical" id="nautical" />
-                            <Label for="nautical">{$_('menu.nautical')}</Label>
+                            <Label for="nautical">{i18n._('menu.nautical')}</Label>
                         </div>
                     </RadioGroup.Root>
                 </Label>
                 <Label class="flex flex-col items-start gap-2">
-                    {$_('menu.velocity_units')}
+                    {i18n._('menu.velocity_units')}
                     <RadioGroup.Root bind:value={options.velocityUnits}>
                         <div class="flex items-center space-x-2">
                             <RadioGroup.Item value="speed" id="speed" />
-                            <Label for="speed">{$_('quantities.speed')}</Label>
+                            <Label for="speed">{i18n._('quantities.speed')}</Label>
                         </div>
                         <div class="flex items-center space-x-2">
                             <RadioGroup.Item value="pace" id="pace" />
-                            <Label for="pace">{$_('quantities.pace')}</Label>
+                            <Label for="pace">{i18n._('quantities.pace')}</Label>
                         </div>
                     </RadioGroup.Root>
                 </Label>
                 <Label class="flex flex-col items-start gap-2">
-                    {$_('menu.temperature_units')}
+                    {i18n._('menu.temperature_units')}
                     <RadioGroup.Root bind:value={options.temperatureUnits}>
                         <div class="flex items-center space-x-2">
                             <RadioGroup.Item value="celsius" id="celsius" />
-                            <Label for="celsius">{$_('menu.celsius')}</Label>
+                            <Label for="celsius">{i18n._('menu.celsius')}</Label>
                         </div>
                         <div class="flex items-center space-x-2">
                             <RadioGroup.Item value="fahrenheit" id="fahrenheit" />
-                            <Label for="fahrenheit">{$_('menu.fahrenheit')}</Label>
+                            <Label for="fahrenheit">{i18n._('menu.fahrenheit')}</Label>
                         </div>
                     </RadioGroup.Root>
                 </Label>
             </div>
             <Label class="flex flex-col items-start gap-2">
-                {$_('menu.mode')}
+                {i18n._('menu.mode')}
                 <RadioGroup.Root bind:value={options.theme} class="flex flex-row">
                     <div class="flex items-center space-x-2">
                         <RadioGroup.Item value="system" id="system" />
-                        <Label for="system">{$_('menu.system')}</Label>
+                        <Label for="system">{i18n._('menu.system')}</Label>
                     </div>
                     <div class="flex items-center space-x-2">
                         <RadioGroup.Item value="light" id="light" />
-                        <Label for="light">{$_('menu.light')}</Label>
+                        <Label for="light">{i18n._('menu.light')}</Label>
                     </div>
                     <div class="flex items-center space-x-2">
                         <RadioGroup.Item value="dark" id="dark" />
-                        <Label for="dark">{$_('menu.dark')}</Label>
+                        <Label for="dark">{i18n._('menu.dark')}</Label>
                     </div>
                 </RadioGroup.Root>
             </Label>
@@ -290,43 +298,43 @@
                     <Checkbox id="manual-camera" bind:checked={manualCamera} />
                     <Label for="manual-camera" class="flex flex-row items-center gap-1">
                         <Video size="16" />
-                        {$_('embedding.manual_camera')}
+                        {i18n._('embedding.manual_camera')}
                     </Label>
                 </div>
                 <p class="text-sm text-muted-foreground">
-                    {$_('embedding.manual_camera_description')}
+                    {i18n._('embedding.manual_camera_description')}
                 </p>
                 <div class="flex flex-row flex-wrap items-center gap-6">
                     <Label class="flex flex-col gap-1">
-                        <span>{$_('embedding.latitude')}</span>
+                        <span>{i18n._('embedding.latitude')}</span>
                         <span>{lat}</span>
                     </Label>
                     <Label class="flex flex-col gap-1">
-                        <span>{$_('embedding.longitude')}</span>
+                        <span>{i18n._('embedding.longitude')}</span>
                         <span>{lon}</span>
                     </Label>
                     <Label class="flex flex-col gap-1">
-                        <span>{$_('embedding.zoom')}</span>
+                        <span>{i18n._('embedding.zoom')}</span>
                         <span>{zoom}</span>
                     </Label>
                     <Label class="flex flex-col gap-1">
-                        <span>{$_('embedding.bearing')}</span>
+                        <span>{i18n._('embedding.bearing')}</span>
                         <span>{bearing}</span>
                     </Label>
                     <Label class="flex flex-col gap-1">
-                        <span>{$_('embedding.pitch')}</span>
+                        <span>{i18n._('embedding.pitch')}</span>
                         <span>{pitch}</span>
                     </Label>
                 </div>
             </div>
             <Label>
-                {$_('embedding.preview')}
+                {i18n._('embedding.preview')}
             </Label>
             <div class="relative h-[600px]">
                 <Embedding bind:options={iframeOptions} bind:hash useHash={false} />
             </div>
             <Label>
-                {$_('embedding.code')}
+                {i18n._('embedding.code')}
             </Label>
             <pre
                 class="bg-primary text-primary-foreground p-3 rounded-md whitespace-normal break-all">

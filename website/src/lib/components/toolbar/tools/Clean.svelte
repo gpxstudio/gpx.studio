@@ -11,13 +11,14 @@
     import * as RadioGroup from '$lib/components/ui/radio-group';
     import { Button } from '$lib/components/ui/button';
     import Help from '$lib/components/Help.svelte';
-    import { _, locale } from '$lib/i18n';
+    import { i18n } from '$lib/i18n.svelte';
     import { onDestroy, onMount } from 'svelte';
     import { getURLForLanguage, resetCursor, setCrosshairCursor } from '$lib/utils';
-    import { Trash2 } from 'lucide-svelte';
-    import { map } from '$lib/stores';
+    import { Trash2 } from '@lucide/svelte';
+    import { map } from '$lib/components/map/map.svelte';
     import { selection } from '$lib/components/file-list/Selection';
     import { dbUtils } from '$lib/db';
+    import type { GeoJSONSource } from 'mapbox-gl';
 
     let cleanType = CleanType.INSIDE;
     let deleteTrackpoints = true;
@@ -25,13 +26,13 @@
     let rectangleCoordinates: mapboxgl.LngLat[] = [];
 
     function updateRectangle() {
-        if ($map) {
+        if (map.current) {
             if (rectangleCoordinates.length != 2) {
-                if ($map.getLayer('rectangle')) {
-                    $map.removeLayer('rectangle');
+                if (map.current.getLayer('rectangle')) {
+                    map.current.removeLayer('rectangle');
                 }
             } else {
-                let data = {
+                let data: GeoJSON.Feature = {
                     type: 'Feature',
                     geometry: {
                         type: 'Polygon',
@@ -45,18 +46,19 @@
                             ],
                         ],
                     },
+                    properties: {},
                 };
-                let source = $map.getSource('rectangle');
+                let source: GeoJSONSource | undefined = map.current.getSource('rectangle');
                 if (source) {
                     source.setData(data);
                 } else {
-                    $map.addSource('rectangle', {
+                    map.current.addSource('rectangle', {
                         type: 'geojson',
                         data: data,
                     });
                 }
-                if (!$map.getLayer('rectangle')) {
-                    $map.addLayer({
+                if (!map.current.getLayer('rectangle')) {
+                    map.current.addLayer({
                         id: 'rectangle',
                         type: 'fill',
                         source: 'rectangle',
@@ -91,35 +93,34 @@
     }
 
     onMount(() => {
-        setCrosshairCursor();
+        if (map.current) {
+            setCrosshairCursor(map.current.getCanvas());
+            map.current.on('mousedown', onMouseDown);
+            map.current.on('mousemove', onMouseMove);
+            map.current.on('mouseup', onMouseUp);
+            map.current.on('touchstart', onMouseDown);
+            map.current.on('touchmove', onMouseMove);
+            map.current.on('touchend', onMouseUp);
+            map.current.dragPan.disable();
+        }
     });
 
-    $: if ($map) {
-        $map.on('mousedown', onMouseDown);
-        $map.on('mousemove', onMouseMove);
-        $map.on('mouseup', onMouseUp);
-        $map.on('touchstart', onMouseDown);
-        $map.on('touchmove', onMouseMove);
-        $map.on('touchend', onMouseUp);
-        $map.dragPan.disable();
-    }
-
     onDestroy(() => {
-        resetCursor();
-        if ($map) {
-            $map.off('mousedown', onMouseDown);
-            $map.off('mousemove', onMouseMove);
-            $map.off('mouseup', onMouseUp);
-            $map.off('touchstart', onMouseDown);
-            $map.off('touchmove', onMouseMove);
-            $map.off('touchend', onMouseUp);
-            $map.dragPan.enable();
+        if (map.current) {
+            resetCursor(map.current.getCanvas());
+            map.current.off('mousedown', onMouseDown);
+            map.current.off('mousemove', onMouseMove);
+            map.current.off('mouseup', onMouseUp);
+            map.current.off('touchstart', onMouseDown);
+            map.current.off('touchmove', onMouseMove);
+            map.current.off('touchend', onMouseUp);
+            map.current.dragPan.enable();
 
-            if ($map.getLayer('rectangle')) {
-                $map.removeLayer('rectangle');
+            if (map.current.getLayer('rectangle')) {
+                map.current.removeLayer('rectangle');
             }
-            if ($map.getSource('rectangle')) {
-                $map.removeSource('rectangle');
+            if (map.current.getSource('rectangle')) {
+                map.current.removeSource('rectangle');
             }
         }
     });
@@ -132,23 +133,23 @@
         <div class="flex flex-row items-center gap-[6.4px] h-3">
             <Checkbox id="delete-trkpt" bind:checked={deleteTrackpoints} class="scale-90" />
             <Label for="delete-trkpt">
-                {$_('toolbar.clean.delete_trackpoints')}
+                {i18n._('toolbar.clean.delete_trackpoints')}
             </Label>
         </div>
         <div class="flex flex-row items-center gap-[6.4px] h-3">
             <Checkbox id="delete-wpt" bind:checked={deleteWaypoints} class="scale-90" />
             <Label for="delete-wpt">
-                {$_('toolbar.clean.delete_waypoints')}
+                {i18n._('toolbar.clean.delete_waypoints')}
             </Label>
         </div>
         <RadioGroup.Root bind:value={cleanType}>
             <Label class="flex flex-row items-center gap-2">
                 <RadioGroup.Item value={CleanType.INSIDE} />
-                {$_('toolbar.clean.delete_inside')}
+                {i18n._('toolbar.clean.delete_inside')}
             </Label>
             <Label class="flex flex-row items-center gap-2">
                 <RadioGroup.Item value={CleanType.OUTSIDE} />
-                {$_('toolbar.clean.delete_outside')}
+                {i18n._('toolbar.clean.delete_outside')}
             </Label>
         </RadioGroup.Root>
     </fieldset>
@@ -156,7 +157,7 @@
         variant="outline"
         class="w-full"
         disabled={!validSelection || rectangleCoordinates.length != 2}
-        on:click={() => {
+        onclick={() => {
             dbUtils.cleanSelection(
                 [
                     {
@@ -176,13 +177,13 @@
         }}
     >
         <Trash2 size="16" class="mr-1" />
-        {$_('toolbar.clean.button')}
+        {i18n._('toolbar.clean.button')}
     </Button>
-    <Help link={getURLForLanguage($locale, '/help/toolbar/clean')}>
+    <Help link={getURLForLanguage(i18n.lang, '/help/toolbar/clean')}>
         {#if validSelection}
-            {$_('toolbar.clean.help')}
+            {i18n._('toolbar.clean.help')}
         {:else}
-            {$_('toolbar.clean.help_no_selection')}
+            {i18n._('toolbar.clean.help_no_selection')}
         {/if}
     </Help>
 </div>

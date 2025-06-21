@@ -1,6 +1,5 @@
-import { get } from 'svelte/store';
-import { settings } from '$lib/db';
-import { _ } from '$lib/i18n';
+import { settings } from '$lib/logic/settings.svelte';
+import { i18n } from '$lib/i18n.svelte';
 
 const { distanceUnits, velocityUnits, temperatureUnits } = settings;
 
@@ -56,7 +55,7 @@ export function getDistanceWithUnits(value: number, convert: boolean = true) {
 }
 
 export function getVelocityWithUnits(value: number, convert: boolean = true) {
-    if (get(velocityUnits) === 'speed') {
+    if (velocityUnits.value === 'speed') {
         if (convert) {
             return getConvertedVelocity(value).toFixed(2) + ' ' + getVelocityUnits();
         } else {
@@ -100,74 +99,74 @@ export function getTemperatureWithUnits(value: number, convert: boolean = true) 
 }
 
 // Get the units
-export function getDistanceUnits(targetDistanceUnits = get(distanceUnits)) {
+export function getDistanceUnits(targetDistanceUnits = distanceUnits.value) {
     switch (targetDistanceUnits) {
         case 'metric':
-            return get(_)('units.kilometers');
+            return i18n._('units.kilometers');
         case 'imperial':
-            return get(_)('units.miles');
+            return i18n._('units.miles');
         case 'nautical':
-            return get(_)('units.nautical_miles');
+            return i18n._('units.nautical_miles');
     }
 }
 
 export function getVelocityUnits(
-    targetVelocityUnits = get(velocityUnits),
-    targetDistanceUnits = get(distanceUnits)
+    targetVelocityUnits = velocityUnits.value,
+    targetDistanceUnits = distanceUnits.value
 ) {
     if (targetVelocityUnits === 'speed') {
         switch (targetDistanceUnits) {
             case 'metric':
-                return get(_)('units.kilometers_per_hour');
+                return i18n._('units.kilometers_per_hour');
             case 'imperial':
-                return get(_)('units.miles_per_hour');
+                return i18n._('units.miles_per_hour');
             case 'nautical':
-                return get(_)('units.knots');
+                return i18n._('units.knots');
         }
     } else {
         switch (targetDistanceUnits) {
             case 'metric':
-                return get(_)('units.minutes_per_kilometer');
+                return i18n._('units.minutes_per_kilometer');
             case 'imperial':
-                return get(_)('units.minutes_per_mile');
+                return i18n._('units.minutes_per_mile');
             case 'nautical':
-                return get(_)('units.minutes_per_nautical_mile');
+                return i18n._('units.minutes_per_nautical_mile');
         }
     }
 }
 
-export function getElevationUnits(targetDistanceUnits = get(distanceUnits)) {
+export function getElevationUnits(targetDistanceUnits = distanceUnits.value) {
     switch (targetDistanceUnits) {
         case 'metric':
-            return get(_)('units.meters');
+            return i18n._('units.meters');
         case 'imperial':
-            return get(_)('units.feet');
+            return i18n._('units.feet');
         case 'nautical':
             // See https://github.com/gpxstudio/gpx.studio/pull/66#issuecomment-2306568997
-            return get(_)('units.meters');
+            return i18n._('units.meters');
     }
 }
 
 export function getHeartRateUnits() {
-    return get(_)('units.heartrate');
+    return i18n._('units.heartrate');
 }
 
 export function getCadenceUnits() {
-    return get(_)('units.cadence');
+    return i18n._('units.cadence');
 }
 
 export function getPowerUnits() {
-    return get(_)('units.power');
+    return i18n._('units.power');
 }
 
 export function getTemperatureUnits() {
-    return get(temperatureUnits) === 'celsius'
-        ? get(_)('units.celsius')
-        : get(_)('units.fahrenheit');
+    return temperatureUnits.value === 'celsius'
+        ? i18n._('units.celsius')
+        : i18n._('units.fahrenheit');
 }
 
 // Convert only the value
-export function getConvertedDistance(value: number, targetDistanceUnits = get(distanceUnits)) {
+export function getConvertedDistance(value: number, targetDistanceUnits = distanceUnits.value) {
     switch (targetDistanceUnits) {
         case 'metric':
             return value;
@@ -178,7 +177,7 @@ export function getConvertedDistance(value: number, targetDistanceUnits = get(di
     }
 }
 
-export function getConvertedElevation(value: number, targetDistanceUnits = get(distanceUnits)) {
+export function getConvertedElevation(value: number, targetDistanceUnits = distanceUnits.value) {
     switch (targetDistanceUnits) {
         case 'metric':
             return value;
@@ -191,8 +190,8 @@ export function getConvertedElevation(value: number, targetDistanceUnits = get(d
 
 export function getConvertedVelocity(
     value: number,
-    targetVelocityUnits = get(velocityUnits),
-    targetDistanceUnits = get(distanceUnits)
+    targetVelocityUnits = velocityUnits.value,
+    targetDistanceUnits = distanceUnits.value
 ) {
     if (targetVelocityUnits === 'speed') {
         switch (targetDistanceUnits) {
@@ -216,5 +215,5 @@ export function getConvertedVelocity(
 }
 
 export function getConvertedTemperature(value: number) {
-    return get(temperatureUnits) === 'celsius' ? value : celsiusToFahrenheit(value);
+    return temperatureUnits.value === 'celsius' ? value : celsiusToFahrenheit(value);
 }

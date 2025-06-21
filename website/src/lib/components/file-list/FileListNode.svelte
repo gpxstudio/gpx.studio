@@ -21,7 +21,7 @@
         type ListItem,
         type ListTrackItem,
     } from './FileList';
-    import { _ } from '$lib/i18n';
+    import { i18n } from '$lib/i18n.svelte';
     import { selection } from './Selection';
 
     export let node:
@@ -39,14 +39,14 @@
         node instanceof GPXFile && item instanceof ListFileItem
             ? node.metadata.name
             : node instanceof Track
-              ? (node.name ?? `${$_('gpx.track')} ${(item as ListTrackItem).trackIndex + 1}`)
+              ? (node.name ?? `${i18n._('gpx.track')} ${(item as ListTrackItem).trackIndex + 1}`)
               : node instanceof TrackSegment
-                ? `${$_('gpx.segment')} ${(item as ListTrackSegmentItem).segmentIndex + 1}`
+                ? `${i18n._('gpx.segment')} ${(item as ListTrackSegmentItem).segmentIndex + 1}`
                 : node instanceof Waypoint
                   ? (node.name ??
-                    `${$_('gpx.waypoint')} ${(item as ListWaypointItem).waypointIndex + 1}`)
+                    `${i18n._('gpx.waypoint')} ${(item as ListWaypointItem).waypointIndex + 1}`)
                   : node instanceof GPXFile && item instanceof ListWaypointsItem
-                    ? $_('gpx.waypoints')
+                    ? i18n._('gpx.waypoints')
                     : '';
 
     const { treeFileView } = settings;
@@ -72,12 +72,16 @@
     <FileListNodeLabel {node} {item} {label} />
 {:else if recursive}
     <CollapsibleTreeNode id={item.getId()} bind:this={collapsible}>
-        <FileListNodeLabel {node} {item} {label} slot="trigger" />
-        <div slot="content" class="ml-2">
-            {#key node}
-                <FileListNodeContent {node} {item} />
-            {/key}
-        </div>
+        {#snippet trigger()}
+            <FileListNodeLabel {node} {item} {label} />
+        {/snippet}
+        {#snippet content()}
+            <div class="ml-2">
+                {#key node}
+                    <FileListNodeContent {node} {item} />
+                {/key}
+            </div>
+        {/snippet}
     </CollapsibleTreeNode>
 {:else}
     <FileListNodeLabel {node} {item} {label} />

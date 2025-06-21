@@ -20,13 +20,13 @@
         Repeat,
         SquareArrowUpLeft,
         SquareArrowOutDownRight,
-    } from 'lucide-svelte';
+    } from '@lucide/svelte';
 
     import { map, newGPXFile, routingControls, selectFileWhenLoaded } from '$lib/stores';
     import { dbUtils, getFile, getFileIds, settings } from '$lib/db';
-    import { brouterProfiles, routingProfileSelectItem } from './Routing';
+    import { brouterProfiles } from '$lib/components/toolbar/tools/routing/routing.svelte';
 
-    import { _, locale } from '$lib/i18n';
+    import { i18n } from '$lib/i18n.svelte';
     import { RoutingControls } from './RoutingControls';
     import mapboxgl from 'mapbox-gl';
     import { fileObservers } from '$lib/db';
@@ -39,7 +39,7 @@
         ListTrackSegmentItem,
         type ListItem,
     } from '$lib/components/file-list/FileList';
-    import { flyAndScale, getURLForLanguage, resetCursor, setCrosshairCursor } from '$lib/utils';
+    import { getURLForLanguage, resetCursor, setCrosshairCursor } from '$lib/utils';
     import { onDestroy, onMount } from 'svelte';
     import { TrackPoint } from 'gpx';
 
@@ -49,7 +49,7 @@
     export let popupElement: HTMLElement | undefined = undefined;
     let selectedItem: ListItem | null = null;
 
-    const { privateRoads, routing } = settings;
+    const { privateRoads, routing, routingProfile } = settings;
 
     $: if ($map && popup && popupElement) {
         // remove controls for deleted files
@@ -111,15 +111,12 @@
 
 {#if minimizable && minimized}
     <div class="-m-1.5 -mb-2">
-        <Button variant="ghost" class="px-1 h-[26px]" on:click={() => (minimized = false)}>
+        <Button variant="ghost" class="px-1 h-[26px]" onclick={() => (minimized = false)}>
             <SquareArrowOutDownRight size="18" />
         </Button>
     </div>
 {:else}
-    <div
-        class="flex flex-col gap-3 w-full max-w-80 {$$props.class ?? ''}"
-        in:flyAndScale={{ x: -2, y: 0, duration: 50 }}
-    >
+    <div class="flex flex-col gap-3 w-full max-w-80 animate-in animate-out {$$props.class ?? ''}">
         <div class="flex flex-col gap-3">
             <Label class="flex flex-row justify-between items-center gap-2">
                 <span class="flex flex-row items-center gap-1">
@@ -128,9 +125,9 @@
                     {:else}
                         <RouteOff size="16" />
                     {/if}
-                    {$_('toolbar.routing.use_routing')}
+                    {i18n._('toolbar.routing.use_routing')}
                 </span>
-                <Tooltip label={$_('toolbar.routing.use_routing_tooltip')}>
+                <Tooltip label={i18n._('toolbar.routing.use_routing_tooltip')}>
                     <Switch class="scale-90" bind:checked={$routing} />
                     <Shortcut slot="extra" key="F5" />
                 </Tooltip>
@@ -139,25 +136,27 @@
                 <div class="flex flex-col gap-3" in:slide>
                     <Label class="flex flex-row justify-between items-center gap-2">
                         <span class="shrink-0 flex flex-row items-center gap-1">
-                            {#if $routingProfileSelectItem.value.includes('bike') || $routingProfileSelectItem.value.includes('motorcycle')}
+                            {#if $routingProfile.includes('bike') || $routingProfile.includes('motorcycle')}
                                 <Bike size="16" />
-                            {:else if $routingProfileSelectItem.value.includes('foot')}
+                            {:else if $routingProfile.includes('foot')}
                                 <Footprints size="16" />
-                            {:else if $routingProfileSelectItem.value.includes('water')}
+                            {:else if $routingProfile.includes('water')}
                                 <Waves size="16" />
-                            {:else if $routingProfileSelectItem.value.includes('railway')}
+                            {:else if $routingProfile.includes('railway')}
                                 <TrainFront size="16" />
                             {/if}
-                            {$_('toolbar.routing.activity')}
+                            {i18n._('toolbar.routing.activity')}
                         </span>
-                        <Select.Root bind:selected={$routingProfileSelectItem}>
+                        <Select.Root type="single" bind:value={$routingProfile}>
                             <Select.Trigger class="h-8 grow">
-                                <Select.Value />
+                                {i18n._(`toolbar.routing.activities.${$routingProfile}`)}
                             </Select.Trigger>
                             <Select.Content>
                                 {#each Object.keys(brouterProfiles) as profile}
                                     <Select.Item value={profile}
-                                        >{$_(`toolbar.routing.activities.${profile}`)}</Select.Item
+                                        >{i18n._(
+                                            `toolbar.routing.activities.${profile}`
+                                        )}</Select.Item
                                     >
                                 {/each}
                             </Select.Content>
@@ -166,7 +165,7 @@
                     <Label class="flex flex-row justify-between items-center gap-2">
                         <span class="flex flex-row gap-1">
                             <TriangleAlert size="16" />
-                            {$_('toolbar.routing.allow_private')}
+                            {i18n._('toolbar.routing.allow_private')}
                         </span>
                         <Switch class="scale-90" bind:checked={$privateRoads} />
                     </Label>
@@ -175,20 +174,20 @@
         </div>
         <div class="flex flex-row flex-wrap justify-center gap-1">
             <ButtonWithTooltip
-                label={$_('toolbar.routing.reverse.tooltip')}
+                label={i18n._('toolbar.routing.reverse.tooltip')}
                 variant="outline"
                 class="flex flex-row gap-1 text-xs px-2"
                 disabled={!validSelection}
-                on:click={dbUtils.reverseSelection}
+                onclick={dbUtils.reverseSelection}
             >
-                <ArrowRightLeft size="12" />{$_('toolbar.routing.reverse.button')}
+                <ArrowRightLeft size="12" />{i18n._('toolbar.routing.reverse.button')}
             </ButtonWithTooltip>
             <ButtonWithTooltip
-                label={$_('toolbar.routing.route_back_to_start.tooltip')}
+                label={i18n._('toolbar.routing.route_back_to_start.tooltip')}
                 variant="outline"
                 class="flex flex-row gap-1 text-xs px-2"
                 disabled={!validSelection}
-                on:click={() => {
+                onclick={() => {
                     const selected = getOrderedSelection();
                     if (selected.length > 0) {
                         const firstFileId = selected[0].getFileId();
@@ -217,30 +216,30 @@
                     }
                 }}
             >
-                <Home size="12" />{$_('toolbar.routing.route_back_to_start.button')}
+                <Home size="12" />{i18n._('toolbar.routing.route_back_to_start.button')}
             </ButtonWithTooltip>
             <ButtonWithTooltip
-                label={$_('toolbar.routing.round_trip.tooltip')}
+                label={i18n._('toolbar.routing.round_trip.tooltip')}
                 variant="outline"
                 class="flex flex-row gap-1 text-xs px-2"
                 disabled={!validSelection}
-                on:click={dbUtils.createRoundTripForSelection}
+                onclick={dbUtils.createRoundTripForSelection}
             >
-                <Repeat size="12" />{$_('toolbar.routing.round_trip.button')}
+                <Repeat size="12" />{i18n._('toolbar.routing.round_trip.button')}
             </ButtonWithTooltip>
         </div>
         <div class="w-full flex flex-row gap-2 items-end justify-between">
-            <Help link={getURLForLanguage($locale, '/help/toolbar/routing')}>
+            <Help link={getURLForLanguage(i18n.lang, '/help/toolbar/routing')}>
                 {#if !validSelection}
-                    {$_('toolbar.routing.help_no_file')}
+                    {i18n._('toolbar.routing.help_no_file')}
                 {:else}
-                    {$_('toolbar.routing.help')}
+                    {i18n._('toolbar.routing.help')}
                 {/if}
             </Help>
             <Button
                 variant="ghost"
                 class="px-1 h-6"
-                on:click={() => {
+                onclick={() => {
                     if (minimizable) {
                         minimized = true;
                     }

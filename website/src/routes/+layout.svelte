@@ -1,11 +1,11 @@
 <script lang="ts">
-    import '../app.pcss';
+    import '../app.css';
     import { ModeWatcher } from 'mode-watcher';
-    import { _, locale, isLoadingInitialLocale, isLoadingLocale } from '$lib/i18n';
+    import { i18n } from '$lib/i18n.svelte';
     import { page } from '$app/state';
     import Nav from '$lib/components/Nav.svelte';
     import Footer from '$lib/components/Footer.svelte';
-    import { onMount } from 'svelte';
+    import { onMount, type Snippet } from 'svelte';
     import { convertOldEmbeddingOptions } from '$lib/components/embedding/Embedding';
     import { base } from '$app/paths';
     import { languages } from '$lib/languages';
@@ -13,9 +13,15 @@
     import { goto } from '$app/navigation';
     import { getURLForLanguage } from '$lib/utils';
 
-    export let data: {
-        guideTitles: Record<string, string>;
-    };
+    let {
+        data,
+        children,
+    }: {
+        data: {
+            guideTitles: Record<string, string>;
+        };
+        children: Snippet;
+    } = $props();
 
     const appRoutes = ['/[[language]]/app', '/[[language]]/embed'];
 
@@ -29,41 +35,46 @@
         }
     });
 
-    $: if (page.route.id?.includes('[[language]]')) {
-        if (page.params.language) {
-            let lang = page.params.language.replace('/', '');
-            if ($locale !== lang) {
-                if (languages.hasOwnProperty(lang)) {
-                    $locale = lang;
-                } else if (browser) {
-                    goto(`${base}/404`);
+    $effect(() => {
+        if (page.route.id?.includes('[[language]]')) {
+            if (page.params.language) {
+                let lang = page.params.language.replace('/', '');
+                if (i18n.lang !== lang) {
+                    if (languages.hasOwnProperty(lang)) {
+                        i18n.lang = lang;
+                    } else if (browser) {
+                        goto(`${base}/404`);
+                    }
                 }
+            } else if (i18n.lang !== 'en') {
+                i18n.lang = 'en';
             }
-        } else if ($locale !== 'en') {
-            $locale = 'en';
+        } else if (i18n.lang === '') {
+            i18n.lang = 'en';
         }
-    }
+    });
 
-    $: if (browser && !$isLoadingLocale && $locale) {
-        let title = `gpx.studio — ${$_(`metadata.${page.route.id?.replace('/[[language]]', '').split('/')[1] ?? 'home'}_title`)}`;
+    $effect(() => {
+        let title = `gpx.studio — ${i18n._(`metadata.${page.route.id?.replace('/[[language]]', '').split('/')[1] ?? 'home'}_title`)}`;
         if (page.params.guide) {
             document.title = `${title} | ${data.guideTitles[page.params.guide]}`;
         } else {
             document.title = title;
         }
-    }
-    $: showNavAndFooter = page.route.id === null || !appRoutes.includes(page.route.id);
+    });
+
+    let showNavAndFooter = $derived(page.route.id === null || !appRoutes.includes(page.route.id));
 </script>
 
 <ModeWatcher />
 
 <div class="flex flex-col min-h-screen">
-    {#if !$isLoadingInitialLocale}
+    {#if !i18n.isLoadingInitial}
         {#if showNavAndFooter}
             <Nav />
         {/if}
         <main class="grow flex flex-col">
-            <slot />
+            {@render children()}
         </main>
         {#if showNavAndFooter}
             <Footer />

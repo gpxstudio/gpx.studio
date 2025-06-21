@@ -1,7 +1,7 @@
 {
 	"$schema": "https://next.shadcn-svelte.com/schema.json",
 	"tailwind": {
-		"css": "src/app.pcss",
+		"css": "src/app.css",
 		"baseColor": "slate"
 	},
 	"aliases": {
@@ -12,5 +12,5 @@
 		"lib": "$lib"
 	},
 	"typescript": true,
-	"registry": "https://tw3.shadcn-svelte.com/registry/default"
+	"registry": "https://next.shadcn-svelte.com/registry"
 }

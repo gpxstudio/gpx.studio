@@ -43,21 +43,18 @@
         BookOpenText,
         ChartArea,
         Maximize,
-    } from 'lucide-svelte';
-
-    import {
-        map,
-        triggerFileInput,
-        createFile,
-        loadFiles,
-        updateSelectionFromKey,
-        allHidden,
-        editMetadata,
-        editStyle,
-        exportState,
-        ExportState,
-        centerMapOnSelection,
-    } from '$lib/stores';
+    } from '@lucide/svelte';
+    import { map } from '$lib/components/map/utils.svelte';
+    import { editMetadata } from '$lib/components/file-list/metadata/utils.svelte';
+    import { editStyle } from '$lib/components/file-list/style/utils.svelte';
+    import { exportState, ExportState } from '$lib/components/export/utils.svelte';
+    // import {
+    //     triggerFileInput,
+    //     createFile,
+    //     loadFiles,
+    //     updateSelectionFromKey,
+    //     allHidden,
+    // } from '$lib/stores';
     import {
         copied,
         copySelection,
@@ -66,17 +63,17 @@
         selectAll,
         selection,
     } from '$lib/components/file-list/Selection';
-    import { derived } from 'svelte/store';
-    import { canUndo, canRedo, dbUtils, fileObservers, settings } from '$lib/db';
-    import { anySelectedLayer } from '$lib/components/layer-control/utils';
+    // import { canUndo, canRedo, dbUtils, fileObservers, settings } from '$lib/db';
+    import { anySelectedLayer } from '$lib/components/map/layer-control/utils.svelte';
     import { defaultOverlays } from '$lib/assets/layers';
-    import LayerControlSettings from '$lib/components/layer-control/LayerControlSettings.svelte';
+    // import LayerControlSettings from '$lib/components/map/layer-control/LayerControlSettings.svelte';
     import { allowedPastes, ListFileItem, ListTrackItem } from '$lib/components/file-list/FileList';
-    import Export from '$lib/components/Export.svelte';
+    import Export from '$lib/components/export/Export.svelte';
     import { mode, setMode } from 'mode-watcher';
-    import { _, locale } from '$lib/i18n';
+    import { i18n } from '$lib/i18n.svelte';
     import { languages } from '$lib/languages';
     import { getURLForLanguage } from '$lib/utils';
+    import { settings } from '$lib/logic/settings.svelte';
 
     const {
         distanceUnits,
@@ -94,119 +91,118 @@
         routing,
     } = settings;
 
-    let undoDisabled = derived(canUndo, ($canUndo) => !$canUndo);
-    let redoDisabled = derived(canRedo, ($canRedo) => !$canRedo);
+    // let undoDisabled = derived(canUndo, ($canUndo) => !$canUndo);
+    // let redoDisabled = derived(canRedo, ($canRedo) => !$canRedo);
 
     function switchBasemaps() {
-        [$currentBasemap, $previousBasemap] = [$previousBasemap, $currentBasemap];
+        [currentBasemap.value, previousBasemap.value] = [
+            previousBasemap.value,
+            currentBasemap.value,
+        ];
     }
 
     function toggleOverlays() {
-        if (anySelectedLayer($currentOverlays)) {
-            [$currentOverlays, $previousOverlays] = [defaultOverlays, $currentOverlays];
+        if (currentOverlays.value && anySelectedLayer(currentOverlays.value)) {
+            [currentOverlays.value, previousOverlays.value] = [
+                defaultOverlays,
+                currentOverlays.value,
+            ];
         } else {
-            [$currentOverlays, $previousOverlays] = [$previousOverlays, defaultOverlays];
+            [currentOverlays.value, previousOverlays.value] = [
+                previousOverlays.value,
+                defaultOverlays,
+            ];
         }
     }
 
-    function toggle3D() {
-        if ($map) {
-            if ($map.getPitch() === 0) {
-                $map.easeTo({ pitch: 70 });
-            } else {
-                $map.easeTo({ pitch: 0 });
-            }
-        }
-    }
-
-    let layerSettingsOpen = false;
+    let layerSettingsOpen = $state(false);
 </script>
 
 <div class="absolute md:top-2 left-0 right-0 z-20 flex flex-row justify-center pointer-events-none">
     <div
         class="w-fit flex flex-row items-center justify-center p-1 bg-background rounded-b-md md:rounded-md pointer-events-auto shadow-md"
     >
-        <a href={getURLForLanguage($locale, '/')} target="_blank" class="shrink-0">
+        <a href={getURLForLanguage(i18n.lang, '/')} target="_blank" class="shrink-0">
             <Logo class="h-5 mt-0.5 mx-2 md:hidden" iconOnly={true} width="16" />
             <Logo class="h-5 mt-0.5 mx-2 hidden md:block" width="96" />
         </a>
         <Menubar.Root class="border-none h-fit p-0">
             <Menubar.Menu>
-                <Menubar.Trigger aria-label={$_('gpx.file')}>
+                <Menubar.Trigger aria-label={i18n._('gpx.file')}>
                     <File size="18" class="md:hidden" />
-                    <span class="hidden md:block">{$_('gpx.file')}</span>
+                    <span class="hidden md:block">{i18n._('gpx.file')}</span>
                 </Menubar.Trigger>
                 <Menubar.Content class="border-none">
-                    <Menubar.Item on:click={createFile}>
+                    <Menubar.Item onclick={createFile}>
                         <Plus size="16" class="mr-1" />
-                        {$_('menu.new')}
+                        {i18n._('menu.new')}
                         <Shortcut key="+" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Separator />
-                    <Menubar.Item on:click={triggerFileInput}>
+                    <Menubar.Item onclick={triggerFileInput}>
                         <FolderOpen size="16" class="mr-1" />
-                        {$_('menu.open')}
+                        {i18n._('menu.open')}
                         <Shortcut key="O" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Separator />
                     <Menubar.Item
-                        on:click={dbUtils.duplicateSelection}
+                        onclick={dbUtils.duplicateSelection}
                         disabled={$selection.size == 0}
                     >
                         <Copy size="16" class="mr-1" />
-                        {$_('menu.duplicate')}
+                        {i18n._('menu.duplicate')}
                         <Shortcut key="D" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Separator />
                     <Menubar.Item
-                        on:click={dbUtils.deleteSelectedFiles}
+                        onclick={dbUtils.deleteSelectedFiles}
                         disabled={$selection.size == 0}
                     >
                         <FileX size="16" class="mr-1" />
-                        {$_('menu.close')}
+                        {i18n._('menu.close')}
                         <Shortcut key="⌫" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Item
-                        on:click={dbUtils.deleteAllFiles}
+                        onclick={dbUtils.deleteAllFiles}
                         disabled={$fileObservers.size == 0}
                     >
                         <FileX size="16" class="mr-1" />
-                        {$_('menu.close_all')}
+                        {i18n._('menu.close_all')}
                         <Shortcut key="⌫" ctrl={true} shift={true} />
                     </Menubar.Item>
                     <Menubar.Separator />
                     <Menubar.Item
-                        on:click={() => ($exportState = ExportState.SELECTION)}
+                        onclick={() => (exportState.current = ExportState.SELECTION)}
                         disabled={$selection.size == 0}
                     >
                         <Download size="16" class="mr-1" />
-                        {$_('menu.export')}
+                        {i18n._('menu.export')}
                         <Shortcut key="S" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Item
-                        on:click={() => ($exportState = ExportState.ALL)}
+                        onclick={() => (exportState.current = ExportState.ALL)}
                         disabled={$fileObservers.size == 0}
                     >
                         <Download size="16" class="mr-1" />
-                        {$_('menu.export_all')}
+                        {i18n._('menu.export_all')}
                         <Shortcut key="S" ctrl={true} shift={true} />
                     </Menubar.Item>
                 </Menubar.Content>
             </Menubar.Menu>
             <Menubar.Menu>
-                <Menubar.Trigger aria-label={$_('menu.edit')}>
+                <Menubar.Trigger aria-label={i18n._('menu.edit')}>
                     <FilePen size="18" class="md:hidden" />
-                    <span class="hidden md:block">{$_('menu.edit')}</span>
+                    <span class="hidden md:block">{i18n._('menu.edit')}</span>
                 </Menubar.Trigger>
                 <Menubar.Content class="border-none">
-                    <Menubar.Item on:click={dbUtils.undo} disabled={$undoDisabled}>
+                    <Menubar.Item onclick={dbUtils.undo} disabled={$undoDisabled}>
                         <Undo2 size="16" class="mr-1" />
-                        {$_('menu.undo')}
+                        {i18n._('menu.undo')}
                         <Shortcut key="Z" ctrl={true} />
                     </Menubar.Item>
-                    <Menubar.Item on:click={dbUtils.redo} disabled={$redoDisabled}>
+                    <Menubar.Item onclick={dbUtils.redo} disabled={$redoDisabled}>
                         <Redo2 size="16" class="mr-1" />
-                        {$_('menu.redo')}
+                        {i18n._('menu.redo')}
                         <Shortcut key="Z" ctrl={true} shift={true} />
                     </Menubar.Item>
                     <Menubar.Separator />
@@ -219,10 +215,10 @@
                                         item instanceof ListFileItem ||
                                         item instanceof ListTrackItem
                                 )}
-                        on:click={() => ($editMetadata = true)}
+                        onclick={() => (editMetadata.current = true)}
                     >
                         <Info size="16" class="mr-1" />
-                        {$_('menu.metadata.button')}
+                        {i18n._('menu.metadata.button')}
                         <Shortcut key="I" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Item
@@ -234,13 +230,13 @@
                                         item instanceof ListFileItem ||
                                         item instanceof ListTrackItem
                                 )}
-                        on:click={() => ($editStyle = true)}
+                        onclick={() => (editStyle.current = true)}
                     >
                         <PaintBucket size="16" class="mr-1" />
-                        {$_('menu.style.button')}
+                        {i18n._('menu.style.button')}
                     </Menubar.Item>
                     <Menubar.Item
-                        on:click={() => {
+                        onclick={() => {
                             if ($allHidden) {
                                 dbUtils.setHiddenToSelection(false);
                             } else {
@@ -251,67 +247,67 @@
                     >
                         {#if $allHidden}
                             <Eye size="16" class="mr-1" />
-                            {$_('menu.unhide')}
+                            {i18n._('menu.unhide')}
                         {:else}
                             <EyeOff size="16" class="mr-1" />
-                            {$_('menu.hide')}
+                            {i18n._('menu.hide')}
                         {/if}
                         <Shortcut key="H" ctrl={true} />
                     </Menubar.Item>
-                    {#if $treeFileView}
+                    {#if treeFileView.value}
                         {#if $selection.getSelected().some((item) => item instanceof ListFileItem)}
                             <Menubar.Separator />
                             <Menubar.Item
-                                on:click={() =>
+                                onclick={() =>
                                     dbUtils.addNewTrack($selection.getSelected()[0].getFileId())}
                                 disabled={$selection.size !== 1}
                             >
                                 <Plus size="16" class="mr-1" />
-                                {$_('menu.new_track')}
+                                {i18n._('menu.new_track')}
                             </Menubar.Item>
                         {:else if $selection
                             .getSelected()
                             .some((item) => item instanceof ListTrackItem)}
                             <Menubar.Separator />
                             <Menubar.Item
-                                on:click={() => {
+                                onclick={() => {
                                     let item = $selection.getSelected()[0];
                                     dbUtils.addNewSegment(item.getFileId(), item.getTrackIndex());
                                 }}
                                 disabled={$selection.size !== 1}
                             >
                                 <Plus size="16" class="mr-1" />
-                                {$_('menu.new_segment')}
+                                {i18n._('menu.new_segment')}
                             </Menubar.Item>
                         {/if}
                     {/if}
                     <Menubar.Separator />
-                    <Menubar.Item on:click={selectAll} disabled={$fileObservers.size == 0}>
+                    <Menubar.Item onclick={selectAll} disabled={$fileObservers.size == 0}>
                         <FileStack size="16" class="mr-1" />
-                        {$_('menu.select_all')}
+                        {i18n._('menu.select_all')}
                         <Shortcut key="A" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Item
-                        on:click={() => {
+                        onclick={() => {
                             if ($selection.size > 0) {
                                 centerMapOnSelection();
                             }
                         }}
                     >
                         <Maximize size="16" class="mr-1" />
-                        {$_('menu.center')}
+                        {i18n._('menu.center')}
                         <Shortcut key="⏎" ctrl={true} />
                     </Menubar.Item>
-                    {#if $treeFileView}
+                    {#if treeFileView.value}
                         <Menubar.Separator />
-                        <Menubar.Item on:click={copySelection} disabled={$selection.size === 0}>
+                        <Menubar.Item onclick={copySelection} disabled={$selection.size === 0}>
                             <ClipboardCopy size="16" class="mr-1" />
-                            {$_('menu.copy')}
+                            {i18n._('menu.copy')}
                             <Shortcut key="C" ctrl={true} />
                         </Menubar.Item>
-                        <Menubar.Item on:click={cutSelection} disabled={$selection.size === 0}>
+                        <Menubar.Item onclick={cutSelection} disabled={$selection.size === 0}>
                             <Scissors size="16" class="mr-1" />
-                            {$_('menu.cut')}
+                            {i18n._('menu.cut')}
                             <Shortcut key="X" ctrl={true} />
                         </Menubar.Item>
                         <Menubar.Item
@@ -321,122 +317,119 @@
                                     !allowedPastes[$copied[0].level].includes(
                                         $selection.getSelected().pop()?.level
                                     ))}
-                            on:click={pasteSelection}
+                            onclick={pasteSelection}
                         >
                             <ClipboardPaste size="16" class="mr-1" />
-                            {$_('menu.paste')}
+                            {i18n._('menu.paste')}
                             <Shortcut key="V" ctrl={true} />
                         </Menubar.Item>
                     {/if}
                     <Menubar.Separator />
-                    <Menubar.Item
-                        on:click={dbUtils.deleteSelection}
-                        disabled={$selection.size == 0}
-                    >
+                    <Menubar.Item onclick={dbUtils.deleteSelection} disabled={$selection.size == 0}>
                         <Trash2 size="16" class="mr-1" />
-                        {$_('menu.delete')}
+                        {i18n._('menu.delete')}
                         <Shortcut key="⌫" ctrl={true} />
                     </Menubar.Item>
                 </Menubar.Content>
             </Menubar.Menu>
             <Menubar.Menu>
-                <Menubar.Trigger aria-label={$_('menu.view')}>
+                <Menubar.Trigger aria-label={i18n._('menu.view')}>
                     <View size="18" class="md:hidden" />
-                    <span class="hidden md:block">{$_('menu.view')}</span>
+                    <span class="hidden md:block">{i18n._('menu.view')}</span>
                 </Menubar.Trigger>
                 <Menubar.Content class="border-none">
-                    <Menubar.CheckboxItem bind:checked={$elevationProfile}>
+                    <Menubar.CheckboxItem bind:checked={elevationProfile.value}>
                         <ChartArea size="16" class="mr-1" />
-                        {$_('menu.elevation_profile')}
+                        {i18n._('menu.elevation_profile')}
                         <Shortcut key="P" ctrl={true} />
                     </Menubar.CheckboxItem>
-                    <Menubar.CheckboxItem bind:checked={$treeFileView}>
+                    <Menubar.CheckboxItem bind:checked={treeFileView.value}>
                         <ListTree size="16" class="mr-1" />
-                        {$_('menu.tree_file_view')}
+                        {i18n._('menu.tree_file_view')}
                         <Shortcut key="L" ctrl={true} />
                     </Menubar.CheckboxItem>
                     <Menubar.Separator />
-                    <Menubar.Item inset on:click={switchBasemaps}>
-                        <Map size="16" class="mr-1" />{$_('menu.switch_basemap')}<Shortcut
+                    <Menubar.Item inset onclick={switchBasemaps}>
+                        <Map size="16" class="mr-1" />{i18n._('menu.switch_basemap')}<Shortcut
                             key="F1"
                         />
                     </Menubar.Item>
-                    <Menubar.Item inset on:click={toggleOverlays}>
-                        <Layers2 size="16" class="mr-1" />{$_('menu.toggle_overlays')}<Shortcut
+                    <Menubar.Item inset onclick={toggleOverlays}>
+                        <Layers2 size="16" class="mr-1" />{i18n._('menu.toggle_overlays')}<Shortcut
                             key="F2"
                         />
                     </Menubar.Item>
                     <Menubar.Separator />
-                    <Menubar.CheckboxItem bind:checked={$distanceMarkers}>
-                        <Coins size="16" class="mr-1" />{$_('menu.distance_markers')}<Shortcut
+                    <Menubar.CheckboxItem bind:checked={distanceMarkers.value}>
+                        <Coins size="16" class="mr-1" />{i18n._('menu.distance_markers')}<Shortcut
                             key="F3"
                         />
                     </Menubar.CheckboxItem>
-                    <Menubar.CheckboxItem bind:checked={$directionMarkers}>
-                        <Milestone size="16" class="mr-1" />{$_('menu.direction_markers')}<Shortcut
-                            key="F4"
-                        />
+                    <Menubar.CheckboxItem bind:checked={directionMarkers.value}>
+                        <Milestone size="16" class="mr-1" />{i18n._(
+                            'menu.direction_markers'
+                        )}<Shortcut key="F4" />
                     </Menubar.CheckboxItem>
                     <Menubar.Separator />
-                    <Menubar.Item inset on:click={toggle3D}>
+                    <Menubar.Item inset onclick={map.toggle3D}>
                         <Box size="16" class="mr-1" />
-                        {$_('menu.toggle_3d')}
-                        <Shortcut key="{$_('menu.ctrl')}+{$_('menu.drag')}" />
+                        {i18n._('menu.toggle_3d')}
+                        <Shortcut key="{i18n._('menu.ctrl')}+{i18n._('menu.drag')}" />
                     </Menubar.Item>
                 </Menubar.Content>
             </Menubar.Menu>
             <Menubar.Menu>
-                <Menubar.Trigger aria-label={$_('menu.settings')}>
+                <Menubar.Trigger aria-label={i18n._('menu.settings')}>
                     <Settings size="18" class="md:hidden" />
                     <span class="hidden md:block">
-                        {$_('menu.settings')}
+                        {i18n._('menu.settings')}
                     </span>
                 </Menubar.Trigger>
                 <Menubar.Content class="border-none">
                     <Menubar.Sub>
                         <Menubar.SubTrigger>
-                            <Ruler size="16" class="mr-1" />{$_('menu.distance_units')}
+                            <Ruler size="16" class="mr-1" />{i18n._('menu.distance_units')}
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
-                            <Menubar.RadioGroup bind:value={$distanceUnits}>
+                            <Menubar.RadioGroup bind:value={distanceUnits.value}>
                                 <Menubar.RadioItem value="metric"
-                                    >{$_('menu.metric')}</Menubar.RadioItem
+                                    >{i18n._('menu.metric')}</Menubar.RadioItem
                                 >
                                 <Menubar.RadioItem value="imperial"
-                                    >{$_('menu.imperial')}</Menubar.RadioItem
+                                    >{i18n._('menu.imperial')}</Menubar.RadioItem
                                 >
                                 <Menubar.RadioItem value="nautical"
-                                    >{$_('menu.nautical')}</Menubar.RadioItem
+                                    >{i18n._('menu.nautical')}</Menubar.RadioItem
                                 >
                             </Menubar.RadioGroup>
                         </Menubar.SubContent>
                     </Menubar.Sub>
                     <Menubar.Sub>
                         <Menubar.SubTrigger>
-                            <Zap size="16" class="mr-1" />{$_('menu.velocity_units')}
+                            <Zap size="16" class="mr-1" />{i18n._('menu.velocity_units')}
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
-                            <Menubar.RadioGroup bind:value={$velocityUnits}>
+                            <Menubar.RadioGroup bind:value={velocityUnits.value}>
                                 <Menubar.RadioItem value="speed"
-                                    >{$_('quantities.speed')}</Menubar.RadioItem
+                                    >{i18n._('quantities.speed')}</Menubar.RadioItem
                                 >
                                 <Menubar.RadioItem value="pace"
-                                    >{$_('quantities.pace')}</Menubar.RadioItem
+                                    >{i18n._('quantities.pace')}</Menubar.RadioItem
                                 >
                             </Menubar.RadioGroup>
                         </Menubar.SubContent>
                     </Menubar.Sub>
                     <Menubar.Sub>
                         <Menubar.SubTrigger>
-                            <Thermometer size="16" class="mr-1" />{$_('menu.temperature_units')}
+                            <Thermometer size="16" class="mr-1" />{i18n._('menu.temperature_units')}
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
-                            <Menubar.RadioGroup bind:value={$temperatureUnits}>
+                            <Menubar.RadioGroup bind:value={temperatureUnits.value}>
                                 <Menubar.RadioItem value="celsius"
-                                    >{$_('menu.celsius')}</Menubar.RadioItem
+                                    >{i18n._('menu.celsius')}</Menubar.RadioItem
                                 >
                                 <Menubar.RadioItem value="fahrenheit"
-                                    >{$_('menu.fahrenheit')}</Menubar.RadioItem
+                                    >{i18n._('menu.fahrenheit')}</Menubar.RadioItem
                                 >
                             </Menubar.RadioGroup>
                         </Menubar.SubContent>
@@ -445,10 +438,10 @@
                     <Menubar.Sub>
                         <Menubar.SubTrigger>
                             <Languages size="16" class="mr-1" />
-                            {$_('menu.language')}
+                            {i18n._('menu.language')}
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
-                            <Menubar.RadioGroup value={$locale}>
+                            <Menubar.RadioGroup value={i18n.lang}>
                                 {#each Object.entries(languages) as [lang, label]}
                                     <a href={getURLForLanguage(lang, '/app')}>
                                         <Menubar.RadioItem value={lang}>{label}</Menubar.RadioItem>
@@ -464,19 +457,20 @@
                             {:else}
                                 <Moon size="16" class="mr-1" />
                             {/if}
-                            {$_('menu.mode')}
+                            {i18n._('menu.mode')}
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
                             <Menubar.RadioGroup
                                 value={mode.current ?? 'light'}
                                 onValueChange={(value) => {
-                                    setMode(value);
+                                    setMode(value as 'light' | 'dark');
                                 }}
                             >
                                 <Menubar.RadioItem value="light"
-                                    >{$_('menu.light')}</Menubar.RadioItem
+                                    >{i18n._('menu.light')}</Menubar.RadioItem
                                 >
-                                <Menubar.RadioItem value="dark">{$_('menu.dark')}</Menubar.RadioItem
+                                <Menubar.RadioItem value="dark"
+                                    >{i18n._('menu.dark')}</Menubar.RadioItem
                                 >
                             </Menubar.RadioGroup>
                         </Menubar.SubContent>
@@ -485,22 +479,22 @@
                     <Menubar.Sub>
                         <Menubar.SubTrigger>
                             <PersonStanding size="16" class="mr-1" />
-                            {$_('menu.street_view_source')}
+                            {i18n._('menu.street_view_source')}
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
-                            <Menubar.RadioGroup bind:value={$streetViewSource}>
+                            <Menubar.RadioGroup bind:value={streetViewSource.value}>
                                 <Menubar.RadioItem value="mapillary"
-                                    >{$_('menu.mapillary')}</Menubar.RadioItem
+                                    >{i18n._('menu.mapillary')}</Menubar.RadioItem
                                 >
                                 <Menubar.RadioItem value="google"
-                                    >{$_('menu.google')}</Menubar.RadioItem
+                                    >{i18n._('menu.google')}</Menubar.RadioItem
                                 >
                             </Menubar.RadioGroup>
                         </Menubar.SubContent>
                     </Menubar.Sub>
-                    <Menubar.Item on:click={() => (layerSettingsOpen = true)}>
+                    <Menubar.Item onclick={() => (layerSettingsOpen = true)}>
                         <Layers size="16" class="mr-1" />
-                        {$_('menu.layers')}
+                        {i18n._('menu.layers')}
                     </Menubar.Item>
                 </Menubar.Content>
             </Menubar.Menu>
@@ -511,11 +505,11 @@
                 href="./help"
                 target="_blank"
                 class="cursor-default h-fit rounded-sm px-3 py-0.5"
-                aria-label={$_('menu.help')}
+                aria-label={i18n._('menu.help')}
             >
                 <BookOpenText size="18" class="md:hidden" />
                 <span class="hidden md:block">
-                    {$_('menu.help')}
+                    {i18n._('menu.help')}
                 </span>
             </Button>
             <Button
@@ -523,11 +517,11 @@
                 href="https://ko-fi.com/gpxstudio"
                 target="_blank"
                 class="cursor-default h-fit rounded-sm font-bold text-support hover:text-support px-3 py-0.5"
-                aria-label={$_('menu.donate')}
+                aria-label={i18n._('menu.donate')}
             >
                 <HeartHandshake size="18" class="md:hidden" />
                 <span class="hidden md:flex flex-row items-center">
-                    {$_('menu.donate')}
+                    {i18n._('menu.donate')}
                     <Heart size="16" class="ml-1" fill="rgb(var(--support))" />
                 </span>
             </Button>
@@ -536,7 +530,7 @@
 </div>
 
 <Export />
-<LayerControlSettings bind:open={layerSettingsOpen} />
+<!-- <LayerControlSettings bind:open={layerSettingsOpen} /> -->
 
 <svelte:window
     on:keydown={(e) => {
@@ -578,10 +572,10 @@
         } else if ((e.key === 's' || e.key == 'S') && (e.metaKey || e.ctrlKey)) {
             if (e.shiftKey) {
                 if ($fileObservers.size > 0) {
-                    $exportState = ExportState.ALL;
+                    exportState.current = ExportState.ALL;
                 }
             } else if ($selection.size > 0) {
-                $exportState = ExportState.SELECTION;
+                exportState.current = ExportState.SELECTION;
             }
             e.preventDefault();
         } else if ((e.key === 'z' || e.key == 'Z') && (e.metaKey || e.ctrlKey)) {
@@ -612,7 +606,7 @@
                     .getSelected()
                     .every((item) => item instanceof ListFileItem || item instanceof ListTrackItem)
             ) {
-                $editMetadata = true;
+                editMetadata.current = true;
             }
             e.preventDefault();
         } else if (e.key === 'p' && (e.metaKey || e.ctrlKey)) {
@@ -669,6 +663,8 @@
 />
 
 <style lang="postcss">
+    @reference "../../app.css";
+
     div :global(button) {
         @apply hover:bg-accent;
         @apply px-3;

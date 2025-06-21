@@ -14,10 +14,9 @@
         nauticalMilesToKilometers,
     } from '$lib/units';
     import { CalendarDate, type DateValue } from '@internationalized/date';
-    import { CalendarClock, CirclePlay, CircleStop, CircleX, Timer, Zap } from 'lucide-svelte';
+    import { CalendarClock, CirclePlay, CircleStop, CircleX, Timer, Zap } from '@lucide/svelte';
     import { tick } from 'svelte';
-    import { _, locale } from '$lib/i18n';
-    import { get } from 'svelte/store';
+    import { i18n } from '$lib/i18n.svelte';
     import { selection } from '$lib/components/file-list/Selection';
     import {
         ListFileItem,
@@ -183,9 +182,9 @@
                 <Label for="speed" class="flex flex-row">
                     <Zap size="16" class="mr-1" />
                     {#if $velocityUnits === 'speed'}
-                        {$_('quantities.speed')}
+                        {i18n._('quantities.speed')}
                     {:else}
-                        {$_('quantities.pace')}
+                        {i18n._('quantities.pace')}
                     {/if}
                 </Label>
                 <div class="flex flex-row gap-1 items-center">
@@ -197,15 +196,15 @@
                             min={0.01}
                             disabled={!canUpdate}
                             bind:value={speed}
-                            on:change={updateDataFromSpeed}
+                            onchange={updateDataFromSpeed}
                         />
                         <span class="text-sm shrink-0">
                             {#if $distanceUnits === 'imperial'}
-                                {$_('units.miles_per_hour')}
+                                {i18n._('units.miles_per_hour')}
                             {:else if $distanceUnits === 'metric'}
-                                {$_('units.kilometers_per_hour')}
+                                {i18n._('units.kilometers_per_hour')}
                             {:else if $distanceUnits === 'nautical'}
-                                {$_('units.knots')}
+                                {i18n._('units.knots')}
                             {/if}
                         </span>
                     {:else}
@@ -217,11 +216,11 @@
                         />
                         <span class="text-sm shrink-0">
                             {#if $distanceUnits === 'imperial'}
-                                {$_('units.minutes_per_mile')}
+                                {i18n._('units.minutes_per_mile')}
                             {:else if $distanceUnits === 'metric'}
-                                {$_('units.minutes_per_kilometer')}
+                                {i18n._('units.minutes_per_kilometer')}
                             {:else if $distanceUnits === 'nautical'}
-                                {$_('units.minutes_per_nautical_mile')}
+                                {i18n._('units.minutes_per_nautical_mile')}
                             {/if}
                         </span>
                     {/if}
@@ -230,7 +229,7 @@
             <div class="flex flex-col gap-2 grow">
                 <Label for="duration" class="flex flex-row">
                     <Timer size="16" class="mr-1" />
-                    {$_('toolbar.time.total_time')}
+                    {i18n._('toolbar.time.total_time')}
                 </Label>
                 <TimePicker
                     bind:value={movingTime}
@@ -241,14 +240,14 @@
         </div>
         <Label class="flex flex-row">
             <CirclePlay size="16" class="mr-1" />
-            {$_('toolbar.time.start')}
+            {i18n._('toolbar.time.start')}
         </Label>
         <div class="flex flex-row gap-2">
             <DatePicker
                 bind:value={startDate}
                 disabled={!canUpdate}
-                locale={get(locale) ?? 'en'}
-                placeholder={$_('toolbar.time.pick_date')}
+                locale={i18n.lang}
+                placeholder={i18n._('toolbar.time.pick_date')}
                 class="w-fit grow"
                 onValueChange={async () => {
                     await tick();
@@ -266,14 +265,14 @@
         </div>
         <Label class="flex flex-row">
             <CircleStop size="16" class="mr-1" />
-            {$_('toolbar.time.end')}
+            {i18n._('toolbar.time.end')}
         </Label>
         <div class="flex flex-row gap-2">
             <DatePicker
                 bind:value={endDate}
                 disabled={!canUpdate}
-                locale={get(locale) ?? 'en'}
-                placeholder={$_('toolbar.time.pick_date')}
+                locale={i18n.lang}
+                placeholder={i18n._('toolbar.time.pick_date')}
                 class="w-fit grow"
                 onValueChange={async () => {
                     await tick();
@@ -293,7 +292,7 @@
             <div class="mt-0.5 flex flex-row gap-1 items-center">
                 <Checkbox id="artificial-time" bind:checked={artificial} disabled={!canUpdate} />
                 <Label for="artificial-time">
-                    {$_('toolbar.time.artificial')}
+                    {i18n._('toolbar.time.artificial')}
                 </Label>
             </div>
         {/if}
@@ -303,7 +302,7 @@
             variant="outline"
             disabled={!canUpdate}
             class="grow whitespace-normal h-fit"
-            on:click={() => {
+            onclick={() => {
                 let effectiveSpeed = getSpeed();
                 if (
                     startDate === undefined ||
@@ -378,22 +377,24 @@
             }}
         >
             <CalendarClock size="16" class="mr-1 shrink-0" />
-            {$_('toolbar.time.update')}
+            {i18n._('toolbar.time.update')}
         </Button>
-        <Button variant="outline" on:click={setGPXData}>
+        <Button variant="outline" onclick={setGPXData}>
             <CircleX size="16" />
         </Button>
     </div>
-    <Help link={getURLForLanguage($locale, '/help/toolbar/time')}>
+    <Help link={getURLForLanguage(i18n.lang, '/help/toolbar/time')}>
         {#if canUpdate}
-            {$_('toolbar.time.help')}
+            {i18n._('toolbar.time.help')}
         {:else}
-            {$_('toolbar.time.help_invalid_selection')}
+            {i18n._('toolbar.time.help_invalid_selection')}
         {/if}
     </Help>
 </div>
 
 <style lang="postcss">
+    @reference "../../../../app.css";
+
     div :global(input[type='time']) {
         /*
         Style copy-pasted from shadcn-svelte Input.

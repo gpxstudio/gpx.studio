@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Button } from '$lib/components/ui/button';
-    import { Ungroup } from 'lucide-svelte';
+    import { Ungroup } from '@lucide/svelte';
     import { selection } from '$lib/components/file-list/Selection';
     import {
         ListFileItem,
@@ -11,7 +11,7 @@
     } from '$lib/components/file-list/FileList';
     import Help from '$lib/components/Help.svelte';
     import { dbUtils, getFile } from '$lib/db';
-    import { _, locale } from '$lib/i18n';
+    import { i18n } from '$lib/i18n.svelte';
     import { getURLForLanguage } from '$lib/utils';
 
     $: validSelection =
@@ -39,15 +39,15 @@
 </script>
 
 <div class="flex flex-col gap-3 w-full max-w-80 {$$props.class ?? ''}">
-    <Button variant="outline" disabled={!validSelection} on:click={dbUtils.extractSelection}>
+    <Button variant="outline" disabled={!validSelection} onclick={dbUtils.extractSelection}>
         <Ungroup size="16" class="mr-1" />
-        {$_('toolbar.extract.button')}
+        {i18n._('toolbar.extract.button')}
     </Button>
-    <Help link={getURLForLanguage($locale, '/help/toolbar/extract')}>
+    <Help link={getURLForLanguage(i18n.lang, '/help/toolbar/extract')}>
         {#if validSelection}
-            {$_('toolbar.extract.help')}
+            {i18n._('toolbar.extract.help')}
         {:else}
-            {$_('toolbar.extract.help_invalid_selection')}
+            {i18n._('toolbar.extract.help_invalid_selection')}
         {/if}
     </Help>
 </div>

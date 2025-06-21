@@ -1,6 +1,11 @@
 <script lang="ts">
-    export let src: 'getting-started/interface' | 'tools/routing' | 'tools/split';
-    export let alt: string;
+    let {
+        src,
+        alt,
+    }: {
+        src: 'getting-started/interface' | 'tools/routing' | 'tools/split';
+        alt: string;
+    } = $props();
 </script>
 
 <div class="flex flex-col items-center py-6 w-full">

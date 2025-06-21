@@ -29,7 +29,8 @@ import {
     TriangleAlert,
     Anchor,
     Toilet,
-} from 'lucide-svelte';
+    type IconProps,
+} from '@lucide/svelte';
 import {
     Landmark as LandmarkSvg,
     Shell as ShellSvg,
@@ -61,11 +62,11 @@ import {
     Anchor as AnchorSvg,
     Toilet as ToiletSvg,
 } from 'lucide-static';
-import type { ComponentType } from 'svelte';
+import type { Component } from 'svelte';
 
 export type Symbol = {
     value: string;
-    icon?: ComponentType<Icon>;
+    icon?: Component<IconProps>;
     iconSvg?: string;
 };
 

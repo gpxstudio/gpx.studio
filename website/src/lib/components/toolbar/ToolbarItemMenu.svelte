@@ -1,7 +1,6 @@
 <script lang="ts">
-    import { Tool, currentTool } from '$lib/stores';
+    import { Tool, tool } from '$lib/components/toolbar/utils.svelte';
     import { settings } from '$lib/db';
-    import { flyAndScale } from '$lib/utils';
     import * as Card from '$lib/components/ui/card';
     import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
     import Scissors from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
@@ -31,31 +30,28 @@
     });
 </script>
 
-{#if $currentTool !== null}
-    <div
-        in:flyAndScale={{ x: -2, y: 0, duration: 100 }}
-        class="translate-x-1 h-full {$$props.class ?? ''}"
-    >
+{#if tool.current !== null}
+    <div class="translate-x-1 h-full animate-in animate-out {$$props.class ?? ''}">
         <div class="rounded-md shadow-md pointer-events-auto">
             <Card.Root class="rounded-md border-none">
                 <Card.Content class="p-2.5">
-                    {#if $currentTool === Tool.ROUTING}
+                    {#if tool.current === Tool.ROUTING}
                         <Routing {popup} {popupElement} bind:minimized={$minimizeRoutingMenu} />
-                    {:else if $currentTool === Tool.SCISSORS}
+                    {:else if tool.current === Tool.SCISSORS}
                         <Scissors />
-                    {:else if $currentTool === Tool.WAYPOINT}
+                    {:else if tool.current === Tool.WAYPOINT}
                         <Waypoint />
-                    {:else if $currentTool === Tool.TIME}
+                    {:else if tool.current === Tool.TIME}
                         <Time />
-                    {:else if $currentTool === Tool.MERGE}
+                    {:else if tool.current === Tool.MERGE}
                         <Merge />
-                    {:else if $currentTool === Tool.ELEVATION}
+                    {:else if tool.current === Tool.ELEVATION}
                         <Elevation />
-                    {:else if $currentTool === Tool.EXTRACT}
+                    {:else if tool.current === Tool.EXTRACT}
                         <Extract />
-                    {:else if $currentTool === Tool.CLEAN}
+                    {:else if tool.current === Tool.CLEAN}
                         <Clean />
-                    {:else if $currentTool === Tool.REDUCE}
+                    {:else if tool.current === Tool.REDUCE}
                         <Reduce />
                     {/if}
                 </Card.Content>
@@ -66,8 +62,8 @@
 
 <svelte:window
     on:keydown={(e) => {
-        if ($currentTool !== null && e.key === 'Escape') {
-            currentTool.set(null);
+        if (tool.current !== null && e.key === 'Escape') {
+            tool.current = null;
         }
     }}
 />

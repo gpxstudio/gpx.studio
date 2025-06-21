@@ -1,12 +1,5 @@
-<script lang="ts" context="module">
-    export enum SplitType {
-        FILES = 'files',
-        TRACKS = 'tracks',
-        SEGMENTS = 'segments',
-    }
-</script>
-
 <script lang="ts">
+    import { splitAs, SplitType } from '$lib/components/toolbar/tools/scissors/utils.svelte';
     import Help from '$lib/components/Help.svelte';
     import { ListRootItem } from '$lib/components/file-list/FileList';
     import { selection } from '$lib/components/file-list/Selection';
@@ -15,31 +8,39 @@
     import { Slider } from '$lib/components/ui/slider';
     import * as Select from '$lib/components/ui/select';
     import { Separator } from '$lib/components/ui/separator';
-    import { gpxStatistics, map, slicedGPXStatistics, splitAs } from '$lib/stores';
+    import { gpxStatistics, slicedGPXStatistics } from '$lib/stores';
+    import { map } from '$lib/components/map/map.svelte';
     import { get } from 'svelte/store';
-    import { _, locale } from '$lib/i18n';
+    import { i18n } from '$lib/i18n.svelte';
     import { onDestroy, tick } from 'svelte';
-    import { Crop } from 'lucide-svelte';
+    import { Crop } from '@lucide/svelte';
     import { dbUtils } from '$lib/db';
-    import { SplitControls } from './SplitControls';
+    import { SplitControls } from './SplitControls.svelte';
     import { getURLForLanguage } from '$lib/utils';
 
+    let props: {
+        class?: string;
+    } = $props();
+
     let splitControls: SplitControls | undefined = undefined;
-    let canCrop = false;
+    let canCrop = $state(false);
 
-    $: if ($map) {
-        if (splitControls) {
-            splitControls.destroy();
+    $effect(() => {
+        if (map.current) {
+            if (splitControls) {
+                splitControls.destroy();
+            }
+            splitControls = new SplitControls(map.current);
         }
-        splitControls = new SplitControls($map);
-    }
+    });
 
-    $: validSelection =
+    let validSelection = $derived(
         $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints']) &&
-        $gpxStatistics.local.points.length > 0;
+            $gpxStatistics.local.points.length > 0
+    );
 
-    let maxSliderValue = 1;
-    let sliderValues = [0, 1];
+    let maxSliderValue = $state(1);
+    let sliderValues = $state([0, 1]);
 
     function updateCanCrop() {
         canCrop = sliderValues[0] != 0 || sliderValues[1] != maxSliderValue;
@@ -73,32 +74,29 @@
         sliderValues = [0, maxSliderValue];
     }
 
-    $: if ($gpxStatistics.local.points.length - 1 != maxSliderValue) {
-        updateSliderLimits();
-    }
+    $effect(() => {
+        if ($gpxStatistics.local.points.length - 1 != maxSliderValue) {
+            updateSliderLimits();
+        }
+    });
 
-    $: if (sliderValues) {
-        updateCanCrop();
-        updateSlicedGPXStatistics();
-    }
+    $effect(() => {
+        if (sliderValues) {
+            updateCanCrop();
+            updateSlicedGPXStatistics();
+        }
+    });
 
-    $: if (
-        $slicedGPXStatistics !== undefined &&
-        ($slicedGPXStatistics[1] !== sliderValues[0] || $slicedGPXStatistics[2] !== sliderValues[1])
-    ) {
-        updateSliderValues();
-        updateCanCrop();
-    }
-
-    const splitTypes = [
-        { value: SplitType.FILES, label: $_('gpx.files') },
-        { value: SplitType.TRACKS, label: $_('gpx.tracks') },
-        { value: SplitType.SEGMENTS, label: $_('gpx.segments') },
-    ];
-
-    let splitType = splitTypes.find((type) => type.value === $splitAs) ?? splitTypes[0];
-
-    $: splitAs.set(splitType.value);
+    $effect(() => {
+        if (
+            $slicedGPXStatistics !== undefined &&
+            ($slicedGPXStatistics[1] !== sliderValues[0] ||
+                $slicedGPXStatistics[2] !== sliderValues[1])
+        ) {
+            updateSliderValues();
+            updateCanCrop();
+        }
+    });
 
     onDestroy(() => {
         $slicedGPXStatistics = undefined;
@@ -109,43 +107,44 @@
     });
 </script>
 
-<div class="flex flex-col gap-3 w-full max-w-80 {$$props.class ?? ''}">
+<div class="flex flex-col gap-3 w-full max-w-80 {props.class ?? ''}">
     <div class="p-2">
         <Slider
             bind:value={sliderValues}
             max={maxSliderValue}
             step={1}
+            type="multiple"
             disabled={!validSelection}
         />
     </div>
     <Button
         variant="outline"
         disabled={!validSelection || !canCrop}
-        on:click={() => dbUtils.cropSelection(sliderValues[0], sliderValues[1])}
+        onclick={() => dbUtils.cropSelection(sliderValues[0], sliderValues[1])}
     >
-        <Crop size="16" class="mr-1" />{$_('toolbar.scissors.crop')}
+        <Crop size="16" class="mr-1" />{i18n._('toolbar.scissors.crop')}
     </Button>
     <Separator />
     <Label class="flex flex-row flex-wrap gap-3 items-center">
         <span class="shrink-0">
-            {$_('toolbar.scissors.split_as')}
+            {i18n._('toolbar.scissors.split_as')}
         </span>
-        <Select.Root bind:selected={splitType}>
+        <Select.Root bind:value={splitAs.current} type="single">
             <Select.Trigger class="h-8 w-fit grow">
-                <Select.Value />
+                {i18n._('gpx.' + splitAs)}
             </Select.Trigger>
             <Select.Content>
-                {#each splitTypes as { value, label }}
-                    <Select.Item {value}>{label}</Select.Item>
+                {#each Object.values(SplitType) as splitType}
+                    <Select.Item value={splitType}>{i18n._('gpx.' + splitType)}</Select.Item>
                 {/each}
             </Select.Content>
         </Select.Root>
     </Label>
-    <Help link={getURLForLanguage($locale, '/help/toolbar/scissors')}>
+    <Help link={getURLForLanguage(i18n.lang, '/help/toolbar/scissors')}>
         {#if validSelection}
-            {$_('toolbar.scissors.help')}
+            {i18n._('toolbar.scissors.help')}
         {:else}
-            {$_('toolbar.scissors.help_invalid_selection')}
+            {i18n._('toolbar.scissors.help_invalid_selection')}
         {/if}
     </Help>
 </div>

@@ -13,9 +13,9 @@
     import { Label } from '$lib/components/ui/label/index.js';
     import { Checkbox } from '$lib/components/ui/checkbox';
     import * as RadioGroup from '$lib/components/ui/radio-group';
-    import { _, locale } from '$lib/i18n';
+    import { i18n } from '$lib/i18n.svelte';
     import { dbUtils, getFile } from '$lib/db';
-    import { Group } from 'lucide-svelte';
+    import { Group } from '@lucide/svelte';
     import { getURLForLanguage } from '$lib/utils';
     import Shortcut from '$lib/components/Shortcut.svelte';
     import { gpxStatistics } from '$lib/stores';
@@ -61,17 +61,17 @@
     <RadioGroup.Root bind:value={mergeType}>
         <Label class="flex flex-row items-center gap-1.5 leading-5">
             <RadioGroup.Item value={MergeType.TRACES} />
-            {$_('toolbar.merge.merge_traces')}
+            {i18n._('toolbar.merge.merge_traces')}
         </Label>
         <Label class="flex flex-row items-center gap-1.5 leading-5">
             <RadioGroup.Item value={MergeType.CONTENTS} />
-            {$_('toolbar.merge.merge_contents')}
+            {i18n._('toolbar.merge.merge_contents')}
         </Label>
     </RadioGroup.Root>
     {#if mergeType === MergeType.TRACES && $gpxStatistics.global.time.total > 0}
         <div class="flex flex-row items-center gap-1.5">
             <Checkbox id="remove-gaps" bind:checked={removeGaps} />
-            <Label for="remove-gaps">{$_('toolbar.merge.remove_gaps')}</Label>
+            <Label for="remove-gaps">{i18n._('toolbar.merge.remove_gaps')}</Label>
         </div>
     {/if}
     <Button
@@ -79,7 +79,7 @@
         class="whitespace-normal h-fit"
         disabled={(mergeType === MergeType.TRACES && !canMergeTraces) ||
             (mergeType === MergeType.CONTENTS && !canMergeContents)}
-        on:click={() => {
+        onclick={() => {
             dbUtils.mergeSelection(
                 mergeType === MergeType.TRACES,
                 mergeType === MergeType.TRACES && $gpxStatistics.global.time.total > 0 && removeGaps
@@ -87,31 +87,31 @@
         }}
     >
         <Group size="16" class="mr-1 shrink-0" />
-        {$_('toolbar.merge.merge_selection')}
+        {i18n._('toolbar.merge.merge_selection')}
     </Button>
-    <Help link={getURLForLanguage($locale, '/help/toolbar/merge')}>
+    <Help link={getURLForLanguage(i18n.lang, '/help/toolbar/merge')}>
         {#if mergeType === MergeType.TRACES && canMergeTraces}
-            {$_('toolbar.merge.help_merge_traces')}
+            {i18n._('toolbar.merge.help_merge_traces')}
         {:else if mergeType === MergeType.TRACES && !canMergeTraces}
-            {$_('toolbar.merge.help_cannot_merge_traces')}
-            {$_('toolbar.merge.selection_tip').split('{KEYBOARD_SHORTCUT}')[0]}
+            {i18n._('toolbar.merge.help_cannot_merge_traces')}
+            {i18n._('toolbar.merge.selection_tip').split('{KEYBOARD_SHORTCUT}')[0]}
             <Shortcut
                 ctrl={true}
                 click={true}
                 class="inline-flex text-muted-foreground text-xs border rounded p-0.5 gap-0"
             />
-            {$_('toolbar.merge.selection_tip').split('{KEYBOARD_SHORTCUT}')[1]}
+            {i18n._('toolbar.merge.selection_tip').split('{KEYBOARD_SHORTCUT}')[1]}
         {:else if mergeType === MergeType.CONTENTS && canMergeContents}
-            {$_('toolbar.merge.help_merge_contents')}
+            {i18n._('toolbar.merge.help_merge_contents')}
         {:else if mergeType === MergeType.CONTENTS && !canMergeContents}
-            {$_('toolbar.merge.help_cannot_merge_contents')}
-            {$_('toolbar.merge.selection_tip').split('{KEYBOARD_SHORTCUT}')[0]}
+            {i18n._('toolbar.merge.help_cannot_merge_contents')}
+            {i18n._('toolbar.merge.selection_tip').split('{KEYBOARD_SHORTCUT}')[0]}
             <Shortcut
                 ctrl={true}
                 click={true}
                 class="inline-flex text-muted-foreground text-xs border rounded p-0.5 gap-0"
             />
-            {$_('toolbar.merge.selection_tip').split('{KEYBOARD_SHORTCUT}')[1]}
+            {i18n._('toolbar.merge.selection_tip').split('{KEYBOARD_SHORTCUT}')[1]}
         {/if}
     </Help>
 </div>

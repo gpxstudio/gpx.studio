@@ -2,7 +2,11 @@
     import docsearch from '@docsearch/js';
     import '@docsearch/css';
     import { onMount } from 'svelte';
-    import { _, locale, isLoadingLocale } from '$lib/i18n';
+    import { i18n } from '$lib/i18n.svelte';
+
+    let props: {
+        class?: string;
+    } = $props();
 
     let mounted = false;
 
@@ -13,31 +17,31 @@
             indexName: 'gpx',
             container: '#docsearch',
             searchParameters: {
-                facetFilters: ['lang:' + $locale],
+                facetFilters: ['lang:' + i18n.lang],
             },
-            placeholder: $_('docs.search.search'),
+            placeholder: i18n._('docs.search.search'),
             disableUserPersonalization: true,
             translations: {
                 button: {
-                    buttonText: $_('docs.search.search'),
-                    buttonAriaLabel: $_('docs.search.search'),
+                    buttonText: i18n._('docs.search.search'),
+                    buttonAriaLabel: i18n._('docs.search.search'),
                 },
                 modal: {
                     searchBox: {
-                        resetButtonTitle: $_('docs.search.clear'),
-                        resetButtonAriaLabel: $_('docs.search.clear'),
-                        cancelButtonText: $_('docs.search.cancel'),
-                        cancelButtonAriaLabel: $_('docs.search.cancel'),
-                        searchInputLabel: $_('docs.search.search'),
+                        resetButtonTitle: i18n._('docs.search.clear'),
+                        resetButtonAriaLabel: i18n._('docs.search.clear'),
+                        cancelButtonText: i18n._('docs.search.cancel'),
+                        cancelButtonAriaLabel: i18n._('docs.search.cancel'),
+                        searchInputLabel: i18n._('docs.search.search'),
                     },
                     footer: {
-                        selectText: $_('docs.search.to_select'),
-                        navigateText: $_('docs.search.to_navigate'),
-                        closeText: $_('docs.search.to_close'),
+                        selectText: i18n._('docs.search.to_select'),
+                        navigateText: i18n._('docs.search.to_navigate'),
+                        closeText: i18n._('docs.search.to_close'),
                     },
                     noResultsScreen: {
-                        noResultsText: $_('docs.search.no_results'),
-                        suggestedQueryText: $_('docs.search.no_results_suggestion'),
+                        noResultsText: i18n._('docs.search.no_results'),
+                        suggestedQueryText: i18n._('docs.search.no_results_suggestion'),
                     },
                 },
             },
@@ -48,13 +52,15 @@
         mounted = true;
     });
 
-    $: if (mounted && $locale && !$isLoadingLocale) {
-        initDocsearch();
-    }
+    $effect(() => {
+        if (mounted && i18n.lang && !i18n.isLoading) {
+            initDocsearch();
+        }
+    });
 </script>
 
 <svelte:head>
     <link rel="preconnect" href="https://21XLD94PE3-dsn.algolia.net" crossorigin />
 </svelte:head>
 
-<div id="docsearch" {...$$restProps}></div>
+<div id="docsearch" class={props.class ?? ''}></div>

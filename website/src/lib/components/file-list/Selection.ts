@@ -11,7 +11,8 @@ import {
     ListWaypointsItem,
     moveItems,
 } from './FileList';
-import { fileObservers, getFile, getFileIds, settings } from '$lib/db';
+import { fileObservers, getFile, getFileIds } from '$lib/db';
+// import { settings } from '$lib/logic/settings.svelte';
 
 export class SelectionTreeType {
     item: ListItem;
@@ -232,29 +233,28 @@ export function applyToOrderedItemsFromFile(
     callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void,
     reverse: boolean = true
 ) {
-    get(settings.fileOrder).forEach((fileId) => {
-        let level: ListLevel | undefined = undefined;
-        let items: ListItem[] = [];
-        selectedItems.forEach((item) => {
-            if (item.getFileId() === fileId) {
-                level = item.level;
-                if (
-                    item instanceof ListFileItem ||
-                    item instanceof ListTrackItem ||
-                    item instanceof ListTrackSegmentItem ||
-                    item instanceof ListWaypointsItem ||
-                    item instanceof ListWaypointItem
-                ) {
-                    items.push(item);
-                }
-            }
-        });
-
-        if (items.length > 0) {
-            sortItems(items, reverse);
-            callback(fileId, level, items);
-        }
-    });
+    // settings.fileOrder.value.forEach((fileId) => {
+    //     let level: ListLevel | undefined = undefined;
+    //     let items: ListItem[] = [];
+    //     selectedItems.forEach((item) => {
+    //         if (item.getFileId() === fileId) {
+    //             level = item.level;
+    //             if (
+    //                 item instanceof ListFileItem ||
+    //                 item instanceof ListTrackItem ||
+    //                 item instanceof ListTrackSegmentItem ||
+    //                 item instanceof ListWaypointsItem ||
+    //                 item instanceof ListWaypointItem
+    //             ) {
+    //                 items.push(item);
+    //             }
+    //         }
+    //     });
+    //     if (items.length > 0) {
+    //         sortItems(items, reverse);
+    //         callback(fileId, level, items);
+    //     }
+    // });
 }
 
 export function applyToOrderedSelectedItemsFromFile(

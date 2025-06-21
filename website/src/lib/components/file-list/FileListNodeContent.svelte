@@ -23,7 +23,6 @@
     } from './FileList';
     import { selection } from './Selection';
     import { isMac } from '$lib/utils';
-    import { _ } from '$lib/i18n';
 
     export let node:
         | Map<string, Readable<GPXFileWithStatistics | undefined>>
@@ -345,6 +344,8 @@
 {/if}
 
 <style lang="postcss">
+    @reference "../../../app.css";
+
     .sortable > div {
         @apply rounded-md;
         @apply h-fit;

@@ -1,9 +1,15 @@
 <script lang="ts">
-    export let orientation: 'col' | 'row' = 'col';
-
-    export let after: number;
-    export let minAfter: number = 0;
-    export let maxAfter: number = Number.MAX_SAFE_INTEGER;
+    let {
+        orientation = 'col',
+        after = $bindable(),
+        minAfter = 0,
+        maxAfter = Number.MAX_SAFE_INTEGER,
+    }: {
+        orientation?: 'col' | 'row';
+        after: number;
+        minAfter?: number;
+        maxAfter?: number;
+    } = $props();
 
     function handleMouseDown(event: PointerEvent) {
         const startX = event.clientX;
@@ -33,10 +39,10 @@
     }
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
     class="{orientation === 'col'
         ? 'w-1 h-full cursor-col-resize border-l'
         : 'w-full h-1 cursor-row-resize border-t'} {orientation}"
-    on:pointerdown={handleMouseDown}
+    onpointerdown={handleMouseDown}
 ></div>

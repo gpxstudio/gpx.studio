@@ -3,9 +3,9 @@
     import { Button } from '$lib/components/ui/button';
     import Shortcut from '$lib/components/Shortcut.svelte';
     import { canChangeStart } from './RoutingControls';
-    import { CirclePlay, Trash2 } from 'lucide-svelte';
+    import { CirclePlay, Trash2 } from '@lucide/svelte';
 
-    import { _ } from '$lib/i18n';
+    import { i18n } from '$lib/i18n.svelte';
 
     export let element: HTMLElement;
 </script>
@@ -17,19 +17,19 @@
                 <Button
                     class="w-full px-2 py-1 h-6 justify-start"
                     variant="ghost"
-                    on:click={() => element.dispatchEvent(new CustomEvent('change-start'))}
+                    onclick={() => element.dispatchEvent(new CustomEvent('change-start'))}
                 >
                     <CirclePlay size="16" class="mr-1" />
-                    {$_('toolbar.routing.start_loop_here')}
+                    {i18n._('toolbar.routing.start_loop_here')}
                 </Button>
             {/if}
             <Button
                 class="w-full px-2 py-1 h-6 justify-start"
                 variant="ghost"
-                on:click={() => element.dispatchEvent(new CustomEvent('delete'))}
+                onclick={() => element.dispatchEvent(new CustomEvent('delete'))}
             >
                 <Trash2 size="16" class="mr-1" />
-                {$_('menu.delete')}
+                {i18n._('menu.delete')}
                 <Shortcut shift={true} click={true} />
             </Button>
         </Card.Content>

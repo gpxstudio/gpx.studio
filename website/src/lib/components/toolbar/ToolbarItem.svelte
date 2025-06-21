@@ -1,29 +1,45 @@
 <script lang="ts">
     import { Button } from '$lib/components/ui/button';
     import * as Tooltip from '$lib/components/ui/tooltip/index.js';
-    import { currentTool, type Tool } from '$lib/stores';
+    import { tool, Tool } from '$lib/components/toolbar/utils.svelte';
+    import type { Snippet } from 'svelte';
 
-    export let tool: Tool;
-    export let label: string;
+    let {
+        itemTool,
+        label,
+        children,
+    }: {
+        itemTool: Tool;
+        label: string;
+        children: Snippet;
+    } = $props();
 
     function toggleTool() {
-        currentTool.update((current) => (current === tool ? null : tool));
+        if (tool.current === itemTool) {
+            tool.current = null;
+        } else {
+            tool.current = itemTool;
+        }
     }
 </script>
 
-<Tooltip.Root openDelay={300}>
-    <Tooltip.Trigger asChild let:builder>
-        <Button
-            builders={[builder]}
-            variant="ghost"
-            class="h-[26px] px-1 py-1.5 {$currentTool === tool ? 'bg-accent' : ''}"
-            on:click={toggleTool}
-            aria-label={label}
-        >
-            <slot name="icon" />
-        </Button>
-    </Tooltip.Trigger>
-    <Tooltip.Content side="right">
-        <span>{label}</span>
-    </Tooltip.Content>
-</Tooltip.Root>
+<Tooltip.Provider>
+    <Tooltip.Root delayDuration={300}>
+        <Tooltip.Trigger>
+            {#snippet child({ props })}
+                <Button
+                    {...props}
+                    variant="ghost"
+                    class="h-[26px] px-1 py-1.5 {tool.current === itemTool ? 'bg-accent' : ''}"
+                    onclick={toggleTool}
+                    aria-label={label}
+                >
+                    {@render children()}
+                </Button>
+            {/snippet}
+        </Tooltip.Trigger>
+        <Tooltip.Content side="right">
+            <span>{label}</span>
+        </Tooltip.Content>
+    </Tooltip.Root>
+</Tooltip.Provider>

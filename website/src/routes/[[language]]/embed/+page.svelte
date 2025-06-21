@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { page } from '$app/stores';
+    import { page } from '$app/state';
     import { onMount } from 'svelte';
-    import Embedding from '$lib/components/embedding/Embedding.svelte';
+    // import Embedding from '$lib/components/embedding/Embedding.svelte';
     import {
         getMergedEmbeddingOptions,
         type EmbeddingOptions,
@@ -10,7 +10,7 @@
     let embeddingOptions: EmbeddingOptions | undefined = undefined;
 
     onMount(() => {
-        let options = $page.url.searchParams.get('options');
+        let options = page.url.searchParams.get('options');
         if (options === null) {
             return;
         }
@@ -23,5 +23,5 @@
 </script>
 
 {#if embeddingOptions}
-    <Embedding options={embeddingOptions} hash={$page.url.hash} />
+    <!-- <Embedding options={embeddingOptions} hash={$page.url.hash} /> -->
 {/if}

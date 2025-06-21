@@ -1,17 +1,17 @@
 <script lang="ts">
-    import GPXLayers from '$lib/components/gpx-layer/GPXLayers.svelte';
+    import GPXLayers from '$lib/components/map/gpx-layer/GPXLayers.svelte';
     import ElevationProfile from '$lib/components/ElevationProfile.svelte';
     import FileList from '$lib/components/file-list/FileList.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
-    import Map from '$lib/components/Map.svelte';
-    import LayerControl from '$lib/components/layer-control/LayerControl.svelte';
+    import Map from '$lib/components/map/Map.svelte';
+    import { map } from '$lib/components/map/map.svelte';
+    import LayerControl from '$lib/components/map/layer-control/LayerControl.svelte';
     import OpenIn from '$lib/components/embedding/OpenIn.svelte';
     import {
         gpxStatistics,
         slicedGPXStatistics,
         embedding,
         loadFile,
-        map,
         updateGPXData,
     } from '$lib/stores';
     import { onDestroy, onMount } from 'svelte';

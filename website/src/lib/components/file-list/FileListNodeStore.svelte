@@ -7,7 +7,11 @@
     import type { Readable } from 'svelte/store';
     import { ListFileItem } from './FileList';
 
-    export let file: Readable<GPXFileWithStatistics | undefined>;
+    let {
+        file,
+    }: {
+        file: Readable<GPXFileWithStatistics | undefined>;
+    } = $props();
 
     let recursive = getContext<boolean>('recursive');
 </script>

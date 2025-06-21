@@ -1,7 +1,7 @@
 <script lang="ts">
     import { isMac, isSafari } from '$lib/utils';
     import { onMount } from 'svelte';
-    import { _ } from '$lib/i18n';
+    import { i18n } from '$lib/i18n.svelte';
 
     export let key: string | undefined = undefined;
     export let shift: boolean = false;
@@ -25,12 +25,12 @@
         <span>⇧</span>
     {/if}
     {#if ctrl}
-        <span>{mac && !safari ? '⌘' : $_('menu.ctrl') + '+'}</span>
+        <span>{mac && !safari ? '⌘' : i18n._('menu.ctrl') + '+'}</span>
     {/if}
     {#if key}
         <span class={key === '+' ? 'font-medium text-sm/4' : ''}>{key}</span>
     {/if}
     {#if click}
-        <span>{$_('menu.click')}</span>
+        <span>{i18n._('menu.click')}</span>
     {/if}
 </div>

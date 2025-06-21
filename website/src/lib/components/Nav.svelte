@@ -3,28 +3,28 @@
     import { Button } from '$lib/components/ui/button';
     import AlgoliaDocSearch from '$lib/components/AlgoliaDocSearch.svelte';
     import ModeSwitch from '$lib/components/ModeSwitch.svelte';
-    import { BookOpenText, Home, Map } from 'lucide-svelte';
-    import { _, locale } from '$lib/i18n';
+    import { BookOpenText, Home, Map } from '@lucide/svelte';
+    import { i18n } from '$lib/i18n.svelte';
     import { getURLForLanguage } from '$lib/utils';
 </script>
 
 <nav class="w-full sticky top-0 bg-background z-50">
     <div class="mx-6 py-2 flex flex-row items-center border-b gap-4 sm:gap-8">
-        <a href={getURLForLanguage($locale, '/')} class="shrink-0 translate-y-0.5">
+        <a href={getURLForLanguage(i18n.lang, '/')} class="shrink-0 translate-y-0.5">
             <Logo class="h-8 sm:hidden" iconOnly={true} width="26" />
             <Logo class="h-8 hidden sm:block" width="153" />
         </a>
-        <Button variant="link" class="text-base px-0" href={getURLForLanguage($locale, '/')}>
-            <Home size="18" class="mr-1.5" />
-            {$_('homepage.home')}
+        <Button variant="link" class="text-base px-0" href={getURLForLanguage(i18n.lang, '/')}>
+            <Home size="18" />
+            {i18n._('homepage.home')}
         </Button>
-        <Button variant="link" class="text-base px-0" href={getURLForLanguage($locale, '/app')}>
-            <Map size="18" class="mr-1.5" />
-            {$_('homepage.app')}
+        <Button variant="link" class="text-base px-0" href={getURLForLanguage(i18n.lang, '/app')}>
+            <Map size="18" />
+            {i18n._('homepage.app')}
         </Button>
-        <Button variant="link" class="text-base px-0" href={getURLForLanguage($locale, '/help')}>
-            <BookOpenText size="18" class="mr-1.5" />
-            {$_('menu.help')}
+        <Button variant="link" class="text-base px-0" href={getURLForLanguage(i18n.lang, '/help')}>
+            <BookOpenText size="18" />
+            {i18n._('menu.help')}
         </Button>
         <AlgoliaDocSearch class="ml-auto" />
         <ModeSwitch class="hidden xs:block" />

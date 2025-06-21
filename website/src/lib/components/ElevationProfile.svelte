@@ -18,9 +18,9 @@
         Check,
         ChartNoAxesColumn,
         Construction,
-    } from 'lucide-svelte';
+    } from '@lucide/svelte';
     import { getSlopeColor, getSurfaceColor, getHighwayColor } from '$lib/assets/colors';
-    import { _, df } from '$lib/i18n';
+    import { _, df } from '$lib/i18n.svelte';
     import {
         getCadenceWithUnits,
         getConvertedDistance,
@@ -120,17 +120,17 @@
                                     marker.addTo($map);
                                 }
                             }
-                            return `${$_('quantities.elevation')}: ${getElevationWithUnits(point.y, false)}`;
+                            return `${i18n._('quantities.elevation')}: ${getElevationWithUnits(point.y, false)}`;
                         } else if (context.datasetIndex === 1) {
-                            return `${$velocityUnits === 'speed' ? $_('quantities.speed') : $_('quantities.pace')}: ${getVelocityWithUnits(point.y, false)}`;
+                            return `${$velocityUnits === 'speed' ? i18n._('quantities.speed') : i18n._('quantities.pace')}: ${getVelocityWithUnits(point.y, false)}`;
                         } else if (context.datasetIndex === 2) {
-                            return `${$_('quantities.heartrate')}: ${getHeartRateWithUnits(point.y)}`;
+                            return `${i18n._('quantities.heartrate')}: ${getHeartRateWithUnits(point.y)}`;
                         } else if (context.datasetIndex === 3) {
-                            return `${$_('quantities.cadence')}: ${getCadenceWithUnits(point.y)}`;
+                            return `${i18n._('quantities.cadence')}: ${getCadenceWithUnits(point.y)}`;
                         } else if (context.datasetIndex === 4) {
-                            return `${$_('quantities.temperature')}: ${getTemperatureWithUnits(point.y, false)}`;
+                            return `${i18n._('quantities.temperature')}: ${getTemperatureWithUnits(point.y, false)}`;
                         } else if (context.datasetIndex === 5) {
-                            return `${$_('quantities.power')}: ${getPowerWithUnits(point.y)}`;
+                            return `${i18n._('quantities.power')}: ${getPowerWithUnits(point.y)}`;
                         }
                     },
                     afterBody: function (contexts: Chart.TooltipContext[]) {
@@ -152,31 +152,35 @@
                         let mtbScale = point.extensions.mtb_scale;
 
                         let labels = [
-                            `    ${$_('quantities.distance')}: ${getDistanceWithUnits(point.x, false)}`,
-                            `    ${$_('quantities.slope')}: ${slope.at} %${elevationFill === 'slope' ? ` (${slope.length} @${slope.segment} %)` : ''}`,
+                            `    ${i18n._('quantities.distance')}: ${getDistanceWithUnits(point.x, false)}`,
+                            `    ${i18n._('quantities.slope')}: ${slope.at} %${elevationFill === 'slope' ? ` (${slope.length} @${slope.segment} %)` : ''}`,
                         ];
 
                         if (elevationFill === 'surface') {
                             labels.push(
-                                `    ${$_('quantities.surface')}: ${$_(`toolbar.routing.surface.${surface}`)}`
+                                `    ${i18n._('quantities.surface')}: ${i18n._(`toolbar.routing.surface.${surface}`)}`
                             );
                         }
 
                         if (elevationFill === 'highway') {
                             labels.push(
-                                `    ${$_('quantities.highway')}: ${$_(`toolbar.routing.highway.${highway}`)}${
+                                `    ${i18n._('quantities.highway')}: ${i18n._(`toolbar.routing.highway.${highway}`)}${
                                     sacScale
-                                        ? ` (${$_(`toolbar.routing.sac_scale.${sacScale}`)})`
+                                        ? ` (${i18n._(`toolbar.routing.sac_scale.${sacScale}`)})`
                                         : ''
                                 }`
                             );
                             if (mtbScale) {
-                                labels.push(`    ${$_('toolbar.routing.mtb_scale')}: ${mtbScale}`);
+                                labels.push(
+                                    `    ${i18n._('toolbar.routing.mtb_scale')}: ${mtbScale}`
+                                );
                             }
                         }
 
                         if (point.time) {
-                            labels.push(`    ${$_('quantities.time')}: ${$df.format(point.time)}`);
+                            labels.push(
+                                `    ${i18n._('quantities.time')}: ${$df.format(point.time)}`
+                            );
                         }
 
                         return labels;
@@ -357,7 +361,7 @@
 
         // update data
         chart.data.datasets[0] = {
-            label: $_('quantities.elevation'),
+            label: i18n._('quantities.elevation'),
             data: data.local.points.map((point, index) => {
                 return {
                     x: getConvertedDistance(data.local.distance.total[index]),
@@ -552,15 +556,17 @@
     {#if showControls}
         <div class="absolute bottom-10 right-1.5">
             <Popover.Root>
-                <Popover.Trigger asChild let:builder>
-                    <ButtonWithTooltip
-                        label={$_('chart.settings')}
-                        builders={[builder]}
-                        variant="outline"
-                        class="w-7 h-7 p-0 flex justify-center opacity-70 hover:opacity-100 transition-opacity duration-300 hover:bg-background"
-                    >
-                        <ChartNoAxesColumn size="18" />
-                    </ButtonWithTooltip>
+                <Popover.Trigger>
+                    {#snippet child({ props })}
+                        <ButtonWithTooltip
+                            {...props}
+                            label={i18n._('chart.settings')}
+                            variant="outline"
+                            class="w-7 h-7 p-0 flex justify-center opacity-70 hover:opacity-100 transition-opacity duration-300 hover:bg-background"
+                        >
+                            <ChartNoAxesColumn size="18" />
+                        </ButtonWithTooltip>
+                    {/snippet}
                 </Popover.Trigger>
                 <Popover.Content
                     class="w-fit p-0 flex flex-col divide-y"
@@ -582,7 +588,7 @@
                                 {/if}
                             </div>
                             <TriangleRight size="15" class="mr-1" />
-                            {$_('quantities.slope')}
+                            {i18n._('quantities.slope')}
                         </ToggleGroup.Item>
                         <ToggleGroup.Item
                             class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
@@ -595,7 +601,7 @@
                                 {/if}
                             </div>
                             <BrickWall size="15" class="mr-1" />
-                            {$_('quantities.surface')}
+                            {i18n._('quantities.surface')}
                         </ToggleGroup.Item>
                         <ToggleGroup.Item
                             class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
@@ -608,7 +614,7 @@
                                 {/if}
                             </div>
                             <Construction size="15" class="mr-1" />
-                            {$_('quantities.highway')}
+                            {i18n._('quantities.highway')}
                         </ToggleGroup.Item>
                     </ToggleGroup.Root>
                     <ToggleGroup.Root
@@ -627,8 +633,8 @@
                             </div>
                             <Zap size="15" class="mr-1" />
                             {$velocityUnits === 'speed'
-                                ? $_('quantities.speed')
-                                : $_('quantities.pace')}
+                                ? i18n._('quantities.speed')
+                                : i18n._('quantities.pace')}
                         </ToggleGroup.Item>
                         <ToggleGroup.Item
                             class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
@@ -640,7 +646,7 @@
                                 {/if}
                             </div>
                             <HeartPulse size="15" class="mr-1" />
-                            {$_('quantities.heartrate')}
+                            {i18n._('quantities.heartrate')}
                         </ToggleGroup.Item>
                         <ToggleGroup.Item
                             class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
@@ -652,7 +658,7 @@
                                 {/if}
                             </div>
                             <Orbit size="15" class="mr-1" />
-                            {$_('quantities.cadence')}
+                            {i18n._('quantities.cadence')}
                         </ToggleGroup.Item>
                         <ToggleGroup.Item
                             class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
@@ -664,7 +670,7 @@
                                 {/if}
                             </div>
                             <Thermometer size="15" class="mr-1" />
-                            {$_('quantities.temperature')}
+                            {i18n._('quantities.temperature')}
                         </ToggleGroup.Item>
                         <ToggleGroup.Item
                             class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
@@ -676,7 +682,7 @@
                                 {/if}
                             </div>
                             <SquareActivity size="15" class="mr-1" />
-                            {$_('quantities.power')}
+                            {i18n._('quantities.power')}
                         </ToggleGroup.Item>
                     </ToggleGroup.Root>
                 </Popover.Content>

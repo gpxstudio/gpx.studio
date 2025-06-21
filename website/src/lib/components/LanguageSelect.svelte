@@ -1,37 +1,27 @@
 <script lang="ts">
-    import { page } from '$app/stores';
+    import { page } from '$app/state';
     import * as Select from '$lib/components/ui/select';
     import { languages } from '$lib/languages';
     import { getURLForLanguage } from '$lib/utils';
-    import { Languages } from 'lucide-svelte';
-    import { _, locale } from '$lib/i18n';
-
-    let selected = {
-        value: '',
-        label: '',
-    };
-
-    $: if ($locale) {
-        selected = {
-            value: $locale,
-            label: languages[$locale],
-        };
-    }
+    import { Languages } from '@lucide/svelte';
+    import { i18n } from '$lib/i18n.svelte';
 </script>
 
-<Select.Root bind:selected>
-    <Select.Trigger class="w-[180px] {$$props.class ?? ''}" aria-label={$_('menu.language')}>
+<Select.Root type="single" value={i18n.lang}>
+    <Select.Trigger class="w-[180px] {$$props.class ?? ''}" aria-label={i18n._('menu.language')}>
         <Languages size="16" />
-        <Select.Value class="ml-2 mr-auto" />
+        <span class="ml-2 mr-auto">
+            {languages[i18n.lang]}
+        </span>
     </Select.Trigger>
     <Select.Content>
         {#each Object.entries(languages) as [lang, label]}
-            {#if $page.url.pathname.includes('404')}
+            {#if page.url.pathname.includes('404')}
                 <a href={getURLForLanguage(lang, '/')}>
                     <Select.Item value={lang}>{label}</Select.Item>
                 </a>
             {:else}
-                <a href={getURLForLanguage(lang, $page.url.pathname)}>
+                <a href={getURLForLanguage(lang, page.url.pathname)}>
                     <Select.Item value={lang}>{label}</Select.Item>
                 </a>
             {/if}
@@ -41,9 +31,9 @@
 
 <!-- hidden links for svelte crawling -->
 <div class="hidden">
-    {#if !$page.url.pathname.includes('404')}
+    {#if !page.url.pathname.includes('404')}
         {#each Object.entries(languages) as [lang, label]}
-            <a href={getURLForLanguage(lang, $page.url.pathname)}>
+            <a href={getURLForLanguage(lang, page.url.pathname)}>
                 {label}
             </a>
         {/each}

@@ -2,34 +2,38 @@
     import { Button } from '$lib/components/ui/button';
     import { selection } from '$lib/components/file-list/Selection';
     import Help from '$lib/components/Help.svelte';
-    import { MountainSnow } from 'lucide-svelte';
+    import { MountainSnow } from '@lucide/svelte';
     import { dbUtils } from '$lib/db';
-    import { map } from '$lib/stores';
-    import { _, locale } from '$lib/i18n';
+    import { map } from '$lib/components/map/map.svelte';
+    import { i18n } from '$lib/i18n.svelte';
     import { getURLForLanguage } from '$lib/utils';
 
-    $: validSelection = $selection.size > 0;
+    let props: {
+        class?: string;
+    } = $props();
+
+    let validSelection = $derived($selection.size > 0);
 </script>
 
-<div class="flex flex-col gap-3 w-full max-w-80 {$$props.class ?? ''}">
+<div class="flex flex-col gap-3 w-full max-w-80 {props.class ?? ''}">
     <Button
         variant="outline"
         class="whitespace-normal h-fit"
         disabled={!validSelection}
-        on:click={async () => {
-            if ($map) {
-                dbUtils.addElevationToSelection($map);
+        onclick={async () => {
+            if (map.current) {
+                dbUtils.addElevationToSelection(map.current);
             }
         }}
     >
         <MountainSnow size="16" class="mr-1 shrink-0" />
-        {$_('toolbar.elevation.button')}
+        {i18n._('toolbar.elevation.button')}
     </Button>
-    <Help link={getURLForLanguage($locale, '/help/toolbar/elevation')}>
+    <Help link={getURLForLanguage(i18n.lang, '/help/toolbar/elevation')}>
         {#if validSelection}
-            {$_('toolbar.elevation.help')}
+            {i18n._('toolbar.elevation.help')}
         {:else}
-            {$_('toolbar.elevation.help_no_selection')}
+            {i18n._('toolbar.elevation.help_no_selection')}
         {/if}
     </Help>
 </div>

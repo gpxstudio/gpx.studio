@@ -3,9 +3,9 @@
     import Tooltip from '$lib/components/Tooltip.svelte';
     import WithUnits from '$lib/components/WithUnits.svelte';
 
-    import { MoveDownRight, MoveUpRight, Ruler, Timer, Zap } from 'lucide-svelte';
+    import { MoveDownRight, MoveUpRight, Ruler, Timer, Zap } from '@lucide/svelte';
 
-    import { _ } from '$lib/i18n';
+    import { i18n } from '$lib/i18n.svelte';
     import type { GPXStatistics } from 'gpx';
     import type { Writable } from 'svelte/store';
     import { settings } from '$lib/db';
@@ -36,13 +36,13 @@
             ? 'flex-col justify-center'
             : 'flex-row w-full justify-between'} gap-4  p-0"
     >
-        <Tooltip label={$_('quantities.distance')}>
+        <Tooltip label={i18n._('quantities.distance')}>
             <span class="flex flex-row items-center">
                 <Ruler size="16" class="mr-1" />
                 <WithUnits value={statistics.global.distance.total} type="distance" />
             </span>
         </Tooltip>
-        <Tooltip label={$_('quantities.elevation_gain_loss')}>
+        <Tooltip label={i18n._('quantities.elevation_gain_loss')}>
             <span class="flex flex-row items-center">
                 <MoveUpRight size="16" class="mr-1" />
                 <WithUnits value={statistics.global.elevation.gain} type="elevation" />
@@ -54,8 +54,10 @@
             <Tooltip
                 class={orientation === 'horizontal' ? 'hidden xs:block' : ''}
                 label="{$velocityUnits === 'speed'
-                    ? $_('quantities.speed')
-                    : $_('quantities.pace')} ({$_('quantities.moving')} / {$_('quantities.total')})"
+                    ? i18n._('quantities.speed')
+                    : i18n._('quantities.pace')} ({i18n._('quantities.moving')} / {i18n._(
+                    'quantities.total'
+                )})"
             >
                 <span class="flex flex-row items-center">
                     <Zap size="16" class="mr-1" />
@@ -72,7 +74,7 @@
         {#if panelSize > 160 || orientation === 'horizontal'}
             <Tooltip
                 class={orientation === 'horizontal' ? 'hidden md:block' : ''}
-                label="{$_('quantities.time')} ({$_('quantities.moving')} / {$_(
+                label="{i18n._('quantities.time')} ({i18n._('quantities.moving')} / {i18n._(
                     'quantities.total'
                 )})"
             >

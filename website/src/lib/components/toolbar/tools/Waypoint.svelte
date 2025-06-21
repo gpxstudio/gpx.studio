@@ -12,7 +12,7 @@
     import * as Select from '$lib/components/ui/select';
     import { selection } from '$lib/components/file-list/Selection';
     import { Waypoint } from 'gpx';
-    import { _, locale } from '$lib/i18n';
+    import { i18n } from '$lib/i18n.svelte';
     import { ListWaypointItem } from '$lib/components/file-list/FileList';
     import { dbUtils, fileObservers, getFile, settings, type GPXFileWithStatistics } from '$lib/db';
     import { get } from 'svelte/store';
@@ -20,7 +20,7 @@
     import { onDestroy, onMount } from 'svelte';
     import { map } from '$lib/stores';
     import { getURLForLanguage, resetCursor, setCrosshairCursor } from '$lib/utils';
-    import { MapPin, CircleX, Save } from 'lucide-svelte';
+    import { MapPin, CircleX, Save } from '@lucide/svelte';
     import { getSymbolKey, symbols } from '$lib/assets/symbols';
 
     let name: string;
@@ -28,11 +28,7 @@
     let link: string;
     let longitude: number;
     let latitude: number;
-
-    let selectedSymbol = {
-        value: '',
-        label: '',
-    };
+    let symbolKey: string;
 
     const { treeFileView } = settings;
 
@@ -70,18 +66,7 @@
                     }
                     link = $selectedWaypoint[0].link?.attributes?.href ?? '';
                     let symbol = $selectedWaypoint[0].sym ?? '';
-                    let symbolKey = getSymbolKey(symbol);
-                    if (symbolKey) {
-                        selectedSymbol = {
-                            value: symbol,
-                            label: $_(`gpx.symbol.${symbolKey}`),
-                        };
-                    } else {
-                        selectedSymbol = {
-                            value: symbol,
-                            label: '',
-                        };
-                    }
+                    symbolKey = getSymbolKey(symbol) ?? symbol ?? '';
                     longitude = parseFloat($selectedWaypoint[0].getLongitude().toFixed(6));
                     latitude = parseFloat($selectedWaypoint[0].getLatitude().toFixed(6));
                 } else {
@@ -97,10 +82,7 @@
         name = '';
         description = '';
         link = '';
-        selectedSymbol = {
-            value: '',
-            label: '',
-        };
+        symbolKey = '';
         longitude = 0;
         latitude = 0;
     }
@@ -140,7 +122,7 @@
                 desc: description.length > 0 ? description : undefined,
                 cmt: description.length > 0 ? description : undefined,
                 link: link.length > 0 ? { attributes: { href: link } } : undefined,
-                sym: selectedSymbol.value.length > 0 ? selectedSymbol.value : undefined,
+                sym: symbols[symbolKey]?.value ?? '',
             },
             $selectedWaypoint
                 ? new ListWaypointItem($selectedWaypoint[1], $selectedWaypoint[0]._data.index)
@@ -157,7 +139,7 @@
     }
 
     $: sortedSymbols = Object.entries(symbols).sort((a, b) => {
-        return $_(`gpx.symbol.${a[0]}`).localeCompare($_(`gpx.symbol.${b[0]}`), $locale ?? 'en');
+        return i18n._(`gpx.symbol.${a[0]}`).localeCompare(i18n._(`gpx.symbol.${b[0]}`), i18n.lang);
     });
 
     onMount(() => {
@@ -180,27 +162,31 @@
 
 <div class="flex flex-col gap-3 w-full max-w-96 {$$props.class ?? ''}">
     <fieldset class="flex flex-col gap-2">
-        <Label for="name">{$_('menu.metadata.name')}</Label>
+        <Label for="name">{i18n._('menu.metadata.name')}</Label>
         <Input
             bind:value={name}
             id="name"
             class="font-semibold h-8"
             disabled={!canCreate && !$selectedWaypoint}
         />
-        <Label for="description">{$_('menu.metadata.description')}</Label>
+        <Label for="description">{i18n._('menu.metadata.description')}</Label>
         <Textarea
             bind:value={description}
             id="description"
             disabled={!canCreate && !$selectedWaypoint}
         />
-        <Label for="symbol">{$_('toolbar.waypoint.icon')}</Label>
-        <Select.Root bind:selected={selectedSymbol}>
+        <Label for="symbol">{i18n._('toolbar.waypoint.icon')}</Label>
+        <Select.Root bind:value={symbolKey} type="single">
             <Select.Trigger
                 id="symbol"
                 class="w-full h-8"
                 disabled={!canCreate && !$selectedWaypoint}
             >
-                <Select.Value />
+                {#if symbolKey in symbols}
+                    {i18n._(`gpx.symbol.${symbolKey}`)}
+                {:else}
+                    {symbolKey}
+                {/if}
             </Select.Trigger>
             <Select.Content class="max-h-60 overflow-y-scroll">
                 {#each sortedSymbols as [key, symbol]}
@@ -215,13 +201,13 @@
                             {:else}
                                 <span class="w-4 inline-block"></span>
                             {/if}
-                            {$_(`gpx.symbol.${key}`)}
+                            {i18n._(`gpx.symbol.${key}`)}
                         </span>
                     </Select.Item>
                 {/each}
             </Select.Content>
         </Select.Root>
-        <Label for="link">{$_('toolbar.waypoint.link')}</Label>
+        <Label for="link">{i18n._('toolbar.waypoint.link')}</Label>
         <Input
             bind:value={link}
             id="link"
@@ -230,7 +216,7 @@
         />
         <div class="flex flex-row gap-2">
             <div class="grow">
-                <Label for="latitude">{$_('toolbar.waypoint.latitude')}</Label>
+                <Label for="latitude">{i18n._('toolbar.waypoint.latitude')}</Label>
                 <Input
                     bind:value={latitude}
                     type="number"
@@ -243,7 +229,7 @@
                 />
             </div>
             <div class="grow">
-                <Label for="longitude">{$_('toolbar.waypoint.longitude')}</Label>
+                <Label for="longitude">{i18n._('toolbar.waypoint.longitude')}</Label>
                 <Input
                     bind:value={longitude}
                     type="number"
@@ -262,19 +248,19 @@
             variant="outline"
             disabled={!canCreate && !$selectedWaypoint}
             class="grow whitespace-normal h-fit"
-            on:click={createOrUpdateWaypoint}
+            onclick={createOrUpdateWaypoint}
         >
             {#if $selectedWaypoint}
                 <Save size="16" class="mr-1 shrink-0" />
-                {$_('menu.metadata.save')}
+                {i18n._('menu.metadata.save')}
             {:else}
                 <MapPin size="16" class="mr-1 shrink-0" />
-                {$_('toolbar.waypoint.create')}
+                {i18n._('toolbar.waypoint.create')}
             {/if}
         </Button>
         <Button
             variant="outline"
-            on:click={() => {
+            onclick={() => {
                 selectedWaypoint.set(undefined);
                 resetWaypointData();
             }}
@@ -282,11 +268,11 @@
             <CircleX size="16" />
         </Button>
     </div>
-    <Help link={getURLForLanguage($locale, '/help/toolbar/poi')}>
+    <Help link={getURLForLanguage(i18n.lang, '/help/toolbar/poi')}>
         {#if $selectedWaypoint || canCreate}
-            {$_('toolbar.waypoint.help')}
+            {i18n._('toolbar.waypoint.help')}
         {:else}
-            {$_('toolbar.waypoint.help_no_selection')}
+            {i18n._('toolbar.waypoint.help_no_selection')}
         {/if}
     </Help>
 </div>

@@ -6,13 +6,22 @@
     import { setContext } from 'svelte';
     import { ListFileItem, ListLevel, ListRootItem, allowedPastes } from './FileList';
     import { copied, pasteSelection, selectAll, selection } from './Selection';
-    import { ClipboardPaste, FileStack, Plus } from 'lucide-svelte';
+    import { ClipboardPaste, FileStack, Plus } from '@lucide/svelte';
     import Shortcut from '$lib/components/Shortcut.svelte';
-    import { _ } from '$lib/i18n';
+    import { i18n } from '$lib/i18n.svelte';
     import { createFile } from '$lib/stores';
 
-    export let orientation: 'vertical' | 'horizontal';
-    export let recursive = false;
+    let {
+        orientation,
+        recursive = false,
+        class: className = '',
+        style = '',
+    }: {
+        orientation: 'vertical' | 'horizontal';
+        recursive?: boolean;
+        class?: string;
+        style?: string;
+    } = $props();
 
     setContext('orientation', orientation);
     setContext('recursive', recursive);
@@ -52,23 +61,23 @@
     <div
         class="flex {orientation === 'vertical'
             ? 'flex-col py-1 pl-1 min-h-screen'
-            : 'flex-row'} {$$props.class ?? ''}"
-        {...$$restProps}
+            : 'flex-row'} {className ?? ''}"
+        {style}
     >
         <FileListNode bind:node={$fileObservers} item={new ListRootItem()} />
         {#if orientation === 'vertical'}
             <ContextMenu.Root>
                 <ContextMenu.Trigger class="grow" />
                 <ContextMenu.Content>
-                    <ContextMenu.Item on:click={createFile}>
+                    <ContextMenu.Item onclick={createFile}>
                         <Plus size="16" class="mr-1" />
-                        {$_('menu.new_file')}
+                        {i18n._('menu.new_file')}
                         <Shortcut key="+" ctrl={true} />
                     </ContextMenu.Item>
                     <ContextMenu.Separator />
-                    <ContextMenu.Item on:click={selectAll} disabled={$fileObservers.size === 0}>
+                    <ContextMenu.Item onclick={selectAll} disabled={$fileObservers.size === 0}>
                         <FileStack size="16" class="mr-1" />
-                        {$_('menu.select_all')}
+                        {i18n._('menu.select_all')}
                         <Shortcut key="A" ctrl={true} />
                     </ContextMenu.Item>
                     <ContextMenu.Separator />
@@ -76,10 +85,10 @@
                         disabled={$copied === undefined ||
                             $copied.length === 0 ||
                             !allowedPastes[$copied[0].level].includes(ListLevel.ROOT)}
-                        on:click={pasteSelection}
+                        onclick={pasteSelection}
                     >
                         <ClipboardPaste size="16" class="mr-1" />
-                        {$_('menu.paste')}
+                        {i18n._('menu.paste')}
                         <Shortcut key="V" ctrl={true} />
                     </ContextMenu.Item>
                 </ContextMenu.Content>

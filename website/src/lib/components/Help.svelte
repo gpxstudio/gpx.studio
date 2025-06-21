@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { CircleHelp } from 'lucide-svelte';
-    import { _ } from '$lib/i18n';
+    import { CircleHelp } from '@lucide/svelte';
+    import { i18n } from '$lib/i18n.svelte';
 
     export let link: string | undefined = undefined;
 </script>
@@ -13,7 +13,7 @@
         <slot />
         {#if link}
             <a href={link} target="_blank" class="text-sm text-link hover:underline">
-                {$_('menu.more')}
+                {i18n._('menu.more')}
             </a>
         {/if}
     </div>

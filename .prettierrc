@@ -9,7 +9,7 @@
       "files": "**/*.svelte",
       "options": {
         "plugins": ["prettier-plugin-svelte"],
-		"parser": "svelte"
+		    "parser": "svelte"
       }
     }
   ]

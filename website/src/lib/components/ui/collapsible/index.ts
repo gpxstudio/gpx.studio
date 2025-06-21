@@ -1,8 +1,6 @@
-import { Collapsible as CollapsiblePrimitive } from "bits-ui";
+import Root from "./collapsible.svelte";
+import Trigger from "./collapsible-trigger.svelte";
 import Content from "./collapsible-content.svelte";
-
-const Root = CollapsiblePrimitive.Root;
-const Trigger = CollapsiblePrimitive.Trigger;
 
 export {
 	Root,
