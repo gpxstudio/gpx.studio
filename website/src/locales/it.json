@@ -174,7 +174,7 @@
                 "busway": "Percorso per autobus",
                 "elevator": "Ascensore",
                 "via_ferrata": "Via ferrata",
-                "proposed": "Strada da costruire.",
+                "proposed": "Strada da costruire",
                 "construction": "Strada in costruzione"
             },
             "sac_scale": {
@@ -235,7 +235,7 @@
             "help_no_selection": "Seleziona un file per richiedere i dati di altitudine."
         },
         "waypoint": {
-            "tooltip": "Crea e modifica punti di interesse",
+            "tooltip": "Creare e modificare punti di interesse",
             "icon": "Icona",
             "link": "Collegamento",
             "longitude": "Longitudine",
@@ -367,7 +367,7 @@
             "hut": "Rifugio",
             "picnic": "Area Picnic",
             "summit": "Cima",
-            "pass": "Pass",
+            "pass": "Passo",
             "climbing": "Arrampicata",
             "bicycle": "Bicicletta",
             "bicycle-parking": "Parcheggio per biciclette",
@@ -473,7 +473,7 @@
     },
     "homepage": {
         "website": "Sito web",
-        "home": "Home",
+        "home": "Homepage",
         "app": "App",
         "contact": "Contatto",
         "reddit": "Reddit",
