@@ -9,88 +9,88 @@ title: Edit actions
 
 # { title }
 
-Unlike the file actions, the edit actions can potentially modify the content of the currently selected files.
-Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, and points of interest](../gpx).
-Therefore, we will refer to the elements that can be modified by these actions as _file items_.
-Note that except for the undo and redo actions, the edit actions are also accessible through the context menu (right-click) of the file items.
+На відміну від дій з файлами, дії редагування можуть потенційно змінювати вміст обраних файлів.
+Щобільше, коли ввімкнено деревоподібне розташування списку файлів (див. [Файли та статистика](../files-and-stats)), це також можна застосовувати до [треків, сегментів та точок інтересу](../gpx).
+Тому ми називатимемо елементи, які можна змінити цими діями, _елементами файлу_.
+Зверніть увагу, що окрім дій скасування та повторного виконання, редагування доступне також в контекстному меню файлів (права кнопка миші).
 
-### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Undo and redo
+### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> Скасувати та повторити
 
-Using these buttons, you can undo or redo the last actions you performed.
-This applies to all actions of the interface but not to view options, application settings, or map navigation.
+За допомогою цих кнопок, Ви можете скасувати або повторити останні виконані дії.
+Це стосується всіх дій інтерфейсу, але не параметрів перегляду, налаштувань програми чи навігації по карті.
 
-### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> Info...
+### <Info size="16" class="inline-block" style="margin-bottom: 2px" /> Інформація...
 
-Open the information dialog of the currently selected file item, where you can see and edit its name and description.
+Відкрити діалогове вікно інформації про вибраний елемент файлу, де можна переглянути та редагувати його назву й опис.
 
-### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Appearance...
+### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Зовнішній вигляд...
 
-Open the appearance dialog, where you can change the color, opacity, and width of the selected file items on the map.
+Відкрийте діалогове вікно зовнішнього вигляду, де можна змінити колір, прозорість та ширину вибраних файлових елементів на карті.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Сховати/показати
 
-Toggle the visibility of the selected file items on the map.
+Перемкнути видимість вибраних файлових елементів на мапі.
 
-### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New track
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Новий трек
 
-Create a new track in the selected file.
-
-<DocsNote>
-
-This action is only available when the tree layout of the files list is enabled.
-Additionally, the selection must be a single file.
-
-</DocsNote>
-
-### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New segment
-
-Create a new segment in the selected track.
+Створити новий трек в обраному файлі.
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
-Additionally, the selection must be a single track.
+Ця дія доступна, лише якщо ввімкнено деревоподібне розташування списку файлів.
+Крім того, вибір має бути одним файлом.
 
 </DocsNote>
 
-### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Select all
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Новий сегмент
 
-Add all file items in the current hierarchy level to the selection.
-
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
-
-Center the map on the selected file items.
-
-### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copy
-
-Copy the selected file items to the clipboard.
+Створити новий сегмент в обраному треку.
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
+Ця дія доступна, лише якщо ввімкнено деревоподібне розташування списку файлів.
+Крім того, вибір має бути одним треком.
 
 </DocsNote>
 
-### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Cut
+### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Вибрати все
 
-Cut the selected file items to the clipboard.
+Додати до виділення всі елементи файлу на поточному рівні ієрархії.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Центрувати
+
+Центрувати карту на вибраних елементах файлу.
+
+### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Копіювати
+
+Копіювати вибрані елементи файлу в буфер обміну.
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
+Ця дія доступна, лише якщо ввімкнено деревоподібне розташування списку файлів.
 
 </DocsNote>
 
-### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Paste
+### <Scissors size="16" class="inline-block" style="margin-bottom: 2px" /> Вирізати
 
-Paste the file items from the clipboard to the current hierarchy level if they are compatible with it.
+Вирізати вибрані елементи файлу в буфер обміну.
 
 <DocsNote>
 
-This action is only available when the tree layout of the files list is enabled.
+Ця дія доступна, лише якщо ввімкнено деревоподібне розташування списку файлів.
 
 </DocsNote>
 
-### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Delete
+### <ClipboardPaste size="16" class="inline-block" style="margin-bottom: 2px" /> Вставити
 
-Delete the selected file items.
+Вставити елементи файлу з буфера обміну на поточний рівень ієрархії, якщо вони з ним сумісні.
+
+<DocsNote>
+
+Ця дія доступна, лише якщо ввімкнено деревоподібне розташування списку файлів.
+
+</DocsNote>
+
+### <Trash2 size="16" class="inline-block" style="margin-bottom: 2px" /> Видалити
+
+Видалити вибрані елементи файлу.
