@@ -242,7 +242,7 @@
             "latitude": "Latitudea",
             "create": "Sortu interes-puntua",
             "add": "Gehitu interes-puntua fitxategiari",
-            "help": "Bete formularioa interes-puntua gehitzeko edo egin klik baten editatzeko. Egin klik mapan koordenatuak betetzeko edo arrastatu puntuak mugitzeko.",
+            "help": "Klik egin mapan eta bete formularioa interesgunea gehitzeko edo egin klik interesgunean hura editatzeko. Interesgunea arrastatu tokiz aldatzeko.",
             "help_no_selection": "Aukeratu fitxategia interes-puntuak sortu edo editatzeko."
         },
         "reduce": {
