@@ -261,7 +261,7 @@
             "delete_outside": "Supprimer en dehors de la sélection",
             "button": "Supprimer",
             "help": "Sélectionnez une zone rectangulaire sur la carte pour supprimer les points GPS et les points d'intérêt.",
-            "help_no_selection": "Sélectionnez une trace pour nettoyer les points GPS et les points d'intérêt."
+            "help_no_selection": "Sélectionnez une trace pour supprimer les points GPS et les points d'intérêt."
         }
     },
     "layers": {
