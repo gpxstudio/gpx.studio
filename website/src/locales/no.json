@@ -1,10 +1,10 @@
 {
     "metadata": {
         "home_title": "online GPX-fil editor",
-        "app_title": "app",
+        "app_title": "applikasjon",
         "embed_title": "online GPX-fil editor",
         "help_title": "hjelp",
-        "404_title": "page not found",
+        "404_title": "siden ble ikke funnet",
         "description": "Vis, rediger og opprett GPX-filer online med avansert ruteplanlegging og filbehandling, vakre kart og detaljert visualisering."
     },
     "menu": {
@@ -33,7 +33,7 @@
         "select_all": "Velg alle",
         "view": "Visning",
         "elevation_profile": "Høydeprofil",
-        "tree_file_view": "File tree",
+        "tree_file_view": "Filstruktur",
         "switch_basemap": "Bytt til forrige basekart",
         "toggle_overlays": "Vis/skjul kartlag",
         "toggle_3d": "Skru av/på 3D",
@@ -41,7 +41,7 @@
         "distance_units": "Avstandsenhet",
         "metric": "Metrisk",
         "imperial": "Imperial",
-        "nautical": "Nautical",
+        "nautical": "Nautisk",
         "velocity_units": "Hastighetsenhet",
         "temperature_units": "Temperaturenhet",
         "celsius": "Celsius",
@@ -54,16 +54,16 @@
         "street_view_source": "Gatevisning kilde",
         "mapillary": "Mapillary",
         "google": "Google",
-        "toggle_street_view": "Street view",
+        "toggle_street_view": "Gatevisning",
         "layers": "Kartlag...",
         "distance_markers": "Distansemarkører",
         "direction_markers": "Retningspiler",
         "help": "Hjelp",
-        "more": "More...",
+        "more": "Mer...",
         "donate": "Donere",
         "ctrl": "Ctrl",
         "click": "Klikk",
-        "drag": "Drag",
+        "drag": "Dra",
         "metadata": {
             "button": "Informasjon...",
             "name": "Navn",
@@ -78,9 +78,9 @@
         },
         "hide": "Skjul",
         "unhide": "Vis",
-        "center": "Center",
+        "center": "Sentrer",
         "open_in": "Åpne I",
-        "copy_coordinates": "Copy coordinates"
+        "copy_coordinates": "Kopier koordinater"
     },
     "toolbar": {
         "routing": {
@@ -88,45 +88,45 @@
             "activity": "Aktivitet",
             "use_routing": "Dirigering",
             "use_routing_tooltip": "Koble forankringspunkter via veinett, eller i en rett linje hvis den er deaktivert",
-            "allow_private": "Allow private roads",
+            "allow_private": "Tillat private veier",
             "reverse": {
                 "button": "Omvendt",
-                "tooltip": "Reverse the direction of the route"
+                "tooltip": "Reverser retningen for ruten"
             },
             "route_back_to_start": {
-                "button": "Back to start",
-                "tooltip": "Connect the last point of the route with the starting point"
+                "button": "Tilbake til start",
+                "tooltip": "Koble det siste punktet i ruten med startpunktet"
             },
             "round_trip": {
-                "button": "Round trip",
-                "tooltip": "Return to the starting point by the same route"
+                "button": "Rundtur",
+                "tooltip": "Returner til startpunktet på samme rute"
             },
             "start_loop_here": "Start sløyfe her",
-            "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
-            "help": "Click on the map to add a new anchor point, or drag existing ones to change the route.",
+            "help_no_file": "Velg et spor for å bruke rute-verktøyet, eller klikk på kartet for å opprette en ny rute.",
+            "help": "Klikk på kartet for å legge til et nytt ankerpunkt, eller dra eksisterende for å endre ruten.",
             "activities": {
                 "bike": "Sykkel",
-                "racing_bike": "Road bike",
-                "gravel_bike": "Gravel bike",
+                "racing_bike": "Sykkel",
+                "gravel_bike": "Grussykkel",
                 "mountain_bike": "Fjellsykkel",
                 "foot": "Løping/Tur",
                 "motorcycle": "Motorsykkel",
-                "water": "Water",
-                "railway": "Railway"
+                "water": "Vann",
+                "railway": "Jernbane"
             },
             "surface": {
-                "unknown": "Unknown",
+                "unknown": "Ukjent",
                 "paved": "Belegning",
                 "unpaved": "Uasfaltert",
                 "asphalt": "Asfalt",
                 "concrete": "Betong",
                 "cobblestone": "Brostein",
-                "paving_stones": "Paving stones",
+                "paving_stones": "Brostein",
                 "sett": "Sett",
                 "metal": "Metall",
                 "wood": "Treverk",
-                "compacted": "Compacted gravel",
-                "fine_gravel": "Fine gravel",
+                "compacted": "Komprimert grus",
+                "fine_gravel": "Løs grus",
                 "gravel": "Grus",
                 "pebblestone": "Rullestein",
                 "rock": "Stein",
@@ -136,13 +136,13 @@
                 "mud": "Gjørme",
                 "sand": "Sand",
                 "grass": "Gress",
-                "grass_paver": "Grass paver",
-                "clay": "Clay",
-                "stone": "Stone"
+                "grass_paver": "Gress",
+                "clay": "Leire",
+                "stone": "Stein"
             },
             "highway": {
-                "unknown": "Unknown",
-                "motorway": "Highway",
+                "unknown": "Ukjent",
+                "motorway": "Motorvei",
                 "motorway_link": "Highway link",
                 "trunk": "Primary road",
                 "trunk_link": "Primary road link",
