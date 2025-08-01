@@ -190,41 +190,41 @@
                 "from": "Startpunktet er for langt unna nærmeste vei",
                 "via": "Via-punktet er for langt fra nærmeste vei",
                 "to": "Sluttpunktet er for langt unna nærmeste vei",
-                "timeout": "Route calculation took too long, try adding points closer together"
+                "timeout": "Ruteberegning tok for lang tid, prøv å legge til flere punkter"
             }
         },
         "scissors": {
-            "tooltip": "Crop or split",
-            "crop": "Crop",
-            "split_as": "Split the trace into",
-            "help_invalid_selection": "Select a trace to crop or split.",
-            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
+            "tooltip": "Beskjær eller splitt",
+            "crop": "Beskjær",
+            "split_as": "Dele opp sporet i",
+            "help_invalid_selection": "Velg spor for å beskjære eller dele.",
+            "help": "Bruk glidebryteren for å beskjære sporet, eller splitte det ved å klikke på en av markørene, eller på selve sporet."
         },
         "time": {
-            "tooltip": "Manage time data",
+            "tooltip": "Endre tidsdata",
             "start": "Start",
-            "end": "End",
+            "end": "Avslutt",
             "total_time": "Bevegelsestid",
-            "pick_date": "Pick a date",
-            "artificial": "Create realistic time data",
-            "update": "Update time data",
-            "help": "Use the form to set new time data.",
-            "help_invalid_selection": "Select a single trace to manage its time data."
+            "pick_date": "Velg en dato",
+            "artificial": "Opprett realistiske tidsdata",
+            "update": "Oppdater tidsdata",
+            "help": "Bruk skjemaet for å angi nye tidsdata.",
+            "help_invalid_selection": "Velg et spor for å administrere sine tidsdata."
         },
         "merge": {
-            "merge_traces": "Connect the traces",
-            "merge_contents": "Merge the contents and keep the traces disconnected",
+            "merge_traces": "Koble sammen sporene",
+            "merge_contents": "Slå sammen innholdet og behold sporene frakoblet",
             "merge_selection": "Slå sammen valgte",
-            "remove_gaps": "Remove time gaps between traces",
+            "remove_gaps": "Fjern tidsgap mellom spor",
             "tooltip": "Slå sammen elementer",
             "help_merge_traces": "Ved å koble sammen de valgte sporene vil det opprettes ett enkelt kontinuerlig spor.",
-            "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
-            "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
-            "help_cannot_merge_contents": "Your selection must contain several items to merge their contents.",
-            "selection_tip": "Tip: use {KEYBOARD_SHORTCUT} to add items to the selection."
+            "help_cannot_merge_traces": "Ditt utvalg må inneholde flere spor for å koble dem sammen.",
+            "help_merge_contents": "Sammenslåing av innholdet i de valgte elementene vil gruppere alt innhold i det første elementet.",
+            "help_cannot_merge_contents": "Ditt valg må inneholde flere elementer for å slå sammen innholdet.",
+            "selection_tip": "Tips: bruk {KEYBOARD_SHORTCUT} for å legge til objekter i utvalget."
         },
         "extract": {
-            "tooltip": "Extract contents to separate items",
+            "tooltip": "Pakk ut innhold for å skille elementer",
             "button": "Pakk ut",
             "help": "Å pakke ut innholdet i de valgte elementene, vil opprette et eget element for hvert punkt.",
             "help_invalid_selection": "Valget ditt må inneholde elementer med flere spor for å kunne hente dem ut."
