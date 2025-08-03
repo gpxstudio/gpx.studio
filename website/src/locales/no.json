@@ -181,11 +181,11 @@
                 "hiking": "Fottur",
                 "mountain_hiking": "Fjelltur",
                 "demanding_mountain_hiking": "Krevende fjelltur",
-                "alpine_hiking": "Alpine hiking",
-                "demanding_alpine_hiking": "Demanding alpine hiking",
-                "difficult_alpine_hiking": "Difficult alpine hiking"
+                "alpine_hiking": "Fjelltur",
+                "demanding_alpine_hiking": "Krevende fjelltur",
+                "difficult_alpine_hiking": "Vanskelig fjelltur"
             },
-            "mtb_scale": "MTB scale",
+            "mtb_scale": "MTB skala",
             "error": {
                 "from": "Startpunktet er for langt unna nærmeste vei",
                 "via": "Via-punktet er for langt fra nærmeste vei",
@@ -260,7 +260,7 @@
             "delete_inside": "Slett i utvalg",
             "delete_outside": "Slett utenfor utvalg",
             "button": "Slett",
-            "help": "Select a rectangle area on the map to remove GPS points and points of interest.",
+            "help": "Velg et rektangelområde på kartet for å fjerne GPS-punkter og interessepunkter.",
             "help_no_selection": "Select a trace to clean GPS points and points of interest."
         }
     },
