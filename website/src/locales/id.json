@@ -181,64 +181,64 @@
                 "hiking": "Mendaki",
                 "mountain_hiking": "Pendakian gunung",
                 "demanding_mountain_hiking": "Pendakian gunung yang menantang",
-                "alpine_hiking": "Pendakian alpen",
-                "demanding_alpine_hiking": "Pendakian alpen yang menantang",
-                "difficult_alpine_hiking": "Pendakian alpen tingkat sulit"
+                "alpine_hiking": "Pendakian alpine",
+                "demanding_alpine_hiking": "Pendakian alpine yang menantang",
+                "difficult_alpine_hiking": "Pendakian alpine tingkat sulit"
             },
-            "mtb_scale": "MTB scale",
+            "mtb_scale": "Skala MTB",
             "error": {
-                "from": "The start point is too far from the nearest road",
-                "via": "The via point is too far from the nearest road",
-                "to": "The end point is too far from the nearest road",
-                "timeout": "Route calculation took too long, try adding points closer together"
+                "from": "Titik awal terlalu jauh dari jalan terdekat",
+                "via": "Titik via terlalu jauh dari jalan terdekat",
+                "to": "Titik akhir terlalu jauh dari jalan terdekat",
+                "timeout": "Perhitungan rute memakan waktu terlalu lama, coba tambahkan titik-titik yang lebih dekat satu sama lain"
             }
         },
         "scissors": {
-            "tooltip": "Crop or split",
-            "crop": "Crop",
-            "split_as": "Split the trace into",
-            "help_invalid_selection": "Select a trace to crop or split.",
-            "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
+            "tooltip": "Potong atau bagi",
+            "crop": "Potong",
+            "split_as": "Bagi jejak menjadi",
+            "help_invalid_selection": "Pilih jejak yang ingin Anda potong atau bagi.",
+            "help": "Gunakan penggeser untuk memotong jejak, atau membaginya dengan mengklik salah satu penanda pembagian atau pada jejak itu sendiri."
         },
         "time": {
-            "tooltip": "Manage time data",
-            "start": "Start",
-            "end": "End",
-            "total_time": "Moving time",
-            "pick_date": "Pick a date",
-            "artificial": "Create realistic time data",
-            "update": "Update time data",
-            "help": "Use the form to set new time data.",
-            "help_invalid_selection": "Select a single trace to manage its time data."
+            "tooltip": "Kelola data waktu",
+            "start": "Mulai",
+            "end": "Selesai",
+            "total_time": "Waktu bergerak",
+            "pick_date": "Pilih tanggal",
+            "artificial": "Buat data waktu yang realistis",
+            "update": "Perbarui data waktu",
+            "help": "Isi formulir untuk mengatur data waktu baru.",
+            "help_invalid_selection": "Pilih satu jejak untuk mengelola data waktunya."
         },
         "merge": {
-            "merge_traces": "Connect the traces",
-            "merge_contents": "Merge the contents and keep the traces disconnected",
-            "merge_selection": "Merge selection",
-            "remove_gaps": "Remove time gaps between traces",
-            "tooltip": "Merge items together",
-            "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
-            "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
-            "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
-            "help_cannot_merge_contents": "Your selection must contain several items to merge their contents.",
+            "merge_traces": "Sambungkan jalur-jalurnya",
+            "merge_contents": "Gabungkan isi dan biarkan jejak tetap terputus",
+            "merge_selection": "Gabungkan pilihan",
+            "remove_gaps": "Hapus celah waktu antara jejak",
+            "tooltip": "Gabungkan item-item tersebut",
+            "help_merge_traces": "Menghubungkan jejak yang dipilih akan menghasilkan satu jejak yang terus menerus.",
+            "help_cannot_merge_traces": "Pilihan Anda harus mencakup beberapa jejak untuk menghubungkannya.",
+            "help_merge_contents": "Menggabungkan isi dari item yang dipilih akan mengelompokkan semua isi di dalam item pertama.",
+            "help_cannot_merge_contents": "Pilihan Anda harus berisi beberapa item untuk menggabungkan isinya.",
             "selection_tip": "Tips: Gunakan {KEYBOARD_SHORTCUT} untuk menambahkan item ke dalam pemilihan."
         },
         "extract": {
-            "tooltip": "Extract contents to separate items",
-            "button": "Extract",
-            "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
-            "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
+            "tooltip": "Ekstrak isi ke item terpisah",
+            "button": "Ekstrak",
+            "help": "Mengekstrak isi dari item yang dipilih akan membuat item terpisah untuk setiap isi dari item tersebut.",
+            "help_invalid_selection": "Pilihan Anda harus mencakup item yang memiliki jejak ganda agar dapat diekstraksi."
         },
         "elevation": {
-            "button": "Request elevation data",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
-            "help_no_selection": "Select a file item to request elevation data."
+            "button": "Minta data elevasi",
+            "help": "Meminta data elevasi akan menghapus data elevasi yang ada, jika ada, dan menggantinya dengan data dari Mapbox.",
+            "help_no_selection": "Pilih item file untuk meminta data elevasi."
         },
         "waypoint": {
-            "tooltip": "Create and edit points of interest",
-            "icon": "Icon",
-            "link": "Link",
-            "longitude": "Longitude",
+            "tooltip": "Buat dan edit titik-titik menarik",
+            "icon": "Ikon",
+            "link": "Tautan",
+            "longitude": "Garis Bujur",
             "latitude": "Latitude",
             "create": "Create point of interest",
             "add": "Add point of interest to file",
