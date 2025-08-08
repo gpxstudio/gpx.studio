@@ -130,6 +130,12 @@
             'vertical'
                 ? 'h-fit'
                 : 'h-9 px-1.5 shadow-md'} pointer-events-auto"
+            on:click={() => {
+                if (!hidden) {
+                    selectItem(item);
+                    centerMapOnSelection();
+                }
+            }}
         >
             {#if item instanceof ListFileItem || item instanceof ListTrackItem}
                 <MetadataDialog bind:open={openEditMetadata} {node} {item} />
