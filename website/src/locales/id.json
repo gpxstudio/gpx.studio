@@ -239,8 +239,8 @@
             "icon": "Ikon",
             "link": "Tautan",
             "longitude": "Garis Bujur",
-            "latitude": "Latitude",
-            "create": "Create point of interest",
+            "latitude": "Lintang",
+            "create": "Buat titik menarik",
             "add": "Add point of interest to file",
             "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
             "help_no_selection": "Select a file to create or edit points of interest."
