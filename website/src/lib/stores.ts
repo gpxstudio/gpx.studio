@@ -25,6 +25,7 @@ import type { RoutingControls } from '$lib/components/toolbar/tools/routing/Rout
 import { SplitType } from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
 import FileSaver from 'file-saver';
 import JSZip from 'jszip';
+import { hasUrlCoordinates } from './utils';
 
 const { fileOrder } = settings;
 
@@ -108,6 +109,11 @@ derived([targetMapBounds, map], (x) => x).subscribe(([bounds, $map]) => {
             bounds.bounds.getNorth() === -90 &&
             bounds.bounds.getEast() === -180)
     ) {
+        return;
+    }
+
+    // Don't auto-fit to file bounds if the URL contains specific coordinates
+    if (hasUrlCoordinates()) {
         return;
     }
 
