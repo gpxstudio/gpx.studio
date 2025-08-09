@@ -1,4 +1,4 @@
-import { gpxStatistics, slicedGPXStatistics, currentTool, Tool } from '$lib/stores';
+import { gpxStatistics, slicedGPXStatistics, currentTool, Tool, allHidden } from '$lib/stores';
 import mapboxgl from 'mapbox-gl';
 import { get } from 'svelte/store';
 
@@ -25,12 +25,13 @@ export class StartEndMarkers {
         this.unsubscribes.push(gpxStatistics.subscribe(this.updateBinded));
         this.unsubscribes.push(slicedGPXStatistics.subscribe(this.updateBinded));
         this.unsubscribes.push(currentTool.subscribe(this.updateBinded));
+        this.unsubscribes.push(allHidden.subscribe(this.updateBinded));
     }
 
     update() {
         let tool = get(currentTool);
         let statistics = get(slicedGPXStatistics)?.[0] ?? get(gpxStatistics);
-        if (statistics.local.points.length > 0 && tool !== Tool.ROUTING) {
+        if (statistics.local.points.length > 0 && tool !== Tool.ROUTING && !get(allHidden)) {
             this.start.setLngLat(statistics.local.points[0].getCoordinates()).addTo(this.map);
             this.end
                 .setLngLat(
