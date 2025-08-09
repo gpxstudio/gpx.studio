@@ -25,7 +25,6 @@ import type { RoutingControls } from '$lib/components/toolbar/tools/routing/Rout
 import { SplitType } from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
 import FileSaver from 'file-saver';
 import JSZip from 'jszip';
-import { hasUrlCoordinates } from './utils';
 
 const { fileOrder } = settings;
 
@@ -112,28 +111,8 @@ derived([targetMapBounds, map], (x) => x).subscribe(([bounds, $map]) => {
         return;
     }
 
-    // Don't auto-fit to file bounds if the URL contains specific coordinates
-    if (hasUrlCoordinates()) {
+    if ($map.getZoom() > 2) {
         return;
-    }
-
-    let currentZoom = $map.getZoom();
-    let currentBounds = $map.getBounds();
-    if (
-        bounds.total !== get(fileObservers).size &&
-        currentBounds &&
-        currentZoom > 2 // Extend current bounds only if the map is zoomed in
-    ) {
-        // There are other files on the map
-        if (
-            currentBounds.contains(bounds.bounds.getSouthEast()) &&
-            currentBounds.contains(bounds.bounds.getNorthWest())
-        ) {
-            return;
-        }
-
-        bounds.bounds.extend(currentBounds.getSouthWest());
-        bounds.bounds.extend(currentBounds.getNorthEast());
     }
 
     $map.fitBounds(bounds.bounds, { padding: 80, linear: true, easing: () => 1 });

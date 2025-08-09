@@ -266,33 +266,3 @@ export let df: DateFormatter = getDateFormatter('en');
 locale.subscribe((l) => {
     df = getDateFormatter(l ?? 'en');
 });
-
-export function hasUrlCoordinates(): boolean {
-    if (typeof window === 'undefined') return false;
-
-    const hash = window.location.hash;
-    if (!hash || hash.length <= 1) return false;
-
-    const hashParts = hash.substring(1).split('/');
-    if (hashParts.length >= 3) {
-        const zoom = parseFloat(hashParts[0]);
-        const lat = parseFloat(hashParts[1]);
-        const lng = parseFloat(hashParts[2]);
-        return (
-            !isNaN(zoom) &&
-            !isNaN(lat) &&
-            !isNaN(lng) &&
-            lat >= -90 &&
-            lat <= 90 &&
-            lng >= -180 &&
-            lng <= 180 &&
-            // on application load from default url has all three values set to 0
-            // in this case we treat it as no coordinates
-            zoom !== 0 &&
-            lng !== 0 &&
-            lat !== 0
-        );
-    }
-
-    return false;
-}
