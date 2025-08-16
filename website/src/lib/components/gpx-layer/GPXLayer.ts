@@ -3,6 +3,7 @@ import { settings, type GPXFileWithStatistics, dbUtils } from '$lib/db';
 import type { Waypoint as GPXWaypoint } from 'gpx';
 import { get, type Readable } from 'svelte/store';
 import mapboxgl from 'mapbox-gl';
+import sanitizeHtml from 'sanitize-html';
 import { waypointPopup, deleteWaypoint, trackpointPopup } from './GPXLayerPopup';
 import { addSelectItem, selectItem, selection } from '$lib/components/file-list/Selection';
 import {
@@ -92,11 +93,25 @@ function getMarkerHTML(
     name?: string,
     showLabel?: boolean
 ): string {
-    // Container must be relative to position the label above the icon
-    const label =
-        showLabel && name
-            ? `<div class="absolute left-1/2 bottom-full -translate-x-1/2 mb-1 px-1.5 py-0.5 rounded border text-[11px] leading-none whitespace-nowrap pointer-events-none select-none bg-white/95 text-black border-black/10 dark:bg-neutral-900/90 dark:text-white dark:border-white/10 shadow">${name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`
-            : '';
+    let label: string;
+    if (showLabel && name) {
+        name = sanitizeHtml(name, {
+            allowedTags: [],
+            allowedAttributes: {},
+            disallowedTagsMode: 'escape',
+        }).trim();
+        if (name.length > 20) {
+            name = name.slice(0, 20) + '…';
+        }
+
+        if (name.length === 0) {
+            label = '';
+        } else {
+            label = `<div class="absolute left-1/2 bottom-full -translate-x-1/2 mb-1 px-1.5 py-0.5 rounded border text-[11px] leading-none whitespace-nowrap pointer-events-none select-none bg-white/95 text-black border-black/10 dark:bg-neutral-900/90 dark:text-white dark:border-white/10 shadow">${name}</div>`;
+        }
+    } else {
+        label = '';
+    }
     return `<div class="relative overflow-visible">${label}${getMarkerForSymbol(symbolKey, layerColor)}</div>`;
 }
 
@@ -351,15 +366,16 @@ export class GPXLayer {
                                     false
                                 )
                             ) {
-                                addSelectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
+                                addSelectItem(
+                                    new ListWaypointItem(this.fileId, marker._waypoint._data.index)
+                                );
                             } else {
-                                selectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
+                                selectItem(
+                                    new ListWaypointItem(this.fileId, marker._waypoint._data.index)
+                                );
                             }
                         } else if (get(currentTool) === Tool.WAYPOINT) {
-                            selectedWaypoint.set([
-                                marker._waypoint,
-                                this.fileId,
-                            ]);
+                            selectedWaypoint.set([marker._waypoint, this.fileId]);
                         } else {
                             waypointPopup?.setItem({ item: marker._waypoint, fileId: this.fileId });
                         }
