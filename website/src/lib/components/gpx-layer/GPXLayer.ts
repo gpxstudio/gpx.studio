@@ -329,10 +329,7 @@ export class GPXLayer {
                         if (marker._isDragging) {
                             return;
                         }
-                        waypointPopup?.setItem({
-                            item: marker._waypoint,
-                            fileId: this.fileId,
-                        });
+                        waypointPopup?.setItem({ item: marker._waypoint, fileId: this.fileId });
                         e.stopPropagation();
                     });
                     marker.getElement().addEventListener('click', (e) => {
@@ -341,10 +338,7 @@ export class GPXLayer {
                         }
 
                         if (get(currentTool) === Tool.WAYPOINT && e.shiftKey) {
-                            deleteWaypoint(
-                                this.fileId,
-                                marker._waypoint._data.index
-                            );
+                            deleteWaypoint(this.fileId, marker._waypoint._data.index);
                             e.stopPropagation();
                             return;
                         }
@@ -357,19 +351,9 @@ export class GPXLayer {
                                     false
                                 )
                             ) {
-                                addSelectItem(
-                                    new ListWaypointItem(
-                                        this.fileId,
-                                        marker._waypoint._data.index
-                                    )
-                                );
+                                addSelectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
                             } else {
-                                selectItem(
-                                    new ListWaypointItem(
-                                        this.fileId,
-                                        marker._waypoint._data.index
-                                    )
-                                );
+                                selectItem(new ListWaypointItem(this.fileId, marker._waypoint._data.index));
                             }
                         } else if (get(currentTool) === Tool.WAYPOINT) {
                             selectedWaypoint.set([
@@ -377,10 +361,7 @@ export class GPXLayer {
                                 this.fileId,
                             ]);
                         } else {
-                            waypointPopup?.setItem({
-                                item: marker._waypoint,
-                                fileId: this.fileId,
-                            });
+                            waypointPopup?.setItem({ item: marker._waypoint, fileId: this.fileId });
                         }
                         e.stopPropagation();
                     });
@@ -395,8 +376,7 @@ export class GPXLayer {
                         getElevation([marker._waypoint]).then((ele) => {
                             dbUtils.applyToFile(this.fileId, (file) => {
                                 let latLng = marker.getLngLat();
-                                let wpt =
-                                    file.wpt[marker._waypoint._data.index];
+                                let wpt = file.wpt[marker._waypoint._data.index];
                                 wpt.setCoordinates({
                                     lat: latLng.lat,
                                     lon: latLng.lng,
@@ -418,11 +398,10 @@ export class GPXLayer {
         }
 
         this.markers.forEach((marker) => {
-            const m = marker;
-            if (!m._waypoint._data.hidden) {
-                m.addTo(this.map);
+            if (!marker._waypoint._data.hidden) {
+                marker.addTo(this.map);
             } else {
-                m.remove();
+                marker.remove();
             }
         });
     }
