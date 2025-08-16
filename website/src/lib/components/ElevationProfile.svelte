@@ -247,6 +247,10 @@
         };
     });
 
+    const HIGHLIGHT_SOURCE_ID = 'elevation-selection';
+    const HIGHLIGHT_LAYER_CASING_ID = 'elevation-selection-casing';
+    const HIGHLIGHT_LAYER_ID = 'elevation-selection';
+
     onMount(async () => {
         Chart.register((await import('chartjs-plugin-zoom')).default); // dynamic import to avoid SSR and 'window is not defined' error
 
@@ -539,6 +543,122 @@
     }
 
     $: $slicedGPXStatistics, $mode, updateOverlay();
+    $: $slicedGPXStatistics, $gpxStatistics, $mode, $map, updateMapHighlight();
+
+    function ensureHighlightLayers() {
+        if (!$map) return;
+        const map = $map as mapboxgl.Map;
+        if (!map.getSource(HIGHLIGHT_SOURCE_ID)) {
+            map.addSource(HIGHLIGHT_SOURCE_ID, {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    geometry: { type: 'LineString', coordinates: [] },
+                    properties: {},
+                },
+            });
+        }
+        if (!map.getLayer(HIGHLIGHT_LAYER_CASING_ID)) {
+            map.addLayer({
+                id: HIGHLIGHT_LAYER_CASING_ID,
+                type: 'line',
+                source: HIGHLIGHT_SOURCE_ID,
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: {
+                    'line-color': $mode === 'dark' ? '#ffffff' : '#000000',
+                    'line-width': 10,
+                    'line-opacity': 0.9,
+                    'line-blur': 0.2,
+                },
+            });
+        }
+        if (!map.getLayer(HIGHLIGHT_LAYER_ID)) {
+            map.addLayer({
+                id: HIGHLIGHT_LAYER_ID,
+                type: 'line',
+                source: HIGHLIGHT_SOURCE_ID,
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: {
+                    'line-color': '#ffeb3b', // bright yellow
+                    'line-width': 6,
+                    'line-opacity': 1,
+                },
+            });
+        }
+        try {
+            map.moveLayer(HIGHLIGHT_LAYER_CASING_ID);
+            map.moveLayer(HIGHLIGHT_LAYER_ID);
+        } catch (e) {
+            // ignore if already on top or not movable yet
+        }
+    }
+
+    function updateMapHighlight() {
+        if (!$map) return;
+        const map = $map as mapboxgl.Map;
+        if ($slicedGPXStatistics === undefined) {
+            if (map.getLayer(HIGHLIGHT_LAYER_ID)) map.removeLayer(HIGHLIGHT_LAYER_ID);
+            if (map.getLayer(HIGHLIGHT_LAYER_CASING_ID)) map.removeLayer(HIGHLIGHT_LAYER_CASING_ID);
+            if (map.getSource(HIGHLIGHT_SOURCE_ID)) map.removeSource(HIGHLIGHT_SOURCE_ID);
+            return;
+        }
+        if (!$gpxStatistics?.local?.points?.length) return;
+
+        let startIndex = Math.min($slicedGPXStatistics[1], $slicedGPXStatistics[2]);
+        let endIndex = Math.max($slicedGPXStatistics[1], $slicedGPXStatistics[2]);
+
+        startIndex = Math.max(0, Math.min(startIndex, $gpxStatistics.local.points.length - 1));
+        endIndex = Math.max(0, Math.min(endIndex, $gpxStatistics.local.points.length - 1));
+        if (endIndex <= startIndex) return;
+
+        const coords: [number, number][] = [];
+        for (let i = startIndex; i <= endIndex; i++) {
+            const c = $gpxStatistics.local.points[i].getCoordinates();
+            coords.push([c.lon, c.lat]);
+        }
+
+        ensureHighlightLayers();
+        const src = $map.getSource(HIGHLIGHT_SOURCE_ID) as mapboxgl.GeoJSONSource;
+        if (src) {
+            src.setData({
+                type: 'Feature',
+                geometry: { type: 'LineString', coordinates: coords },
+                properties: {},
+            } as GeoJSON.Feature);
+        }
+        if ($map.getLayer(HIGHLIGHT_LAYER_CASING_ID)) {
+            $map.setPaintProperty(
+                HIGHLIGHT_LAYER_CASING_ID,
+                'line-color',
+                $mode === 'dark' ? '#ffffff' : '#000000'
+            );
+        }
+        try {
+            $map.moveLayer(HIGHLIGHT_LAYER_CASING_ID);
+            $map.moveLayer(HIGHLIGHT_LAYER_ID);
+        } catch (e) {}
+    }
+
+    let styledataHooked = false;
+    $: if ($map && !styledataHooked) {
+        updateMapHighlight();
+        const handler = () => {
+            if ($slicedGPXStatistics) updateMapHighlight();
+        };
+        $map.on('styledata', handler);
+        styledataHooked = true;
+        onDestroy(() => {
+            if ($map) {
+                try {
+                    $map.off('styledata', handler);
+                } catch (e) {}
+                if ($map.getLayer(HIGHLIGHT_LAYER_ID)) $map.removeLayer(HIGHLIGHT_LAYER_ID);
+                if ($map.getLayer(HIGHLIGHT_LAYER_CASING_ID))
+                    $map.removeLayer(HIGHLIGHT_LAYER_CASING_ID);
+                if ($map.getSource(HIGHLIGHT_SOURCE_ID)) $map.removeSource(HIGHLIGHT_SOURCE_ID);
+            }
+        });
+    }
 
     onDestroy(() => {
         if (chart) {
