@@ -58,6 +58,7 @@
         "layers": "Слои карты...",
         "distance_markers": "Метки расстояния",
         "direction_markers": "Стрелки направления",
+        "show_waypoints_labels": "Показать метки точек интереса",
         "help": "Помощь",
         "more": "Ещё...",
         "donate": "Пожертвовать",

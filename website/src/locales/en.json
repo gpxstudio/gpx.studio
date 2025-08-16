@@ -58,6 +58,7 @@
         "layers": "Map layers...",
         "distance_markers": "Distance markers",
         "direction_markers": "Direction arrows",
+        "show_waypoints_labels": "Show points of interest labels",
         "help": "Help",
         "more": "More...",
         "donate": "Donate",

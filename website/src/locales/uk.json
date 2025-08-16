@@ -58,6 +58,7 @@
         "layers": "Шари мапи...",
         "distance_markers": "Маркери відстані",
         "direction_markers": "Стрілки напрямку",
+        "show_waypoints_labels": "Показувати мітки точок інтересу",
         "help": "Допомога",
         "more": "Більше...",
         "donate": "Пожертвувати",

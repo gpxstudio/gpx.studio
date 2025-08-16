@@ -1,5 +1,6 @@
 import { currentTool, map, Tool } from '$lib/stores';
 import { settings, type GPXFileWithStatistics, dbUtils } from '$lib/db';
+import type { Waypoint as GPXWaypoint } from 'gpx';
 import { get, type Readable } from 'svelte/store';
 import mapboxgl from 'mapbox-gl';
 import { waypointPopup, deleteWaypoint, trackpointPopup } from './GPXLayerPopup';
@@ -82,7 +83,22 @@ function getMarkerForSymbol(symbol: string | undefined, layerColor: string) {
     </svg>`;
 }
 
-const { directionMarkers, treeFileView, defaultOpacity, defaultWidth } = settings;
+const { directionMarkers, treeFileView, defaultOpacity, defaultWidth, showWaypointsLabels } =
+    settings;
+
+function getMarkerHTML(
+    symbolKey: string | undefined,
+    layerColor: string,
+    name?: string,
+    showLabel?: boolean
+): string {
+    // Container must be relative to position the label above the icon
+    const label =
+        showLabel && name
+            ? `<div class="absolute left-1/2 bottom-full -translate-x-1/2 mb-1 px-1.5 py-0.5 rounded border text-[11px] leading-none whitespace-nowrap pointer-events-none select-none bg-white/95 text-black border-black/10 dark:bg-neutral-900/90 dark:text-white dark:border-white/10 shadow">${name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`
+            : '';
+    return `<div class="relative overflow-visible">${label}${getMarkerForSymbol(symbolKey, layerColor)}</div>`;
+}
 
 export class GPXLayer {
     map: mapboxgl.Map;
@@ -124,6 +140,7 @@ export class GPXLayer {
             })
         );
         this.unsubscribe.push(directionMarkers.subscribe(this.updateBinded));
+        this.unsubscribe.push(showWaypointsLabels.subscribe(this.updateBinded));
         this.unsubscribe.push(
             currentTool.subscribe((tool) => {
                 if (tool === Tool.WAYPOINT && !this.draggable) {
@@ -158,7 +175,7 @@ export class GPXLayer {
         try {
             let source = this.map.getSource(this.fileId);
             if (source) {
-                source.setData(this.getGeoJSON());
+                (source as mapboxgl.GeoJSONSource).setData(this.getGeoJSON() as any);
             } else {
                 this.map.addSource(this.fileId, {
                     type: 'geojson',
@@ -267,9 +284,19 @@ export class GPXLayer {
                 // Update markers
                 let symbolKey = getSymbolKey(waypoint.sym);
                 if (markerIndex < this.markers.length) {
-                    this.markers[markerIndex].getElement().innerHTML = getMarkerForSymbol(
+                    const el = this.markers[markerIndex].getElement();
+                    el.classList.add(
+                        'w-8',
+                        'h-8',
+                        'drop-shadow-xl',
+                        'overflow-visible',
+                        'relative'
+                    );
+                    el.innerHTML = getMarkerHTML(
                         symbolKey,
-                        this.layerColor
+                        this.layerColor,
+                        waypoint.name,
+                        get(showWaypointsLabels)
                     );
                     this.markers[markerIndex].setLngLat(waypoint.getCoordinates());
                     Object.defineProperty(this.markers[markerIndex], '_waypoint', {
@@ -278,8 +305,19 @@ export class GPXLayer {
                     });
                 } else {
                     let element = document.createElement('div');
-                    element.classList.add('w-8', 'h-8', 'drop-shadow-xl');
-                    element.innerHTML = getMarkerForSymbol(symbolKey, this.layerColor);
+                    element.classList.add(
+                        'w-8',
+                        'h-8',
+                        'drop-shadow-xl',
+                        'overflow-visible',
+                        'relative'
+                    );
+                    element.innerHTML = getMarkerHTML(
+                        symbolKey,
+                        this.layerColor,
+                        waypoint.name,
+                        get(showWaypointsLabels)
+                    );
                     let marker = new mapboxgl.Marker({
                         draggable: this.draggable,
                         element,
@@ -291,7 +329,10 @@ export class GPXLayer {
                         if (marker._isDragging) {
                             return;
                         }
-                        waypointPopup?.setItem({ item: marker._waypoint, fileId: this.fileId });
+                        waypointPopup?.setItem({
+                            item: marker._waypoint,
+                            fileId: this.fileId,
+                        });
                         e.stopPropagation();
                     });
                     marker.getElement().addEventListener('click', (e) => {
@@ -300,7 +341,10 @@ export class GPXLayer {
                         }
 
                         if (get(currentTool) === Tool.WAYPOINT && e.shiftKey) {
-                            deleteWaypoint(this.fileId, marker._waypoint._data.index);
+                            deleteWaypoint(
+                                this.fileId,
+                                marker._waypoint._data.index
+                            );
                             e.stopPropagation();
                             return;
                         }
@@ -314,17 +358,29 @@ export class GPXLayer {
                                 )
                             ) {
                                 addSelectItem(
-                                    new ListWaypointItem(this.fileId, marker._waypoint._data.index)
+                                    new ListWaypointItem(
+                                        this.fileId,
+                                        marker._waypoint._data.index
+                                    )
                                 );
                             } else {
                                 selectItem(
-                                    new ListWaypointItem(this.fileId, marker._waypoint._data.index)
+                                    new ListWaypointItem(
+                                        this.fileId,
+                                        marker._waypoint._data.index
+                                    )
                                 );
                             }
                         } else if (get(currentTool) === Tool.WAYPOINT) {
-                            selectedWaypoint.set([marker._waypoint, this.fileId]);
+                            selectedWaypoint.set([
+                                marker._waypoint,
+                                this.fileId,
+                            ]);
                         } else {
-                            waypointPopup?.setItem({ item: marker._waypoint, fileId: this.fileId });
+                            waypointPopup?.setItem({
+                                item: marker._waypoint,
+                                fileId: this.fileId,
+                            });
                         }
                         e.stopPropagation();
                     });
@@ -339,7 +395,8 @@ export class GPXLayer {
                         getElevation([marker._waypoint]).then((ele) => {
                             dbUtils.applyToFile(this.fileId, (file) => {
                                 let latLng = marker.getLngLat();
-                                let wpt = file.wpt[marker._waypoint._data.index];
+                                let wpt =
+                                    file.wpt[marker._waypoint._data.index];
                                 wpt.setCoordinates({
                                     lat: latLng.lat,
                                     lon: latLng.lng,
@@ -361,10 +418,11 @@ export class GPXLayer {
         }
 
         this.markers.forEach((marker) => {
-            if (!marker._waypoint._data.hidden) {
-                marker.addTo(this.map);
+            const m = marker;
+            if (!m._waypoint._data.hidden) {
+                m.addTo(this.map);
             } else {
-                marker.remove();
+                m.remove();
             }
         });
     }
