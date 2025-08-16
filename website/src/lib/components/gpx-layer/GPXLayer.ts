@@ -1,7 +1,9 @@
 import { currentTool, map, Tool } from '$lib/stores';
 import { settings, type GPXFileWithStatistics, dbUtils } from '$lib/db';
+import type { Waypoint as GPXWaypoint } from 'gpx';
 import { get, type Readable } from 'svelte/store';
 import mapboxgl from 'mapbox-gl';
+import sanitizeHtml from 'sanitize-html';
 import { waypointPopup, deleteWaypoint, trackpointPopup } from './GPXLayerPopup';
 import { addSelectItem, selectItem, selection } from '$lib/components/file-list/Selection';
 import {
@@ -82,7 +84,36 @@ function getMarkerForSymbol(symbol: string | undefined, layerColor: string) {
     </svg>`;
 }
 
-const { directionMarkers, treeFileView, defaultOpacity, defaultWidth } = settings;
+const { directionMarkers, treeFileView, defaultOpacity, defaultWidth, showWaypointsLabels } =
+    settings;
+
+function getMarkerHTML(
+    symbolKey: string | undefined,
+    layerColor: string,
+    name?: string,
+    showLabel?: boolean
+): string {
+    let label: string;
+    if (showLabel && name) {
+        name = sanitizeHtml(name, {
+            allowedTags: [],
+            allowedAttributes: {},
+            disallowedTagsMode: 'escape',
+        }).trim();
+        if (name.length > 20) {
+            name = name.slice(0, 20) + '…';
+        }
+
+        if (name.length === 0) {
+            label = '';
+        } else {
+            label = `<div class="absolute left-1/2 bottom-full -translate-x-1/2 mb-1 px-1.5 py-0.5 rounded border text-[11px] leading-none whitespace-nowrap pointer-events-none select-none bg-white/95 text-black border-black/10 dark:bg-neutral-900/90 dark:text-white dark:border-white/10 shadow">${name}</div>`;
+        }
+    } else {
+        label = '';
+    }
+    return `<div class="relative overflow-visible">${label}${getMarkerForSymbol(symbolKey, layerColor)}</div>`;
+}
 
 export class GPXLayer {
     map: mapboxgl.Map;
@@ -124,6 +155,7 @@ export class GPXLayer {
             })
         );
         this.unsubscribe.push(directionMarkers.subscribe(this.updateBinded));
+        this.unsubscribe.push(showWaypointsLabels.subscribe(this.updateBinded));
         this.unsubscribe.push(
             currentTool.subscribe((tool) => {
                 if (tool === Tool.WAYPOINT && !this.draggable) {
@@ -158,7 +190,7 @@ export class GPXLayer {
         try {
             let source = this.map.getSource(this.fileId);
             if (source) {
-                source.setData(this.getGeoJSON());
+                (source as mapboxgl.GeoJSONSource).setData(this.getGeoJSON() as any);
             } else {
                 this.map.addSource(this.fileId, {
                     type: 'geojson',
@@ -267,9 +299,19 @@ export class GPXLayer {
                 // Update markers
                 let symbolKey = getSymbolKey(waypoint.sym);
                 if (markerIndex < this.markers.length) {
-                    this.markers[markerIndex].getElement().innerHTML = getMarkerForSymbol(
+                    const el = this.markers[markerIndex].getElement();
+                    el.classList.add(
+                        'w-8',
+                        'h-8',
+                        'drop-shadow-xl',
+                        'overflow-visible',
+                        'relative'
+                    );
+                    el.innerHTML = getMarkerHTML(
                         symbolKey,
-                        this.layerColor
+                        this.layerColor,
+                        waypoint.name,
+                        get(showWaypointsLabels)
                     );
                     this.markers[markerIndex].setLngLat(waypoint.getCoordinates());
                     Object.defineProperty(this.markers[markerIndex], '_waypoint', {
@@ -278,8 +320,19 @@ export class GPXLayer {
                     });
                 } else {
                     let element = document.createElement('div');
-                    element.classList.add('w-8', 'h-8', 'drop-shadow-xl');
-                    element.innerHTML = getMarkerForSymbol(symbolKey, this.layerColor);
+                    element.classList.add(
+                        'w-8',
+                        'h-8',
+                        'drop-shadow-xl',
+                        'overflow-visible',
+                        'relative'
+                    );
+                    element.innerHTML = getMarkerHTML(
+                        symbolKey,
+                        this.layerColor,
+                        waypoint.name,
+                        get(showWaypointsLabels)
+                    );
                     let marker = new mapboxgl.Marker({
                         draggable: this.draggable,
                         element,

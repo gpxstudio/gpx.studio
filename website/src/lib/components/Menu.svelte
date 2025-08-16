@@ -43,6 +43,7 @@
         BookOpenText,
         ChartArea,
         Maximize,
+        MapPinned,
     } from 'lucide-svelte';
 
     import {
@@ -91,6 +92,7 @@
         distanceMarkers,
         directionMarkers,
         streetViewSource,
+        showWaypointsLabels,
         routing,
     } = settings;
 
@@ -379,6 +381,11 @@
                             key="F4"
                         />
                     </Menubar.CheckboxItem>
+                    <Menubar.CheckboxItem bind:checked={$showWaypointsLabels}>
+                        <MapPinned size="16" class="mr-1" />
+                        {$_('menu.show_waypoints_labels')}
+                        <Shortcut key="F6" />
+                    </Menubar.CheckboxItem>
                     <Menubar.Separator />
                     <Menubar.Item inset on:click={toggle3D}>
                         <Box size="16" class="mr-1" />
@@ -648,6 +655,9 @@
             e.preventDefault();
         } else if (e.key === 'F5') {
             $routing = !$routing;
+            e.preventDefault();
+        } else if (e.key === 'F6') {
+            $showWaypointsLabels = !$showWaypointsLabels;
             e.preventDefault();
         } else if (
             e.key === 'ArrowRight' ||
