@@ -242,7 +242,7 @@
             "latitude": "Lintang",
             "create": "Buat titik menarik",
             "add": "Tambah titik menarik ke berkas",
-            "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
+            "help": "",
             "help_no_selection": "Select a file to create or edit points of interest."
         },
         "reduce": {
