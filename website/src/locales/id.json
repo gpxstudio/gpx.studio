@@ -242,8 +242,8 @@
             "latitude": "Lintang",
             "create": "Buat titik menarik",
             "add": "Tambah titik menarik ke berkas",
-            "help": "",
-            "help_no_selection": "Select a file to create or edit points of interest."
+            "help": "Isi formulir untuk membuat titik point baru, atau klik pada titik point yang sudah ada untuk mengeditnya. Klik pada peta untuk mengisi koordinat, atau seret titik point untuk memindahkannya.",
+            "help_no_selection": "Pilih berkas untuk membuat atau mengedit titik-titik pointnya."
         },
         "reduce": {
             "tooltip": "Reduce the number of GPS points",
