@@ -2,7 +2,7 @@
     "metadata": {
         "home_title": "l'editor di file GPX online",
         "app_title": "app",
-        "embed_title": "l'editor di file GPX online",
+        "embed_title": "l'editor online di file GPX",
         "help_title": "aiuto",
         "404_title": "pagina non trovata",
         "description": "Visualizza, modifica e genera file GPX online con avanzate funzionalità di pianificazione del percorso e strumenti di elaborazione dei file, mappe eleganti e visualizzazione dettagliata dei dati."
@@ -84,7 +84,7 @@
     },
     "toolbar": {
         "routing": {
-            "tooltip": "Pianifica o modifica un percorso",
+            "tooltip": "Pianifica o modifica un percorsoo",
             "activity": "Attività",
             "use_routing": "Instradamento",
             "use_routing_tooltip": "Collega i punti di ancoraggio tramite la rete stradale o in linea retta se disabilitato",
