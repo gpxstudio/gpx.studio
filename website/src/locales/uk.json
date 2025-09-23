@@ -207,13 +207,13 @@
             "total_time": "Час руху",
             "pick_date": "Оберіть дату",
             "artificial": "Створюйте реалістичні дані часу",
-            "update": "Update time data",
-            "help": "Use the form to set new time data.",
-            "help_invalid_selection": "Select a single trace to manage its time data."
+            "update": "Оновити дані часу",
+            "help": "Скористайтеся формою, щоб встановити нові дані часу.",
+            "help_invalid_selection": "Виберіть один трек для керування його часовими даними."
         },
         "merge": {
-            "merge_traces": "Connect the traces",
-            "merge_contents": "Merge the contents and keep the traces disconnected",
+            "merge_traces": "З'єднайте треки",
+            "merge_contents": "Об'єднати вміст та зберегти треки від'єднаними",
             "merge_selection": "Об'єднати вибрані",
             "remove_gaps": "Видалити проміжки часу між слідами",
             "tooltip": "Об'єднати елементи",
@@ -225,17 +225,17 @@
         },
         "extract": {
             "tooltip": "Видобути вміст для розділення елементів",
-            "button": "Extract",
-            "help": "Extracting the contents of the selected items will create a separate item for each of their contents.",
-            "help_invalid_selection": "Your selection must contain items with multiple traces to extract them."
+            "button": "Витяг",
+            "help": "Вилучення вмісту вибраних елементів створить окремий елемент для кожного з їхніх елементів.",
+            "help_invalid_selection": "Щоб витягти елементи з кількома треками, ваш вибір має містити їх."
         },
         "elevation": {
             "button": "Запит даних висот",
             "help": "Запит даних висот призведе до видалення наявних даних висот, якщо вони є, і замінить їх даними з Mapbox.",
-            "help_no_selection": "Select a file item to request elevation data."
+            "help_no_selection": "Виберіть елемент файлу, щоб запросити дані про висоту."
         },
         "waypoint": {
-            "tooltip": "Create and edit points of interest",
+            "tooltip": "Створення та редагування визначних місць",
             "icon": "Icon",
             "link": "Link",
             "longitude": "Довгота",
