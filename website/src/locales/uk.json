@@ -183,7 +183,7 @@
                 "demanding_mountain_hiking": "Вимогливі гірські походи",
                 "alpine_hiking": "Гірський похід",
                 "demanding_alpine_hiking": "Вимогливі альпійські походи",
-                "difficult_alpine_hiking": "Difficult alpine hiking"
+                "difficult_alpine_hiking": "Складні альпійські походи"
             },
             "mtb_scale": "MTB scale",
             "error": {
@@ -201,12 +201,12 @@
             "help": "Використовуйте повзунок, щоб обрізати слід, або розділіть його, клацнувши на один з маркерів розбиття або на самому маршруті."
         },
         "time": {
-            "tooltip": "Manage time data",
+            "tooltip": "Керування даними часу",
             "start": "Початок",
             "end": "Кінець",
             "total_time": "Час руху",
             "pick_date": "Оберіть дату",
-            "artificial": "Create realistic time data",
+            "artificial": "Створюйте реалістичні дані часу",
             "update": "Update time data",
             "help": "Use the form to set new time data.",
             "help_invalid_selection": "Select a single trace to manage its time data."
