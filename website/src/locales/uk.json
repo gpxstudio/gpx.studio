@@ -260,17 +260,17 @@
             "delete_inside": "Видалити всередині виділення",
             "delete_outside": "Видалити зовнішній вибір",
             "button": "Видалити",
-            "help": "Select a rectangle area on the map to remove GPS points and points of interest.",
-            "help_no_selection": "Select a trace to clean GPS points and points of interest."
+            "help": "Виберіть прямокутну область на карті, щоб видалити точки GPS та точки інтересу.",
+            "help_no_selection": "Виберіть слід, щоб очистити точки GPS та точки інтересу."
         }
     },
     "layers": {
-        "settings": "Layer settings",
-        "settings_help": "Select the map layers you want to show in the interface, add custom ones, and adjust their settings.",
-        "selection": "Layer selection",
+        "settings": "Налаштування шарів",
+        "settings_help": "Виберіть шари карти, які ви хочете відобразити в інтерфейсі, додайте власні шари та налаштуйте їх параметри.",
+        "selection": "Вибір шару",
         "custom_layers": {
-            "title": "Custom layers",
-            "new": "New custom layer",
+            "title": "Користувацькі шари",
+            "new": "Новий користувацький шар",
             "edit": "Edit custom layer",
             "urls": "URL(s)",
             "url_placeholder": "WMTS, WMS or Mapbox style JSON",
