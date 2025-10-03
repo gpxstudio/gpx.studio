@@ -237,7 +237,7 @@
         "waypoint": {
             "tooltip": "Створення та редагування визначних місць",
             "icon": "Icon",
-            "link": "Link",
+            "link": "Посилання",
             "longitude": "Довгота",
             "latitude": "Широта",
             "create": "Створити точку інтересу",
@@ -250,16 +250,16 @@
             "tolerance": "Tolerance",
             "number_of_points": "Кількість точок GPS",
             "button": "Minify",
-            "help": "Use the slider to choose the number of GPS points to keep.",
+            "help": "Використовуйте повзунок, щоб вибрати кількість точок GPS, які потрібно зберегти.",
             "help_no_selection": "Оберіть слід для зменшення кількості його GPS точок."
         },
         "clean": {
             "tooltip": "Очистити GPS точки та точки інтересів, використовуючи прямокутний вибір",
-            "delete_trackpoints": "Delete GPS points",
-            "delete_waypoints": "Delete points of interest",
-            "delete_inside": "Delete inside selection",
-            "delete_outside": "Delete outside selection",
-            "button": "Delete",
+            "delete_trackpoints": "Видалити точки GPS",
+            "delete_waypoints": "Видалити цікаві місця",
+            "delete_inside": "Видалити всередині виділення",
+            "delete_outside": "Видалити зовнішній вибір",
+            "button": "Видалити",
             "help": "Select a rectangle area on the map to remove GPS points and points of interest.",
             "help_no_selection": "Select a trace to clean GPS points and points of interest."
         }
