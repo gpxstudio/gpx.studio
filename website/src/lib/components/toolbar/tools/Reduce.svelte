@@ -2,22 +2,22 @@
     import { Label } from '$lib/components/ui/label/index.js';
     import { Button } from '$lib/components/ui/button';
     import { Slider } from '$lib/components/ui/slider';
-    import { selection } from '$lib/components/file-list/Selection';
     import {
         ListItem,
         ListRootItem,
         ListTrackSegmentItem,
-    } from '$lib/components/file-list/FileList';
+    } from '$lib/components/file-list/file-list';
     import Help from '$lib/components/Help.svelte';
     import { Funnel } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
     import WithUnits from '$lib/components/WithUnits.svelte';
-    import { dbUtils, fileObservers } from '$lib/db';
-    import { map } from '$lib/components/map/map.svelte';
+    import { map } from '$lib/components/map/utils.svelte';
     import { onDestroy } from 'svelte';
     import { ramerDouglasPeucker, TrackPoint, type SimplifiedTrackPoint } from 'gpx';
     import { getURLForLanguage } from '$lib/utils';
     import type { GeoJSONSource } from 'mapbox-gl';
+    import { selection } from '$lib/logic/selection.svelte';
+    import { fileActions } from '$lib/logic/file-actions.svelte';
 
     let props: { class?: string } = $props();
 
@@ -28,7 +28,7 @@
     const maxTolerance = 10000;
 
     let validSelection = $derived(
-        $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints'])
+        selection.value.hasAnyChildren(new ListRootItem(), true, ['waypoints'])
     );
     let tolerance = $derived(
         minTolerance * 2 ** (sliderValue[0] / (100 / Math.log2(maxTolerance / minTolerance)))
@@ -67,18 +67,18 @@
             });
         });
 
-        if (map.current) {
-            let source: GeoJSONSource | undefined = map.current.getSource('simplified');
+        if (map.value) {
+            let source: GeoJSONSource | undefined = map.value.getSource('simplified');
             if (source) {
                 source.setData(data);
             } else {
-                map.current.addSource('simplified', {
+                map.value.addSource('simplified', {
                     type: 'geojson',
                     data: data,
                 });
             }
-            if (!map.current.getLayer('simplified')) {
-                map.current.addLayer({
+            if (!map.value.getLayer('simplified')) {
+                map.value.addLayer({
                     id: 'simplified',
                     type: 'line',
                     source: 'simplified',
@@ -88,52 +88,52 @@
                     },
                 });
             } else {
-                map.current.moveLayer('simplified');
+                map.value.moveLayer('simplified');
             }
         }
     }
 
-    $effect(() => {
-        if ($fileObservers) {
-            unsubscribes.forEach((unsubscribe, fileId) => {
-                if (!$fileObservers.has(fileId)) {
-                    unsubscribe();
-                    unsubscribes.delete(fileId);
-                }
-            });
-            $fileObservers.forEach((fileStore, fileId) => {
-                if (!unsubscribes.has(fileId)) {
-                    let unsubscribe = derived([fileStore, selection], ([fs, sel]) => [
-                        fs,
-                        sel,
-                    ]).subscribe(([fs, sel]) => {
-                        if (fs) {
-                            fs.file.forEachSegment((segment, trackIndex, segmentIndex) => {
-                                let segmentItem = new ListTrackSegmentItem(
-                                    fileId,
-                                    trackIndex,
-                                    segmentIndex
-                                );
-                                if (sel.hasAnyParent(segmentItem)) {
-                                    let statistics = fs.statistics.getStatisticsFor(segmentItem);
-                                    simplified.set(segmentItem.getFullId(), [
-                                        segmentItem,
-                                        statistics.local.points.length,
-                                        ramerDouglasPeucker(statistics.local.points, minTolerance),
-                                    ]);
-                                    update();
-                                } else if (simplified.has(segmentItem.getFullId())) {
-                                    simplified.delete(segmentItem.getFullId());
-                                    update();
-                                }
-                            });
-                        }
-                    });
-                    unsubscribes.set(fileId, unsubscribe);
-                }
-            });
-        }
-    });
+    // $effect(() => {
+    //     if ($fileObservers) {
+    //         unsubscribes.forEach((unsubscribe, fileId) => {
+    //             if (!$fileObservers.has(fileId)) {
+    //                 unsubscribe();
+    //                 unsubscribes.delete(fileId);
+    //             }
+    //         });
+    //         $fileObservers.forEach((fileStore, fileId) => {
+    //             if (!unsubscribes.has(fileId)) {
+    //                 let unsubscribe = derived([fileStore, selection], ([fs, sel]) => [
+    //                     fs,
+    //                     sel,
+    //                 ]).subscribe(([fs, sel]) => {
+    //                     if (fs) {
+    //                         fs.file.forEachSegment((segment, trackIndex, segmentIndex) => {
+    //                             let segmentItem = new ListTrackSegmentItem(
+    //                                 fileId,
+    //                                 trackIndex,
+    //                                 segmentIndex
+    //                             );
+    //                             if (sel.hasAnyParent(segmentItem)) {
+    //                                 let statistics = fs.statistics.getStatisticsFor(segmentItem);
+    //                                 simplified.set(segmentItem.getFullId(), [
+    //                                     segmentItem,
+    //                                     statistics.local.points.length,
+    //                                     ramerDouglasPeucker(statistics.local.points, minTolerance),
+    //                                 ]);
+    //                                 update();
+    //                             } else if (simplified.has(segmentItem.getFullId())) {
+    //                                 simplified.delete(segmentItem.getFullId());
+    //                                 update();
+    //                             }
+    //                         });
+    //                     }
+    //                 });
+    //                 unsubscribes.set(fileId, unsubscribe);
+    //             }
+    //         });
+    //     }
+    // });
 
     $effect(() => {
         if (tolerance) {
@@ -142,12 +142,12 @@
     });
 
     onDestroy(() => {
-        if (map.current) {
-            if (map.current.getLayer('simplified')) {
-                map.current.removeLayer('simplified');
+        if (map.value) {
+            if (map.value.getLayer('simplified')) {
+                map.value.removeLayer('simplified');
             }
-            if (map.current.getSource('simplified')) {
-                map.current.removeSource('simplified');
+            if (map.value.getSource('simplified')) {
+                map.value.removeSource('simplified');
             }
         }
         unsubscribes.forEach((unsubscribe) => unsubscribe());
@@ -164,7 +164,7 @@
                     .map((point) => point.point)
             );
         });
-        dbUtils.reduce(itemsAndPoints);
+        fileActions.reduce(itemsAndPoints);
     }
 </script>
 

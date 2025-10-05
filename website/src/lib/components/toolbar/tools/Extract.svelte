@@ -1,45 +1,51 @@
 <script lang="ts">
     import { Button } from '$lib/components/ui/button';
     import { Ungroup } from '@lucide/svelte';
-    import { selection } from '$lib/components/file-list/Selection';
     import {
         ListFileItem,
         ListTrackItem,
         ListTrackSegmentItem,
         ListWaypointItem,
         ListWaypointsItem,
-    } from '$lib/components/file-list/FileList';
+    } from '$lib/components/file-list/file-list';
     import Help from '$lib/components/Help.svelte';
-    import { dbUtils, getFile } from '$lib/db';
     import { i18n } from '$lib/i18n.svelte';
     import { getURLForLanguage } from '$lib/utils';
+    import { selection } from '$lib/logic/selection.svelte';
+    import { fileStateCollection } from '$lib/logic/file-state.svelte';
+    import { fileActions } from '$lib/logic/file-actions.svelte';
 
-    $: validSelection =
-        $selection.size > 0 &&
-        $selection.getSelected().every((item) => {
-            if (
-                item instanceof ListWaypointsItem ||
-                item instanceof ListWaypointItem ||
-                item instanceof ListTrackSegmentItem
-            ) {
-                return false;
-            }
-            let file = getFile(item.getFileId());
-            if (file) {
-                if (item instanceof ListFileItem) {
-                    return file.getSegments().length > 1;
-                } else if (item instanceof ListTrackItem) {
-                    if (item.getTrackIndex() < file.trk.length) {
-                        return file.trk[item.getTrackIndex()].getSegments().length > 1;
+    let props: {
+        class?: string;
+    } = $props();
+
+    let validSelection = $derived(
+        selection.value.size > 0 &&
+            selection.value.getSelected().every((item) => {
+                if (
+                    item instanceof ListWaypointsItem ||
+                    item instanceof ListWaypointItem ||
+                    item instanceof ListTrackSegmentItem
+                ) {
+                    return false;
+                }
+                let file = fileStateCollection.getFile(item.getFileId());
+                if (file) {
+                    if (item instanceof ListFileItem) {
+                        return file.getSegments().length > 1;
+                    } else if (item instanceof ListTrackItem) {
+                        if (item.getTrackIndex() < file.trk.length) {
+                            return file.trk[item.getTrackIndex()].getSegments().length > 1;
+                        }
                     }
                 }
-            }
-            return false;
-        });
+                return false;
+            })
+    );
 </script>
 
-<div class="flex flex-col gap-3 w-full max-w-80 {$$props.class ?? ''}">
-    <Button variant="outline" disabled={!validSelection} onclick={dbUtils.extractSelection}>
+<div class="flex flex-col gap-3 w-full max-w-80 {props.class ?? ''}">
+    <Button variant="outline" disabled={!validSelection} onclick={fileActions.extractSelection}>
         <Ungroup size="16" class="mr-1" />
         {i18n._('toolbar.extract.button')}
     </Button>

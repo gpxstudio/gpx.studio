@@ -6,7 +6,7 @@
     import * as Popover from '$lib/components/ui/popover';
     import { dbUtils } from '$lib/db';
     import { Save } from '@lucide/svelte';
-    import { ListFileItem, ListTrackItem, type ListItem } from '../FileList';
+    import { ListFileItem, ListTrackItem, type ListItem } from '../file-list';
     import { GPXTreeElement, Track, type AnyGPXTreeElement, Waypoint, GPXFile } from 'gpx';
     import { i18n } from '$lib/i18n.svelte';
     import { editMetadata } from '$lib/components/file-list/metadata/utils.svelte';

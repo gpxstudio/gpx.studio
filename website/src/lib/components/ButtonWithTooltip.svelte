@@ -7,6 +7,7 @@
         variant = 'default',
         label,
         side = 'top',
+        disabled = false,
         class: className = '',
         children,
         onclick,
@@ -14,6 +15,7 @@
         variant?: 'default' | 'secondary' | 'link' | 'destructive' | 'outline' | 'ghost';
         label: string;
         side?: 'top' | 'right' | 'bottom' | 'left';
+        disabled?: boolean;
         class?: string;
         children: Snippet;
         onclick?: (event: MouseEvent) => void;

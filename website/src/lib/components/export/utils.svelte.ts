@@ -1,11 +1,9 @@
-import { getFile, settings } from '$lib/db';
-import { applyToOrderedSelectedItemsFromFile } from '$lib/components/file-list/Selection';
-import { get } from 'svelte/store';
+import { applyToOrderedSelectedItemsFromFile } from '$lib/logic/selection.svelte';
+import { fileStateCollection } from '$lib/logic/file-state.svelte';
+import { settings } from '$lib/logic/settings.svelte';
 import { buildGPX, type GPXFile } from 'gpx';
 import FileSaver from 'file-saver';
 import JSZip from 'jszip';
-
-const { fileOrder } = settings;
 
 export enum ExportState {
     NONE,
@@ -22,7 +20,7 @@ async function exportFiles(fileIds: string[], exclude: string[]) {
     } else {
         const firstFileId = fileIds.at(0);
         if (firstFileId != null) {
-            const file = getFile(firstFileId);
+            const file = fileStateCollection.getFile(firstFileId);
             if (file) {
                 exportFile(file, exclude);
             }
@@ -39,7 +37,7 @@ export async function exportSelectedFiles(exclude: string[]) {
 }
 
 export async function exportAllFiles(exclude: string[]) {
-    await exportFiles(get(fileOrder), exclude);
+    await exportFiles(settings.fileOrder.value, exclude);
 }
 
 function exportFile(file: GPXFile, exclude: string[]) {
@@ -50,7 +48,7 @@ function exportFile(file: GPXFile, exclude: string[]) {
 async function exportFilesAsZip(fileIds: string[], exclude: string[]) {
     const zip = new JSZip();
     for (const fileId of fileIds) {
-        const file = getFile(fileId);
+        const file = fileStateCollection.getFile(fileId);
         if (file) {
             const gpx = buildGPX(file, exclude);
             let filename = file.metadata.name;

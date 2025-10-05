@@ -1,8 +1,7 @@
 <script lang="ts">
     import { splitAs, SplitType } from '$lib/components/toolbar/tools/scissors/utils.svelte';
     import Help from '$lib/components/Help.svelte';
-    import { ListRootItem } from '$lib/components/file-list/FileList';
-    import { selection } from '$lib/components/file-list/Selection';
+    import { ListRootItem } from '$lib/components/file-list/file-list';
     import { Label } from '$lib/components/ui/label/index.js';
     import { Button } from '$lib/components/ui/button';
     import { Slider } from '$lib/components/ui/slider';
@@ -15,8 +14,9 @@
     import { onDestroy, tick } from 'svelte';
     import { Crop } from '@lucide/svelte';
     import { dbUtils } from '$lib/db';
-    import { SplitControls } from './SplitControls.svelte';
+    import { SplitControls } from './split-controls';
     import { getURLForLanguage } from '$lib/utils';
+    import { selection } from '$lib/logic/selection.svelte';
 
     let props: {
         class?: string;
@@ -35,7 +35,7 @@
     });
 
     let validSelection = $derived(
-        $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints']) &&
+        selection.value.hasAnyChildren(new ListRootItem(), true, ['waypoints']) &&
             $gpxStatistics.local.points.length > 0
     );
 

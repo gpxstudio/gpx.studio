@@ -1,16 +1,12 @@
 import { TrackPoint, TrackSegment } from 'gpx';
-import { get } from 'svelte/store';
 import mapboxgl from 'mapbox-gl';
 import { dbUtils, getFile } from '$lib/db';
-import {
-    applyToOrderedSelectedItemsFromFile,
-    selection,
-} from '$lib/components/file-list/Selection';
-import { ListTrackSegmentItem } from '$lib/components/file-list/FileList';
+import { ListTrackSegmentItem } from '$lib/components/file-list/file-list';
 import { gpxStatistics } from '$lib/stores';
 import { tool, Tool } from '$lib/components/toolbar/utils.svelte';
 import { splitAs } from '$lib/components/toolbar/tools/scissors/utils.svelte';
 import { Scissors } from 'lucide-static';
+import { applyToOrderedSelectedItemsFromFile, selection } from '$lib/logic/selection.svelte';
 
 export class SplitControls {
     active: boolean = false;
@@ -25,10 +21,9 @@ export class SplitControls {
     constructor(map: mapboxgl.Map) {
         this.map = map;
 
-        this.unsubscribes.push(selection.subscribe(this.addIfNeeded.bind(this)));
         this.unsubscribes.push(gpxStatistics.subscribe(this.addIfNeeded.bind(this)));
         $effect(() => {
-            tool.current, this.addIfNeeded.bind(this);
+            tool.current, selection.value, this.addIfNeeded.bind(this);
         });
     }
 
@@ -64,7 +59,7 @@ export class SplitControls {
             if (file) {
                 file.forEachSegment((segment, trackIndex, segmentIndex) => {
                     if (
-                        get(selection).hasAnyParent(
+                        selection.value.hasAnyParent(
                             new ListTrackSegmentItem(fileId, trackIndex, segmentIndex)
                         )
                     ) {

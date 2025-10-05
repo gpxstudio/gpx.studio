@@ -20,7 +20,7 @@
         allowedMoves,
         moveItems,
         type ListItem,
-    } from './FileList';
+    } from './file-list';
     import { selection } from './Selection';
     import { isMac } from '$lib/utils';
 

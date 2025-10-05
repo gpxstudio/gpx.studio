@@ -11,8 +11,7 @@
         exportState,
     } from '$lib/components/export/utils.svelte';
     import { tool } from '$lib/components/toolbar/utils.svelte';
-    import { gpxStatistics } from '$lib/stores';
-    import { fileObservers } from '$lib/db';
+    // import { gpxStatistics } from '$lib/stores';
     import {
         Download,
         Zap,
@@ -23,10 +22,10 @@
         SquareActivity,
     } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
-    import { selection } from '$lib/components/file-list/Selection';
-    import { get } from 'svelte/store';
     import { GPXStatistics } from 'gpx';
-    import { ListRootItem } from '$lib/components/file-list/FileList';
+    import { ListRootItem } from '$lib/components/file-list/file-list';
+    import { fileStateCollection } from '$lib/logic/file-state.svelte';
+    import { selection } from '$lib/logic/selection.svelte';
 
     let open = $derived(exportState.current !== ExportState.NONE);
     let exportOptions: Record<string, boolean> = $state({
@@ -38,36 +37,44 @@
         extensions: false,
     });
     let hide: Record<string, boolean> = $derived.by(() => {
-        if (exportState.current === ExportState.NONE) {
-            return {
-                time: false,
-                hr: false,
-                cad: false,
-                atemp: false,
-                power: false,
-                extensions: false,
-            };
-        } else {
-            let statistics = $gpxStatistics;
-            if (exportState.current === ExportState.ALL) {
-                statistics = Array.from($fileObservers.values())
-                    .map((file) => get(file)?.statistics)
-                    .reduce((acc, cur) => {
-                        if (cur !== undefined) {
-                            acc.mergeWith(cur.getStatisticsFor(new ListRootItem()));
-                        }
-                        return acc;
-                    }, new GPXStatistics());
-            }
-            return {
-                time: statistics.global.time.total === 0,
-                hr: statistics.global.hr.count === 0,
-                cad: statistics.global.cad.count === 0,
-                atemp: statistics.global.atemp.count === 0,
-                power: statistics.global.power.count === 0,
-                extensions: Object.keys(statistics.global.extensions).length === 0,
-            };
-        }
+        // if (exportState.current === ExportState.NONE) {
+        //     return {
+        //         time: false,
+        //         hr: false,
+        //         cad: false,
+        //         atemp: false,
+        //         power: false,
+        //         extensions: false,
+        //     };
+        // } else {
+        //     let statistics = $gpxStatistics;
+        //     if (exportState.current === ExportState.ALL) {
+        //         statistics = Array.from(fileStateCollection.files.values())
+        //             .map((file) => file.statistics)
+        //             .reduce((acc, cur) => {
+        //                 if (cur !== undefined) {
+        //                     acc.mergeWith(cur.getStatisticsFor(new ListRootItem()));
+        //                 }
+        //                 return acc;
+        //             }, new GPXStatistics());
+        //     }
+        //     return {
+        //         time: statistics.global.time.total === 0,
+        //         hr: statistics.global.hr.count === 0,
+        //         cad: statistics.global.cad.count === 0,
+        //         atemp: statistics.global.atemp.count === 0,
+        //         power: statistics.global.power.count === 0,
+        //         extensions: Object.keys(statistics.global.extensions).length === 0,
+        //     };
+        // }
+        return {
+            time: false,
+            hr: false,
+            cad: false,
+            atemp: false,
+            power: false,
+            extensions: false,
+        };
     });
     let exclude = $derived(Object.keys(exportOptions).filter((key) => !exportOptions[key]));
 
@@ -118,7 +125,7 @@
                     }}
                 >
                     <Download size="16" class="mr-1" />
-                    {#if $fileObservers.size === 1 || (exportState.current === ExportState.SELECTION && $selection.size === 1)}
+                    {#if fileStateCollection.files.size === 1 || (exportState.current === ExportState.SELECTION && selection.value.size === 1)}
                         {i18n._('menu.download_file')}
                     {:else}
                         {i18n._('menu.download_files')}

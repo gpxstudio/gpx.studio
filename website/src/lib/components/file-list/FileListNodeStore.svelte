@@ -5,7 +5,7 @@
     import type { GPXFileWithStatistics } from '$lib/db';
     import { getContext } from 'svelte';
     import type { Readable } from 'svelte/store';
-    import { ListFileItem } from './FileList';
+    import { ListFileItem } from './file-list';
 
     let {
         file,

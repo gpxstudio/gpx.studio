@@ -3,7 +3,6 @@ import { settings, type GPXFileWithStatistics, dbUtils } from '$lib/db';
 import { get, type Readable } from 'svelte/store';
 import mapboxgl from 'mapbox-gl';
 import { waypointPopup, deleteWaypoint, trackpointPopup } from './GPXLayerPopup';
-import { addSelectItem, selectItem, selection } from '$lib/components/file-list/Selection';
 import {
     ListTrackSegmentItem,
     ListWaypointItem,
@@ -11,7 +10,7 @@ import {
     ListTrackItem,
     ListFileItem,
     ListRootItem,
-} from '$lib/components/file-list/FileList';
+} from '$lib/components/file-list/file-list';
 import {
     getClosestLinePoint,
     getElevation,
@@ -20,7 +19,7 @@ import {
     setPointerCursor,
     setScissorsCursor,
 } from '$lib/utils';
-import { selectedWaypoint } from '$lib/components/toolbar/tools/Waypoint.svelte';
+import { selectedWaypoint } from '$lib/components/toolbar/tools/waypoint/utils.svelte';
 import { MapPin, Square } from 'lucide-static';
 import { getSymbolKey, symbols } from '$lib/assets/symbols';
 

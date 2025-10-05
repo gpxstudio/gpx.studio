@@ -4,7 +4,7 @@
     import FileListNode from './FileListNode.svelte';
     import { fileObservers, settings } from '$lib/db';
     import { setContext } from 'svelte';
-    import { ListFileItem, ListLevel, ListRootItem, allowedPastes } from './FileList';
+    import { ListFileItem, ListLevel, ListRootItem, allowedPastes } from './file-list';
     import { copied, pasteSelection, selectAll, selection } from './Selection';
     import { ClipboardPaste, FileStack, Plus } from '@lucide/svelte';
     import Shortcut from '$lib/components/Shortcut.svelte';

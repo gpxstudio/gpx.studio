@@ -1,18 +1,15 @@
 import { distance, type Coordinates, TrackPoint, TrackSegment, Track, projectedPoint } from 'gpx';
 import { get, writable, type Readable } from 'svelte/store';
 import mapboxgl from 'mapbox-gl';
-import { route } from './routing.svelte';
+import { route } from './utils.svelte';
 import { toast } from 'svelte-sonner';
-import { i18n } from '$lib/i18n.svelte';
-import { dbUtils, settings, type GPXFileWithStatistics } from '$lib/db';
-import { getOrderedSelection, selection } from '$lib/components/file-list/Selection';
 import {
     ListFileItem,
     ListTrackItem,
     ListTrackSegmentItem,
-} from '$lib/components/file-list/FileList';
-import { currentTool, streetViewEnabled, Tool } from '$lib/stores';
+} from '$lib/components/file-list/file-list';
 import { getClosestLinePoint, resetCursor, setGrabbingCursor } from '$lib/utils';
+import type { GPXFileWithStatistics } from '$lib/logic/statistics';
 
 // const { streetViewSource } = settings;
 export const canChangeStart = writable(false);

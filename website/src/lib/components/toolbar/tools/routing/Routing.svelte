@@ -21,65 +21,75 @@
         SquareArrowUpLeft,
         SquareArrowOutDownRight,
     } from '@lucide/svelte';
-
-    import { map, newGPXFile, routingControls, selectFileWhenLoaded } from '$lib/stores';
-    import { dbUtils, getFile, getFileIds, settings } from '$lib/db';
-    import { brouterProfiles } from '$lib/components/toolbar/tools/routing/routing.svelte';
-
+    import { brouterProfiles } from '$lib/components/toolbar/tools/routing/utils.svelte';
     import { i18n } from '$lib/i18n.svelte';
-    import { RoutingControls } from './RoutingControls';
-    import mapboxgl from 'mapbox-gl';
-    import { fileObservers } from '$lib/db';
+    // import { RoutingControls } from './RoutingControls';
     import { slide } from 'svelte/transition';
-    import { getOrderedSelection, selection } from '$lib/components/file-list/Selection';
     import {
         ListFileItem,
         ListRootItem,
         ListTrackItem,
         ListTrackSegmentItem,
         type ListItem,
-    } from '$lib/components/file-list/FileList';
+    } from '$lib/components/file-list/file-list';
     import { getURLForLanguage, resetCursor, setCrosshairCursor } from '$lib/utils';
     import { onDestroy, onMount } from 'svelte';
     import { TrackPoint } from 'gpx';
+    import { settings } from '$lib/logic/settings.svelte';
+    import { map } from '$lib/components/map/utils.svelte';
+    import { fileStateCollection } from '$lib/logic/file-state.svelte';
+    import { selection } from '$lib/logic/selection.svelte';
+    import { fileActions, getFileIds, newGPXFile } from '$lib/logic/file-actions.svelte';
 
-    export let minimized = false;
-    export let minimizable = true;
-    export let popup: mapboxgl.Popup | undefined = undefined;
-    export let popupElement: HTMLElement | undefined = undefined;
+    let {
+        minimized = $bindable(false),
+        minimizable = true,
+        popup = undefined,
+        popupElement = undefined,
+        class: className = '',
+    }: {
+        minimized?: boolean;
+        minimizable?: boolean;
+        popup?: mapboxgl.Popup;
+        popupElement?: HTMLDivElement;
+        class?: string;
+    } = $props();
+
     let selectedItem: ListItem | null = null;
 
     const { privateRoads, routing, routingProfile } = settings;
 
-    $: if ($map && popup && popupElement) {
-        // remove controls for deleted files
-        routingControls.forEach((controls, fileId) => {
-            if (!$fileObservers.has(fileId)) {
-                controls.destroy();
-                routingControls.delete(fileId);
+    // $: if (map && popup && popupElement) {
+    //     // remove controls for deleted files
+    //     routingControls.forEach((controls, fileId) => {
+    //         if (!$fileObservers.has(fileId)) {
+    //             controls.destroy();
+    //             routingControls.delete(fileId);
 
-                if (selectedItem && selectedItem.getFileId() === fileId) {
-                    selectedItem = null;
-                }
-            } else if ($map !== controls.map) {
-                controls.updateMap($map);
-            }
-        });
-        // add controls for new files
-        $fileObservers.forEach((file, fileId) => {
-            if (!routingControls.has(fileId)) {
-                routingControls.set(
-                    fileId,
-                    new RoutingControls($map, fileId, file, popup, popupElement)
-                );
-            }
-        });
-    }
+    //             if (selectedItem && selectedItem.getFileId() === fileId) {
+    //                 selectedItem = null;
+    //             }
+    //         } else if ($map !== controls.map) {
+    //             controls.updateMap($map);
+    //         }
+    //     });
+    //     // add controls for new files
+    //     fileStateCollection.files.forEach((file, fileId) => {
+    //         if (!routingControls.has(fileId)) {
+    //             routingControls.set(
+    //                 fileId,
+    //                 new RoutingControls($map, fileId, file, popup, popupElement)
+    //             );
+    //         }
+    //     });
+    // }
 
-    $: validSelection = $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints']);
+    let validSelection = $derived(
+        selection.value.hasAnyChildren(new ListRootItem(), true, ['waypoints'])
+    );
 
     function createFileWithPoint(e: any) {
-        if ($selection.size === 0) {
+        if (selection.value.size === 0) {
             let file = newGPXFile();
             file.replaceTrackPoints(0, 0, 0, 0, [
                 new TrackPoint({
@@ -90,22 +100,22 @@
                 }),
             ]);
             file._data.id = getFileIds(1)[0];
-            dbUtils.add(file);
-            selectFileWhenLoaded(file._data.id);
+            fileActions.add(file);
+            // selectFileWhenLoaded(file._data.id);
         }
     }
 
     onMount(() => {
-        setCrosshairCursor();
-        $map?.on('click', createFileWithPoint);
+        // setCrosshairCursor();
+        map.value?.on('click', createFileWithPoint);
     });
 
     onDestroy(() => {
-        resetCursor();
-        $map?.off('click', createFileWithPoint);
+        // resetCursor();
+        map.value?.off('click', createFileWithPoint);
 
-        routingControls.forEach((controls) => controls.destroy());
-        routingControls.clear();
+        // routingControls.forEach((controls) => controls.destroy());
+        // routingControls.clear();
     });
 </script>
 
@@ -116,11 +126,11 @@
         </Button>
     </div>
 {:else}
-    <div class="flex flex-col gap-3 w-full max-w-80 animate-in animate-out {$$props.class ?? ''}">
+    <div class="flex flex-col gap-3 w-full max-w-80 animate-in animate-out {className ?? ''}">
         <div class="flex flex-col gap-3">
             <Label class="flex flex-row justify-between items-center gap-2">
                 <span class="flex flex-row items-center gap-1">
-                    {#if $routing}
+                    {#if routing.value}
                         <Route size="16" />
                     {:else}
                         <RouteOff size="16" />
@@ -128,28 +138,28 @@
                     {i18n._('toolbar.routing.use_routing')}
                 </span>
                 <Tooltip label={i18n._('toolbar.routing.use_routing_tooltip')}>
-                    <Switch class="scale-90" bind:checked={$routing} />
+                    <Switch class="scale-90" bind:checked={routing.value} />
                     <Shortcut slot="extra" key="F5" />
                 </Tooltip>
             </Label>
-            {#if $routing}
+            {#if routing.value}
                 <div class="flex flex-col gap-3" in:slide>
                     <Label class="flex flex-row justify-between items-center gap-2">
                         <span class="shrink-0 flex flex-row items-center gap-1">
-                            {#if $routingProfile.includes('bike') || $routingProfile.includes('motorcycle')}
+                            {#if routingProfile.value.includes('bike') || routingProfile.value.includes('motorcycle')}
                                 <Bike size="16" />
-                            {:else if $routingProfile.includes('foot')}
+                            {:else if routingProfile.value.includes('foot')}
                                 <Footprints size="16" />
-                            {:else if $routingProfile.includes('water')}
+                            {:else if routingProfile.value.includes('water')}
                                 <Waves size="16" />
-                            {:else if $routingProfile.includes('railway')}
+                            {:else if routingProfile.value.includes('railway')}
                                 <TrainFront size="16" />
                             {/if}
                             {i18n._('toolbar.routing.activity')}
                         </span>
-                        <Select.Root type="single" bind:value={$routingProfile}>
+                        <Select.Root type="single" bind:value={routingProfile.value}>
                             <Select.Trigger class="h-8 grow">
-                                {i18n._(`toolbar.routing.activities.${$routingProfile}`)}
+                                {i18n._(`toolbar.routing.activities.${routingProfile.value}`)}
                             </Select.Trigger>
                             <Select.Content>
                                 {#each Object.keys(brouterProfiles) as profile}
@@ -167,7 +177,7 @@
                             <TriangleAlert size="16" />
                             {i18n._('toolbar.routing.allow_private')}
                         </span>
-                        <Switch class="scale-90" bind:checked={$privateRoads} />
+                        <Switch class="scale-90" bind:checked={privateRoads.value} />
                     </Label>
                 </div>
             {/if}
@@ -178,7 +188,7 @@
                 variant="outline"
                 class="flex flex-row gap-1 text-xs px-2"
                 disabled={!validSelection}
-                onclick={dbUtils.reverseSelection}
+                onclick={fileActions.reverseSelection}
             >
                 <ArrowRightLeft size="12" />{i18n._('toolbar.routing.reverse.button')}
             </ButtonWithTooltip>
@@ -188,10 +198,10 @@
                 class="flex flex-row gap-1 text-xs px-2"
                 disabled={!validSelection}
                 onclick={() => {
-                    const selected = getOrderedSelection();
+                    const selected = selection.getOrderedSelection();
                     if (selected.length > 0) {
                         const firstFileId = selected[0].getFileId();
-                        const firstFile = getFile(firstFileId);
+                        const firstFile = fileStateCollection.getFile(firstFileId);
                         if (firstFile) {
                             let start = (() => {
                                 if (selected[0] instanceof ListFileItem) {
@@ -208,9 +218,9 @@
 
                             if (start !== undefined) {
                                 const lastFileId = selected[selected.length - 1].getFileId();
-                                routingControls
-                                    .get(lastFileId)
-                                    ?.appendAnchorWithCoordinates(start.getCoordinates());
+                                // routingControls
+                                //     .get(lastFileId)
+                                //     ?.appendAnchorWithCoordinates(start.getCoordinates());
                             }
                         }
                     }

@@ -15,21 +15,25 @@
     import { onDestroy, onMount } from 'svelte';
     import { getURLForLanguage, resetCursor, setCrosshairCursor } from '$lib/utils';
     import { Trash2 } from '@lucide/svelte';
-    import { map } from '$lib/components/map/map.svelte';
-    import { selection } from '$lib/components/file-list/Selection';
-    import { dbUtils } from '$lib/db';
+    import { map } from '$lib/components/map/utils.svelte';
     import type { GeoJSONSource } from 'mapbox-gl';
+    import { selection } from '$lib/logic/selection.svelte';
+    import { fileActions } from '$lib/logic/file-actions.svelte';
 
-    let cleanType = CleanType.INSIDE;
-    let deleteTrackpoints = true;
-    let deleteWaypoints = true;
-    let rectangleCoordinates: mapboxgl.LngLat[] = [];
+    let props: {
+        class?: string;
+    } = $props();
 
-    function updateRectangle() {
-        if (map.current) {
+    let cleanType = $state(CleanType.INSIDE);
+    let deleteTrackpoints = $state(true);
+    let deleteWaypoints = $state(true);
+    let rectangleCoordinates: mapboxgl.LngLat[] = $state([]);
+
+    $effect(() => {
+        if (map.value) {
             if (rectangleCoordinates.length != 2) {
-                if (map.current.getLayer('rectangle')) {
-                    map.current.removeLayer('rectangle');
+                if (map.value.getLayer('rectangle')) {
+                    map.value.removeLayer('rectangle');
                 }
             } else {
                 let data: GeoJSON.Feature = {
@@ -48,17 +52,17 @@
                     },
                     properties: {},
                 };
-                let source: GeoJSONSource | undefined = map.current.getSource('rectangle');
+                let source: GeoJSONSource | undefined = map.value.getSource('rectangle');
                 if (source) {
                     source.setData(data);
                 } else {
-                    map.current.addSource('rectangle', {
+                    map.value.addSource('rectangle', {
                         type: 'geojson',
                         data: data,
                     });
                 }
-                if (!map.current.getLayer('rectangle')) {
-                    map.current.addLayer({
+                if (!map.value.getLayer('rectangle')) {
+                    map.value.addLayer({
                         id: 'rectangle',
                         type: 'fill',
                         source: 'rectangle',
@@ -70,11 +74,7 @@
                 }
             }
         }
-    }
-
-    $: if (rectangleCoordinates) {
-        updateRectangle();
-    }
+    });
 
     let mousedown = false;
     function onMouseDown(e: any) {
@@ -93,42 +93,42 @@
     }
 
     onMount(() => {
-        if (map.current) {
-            setCrosshairCursor(map.current.getCanvas());
-            map.current.on('mousedown', onMouseDown);
-            map.current.on('mousemove', onMouseMove);
-            map.current.on('mouseup', onMouseUp);
-            map.current.on('touchstart', onMouseDown);
-            map.current.on('touchmove', onMouseMove);
-            map.current.on('touchend', onMouseUp);
-            map.current.dragPan.disable();
+        if (map.value) {
+            setCrosshairCursor(map.value.getCanvas());
+            map.value.on('mousedown', onMouseDown);
+            map.value.on('mousemove', onMouseMove);
+            map.value.on('mouseup', onMouseUp);
+            map.value.on('touchstart', onMouseDown);
+            map.value.on('touchmove', onMouseMove);
+            map.value.on('touchend', onMouseUp);
+            map.value.dragPan.disable();
         }
     });
 
     onDestroy(() => {
-        if (map.current) {
-            resetCursor(map.current.getCanvas());
-            map.current.off('mousedown', onMouseDown);
-            map.current.off('mousemove', onMouseMove);
-            map.current.off('mouseup', onMouseUp);
-            map.current.off('touchstart', onMouseDown);
-            map.current.off('touchmove', onMouseMove);
-            map.current.off('touchend', onMouseUp);
-            map.current.dragPan.enable();
+        if (map.value) {
+            resetCursor(map.value.getCanvas());
+            map.value.off('mousedown', onMouseDown);
+            map.value.off('mousemove', onMouseMove);
+            map.value.off('mouseup', onMouseUp);
+            map.value.off('touchstart', onMouseDown);
+            map.value.off('touchmove', onMouseMove);
+            map.value.off('touchend', onMouseUp);
+            map.value.dragPan.enable();
 
-            if (map.current.getLayer('rectangle')) {
-                map.current.removeLayer('rectangle');
+            if (map.value.getLayer('rectangle')) {
+                map.value.removeLayer('rectangle');
             }
-            if (map.current.getSource('rectangle')) {
-                map.current.removeSource('rectangle');
+            if (map.value.getSource('rectangle')) {
+                map.value.removeSource('rectangle');
             }
         }
     });
 
-    $: validSelection = $selection.size > 0;
+    let validSelection = $derived(selection.value.size > 0);
 </script>
 
-<div class="flex flex-col gap-3 w-full max-w-80 items-center {$$props.class ?? ''}">
+<div class="flex flex-col gap-3 w-full max-w-80 items-center {props.class ?? ''}">
     <fieldset class="flex flex-col gap-3">
         <div class="flex flex-row items-center gap-[6.4px] h-3">
             <Checkbox id="delete-trkpt" bind:checked={deleteTrackpoints} class="scale-90" />
@@ -158,7 +158,7 @@
         class="w-full"
         disabled={!validSelection || rectangleCoordinates.length != 2}
         onclick={() => {
-            dbUtils.cleanSelection(
+            fileActions.cleanSelection(
                 [
                     {
                         lat: Math.min(rectangleCoordinates[0].lat, rectangleCoordinates[1].lat),

@@ -5,7 +5,6 @@
     import { Button } from '$lib/components/ui/button';
     import { Checkbox } from '$lib/components/ui/checkbox';
     import TimePicker from '$lib/components/ui/time-picker/TimePicker.svelte';
-    import { dbUtils, settings } from '$lib/db';
     import { gpxStatistics } from '$lib/stores';
     import {
         distancePerHourToSecondsPerDistance,
@@ -17,15 +16,22 @@
     import { CalendarClock, CirclePlay, CircleStop, CircleX, Timer, Zap } from '@lucide/svelte';
     import { tick } from 'svelte';
     import { i18n } from '$lib/i18n.svelte';
-    import { selection } from '$lib/components/file-list/Selection';
     import {
         ListFileItem,
         ListRootItem,
         ListTrackItem,
         ListTrackSegmentItem,
-    } from '$lib/components/file-list/FileList';
+    } from '$lib/components/file-list/file-list';
     import Help from '$lib/components/Help.svelte';
     import { getURLForLanguage } from '$lib/utils';
+    import { selection } from '$lib/logic/selection.svelte';
+    import { settings } from '$lib/logic/settings.svelte';
+    import { fileActions } from '$lib/logic/file-actions.svelte';
+    import { fileActionManager } from '$lib/logic/file-action-manager.svelte';
+
+    let props: {
+        class?: string;
+    } = $props();
 
     let startDate: DateValue | undefined = undefined;
     let startTime: string | undefined = undefined;
@@ -47,7 +53,7 @@
 
     function setSpeed(value: number) {
         let speedValue = getConvertedVelocity(value);
-        if ($velocityUnits === 'speed') {
+        if (velocityUnits.value === 'speed') {
             speedValue = parseFloat(speedValue.toFixed(2));
         }
         speed = speedValue;
@@ -80,9 +86,9 @@
         }
     }
 
-    $: if ($gpxStatistics && $velocityUnits && $distanceUnits) {
-        setGPXData();
-    }
+    // $: if ($gpxStatistics && $velocityUnits && $distanceUnits) {
+    //     setGPXData();
+    // }
 
     function getDate(date: DateValue, time: string): Date {
         if (date === undefined) {
@@ -133,12 +139,12 @@
         }
 
         let speedValue = speed;
-        if ($velocityUnits === 'pace') {
+        if (velocityUnits.value === 'pace') {
             speedValue = distancePerHourToSecondsPerDistance(speed);
         }
-        if ($distanceUnits === 'imperial') {
+        if (distanceUnits.value === 'imperial') {
             speedValue = milesToKilometers(speedValue);
-        } else if ($distanceUnits === 'nautical') {
+        } else if (distanceUnits.value === 'nautical') {
             speedValue = nauticalMilesToKilometers(speedValue);
         }
         return speedValue;
@@ -171,24 +177,26 @@
         updateEnd();
     }
 
-    $: canUpdate =
-        $selection.size === 1 && $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints']);
+    let canUpdate = $derived(
+        selection.value.size === 1 &&
+            selection.value.hasAnyChildren(new ListRootItem(), true, ['waypoints'])
+    );
 </script>
 
-<div class="flex flex-col gap-3 w-full max-w-80 {$$props.class ?? ''}">
+<div class="flex flex-col gap-3 w-full max-w-80 {props.class ?? ''}">
     <fieldset class="flex flex-col gap-2">
         <div class="flex flex-row gap-2 justify-center">
             <div class="flex flex-col gap-2 grow">
                 <Label for="speed" class="flex flex-row">
                     <Zap size="16" class="mr-1" />
-                    {#if $velocityUnits === 'speed'}
+                    {#if velocityUnits.value === 'speed'}
                         {i18n._('quantities.speed')}
                     {:else}
                         {i18n._('quantities.pace')}
                     {/if}
                 </Label>
                 <div class="flex flex-row gap-1 items-center">
-                    {#if $velocityUnits === 'speed'}
+                    {#if velocityUnits.value === 'speed'}
                         <Input
                             id="speed"
                             type="number"
@@ -199,11 +207,11 @@
                             onchange={updateDataFromSpeed}
                         />
                         <span class="text-sm shrink-0">
-                            {#if $distanceUnits === 'imperial'}
+                            {#if distanceUnits.value === 'imperial'}
                                 {i18n._('units.miles_per_hour')}
-                            {:else if $distanceUnits === 'metric'}
+                            {:else if distanceUnits.value === 'metric'}
                                 {i18n._('units.kilometers_per_hour')}
-                            {:else if $distanceUnits === 'nautical'}
+                            {:else if distanceUnits.value === 'nautical'}
                                 {i18n._('units.knots')}
                             {/if}
                         </span>
@@ -215,11 +223,11 @@
                             onChange={updateDataFromSpeed}
                         />
                         <span class="text-sm shrink-0">
-                            {#if $distanceUnits === 'imperial'}
+                            {#if distanceUnits.value === 'imperial'}
                                 {i18n._('units.minutes_per_mile')}
-                            {:else if $distanceUnits === 'metric'}
+                            {:else if distanceUnits.value === 'metric'}
                                 {i18n._('units.minutes_per_kilometer')}
-                            {:else if $distanceUnits === 'nautical'}
+                            {:else if distanceUnits.value === 'nautical'}
                                 {i18n._('units.minutes_per_nautical_mile')}
                             {/if}
                         </span>
@@ -260,7 +268,7 @@
                 disabled={!canUpdate}
                 bind:value={startTime}
                 class="w-fit"
-                on:change={updateEnd}
+                onchange={updateEnd}
             />
         </div>
         <Label class="flex flex-row">
@@ -285,7 +293,7 @@
                 disabled={!canUpdate}
                 bind:value={endTime}
                 class="w-fit"
-                on:change={updateStart}
+                onchange={updateStart}
             />
         </div>
         {#if $gpxStatistics.global.time.moving === 0 || $gpxStatistics.global.time.moving === undefined}
@@ -324,9 +332,9 @@
                     ratio = $gpxStatistics.global.speed.moving / effectiveSpeed;
                 }
 
-                let item = $selection.getSelected()[0];
+                let item = selection.value.getSelected()[0];
                 let fileId = item.getFileId();
-                dbUtils.applyToFile(fileId, (file) => {
+                fileActionManager.applyToFile(fileId, (file) => {
                     if (item instanceof ListFileItem) {
                         if (artificial || !$gpxStatistics.global.time.moving) {
                             file.createArtificialTimestamps(

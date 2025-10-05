@@ -4,14 +4,13 @@
     // import FileList from '$lib/components/file-list/FileList.svelte';
     // import GPXStatistics from '$lib/components/GPXStatistics.svelte';
     import Map from '$lib/components/map/Map.svelte';
-    // import Menu from '$lib/components/Menu.svelte';
+    import Menu from '$lib/components/Menu.svelte';
     // import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
     import StreetViewControl from '$lib/components/map/street-view-control/StreetViewControl.svelte';
     import LayerControl from '$lib/components/map/layer-control/LayerControl.svelte';
     // import CoordinatesPopup from '$lib/components/map/CoordinatesPopup.svelte';
     import Resizer from '$lib/components/Resizer.svelte';
     import { Toaster } from '$lib/components/ui/sonner';
-    // import { observeFilesFromDatabase } from '$lib/db';
     // import { gpxStatistics, loadFiles, slicedGPXStatistics } from '$lib/stores';
     // import { onMount } from 'svelte';
     // import { page } from '$app/state';
@@ -20,6 +19,10 @@
     // import { getURLForGoogleDriveFile } from '$lib/components/embedding/Embedding';
     import { i18n } from '$lib/i18n.svelte';
     import { settings } from '$lib/logic/settings.svelte';
+    import { fileStateCollection } from '$lib/logic/file-state.svelte';
+    import { loadFiles } from '$lib/logic/file-actions.svelte';
+    import { onMount } from 'svelte';
+    import { page } from '$app/state';
 
     const {
         treeFileView,
@@ -30,28 +33,28 @@
         elevationFill,
     } = settings;
 
-    // onMount(() => {
-    //     let files: string[] = JSON.parse(page.url.searchParams.get('files') || '[]');
-    //     let ids: string[] = JSON.parse(page.url.searchParams.get('ids') || '[]');
-    //     let urls: string[] = files.concat(ids.map(getURLForGoogleDriveFile));
+    onMount(() => {
+        let files: string[] = JSON.parse(page.url.searchParams.get('files') || '[]');
+        let ids: string[] = JSON.parse(page.url.searchParams.get('ids') || '[]');
+        let urls: string[] = []; //files.concat(ids.map(getURLForGoogleDriveFile));
 
-    //     observeFilesFromDatabase(urls.length === 0);
+        fileStateCollection.initialize(urls.length === 0);
 
-    //     if (urls.length > 0) {
-    //         let downloads: Promise<File | null>[] = [];
-    //         urls.forEach((url) => {
-    //             downloads.push(
-    //                 fetch(url)
-    //                     .then((response) => response.blob())
-    //                     .then((blob) => new File([blob], url.split('/').pop() ?? ''))
-    //             );
-    //         });
+        if (urls.length > 0) {
+            let downloads: Promise<File | null>[] = [];
+            urls.forEach((url) => {
+                downloads.push(
+                    fetch(url)
+                        .then((response) => response.blob())
+                        .then((blob) => new File([blob], url.split('/').pop() ?? ''))
+                );
+            });
 
-    //         Promise.all(downloads).then((files) => {
-    //             loadFiles(files.filter((file) => file !== null));
-    //         });
-    //     }
-    // });
+            Promise.all(downloads).then((files) => {
+                loadFiles(files.filter((file) => file !== null));
+            });
+        }
+    });
 </script>
 
 <div class="fixed -z-10 text-transparent">
@@ -94,7 +97,7 @@
 <div class="fixed flex flex-row w-screen h-screen supports-dvh:h-dvh">
     <div class="flex flex-col grow h-full min-w-0">
         <div class="grow relative">
-            <!-- <Menu /> -->
+            <Menu />
             <div
                 class="absolute top-0 bottom-0 left-0 z-20 flex flex-col justify-center pointer-events-none"
             >

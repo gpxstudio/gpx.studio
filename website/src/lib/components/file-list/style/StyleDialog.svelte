@@ -6,7 +6,11 @@
     import * as Popover from '$lib/components/ui/popover';
     import { dbUtils, getFile, settings } from '$lib/db';
     import { Save } from '@lucide/svelte';
-    import { ListFileItem, ListTrackItem, type ListItem } from '$lib/components/file-list/FileList';
+    import {
+        ListFileItem,
+        ListTrackItem,
+        type ListItem,
+    } from '$lib/components/file-list/file-list';
     import { editStyle } from '$lib/components/file-list/style/utils.svelte';
     import { selection } from '../Selection';
     import { gpxLayers } from '$lib/stores';

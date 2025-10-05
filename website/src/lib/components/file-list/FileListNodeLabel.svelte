@@ -27,7 +27,7 @@
         ListWaypointItem,
         allowedPastes,
         type ListItem,
-    } from './FileList';
+    } from './file-list';
     import {
         copied,
         copySelection,
@@ -40,7 +40,7 @@
     } from './Selection';
     import { getContext } from 'svelte';
     import { get } from 'svelte/store';
-    import { allHidden, embedding, gpxLayers } from '$lib/stores';
+    import { allHidden, gpxLayers } from '$lib/stores';
     import { map, centerMapOnSelection } from '$lib/components/map/map.svelte';
     import { GPXTreeElement, Track, type AnyGPXTreeElement, Waypoint, GPXFile } from 'gpx';
     import { i18n } from '$lib/i18n.svelte';
@@ -62,6 +62,7 @@
     } = $props();
 
     let orientation = getContext<'vertical' | 'horizontal'>('orientation');
+    let embedding = getContext<boolean>('embedding');
 
     let singleSelection = $derived($selection.size === 1);
 
@@ -169,7 +170,7 @@
                     ? 'text-muted-foreground'
                     : ''}"
                 oncontextmenu={(e) => {
-                    if ($embedding) {
+                    if (embedding) {
                         e.preventDefault();
                         e.stopPropagation();
                         return;

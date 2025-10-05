@@ -20,7 +20,7 @@
         ListWaypointsItem,
         type ListItem,
         type ListTrackItem,
-    } from './FileList';
+    } from './file-list';
     import { i18n } from '$lib/i18n.svelte';
     import { selection } from './Selection';
 

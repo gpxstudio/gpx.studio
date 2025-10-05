@@ -1,5 +1,4 @@
 import type { LayerTreeType } from '$lib/assets/layers';
-import { writable } from 'svelte/store';
 
 export function anySelectedLayer(node: LayerTreeType) {
     return (
