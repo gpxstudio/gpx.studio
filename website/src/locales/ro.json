@@ -1,7 +1,7 @@
 {
     "metadata": {
         "home_title": "editorul online de fişiere GPX",
-        "app_title": "app",
+        "app_title": "aplicație",
         "embed_title": "editorul online de fişiere GPX",
         "help_title": "ajutor",
         "404_title": "pagina nu a fost găsită",
@@ -33,7 +33,7 @@
         "select_all": "Selectează tot",
         "view": "Vizualizare",
         "elevation_profile": "Profil de altitudine",
-        "tree_file_view": "File tree",
+        "tree_file_view": "Structură fișiere",
         "switch_basemap": "Switch to previous basemap",
         "toggle_overlays": "Comută suprapunerile",
         "toggle_3d": "Comută 3D",
@@ -55,7 +55,7 @@
         "mapillary": "Mapillary",
         "google": "Google",
         "toggle_street_view": "Street view",
-        "layers": "Map layers...",
+        "layers": "Straturi hartă...",
         "distance_markers": "Distance markers",
         "direction_markers": "Direction arrows",
         "help": "Help",
