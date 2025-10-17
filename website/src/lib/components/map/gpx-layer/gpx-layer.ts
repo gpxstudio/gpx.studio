@@ -21,7 +21,7 @@ import {
 import { selectedWaypoint } from '$lib/components/toolbar/tools/waypoint/waypoint';
 import { MapPin, Square } from 'lucide-static';
 import { getSymbolKey, symbols } from '$lib/assets/symbols';
-import type { GPXFileWithStatistics } from '$lib/logic/statistics';
+import type { GPXFileWithStatistics } from '$lib/logic/statistics-tree';
 import { selection } from '$lib/logic/selection';
 import { settings } from '$lib/logic/settings';
 import { currentTool, Tool } from '$lib/components/toolbar/tools';

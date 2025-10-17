@@ -1,46 +1,80 @@
-import { ListItem, ListLevel } from '$lib/components/file-list/file-list';
-import { GPXFile, GPXStatistics, type Track } from 'gpx';
+import { selection } from '$lib/logic/selection';
+import { GPXStatistics } from 'gpx';
+import { fileStateCollection, GPXFileState } from '$lib/logic/file-state';
+import {
+    ListFileItem,
+    ListWaypointItem,
+    ListWaypointsItem,
+} from '$lib/components/file-list/file-list';
+import { get, writable, type Writable } from 'svelte/store';
 
-export class GPXStatisticsTree {
-    level: ListLevel;
-    statistics: {
-        [key: string]: GPXStatisticsTree | GPXStatistics;
-    } = {};
-
-    constructor(element: GPXFile | Track) {
-        if (element instanceof GPXFile) {
-            this.level = ListLevel.FILE;
-            element.children.forEach((child, index) => {
-                this.statistics[index] = new GPXStatisticsTree(child);
-            });
-        } else {
-            this.level = ListLevel.TRACK;
-            element.children.forEach((child, index) => {
-                this.statistics[index] = child.getStatistics();
-            });
+export class SelectedGPXStatistics {
+    private _statistics: Writable<GPXStatistics>;
+    private _files: Map<
+        string,
+        {
+            file: GPXFileState;
+            unsubscribe: () => void;
         }
+    >;
+
+    constructor() {
+        this._statistics = writable(new GPXStatistics());
+        this._files = new Map();
+        selection.subscribe(() => this.update());
     }
 
-    getStatisticsFor(item: ListItem): GPXStatistics {
+    subscribe(run: (value: GPXStatistics) => void, invalidate?: (value?: GPXStatistics) => void) {
+        return this._statistics.subscribe(run, invalidate);
+    }
+
+    update() {
         let statistics = new GPXStatistics();
-        let id = item.getIdAtLevel(this.level);
-        if (id === undefined || id === 'waypoints') {
-            Object.keys(this.statistics).forEach((key) => {
-                if (this.statistics[key] instanceof GPXStatistics) {
-                    statistics.mergeWith(this.statistics[key]);
-                } else {
-                    statistics.mergeWith(this.statistics[key].getStatisticsFor(item));
+        selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+            let stats = fileStateCollection.getStatistics(fileId);
+            if (stats) {
+                let first = true;
+                items.forEach((item) => {
+                    if (
+                        !(item instanceof ListWaypointItem || item instanceof ListWaypointsItem) ||
+                        first
+                    ) {
+                        statistics.mergeWith(stats.getStatisticsFor(item));
+                        first = false;
+                    }
+                });
+            }
+
+            if (!this._files.has(fileId)) {
+                let file = fileStateCollection.getFileState(fileId);
+                if (file) {
+                    let first = true;
+                    let unsubscribe = file.subscribe(() => {
+                        if (first) first = false;
+                        else this.update();
+                    });
+                    this._files.set(fileId, { file, unsubscribe });
                 }
-            });
-        } else {
-            let child = this.statistics[id];
-            if (child instanceof GPXStatistics) {
-                statistics.mergeWith(child);
-            } else if (child !== undefined) {
-                statistics.mergeWith(child.getStatisticsFor(item));
+            }
+        }, false);
+        this._statistics.set(statistics);
+        for (let [fileId, entry] of this._files) {
+            if (
+                !get(fileStateCollection).has(fileId) ||
+                !get(selection).hasAnyChildren(new ListFileItem(fileId))
+            ) {
+                entry.unsubscribe();
+                this._files.delete(fileId);
             }
         }
-        return statistics;
     }
 }
-export type GPXFileWithStatistics = { file: GPXFile; statistics: GPXStatisticsTree };
+
+export const gpxStatistics = new SelectedGPXStatistics();
+
+export const slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined> =
+    writable(undefined);
+
+gpxStatistics.subscribe(() => {
+    slicedGPXStatistics.set(undefined);
+});

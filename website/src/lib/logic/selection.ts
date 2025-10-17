@@ -12,7 +12,7 @@ import {
 import { fileStateCollection } from '$lib/logic/file-state';
 import { settings } from '$lib/logic/settings';
 import type { GPXFile } from 'gpx';
-import { get, writable, type Writable } from 'svelte/store';
+import { get, writable, type Readable, type Writable } from 'svelte/store';
 import { SelectionTreeType } from '$lib/logic/selection-tree';
 
 export class Selection {
@@ -203,11 +203,11 @@ export class Selection {
         this._cut.set(false);
     }
 
-    get copied(): ListItem[] | undefined {
+    get copied(): Readable<ListItem[] | undefined> {
         return this._copied;
     }
 
-    get cut(): boolean {
+    get cut(): Readable<boolean> {
         return this._cut;
     }
 }
@@ -219,7 +219,7 @@ export function applyToOrderedItemsFromFile(
     callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void,
     reverse: boolean = true
 ) {
-    settings.fileOrder.value.forEach((fileId) => {
+    get(settings.fileOrder).forEach((fileId) => {
         let level: ListLevel | undefined = undefined;
         let items: ListItem[] = [];
         selectedItems.forEach((item) => {

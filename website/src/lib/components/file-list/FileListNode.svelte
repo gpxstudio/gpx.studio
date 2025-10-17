@@ -22,7 +22,7 @@
     } from './file-list';
     import { i18n } from '$lib/i18n.svelte';
     import { settings } from '$lib/logic/settings';
-    import type { GPXFileWithStatistics } from '$lib/logic/statistics';
+    import type { GPXFileWithStatistics } from '$lib/logic/statistics-tree';
     import { selection } from '$lib/logic/selection';
 
     let {

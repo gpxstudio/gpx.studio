@@ -5,7 +5,7 @@
     import { getContext } from 'svelte';
     import type { Readable } from 'svelte/store';
     import { ListFileItem } from './file-list';
-    import type { GPXFileWithStatistics } from '$lib/logic/statistics';
+    import type { GPXFileWithStatistics } from '$lib/logic/statistics-tree';
 
     let {
         file,

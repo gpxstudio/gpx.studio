@@ -22,64 +22,6 @@
 // export const embedding = writable(false);
 // export const selectFiles = writable<{ [key: string]: (fileId?: string) => void }>({});
 
-// export const gpxStatistics: Writable<GPXStatistics> = writable(new GPXStatistics());
-// export const slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined> =
-//     writable(undefined);
-
-// export function updateGPXData() {
-//     let statistics = new GPXStatistics();
-//     applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-//         let stats = getStatistics(fileId);
-//         if (stats) {
-//             let first = true;
-//             items.forEach((item) => {
-//                 if (
-//                     !(item instanceof ListWaypointItem || item instanceof ListWaypointsItem) ||
-//                     first
-//                 ) {
-//                     statistics.mergeWith(stats.getStatisticsFor(item));
-//                     first = false;
-//                 }
-//             });
-//         }
-//     }, false);
-//     gpxStatistics.set(statistics);
-// }
-
-// let unsubscribes: Map<string, () => void> = new Map();
-// selection.subscribe(($selection) => {
-//     // Maintain up-to-date statistics for the current selection
-//     updateGPXData();
-
-//     while (unsubscribes.size > 0) {
-//         let [fileId, unsubscribe] = unsubscribes.entries().next().value;
-//         unsubscribe();
-//         unsubscribes.delete(fileId);
-//     }
-
-//     $selection.forEach((item) => {
-//         let fileId = item.getFileId();
-//         if (!unsubscribes.has(fileId)) {
-//             let fileObserver = get(fileObservers).get(fileId);
-//             if (fileObserver) {
-//                 let first = true;
-//                 unsubscribes.set(
-//                     fileId,
-//                     fileObserver.subscribe(() => {
-//                         if (first) first = false;
-//                         else updateGPXData();
-//                     })
-//                 );
-//             }
-//         }
-//     });
-// });
-
-// gpxStatistics.subscribe(() => {
-//     slicedGPXStatistics.set(undefined);
-// });
-
-// export const gpxLayers: Map<string, GPXLayer> = new Map();
 // export const routingControls: Map<string, RoutingControls> = new Map();
 
 // export function selectFileWhenLoaded(fileId: string) {

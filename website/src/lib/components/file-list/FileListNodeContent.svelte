@@ -20,7 +20,7 @@
         type ListItem,
     } from './file-list';
     import { isMac } from '$lib/utils';
-    import type { GPXFileWithStatistics } from '$lib/logic/statistics';
+    import type { GPXFileWithStatistics } from '$lib/logic/statistics-tree';
     import { settings } from '$lib/logic/settings';
     import { getFileIds, moveItems } from '$lib/logic/file-actions';
 

@@ -2,12 +2,12 @@ import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simpli
 import { db, type Database } from '$lib/db';
 import { liveQuery } from 'dexie';
 import { GPXFile } from 'gpx';
-import { GPXStatisticsTree, type GPXFileWithStatistics } from '$lib/logic/statistics';
+import { GPXStatisticsTree, type GPXFileWithStatistics } from '$lib/logic/statistics-tree';
 import { settings } from '$lib/logic/settings';
 import { get, writable, type Subscriber, type Writable } from 'svelte/store';
 
 // Observe a single file from the database, and maintain its statistics
-class GPXFileState {
+export class GPXFileState {
     private _file: Writable<GPXFileWithStatistics | undefined>;
     private _subscription: { unsubscribe: () => void } | undefined;
 
@@ -117,6 +117,10 @@ export class GPXFileStateCollection {
 
     get size(): number {
         return get(this._files).size;
+    }
+
+    getFileState(fileId: string): GPXFileState | undefined {
+        return get(this._files).get(fileId);
     }
 
     getFile(fileId: string): GPXFile | undefined {

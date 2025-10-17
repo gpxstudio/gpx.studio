@@ -7,23 +7,26 @@
 
     import { i18n } from '$lib/i18n.svelte';
     import type { GPXStatistics } from 'gpx';
-    import type { Writable } from 'svelte/store';
-    import { settings } from '$lib/db';
-
-    export let gpxStatistics: Writable<GPXStatistics>;
-    export let slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined>;
-    export let orientation: 'horizontal' | 'vertical';
-    export let panelSize: number;
+    import type { Readable } from 'svelte/store';
+    import { settings } from '$lib/logic/settings';
 
     const { velocityUnits } = settings;
 
-    let statistics: GPXStatistics;
+    let {
+        gpxStatistics,
+        slicedGPXStatistics,
+        orientation,
+        panelSize,
+    }: {
+        gpxStatistics: Readable<GPXStatistics>;
+        slicedGPXStatistics: Readable<[GPXStatistics, number, number] | undefined>;
+        orientation: 'horizontal' | 'vertical';
+        panelSize: number;
+    } = $props();
 
-    $: if ($slicedGPXStatistics !== undefined) {
-        statistics = $slicedGPXStatistics[0];
-    } else {
-        statistics = $gpxStatistics;
-    }
+    let statistics = $derived(
+        $slicedGPXStatistics !== undefined ? $slicedGPXStatistics[0] : $gpxStatistics
+    );
 </script>
 
 <Card.Root

@@ -9,7 +9,7 @@ import {
     ListTrackSegmentItem,
 } from '$lib/components/file-list/file-list';
 import { getClosestLinePoint, resetCursor, setGrabbingCursor } from '$lib/utils';
-import type { GPXFileWithStatistics } from '$lib/logic/statistics';
+import type { GPXFileWithStatistics } from '$lib/logic/statistics-tree';
 
 // const { streetViewSource } = settings;
 export const canChangeStart = writable(false);

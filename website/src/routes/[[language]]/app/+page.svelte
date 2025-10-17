@@ -2,7 +2,7 @@
     import GPXLayers from '$lib/components/map/gpx-layer/GPXLayers.svelte';
     // import ElevationProfile from '$lib/components/ElevationProfile.svelte';
     // import FileList from '$lib/components/file-list/FileList.svelte';
-    // import GPXStatistics from '$lib/components/GPXStatistics.svelte';
+    import GPXStatistics from '$lib/components/GPXStatistics.svelte';
     import Map from '$lib/components/map/Map.svelte';
     import Menu from '$lib/components/Menu.svelte';
     // import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
@@ -11,7 +11,6 @@
     // import CoordinatesPopup from '$lib/components/map/CoordinatesPopup.svelte';
     import Resizer from '$lib/components/Resizer.svelte';
     import { Toaster } from '$lib/components/ui/sonner';
-    // import { gpxStatistics, loadFiles, slicedGPXStatistics } from '$lib/stores';
     // import { onMount } from 'svelte';
     // import { page } from '$app/state';
     import { languages } from '$lib/languages';
@@ -23,6 +22,7 @@
     import { loadFiles } from '$lib/logic/file-actions';
     import { onMount } from 'svelte';
     import { page } from '$app/state';
+    import { gpxStatistics, slicedGPXStatistics } from '$lib/logic/statistics';
 
     const {
         treeFileView,
@@ -127,12 +127,12 @@
             class="{$elevationProfile ? '' : 'h-10'} flex flex-row gap-2 px-2 sm:px-4"
             style={$elevationProfile ? `height: ${$bottomPanelSize}px` : ''}
         >
-            <!-- <GPXStatistics
+            <GPXStatistics
                 {gpxStatistics}
                 {slicedGPXStatistics}
                 panelSize={$bottomPanelSize}
                 orientation={$elevationProfile ? 'vertical' : 'horizontal'}
-            /> -->
+            />
             <!-- {#if $elevationProfile}
                 <ElevationProfile
                     {gpxStatistics}
