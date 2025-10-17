@@ -1,9 +1,10 @@
-import { applyToOrderedSelectedItemsFromFile } from '$lib/logic/selection.svelte';
-import { fileStateCollection } from '$lib/logic/file-state.svelte';
-import { settings } from '$lib/logic/settings.svelte';
+import { selection } from '$lib/logic/selection';
+import { fileStateCollection } from '$lib/logic/file-state';
+import { settings } from '$lib/logic/settings';
 import { buildGPX, type GPXFile } from 'gpx';
 import FileSaver from 'file-saver';
 import JSZip from 'jszip';
+import { get } from 'svelte/store';
 
 export enum ExportState {
     NONE,
@@ -30,14 +31,14 @@ async function exportFiles(fileIds: string[], exclude: string[]) {
 
 export async function exportSelectedFiles(exclude: string[]) {
     const fileIds: string[] = [];
-    applyToOrderedSelectedItemsFromFile(async (fileId, level, items) => {
+    selection.applyToOrderedSelectedItemsFromFile(async (fileId, level, items) => {
         fileIds.push(fileId);
     });
     await exportFiles(fileIds, exclude);
 }
 
 export async function exportAllFiles(exclude: string[]) {
-    await exportFiles(settings.fileOrder.value, exclude);
+    await exportFiles(get(settings.fileOrder), exclude);
 }
 
 function exportFile(file: GPXFile, exclude: string[]) {

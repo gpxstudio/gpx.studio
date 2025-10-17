@@ -1,5 +1,5 @@
 <script lang="ts">
-    // import GPXLayers from '$lib/components/map/gpx-layer/GPXLayers.svelte';
+    import GPXLayers from '$lib/components/map/gpx-layer/GPXLayers.svelte';
     // import ElevationProfile from '$lib/components/ElevationProfile.svelte';
     // import FileList from '$lib/components/file-list/FileList.svelte';
     // import GPXStatistics from '$lib/components/GPXStatistics.svelte';
@@ -18,9 +18,9 @@
     import { getURLForLanguage } from '$lib/utils';
     // import { getURLForGoogleDriveFile } from '$lib/components/embedding/Embedding';
     import { i18n } from '$lib/i18n.svelte';
-    import { settings } from '$lib/logic/settings.svelte';
-    import { fileStateCollection } from '$lib/logic/file-state.svelte';
-    import { loadFiles } from '$lib/logic/file-actions.svelte';
+    import { settings } from '$lib/logic/settings';
+    import { fileStateCollection } from '$lib/logic/file-state';
+    import { loadFiles } from '$lib/logic/file-actions';
     import { onMount } from 'svelte';
     import { page } from '$app/state';
 
@@ -103,29 +103,29 @@
             >
                 <!-- <Toolbar /> -->
             </div>
-            <Map class="h-full {treeFileView.value ? '' : 'horizontal'}" />
+            <Map class="h-full {$treeFileView ? '' : 'horizontal'}" />
             <StreetViewControl />
             <LayerControl />
-            <!-- <GPXLayers /> -->
+            <GPXLayers />
             <!-- <CoordinatesPopup /> -->
             <Toaster richColors />
-            <!-- {#if !treeFileView.value}
+            {#if !$treeFileView}
                 <div class="h-10 -translate-y-10 w-full pointer-events-none absolute z-30">
-                    <FileList orientation="horizontal" />
+                    <!-- <FileList orientation="horizontal" /> -->
                 </div>
-            {/if} -->
+            {/if}
         </div>
-        {#if elevationProfile.value}
+        {#if $elevationProfile}
             <Resizer
                 orientation="row"
-                bind:after={bottomPanelSize.value}
+                bind:after={$bottomPanelSize}
                 minAfter={100}
                 maxAfter={300}
             />
         {/if}
         <div
-            class="{elevationProfile.value ? '' : 'h-10'} flex flex-row gap-2 px-2 sm:px-4"
-            style={elevationProfile.value ? `height: ${bottomPanelSize.value}px` : ''}
+            class="{$elevationProfile ? '' : 'h-10'} flex flex-row gap-2 px-2 sm:px-4"
+            style={$elevationProfile ? `height: ${$bottomPanelSize}px` : ''}
         >
             <!-- <GPXStatistics
                 {gpxStatistics}
@@ -143,13 +143,8 @@
             {/if} -->
         </div>
     </div>
-    {#if treeFileView.value}
-        <Resizer
-            orientation="col"
-            bind:after={rightPanelSize.value}
-            minAfter={100}
-            maxAfter={400}
-        />
+    {#if $treeFileView}
+        <Resizer orientation="col" bind:after={$rightPanelSize} minAfter={100} maxAfter={400} />
         <!-- <FileList orientation="vertical" recursive={true} style="width: {$rightPanelSize}px" /> -->
     {/if}
 </div>

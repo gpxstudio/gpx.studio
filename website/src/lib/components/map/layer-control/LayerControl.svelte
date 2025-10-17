@@ -1,18 +1,18 @@
 <script lang="ts">
     import CustomControl from '$lib/components/map/custom-control/CustomControl.svelte';
     import LayerTree from './LayerTree.svelte';
-    // import { OverpassLayer } from './OverpassLayer';
+    import { OverpassLayer } from './OverpassLayer';
     import { Separator } from '$lib/components/ui/separator';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
     import { Layers } from '@lucide/svelte';
     import { basemaps, defaultBasemap, overlays } from '$lib/assets/layers';
-    import { settings } from '$lib/logic/settings.svelte';
-    import { map } from '$lib/components/map/utils.svelte';
-    import { customBasemapUpdate, getLayers } from './utils.svelte';
+    import { settings } from '$lib/logic/settings';
+    import { map } from '$lib/components/map/map';
+    import { customBasemapUpdate, getLayers } from './utils';
     import type { ImportSpecification, StyleSpecification } from 'mapbox-gl';
 
     let container: HTMLDivElement;
-    // let overpassLayer: OverpassLayer;
+    let overpassLayer: OverpassLayer;
 
     const {
         currentBasemap,
@@ -27,17 +27,17 @@
     } = settings;
 
     function setStyle() {
-        if (!map.value) {
+        if (!$map) {
             return;
         }
-        let basemap = basemaps.hasOwnProperty(currentBasemap.value)
-            ? basemaps[currentBasemap.value]
-            : (customLayers.value[currentBasemap.value]?.value ?? basemaps[defaultBasemap]);
-        map.value.removeImport('basemap');
+        let basemap = basemaps.hasOwnProperty($currentBasemap)
+            ? basemaps[$currentBasemap]
+            : ($customLayers[$currentBasemap] ?? basemaps[defaultBasemap]);
+        $map.removeImport('basemap');
         if (typeof basemap === 'string') {
-            map.value.addImport({ id: 'basemap', url: basemap }, 'overlays');
+            $map.addImport({ id: 'basemap', url: basemap }, 'overlays');
         } else {
-            map.value.addImport(
+            $map.addImport(
                 {
                     id: 'basemap',
                     url: '',
@@ -49,23 +49,21 @@
     }
 
     $effect(() => {
-        if (map.value && (currentBasemap.value || customBasemapUpdate.value)) {
+        if ($map && ($currentBasemap || $customBasemapUpdate)) {
             setStyle();
         }
     });
 
     function addOverlay(id: string) {
-        if (!map.value) {
+        if (!$map) {
             return;
         }
         try {
-            let overlay = customLayers.value.hasOwnProperty(id)
-                ? customLayers.value[id].value
-                : overlays[id];
+            let overlay = $customLayers.hasOwnProperty(id) ? $customLayers[id].value : overlays[id];
             if (typeof overlay === 'string') {
-                map.value.addImport({ id, url: overlay });
+                $map.addImport({ id, url: overlay });
             } else {
-                if (opacities.value.hasOwnProperty(id)) {
+                if ($opacities.hasOwnProperty(id)) {
                     overlay = {
                         ...overlay,
                         layers: (overlay as StyleSpecification).layers.map((layer) => {
@@ -73,13 +71,13 @@
                                 if (!layer.paint) {
                                     layer.paint = {};
                                 }
-                                layer.paint['raster-opacity'] = opacities.value[id];
+                                layer.paint['raster-opacity'] = $opacities[id];
                             }
                             return layer;
                         }),
                     };
                 }
-                map.value.addImport({
+                $map.addImport({
                     id,
                     url: '',
                     data: overlay as StyleSpecification,
@@ -91,13 +89,13 @@
     }
 
     function updateOverlays() {
-        if (map.value && currentOverlays.value && opacities.value) {
-            let overlayLayers = getLayers(currentOverlays.value);
+        if ($map && $currentOverlays && $opacities) {
+            let overlayLayers = getLayers($currentOverlays);
             try {
                 let activeOverlays =
-                    map.value
+                    $map
                         .getStyle()
-                        ?.imports?.reduce(
+                        .imports?.reduce(
                             (
                                 acc: Record<string, ImportSpecification>,
                                 imprt: ImportSpecification
@@ -113,7 +111,7 @@
                         ) || {};
                 let toRemove = Object.keys(activeOverlays).filter((id) => !overlayLayers[id]);
                 toRemove.forEach((id) => {
-                    map.value?.removeImport(id);
+                    $map?.removeImport(id);
                 });
                 let toAdd = Object.entries(overlayLayers)
                     .filter(([id, selected]) => selected && !activeOverlays.hasOwnProperty(id))
@@ -128,19 +126,19 @@
     }
 
     $effect(() => {
-        if (map.value && currentOverlays.value && opacities.value) {
+        if ($map && $currentOverlays && $opacities) {
             updateOverlays();
         }
     });
 
-    // map.onLoad((map: mapboxgl.Map) => {
-    //     if (overpassLayer) {
-    //         overpassLayer.remove();
-    //     }
-    //     overpassLayer = new OverpassLayer(map);
-    //     overpassLayer.add();
-    //     map.on('style.import.load', updateOverlays);
-    // });
+    map.onLoad((_map: mapboxgl.Map) => {
+        if (overpassLayer) {
+            overpassLayer.remove();
+        }
+        overpassLayer = new OverpassLayer(_map);
+        overpassLayer.add();
+        _map.on('style.import.load', updateOverlays);
+    });
 
     let open = $state(false);
     function openLayerControl() {
@@ -185,34 +183,34 @@
                 <div class="h-fit">
                     <div class="p-2">
                         <LayerTree
-                            layerTree={selectedBasemapTree.value}
+                            layerTree={$selectedBasemapTree}
                             name="basemaps"
-                            selected={currentBasemap.value}
+                            selected={$currentBasemap}
                             onselect={(value) => {
-                                previousBasemap.value = currentBasemap.value;
-                                currentBasemap.value = value;
+                                $previousBasemap = $currentBasemap;
+                                $currentBasemap = value;
                             }}
                         />
                     </div>
                     <Separator class="w-full" />
                     <div class="p-2">
-                        {#if currentOverlays.value}
+                        {#if $currentOverlays}
                             <LayerTree
-                                layerTree={selectedOverlayTree.value}
+                                layerTree={$selectedOverlayTree}
                                 name="overlays"
                                 multiple={true}
-                                bind:checked={currentOverlays.value}
+                                bind:checked={$currentOverlays}
                             />
                         {/if}
                     </div>
                     <Separator class="w-full" />
                     <div class="p-2">
-                        {#if currentOverpassQueries.value}
+                        {#if $currentOverpassQueries}
                             <LayerTree
-                                layerTree={selectedOverpassTree.value}
+                                layerTree={$selectedOverpassTree}
                                 name="overpass"
                                 multiple={true}
-                                bind:checked={currentOverpassQueries.value}
+                                bind:checked={$currentOverpassQueries}
                             />
                         {/if}
                     </div>

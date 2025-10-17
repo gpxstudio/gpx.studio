@@ -1,6 +1,6 @@
 <script lang="ts">
     import CustomControl from './CustomControl';
-    import { map } from '$lib/components/map/utils.svelte';
+    import { map } from '$lib/components/map/map';
     import { onMount, type Snippet } from 'svelte';
 
     let {

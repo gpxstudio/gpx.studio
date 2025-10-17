@@ -11,36 +11,44 @@ import {
     type CustomLayer,
 } from '$lib/assets/layers';
 import { browser } from '$app/environment';
+import { get, writable, type Writable } from 'svelte/store';
 
 export class Setting<V> {
     private _db: Database;
     private _key: string;
-    private _value: V;
+    private _value: Writable<V>;
 
     constructor(db: Database, key: string, initial: V) {
         this._db = db;
         this._key = key;
-        this._value = $state(initial);
+        this._value = writable(initial);
 
         let first = true;
         liveQuery(() => db.settings.get(key)).subscribe((value) => {
             if (value === undefined) {
                 if (!first) {
-                    this._value = value;
+                    this._value.set(value);
                 }
             } else {
-                this._value = value;
+                this._value.set(value);
             }
             first = false;
         });
     }
 
-    get value(): V {
-        return this._value;
+    subscribe(run: (value: V) => void, invalidate?: (value?: V) => void) {
+        return this._value.subscribe(run, invalidate);
     }
 
-    set value(newValue: V) {
-        if (newValue !== this._value) {
+    set(newValue: V) {
+        if (typeof newValue === 'object' || newValue !== get(this._value)) {
+            this._db.settings.put(newValue, this._key);
+        }
+    }
+
+    update(callback: (value: any) => any) {
+        let newValue = callback(get(this._value));
+        if (typeof newValue === 'object' || newValue !== get(this._value)) {
             this._db.settings.put(newValue, this._key);
         }
     }
@@ -49,34 +57,41 @@ export class Setting<V> {
 export class SettingInitOnFirstRead<V> {
     private _db: Database;
     private _key: string;
-    private _value: V | undefined;
+    private _value: Writable<V | undefined>;
 
     constructor(db: Database, key: string, initial: V) {
         this._db = db;
         this._key = key;
-        this._value = $state(undefined);
+        this._value = writable(undefined);
 
         let first = true;
         liveQuery(() => db.settings.get(key)).subscribe((value) => {
             if (value === undefined) {
                 if (first) {
-                    this._value = initial;
+                    this._value.set(initial);
                 } else {
-                    this._value = value;
+                    this._value.set(value);
                 }
             } else {
-                this._value = value;
+                this._value.set(value);
             }
             first = false;
         });
     }
 
-    get value(): V | undefined {
-        return this._value;
+    subscribe(run: (value: V | undefined) => void, invalidate?: (value?: V | undefined) => void) {
+        return this._value.subscribe(run, invalidate);
     }
 
-    set value(newValue: V) {
-        if (newValue !== this._value) {
+    set(newValue: V) {
+        if (typeof newValue === 'object' || newValue !== get(this._value)) {
+            this._db.settings.put(newValue, this._key);
+        }
+    }
+
+    update(callback: (value: any) => any) {
+        let newValue = callback(get(this._value));
+        if (typeof newValue === 'object' || newValue !== get(this._value)) {
             this._db.settings.put(newValue, this._key);
         }
     }

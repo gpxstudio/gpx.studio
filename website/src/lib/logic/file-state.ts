@@ -3,15 +3,16 @@ import { db, type Database } from '$lib/db';
 import { liveQuery } from 'dexie';
 import { GPXFile } from 'gpx';
 import { GPXStatisticsTree, type GPXFileWithStatistics } from '$lib/logic/statistics';
-import { settings } from '$lib/logic/settings.svelte';
+import { settings } from '$lib/logic/settings';
+import { get, writable, type Subscriber, type Writable } from 'svelte/store';
 
 // Observe a single file from the database, and maintain its statistics
 class GPXFileState {
-    private _file: GPXFileWithStatistics | undefined;
+    private _file: Writable<GPXFileWithStatistics | undefined>;
     private _subscription: { unsubscribe: () => void } | undefined;
 
     constructor(db: Database, fileId: string) {
-        this._file = $state(undefined);
+        this._file = writable(undefined);
         let first = true;
 
         this._subscription = liveQuery(() => db.files.get(fileId)).subscribe((value) => {
@@ -29,7 +30,7 @@ class GPXFileState {
                     first = false;
                 }
 
-                this._file = { file, statistics };
+                this._file.set({ file, statistics });
 
                 // if (get(selection).hasAnyChildren(new ListFileItem(id))) {
                 //     updateAllHidden();
@@ -38,29 +39,36 @@ class GPXFileState {
         });
     }
 
+    subscribe(run: Subscriber<GPXFileWithStatistics | undefined>, invalidate?: () => void) {
+        return this._file.subscribe(run, invalidate);
+    }
+
     destroy() {
         this._subscription?.unsubscribe();
         this._subscription = undefined;
-        this._file = undefined;
     }
 
     get file(): GPXFile | undefined {
-        return this._file?.file;
+        return get(this._file)?.file;
     }
 
     get statistics(): GPXStatisticsTree | undefined {
-        return this._file?.statistics;
+        return get(this._file)?.statistics;
     }
 }
 
 // Observe the file ids in the database, and maintain a map of file states for the corresponding files
 export class GPXFileStateCollection {
     private _db: Database;
-    private _files: Map<string, GPXFileState>;
+    private _files: Writable<Map<string, GPXFileState>>;
 
     constructor(db: Database) {
         this._db = db;
-        this._files = $state(new Map());
+        this._files = writable(new Map());
+    }
+
+    subscribe(run: Subscriber<Map<string, GPXFileState>>, invalidate?: () => void) {
+        return this._files.subscribe(run, invalidate);
     }
 
     initialize(fitBounds: boolean) {
@@ -72,57 +80,101 @@ export class GPXFileStateCollection {
                 // }
                 initialize = false;
             }
+            const currentFiles = get(this._files);
             // Find new files to observe
             let newFiles = dbFileIds
-                .filter((id) => !this._files.has(id))
+                .filter((id) => !currentFiles.has(id))
                 .sort((a, b) => parseInt(a.split('-')[1]) - parseInt(b.split('-')[1]));
             // Find deleted files to stop observing
-            let deletedFiles = Array.from(this._files.keys()).filter(
+            let deletedFiles = Array.from(currentFiles.keys()).filter(
                 (id) => !dbFileIds.find((fileId) => fileId === id)
             );
 
             if (newFiles.length > 0 || deletedFiles.length > 0) {
                 // Update the map of file states
-                let files = new Map(this._files);
-                newFiles.forEach((id) => {
-                    files.set(id, new GPXFileState(this._db, id));
+                this._files.update(($files) => {
+                    newFiles.forEach((id) => {
+                        $files.set(id, new GPXFileState(this._db, id));
+                    });
+                    deletedFiles.forEach((id) => {
+                        $files.get(id)?.destroy();
+                        $files.delete(id);
+                    });
+                    return $files;
                 });
-                deletedFiles.forEach((id) => {
-                    files.get(id)?.destroy();
-                    files.delete(id);
-                });
-                this._files = files;
 
                 // Update the file order
-                let fileOrder = settings.fileOrder.value.filter((id) => !deletedFiles.includes(id));
+                let fileOrder = get(settings.fileOrder).filter((id) => !deletedFiles.includes(id));
                 newFiles.forEach((id) => {
                     if (!fileOrder.includes(id)) {
                         fileOrder.push(id);
                     }
                 });
-                settings.fileOrder.value = fileOrder;
+                settings.fileOrder.set(fileOrder);
             }
         });
     }
 
-    get files(): ReadonlyMap<string, GPXFileState> {
-        return this._files;
-    }
-
     get size(): number {
-        return this._files.size;
+        return get(this._files).size;
     }
 
     getFile(fileId: string): GPXFile | undefined {
-        let fileState = this._files.get(fileId);
+        let fileState = get(this._files).get(fileId);
         return fileState?.file;
     }
 
     getStatistics(fileId: string): GPXStatisticsTree | undefined {
-        let fileState = this._files.get(fileId);
+        let fileState = get(this._files).get(fileId);
         return fileState?.statistics;
+    }
+
+    forEach(callback: (fileId: string, file: GPXFile) => void) {
+        get(this._files).forEach((fileState, fileId) => {
+            if (fileState.file) {
+                callback(fileId, fileState.file);
+            }
+        });
     }
 }
 
 // Collection of all file states
 export const fileStateCollection = new GPXFileStateCollection(db);
+
+export type GPXFileStateCallback = (fileId: string, fileState: GPXFileState) => void;
+export class GPXFileStateCollectionObserver {
+    private _fileIds: Set<string>;
+    private _onFileAdded: GPXFileStateCallback;
+    private _onFileRemoved: (fileId: string) => void;
+    private _onDestroy: () => void;
+
+    constructor(
+        onFileAdded: GPXFileStateCallback,
+        onFileRemoved: (fileId: string) => void,
+        onDestroy: () => void
+    ) {
+        this._fileIds = new Set();
+        this._onFileAdded = onFileAdded;
+        this._onFileRemoved = onFileRemoved;
+        this._onDestroy = onDestroy;
+
+        fileStateCollection.subscribe((files) => {
+            this._fileIds.forEach((fileId) => {
+                if (!files.has(fileId)) {
+                    this._onFileRemoved(fileId);
+                    this._fileIds.delete(fileId);
+                }
+            });
+            files.forEach((file: GPXFileState, fileId: string) => {
+                if (!this._fileIds.has(fileId)) {
+                    this._onFileAdded(fileId, file);
+                    this._fileIds.add(fileId);
+                }
+            });
+        });
+    }
+
+    destroy() {
+        this._onDestroy();
+    }
+}

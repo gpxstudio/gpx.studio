@@ -44,21 +44,13 @@
         ChartArea,
         Maximize,
     } from '@lucide/svelte';
-    import { map } from '$lib/components/map/utils.svelte';
+    import { map } from '$lib/components/map/map';
     import { editMetadata } from '$lib/components/file-list/metadata/utils.svelte';
     import { editStyle } from '$lib/components/file-list/style/utils.svelte';
     import { exportState, ExportState } from '$lib/components/export/utils.svelte';
-    // import {
-    //     triggerFileInput,
-    //     createFile,
-    //     loadFiles,
-    //     updateSelectionFromKey,
-    //     allHidden,
-    // } from '$lib/stores';
-    // import { canUndo, canRedo, fileActions, fileObservers, settings } from '$lib/db';
-    import { anySelectedLayer } from '$lib/components/map/layer-control/utils.svelte';
+    import { anySelectedLayer } from '$lib/components/map/layer-control/utils';
     import { defaultOverlays } from '$lib/assets/layers';
-    // import LayerControlSettings from '$lib/components/map/layer-control/LayerControlSettings.svelte';
+    import LayerControlSettings from '$lib/components/map/layer-control/LayerControlSettings.svelte';
     import {
         allowedPastes,
         ListFileItem,
@@ -69,17 +61,17 @@
     import { i18n } from '$lib/i18n.svelte';
     import { languages } from '$lib/languages';
     import { getURLForLanguage } from '$lib/utils';
-    import { settings } from '$lib/logic/settings.svelte';
+    import { settings } from '$lib/logic/settings';
     import {
         createFile,
         fileActions,
         loadFiles,
         pasteSelection,
         triggerFileInput,
-    } from '$lib/logic/file-actions.svelte';
-    import { fileStateCollection } from '$lib/logic/file-state.svelte';
-    import { fileActionManager } from '$lib/logic/file-action-manager.svelte';
-    import { selection } from '$lib/logic/selection.svelte';
+    } from '$lib/logic/file-actions';
+    import { fileStateCollection } from '$lib/logic/file-state';
+    import { fileActionManager } from '$lib/logic/file-action-manager';
+    import { selection } from '$lib/logic/selection';
 
     const {
         distanceUnits,
@@ -98,19 +90,14 @@
     } = settings;
 
     function switchBasemaps() {
-        [currentBasemap.value, previousBasemap.value] = [
-            previousBasemap.value,
-            currentBasemap.value,
-        ];
+        [$currentBasemap, $previousBasemap] = [$previousBasemap, $currentBasemap];
     }
 
     function toggleOverlays() {
-        if (currentOverlays.value && anySelectedLayer(currentOverlays.value)) {
-            previousOverlays.value = JSON.parse(JSON.stringify(currentOverlays.value));
-            currentOverlays.value = defaultOverlays;
+        if ($currentOverlays && anySelectedLayer($currentOverlays)) {
+            [$currentOverlays, $previousOverlays] = [defaultOverlays, $currentOverlays];
         } else {
-            currentOverlays.value = JSON.parse(JSON.stringify(previousOverlays.value));
-            previousOverlays.value = defaultOverlays;
+            [$currentOverlays, $previousOverlays] = [$previousOverlays, defaultOverlays];
         }
     }
 
@@ -146,7 +133,7 @@
                     <Menubar.Separator />
                     <Menubar.Item
                         onclick={fileActions.duplicateSelection}
-                        disabled={selection.value.size == 0}
+                        disabled={$selection.size == 0}
                     >
                         <Copy size="16" class="mr-1" />
                         {i18n._('menu.duplicate')}
@@ -155,7 +142,7 @@
                     <Menubar.Separator />
                     <Menubar.Item
                         onclick={fileActions.deleteSelectedFiles}
-                        disabled={selection.value.size == 0}
+                        disabled={$selection.size == 0}
                     >
                         <FileX size="16" class="mr-1" />
                         {i18n._('menu.close')}
@@ -172,7 +159,7 @@
                     <Menubar.Separator />
                     <Menubar.Item
                         onclick={() => (exportState.current = ExportState.SELECTION)}
-                        disabled={selection.value.size == 0}
+                        disabled={$selection.size == 0}
                     >
                         <Download size="16" class="mr-1" />
                         {i18n._('menu.export')}
@@ -195,7 +182,7 @@
                 </Menubar.Trigger>
                 <Menubar.Content class="border-none">
                     <Menubar.Item
-                        onclick={fileActionManager.undo}
+                        onclick={() => fileActionManager.undo()}
                         disabled={!fileActionManager.canUndo}
                     >
                         <Undo2 size="16" class="mr-1" />
@@ -203,7 +190,7 @@
                         <Shortcut key="Z" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Item
-                        onclick={fileActionManager.redo}
+                        onclick={() => fileActionManager.redo()}
                         disabled={!fileActionManager.canRedo}
                     >
                         <Redo2 size="16" class="mr-1" />
@@ -212,8 +199,8 @@
                     </Menubar.Item>
                     <Menubar.Separator />
                     <Menubar.Item
-                        disabled={selection.value.size !== 1 ||
-                            !selection.value
+                        disabled={$selection.size !== 1 ||
+                            !$selection
                                 .getSelected()
                                 .every(
                                     (item) =>
@@ -227,8 +214,8 @@
                         <Shortcut key="I" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Item
-                        disabled={selection.value.size === 0 ||
-                            !selection.value
+                        disabled={$selection.size === 0 ||
+                            !$selection
                                 .getSelected()
                                 .every(
                                     (item) =>
@@ -248,7 +235,7 @@
                             //     fileActions.setHiddenToSelection(true);
                             // }
                         }}
-                        disabled={selection.value.size == 0}
+                        disabled={$selection.size == 0}
                     >
                         <!-- {#if $allHidden}
                             <Eye size="16" class="mr-1" />
@@ -259,34 +246,32 @@
                         {/if} -->
                         <Shortcut key="H" ctrl={true} />
                     </Menubar.Item>
-                    {#if treeFileView.value}
-                        {#if selection.value
-                            .getSelected()
-                            .some((item) => item instanceof ListFileItem)}
+                    {#if $treeFileView}
+                        {#if $selection.getSelected().some((item) => item instanceof ListFileItem)}
                             <Menubar.Separator />
                             <Menubar.Item
                                 onclick={() =>
                                     fileActions.addNewTrack(
-                                        selection.value.getSelected()[0].getFileId()
+                                        $selection.getSelected()[0].getFileId()
                                     )}
-                                disabled={selection.value.size !== 1}
+                                disabled={$selection.size !== 1}
                             >
                                 <Plus size="16" class="mr-1" />
                                 {i18n._('menu.new_track')}
                             </Menubar.Item>
-                        {:else if selection.value
+                        {:else if $selection
                             .getSelected()
                             .some((item) => item instanceof ListTrackItem)}
                             <Menubar.Separator />
                             <Menubar.Item
                                 onclick={() => {
-                                    let item = selection.value.getSelected()[0];
+                                    let item = $selection.getSelected()[0];
                                     fileActions.addNewSegment(
                                         item.getFileId(),
                                         item.getTrackIndex()
                                     );
                                 }}
-                                disabled={selection.value.size !== 1}
+                                disabled={$selection.size !== 1}
                             >
                                 <Plus size="16" class="mr-1" />
                                 {i18n._('menu.new_segment')}
@@ -304,7 +289,7 @@
                     </Menubar.Item>
                     <Menubar.Item
                         onclick={() => {
-                            if (selection.value.size > 0) {
+                            if ($selection.size > 0) {
                                 // centerMapOnSelection();
                             }
                         }}
@@ -313,11 +298,11 @@
                         {i18n._('menu.center')}
                         <Shortcut key="⏎" ctrl={true} />
                     </Menubar.Item>
-                    {#if treeFileView.value}
+                    {#if $treeFileView}
                         <Menubar.Separator />
                         <Menubar.Item
                             onclick={selection.copySelection}
-                            disabled={selection.value.size === 0}
+                            disabled={$selection.size === 0}
                         >
                             <ClipboardCopy size="16" class="mr-1" />
                             {i18n._('menu.copy')}
@@ -325,7 +310,7 @@
                         </Menubar.Item>
                         <Menubar.Item
                             onclick={selection.cutSelection}
-                            disabled={selection.value.size === 0}
+                            disabled={$selection.size === 0}
                         >
                             <Scissors size="16" class="mr-1" />
                             {i18n._('menu.cut')}
@@ -334,9 +319,9 @@
                         <Menubar.Item
                             disabled={selection.copied === undefined ||
                                 selection.copied.length === 0 ||
-                                (selection.value.size > 0 &&
+                                ($selection.size > 0 &&
                                     !allowedPastes[selection.copied[0].level].includes(
-                                        selection.value.getSelected().pop()?.level
+                                        $selection.getSelected().pop()?.level
                                     ))}
                             onclick={pasteSelection}
                         >
@@ -348,7 +333,7 @@
                     <Menubar.Separator />
                     <Menubar.Item
                         onclick={fileActions.deleteSelection}
-                        disabled={selection.value.size == 0}
+                        disabled={$selection.size == 0}
                     >
                         <Trash2 size="16" class="mr-1" />
                         {i18n._('menu.delete')}
@@ -362,12 +347,12 @@
                     <span class="hidden md:block">{i18n._('menu.view')}</span>
                 </Menubar.Trigger>
                 <Menubar.Content class="border-none">
-                    <Menubar.CheckboxItem bind:checked={elevationProfile.value}>
+                    <Menubar.CheckboxItem bind:checked={$elevationProfile}>
                         <ChartArea size="16" class="mr-1" />
                         {i18n._('menu.elevation_profile')}
                         <Shortcut key="P" ctrl={true} />
                     </Menubar.CheckboxItem>
-                    <Menubar.CheckboxItem bind:checked={treeFileView.value}>
+                    <Menubar.CheckboxItem bind:checked={$treeFileView}>
                         <ListTree size="16" class="mr-1" />
                         {i18n._('menu.tree_file_view')}
                         <Shortcut key="L" ctrl={true} />
@@ -384,12 +369,12 @@
                         />
                     </Menubar.Item>
                     <Menubar.Separator />
-                    <Menubar.CheckboxItem bind:checked={distanceMarkers.value}>
+                    <Menubar.CheckboxItem bind:checked={$distanceMarkers}>
                         <Coins size="16" class="mr-1" />{i18n._('menu.distance_markers')}<Shortcut
                             key="F3"
                         />
                     </Menubar.CheckboxItem>
-                    <Menubar.CheckboxItem bind:checked={directionMarkers.value}>
+                    <Menubar.CheckboxItem bind:checked={$directionMarkers}>
                         <Milestone size="16" class="mr-1" />{i18n._(
                             'menu.direction_markers'
                         )}<Shortcut key="F4" />
@@ -415,7 +400,7 @@
                             <Ruler size="16" class="mr-1" />{i18n._('menu.distance_units')}
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
-                            <Menubar.RadioGroup bind:value={distanceUnits.value}>
+                            <Menubar.RadioGroup bind:value={$distanceUnits}>
                                 <Menubar.RadioItem value="metric"
                                     >{i18n._('menu.metric')}</Menubar.RadioItem
                                 >
@@ -433,7 +418,7 @@
                             <Zap size="16" class="mr-1" />{i18n._('menu.velocity_units')}
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
-                            <Menubar.RadioGroup bind:value={velocityUnits.value}>
+                            <Menubar.RadioGroup bind:value={$velocityUnits}>
                                 <Menubar.RadioItem value="speed"
                                     >{i18n._('quantities.speed')}</Menubar.RadioItem
                                 >
@@ -448,7 +433,7 @@
                             <Thermometer size="16" class="mr-1" />{i18n._('menu.temperature_units')}
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
-                            <Menubar.RadioGroup bind:value={temperatureUnits.value}>
+                            <Menubar.RadioGroup bind:value={$temperatureUnits}>
                                 <Menubar.RadioItem value="celsius"
                                     >{i18n._('menu.celsius')}</Menubar.RadioItem
                                 >
@@ -506,7 +491,7 @@
                             {i18n._('menu.street_view_source')}
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
-                            <Menubar.RadioGroup bind:value={streetViewSource.value}>
+                            <Menubar.RadioGroup bind:value={$streetViewSource}>
                                 <Menubar.RadioItem value="mapillary"
                                     >{i18n._('menu.mapillary')}</Menubar.RadioItem
                                 >
@@ -554,7 +539,7 @@
 </div>
 
 <Export />
-<!-- <LayerControlSettings bind:open={layerSettingsOpen} /> -->
+<LayerControlSettings bind:open={layerSettingsOpen} />
 
 <svelte:window
     on:keydown={(e) => {
@@ -598,7 +583,7 @@
                 if (fileStateCollection.size > 0) {
                     exportState.current = ExportState.ALL;
                 }
-            } else if (selection.value.size > 0) {
+            } else if ($selection.size > 0) {
                 exportState.current = ExportState.SELECTION;
             }
             e.preventDefault();
@@ -625,8 +610,8 @@
             }
         } else if (e.key === 'i' && (e.metaKey || e.ctrlKey)) {
             if (
-                selection.value.size === 1 &&
-                selection.value
+                $selection.size === 1 &&
+                $selection
                     .getSelected()
                     .every((item) => item instanceof ListFileItem || item instanceof ListTrackItem)
             ) {
@@ -634,10 +619,10 @@
             }
             e.preventDefault();
         } else if (e.key === 'p' && (e.metaKey || e.ctrlKey)) {
-            elevationProfile.value = !elevationProfile.value;
+            $elevationProfile = !$elevationProfile;
             e.preventDefault();
         } else if (e.key === 'l' && (e.metaKey || e.ctrlKey)) {
-            treeFileView.value = !treeFileView.value;
+            $treeFileView = !$treeFileView;
             e.preventDefault();
         } else if (e.key === 'h' && (e.metaKey || e.ctrlKey)) {
             // if ($allHidden) {
@@ -657,13 +642,13 @@
             toggleOverlays();
             e.preventDefault();
         } else if (e.key === 'F3') {
-            distanceMarkers.value = !distanceMarkers.value;
+            $distanceMarkers = !$distanceMarkers;
             e.preventDefault();
         } else if (e.key === 'F4') {
-            directionMarkers.value = !directionMarkers.value;
+            $directionMarkers = !$directionMarkers;
             e.preventDefault();
         } else if (e.key === 'F5') {
-            routing.value = !routing.value;
+            $routing = !$routing;
             e.preventDefault();
         } else if (
             e.key === 'ArrowRight' ||

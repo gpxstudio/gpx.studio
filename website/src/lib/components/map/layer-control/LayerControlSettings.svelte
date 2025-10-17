@@ -14,11 +14,11 @@
         overlayTree,
         overpassTree,
     } from '$lib/assets/layers';
-    import { getLayers, isSelected, toggle } from '$lib/components/map/layer-control/utils.svelte';
-    import { settings } from '$lib/db';
+    import { getLayers, isSelected, toggle } from '$lib/components/map/layer-control/utils';
     import { i18n } from '$lib/i18n.svelte';
-    import { map } from '$lib/components/map/map.svelte';
+    import { map } from '$lib/components/map/map';
     import CustomLayers from './CustomLayers.svelte';
+    import { settings } from '$lib/logic/settings';
 
     const {
         selectedBasemapTree,
@@ -48,29 +48,33 @@
         }
     }
 
-    $: if ($selectedBasemapTree && $currentBasemap) {
-        if (!isSelected($selectedBasemapTree, $currentBasemap)) {
-            if (!isSelected($selectedBasemapTree, defaultBasemap)) {
-                $selectedBasemapTree = toggle($selectedBasemapTree, defaultBasemap);
+    $effect(() => {
+        if ($selectedBasemapTree && $currentBasemap) {
+            if (!isSelected($selectedBasemapTree, $currentBasemap)) {
+                if (!isSelected($selectedBasemapTree, defaultBasemap)) {
+                    $selectedBasemapTree = toggle($selectedBasemapTree, defaultBasemap);
+                }
+                $currentBasemap = defaultBasemap;
             }
-            $currentBasemap = defaultBasemap;
         }
-    }
+    });
 
-    $: if ($selectedOverlayTree && $currentOverlays) {
-        let overlayLayers = getLayers($currentOverlays);
-        let toRemove = Object.entries(overlayLayers).filter(
-            ([id, checked]) => checked && !isSelected($selectedOverlayTree, id)
-        );
-        if (toRemove.length > 0) {
-            currentOverlays.update((tree) => {
-                toRemove.forEach(([id]) => {
-                    toggle(tree, id);
+    $effect(() => {
+        if ($selectedOverlayTree && $currentOverlays) {
+            let overlayLayers = getLayers($currentOverlays);
+            let toRemove = Object.entries(overlayLayers).filter(
+                ([id, checked]) => checked && !isSelected($selectedOverlayTree, id)
+            );
+            if (toRemove.length > 0) {
+                currentOverlays.update((tree) => {
+                    toRemove.forEach(([id]) => {
+                        toggle(tree, id);
+                    });
+                    return tree;
                 });
-                return tree;
-            });
+            }
         }
-    }
+    });
 </script>
 
 <Sheet.Root bind:open>
@@ -164,11 +168,12 @@
                                         onValueChange={(value) => {
                                             if (selectedOverlay) {
                                                 if (
-                                                    map.current &&
+                                                    $map &&
+                                                    $currentOverlays &&
                                                     isSelected($currentOverlays, selectedOverlay)
                                                 ) {
                                                     try {
-                                                        map.current.removeImport(selectedOverlay);
+                                                        $map.removeImport(selectedOverlay);
                                                     } catch (e) {
                                                         // No reliable way to check if the map is ready to remove sources and layers
                                                     }

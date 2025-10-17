@@ -8,11 +8,10 @@
         type GPXTreeElement,
     } from 'gpx';
     import { CollapsibleTreeNode } from '$lib/components/collapsible-tree/index';
-    import { settings, type GPXFileWithStatistics } from '$lib/db';
-    import { get, type Readable } from 'svelte/store';
+    import { type Readable } from 'svelte/store';
     import FileListNodeContent from './FileListNodeContent.svelte';
     import FileListNodeLabel from './FileListNodeLabel.svelte';
-    import { afterUpdate, getContext } from 'svelte';
+    import { getContext } from 'svelte';
     import {
         ListFileItem,
         ListTrackSegmentItem,
@@ -22,20 +21,27 @@
         type ListTrackItem,
     } from './file-list';
     import { i18n } from '$lib/i18n.svelte';
-    import { selection } from './Selection';
+    import { settings } from '$lib/logic/settings';
+    import type { GPXFileWithStatistics } from '$lib/logic/statistics';
+    import { selection } from '$lib/logic/selection';
 
-    export let node:
-        | Map<string, Readable<GPXFileWithStatistics | undefined>>
-        | GPXTreeElement<AnyGPXTreeElement>
-        | Waypoint[]
-        | Waypoint;
-    export let item: ListItem;
+    let {
+        node,
+        item,
+    }: {
+        node:
+            | Map<string, Readable<GPXFileWithStatistics | undefined>>
+            | GPXTreeElement<AnyGPXTreeElement>
+            | Waypoint[]
+            | Waypoint;
+        item: ListItem;
+    } = $props();
 
     let recursive = getContext<boolean>('recursive');
 
-    let collapsible: CollapsibleTreeNode;
+    let collapsible: CollapsibleTreeNode | undefined = $state();
 
-    $: label =
+    let label = $derived(
         node instanceof GPXFile && item instanceof ListFileItem
             ? node.metadata.name
             : node instanceof Track
@@ -47,12 +53,13 @@
                     `${i18n._('gpx.waypoint')} ${(item as ListWaypointItem).waypointIndex + 1}`)
                   : node instanceof GPXFile && item instanceof ListWaypointsItem
                     ? i18n._('gpx.waypoints')
-                    : '';
+                    : ''
+    );
 
     const { treeFileView } = settings;
 
     function openIfSelectedChild() {
-        if (collapsible && get(treeFileView) && $selection.hasAnyChildren(item, false)) {
+        if (collapsible && treeFileView.value && $selection.hasAnyChildren(item, false)) {
             collapsible.openNode();
         }
     }
@@ -61,7 +68,7 @@
         openIfSelectedChild();
     }
 
-    afterUpdate(openIfSelectedChild);
+    // afterUpdate(openIfSelectedChild);
 </script>
 
 {#if node instanceof Map}

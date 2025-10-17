@@ -6,9 +6,8 @@
 
 <script lang="ts">
     import { GPXFile, Track, Waypoint, type AnyGPXTreeElement, type GPXTreeElement } from 'gpx';
-    import { afterUpdate, getContext, onDestroy, onMount } from 'svelte';
+    import { getContext, onDestroy, onMount } from 'svelte';
     import Sortable from 'sortablejs/Sortable';
-    import { getFileIds, settings, type GPXFileWithStatistics } from '$lib/db';
     import { get, writable, type Readable, type Writable } from 'svelte/store';
     import FileListNodeStore from './FileListNodeStore.svelte';
     import FileListNode from './FileListNode.svelte';
@@ -18,18 +17,25 @@
         ListRootItem,
         ListWaypointsItem,
         allowedMoves,
-        moveItems,
         type ListItem,
     } from './file-list';
-    import { selection } from './Selection';
     import { isMac } from '$lib/utils';
+    import type { GPXFileWithStatistics } from '$lib/logic/statistics';
+    import { settings } from '$lib/logic/settings';
+    import { getFileIds, moveItems } from '$lib/logic/file-actions';
 
-    export let node:
-        | Map<string, Readable<GPXFileWithStatistics | undefined>>
-        | GPXTreeElement<AnyGPXTreeElement>
-        | Waypoint;
-    export let item: ListItem;
-    export let waypointRoot: boolean = false;
+    let {
+        node,
+        item,
+        waypointRoot = false,
+    }: {
+        node:
+            | Map<string, Readable<GPXFileWithStatistics | undefined>>
+            | GPXTreeElement<AnyGPXTreeElement>
+            | Waypoint;
+        item: ListItem;
+        waypointRoot?: boolean;
+    } = $props();
 
     let container: HTMLElement;
     let elements: { [id: string]: HTMLElement } = {};
@@ -126,28 +132,26 @@
         updateFromSelection();
     }
 
-    const { fileOrder } = settings;
-    function syncFileOrder() {
+    function syncFileOrder(order: string[]) {
         if (!sortable || sortableLevel !== ListLevel.FILE) {
             return;
         }
 
         const currentOrder = sortable.toArray();
-        if (currentOrder.length !== $fileOrder.length) {
-            sortable.sort($fileOrder);
+        if (currentOrder.length !== order.length) {
+            sortable.sort(order);
         } else {
             for (let i = 0; i < currentOrder.length; i++) {
-                if (currentOrder[i] !== $fileOrder[i]) {
-                    sortable.sort($fileOrder);
+                if (currentOrder[i] !== order[i]) {
+                    sortable.sort(order);
                     break;
                 }
             }
         }
     }
 
-    $: if ($fileOrder) {
-        syncFileOrder();
-    }
+    const { fileOrder } = settings;
+    $effect(() => syncFileOrder(fileOrder.value));
 
     function createSortable() {
         sortable = Sortable.create(container, {
@@ -172,12 +176,12 @@
             onSort: (e) => {
                 if (sortableLevel === ListLevel.FILE) {
                     let newFileOrder = sortable.toArray();
-                    if (newFileOrder.length !== get(fileOrder).length) {
-                        fileOrder.set(newFileOrder);
+                    if (newFileOrder.length !== fileOrder.value.length) {
+                        fileOrder.value = newFileOrder;
                     } else {
                         for (let i = 0; i < newFileOrder.length; i++) {
-                            if (newFileOrder[i] !== get(fileOrder)[i]) {
-                                fileOrder.set(newFileOrder);
+                            if (newFileOrder[i] !== fileOrder.value[i]) {
+                                fileOrder.value = newFileOrder;
                                 break;
                             }
                         }
@@ -222,7 +226,7 @@
                         if (toItem instanceof ListRootItem) {
                             let newFileIds = getFileIds(newIndices.length);
                             toItems = newIndices.map((i, index) => {
-                                $fileOrder.splice(i, 0, newFileIds[index]);
+                                fileOrder.value.splice(i, 0, newFileIds[index]);
                                 return item.extend(newFileIds[index]);
                             });
                         } else {

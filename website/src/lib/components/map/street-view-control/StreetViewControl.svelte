@@ -1,13 +1,13 @@
 <script lang="ts">
-    import { streetViewEnabled } from '$lib/components/map/street-view-control/utils.svelte';
-    import { map } from '$lib/components/map/utils.svelte';
+    import { streetViewEnabled } from '$lib/components/map/street-view-control/utils';
+    import { map } from '$lib/components/map/map';
     import CustomControl from '$lib/components/map/custom-control/CustomControl.svelte';
     import Tooltip from '$lib/components/Tooltip.svelte';
     import { Toggle } from '$lib/components/ui/toggle';
     import { PersonStanding, X } from '@lucide/svelte';
     import { MapillaryLayer } from './Mapillary';
     import { GoogleRedirect } from './Google';
-    import { settings } from '$lib/logic/settings.svelte';
+    import { settings } from '$lib/logic/settings';
     import { i18n } from '$lib/i18n.svelte';
     import { onMount } from 'svelte';
 
@@ -28,16 +28,16 @@
     });
 
     $effect(() => {
-        if (streetViewSource.value === 'mapillary') {
+        if ($streetViewSource === 'mapillary') {
             googleRedirect?.remove();
-            if (streetViewEnabled.current) {
+            if ($streetViewEnabled) {
                 mapillaryLayer?.add();
             } else {
                 mapillaryLayer?.remove();
             }
         } else {
             mapillaryLayer?.remove();
-            if (streetViewEnabled.current) {
+            if ($streetViewEnabled) {
                 googleRedirect?.add();
             } else {
                 googleRedirect?.remove();
@@ -49,7 +49,7 @@
 <CustomControl class="w-[29px] h-[29px] shrink-0">
     <Tooltip class="w-full h-full" side="left" label={i18n._('menu.toggle_street_view')}>
         <Toggle
-            bind:pressed={streetViewEnabled.current}
+            bind:pressed={$streetViewEnabled}
             class="w-full h-full rounded p-0"
             aria-label={i18n._('menu.toggle_street_view')}
         >

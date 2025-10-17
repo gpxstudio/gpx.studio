@@ -2,11 +2,11 @@
     import { Button } from '$lib/components/ui/button';
     import Help from '$lib/components/Help.svelte';
     import { MountainSnow } from '@lucide/svelte';
-    import { map } from '$lib/components/map/utils.svelte';
+    import { map } from '$lib/components/map/map';
     import { i18n } from '$lib/i18n.svelte';
     import { getURLForLanguage } from '$lib/utils';
-    import { selection } from '$lib/logic/selection.svelte';
-    import { fileActions } from '$lib/logic/file-actions.svelte';
+    import { selection } from '$lib/logic/selection';
+    import { fileActions } from '$lib/logic/file-actions';
 
     let props: {
         class?: string;

@@ -4,7 +4,7 @@
     // import FileList from '$lib/components/file-list/FileList.svelte';
     // import GPXStatistics from '$lib/components/GPXStatistics.svelte';
     import Map from '$lib/components/map/Map.svelte';
-    import { map } from '$lib/components/map/utils.svelte';
+    import { map } from '$lib/components/map/map';
     // import LayerControl from '$lib/components/map/layer-control/LayerControl.svelte';
     import OpenIn from '$lib/components/embedding/OpenIn.svelte';
     import {
@@ -25,8 +25,8 @@
     } from './Embedding';
     import { mode, setMode } from 'mode-watcher';
     import { browser } from '$app/environment';
-    import { settings } from '$lib/logic/settings.svelte';
-    import { fileStateCollection } from '$lib/logic/file-state.svelte';
+    import { settings } from '$lib/logic/settings';
+    import { fileStateCollection } from '$lib/logic/file-state';
 
     let {
         useHash = true,

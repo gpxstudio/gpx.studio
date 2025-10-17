@@ -11,9 +11,9 @@
     import Help from '$lib/components/Help.svelte';
     import { i18n } from '$lib/i18n.svelte';
     import { getURLForLanguage } from '$lib/utils';
-    import { selection } from '$lib/logic/selection.svelte';
-    import { fileStateCollection } from '$lib/logic/file-state.svelte';
-    import { fileActions } from '$lib/logic/file-actions.svelte';
+    import { selection } from '$lib/logic/selection';
+    import { fileStateCollection } from '$lib/logic/file-state';
+    import { fileActions } from '$lib/logic/file-actions';
 
     let props: {
         class?: string;

@@ -14,8 +14,8 @@
     import { getURLForLanguage, resetCursor, setCrosshairCursor } from '$lib/utils';
     import { MapPin, CircleX, Save } from '@lucide/svelte';
     import { getSymbolKey, symbols } from '$lib/assets/symbols';
-    import { selection } from '$lib/logic/selection.svelte';
-    import { selectedWaypoint } from './utils.svelte';
+    import { selection } from '$lib/logic/selection';
+    import { selectedWaypoint } from './waypoint';
 
     let props: {
         class?: string;

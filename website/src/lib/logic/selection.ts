@@ -1,140 +1,245 @@
-import type { ListItem } from '$lib/components/file-list/file-list';
+import {
+    ListFileItem,
+    ListItem,
+    ListRootItem,
+    ListTrackItem,
+    ListTrackSegmentItem,
+    ListWaypointItem,
+    ListLevel,
+    sortItems,
+    ListWaypointsItem,
+} from '$lib/components/file-list/file-list';
+import { fileStateCollection } from '$lib/logic/file-state';
+import { settings } from '$lib/logic/settings';
+import type { GPXFile } from 'gpx';
+import { get, writable, type Writable } from 'svelte/store';
+import { SelectionTreeType } from '$lib/logic/selection-tree';
 
-export class SelectionTreeType {
-    item: ListItem;
-    selected: boolean;
-    children: {
-        [key: string | number]: SelectionTreeType;
-    };
-    size: number = 0;
+export class Selection {
+    private _selection: Writable<SelectionTreeType>;
+    private _copied: Writable<ListItem[] | undefined>;
+    private _cut: Writable<boolean>;
 
-    constructor(item: ListItem) {
-        this.item = item;
-        this.selected = false;
-        this.children = {};
+    constructor() {
+        this._selection = writable(new SelectionTreeType(new ListRootItem()));
+        this._copied = writable(undefined);
+        this._cut = writable(false);
     }
 
-    clear() {
-        this.selected = false;
-        for (let key in this.children) {
-            this.children[key].clear();
-        }
-        this.size = 0;
+    subscribe(
+        run: (value: SelectionTreeType) => void,
+        invalidate?: (value?: SelectionTreeType) => void
+    ) {
+        return this._selection.subscribe(run, invalidate);
     }
 
-    _setOrToggle(item: ListItem, value?: boolean) {
-        if (item.level === this.item.level) {
-            let newSelected = value === undefined ? !this.selected : value;
-            if (this.selected !== newSelected) {
-                this.selected = newSelected;
-                this.size += this.selected ? 1 : -1;
-            }
-        } else {
-            let id = item.getIdAtLevel(this.item.level);
-            if (id !== undefined) {
-                if (!this.children.hasOwnProperty(id)) {
-                    this.children[id] = new SelectionTreeType(this.item.extend(id));
+    selectItem(item: ListItem) {
+        this._selection.update(($selection) => {
+            $selection.clear();
+            $selection.set(item, true);
+            return $selection;
+        });
+    }
+
+    selectFile(fileId: string) {
+        this.selectItem(new ListFileItem(fileId));
+    }
+
+    addSelectItem(item: ListItem) {
+        this._selection.update(($selection) => {
+            $selection.toggle(item);
+            return $selection;
+        });
+    }
+
+    addSelectFile(fileId: string) {
+        this.addSelectItem(new ListFileItem(fileId));
+    }
+
+    selectAll() {
+        let item: ListItem = new ListRootItem();
+        get(this._selection).forEach((i) => {
+            item = i;
+        });
+        this._selection.update(($selection) => {
+            $selection.clear();
+            if (item instanceof ListRootItem || item instanceof ListFileItem) {
+                fileStateCollection.forEach((fileId, file) => {
+                    $selection.set(new ListFileItem(fileId), true);
+                });
+            } else if (item instanceof ListTrackItem) {
+                let file = fileStateCollection.getFile(item.getFileId());
+                if (file) {
+                    file.trk.forEach((_track, trackId) => {
+                        $selection.set(new ListTrackItem(item.getFileId(), trackId), true);
+                    });
                 }
-                this.size -= this.children[id].size;
-                this.children[id]._setOrToggle(item, value);
-                this.size += this.children[id].size;
-            }
-        }
-    }
-
-    set(item: ListItem, value: boolean) {
-        this._setOrToggle(item, value);
-    }
-
-    toggle(item: ListItem) {
-        this._setOrToggle(item);
-    }
-
-    has(item: ListItem): boolean {
-        if (item.level === this.item.level) {
-            return this.selected;
-        } else {
-            let id = item.getIdAtLevel(this.item.level);
-            if (id !== undefined) {
-                if (this.children.hasOwnProperty(id)) {
-                    return this.children[id].has(item);
+            } else if (item instanceof ListTrackSegmentItem) {
+                let file = fileStateCollection.getFile(item.getFileId());
+                if (file) {
+                    file.trk[item.getTrackIndex()].trkseg.forEach((_segment, segmentId) => {
+                        $selection.set(
+                            new ListTrackSegmentItem(
+                                item.getFileId(),
+                                item.getTrackIndex(),
+                                segmentId
+                            ),
+                            true
+                        );
+                    });
+                }
+            } else if (item instanceof ListWaypointItem) {
+                let file = fileStateCollection.getFile(item.getFileId());
+                if (file) {
+                    file.wpt.forEach((_waypoint, waypointId) => {
+                        $selection.set(new ListWaypointItem(item.getFileId(), waypointId), true);
+                    });
                 }
             }
+            return $selection;
+        });
+    }
+
+    set(items: ListItem[]) {
+        this._selection.update(($selection) => {
+            $selection.clear();
+            items.forEach((item) => {
+                $selection.set(item, true);
+            });
+            return $selection;
+        });
+    }
+
+    update(updatedFiles: GPXFile[], deletedFileIds: string[]) {
+        // TODO do it the other way around: get all selected items, and check if they still exist?
+        // let removedItems: ListItem[] = [];
+        // applyToOrderedItemsFromFile(selection.value.getSelected(), (fileId, level, items) => {
+        //     let file = updatedFiles.find((file) => file._data.id === fileId);
+        //     if (file) {
+        //         items.forEach((item) => {
+        //             if (item instanceof ListTrackItem) {
+        //                 let newTrackIndex = file.trk.findIndex(
+        //                     (track) => track._data.trackIndex === item.getTrackIndex()
+        //                 );
+        //                 if (newTrackIndex === -1) {
+        //                     removedItems.push(item);
+        //                 }
+        //             } else if (item instanceof ListTrackSegmentItem) {
+        //                 let newTrackIndex = file.trk.findIndex(
+        //                     (track) => track._data.trackIndex === item.getTrackIndex()
+        //                 );
+        //                 if (newTrackIndex === -1) {
+        //                     removedItems.push(item);
+        //                 } else {
+        //                     let newSegmentIndex = file.trk[newTrackIndex].trkseg.findIndex(
+        //                         (segment) => segment._data.segmentIndex === item.getSegmentIndex()
+        //                     );
+        //                     if (newSegmentIndex === -1) {
+        //                         removedItems.push(item);
+        //                     }
+        //                 }
+        //             } else if (item instanceof ListWaypointItem) {
+        //                 let newWaypointIndex = file.wpt.findIndex(
+        //                     (wpt) => wpt._data.index === item.getWaypointIndex()
+        //                 );
+        //                 if (newWaypointIndex === -1) {
+        //                     removedItems.push(item);
+        //                 }
+        //             }
+        //         });
+        //     } else if (deletedFileIds.includes(fileId)) {
+        //         items.forEach((item) => {
+        //             removedItems.push(item);
+        //         });
+        //     }
+        // });
+        // if (removedItems.length > 0) {
+        //     selection.update(($selection) => {
+        //         removedItems.forEach((item) => {
+        //             if (item instanceof ListFileItem) {
+        //                 $selection.deleteChild(item.getFileId());
+        //             } else {
+        //                 $selection.set(item, false);
+        //             }
+        //         });
+        //         return $selection;
+        //     });
+        // }
+    }
+
+    getOrderedSelection(reverse: boolean = false): ListItem[] {
+        let selected: ListItem[] = [];
+        this.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+            selected.push(...items);
+        }, reverse);
+        return selected;
+    }
+
+    applyToOrderedSelectedItemsFromFile(
+        callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void,
+        reverse: boolean = true
+    ) {
+        applyToOrderedItemsFromFile(get(this._selection).getSelected(), callback, reverse);
+    }
+
+    copySelection(): boolean {
+        let selected = get(this._selection).getSelected();
+        if (selected.length > 0) {
+            this._copied.set(selected);
+            this._cut.set(false);
+            return true;
         }
         return false;
     }
 
-    hasAnyParent(item: ListItem, self: boolean = true): boolean {
-        if (
-            this.selected &&
-            this.item.level <= item.level &&
-            (self || this.item.level < item.level)
-        ) {
-            return this.selected;
+    cutSelection() {
+        if (this.copySelection()) {
+            this._cut.set(true);
         }
-        let id = item.getIdAtLevel(this.item.level);
-        if (id !== undefined) {
-            if (this.children.hasOwnProperty(id)) {
-                return this.children[id].hasAnyParent(item, self);
-            }
-        }
-        return false;
     }
 
-    hasAnyChildren(item: ListItem, self: boolean = true, ignoreIds?: (string | number)[]): boolean {
-        if (
-            this.selected &&
-            this.item.level >= item.level &&
-            (self || this.item.level > item.level)
-        ) {
-            return this.selected;
-        }
-        let id = item.getIdAtLevel(this.item.level);
-        if (id !== undefined) {
-            if (ignoreIds === undefined || ignoreIds.indexOf(id) === -1) {
-                if (this.children.hasOwnProperty(id)) {
-                    return this.children[id].hasAnyChildren(item, self, ignoreIds);
+    resetCopied() {
+        this._copied.set(undefined);
+        this._cut.set(false);
+    }
+
+    get copied(): ListItem[] | undefined {
+        return this._copied;
+    }
+
+    get cut(): boolean {
+        return this._cut;
+    }
+}
+
+export const selection = new Selection();
+
+export function applyToOrderedItemsFromFile(
+    selectedItems: ListItem[],
+    callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void,
+    reverse: boolean = true
+) {
+    settings.fileOrder.value.forEach((fileId) => {
+        let level: ListLevel | undefined = undefined;
+        let items: ListItem[] = [];
+        selectedItems.forEach((item) => {
+            if (item.getFileId() === fileId) {
+                level = item.level;
+                if (
+                    item instanceof ListFileItem ||
+                    item instanceof ListTrackItem ||
+                    item instanceof ListTrackSegmentItem ||
+                    item instanceof ListWaypointsItem ||
+                    item instanceof ListWaypointItem
+                ) {
+                    items.push(item);
                 }
             }
-        } else {
-            for (let key in this.children) {
-                if (ignoreIds === undefined || ignoreIds.indexOf(key) === -1) {
-                    if (this.children[key].hasAnyChildren(item, self, ignoreIds)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
+        });
 
-    getSelected(selection: ListItem[] = []): ListItem[] {
-        if (this.selected) {
-            selection.push(this.item);
+        if (items.length > 0) {
+            sortItems(items, reverse);
+            callback(fileId, level, items);
         }
-        for (let key in this.children) {
-            this.children[key].getSelected(selection);
-        }
-        return selection;
-    }
-
-    forEach(callback: (item: ListItem) => void) {
-        if (this.selected) {
-            callback(this.item);
-        }
-        for (let key in this.children) {
-            this.children[key].forEach(callback);
-        }
-    }
-
-    getChild(id: string | number): SelectionTreeType | undefined {
-        return this.children[id];
-    }
-
-    deleteChild(id: string | number) {
-        if (this.children.hasOwnProperty(id)) {
-            this.size -= this.children[id].size;
-            delete this.children[id];
-        }
-    }
+    });
 }

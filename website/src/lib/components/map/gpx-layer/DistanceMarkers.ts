@@ -1,9 +1,8 @@
-import { settings } from '$lib/db';
-import { gpxStatistics } from '$lib/stores';
+import { settings } from '$lib/logic/settings';
 import type { GeoJSONSource } from 'mapbox-gl';
 import { get } from 'svelte/store';
 
-// const { distanceMarkers, distanceUnits } = settings;
+const { distanceMarkers, distanceUnits } = settings;
 
 const stops = [
     [100, 0],

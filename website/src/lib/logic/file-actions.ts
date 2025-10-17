@@ -1,8 +1,8 @@
-import { fileStateCollection } from '$lib/logic/file-state.svelte';
-import { fileActionManager } from '$lib/logic/file-action-manager.svelte';
-import { selection } from '$lib/logic/selection.svelte';
-import { tool, Tool } from '$lib/components/toolbar/utils.svelte';
-import type { SplitType } from '$lib/components/toolbar/tools/scissors/utils.svelte';
+import { fileStateCollection } from '$lib/logic/file-state';
+import { fileActionManager } from '$lib/logic/file-action-manager';
+import { selection } from '$lib/logic/selection';
+import { currentTool, Tool } from '$lib/components/toolbar/tools';
+import type { SplitType } from '$lib/components/toolbar/tools/scissors/scissors';
 import {
     ListFileItem,
     ListLevel,
@@ -27,13 +27,14 @@ import {
     type LineStyleExtension,
     type WaypointType,
 } from 'gpx';
+import { get } from 'svelte/store';
 
 // Generate unique file ids, different from the ones in the database
 export function getFileIds(n: number) {
     let ids = [];
     for (let index = 0; ids.length < n; index++) {
         let id = `gpx-${index}`;
-        if (!fileStateCollection.files.has(id)) {
+        if (!fileStateCollection.getFile(id)) {
             ids.push(id);
         }
     }
@@ -46,9 +47,8 @@ export function newGPXFile() {
     let file = new GPXFile();
 
     let maxNewFileNumber = 0;
-    fileStateCollection.files.forEach((fileState) => {
-        let file = fileState.file;
-        if (file && file.metadata.name && file.metadata.name.startsWith(newFileName)) {
+    fileStateCollection.forEach((fileId, file) => {
+        if (file.metadata.name && file.metadata.name.startsWith(newFileName)) {
             let number = parseInt(file.metadata.name.split(' ').pop() ?? '0');
             if (!isNaN(number) && number > maxNewFileNumber) {
                 maxNewFileNumber = number;
@@ -738,6 +738,11 @@ export const fileActions = {
         //     }
         // });
     },
+    deleteWaypoint: (fileId: string, waypointIndex: number) => {
+        fileActionManager.applyToFile(fileId, (file) =>
+            file.replaceWaypoints(waypointIndex, waypointIndex, [])
+        );
+    },
     setStyleToSelection: (style: LineStyleExtension) => {
         // if (get(selection).size === 0) {
         //     return;
@@ -926,7 +931,7 @@ export function pasteSelection() {
         return;
     }
 
-    let selected = selection.value.getSelected();
+    let selected = get(selection).getSelected();
     if (selected.length === 0) {
         selected = [new ListRootItem()];
     }

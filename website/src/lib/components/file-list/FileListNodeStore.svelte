@@ -2,10 +2,10 @@
     import CollapsibleTree from '$lib/components/collapsible-tree/CollapsibleTree.svelte';
     import FileListNode from '$lib/components/file-list/FileListNode.svelte';
 
-    import type { GPXFileWithStatistics } from '$lib/db';
     import { getContext } from 'svelte';
     import type { Readable } from 'svelte/store';
     import { ListFileItem } from './file-list';
+    import type { GPXFileWithStatistics } from '$lib/logic/statistics';
 
     let {
         file,

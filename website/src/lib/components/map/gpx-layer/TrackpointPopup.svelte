@@ -1,11 +1,11 @@
 <script lang="ts">
     import type { TrackPoint } from 'gpx';
-    import type { PopupItem } from '$lib/components/map/map.svelte';
     import CopyCoordinates from '$lib/components/map/gpx-layer/CopyCoordinates.svelte';
     import * as Card from '$lib/components/ui/card';
     import WithUnits from '$lib/components/WithUnits.svelte';
     import { Compass, Mountain, Timer } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
+    import type { PopupItem } from '$lib/components/map/map';
 
     let { trackpoint }: { trackpoint: PopupItem<TrackPoint> } = $props();
 </script>

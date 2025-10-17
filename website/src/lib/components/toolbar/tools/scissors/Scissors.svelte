@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { splitAs, SplitType } from '$lib/components/toolbar/tools/scissors/utils.svelte';
+    import { splitAs, SplitType } from '$lib/components/toolbar/tools/scissors/scissors';
     import Help from '$lib/components/Help.svelte';
     import { ListRootItem } from '$lib/components/file-list/file-list';
     import { Label } from '$lib/components/ui/label/index.js';
@@ -8,7 +8,7 @@
     import * as Select from '$lib/components/ui/select';
     import { Separator } from '$lib/components/ui/separator';
     import { gpxStatistics, slicedGPXStatistics } from '$lib/stores';
-    import { map } from '$lib/components/map/map.svelte';
+    import { map } from '$lib/components/map/map';
     import { get } from 'svelte/store';
     import { i18n } from '$lib/i18n.svelte';
     import { onDestroy, tick } from 'svelte';
@@ -16,7 +16,7 @@
     import { dbUtils } from '$lib/db';
     import { SplitControls } from './split-controls';
     import { getURLForLanguage } from '$lib/utils';
-    import { selection } from '$lib/logic/selection.svelte';
+    import { selection } from '$lib/logic/selection';
 
     let props: {
         class?: string;

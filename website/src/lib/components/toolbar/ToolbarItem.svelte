@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Button } from '$lib/components/ui/button';
     import * as Tooltip from '$lib/components/ui/tooltip/index.js';
-    import { tool, Tool } from '$lib/components/toolbar/utils.svelte';
+    import { tool, Tool } from '$lib/components/toolbar/tools';
     import type { Snippet } from 'svelte';
 
     let {

@@ -1,8 +1,7 @@
-import { currentTool, map, splitAs, Tool } from '$lib/stores';
-import { settings, type GPXFileWithStatistics, dbUtils } from '$lib/db';
 import { get, type Readable } from 'svelte/store';
 import mapboxgl from 'mapbox-gl';
-import { waypointPopup, deleteWaypoint, trackpointPopup } from './GPXLayerPopup';
+import { map } from '$lib/components/map/map';
+import { waypointPopup, trackpointPopup } from './gpx-layer-popup';
 import {
     ListTrackSegmentItem,
     ListWaypointItem,
@@ -19,9 +18,16 @@ import {
     setPointerCursor,
     setScissorsCursor,
 } from '$lib/utils';
-import { selectedWaypoint } from '$lib/components/toolbar/tools/waypoint/utils.svelte';
+import { selectedWaypoint } from '$lib/components/toolbar/tools/waypoint/waypoint';
 import { MapPin, Square } from 'lucide-static';
 import { getSymbolKey, symbols } from '$lib/assets/symbols';
+import type { GPXFileWithStatistics } from '$lib/logic/statistics';
+import { selection } from '$lib/logic/selection';
+import { settings } from '$lib/logic/settings';
+import { currentTool, Tool } from '$lib/components/toolbar/tools';
+import { fileActionManager } from '$lib/logic/file-action-manager';
+import { fileActions } from '$lib/logic/file-actions';
+import { splitAs } from '$lib/components/toolbar/tools/scissors/scissors';
 
 const colors = [
     '#ff0000',
@@ -81,10 +87,9 @@ function getMarkerForSymbol(symbol: string | undefined, layerColor: string) {
     </svg>`;
 }
 
-// const { directionMarkers, treeFileView, defaultOpacity, defaultWidth } = settings;
+const { directionMarkers, treeFileView, defaultOpacity, defaultWidth } = settings;
 
 export class GPXLayer {
-    map: mapboxgl.Map;
     fileId: string;
     file: Readable<GPXFileWithStatistics | undefined>;
     layerColor: string;
@@ -100,15 +105,18 @@ export class GPXLayer {
     layerOnClickBinded: (e: any) => void = this.layerOnClick.bind(this);
     layerOnContextMenuBinded: (e: any) => void = this.layerOnContextMenu.bind(this);
 
-    constructor(
-        map: mapboxgl.Map,
-        fileId: string,
-        file: Readable<GPXFileWithStatistics | undefined>
-    ) {
-        this.map = map;
+    constructor(fileId: string, file: Readable<GPXFileWithStatistics | undefined>) {
         this.fileId = fileId;
         this.file = file;
         this.layerColor = getColor();
+        this.unsubscribe.push(
+            map.subscribe(($map) => {
+                if ($map) {
+                    $map.on('style.import.load', this.updateBinded);
+                    this.update();
+                }
+            })
+        );
         this.unsubscribe.push(file.subscribe(this.updateBinded));
         this.unsubscribe.push(
             selection.subscribe(($selection) => {
@@ -135,13 +143,12 @@ export class GPXLayer {
             })
         );
         this.draggable = get(currentTool) === Tool.WAYPOINT;
-
-        this.map.on('style.import.load', this.updateBinded);
     }
 
     update() {
+        const _map = get(map);
         let file = get(this.file)?.file;
-        if (!file) {
+        if (!_map || !file) {
             return;
         }
 
@@ -155,18 +162,18 @@ export class GPXLayer {
         }
 
         try {
-            let source = this.map.getSource(this.fileId);
+            let source = _map.getSource(this.fileId);
             if (source) {
                 source.setData(this.getGeoJSON());
             } else {
-                this.map.addSource(this.fileId, {
+                _map.addSource(this.fileId, {
                     type: 'geojson',
                     data: this.getGeoJSON(),
                 });
             }
 
-            if (!this.map.getLayer(this.fileId)) {
-                this.map.addLayer({
+            if (!_map.getLayer(this.fileId)) {
+                _map.addLayer({
                     id: this.fileId,
                     type: 'line',
                     source: this.fileId,
@@ -181,16 +188,16 @@ export class GPXLayer {
                     },
                 });
 
-                this.map.on('click', this.fileId, this.layerOnClickBinded);
-                this.map.on('contextmenu', this.fileId, this.layerOnContextMenuBinded);
-                this.map.on('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
-                this.map.on('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
-                this.map.on('mousemove', this.fileId, this.layerOnMouseMoveBinded);
+                _map.on('click', this.fileId, this.layerOnClickBinded);
+                _map.on('contextmenu', this.fileId, this.layerOnContextMenuBinded);
+                _map.on('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
+                _map.on('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
+                _map.on('mousemove', this.fileId, this.layerOnMouseMoveBinded);
             }
 
             if (get(directionMarkers)) {
-                if (!this.map.getLayer(this.fileId + '-direction')) {
-                    this.map.addLayer(
+                if (!_map.getLayer(this.fileId + '-direction')) {
+                    _map.addLayer(
                         {
                             id: this.fileId + '-direction',
                             type: 'symbol',
@@ -212,12 +219,12 @@ export class GPXLayer {
                                 'text-halo-color': 'white',
                             },
                         },
-                        this.map.getLayer('distance-markers') ? 'distance-markers' : undefined
+                        _map.getLayer('distance-markers') ? 'distance-markers' : undefined
                     );
                 }
             } else {
-                if (this.map.getLayer(this.fileId + '-direction')) {
-                    this.map.removeLayer(this.fileId + '-direction');
+                if (_map.getLayer(this.fileId + '-direction')) {
+                    _map.removeLayer(this.fileId + '-direction');
                 }
             }
 
@@ -228,7 +235,7 @@ export class GPXLayer {
                 }
             });
 
-            this.map.setFilter(
+            _map.setFilter(
                 this.fileId,
                 [
                     'any',
@@ -240,8 +247,8 @@ export class GPXLayer {
                 ],
                 { validate: false }
             );
-            if (this.map.getLayer(this.fileId + '-direction')) {
-                this.map.setFilter(
+            if (_map.getLayer(this.fileId + '-direction')) {
+                _map.setFilter(
                     this.fileId + '-direction',
                     [
                         'any',
@@ -299,7 +306,7 @@ export class GPXLayer {
                         }
 
                         if (get(currentTool) === Tool.WAYPOINT && e.shiftKey) {
-                            deleteWaypoint(this.fileId, marker._waypoint._data.index);
+                            fileActions.deleteWaypoint(this.fileId, marker._waypoint._data.index);
                             e.stopPropagation();
                             return;
                         }
@@ -312,11 +319,11 @@ export class GPXLayer {
                                     false
                                 )
                             ) {
-                                addSelectItem(
+                                selection.addSelectItem(
                                     new ListWaypointItem(this.fileId, marker._waypoint._data.index)
                                 );
                             } else {
-                                selectItem(
+                                selection.selectItem(
                                     new ListWaypointItem(this.fileId, marker._waypoint._data.index)
                                 );
                             }
@@ -336,7 +343,7 @@ export class GPXLayer {
                         resetCursor();
                         marker.getElement().style.cursor = '';
                         getElevation([marker._waypoint]).then((ele) => {
-                            dbUtils.applyToFile(this.fileId, (file) => {
+                            fileActionManager.applyToFile(this.fileId, (file) => {
                                 let latLng = marker.getLngLat();
                                 let wpt = file.wpt[marker._waypoint._data.index];
                                 wpt.setCoordinates({
@@ -361,36 +368,31 @@ export class GPXLayer {
 
         this.markers.forEach((marker) => {
             if (!marker._waypoint._data.hidden) {
-                marker.addTo(this.map);
+                marker.addTo(_map);
             } else {
                 marker.remove();
             }
         });
     }
 
-    updateMap(map: mapboxgl.Map) {
-        this.map = map;
-        this.map.on('style.import.load', this.updateBinded);
-        this.update();
-    }
-
     remove() {
-        if (get(map)) {
-            this.map.off('click', this.fileId, this.layerOnClickBinded);
-            this.map.off('contextmenu', this.fileId, this.layerOnContextMenuBinded);
-            this.map.off('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
-            this.map.off('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
-            this.map.off('mousemove', this.fileId, this.layerOnMouseMoveBinded);
-            this.map.off('style.import.load', this.updateBinded);
+        const _map = get(map);
+        if (_map) {
+            _map.off('click', this.fileId, this.layerOnClickBinded);
+            _map.off('contextmenu', this.fileId, this.layerOnContextMenuBinded);
+            _map.off('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
+            _map.off('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
+            _map.off('mousemove', this.fileId, this.layerOnMouseMoveBinded);
+            _map.off('style.import.load', this.updateBinded);
 
-            if (this.map.getLayer(this.fileId + '-direction')) {
-                this.map.removeLayer(this.fileId + '-direction');
+            if (_map.getLayer(this.fileId + '-direction')) {
+                _map.removeLayer(this.fileId + '-direction');
             }
-            if (this.map.getLayer(this.fileId)) {
-                this.map.removeLayer(this.fileId);
+            if (_map.getLayer(this.fileId)) {
+                _map.removeLayer(this.fileId);
             }
-            if (this.map.getSource(this.fileId)) {
-                this.map.removeSource(this.fileId);
+            if (_map.getSource(this.fileId)) {
+                _map.removeSource(this.fileId);
             }
         }
 
@@ -404,13 +406,17 @@ export class GPXLayer {
     }
 
     moveToFront() {
-        if (this.map.getLayer(this.fileId)) {
-            this.map.moveLayer(this.fileId);
+        const _map = get(map);
+        if (!_map) {
+            return;
         }
-        if (this.map.getLayer(this.fileId + '-direction')) {
-            this.map.moveLayer(
+        if (_map.getLayer(this.fileId)) {
+            _map.moveLayer(this.fileId);
+        }
+        if (_map.getLayer(this.fileId + '-direction')) {
+            _map.moveLayer(
                 this.fileId + '-direction',
-                this.map.getLayer('distance-markers') ? 'distance-markers' : undefined
+                _map.getLayer('distance-markers') ? 'distance-markers' : undefined
             );
         }
     }
@@ -468,7 +474,7 @@ export class GPXLayer {
                 new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)
             )
         ) {
-            dbUtils.split(splitAs.current, this.fileId, trackIndex, segmentIndex, {
+            fileActions.split(get(splitAs), this.fileId, trackIndex, segmentIndex, {
                 lat: e.lngLat.lat,
                 lon: e.lngLat.lng,
             });
@@ -492,9 +498,9 @@ export class GPXLayer {
         }
 
         if (e.originalEvent.ctrlKey || e.originalEvent.metaKey) {
-            addSelectItem(item);
+            selection.addSelectItem(item);
         } else {
-            selectItem(item);
+            selection.selectItem(item);
         }
     }
 

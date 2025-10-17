@@ -3,10 +3,10 @@ import mapboxgl from 'mapbox-gl';
 import { dbUtils, getFile } from '$lib/db';
 import { ListTrackSegmentItem } from '$lib/components/file-list/file-list';
 import { gpxStatistics } from '$lib/stores';
-import { tool, Tool } from '$lib/components/toolbar/utils.svelte';
-import { splitAs } from '$lib/components/toolbar/tools/scissors/utils.svelte';
+import { tool, Tool } from '$lib/components/toolbar/tools';
+import { splitAs } from '$lib/components/toolbar/tools/scissors/scissors';
 import { Scissors } from 'lucide-static';
-import { applyToOrderedSelectedItemsFromFile, selection } from '$lib/logic/selection.svelte';
+import { selection } from '$lib/logic/selection';
 
 export class SplitControls {
     active: boolean = false;
@@ -53,7 +53,7 @@ export class SplitControls {
     updateControls() {
         // Update the markers when the files change
         let controlIndex = 0;
-        applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+        selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
             let file = getFile(fileId);
 
             if (file) {

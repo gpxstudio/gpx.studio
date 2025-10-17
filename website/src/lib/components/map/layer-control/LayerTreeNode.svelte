@@ -4,9 +4,9 @@
     import { Checkbox } from '$lib/components/ui/checkbox';
     import CollapsibleTreeNode from '$lib/components/collapsible-tree/CollapsibleTreeNode.svelte';
     import { type LayerTreeType } from '$lib/assets/layers';
-    import { anySelectedLayer } from './utils.svelte';
+    import { anySelectedLayer } from './utils';
     import { i18n } from '$lib/i18n.svelte';
-    import { settings } from '$lib/logic/settings.svelte';
+    import { settings } from '$lib/logic/settings';
 
     let {
         name,
@@ -70,8 +70,8 @@
                         />
                     {/if}
                     <Label for="{name}-{id}" class="flex flex-row items-center gap-1">
-                        {#if customLayers.value.hasOwnProperty(id)}
-                            {customLayers.value[id].name}
+                        {#if $customLayers.hasOwnProperty(id)}
+                            {$customLayers[id].name}
                         {:else}
                             {i18n._(`layers.label.${id}`)}
                         {/if}

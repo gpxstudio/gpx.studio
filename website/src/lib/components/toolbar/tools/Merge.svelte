@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
     enum MergeType {
         TRACES = 'traces',
         CONTENTS = 'contents',
@@ -17,9 +17,9 @@
     import { getURLForLanguage } from '$lib/utils';
     import Shortcut from '$lib/components/Shortcut.svelte';
     import { gpxStatistics } from '$lib/stores';
-    import { selection } from '$lib/logic/selection.svelte';
-    import { fileStateCollection } from '$lib/logic/file-state.svelte';
-    import { fileActions } from '$lib/logic/file-actions.svelte';
+    import { selection } from '$lib/logic/selection';
+    import { fileStateCollection } from '$lib/logic/file-state';
+    import { fileActions } from '$lib/logic/file-actions';
 
     let props: {
         class?: string;

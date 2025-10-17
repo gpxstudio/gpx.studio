@@ -1,13 +1,13 @@
 <script lang="ts">
     import * as Card from '$lib/components/ui/card';
     import { Button } from '$lib/components/ui/button';
-    import { selection } from '$lib/components/file-list/Selection';
     import { PencilLine, MapPin } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
-    import { dbUtils } from '$lib/db';
-    import type { PopupItem } from '$lib/components/MapPopup';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
     import type { WaypointType } from 'gpx';
+    import type { PopupItem } from '$lib/components/map/map';
+    import { fileActions } from '$lib/logic/file-actions';
+    import { selection } from '$lib/logic/selection';
 
     export let poi: PopupItem<any>;
 
@@ -43,7 +43,7 @@
                 },
             };
         }
-        dbUtils.addOrUpdateWaypoint(wpt);
+        fileActions.addOrUpdateWaypoint(wpt);
     }
 </script>
 
@@ -94,12 +94,7 @@
                 {/each}
             </div>
         </ScrollArea>
-        <Button
-            class="mt-2"
-            variant="outline"
-            disabled={$selection.size === 0}
-            on:click={addToFile}
-        >
+        <Button class="mt-2" variant="outline" disabled={$selection.size === 0} onclick={addToFile}>
             <MapPin size="16" class="mr-1" />
             {i18n._('toolbar.waypoint.add')}
         </Button>

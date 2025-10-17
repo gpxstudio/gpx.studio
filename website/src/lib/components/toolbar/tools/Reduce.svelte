@@ -11,13 +11,13 @@
     import { Funnel } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
     import WithUnits from '$lib/components/WithUnits.svelte';
-    import { map } from '$lib/components/map/utils.svelte';
+    import { map } from '$lib/components/map/map';
     import { onDestroy } from 'svelte';
     import { ramerDouglasPeucker, TrackPoint, type SimplifiedTrackPoint } from 'gpx';
     import { getURLForLanguage } from '$lib/utils';
     import type { GeoJSONSource } from 'mapbox-gl';
-    import { selection } from '$lib/logic/selection.svelte';
-    import { fileActions } from '$lib/logic/file-actions.svelte';
+    import { selection } from '$lib/logic/selection';
+    import { fileActions } from '$lib/logic/file-actions';
 
     let props: { class?: string } = $props();
 

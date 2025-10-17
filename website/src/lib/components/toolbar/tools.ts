@@ -1,3 +1,5 @@
+import { writable, type Writable } from 'svelte/store';
+
 export enum Tool {
     ROUTING,
     WAYPOINT,
@@ -10,8 +12,4 @@ export enum Tool {
     CLEAN,
 }
 
-export const tool: {
-    current: Tool | null;
-} = $state({
-    current: null,
-});
+export const currentTool: Writable<Tool | null> = writable(null);

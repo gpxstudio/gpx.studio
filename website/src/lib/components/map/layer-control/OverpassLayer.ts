@@ -1,12 +1,13 @@
 import { SphericalMercator } from '@mapbox/sphericalmercator';
-import { getLayers } from './utils.svelte';
+import { getLayers } from './utils';
 import { get, writable } from 'svelte/store';
 import { liveQuery } from 'dexie';
-import { db, settings } from '$lib/db';
 import { overpassQueryData } from '$lib/assets/layers';
-import { MapPopup } from '$lib/components/map/map.svelte';
+import { MapPopup } from '$lib/components/map/map-popup';
+import { settings } from '$lib/logic/settings';
+import { db } from '$lib/db';
 
-// const { currentOverpassQueries } = settings;
+const { currentOverpassQueries } = settings;
 
 const mercator = new SphericalMercator({
     size: 256,
@@ -60,8 +61,10 @@ export class OverpassLayer {
 
     queryIfNeeded() {
         if (this.map.getZoom() >= this.minZoom) {
-            const bounds = this.map.getBounds().toArray();
-            this.query([bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]]);
+            const bounds = this.map.getBounds()?.toArray();
+            if (bounds) {
+                this.query([bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]]);
+            }
         }
     }
 

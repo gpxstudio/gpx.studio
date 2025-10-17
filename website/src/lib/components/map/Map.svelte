@@ -4,11 +4,10 @@
     import 'mapbox-gl/dist/mapbox-gl.css';
     import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
     import { Button } from '$lib/components/ui/button';
-    import { settings } from '$lib/logic/settings.svelte';
     import { i18n } from '$lib/i18n.svelte';
     import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
     import { page } from '$app/state';
-    import { map } from '$lib/components/map/utils.svelte';
+    import { map } from '$lib/components/map/map';
 
     let {
         accessToken = PUBLIC_MAPBOX_TOKEN,
@@ -28,9 +27,6 @@
 
     let webgl2Supported = $state(true);
     let embeddedApp = $state(false);
-
-    const { distanceUnits, elevationProfile, treeFileView, bottomPanelSize, rightPanelSize } =
-        settings;
 
     onMount(() => {
         let gl = document.createElement('canvas').getContext('webgl2');
@@ -52,22 +48,11 @@
             language = 'en';
         }
 
-        map.init(PUBLIC_MAPBOX_TOKEN, language, distanceUnits.value, hash, geocoder, geolocate);
+        map.init(PUBLIC_MAPBOX_TOKEN, language, hash, geocoder, geolocate);
     });
 
     onDestroy(() => {
         map.destroy();
-    });
-
-    $effect(() => {
-        if (
-            !treeFileView.value ||
-            !elevationProfile.value ||
-            bottomPanelSize.value ||
-            rightPanelSize.value
-        ) {
-            map.resize();
-        }
     });
 </script>
 

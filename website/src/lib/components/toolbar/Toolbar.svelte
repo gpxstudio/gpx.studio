@@ -1,7 +1,7 @@
 <script lang="ts">
     import ToolbarItem from '$lib/components/toolbar/ToolbarItem.svelte';
     import ToolbarItemMenu from '$lib/components/toolbar/ToolbarItemMenu.svelte';
-    import { Tool } from '$lib/components/toolbar/utils.svelte';
+    import { Tool } from '$lib/components/toolbar/tools';
     import {
         Group,
         CalendarClock,

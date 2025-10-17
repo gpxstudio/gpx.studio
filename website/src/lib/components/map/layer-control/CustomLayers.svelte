@@ -18,12 +18,12 @@
         Layers2,
     } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
-    import { settings } from '$lib/db';
     import { defaultBasemap, type CustomLayer } from '$lib/assets/layers';
-    import { map } from '$lib/stores';
     import { onDestroy, onMount } from 'svelte';
     import Sortable from 'sortablejs/Sortable';
-    import { customBasemapUpdate } from './utils.svelte';
+    import { customBasemapUpdate } from './utils';
+    import { settings } from '$lib/logic/settings';
+    import { map } from '$lib/components/map/map';
 
     const {
         customLayers,
@@ -312,10 +312,10 @@
             <div class="flex flex-row items-center gap-2" data-id={id}>
                 <Move size="12" />
                 <span class="grow">{$customLayers[id].name}</span>
-                <Button variant="outline" on:click={() => (selectedLayerId = id)} class="p-1 h-7">
+                <Button variant="outline" onclick={() => (selectedLayerId = id)} class="p-1 h-7">
                     <Pencil size="16" />
                 </Button>
-                <Button variant="outline" on:click={() => deleteLayer(id)} class="p-1 h-7">
+                <Button variant="outline" onclick={() => deleteLayer(id)} class="p-1 h-7">
                     <Trash2 size="16" />
                 </Button>
             </div>
@@ -338,10 +338,10 @@
             <div class="flex flex-row items-center gap-2" data-id={id}>
                 <Move size="12" />
                 <span class="grow">{$customLayers[id].name}</span>
-                <Button variant="outline" on:click={() => (selectedLayerId = id)} class="p-1 h-7">
+                <Button variant="outline" onclick={() => (selectedLayerId = id)} class="p-1 h-7">
                     <Pencil size="16" />
                 </Button>
-                <Button variant="outline" on:click={() => deleteLayer(id)} class="p-1 h-7">
+                <Button variant="outline" onclick={() => deleteLayer(id)} class="p-1 h-7">
                     <Trash2 size="16" />
                 </Button>
             </div>
@@ -373,7 +373,7 @@
                         />
                         {#if tileUrls.length > 1}
                             <Button
-                                on:click={() =>
+                                onclick={() =>
                                     (tileUrls = tileUrls.filter((_, index) => index !== i))}
                                 variant="outline"
                                 class="p-1 h-8"
@@ -383,7 +383,7 @@
                         {/if}
                         {#if i === tileUrls.length - 1}
                             <Button
-                                on:click={() => (tileUrls = [...tileUrls, ''])}
+                                onclick={() => (tileUrls = [...tileUrls, ''])}
                                 variant="outline"
                                 class="p-1 h-8"
                             >
@@ -416,16 +416,16 @@
                 </RadioGroup.Root>
                 {#if selectedLayerId}
                     <div class="mt-2 flex flex-row gap-2">
-                        <Button variant="outline" on:click={createLayer} class="grow">
+                        <Button variant="outline" onclick={createLayer} class="grow">
                             <Save size="16" class="mr-1" />
                             {i18n._('layers.custom_layers.update')}
                         </Button>
-                        <Button variant="outline" on:click={() => (selectedLayerId = undefined)}>
+                        <Button variant="outline" onclick={() => (selectedLayerId = undefined)}>
                             <CircleX size="16" />
                         </Button>
                     </div>
                 {:else}
-                    <Button variant="outline" class="mt-2" on:click={createLayer}>
+                    <Button variant="outline" class="mt-2" onclick={createLayer}>
                         <CirclePlus size="16" class="mr-1" />
                         {i18n._('layers.custom_layers.create')}
                     </Button>

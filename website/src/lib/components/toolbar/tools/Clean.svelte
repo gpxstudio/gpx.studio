@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
     enum CleanType {
         INSIDE = 'inside',
         OUTSIDE = 'outside',
@@ -15,10 +15,10 @@
     import { onDestroy, onMount } from 'svelte';
     import { getURLForLanguage, resetCursor, setCrosshairCursor } from '$lib/utils';
     import { Trash2 } from '@lucide/svelte';
-    import { map } from '$lib/components/map/utils.svelte';
+    import { map } from '$lib/components/map/map';
     import type { GeoJSONSource } from 'mapbox-gl';
-    import { selection } from '$lib/logic/selection.svelte';
-    import { fileActions } from '$lib/logic/file-actions.svelte';
+    import { selection } from '$lib/logic/selection';
+    import { fileActions } from '$lib/logic/file-actions';
 
     let props: {
         class?: string;

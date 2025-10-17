@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { settings } from '$lib/db';
     import {
         celsiusToFahrenheit,
         getConvertedDistance,
@@ -11,6 +10,7 @@
         secondsToHHMMSS,
     } from '$lib/units';
     import { i18n } from '$lib/i18n.svelte';
+    import { settings } from '$lib/logic/settings';
 
     let {
         value,

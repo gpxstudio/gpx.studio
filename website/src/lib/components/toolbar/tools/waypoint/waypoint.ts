@@ -1,16 +1,27 @@
 import { ListWaypointItem } from '$lib/components/file-list/file-list';
-import { fileStateCollection } from '$lib/logic/file-state.svelte';
-import { selection } from '$lib/logic/selection.svelte';
-import { settings } from '$lib/logic/settings.svelte';
+import { fileStateCollection } from '$lib/logic/file-state';
+import { selection } from '$lib/logic/selection';
+import { settings } from '$lib/logic/settings';
 import type { Waypoint } from 'gpx';
+import { get, writable, type Writable } from 'svelte/store';
 
 export class WaypointSelection {
-    private _selection: [Waypoint, string] | undefined;
+    private _selection: Writable<[Waypoint, string] | undefined>;
 
     constructor() {
-        this._selection = $derived.by(() => {
-            if (settings.treeFileView.value && selection.value.size === 1) {
-                let item = selection.value.getSelected()[0];
+        this._selection = writable(undefined);
+        settings.treeFileView.subscribe(() => {
+            this.update();
+        });
+        selection.subscribe(() => {
+            this.update();
+        });
+    }
+
+    update() {
+        this._selection.update(() => {
+            if (get(settings.treeFileView) && get(selection).size === 1) {
+                let item = get(selection).getSelected()[0];
                 if (item instanceof ListWaypointItem) {
                     let file = fileStateCollection.getFile(item.getFileId());
                     let waypoint = file?.wpt[item.getWaypointIndex()];
@@ -24,15 +35,17 @@ export class WaypointSelection {
     }
 
     reset() {
-        this._selection = undefined;
+        this._selection.set(undefined);
     }
 
     get wpt(): Waypoint | undefined {
-        return this._selection ? this._selection[0] : undefined;
+        const selection = get(this._selection);
+        return selection ? selection[0] : undefined;
     }
 
     get fileId(): string | undefined {
-        return this._selection ? this._selection[1] : undefined;
+        const selection = get(this._selection);
+        return selection ? selection[1] : undefined;
     }
 
     // TODO update the waypoint data if the file changes

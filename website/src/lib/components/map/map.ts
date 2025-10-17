@@ -1,10 +1,9 @@
-import { TrackPoint, Waypoint, type Coordinates } from 'gpx';
 import mapboxgl from 'mapbox-gl';
-import { tick, mount } from 'svelte';
-// import MapPopupComponent from '$lib/components/map/MapPopup.svelte';
-import { get } from 'svelte/store';
-// import { fileObservers } from '$lib/db';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
+import { get, writable, type Writable } from 'svelte/store';
+import { settings } from '$lib/logic/settings';
+
+const { treeFileView, elevationProfile, bottomPanelSize, rightPanelSize, distanceUnits } = settings;
 
 let fitBoundsOptions: mapboxgl.MapOptions['fitBoundsOptions'] = {
     maxZoom: 15,
@@ -13,13 +12,17 @@ let fitBoundsOptions: mapboxgl.MapOptions['fitBoundsOptions'] = {
 };
 
 export class MapboxGLMap {
-    private _map: mapboxgl.Map | null = $state(null);
+    private _map: Writable<mapboxgl.Map | null> = writable(null);
     private _onLoadCallbacks: ((map: mapboxgl.Map) => void)[] = [];
+    private _unsubscribes: (() => void)[] = [];
+
+    subscribe(run: (value: mapboxgl.Map | null) => void, invalidate?: () => void) {
+        return this._map.subscribe(run, invalidate);
+    }
 
     init(
         accessToken: string,
         language: string,
-        distanceUnits: 'metric' | 'imperial' | 'nautical',
         hash: boolean,
         geocoder: boolean,
         geolocate: boolean
@@ -126,7 +129,7 @@ export class MapboxGLMap {
             );
         }
         const scaleControl = new mapboxgl.ScaleControl({
-            unit: distanceUnits,
+            unit: get(distanceUnits),
         });
         map.addControl(scaleControl);
         map.on('style.load', () => {
@@ -160,46 +163,58 @@ export class MapboxGLMap {
             });
         });
         map.on('load', () => {
-            this._map = map; // only set the store after the map has loaded
+            this._map.set(map); // only set the store after the map has loaded
             window._map = map; // entry point for extensions
-            scaleControl.setUnit(distanceUnits);
+            scaleControl.setUnit(get(distanceUnits));
 
             this._onLoadCallbacks.forEach((callback) => callback(map));
             this._onLoadCallbacks = [];
         });
+
+        this._unsubscribes.push(treeFileView.subscribe(() => this.resize()));
+        this._unsubscribes.push(elevationProfile.subscribe(() => this.resize()));
+        this._unsubscribes.push(bottomPanelSize.subscribe(() => this.resize()));
+        this._unsubscribes.push(rightPanelSize.subscribe(() => this.resize()));
+        this._unsubscribes.push(
+            distanceUnits.subscribe((units) => {
+                scaleControl.setUnit(units);
+            })
+        );
     }
 
     onLoad(callback: (map: mapboxgl.Map) => void) {
-        if (this._map) {
-            callback(this._map);
+        const map = get(this._map);
+        if (map) {
+            callback(map);
         } else {
             this._onLoadCallbacks.push(callback);
         }
     }
 
     destroy() {
-        if (this._map) {
-            this._map.remove();
-            this._map = null;
+        const map = get(this._map);
+        if (map) {
+            map.remove();
+            this._map.set(null);
         }
-    }
-
-    get value(): mapboxgl.Map | null {
-        return this._map;
+        this._unsubscribes.forEach((unsubscribe) => unsubscribe());
+        this._unsubscribes = [];
     }
 
     resize() {
-        if (this._map) {
-            this._map.resize();
+        const map = get(this._map);
+        if (map) {
+            map.resize();
         }
     }
 
     toggle3D() {
-        if (this._map) {
-            if (this._map.getPitch() === 0) {
-                this._map.easeTo({ pitch: 70 });
+        const map = get(this._map);
+        if (map) {
+            if (map.getPitch() === 0) {
+                map.easeTo({ pitch: 70 });
             } else {
-                this._map.easeTo({ pitch: 0 });
+                map.easeTo({ pitch: 0 });
             }
         }
     }
@@ -207,15 +222,15 @@ export class MapboxGLMap {
 
 export const map = new MapboxGLMap();
 
-const targetMapBounds: {
-    bounds: mapboxgl.LngLatBounds;
-    ids: string[];
-    total: number;
-} = $state({
-    bounds: new mapboxgl.LngLatBounds([180, 90, -180, -90]),
-    ids: [],
-    total: 0,
-});
+// const targetMapBounds: {
+//     bounds: mapboxgl.LngLatBounds;
+//     ids: string[];
+//     total: number;
+// } = $state({
+//     bounds: new mapboxgl.LngLatBounds([180, 90, -180, -90]),
+//     ids: [],
+//     total: 0,
+// });
 
 // $effect(() => {
 //     if (
@@ -251,32 +266,32 @@ const targetMapBounds: {
 //     map.current.fitBounds(targetMapBounds.bounds, { padding: 80, linear: true, easing: () => 1 });
 // });
 
-export function initTargetMapBounds(ids: string[]) {
-    targetMapBounds.bounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
-    targetMapBounds.ids = ids;
-    targetMapBounds.total = ids.length;
-}
+// export function initTargetMapBounds(ids: string[]) {
+//     targetMapBounds.bounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
+//     targetMapBounds.ids = ids;
+//     targetMapBounds.total = ids.length;
+// }
 
-export function updateTargetMapBounds(
-    id: string,
-    bounds: { southWest: Coordinates; northEast: Coordinates }
-) {
-    if (targetMapBounds.ids.indexOf(id) === -1) {
-        return;
-    }
+// export function updateTargetMapBounds(
+//     id: string,
+//     bounds: { southWest: Coordinates; northEast: Coordinates }
+// ) {
+//     if (targetMapBounds.ids.indexOf(id) === -1) {
+//         return;
+//     }
 
-    if (
-        bounds.southWest.lat !== 90 ||
-        bounds.southWest.lon !== 180 ||
-        bounds.northEast.lat !== -90 ||
-        bounds.northEast.lon !== -180
-    ) {
-        // Avoid update for empty (new) files
-        targetMapBounds.ids = targetMapBounds.ids.filter((x) => x !== id);
-        targetMapBounds.bounds.extend(bounds.southWest);
-        targetMapBounds.bounds.extend(bounds.northEast);
-    }
-}
+//     if (
+//         bounds.southWest.lat !== 90 ||
+//         bounds.southWest.lon !== 180 ||
+//         bounds.northEast.lat !== -90 ||
+//         bounds.northEast.lon !== -180
+//     ) {
+//         // Avoid update for empty (new) files
+//         targetMapBounds.ids = targetMapBounds.ids.filter((x) => x !== id);
+//         targetMapBounds.bounds.extend(bounds.southWest);
+//         targetMapBounds.bounds.extend(bounds.northEast);
+//     }
+// }
 
 // export function centerMapOnSelection() {
 //     let selected = get(selection).getSelected();
@@ -307,78 +322,4 @@ export function updateTargetMapBounds(
 //         easing: () => 1,
 //         maxZoom: 15,
 //     });
-// }
-
-export type PopupItem<T = Waypoint | TrackPoint | any> = {
-    item: T;
-    fileId?: string;
-    hide?: () => void;
-};
-
-// export class MapPopup {
-//     map: mapboxgl.Map;
-//     popup: mapboxgl.Popup;
-//     item: PopupItem | null = $state(null);
-//     maybeHideBinded = this.maybeHide.bind(this);
-
-//     constructor(map: mapboxgl.Map, options?: mapboxgl.PopupOptions) {
-//         this.map = map;
-//         this.popup = new mapboxgl.Popup(options);
-
-//         let component = mount(MapPopupComponent, {
-//             target: document.body,
-//             props: {
-//                 item: this.item,
-//             },
-//         });
-
-//         tick().then(() => this.popup.setDOMContent(component.container));
-//     }
-
-//     setItem(item: PopupItem | null) {
-//         if (item) item.hide = () => this.hide();
-//         this.item = item;
-//         if (item === null) {
-//             this.hide();
-//         } else {
-//             tick().then(() => this.show());
-//         }
-//     }
-
-//     show() {
-//         if (this.item === null) {
-//             this.hide();
-//             return;
-//         }
-//         this.popup.setLngLat(this.getCoordinates()).addTo(this.map);
-//         this.map.on('mousemove', this.maybeHideBinded);
-//     }
-
-//     maybeHide(e: mapboxgl.MapMouseEvent) {
-//         if (this.item === null) {
-//             this.hide();
-//             return;
-//         }
-//         if (this.map.project(this.getCoordinates()).dist(this.map.project(e.lngLat)) > 60) {
-//             this.hide();
-//         }
-//     }
-
-//     hide() {
-//         this.popup.remove();
-//         this.map.off('mousemove', this.maybeHideBinded);
-//     }
-
-//     remove() {
-//         this.popup.remove();
-//     }
-
-//     getCoordinates() {
-//         if (this.item === null) {
-//             return new mapboxgl.LngLat(0, 0);
-//         }
-//         return this.item.item instanceof Waypoint || this.item.item instanceof TrackPoint
-//             ? this.item.item.getCoordinates()
-//             : new mapboxgl.LngLat(this.item.item.lon, this.item.item.lat);
-//     }
 // }

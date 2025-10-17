@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Tool, tool } from '$lib/components/toolbar/utils.svelte';
+    import { Tool, tool } from '$lib/components/toolbar/tools';
     import * as Card from '$lib/components/ui/card';
     import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
     import Scissors from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
@@ -13,7 +13,7 @@
     import RoutingControlPopup from '$lib/components/toolbar/tools/routing/RoutingControlPopup.svelte';
     import { onMount } from 'svelte';
     import mapboxgl from 'mapbox-gl';
-    import { settings } from '$lib/logic/settings.svelte';
+    import { settings } from '$lib/logic/settings';
 
     let {
         popupElement,

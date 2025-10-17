@@ -1,4 +1,5 @@
 import type { LayerTreeType } from '$lib/assets/layers';
+import { writable } from 'svelte/store';
 
 export function anySelectedLayer(node: LayerTreeType) {
     return (
@@ -54,6 +55,4 @@ export function toggle(node: LayerTreeType, id: string) {
     return node;
 }
 
-export const customBasemapUpdate = $state({
-    value: 0,
-});
+export const customBasemapUpdate = writable(0);

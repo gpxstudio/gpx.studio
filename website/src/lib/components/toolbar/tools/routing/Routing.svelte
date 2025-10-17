@@ -35,11 +35,11 @@
     import { getURLForLanguage, resetCursor, setCrosshairCursor } from '$lib/utils';
     import { onDestroy, onMount } from 'svelte';
     import { TrackPoint } from 'gpx';
-    import { settings } from '$lib/logic/settings.svelte';
-    import { map } from '$lib/components/map/utils.svelte';
-    import { fileStateCollection } from '$lib/logic/file-state.svelte';
-    import { selection } from '$lib/logic/selection.svelte';
-    import { fileActions, getFileIds, newGPXFile } from '$lib/logic/file-actions.svelte';
+    import { settings } from '$lib/logic/settings';
+    import { map } from '$lib/components/map/map';
+    import { fileStateCollection } from '$lib/logic/file-state';
+    import { selection } from '$lib/logic/selection';
+    import { fileActions, getFileIds, newGPXFile } from '$lib/logic/file-actions';
 
     let {
         minimized = $bindable(false),
@@ -85,11 +85,11 @@
     // }
 
     let validSelection = $derived(
-        selection.value.hasAnyChildren(new ListRootItem(), true, ['waypoints'])
+        $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints'])
     );
 
     function createFileWithPoint(e: any) {
-        if (selection.value.size === 0) {
+        if ($selection.size === 0) {
             let file = newGPXFile();
             file.replaceTrackPoints(0, 0, 0, 0, [
                 new TrackPoint({
@@ -107,12 +107,12 @@
 
     onMount(() => {
         // setCrosshairCursor();
-        map.value?.on('click', createFileWithPoint);
+        $map?.on('click', createFileWithPoint);
     });
 
     onDestroy(() => {
         // resetCursor();
-        map.value?.off('click', createFileWithPoint);
+        $map?.off('click', createFileWithPoint);
 
         // routingControls.forEach((controls) => controls.destroy());
         // routingControls.clear();
@@ -233,7 +233,7 @@
                 variant="outline"
                 class="flex flex-row gap-1 text-xs px-2"
                 disabled={!validSelection}
-                onclick={dbUtils.createRoundTripForSelection}
+                onclick={fileActions.createRoundTripForSelection}
             >
                 <Repeat size="12" />{i18n._('toolbar.routing.round_trip.button')}
             </ButtonWithTooltip>

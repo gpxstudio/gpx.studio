@@ -1,5 +1,6 @@
-import { settings } from '$lib/logic/settings.svelte';
+import { settings } from '$lib/logic/settings';
 import { i18n } from '$lib/i18n.svelte';
+import { get } from 'svelte/store';
 
 const { distanceUnits, velocityUnits, temperatureUnits } = settings;
 
@@ -55,7 +56,7 @@ export function getDistanceWithUnits(value: number, convert: boolean = true) {
 }
 
 export function getVelocityWithUnits(value: number, convert: boolean = true) {
-    if (velocityUnits.value === 'speed') {
+    if (get(velocityUnits) === 'speed') {
         if (convert) {
             return getConvertedVelocity(value).toFixed(2) + ' ' + getVelocityUnits();
         } else {
@@ -99,7 +100,7 @@ export function getTemperatureWithUnits(value: number, convert: boolean = true) 
 }
 
 // Get the units
-export function getDistanceUnits(targetDistanceUnits = distanceUnits.value) {
+export function getDistanceUnits(targetDistanceUnits = get(distanceUnits)) {
     switch (targetDistanceUnits) {
         case 'metric':
             return i18n._('units.kilometers');
@@ -111,8 +112,8 @@ export function getDistanceUnits(targetDistanceUnits = distanceUnits.value) {
 }
 
 export function getVelocityUnits(
-    targetVelocityUnits = velocityUnits.value,
-    targetDistanceUnits = distanceUnits.value
+    targetVelocityUnits = get(velocityUnits),
+    targetDistanceUnits = get(distanceUnits)
 ) {
     if (targetVelocityUnits === 'speed') {
         switch (targetDistanceUnits) {
@@ -135,7 +136,7 @@ export function getVelocityUnits(
     }
 }
 
-export function getElevationUnits(targetDistanceUnits = distanceUnits.value) {
+export function getElevationUnits(targetDistanceUnits = get(distanceUnits)) {
     switch (targetDistanceUnits) {
         case 'metric':
             return i18n._('units.meters');
@@ -160,13 +161,13 @@ export function getPowerUnits() {
 }
 
 export function getTemperatureUnits() {
-    return temperatureUnits.value === 'celsius'
+    return get(temperatureUnits) === 'celsius'
         ? i18n._('units.celsius')
         : i18n._('units.fahrenheit');
 }
 
 // Convert only the value
-export function getConvertedDistance(value: number, targetDistanceUnits = distanceUnits.value) {
+export function getConvertedDistance(value: number, targetDistanceUnits = get(distanceUnits)) {
     switch (targetDistanceUnits) {
         case 'metric':
             return value;
@@ -177,7 +178,7 @@ export function getConvertedDistance(value: number, targetDistanceUnits = distan
     }
 }
 
-export function getConvertedElevation(value: number, targetDistanceUnits = distanceUnits.value) {
+export function getConvertedElevation(value: number, targetDistanceUnits = get(distanceUnits)) {
     switch (targetDistanceUnits) {
         case 'metric':
             return value;
@@ -190,8 +191,8 @@ export function getConvertedElevation(value: number, targetDistanceUnits = dista
 
 export function getConvertedVelocity(
     value: number,
-    targetVelocityUnits = velocityUnits.value,
-    targetDistanceUnits = distanceUnits.value
+    targetVelocityUnits = get(velocityUnits),
+    targetDistanceUnits = get(distanceUnits)
 ) {
     if (targetVelocityUnits === 'speed') {
         switch (targetDistanceUnits) {
@@ -215,5 +216,5 @@ export function getConvertedVelocity(
 }
 
 export function getConvertedTemperature(value: number) {
-    return temperatureUnits.value === 'celsius' ? value : celsiusToFahrenheit(value);
+    return get(temperatureUnits) === 'celsius' ? value : celsiusToFahrenheit(value);
 }

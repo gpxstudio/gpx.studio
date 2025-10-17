@@ -10,7 +10,7 @@
         class: className = '',
     }: {
         coordinates: Coordinates;
-        onCopy: () => void;
+        onCopy?: () => void;
         class?: string;
     } = $props();
 </script>

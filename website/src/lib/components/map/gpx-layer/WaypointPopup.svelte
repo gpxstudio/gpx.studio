@@ -3,16 +3,16 @@
     import { Button } from '$lib/components/ui/button';
     import Shortcut from '$lib/components/Shortcut.svelte';
     import CopyCoordinates from '$lib/components/map/gpx-layer/CopyCoordinates.svelte';
-    import { deleteWaypoint } from './GPXLayerPopup';
     import WithUnits from '$lib/components/WithUnits.svelte';
     import { Dot, ExternalLink, Trash2 } from '@lucide/svelte';
-    import { tool, Tool } from '$lib/components/toolbar/utils.svelte';
+    import { currentTool, Tool } from '$lib/components/toolbar/tools';
     import { getSymbolKey, symbols } from '$lib/assets/symbols';
     import { i18n } from '$lib/i18n.svelte';
     import sanitizeHtml from 'sanitize-html';
     import type { Waypoint } from 'gpx';
-    import type { PopupItem } from '$lib/components/map/map.svelte';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
+    import type { PopupItem } from '$lib/components/map/map';
+    import { fileActions } from '$lib/logic/file-actions';
 
     export let waypoint: PopupItem<Waypoint>;
 
@@ -80,11 +80,15 @@
         </ScrollArea>
         <div class="mt-2 flex flex-col gap-1">
             <CopyCoordinates coordinates={waypoint.item.attributes} />
-            {#if tool.current === Tool.WAYPOINT}
+            {#if $currentTool === Tool.WAYPOINT}
                 <Button
                     class="w-full px-2 py-1 h-8 justify-start"
                     variant="outline"
-                    onclick={() => deleteWaypoint(waypoint.fileId, waypoint.item._data.index)}
+                    onclick={() => {
+                        if (waypoint.fileId) {
+                            fileActions.deleteWaypoint(waypoint.fileId, waypoint.item._data.index);
+                        }
+                    }}
                 >
                     <Trash2 size="16" class="mr-1" />
                     {i18n._('menu.delete')}

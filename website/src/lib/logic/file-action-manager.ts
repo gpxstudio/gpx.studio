@@ -2,37 +2,70 @@ import { db, type Database } from '$lib/db';
 import { liveQuery } from 'dexie';
 import type { GPXFile } from 'gpx';
 import { applyPatches, produceWithPatches, type Patch, type WritableDraft } from 'immer';
-import { fileStateCollection, type GPXFileStateCollection } from '$lib/logic/file-state.svelte';
+import {
+    fileStateCollection,
+    GPXFileStateCollectionObserver,
+    type GPXFileStateCollection,
+} from '$lib/logic/file-state';
+import {
+    derived,
+    get,
+    writable,
+    type Readable,
+    type Unsubscriber,
+    type Writable,
+} from 'svelte/store';
 
 const MAX_PATCHES = 100;
 
 export class FileActionManager {
     private _db: Database;
     private _files: Map<string, GPXFile>;
-    private _patchIndex: number;
-    private _patchMinIndex: number;
-    private _patchMaxIndex: number;
+    private _fileSubscriptions: Map<string, Unsubscriber>;
+    private _fileStateCollectionObserver: GPXFileStateCollectionObserver;
+    private _patchIndex: Writable<number>;
+    private _patchMinIndex: Writable<number>;
+    private _patchMaxIndex: Writable<number>;
+    private _canUndo: Readable<boolean>;
+    private _canRedo: Readable<boolean>;
 
     constructor(db: Database, fileStateCollection: GPXFileStateCollection) {
         this._db = db;
-
-        this._files = $derived.by(() => {
-            let files = new Map<string, GPXFile>();
-            fileStateCollection.files.forEach((state, id) => {
-                if (state.file) {
-                    files.set(id, state.file);
+        this._files = new Map();
+        this._fileSubscriptions = new Map();
+        this._fileStateCollectionObserver = new GPXFileStateCollectionObserver(
+            (fileId, fileState) => {
+                this._fileSubscriptions.set(
+                    fileId,
+                    fileState.subscribe((fileWithStatistics) => {
+                        if (fileWithStatistics) {
+                            this._files.set(fileId, fileWithStatistics.file);
+                        }
+                    })
+                );
+            },
+            (fileId) => {
+                let unsubscribe = this._fileSubscriptions.get(fileId);
+                if (unsubscribe) {
+                    unsubscribe();
+                    this._fileSubscriptions.delete(fileId);
                 }
-            });
-            return files;
-        });
+                this._files.delete(fileId);
+            },
+            () => {
+                this._fileSubscriptions.forEach((unsubscribe) => unsubscribe());
+                this._fileSubscriptions.clear();
+                this._files.clear();
+            }
+        );
 
-        this._patchIndex = $state(-1);
-        this._patchMinIndex = $state(0);
-        this._patchMaxIndex = $state(0);
+        this._patchIndex = writable(-1);
+        this._patchMinIndex = writable(0);
+        this._patchMaxIndex = writable(0);
 
         liveQuery(() => db.settings.get('patchIndex')).subscribe((value) => {
             if (value !== undefined) {
-                this._patchIndex = value;
+                this._patchIndex.set(value);
             }
         });
         liveQuery(() =>
@@ -44,58 +77,51 @@ export class FileActionManager {
                 }
             })
         ).subscribe((value) => {
-            this._patchMinIndex = value.min;
-            this._patchMaxIndex = value.max;
+            this._patchMinIndex.set(value.min);
+            this._patchMaxIndex.set(value.max);
         });
+
+        this._canUndo = derived(
+            [this._patchIndex, this._patchMinIndex],
+            ([$patchIndex, $patchMinIndex]) => {
+                return $patchIndex >= $patchMinIndex;
+            }
+        );
+        this._canRedo = derived(
+            [this._patchIndex, this._patchMaxIndex],
+            ([$patchIndex, $patchMaxIndex]) => {
+                return $patchIndex < $patchMaxIndex - 1;
+            }
+        );
     }
 
-    async store(patch: Patch[], inversePatch: Patch[]) {
-        this._db.patches.where(':id').above(this._patchIndex).delete(); // Delete all patches after the current patch to avoid redoing them
-        if (this._patchMaxIndex - this._patchMinIndex + 1 > MAX_PATCHES) {
-            this._db.patches
-                .where(':id')
-                .belowOrEqual(this._patchMaxIndex - MAX_PATCHES)
-                .delete();
-        }
-        this._db.transaction('rw', this._db.patches, this._db.settings, async () => {
-            let index = this._patchIndex + 1;
-            await this._db.patches.put(
-                {
-                    patch,
-                    inversePatch,
-                    index,
-                },
-                index
-            );
-            await this._db.settings.put(index, 'patchIndex');
-        });
+    get canUndo(): Readable<boolean> {
+        return this._canUndo;
     }
 
-    get canUndo(): boolean {
-        return this._patchIndex >= this._patchMinIndex;
-    }
-
-    get canRedo(): boolean {
-        return this._patchIndex < this._patchMaxIndex - 1;
+    get canRedo(): Readable<boolean> {
+        return this._canRedo;
     }
 
     undo() {
-        if (this.canUndo) {
-            this._db.patches.get(this._patchIndex).then((patch) => {
+        if (get(this.canUndo)) {
+            const patchIndex = get(this._patchIndex);
+            this._db.patches.get(patchIndex).then((patch) => {
                 if (patch) {
                     this.apply(patch.inversePatch);
-                    this._db.settings.put(this._patchIndex - 1, 'patchIndex');
+                    this._db.settings.put(patchIndex - 1, 'patchIndex');
                 }
             });
         }
     }
 
     redo() {
-        if (this.canRedo) {
-            this._db.patches.get(this._patchIndex + 1).then((patch) => {
+        if (get(this.canRedo)) {
+            const patchIndex = get(this._patchIndex) + 1;
+            this._db.patches.get(patchIndex).then((patch) => {
                 if (patch) {
                     this.apply(patch.patch);
-                    this._db.settings.put(this._patchIndex + 1, 'patchIndex');
+                    this._db.settings.put(patchIndex, 'patchIndex');
                 }
             });
         }
@@ -142,7 +168,7 @@ export class FileActionManager {
     applyGlobal(callback: (files: Map<string, GPXFile>) => void) {
         const [newFileCollection, patch, inversePatch] = produceWithPatches(this._files, callback);
 
-        this.store(patch, inversePatch);
+        this.storePatches(patch, inversePatch);
 
         return this.commitFileStateChange(newFileCollection, patch);
     }
@@ -160,7 +186,7 @@ export class FileActionManager {
             }
         );
 
-        this.store(patch, inversePatch);
+        this.storePatches(patch, inversePatch);
 
         return this.commitFileStateChange(newFileCollection, patch);
     }
@@ -188,9 +214,31 @@ export class FileActionManager {
             }
         );
 
-        this.store(patch, inversePatch);
+        this.storePatches(patch, inversePatch);
 
         return this.commitFileStateChange(newFileCollection, patch);
+    }
+
+    async storePatches(patch: Patch[], inversePatch: Patch[]) {
+        this._db.patches.where(':id').above(get(this._patchIndex)).delete(); // Delete all patches after the current patch to avoid redoing them
+        if (get(this._patchMaxIndex) - get(this._patchMinIndex) + 1 > MAX_PATCHES) {
+            this._db.patches
+                .where(':id')
+                .belowOrEqual(get(this._patchMaxIndex) - MAX_PATCHES)
+                .delete();
+        }
+        this._db.transaction('rw', this._db.patches, this._db.settings, async () => {
+            let index = get(this._patchIndex) + 1;
+            await this._db.patches.put(
+                {
+                    patch,
+                    inversePatch,
+                    index,
+                },
+                index
+            );
+            await this._db.settings.put(index, 'patchIndex');
+        });
     }
 }
 

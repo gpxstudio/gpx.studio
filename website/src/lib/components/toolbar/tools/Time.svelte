@@ -24,10 +24,10 @@
     } from '$lib/components/file-list/file-list';
     import Help from '$lib/components/Help.svelte';
     import { getURLForLanguage } from '$lib/utils';
-    import { selection } from '$lib/logic/selection.svelte';
-    import { settings } from '$lib/logic/settings.svelte';
-    import { fileActions } from '$lib/logic/file-actions.svelte';
-    import { fileActionManager } from '$lib/logic/file-action-manager.svelte';
+    import { selection } from '$lib/logic/selection';
+    import { settings } from '$lib/logic/settings';
+    import { fileActions } from '$lib/logic/file-actions';
+    import { fileActionManager } from '$lib/logic/file-action-manager';
 
     let props: {
         class?: string;

@@ -10,7 +10,7 @@
         ExportState,
         exportState,
     } from '$lib/components/export/utils.svelte';
-    import { tool } from '$lib/components/toolbar/utils.svelte';
+    import { currentTool } from '$lib/components/toolbar/tools';
     // import { gpxStatistics } from '$lib/stores';
     import {
         Download,
@@ -24,8 +24,8 @@
     import { i18n } from '$lib/i18n.svelte';
     import { GPXStatistics } from 'gpx';
     import { ListRootItem } from '$lib/components/file-list/file-list';
-    import { fileStateCollection } from '$lib/logic/file-state.svelte';
-    import { selection } from '$lib/logic/selection.svelte';
+    import { fileStateCollection } from '$lib/logic/file-state';
+    import { selection } from '$lib/logic/selection';
 
     let open = $derived(exportState.current !== ExportState.NONE);
     let exportOptions: Record<string, boolean> = $state({
@@ -80,7 +80,7 @@
 
     $effect(() => {
         if (open) {
-            tool.current = null;
+            currentTool.set(null);
         }
     });
 </script>
@@ -125,7 +125,7 @@
                     }}
                 >
                     <Download size="16" class="mr-1" />
-                    {#if fileStateCollection.files.size === 1 || (exportState.current === ExportState.SELECTION && selection.value.size === 1)}
+                    {#if $fileStateCollection.size === 1 || (exportState.current === ExportState.SELECTION && $selection.size === 1)}
                         {i18n._('menu.download_file')}
                     {:else}
                         {i18n._('menu.download_files')}

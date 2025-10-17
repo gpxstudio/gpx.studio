@@ -1,6 +1,6 @@
 import type { Coordinates } from 'gpx';
 import { TrackPoint, distance } from 'gpx';
-import { settings } from '$lib/logic/settings.svelte';
+import { settings } from '$lib/logic/settings';
 import { getElevation } from '$lib/utils';
 
 const { routing, routingProfile, privateRoads } = settings;

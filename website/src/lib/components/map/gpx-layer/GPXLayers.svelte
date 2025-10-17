@@ -1,56 +1,41 @@
 <script lang="ts">
-    import { map, gpxLayers } from '$lib/stores';
-    import { GPXLayer } from './GPXLayer';
-    import { fileObservers } from '$lib/db';
-    import { DistanceMarkers } from './DistanceMarkers';
-    import { StartEndMarkers } from './StartEndMarkers';
-    import { onDestroy } from 'svelte';
-    import { createPopups, removePopups } from './GPXLayerPopup';
+    import { gpxLayers } from '$lib/components/map/gpx-layer/gpx-layers';
+    import { onMount } from 'svelte';
+    // import { map, gpxLayers } from '$lib/stores';
+    // import { GPXLayer } from './gpx-layer';
+    // import { DistanceMarkers } from './DistanceMarkers';
+    // import { StartEndMarkers } from './StartEndMarkers';
+    // import { onDestroy } from 'svelte';
+    // import { createPopups, removePopups } from './GPXLayerPopup';
 
-    let distanceMarkers: DistanceMarkers | undefined = undefined;
-    let startEndMarkers: StartEndMarkers | undefined = undefined;
+    // let distanceMarkers = $derived(map.current ? new DistanceMarkers(map.current) : undefined);
+    // let startEndMarkers = $derived(map.current ? new StartEndMarkers(map.current) : undefined);
 
-    $: if ($map && $fileObservers) {
-        // remove layers for deleted files
-        gpxLayers.forEach((layer, fileId) => {
-            if (!$fileObservers.has(fileId)) {
-                layer.remove();
-                gpxLayers.delete(fileId);
-            } else if ($map !== layer.map) {
-                layer.updateMap($map);
-            }
-        });
-        // add layers for new files
-        $fileObservers.forEach((file, fileId) => {
-            if (!gpxLayers.has(fileId)) {
-                gpxLayers.set(fileId, new GPXLayer($map, fileId, file));
-            }
-        });
-    }
+    // $: if ($map) {
+    //     if (distanceMarkers) {
+    //         distanceMarkers.remove();
+    //     }
+    //     if (startEndMarkers) {
+    //         startEndMarkers.remove();
+    //     }
+    //     createPopups($map);
+    //     distanceMarkers = new DistanceMarkers($map);
+    //     startEndMarkers = new StartEndMarkers($map);
+    // }
 
-    $: if ($map) {
-        if (distanceMarkers) {
-            distanceMarkers.remove();
-        }
-        if (startEndMarkers) {
-            startEndMarkers.remove();
-        }
-        createPopups($map);
-        distanceMarkers = new DistanceMarkers($map);
-        startEndMarkers = new StartEndMarkers($map);
-    }
+    // onDestroy(() => {
+    //     removePopups();
+    //     if (distanceMarkers) {
+    //         distanceMarkers.remove();
+    //         distanceMarkers = undefined;
+    //     }
+    //     if (startEndMarkers) {
+    //         startEndMarkers.remove();
+    //         startEndMarkers = undefined;
+    //     }
+    // });
 
-    onDestroy(() => {
-        gpxLayers.forEach((layer) => layer.remove());
-        gpxLayers.clear();
-        removePopups();
-        if (distanceMarkers) {
-            distanceMarkers.remove();
-            distanceMarkers = undefined;
-        }
-        if (startEndMarkers) {
-            startEndMarkers.remove();
-            startEndMarkers = undefined;
-        }
+    onMount(() => {
+        gpxLayers.init();
     });
 </script>

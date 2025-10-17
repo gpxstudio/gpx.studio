@@ -1,5 +1,4 @@
-import { dbUtils } from '$lib/db';
-import { MapPopup } from '$lib/components/map/map.svelte';
+import { MapPopup } from '$lib/components/map/map-popup';
 
 export let waypointPopup: MapPopup | null = null;
 export let trackpointPopup: MapPopup | null = null;
@@ -37,8 +36,4 @@ export function removePopups() {
         trackpointPopup.remove();
         trackpointPopup = null;
     }
-}
-
-export function deleteWaypoint(fileId: string, waypointIndex: number) {
-    dbUtils.applyToFile(fileId, (file) => file.replaceWaypoints(waypointIndex, waypointIndex, []));
 }
