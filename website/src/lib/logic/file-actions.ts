@@ -28,6 +28,7 @@ import {
     type WaypointType,
 } from 'gpx';
 import { get } from 'svelte/store';
+import { settings } from '$lib/logic/settings';
 
 // Generate unique file ids, different from the ones in the database
 export function getFileIds(n: number) {
@@ -67,7 +68,7 @@ export function createFile() {
     fileActions.add(file);
 
     // selectFileWhenLoaded(file._data.id);
-    tool.current = Tool.ROUTING;
+    currentTool.set(Tool.ROUTING);
 }
 
 export function triggerFileInput() {
@@ -143,59 +144,59 @@ export const fileActions = {
         return ids;
     },
     duplicateSelection: () => {
-        // if (get(selection).size === 0) {
-        //     return;
-        // }
-        // fileActionManager.applyGlobal((draft) => {
-        //     let ids = getFileIds(get(settings.fileOrder).length);
-        //     let index = 0;
-        //     applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-        //         if (level === ListLevel.FILE) {
-        //             let file = getFile(fileId);
-        //             if (file) {
-        //                 let newFile = file.clone();
-        //                 newFile._data.id = ids[index++];
-        //                 draft.set(newFile._data.id, freeze(newFile));
-        //             }
-        //         } else {
-        //             let file = draft.get(fileId);
-        //             if (file) {
-        //                 if (level === ListLevel.TRACK) {
-        //                     for (let item of items) {
-        //                         let trackIndex = (item as ListTrackItem).getTrackIndex();
-        //                         file.replaceTracks(trackIndex + 1, trackIndex, [
-        //                             file.trk[trackIndex].clone(),
-        //                         ]);
-        //                     }
-        //                 } else if (level === ListLevel.SEGMENT) {
-        //                     for (let item of items) {
-        //                         let trackIndex = (item as ListTrackSegmentItem).getTrackIndex();
-        //                         let segmentIndex = (item as ListTrackSegmentItem).getSegmentIndex();
-        //                         file.replaceTrackSegments(
-        //                             trackIndex,
-        //                             segmentIndex + 1,
-        //                             segmentIndex,
-        //                             [file.trk[trackIndex].trkseg[segmentIndex].clone()]
-        //                         );
-        //                     }
-        //                 } else if (level === ListLevel.WAYPOINTS) {
-        //                     file.replaceWaypoints(
-        //                         file.wpt.length,
-        //                         file.wpt.length - 1,
-        //                         file.wpt.map((wpt) => wpt.clone())
-        //                     );
-        //                 } else if (level === ListLevel.WAYPOINT) {
-        //                     for (let item of items) {
-        //                         let waypointIndex = (item as ListWaypointItem).getWaypointIndex();
-        //                         file.replaceWaypoints(waypointIndex + 1, waypointIndex, [
-        //                             file.wpt[waypointIndex].clone(),
-        //                         ]);
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     });
-        // });
+        if (get(selection).size === 0) {
+            return;
+        }
+        fileActionManager.applyGlobal((draft) => {
+            let ids = getFileIds(get(settings.fileOrder).length);
+            let index = 0;
+            selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+                if (level === ListLevel.FILE) {
+                    let file = fileStateCollection.getFile(fileId);
+                    if (file) {
+                        let newFile = file.clone();
+                        newFile._data.id = ids[index++];
+                        draft.set(newFile._data.id, freeze(newFile));
+                    }
+                } else {
+                    let file = draft.get(fileId);
+                    if (file) {
+                        if (level === ListLevel.TRACK) {
+                            for (let item of items) {
+                                let trackIndex = (item as ListTrackItem).getTrackIndex();
+                                file.replaceTracks(trackIndex + 1, trackIndex, [
+                                    file.trk[trackIndex].clone(),
+                                ]);
+                            }
+                        } else if (level === ListLevel.SEGMENT) {
+                            for (let item of items) {
+                                let trackIndex = (item as ListTrackSegmentItem).getTrackIndex();
+                                let segmentIndex = (item as ListTrackSegmentItem).getSegmentIndex();
+                                file.replaceTrackSegments(
+                                    trackIndex,
+                                    segmentIndex + 1,
+                                    segmentIndex,
+                                    [file.trk[trackIndex].trkseg[segmentIndex].clone()]
+                                );
+                            }
+                        } else if (level === ListLevel.WAYPOINTS) {
+                            file.replaceWaypoints(
+                                file.wpt.length,
+                                file.wpt.length - 1,
+                                file.wpt.map((wpt) => wpt.clone())
+                            );
+                        } else if (level === ListLevel.WAYPOINT) {
+                            for (let item of items) {
+                                let waypointIndex = (item as ListWaypointItem).getWaypointIndex();
+                                file.replaceWaypoints(waypointIndex + 1, waypointIndex, [
+                                    file.wpt[waypointIndex].clone(),
+                                ]);
+                            }
+                        }
+                    }
+                }
+            });
+        });
     },
     addNewTrack: (fileId: string) => {
         fileActionManager.applyToFile(fileId, (file) =>
@@ -801,44 +802,44 @@ export const fileActions = {
         // });
     },
     deleteSelection: () => {
-        // if (get(selection).size === 0) {
-        //     return;
-        // }
-        // applyGlobal((draft) => {
-        //     applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-        //         if (level === ListLevel.FILE) {
-        //             draft.delete(fileId);
-        //         } else {
-        //             let file = draft.get(fileId);
-        //             if (file) {
-        //                 if (level === ListLevel.TRACK) {
-        //                     for (let item of items) {
-        //                         let trackIndex = (item as ListTrackItem).getTrackIndex();
-        //                         file.replaceTracks(trackIndex, trackIndex, []);
-        //                     }
-        //                 } else if (level === ListLevel.SEGMENT) {
-        //                     for (let item of items) {
-        //                         let trackIndex = (item as ListTrackSegmentItem).getTrackIndex();
-        //                         let segmentIndex = (item as ListTrackSegmentItem).getSegmentIndex();
-        //                         file.replaceTrackSegments(
-        //                             trackIndex,
-        //                             segmentIndex,
-        //                             segmentIndex,
-        //                             []
-        //                         );
-        //                     }
-        //                 } else if (level === ListLevel.WAYPOINTS) {
-        //                     file.replaceWaypoints(0, file.wpt.length - 1, []);
-        //                 } else if (level === ListLevel.WAYPOINT) {
-        //                     for (let item of items) {
-        //                         let waypointIndex = (item as ListWaypointItem).getWaypointIndex();
-        //                         file.replaceWaypoints(waypointIndex, waypointIndex, []);
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     });
-        // });
+        if (get(selection).size === 0) {
+            return;
+        }
+        fileActionManager.applyGlobal((draft) => {
+            selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+                if (level === ListLevel.FILE) {
+                    draft.delete(fileId);
+                } else {
+                    let file = draft.get(fileId);
+                    if (file) {
+                        if (level === ListLevel.TRACK) {
+                            for (let item of items) {
+                                let trackIndex = (item as ListTrackItem).getTrackIndex();
+                                file.replaceTracks(trackIndex, trackIndex, []);
+                            }
+                        } else if (level === ListLevel.SEGMENT) {
+                            for (let item of items) {
+                                let trackIndex = (item as ListTrackSegmentItem).getTrackIndex();
+                                let segmentIndex = (item as ListTrackSegmentItem).getSegmentIndex();
+                                file.replaceTrackSegments(
+                                    trackIndex,
+                                    segmentIndex,
+                                    segmentIndex,
+                                    []
+                                );
+                            }
+                        } else if (level === ListLevel.WAYPOINTS) {
+                            file.replaceWaypoints(0, file.wpt.length - 1, []);
+                        } else if (level === ListLevel.WAYPOINT) {
+                            for (let item of items) {
+                                let waypointIndex = (item as ListWaypointItem).getWaypointIndex();
+                                file.replaceWaypoints(waypointIndex, waypointIndex, []);
+                            }
+                        }
+                    }
+                }
+            });
+        });
     },
     addElevationToSelection: async (map: mapboxgl.Map) => {
         // if (get(selection).size === 0) {
@@ -909,14 +910,14 @@ export const fileActions = {
         // });
     },
     deleteSelectedFiles: () => {
-        // if (get(selection).size === 0) {
-        //     return;
-        // }
-        // applyGlobal((draft) => {
-        //     applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-        //         draft.delete(fileId);
-        //     });
-        // });
+        if (get(selection).size === 0) {
+            return;
+        }
+        fileActionManager.applyGlobal((draft) => {
+            selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+                draft.delete(fileId);
+            });
+        });
     },
     deleteAllFiles: () => {
         fileActionManager.applyGlobal((draft) => {

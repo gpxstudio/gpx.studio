@@ -9,7 +9,7 @@ import {
     sortItems,
     ListWaypointsItem,
 } from '$lib/components/file-list/file-list';
-import { fileStateCollection } from '$lib/logic/file-state';
+import { fileStateCollection, GPXFileStateCollectionObserver } from '$lib/logic/file-state';
 import { settings } from '$lib/logic/settings';
 import type { GPXFile } from 'gpx';
 import { get, writable, type Readable, type Writable } from 'svelte/store';
@@ -111,60 +111,59 @@ export class Selection {
     }
 
     update(updatedFiles: GPXFile[], deletedFileIds: string[]) {
-        // TODO do it the other way around: get all selected items, and check if they still exist?
-        // let removedItems: ListItem[] = [];
-        // applyToOrderedItemsFromFile(selection.value.getSelected(), (fileId, level, items) => {
-        //     let file = updatedFiles.find((file) => file._data.id === fileId);
-        //     if (file) {
-        //         items.forEach((item) => {
-        //             if (item instanceof ListTrackItem) {
-        //                 let newTrackIndex = file.trk.findIndex(
-        //                     (track) => track._data.trackIndex === item.getTrackIndex()
-        //                 );
-        //                 if (newTrackIndex === -1) {
-        //                     removedItems.push(item);
-        //                 }
-        //             } else if (item instanceof ListTrackSegmentItem) {
-        //                 let newTrackIndex = file.trk.findIndex(
-        //                     (track) => track._data.trackIndex === item.getTrackIndex()
-        //                 );
-        //                 if (newTrackIndex === -1) {
-        //                     removedItems.push(item);
-        //                 } else {
-        //                     let newSegmentIndex = file.trk[newTrackIndex].trkseg.findIndex(
-        //                         (segment) => segment._data.segmentIndex === item.getSegmentIndex()
-        //                     );
-        //                     if (newSegmentIndex === -1) {
-        //                         removedItems.push(item);
-        //                     }
-        //                 }
-        //             } else if (item instanceof ListWaypointItem) {
-        //                 let newWaypointIndex = file.wpt.findIndex(
-        //                     (wpt) => wpt._data.index === item.getWaypointIndex()
-        //                 );
-        //                 if (newWaypointIndex === -1) {
-        //                     removedItems.push(item);
-        //                 }
-        //             }
-        //         });
-        //     } else if (deletedFileIds.includes(fileId)) {
-        //         items.forEach((item) => {
-        //             removedItems.push(item);
-        //         });
-        //     }
-        // });
-        // if (removedItems.length > 0) {
-        //     selection.update(($selection) => {
-        //         removedItems.forEach((item) => {
-        //             if (item instanceof ListFileItem) {
-        //                 $selection.deleteChild(item.getFileId());
-        //             } else {
-        //                 $selection.set(item, false);
-        //             }
-        //         });
-        //         return $selection;
-        //     });
-        // }
+        let removedItems: ListItem[] = [];
+        applyToOrderedItemsFromFile(get(this._selection).getSelected(), (fileId, level, items) => {
+            let file = updatedFiles.find((file) => file._data.id === fileId);
+            if (file) {
+                items.forEach((item) => {
+                    if (item instanceof ListTrackItem) {
+                        let newTrackIndex = file.trk.findIndex(
+                            (track) => track._data.trackIndex === item.getTrackIndex()
+                        );
+                        if (newTrackIndex === -1) {
+                            removedItems.push(item);
+                        }
+                    } else if (item instanceof ListTrackSegmentItem) {
+                        let newTrackIndex = file.trk.findIndex(
+                            (track) => track._data.trackIndex === item.getTrackIndex()
+                        );
+                        if (newTrackIndex === -1) {
+                            removedItems.push(item);
+                        } else {
+                            let newSegmentIndex = file.trk[newTrackIndex].trkseg.findIndex(
+                                (segment) => segment._data.segmentIndex === item.getSegmentIndex()
+                            );
+                            if (newSegmentIndex === -1) {
+                                removedItems.push(item);
+                            }
+                        }
+                    } else if (item instanceof ListWaypointItem) {
+                        let newWaypointIndex = file.wpt.findIndex(
+                            (wpt) => wpt._data.index === item.getWaypointIndex()
+                        );
+                        if (newWaypointIndex === -1) {
+                            removedItems.push(item);
+                        }
+                    }
+                });
+            } else if (deletedFileIds.includes(fileId)) {
+                items.forEach((item) => {
+                    removedItems.push(item);
+                });
+            }
+        });
+        if (removedItems.length > 0) {
+            this._selection.update(($selection) => {
+                removedItems.forEach((item) => {
+                    if (item instanceof ListFileItem) {
+                        $selection.deleteChild(item.getFileId());
+                    } else {
+                        $selection.set(item, false);
+                    }
+                });
+                return $selection;
+            });
+        }
     }
 
     getOrderedSelection(reverse: boolean = false): ListItem[] {

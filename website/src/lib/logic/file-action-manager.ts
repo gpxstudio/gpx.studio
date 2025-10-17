@@ -15,6 +15,7 @@ import {
     type Unsubscriber,
     type Writable,
 } from 'svelte/store';
+import { selection } from '$lib/logic/selection';
 
 const MAX_PATCHES = 100;
 
@@ -150,7 +151,7 @@ export class FileActionManager {
             .filter((file) => file !== undefined) as GPXFile[];
         updatedFileIds = updatedFiles.map((file) => file._data.id);
 
-        // updateSelection(updatedFiles, deletedFileIds);
+        selection.update(updatedFiles, deletedFileIds);
 
         // @ts-ignore
         return db.transaction('rw', db.fileids, db.files, async () => {
