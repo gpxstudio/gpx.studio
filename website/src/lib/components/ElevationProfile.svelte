@@ -1,10 +1,9 @@
 <script lang="ts">
     import ButtonWithTooltip from '$lib/components/ButtonWithTooltip.svelte';
-    import * as Popover from '$lib/components/ui/popover';
-    import * as ToggleGroup from '$lib/components/ui/toggle-group';
+    import * as Popover from '$lib/components/ui/popover/index.js';
+    import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
     import Chart from 'chart.js/auto';
     import mapboxgl from 'mapbox-gl';
-    import { map } from '$lib/stores';
     import { onDestroy, onMount } from 'svelte';
     import {
         BrickWall,
@@ -20,7 +19,6 @@
         Construction,
     } from '@lucide/svelte';
     import { getSlopeColor, getSurfaceColor, getHighwayColor } from '$lib/assets/colors';
-    import { _, df } from '$lib/i18n.svelte';
     import {
         getCadenceWithUnits,
         getConvertedDistance,
@@ -35,18 +33,28 @@
         getTemperatureWithUnits,
         getVelocityWithUnits,
     } from '$lib/units';
-    import type { Writable } from 'svelte/store';
+    import type { Readable, Writable } from 'svelte/store';
     import type { GPXStatistics } from 'gpx';
-    import { settings } from '$lib/db';
     import { mode } from 'mode-watcher';
-
-    export let gpxStatistics: Writable<GPXStatistics>;
-    export let slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined>;
-    export let additionalDatasets: string[];
-    export let elevationFill: 'slope' | 'surface' | 'highway' | undefined;
-    export let showControls: boolean = true;
+    import { settings } from '$lib/logic/settings';
+    import { map } from '$lib/components/map/map';
+    import { i18n } from '$lib/i18n.svelte';
 
     const { distanceUnits, velocityUnits, temperatureUnits } = settings;
+
+    let {
+        gpxStatistics,
+        slicedGPXStatistics,
+        additionalDatasets = $bindable(),
+        elevationFill = $bindable(),
+        showControls = true,
+    }: {
+        gpxStatistics: Readable<GPXStatistics>;
+        slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined>;
+        additionalDatasets: string[];
+        elevationFill: 'slope' | 'surface' | 'highway' | undefined;
+        showControls?: boolean;
+    } = $props();
 
     let canvas: HTMLCanvasElement;
     let overlay: HTMLCanvasElement;
@@ -179,7 +187,7 @@
 
                         if (point.time) {
                             labels.push(
-                                `    ${i18n._('quantities.time')}: ${$df.format(point.time)}`
+                                `    ${i18n._('quantities.time')}: ${i18n.df.format(point.time)}`
                             );
                         }
 
@@ -356,96 +364,97 @@
         canvas.addEventListener('pointerup', onMouseUp);
     });
 
-    $: if (chart && $distanceUnits && $velocityUnits && $temperatureUnits) {
+    $effect(() => {
         let data = $gpxStatistics;
+        if (chart && $distanceUnits && $velocityUnits && $temperatureUnits) {
+            // update data
+            chart.data.datasets[0] = {
+                label: i18n._('quantities.elevation'),
+                data: data.local.points.map((point, index) => {
+                    return {
+                        x: getConvertedDistance(data.local.distance.total[index]),
+                        y: point.ele ? getConvertedElevation(point.ele) : 0,
+                        time: point.time,
+                        slope: {
+                            at: data.local.slope.at[index],
+                            segment: data.local.slope.segment[index],
+                            length: data.local.slope.length[index],
+                        },
+                        extensions: point.getExtensions(),
+                        coordinates: point.getCoordinates(),
+                        index: index,
+                    };
+                }),
+                normalized: true,
+                fill: 'start',
+                order: 1,
+            };
+            chart.data.datasets[1] = {
+                data: data.local.points.map((point, index) => {
+                    return {
+                        x: getConvertedDistance(data.local.distance.total[index]),
+                        y: getConvertedVelocity(data.local.speed[index]),
+                        index: index,
+                    };
+                }),
+                normalized: true,
+                yAxisID: 'yspeed',
+                hidden: true,
+            };
+            chart.data.datasets[2] = {
+                data: data.local.points.map((point, index) => {
+                    return {
+                        x: getConvertedDistance(data.local.distance.total[index]),
+                        y: point.getHeartRate(),
+                        index: index,
+                    };
+                }),
+                normalized: true,
+                yAxisID: 'yhr',
+                hidden: true,
+            };
+            chart.data.datasets[3] = {
+                data: data.local.points.map((point, index) => {
+                    return {
+                        x: getConvertedDistance(data.local.distance.total[index]),
+                        y: point.getCadence(),
+                        index: index,
+                    };
+                }),
+                normalized: true,
+                yAxisID: 'ycad',
+                hidden: true,
+            };
+            chart.data.datasets[4] = {
+                data: data.local.points.map((point, index) => {
+                    return {
+                        x: getConvertedDistance(data.local.distance.total[index]),
+                        y: getConvertedTemperature(point.getTemperature()),
+                        index: index,
+                    };
+                }),
+                normalized: true,
+                yAxisID: 'yatemp',
+                hidden: true,
+            };
+            chart.data.datasets[5] = {
+                data: data.local.points.map((point, index) => {
+                    return {
+                        x: getConvertedDistance(data.local.distance.total[index]),
+                        y: point.getPower(),
+                        index: index,
+                    };
+                }),
+                normalized: true,
+                yAxisID: 'ypower',
+                hidden: true,
+            };
+            chart.options.scales.x['min'] = 0;
+            chart.options.scales.x['max'] = getConvertedDistance(data.global.distance.total);
 
-        // update data
-        chart.data.datasets[0] = {
-            label: i18n._('quantities.elevation'),
-            data: data.local.points.map((point, index) => {
-                return {
-                    x: getConvertedDistance(data.local.distance.total[index]),
-                    y: point.ele ? getConvertedElevation(point.ele) : 0,
-                    time: point.time,
-                    slope: {
-                        at: data.local.slope.at[index],
-                        segment: data.local.slope.segment[index],
-                        length: data.local.slope.length[index],
-                    },
-                    extensions: point.getExtensions(),
-                    coordinates: point.getCoordinates(),
-                    index: index,
-                };
-            }),
-            normalized: true,
-            fill: 'start',
-            order: 1,
-        };
-        chart.data.datasets[1] = {
-            data: data.local.points.map((point, index) => {
-                return {
-                    x: getConvertedDistance(data.local.distance.total[index]),
-                    y: getConvertedVelocity(data.local.speed[index]),
-                    index: index,
-                };
-            }),
-            normalized: true,
-            yAxisID: 'yspeed',
-            hidden: true,
-        };
-        chart.data.datasets[2] = {
-            data: data.local.points.map((point, index) => {
-                return {
-                    x: getConvertedDistance(data.local.distance.total[index]),
-                    y: point.getHeartRate(),
-                    index: index,
-                };
-            }),
-            normalized: true,
-            yAxisID: 'yhr',
-            hidden: true,
-        };
-        chart.data.datasets[3] = {
-            data: data.local.points.map((point, index) => {
-                return {
-                    x: getConvertedDistance(data.local.distance.total[index]),
-                    y: point.getCadence(),
-                    index: index,
-                };
-            }),
-            normalized: true,
-            yAxisID: 'ycad',
-            hidden: true,
-        };
-        chart.data.datasets[4] = {
-            data: data.local.points.map((point, index) => {
-                return {
-                    x: getConvertedDistance(data.local.distance.total[index]),
-                    y: getConvertedTemperature(point.getTemperature()),
-                    index: index,
-                };
-            }),
-            normalized: true,
-            yAxisID: 'yatemp',
-            hidden: true,
-        };
-        chart.data.datasets[5] = {
-            data: data.local.points.map((point, index) => {
-                return {
-                    x: getConvertedDistance(data.local.distance.total[index]),
-                    y: point.getPower(),
-                    index: index,
-                };
-            }),
-            normalized: true,
-            yAxisID: 'ypower',
-            hidden: true,
-        };
-        chart.options.scales.x['min'] = 0;
-        chart.options.scales.x['max'] = getConvertedDistance(data.global.distance.total);
-
-        chart.update();
-    }
+            chart.update();
+        }
+    });
 
     function slopeFillCallback(context) {
         return getSlopeColor(context.p0.raw.slope.segment);
@@ -463,40 +472,44 @@
         );
     }
 
-    $: if (chart) {
-        if (elevationFill === 'slope') {
-            chart.data.datasets[0]['segment'] = {
-                backgroundColor: slopeFillCallback,
-            };
-        } else if (elevationFill === 'surface') {
-            chart.data.datasets[0]['segment'] = {
-                backgroundColor: surfaceFillCallback,
-            };
-        } else if (elevationFill === 'highway') {
-            chart.data.datasets[0]['segment'] = {
-                backgroundColor: highwayFillCallback,
-            };
-        } else {
-            chart.data.datasets[0]['segment'] = {};
+    $effect(() => {
+        if (elevationFill && chart) {
+            if (elevationFill === 'slope') {
+                chart.data.datasets[0]['segment'] = {
+                    backgroundColor: slopeFillCallback,
+                };
+            } else if (elevationFill === 'surface') {
+                chart.data.datasets[0]['segment'] = {
+                    backgroundColor: surfaceFillCallback,
+                };
+            } else if (elevationFill === 'highway') {
+                chart.data.datasets[0]['segment'] = {
+                    backgroundColor: highwayFillCallback,
+                };
+            } else {
+                chart.data.datasets[0]['segment'] = {};
+            }
+            chart.update();
         }
-        chart.update();
-    }
+    });
 
-    $: if (additionalDatasets && chart) {
-        let includeSpeed = additionalDatasets.includes('speed');
-        let includeHeartRate = additionalDatasets.includes('hr');
-        let includeCadence = additionalDatasets.includes('cad');
-        let includeTemperature = additionalDatasets.includes('atemp');
-        let includePower = additionalDatasets.includes('power');
-        if (chart.data.datasets.length > 0) {
-            chart.data.datasets[1].hidden = !includeSpeed;
-            chart.data.datasets[2].hidden = !includeHeartRate;
-            chart.data.datasets[3].hidden = !includeCadence;
-            chart.data.datasets[4].hidden = !includeTemperature;
-            chart.data.datasets[5].hidden = !includePower;
+    $effect(() => {
+        if (additionalDatasets && chart) {
+            let includeSpeed = additionalDatasets.includes('speed');
+            let includeHeartRate = additionalDatasets.includes('hr');
+            let includeCadence = additionalDatasets.includes('cad');
+            let includeTemperature = additionalDatasets.includes('atemp');
+            let includePower = additionalDatasets.includes('power');
+            if (chart.data.datasets.length > 0) {
+                chart.data.datasets[1].hidden = !includeSpeed;
+                chart.data.datasets[2].hidden = !includeHeartRate;
+                chart.data.datasets[3].hidden = !includeCadence;
+                chart.data.datasets[4].hidden = !includeTemperature;
+                chart.data.datasets[5].hidden = !includePower;
+            }
+            chart.update();
         }
-        chart.update();
-    }
+    });
 
     function updateOverlay() {
         if (!canvas) {
@@ -541,7 +554,11 @@
         }
     }
 
-    $: $slicedGPXStatistics, mode.current, updateOverlay();
+    $effect(() => {
+        if ($slicedGPXStatistics || mode.current) {
+            updateOverlay();
+        }
+    });
 
     onDestroy(() => {
         if (chart) {
@@ -557,63 +574,62 @@
         <div class="absolute bottom-10 right-1.5">
             <Popover.Root>
                 <Popover.Trigger>
-                    {#snippet child({ props })}
-                        <ButtonWithTooltip
-                            {...props}
-                            label={i18n._('chart.settings')}
-                            variant="outline"
-                            class="w-7 h-7 p-0 flex justify-center opacity-70 hover:opacity-100 transition-opacity duration-300 hover:bg-background"
-                        >
-                            <ChartNoAxesColumn size="18" />
-                        </ButtonWithTooltip>
-                    {/snippet}
+                    <ButtonWithTooltip
+                        label={i18n._('chart.settings')}
+                        variant="outline"
+                        side="left"
+                        class="w-7 h-7 p-0 flex justify-center opacity-70 hover:opacity-100 transition-opacity duration-300 hover:bg-background"
+                    >
+                        <ChartNoAxesColumn size="18" />
+                    </ButtonWithTooltip>
                 </Popover.Trigger>
                 <Popover.Content
-                    class="w-fit p-0 flex flex-col divide-y"
+                    class="w-fit p-0 flex flex-col divide-y-2 divide-solid  divide-gray-500"
                     side="top"
+                    align="end"
                     sideOffset={-32}
                 >
                     <ToggleGroup.Root
-                        class="flex flex-col items-start gap-0 p-1"
+                        class="flex flex-col items-start gap-0 p-1 w-full border-none"
                         type="single"
                         bind:value={elevationFill}
                     >
                         <ToggleGroup.Item
-                            class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
+                            class="p-0 pr-1.5 h-6 w-full gap-1.5 rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
                             value="slope"
                         >
                             <div class="w-6 flex justify-center items-center">
                                 {#if elevationFill === 'slope'}
-                                    <Circle class="h-1.5 w-1.5 fill-current text-current" />
+                                    <Circle class="size-1.5 fill-current text-current" />
                                 {/if}
                             </div>
-                            <TriangleRight size="15" class="mr-1" />
+                            <TriangleRight size="15" />
                             {i18n._('quantities.slope')}
                         </ToggleGroup.Item>
                         <ToggleGroup.Item
-                            class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
+                            class="p-0 pr-1.5 h-6 w-full gap-1.5 rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
                             value="surface"
                             variant="outline"
                         >
                             <div class="w-6 flex justify-center items-center">
                                 {#if elevationFill === 'surface'}
-                                    <Circle class="h-1.5 w-1.5 fill-current text-current" />
+                                    <Circle class="size-1.5 fill-current text-current" />
                                 {/if}
                             </div>
-                            <BrickWall size="15" class="mr-1" />
+                            <BrickWall size="15" />
                             {i18n._('quantities.surface')}
                         </ToggleGroup.Item>
                         <ToggleGroup.Item
-                            class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
+                            class="p-0 pr-1.5 h-6 w-full gap-1.5 rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
                             value="highway"
                             variant="outline"
                         >
                             <div class="w-6 flex justify-center items-center">
                                 {#if elevationFill === 'highway'}
-                                    <Circle class="h-1.5 w-1.5 fill-current text-current" />
+                                    <Circle class="size-1.5 fill-current text-current" />
                                 {/if}
                             </div>
-                            <Construction size="15" class="mr-1" />
+                            <Construction size="15" />
                             {i18n._('quantities.highway')}
                         </ToggleGroup.Item>
                     </ToggleGroup.Root>
@@ -623,7 +639,7 @@
                         bind:value={additionalDatasets}
                     >
                         <ToggleGroup.Item
-                            class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
+                            class="p-0 pr-1.5 h-6 w-full gap-1.5 rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
                             value="speed"
                         >
                             <div class="w-6 flex justify-center items-center">
@@ -631,13 +647,13 @@
                                     <Check size="14" />
                                 {/if}
                             </div>
-                            <Zap size="15" class="mr-1" />
+                            <Zap size="15" />
                             {$velocityUnits === 'speed'
                                 ? i18n._('quantities.speed')
                                 : i18n._('quantities.pace')}
                         </ToggleGroup.Item>
                         <ToggleGroup.Item
-                            class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
+                            class="p-0 pr-1.5 h-6 w-full gap-1.5 rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
                             value="hr"
                         >
                             <div class="w-6 flex justify-center items-center">
@@ -645,11 +661,11 @@
                                     <Check size="14" />
                                 {/if}
                             </div>
-                            <HeartPulse size="15" class="mr-1" />
+                            <HeartPulse size="15" />
                             {i18n._('quantities.heartrate')}
                         </ToggleGroup.Item>
                         <ToggleGroup.Item
-                            class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
+                            class="p-0 pr-1.5 h-6 w-full gap-1.5 rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
                             value="cad"
                         >
                             <div class="w-6 flex justify-center items-center">
@@ -657,11 +673,11 @@
                                     <Check size="14" />
                                 {/if}
                             </div>
-                            <Orbit size="15" class="mr-1" />
+                            <Orbit size="15" />
                             {i18n._('quantities.cadence')}
                         </ToggleGroup.Item>
                         <ToggleGroup.Item
-                            class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
+                            class="p-0 pr-1.5 h-6 w-full gap-1.5 rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
                             value="atemp"
                         >
                             <div class="w-6 flex justify-center items-center">
@@ -669,11 +685,11 @@
                                     <Check size="14" />
                                 {/if}
                             </div>
-                            <Thermometer size="15" class="mr-1" />
+                            <Thermometer size="15" />
                             {i18n._('quantities.temperature')}
                         </ToggleGroup.Item>
                         <ToggleGroup.Item
-                            class="p-0 pr-1.5 h-6 w-full rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
+                            class="p-0 pr-1.5 h-6 w-full gap-1.5 rounded flex justify-start data-[state=on]:bg-background data-[state=on]:hover:bg-accent hover:bg-accent hover:text-foreground"
                             value="power"
                         >
                             <div class="w-6 flex justify-center items-center">
@@ -681,7 +697,7 @@
                                     <Check size="14" />
                                 {/if}
                             </div>
-                            <SquareActivity size="15" class="mr-1" />
+                            <SquareActivity size="15" />
                             {i18n._('quantities.power')}
                         </ToggleGroup.Item>
                     </ToggleGroup.Root>

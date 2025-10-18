@@ -1,6 +1,6 @@
 <script lang="ts">
     import GPXLayers from '$lib/components/map/gpx-layer/GPXLayers.svelte';
-    // import ElevationProfile from '$lib/components/ElevationProfile.svelte';
+    import ElevationProfile from '$lib/components/ElevationProfile.svelte';
     // import FileList from '$lib/components/file-list/FileList.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
     import Map from '$lib/components/map/Map.svelte';
@@ -133,14 +133,14 @@
                 panelSize={$bottomPanelSize}
                 orientation={$elevationProfile ? 'vertical' : 'horizontal'}
             />
-            <!-- {#if $elevationProfile}
+            {#if $elevationProfile}
                 <ElevationProfile
                     {gpxStatistics}
                     {slicedGPXStatistics}
                     bind:additionalDatasets={$additionalDatasets}
                     bind:elevationFill={$elevationFill}
                 />
-            {/if} -->
+            {/if}
         </div>
     </div>
     {#if $treeFileView}
