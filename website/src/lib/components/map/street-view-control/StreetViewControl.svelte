@@ -10,6 +10,7 @@
     import { settings } from '$lib/logic/settings';
     import { i18n } from '$lib/i18n.svelte';
     import { onMount } from 'svelte';
+    import ButtonWithTooltip from '$lib/components/ButtonWithTooltip.svelte';
 
     const { streetViewSource } = settings;
 
@@ -47,15 +48,21 @@
 </script>
 
 <CustomControl class="w-[29px] h-[29px] shrink-0">
-    <Tooltip class="w-full h-full" side="left" label={i18n._('menu.toggle_street_view')}>
-        <Toggle
-            bind:pressed={$streetViewEnabled}
-            class="w-full h-full rounded p-0"
-            aria-label={i18n._('menu.toggle_street_view')}
-        >
-            <PersonStanding size="22" />
-        </Toggle>
-    </Tooltip>
+    <ButtonWithTooltip
+        variant="ghost"
+        class="w-full h-full"
+        side="left"
+        label={i18n._('menu.toggle_street_view')}
+        onclick={() => {
+            $streetViewEnabled = !$streetViewEnabled;
+        }}
+    >
+        <PersonStanding
+            size="22"
+            class="size-5.5"
+            color={$streetViewEnabled ? '#33b5e5' : 'currentColor'}
+        />
+    </ButtonWithTooltip>
 </CustomControl>
 
 <div

@@ -110,7 +110,9 @@
 
     onDestroy(() => {
         if ($map) {
-            fileStateCollectionObserver.destroy();
+            if (fileStateCollectionObserver) {
+                fileStateCollectionObserver.destroy();
+            }
 
             mapCursor.notify(MapCursorState.TOOL_WITH_CROSSHAIR, false);
             $map.off('click', createFileWithPoint);
@@ -120,14 +122,14 @@
 
 {#if minimizable && minimized}
     <div class="-m-1.5 -mb-2">
-        <Button variant="ghost" class="px-1 h-[26px]" onclick={() => (minimized = false)}>
-            <SquareArrowOutDownRight size="18" />
+        <Button variant="ghost" size="icon-sm" class="size-6" onclick={() => (minimized = false)}>
+            <SquareArrowOutDownRight size="18" class="size-4.5" />
         </Button>
     </div>
 {:else}
     <div class="flex flex-col gap-3 w-full max-w-80 animate-in animate-out {className ?? ''}">
         <div class="flex flex-col gap-3">
-            <Label class="flex flex-row justify-between items-center gap-2">
+            <Label class="justify-between">
                 <span class="flex flex-row items-center gap-1">
                     {#if $routing}
                         <Route size="16" />
@@ -137,13 +139,15 @@
                     {i18n._('toolbar.routing.use_routing')}
                 </span>
                 <Tooltip label={i18n._('toolbar.routing.use_routing_tooltip')}>
-                    <Switch class="scale-90" bind:checked={$routing} />
-                    <Shortcut slot="extra" key="F5" />
+                    <Switch bind:checked={$routing} />
+                    {#snippet extra()}
+                        <Shortcut key="F5" />
+                    {/snippet}
                 </Tooltip>
             </Label>
             {#if $routing}
                 <div class="flex flex-col gap-3" in:slide>
-                    <Label class="flex flex-row justify-between items-center gap-2">
+                    <Label class="justify-between">
                         <span class="shrink-0 flex flex-row items-center gap-1">
                             {#if $routingProfile.includes('bike') || $routingProfile.includes('motorcycle')}
                                 <Bike size="16" />
@@ -171,12 +175,12 @@
                             </Select.Content>
                         </Select.Root>
                     </Label>
-                    <Label class="flex flex-row justify-between items-center gap-2">
+                    <Label class="justify-between">
                         <span class="flex flex-row gap-1">
                             <TriangleAlert size="16" />
                             {i18n._('toolbar.routing.allow_private')}
                         </span>
-                        <Switch class="scale-90" bind:checked={$privateRoads} />
+                        <Switch bind:checked={$privateRoads} />
                     </Label>
                 </div>
             {/if}
@@ -185,7 +189,7 @@
             <ButtonWithTooltip
                 label={i18n._('toolbar.routing.reverse.tooltip')}
                 variant="outline"
-                class="flex flex-row gap-1 text-xs px-2"
+                class="gap-1 text-xs"
                 disabled={!validSelection}
                 onclick={fileActions.reverseSelection}
             >
@@ -194,7 +198,7 @@
             <ButtonWithTooltip
                 label={i18n._('toolbar.routing.route_back_to_start.tooltip')}
                 variant="outline"
-                class="flex flex-row gap-1 text-xs px-2"
+                class="gap-1 text-xs"
                 disabled={!validSelection}
                 onclick={() => {
                     const selected = selection.getOrderedSelection();
@@ -230,7 +234,7 @@
             <ButtonWithTooltip
                 label={i18n._('toolbar.routing.round_trip.tooltip')}
                 variant="outline"
-                class="flex flex-row gap-1 text-xs px-2"
+                class="gap-1 text-xs"
                 disabled={!validSelection}
                 onclick={fileActions.createRoundTripForSelection}
             >
@@ -247,7 +251,8 @@
             </Help>
             <Button
                 variant="ghost"
-                class="px-1 h-6"
+                size="icon-sm"
+                class="size-6"
                 onclick={() => {
                     if (minimizable) {
                         minimized = true;

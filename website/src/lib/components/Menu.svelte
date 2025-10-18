@@ -120,13 +120,13 @@
                 </Menubar.Trigger>
                 <Menubar.Content class="border-none">
                     <Menubar.Item onclick={createFile}>
-                        <Plus size="16" class="mr-1" />
+                        <Plus size="16" />
                         {i18n._('menu.new')}
                         <Shortcut key="+" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Separator />
                     <Menubar.Item onclick={triggerFileInput}>
-                        <FolderOpen size="16" class="mr-1" />
+                        <FolderOpen size="16" />
                         {i18n._('menu.open')}
                         <Shortcut key="O" ctrl={true} />
                     </Menubar.Item>
@@ -135,7 +135,7 @@
                         onclick={fileActions.duplicateSelection}
                         disabled={$selection.size == 0}
                     >
-                        <Copy size="16" class="mr-1" />
+                        <Copy size="16" />
                         {i18n._('menu.duplicate')}
                         <Shortcut key="D" ctrl={true} />
                     </Menubar.Item>
@@ -144,7 +144,7 @@
                         onclick={fileActions.deleteSelectedFiles}
                         disabled={$selection.size == 0}
                     >
-                        <FileX size="16" class="mr-1" />
+                        <FileX size="16" />
                         {i18n._('menu.close')}
                         <Shortcut key="⌫" ctrl={true} />
                     </Menubar.Item>
@@ -152,7 +152,7 @@
                         onclick={fileActions.deleteAllFiles}
                         disabled={fileStateCollection.size == 0}
                     >
-                        <FileX size="16" class="mr-1" />
+                        <FileX size="16" />
                         {i18n._('menu.close_all')}
                         <Shortcut key="⌫" ctrl={true} shift={true} />
                     </Menubar.Item>
@@ -161,7 +161,7 @@
                         onclick={() => (exportState.current = ExportState.SELECTION)}
                         disabled={$selection.size == 0}
                     >
-                        <Download size="16" class="mr-1" />
+                        <Download size="16" />
                         {i18n._('menu.export')}
                         <Shortcut key="S" ctrl={true} />
                     </Menubar.Item>
@@ -169,7 +169,7 @@
                         onclick={() => (exportState.current = ExportState.ALL)}
                         disabled={fileStateCollection.size == 0}
                     >
-                        <Download size="16" class="mr-1" />
+                        <Download size="16" />
                         {i18n._('menu.export_all')}
                         <Shortcut key="S" ctrl={true} shift={true} />
                     </Menubar.Item>
@@ -185,7 +185,7 @@
                         onclick={() => fileActionManager.undo()}
                         disabled={!fileActionManager.canUndo}
                     >
-                        <Undo2 size="16" class="mr-1" />
+                        <Undo2 size="16" />
                         {i18n._('menu.undo')}
                         <Shortcut key="Z" ctrl={true} />
                     </Menubar.Item>
@@ -193,7 +193,7 @@
                         onclick={() => fileActionManager.redo()}
                         disabled={!fileActionManager.canRedo}
                     >
-                        <Redo2 size="16" class="mr-1" />
+                        <Redo2 size="16" />
                         {i18n._('menu.redo')}
                         <Shortcut key="Z" ctrl={true} shift={true} />
                     </Menubar.Item>
@@ -209,7 +209,7 @@
                                 )}
                         onclick={() => (editMetadata.current = true)}
                     >
-                        <Info size="16" class="mr-1" />
+                        <Info size="16" />
                         {i18n._('menu.metadata.button')}
                         <Shortcut key="I" ctrl={true} />
                     </Menubar.Item>
@@ -224,7 +224,7 @@
                                 )}
                         onclick={() => (editStyle.current = true)}
                     >
-                        <PaintBucket size="16" class="mr-1" />
+                        <PaintBucket size="16" />
                         {i18n._('menu.style.button')}
                     </Menubar.Item>
                     <Menubar.Item
@@ -238,10 +238,10 @@
                         disabled={$selection.size == 0}
                     >
                         <!-- {#if $allHidden}
-                            <Eye size="16" class="mr-1" />
+                            <Eye size="16" />
                             {i18n._('menu.unhide')}
                         {:else}
-                            <EyeOff size="16" class="mr-1" />
+                            <EyeOff size="16" />
                             {i18n._('menu.hide')}
                         {/if} -->
                         <Shortcut key="H" ctrl={true} />
@@ -256,7 +256,7 @@
                                     )}
                                 disabled={$selection.size !== 1}
                             >
-                                <Plus size="16" class="mr-1" />
+                                <Plus size="16" />
                                 {i18n._('menu.new_track')}
                             </Menubar.Item>
                         {:else if $selection
@@ -273,7 +273,7 @@
                                 }}
                                 disabled={$selection.size !== 1}
                             >
-                                <Plus size="16" class="mr-1" />
+                                <Plus size="16" />
                                 {i18n._('menu.new_segment')}
                             </Menubar.Item>
                         {/if}
@@ -283,7 +283,7 @@
                         onclick={selection.selectAll}
                         disabled={fileStateCollection.size == 0}
                     >
-                        <FileStack size="16" class="mr-1" />
+                        <FileStack size="16" />
                         {i18n._('menu.select_all')}
                         <Shortcut key="A" ctrl={true} />
                     </Menubar.Item>
@@ -294,7 +294,7 @@
                             }
                         }}
                     >
-                        <Maximize size="16" class="mr-1" />
+                        <Maximize size="16" />
                         {i18n._('menu.center')}
                         <Shortcut key="⏎" ctrl={true} />
                     </Menubar.Item>
@@ -304,7 +304,7 @@
                             onclick={selection.copySelection}
                             disabled={$selection.size === 0}
                         >
-                            <ClipboardCopy size="16" class="mr-1" />
+                            <ClipboardCopy size="16" />
                             {i18n._('menu.copy')}
                             <Shortcut key="C" ctrl={true} />
                         </Menubar.Item>
@@ -312,7 +312,7 @@
                             onclick={selection.cutSelection}
                             disabled={$selection.size === 0}
                         >
-                            <Scissors size="16" class="mr-1" />
+                            <Scissors size="16" />
                             {i18n._('menu.cut')}
                             <Shortcut key="X" ctrl={true} />
                         </Menubar.Item>
@@ -325,7 +325,7 @@
                                     ))}
                             onclick={pasteSelection}
                         >
-                            <ClipboardPaste size="16" class="mr-1" />
+                            <ClipboardPaste size="16" />
                             {i18n._('menu.paste')}
                             <Shortcut key="V" ctrl={true} />
                         </Menubar.Item>
@@ -335,7 +335,7 @@
                         onclick={fileActions.deleteSelection}
                         disabled={$selection.size == 0}
                     >
-                        <Trash2 size="16" class="mr-1" />
+                        <Trash2 size="16" />
                         {i18n._('menu.delete')}
                         <Shortcut key="⌫" ctrl={true} />
                     </Menubar.Item>
@@ -348,42 +348,36 @@
                 </Menubar.Trigger>
                 <Menubar.Content class="border-none">
                     <Menubar.CheckboxItem bind:checked={$elevationProfile}>
-                        <ChartArea size="16" class="mr-1" />
+                        <ChartArea size="16" />
                         {i18n._('menu.elevation_profile')}
                         <Shortcut key="P" ctrl={true} />
                     </Menubar.CheckboxItem>
                     <Menubar.CheckboxItem bind:checked={$treeFileView}>
-                        <ListTree size="16" class="mr-1" />
+                        <ListTree size="16" />
                         {i18n._('menu.tree_file_view')}
                         <Shortcut key="L" ctrl={true} />
                     </Menubar.CheckboxItem>
                     <Menubar.Separator />
                     <Menubar.Item inset onclick={switchBasemaps}>
-                        <Map size="16" class="mr-1" />{i18n._('menu.switch_basemap')}<Shortcut
-                            key="F1"
-                        />
+                        <Map size="16" />{i18n._('menu.switch_basemap')}<Shortcut key="F1" />
                     </Menubar.Item>
                     <Menubar.Item inset onclick={toggleOverlays}>
-                        <Layers2 size="16" class="mr-1" />{i18n._('menu.toggle_overlays')}<Shortcut
-                            key="F2"
-                        />
+                        <Layers2 size="16" />{i18n._('menu.toggle_overlays')}<Shortcut key="F2" />
                     </Menubar.Item>
                     <Menubar.Separator />
                     <Menubar.CheckboxItem bind:checked={$distanceMarkers}>
-                        <Coins size="16" class="mr-1" />{i18n._('menu.distance_markers')}<Shortcut
-                            key="F3"
-                        />
+                        <Coins size="16" />{i18n._('menu.distance_markers')}<Shortcut key="F3" />
                     </Menubar.CheckboxItem>
                     <Menubar.CheckboxItem bind:checked={$directionMarkers}>
-                        <Milestone size="16" class="mr-1" />{i18n._(
-                            'menu.direction_markers'
-                        )}<Shortcut key="F4" />
+                        <Milestone size="16" />{i18n._('menu.direction_markers')}<Shortcut
+                            key="F4"
+                        />
                     </Menubar.CheckboxItem>
                     <Menubar.Separator />
                     <Menubar.Item inset onclick={map.toggle3D}>
-                        <Box size="16" class="mr-1" />
+                        <Box size="16" />
                         {i18n._('menu.toggle_3d')}
-                        <Shortcut key="{i18n._('menu.ctrl')}+{i18n._('menu.drag')}" />
+                        <Shortcut key="{i18n._('menu.ctrl')} {i18n._('menu.drag')}" />
                     </Menubar.Item>
                 </Menubar.Content>
             </Menubar.Menu>
@@ -397,7 +391,7 @@
                 <Menubar.Content class="border-none">
                     <Menubar.Sub>
                         <Menubar.SubTrigger>
-                            <Ruler size="16" class="mr-1" />{i18n._('menu.distance_units')}
+                            <Ruler size="16" class="mr-2" />{i18n._('menu.distance_units')}
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
                             <Menubar.RadioGroup bind:value={$distanceUnits}>
@@ -415,7 +409,7 @@
                     </Menubar.Sub>
                     <Menubar.Sub>
                         <Menubar.SubTrigger>
-                            <Zap size="16" class="mr-1" />{i18n._('menu.velocity_units')}
+                            <Zap size="16" class="mr-2" />{i18n._('menu.velocity_units')}
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
                             <Menubar.RadioGroup bind:value={$velocityUnits}>
@@ -430,7 +424,7 @@
                     </Menubar.Sub>
                     <Menubar.Sub>
                         <Menubar.SubTrigger>
-                            <Thermometer size="16" class="mr-1" />{i18n._('menu.temperature_units')}
+                            <Thermometer size="16" class="mr-2" />{i18n._('menu.temperature_units')}
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
                             <Menubar.RadioGroup bind:value={$temperatureUnits}>
@@ -446,7 +440,7 @@
                     <Menubar.Separator />
                     <Menubar.Sub>
                         <Menubar.SubTrigger>
-                            <Languages size="16" class="mr-1" />
+                            <Languages size="16" class="mr-2" />
                             {i18n._('menu.language')}
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
@@ -462,9 +456,9 @@
                     <Menubar.Sub>
                         <Menubar.SubTrigger>
                             {#if mode.current === 'light' || !mode.current}
-                                <Sun size="16" class="mr-1" />
+                                <Sun size="16" class="mr-2" />
                             {:else}
-                                <Moon size="16" class="mr-1" />
+                                <Moon size="16" class="mr-2" />
                             {/if}
                             {i18n._('menu.mode')}
                         </Menubar.SubTrigger>
@@ -487,7 +481,7 @@
                     <Menubar.Separator />
                     <Menubar.Sub>
                         <Menubar.SubTrigger>
-                            <PersonStanding size="16" class="mr-1" />
+                            <PersonStanding size="16" class="mr-2" />
                             {i18n._('menu.street_view_source')}
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
@@ -502,7 +496,7 @@
                         </Menubar.SubContent>
                     </Menubar.Sub>
                     <Menubar.Item onclick={() => (layerSettingsOpen = true)}>
-                        <Layers size="16" class="mr-1" />
+                        <Layers size="16" />
                         {i18n._('menu.layers')}
                     </Menubar.Item>
                 </Menubar.Content>

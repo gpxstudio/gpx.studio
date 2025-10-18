@@ -312,10 +312,20 @@
             <div class="flex flex-row items-center gap-2" data-id={id}>
                 <Move size="12" />
                 <span class="grow">{$customLayers[id].name}</span>
-                <Button variant="outline" onclick={() => (selectedLayerId = id)} class="p-1 h-7">
+                <Button
+                    variant="outline"
+                    size="icon-sm"
+                    onclick={() => (selectedLayerId = id)}
+                    class="p-1 h-7"
+                >
                     <Pencil size="16" />
                 </Button>
-                <Button variant="outline" onclick={() => deleteLayer(id)} class="p-1 h-7">
+                <Button
+                    variant="outline"
+                    size="icon-sm"
+                    onclick={() => deleteLayer(id)}
+                    class="p-1 h-7"
+                >
                     <Trash2 size="16" />
                 </Button>
             </div>
@@ -338,17 +348,26 @@
             <div class="flex flex-row items-center gap-2" data-id={id}>
                 <Move size="12" />
                 <span class="grow">{$customLayers[id].name}</span>
-                <Button variant="outline" onclick={() => (selectedLayerId = id)} class="p-1 h-7">
+                <Button
+                    variant="outline"
+                    size="icon-sm"
+                    onclick={() => (selectedLayerId = id)}
+                    class="p-1 h-7"
+                >
                     <Pencil size="16" />
                 </Button>
-                <Button variant="outline" onclick={() => deleteLayer(id)} class="p-1 h-7">
+                <Button
+                    variant="outline"
+                    size="icon-sm"
+                    onclick={() => deleteLayer(id)}
+                    class="p-1 h-7"
+                >
                     <Trash2 size="16" />
                 </Button>
             </div>
         {/each}
     </div>
-
-    <Card.Root>
+    <Card.Root class="py-0 gap-0 shadow-none">
         <Card.Header class="p-3">
             <Card.Title class="text-base">
                 {#if selectedLayerId}

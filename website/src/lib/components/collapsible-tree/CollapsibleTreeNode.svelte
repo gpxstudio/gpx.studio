@@ -36,7 +36,7 @@
                 variant="ghost"
                 class="w-full flex flex-row {side === 'right'
                     ? 'justify-between'
-                    : 'justify-start'} py-0 px-1 h-fit {nohover
+                    : 'justify-start'} p-0 has-[>svg]:px-0 h-fit {nohover
                     ? 'hover:bg-background'
                     : ''} pointer-events-none"
             >
@@ -62,7 +62,7 @@
             variant="ghost"
             class="w-full flex flex-row {side === 'right'
                 ? 'justify-between'
-                : 'justify-start'} py-0 px-1 h-fit {nohover ? 'hover:bg-background' : ''}"
+                : 'justify-start'} p-0 has-[>svg]:px-0 h-fit {nohover ? 'hover:bg-background' : ''}"
         >
             {#if side === 'left'}
                 <Collapsible.Trigger>
@@ -86,7 +86,7 @@
         </Button>
     {/if}
 
-    <Collapsible.Content class="ml-2">
+    <Collapsible.Content>
         {@render props.content()}
     </Collapsible.Content>
 </Collapsible.Root>

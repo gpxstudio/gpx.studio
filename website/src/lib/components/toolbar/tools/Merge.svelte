@@ -95,22 +95,14 @@
         {:else if mergeType === MergeType.TRACES && !canMergeTraces}
             {i18n._('toolbar.merge.help_cannot_merge_traces')}
             {i18n._('toolbar.merge.selection_tip').split('{KEYBOARD_SHORTCUT}')[0]}
-            <Shortcut
-                ctrl={true}
-                click={true}
-                class="inline-flex text-muted-foreground text-xs border rounded p-0.5 gap-0"
-            />
+            <Shortcut ctrl={true} click={true} class="border" />
             {i18n._('toolbar.merge.selection_tip').split('{KEYBOARD_SHORTCUT}')[1]}
         {:else if mergeType === MergeType.CONTENTS && canMergeContents}
             {i18n._('toolbar.merge.help_merge_contents')}
         {:else if mergeType === MergeType.CONTENTS && !canMergeContents}
             {i18n._('toolbar.merge.help_cannot_merge_contents')}
             {i18n._('toolbar.merge.selection_tip').split('{KEYBOARD_SHORTCUT}')[0]}
-            <Shortcut
-                ctrl={true}
-                click={true}
-                class="inline-flex text-muted-foreground text-xs border rounded p-0.5 gap-0"
-            />
+            <Shortcut ctrl={true} click={true} class="border" />
             {i18n._('toolbar.merge.selection_tip').split('{KEYBOARD_SHORTCUT}')[1]}
         {/if}
     </Help>

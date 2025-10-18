@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { CircleHelp } from '@lucide/svelte';
+    import { CircleQuestionMark } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
 
     export let link: string | undefined = undefined;
@@ -8,7 +8,7 @@
 <div
     class="text-sm bg-secondary rounded border flex flex-row items-center p-2 {$$props.class || ''}"
 >
-    <CircleHelp size="16" class="w-4 mr-2 shrink-0 grow-0" />
+    <CircleQuestionMark size="16" class="w-4 mr-2 shrink-0 grow-0" />
     <div>
         <slot />
         {#if link}

@@ -40,8 +40,8 @@
 {#if $currentTool !== null}
     <div class="translate-x-1 h-full animate-in animate-out {className}">
         <div class="rounded-md shadow-md pointer-events-auto">
-            <Card.Root class="rounded-md border-none">
-                <Card.Content class="p-2.5">
+            <Card.Root class="rounded-md border-none py-2.5">
+                <Card.Content class="px-2.5">
                     {#if $currentTool === Tool.ROUTING}
                         <Routing {popup} {popupElement} bind:minimized={$minimizeRoutingMenu} />
                     {:else if $currentTool === Tool.SCISSORS}

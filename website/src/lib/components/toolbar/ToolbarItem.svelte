@@ -24,13 +24,13 @@
 </script>
 
 <Tooltip.Provider>
-    <Tooltip.Root delayDuration={300}>
+    <Tooltip.Root>
         <Tooltip.Trigger>
             {#snippet child({ props })}
                 <Button
                     {...props}
                     variant="ghost"
-                    class="h-[26px] px-1 py-1.5 {$currentTool === itemTool ? 'bg-accent' : ''}"
+                    class="size-[24px] {$currentTool === itemTool ? 'bg-accent' : ''}"
                     onclick={toggleTool}
                     aria-label={label}
                 >

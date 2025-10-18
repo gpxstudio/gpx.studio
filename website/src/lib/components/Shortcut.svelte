@@ -2,14 +2,24 @@
     import { isMac, isSafari } from '$lib/utils';
     import { onMount } from 'svelte';
     import { i18n } from '$lib/i18n.svelte';
+    import * as Kbd from '$lib/components/ui/kbd/index.js';
 
-    export let key: string | undefined = undefined;
-    export let shift: boolean = false;
-    export let ctrl: boolean = false;
-    export let click: boolean = false;
+    let {
+        key = undefined,
+        shift = false,
+        ctrl = false,
+        click = false,
+        class: className = '',
+    }: {
+        key?: string;
+        shift?: boolean;
+        ctrl?: boolean;
+        click?: boolean;
+        class?: string;
+    } = $props();
 
-    let mac = false;
-    let safari = false;
+    let mac = $state(false);
+    let safari = $state(false);
 
     onMount(() => {
         mac = isMac();
@@ -17,20 +27,17 @@
     });
 </script>
 
-<div
-    class="ml-auto pl-2 text-xs tracking-widest text-muted-foreground flex flex-row gap-0 items-baseline"
-    {...$$props}
->
+<Kbd.Root class="ml-auto {className}">
     {#if shift}
-        <span>⇧</span>
+        ⇧
     {/if}
     {#if ctrl}
-        <span>{mac && !safari ? '⌘' : i18n._('menu.ctrl') + '+'}</span>
+        {mac && !safari ? '⌘' : i18n._('menu.ctrl')}
     {/if}
     {#if key}
-        <span class={key === '+' ? 'font-medium text-sm/4' : ''}>{key}</span>
+        {key}
     {/if}
     {#if click}
-        <span>{i18n._('menu.click')}</span>
+        {i18n._('menu.click')}
     {/if}
-</div>
+</Kbd.Root>

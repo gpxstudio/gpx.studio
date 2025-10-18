@@ -90,7 +90,7 @@
                     <Accordion.Item value="layer-selection" class="flex flex-col">
                         <Accordion.Trigger>{i18n._('layers.selection')}</Accordion.Trigger>
                         <Accordion.Content class="grow flex flex-col border rounded">
-                            <div class="py-2 pl-1 pr-2">
+                            <div class="py-2 pl-3 pr-2">
                                 <LayerTree
                                     layerTree={basemapTree}
                                     name="basemapSettings"
@@ -99,7 +99,7 @@
                                 />
                             </div>
                             <Separator />
-                            <div class="py-2 pl-1 pr-2">
+                            <div class="py-2 pl-3 pr-2">
                                 <LayerTree
                                     layerTree={overlayTree}
                                     name="overlaySettings"
@@ -108,7 +108,7 @@
                                 />
                             </div>
                             <Separator />
-                            <div class="py-2 pl-1 pr-2">
+                            <div class="py-2 pl-3 pr-2">
                                 <LayerTree
                                     layerTree={overpassTree}
                                     name="overpassSettings"
@@ -130,7 +130,7 @@
                                     type="single"
                                     onValueChange={setOpacityFromSelection}
                                 >
-                                    <Select.Trigger class="h-8 mr-1">
+                                    <Select.Trigger class="h-8 mr-1 w-full">
                                         {#if selectedOverlay}
                                             {#if isSelected($selectedOverlayTree, selectedOverlay)}
                                                 {i18n._(`layers.label.${selectedOverlay}`)}

@@ -179,9 +179,9 @@
                 ? 'grid-rows-[1fr] grid-cols-[1fr]'
                 : ''} {cancelEvents ? 'pointer-events-none' : ''}"
         >
-            <ScrollArea>
+            <ScrollArea class="overflow-hidden">
                 <div class="h-fit">
-                    <div class="p-2">
+                    <div class="p-2 ml-1">
                         <LayerTree
                             layerTree={$selectedBasemapTree}
                             name="basemaps"
@@ -193,7 +193,7 @@
                         />
                     </div>
                     <Separator class="w-full" />
-                    <div class="p-2">
+                    <div class="p-2 ml-1">
                         {#if $currentOverlays}
                             <LayerTree
                                 layerTree={$selectedOverlayTree}
@@ -204,7 +204,7 @@
                         {/if}
                     </div>
                     <Separator class="w-full" />
-                    <div class="p-2">
+                    <div class="p-2 ml-1">
                         {#if $currentOverpassQueries}
                             <LayerTree
                                 layerTree={$selectedOverpassTree}
