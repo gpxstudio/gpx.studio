@@ -151,6 +151,7 @@ export class GPXFileStateCollectionObserver {
     private _onFileAdded: GPXFileStateCallback;
     private _onFileRemoved: (fileId: string) => void;
     private _onDestroy: () => void;
+    private _unsubscribe: () => void;
 
     constructor(
         onFileAdded: GPXFileStateCallback,
@@ -162,7 +163,7 @@ export class GPXFileStateCollectionObserver {
         this._onFileRemoved = onFileRemoved;
         this._onDestroy = onDestroy;
 
-        fileStateCollection.subscribe((files) => {
+        this._unsubscribe = fileStateCollection.subscribe((files) => {
             this._fileIds.forEach((fileId) => {
                 if (!files.has(fileId)) {
                     this._onFileRemoved(fileId);
@@ -180,5 +181,6 @@ export class GPXFileStateCollectionObserver {
 
     destroy() {
         this._onDestroy();
+        this._unsubscribe();
     }
 }

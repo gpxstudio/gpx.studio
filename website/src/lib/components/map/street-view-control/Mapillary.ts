@@ -1,7 +1,7 @@
 import mapboxgl, { type LayerSpecification, type VectorSourceSpecification } from 'mapbox-gl';
 import { Viewer, type ViewerBearingEvent } from 'mapillary-js/dist/mapillary.module';
 import 'mapillary-js/dist/mapillary.css';
-import { resetCursor, setPointerCursor } from '$lib/utils';
+import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
 
 const mapillarySource: VectorSourceSpecification = {
     type: 'vector',
@@ -140,10 +140,10 @@ export class MapillaryLayer {
         this.viewer.resize();
         this.viewer.moveTo(e.features[0].properties.id);
 
-        setPointerCursor();
+        mapCursor.notify(MapCursorState.MAPILLARY_HOVER, true);
     }
 
     onMouseLeave() {
-        resetCursor();
+        mapCursor.notify(MapCursorState.MAPILLARY_HOVER, false);
     }
 }

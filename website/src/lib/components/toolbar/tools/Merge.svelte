@@ -16,20 +16,20 @@
     import { Group } from '@lucide/svelte';
     import { getURLForLanguage } from '$lib/utils';
     import Shortcut from '$lib/components/Shortcut.svelte';
-    import { gpxStatistics } from '$lib/stores';
     import { selection } from '$lib/logic/selection';
     import { fileStateCollection } from '$lib/logic/file-state';
     import { fileActions } from '$lib/logic/file-actions';
+    import { gpxStatistics } from '$lib/logic/statistics';
 
     let props: {
         class?: string;
     } = $props();
 
     let canMergeTraces = $derived.by(() => {
-        if (selection.value.size > 1) {
+        if ($selection.size > 1) {
             return true;
-        } else if (selection.value.size === 1) {
-            let selected = selection.value.getSelected()[0];
+        } else if ($selection.size === 1) {
+            let selected = $selection.getSelected()[0];
             if (selected instanceof ListFileItem) {
                 let file = fileStateCollection.getFile(selected.getFileId());
                 if (file) {
@@ -47,8 +47,8 @@
     });
 
     let canMergeContents = $derived(
-        selection.value.size > 1 &&
-            selection.value
+        $selection.size > 1 &&
+            $selection
                 .getSelected()
                 .some((item) => item instanceof ListFileItem || item instanceof ListTrackItem)
     );

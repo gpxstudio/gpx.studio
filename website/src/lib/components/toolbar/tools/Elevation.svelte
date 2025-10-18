@@ -12,7 +12,7 @@
         class?: string;
     } = $props();
 
-    let validSelection = $derived(selection.value.size > 0);
+    let validSelection = $derived($selection.size > 0);
 </script>
 
 <div class="flex flex-col gap-3 w-full max-w-80 {props.class ?? ''}">
@@ -21,8 +21,8 @@
         class="whitespace-normal h-fit"
         disabled={!validSelection}
         onclick={async () => {
-            if (map.value) {
-                fileActions.addElevationToSelection(map.value);
+            if ($map) {
+                fileActions.addElevationToSelection($map);
             }
         }}
     >

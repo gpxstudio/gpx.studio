@@ -3,7 +3,7 @@
     import DocsContainer from '$lib/components/docs/DocsContainer.svelte';
     import Logo from '$lib/components/Logo.svelte';
     // import ElevationProfile from '$lib/components/ElevationProfile.svelte';
-    // import GPXStatistics from '$lib/components/GPXStatistics.svelte';
+    import GPXStatistics from '$lib/components/GPXStatistics.svelte';
     // import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
     import {
         BookOpenText,
@@ -20,7 +20,7 @@
     import { exampleGPXFile } from '$lib/assets/example';
     import { writable } from 'svelte/store';
     // import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
-    // import { tool, Tool } from '$lib/components/toolbar/utils.svelte';
+    import { currentTool, Tool } from '$lib/components/toolbar/tools';
     import { onDestroy, onMount } from 'svelte';
 
     let {
@@ -38,19 +38,19 @@
     let additionalDatasets = writable(['speed', 'atemp']);
     let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
 
-    // onMount(() => {
-    //     tool.current = Tool.SCISSORS;
-    // });
+    onMount(() => {
+        $currentTool = Tool.SCISSORS;
+    });
 
-    // $effect(() => {
-    //     if (tool.current !== Tool.SCISSORS) {
-    //         tool.current = Tool.SCISSORS;
-    //     }
-    // });
+    $effect(() => {
+        if ($currentTool !== Tool.SCISSORS) {
+            $currentTool = Tool.SCISSORS;
+        }
+    });
 
-    // onDestroy(() => {
-    //     tool.current = null;
-    // });
+    onDestroy(() => {
+        $currentTool = null;
+    });
 </script>
 
 <div class="space-y-24 my-24">
@@ -199,12 +199,12 @@
         </div>
         <div class="flex flex-col items-center">
             <div class="h-10 w-fit">
-                <!-- <GPXStatistics
+                <GPXStatistics
                     {gpxStatistics}
                     {slicedGPXStatistics}
                     panelSize={192}
                     orientation={'horizontal'}
-                /> -->
+                />
             </div>
         </div>
     </div>

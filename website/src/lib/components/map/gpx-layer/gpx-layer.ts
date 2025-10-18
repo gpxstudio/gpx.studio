@@ -10,14 +10,7 @@ import {
     ListFileItem,
     ListRootItem,
 } from '$lib/components/file-list/file-list';
-import {
-    getClosestLinePoint,
-    getElevation,
-    resetCursor,
-    setGrabbingCursor,
-    setPointerCursor,
-    setScissorsCursor,
-} from '$lib/utils';
+import { getClosestLinePoint, getElevation } from '$lib/utils';
 import { selectedWaypoint } from '$lib/components/toolbar/tools/waypoint/waypoint';
 import { MapPin, Square } from 'lucide-static';
 import { getSymbolKey, symbols } from '$lib/assets/symbols';
@@ -28,6 +21,7 @@ import { currentTool, Tool } from '$lib/components/toolbar/tools';
 import { fileActionManager } from '$lib/logic/file-action-manager';
 import { fileActions } from '$lib/logic/file-actions';
 import { splitAs } from '$lib/components/toolbar/tools/scissors/scissors';
+import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
 
 const colors = [
     '#ff0000',
@@ -335,12 +329,12 @@ export class GPXLayer {
                         e.stopPropagation();
                     });
                     marker.on('dragstart', () => {
-                        setGrabbingCursor();
+                        mapCursor.notify(MapCursorState.WAYPOINT_DRAGGING, true);
                         marker.getElement().style.cursor = 'grabbing';
                         waypointPopup?.hide();
                     });
                     marker.on('dragend', (e) => {
-                        resetCursor();
+                        mapCursor.notify(MapCursorState.WAYPOINT_DRAGGING, false);
                         marker.getElement().style.cursor = '';
                         getElevation([marker._waypoint]).then((ele) => {
                             fileActionManager.applyToFile(this.fileId, (file) => {
@@ -431,14 +425,15 @@ export class GPXLayer {
                 new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)
             )
         ) {
-            setScissorsCursor();
+            mapCursor.notify(MapCursorState.SCISSORS, true);
         } else {
-            setPointerCursor();
+            mapCursor.notify(MapCursorState.LAYER_HOVER, true);
         }
     }
 
     layerOnMouseLeave() {
-        resetCursor();
+        mapCursor.notify(MapCursorState.SCISSORS, false);
+        mapCursor.notify(MapCursorState.LAYER_HOVER, false);
     }
 
     layerOnMouseMove(e: any) {

@@ -13,12 +13,13 @@
     import Help from '$lib/components/Help.svelte';
     import { i18n } from '$lib/i18n.svelte';
     import { onDestroy, onMount } from 'svelte';
-    import { getURLForLanguage, resetCursor, setCrosshairCursor } from '$lib/utils';
+    import { getURLForLanguage } from '$lib/utils';
     import { Trash2 } from '@lucide/svelte';
     import { map } from '$lib/components/map/map';
     import type { GeoJSONSource } from 'mapbox-gl';
     import { selection } from '$lib/logic/selection';
     import { fileActions } from '$lib/logic/file-actions';
+    import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
 
     let props: {
         class?: string;
@@ -30,10 +31,10 @@
     let rectangleCoordinates: mapboxgl.LngLat[] = $state([]);
 
     $effect(() => {
-        if (map.value) {
+        if ($map) {
             if (rectangleCoordinates.length != 2) {
-                if (map.value.getLayer('rectangle')) {
-                    map.value.removeLayer('rectangle');
+                if ($map.getLayer('rectangle')) {
+                    $map.removeLayer('rectangle');
                 }
             } else {
                 let data: GeoJSON.Feature = {
@@ -52,17 +53,17 @@
                     },
                     properties: {},
                 };
-                let source: GeoJSONSource | undefined = map.value.getSource('rectangle');
+                let source: GeoJSONSource | undefined = $map.getSource('rectangle');
                 if (source) {
                     source.setData(data);
                 } else {
-                    map.value.addSource('rectangle', {
+                    $map.addSource('rectangle', {
                         type: 'geojson',
                         data: data,
                     });
                 }
-                if (!map.value.getLayer('rectangle')) {
-                    map.value.addLayer({
+                if (!$map.getLayer('rectangle')) {
+                    $map.addLayer({
                         id: 'rectangle',
                         type: 'fill',
                         source: 'rectangle',
@@ -93,39 +94,39 @@
     }
 
     onMount(() => {
-        if (map.value) {
-            setCrosshairCursor(map.value.getCanvas());
-            map.value.on('mousedown', onMouseDown);
-            map.value.on('mousemove', onMouseMove);
-            map.value.on('mouseup', onMouseUp);
-            map.value.on('touchstart', onMouseDown);
-            map.value.on('touchmove', onMouseMove);
-            map.value.on('touchend', onMouseUp);
-            map.value.dragPan.disable();
+        if ($map) {
+            mapCursor.notify(MapCursorState.TOOL_WITH_CROSSHAIR, true);
+            $map.on('mousedown', onMouseDown);
+            $map.on('mousemove', onMouseMove);
+            $map.on('mouseup', onMouseUp);
+            $map.on('touchstart', onMouseDown);
+            $map.on('touchmove', onMouseMove);
+            $map.on('touchend', onMouseUp);
+            $map.dragPan.disable();
         }
     });
 
     onDestroy(() => {
-        if (map.value) {
-            resetCursor(map.value.getCanvas());
-            map.value.off('mousedown', onMouseDown);
-            map.value.off('mousemove', onMouseMove);
-            map.value.off('mouseup', onMouseUp);
-            map.value.off('touchstart', onMouseDown);
-            map.value.off('touchmove', onMouseMove);
-            map.value.off('touchend', onMouseUp);
-            map.value.dragPan.enable();
+        if ($map) {
+            mapCursor.notify(MapCursorState.TOOL_WITH_CROSSHAIR, false);
+            $map.off('mousedown', onMouseDown);
+            $map.off('mousemove', onMouseMove);
+            $map.off('mouseup', onMouseUp);
+            $map.off('touchstart', onMouseDown);
+            $map.off('touchmove', onMouseMove);
+            $map.off('touchend', onMouseUp);
+            $map.dragPan.enable();
 
-            if (map.value.getLayer('rectangle')) {
-                map.value.removeLayer('rectangle');
+            if ($map.getLayer('rectangle')) {
+                $map.removeLayer('rectangle');
             }
-            if (map.value.getSource('rectangle')) {
-                map.value.removeSource('rectangle');
+            if ($map.getSource('rectangle')) {
+                $map.removeSource('rectangle');
             }
         }
     });
 
-    let validSelection = $derived(selection.value.size > 0);
+    let validSelection = $derived($selection.size > 0);
 </script>
 
 <div class="flex flex-col gap-3 w-full max-w-80 items-center {props.class ?? ''}">

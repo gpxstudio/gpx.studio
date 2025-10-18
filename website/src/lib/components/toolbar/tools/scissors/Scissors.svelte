@@ -7,16 +7,16 @@
     import { Slider } from '$lib/components/ui/slider';
     import * as Select from '$lib/components/ui/select';
     import { Separator } from '$lib/components/ui/separator';
-    import { gpxStatistics, slicedGPXStatistics } from '$lib/stores';
     import { map } from '$lib/components/map/map';
     import { get } from 'svelte/store';
     import { i18n } from '$lib/i18n.svelte';
     import { onDestroy, tick } from 'svelte';
     import { Crop } from '@lucide/svelte';
-    import { dbUtils } from '$lib/db';
     import { SplitControls } from './split-controls';
     import { getURLForLanguage } from '$lib/utils';
     import { selection } from '$lib/logic/selection';
+    import { fileActions } from '$lib/logic/file-actions';
+    import { gpxStatistics, slicedGPXStatistics } from '$lib/logic/statistics';
 
     let props: {
         class?: string;
@@ -26,16 +26,16 @@
     let canCrop = $state(false);
 
     $effect(() => {
-        if (map.current) {
+        if ($map) {
             if (splitControls) {
                 splitControls.destroy();
             }
-            splitControls = new SplitControls(map.current);
+            splitControls = new SplitControls($map);
         }
     });
 
     let validSelection = $derived(
-        selection.value.hasAnyChildren(new ListRootItem(), true, ['waypoints']) &&
+        $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints']) &&
             $gpxStatistics.local.points.length > 0
     );
 
@@ -120,7 +120,7 @@
     <Button
         variant="outline"
         disabled={!validSelection || !canCrop}
-        onclick={() => dbUtils.cropSelection(sliderValues[0], sliderValues[1])}
+        onclick={() => fileActions.cropSelection(sliderValues[0], sliderValues[1])}
     >
         <Crop size="16" class="mr-1" />{i18n._('toolbar.scissors.crop')}
     </Button>
@@ -129,9 +129,9 @@
         <span class="shrink-0">
             {i18n._('toolbar.scissors.split_as')}
         </span>
-        <Select.Root bind:value={splitAs.current} type="single">
+        <Select.Root bind:value={$splitAs} type="single">
             <Select.Trigger class="h-8 w-fit grow">
-                {i18n._('gpx.' + splitAs)}
+                {i18n._('gpx.' + $splitAs)}
             </Select.Trigger>
             <Select.Content>
                 {#each Object.values(SplitType) as splitType}

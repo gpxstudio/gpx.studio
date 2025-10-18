@@ -5,7 +5,7 @@
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
     import Map from '$lib/components/map/Map.svelte';
     import Menu from '$lib/components/Menu.svelte';
-    // import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
+    import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
     import StreetViewControl from '$lib/components/map/street-view-control/StreetViewControl.svelte';
     import LayerControl from '$lib/components/map/layer-control/LayerControl.svelte';
     // import CoordinatesPopup from '$lib/components/map/CoordinatesPopup.svelte';
@@ -101,7 +101,7 @@
             <div
                 class="absolute top-0 bottom-0 left-0 z-20 flex flex-col justify-center pointer-events-none"
             >
-                <!-- <Toolbar /> -->
+                <Toolbar />
             </div>
             <Map class="h-full {$treeFileView ? '' : 'horizontal'}" />
             <StreetViewControl />

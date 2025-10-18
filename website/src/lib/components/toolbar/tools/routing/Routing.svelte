@@ -21,9 +21,8 @@
         SquareArrowUpLeft,
         SquareArrowOutDownRight,
     } from '@lucide/svelte';
-    import { brouterProfiles } from '$lib/components/toolbar/tools/routing/utils.svelte';
+    import { brouterProfiles } from '$lib/components/toolbar/tools/routing/routing';
     import { i18n } from '$lib/i18n.svelte';
-    // import { RoutingControls } from './RoutingControls';
     import { slide } from 'svelte/transition';
     import {
         ListFileItem,
@@ -32,14 +31,16 @@
         ListTrackSegmentItem,
         type ListItem,
     } from '$lib/components/file-list/file-list';
-    import { getURLForLanguage, resetCursor, setCrosshairCursor } from '$lib/utils';
+    import { getURLForLanguage } from '$lib/utils';
     import { onDestroy, onMount } from 'svelte';
     import { TrackPoint } from 'gpx';
     import { settings } from '$lib/logic/settings';
     import { map } from '$lib/components/map/map';
-    import { fileStateCollection } from '$lib/logic/file-state';
+    import { fileStateCollection, GPXFileStateCollectionObserver } from '$lib/logic/file-state';
     import { selection } from '$lib/logic/selection';
     import { fileActions, getFileIds, newGPXFile } from '$lib/logic/file-actions';
+    import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+    import { RoutingControls, routingControls } from './RoutingControls';
 
     let {
         minimized = $bindable(false),
@@ -55,34 +56,9 @@
         class?: string;
     } = $props();
 
-    let selectedItem: ListItem | null = null;
-
     const { privateRoads, routing, routingProfile } = settings;
 
-    // $: if (map && popup && popupElement) {
-    //     // remove controls for deleted files
-    //     routingControls.forEach((controls, fileId) => {
-    //         if (!$fileObservers.has(fileId)) {
-    //             controls.destroy();
-    //             routingControls.delete(fileId);
-
-    //             if (selectedItem && selectedItem.getFileId() === fileId) {
-    //                 selectedItem = null;
-    //             }
-    //         } else if ($map !== controls.map) {
-    //             controls.updateMap($map);
-    //         }
-    //     });
-    //     // add controls for new files
-    //     fileStateCollection.files.forEach((file, fileId) => {
-    //         if (!routingControls.has(fileId)) {
-    //             routingControls.set(
-    //                 fileId,
-    //                 new RoutingControls($map, fileId, file, popup, popupElement)
-    //             );
-    //         }
-    //     });
-    // }
+    let fileStateCollectionObserver: GPXFileStateCollectionObserver;
 
     let validSelection = $derived(
         $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints'])
@@ -101,21 +77,44 @@
             ]);
             file._data.id = getFileIds(1)[0];
             fileActions.add(file);
-            // selectFileWhenLoaded(file._data.id);
+            selection.selectFileWhenLoaded(file._data.id);
         }
     }
 
     onMount(() => {
-        // setCrosshairCursor();
-        $map?.on('click', createFileWithPoint);
+        if ($map && popup && popupElement) {
+            fileStateCollectionObserver = new GPXFileStateCollectionObserver(
+                (fileId, fileState) => {
+                    routingControls.set(
+                        fileId,
+                        new RoutingControls(fileId, fileState, popup, popupElement)
+                    );
+                },
+                (fileId) => {
+                    const controls = routingControls.get(fileId);
+                    if (controls) {
+                        controls.destroy();
+                        routingControls.delete(fileId);
+                    }
+                },
+                () => {
+                    routingControls.forEach((controls) => controls.destroy());
+                    routingControls.clear();
+                }
+            );
+
+            mapCursor.notify(MapCursorState.TOOL_WITH_CROSSHAIR, true);
+            $map.on('click', createFileWithPoint);
+        }
     });
 
     onDestroy(() => {
-        // resetCursor();
-        $map?.off('click', createFileWithPoint);
+        if ($map) {
+            fileStateCollectionObserver.destroy();
 
-        // routingControls.forEach((controls) => controls.destroy());
-        // routingControls.clear();
+            mapCursor.notify(MapCursorState.TOOL_WITH_CROSSHAIR, false);
+            $map.off('click', createFileWithPoint);
+        }
     });
 </script>
 
@@ -130,7 +129,7 @@
         <div class="flex flex-col gap-3">
             <Label class="flex flex-row justify-between items-center gap-2">
                 <span class="flex flex-row items-center gap-1">
-                    {#if routing.value}
+                    {#if $routing}
                         <Route size="16" />
                     {:else}
                         <RouteOff size="16" />
@@ -138,28 +137,28 @@
                     {i18n._('toolbar.routing.use_routing')}
                 </span>
                 <Tooltip label={i18n._('toolbar.routing.use_routing_tooltip')}>
-                    <Switch class="scale-90" bind:checked={routing.value} />
+                    <Switch class="scale-90" bind:checked={$routing} />
                     <Shortcut slot="extra" key="F5" />
                 </Tooltip>
             </Label>
-            {#if routing.value}
+            {#if $routing}
                 <div class="flex flex-col gap-3" in:slide>
                     <Label class="flex flex-row justify-between items-center gap-2">
                         <span class="shrink-0 flex flex-row items-center gap-1">
-                            {#if routingProfile.value.includes('bike') || routingProfile.value.includes('motorcycle')}
+                            {#if $routingProfile.includes('bike') || $routingProfile.includes('motorcycle')}
                                 <Bike size="16" />
-                            {:else if routingProfile.value.includes('foot')}
+                            {:else if $routingProfile.includes('foot')}
                                 <Footprints size="16" />
-                            {:else if routingProfile.value.includes('water')}
+                            {:else if $routingProfile.includes('water')}
                                 <Waves size="16" />
-                            {:else if routingProfile.value.includes('railway')}
+                            {:else if $routingProfile.includes('railway')}
                                 <TrainFront size="16" />
                             {/if}
                             {i18n._('toolbar.routing.activity')}
                         </span>
-                        <Select.Root type="single" bind:value={routingProfile.value}>
+                        <Select.Root type="single" bind:value={$routingProfile}>
                             <Select.Trigger class="h-8 grow">
-                                {i18n._(`toolbar.routing.activities.${routingProfile.value}`)}
+                                {i18n._(`toolbar.routing.activities.${$routingProfile}`)}
                             </Select.Trigger>
                             <Select.Content>
                                 {#each Object.keys(brouterProfiles) as profile}
@@ -177,7 +176,7 @@
                             <TriangleAlert size="16" />
                             {i18n._('toolbar.routing.allow_private')}
                         </span>
-                        <Switch class="scale-90" bind:checked={privateRoads.value} />
+                        <Switch class="scale-90" bind:checked={$privateRoads} />
                     </Label>
                 </div>
             {/if}
@@ -218,9 +217,9 @@
 
                             if (start !== undefined) {
                                 const lastFileId = selected[selected.length - 1].getFileId();
-                                // routingControls
-                                //     .get(lastFileId)
-                                //     ?.appendAnchorWithCoordinates(start.getCoordinates());
+                                routingControls
+                                    .get(lastFileId)
+                                    ?.appendAnchorWithCoordinates(start.getCoordinates());
                             }
                         }
                     }

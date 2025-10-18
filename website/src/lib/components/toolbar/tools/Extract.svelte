@@ -20,8 +20,8 @@
     } = $props();
 
     let validSelection = $derived(
-        selection.value.size > 0 &&
-            selection.value.getSelected().every((item) => {
+        $selection.size > 0 &&
+            $selection.getSelected().every((item) => {
                 if (
                     item instanceof ListWaypointsItem ||
                     item instanceof ListWaypointItem ||

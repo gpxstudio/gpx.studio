@@ -2,6 +2,7 @@ import type { Coordinates } from 'gpx';
 import { TrackPoint, distance } from 'gpx';
 import { settings } from '$lib/logic/settings';
 import { getElevation } from '$lib/utils';
+import { get } from 'svelte/store';
 
 const { routing, routingProfile, privateRoads } = settings;
 
@@ -17,8 +18,8 @@ export const brouterProfiles: { [key: string]: string } = {
 };
 
 export function route(points: Coordinates[]): Promise<TrackPoint[]> {
-    if (routing.value) {
-        return getRoute(points, brouterProfiles[routingProfile.value], privateRoads.value);
+    if (get(routing)) {
+        return getRoute(points, brouterProfiles[get(routingProfile)], get(privateRoads));
     } else {
         return getIntermediatePoints(points);
     }

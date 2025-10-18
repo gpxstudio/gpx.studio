@@ -14,6 +14,7 @@ import { settings } from '$lib/logic/settings';
 import type { GPXFile } from 'gpx';
 import { get, writable, type Readable, type Writable } from 'svelte/store';
 import { SelectionTreeType } from '$lib/logic/selection-tree';
+import { tick } from 'svelte';
 
 export class Selection {
     private _selection: Writable<SelectionTreeType>;
@@ -97,6 +98,15 @@ export class Selection {
                 }
             }
             return $selection;
+        });
+    }
+
+    selectFileWhenLoaded(fileId: string) {
+        const unsubscribe = fileStateCollection.subscribe((files) => {
+            if (files.has(fileId)) {
+                this.selectFile(fileId);
+                unsubscribe();
+            }
         });
     }
 

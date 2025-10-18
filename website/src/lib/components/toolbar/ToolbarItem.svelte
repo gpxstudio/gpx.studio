@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Button } from '$lib/components/ui/button';
     import * as Tooltip from '$lib/components/ui/tooltip/index.js';
-    import { tool, Tool } from '$lib/components/toolbar/tools';
+    import { currentTool, Tool } from '$lib/components/toolbar/tools';
     import type { Snippet } from 'svelte';
 
     let {
@@ -15,10 +15,10 @@
     } = $props();
 
     function toggleTool() {
-        if (tool.current === itemTool) {
-            tool.current = null;
+        if ($currentTool === itemTool) {
+            $currentTool = null;
         } else {
-            tool.current = itemTool;
+            $currentTool = itemTool;
         }
     }
 </script>
@@ -30,7 +30,7 @@
                 <Button
                     {...props}
                     variant="ghost"
-                    class="h-[26px] px-1 py-1.5 {tool.current === itemTool ? 'bg-accent' : ''}"
+                    class="h-[26px] px-1 py-1.5 {$currentTool === itemTool ? 'bg-accent' : ''}"
                     onclick={toggleTool}
                     aria-label={label}
                 >

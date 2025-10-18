@@ -1,12 +1,14 @@
 import { TrackPoint, TrackSegment } from 'gpx';
 import mapboxgl from 'mapbox-gl';
-import { dbUtils, getFile } from '$lib/db';
 import { ListTrackSegmentItem } from '$lib/components/file-list/file-list';
-import { gpxStatistics } from '$lib/stores';
-import { tool, Tool } from '$lib/components/toolbar/tools';
+import { currentTool, Tool } from '$lib/components/toolbar/tools';
 import { splitAs } from '$lib/components/toolbar/tools/scissors/scissors';
 import { Scissors } from 'lucide-static';
 import { selection } from '$lib/logic/selection';
+import { gpxStatistics } from '$lib/logic/statistics';
+import { get } from 'svelte/store';
+import { fileStateCollection } from '$lib/logic/file-state';
+import { fileActions } from '$lib/logic/file-actions';
 
 export class SplitControls {
     active: boolean = false;
@@ -22,13 +24,12 @@ export class SplitControls {
         this.map = map;
 
         this.unsubscribes.push(gpxStatistics.subscribe(this.addIfNeeded.bind(this)));
-        $effect(() => {
-            tool.current, selection.value, this.addIfNeeded.bind(this);
-        });
+        this.unsubscribes.push(currentTool.subscribe(this.addIfNeeded.bind(this)));
+        this.unsubscribes.push(selection.subscribe(this.addIfNeeded.bind(this)));
     }
 
     addIfNeeded() {
-        let scissors = tool.current === Tool.SCISSORS;
+        let scissors = get(currentTool) === Tool.SCISSORS;
         if (!scissors) {
             if (this.active) {
                 this.remove();
@@ -54,12 +55,12 @@ export class SplitControls {
         // Update the markers when the files change
         let controlIndex = 0;
         selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-            let file = getFile(fileId);
+            let file = fileStateCollection.getFile(fileId);
 
             if (file) {
                 file.forEachSegment((segment, trackIndex, segmentIndex) => {
                     if (
-                        selection.value.hasAnyParent(
+                        get(selection).hasAnyParent(
                             new ListTrackSegmentItem(fileId, trackIndex, segmentIndex)
                         )
                     ) {
@@ -163,8 +164,8 @@ export class SplitControls {
 
         marker.getElement().addEventListener('click', (e) => {
             e.stopPropagation();
-            dbUtils.split(
-                splitAs.current,
+            fileActions.split(
+                get(splitAs),
                 control.fileId,
                 control.trackIndex,
                 control.segmentIndex,

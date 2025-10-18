@@ -7,6 +7,9 @@ import {
     ListWaypointsItem,
 } from '$lib/components/file-list/file-list';
 import { get, writable, type Writable } from 'svelte/store';
+import { settings } from '$lib/logic/settings';
+
+const { fileOrder } = settings;
 
 export class SelectedGPXStatistics {
     private _statistics: Writable<GPXStatistics>;
@@ -22,6 +25,7 @@ export class SelectedGPXStatistics {
         this._statistics = writable(new GPXStatistics());
         this._files = new Map();
         selection.subscribe(() => this.update());
+        fileOrder.subscribe(() => this.update());
     }
 
     subscribe(run: (value: GPXStatistics) => void, invalidate?: (value?: GPXStatistics) => void) {

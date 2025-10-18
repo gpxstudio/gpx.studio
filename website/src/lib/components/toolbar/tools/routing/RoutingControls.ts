@@ -1,17 +1,25 @@
 import { distance, type Coordinates, TrackPoint, TrackSegment, Track, projectedPoint } from 'gpx';
 import { get, writable, type Readable } from 'svelte/store';
 import mapboxgl from 'mapbox-gl';
-import { route } from './utils.svelte';
+import { route } from './routing';
 import { toast } from 'svelte-sonner';
 import {
     ListFileItem,
     ListTrackItem,
     ListTrackSegmentItem,
 } from '$lib/components/file-list/file-list';
-import { getClosestLinePoint, resetCursor, setGrabbingCursor } from '$lib/utils';
+import { getClosestLinePoint } from '$lib/utils';
 import type { GPXFileWithStatistics } from '$lib/logic/statistics-tree';
+import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+import { settings } from '$lib/logic/settings';
+import { selection } from '$lib/logic/selection';
+import { currentTool, Tool } from '$lib/components/toolbar/tools';
+import { streetViewEnabled } from '$lib/components/map/street-view-control/utils';
+import { fileActionManager } from '$lib/logic/file-action-manager';
+import { i18n } from '$lib/i18n.svelte';
+import { map } from '$lib/components/map/map';
 
-// const { streetViewSource } = settings;
+const { streetViewSource } = settings;
 export const canChangeStart = writable(false);
 
 function stopPropagation(e: any) {
@@ -20,7 +28,6 @@ function stopPropagation(e: any) {
 
 export class RoutingControls {
     active: boolean = false;
-    map: mapboxgl.Map;
     fileId: string = '';
     file: Readable<GPXFileWithStatistics | undefined>;
     anchors: AnchorWithMarker[] = [];
@@ -39,13 +46,11 @@ export class RoutingControls {
     appendAnchorBinded: (e: mapboxgl.MapMouseEvent) => void = this.appendAnchor.bind(this);
 
     constructor(
-        map: mapboxgl.Map,
         fileId: string,
         file: Readable<GPXFileWithStatistics | undefined>,
         popup: mapboxgl.Popup,
         popupElement: HTMLElement
     ) {
-        this.map = map;
         this.fileId = fileId;
         this.file = file;
         this.popup = popup;
@@ -88,12 +93,17 @@ export class RoutingControls {
     }
 
     add() {
+        const map_ = get(map);
+        if (!map_) {
+            return;
+        }
+
         this.active = true;
 
-        this.map.on('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
-        this.map.on('click', this.appendAnchorBinded);
-        this.map.on('mousemove', this.fileId, this.showTemporaryAnchorBinded);
-        this.map.on('click', this.fileId, stopPropagation);
+        map_.on('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
+        map_.on('click', this.appendAnchorBinded);
+        map_.on('mousemove', this.fileId, this.showTemporaryAnchorBinded);
+        map_.on('click', this.fileId, stopPropagation);
 
         this.fileUnsubscribe = this.file.subscribe(this.updateControls.bind(this));
     }
@@ -141,23 +151,24 @@ export class RoutingControls {
     }
 
     remove() {
+        const map_ = get(map);
+        if (!map_) {
+            return;
+        }
+
         this.active = false;
 
         for (let anchor of this.anchors) {
             anchor.marker.remove();
         }
-        this.map.off('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
-        this.map.off('click', this.appendAnchorBinded);
-        this.map.off('mousemove', this.fileId, this.showTemporaryAnchorBinded);
-        this.map.off('click', this.fileId, stopPropagation);
-        this.map.off('mousemove', this.updateTemporaryAnchorBinded);
+        map_.off('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
+        map_.off('click', this.appendAnchorBinded);
+        map_.off('mousemove', this.fileId, this.showTemporaryAnchorBinded);
+        map_.off('click', this.fileId, stopPropagation);
+        map_.off('mousemove', this.updateTemporaryAnchorBinded);
         this.temporaryAnchor.marker.remove();
 
         this.fileUnsubscribe();
-    }
-
-    updateMap(map: mapboxgl.Map) {
-        this.map = map;
     }
 
     createAnchor(
@@ -186,13 +197,13 @@ export class RoutingControls {
 
         marker.on('dragstart', (e) => {
             this.lastDragEvent = Date.now();
-            setGrabbingCursor();
+            mapCursor.notify(MapCursorState.TRACKPOINT_DRAGGING, true);
             element.classList.remove('cursor-pointer');
             element.classList.add('cursor-grabbing');
         });
         marker.on('dragend', (e) => {
             this.lastDragEvent = Date.now();
-            resetCursor();
+            mapCursor.notify(MapCursorState.TRACKPOINT_DRAGGING, false);
             element.classList.remove('cursor-grabbing');
             element.classList.add('cursor-pointer');
             this.moveAnchor(anchor);
@@ -255,19 +266,24 @@ export class RoutingControls {
     }
 
     toggleAnchorsForZoomLevelAndBounds() {
+        const map_ = get(map);
+        if (!map_) {
+            return;
+        }
+
         // Show markers only if they are in the current zoom level and bounds
         this.shownAnchors.splice(0, this.shownAnchors.length);
 
-        let center = this.map.getCenter();
-        let bottomLeft = this.map.unproject([0, this.map.getCanvas().height]);
-        let topRight = this.map.unproject([this.map.getCanvas().width, 0]);
+        let center = map_.getCenter();
+        let bottomLeft = map_.unproject([0, map_.getCanvas().height]);
+        let topRight = map_.unproject([map_.getCanvas().width, 0]);
         let diagonal = bottomLeft.distanceTo(topRight);
 
-        let zoom = this.map.getZoom();
+        let zoom = map_.getZoom();
         this.anchors.forEach((anchor) => {
             anchor.inZoom = anchor.point._data.zoom <= zoom;
             if (anchor.inZoom && center.distanceTo(anchor.marker.getLngLat()) < diagonal) {
-                anchor.marker.addTo(this.map);
+                anchor.marker.addTo(map_);
                 this.shownAnchors.push(anchor);
             } else {
                 anchor.marker.remove();
@@ -276,6 +292,11 @@ export class RoutingControls {
     }
 
     showTemporaryAnchor(e: any) {
+        const map_ = get(map);
+        if (!map_) {
+            return;
+        }
+
         if (this.temporaryAnchor.marker.getElement().classList.contains('cursor-grabbing')) {
             // Do not not change the source point if it is already being dragged
             return;
@@ -305,25 +326,30 @@ export class RoutingControls {
             lat: e.lngLat.lat,
             lon: e.lngLat.lng,
         });
-        this.temporaryAnchor.marker.setLngLat(e.lngLat).addTo(this.map);
+        this.temporaryAnchor.marker.setLngLat(e.lngLat).addTo(map_);
 
-        this.map.on('mousemove', this.updateTemporaryAnchorBinded);
+        map_.on('mousemove', this.updateTemporaryAnchorBinded);
     }
 
     updateTemporaryAnchor(e: any) {
+        const map_ = get(map);
+        if (!map_) {
+            return;
+        }
+
         if (this.temporaryAnchor.marker.getElement().classList.contains('cursor-grabbing')) {
             // Do not hide if it is being dragged, and stop listening for mousemove
-            this.map.off('mousemove', this.updateTemporaryAnchorBinded);
+            map_.off('mousemove', this.updateTemporaryAnchorBinded);
             return;
         }
 
         if (
-            e.point.dist(this.map.project(this.temporaryAnchor.point.getCoordinates())) > 20 ||
+            e.point.dist(map_.project(this.temporaryAnchor.point.getCoordinates())) > 20 ||
             this.temporaryAnchorCloseToOtherAnchor(e)
         ) {
             // Hide if too far from the layer
             this.temporaryAnchor.marker.remove();
-            this.map.off('mousemove', this.updateTemporaryAnchorBinded);
+            map_.off('mousemove', this.updateTemporaryAnchorBinded);
             return;
         }
 
@@ -331,8 +357,13 @@ export class RoutingControls {
     }
 
     temporaryAnchorCloseToOtherAnchor(e: any) {
+        const map_ = get(map);
+        if (!map_) {
+            return false;
+        }
+
         for (let anchor of this.shownAnchors) {
-            if (e.point.dist(this.map.project(anchor.marker.getLngLat())) < 10) {
+            if (e.point.dist(map_.project(anchor.marker.getLngLat())) < 10) {
                 return true;
             }
         }
@@ -482,7 +513,7 @@ export class RoutingControls {
         });
 
         if (minInfo.trackIndex !== -1) {
-            dbUtils.applyToFile(this.fileId, (file) =>
+            fileActionManager.applyToFile(this.fileId, (file) =>
                 file.replaceTrackPoints(
                     minInfo.trackIndex,
                     minInfo.segmentIndex,
@@ -506,12 +537,12 @@ export class RoutingControls {
 
         if (previousAnchor === null && nextAnchor === null) {
             // Only one point, remove it
-            dbUtils.applyToFile(this.fileId, (file) =>
+            fileActionManager.applyToFile(this.fileId, (file) =>
                 file.replaceTrackPoints(anchor.trackIndex, anchor.segmentIndex, 0, 0, [])
             );
         } else if (previousAnchor === null) {
             // First point, remove trackpoints until nextAnchor
-            dbUtils.applyToFile(this.fileId, (file) =>
+            fileActionManager.applyToFile(this.fileId, (file) =>
                 file.replaceTrackPoints(
                     anchor.trackIndex,
                     anchor.segmentIndex,
@@ -522,7 +553,7 @@ export class RoutingControls {
             );
         } else if (nextAnchor === null) {
             // Last point, remove trackpoints from previousAnchor
-            dbUtils.applyToFile(this.fileId, (file) => {
+            fileActionManager.applyToFile(this.fileId, (file) => {
                 let segment = file.getSegment(anchor.trackIndex, anchor.segmentIndex);
                 file.replaceTrackPoints(
                     anchor.trackIndex,
@@ -558,7 +589,7 @@ export class RoutingControls {
         ).global.speed.moving;
 
         let segment = anchor.segment;
-        dbUtils.applyToFile(this.fileId, (file) => {
+        fileActionManager.applyToFile(this.fileId, (file) => {
             file.replaceTrackPoints(
                 anchor.trackIndex,
                 anchor.segmentIndex,
@@ -590,7 +621,7 @@ export class RoutingControls {
 
     async appendAnchorWithCoordinates(coordinates: Coordinates) {
         // Add a new anchor to the end of the last segment
-        let selected = getOrderedSelection();
+        let selected = selection.getOrderedSelection();
         if (selected.length === 0 || selected[selected.length - 1].getFileId() !== this.fileId) {
             return;
         }
@@ -605,7 +636,7 @@ export class RoutingControls {
         newPoint._data.zoom = 0;
 
         if (!lastAnchor) {
-            dbUtils.applyToFile(this.fileId, (file) => {
+            fileActionManager.applyToFile(this.fileId, (file) => {
                 let trackIndex = file.trk.length > 0 ? file.trk.length - 1 : 0;
                 if (item instanceof ListTrackItem || item instanceof ListTrackSegmentItem) {
                     trackIndex = item.getTrackIndex();
@@ -686,7 +717,7 @@ export class RoutingControls {
 
         if (anchors.length === 1) {
             // Only one anchor, update the point in the segment
-            dbUtils.applyToFile(this.fileId, (file) =>
+            fileActionManager.applyToFile(this.fileId, (file) =>
                 file.replaceTrackPoints(anchors[0].trackIndex, anchors[0].segmentIndex, 0, 0, [
                     new TrackPoint({
                         attributes: targetCoordinates[0],
@@ -701,13 +732,13 @@ export class RoutingControls {
             response = await route(targetCoordinates);
         } catch (e: any) {
             if (e.message.includes('from-position not mapped in existing datafile')) {
-                toast.error(get(_)('toolbar.routing.error.from'));
+                toast.error(i18n._('toolbar.routing.error.from'));
             } else if (e.message.includes('via1-position not mapped in existing datafile')) {
-                toast.error(get(_)('toolbar.routing.error.via'));
+                toast.error(i18n._('toolbar.routing.error.via'));
             } else if (e.message.includes('to-position not mapped in existing datafile')) {
-                toast.error(get(_)('toolbar.routing.error.to'));
+                toast.error(i18n._('toolbar.routing.error.to'));
             } else if (e.message.includes('Time-out')) {
-                toast.error(get(_)('toolbar.routing.error.timeout'));
+                toast.error(i18n._('toolbar.routing.error.timeout'));
             } else {
                 toast.error(e.message);
             }
@@ -797,7 +828,7 @@ export class RoutingControls {
             }
         }
 
-        dbUtils.applyToFile(this.fileId, (file) =>
+        fileActionManager.applyToFile(this.fileId, (file) =>
             file.replaceTrackPoints(
                 anchors[0].trackIndex,
                 anchors[0].segmentIndex,
@@ -817,6 +848,8 @@ export class RoutingControls {
         this.unsubscribes.forEach((unsubscribe) => unsubscribe());
     }
 }
+
+export const routingControls: Map<string, RoutingControls> = new Map();
 
 type Anchor = {
     segment: TrackSegment;

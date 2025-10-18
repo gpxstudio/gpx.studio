@@ -1,68 +1,64 @@
 <script lang="ts">
-    import { Tool, tool } from '$lib/components/toolbar/tools';
+    import { Tool, currentTool } from '$lib/components/toolbar/tools';
     import * as Card from '$lib/components/ui/card';
     import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
     import Scissors from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
     import Waypoint from '$lib/components/toolbar/tools/waypoint/Waypoint.svelte';
-    import Time from '$lib/components/toolbar/tools/Time.svelte';
+    // import Time from '$lib/components/toolbar/tools/Time.svelte';
     import Merge from '$lib/components/toolbar/tools/Merge.svelte';
-    import Extract from '$lib/components/toolbar/tools/Extract.svelte';
     import Elevation from '$lib/components/toolbar/tools/Elevation.svelte';
+    import Extract from '$lib/components/toolbar/tools/Extract.svelte';
     import Clean from '$lib/components/toolbar/tools/Clean.svelte';
-    import Reduce from '$lib/components/toolbar/tools/Reduce.svelte';
+    import Reduce from '$lib/components/toolbar/tools/reduce/Reduce.svelte';
     import RoutingControlPopup from '$lib/components/toolbar/tools/routing/RoutingControlPopup.svelte';
-    import { onMount } from 'svelte';
     import mapboxgl from 'mapbox-gl';
     import { settings } from '$lib/logic/settings';
 
     let {
-        popupElement,
-        popup,
         class: className = '',
     }: {
-        popupElement: HTMLDivElement;
-        popup: mapboxgl.Popup;
         class: string;
     } = $props();
 
     const { minimizeRoutingMenu } = settings;
 
-    onMount(() => {
-        popup = new mapboxgl.Popup({
+    let popupElement: HTMLDivElement | undefined = $state(undefined);
+    let popup: mapboxgl.Popup | undefined = $derived.by(() => {
+        if (!popupElement) {
+            return undefined;
+        }
+        let popup = new mapboxgl.Popup({
             closeButton: false,
             maxWidth: undefined,
         });
         popup.setDOMContent(popupElement);
         popupElement.classList.remove('hidden');
+        return popup;
     });
 </script>
 
-{#if tool.current !== null}
+{#if $currentTool !== null}
     <div class="translate-x-1 h-full animate-in animate-out {className}">
         <div class="rounded-md shadow-md pointer-events-auto">
             <Card.Root class="rounded-md border-none">
                 <Card.Content class="p-2.5">
-                    {#if tool.current === Tool.ROUTING}
-                        <Routing
-                            {popup}
-                            {popupElement}
-                            bind:minimized={minimizeRoutingMenu.value}
-                        />
-                    {:else if tool.current === Tool.SCISSORS}
+                    {#if $currentTool === Tool.ROUTING}
+                        <Routing {popup} {popupElement} bind:minimized={$minimizeRoutingMenu} />
+                    {:else if $currentTool === Tool.SCISSORS}
                         <Scissors />
-                    {:else if tool.current === Tool.WAYPOINT}
+                    {:else if $currentTool === Tool.WAYPOINT}
                         <Waypoint />
-                    {:else if tool.current === Tool.TIME}
-                        <Time />
-                    {:else if tool.current === Tool.MERGE}
+                        <!-- {:else if $currentTool === Tool.TIME}
+                        <Time /> -->
+                    {:else if $currentTool === Tool.MERGE}
                         <Merge />
-                    {:else if tool.current === Tool.ELEVATION}
+                    {:else if $currentTool === Tool.ELEVATION}
                         <Elevation />
-                    {:else if tool.current === Tool.EXTRACT}
+                    {:else if $currentTool === Tool.EXTRACT}
                         <Extract />
-                    {:else if tool.current === Tool.CLEAN}
+                    {:else if $currentTool === Tool.CLEAN}
                         <Clean />
-                    {:else if tool.current === Tool.REDUCE}
+                    {:else if $currentTool === Tool.REDUCE}
                         <Reduce />
                     {/if}
                 </Card.Content>
@@ -73,8 +69,8 @@
 
 <svelte:window
     on:keydown={(e) => {
-        if (tool.current !== null && e.key === 'Escape') {
-            tool.current = null;
+        if ($currentTool !== null && e.key === 'Escape') {
+            $currentTool = null;
         }
     }}
 />

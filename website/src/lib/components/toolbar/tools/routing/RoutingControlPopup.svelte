@@ -7,7 +7,11 @@
 
     import { i18n } from '$lib/i18n.svelte';
 
-    export let element: HTMLElement;
+    let {
+        element = $bindable(),
+    }: {
+        element: HTMLElement | undefined;
+    } = $props();
 </script>
 
 <div bind:this={element} class="hidden">
@@ -17,7 +21,7 @@
                 <Button
                     class="w-full px-2 py-1 h-6 justify-start"
                     variant="ghost"
-                    onclick={() => element.dispatchEvent(new CustomEvent('change-start'))}
+                    onclick={() => element?.dispatchEvent(new CustomEvent('change-start'))}
                 >
                     <CirclePlay size="16" class="mr-1" />
                     {i18n._('toolbar.routing.start_loop_here')}
@@ -26,7 +30,7 @@
             <Button
                 class="w-full px-2 py-1 h-6 justify-start"
                 variant="ghost"
-                onclick={() => element.dispatchEvent(new CustomEvent('delete'))}
+                onclick={() => element?.dispatchEvent(new CustomEvent('delete'))}
             >
                 <Trash2 size="16" class="mr-1" />
                 {i18n._('menu.delete')}

@@ -24,17 +24,6 @@
 
 // export const routingControls: Map<string, RoutingControls> = new Map();
 
-// export function selectFileWhenLoaded(fileId: string) {
-//     const unsubscribe = fileObservers.subscribe((files) => {
-//         if (files.has(fileId)) {
-//             tick().then(() => {
-//                 selectFile(fileId);
-//             });
-//             unsubscribe();
-//         }
-//     });
-// }
-
 // export const allHidden = writable(false);
 
 // export function updateAllHidden() {

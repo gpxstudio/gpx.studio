@@ -544,15 +544,17 @@
 <svelte:window
     on:keydown={(e) => {
         let targetInput =
-            e.target.tagName === 'INPUT' ||
-            e.target.tagName === 'TEXTAREA' ||
-            e.target.tagName === 'SELECT' ||
-            e.target.role === 'combobox' ||
-            e.target.role === 'radio' ||
-            e.target.role === 'menu' ||
-            e.target.role === 'menuitem' ||
-            e.target.role === 'menuitemradio' ||
-            e.target.role === 'menuitemcheckbox';
+            e &&
+            e.target &&
+            (e.target.tagName === 'INPUT' ||
+                e.target.tagName === 'TEXTAREA' ||
+                e.target.tagName === 'SELECT' ||
+                e.target.role === 'combobox' ||
+                e.target.role === 'radio' ||
+                e.target.role === 'menu' ||
+                e.target.role === 'menuitem' ||
+                e.target.role === 'menuitemradio' ||
+                e.target.role === 'menuitemcheckbox');
 
         if (e.key === '+' && (e.metaKey || e.ctrlKey)) {
             createFile();

@@ -7,6 +7,7 @@ import { get, writable, type Writable } from 'svelte/store';
 
 export class WaypointSelection {
     private _selection: Writable<[Waypoint, string] | undefined>;
+    private _fileUnsubscribe: (() => void) | undefined;
 
     constructor() {
         this._selection = writable(undefined);
@@ -18,15 +19,37 @@ export class WaypointSelection {
         });
     }
 
+    subscribe(
+        run: (value: [Waypoint, string] | undefined) => void,
+        invalidate?: (value?: [Waypoint, string] | undefined) => void
+    ) {
+        return this._selection.subscribe(run, invalidate);
+    }
+
+    set(value: [Waypoint, string] | undefined) {
+        this._selection.set(value);
+    }
+
     update() {
+        if (this._fileUnsubscribe) {
+            this._fileUnsubscribe();
+            this._fileUnsubscribe = undefined;
+        }
         this._selection.update(() => {
             if (get(settings.treeFileView) && get(selection).size === 1) {
                 let item = get(selection).getSelected()[0];
                 if (item instanceof ListWaypointItem) {
-                    let file = fileStateCollection.getFile(item.getFileId());
-                    let waypoint = file?.wpt[item.getWaypointIndex()];
-                    if (waypoint) {
-                        return [waypoint, item.getFileId()];
+                    let fileState = fileStateCollection.getFileState(item.getFileId());
+                    if (fileState) {
+                        let first = true;
+                        this._fileUnsubscribe = fileState.subscribe(() => {
+                            if (first) first = false;
+                            else this.update();
+                        });
+                        let waypoint = fileState.file?.wpt[item.getWaypointIndex()];
+                        if (waypoint) {
+                            return [waypoint, item.getFileId()];
+                        }
                     }
                 }
             }
@@ -47,34 +70,6 @@ export class WaypointSelection {
         const selection = get(this._selection);
         return selection ? selection[1] : undefined;
     }
-
-    // TODO update the waypoint data if the file changes
-    // function updateWaypointData(fileStore: GPXFileWithStatistics | undefined) {
-    //     if (selectedWaypoint.wpt) {
-    //         if (fileStore) {
-    //             if ($selectedWaypoint[0]._data.index < fileStore.file.wpt.length) {
-    //                 $selectedWaypoint[0] = fileStore.file.wpt[$selectedWaypoint[0]._data.index];
-    //                 name = $selectedWaypoint[0].name ?? '';
-    //                 description = $selectedWaypoint[0].desc ?? '';
-    //                 if (
-    //                     $selectedWaypoint[0].cmt !== undefined &&
-    //                     $selectedWaypoint[0].cmt !== $selectedWaypoint[0].desc
-    //                 ) {
-    //                     description += '\n\n' + $selectedWaypoint[0].cmt;
-    //                 }
-    //                 link = $selectedWaypoint[0].link?.attributes?.href ?? '';
-    //                 let symbol = $selectedWaypoint[0].sym ?? '';
-    //                 symbolKey = getSymbolKey(symbol) ?? symbol ?? '';
-    //                 longitude = parseFloat($selectedWaypoint[0].getLongitude().toFixed(6));
-    //                 latitude = parseFloat($selectedWaypoint[0].getLatitude().toFixed(6));
-    //             } else {
-    //                 selectedWaypoint.reset();
-    //             }
-    //         } else {
-    //             selectedWaypoint.reset();
-    //         }
-    //     }
-    // }
 }
 
 export const selectedWaypoint = new WaypointSelection();
