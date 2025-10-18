@@ -5,7 +5,6 @@
     import { Button } from '$lib/components/ui/button';
     import { Checkbox } from '$lib/components/ui/checkbox';
     import TimePicker from '$lib/components/ui/time-picker/TimePicker.svelte';
-    import { gpxStatistics } from '$lib/stores';
     import {
         distancePerHourToSecondsPerDistance,
         getConvertedVelocity,
@@ -26,20 +25,20 @@
     import { getURLForLanguage } from '$lib/utils';
     import { selection } from '$lib/logic/selection';
     import { settings } from '$lib/logic/settings';
-    import { fileActions } from '$lib/logic/file-actions';
     import { fileActionManager } from '$lib/logic/file-action-manager';
+    import { gpxStatistics } from '$lib/logic/statistics';
 
     let props: {
         class?: string;
     } = $props();
 
-    let startDate: DateValue | undefined = undefined;
-    let startTime: string | undefined = undefined;
-    let endDate: DateValue | undefined = undefined;
-    let endTime: string | undefined = undefined;
-    let movingTime: number | undefined = undefined;
-    let speed: number | undefined = undefined;
-    let artificial = false;
+    let startDate: DateValue | undefined = $state(undefined);
+    let startTime: string | undefined = $state(undefined);
+    let endDate: DateValue | undefined = $state(undefined);
+    let endTime: string | undefined = $state(undefined);
+    let movingTime: number | undefined = $state(undefined);
+    let speed: number | undefined = $state(undefined);
+    let artificial = $state(false);
 
     function toCalendarDate(date: Date): CalendarDate {
         return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
@@ -53,7 +52,7 @@
 
     function setSpeed(value: number) {
         let speedValue = getConvertedVelocity(value);
-        if (velocityUnits.value === 'speed') {
+        if ($velocityUnits === 'speed') {
             speedValue = parseFloat(speedValue.toFixed(2));
         }
         speed = speedValue;
@@ -86,9 +85,11 @@
         }
     }
 
-    // $: if ($gpxStatistics && $velocityUnits && $distanceUnits) {
-    //     setGPXData();
-    // }
+    $effect(() => {
+        if ($gpxStatistics && $velocityUnits && $distanceUnits) {
+            setGPXData();
+        }
+    });
 
     function getDate(date: DateValue, time: string): Date {
         if (date === undefined) {
@@ -139,12 +140,12 @@
         }
 
         let speedValue = speed;
-        if (velocityUnits.value === 'pace') {
+        if ($velocityUnits === 'pace') {
             speedValue = distancePerHourToSecondsPerDistance(speed);
         }
-        if (distanceUnits.value === 'imperial') {
+        if ($distanceUnits === 'imperial') {
             speedValue = milesToKilometers(speedValue);
-        } else if (distanceUnits.value === 'nautical') {
+        } else if ($distanceUnits === 'nautical') {
             speedValue = nauticalMilesToKilometers(speedValue);
         }
         return speedValue;
@@ -178,8 +179,7 @@
     }
 
     let canUpdate = $derived(
-        selection.value.size === 1 &&
-            selection.value.hasAnyChildren(new ListRootItem(), true, ['waypoints'])
+        $selection.size === 1 && $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints'])
     );
 </script>
 
@@ -189,14 +189,14 @@
             <div class="flex flex-col gap-2 grow">
                 <Label for="speed" class="flex flex-row">
                     <Zap size="16" class="mr-1" />
-                    {#if velocityUnits.value === 'speed'}
+                    {#if $velocityUnits === 'speed'}
                         {i18n._('quantities.speed')}
                     {:else}
                         {i18n._('quantities.pace')}
                     {/if}
                 </Label>
                 <div class="flex flex-row gap-1 items-center">
-                    {#if velocityUnits.value === 'speed'}
+                    {#if $velocityUnits === 'speed'}
                         <Input
                             id="speed"
                             type="number"
@@ -205,13 +205,14 @@
                             disabled={!canUpdate}
                             bind:value={speed}
                             onchange={updateDataFromSpeed}
+                            class="text-sm"
                         />
                         <span class="text-sm shrink-0">
-                            {#if distanceUnits.value === 'imperial'}
+                            {#if $distanceUnits === 'imperial'}
                                 {i18n._('units.miles_per_hour')}
-                            {:else if distanceUnits.value === 'metric'}
+                            {:else if $distanceUnits === 'metric'}
                                 {i18n._('units.kilometers_per_hour')}
-                            {:else if distanceUnits.value === 'nautical'}
+                            {:else if $distanceUnits === 'nautical'}
                                 {i18n._('units.knots')}
                             {/if}
                         </span>
@@ -223,11 +224,11 @@
                             onChange={updateDataFromSpeed}
                         />
                         <span class="text-sm shrink-0">
-                            {#if distanceUnits.value === 'imperial'}
+                            {#if $distanceUnits === 'imperial'}
                                 {i18n._('units.minutes_per_mile')}
-                            {:else if distanceUnits.value === 'metric'}
+                            {:else if $distanceUnits === 'metric'}
                                 {i18n._('units.minutes_per_kilometer')}
-                            {:else if distanceUnits.value === 'nautical'}
+                            {:else if $distanceUnits === 'nautical'}
                                 {i18n._('units.minutes_per_nautical_mile')}
                             {/if}
                         </span>
@@ -332,7 +333,7 @@
                     ratio = $gpxStatistics.global.speed.moving / effectiveSpeed;
                 }
 
-                let item = selection.value.getSelected()[0];
+                let item = $selection.getSelected()[0];
                 let fileId = item.getFileId();
                 fileActionManager.applyToFile(fileId, (file) => {
                     if (item instanceof ListFileItem) {
