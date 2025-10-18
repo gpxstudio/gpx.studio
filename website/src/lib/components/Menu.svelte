@@ -71,7 +71,7 @@
     } from '$lib/logic/file-actions';
     import { fileStateCollection } from '$lib/logic/file-state';
     import { fileActionManager } from '$lib/logic/file-action-manager';
-    import { selection } from '$lib/logic/selection';
+    import { copied, selection } from '$lib/logic/selection';
 
     const {
         distanceUnits,
@@ -317,10 +317,10 @@
                             <Shortcut key="X" ctrl={true} />
                         </Menubar.Item>
                         <Menubar.Item
-                            disabled={selection.copied === undefined ||
-                                selection.copied.length === 0 ||
+                            disabled={$copied === undefined ||
+                                $copied.length === 0 ||
                                 ($selection.size > 0 &&
-                                    !allowedPastes[selection.copied[0].level].includes(
+                                    !allowedPastes[$copied[0].level].includes(
                                         $selection.getSelected().pop()?.level
                                     ))}
                             onclick={pasteSelection}

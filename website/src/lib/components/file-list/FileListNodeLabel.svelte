@@ -37,7 +37,7 @@
     import { editStyle } from '$lib/components/file-list/style/utils.svelte';
     import { waypointPopup } from '$lib/components/map/gpx-layer/GPXLayerPopup';
     import { getSymbolKey, symbols } from '$lib/assets/symbols';
-    import { selection } from '$lib/logic/selection';
+    import { selection, copied, cut } from '$lib/logic/selection';
     import { map } from '$lib/components/map/map';
     import { fileActions, pasteSelection } from '$lib/logic/file-actions';
 
@@ -151,8 +151,7 @@
             <span
                 class="w-full text-left truncate py-1 flex flex-row items-center {hidden
                     ? 'text-muted-foreground'
-                    : ''} {selection.cut &&
-                selection.copied?.some((i) => i.getFullId() === item.getFullId())
+                    : ''} {$cut && $copied?.some((i) => i.getFullId() === item.getFullId())
                     ? 'text-muted-foreground'
                     : ''}"
                 oncontextmenu={(e) => {
@@ -310,9 +309,9 @@
                 <Shortcut key="X" ctrl={true} />
             </ContextMenu.Item>
             <ContextMenu.Item
-                disabled={selection.copied === undefined ||
-                    selection.copied.length === 0 ||
-                    !allowedPastes[selection.copied[0].level].includes(item.level)}
+                disabled={$copied === undefined ||
+                    $copied.length === 0 ||
+                    !allowedPastes[$copied[0].level].includes(item.level)}
                 onclick={pasteSelection}
             >
                 <ClipboardPaste size="16" class="mr-1" />

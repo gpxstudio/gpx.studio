@@ -212,6 +212,8 @@ export class Selection {
 }
 
 export const selection = new Selection();
+export const copied = selection.copied;
+export const cut = selection.cut;
 
 export function applyToOrderedItemsFromFile(
     selectedItems: ListItem[],

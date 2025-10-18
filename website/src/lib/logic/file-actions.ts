@@ -1,6 +1,6 @@
 import { fileStateCollection } from '$lib/logic/file-state';
 import { fileActionManager } from '$lib/logic/file-action-manager';
-import { selection } from '$lib/logic/selection';
+import { copied, cut, selection } from '$lib/logic/selection';
 import { currentTool, Tool } from '$lib/components/toolbar/tools';
 import type { SplitType } from '$lib/components/toolbar/tools/scissors/scissors';
 import {
@@ -927,7 +927,7 @@ export const fileActions = {
 };
 
 export function pasteSelection() {
-    let fromItems = selection.copied;
+    let fromItems = get(copied);
     if (fromItems === undefined || fromItems.length === 0) {
         return;
     }
@@ -1007,7 +1007,7 @@ export function pasteSelection() {
     }
 
     if (fromItems.length === toItems.length) {
-        moveItems(fromParent, toParent, fromItems, toItems, selection.cut);
+        moveItems(fromParent, toParent, fromItems, toItems, get(cut));
         selection.resetCopied();
     }
 }

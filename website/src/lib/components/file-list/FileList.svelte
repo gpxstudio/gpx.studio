@@ -10,7 +10,7 @@
     import { settings } from '$lib/logic/settings';
     import { fileStateCollection } from '$lib/logic/file-state';
     import { createFile, pasteSelection } from '$lib/logic/file-actions';
-    import { selection } from '$lib/logic/selection';
+    import { selection, copied } from '$lib/logic/selection';
 
     let {
         orientation,
@@ -86,9 +86,9 @@
                     </ContextMenu.Item>
                     <ContextMenu.Separator />
                     <ContextMenu.Item
-                        disabled={selection.copied === undefined ||
-                            selection.copied.length === 0 ||
-                            !allowedPastes[selection.copied[0].level].includes(ListLevel.ROOT)}
+                        disabled={$copied === undefined ||
+                            $copied.length === 0 ||
+                            !allowedPastes[$copied[0].level].includes(ListLevel.ROOT)}
                         onclick={pasteSelection}
                     >
                         <ClipboardPaste size="16" class="mr-1" />
