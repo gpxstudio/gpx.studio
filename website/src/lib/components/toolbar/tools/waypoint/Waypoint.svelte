@@ -167,7 +167,7 @@
             disabled={!canCreate && !$selectedWaypoint}
         />
         <div class="flex flex-row gap-2">
-            <div class="grow">
+            <div class="grow flex flex-col gap-2">
                 <Label for="latitude">{i18n._('toolbar.waypoint.latitude')}</Label>
                 <Input
                     bind:value={latitude}
@@ -180,7 +180,7 @@
                     disabled={!canCreate && !$selectedWaypoint}
                 />
             </div>
-            <div class="grow">
+            <div class="grow flex flex-col gap-2">
                 <Label for="longitude">{i18n._('toolbar.waypoint.longitude')}</Label>
                 <Input
                     bind:value={longitude}
