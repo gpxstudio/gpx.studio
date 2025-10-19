@@ -2,6 +2,7 @@ import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import { get, writable, type Writable } from 'svelte/store';
 import { settings } from '$lib/logic/settings';
+import { tick } from 'svelte';
 
 const { treeFileView, elevationProfile, bottomPanelSize, rightPanelSize, distanceUnits } = settings;
 
@@ -204,7 +205,9 @@ export class MapboxGLMap {
     resize() {
         const map = get(this._map);
         if (map) {
-            map.resize();
+            tick().then(() => {
+                map.resize();
+            });
         }
     }
 
