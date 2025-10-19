@@ -109,6 +109,8 @@
  --color-sidebar-ring: var(--sidebar-ring);
  --color-support: var(--support);
  --color-link: var(--link);
+
+ --breakpoint-xs: 540px;
 }
  
 @layer base {
