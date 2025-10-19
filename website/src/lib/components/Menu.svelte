@@ -72,6 +72,7 @@
     import { fileStateCollection } from '$lib/logic/file-state';
     import { fileActionManager } from '$lib/logic/file-action-manager';
     import { copied, selection } from '$lib/logic/selection';
+    import { allHidden } from '$lib/logic/hidden';
 
     const {
         distanceUnits,
@@ -229,21 +230,21 @@
                     </Menubar.Item>
                     <Menubar.Item
                         onclick={() => {
-                            // if ($allHidden) {
-                            //     fileActions.setHiddenToSelection(false);
-                            // } else {
-                            //     fileActions.setHiddenToSelection(true);
-                            // }
+                            if ($allHidden) {
+                                fileActions.setHiddenToSelection(false);
+                            } else {
+                                fileActions.setHiddenToSelection(true);
+                            }
                         }}
                         disabled={$selection.size == 0}
                     >
-                        <!-- {#if $allHidden}
+                        {#if $allHidden}
                             <Eye size="16" />
                             {i18n._('menu.unhide')}
                         {:else}
                             <EyeOff size="16" />
                             {i18n._('menu.hide')}
-                        {/if} -->
+                        {/if}
                         <Shortcut key="H" ctrl={true} />
                     </Menubar.Item>
                     {#if $treeFileView}
@@ -621,11 +622,11 @@
             $treeFileView = !$treeFileView;
             e.preventDefault();
         } else if (e.key === 'h' && (e.metaKey || e.ctrlKey)) {
-            // if ($allHidden) {
-            //     fileActions.setHiddenToSelection(false);
-            // } else {
-            //     fileActions.setHiddenToSelection(true);
-            // }
+            if ($allHidden) {
+                fileActions.setHiddenToSelection(false);
+            } else {
+                fileActions.setHiddenToSelection(true);
+            }
             e.preventDefault();
         } else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
             // if ($selection.size > 0) {

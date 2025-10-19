@@ -14,7 +14,6 @@ import { settings } from '$lib/logic/settings';
 import type { GPXFile } from 'gpx';
 import { get, writable, type Readable, type Writable } from 'svelte/store';
 import { SelectionTreeType } from '$lib/logic/selection-tree';
-import { tick } from 'svelte';
 
 export class Selection {
     private _selection: Writable<SelectionTreeType>;
@@ -253,4 +252,34 @@ export function applyToOrderedItemsFromFile(
             callback(fileId, level, items);
         }
     });
+}
+
+export class SelectedGPXFilesObserver {
+    private _fileStateCollectionObserver: GPXFileStateCollectionObserver;
+    private _unsubscribes: Map<string, () => void> = new Map();
+
+    constructor(onSelectedFileChange: () => void) {
+        this._unsubscribes = new Map();
+        this._fileStateCollectionObserver = new GPXFileStateCollectionObserver(
+            (fileId, fileState) => {
+                this._unsubscribes.set(
+                    fileId,
+                    fileState.subscribe(() => {
+                        if (get(selection).hasAnyChildren(new ListFileItem(fileId))) {
+                            onSelectedFileChange();
+                        }
+                    })
+                );
+            },
+            (fileId) => {
+                this._unsubscribes.get(fileId)?.();
+                this._unsubscribes.delete(fileId);
+            },
+            () => {
+                this._unsubscribes.forEach((unsubscribe) => unsubscribe());
+                this._unsubscribes.clear();
+            }
+        );
+        selection.subscribe(() => onSelectedFileChange());
+    }
 }

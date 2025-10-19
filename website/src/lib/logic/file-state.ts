@@ -31,10 +31,6 @@ export class GPXFileState {
                 }
 
                 this._file.set({ file, statistics });
-
-                // if (get(selection).hasAnyChildren(new ListFileItem(id))) {
-                //     updateAllHidden();
-                // }
             }
         });
     }

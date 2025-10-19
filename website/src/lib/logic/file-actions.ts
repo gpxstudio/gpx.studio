@@ -747,61 +747,61 @@ export const fileActions = {
         );
     },
     setStyleToSelection: (style: LineStyleExtension) => {
-        // if (get(selection).size === 0) {
-        //     return;
-        // }
-        // applyGlobal((draft) => {
-        //     applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-        //         let file = draft.get(fileId);
-        //         if (file && (level === ListLevel.FILE || level === ListLevel.TRACK)) {
-        //             if (level === ListLevel.FILE) {
-        //                 file.setStyle(style);
-        //             } else if (level === ListLevel.TRACK) {
-        //                 if (items.length === file.trk.length) {
-        //                     file.setStyle(style);
-        //                 } else {
-        //                     for (let item of items) {
-        //                         let trackIndex = (item as ListTrackItem).getTrackIndex();
-        //                         file.trk[trackIndex].setStyle(style);
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     });
-        // });
+        if (get(selection).size === 0) {
+            return;
+        }
+        fileActionManager.applyGlobal((draft) => {
+            selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+                let file = draft.get(fileId);
+                if (file && (level === ListLevel.FILE || level === ListLevel.TRACK)) {
+                    if (level === ListLevel.FILE) {
+                        file.setStyle(style);
+                    } else if (level === ListLevel.TRACK) {
+                        if (items.length === file.trk.length) {
+                            file.setStyle(style);
+                        } else {
+                            for (let item of items) {
+                                let trackIndex = (item as ListTrackItem).getTrackIndex();
+                                file.trk[trackIndex].setStyle(style);
+                            }
+                        }
+                    }
+                }
+            });
+        });
     },
     setHiddenToSelection: (hidden: boolean) => {
-        // if (get(selection).size === 0) {
-        //     return;
-        // }
-        // applyGlobal((draft) => {
-        //     applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-        //         let file = draft.get(fileId);
-        //         if (file) {
-        //             if (level === ListLevel.FILE) {
-        //                 file.setHidden(hidden);
-        //             } else if (level === ListLevel.TRACK) {
-        //                 let trackIndices = items.map((item) =>
-        //                     (item as ListTrackItem).getTrackIndex()
-        //                 );
-        //                 file.setHidden(hidden, trackIndices);
-        //             } else if (level === ListLevel.SEGMENT) {
-        //                 let trackIndices = [(items[0] as ListTrackSegmentItem).getTrackIndex()];
-        //                 let segmentIndices = items.map((item) =>
-        //                     (item as ListTrackSegmentItem).getSegmentIndex()
-        //                 );
-        //                 file.setHidden(hidden, trackIndices, segmentIndices);
-        //             } else if (level === ListLevel.WAYPOINTS) {
-        //                 file.setHiddenWaypoints(hidden);
-        //             } else if (level === ListLevel.WAYPOINT) {
-        //                 let waypointIndices = items.map((item) =>
-        //                     (item as ListWaypointItem).getWaypointIndex()
-        //                 );
-        //                 file.setHiddenWaypoints(hidden, waypointIndices);
-        //             }
-        //         }
-        //     });
-        // });
+        if (get(selection).size === 0) {
+            return;
+        }
+        fileActionManager.applyGlobal((draft) => {
+            selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+                let file = draft.get(fileId);
+                if (file) {
+                    if (level === ListLevel.FILE) {
+                        file.setHidden(hidden);
+                    } else if (level === ListLevel.TRACK) {
+                        let trackIndices = items.map((item) =>
+                            (item as ListTrackItem).getTrackIndex()
+                        );
+                        file.setHidden(hidden, trackIndices);
+                    } else if (level === ListLevel.SEGMENT) {
+                        let trackIndices = [(items[0] as ListTrackSegmentItem).getTrackIndex()];
+                        let segmentIndices = items.map((item) =>
+                            (item as ListTrackSegmentItem).getSegmentIndex()
+                        );
+                        file.setHidden(hidden, trackIndices, segmentIndices);
+                    } else if (level === ListLevel.WAYPOINTS) {
+                        file.setHiddenWaypoints(hidden);
+                    } else if (level === ListLevel.WAYPOINT) {
+                        let waypointIndices = items.map((item) =>
+                            (item as ListWaypointItem).getWaypointIndex()
+                        );
+                        file.setHiddenWaypoints(hidden, waypointIndices);
+                    }
+                }
+            });
+        });
     },
     deleteSelection: () => {
         if (get(selection).size === 0) {

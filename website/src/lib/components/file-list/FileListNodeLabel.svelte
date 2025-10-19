@@ -40,6 +40,7 @@
     import { selection, copied, cut } from '$lib/logic/selection';
     import { map } from '$lib/components/map/map';
     import { fileActions, pasteSelection } from '$lib/logic/file-actions';
+    import { allHidden } from '$lib/logic/hidden';
 
     let {
         node,
@@ -240,20 +241,20 @@
         {/if}
         <ContextMenu.Item
             onclick={() => {
-                // if ($allHidden) {
-                //     dbUtils.setHiddenToSelection(false);
-                // } else {
-                //     dbUtils.setHiddenToSelection(true);
-                // }
+                if ($allHidden) {
+                    fileActions.setHiddenToSelection(false);
+                } else {
+                    fileActions.setHiddenToSelection(true);
+                }
             }}
         >
-            <!-- {#if $allHidden}
+            {#if $allHidden}
                 <Eye size="16" class="mr-1" />
                 {i18n._('menu.unhide')}
             {:else}
                 <EyeOff size="16" class="mr-1" />
                 {i18n._('menu.hide')}
-            {/if} -->
+            {/if}
             <Shortcut key="H" ctrl={true} />
         </ContextMenu.Item>
         <ContextMenu.Separator />
