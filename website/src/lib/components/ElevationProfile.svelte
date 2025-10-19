@@ -2,6 +2,7 @@
     import ButtonWithTooltip from '$lib/components/ButtonWithTooltip.svelte';
     import * as Popover from '$lib/components/ui/popover/index.js';
     import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
+    import Separator from '$lib/components/ui/separator/separator.svelte';
     import Chart from 'chart.js/auto';
     import mapboxgl from 'mapbox-gl';
     import { onDestroy, onMount } from 'svelte';
@@ -584,7 +585,7 @@
                     </ButtonWithTooltip>
                 </Popover.Trigger>
                 <Popover.Content
-                    class="w-fit p-0 flex flex-col divide-y-2 divide-solid  divide-gray-500"
+                    class="w-fit p-0 flex flex-col"
                     side="top"
                     align="end"
                     sideOffset={-32}
@@ -633,6 +634,7 @@
                             {i18n._('quantities.highway')}
                         </ToggleGroup.Item>
                     </ToggleGroup.Root>
+                    <Separator />
                     <ToggleGroup.Root
                         class="flex flex-col items-start gap-0 p-1"
                         type="multiple"
