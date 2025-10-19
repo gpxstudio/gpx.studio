@@ -305,6 +305,7 @@
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
             "cyclOSM": "CyclOSM",
+            "utagawaVTT": "Utagawa MTB",
             "linz": "LINZ Topo",
             "linzTopo": "LINZ Topo50",
             "swisstopoRaster": "swisstopo Raster",

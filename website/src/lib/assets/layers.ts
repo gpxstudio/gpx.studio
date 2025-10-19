@@ -119,6 +119,7 @@ export const basemaps: { [key: string]: string | StyleSpecification } = {
             },
         ],
     },
+    utagawaVTT: 'https://maps.utagawavtt.com/styles/utagawavtt/style.json',
     swisstopoRaster: {
         version: 8,
         sources: {
@@ -803,6 +804,7 @@ export const basemapTree: LayerTreeType = {
             openTopoMap: true,
             openHikingMap: true,
             cyclOSM: true,
+            utagawaVTT: true,
         },
         countries: {
             belgium: {
@@ -1023,6 +1025,7 @@ export const defaultBasemapTree: LayerTreeType = {
             openTopoMap: true,
             openHikingMap: true,
             cyclOSM: true,
+            utagawaVTT: true,
         },
         countries: {
             belgium: {
