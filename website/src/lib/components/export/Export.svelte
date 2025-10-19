@@ -11,7 +11,6 @@
         exportState,
     } from '$lib/components/export/utils.svelte';
     import { currentTool } from '$lib/components/toolbar/tools';
-    // import { gpxStatistics } from '$lib/stores';
     import {
         Download,
         Zap,
@@ -26,6 +25,8 @@
     import { ListRootItem } from '$lib/components/file-list/file-list';
     import { fileStateCollection } from '$lib/logic/file-state';
     import { selection } from '$lib/logic/selection';
+    import { gpxStatistics } from '$lib/logic/statistics';
+    import { get } from 'svelte/store';
 
     let open = $derived(exportState.current !== ExportState.NONE);
     let exportOptions: Record<string, boolean> = $state({
@@ -37,44 +38,36 @@
         extensions: false,
     });
     let hide: Record<string, boolean> = $derived.by(() => {
-        // if (exportState.current === ExportState.NONE) {
-        //     return {
-        //         time: false,
-        //         hr: false,
-        //         cad: false,
-        //         atemp: false,
-        //         power: false,
-        //         extensions: false,
-        //     };
-        // } else {
-        //     let statistics = $gpxStatistics;
-        //     if (exportState.current === ExportState.ALL) {
-        //         statistics = Array.from(fileStateCollection.files.values())
-        //             .map((file) => file.statistics)
-        //             .reduce((acc, cur) => {
-        //                 if (cur !== undefined) {
-        //                     acc.mergeWith(cur.getStatisticsFor(new ListRootItem()));
-        //                 }
-        //                 return acc;
-        //             }, new GPXStatistics());
-        //     }
-        //     return {
-        //         time: statistics.global.time.total === 0,
-        //         hr: statistics.global.hr.count === 0,
-        //         cad: statistics.global.cad.count === 0,
-        //         atemp: statistics.global.atemp.count === 0,
-        //         power: statistics.global.power.count === 0,
-        //         extensions: Object.keys(statistics.global.extensions).length === 0,
-        //     };
-        // }
-        return {
-            time: false,
-            hr: false,
-            cad: false,
-            atemp: false,
-            power: false,
-            extensions: false,
-        };
+        if (exportState.current === ExportState.NONE) {
+            return {
+                time: false,
+                hr: false,
+                cad: false,
+                atemp: false,
+                power: false,
+                extensions: false,
+            };
+        } else {
+            let statistics = $gpxStatistics;
+            if (exportState.current === ExportState.ALL) {
+                statistics = Array.from(get(fileStateCollection).values())
+                    .map((file) => file.statistics)
+                    .reduce((acc, cur) => {
+                        if (cur !== undefined) {
+                            acc.mergeWith(cur.getStatisticsFor(new ListRootItem()));
+                        }
+                        return acc;
+                    }, new GPXStatistics());
+            }
+            return {
+                time: statistics.global.time.total === 0,
+                hr: statistics.global.hr.count === 0,
+                cad: statistics.global.cad.count === 0,
+                atemp: statistics.global.atemp.count === 0,
+                power: statistics.global.power.count === 0,
+                extensions: Object.keys(statistics.global.extensions).length === 0,
+            };
+        }
     });
     let exclude = $derived(Object.keys(exportOptions).filter((key) => !exportOptions[key]));
 
@@ -158,15 +151,6 @@
                             {i18n._('quantities.time')}
                         </Label>
                     </div>
-                    <div
-                        class="flex flex-row items-center gap-1.5 {hide.extensions ? 'hidden' : ''}"
-                    >
-                        <Checkbox id="export-extensions" bind:checked={exportOptions.extensions} />
-                        <Label for="export-extensions" class="flex flex-row items-center gap-1">
-                            <Earth size="16" />
-                            {i18n._('quantities.osm_extensions')}
-                        </Label>
-                    </div>
                     <div class="flex flex-row items-center gap-1.5 {hide.hr ? 'hidden' : ''}">
                         <Checkbox id="export-heartrate" bind:checked={exportOptions.hr} />
                         <Label for="export-heartrate" class="flex flex-row items-center gap-1">
@@ -193,6 +177,15 @@
                         <Label for="export-power" class="flex flex-row items-center gap-1">
                             <SquareActivity size="16" />
                             {i18n._('quantities.power')}
+                        </Label>
+                    </div>
+                    <div
+                        class="flex flex-row items-center gap-1.5 {hide.extensions ? 'hidden' : ''}"
+                    >
+                        <Checkbox id="export-extensions" bind:checked={exportOptions.extensions} />
+                        <Label for="export-extensions" class="flex flex-row items-center gap-1">
+                            <Earth size="16" />
+                            {i18n._('quantities.osm_extensions')}
                         </Label>
                     </div>
                 </div>
