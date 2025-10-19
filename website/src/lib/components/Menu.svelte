@@ -528,7 +528,7 @@
                 <HeartHandshake size="18" class="md:hidden" />
                 <span class="hidden md:flex flex-row items-center">
                     {i18n._('menu.donate')}
-                    <Heart size="16" class="ml-1" fill="rgb(var(--support))" />
+                    <Heart size="16" class="ml-1" fill="var(--support)" />
                 </span>
             </Button>
         </div>
