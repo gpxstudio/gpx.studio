@@ -1,41 +1,33 @@
 <script lang="ts">
     import { gpxLayers } from '$lib/components/map/gpx-layer/gpx-layers';
-    import { onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     // import { map, gpxLayers } from '$lib/stores';
     // import { GPXLayer } from './gpx-layer';
-    // import { DistanceMarkers } from './DistanceMarkers';
-    // import { StartEndMarkers } from './StartEndMarkers';
+    import { DistanceMarkers } from '$lib/components/map/gpx-layer/distance-markers';
+    import { StartEndMarkers } from '$lib/components/map/gpx-layer/start-end-markers';
     // import { onDestroy } from 'svelte';
     // import { createPopups, removePopups } from './GPXLayerPopup';
 
-    // let distanceMarkers = $derived(map.current ? new DistanceMarkers(map.current) : undefined);
-    // let startEndMarkers = $derived(map.current ? new StartEndMarkers(map.current) : undefined);
+    let distanceMarkers: DistanceMarkers;
+    let startEndMarkers: StartEndMarkers;
 
     // $: if ($map) {
-    //     if (distanceMarkers) {
-    //         distanceMarkers.remove();
-    //     }
-    //     if (startEndMarkers) {
-    //         startEndMarkers.remove();
-    //     }
     //     createPopups($map);
-    //     distanceMarkers = new DistanceMarkers($map);
-    //     startEndMarkers = new StartEndMarkers($map);
     // }
-
-    // onDestroy(() => {
-    //     removePopups();
-    //     if (distanceMarkers) {
-    //         distanceMarkers.remove();
-    //         distanceMarkers = undefined;
-    //     }
-    //     if (startEndMarkers) {
-    //         startEndMarkers.remove();
-    //         startEndMarkers = undefined;
-    //     }
-    // });
 
     onMount(() => {
         gpxLayers.init();
+        startEndMarkers = new StartEndMarkers();
+        distanceMarkers = new DistanceMarkers();
+    });
+
+    onDestroy(() => {
+        // removePopups();
+        if (startEndMarkers) {
+            startEndMarkers.remove();
+        }
+        if (distanceMarkers) {
+            distanceMarkers.remove();
+        }
     });
 </script>

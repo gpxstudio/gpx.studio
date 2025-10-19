@@ -1,6 +1,9 @@
 import { settings } from '$lib/logic/settings';
+import { gpxStatistics } from '$lib/logic/statistics';
+import { getConvertedDistanceToKilometers } from '$lib/units';
 import type { GeoJSONSource } from 'mapbox-gl';
 import { get } from 'svelte/store';
+import { map } from '$lib/components/map/map';
 
 const { distanceMarkers, distanceUnits } = settings;
 
@@ -14,35 +17,40 @@ const stops = [
 ];
 
 export class DistanceMarkers {
-    map: mapboxgl.Map;
     updateBinded: () => void = this.update.bind(this);
     unsubscribes: (() => void)[] = [];
 
-    constructor(map: mapboxgl.Map) {
-        this.map = map;
-
+    constructor() {
         this.unsubscribes.push(gpxStatistics.subscribe(this.updateBinded));
         this.unsubscribes.push(distanceMarkers.subscribe(this.updateBinded));
         this.unsubscribes.push(distanceUnits.subscribe(this.updateBinded));
-        this.map.on('style.import.load', this.updateBinded);
+        this.unsubscribes.push(
+            map.subscribe((map_) => {
+                if (map_) {
+                    map_.on('style.import.load', this.updateBinded);
+                }
+            })
+        );
     }
 
     update() {
+        const map_ = get(map);
+        if (!map_) return;
+
         try {
             if (get(distanceMarkers)) {
-                let distanceSource: GeoJSONSource | undefined =
-                    this.map.getSource('distance-markers');
+                let distanceSource: GeoJSONSource | undefined = map_.getSource('distance-markers');
                 if (distanceSource) {
                     distanceSource.setData(this.getDistanceMarkersGeoJSON());
                 } else {
-                    this.map.addSource('distance-markers', {
+                    map_.addSource('distance-markers', {
                         type: 'geojson',
                         data: this.getDistanceMarkersGeoJSON(),
                     });
                 }
                 stops.forEach(([d, minzoom, maxzoom]) => {
-                    if (!this.map.getLayer(`distance-markers-${d}`)) {
-                        this.map.addLayer({
+                    if (!map_.getLayer(`distance-markers-${d}`)) {
+                        map_.addLayer({
                             id: `distance-markers-${d}`,
                             type: 'symbol',
                             source: 'distance-markers',
@@ -68,13 +76,13 @@ export class DistanceMarkers {
                             },
                         });
                     } else {
-                        this.map.moveLayer(`distance-markers-${d}`);
+                        map_.moveLayer(`distance-markers-${d}`);
                     }
                 });
             } else {
                 stops.forEach(([d]) => {
-                    if (this.map.getLayer(`distance-markers-${d}`)) {
-                        this.map.removeLayer(`distance-markers-${d}`);
+                    if (map_.getLayer(`distance-markers-${d}`)) {
+                        map_.removeLayer(`distance-markers-${d}`);
                     }
                 });
             }
@@ -96,7 +104,7 @@ export class DistanceMarkers {
         for (let i = 0; i < statistics.local.distance.total.length; i++) {
             if (
                 statistics.local.distance.total[i] >=
-                currentTargetDistance * (get(distanceUnits) === 'metric' ? 1 : 1.60934)
+                getConvertedDistanceToKilometers(currentTargetDistance)
             ) {
                 let distance = currentTargetDistance.toFixed(0);
                 let [level, minzoom] = stops.find(([d]) => currentTargetDistance % d === 0) ?? [

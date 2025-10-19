@@ -1,17 +1,16 @@
-import { gpxStatistics, slicedGPXStatistics, currentTool, Tool } from '$lib/stores';
+import { currentTool, Tool } from '$lib/components/toolbar/tools';
+import { gpxStatistics, slicedGPXStatistics } from '$lib/logic/statistics';
 import mapboxgl from 'mapbox-gl';
 import { get } from 'svelte/store';
+import { map } from '$lib/components/map/map';
 
 export class StartEndMarkers {
-    map: mapboxgl.Map;
     start: mapboxgl.Marker;
     end: mapboxgl.Marker;
     updateBinded: () => void = this.update.bind(this);
     unsubscribes: (() => void)[] = [];
 
-    constructor(map: mapboxgl.Map) {
-        this.map = map;
-
+    constructor() {
         let startElement = document.createElement('div');
         let endElement = document.createElement('div');
         startElement.className = `h-4 w-4 rounded-full bg-green-500 border-2 border-white`;
@@ -28,15 +27,18 @@ export class StartEndMarkers {
     }
 
     update() {
-        let tool = get(currentTool);
-        let statistics = get(slicedGPXStatistics)?.[0] ?? get(gpxStatistics);
+        const map_ = get(map);
+        if (!map_) return;
+
+        const tool = get(currentTool);
+        const statistics = get(slicedGPXStatistics)?.[0] ?? get(gpxStatistics);
         if (statistics.local.points.length > 0 && tool !== Tool.ROUTING) {
-            this.start.setLngLat(statistics.local.points[0].getCoordinates()).addTo(this.map);
+            this.start.setLngLat(statistics.local.points[0].getCoordinates()).addTo(map_);
             this.end
                 .setLngLat(
                     statistics.local.points[statistics.local.points.length - 1].getCoordinates()
                 )
-                .addTo(this.map);
+                .addTo(map_);
         } else {
             this.start.remove();
             this.end.remove();

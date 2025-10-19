@@ -178,6 +178,20 @@ export function getConvertedDistance(value: number, targetDistanceUnits = get(di
     }
 }
 
+export function getConvertedDistanceToKilometers(
+    value: number,
+    sourceDistanceUnits = get(distanceUnits)
+) {
+    switch (sourceDistanceUnits) {
+        case 'metric':
+            return value;
+        case 'imperial':
+            return milesToKilometers(value);
+        case 'nautical':
+            return nauticalMilesToKilometers(value);
+    }
+}
+
 export function getConvertedElevation(value: number, targetDistanceUnits = get(distanceUnits)) {
     switch (targetDistanceUnits) {
         case 'metric':
