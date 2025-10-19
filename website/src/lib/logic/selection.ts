@@ -261,15 +261,17 @@ export class SelectedGPXFilesObserver {
     constructor(onSelectedFileChange: () => void) {
         this._unsubscribes = new Map();
         this._fileStateCollectionObserver = new GPXFileStateCollectionObserver(
-            (fileId, fileState) => {
-                this._unsubscribes.set(
-                    fileId,
-                    fileState.subscribe(() => {
-                        if (get(selection).hasAnyChildren(new ListFileItem(fileId))) {
-                            onSelectedFileChange();
-                        }
-                    })
-                );
+            (newFiles) => {
+                newFiles.forEach((fileState, fileId) => {
+                    this._unsubscribes.set(
+                        fileId,
+                        fileState.subscribe(() => {
+                            if (get(selection).hasAnyChildren(new ListFileItem(fileId))) {
+                                onSelectedFileChange();
+                            }
+                        })
+                    );
+                });
             },
             (fileId) => {
                 this._unsubscribes.get(fileId)?.();

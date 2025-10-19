@@ -61,8 +61,13 @@ export class ReducedGPXLayerCollection {
         this._layers = new Map();
         this._simplified = new Map();
         this._fileStateCollectionOberver = new GPXFileStateCollectionObserver(
-            (fileId, fileState) => {
-                this._layers.set(fileId, new ReducedGPXLayer(fileState, this._updateSimplified));
+            (newFiles) => {
+                newFiles.forEach((fileState, fileId) => {
+                    this._layers.set(
+                        fileId,
+                        new ReducedGPXLayer(fileState, this._updateSimplified)
+                    );
+                });
             },
             (fileId) => {
                 this._layers.get(fileId)?.destroy();

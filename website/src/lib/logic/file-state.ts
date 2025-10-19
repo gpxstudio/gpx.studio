@@ -13,23 +13,12 @@ export class GPXFileState {
 
     constructor(db: Database, fileId: string) {
         this._file = writable(undefined);
-        let first = true;
 
         this._subscription = liveQuery(() => db.files.get(fileId)).subscribe((value) => {
             if (value !== undefined) {
                 let file = new GPXFile(value);
                 updateAnchorPoints(file);
-
                 let statistics = new GPXStatisticsTree(file);
-                if (first) {
-                    // Update the map bounds for new files
-                    // updateTargetMapBounds(
-                    //     id,
-                    //     statistics.getStatisticsFor(new ListFileItem(id)).global.bounds
-                    // );
-                    first = false;
-                }
-
                 this._file.set({ file, statistics });
             }
         });
@@ -55,27 +44,12 @@ export class GPXFileState {
 
 // Observe the file ids in the database, and maintain a map of file states for the corresponding files
 export class GPXFileStateCollection {
-    private _db: Database;
     private _files: Writable<Map<string, GPXFileState>>;
 
     constructor(db: Database) {
-        this._db = db;
         this._files = writable(new Map());
-    }
 
-    subscribe(run: Subscriber<Map<string, GPXFileState>>, invalidate?: () => void) {
-        return this._files.subscribe(run, invalidate);
-    }
-
-    initialize(fitBounds: boolean) {
-        let initialize = true;
-        liveQuery(() => this._db.fileids.toArray()).subscribe((dbFileIds) => {
-            if (initialize) {
-                // if (fitBounds && dbFileIds.length > 0) {
-                //     initTargetMapBounds(dbFileIds);
-                // }
-                initialize = false;
-            }
+        liveQuery(() => db.fileids.toArray()).subscribe((dbFileIds) => {
             const currentFiles = get(this._files);
             // Find new files to observe
             let newFiles = dbFileIds
@@ -90,7 +64,7 @@ export class GPXFileStateCollection {
                 // Update the map of file states
                 this._files.update(($files) => {
                     newFiles.forEach((id) => {
-                        $files.set(id, new GPXFileState(this._db, id));
+                        $files.set(id, new GPXFileState(db, id));
                     });
                     deletedFiles.forEach((id) => {
                         $files.get(id)?.destroy();
@@ -109,6 +83,10 @@ export class GPXFileStateCollection {
                 settings.fileOrder.set(fileOrder);
             }
         });
+    }
+
+    subscribe(run: Subscriber<Map<string, GPXFileState>>, invalidate?: () => void) {
+        return this._files.subscribe(run, invalidate);
     }
 
     get size(): number {
@@ -141,21 +119,21 @@ export class GPXFileStateCollection {
 // Collection of all file states
 export const fileStateCollection = new GPXFileStateCollection(db);
 
-export type GPXFileStateCallback = (fileId: string, fileState: GPXFileState) => void;
+export type GPXFileStateCallback = (files: Map<string, GPXFileState>) => void;
 export class GPXFileStateCollectionObserver {
     private _fileIds: Set<string>;
-    private _onFileAdded: GPXFileStateCallback;
+    private _onFilesAdded: GPXFileStateCallback;
     private _onFileRemoved: (fileId: string) => void;
     private _onDestroy: () => void;
     private _unsubscribe: () => void;
 
     constructor(
-        onFileAdded: GPXFileStateCallback,
+        onFilesAdded: GPXFileStateCallback,
         onFileRemoved: (fileId: string) => void,
         onDestroy: () => void
     ) {
         this._fileIds = new Set();
-        this._onFileAdded = onFileAdded;
+        this._onFilesAdded = onFilesAdded;
         this._onFileRemoved = onFileRemoved;
         this._onDestroy = onDestroy;
 
@@ -166,12 +144,16 @@ export class GPXFileStateCollectionObserver {
                     this._fileIds.delete(fileId);
                 }
             });
+            let newFiles = new Map<string, GPXFileState>();
             files.forEach((file: GPXFileState, fileId: string) => {
                 if (!this._fileIds.has(fileId)) {
-                    this._onFileAdded(fileId, file);
+                    newFiles.set(fileId, file);
                     this._fileIds.add(fileId);
                 }
             });
+            if (newFiles.size > 0) {
+                this._onFilesAdded(newFiles);
+            }
         });
     }
 

@@ -41,6 +41,7 @@
     import { map } from '$lib/components/map/map';
     import { fileActions, pasteSelection } from '$lib/logic/file-actions';
     import { allHidden } from '$lib/logic/hidden';
+    import { boundsManager } from '$lib/logic/bounds';
 
     let {
         node,
@@ -287,7 +288,7 @@
                 <Shortcut key="A" ctrl={true} />
             </ContextMenu.Item>
         {/if}
-        <ContextMenu.Item onclick={centerMapOnSelection}>
+        <ContextMenu.Item onclick={() => boundsManager.centerMapOnSelection()}>
             <Maximize size="16" class="mr-1" />
             {i18n._('menu.center')}
             <Shortcut key="⏎" ctrl={true} />

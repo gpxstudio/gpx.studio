@@ -14,9 +14,11 @@ export class GPXLayerCollection {
             return;
         }
         this._fileStateCollectionObserver = new GPXFileStateCollectionObserver(
-            (fileId, fileState) => {
-                const layer = new GPXLayer(fileId, fileState);
-                this._layers.set(fileId, layer);
+            (newFiles) => {
+                newFiles.forEach((fileState, fileId) => {
+                    const layer = new GPXLayer(fileId, fileState);
+                    this._layers.set(fileId, layer);
+                });
             },
             (fileId) => {
                 const layer = this._layers.get(fileId);

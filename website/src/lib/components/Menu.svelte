@@ -73,6 +73,7 @@
     import { fileActionManager } from '$lib/logic/file-action-manager';
     import { copied, selection } from '$lib/logic/selection';
     import { allHidden } from '$lib/logic/hidden';
+    import { boundsManager } from '$lib/logic/bounds';
 
     const {
         distanceUnits,
@@ -281,7 +282,7 @@
                     {/if}
                     <Menubar.Separator />
                     <Menubar.Item
-                        onclick={selection.selectAll}
+                        onclick={() => selection.selectAll()}
                         disabled={fileStateCollection.size == 0}
                     >
                         <FileStack size="16" />
@@ -291,9 +292,10 @@
                     <Menubar.Item
                         onclick={() => {
                             if ($selection.size > 0) {
-                                // centerMapOnSelection();
+                                boundsManager.centerMapOnSelection();
                             }
                         }}
+                        disabled={$selection.size == 0}
                     >
                         <Maximize size="16" />
                         {i18n._('menu.center')}
@@ -302,7 +304,7 @@
                     {#if $treeFileView}
                         <Menubar.Separator />
                         <Menubar.Item
-                            onclick={selection.copySelection}
+                            onclick={() => selection.copySelection()}
                             disabled={$selection.size === 0}
                         >
                             <ClipboardCopy size="16" />
@@ -310,7 +312,7 @@
                             <Shortcut key="C" ctrl={true} />
                         </Menubar.Item>
                         <Menubar.Item
-                            onclick={selection.cutSelection}
+                            onclick={() => selection.cutSelection()}
                             disabled={$selection.size === 0}
                         >
                             <Scissors size="16" />
@@ -375,7 +377,7 @@
                         />
                     </Menubar.CheckboxItem>
                     <Menubar.Separator />
-                    <Menubar.Item inset onclick={map.toggle3D}>
+                    <Menubar.Item inset onclick={() => map.toggle3D()}>
                         <Box size="16" />
                         {i18n._('menu.toggle_3d')}
                         <Shortcut key="{i18n._('menu.ctrl')} {i18n._('menu.drag')}" />
@@ -629,9 +631,9 @@
             }
             e.preventDefault();
         } else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-            // if ($selection.size > 0) {
-            //     centerMapOnSelection();
-            // }
+            if ($selection.size > 0) {
+                boundsManager.centerMapOnSelection();
+            }
         } else if (e.key === 'F1') {
             switchBasemaps();
             e.preventDefault();

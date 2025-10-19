@@ -35,15 +35,17 @@ export class FileActionManager {
         this._files = new Map();
         this._fileSubscriptions = new Map();
         this._fileStateCollectionObserver = new GPXFileStateCollectionObserver(
-            (fileId, fileState) => {
-                this._fileSubscriptions.set(
-                    fileId,
-                    fileState.subscribe((fileWithStatistics) => {
-                        if (fileWithStatistics) {
-                            this._files.set(fileId, fileWithStatistics.file);
-                        }
-                    })
-                );
+            (newFiles) => {
+                newFiles.forEach((fileState, fileId) => {
+                    this._fileSubscriptions.set(
+                        fileId,
+                        fileState.subscribe((fileWithStatistics) => {
+                            if (fileWithStatistics) {
+                                this._files.set(fileId, fileWithStatistics.file);
+                            }
+                        })
+                    );
+                });
             },
             (fileId) => {
                 let unsubscribe = this._fileSubscriptions.get(fileId);

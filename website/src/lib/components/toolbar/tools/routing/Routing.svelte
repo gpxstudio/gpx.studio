@@ -84,11 +84,13 @@
     onMount(() => {
         if ($map && popup && popupElement) {
             fileStateCollectionObserver = new GPXFileStateCollectionObserver(
-                (fileId, fileState) => {
-                    routingControls.set(
-                        fileId,
-                        new RoutingControls(fileId, fileState, popup, popupElement)
-                    );
+                (newFiles) => {
+                    newFiles.forEach((fileState, fileId) => {
+                        routingControls.set(
+                            fileId,
+                            new RoutingControls(fileId, fileState, popup, popupElement)
+                        );
+                    });
                 },
                 (fileId) => {
                     const controls = routingControls.get(fileId);

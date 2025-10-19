@@ -32,6 +32,7 @@ import { get } from 'svelte/store';
 import { settings } from '$lib/logic/settings';
 import { getClosestLinePoint, getElevation } from '$lib/utils';
 import { gpxStatistics } from '$lib/logic/statistics';
+import { boundsManager } from './bounds';
 
 // Generate unique file ids, different from the ones in the database
 export function getFileIds(n: number) {
@@ -97,9 +98,8 @@ export async function loadFiles(list: FileList | File[]) {
     }
 
     let ids = fileActions.addMultiple(files);
-
-    // initTargetMapBounds(ids);
     selection.selectFileWhenLoaded(ids[0]);
+    boundsManager.fitBoundsOnLoad(ids);
 }
 
 export async function loadFile(file: File): Promise<GPXFile | null> {

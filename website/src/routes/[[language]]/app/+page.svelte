@@ -11,18 +11,15 @@
     // import CoordinatesPopup from '$lib/components/map/CoordinatesPopup.svelte';
     import Resizer from '$lib/components/Resizer.svelte';
     import { Toaster } from '$lib/components/ui/sonner';
-    // import { onMount } from 'svelte';
-    // import { page } from '$app/state';
     import { languages } from '$lib/languages';
     import { getURLForLanguage } from '$lib/utils';
-    // import { getURLForGoogleDriveFile } from '$lib/components/embedding/Embedding';
     import { i18n } from '$lib/i18n.svelte';
     import { settings } from '$lib/logic/settings';
-    import { fileStateCollection } from '$lib/logic/file-state';
     import { loadFiles } from '$lib/logic/file-actions';
     import { onMount } from 'svelte';
     import { page } from '$app/state';
     import { gpxStatistics, slicedGPXStatistics } from '$lib/logic/statistics';
+    import { getURLForGoogleDriveFile } from '$lib/components/embedding/Embedding';
 
     const {
         treeFileView,
@@ -36,9 +33,7 @@
     onMount(() => {
         let files: string[] = JSON.parse(page.url.searchParams.get('files') || '[]');
         let ids: string[] = JSON.parse(page.url.searchParams.get('ids') || '[]');
-        let urls: string[] = []; //files.concat(ids.map(getURLForGoogleDriveFile));
-
-        fileStateCollection.initialize(urls.length === 0);
+        let urls: string[] = files.concat(ids.map(getURLForGoogleDriveFile));
 
         if (urls.length > 0) {
             let downloads: Promise<File | null>[] = [];
@@ -57,7 +52,7 @@
     });
 </script>
 
-<div class="fixed -z-10 text-transparent">
+<div class="fixed mt-[100%] -z-10 text-transparent">
     <h1>{i18n._('metadata.home_title')} — {i18n._('metadata.app_title')}</h1>
     <p>{i18n._('metadata.description')}</p>
     <h2>{i18n._('toolbar.routing.tooltip')}</h2>
