@@ -2,9 +2,9 @@
     import { Button } from '$lib/components/ui/button';
     import DocsContainer from '$lib/components/docs/DocsContainer.svelte';
     import Logo from '$lib/components/Logo.svelte';
-    // import ElevationProfile from '$lib/components/ElevationProfile.svelte';
+    import ElevationProfile from '$lib/components/ElevationProfile.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
-    // import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
+    import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
     import {
         BookOpenText,
         Heart,
@@ -19,7 +19,7 @@
     import { getURLForLanguage } from '$lib/utils';
     import { exampleGPXFile } from '$lib/assets/example';
     import { writable } from 'svelte/store';
-    // import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
+    import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
     import { currentTool, Tool } from '$lib/components/toolbar/tools';
     import { onDestroy, onMount } from 'svelte';
 
@@ -102,7 +102,7 @@
                 <p class="text-muted-foreground">{i18n._('homepage.route_planning_description')}</p>
             </div>
             <div class="p-3 w-fit rounded-md border shadow-xl md:shrink-0">
-                <!-- <Routing minimizable={false} /> -->
+                <Routing minimizable={false} />
             </div>
         </div>
     </div>
@@ -120,7 +120,7 @@
                 </p>
             </div>
             <div class="relative md:shrink-0 max-w-[400px]">
-                <!-- <Toolbar /> -->
+                <Toolbar />
             </div>
             <div class="markdown text-center hidden md:block">
                 <h1>
@@ -190,12 +190,12 @@
             </p>
         </div>
         <div class="h-48 w-full">
-            <!-- <ElevationProfile
+            <ElevationProfile
                 {gpxStatistics}
                 {slicedGPXStatistics}
                 additionalDatasets={$additionalDatasets}
                 elevationFill={$elevationFill}
-            /> -->
+            />
         </div>
         <div class="flex flex-col items-center">
             <div class="h-10 w-fit">
@@ -250,12 +250,7 @@
                 <DocsContainer module={fundingModule.default} />
             {/await}
             <Button href="https://ko-fi.com/gpxstudio" target="_blank" class="text-base">
-                <Heart
-                    size="16"
-                    class="mr-1"
-                    fill="rgb(var(--support))"
-                    color="rgb(var(--support))"
-                />
+                <Heart size="16" class="mr-1" fill="var(--support)" color="var(--support)" />
                 <span>{i18n._('homepage.support_button')}</span>
             </Button>
         </div>
