@@ -2,7 +2,7 @@
     import { Button } from '$lib/components/ui/button';
     import DocsContainer from '$lib/components/docs/DocsContainer.svelte';
     import Logo from '$lib/components/Logo.svelte';
-    import ElevationProfile from '$lib/components/ElevationProfile.svelte';
+    import ElevationProfile from '$lib/components/elevation-profile/ElevationProfile.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
     import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
     import {
