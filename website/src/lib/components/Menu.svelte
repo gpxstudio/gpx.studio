@@ -3,10 +3,12 @@
     import { Button } from '$lib/components/ui/button';
     import Logo from '$lib/components/Logo.svelte';
     import Shortcut from '$lib/components/Shortcut.svelte';
+    import { toast } from 'svelte-sonner';
     import {
         Plus,
         Copy,
         Download,
+        Upload,
         Undo2,
         Redo2,
         Trash2,
@@ -66,7 +68,7 @@
         selectAll,
         selection,
     } from '$lib/components/file-list/Selection';
-    import { derived } from 'svelte/store';
+    import { derived, get } from 'svelte/store';
     import { canUndo, canRedo, dbUtils, fileObservers, settings } from '$lib/db';
     import { anySelectedLayer } from '$lib/components/layer-control/utils';
     import { defaultOverlays } from '$lib/assets/layers';
@@ -122,6 +124,66 @@
     let layerSettingsOpen = false;
 
     $: selectedMode = $mode ?? $systemPrefersMode ?? 'light';
+
+    function exportSettings() {
+        try {
+            const settingsData = {
+                version: 1,
+                timestamp: new Date().toISOString(),
+                settings: Object.fromEntries(
+                    Object.entries(settings).map(([key, store]) => [key, get(store as any)])
+                ),
+            };
+
+            const json = JSON.stringify(settingsData, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            link.download = `gpx-studio-settings-${timestamp}.json`;
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+
+            toast.success($_('menu.backup.export_success'));
+        } catch (error) {
+            console.error('Export failed:', error);
+            toast.error($_('menu.backup.export_error'));
+        }
+    }
+
+    function importSettings() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json,.json';
+        input.className = 'hidden';
+        input.onchange = async (event) => {
+            const target = event.target as HTMLInputElement;
+            const file = target.files?.[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+
+                if (!data.version || !data.settings) {
+                    throw new Error('Invalid backup file format');
+                }
+
+                Object.entries(data.settings).forEach(([key, value]) => {
+                    if ((settings as any)[key]) {
+                        (settings as any)[key].set(value);
+                    }
+                });
+
+                toast.success($_('menu.backup.import_success'));
+            } catch (error) {
+                console.error('Import failed:', error);
+                toast.error($_('menu.backup.import_error'));
+            }
+        };
+        input.click();
+    }
 </script>
 
 <div class="absolute md:top-2 left-0 right-0 z-20 flex flex-row justify-center pointer-events-none">
@@ -500,6 +562,24 @@
                             </Menubar.RadioGroup>
                         </Menubar.SubContent>
                     </Menubar.Sub>
+                    <Menubar.Separator />
+                    <Menubar.Sub>
+                        <Menubar.SubTrigger>
+                            <Download size="16" class="mr-1" />
+                            {$_('menu.backup.title')}
+                        </Menubar.SubTrigger>
+                        <Menubar.SubContent>
+                            <Menubar.Item on:click={exportSettings}>
+                                <Upload size="16" class="mr-1" />
+                                {$_('menu.backup.export')}
+                            </Menubar.Item>
+                            <Menubar.Item on:click={importSettings}>
+                                <Download size="16" class="mr-1" />
+                                {$_('menu.backup.import')}
+                            </Menubar.Item>
+                        </Menubar.SubContent>
+                    </Menubar.Sub>
+                    <Menubar.Separator />
                     <Menubar.Item on:click={() => (layerSettingsOpen = true)}>
                         <Layers size="16" class="mr-1" />
                         {$_('menu.layers')}

@@ -80,7 +80,16 @@
         "unhide": "Mostrar",
         "center": "Centrar",
         "open_in": "Abrir en",
-        "copy_coordinates": "Copiar coordenadas"
+        "copy_coordinates": "Copiar coordenadas",
+        "backup": {
+            "title": "Copia de seguridad de la configuración",
+            "export": "Exportar configuración",
+            "import": "Importar configuración",
+            "export_success": "¡Configuración exportada con éxito!",
+            "export_error": "No se pudo exportar la configuración. Por favor, inténtelo de nuevo.",
+            "import_success": "¡Configuración importada con éxito!",
+            "import_error": "No se pudo importar la configuración. Por favor, compruebe el formato del archivo."
+        }
     },
     "toolbar": {
         "routing": {
