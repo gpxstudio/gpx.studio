@@ -11,4 +11,6 @@ export const languages: Record<string, string> = {
     'pt-BR': 'Português (Brasil)',
     tr: 'Türkçe',
     zh: '简体中文',
+    uk: 'Українська',
+    ru: 'Русский',
 };
