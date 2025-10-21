@@ -173,19 +173,19 @@
                 "bus_stop": "Автобусная остановка",
                 "busway": "Автобусная полоса",
                 "elevator": "Лифт",
-                "via_ferrata": "Via ferrata",
-                "proposed": "Road to be built",
-                "construction": "Road under construction"
+                "via_ferrata": "Виа феррата",
+                "proposed": "Дорога в строительстве",
+                "construction": "Строительство дороги"
             },
             "sac_scale": {
-                "hiking": "Hiking",
-                "mountain_hiking": "Mountain hiking",
-                "demanding_mountain_hiking": "Demanding mountain hiking",
-                "alpine_hiking": "Alpine hiking",
-                "demanding_alpine_hiking": "Demanding alpine hiking",
-                "difficult_alpine_hiking": "Difficult alpine hiking"
+                "hiking": "Пешие прогулки",
+                "mountain_hiking": "Горный поход",
+                "demanding_mountain_hiking": "Сложный горный поход",
+                "alpine_hiking": "Высокогорный поход",
+                "demanding_alpine_hiking": "Требовательный высокогорный поход",
+                "difficult_alpine_hiking": "Сложный высокогорный поход"
             },
-            "mtb_scale": "MTB scale",
+            "mtb_scale": "Шкала MTB",
             "error": {
                 "from": "Начальная точка слишком далеко от ближайшей дороги",
                 "via": "Точка маршрута слишком далеко от ближайшей дороги",
@@ -221,7 +221,7 @@
             "help_cannot_merge_traces": "Ваша выборка должна содержать несколько треков для их подключения.",
             "help_merge_contents": "Объединение содержимого выбранных элементов сгруппирует все внутри первого элемента.",
             "help_cannot_merge_contents": "Ваш выбор должен содержать несколько элементов, чтобы объединить их содержимое.",
-            "selection_tip": "Tip: use {KEYBOARD_SHORTCUT} to add items to the selection."
+            "selection_tip": "Совет: используйте {KEYBOARD_SHORTCUT}, чтобы добавить элементы в выделение."
         },
         "extract": {
             "tooltip": "Извлечь содержимое для разделения элементов",
@@ -381,7 +381,7 @@
         }
     },
     "chart": {
-        "settings": "Elevation profile settings"
+        "settings": "Настройки профиля высот"
     },
     "quantities": {
         "distance": "Расстояние",
@@ -504,17 +504,17 @@
             "search": "Поиск",
             "clear": "Очистить",
             "cancel": "Отмена",
-            "recent": "Recent searches",
-            "no_recent": "No recent searches",
-            "save": "Save this search",
-            "remove": "Remove this search from history",
+            "recent": "Недавно искали",
+            "no_recent": "Нет недавних поисковых запросов",
+            "save": "Сохранить этот поиск",
+            "remove": "Удалить этот поисковый запрос из истории",
             "favorites": "Избранное",
             "remove_favorite": "Удалить этот поиск из избранного",
             "to_select": "выбрать",
-            "to_navigate": "to navigate",
-            "to_close": "to close",
+            "to_navigate": "для навигации",
+            "to_close": "чтобы закрыть",
             "no_results": "Нет результатов по запросу",
-            "no_results_suggestion": "Try searching for"
+            "no_results_suggestion": "Попробуйте искать"
         }
     },
     "embedding": {
