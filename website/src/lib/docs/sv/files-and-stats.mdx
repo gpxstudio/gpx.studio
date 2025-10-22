@@ -13,7 +13,7 @@ title: Files and statistics
     let gpxStatistics = writable(exampleGPXFile.getStatistics());
     let slicedGPXStatistics = writable(undefined);
     let additionalDatasets = writable(['speed', 'atemp']);
-    let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
+    let elevationFill = writable(undefined);
 </script>
 
 # { title }
@@ -84,8 +84,8 @@ Du kan också använda mushjulet för att zooma in och ut på höjdprofilen och 
     <ElevationProfile
         {gpxStatistics}
         {slicedGPXStatistics}
-        additionalDatasets={$additionalDatasets}
-        elevationFill={$elevationFill}
+        {additionalDatasets}
+        {elevationFill}
     />
 </div>
 <div class="flex flex-col items-center -mt-6">

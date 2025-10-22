@@ -132,8 +132,8 @@
                 <ElevationProfile
                     {gpxStatistics}
                     {slicedGPXStatistics}
-                    bind:additionalDatasets={$additionalDatasets}
-                    bind:elevationFill={$elevationFill}
+                    {additionalDatasets}
+                    {elevationFill}
                 />
             {/if}
         </div>

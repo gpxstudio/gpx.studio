@@ -13,7 +13,7 @@ title: Datoteke i statistike
     let gpxStatistics = writable(exampleGPXFile.getStatistics());
     let slicedGPXStatistics = writable(undefined);
     let additionalDatasets = writable(['speed', 'atemp']);
-    let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
+    let elevationFill = writable(undefined);
 </script>
 
 # { title }
@@ -84,8 +84,8 @@ Takođe možete da koristite točkić miša da zumirate i umanjite profil nadmo
     <ElevationProfile
         {gpxStatistics}
         {slicedGPXStatistics}
-        additionalDatasets={$additionalDatasets}
-        elevationFill={$elevationFill}
+        {additionalDatasets}
+        {elevationFill}
     />
 </div>
 <div class="flex flex-col items-center -mt-6">

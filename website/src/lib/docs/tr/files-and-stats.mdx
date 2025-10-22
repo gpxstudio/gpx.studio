@@ -13,7 +13,7 @@ title: Dosyalar ve istatistikler
     let gpxStatistics = writable(exampleGPXFile.getStatistics());
     let slicedGPXStatistics = writable(undefined);
     let additionalDatasets = writable(['speed', 'atemp']);
-    let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
+    let elevationFill = writable(undefined);
 </script>
 
 # { title }
@@ -83,8 +83,8 @@ Ayrıca, fare tekerleği ile yükselti profiline yakınlaşıp uzaklaşabilir ve
     <ElevationProfile
         {gpxStatistics}
         {slicedGPXStatistics}
-        additionalDatasets={$additionalDatasets}
-        elevationFill={$elevationFill}
+        {additionalDatasets}
+        {elevationFill}
     />
 </div>
 <div class="flex flex-col items-center -mt-6">

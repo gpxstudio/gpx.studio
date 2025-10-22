@@ -36,7 +36,7 @@
     let gpxStatistics = writable(exampleGPXFile.getStatistics());
     let slicedGPXStatistics = writable(undefined);
     let additionalDatasets = writable(['speed', 'atemp']);
-    let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
+    let elevationFill = writable(undefined);
 
     onMount(() => {
         $currentTool = Tool.SCISSORS;
@@ -193,8 +193,8 @@
             <ElevationProfile
                 {gpxStatistics}
                 {slicedGPXStatistics}
-                additionalDatasets={$additionalDatasets}
-                elevationFill={$elevationFill}
+                {additionalDatasets}
+                {elevationFill}
             />
         </div>
         <div class="flex flex-col items-center">
