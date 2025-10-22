@@ -32,7 +32,7 @@
         }
         let basemap = basemaps.hasOwnProperty($currentBasemap)
             ? basemaps[$currentBasemap]
-            : ($customLayers[$currentBasemap] ?? basemaps[defaultBasemap]);
+            : ($customLayers[$currentBasemap]?.value ?? basemaps[defaultBasemap]);
         $map.removeImport('basemap');
         if (typeof basemap === 'string') {
             $map.addImport({ id: 'basemap', url: basemap }, 'overlays');

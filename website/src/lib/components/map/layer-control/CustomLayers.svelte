@@ -37,11 +37,23 @@
         customOverlayOrder,
     } = settings;
 
-    let name: string = '';
-    let tileUrls: string[] = [''];
-    let maxZoom: number = 20;
-    let layerType: 'basemap' | 'overlay' = 'basemap';
-    let resourceType: 'raster' | 'vector' = 'raster';
+    let name: string = $state('');
+    let tileUrls: string[] = $state(['']);
+    let maxZoom: number = $state(20);
+    let layerType: 'basemap' | 'overlay' = $state('basemap');
+    let resourceType: 'raster' | 'vector' = $derived.by(() => {
+        if (tileUrls[0].length > 0) {
+            if (
+                tileUrls[0].includes('.json') ||
+                (tileUrls[0].includes('api.mapbox.com/styles') && !tileUrls[0].includes('tiles'))
+            ) {
+                return 'vector';
+            }
+        }
+        return 'raster';
+    });
+
+    let selectedLayerId: string | undefined = $state(undefined);
 
     let basemapContainer: HTMLElement;
     let overlayContainer: HTMLElement;
@@ -89,16 +101,9 @@
         overlaySortable.destroy();
     });
 
-    $: if (tileUrls[0].length > 0) {
-        if (
-            tileUrls[0].includes('.json') ||
-            (tileUrls[0].includes('api.mapbox.com/styles') && !tileUrls[0].includes('tiles'))
-        ) {
-            resourceType = 'vector';
-        } else {
-            resourceType = 'raster';
-        }
-    }
+    $effect(() => {
+        setDataFromSelectedLayer(selectedLayerId);
+    });
 
     function createLayer() {
         if (selectedLayerId && $customLayers[selectedLayerId].layerType !== layerType) {
@@ -272,11 +277,9 @@
         $customLayers = tryDeleteLayer($customLayers, layerId);
     }
 
-    let selectedLayerId: string | undefined = undefined;
-
-    function setDataFromSelectedLayer() {
-        if (selectedLayerId) {
-            const layer = $customLayers[selectedLayerId];
+    function setDataFromSelectedLayer(layerId?: string) {
+        if (layerId) {
+            const layer = $customLayers[layerId];
             name = layer.name;
             tileUrls = layer.tileUrls;
             maxZoom = layer.maxZoom;
@@ -290,8 +293,6 @@
             resourceType = 'raster';
         }
     }
-
-    $: selectedLayerId, setDataFromSelectedLayer();
 </script>
 
 <div class="flex flex-col">
