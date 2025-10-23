@@ -1,7 +1,7 @@
 <script lang="ts">
     import CustomControl from '$lib/components/map/custom-control/CustomControl.svelte';
     import LayerTree from './LayerTree.svelte';
-    import { OverpassLayer } from './OverpassLayer';
+    import { OverpassLayer } from './overpass-layer';
     import { Separator } from '$lib/components/ui/separator';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
     import { Layers } from '@lucide/svelte';

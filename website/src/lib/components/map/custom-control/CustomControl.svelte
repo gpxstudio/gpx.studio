@@ -1,5 +1,5 @@
 <script lang="ts">
-    import CustomControl from './CustomControl';
+    import CustomControl from './custom-control';
     import { map } from '$lib/components/map/map';
     import { onMount, type Snippet } from 'svelte';
 

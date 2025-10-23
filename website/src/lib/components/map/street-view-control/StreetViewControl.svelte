@@ -2,11 +2,9 @@
     import { streetViewEnabled } from '$lib/components/map/street-view-control/utils';
     import { map } from '$lib/components/map/map';
     import CustomControl from '$lib/components/map/custom-control/CustomControl.svelte';
-    import Tooltip from '$lib/components/Tooltip.svelte';
-    import { Toggle } from '$lib/components/ui/toggle';
     import { PersonStanding, X } from '@lucide/svelte';
-    import { MapillaryLayer } from './Mapillary';
-    import { GoogleRedirect } from './Google';
+    import { MapillaryLayer } from './mapillary';
+    import { GoogleRedirect } from './google';
     import { settings } from '$lib/logic/settings';
     import { i18n } from '$lib/i18n.svelte';
     import { onMount } from 'svelte';
