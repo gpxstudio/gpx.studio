@@ -10,6 +10,7 @@
     import { map } from '$lib/components/map/map';
     import { customBasemapUpdate, getLayers } from './utils';
     import type { ImportSpecification, StyleSpecification } from 'mapbox-gl';
+    import { untrack } from 'svelte';
 
     let container: HTMLDivElement;
     let overpassLayer: OverpassLayer;
@@ -50,7 +51,7 @@
 
     $effect(() => {
         if ($map && ($currentBasemap || $customBasemapUpdate)) {
-            setStyle();
+            untrack(() => setStyle());
         }
     });
 
@@ -127,7 +128,7 @@
 
     $effect(() => {
         if ($map && $currentOverlays && $opacities) {
-            updateOverlays();
+            untrack(() => updateOverlays());
         }
     });
 
@@ -137,7 +138,12 @@
         }
         overpassLayer = new OverpassLayer(_map);
         overpassLayer.add();
-        _map.on('style.import.load', updateOverlays);
+        let first = true;
+        _map.on('style.import.load', () => {
+            if (!first) return;
+            first = false;
+            updateOverlays();
+        });
     });
 
     let open = $state(false);
