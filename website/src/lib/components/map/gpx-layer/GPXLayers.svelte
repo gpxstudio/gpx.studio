@@ -1,19 +1,13 @@
 <script lang="ts">
-    import { gpxLayers } from '$lib/components/map/gpx-layer/gpx-layers';
     import { onDestroy, onMount } from 'svelte';
-    // import { map, gpxLayers } from '$lib/stores';
-    // import { GPXLayer } from './gpx-layer';
+    import { gpxLayers } from '$lib/components/map/gpx-layer/gpx-layers';
     import { DistanceMarkers } from '$lib/components/map/gpx-layer/distance-markers';
     import { StartEndMarkers } from '$lib/components/map/gpx-layer/start-end-markers';
-    // import { onDestroy } from 'svelte';
-    // import { createPopups, removePopups } from './GPXLayerPopup';
+    import { createPopups, removePopups } from '$lib/components/map/gpx-layer/gpx-layer-popup';
+    import { map } from '$lib/components/map/map';
 
     let distanceMarkers: DistanceMarkers;
     let startEndMarkers: StartEndMarkers;
-
-    // $: if ($map) {
-    //     createPopups($map);
-    // }
 
     onMount(() => {
         gpxLayers.init();
@@ -21,13 +15,17 @@
         distanceMarkers = new DistanceMarkers();
     });
 
+    map.onLoad((map_) => {
+        createPopups(map_);
+    });
+
     onDestroy(() => {
-        // removePopups();
         if (startEndMarkers) {
             startEndMarkers.remove();
         }
         if (distanceMarkers) {
             distanceMarkers.remove();
         }
+        removePopups();
     });
 </script>

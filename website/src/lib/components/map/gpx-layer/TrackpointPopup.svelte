@@ -5,15 +5,12 @@
     import WithUnits from '$lib/components/WithUnits.svelte';
     import { Compass, Mountain, Timer } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
-    import type { PopupItem } from '$lib/components/map/map';
+    import type { PopupItem } from '$lib/components/map/map-popup';
 
     let { trackpoint }: { trackpoint: PopupItem<TrackPoint> } = $props();
 </script>
 
 <Card.Root class="border-none shadow-md text-base p-2">
-    <Card.Header class="p-0">
-        <Card.Title class="text-md"></Card.Title>
-    </Card.Header>
     <Card.Content class="flex flex-col p-0 text-xs gap-1">
         <div class="flex flex-row items-center gap-1">
             <Compass size="14" />

@@ -8,7 +8,7 @@
     import Toolbar from '$lib/components/toolbar/Toolbar.svelte';
     import StreetViewControl from '$lib/components/map/street-view-control/StreetViewControl.svelte';
     import LayerControl from '$lib/components/map/layer-control/LayerControl.svelte';
-    // import CoordinatesPopup from '$lib/components/map/CoordinatesPopup.svelte';
+    import CoordinatesPopup from '$lib/components/map/CoordinatesPopup.svelte';
     import Resizer from '$lib/components/Resizer.svelte';
     import { Toaster } from '$lib/components/ui/sonner';
     import { languages } from '$lib/languages';
@@ -102,7 +102,7 @@
             <StreetViewControl />
             <LayerControl />
             <GPXLayers />
-            <!-- <CoordinatesPopup /> -->
+            <CoordinatesPopup />
             <Toaster richColors />
             {#if !$treeFileView}
                 <div class="h-10 -translate-y-10 w-full pointer-events-none absolute z-30">
