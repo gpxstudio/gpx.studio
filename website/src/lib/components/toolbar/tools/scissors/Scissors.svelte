@@ -10,7 +10,7 @@
     import { map } from '$lib/components/map/map';
     import { get } from 'svelte/store';
     import { i18n } from '$lib/i18n.svelte';
-    import { onDestroy, tick } from 'svelte';
+    import { onDestroy, onMount, untrack } from 'svelte';
     import { Crop } from '@lucide/svelte';
     import { SplitControls } from './split-controls';
     import { getURLForLanguage } from '$lib/utils';
@@ -23,28 +23,24 @@
     } = $props();
 
     let splitControls: SplitControls | undefined = undefined;
-    let canCrop = $state(false);
-
-    $effect(() => {
-        if ($map) {
-            if (splitControls) {
-                splitControls.destroy();
-            }
-            splitControls = new SplitControls($map);
-        }
-    });
 
     let validSelection = $derived(
         $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints']) &&
             $gpxStatistics.local.points.length > 0
     );
+    let maxSliderValue = $derived(
+        validSelection && $gpxStatistics.local.points.length > 0
+            ? $gpxStatistics.local.points.length - 1
+            : 1
+    );
+    let sliderValues = $derived([0, maxSliderValue]);
+    let canCrop = $derived(sliderValues[0] != 0 || sliderValues[1] != maxSliderValue);
 
-    let maxSliderValue = $state(1);
-    let sliderValues = $state([0, 1]);
-
-    function updateCanCrop() {
-        canCrop = sliderValues[0] != 0 || sliderValues[1] != maxSliderValue;
-    }
+    onMount(() => {
+        if ($map) {
+            splitControls = new SplitControls($map);
+        }
+    });
 
     function updateSlicedGPXStatistics() {
         if (validSelection && canCrop) {
@@ -64,26 +60,9 @@
         }
     }
 
-    async function updateSliderLimits() {
-        if (validSelection && $gpxStatistics.local.points.length > 0) {
-            maxSliderValue = $gpxStatistics.local.points.length - 1;
-        } else {
-            maxSliderValue = 1;
-        }
-        await tick();
-        sliderValues = [0, maxSliderValue];
-    }
-
-    $effect(() => {
-        if ($gpxStatistics.local.points.length - 1 != maxSliderValue) {
-            updateSliderLimits();
-        }
-    });
-
     $effect(() => {
         if (sliderValues) {
-            updateCanCrop();
-            updateSlicedGPXStatistics();
+            untrack(() => updateSlicedGPXStatistics());
         }
     });
 
@@ -93,8 +72,7 @@
             ($slicedGPXStatistics[1] !== sliderValues[0] ||
                 $slicedGPXStatistics[2] !== sliderValues[1])
         ) {
-            updateSliderValues();
-            updateCanCrop();
+            untrack(() => updateSliderValues());
         }
     });
 
@@ -102,7 +80,6 @@
         $slicedGPXStatistics = undefined;
         if (splitControls) {
             splitControls.destroy();
-            splitControls = undefined;
         }
     });
 </script>
