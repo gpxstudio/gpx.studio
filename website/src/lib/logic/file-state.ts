@@ -1,4 +1,4 @@
-import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/Simplify';
+import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/simplify';
 import { db, type Database } from '$lib/db';
 import { liveQuery } from 'dexie';
 import { GPXFile } from 'gpx';

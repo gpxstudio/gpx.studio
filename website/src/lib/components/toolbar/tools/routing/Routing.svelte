@@ -40,7 +40,7 @@
     import { selection } from '$lib/logic/selection';
     import { fileActions, getFileIds, newGPXFile } from '$lib/logic/file-actions';
     import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
-    import { RoutingControls, routingControls } from './RoutingControls';
+    import { RoutingControls, routingControls } from './routing-controls';
 
     let {
         minimized = $bindable(false),

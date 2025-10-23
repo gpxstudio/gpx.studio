@@ -2,7 +2,7 @@
     import * as Card from '$lib/components/ui/card';
     import { Button } from '$lib/components/ui/button';
     import Shortcut from '$lib/components/Shortcut.svelte';
-    import { canChangeStart } from './RoutingControls';
+    import { canChangeStart } from './routing-controls';
     import { CirclePlay, Trash2 } from '@lucide/svelte';
 
     import { i18n } from '$lib/i18n.svelte';
