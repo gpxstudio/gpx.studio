@@ -378,15 +378,7 @@
             "tram-stop": "Parada de tranvía",
             "bus-stop": "Parada de autobús",
             "ferry": "Ferri",
-            "historic": "Historic",
-            "castle": "Castle",
-            "ruins": "Ruins",
-            "monument": "Monument",
-            "memorial": "Memorial",
-            "archaeological-site": "Archaeological Site",
-            "wayside-shrine": "Wayside Shrine",
-            "wayside-cross": "Wayside Cross",
-            "battlefield": "Battlefield"
+            "historic": "Historic"
         }
     },
     "chart": {

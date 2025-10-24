@@ -22,11 +22,6 @@ import {
     Binoculars,
     Toilet,
     Castle,
-    Landmark,
-    Library,
-    Church,
-    Cross,
-    Award,
 } from 'lucide-static';
 import { type StyleSpecification } from 'mapbox-gl';
 import ignFrTopo from './custom/ign-fr-topo.json';
@@ -916,16 +911,7 @@ export const overpassTree: LayerTreeType = {
             summit: true,
             pass: true,
             climbing: true,
-        },
-        historic: {
-            castle: true,
-            ruins: true,
-            monument: true,
-            memorial: true,
-            'archaeological-site': true,
-            'wayside-shrine': true,
-            'wayside-cross': true,
-            battlefield: true,
+            historic: true,
         },
         bicycle: {
             'bicycle-parking': true,
@@ -1009,16 +995,7 @@ export const defaultOverpassQueries: LayerTreeType = {
             summit: false,
             pass: false,
             climbing: false,
-        },
-        historic: {
-            castle: false,
-            ruins: false,
-            monument: false,
-            memorial: false,
-            'archaeological-site': false,
-            'wayside-shrine': false,
-            'wayside-cross': false,
-            battlefield: false,
+            historic: false,
         },
         bicycle: {
             'bicycle-parking': false,
@@ -1156,16 +1133,7 @@ export const defaultOverpassTree: LayerTreeType = {
             summit: true,
             pass: true,
             climbing: false,
-        },
-        historic: {
-            castle: false,
-            ruins: false,
-            monument: false,
-            memorial: false,
-            'archaeological-site': false,
-            'wayside-shrine': false,
-            'wayside-cross': false,
-            battlefield: false,
+            historic: false,
         },
         bicycle: {
             'bicycle-parking': false,
@@ -1479,80 +1447,77 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         symbol: 'Anchor',
     },
-    castle: {
+    historic: {
         icon: {
             svg: Castle,
-            color: '#8D6E63',
+            color: '#8D6E63'
         },
         tags: {
-            historic: 'castle',
-        },
-        symbol: 'Building',
-    },
-    ruins: {
-        icon: {
-            svg: Library,
-            color: '#8D6E63',
-        },
-        tags: {
-            historic: 'ruins',
-        },
-        symbol: 'Building',
-    },
-    monument: {
-        icon: {
-            svg: Award,
-            color: '#8D6E63',
-        },
-        tags: {
-            historic: 'monument',
-        },
-        symbol: 'Landmark',
-    },
-    memorial: {
-        icon: {
-            svg: Landmark,
-            color: '#8D6E63',
-        },
-        tags: {
-            historic: 'memorial',
-        },
-        symbol: 'Landmark',
-    },
-    'archaeological-site': {
-        icon: {
-            svg: Pickaxe,
-            color: '#8D6E63',
-        },
-        tags: {
-            historic: 'archaeological_site',
-        },
-    },
-    'wayside-shrine': {
-        icon: {
-            svg: Church,
-            color: '#8D6E63',
-        },
-        tags: {
-            historic: 'wayside_shrine',
-        },
-    },
-    'wayside-cross': {
-        icon: {
-            svg: Cross,
-            color: '#8D6E63',
-        },
-        tags: {
-            historic: 'wayside_cross',
-        },
-    },
-    battlefield: {
-        icon: {
-            svg: Landmark,
-            color: '#8D6E63',
-        },
-        tags: {
-            historic: 'battlefield',
-        },
-    },
+            historic: [
+                'aircraft',
+                'anchor',
+                'aqueduct',
+                'archaeological_site',
+                'battlefield',
+                'bomb_crater',
+                'boundary_stone',
+                'building',
+                'bullaun_stone',
+                'cannon',
+                'caravanserai',
+                'castle',
+                'castle_wall',
+                'cattle_crush',
+                'charcoal_pile',
+                'church',
+                'city_gate',
+                'citywalls',
+                'creamery',
+                'district',
+                'epigraph',
+                'farm',
+                'fort',
+                'gallows',
+                'house',
+                'high_cross',
+                'highwater_mark',
+                'lavoir',
+                'lime_kiln',
+                'locomotive',
+                'machine',
+                'manor',
+                'memorial',
+                'milestone',
+                'millstone',
+                'mine',
+                'minecart',
+                'monastery',
+                'monument',
+                'mosque',
+                'ogham_stone',
+                'optical_telegraph',
+                'pa',
+                'pillory',
+                'pound',
+                'railway_car',
+                'road',
+                'round_tower',
+                'ruins',
+                'rune_stone',
+                'shieling',
+                'ship',
+                // 'stećak', ć triggers validation error
+                'stone',
+                'tank',
+                'temple',
+                'tomb',
+                'tower',
+                'vehicle',
+                'wayside_cross',
+                'wayside_shrine',
+                'wreck',
+                'yes',
+            ]
+        }
+    }
 };
