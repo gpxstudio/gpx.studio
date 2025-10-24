@@ -377,7 +377,8 @@
             "railway-station": "Railway Station",
             "tram-stop": "Tram Stop",
             "bus-stop": "Bus Stop",
-            "ferry": "Ferry"
+            "ferry": "Ferry",
+            "historic": "Historic"
         }
     },
     "chart": {

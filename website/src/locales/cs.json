@@ -377,7 +377,8 @@
             "railway-station": "Železniční stanice",
             "tram-stop": "Zastávka tramvaje",
             "bus-stop": "Autobusová zastávka",
-            "ferry": "Trajekt"
+            "ferry": "Trajekt",
+            "historic": "Historic"
         }
     },
     "chart": {

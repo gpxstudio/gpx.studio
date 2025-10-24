@@ -377,7 +377,8 @@
             "railway-station": "Tren istasyonu",
             "tram-stop": "Tramvay Durağı",
             "bus-stop": "Otobüs Durağı",
-            "ferry": "Feribot"
+            "ferry": "Feribot",
+            "historic": "Historic"
         }
     },
     "chart": {

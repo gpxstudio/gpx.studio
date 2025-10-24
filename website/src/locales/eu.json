@@ -377,7 +377,8 @@
             "railway-station": "Tren geltokia",
             "tram-stop": "Tranbia geltokia",
             "bus-stop": "Autobus geltokia",
-            "ferry": "Ferria"
+            "ferry": "Ferria",
+            "historic": "Historic"
         }
     },
     "chart": {

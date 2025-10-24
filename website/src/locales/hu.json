@@ -377,7 +377,8 @@
             "railway-station": "Vasútállomás",
             "tram-stop": "Villamos megálló",
             "bus-stop": "Buszmegálló",
-            "ferry": "Komp"
+            "ferry": "Komp",
+            "historic": "Historic"
         }
     },
     "chart": {

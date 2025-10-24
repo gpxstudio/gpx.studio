@@ -377,7 +377,8 @@
             "railway-station": "火车站",
             "tram-stop": "有轨电车站",
             "bus-stop": "小型公交站台",
-            "ferry": "渡口"
+            "ferry": "渡口",
+            "historic": "Historic"
         }
     },
     "chart": {

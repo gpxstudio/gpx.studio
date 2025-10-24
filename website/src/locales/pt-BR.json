@@ -377,7 +377,8 @@
             "railway-station": "Estações ferroviárias",
             "tram-stop": "Parada de bonde",
             "bus-stop": "Parada de Ônibus",
-            "ferry": "Balsa"
+            "ferry": "Balsa",
+            "historic": "Historic"
         }
     },
     "chart": {

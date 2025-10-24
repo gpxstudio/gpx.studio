@@ -377,7 +377,8 @@
             "railway-station": "철도역",
             "tram-stop": "트램 정류장",
             "bus-stop": "버스 정류장",
-            "ferry": "페리"
+            "ferry": "페리",
+            "historic": "Historic"
         }
     },
     "chart": {

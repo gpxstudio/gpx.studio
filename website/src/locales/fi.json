@@ -377,7 +377,8 @@
             "railway-station": "Rautatieasemat",
             "tram-stop": "Raitiovaunupysäkit",
             "bus-stop": "Linja-autopysäkit",
-            "ferry": "Lautat"
+            "ferry": "Lautat",
+            "historic": "Historic"
         }
     },
     "chart": {

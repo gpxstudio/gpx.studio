@@ -377,7 +377,8 @@
             "railway-station": "Treinstation",
             "tram-stop": "Tramhalte",
             "bus-stop": "Bushalte",
-            "ferry": "Veerboot"
+            "ferry": "Veerboot",
+            "historic": "Historic"
         }
     },
     "chart": {

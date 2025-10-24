@@ -377,7 +377,8 @@
             "railway-station": "Estación de tren",
             "tram-stop": "Parada de tranvía",
             "bus-stop": "Parada de autobús",
-            "ferry": "Ferri"
+            "ferry": "Ferri",
+            "historic": "Historic"
         }
     },
     "chart": {
