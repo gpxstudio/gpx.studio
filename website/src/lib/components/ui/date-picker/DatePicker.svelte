@@ -12,12 +12,14 @@
         disabled = false,
         locale,
         class: className = '',
+        onchange = () => {},
     }: {
         value?: DateValue;
         placeholder?: string;
         disabled?: boolean;
         locale: string;
         class?: string;
+        onchange?: (date: DateValue | undefined) => void;
     } = $props();
 
     const df = new DateFormatter(locale, {
@@ -43,6 +45,6 @@
         {value ? df.format(value.toDate(getLocalTimeZone())) : placeholder}
     </Popover.Trigger>
     <Popover.Content bind:ref={contentRef} class="w-auto p-0">
-        <Calendar type="single" captionLayout="dropdown" bind:value />
+        <Calendar type="single" captionLayout="dropdown" bind:value onValueChange={onchange} />
     </Popover.Content>
 </Popover.Root>

@@ -2,7 +2,7 @@
     import { Label } from '$lib/components/ui/label/index.js';
     import { Button } from '$lib/components/ui/button';
     import { Slider } from '$lib/components/ui/slider';
-    import { ListItem, ListRootItem } from '$lib/components/file-list/file-list';
+    import { ListRootItem } from '$lib/components/file-list/file-list';
     import Help from '$lib/components/Help.svelte';
     import { Funnel } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
@@ -10,13 +10,11 @@
     import { onDestroy } from 'svelte';
     import { getURLForLanguage } from '$lib/utils';
     import { selection } from '$lib/logic/selection';
-    import { minTolerance, ReducedGPXLayerCollection, tolerance } from './reduce';
+    import { minTolerance, ReducedGPXLayerCollection, tolerance } from './reduce.svelte';
 
     let props: { class?: string } = $props();
 
     let sliderValue = $state([50]);
-    let maxPoints = $state(0);
-    let currentPoints = $state(0);
     const maxTolerance = 10000;
 
     let validSelection = $derived(
@@ -46,7 +44,7 @@
     </Label>
     <Label class="flex flex-row justify-between">
         <span>{i18n._('toolbar.reduce.number_of_points')}</span>
-        <span class="font-normal">{currentPoints}/{maxPoints}</span>
+        <span class="font-normal">{reducedLayers.currentPoints}/{reducedLayers.maxPoints}</span>
     </Label>
     <Button variant="outline" disabled={!validSelection} onclick={() => reducedLayers.reduce()}>
         <Funnel size="16" class="mr-1" />

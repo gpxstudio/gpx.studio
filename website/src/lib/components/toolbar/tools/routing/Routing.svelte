@@ -15,7 +15,7 @@
         Route,
         TriangleAlert,
         ArrowRightLeft,
-        Home,
+        House,
         RouteOff,
         Repeat,
         SquareArrowUpLeft,
@@ -231,7 +231,7 @@
                     }
                 }}
             >
-                <Home size="12" />{i18n._('toolbar.routing.route_back_to_start.button')}
+                <House size="12" />{i18n._('toolbar.routing.route_back_to_start.button')}
             </ButtonWithTooltip>
             <ButtonWithTooltip
                 label={i18n._('toolbar.routing.round_trip.tooltip')}

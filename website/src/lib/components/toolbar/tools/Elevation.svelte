@@ -20,7 +20,7 @@
         variant="outline"
         class="whitespace-normal h-fit"
         disabled={!validSelection}
-        onclick={async () => {
+        onclick={() => {
             if ($map) {
                 fileActions.addElevationToSelection($map);
             }

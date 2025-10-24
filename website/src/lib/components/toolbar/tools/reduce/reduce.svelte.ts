@@ -5,7 +5,7 @@ import { GPXFileStateCollectionObserver, type GPXFileState } from '$lib/logic/fi
 import { selection } from '$lib/logic/selection';
 import { ramerDouglasPeucker, TrackPoint, type SimplifiedTrackPoint } from 'gpx';
 import type { GeoJSONSource } from 'mapbox-gl';
-import { get, writable } from 'svelte/store';
+import { get, writable, type Writable } from 'svelte/store';
 
 export const minTolerance = 0.1;
 
@@ -53,14 +53,16 @@ export const tolerance = writable<number>(0);
 export class ReducedGPXLayerCollection {
     private _layers: Map<string, ReducedGPXLayer> = new Map();
     private _simplified: Map<string, [ListItem, number, SimplifiedTrackPoint[]]>;
-    private _fileStateCollectionOberver: GPXFileStateCollectionObserver;
+    private _currentPoints = $state(0);
+    private _maxPoints = $state(0);
+    private _fileStateCollectionObserver: GPXFileStateCollectionObserver;
     private _updateSimplified = this.updateSimplified.bind(this);
     private _unsubscribes: (() => void)[] = [];
 
     constructor() {
         this._layers = new Map();
         this._simplified = new Map();
-        this._fileStateCollectionOberver = new GPXFileStateCollectionObserver(
+        this._fileStateCollectionObserver = new GPXFileStateCollectionObserver(
             (newFiles) => {
                 newFiles.forEach((fileState, fileId) => {
                     this._layers.set(
@@ -96,8 +98,8 @@ export class ReducedGPXLayerCollection {
     }
 
     update() {
-        let maxPoints = 0;
-        let currentPoints = 0;
+        this._currentPoints = 0;
+        this._maxPoints = 0;
 
         let data: GeoJSON.FeatureCollection = {
             type: 'FeatureCollection',
@@ -109,12 +111,12 @@ export class ReducedGPXLayerCollection {
                 return;
             }
 
-            maxPoints += maxPts;
+            this._maxPoints += maxPts;
 
             let current = points.filter(
                 (point) => point.distance === undefined || point.distance >= get(tolerance)
             );
-            currentPoints += current.length;
+            this._currentPoints += current.length;
 
             data.features.push({
                 type: 'Feature',
@@ -173,8 +175,16 @@ export class ReducedGPXLayerCollection {
         fileActions.reduce(itemsAndPoints);
     }
 
+    get currentPoints() {
+        return this._currentPoints;
+    }
+
+    get maxPoints() {
+        return this._maxPoints;
+    }
+
     destroy() {
-        this._fileStateCollectionOberver.destroy();
+        this._fileStateCollectionObserver.destroy();
         this._unsubscribes.forEach((unsubscribe) => unsubscribe());
 
         const map_ = get(map);

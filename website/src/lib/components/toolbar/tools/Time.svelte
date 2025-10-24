@@ -13,7 +13,7 @@
     } from '$lib/units';
     import { CalendarDate, type DateValue } from '@internationalized/date';
     import { CalendarClock, CirclePlay, CircleStop, CircleX, Timer, Zap } from '@lucide/svelte';
-    import { tick } from 'svelte';
+    import { untrack } from 'svelte';
     import { i18n } from '$lib/i18n.svelte';
     import {
         ListFileItem,
@@ -87,7 +87,7 @@
 
     $effect(() => {
         if ($gpxStatistics && $velocityUnits && $distanceUnits) {
-            setGPXData();
+            untrack(() => setGPXData());
         }
     });
 
@@ -204,7 +204,9 @@
                             min={0.01}
                             disabled={!canUpdate}
                             bind:value={speed}
-                            onchange={updateDataFromSpeed}
+                            onchange={() => {
+                                untrack(() => updateDataFromSpeed());
+                            }}
                             class="text-sm"
                         />
                         <span class="text-sm shrink-0">
@@ -221,7 +223,9 @@
                             bind:value={speed}
                             showHours={false}
                             disabled={!canUpdate}
-                            onChange={updateDataFromSpeed}
+                            onChange={() => {
+                                untrack(() => updateDataFromSpeed());
+                            }}
                         />
                         <span class="text-sm shrink-0">
                             {#if $distanceUnits === 'imperial'}
@@ -243,7 +247,9 @@
                 <TimePicker
                     bind:value={movingTime}
                     disabled={!canUpdate}
-                    onChange={updateDataFromTotalTime}
+                    onChange={() => {
+                        untrack(() => updateDataFromTotalTime());
+                    }}
                 />
             </div>
         </div>
@@ -258,18 +264,19 @@
                 locale={i18n.lang}
                 placeholder={i18n._('toolbar.time.pick_date')}
                 class="w-fit grow"
-                onValueChange={async () => {
-                    await tick();
-                    updateEnd();
+                onchange={() => {
+                    untrack(() => updateEnd());
                 }}
             />
-            <input
+            <Input
                 type="time"
                 step={1}
                 disabled={!canUpdate}
                 bind:value={startTime}
                 class="w-fit"
-                onchange={updateEnd}
+                onchange={() => {
+                    untrack(() => updateEnd());
+                }}
             />
         </div>
         <Label class="flex flex-row">
@@ -283,18 +290,19 @@
                 locale={i18n.lang}
                 placeholder={i18n._('toolbar.time.pick_date')}
                 class="w-fit grow"
-                onValueChange={async () => {
-                    await tick();
-                    updateStart();
+                onchange={() => {
+                    untrack(() => updateStart());
                 }}
             />
-            <input
+            <Input
                 type="time"
                 step={1}
                 disabled={!canUpdate}
                 bind:value={endTime}
                 class="w-fit"
-                onchange={updateStart}
+                onchange={() => {
+                    untrack(() => updateStart());
+                }}
             />
         </div>
         {#if $gpxStatistics.global.time.moving === 0 || $gpxStatistics.global.time.moving === undefined}
@@ -400,15 +408,3 @@
         {/if}
     </Help>
 </div>
-
-<style lang="postcss">
-    @reference "../../../../app.css";
-
-    div :global(input[type='time']) {
-        /*
-        Style copy-pasted from shadcn-svelte Input.
-        Needed to use native time input to avoid a bug with 2-level bind:value.
-        */
-        @apply flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
-    }
-</style>
