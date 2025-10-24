@@ -213,7 +213,7 @@ export class GPXLayer {
                                 'text-halo-color': 'white',
                             },
                         },
-                        _map.getLayer('distance-markers') ? 'distance-markers' : undefined
+                        _map.getLayer('distance-markers-100') ? 'distance-markers-100' : undefined
                     );
                 }
             } else {
@@ -408,10 +408,7 @@ export class GPXLayer {
             _map.moveLayer(this.fileId);
         }
         if (_map.getLayer(this.fileId + '-direction')) {
-            _map.moveLayer(
-                this.fileId + '-direction',
-                _map.getLayer('distance-markers') ? 'distance-markers' : undefined
-            );
+            _map.moveLayer(this.fileId + '-direction');
         }
     }
 

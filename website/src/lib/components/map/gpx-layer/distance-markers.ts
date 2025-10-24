@@ -4,6 +4,7 @@ import { getConvertedDistanceToKilometers } from '$lib/units';
 import type { GeoJSONSource } from 'mapbox-gl';
 import { get } from 'svelte/store';
 import { map } from '$lib/components/map/map';
+import { allHidden } from '$lib/logic/hidden';
 
 const { distanceMarkers, distanceUnits } = settings;
 
@@ -24,6 +25,7 @@ export class DistanceMarkers {
         this.unsubscribes.push(gpxStatistics.subscribe(this.updateBinded));
         this.unsubscribes.push(distanceMarkers.subscribe(this.updateBinded));
         this.unsubscribes.push(distanceUnits.subscribe(this.updateBinded));
+        this.unsubscribes.push(allHidden.subscribe(this.updateBinded));
         this.unsubscribes.push(
             map.subscribe((map_) => {
                 if (map_) {
@@ -38,7 +40,7 @@ export class DistanceMarkers {
         if (!map_) return;
 
         try {
-            if (get(distanceMarkers)) {
+            if (get(distanceMarkers) && !get(allHidden)) {
                 let distanceSource: GeoJSONSource | undefined = map_.getSource('distance-markers');
                 if (distanceSource) {
                     distanceSource.setData(this.getDistanceMarkersGeoJSON());

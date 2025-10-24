@@ -3,6 +3,7 @@ import { gpxStatistics, slicedGPXStatistics } from '$lib/logic/statistics';
 import mapboxgl from 'mapbox-gl';
 import { get } from 'svelte/store';
 import { map } from '$lib/components/map/map';
+import { allHidden } from '$lib/logic/hidden';
 
 export class StartEndMarkers {
     start: mapboxgl.Marker;
@@ -24,6 +25,7 @@ export class StartEndMarkers {
         this.unsubscribes.push(gpxStatistics.subscribe(this.updateBinded));
         this.unsubscribes.push(slicedGPXStatistics.subscribe(this.updateBinded));
         this.unsubscribes.push(currentTool.subscribe(this.updateBinded));
+        this.unsubscribes.push(allHidden.subscribe(this.updateBinded));
     }
 
     update() {
@@ -32,7 +34,8 @@ export class StartEndMarkers {
 
         const tool = get(currentTool);
         const statistics = get(slicedGPXStatistics)?.[0] ?? get(gpxStatistics);
-        if (statistics.local.points.length > 0 && tool !== Tool.ROUTING) {
+        const hidden = get(allHidden);
+        if (statistics.local.points.length > 0 && tool !== Tool.ROUTING && !hidden) {
             this.start.setLngLat(statistics.local.points[0].getCoordinates()).addTo(map_);
             this.end
                 .setLngLat(
