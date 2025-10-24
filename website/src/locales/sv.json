@@ -377,7 +377,16 @@
             "railway-station": "Järnvägsstation",
             "tram-stop": "Spårvagnshållplats",
             "bus-stop": "Busshållplats",
-            "ferry": "Ferry"
+            "ferry": "Ferry",
+            "historic": "Historic",
+            "castle": "Castle",
+            "ruins": "Ruins",
+            "monument": "Monument",
+            "memorial": "Memorial",
+            "archaeological-site": "Archaeological Site",
+            "wayside-shrine": "Wayside Shrine",
+            "wayside-cross": "Wayside Cross",
+            "battlefield": "Battlefield"
         }
     },
     "chart": {

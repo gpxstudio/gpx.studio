@@ -377,7 +377,16 @@
             "railway-station": "Vasútállomás",
             "tram-stop": "Villamos megálló",
             "bus-stop": "Buszmegálló",
-            "ferry": "Komp"
+            "ferry": "Komp",
+            "historic": "Historic",
+            "castle": "Castle",
+            "ruins": "Ruins",
+            "monument": "Monument",
+            "memorial": "Memorial",
+            "archaeological-site": "Archaeological Site",
+            "wayside-shrine": "Wayside Shrine",
+            "wayside-cross": "Wayside Cross",
+            "battlefield": "Battlefield"
         }
     },
     "chart": {

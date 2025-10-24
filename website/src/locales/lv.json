@@ -377,7 +377,16 @@
             "railway-station": "Railway Station",
             "tram-stop": "Tram Stop",
             "bus-stop": "Bus Stop",
-            "ferry": "Ferry"
+            "ferry": "Ferry",
+            "historic": "Historic",
+            "castle": "Castle",
+            "ruins": "Ruins",
+            "monument": "Monument",
+            "memorial": "Memorial",
+            "archaeological-site": "Archaeological Site",
+            "wayside-shrine": "Wayside Shrine",
+            "wayside-cross": "Wayside Cross",
+            "battlefield": "Battlefield"
         }
     },
     "chart": {

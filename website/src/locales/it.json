@@ -377,7 +377,16 @@
             "railway-station": "Stazione ferroviaria",
             "tram-stop": "Fermata del tram",
             "bus-stop": "Fermata dell'autobus",
-            "ferry": "Traghetto"
+            "ferry": "Traghetto",
+            "historic": "Historic",
+            "castle": "Castle",
+            "ruins": "Ruins",
+            "monument": "Monument",
+            "memorial": "Memorial",
+            "archaeological-site": "Archaeological Site",
+            "wayside-shrine": "Wayside Shrine",
+            "wayside-cross": "Wayside Cross",
+            "battlefield": "Battlefield"
         }
     },
     "chart": {

@@ -377,7 +377,16 @@
             "railway-station": "철도역",
             "tram-stop": "트램 정류장",
             "bus-stop": "버스 정류장",
-            "ferry": "페리"
+            "ferry": "페리",
+            "historic": "Historic",
+            "castle": "Castle",
+            "ruins": "Ruins",
+            "monument": "Monument",
+            "memorial": "Memorial",
+            "archaeological-site": "Archaeological Site",
+            "wayside-shrine": "Wayside Shrine",
+            "wayside-cross": "Wayside Cross",
+            "battlefield": "Battlefield"
         }
     },
     "chart": {

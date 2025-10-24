@@ -377,7 +377,16 @@
             "railway-station": "Rautatieasemat",
             "tram-stop": "Raitiovaunupysäkit",
             "bus-stop": "Linja-autopysäkit",
-            "ferry": "Lautat"
+            "ferry": "Lautat",
+            "historic": "Historic",
+            "castle": "Castle",
+            "ruins": "Ruins",
+            "monument": "Monument",
+            "memorial": "Memorial",
+            "archaeological-site": "Archaeological Site",
+            "wayside-shrine": "Wayside Shrine",
+            "wayside-cross": "Wayside Cross",
+            "battlefield": "Battlefield"
         }
     },
     "chart": {

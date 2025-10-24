@@ -377,7 +377,16 @@
             "railway-station": "Železnička stanica",
             "tram-stop": "Tramvajsko stajalište",
             "bus-stop": "Autobusko stajalište",
-            "ferry": "Trajekt"
+            "ferry": "Trajekt",
+            "historic": "Historic",
+            "castle": "Castle",
+            "ruins": "Ruins",
+            "monument": "Monument",
+            "memorial": "Memorial",
+            "archaeological-site": "Archaeological Site",
+            "wayside-shrine": "Wayside Shrine",
+            "wayside-cross": "Wayside Cross",
+            "battlefield": "Battlefield"
         }
     },
     "chart": {

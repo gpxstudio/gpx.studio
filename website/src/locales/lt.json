@@ -377,7 +377,16 @@
             "railway-station": "Geležinkelio stotis",
             "tram-stop": "Tramvajaus stotelė",
             "bus-stop": "Autobusų stotelė",
-            "ferry": "Keltas"
+            "ferry": "Keltas",
+            "historic": "Historic",
+            "castle": "Castle",
+            "ruins": "Ruins",
+            "monument": "Monument",
+            "memorial": "Memorial",
+            "archaeological-site": "Archaeological Site",
+            "wayside-shrine": "Wayside Shrine",
+            "wayside-cross": "Wayside Cross",
+            "battlefield": "Battlefield"
         }
     },
     "chart": {

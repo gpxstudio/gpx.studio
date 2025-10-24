@@ -377,7 +377,16 @@
             "railway-station": "Railway Station",
             "tram-stop": "Tram Stop",
             "bus-stop": "Bus Stop",
-            "ferry": "Ferry"
+            "ferry": "Ferry",
+            "historic": "Історичні об'єкти",
+            "castle": "Замок",
+            "ruins": "Руїни",
+            "monument": "Монумент",
+            "memorial": "Меморіал",
+            "archaeological-site": "Археологічна пам'ятка",
+            "wayside-shrine": "Придорожня каплиця",
+            "wayside-cross": "Придорожний хрест",
+            "battlefield": "Поле битви"
         }
     },
     "chart": {
