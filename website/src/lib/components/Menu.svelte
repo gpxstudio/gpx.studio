@@ -74,6 +74,7 @@
     import { copied, selection } from '$lib/logic/selection';
     import { allHidden } from '$lib/logic/hidden';
     import { boundsManager } from '$lib/logic/bounds';
+    import { tick } from 'svelte';
 
     const {
         distanceUnits,
@@ -90,6 +91,9 @@
         streetViewSource,
         routing,
     } = settings;
+
+    const canUndo = fileActionManager.canUndo;
+    const canRedo = fileActionManager.canRedo;
 
     function switchBasemaps() {
         [$currentBasemap, $previousBasemap] = [$previousBasemap, $currentBasemap];
@@ -143,7 +147,7 @@
                     </Menubar.Item>
                     <Menubar.Separator />
                     <Menubar.Item
-                        onclick={fileActions.deleteSelectedFiles}
+                        onclick={() => tick().then(fileActions.deleteSelectedFiles)}
                         disabled={$selection.size == 0}
                     >
                         <FileX size="16" />
@@ -183,18 +187,12 @@
                     <span class="hidden md:block">{i18n._('menu.edit')}</span>
                 </Menubar.Trigger>
                 <Menubar.Content class="border-none">
-                    <Menubar.Item
-                        onclick={() => fileActionManager.undo()}
-                        disabled={!fileActionManager.canUndo}
-                    >
+                    <Menubar.Item onclick={() => fileActionManager.undo()} disabled={!$canUndo}>
                         <Undo2 size="16" />
                         {i18n._('menu.undo')}
                         <Shortcut key="Z" ctrl={true} />
                     </Menubar.Item>
-                    <Menubar.Item
-                        onclick={() => fileActionManager.redo()}
-                        disabled={!fileActionManager.canRedo}
-                    >
+                    <Menubar.Item onclick={() => fileActionManager.redo()} disabled={!$canRedo}>
                         <Redo2 size="16" />
                         {i18n._('menu.redo')}
                         <Shortcut key="Z" ctrl={true} shift={true} />
@@ -335,7 +333,7 @@
                     {/if}
                     <Menubar.Separator />
                     <Menubar.Item
-                        onclick={fileActions.deleteSelection}
+                        onclick={() => tick().then(fileActions.deleteSelection)}
                         disabled={$selection.size == 0}
                     >
                         <Trash2 size="16" />
