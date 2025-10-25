@@ -19,11 +19,11 @@
     } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
     import { defaultBasemap, type CustomLayer } from '$lib/assets/layers';
-    import { onDestroy, onMount } from 'svelte';
-    import Sortable from 'sortablejs/Sortable';
+    import { onMount } from 'svelte';
     import { customBasemapUpdate } from './utils';
     import { settings } from '$lib/logic/settings';
     import { map } from '$lib/components/map/map';
+    import { dndzone } from 'svelte-dnd-action';
 
     const {
         customLayers,
@@ -55,12 +55,6 @@
 
     let selectedLayerId: string | undefined = $state(undefined);
 
-    let basemapContainer: HTMLElement;
-    let overlayContainer: HTMLElement;
-
-    let basemapSortable: Sortable;
-    let overlaySortable: Sortable;
-
     onMount(() => {
         if ($customBasemapOrder.length === 0) {
             $customBasemapOrder = Object.keys($customLayers).filter(
@@ -72,34 +66,26 @@
                 (id) => $customLayers[id].layerType === 'overlay'
             );
         }
-
-        basemapSortable = Sortable.create(basemapContainer, {
-            onSort: (e) => {
-                $customBasemapOrder = basemapSortable.toArray();
-                $selectedBasemapTree.basemaps['custom'] = $customBasemapOrder.reduce((acc, id) => {
-                    acc[id] = true;
-                    return acc;
-                }, {});
-            },
-        });
-        overlaySortable = Sortable.create(overlayContainer, {
-            onSort: (e) => {
-                $customOverlayOrder = overlaySortable.toArray();
-                $selectedOverlayTree.overlays['custom'] = $customOverlayOrder.reduce((acc, id) => {
-                    acc[id] = true;
-                    return acc;
-                }, {});
-            },
-        });
-
-        basemapSortable.sort($customBasemapOrder);
-        overlaySortable.sort($customOverlayOrder);
     });
 
-    onDestroy(() => {
-        basemapSortable.destroy();
-        overlaySortable.destroy();
-    });
+    let customBasemapItems: {
+        id: string;
+        name: string;
+    }[] = $derived(
+        $customBasemapOrder.map((id) => ({
+            id: id,
+            name: $customLayers[id].name,
+        }))
+    );
+    let customOverlayItems: {
+        id: string;
+        name: string;
+    }[] = $derived(
+        $customOverlayOrder.map((id) => ({
+            id: id,
+            name: $customLayers[id].name,
+        }))
+    );
 
     $effect(() => {
         setDataFromSelectedLayer(selectedLayerId);
@@ -306,17 +292,37 @@
         </div>
     {/if}
     <div
-        bind:this={basemapContainer}
         class="ml-1.5 flex flex-col gap-1 {$customBasemapOrder.length > 0 ? 'mb-2' : ''}"
+        use:dndzone={{
+            items: customBasemapItems,
+            type: 'basemap',
+            dropTargetStyle: {},
+            transformDraggedElement: (element) => {
+                if (element) {
+                    element.style.opacity = '0.5';
+                }
+            },
+        }}
+        onconsider={(e) => {
+            customBasemapItems = e.detail.items;
+        }}
+        onfinalize={(e) => {
+            customBasemapItems = e.detail.items;
+            $customBasemapOrder = customBasemapItems.map((item) => item.id);
+            $selectedBasemapTree.basemaps['custom'] = customBasemapItems.reduce((acc, item) => {
+                acc[item.id] = true;
+                return acc;
+            }, {});
+        }}
     >
-        {#each $customBasemapOrder as id (id)}
-            <div class="flex flex-row items-center gap-2" data-id={id}>
+        {#each customBasemapItems as item (item.id)}
+            <div class="flex flex-row items-center gap-2">
                 <Move size="12" />
-                <span class="grow">{$customLayers[id].name}</span>
+                <span class="grow">{item.name}</span>
                 <Button
                     variant="outline"
                     size="icon-sm"
-                    onclick={() => (selectedLayerId = id)}
+                    onclick={() => (selectedLayerId = item.id)}
                     class="p-1 h-7"
                 >
                     <Pencil size="16" />
@@ -324,7 +330,7 @@
                 <Button
                     variant="outline"
                     size="icon-sm"
-                    onclick={() => deleteLayer(id)}
+                    onclick={() => deleteLayer(item.id)}
                     class="p-1 h-7"
                 >
                     <Trash2 size="16" />
@@ -342,17 +348,37 @@
         </div>
     {/if}
     <div
-        bind:this={overlayContainer}
         class="ml-1.5 flex flex-col gap-1 {$customOverlayOrder.length > 0 ? 'mb-2' : ''}"
+        use:dndzone={{
+            items: customOverlayItems,
+            type: 'overlay',
+            dropTargetStyle: {},
+            transformDraggedElement: (element) => {
+                if (element) {
+                    element.style.opacity = '0.5';
+                }
+            },
+        }}
+        onconsider={(e) => {
+            customOverlayItems = e.detail.items;
+        }}
+        onfinalize={(e) => {
+            customOverlayItems = e.detail.items;
+            $customOverlayOrder = customOverlayItems.map((item) => item.id);
+            $selectedOverlayTree.overlays['custom'] = customOverlayItems.reduce((acc, item) => {
+                acc[item.id] = true;
+                return acc;
+            }, {});
+        }}
     >
-        {#each $customOverlayOrder as id (id)}
-            <div class="flex flex-row items-center gap-2" data-id={id}>
+        {#each customOverlayItems as item (item.id)}
+            <div class="flex flex-row items-center gap-2">
                 <Move size="12" />
-                <span class="grow">{$customLayers[id].name}</span>
+                <span class="grow">{item.name}</span>
                 <Button
                     variant="outline"
                     size="icon-sm"
-                    onclick={() => (selectedLayerId = id)}
+                    onclick={() => (selectedLayerId = item.id)}
                     class="p-1 h-7"
                 >
                     <Pencil size="16" />
@@ -360,7 +386,7 @@
                 <Button
                     variant="outline"
                     size="icon-sm"
-                    onclick={() => deleteLayer(id)}
+                    onclick={() => deleteLayer(item.id)}
                     class="p-1 h-7"
                 >
                     <Trash2 size="16" />
