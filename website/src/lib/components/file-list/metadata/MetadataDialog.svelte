@@ -4,12 +4,12 @@
     import { Textarea } from '$lib/components/ui/textarea';
     import { Label } from '$lib/components/ui/label/index.js';
     import * as Popover from '$lib/components/ui/popover';
-    import { dbUtils } from '$lib/db';
     import { Save } from '@lucide/svelte';
     import { ListFileItem, ListTrackItem, type ListItem } from '../file-list';
     import { GPXTreeElement, Track, type AnyGPXTreeElement, Waypoint, GPXFile } from 'gpx';
     import { i18n } from '$lib/i18n.svelte';
     import { editMetadata } from '$lib/components/file-list/metadata/utils.svelte';
+    import { fileActionManager } from '$lib/logic/file-action-manager';
 
     let {
         node,
@@ -53,7 +53,7 @@
         <Button
             variant="outline"
             onclick={() => {
-                dbUtils.applyToFile(item.getFileId(), (file) => {
+                fileActionManager.applyToFile(item.getFileId(), (file) => {
                     if (item instanceof ListFileItem && node instanceof GPXFile) {
                         file.metadata.name = name;
                         file.metadata.desc = description;

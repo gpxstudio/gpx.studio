@@ -35,6 +35,10 @@ export class GPXLayerCollection {
             }
         );
     }
+
+    getLayer(fileId: string): GPXLayer | undefined {
+        return this._layers.get(fileId);
+    }
 }
 
 export const gpxLayers = new GPXLayerCollection();

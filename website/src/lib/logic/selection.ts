@@ -33,6 +33,10 @@ export class Selection {
         return this._selection.subscribe(run, invalidate);
     }
 
+    update(updater: (value: SelectionTreeType) => SelectionTreeType) {
+        this._selection.update(updater);
+    }
+
     selectItem(item: ListItem) {
         this._selection.update(($selection) => {
             $selection.clear();
@@ -119,7 +123,7 @@ export class Selection {
         });
     }
 
-    update(updatedFiles: GPXFile[], deletedFileIds: string[]) {
+    updateFiles(updatedFiles: GPXFile[], deletedFileIds: string[]) {
         let removedItems: ListItem[] = [];
         applyToOrderedItemsFromFile(get(this._selection).getSelected(), (fileId, level, items) => {
             let file = updatedFiles.find((file) => file._data.id === fileId);

@@ -4,7 +4,6 @@
     import { Label } from '$lib/components/ui/label/index.js';
     import { Slider } from '$lib/components/ui/slider';
     import * as Popover from '$lib/components/ui/popover';
-    import { dbUtils, getFile, settings } from '$lib/db';
     import { Save } from '@lucide/svelte';
     import {
         ListFileItem,
@@ -12,10 +11,14 @@
         type ListItem,
     } from '$lib/components/file-list/file-list';
     import { editStyle } from '$lib/components/file-list/style/utils.svelte';
-    import { selection } from '../Selection';
-    import { gpxLayers } from '$lib/stores';
     import { i18n } from '$lib/i18n.svelte';
     import type { LineStyleExtension } from 'gpx';
+    import { settings } from '$lib/logic/settings';
+    import { selection } from '$lib/logic/selection';
+    import { fileStateCollection } from '$lib/logic/file-state';
+    import { gpxLayers } from '$lib/components/map/gpx-layer/gpx-layers';
+    import { untrack } from 'svelte';
+    import { fileActions } from '$lib/logic/file-actions';
 
     let {
         item,
@@ -40,8 +43,8 @@
 
         $selection.forEach((item) => {
             if (item instanceof ListFileItem) {
-                let file = getFile(item.getFileId());
-                let layer = gpxLayers.get(item.getFileId());
+                let file = fileStateCollection.getFile(item.getFileId());
+                let layer = gpxLayers.getLayer(item.getFileId());
                 if (file && layer) {
                     let style = file.getStyle();
                     color = layer.layerColor;
@@ -53,8 +56,8 @@
                     }
                 }
             } else if (item instanceof ListTrackItem) {
-                let file = getFile(item.getFileId());
-                let layer = gpxLayers.get(item.getFileId());
+                let file = fileStateCollection.getFile(item.getFileId());
+                let layer = gpxLayers.getLayer(item.getFileId());
                 if (file && layer) {
                     color = layer.layerColor;
                     let track = file.trk[item.getTrackIndex()];
@@ -81,7 +84,7 @@
 
     $effect(() => {
         if ($selection && open) {
-            setStyleInputs();
+            untrack(() => setStyleInputs());
         }
     });
 
@@ -102,9 +105,9 @@
         if (widthChanged) {
             style['gpx_style:width'] = width;
         }
-        dbUtils.setStyleToSelection(style);
+        fileActions.setStyleToSelection(style);
 
-        if (item instanceof ListFileItem && $selection.size === gpxLayers.size) {
+        if (item instanceof ListFileItem && $selection.size === fileStateCollection.size) {
             if (style['gpx_style:opacity']) {
                 $defaultOpacity = style['gpx_style:opacity'];
             }

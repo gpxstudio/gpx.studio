@@ -153,7 +153,7 @@ export class FileActionManager {
             .filter((file) => file !== undefined) as GPXFile[];
         updatedFileIds = updatedFiles.map((file) => file._data.id);
 
-        selection.update(updatedFiles, deletedFileIds);
+        selection.updateFiles(updatedFiles, deletedFileIds);
 
         // @ts-ignore
         return db.transaction('rw', db.fileids, db.files, async () => {
