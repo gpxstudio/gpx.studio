@@ -18,7 +18,7 @@
                     href="https://github.com/gpxstudio/gpx.studio/blob/main/LICENSE"
                     target="_blank"
                 >
-                    MIT © 2024 gpx.studio
+                    MIT © 2025 gpx.studio
                 </Button>
                 <LanguageSelect class="w-40 mt-3" />
             </div>
