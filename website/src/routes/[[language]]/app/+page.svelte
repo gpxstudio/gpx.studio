@@ -1,7 +1,7 @@
 <script lang="ts">
     import GPXLayers from '$lib/components/map/gpx-layer/GPXLayers.svelte';
     import ElevationProfile from '$lib/components/elevation-profile/ElevationProfile.svelte';
-    // import FileList from '$lib/components/file-list/FileList.svelte';
+    import FileList from '$lib/components/file-list/FileList.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
     import Map from '$lib/components/map/Map.svelte';
     import Menu from '$lib/components/Menu.svelte';
@@ -106,7 +106,7 @@
             <Toaster richColors />
             {#if !$treeFileView}
                 <div class="h-10 -translate-y-10 w-full pointer-events-none absolute z-30">
-                    <!-- <FileList orientation="horizontal" /> -->
+                    <FileList orientation="horizontal" />
                 </div>
             {/if}
         </div>
@@ -140,7 +140,7 @@
     </div>
     {#if $treeFileView}
         <Resizer orientation="col" bind:after={$rightPanelSize} minAfter={100} maxAfter={400} />
-        <!-- <FileList orientation="vertical" recursive={true} style="width: {$rightPanelSize}px" /> -->
+        <FileList orientation="vertical" recursive={true} style="width: {$rightPanelSize}px" />
     {/if}
 </div>
 

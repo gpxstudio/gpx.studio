@@ -58,15 +58,15 @@
 
     const { treeFileView } = settings;
 
-    function openIfSelectedChild() {
-        if (collapsible && treeFileView.value && $selection.hasAnyChildren(item, false)) {
-            collapsible.openNode();
-        }
-    }
+    // function openIfSelectedChild() {
+    //     if (collapsible && $treeFileView && $selection.hasAnyChildren(item, false)) {
+    //         collapsible.openNode();
+    //     }
+    // }
 
-    if ($selection) {
-        openIfSelectedChild();
-    }
+    // if ($selection) {
+    //     openIfSelectedChild();
+    // }
 
     // afterUpdate(openIfSelectedChild);
 </script>
@@ -83,7 +83,7 @@
             <FileListNodeLabel {node} {item} {label} />
         {/snippet}
         {#snippet content()}
-            <div class="ml-2">
+            <div class="ml-4">
                 {#key node}
                     <FileListNodeContent {node} {item} />
                 {/key}

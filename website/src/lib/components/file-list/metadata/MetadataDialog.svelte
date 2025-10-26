@@ -44,7 +44,7 @@
 </script>
 
 <Popover.Root bind:open>
-    <Popover.Trigger />
+    <Popover.Trigger class="-mx-1" />
     <Popover.Content side="top" sideOffset={22} alignOffset={30} class="flex flex-col gap-3">
         <Label for="name">{i18n._('menu.metadata.name')}</Label>
         <Input bind:value={name} id="name" class="font-semibold h-8" />

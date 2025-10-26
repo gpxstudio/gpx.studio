@@ -1,28 +1,13 @@
-<script lang="ts" context="module">
-    let dragging: Writable<ListLevel | null> = writable(null);
-
-    let updating = false;
-</script>
-
 <script lang="ts">
     import { GPXFile, Track, Waypoint, type AnyGPXTreeElement, type GPXTreeElement } from 'gpx';
     import { getContext, onDestroy, onMount } from 'svelte';
-    import Sortable from 'sortablejs/Sortable';
-    import { get, writable, type Readable, type Writable } from 'svelte/store';
+    import { type Readable } from 'svelte/store';
     import FileListNodeStore from './FileListNodeStore.svelte';
     import FileListNode from './FileListNode.svelte';
-    import {
-        ListFileItem,
-        ListLevel,
-        ListRootItem,
-        ListWaypointsItem,
-        allowedMoves,
-        type ListItem,
-    } from './file-list';
-    import { isMac } from '$lib/utils';
+    import FileListNodeContent from './FileListNodeContent.svelte';
+    import { ListFileItem, ListLevel, ListWaypointsItem, type ListItem } from './file-list';
     import type { GPXFileWithStatistics } from '$lib/logic/statistics-tree';
-    import { settings } from '$lib/logic/settings';
-    import { getFileIds, moveItems } from '$lib/logic/file-actions';
+    import { allowedMoves, dragging, SortableFileList } from './sortable-file-list';
 
     let {
         node,
@@ -32,13 +17,13 @@
         node:
             | Map<string, Readable<GPXFileWithStatistics | undefined>>
             | GPXTreeElement<AnyGPXTreeElement>
+            | Waypoint[]
             | Waypoint;
         item: ListItem;
         waypointRoot?: boolean;
     } = $props();
 
     let container: HTMLElement;
-    let elements: { [id: string]: HTMLElement } = {};
     let sortableLevel: ListLevel =
         node instanceof Map
             ? ListLevel.FILE
@@ -51,253 +36,26 @@
               : node instanceof Track
                 ? ListLevel.SEGMENT
                 : ListLevel.WAYPOINT;
-    let sortable: Sortable;
     let orientation = getContext<'vertical' | 'horizontal'>('orientation');
 
-    let destroyed = false;
-    let lastUpdateStart = 0;
-    function updateToSelection(e) {
-        if (destroyed) {
-            return;
-        }
+    let canDrop = $derived($dragging !== null && allowedMoves[$dragging].includes(sortableLevel));
 
-        lastUpdateStart = Date.now();
-        setTimeout(() => {
-            if (Date.now() - lastUpdateStart >= 40) {
-                if (updating) {
-                    return;
-                }
-
-                updating = true;
-                // Sortable updates selection
-                let changed = getChangedIds();
-                if (changed.length > 0) {
-                    selection.update(($selection) => {
-                        $selection.clear();
-                        Object.entries(elements).forEach(([id, element]) => {
-                            $selection.set(
-                                item.extend(getRealId(id)),
-                                element.classList.contains('sortable-selected')
-                            );
-                        });
-
-                        if (
-                            e.originalEvent &&
-                            !(
-                                e.originalEvent.ctrlKey ||
-                                e.originalEvent.metaKey ||
-                                e.originalEvent.shiftKey
-                            ) &&
-                            ($selection.size > 1 ||
-                                !$selection.has(item.extend(getRealId(changed[0]))))
-                        ) {
-                            // Fix bug that sometimes causes a single select to be treated as a multi-select
-                            $selection.clear();
-                            $selection.set(item.extend(getRealId(changed[0])), true);
-                        }
-
-                        return $selection;
-                    });
-                }
-                updating = false;
-            }
-        }, 50);
-    }
-
-    function updateFromSelection() {
-        if (destroyed || updating) {
-            return;
-        }
-        updating = true;
-        // Selection updates sortable
-        let changed = getChangedIds();
-        for (let id of changed) {
-            let element = elements[id];
-            if (element) {
-                if ($selection.has(item.extend(id))) {
-                    Sortable.utils.select(element);
-                    element.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'nearest',
-                    });
-                } else {
-                    Sortable.utils.deselect(element);
-                }
-            }
-        }
-        updating = false;
-    }
-
-    $: if ($selection) {
-        updateFromSelection();
-    }
-
-    function syncFileOrder(order: string[]) {
-        if (!sortable || sortableLevel !== ListLevel.FILE) {
-            return;
-        }
-
-        const currentOrder = sortable.toArray();
-        if (currentOrder.length !== order.length) {
-            sortable.sort(order);
-        } else {
-            for (let i = 0; i < currentOrder.length; i++) {
-                if (currentOrder[i] !== order[i]) {
-                    sortable.sort(order);
-                    break;
-                }
-            }
-        }
-    }
-
-    const { fileOrder } = settings;
-    $effect(() => syncFileOrder(fileOrder.value));
-
-    function createSortable() {
-        sortable = Sortable.create(container, {
-            group: {
-                name: sortableLevel,
-                pull: allowedMoves[sortableLevel],
-                put: true,
-            },
-            direction: orientation,
-            forceAutoScrollFallback: true,
-            multiDrag: true,
-            multiDragKey: isMac() ? 'Meta' : 'Ctrl',
-            avoidImplicitDeselect: true,
-            onSelect: updateToSelection,
-            onDeselect: updateToSelection,
-            onStart: () => {
-                dragging.set(sortableLevel);
-            },
-            onEnd: () => {
-                dragging.set(null);
-            },
-            onSort: (e) => {
-                if (sortableLevel === ListLevel.FILE) {
-                    let newFileOrder = sortable.toArray();
-                    if (newFileOrder.length !== fileOrder.value.length) {
-                        fileOrder.value = newFileOrder;
-                    } else {
-                        for (let i = 0; i < newFileOrder.length; i++) {
-                            if (newFileOrder[i] !== fileOrder.value[i]) {
-                                fileOrder.value = newFileOrder;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                let fromItem = Sortable.get(e.from)._item;
-                let toItem = Sortable.get(e.to)._item;
-
-                if (item === toItem && !(fromItem instanceof ListRootItem)) {
-                    // Event is triggered on source and destination list, only handle it once
-                    let fromItems = [];
-                    let toItems = [];
-
-                    if (Sortable.get(e.from)._waypointRoot) {
-                        fromItems = [fromItem.extend('waypoints')];
-                    } else {
-                        let oldIndices: number[] =
-                            e.oldIndicies.length > 0
-                                ? e.oldIndicies.map((i) => i.index)
-                                : [e.oldIndex];
-                        oldIndices = oldIndices.filter((i) => i >= 0);
-                        oldIndices.sort((a, b) => a - b);
-
-                        fromItems = oldIndices.map((i) => fromItem.extend(i));
-                    }
-
-                    if (Sortable.get(e.from)._waypointRoot && Sortable.get(e.to)._waypointRoot) {
-                        toItems = [toItem.extend('waypoints')];
-                    } else {
-                        if (Sortable.get(e.to)._waypointRoot) {
-                            toItem = toItem.extend('waypoints');
-                        }
-
-                        let newIndices: number[] =
-                            e.newIndicies.length > 0
-                                ? e.newIndicies.map((i) => i.index)
-                                : [e.newIndex];
-                        newIndices = newIndices.filter((i) => i >= 0);
-                        newIndices.sort((a, b) => a - b);
-
-                        if (toItem instanceof ListRootItem) {
-                            let newFileIds = getFileIds(newIndices.length);
-                            toItems = newIndices.map((i, index) => {
-                                fileOrder.value.splice(i, 0, newFileIds[index]);
-                                return item.extend(newFileIds[index]);
-                            });
-                        } else {
-                            toItems = newIndices.map((i) => toItem.extend(i));
-                        }
-                    }
-
-                    moveItems(fromItem, toItem, fromItems, toItems);
-                }
-            },
-        });
-        Object.defineProperty(sortable, '_item', {
-            value: item,
-            writable: true,
-        });
-
-        Object.defineProperty(sortable, '_waypointRoot', {
-            value: waypointRoot,
-            writable: true,
-        });
-    }
+    let sortable: SortableFileList;
 
     onMount(() => {
-        createSortable();
-        destroyed = false;
-    });
-
-    afterUpdate(() => {
-        elements = {};
-        container.childNodes.forEach((element) => {
-            if (element instanceof HTMLElement) {
-                let attr = element.getAttribute('data-id');
-                if (attr) {
-                    if (node instanceof Map && !node.has(attr)) {
-                        element.remove();
-                    } else {
-                        elements[attr] = element;
-                    }
-                }
-            }
-        });
-
-        syncFileOrder();
-        updateFromSelection();
+        sortable = new SortableFileList(
+            container,
+            node,
+            item,
+            waypointRoot,
+            sortableLevel,
+            orientation
+        );
     });
 
     onDestroy(() => {
-        destroyed = true;
+        sortable.destroy();
     });
-
-    function getChangedIds() {
-        let changed: (string | number)[] = [];
-        Object.entries(elements).forEach(([id, element]) => {
-            let realId = getRealId(id);
-            let realItem = item.extend(realId);
-            let inSelection = get(selection).has(realItem);
-            let isSelected = element.classList.contains('sortable-selected');
-            if (inSelection !== isSelected) {
-                changed.push(realId);
-            }
-        });
-        return changed;
-    }
-
-    function getRealId(id: string | number) {
-        return sortableLevel === ListLevel.FILE || sortableLevel === ListLevel.WAYPOINTS
-            ? id
-            : parseInt(id);
-    }
-
-    $: canDrop = $dragging !== null && allowedMoves[$dragging].includes(sortableLevel);
 </script>
 
 <div
@@ -343,7 +101,7 @@
 
 {#if node instanceof GPXFile && item instanceof ListFileItem}
     {#if !waypointRoot}
-        <svelte:self {node} {item} waypointRoot={true} />
+        <FileListNodeContent {node} {item} waypointRoot={true} />
     {/if}
 {/if}
 

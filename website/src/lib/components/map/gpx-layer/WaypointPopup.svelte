@@ -32,8 +32,8 @@
     }
 </script>
 
-<Card.Root class="border-none shadow-md text-base p-2 max-w-[50dvw]">
-    <Card.Header class="p-0">
+<Card.Root class="border-none shadow-md text-base p-2 max-w-[50dvw] gap-0">
+    <Card.Header class="p-0 gap-0">
         <Card.Title class="text-md">
             {#if waypoint.item.link && waypoint.item.link.attributes && waypoint.item.link.attributes.href}
                 <a href={waypoint.item.link.attributes.href} target="_blank">

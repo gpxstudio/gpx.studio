@@ -34,9 +34,10 @@
         <Collapsible.Trigger class="w-full">
             <Button
                 variant="ghost"
-                class="w-full flex flex-row {side === 'right'
+                size="icon"
+                class="w-full flex flex-row gap-1 {side === 'right'
                     ? 'justify-between'
-                    : 'justify-start'} p-0 has-[>svg]:px-0 h-fit {nohover
+                    : 'justify-start pl-1'} h-fit {nohover
                     ? 'hover:bg-background'
                     : ''} pointer-events-none"
             >
@@ -60,9 +61,10 @@
     {:else}
         <Button
             variant="ghost"
-            class="w-full flex flex-row {side === 'right'
+            size="icon"
+            class="w-full flex flex-row gap-1 {side === 'right'
                 ? 'justify-between'
-                : 'justify-start'} p-0 has-[>svg]:px-0 h-fit {nohover ? 'hover:bg-background' : ''}"
+                : 'justify-start pl-1'} h-fit {nohover ? 'hover:bg-background' : ''}"
         >
             {#if side === 'left'}
                 <Collapsible.Trigger>
@@ -85,7 +87,6 @@
             {/if}
         </Button>
     {/if}
-
     <Collapsible.Content>
         {@render props.content()}
     </Collapsible.Content>

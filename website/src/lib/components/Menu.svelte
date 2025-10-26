@@ -51,11 +51,7 @@
     import { anySelectedLayer } from '$lib/components/map/layer-control/utils';
     import { defaultOverlays } from '$lib/assets/layers';
     import LayerControlSettings from '$lib/components/map/layer-control/LayerControlSettings.svelte';
-    import {
-        allowedPastes,
-        ListFileItem,
-        ListTrackItem,
-    } from '$lib/components/file-list/file-list';
+    import { ListFileItem, ListTrackItem } from '$lib/components/file-list/file-list';
     import Export from '$lib/components/export/Export.svelte';
     import { mode, setMode } from 'mode-watcher';
     import { i18n } from '$lib/i18n.svelte';
@@ -75,6 +71,7 @@
     import { allHidden } from '$lib/logic/hidden';
     import { boundsManager } from '$lib/logic/bounds';
     import { tick } from 'svelte';
+    import { allowedPastes } from '$lib/components/file-list/sortable-file-list';
 
     const {
         distanceUnits,

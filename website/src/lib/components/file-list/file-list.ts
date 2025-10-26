@@ -7,24 +7,6 @@ export enum ListLevel {
     WAYPOINT,
 }
 
-export const allowedMoves: Record<ListLevel, ListLevel[]> = {
-    [ListLevel.ROOT]: [],
-    [ListLevel.FILE]: [ListLevel.FILE],
-    [ListLevel.TRACK]: [ListLevel.FILE, ListLevel.TRACK],
-    [ListLevel.SEGMENT]: [ListLevel.FILE, ListLevel.TRACK, ListLevel.SEGMENT],
-    [ListLevel.WAYPOINTS]: [ListLevel.WAYPOINTS],
-    [ListLevel.WAYPOINT]: [ListLevel.WAYPOINTS, ListLevel.WAYPOINT],
-};
-
-export const allowedPastes: Record<ListLevel, ListLevel[]> = {
-    [ListLevel.ROOT]: [],
-    [ListLevel.FILE]: [ListLevel.ROOT, ListLevel.FILE],
-    [ListLevel.TRACK]: [ListLevel.ROOT, ListLevel.FILE, ListLevel.TRACK],
-    [ListLevel.SEGMENT]: [ListLevel.ROOT, ListLevel.FILE, ListLevel.TRACK, ListLevel.SEGMENT],
-    [ListLevel.WAYPOINTS]: [ListLevel.FILE, ListLevel.WAYPOINTS, ListLevel.WAYPOINT],
-    [ListLevel.WAYPOINT]: [ListLevel.FILE, ListLevel.WAYPOINTS, ListLevel.WAYPOINT],
-};
-
 export abstract class ListItem {
     [x: string]: any;
     level: ListLevel;
