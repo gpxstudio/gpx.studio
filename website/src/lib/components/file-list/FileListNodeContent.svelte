@@ -53,6 +53,12 @@
         );
     });
 
+    $effect(() => {
+        if (sortable) {
+            sortable.updateElements();
+        }
+    });
+
     onDestroy(() => {
         sortable.destroy();
     });
