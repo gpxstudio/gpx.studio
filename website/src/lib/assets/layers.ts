@@ -276,68 +276,6 @@ export const basemaps: { [key: string]: string | StyleSpecification } = {
             },
         ],
     },
-    swedenTopo: {
-        version: 8,
-        sources: {
-            swedenTopoWMTS: {
-                type: 'raster',
-                tiles: [
-                    'https://api.lantmateriet.se/open/topowebb-ccby/v1/wmts/token/1d54dd14-a28c-38a9-b6f3-b4ebfcc3c204/1.0.0/topowebb/default/3857/{z}/{y}/{x}.png',
-                ],
-                tileSize: 256,
-                maxzoom: 14,
-                attribution:
-                    '&copy; <a href="https://www.lantmateriet.se" target="_blank">Lantmäteriet</a>',
-            },
-            swedenTopoWMS: {
-                type: 'raster',
-                tiles: [
-                    'https://minkarta.lantmateriet.se/map/topowebb?REQUEST=GetMap&SERVICE=WMS&VERSION=1.1.1&FORMAT=image%2Fpng&STYLES=&TRANSPARENT=false&LAYERS=topowebbkartan&TILED=true&MAP_RESOLUTION=180&WIDTH=512&HEIGHT=512&SRS=EPSG%3A3857&BBOX={bbox-epsg-3857}',
-                ],
-                tileSize: 512,
-                minzoom: 14,
-                maxzoom: 20,
-                attribution:
-                    '&copy; <a href="https://www.lantmateriet.se" target="_blank">Lantmäteriet</a>',
-            },
-        },
-        layers: [
-            {
-                id: 'swedenTopoWMTS',
-                type: 'raster',
-                source: 'swedenTopoWMTS',
-                maxzoom: 14,
-            },
-            {
-                id: 'swedenTopoWMS',
-                type: 'raster',
-                source: 'swedenTopoWMS',
-                minzoom: 14,
-            },
-        ],
-    },
-    swedenSatellite: {
-        version: 8,
-        sources: {
-            swedenSatellite: {
-                type: 'raster',
-                tiles: [
-                    'https://minkarta.lantmateriet.se/map/ortofoto?REQUEST=GetMap&SERVICE=WMS&VERSION=1.1.1&FORMAT=image%2Fpng&STYLES=&TRANSPARENT=false&LAYERS=Ortofoto_0.5%2COrtofoto_0.4%2COrtofoto_0.25%2COrtofoto_0.16&TILED=true&MAP_RESOLUTION=180&WIDTH=512&HEIGHT=512&SRS=EPSG%3A3857&BBOX={bbox-epsg-3857}',
-                ],
-                tileSize: 512,
-                maxzoom: 22,
-                attribution:
-                    '&copy; <a href="https://www.lantmateriet.se" target="_blank">Lantmäteriet</a>',
-            },
-        },
-        layers: [
-            {
-                id: 'swedenSatellite',
-                type: 'raster',
-                source: 'swedenSatellite',
-            },
-        ],
-    },
     finlandTopo: {
         version: 8,
         sources: {
@@ -833,10 +771,6 @@ export const basemapTree: LayerTreeType = {
                 ignEs: true,
                 ignEsSatellite: true,
             },
-            sweden: {
-                swedenTopo: true,
-                swedenSatellite: true,
-            },
             switzerland: {
                 swisstopoRaster: true,
                 swisstopoVector: true,
@@ -1053,10 +987,6 @@ export const defaultBasemapTree: LayerTreeType = {
             spain: {
                 ignEs: false,
                 ignEsSatellite: false,
-            },
-            sweden: {
-                swedenTopo: false,
-                swedenSatellite: false,
             },
             switzerland: {
                 swisstopoRaster: false,
