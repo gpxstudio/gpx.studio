@@ -70,7 +70,7 @@
         </Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col p-0 text-sm mt-1 whitespace-normal break-all">
-        <ScrollArea class="flex flex-col" viewportClasses="max-h-[30dvh]">
+        <ScrollArea class="flex flex-col max-h-[30dvh]">
             {#if tags.image || tags['image:0']}
                 <div class="w-full rounded-md overflow-clip my-2 max-w-96 mx-auto">
                     <!-- svelte-ignore a11y-missing-attribute -->
