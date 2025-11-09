@@ -148,7 +148,7 @@
                         disabled={$selection.size == 0}
                     >
                         <FileX size="16" />
-                        {i18n._('menu.close')}
+                        {i18n._('menu.delete')}
                         <Shortcut key="⌫" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Item
@@ -156,7 +156,7 @@
                         disabled={fileStateCollection.size == 0}
                     >
                         <FileX size="16" />
-                        {i18n._('menu.close_all')}
+                        {i18n._('menu.delete_all')}
                         <Shortcut key="⌫" ctrl={true} shift={true} />
                     </Menubar.Item>
                     <Menubar.Separator />
