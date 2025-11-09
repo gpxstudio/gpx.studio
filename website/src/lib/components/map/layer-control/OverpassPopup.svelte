@@ -81,7 +81,7 @@
                 {#each Object.entries(tags) as [key, value]}
                     {#if key !== 'name' && !key.includes('image')}
                         <span class="font-mono">{key}</span>
-                        {#if key === 'website' || key.startsWith('website:') || key === 'contact:website' || key === 'contact:facebook' || key === 'contact:instagram' || key === 'contact:twitter'}
+                        {#if key === 'website' || key.startsWith('website:') || key.endsWith(':website') || key === 'contact:facebook' || key === 'contact:instagram' || key === 'contact:twitter'}
                             <a href={value} target="_blank" class="text-link underline">{value}</a>
                         {:else if key === 'phone' || key === 'contact:phone'}
                             <a href={'tel:' + value} class="text-link underline">{value}</a>
