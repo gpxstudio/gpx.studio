@@ -6,7 +6,7 @@
     import Map from '$lib/components/map/Map.svelte';
     import LayerControl from '$lib/components/map/layer-control/LayerControl.svelte';
     import OpenIn from '$lib/components/embedding/OpenIn.svelte';
-    import { readable, writable } from 'svelte/store';
+    import { writable } from 'svelte/store';
     import type { GPXFile } from 'gpx';
     import {
         allowedEmbeddingBasemaps,
@@ -17,7 +17,6 @@
     import { settings } from '$lib/logic/settings';
     import { fileStateCollection } from '$lib/logic/file-state';
     import { gpxStatistics, slicedGPXStatistics } from '$lib/logic/statistics';
-    import { GPXStatisticsTree } from '$lib/logic/statistics-tree';
     import { loadFile } from '$lib/logic/file-actions';
     import { selection } from '$lib/logic/selection';
     import { untrack } from 'svelte';
@@ -40,6 +39,8 @@
         distanceMarkers,
         directionMarkers,
     } = settings;
+
+    settings.initialize();
 
     function applyOptions() {
         let downloads: Promise<GPXFile | null>[] = getFilesFromEmbeddingOptions(options).map(

@@ -98,6 +98,10 @@ export class SettingInitOnFirstRead<V> {
         });
     }
 
+    initialize() {
+        this.set(this._initial);
+    }
+
     disconnectFromDatabase() {
         this._subscription?.unsubscribe();
         this._subscription = null;
@@ -171,6 +175,14 @@ export const settings = {
             const setting = (settings as any)[key];
             if (setting instanceof Setting || setting instanceof SettingInitOnFirstRead) {
                 setting.disconnectFromDatabase();
+            }
+        }
+    },
+    initialize() {
+        for (const key in settings) {
+            const setting = (settings as any)[key];
+            if (setting instanceof SettingInitOnFirstRead) {
+                setting.initialize();
             }
         }
     },
