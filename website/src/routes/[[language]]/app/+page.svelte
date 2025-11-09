@@ -16,10 +16,12 @@
     import { i18n } from '$lib/i18n.svelte';
     import { settings } from '$lib/logic/settings';
     import { loadFiles } from '$lib/logic/file-actions';
-    import { onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import { page } from '$app/state';
     import { gpxStatistics, slicedGPXStatistics } from '$lib/logic/statistics';
-    import { getURLForGoogleDriveFile } from '$lib/components/embedding/Embedding';
+    import { getURLForGoogleDriveFile } from '$lib/components/embedding/embedding';
+    import { db } from '$lib/db';
+    import { fileStateCollection } from '$lib/logic/file-state';
 
     const {
         treeFileView,
@@ -49,6 +51,14 @@
                 loadFiles(files.filter((file) => file !== null));
             });
         }
+
+        fileStateCollection.connectToDatabase(db);
+        settings.connectToDatabase(db);
+    });
+
+    onDestroy(() => {
+        fileStateCollection.disconnectFromDatabase();
+        settings.disconnectFromDatabase();
     });
 </script>
 

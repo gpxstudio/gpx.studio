@@ -10,7 +10,7 @@ export type EmbeddingOptions = {
         show: boolean;
         height: number;
         controls: boolean;
-        fill: 'slope' | 'surface' | 'highway' | undefined;
+        fill: 'slope' | 'surface' | 'highway' | 'none';
         speed: boolean;
         hr: boolean;
         cad: boolean;
@@ -34,7 +34,7 @@ export const defaultEmbeddingOptions = {
         show: true,
         height: 170,
         controls: true,
-        fill: undefined,
+        fill: 'none',
         speed: false,
         hr: false,
         cad: false,
@@ -48,10 +48,6 @@ export const defaultEmbeddingOptions = {
     temperatureUnits: 'celsius',
     theme: 'system',
 };
-
-export function getDefaultEmbeddingOptions(): EmbeddingOptions {
-    return JSON.parse(JSON.stringify(defaultEmbeddingOptions));
-}
 
 export function getMergedEmbeddingOptions(
     options: any,

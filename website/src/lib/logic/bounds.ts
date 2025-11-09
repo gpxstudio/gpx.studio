@@ -2,61 +2,12 @@ import { get } from 'svelte/store';
 import { selection } from '$lib/logic/selection';
 import mapboxgl from 'mapbox-gl';
 import { ListFileItem, ListWaypointItem } from '$lib/components/file-list/file-list';
-import {
-    fileStateCollection,
-    GPXFileState,
-    GPXFileStateCollectionObserver,
-} from '$lib/logic/file-state';
+import { fileStateCollection, GPXFileStateCollectionObserver } from '$lib/logic/file-state';
 import { gpxStatistics } from '$lib/logic/statistics';
 import { map } from '$lib/components/map/map';
 import type { GPXFileWithStatistics } from './statistics-tree';
 import type { Coordinates } from 'gpx';
 import { page } from '$app/state';
-import { browser } from '$app/environment';
-
-// const targetMapBounds: {
-//     bounds: mapboxgl.LngLatBounds;
-//     ids: string[];
-//     total: number;
-// } = $state({
-//     bounds: new mapboxgl.LngLatBounds([180, 90, -180, -90]),
-//     ids: [],
-//     total: 0,
-// });
-
-// $effect(() => {
-//     if (
-//         map.current === null ||
-//         targetMapBounds.ids.length > 0 ||
-//         (targetMapBounds.bounds.getSouth() === 90 &&
-//             targetMapBounds.bounds.getWest() === 180 &&
-//             targetMapBounds.bounds.getNorth() === -90 &&
-//             targetMapBounds.bounds.getEast() === -180)
-//     ) {
-//         return;
-//     }
-
-//     let currentZoom = map.current.getZoom();
-//     let currentBounds = map.current.getBounds();
-//     if (
-//         targetMapBounds.total !== get(fileObservers).size &&
-//         currentBounds &&
-//         currentZoom > 2 // Extend current bounds only if the map is zoomed in
-//     ) {
-//         // There are other files on the map
-//         if (
-//             currentBounds.contains(targetMapBounds.bounds.getSouthEast()) &&
-//             currentBounds.contains(targetMapBounds.bounds.getNorthWest())
-//         ) {
-//             return;
-//         }
-
-//         targetMapBounds.bounds.extend(currentBounds.getSouthWest());
-//         targetMapBounds.bounds.extend(currentBounds.getNorthEast());
-//     }
-
-//     map.current.fitBounds(targetMapBounds.bounds, { padding: 80, linear: true, easing: () => 1 });
-// });
 
 export class BoundsManager {
     private _bounds: mapboxgl.LngLatBounds = new mapboxgl.LngLatBounds();

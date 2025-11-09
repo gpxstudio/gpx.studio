@@ -2,11 +2,7 @@ import { db, type Database } from '$lib/db';
 import { liveQuery } from 'dexie';
 import type { GPXFile } from 'gpx';
 import { applyPatches, produceWithPatches, type Patch, type WritableDraft } from 'immer';
-import {
-    fileStateCollection,
-    GPXFileStateCollectionObserver,
-    type GPXFileStateCollection,
-} from '$lib/logic/file-state';
+import { GPXFileStateCollectionObserver } from '$lib/logic/file-state';
 import {
     derived,
     get,
@@ -30,7 +26,7 @@ export class FileActionManager {
     private _canUndo: Readable<boolean>;
     private _canRedo: Readable<boolean>;
 
-    constructor(db: Database, fileStateCollection: GPXFileStateCollection) {
+    constructor(db: Database) {
         this._db = db;
         this._files = new Map();
         this._fileSubscriptions = new Map();
@@ -156,7 +152,7 @@ export class FileActionManager {
         selection.updateFiles(updatedFiles, deletedFileIds);
 
         // @ts-ignore
-        return db.transaction('rw', db.fileids, db.files, async () => {
+        return this._db.transaction('rw', this._db.fileids, this._db.files, async () => {
             if (updatedFileIds.length > 0) {
                 await this._db.fileids.bulkPut(updatedFileIds, updatedFileIds);
                 await this._db.files.bulkPut(updatedFiles, updatedFileIds);
@@ -254,4 +250,4 @@ function getChangedFileIds(patch: Patch[]): string[] {
     return Array.from(changedFileIds);
 }
 
-export const fileActionManager = new FileActionManager(db, fileStateCollection);
+export const fileActionManager = new FileActionManager(db);

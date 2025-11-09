@@ -1,5 +1,5 @@
 import { updateAnchorPoints } from '$lib/components/toolbar/tools/routing/simplify';
-import { db, type Database } from '$lib/db';
+import { type Database } from '$lib/db';
 import { liveQuery } from 'dexie';
 import { GPXFile } from 'gpx';
 import { GPXStatisticsTree, type GPXFileWithStatistics } from '$lib/logic/statistics-tree';
@@ -8,13 +8,18 @@ import { get, writable, type Subscriber, type Writable } from 'svelte/store';
 
 // Observe a single file from the database, and maintain its statistics
 export class GPXFileState {
+    private _fileId: string;
     private _file: Writable<GPXFileWithStatistics | undefined>;
     private _subscription: { unsubscribe: () => void } | undefined;
 
-    constructor(db: Database, fileId: string) {
-        this._file = writable(undefined);
+    constructor(fileId: string, file?: GPXFile) {
+        this._fileId = fileId;
+        this._file = writable(file ? { file, statistics: new GPXStatisticsTree(file) } : undefined);
+    }
 
-        this._subscription = liveQuery(() => db.files.get(fileId)).subscribe((value) => {
+    connectToDatabase(db: Database) {
+        if (this._subscription) return;
+        this._subscription = liveQuery(() => db.files.get(this._fileId)).subscribe((value) => {
             if (value !== undefined) {
                 let file = new GPXFile(value);
                 updateAnchorPoints(file);
@@ -45,11 +50,15 @@ export class GPXFileState {
 // Observe the file ids in the database, and maintain a map of file states for the corresponding files
 export class GPXFileStateCollection {
     private _files: Writable<Map<string, GPXFileState>>;
+    private _subscription: { unsubscribe: () => void } | null = null;
 
-    constructor(db: Database) {
+    constructor() {
         this._files = writable(new Map());
+    }
 
-        liveQuery(() => db.fileids.toArray()).subscribe((dbFileIds) => {
+    connectToDatabase(db: Database) {
+        if (this._subscription) return;
+        this._subscription = liveQuery(() => db.fileids.toArray()).subscribe((dbFileIds) => {
             const currentFiles = get(this._files);
             // Find new files to observe
             let newFiles = dbFileIds
@@ -64,7 +73,9 @@ export class GPXFileStateCollection {
                 // Update the map of file states
                 this._files.update(($files) => {
                     newFiles.forEach((id) => {
-                        $files.set(id, new GPXFileState(db, id));
+                        const fileState = new GPXFileState(id);
+                        fileState.connectToDatabase(db);
+                        $files.set(id, fileState);
                     });
                     deletedFiles.forEach((id) => {
                         $files.get(id)?.destroy();
@@ -82,6 +93,31 @@ export class GPXFileStateCollection {
                 });
                 settings.fileOrder.set(fileOrder);
             }
+        });
+    }
+
+    disconnectFromDatabase() {
+        this._subscription?.unsubscribe();
+        this._subscription = null;
+        this._files.update(($files) => {
+            $files.forEach((fileState) => {
+                fileState.destroy();
+            });
+            return new Map();
+        });
+    }
+
+    setEmbeddedFiles(files: GPXFile[]) {
+        this._files.update(($files) => {
+            $files.clear();
+            files.forEach((file) => {
+                const id = file._data.id;
+                if (!$files.has(id)) {
+                    const fileState = new GPXFileState(id, file);
+                    $files.set(id, fileState);
+                }
+            });
+            return $files;
         });
     }
 
@@ -117,7 +153,7 @@ export class GPXFileStateCollection {
 }
 
 // Collection of all file states
-export const fileStateCollection = new GPXFileStateCollection(db);
+export const fileStateCollection = new GPXFileStateCollection();
 
 export type GPXFileStateCallback = (files: Map<string, GPXFileState>) => void;
 export class GPXFileStateCollectionObserver {

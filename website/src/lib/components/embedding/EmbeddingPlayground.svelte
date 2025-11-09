@@ -18,63 +18,61 @@
     import { i18n } from '$lib/i18n.svelte';
     import {
         allowedEmbeddingBasemaps,
+        defaultEmbeddingOptions,
         getCleanedEmbeddingOptions,
-        getDefaultEmbeddingOptions,
-    } from './Embedding';
+        getMergedEmbeddingOptions,
+    } from './embedding';
     import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
     import Embedding from './Embedding.svelte';
-    import { map } from '$lib/stores';
-    import { tick } from 'svelte';
+    import { onDestroy } from 'svelte';
     import { base } from '$app/paths';
+    import { map } from '$lib/components/map/map';
+    import { mode } from 'mode-watcher';
 
-    let options = getDefaultEmbeddingOptions();
-    options.token = 'YOUR_MAPBOX_TOKEN';
-    options.files = [
-        'https://raw.githubusercontent.com/gpxstudio/gpx.studio/main/gpx/test-data/simple.gpx',
-    ];
+    let options = $state(
+        getMergedEmbeddingOptions(
+            {
+                token: 'YOUR_MAPBOX_TOKEN',
+                theme: mode.current,
+            },
+            defaultEmbeddingOptions
+        )
+    );
+    let files = $state(
+        'https://raw.githubusercontent.com/gpxstudio/gpx.studio/main/gpx/test-data/simple.gpx'
+    );
+    let driveIds = $state('');
 
-    let files = options.files[0];
-    $: {
-        let urls = files.split(',');
-        urls = urls.filter((url) => url.length > 0);
-        if (JSON.stringify(urls) !== JSON.stringify(options.files)) {
-            options.files = urls;
+    let iframeOptions = $derived(
+        getMergedEmbeddingOptions(
+            {
+                token:
+                    options.token.length === 0 || options.token === 'YOUR_MAPBOX_TOKEN'
+                        ? PUBLIC_MAPBOX_TOKEN
+                        : options.token,
+                files: files.split(',').filter((url) => url.length > 0),
+                ids: driveIds.split(',').filter((id) => id.length > 0),
+                elevation: {
+                    fill: options.elevation.fill === 'none' ? undefined : options.elevation.fill,
+                },
+            },
+            options
+        )
+    );
+
+    let manualCamera = $state(false);
+    let zoom = $state('0');
+    let lat = $state('0');
+    let lon = $state('0');
+    let bearing = $state('0');
+    let pitch = $state('0');
+    let hash = $derived(manualCamera ? `#${zoom}/${lat}/${lon}/${bearing}/${pitch}` : '');
+
+    $effect(() => {
+        if (options.elevation.show || options.elevation.height) {
+            map.resize();
         }
-    }
-    let driveIds = '';
-    $: {
-        let ids = driveIds.split(',');
-        ids = ids.filter((id) => id.length > 0);
-        if (JSON.stringify(ids) !== JSON.stringify(options.ids)) {
-            options.ids = ids;
-        }
-    }
-
-    let manualCamera = false;
-
-    let zoom = '0';
-    let lat = '0';
-    let lon = '0';
-    let bearing = '0';
-    let pitch = '0';
-
-    $: hash = manualCamera ? `#${zoom}/${lat}/${lon}/${bearing}/${pitch}` : '';
-
-    $: iframeOptions =
-        options.token.length === 0 || options.token === 'YOUR_MAPBOX_TOKEN'
-            ? Object.assign({}, options, { token: PUBLIC_MAPBOX_TOKEN })
-            : options;
-
-    async function resizeMap() {
-        if ($map) {
-            await tick();
-            $map.resize();
-        }
-    }
-
-    $: if (options.elevation.height || options.elevation.show) {
-        resizeMap();
-    }
+    });
 
     function updateCamera() {
         if ($map) {
@@ -87,9 +85,15 @@
         }
     }
 
-    $: if ($map) {
-        $map.on('moveend', updateCamera);
-    }
+    map.onLoad((map_) => {
+        map_.on('moveend', updateCamera);
+    });
+
+    onDestroy(() => {
+        if ($map) {
+            $map.off('moveend', updateCamera);
+        }
+    });
 </script>
 
 <Card.Root id="embedding-playground">
@@ -105,19 +109,9 @@
             <Label for="drive_ids">{i18n._('embedding.drive_ids')}</Label>
             <Input id="drive_ids" type="text" class="h-8" bind:value={driveIds} />
             <Label for="basemap">{i18n._('embedding.basemap')}</Label>
-            <Select.Root
-                selected={{
-                    value: options.basemap,
-                    label: i18n._(`layers.label.${options.basemap}`),
-                }}
-                onSelectedChange={(selected) => {
-                    if (selected?.value) {
-                        options.basemap = selected?.value;
-                    }
-                }}
-            >
+            <Select.Root type="single" bind:value={options.basemap}>
                 <Select.Trigger id="basemap" class="w-full h-8">
-                    <Select.Value />
+                    {i18n._(`layers.label.${options.basemap}`)}
                 </Select.Trigger>
                 <Select.Content class="max-h-60 overflow-y-scroll">
                     {#each allowedEmbeddingBasemaps as basemap}
@@ -145,23 +139,11 @@
                         <span class="shrink-0">
                             {i18n._('embedding.fill_by')}
                         </span>
-                        <Select.Root
-                            selected={{ value: 'none', label: i18n._('embedding.none') }}
-                            onSelectedChange={(selected) => {
-                                let value = selected?.value;
-                                if (value === 'none') {
-                                    options.elevation.fill = undefined;
-                                } else if (
-                                    value === 'slope' ||
-                                    value === 'surface' ||
-                                    value === 'highway'
-                                ) {
-                                    options.elevation.fill = value;
-                                }
-                            }}
-                        >
+                        <Select.Root type="single" bind:value={options.elevation.fill}>
                             <Select.Trigger class="grow h-8">
-                                <Select.Value />
+                                {options.elevation.fill !== 'none'
+                                    ? i18n._(`quantities.${options.elevation.fill}`)
+                                    : i18n._('embedding.none')}
                             </Select.Trigger>
                             <Select.Content>
                                 <Select.Item value="slope">{i18n._('quantities.slope')}</Select.Item
@@ -331,7 +313,7 @@
                 {i18n._('embedding.preview')}
             </Label>
             <div class="relative h-[600px]">
-                <Embedding bind:options={iframeOptions} bind:hash useHash={false} />
+                <Embedding options={iframeOptions} bind:hash useHash={false} />
             </div>
             <Label>
                 {i18n._('embedding.code')}
@@ -339,7 +321,7 @@
             <pre
                 class="bg-primary text-primary-foreground p-3 rounded-md whitespace-normal break-all">
                 <code class="language-html">
-                    {`<iframe src="https://gpx.studio${base}/embed?options=${encodeURIComponent(JSON.stringify(getCleanedEmbeddingOptions(options)))}${hash}" width="100%" height="600px" frameborder="0" style="outline: none;"/>`}
+                    {`<iframe src="https://gpx.studio${base}/embed?options=${encodeURIComponent(JSON.stringify(getCleanedEmbeddingOptions(iframeOptions)))}${hash}" width="100%" height="600px" frameborder="0" style="outline: none;"/>`}
                 </code>
             </pre>
         </fieldset>

@@ -594,6 +594,7 @@ export class ElevationProfile {
     destroy() {
         if (this._chart) {
             this._chart.destroy();
+            this._chart = null;
         }
         if (this._marker) {
             this._marker.remove();

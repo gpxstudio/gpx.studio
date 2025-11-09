@@ -1,6 +1,6 @@
 import { TrackPoint, Waypoint } from 'gpx';
 import mapboxgl from 'mapbox-gl';
-import { mount, tick } from 'svelte';
+import { mount, tick, unmount } from 'svelte';
 import { get, writable, type Writable } from 'svelte/store';
 import MapPopupComponent from '$lib/components/map/MapPopup.svelte';
 
@@ -69,7 +69,7 @@ export class MapPopup {
 
     remove() {
         this.popup.remove();
-        this.component.$destroy();
+        unmount(this.component);
     }
 
     getCoordinates() {

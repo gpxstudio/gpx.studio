@@ -1,11 +1,11 @@
 <script lang="ts">
     import { page } from '$app/state';
     import { onMount } from 'svelte';
-    // import Embedding from '$lib/components/embedding/Embedding.svelte';
+    import Embedding from '$lib/components/embedding/Embedding.svelte';
     import {
         getMergedEmbeddingOptions,
         type EmbeddingOptions,
-    } from '$lib/components/embedding/Embedding';
+    } from '$lib/components/embedding/embedding';
 
     let embeddingOptions: EmbeddingOptions | undefined = undefined;
 
@@ -23,5 +23,5 @@
 </script>
 
 {#if embeddingOptions}
-    <!-- <Embedding options={embeddingOptions} hash={$page.url.hash} /> -->
+    <Embedding options={embeddingOptions} hash={page.url.hash} />
 {/if}

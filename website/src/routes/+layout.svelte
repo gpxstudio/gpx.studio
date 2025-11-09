@@ -6,7 +6,7 @@
     import Nav from '$lib/components/Nav.svelte';
     import Footer from '$lib/components/Footer.svelte';
     import { onMount, type Snippet } from 'svelte';
-    import { convertOldEmbeddingOptions } from '$lib/components/embedding/Embedding';
+    import { convertOldEmbeddingOptions } from '$lib/components/embedding/embedding';
     import { base } from '$app/paths';
     import { languages } from '$lib/languages';
     import { browser } from '$app/environment';

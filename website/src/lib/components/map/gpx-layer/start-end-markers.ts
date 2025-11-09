@@ -22,6 +22,7 @@ export class StartEndMarkers {
         this.start = new mapboxgl.Marker({ element: startElement });
         this.end = new mapboxgl.Marker({ element: endElement });
 
+        map.onLoad(() => this.update());
         this.unsubscribes.push(gpxStatistics.subscribe(this.updateBinded));
         this.unsubscribes.push(slicedGPXStatistics.subscribe(this.updateBinded));
         this.unsubscribes.push(currentTool.subscribe(this.updateBinded));
