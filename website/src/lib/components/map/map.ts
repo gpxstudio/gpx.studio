@@ -166,6 +166,7 @@ export class MapboxGLMap {
         map.on('load', () => {
             this._map.set(map); // only set the store after the map has loaded
             window._map = map; // entry point for extensions
+            this.resize();
             scaleControl.setUnit(get(distanceUnits));
 
             this._onLoadCallbacks.forEach((callback) => callback(map));
