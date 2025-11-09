@@ -52,13 +52,13 @@
             });
         }
 
-        fileStateCollection.connectToDatabase(db);
         settings.connectToDatabase(db);
+        fileStateCollection.connectToDatabase(db);
     });
 
     onDestroy(() => {
-        fileStateCollection.disconnectFromDatabase();
         settings.disconnectFromDatabase();
+        fileStateCollection.disconnectFromDatabase();
     });
 </script>
 

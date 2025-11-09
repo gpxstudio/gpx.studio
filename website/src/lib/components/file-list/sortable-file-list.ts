@@ -7,6 +7,7 @@ import { get, writable, type Readable } from 'svelte/store';
 import { settings } from '$lib/logic/settings';
 import type { GPXFileWithStatistics } from '$lib/logic/statistics-tree';
 import type { AnyGPXTreeElement, GPXTreeElement, Waypoint } from 'gpx';
+import { tick } from 'svelte';
 
 const { fileOrder } = settings;
 
@@ -89,7 +90,9 @@ export class SortableFileList {
             writable: true,
         });
 
-        this._unsubscribes.push(selection.subscribe(() => this.updateFromSelection()));
+        this._unsubscribes.push(
+            selection.subscribe(() => tick().then(() => this.updateFromSelection()))
+        );
         this._unsubscribes.push(fileOrder.subscribe(() => this.updateFromFileOrder()));
     }
 
@@ -172,9 +175,8 @@ export class SortableFileList {
     }
 
     updateToSelection(e: Sortable.SortableEvent) {
-        if (this._updatingSelection) {
-            return;
-        }
+        if (!this._sortable) return;
+        if (this._updatingSelection) return;
         this._updatingSelection = true;
         const changed = this.getChangedIds();
         if (changed.length == 0) {
@@ -200,7 +202,6 @@ export class SortableFileList {
                 $selection.clear();
                 $selection.set(this._item.extend(this.getRealId(changed[0])), true);
             }
-
             return $selection;
         });
         this._updatingSelection = false;
@@ -255,6 +256,7 @@ export class SortableFileList {
     }
 
     destroy() {
+        this._sortable = null;
         this._unsubscribes.forEach((unsubscribe) => unsubscribe());
         this._unsubscribes = [];
     }

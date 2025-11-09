@@ -28,16 +28,7 @@
     setContext('recursive', recursive);
 
     onMount(() => {
-        if (orientation === 'vertical') {
-            selection.update(($selection) => {
-                $selection.forEach((item) => {
-                    if ($selection.hasAnyChildren(item, false)) {
-                        $selection.toggle(item);
-                    }
-                });
-                return $selection;
-            });
-        } else {
+        if (orientation === 'horizontal') {
             selection.update(($selection) => {
                 $selection.forEach((item) => {
                     if (!(item instanceof ListFileItem)) {
