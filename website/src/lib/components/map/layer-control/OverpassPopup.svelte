@@ -47,8 +47,8 @@
     }
 </script>
 
-<Card.Root class="border-none shadow-md text-base p-2 max-w-[50dvw]">
-    <Card.Header class="p-0">
+<Card.Root class="border-none shadow-md text-base p-2 max-w-[50dvw] gap-0">
+    <Card.Header class="p-0 gap-0">
         <Card.Title class="text-md">
             <div class="flex flex-row gap-3">
                 <div class="flex flex-col">
