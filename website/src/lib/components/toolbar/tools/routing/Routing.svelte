@@ -129,7 +129,7 @@
         </Button>
     </div>
 {:else}
-    <div class="flex flex-col gap-3 w-full max-w-80 animate-in animate-out {className ?? ''}">
+    <div class="flex flex-col gap-3 w-full max-w-80 {className ?? ''}">
         <div class="flex flex-col gap-3">
             <Label class="justify-between">
                 <span class="flex flex-row items-center gap-1">

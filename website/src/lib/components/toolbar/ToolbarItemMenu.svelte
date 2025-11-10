@@ -38,7 +38,9 @@
 </script>
 
 {#if $currentTool !== null}
-    <div class="translate-x-1 h-full animate-in animate-out {className}">
+    <div
+        class="translate-x-1 h-full animate-in fade-in-0 zoom-in-95 slide-in-from-left-2 {className}"
+    >
         <div class="rounded-md shadow-md pointer-events-auto">
             <Card.Root class="rounded-md border-none py-2.5">
                 <Card.Content class="px-2.5">
