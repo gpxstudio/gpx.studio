@@ -14,15 +14,27 @@
             <Logo class="h-8 sm:hidden" iconOnly={true} width="26" />
             <Logo class="h-8 hidden sm:block" width="153" />
         </a>
-        <Button variant="link" class="text-base px-0" href={getURLForLanguage(i18n.lang, '/')}>
+        <Button
+            variant="link"
+            class="text-base px-0 has-[>svg]:px-0"
+            href={getURLForLanguage(i18n.lang, '/')}
+        >
             <House size="18" />
             {i18n._('homepage.home')}
         </Button>
-        <Button variant="link" class="text-base px-0" href={getURLForLanguage(i18n.lang, '/app')}>
+        <Button
+            variant="link"
+            class="text-base px-0 has-[>svg]:px-0"
+            href={getURLForLanguage(i18n.lang, '/app')}
+        >
             <Map size="18" />
             {i18n._('homepage.app')}
         </Button>
-        <Button variant="link" class="text-base px-0" href={getURLForLanguage(i18n.lang, '/help')}>
+        <Button
+            variant="link"
+            class="text-base px-0 has-[>svg]:px-0"
+            href={getURLForLanguage(i18n.lang, '/help')}
+        >
             <BookOpenText size="18" />
             {i18n._('menu.help')}
         </Button>
