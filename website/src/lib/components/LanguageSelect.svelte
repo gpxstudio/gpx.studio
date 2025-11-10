@@ -14,9 +14,9 @@
 </script>
 
 <Select.Root type="single" value={i18n.lang}>
-    <Select.Trigger class="w-[180px] {className}" aria-label={i18n._('menu.language')}>
+    <Select.Trigger class="min-w-[180px] {className}" aria-label={i18n._('menu.language')}>
         <Languages size="16" />
-        <span class="ml-2 mr-auto">
+        <span class="mr-auto">
             {languages[i18n.lang]}
         </span>
     </Select.Trigger>
@@ -34,14 +34,3 @@
         {/each}
     </Select.Content>
 </Select.Root>
-
-<!-- hidden links for svelte crawling -->
-<div class="hidden">
-    {#if !page.url.pathname.includes('404')}
-        {#each Object.entries(languages) as [lang, label]}
-            <a href={getURLForLanguage(lang, page.url.pathname)}>
-                {label}
-            </a>
-        {/each}
-    {/if}
-</div>

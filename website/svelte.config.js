@@ -23,7 +23,6 @@ const config = {
             relative: false,
         },
         prerender: {
-            entries: ['/', '/404'],
             crawl: true,
         },
     },

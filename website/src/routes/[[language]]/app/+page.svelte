@@ -154,15 +154,6 @@
     {/if}
 </div>
 
-<!-- hidden links for svelte crawling -->
-<div class="hidden">
-    {#each Object.entries(languages) as [lang, label]}
-        <a href={getURLForLanguage(lang, '/embed')}>
-            {label}
-        </a>
-    {/each}
-</div>
-
 <style lang="postcss">
     @reference "tailwindcss";
 
