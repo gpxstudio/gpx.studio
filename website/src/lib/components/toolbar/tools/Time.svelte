@@ -324,7 +324,8 @@
                 if (
                     startDate === undefined ||
                     startTime === undefined ||
-                    effectiveSpeed === undefined
+                    effectiveSpeed === undefined ||
+                    movingTime === undefined
                 ) {
                     return;
                 }
@@ -347,12 +348,12 @@
                     if (item instanceof ListFileItem) {
                         if (artificial || !$gpxStatistics.global.time.moving) {
                             file.createArtificialTimestamps(
-                                getDate(startDate, startTime),
-                                movingTime
+                                getDate(startDate!, startTime!),
+                                movingTime!
                             );
                         } else {
                             file.changeTimestamps(
-                                getDate(startDate, startTime),
+                                getDate(startDate!, startTime!),
                                 effectiveSpeed,
                                 ratio
                             );
@@ -360,13 +361,13 @@
                     } else if (item instanceof ListTrackItem) {
                         if (artificial || !$gpxStatistics.global.time.moving) {
                             file.createArtificialTimestamps(
-                                getDate(startDate, startTime),
-                                movingTime,
+                                getDate(startDate!, startTime!),
+                                movingTime!,
                                 item.getTrackIndex()
                             );
                         } else {
                             file.changeTimestamps(
-                                getDate(startDate, startTime),
+                                getDate(startDate!, startTime!),
                                 effectiveSpeed,
                                 ratio,
                                 item.getTrackIndex()
@@ -375,14 +376,14 @@
                     } else if (item instanceof ListTrackSegmentItem) {
                         if (artificial || !$gpxStatistics.global.time.moving) {
                             file.createArtificialTimestamps(
-                                getDate(startDate, startTime),
-                                movingTime,
+                                getDate(startDate!, startTime!),
+                                movingTime!,
                                 item.getTrackIndex(),
                                 item.getSegmentIndex()
                             );
                         } else {
                             file.changeTimestamps(
-                                getDate(startDate, startTime),
+                                getDate(startDate!, startTime!),
                                 effectiveSpeed,
                                 ratio,
                                 item.getTrackIndex(),

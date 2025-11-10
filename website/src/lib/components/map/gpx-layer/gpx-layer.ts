@@ -156,7 +156,7 @@ export class GPXLayer {
         }
 
         try {
-            let source = _map.getSource(this.fileId);
+            let source = _map.getSource(this.fileId) as mapboxgl.GeoJSONSource | undefined;
             if (source) {
                 source.setData(this.getGeoJSON());
             } else {

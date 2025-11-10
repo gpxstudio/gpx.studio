@@ -49,7 +49,7 @@
         } else {
             untrack(() => {
                 if (value != computeValue()) {
-                    let rounded = Math.max(Math.round(value), 1);
+                    let rounded = Math.max(Math.round(value!), 1);
                     if (showHours) {
                         hours = Math.floor(rounded / 3600);
                         minutes = Math.floor((rounded % 3600) / 60)
@@ -66,14 +66,19 @@
 
     let container: HTMLDivElement;
     let countKeyPress = 0;
-    function onKeyPress(e) {
-        if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
+    function onKeyPress(e: KeyboardEvent) {
+        const target = e.target as HTMLInputElement | null;
+        if (target && ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
             countKeyPress++;
             if (countKeyPress === 2) {
-                if (e.target.id === 'hours') {
-                    container.querySelector('#minutes')?.focus();
-                } else if (e.target.id === 'minutes') {
-                    container.querySelector('#seconds')?.focus();
+                const nextInput =
+                    target.id === 'hours'
+                        ? (container.querySelector('#minutes') as HTMLInputElement)
+                        : target.id === 'minutes'
+                          ? (container.querySelector('#seconds') as HTMLInputElement)
+                          : null;
+                if (nextInput) {
+                    nextInput.focus();
                 }
             }
         }
@@ -172,6 +177,7 @@
         margin: 0;
     }
     div :global(input[type='number']) {
+        appearance: textfield;
         -moz-appearance: textfield;
     }
 </style>

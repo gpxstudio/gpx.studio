@@ -3,7 +3,7 @@
     import { Button } from '$lib/components/ui/button';
     import AlgoliaDocSearch from '$lib/components/AlgoliaDocSearch.svelte';
     import ModeSwitch from '$lib/components/ModeSwitch.svelte';
-    import { BookOpenText, Home, Map } from '@lucide/svelte';
+    import { BookOpenText, House, Map } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
     import { getURLForLanguage } from '$lib/utils';
 </script>
@@ -15,7 +15,7 @@
             <Logo class="h-8 hidden sm:block" width="153" />
         </a>
         <Button variant="link" class="text-base px-0" href={getURLForLanguage(i18n.lang, '/')}>
-            <Home size="18" />
+            <House size="18" />
             {i18n._('homepage.home')}
         </Button>
         <Button variant="link" class="text-base px-0" href={getURLForLanguage(i18n.lang, '/app')}>
@@ -27,6 +27,6 @@
             {i18n._('menu.help')}
         </Button>
         <AlgoliaDocSearch class="ml-auto" />
-        <ModeSwitch class="hidden xs:block" />
+        <ModeSwitch class="hidden xs:inline-flex" />
     </div>
 </nav>

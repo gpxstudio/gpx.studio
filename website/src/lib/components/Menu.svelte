@@ -319,7 +319,7 @@
                                 $copied.length === 0 ||
                                 ($selection.size > 0 &&
                                     !allowedPastes[$copied[0].level].includes(
-                                        $selection.getSelected().pop()?.level
+                                        $selection.getSelected().pop()!.level
                                     ))}
                             onclick={pasteSelection}
                         >
@@ -659,7 +659,7 @@
     on:dragover={(e) => e.preventDefault()}
     on:drop={(e) => {
         e.preventDefault();
-        if (e.dataTransfer.files.length > 0) {
+        if (e.dataTransfer && e.dataTransfer.files.length > 0) {
             loadFiles(e.dataTransfer.files);
         }
     }}

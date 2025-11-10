@@ -186,8 +186,8 @@ export const basemaps: { [key: string]: string | StyleSpecification } = {
             },
         ],
     },
-    ignFrPlan: ignFrPlan,
-    ignFrTopo: ignFrTopo,
+    ignFrPlan: ignFrPlan as StyleSpecification,
+    ignFrTopo: ignFrTopo as StyleSpecification,
     ignFrScan25: {
         version: 8,
         sources: {
@@ -209,7 +209,7 @@ export const basemaps: { [key: string]: string | StyleSpecification } = {
             },
         ],
     },
-    ignFrSatellite: ignFrSatellite,
+    ignFrSatellite: ignFrSatellite as StyleSpecification,
     ignEs: {
         version: 8,
         sources: {
@@ -366,7 +366,7 @@ export const overlays: { [key: string]: string | StyleSpecification } = {
             },
         ],
     },
-    bikerouterGravel: bikerouterGravel,
+    bikerouterGravel: bikerouterGravel as StyleSpecification,
     swisstopoSlope: {
         version: 8,
         sources: {

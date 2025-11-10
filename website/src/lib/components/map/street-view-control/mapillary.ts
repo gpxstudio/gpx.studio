@@ -135,12 +135,19 @@ export class MapillaryLayer {
     }
 
     onMouseEnter(e: mapboxgl.MapMouseEvent) {
-        this.active = true;
+        if (
+            e.features &&
+            e.features.length > 0 &&
+            e.features[0].properties &&
+            e.features[0].properties.id
+        ) {
+            this.active = true;
 
-        this.viewer.resize();
-        this.viewer.moveTo(e.features[0].properties.id);
+            this.viewer.resize();
+            this.viewer.moveTo(e.features[0].properties.id);
 
-        mapCursor.notify(MapCursorState.MAPILLARY_HOVER, true);
+            mapCursor.notify(MapCursorState.MAPILLARY_HOVER, true);
+        }
     }
 
     onMouseLeave() {

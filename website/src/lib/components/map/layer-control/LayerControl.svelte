@@ -227,8 +227,9 @@
 </CustomControl>
 
 <svelte:window
-    on:click={(e) => {
-        if (open && !cancelEvents && !container.contains(e.target)) {
+    on:click={(e: MouseEvent) => {
+        const target = e.target as Node | null;
+        if (open && !cancelEvents && target && container && !container.contains(target)) {
             closeLayerControl();
         }
     }}

@@ -494,7 +494,7 @@ export class RoutingControls {
                         segment.trkpt[before].time && segment.trkpt[before + 1].time
                             ? new Date(
                                   (1 - ratio) * segment.trkpt[before].time.getTime() +
-                                      ratio * segment.trkpt[before + 1].time.getTime()
+                                      ratio * segment.trkpt[before + 1].time!.getTime()
                               )
                             : undefined;
                     point._data = {
@@ -540,7 +540,7 @@ export class RoutingControls {
             fileActionManager.applyToFile(this.fileId, (file) =>
                 file.replaceTrackPoints(anchor.trackIndex, anchor.segmentIndex, 0, 0, [])
             );
-        } else if (previousAnchor === null) {
+        } else if (previousAnchor === null && nextAnchor !== null) {
             // First point, remove trackpoints until nextAnchor
             fileActionManager.applyToFile(this.fileId, (file) =>
                 file.replaceTrackPoints(
@@ -551,7 +551,7 @@ export class RoutingControls {
                     []
                 )
             );
-        } else if (nextAnchor === null) {
+        } else if (nextAnchor === null && previousAnchor !== null) {
             // Last point, remove trackpoints from previousAnchor
             fileActionManager.applyToFile(this.fileId, (file) => {
                 let segment = file.getSegment(anchor.trackIndex, anchor.segmentIndex);
@@ -563,7 +563,7 @@ export class RoutingControls {
                     []
                 );
             });
-        } else {
+        } else if (previousAnchor !== null && nextAnchor !== null) {
             // Route between previousAnchor and nextAnchor
             this.routeBetweenAnchors(
                 [previousAnchor, nextAnchor],

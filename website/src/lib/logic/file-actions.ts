@@ -15,7 +15,7 @@ import {
     type ListItem,
 } from '$lib/components/file-list/file-list';
 import { i18n } from '$lib/i18n.svelte';
-import { freeze } from 'immer';
+import { freeze, type WritableDraft } from 'immer';
 import {
     distance,
     GPXFile,
@@ -395,6 +395,7 @@ export const fileActions = {
                 }
             }
             if (targetFile) {
+                targetFile = targetFile as GPXFile;
                 if (target instanceof ListFileItem) {
                     targetFile.replaceTracks(0, targetFile.trk.length - 1, toMerge.trk);
                     targetFile.replaceWaypoints(0, targetFile.wpt.length - 1, toMerge.wpt);
@@ -1059,7 +1060,10 @@ export function moveItems(
 
     let files = [fromParent.getFileId(), toParent.getFileId()];
     let callbacks = [
-        (file, context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
+        (
+            file: WritableDraft<GPXFile>,
+            context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[]
+        ) => {
             fromItems.forEach((item) => {
                 if (item instanceof ListTrackItem) {
                     file.replaceTracks(item.getTrackIndex(), item.getTrackIndex(), []);
@@ -1077,7 +1081,10 @@ export function moveItems(
                 }
             });
         },
-        (file, context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
+        (
+            file: WritableDraft<GPXFile>,
+            context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[]
+        ) => {
             toItems.forEach((item, i) => {
                 if (item instanceof ListTrackItem) {
                     if (context[i] instanceof Track) {

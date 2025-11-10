@@ -5,7 +5,7 @@
     import { i18n } from '$lib/i18n.svelte';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
     import type { WaypointType } from 'gpx';
-    import type { PopupItem } from '$lib/components/map/map';
+    import type { PopupItem } from '$lib/components/map/map-popup';
     import { fileActions } from '$lib/logic/file-actions';
     import { selection } from '$lib/logic/selection';
 

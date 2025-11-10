@@ -74,7 +74,7 @@ export class OverpassLayer {
         let d = get(data);
 
         try {
-            let source = this.map.getSource('overpass');
+            let source = this.map.getSource('overpass') as mapboxgl.GeoJSONSource | undefined;
             if (source) {
                 source.setData(d);
             } else {
@@ -284,9 +284,9 @@ function getQuery(query: string) {
 }
 
 function getQueryItem(tags: Record<string, string | boolean | string[]>) {
-    let arrayEntry = Object.entries(tags).find(([_, value]) => Array.isArray(value));
+    let arrayEntry = Object.values(tags).find((value) => Array.isArray(value));
     if (arrayEntry !== undefined) {
-        return arrayEntry[1]
+        return arrayEntry
             .map(
                 (val) =>
                     `nwr${Object.entries(tags)
