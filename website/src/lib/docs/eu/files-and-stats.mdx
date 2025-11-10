@@ -3,9 +3,9 @@ title: Fitxategiak eta estatistikak
 ---
 
 <script lang="ts">
-    import { ChartNoAxesColumn } from 'lucide-svelte';
+    import { ChartNoAxesColumn } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
-    import ElevationProfile from '$lib/components/ElevationProfile.svelte';
+    import ElevationProfile from '$lib/components/elevation-profile/ElevationProfile.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
     import { exampleGPXFile } from '$lib/assets/example';
     import { writable } from 'svelte/store';
@@ -13,7 +13,7 @@ title: Fitxategiak eta estatistikak
     let gpxStatistics = writable(exampleGPXFile.getStatistics());
     let slicedGPXStatistics = writable(undefined);
     let additionalDatasets = writable(['speed', 'atemp']);
-    let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
+    let elevationFill = writable(undefined);
 </script>
 
 # { title }
@@ -83,8 +83,8 @@ Saguaren gurpila ere erabil dezakezu altueren profila handitzeko eta mugitzeko e
     <ElevationProfile
         {gpxStatistics}
         {slicedGPXStatistics}
-        additionalDatasets={$additionalDatasets}
-        elevationFill={$elevationFill}
+        {additionalDatasets}
+        {elevationFill}
     />
 </div>
 <div class="flex flex-col items-center -mt-6">
