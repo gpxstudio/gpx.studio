@@ -1,4 +1,4 @@
-import { guides } from '$lib/components/docs/docs.js';
+import { guides } from '$lib/components/docs/docs';
 
 function getModule(language: string | undefined, guide: string) {
     language = language ?? 'en';
