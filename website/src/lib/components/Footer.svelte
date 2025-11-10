@@ -2,7 +2,7 @@
     import { Button } from '$lib/components/ui/button';
     import LanguageSelect from '$lib/components/LanguageSelect.svelte';
     import Logo from '$lib/components/Logo.svelte';
-    import { AtSign, BookOpenText, Heart, Home, Map } from '@lucide/svelte';
+    import { AtSign, BookOpenText, Heart, House, Map } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
     import { getURLForLanguage } from '$lib/utils';
 </script>
@@ -14,7 +14,7 @@
                 <Logo class="h-8" width="153" />
                 <Button
                     variant="link"
-                    class="h-6 px-0 text-muted-foreground"
+                    class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
                     href="https://github.com/gpxstudio/gpx.studio/blob/main/LICENSE"
                     target="_blank"
                 >
@@ -27,15 +27,15 @@
                     <span class="font-semibold">{i18n._('homepage.website')}</span>
                     <Button
                         variant="link"
-                        class="h-6 px-0 text-muted-foreground"
+                        class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
                         href={getURLForLanguage(i18n.lang, '/')}
                     >
-                        <Home size="16" />
+                        <House size="16" />
                         {i18n._('homepage.home')}
                     </Button>
                     <Button
                         variant="link"
-                        class="h-6 px-0 text-muted-foreground"
+                        class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
                         href={getURLForLanguage(i18n.lang, '/app')}
                     >
                         <Map size="16" />
@@ -43,7 +43,7 @@
                     </Button>
                     <Button
                         variant="link"
-                        class="h-6 px-0 text-muted-foreground"
+                        class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
                         href={getURLForLanguage(i18n.lang, '/help')}
                     >
                         <BookOpenText size="16" />
@@ -54,7 +54,7 @@
                     <span class="font-semibold">{i18n._('homepage.contact')}</span>
                     <Button
                         variant="link"
-                        class="h-6 px-0 text-muted-foreground"
+                        class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
                         href="https://www.reddit.com/r/gpxstudio/"
                         target="_blank"
                     >
@@ -63,7 +63,7 @@
                     </Button>
                     <Button
                         variant="link"
-                        class="h-6 px-0 text-muted-foreground"
+                        class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
                         href="https://facebook.com/gpx.studio"
                         target="_blank"
                     >
@@ -72,7 +72,7 @@
                     </Button>
                     <Button
                         variant="link"
-                        class="h-6 px-0 text-muted-foreground"
+                        class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
                         href="https://x.com/gpxstudio"
                         target="_blank"
                     >
@@ -81,7 +81,7 @@
                     </Button>
                     <Button
                         variant="link"
-                        class="h-6 px-0 text-muted-foreground"
+                        class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
                         href="mailto:hello@gpx.studio"
                         target="_blank"
                     >
@@ -93,7 +93,7 @@
                     <span class="font-semibold">{i18n._('homepage.contribute')}</span>
                     <Button
                         variant="link"
-                        class="h-6 px-0 text-muted-foreground"
+                        class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
                         href="https://ko-fi.com/gpxstudio"
                         target="_blank"
                     >
@@ -102,7 +102,7 @@
                     </Button>
                     <Button
                         variant="link"
-                        class="h-6 px-0 text-muted-foreground"
+                        class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
                         href="https://crowdin.com/project/gpxstudio"
                         target="_blank"
                     >
@@ -111,7 +111,7 @@
                     </Button>
                     <Button
                         variant="link"
-                        class="h-6 px-0 text-muted-foreground"
+                        class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
                         href="https://github.com/gpxstudio/gpx.studio"
                         target="_blank"
                     >
