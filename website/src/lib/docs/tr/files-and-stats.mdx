@@ -3,9 +3,9 @@ title: Dosyalar ve istatistikler
 ---
 
 <script lang="ts">
-    import { ChartNoAxesColumn } from 'lucide-svelte';
+    import { ChartNoAxesColumn } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
-    import ElevationProfile from '$lib/components/ElevationProfile.svelte';
+    import ElevationProfile from '$lib/components/elevation-profile/ElevationProfile.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
     import { exampleGPXFile } from '$lib/assets/example';
     import { writable } from 'svelte/store';
@@ -13,7 +13,7 @@ title: Dosyalar ve istatistikler
     let gpxStatistics = writable(exampleGPXFile.getStatistics());
     let slicedGPXStatistics = writable(undefined);
     let additionalDatasets = writable(['speed', 'atemp']);
-    let elevationFill = writable<'slope' | 'surface' | undefined>(undefined);
+    let elevationFill = writable(undefined);
 </script>
 
 # { title }
@@ -83,8 +83,8 @@ Ayrıca, fare tekerleği ile yükselti profiline yakınlaşıp uzaklaşabilir ve
     <ElevationProfile
         {gpxStatistics}
         {slicedGPXStatistics}
-        additionalDatasets={$additionalDatasets}
-        elevationFill={$elevationFill}
+        {additionalDatasets}
+        {elevationFill}
     />
 </div>
 <div class="flex flex-col items-center -mt-6">
