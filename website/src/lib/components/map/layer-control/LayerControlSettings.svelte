@@ -19,6 +19,7 @@
     import { map } from '$lib/components/map/map';
     import CustomLayers from './CustomLayers.svelte';
     import { settings } from '$lib/logic/settings';
+    import { untrack } from 'svelte';
 
     const {
         selectedBasemapTree,
@@ -26,6 +27,7 @@
         selectedOverpassTree,
         currentBasemap,
         currentOverlays,
+        currentOverpassQueries,
         customLayers,
         opacities,
     } = settings;
@@ -60,19 +62,44 @@
     });
 
     $effect(() => {
-        if ($selectedOverlayTree && $currentOverlays) {
-            let overlayLayers = getLayers($currentOverlays);
-            let toRemove = Object.entries(overlayLayers).filter(
-                ([id, checked]) => checked && !isSelected($selectedOverlayTree, id)
-            );
-            if (toRemove.length > 0) {
-                currentOverlays.update((tree) => {
-                    toRemove.forEach(([id]) => {
-                        toggle(tree, id);
-                    });
-                    return tree;
-                });
-            }
+        if ($selectedOverlayTree) {
+            untrack(() => {
+                if ($currentOverlays) {
+                    let overlayLayers = getLayers($currentOverlays);
+                    let toRemove = Object.entries(overlayLayers).filter(
+                        ([id, checked]) => checked && !isSelected($selectedOverlayTree, id)
+                    );
+                    if (toRemove.length > 0) {
+                        currentOverlays.update((tree) => {
+                            toRemove.forEach(([id]) => {
+                                toggle(tree, id);
+                            });
+                            return tree;
+                        });
+                    }
+                }
+            });
+        }
+    });
+
+    $effect(() => {
+        if ($selectedOverpassTree) {
+            untrack(() => {
+                if ($currentOverpassQueries) {
+                    let overlayLayers = getLayers($currentOverpassQueries);
+                    let toRemove = Object.entries(overlayLayers).filter(
+                        ([id, checked]) => checked && !isSelected($selectedOverpassTree, id)
+                    );
+                    if (toRemove.length > 0) {
+                        currentOverpassQueries.update((tree) => {
+                            toRemove.forEach(([id]) => {
+                                toggle(tree, id);
+                            });
+                            return tree;
+                        });
+                    }
+                }
+            });
         }
     });
 </script>
