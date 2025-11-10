@@ -99,7 +99,7 @@
         disabled={!validSelection || !canCrop}
         onclick={() => fileActions.cropSelection(sliderValues[0], sliderValues[1])}
     >
-        <Crop size="16" class="mr-1" />{i18n._('toolbar.scissors.crop')}
+        <Crop size="16" />{i18n._('toolbar.scissors.crop')}
     </Button>
     <Separator />
     <Label class="flex flex-row flex-wrap gap-3 items-center">

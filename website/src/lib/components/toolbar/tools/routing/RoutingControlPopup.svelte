@@ -15,7 +15,7 @@
 </script>
 
 <div bind:this={element} class="hidden">
-    <Card.Root class="border-none shadow-md text-base">
+    <Card.Root class="border-none shadow-md text-base p-0 gap-0 rounded-lg">
         <Card.Content class="flex flex-col p-1">
             {#if $canChangeStart}
                 <Button
@@ -23,7 +23,7 @@
                     variant="ghost"
                     onclick={() => element?.dispatchEvent(new CustomEvent('change-start'))}
                 >
-                    <CirclePlay size="16" class="mr-1" />
+                    <CirclePlay size="16" />
                     {i18n._('toolbar.routing.start_loop_here')}
                 </Button>
             {/if}
@@ -32,7 +32,7 @@
                 variant="ghost"
                 onclick={() => element?.dispatchEvent(new CustomEvent('delete'))}
             >
-                <Trash2 size="16" class="mr-1" />
+                <Trash2 size="16" />
                 {i18n._('menu.delete')}
                 <Shortcut shift={true} click={true} />
             </Button>

@@ -86,7 +86,7 @@
             );
         }}
     >
-        <Group size="16" class="mr-1 shrink-0" />
+        <Group size="16" class="shrink-0" />
         {i18n._('toolbar.merge.merge_selection')}
     </Button>
     <Help link={getURLForLanguage(i18n.lang, '/help/toolbar/merge')}>

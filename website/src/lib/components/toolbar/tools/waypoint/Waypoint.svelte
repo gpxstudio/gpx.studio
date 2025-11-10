@@ -203,14 +203,14 @@
             onclick={createOrUpdateWaypoint}
         >
             {#if $selectedWaypoint}
-                <Save size="16" class="mr-1 shrink-0" />
+                <Save size="16" class="shrink-0" />
                 {i18n._('menu.metadata.save')}
             {:else}
-                <MapPin size="16" class="mr-1 shrink-0" />
+                <MapPin size="16" class="shrink-0" />
                 {i18n._('toolbar.waypoint.create')}
             {/if}
         </Button>
-        <Button variant="outline" onclick={() => selectedWaypoint.reset()}>
+        <Button variant="outline" size="icon" onclick={() => selectedWaypoint.reset()}>
             <CircleX size="16" />
         </Button>
     </div>

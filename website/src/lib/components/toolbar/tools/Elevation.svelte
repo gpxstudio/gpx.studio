@@ -26,7 +26,7 @@
             }
         }}
     >
-        <MountainSnow size="16" class="mr-1 shrink-0" />
+        <MountainSnow size="16" class="shrink-0" />
         {i18n._('toolbar.elevation.button')}
     </Button>
     <Help link={getURLForLanguage(i18n.lang, '/help/toolbar/elevation')}>

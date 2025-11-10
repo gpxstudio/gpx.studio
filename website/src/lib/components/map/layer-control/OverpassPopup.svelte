@@ -53,13 +53,14 @@
             <div class="flex flex-row gap-3">
                 <div class="flex flex-col">
                     {name}
-                    <div class="text-muted-foreground text-sm font-normal">
+                    <div class="text-muted-foreground text-xs font-normal">
                         {poi.item.lat.toFixed(6)}&deg; {poi.item.lon.toFixed(6)}&deg;
                     </div>
                 </div>
                 <Button
-                    class="ml-auto p-1.5 h-8"
+                    class="ml-auto"
                     variant="outline"
+                    size="icon"
                     href="https://www.openstreetmap.org/edit?editor=id&{poi.item.type ??
                         'node'}={poi.item.id}"
                     target="_blank"
@@ -95,7 +96,7 @@
             </div>
         </ScrollArea>
         <Button class="mt-2" variant="outline" disabled={$selection.size === 0} onclick={addToFile}>
-            <MapPin size="16" class="mr-1" />
+            <MapPin size="16" />
             {i18n._('toolbar.waypoint.add')}
         </Button>
     </Card.Content>

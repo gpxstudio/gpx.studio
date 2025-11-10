@@ -47,7 +47,7 @@
         <span class="font-normal">{reducedLayers.currentPoints}/{reducedLayers.maxPoints}</span>
     </Label>
     <Button variant="outline" disabled={!validSelection} onclick={() => reducedLayers.reduce()}>
-        <Funnel size="16" class="mr-1" />
+        <Funnel size="16" />
         {i18n._('toolbar.reduce.button')}
     </Button>
 

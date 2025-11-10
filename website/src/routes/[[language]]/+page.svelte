@@ -65,7 +65,7 @@
                 </div>
                 <div class="w-full flex flex-row justify-center gap-3">
                     <Button href={getURLForLanguage(i18n.lang, '/app')} class="w-1/3 min-w-fit">
-                        <Map size="18" class="mr-1.5" />
+                        <Map size="18" />
                         {i18n._('homepage.app')}
                     </Button>
                     <Button
@@ -73,7 +73,7 @@
                         href={getURLForLanguage(i18n.lang, '/help')}
                         class="w-1/3 min-w-fit"
                     >
-                        <BookOpenText size="18" class="mr-1.5" />
+                        <BookOpenText size="18" />
                         <span>{i18n._('menu.help')}</span>
                     </Button>
                 </div>
@@ -96,7 +96,7 @@
         >
             <div class="markdown text-center">
                 <h1>
-                    <Route size="24" class="mr-1 inline-block align-baseline" />
+                    <Route size="24" class="inline-block align-baseline" />
                     {i18n._('homepage.route_planning')}
                 </h1>
                 <p class="text-muted-foreground">{i18n._('homepage.route_planning_description')}</p>
@@ -112,7 +112,7 @@
         >
             <div class="markdown text-center md:hidden">
                 <h1>
-                    <PencilRuler size="24" class="mr-1 inline-block align-baseline" />
+                    <PencilRuler size="24" class="inline-block align-baseline" />
                     {i18n._('homepage.file_processing')}
                 </h1>
                 <p class="text-muted-foreground">
@@ -124,7 +124,7 @@
             </div>
             <div class="markdown text-center hidden md:block">
                 <h1>
-                    <PencilRuler size="24" class="mr-1 inline-block align-baseline" />
+                    <PencilRuler size="24" class="inline-block align-baseline" />
                     {i18n._('homepage.file_processing')}
                 </h1>
                 <p class="text-muted-foreground">
@@ -139,7 +139,7 @@
         >
             <div class="markdown text-center">
                 <h1>
-                    <Map size="24" class="mr-1 inline-block align-baseline" />
+                    <Map size="24" class="inline-block align-baseline" />
                     {i18n._('homepage.maps')}
                 </h1>
                 <p class="text-muted-foreground">{i18n._('homepage.maps_description')}</p>
@@ -182,7 +182,7 @@
     <div class="px-8 md:px-12">
         <div class="markdown text-center px-4 md:px-12">
             <h1>
-                <ChartArea size="24" class="mr-1 inline-block align-baseline" />
+                <ChartArea size="24" class="inline-block align-baseline" />
                 {i18n._('homepage.data_visualization')}
             </h1>
             <p class="text-muted-foreground mb-6">
@@ -214,7 +214,7 @@
         >
             <div class="markdown text-center md:hidden">
                 <h1>
-                    <Scale size="24" class="mr-1 inline-block align-baseline" />
+                    <Scale size="24" class="inline-block align-baseline" />
                     {i18n._('homepage.identity')}
                 </h1>
                 <p class="text-muted-foreground">{i18n._('homepage.identity_description')}</p>
@@ -224,7 +224,7 @@
             </a>
             <div class="markdown text-center hidden md:block">
                 <h1>
-                    <Scale size="24" class="mr-1 inline-block align-baseline" />
+                    <Scale size="24" class="inline-block align-baseline" />
                     {i18n._('homepage.identity')}
                 </h1>
                 <p class="text-muted-foreground">{i18n._('homepage.identity_description')}</p>
@@ -250,7 +250,7 @@
                 <DocsContainer module={fundingModule.default} />
             {/await}
             <Button href="https://ko-fi.com/gpxstudio" target="_blank" class="text-base">
-                <Heart size="16" class="mr-1" fill="var(--support)" color="var(--support)" />
+                <Heart size="16" fill="var(--support)" color="var(--support)" />
                 <span>{i18n._('homepage.support_button')}</span>
             </Button>
         </div>
@@ -261,7 +261,7 @@
                 <DocsContainer module={translationModule.default} />
             {/await}
             <Button href="https://crowdin.com/project/gpxstudio" target="_blank" class="text-base">
-                <PenLine size="16" class="mr-1" />
+                <PenLine size="16" />
                 <span>{i18n._('homepage.contribute')}</span>
             </Button>
         </div>

@@ -188,7 +188,7 @@
         <div class="flex flex-row gap-2 justify-center">
             <div class="flex flex-col gap-2 grow">
                 <Label for="speed" class="flex flex-row">
-                    <Zap size="16" class="mr-1" />
+                    <Zap size="16" />
                     {#if $velocityUnits === 'speed'}
                         {i18n._('quantities.speed')}
                     {:else}
@@ -241,7 +241,7 @@
             </div>
             <div class="flex flex-col gap-2 grow">
                 <Label for="duration" class="flex flex-row">
-                    <Timer size="16" class="mr-1" />
+                    <Timer size="16" />
                     {i18n._('toolbar.time.total_time')}
                 </Label>
                 <TimePicker
@@ -254,7 +254,7 @@
             </div>
         </div>
         <Label class="flex flex-row">
-            <CirclePlay size="16" class="mr-1" />
+            <CirclePlay size="16" />
             {i18n._('toolbar.time.start')}
         </Label>
         <div class="flex flex-row gap-2">
@@ -280,7 +280,7 @@
             />
         </div>
         <Label class="flex flex-row">
-            <CircleStop size="16" class="mr-1" />
+            <CircleStop size="16" />
             {i18n._('toolbar.time.end')}
         </Label>
         <div class="flex flex-row gap-2">
@@ -393,10 +393,10 @@
                 });
             }}
         >
-            <CalendarClock size="16" class="mr-1 shrink-0" />
+            <CalendarClock size="16" class="shrink-0" />
             {i18n._('toolbar.time.update')}
         </Button>
-        <Button variant="outline" onclick={setGPXData}>
+        <Button variant="outline" size="icon" onclick={setGPXData}>
             <CircleX size="16" />
         </Button>
     </div>

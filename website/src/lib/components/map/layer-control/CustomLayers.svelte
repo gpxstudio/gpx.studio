@@ -463,7 +463,7 @@
                 {#if selectedLayerId}
                     <div class="mt-2 flex flex-row gap-2">
                         <Button variant="outline" onclick={createLayer} class="grow">
-                            <Save size="16" class="mr-1" />
+                            <Save size="16" />
                             {i18n._('layers.custom_layers.update')}
                         </Button>
                         <Button variant="outline" onclick={() => (selectedLayerId = undefined)}>
@@ -472,7 +472,7 @@
                     </div>
                 {:else}
                     <Button variant="outline" class="mt-2" onclick={createLayer}>
-                        <CirclePlus size="16" class="mr-1" />
+                        <CirclePlus size="16" />
                         {i18n._('layers.custom_layers.create')}
                     </Button>
                 {/if}

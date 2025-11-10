@@ -16,7 +16,7 @@
 </script>
 
 <Button
-    class="w-full px-2 py-1 h-8 justify-start {className}"
+    class="p-1 has-[>svg]:px-2 h-8 justify-start {className}"
     variant="outline"
     onclick={() => {
         navigator.clipboard.writeText(
@@ -25,6 +25,6 @@
         onCopy();
     }}
 >
-    <ClipboardCopy size="16" class="mr-1" />
+    <ClipboardCopy size="16" />
     {i18n._('menu.copy_coordinates')}
 </Button>

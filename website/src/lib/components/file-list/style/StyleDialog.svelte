@@ -164,7 +164,7 @@
             disabled={!colorChanged && !opacityChanged && !widthChanged}
             onclick={applyStyle}
         >
-            <Save size="16" class="mr-1" />
+            <Save size="16" />
             {i18n._('menu.metadata.save')}
         </Button>
     </Popover.Content>

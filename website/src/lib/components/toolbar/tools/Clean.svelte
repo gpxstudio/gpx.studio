@@ -177,7 +177,7 @@
             rectangleCoordinates = [];
         }}
     >
-        <Trash2 size="16" class="mr-1" />
+        <Trash2 size="16" />
         {i18n._('toolbar.clean.button')}
     </Button>
     <Help link={getURLForLanguage(i18n.lang, '/help/toolbar/clean')}>

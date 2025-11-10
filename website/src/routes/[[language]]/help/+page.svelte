@@ -38,7 +38,7 @@
                                 {guideIcons[subGuide]}
                             {:else}
                                 {@const GuideIcon = guideIcons[subGuide]}
-                                <GuideIcon size="16" class="mr-1 shrink-0" />
+                                <GuideIcon size="16" class="shrink-0" />
                             {/if}
                             {data.guideTitles[`${guide}/${subGuide}`]}
                         </Button>

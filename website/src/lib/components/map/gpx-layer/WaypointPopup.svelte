@@ -11,12 +11,16 @@
     import sanitizeHtml from 'sanitize-html';
     import type { Waypoint } from 'gpx';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
-    import type { PopupItem } from '$lib/components/map/map';
     import { fileActions } from '$lib/logic/file-actions';
+    import type { PopupItem } from '$lib/components/map/map-popup';
 
-    export let waypoint: PopupItem<Waypoint>;
+    let {
+        waypoint,
+    }: {
+        waypoint: PopupItem<Waypoint>;
+    } = $props();
 
-    $: symbolKey = waypoint ? getSymbolKey(waypoint.item.sym) : undefined;
+    let symbolKey = $derived(waypoint ? getSymbolKey(waypoint.item.sym) : undefined);
 
     function sanitize(text: string | undefined): string {
         if (text === undefined) {
@@ -50,11 +54,8 @@
             {#if symbolKey}
                 <span>
                     {#if symbols[symbolKey].icon}
-                        <svelte:component
-                            this={symbols[symbolKey].icon}
-                            size="12"
-                            class="inline-block mb-0.5"
-                        />
+                        {@const Icon = symbols[symbolKey].icon}
+                        <Icon size="12" class="inline-block mb-1" />
                     {:else}
                         <span class="w-4 inline-block"></span>
                     {/if}
@@ -82,15 +83,16 @@
             <CopyCoordinates coordinates={waypoint.item.attributes} />
             {#if $currentTool === Tool.WAYPOINT}
                 <Button
-                    class="w-full px-2 py-1 h-8 justify-start"
+                    class="p-1 has-[>svg]:px-2 h-8"
                     variant="outline"
                     onclick={() => {
                         if (waypoint.fileId) {
                             fileActions.deleteWaypoint(waypoint.fileId, waypoint.item._data.index);
+                            waypoint.hide?.();
                         }
                     }}
                 >
-                    <Trash2 size="16" class="mr-1" />
+                    <Trash2 size="16" />
                     {i18n._('menu.delete')}
                     <Shortcut shift={true} click={true} />
                 </Button>

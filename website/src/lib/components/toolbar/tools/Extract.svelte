@@ -46,7 +46,7 @@
 
 <div class="flex flex-col gap-3 w-full max-w-80 {props.class ?? ''}">
     <Button variant="outline" disabled={!validSelection} onclick={fileActions.extractSelection}>
-        <Ungroup size="16" class="mr-1" />
+        <Ungroup size="16" />
         {i18n._('toolbar.extract.button')}
     </Button>
     <Help link={getURLForLanguage(i18n.lang, '/help/toolbar/extract')}>
