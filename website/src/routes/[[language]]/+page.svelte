@@ -241,7 +241,7 @@
         </div>
     </div>
     <div
-        class="px-12 md:px-24 flex flex-row flex-wrap lg:flex-nowrap items-center justify-center -space-y-0.5 lg:-space-x-0.5"
+        class="px-12 md:px-24 flex flex-row flex-wrap lg:flex-nowrap items-center justify-center -space-y-0.5 lg:-space-x-6"
     >
         <div
             class="grow max-w-xl flex flex-col items-center gap-6 p-8 border rounded-2xl shadow-xl -rotate-1 lg:rotate-1"
