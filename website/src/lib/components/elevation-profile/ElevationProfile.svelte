@@ -41,7 +41,7 @@
 
     let canvas: HTMLCanvasElement;
     let overlay: HTMLCanvasElement;
-    let elevationProfile: ElevationProfile;
+    let elevationProfile: ElevationProfile | null = null;
 
     onMount(() => {
         elevationProfile = new ElevationProfile(
@@ -55,7 +55,9 @@
     });
 
     onDestroy(() => {
-        elevationProfile.destroy();
+        if (elevationProfile) {
+            elevationProfile.destroy();
+        }
     });
 </script>
 
