@@ -644,16 +644,6 @@
         } else if (e.key === 'F5') {
             $routing = !$routing;
             e.preventDefault();
-        } else if (
-            e.key === 'ArrowRight' ||
-            e.key === 'ArrowDown' ||
-            e.key === 'ArrowLeft' ||
-            e.key === 'ArrowUp'
-        ) {
-            if (!targetInput) {
-                // updateSelectionFromKey(e.key === 'ArrowRight' || e.key === 'ArrowDown', e.shiftKey);
-                e.preventDefault();
-            }
         }
     }}
     on:dragover={(e) => e.preventDefault()}
