@@ -58,17 +58,11 @@
 
     const { treeFileView } = settings;
 
-    // function openIfSelectedChild() {
-    //     if (collapsible && $treeFileView && $selection.hasAnyChildren(item, false)) {
-    //         collapsible.openNode();
-    //     }
-    // }
-
-    // if ($selection) {
-    //     openIfSelectedChild();
-    // }
-
-    // afterUpdate(openIfSelectedChild);
+    $effect(() => {
+        if (collapsible && $treeFileView && $selection.hasAnyChildren(item, false)) {
+            collapsible.openNode();
+        }
+    });
 </script>
 
 {#if node instanceof Map}
