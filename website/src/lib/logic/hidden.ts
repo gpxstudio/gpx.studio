@@ -23,7 +23,7 @@ export class AllHidden {
 
     update() {
         let hidden = true;
-        selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+        selection.applyToSelectedItemsFromFile((fileId, level, items) => {
             let file = fileStateCollection.getFile(fileId);
             if (file) {
                 for (let item of items) {

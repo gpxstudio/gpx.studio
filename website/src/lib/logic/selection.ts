@@ -187,6 +187,33 @@ export class Selection {
         return selected;
     }
 
+    applyToSelectedItemsFromFile(
+        callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void
+    ) {
+        let selectedItems = get(this._selection).getSelected();
+        get(fileStateCollection).forEach((_, fileId) => {
+            let level: ListLevel | undefined = undefined;
+            let items: ListItem[] = [];
+            selectedItems.forEach((item) => {
+                if (item.getFileId() === fileId) {
+                    level = item.level;
+                    if (
+                        item instanceof ListFileItem ||
+                        item instanceof ListTrackItem ||
+                        item instanceof ListTrackSegmentItem ||
+                        item instanceof ListWaypointsItem ||
+                        item instanceof ListWaypointItem
+                    ) {
+                        items.push(item);
+                    }
+                }
+            });
+            if (items.length > 0) {
+                callback(fileId, level, items);
+            }
+        });
+    }
+
     applyToOrderedSelectedItemsFromFile(
         callback: (fileId: string, level: ListLevel | undefined, items: ListItem[]) => void,
         reverse: boolean = true
