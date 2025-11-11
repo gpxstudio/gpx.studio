@@ -9,18 +9,23 @@
     import { fileActions } from '$lib/logic/file-actions';
     import { selection } from '$lib/logic/selection';
 
-    export let poi: PopupItem<any>;
+    let {
+        poi,
+    }: {
+        poi: PopupItem<any>;
+    } = $props();
 
-    let tags: { [key: string]: string } = {};
-    let name = '';
-    $: if (poi) {
-        tags = JSON.parse(poi.item.tags);
-        if (tags.name !== undefined && tags.name !== '') {
-            name = tags.name;
-        } else {
-            name = i18n._(`layers.label.${poi.item.query}`);
+    let tags: Record<string, string> = $derived(poi ? JSON.parse(poi.item.tags) : {});
+    let name = $derived.by(() => {
+        if (poi) {
+            if (tags.name !== undefined && tags.name !== '') {
+                return tags.name;
+            } else {
+                return i18n._(`layers.label.${poi.item.query}`);
+            }
         }
-    }
+        return '';
+    });
 
     function addToFile() {
         const desc = Object.entries(tags)
@@ -74,7 +79,7 @@
         <ScrollArea class="flex flex-col max-h-[30dvh]">
             {#if tags.image || tags['image:0']}
                 <div class="w-full rounded-md overflow-clip my-2 max-w-96 mx-auto">
-                    <!-- svelte-ignore a11y-missing-attribute -->
+                    <!-- svelte-ignore a11y_missing_attribute -->
                     <img src={tags.image ?? tags['image:0']} />
                 </div>
             {/if}
