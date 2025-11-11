@@ -152,11 +152,12 @@ export const basemaps: { [key: string]: string | StyleSpecification } = {
             linzTopo: {
                 type: 'raster',
                 tiles: [
-                    'https://tiles-cdn.koordinates.com/services;key=39a8b989633a4bef98bc0e065380454a/tiles/v4/layer=50767/EPSG:3857/{z}/{x}/{y}.png',
+                    'https://basemaps.linz.govt.nz/v1/tiles/topo-raster/WebMercatorQuad/{z}/{x}/{y}.webp?api=d01fbtg0ar23gctac5m0jgyy2ds',
                 ],
                 tileSize: 256,
-                maxzoom: 18,
-                attribution: '&copy; <a href="https://www.linz.govt.nz/" target="_blank">LINZ</a>',
+                maxzoom: 16,
+                attribution:
+                    '© <a href="//www.linz.govt.nz/linz-copyright">LINZ CC BY 4.0</a> © <a href="//www.linz.govt.nz/data/linz-data/linz-basemaps/data-attribution">Imagery Basemap contributors</a>',
             },
         },
         layers: [
