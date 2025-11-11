@@ -55,4 +55,15 @@ export function toggle(node: LayerTreeType, id: string) {
     return node;
 }
 
+export function remove(node: LayerTreeType, id: string) {
+    Object.keys(node).forEach((key) => {
+        if (key === id) {
+            delete node[key];
+        } else if (typeof node[key] !== 'boolean') {
+            remove(node[key], id);
+        }
+    });
+    return node;
+}
+
 export const customBasemapUpdate = writable(0);

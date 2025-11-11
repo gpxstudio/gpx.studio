@@ -20,7 +20,7 @@
     import { i18n } from '$lib/i18n.svelte';
     import { defaultBasemap, type CustomLayer } from '$lib/assets/layers';
     import { onMount } from 'svelte';
-    import { customBasemapUpdate } from './utils';
+    import { customBasemapUpdate, isSelected, remove } from './utils';
     import { settings } from '$lib/logic/settings';
     import { map } from '$lib/components/map/map';
     import { dndzone } from 'svelte-dnd-action';
@@ -176,11 +176,7 @@
                 return $tree;
             });
 
-            if (
-                $currentOverlays.overlays['custom'] &&
-                $currentOverlays.overlays['custom'][layerId] &&
-                $map
-            ) {
+            if ($map && $currentOverlays && isSelected($currentOverlays, layerId)) {
                 try {
                     $map.removeImport(layerId);
                 } catch (e) {
@@ -188,10 +184,13 @@
                 }
             }
 
-            if (!$currentOverlays.overlays.hasOwnProperty('custom')) {
-                $currentOverlays.overlays['custom'] = {};
-            }
-            $currentOverlays.overlays['custom'][layerId] = true;
+            currentOverlays.update(($overlays) => {
+                if (!$overlays.overlays.hasOwnProperty('custom')) {
+                    $overlays.overlays['custom'] = {};
+                }
+                $overlays.overlays['custom'][layerId] = true;
+                return $overlays;
+            });
 
             if (!$customOverlayOrder.includes(layerId)) {
                 $customOverlayOrder = [...$customOverlayOrder, layerId];
@@ -216,49 +215,15 @@
                 $previousBasemap = defaultBasemap;
             }
 
-            $selectedBasemapTree.basemaps['custom'] = tryDeleteLayer(
-                $selectedBasemapTree.basemaps['custom'],
-                layerId
-            );
-            if (Object.keys($selectedBasemapTree.basemaps['custom']).length === 0) {
-                $selectedBasemapTree.basemaps = tryDeleteLayer(
-                    $selectedBasemapTree.basemaps,
-                    'custom'
-                );
-            }
+            $selectedBasemapTree = remove($selectedBasemapTree, layerId);
             $customBasemapOrder = $customBasemapOrder.filter((id) => id !== layerId);
         } else {
-            $currentOverlays.overlays['custom'][layerId] = false;
-            if ($previousOverlays.overlays['custom']) {
-                $previousOverlays.overlays['custom'] = tryDeleteLayer(
-                    $previousOverlays.overlays['custom'],
-                    layerId
-                );
+            if ($currentOverlays) {
+                $currentOverlays = remove($currentOverlays, layerId);
             }
-
-            $selectedOverlayTree.overlays['custom'] = tryDeleteLayer(
-                $selectedOverlayTree.overlays['custom'],
-                layerId
-            );
-            if (Object.keys($selectedOverlayTree.overlays['custom']).length === 0) {
-                $selectedOverlayTree.overlays = tryDeleteLayer(
-                    $selectedOverlayTree.overlays,
-                    'custom'
-                );
-            }
+            $previousOverlays = remove($previousOverlays, layerId);
+            $selectedOverlayTree = remove($selectedOverlayTree, layerId);
             $customOverlayOrder = $customOverlayOrder.filter((id) => id !== layerId);
-
-            if (
-                $currentOverlays.overlays['custom'] &&
-                $currentOverlays.overlays['custom'][layerId] &&
-                $map
-            ) {
-                try {
-                    $map.removeImport(layerId);
-                } catch (e) {
-                    // No reliable way to check if the map is ready to remove sources and layers
-                }
-            }
         }
         $customLayers = tryDeleteLayer($customLayers, layerId);
     }
