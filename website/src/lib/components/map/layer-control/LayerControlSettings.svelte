@@ -20,6 +20,7 @@
     import CustomLayers from './CustomLayers.svelte';
     import { settings } from '$lib/logic/settings';
     import { untrack } from 'svelte';
+    import { extensionAPI } from './extension-api';
 
     const {
         selectedBasemapTree,
@@ -160,7 +161,11 @@
                                     <Select.Trigger class="h-8 mr-1 w-full">
                                         {#if selectedOverlay}
                                             {#if isSelected($selectedOverlayTree, selectedOverlay)}
-                                                {i18n._(`layers.label.${selectedOverlay}`)}
+                                                {#if extensionAPI.isLayerFromExtension(selectedOverlay)}
+                                                    {extensionAPI.getLayerName(selectedOverlay)}
+                                                {:else}
+                                                    {i18n._(`layers.label.${selectedOverlay}`)}
+                                                {/if}
                                             {:else if $customLayers.hasOwnProperty(selectedOverlay)}
                                                 {$customLayers[selectedOverlay].name}
                                             {/if}
@@ -169,9 +174,13 @@
                                     <Select.Content class="h-fit max-h-[40dvh] overflow-y-auto">
                                         {#each Object.keys(overlays) as id}
                                             {#if isSelected($selectedOverlayTree, id)}
-                                                <Select.Item value={id}
-                                                    >{i18n._(`layers.label.${id}`)}</Select.Item
-                                                >
+                                                <Select.Item value={id}>
+                                                    {#if extensionAPI.isLayerFromExtension(id)}
+                                                        {extensionAPI.getLayerName(id)}
+                                                    {:else}
+                                                        {i18n._(`layers.label.${id}`)}
+                                                    {/if}
+                                                </Select.Item>
                                             {/if}
                                         {/each}
                                         {#each Object.entries($customLayers) as [id, layer]}

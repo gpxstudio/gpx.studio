@@ -66,4 +66,15 @@ export function remove(node: LayerTreeType, id: string) {
     return node;
 }
 
+export function removeByPrefix(node: LayerTreeType, prefix: string) {
+    Object.keys(node).forEach((key) => {
+        if (key.startsWith(prefix)) {
+            delete node[key];
+        } else if (typeof node[key] !== 'boolean') {
+            remove(node[key], prefix);
+        }
+    });
+    return node;
+}
+
 export const customBasemapUpdate = writable(0);

@@ -7,6 +7,7 @@
     import { anySelectedLayer } from './utils';
     import { i18n } from '$lib/i18n.svelte';
     import { settings } from '$lib/logic/settings';
+    import { extensionAPI } from '$lib/components/map/layer-control/extension-api';
 
     let {
         name,
@@ -72,6 +73,8 @@
                     <Label for="{name}-{id}" class="flex flex-row items-center gap-1">
                         {#if $customLayers.hasOwnProperty(id)}
                             {$customLayers[id].name}
+                        {:else if extensionAPI.isLayerFromExtension(id)}
+                            {extensionAPI.getLayerName(id)}
                         {:else}
                             {i18n._(`layers.label.${id}`)}
                         {/if}
