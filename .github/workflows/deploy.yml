@@ -1,63 +1,63 @@
 name: Deploy to GitHub Pages
 on:
-  push:
-    branches: 'main'
+    push:
+        branches: 'main'
 
 jobs:
-  build_site:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    build_site:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: |
-            gpx/package-lock.json
-            website/package-lock.json
-      
-      - name: Install dependencies for gpx
-        run: npm install --prefix gpx
+            - name: Install Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: npm
+                  cache-dependency-path: |
+                      gpx/package-lock.json
+                      website/package-lock.json
 
-      - name: Build gpx
-        run: npm run build --prefix gpx
+            - name: Install dependencies for gpx
+              run: npm install --prefix gpx
 
-      - name: Install dependencies for website
-        run: npm install --prefix website
+            - name: Build gpx
+              run: npm run build --prefix gpx
 
-      - name: Create env file
-        run: |
-          touch website/.env
-          echo PUBLIC_MAPBOX_TOKEN=${{ secrets.PUBLIC_MAPBOX_TOKEN }} >> website/.env
-          cat website/.env
+            - name: Install dependencies for website
+              run: npm install --prefix website
 
-      - name: Build website
-        env:
-          BASE_PATH: ''
-        run: |
-          npm run build --prefix website
+            - name: Create env file
+              run: |
+                  touch website/.env
+                  echo PUBLIC_MAPBOX_TOKEN=${{ secrets.PUBLIC_MAPBOX_TOKEN }} >> website/.env
+                  cat website/.env
 
-      - name: Upload Artifacts
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: 'website/build/'
+            - name: Build website
+              env:
+                  BASE_PATH: ''
+              run: |
+                  npm run build --prefix website
 
-  deploy:
-    needs: build_site
-    runs-on: ubuntu-latest
+            - name: Upload Artifacts
+              uses: actions/upload-pages-artifact@v4
+              with:
+                  path: 'website/build/'
 
-    permissions:
-      pages: write
-      id-token: write
+    deploy:
+        needs: build_site
+        runs-on: ubuntu-latest
 
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+        permissions:
+            pages: write
+            id-token: write
 
-    steps:
-    - name: Deploy
-      id: deployment
-      uses: actions/deploy-pages@v4
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+
+        steps:
+            - name: Deploy
+              id: deployment
+              uses: actions/deploy-pages@v4
