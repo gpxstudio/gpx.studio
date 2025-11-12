@@ -51,8 +51,6 @@ export class ExtensionAPI {
         }
         overlay.id = this.getOverlayId(overlay.id);
 
-        let show = get(this._overlays).get(overlay.id) === undefined;
-
         this._overlays.update(($overlays) => {
             $overlays.set(overlay.id, overlay);
             return $overlays;
@@ -85,6 +83,7 @@ export class ExtensionAPI {
         });
 
         const current = get(currentOverlays);
+        let show = false;
         if (current && isSelected(current, overlay.id)) {
             show = true;
             try {
