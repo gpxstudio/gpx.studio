@@ -71,7 +71,7 @@ export function removeByPrefix(node: LayerTreeType, prefix: string) {
         if (key.startsWith(prefix)) {
             delete node[key];
         } else if (typeof node[key] !== 'boolean') {
-            remove(node[key], prefix);
+            removeByPrefix(node[key], prefix);
         }
     });
     return node;

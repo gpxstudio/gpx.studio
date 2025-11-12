@@ -1,9 +1,9 @@
-import { map, type MapboxGLMap } from '$lib/components/map/map';
 import { settings } from '$lib/logic/settings';
-import { get } from 'svelte/store';
+import { derived, get, writable, type Writable } from 'svelte/store';
 import { isSelected, remove, removeByPrefix, toggle } from './utils';
 import { overlays, overlayTree } from '$lib/assets/layers';
 import { browser } from '$app/environment';
+import { map } from '$lib/components/map/map';
 
 const { currentOverlays, previousOverlays, selectedOverlayTree } = settings;
 
@@ -15,11 +15,9 @@ export type CustomOverlay = {
 };
 
 export class ExtensionAPI {
-    private _map: MapboxGLMap;
-    private _overlays: Map<string, CustomOverlay> = new Map();
+    private _overlays: Writable<Map<string, CustomOverlay>> = writable(new Map());
 
-    constructor(map: MapboxGLMap) {
-        this._map = map;
+    init() {
         if (browser && !window.hasOwnProperty('gpxstudio')) {
             Object.defineProperty(window, 'gpxstudio', {
                 value: this,
@@ -30,9 +28,9 @@ export class ExtensionAPI {
         }
     }
 
-    async ensureLoaded(): Promise<void> {
+    ensureLoaded(): Promise<void> {
         return new Promise((resolve) => {
-            this._map.onLoad(() => {
+            map.onLoad(() => {
                 resolve();
             });
         });
@@ -44,7 +42,10 @@ export class ExtensionAPI {
         }
         overlay.id = this.getOverlayId(overlay.id);
 
-        this._overlays.set(overlay.id, overlay);
+        this._overlays.update(($overlays) => {
+            $overlays.set(overlay.id, overlay);
+            return $overlays;
+        });
 
         overlays[overlay.id] = {
             version: 8,
@@ -75,7 +76,7 @@ export class ExtensionAPI {
         const current = get(currentOverlays);
         if (current && isSelected(current, overlay.id)) {
             try {
-                get(this._map)?.removeImport(overlay.id);
+                get(map)?.removeImport(overlay.id);
             } catch (e) {
                 // No reliable way to check if the map is ready to remove sources and layers
             }
@@ -90,27 +91,31 @@ export class ExtensionAPI {
     removeOverlaysWithPrefix(prefix: string) {
         prefix = this.getOverlayId(prefix);
 
-        currentOverlays.update((overlays) => {
-            removeByPrefix(overlays, prefix);
-            return overlays;
+        currentOverlays.update((current) => {
+            removeByPrefix(current, prefix);
+            return current;
         });
-        previousOverlays.update((overlays) => {
-            removeByPrefix(overlays, prefix);
-            return overlays;
+        previousOverlays.update((previous) => {
+            removeByPrefix(previous, prefix);
+            return previous;
         });
-        selectedOverlayTree.update((overlays) => {
-            removeByPrefix(overlays, prefix);
-            return overlays;
+        selectedOverlayTree.update((overlayTree) => {
+            removeByPrefix(overlayTree, prefix);
+            return overlayTree;
         });
         Object.keys(overlays).forEach((id) => {
             if (id.startsWith(prefix)) {
                 delete overlays[id];
             }
         });
-        Object.keys(overlayTree.overlays.world).forEach((id) => {
-            if (id.startsWith(prefix)) {
-                delete overlayTree.overlays.world[id];
-            }
+        removeByPrefix(overlayTree, prefix);
+        this._overlays.update(($overlays) => {
+            $overlays.forEach((_, id) => {
+                if (id.startsWith(prefix)) {
+                    $overlays.delete(id);
+                }
+            });
+            return $overlays;
         });
     }
 
@@ -129,34 +134,34 @@ export class ExtensionAPI {
         }
     }
 
-    isLayerFromExtension(id: string): boolean {
-        return this._overlays.has(id);
-    }
+    isLayerFromExtension = derived(this._overlays, ($overlays) => {
+        return (id: string) => $overlays.has(id);
+    });
 
-    getLayerName(id: string): string {
-        const overlay = this._overlays.get(id);
-        return overlay ? overlay.name : '';
-    }
+    getLayerName = derived(this._overlays, ($overlays) => {
+        return (id: string) => $overlays.get(id)?.name || '';
+    });
 
     private getOverlayId(id: string): string {
         return `extension-${id}`;
     }
 
     private destroy() {
+        const ids = Array.from(get(this._overlays).keys());
         currentOverlays.update((overlays) => {
-            this._overlays.forEach((_, id) => {
+            ids.forEach((id) => {
                 remove(overlays, id);
             });
             return overlays;
         });
         previousOverlays.update((overlays) => {
-            this._overlays.forEach((_, id) => {
+            ids.forEach((id) => {
                 remove(overlays, id);
             });
             return overlays;
         });
         selectedOverlayTree.update((overlays) => {
-            this._overlays.forEach((_, id) => {
+            ids.forEach((id) => {
                 remove(overlays, id);
             });
             return overlays;
@@ -164,4 +169,4 @@ export class ExtensionAPI {
     }
 }
 
-export const extensionAPI = new ExtensionAPI(map);
+export const extensionAPI = new ExtensionAPI();

@@ -20,7 +20,7 @@
     import CustomLayers from './CustomLayers.svelte';
     import { settings } from '$lib/logic/settings';
     import { untrack } from 'svelte';
-    import { extensionAPI } from './extension-api';
+    import { extensionAPI } from '$lib/components/map/layer-control/extension-api';
 
     const {
         selectedBasemapTree,
@@ -32,6 +32,8 @@
         customLayers,
         opacities,
     } = settings;
+
+    const { isLayerFromExtension, getLayerName } = extensionAPI;
 
     let { open = $bindable() }: { open: boolean } = $props();
 
@@ -161,8 +163,8 @@
                                     <Select.Trigger class="h-8 mr-1 w-full">
                                         {#if selectedOverlay}
                                             {#if isSelected($selectedOverlayTree, selectedOverlay)}
-                                                {#if extensionAPI.isLayerFromExtension(selectedOverlay)}
-                                                    {extensionAPI.getLayerName(selectedOverlay)}
+                                                {#if $isLayerFromExtension(selectedOverlay)}
+                                                    {$getLayerName(selectedOverlay)}
                                                 {:else}
                                                     {i18n._(`layers.label.${selectedOverlay}`)}
                                                 {/if}
@@ -175,8 +177,8 @@
                                         {#each Object.keys(overlays) as id}
                                             {#if isSelected($selectedOverlayTree, id)}
                                                 <Select.Item value={id}>
-                                                    {#if extensionAPI.isLayerFromExtension(id)}
-                                                        {extensionAPI.getLayerName(id)}
+                                                    {#if $isLayerFromExtension(id)}
+                                                        {$getLayerName(id)}
                                                     {:else}
                                                         {i18n._(`layers.label.${id}`)}
                                                     {/if}

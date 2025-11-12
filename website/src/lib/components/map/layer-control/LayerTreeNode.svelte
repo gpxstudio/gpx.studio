@@ -26,6 +26,7 @@
     } = $props();
 
     const { customLayers } = settings;
+    const { isLayerFromExtension, getLayerName } = extensionAPI;
 
     $effect.pre(() => {
         if (checked !== undefined) {
@@ -73,8 +74,8 @@
                     <Label for="{name}-{id}" class="flex flex-row items-center gap-1">
                         {#if $customLayers.hasOwnProperty(id)}
                             {$customLayers[id].name}
-                        {:else if extensionAPI.isLayerFromExtension(id)}
-                            {extensionAPI.getLayerName(id)}
+                        {:else if $isLayerFromExtension(id)}
+                            {$getLayerName(id)}
                         {:else}
                             {i18n._(`layers.label.${id}`)}
                         {/if}
