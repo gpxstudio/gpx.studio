@@ -56,43 +56,51 @@ export class GPXFileStateCollection {
         this._files = writable(new Map());
     }
 
-    connectToDatabase(db: Database) {
-        if (this._subscription) return;
-        this._subscription = liveQuery(() => db.fileids.toArray()).subscribe((dbFileIds) => {
-            const currentFiles = get(this._files);
-            // Find new files to observe
-            let newFiles = dbFileIds
-                .filter((id) => !currentFiles.has(id))
-                .sort((a, b) => parseInt(a.split('-')[1]) - parseInt(b.split('-')[1]));
-            // Find deleted files to stop observing
-            let deletedFiles = Array.from(currentFiles.keys()).filter(
-                (id) => !dbFileIds.find((fileId) => fileId === id)
-            );
-
-            if (newFiles.length > 0 || deletedFiles.length > 0) {
-                // Update the map of file states
-                this._files.update(($files) => {
-                    newFiles.forEach((id) => {
-                        const fileState = new GPXFileState(id);
-                        fileState.connectToDatabase(db);
-                        $files.set(id, fileState);
-                    });
-                    deletedFiles.forEach((id) => {
-                        $files.get(id)?.destroy();
-                        $files.delete(id);
-                    });
-                    return $files;
-                });
-
-                // Update the file order
-                let fileOrder = get(settings.fileOrder).filter((id) => !deletedFiles.includes(id));
-                newFiles.forEach((id) => {
-                    if (!fileOrder.includes(id)) {
-                        fileOrder.push(id);
-                    }
-                });
-                settings.fileOrder.set(fileOrder);
+    connectToDatabase(db: Database): Promise<void> {
+        return new Promise((resolve) => {
+            if (this._subscription) {
+                resolve();
+                return;
             }
+            this._subscription = liveQuery(() => db.fileids.toArray()).subscribe((dbFileIds) => {
+                const currentFiles = get(this._files);
+                // Find new files to observe
+                let newFiles = dbFileIds
+                    .filter((id) => !currentFiles.has(id))
+                    .sort((a, b) => parseInt(a.split('-')[1]) - parseInt(b.split('-')[1]));
+                // Find deleted files to stop observing
+                let deletedFiles = Array.from(currentFiles.keys()).filter(
+                    (id) => !dbFileIds.find((fileId) => fileId === id)
+                );
+
+                if (newFiles.length > 0 || deletedFiles.length > 0) {
+                    // Update the map of file states
+                    this._files.update(($files) => {
+                        newFiles.forEach((id) => {
+                            const fileState = new GPXFileState(id);
+                            fileState.connectToDatabase(db);
+                            $files.set(id, fileState);
+                        });
+                        deletedFiles.forEach((id) => {
+                            $files.get(id)?.destroy();
+                            $files.delete(id);
+                        });
+                        return $files;
+                    });
+
+                    // Update the file order
+                    let fileOrder = get(settings.fileOrder).filter(
+                        (id) => !deletedFiles.includes(id)
+                    );
+                    newFiles.forEach((id) => {
+                        if (!fileOrder.includes(id)) {
+                            fileOrder.push(id);
+                        }
+                    });
+                    settings.fileOrder.set(fileOrder);
+                }
+                resolve();
+            });
         });
     }
 
