@@ -11,8 +11,6 @@
     import CoordinatesPopup from '$lib/components/map/CoordinatesPopup.svelte';
     import Resizer from '$lib/components/Resizer.svelte';
     import { Toaster } from '$lib/components/ui/sonner';
-    import { languages } from '$lib/languages';
-    import { getURLForLanguage } from '$lib/utils';
     import { i18n } from '$lib/i18n.svelte';
     import { settings } from '$lib/logic/settings';
     import { loadFiles } from '$lib/logic/file-actions';
