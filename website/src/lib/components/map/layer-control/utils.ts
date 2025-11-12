@@ -66,12 +66,12 @@ export function remove(node: LayerTreeType, id: string) {
     return node;
 }
 
-export function removeByPrefix(node: LayerTreeType, prefix: string) {
+export function removeAll(node: LayerTreeType, ids: string[]) {
     Object.keys(node).forEach((key) => {
-        if (key.startsWith(prefix)) {
+        if (ids.includes(key)) {
             delete node[key];
         } else if (typeof node[key] !== 'boolean') {
-            removeByPrefix(node[key], prefix);
+            removeAll(node[key], ids);
         }
     });
     return node;

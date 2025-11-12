@@ -1,6 +1,6 @@
 import { settings } from '$lib/logic/settings';
 import { derived, get, writable, type Writable } from 'svelte/store';
-import { isSelected, remove, removeByPrefix, toggle } from './utils';
+import { isSelected, remove, removeAll } from './utils';
 import { overlays, overlayTree } from '$lib/assets/layers';
 import { browser } from '$app/environment';
 import { map } from '$lib/components/map/map';
@@ -29,18 +29,29 @@ export class ExtensionAPI {
     }
 
     ensureLoaded(): Promise<void> {
-        return new Promise((resolve) => {
+        let unsubscribe: () => void;
+        const promise = new Promise<void>((resolve) => {
             map.onLoad(() => {
-                resolve();
+                unsubscribe = currentOverlays.subscribe((current) => {
+                    if (current) {
+                        resolve();
+                    }
+                });
             });
         });
+        promise.finally(() => {
+            unsubscribe?.();
+        });
+        return promise;
     }
 
     addOrUpdateOverlay(overlay: CustomOverlay) {
-        if (!overlay.id || !overlay.tileUrls || overlay.tileUrls.length === 0) {
-            throw new Error('Overlay must have an id and at least one tile URL.');
+        if (!overlay.id || !overlay.name || !overlay.tileUrls || overlay.tileUrls.length === 0) {
+            throw new Error('Overlay must have an id, name, and at least one tile URL.');
         }
         overlay.id = this.getOverlayId(overlay.id);
+
+        let show = get(this._overlays).get(overlay.id) === undefined;
 
         this._overlays.update(($overlays) => {
             $overlays.set(overlay.id, overlay);
@@ -75,6 +86,7 @@ export class ExtensionAPI {
 
         const current = get(currentOverlays);
         if (current && isSelected(current, overlay.id)) {
+            show = true;
             try {
                 get(map)?.removeImport(overlay.id);
             } catch (e) {
@@ -83,55 +95,43 @@ export class ExtensionAPI {
         }
 
         currentOverlays.update((current) => {
-            current.overlays.world[overlay.id] = true;
+            current.overlays.world[overlay.id] = show;
             return current;
         });
     }
 
-    removeOverlaysWithPrefix(prefix: string) {
-        prefix = this.getOverlayId(prefix);
+    filterOverlays(ids: string[]) {
+        ids = ids.map((id) => this.getOverlayId(id));
+        const idsToRemove = Array.from(get(this._overlays).keys()).filter(
+            (id) => !ids.includes(id)
+        );
 
         currentOverlays.update((current) => {
-            removeByPrefix(current, prefix);
+            removeAll(current, idsToRemove);
             return current;
         });
         previousOverlays.update((previous) => {
-            removeByPrefix(previous, prefix);
+            removeAll(previous, idsToRemove);
             return previous;
         });
-        selectedOverlayTree.update((overlayTree) => {
-            removeByPrefix(overlayTree, prefix);
-            return overlayTree;
+        selectedOverlayTree.update((selected) => {
+            removeAll(selected, idsToRemove);
+            return selected;
         });
         Object.keys(overlays).forEach((id) => {
-            if (id.startsWith(prefix)) {
+            if (idsToRemove.includes(id)) {
                 delete overlays[id];
             }
         });
-        removeByPrefix(overlayTree, prefix);
+        removeAll(overlayTree, idsToRemove);
         this._overlays.update(($overlays) => {
             $overlays.forEach((_, id) => {
-                if (id.startsWith(prefix)) {
+                if (idsToRemove.includes(id)) {
                     $overlays.delete(id);
                 }
             });
             return $overlays;
         });
-    }
-
-    toggleOverlay(id: string) {
-        id = this.getOverlayId(id);
-
-        currentOverlays.update((overlays) => {
-            toggle(overlays, id);
-            return overlays;
-        });
-        if (!isSelected(get(selectedOverlayTree), id)) {
-            selectedOverlayTree.update((overlays) => {
-                toggle(overlays, id);
-                return overlays;
-            });
-        }
     }
 
     isLayerFromExtension = derived(this._overlays, ($overlays) => {
@@ -148,23 +148,23 @@ export class ExtensionAPI {
 
     private destroy() {
         const ids = Array.from(get(this._overlays).keys());
-        currentOverlays.update((overlays) => {
+        currentOverlays.update((current) => {
             ids.forEach((id) => {
-                remove(overlays, id);
+                remove(current, id);
             });
-            return overlays;
+            return current;
         });
-        previousOverlays.update((overlays) => {
+        previousOverlays.update((previous) => {
             ids.forEach((id) => {
-                remove(overlays, id);
+                remove(previous, id);
             });
-            return overlays;
+            return previous;
         });
-        selectedOverlayTree.update((overlays) => {
+        selectedOverlayTree.update((selected) => {
             ids.forEach((id) => {
-                remove(overlays, id);
+                remove(selected, id);
             });
-            return overlays;
+            return selected;
         });
     }
 }
