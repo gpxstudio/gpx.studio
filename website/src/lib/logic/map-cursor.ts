@@ -30,8 +30,8 @@ export class MapCursor {
     constructor() {
         this._states = writable(new Set());
         this._states.subscribe((states) => {
-            let state = states.entries().reduce((max, entry) => {
-                return entry[0] > max ? entry[0] : max;
+            let state = Array.from(states.values()).reduce((max, value) => {
+                return value > max ? value : max;
             }, MapCursorState.DEFAULT);
             let canvas = get(map)?.getCanvas();
             if (canvas) {
