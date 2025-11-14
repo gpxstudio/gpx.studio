@@ -20,6 +20,7 @@
     import { loadFile } from '$lib/logic/file-actions';
     import { selection } from '$lib/logic/selection';
     import { untrack } from 'svelte';
+    import { isSelected, toggle } from '$lib/components/map/layer-control/utils';
 
     let {
         useHash = true,
@@ -32,6 +33,7 @@
 
     const {
         currentBasemap,
+        selectedBasemapTree,
         distanceUnits,
         velocityUnits,
         temperatureUnits,
@@ -65,6 +67,9 @@
         });
         if (allowedEmbeddingBasemaps.includes(options.basemap)) {
             $currentBasemap = options.basemap;
+        }
+        if (!isSelected($selectedBasemapTree, options.basemap)) {
+            $selectedBasemapTree = toggle($selectedBasemapTree, options.basemap);
         }
         $distanceMarkers = options.distanceMarkers;
         $directionMarkers = options.directionMarkers;
