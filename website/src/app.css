@@ -34,6 +34,7 @@
 
  --support: rgb(220 15 130);
  --link: rgb(0 110 180);
+ --selection: hsl(240 4.8% 93%);
  
  --radius: 0.5rem;
 }
@@ -69,6 +70,7 @@
 
  --support: rgb(255 110 190);
  --link: rgb(80 190 255);
+ --selection: hsl(240 3.7% 22%);
 }
  
 @theme inline {

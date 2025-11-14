@@ -121,20 +121,16 @@
     }
 
     .vertical :global(button) {
-        @apply hover:bg-muted;
-    }
-
-    .vertical :global(.sortable-selected button) {
-        @apply hover:bg-accent;
+        @apply hover:bg-[var(--selection)];
     }
 
     .vertical :global(.sortable-selected) {
-        @apply bg-accent;
+        @apply bg-[var(--selection)];
     }
 
     .horizontal :global(button) {
-        @apply bg-accent;
-        @apply hover:bg-muted;
+        @apply bg-[var(--selection)];
+        @apply hover:bg-background;
     }
 
     .horizontal :global(.sortable-selected button) {
