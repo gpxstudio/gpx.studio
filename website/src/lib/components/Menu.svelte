@@ -3,10 +3,12 @@
     import { Button } from '$lib/components/ui/button';
     import Logo from '$lib/components/Logo.svelte';
     import Shortcut from '$lib/components/Shortcut.svelte';
+    import { toast } from 'svelte-sonner';
     import {
         Plus,
         Copy,
         Download,
+        Upload,
         Undo2,
         Redo2,
         Trash2,
@@ -57,6 +59,7 @@
     import { i18n } from '$lib/i18n.svelte';
     import { languages } from '$lib/languages';
     import { getURLForLanguage } from '$lib/utils';
+    import { get } from 'svelte/store';
     import { settings } from '$lib/logic/settings';
     import {
         createFile,
@@ -105,6 +108,73 @@
     }
 
     let layerSettingsOpen = $state(false);
+    function exportSettings() {
+        try {
+            const settingsData: Record<string, any> = {
+                version: 1,
+                timestamp: new Date().toISOString(),
+                settings: {},
+            };
+
+            // Export all settings except excluded ones
+            for (const [key, setting] of Object.entries(settings)) {
+                if (typeof setting === 'object' && 'subscribe' in setting) {
+                    settingsData.settings[key] = get(setting);
+                }
+            }
+
+            const json = JSON.stringify(settingsData, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            link.download = `gpx-studio-settings-${timestamp}.json`;
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+
+            toast.success(i18n._('menu.settings_export.success'));
+        } catch (error) {
+            console.error('Export settings failed:', error);
+            toast.error(i18n._('menu.settings_export.error'));
+        }
+    }
+
+    function importSettings() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json,.json';
+        input.className = 'hidden';
+        input.onchange = async (event) => {
+            const target = event.target as HTMLInputElement;
+            const file = target.files?.[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+
+                if (!data.version || !data.settings) {
+                    throw new Error('Invalid settings file format');
+                }
+
+                // Import settings with special handling
+                for (const [key, value] of Object.entries(data.settings)) {
+                    const setting = (settings as any)[key];
+                    if (!setting || !('set' in setting)) continue;
+                    setting.set(value);
+                }
+
+                toast.success(i18n._('menu.settings_export.import_success'));
+            } catch (error) {
+                console.error('Import settings failed:', error);
+                toast.error(i18n._('menu.settings_export.import_error'));
+            } finally {
+                target.value = '';
+            }
+        };
+        input.click();
+    }
 </script>
 
 <div class="absolute md:top-2 left-0 right-0 z-20 flex flex-row justify-center pointer-events-none">
@@ -496,6 +566,15 @@
                     <Menubar.Item onclick={() => (layerSettingsOpen = true)}>
                         <Layers size="16" />
                         {i18n._('menu.layers')}
+                    </Menubar.Item>
+                    <Menubar.Separator />
+                    <Menubar.Item onclick={exportSettings}>
+                        <Upload size="16" />
+                        {i18n._('menu.settings_export.export')}
+                    </Menubar.Item>
+                    <Menubar.Item onclick={importSettings}>
+                        <Download size="16" />
+                        {i18n._('menu.settings_export.import')}
                     </Menubar.Item>
                 </Menubar.Content>
             </Menubar.Menu>
