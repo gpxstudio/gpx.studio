@@ -73,15 +73,6 @@
                     <Button
                         variant="link"
                         class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
-                        href="https://x.com/gpxstudio"
-                        target="_blank"
-                    >
-                        <Logo company="x" class="h-4 fill-muted-foreground" />
-                        {i18n._('homepage.x')}
-                    </Button>
-                    <Button
-                        variant="link"
-                        class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
                         href="mailto:hello@gpx.studio"
                         target="_blank"
                     >
