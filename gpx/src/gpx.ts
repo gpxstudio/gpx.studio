@@ -835,21 +835,6 @@ export class TrackSegment extends GPXTreeLeaf {
 
             statistics.local.distance.total.push(statistics.global.distance.total);
 
-            // elevation
-            if (i > 0) {
-                const ele =
-                    statistics.local.elevation.smoothed[i] -
-                    statistics.local.elevation.smoothed[i - 1];
-                if (ele > 0) {
-                    statistics.global.elevation.gain += ele;
-                } else if (ele < 0) {
-                    statistics.global.elevation.loss -= ele;
-                }
-            }
-
-            statistics.local.elevation.gain.push(statistics.global.elevation.gain);
-            statistics.local.elevation.loss.push(statistics.global.elevation.loss);
-
             // time
             if (points[i].time === undefined) {
                 statistics.local.time.total.push(0);
@@ -960,8 +945,7 @@ export class TrackSegment extends GPXTreeLeaf {
             }
         }
 
-        [statistics.local.slope.segment, statistics.local.slope.length] =
-            this._computeSlopeSegments(statistics);
+        this._elevationComputation(statistics);
 
         statistics.global.time.total =
             statistics.global.time.start && statistics.global.time.end
@@ -1026,30 +1010,64 @@ export class TrackSegment extends GPXTreeLeaf {
         );
     }
 
-    _computeSlopeSegments(statistics: GPXStatistics): [number[], number[]] {
+    _elevationComputation(statistics: GPXStatistics) {
         let simplified = ramerDouglasPeucker(
             this.trkpt,
-            20,
+            5,
             getElevationDistanceFunction(statistics)
         );
-
-        let slope = [];
-        let length = [];
 
         for (let i = 0; i < simplified.length - 1; i++) {
             let start = simplified[i].point._data.index;
             let end = simplified[i + 1].point._data.index;
-            let dist =
-                statistics.local.distance.total[end] - statistics.local.distance.total[start];
-            let ele = (simplified[i + 1].point.ele ?? 0) - (simplified[i].point.ele ?? 0);
 
-            for (let j = start; j < end + (i + 1 === simplified.length - 1 ? 1 : 0); j++) {
-                slope.push((0.1 * ele) / dist);
-                length.push(dist);
+            const ele = this.trkpt[end].ele - this.trkpt[start].ele || 0;
+            const dist =
+                statistics.local.distance.total[end] - statistics.local.distance.total[start];
+
+            for (let j = start; j < end + (i + 1 == simplified.length - 1 ? 1 : 0); j++) {
+                const localDist =
+                    statistics.local.distance.total[j] - statistics.local.distance.total[start];
+                const localEle = dist > 0 ? (localDist / dist) * ele : 0;
+                statistics.local.elevation.gain.push(
+                    statistics.global.elevation.gain + localEle > 0 ? localEle : 0
+                );
+                statistics.local.elevation.loss.push(
+                    statistics.global.elevation.loss + localEle < 0 ? localEle : 0
+                );
+            }
+
+            if (ele > 0) {
+                statistics.global.elevation.gain += ele;
+            } else if (ele < 0) {
+                statistics.global.elevation.loss -= ele;
             }
         }
 
-        return [slope, length];
+        let slope = [];
+        let length = [];
+        for (let a = 0; a < simplified.length - 1; ) {
+            let b = a + 1;
+            while (b < simplified.length - 1 && simplified[b].distance < 20) {
+                b++;
+            }
+
+            let start = simplified[a].point._data.index;
+            let end = simplified[b].point._data.index;
+            let dist =
+                statistics.local.distance.total[end] - statistics.local.distance.total[start];
+            let ele = (simplified[b].point.ele ?? 0) - (simplified[a].point.ele ?? 0);
+
+            for (let j = start; j < end + (b === simplified.length - 1 ? 1 : 0); j++) {
+                slope.push((0.1 * ele) / dist);
+                length.push(dist);
+            }
+
+            a = b;
+        }
+
+        statistics.local.slope.segment = slope;
+        statistics.local.slope.length = length;
     }
 
     getNumberOfTrackPoints(): number {
