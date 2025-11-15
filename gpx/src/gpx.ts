@@ -1935,11 +1935,15 @@ export function distance(
     const rad = Math.PI / 180;
     const lat1 = coord1.lat * rad;
     const lat2 = coord2.lat * rad;
+    const dLat = lat2 - lat1;
+    const dLon = (coord2.lon - coord1.lon) * rad;
+
+    // Haversine formula - better numerical stability for small distances
     const a =
-        Math.sin(lat1) * Math.sin(lat2) +
-        Math.cos(lat1) * Math.cos(lat2) * Math.cos((coord2.lon - coord1.lon) * rad);
-    const maxMeters = earthRadius * Math.acos(Math.min(a, 1));
-    return maxMeters;
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.asin(Math.sqrt(Math.min(a, 1)));
+    return earthRadius * c;
 }
 
 export function getElevationDistanceFunction(statistics: GPXStatistics) {
