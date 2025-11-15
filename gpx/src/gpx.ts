@@ -977,11 +977,17 @@ export class TrackSegment extends GPXTreeLeaf {
                 ? statistics.global.distance.moving / (statistics.global.time.moving / 3600)
                 : 0;
 
-        statistics.local.speed = distanceWindowSmoothingWithDistanceAccumulator(
+        statistics.local.speed = timeWindowSmoothing(
             points,
-            200,
+            10000,
+            (index) =>
+                index > 0
+                    ? distance(points[index - 1].getCoordinates(), points[index].getCoordinates())
+                    : 0,
             (accumulated, start, end) =>
-                points[start].time && points[end].time
+                points[start].time &&
+                points[end].time &&
+                points[end].time.getTime() - points[start].time.getTime() > 0
                     ? (3600 * accumulated) /
                       (points[end].time.getTime() - points[start].time.getTime())
                     : undefined
@@ -1942,9 +1948,10 @@ export function getElevationDistanceFunction(statistics: GPXStatistics) {
     };
 }
 
-function distanceWindowSmoothing(
+function windowSmoothing(
     points: TrackPoint[],
-    distanceWindow: number,
+    distance: (index1: number, index2: number) => number,
+    window: number,
     accumulate: (index: number) => number,
     compute: (accumulated: number, start: number, end: number) => number,
     remove?: (index: number) => number
@@ -1955,10 +1962,7 @@ function distanceWindowSmoothing(
         end = 0,
         accumulated = 0;
     for (var i = 0; i < points.length; i++) {
-        while (
-            start + 1 < i &&
-            distance(points[start].getCoordinates(), points[i].getCoordinates()) > distanceWindow
-        ) {
+        while (start + 1 < i && distance(start, i) > window) {
             if (remove) {
                 accumulated -= remove(start);
             } else {
@@ -1966,10 +1970,7 @@ function distanceWindowSmoothing(
             }
             start++;
         }
-        while (
-            end < points.length &&
-            distance(points[i].getCoordinates(), points[end].getCoordinates()) <= distanceWindow
-        ) {
+        while (end < points.length && distance(i, end) <= window) {
             accumulated += accumulate(end);
             end++;
         }
@@ -1979,13 +1980,31 @@ function distanceWindowSmoothing(
     return result;
 }
 
+function distanceWindowSmoothing(
+    points: TrackPoint[],
+    window: number,
+    accumulate: (index: number) => number,
+    compute: (accumulated: number, start: number, end: number) => number
+): number[] {
+    return windowSmoothing(
+        points,
+        (index1, index2) =>
+            distance(points[index1].getCoordinates(), points[index2].getCoordinates()),
+        window,
+        accumulate,
+        compute
+    );
+}
+
 function distanceWindowSmoothingWithDistanceAccumulator(
     points: TrackPoint[],
     distanceWindow: number,
     compute: (accumulated: number, start: number, end: number) => number
 ): number[] {
-    return distanceWindowSmoothing(
+    return windowSmoothing(
         points,
+        (index1, index2) =>
+            distance(points[index1].getCoordinates(), points[index2].getCoordinates()),
         distanceWindow,
         (index) =>
             index > 0
@@ -1993,6 +2012,21 @@ function distanceWindowSmoothingWithDistanceAccumulator(
                 : 0,
         compute,
         (index) => distance(points[index].getCoordinates(), points[index + 1].getCoordinates())
+    );
+}
+
+function timeWindowSmoothing(
+    points: TrackPoint[],
+    window: number,
+    accumulate: (index: number) => number,
+    compute: (accumulated: number, start: number, end: number) => number
+): number[] {
+    return windowSmoothing(
+        points,
+        (index1, index2) => points[index2].time?.getTime() - points[index1].time?.getTime() || 0,
+        window,
+        accumulate,
+        compute
     );
 }
 
