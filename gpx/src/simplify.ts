@@ -3,8 +3,6 @@ import { Coordinates } from './types';
 
 export type SimplifiedTrackPoint = { point: TrackPoint; distance?: number };
 
-const earthRadius = 6371008.8;
-
 export function ramerDouglasPeucker(
     points: TrackPoint[],
     epsilon: number = 50,
@@ -72,65 +70,45 @@ export function crossarcDistance(
     );
 }
 
+const metersPerLatitudeDegree = 111320;
+
+function getMetersPerLongitudeDegree(latitude: number): number {
+    return Math.cos((latitude * Math.PI) / 180) * metersPerLatitudeDegree;
+}
+
 function crossarc(coord1: Coordinates, coord2: Coordinates, coord3: Coordinates): number {
-    // Calculates the shortest distance in meters
-    // between an arc (defined by p1 and p2) and a third point, p3.
-    // Input lat1,lon1,lat2,lon2,lat3,lon3 in degrees.
+    // Calculates the perpendicular distance in meters
+    // between a line segment (defined by p1 and p2) and a third point, p3.
+    // Uses simple planar geometry (ignores earth curvature).
 
-    const rad = Math.PI / 180;
-    const lat1 = coord1.lat * rad;
-    const lat2 = coord2.lat * rad;
-    const lat3 = coord3.lat * rad;
+    // Convert to meters using approximate scaling
+    const metersPerLongitudeDegree = getMetersPerLongitudeDegree(coord1.lat);
 
-    const lon1 = coord1.lon * rad;
-    const lon2 = coord2.lon * rad;
-    const lon3 = coord3.lon * rad;
+    const x1 = coord1.lon * metersPerLongitudeDegree;
+    const y1 = coord1.lat * metersPerLatitudeDegree;
+    const x2 = coord2.lon * metersPerLongitudeDegree;
+    const y2 = coord2.lat * metersPerLatitudeDegree;
+    const x3 = coord3.lon * metersPerLongitudeDegree;
+    const y3 = coord3.lat * metersPerLatitudeDegree;
 
-    // Prerequisites for the formulas
-    const bear12 = bearing(lat1, lon1, lat2, lon2);
-    const bear13 = bearing(lat1, lon1, lat3, lon3);
-    let dis13 = distance(lat1, lon1, lat3, lon3);
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const segmentLengthSquared = dx * dx + dy * dy;
 
-    let diff = Math.abs(bear13 - bear12);
-    if (diff > Math.PI) {
-        diff = 2 * Math.PI - diff;
+    if (segmentLengthSquared === 0) {
+        // p1 and p2 are the same point
+        return Math.sqrt((x3 - x1) * (x3 - x1) + (y3 - y1) * (y3 - y1));
     }
 
-    // Is relative bearing obtuse?
-    if (diff > Math.PI / 2) {
-        return dis13;
-    }
+    // Project p3 onto the line defined by p1-p2
+    const t = Math.max(0, Math.min(1, ((x3 - x1) * dx + (y3 - y1) * dy) / segmentLengthSquared));
 
-    // Find the cross-track distance.
-    let dxt = Math.asin(Math.sin(dis13 / earthRadius) * Math.sin(bear13 - bear12)) * earthRadius;
+    // Find the closest point on the segment
+    const projX = x1 + t * dx;
+    const projY = y1 + t * dy;
 
-    // Is p4 beyond the arc?
-    let dis12 = distance(lat1, lon1, lat2, lon2);
-    let dis14 =
-        Math.acos(Math.cos(dis13 / earthRadius) / Math.cos(dxt / earthRadius)) * earthRadius;
-    if (dis14 > dis12) {
-        return distance(lat2, lon2, lat3, lon3);
-    } else {
-        return Math.abs(dxt);
-    }
-}
-
-function distance(latA: number, lonA: number, latB: number, lonB: number): number {
-    // Finds the distance between two lat / lon points.
-    return (
-        Math.acos(
-            Math.sin(latA) * Math.sin(latB) +
-                Math.cos(latA) * Math.cos(latB) * Math.cos(lonB - lonA)
-        ) * earthRadius
-    );
-}
-
-function bearing(latA: number, lonA: number, latB: number, lonB: number): number {
-    // Finds the bearing from one lat / lon point to another.
-    return Math.atan2(
-        Math.sin(lonB - lonA) * Math.cos(latB),
-        Math.cos(latA) * Math.sin(latB) - Math.sin(latA) * Math.cos(latB) * Math.cos(lonB - lonA)
-    );
+    // Return distance from p3 to the projected point
+    return Math.sqrt((x3 - projX) * (x3 - projX) + (y3 - projY) * (y3 - projY));
 }
 
 export function projectedPoint(
@@ -146,56 +124,39 @@ export function projectedPoint(
 }
 
 function projected(coord1: Coordinates, coord2: Coordinates, coord3: Coordinates): Coordinates {
-    // Calculates the point on the line defined by p1 and p2
+    // Calculates the point on the line segment defined by p1 and p2
     // that is closest to the third point, p3.
-    // Input lat1,lon1,lat2,lon2,lat3,lon3 in degrees.
+    // Uses simple planar geometry (ignores earth curvature).
 
-    const rad = Math.PI / 180;
-    const lat1 = coord1.lat * rad;
-    const lat2 = coord2.lat * rad;
-    const lat3 = coord3.lat * rad;
+    // Convert to meters using approximate scaling
+    const metersPerLongitudeDegree = getMetersPerLongitudeDegree(coord1.lat);
 
-    const lon1 = coord1.lon * rad;
-    const lon2 = coord2.lon * rad;
-    const lon3 = coord3.lon * rad;
+    const x1 = coord1.lon * metersPerLongitudeDegree;
+    const y1 = coord1.lat * metersPerLatitudeDegree;
+    const x2 = coord2.lon * metersPerLongitudeDegree;
+    const y2 = coord2.lat * metersPerLatitudeDegree;
+    const x3 = coord3.lon * metersPerLongitudeDegree;
+    const y3 = coord3.lat * metersPerLatitudeDegree;
 
-    // Prerequisites for the formulas
-    const bear12 = bearing(lat1, lon1, lat2, lon2);
-    const bear13 = bearing(lat1, lon1, lat3, lon3);
-    let dis13 = distance(lat1, lon1, lat3, lon3);
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const segmentLengthSquared = dx * dx + dy * dy;
 
-    let diff = Math.abs(bear13 - bear12);
-    if (diff > Math.PI) {
-        diff = 2 * Math.PI - diff;
-    }
-
-    // Is relative bearing obtuse?
-    if (diff > Math.PI / 2) {
+    if (segmentLengthSquared === 0) {
+        // p1 and p2 are the same point
         return coord1;
     }
 
-    // Find the cross-track distance.
-    let dxt = Math.asin(Math.sin(dis13 / earthRadius) * Math.sin(bear13 - bear12)) * earthRadius;
+    // Project p3 onto the line defined by p1-p2
+    const t = Math.max(0, Math.min(1, ((x3 - x1) * dx + (y3 - y1) * dy) / segmentLengthSquared));
 
-    // Is p4 beyond the arc?
-    let dis12 = distance(lat1, lon1, lat2, lon2);
-    let dis14 =
-        Math.acos(Math.cos(dis13 / earthRadius) / Math.cos(dxt / earthRadius)) * earthRadius;
-    if (dis14 > dis12) {
-        return coord2;
-    } else {
-        // Determine the closest point (p4) on the great circle
-        const f = dis14 / earthRadius;
-        const lat4 = Math.asin(
-            Math.sin(lat1) * Math.cos(f) + Math.cos(lat1) * Math.sin(f) * Math.cos(bear12)
-        );
-        const lon4 =
-            lon1 +
-            Math.atan2(
-                Math.sin(bear12) * Math.sin(f) * Math.cos(lat1),
-                Math.cos(f) - Math.sin(lat1) * Math.sin(lat4)
-            );
+    // Find the closest point on the segment
+    const projX = x1 + t * dx;
+    const projY = y1 + t * dy;
 
-        return { lat: lat4 / rad, lon: lon4 / rad };
-    }
+    // Convert back to degrees
+    return {
+        lat: projY / metersPerLatitudeDegree,
+        lon: projX / metersPerLongitudeDegree,
+    };
 }
