@@ -818,9 +818,6 @@ export class TrackSegment extends GPXTreeLeaf {
 
         statistics.local.points = this.trkpt.map((point) => point);
 
-        statistics.local.elevation.smoothed = this._computeSmoothedElevation();
-        statistics.local.slope.at = this._computeSlope();
-
         const points = this.trkpt;
         for (let i = 0; i < points.length; i++) {
             points[i]._data['index'] = i;
@@ -961,53 +958,16 @@ export class TrackSegment extends GPXTreeLeaf {
                 ? statistics.global.distance.moving / (statistics.global.time.moving / 3600)
                 : 0;
 
-        statistics.local.speed = timeWindowSmoothing(
-            points,
-            10000,
-            (index) =>
-                index > 0
-                    ? distance(points[index - 1].getCoordinates(), points[index].getCoordinates())
-                    : 0,
-            (accumulated, start, end) =>
-                points[start].time &&
-                points[end].time &&
-                points[end].time.getTime() - points[start].time.getTime() > 0
-                    ? (3600 * accumulated) /
-                      (points[end].time.getTime() - points[start].time.getTime())
-                    : undefined
+        statistics.local.speed = timeWindowSmoothing(points, 10000, (start, end) =>
+            points[start].time && points[end].time
+                ? (3600 *
+                      (statistics.local.distance.total[end] -
+                          statistics.local.distance.total[start])) /
+                  Math.max((points[end].time.getTime() - points[start].time.getTime()) / 1000, 1)
+                : undefined
         );
 
         return statistics;
-    }
-
-    _computeSmoothedElevation(): number[] {
-        const points = this.trkpt;
-
-        let smoothed = distanceWindowSmoothing(
-            points,
-            100,
-            (index) => points[index].ele ?? 0,
-            (accumulated, start, end) => accumulated / (end - start + 1)
-        );
-
-        if (points.length > 0) {
-            smoothed[0] = points[0].ele ?? 0;
-            smoothed[points.length - 1] = points[points.length - 1].ele ?? 0;
-        }
-
-        return smoothed;
-    }
-
-    _computeSlope(): number[] {
-        const points = this.trkpt;
-
-        return distanceWindowSmoothingWithDistanceAccumulator(
-            points,
-            50,
-            (accumulated, start, end) =>
-                (100 * ((points[end].ele ?? 0) - (points[start].ele ?? 0))) /
-                (accumulated > 0 ? accumulated : 1)
-        );
     }
 
     _elevationComputation(statistics: GPXStatistics) {
@@ -1068,6 +1028,12 @@ export class TrackSegment extends GPXTreeLeaf {
 
         statistics.local.slope.segment = slope;
         statistics.local.slope.length = length;
+        statistics.local.slope.at = distanceWindowSmoothing(statistics, 0.05, (start, end) => {
+            const ele = this.trkpt[end].ele - this.trkpt[start].ele || 0;
+            const dist =
+                statistics.local.distance.total[end] - statistics.local.distance.total[start];
+            return dist > 0 ? (0.1 * ele) / dist : 0;
+        });
     }
 
     getNumberOfTrackPoints(): number {
@@ -1314,8 +1280,14 @@ export class TrackSegment extends GPXTreeLeaf {
         lastPoint: TrackPoint | undefined
     ) {
         let og = getOriginal(this); // Read as much as possible from the original object because it is faster
-        let slope = og._computeSlope();
-        let trkpt = withArtificialTimestamps(og.trkpt, totalTime, lastPoint, startTime, slope);
+        let statistics = og._computeStatistics();
+        let trkpt = withArtificialTimestamps(
+            og.trkpt,
+            totalTime,
+            lastPoint,
+            startTime,
+            statistics.local.slope.at
+        );
         this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
     }
 
@@ -1671,7 +1643,6 @@ export class GPXStatistics {
         };
         speed: number[];
         elevation: {
-            smoothed: number[];
             gain: number[];
             loss: number[];
         };
@@ -1742,7 +1713,6 @@ export class GPXStatistics {
             },
             speed: [],
             elevation: {
-                smoothed: [],
                 gain: [],
                 loss: [],
             },
@@ -1777,9 +1747,6 @@ export class GPXStatistics {
         );
 
         this.local.speed = this.local.speed.concat(other.local.speed);
-        this.local.elevation.smoothed = this.local.elevation.smoothed.concat(
-            other.local.elevation.smoothed
-        );
         this.local.slope.at = this.local.slope.at.concat(other.local.slope.at);
         this.local.slope.segment = this.local.slope.segment.concat(other.local.slope.segment);
         this.local.slope.length = this.local.slope.length.concat(other.local.slope.length);
@@ -1971,83 +1938,52 @@ export function getElevationDistanceFunction(statistics: GPXStatistics) {
 }
 
 function windowSmoothing(
-    points: TrackPoint[],
+    length: number,
     distance: (index1: number, index2: number) => number,
     window: number,
-    accumulate: (index: number) => number,
-    compute: (accumulated: number, start: number, end: number) => number,
-    remove?: (index: number) => number
+    compute: (start: number, end: number) => number
 ): number[] {
     let result = [];
 
     let start = 0,
-        end = 0,
-        accumulated = 0;
-    for (var i = 0; i < points.length; i++) {
+        end = 0;
+    for (var i = 0; i < length; i++) {
         while (start + 1 < i && distance(start, i) > window) {
-            if (remove) {
-                accumulated -= remove(start);
-            } else {
-                accumulated -= accumulate(start);
-            }
             start++;
         }
-        while (end < points.length && distance(i, end) <= window) {
-            accumulated += accumulate(end);
+        end = Math.min(i + 2, length);
+        while (end < length && distance(i, end) <= window) {
             end++;
         }
-        result[i] = compute(accumulated, start, end - 1);
+        result[i] = compute(start, end - 1);
     }
 
     return result;
 }
 
 function distanceWindowSmoothing(
-    points: TrackPoint[],
+    statistics: GPXStatistics,
     window: number,
-    accumulate: (index: number) => number,
-    compute: (accumulated: number, start: number, end: number) => number
+    compute: (start: number, end: number) => number
 ): number[] {
     return windowSmoothing(
-        points,
+        statistics.local.points.length,
         (index1, index2) =>
-            distance(points[index1].getCoordinates(), points[index2].getCoordinates()),
+            statistics.local.distance.total[index2] - statistics.local.distance.total[index1],
         window,
-        accumulate,
         compute
-    );
-}
-
-function distanceWindowSmoothingWithDistanceAccumulator(
-    points: TrackPoint[],
-    distanceWindow: number,
-    compute: (accumulated: number, start: number, end: number) => number
-): number[] {
-    return windowSmoothing(
-        points,
-        (index1, index2) =>
-            distance(points[index1].getCoordinates(), points[index2].getCoordinates()),
-        distanceWindow,
-        (index) =>
-            index > 0
-                ? distance(points[index - 1].getCoordinates(), points[index].getCoordinates())
-                : 0,
-        compute,
-        (index) => distance(points[index].getCoordinates(), points[index + 1].getCoordinates())
     );
 }
 
 function timeWindowSmoothing(
     points: TrackPoint[],
     window: number,
-    accumulate: (index: number) => number,
-    compute: (accumulated: number, start: number, end: number) => number
+    compute: (start: number, end: number) => number
 ): number[] {
     return windowSmoothing(
-        points,
+        points.length,
         (index1, index2) => points[index2].time?.getTime() - points[index1].time?.getTime() || 0,
         window,
-        accumulate,
         compute
     );
 }
