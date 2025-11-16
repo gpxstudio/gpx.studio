@@ -10,7 +10,7 @@
     import { onDestroy } from 'svelte';
     import { getURLForLanguage } from '$lib/utils';
     import { selection } from '$lib/logic/selection';
-    import { minTolerance, ReducedGPXLayerCollection, tolerance } from './reduce.svelte';
+    import { minTolerance, ReducedGPXLayerCollection, tolerance } from './utils.svelte';
 
     let props: { class?: string } = $props();
 

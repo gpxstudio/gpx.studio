@@ -5,7 +5,7 @@ import { GPXFileStateCollectionObserver, type GPXFileState } from '$lib/logic/fi
 import { selection } from '$lib/logic/selection';
 import { ramerDouglasPeucker, TrackPoint, type SimplifiedTrackPoint } from 'gpx';
 import type { GeoJSONSource } from 'mapbox-gl';
-import { get, writable, type Writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 
 export const minTolerance = 0.1;
 
