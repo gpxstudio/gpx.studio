@@ -97,7 +97,7 @@
     </h2>
 </div>
 
-<div class="fixed flex flex-row w-screen h-screen supports-dvh:h-dvh">
+<div class="fixed flex flex-row w-dvw h-dvh">
     <div class="flex flex-col grow h-full min-w-0">
         <div class="grow relative">
             <Menu />

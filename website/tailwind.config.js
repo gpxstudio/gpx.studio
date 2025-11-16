@@ -73,9 +73,6 @@ const config = {
                 'caret-blink': 'caret-blink 1.25s ease-out infinite',
             },
         },
-        supports: {
-            dvh: 'height: 100dvh',
-        },
     },
     plugins: [tailwindcssAnimate],
 };
