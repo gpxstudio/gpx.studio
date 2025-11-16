@@ -8,6 +8,7 @@ export enum MapCursorState {
     TRACKPOINT_DRAGGING,
     TOOL_WITH_CROSSHAIR,
     SCISSORS,
+    SPLIT_CONTROL,
     MAPILLARY_HOVER,
     STREET_VIEW_CROSSHAIR,
 }
@@ -20,6 +21,7 @@ const cursorStyles = {
     [MapCursorState.TRACKPOINT_DRAGGING]: 'grabbing',
     [MapCursorState.TOOL_WITH_CROSSHAIR]: 'crosshair',
     [MapCursorState.SCISSORS]: scissorsCursor,
+    [MapCursorState.SPLIT_CONTROL]: 'pointer',
     [MapCursorState.MAPILLARY_HOVER]: 'pointer',
     [MapCursorState.STREET_VIEW_CROSSHAIR]: 'crosshair',
 };

@@ -449,7 +449,7 @@ export class GPXLayer {
         }
     }
 
-    layerOnClick(e: any) {
+    layerOnClick(e: mapboxgl.MapMouseEvent) {
         if (
             get(currentTool) === Tool.ROUTING &&
             get(selection).hasAnyChildren(new ListRootItem(), true, ['waypoints'])
@@ -457,8 +457,8 @@ export class GPXLayer {
             return;
         }
 
-        let trackIndex = e.features[0].properties.trackIndex;
-        let segmentIndex = e.features[0].properties.segmentIndex;
+        let trackIndex = e.features![0].properties!.trackIndex;
+        let segmentIndex = e.features![0].properties!.segmentIndex;
 
         if (
             get(currentTool) === Tool.SCISSORS &&
@@ -466,6 +466,11 @@ export class GPXLayer {
                 new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)
             )
         ) {
+            if (get(map)?.queryRenderedFeatures(e.point, { layers: ['split-controls'] }).length) {
+                // Clicked on split control, ignoring
+                return;
+            }
+
             fileActions.split(get(splitAs), this.fileId, trackIndex, segmentIndex, {
                 lat: e.lngLat.lat,
                 lon: e.lngLat.lng,
