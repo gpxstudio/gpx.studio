@@ -1030,10 +1030,10 @@ export class TrackSegment extends GPXTreeLeaf {
                     statistics.local.distance.total[j] - statistics.local.distance.total[start];
                 const localEle = dist > 0 ? (localDist / dist) * ele : 0;
                 statistics.local.elevation.gain.push(
-                    statistics.global.elevation.gain + localEle > 0 ? localEle : 0
+                    statistics.global.elevation.gain + (localEle > 0 ? localEle : 0)
                 );
                 statistics.local.elevation.loss.push(
-                    statistics.global.elevation.loss + localEle < 0 ? localEle : 0
+                    statistics.global.elevation.loss + (localEle < 0 ? -localEle : 0)
                 );
             }
 
