@@ -1982,7 +1982,8 @@ function timeWindowSmoothing(
 ): number[] {
     return windowSmoothing(
         points.length,
-        (index1, index2) => points[index2].time?.getTime() - points[index1].time?.getTime() || 0,
+        (index1, index2) =>
+            points[index2].time?.getTime() - points[index1].time?.getTime() || 2 * window,
         window,
         compute
     );
