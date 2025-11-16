@@ -38,7 +38,7 @@
     let endTime: string | undefined = $state(undefined);
     let movingTime: number | undefined = $state(undefined);
     let speed: number | undefined = $state(undefined);
-    let artificial = $state(false);
+    let artificial = $state(true);
 
     function toCalendarDate(date: Date): CalendarDate {
         return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
@@ -346,7 +346,7 @@
                 let fileId = item.getFileId();
                 fileActionManager.applyToFile(fileId, (file) => {
                     if (item instanceof ListFileItem) {
-                        if (artificial || !$gpxStatistics.global.time.moving) {
+                        if (artificial && !$gpxStatistics.global.time.moving) {
                             file.createArtificialTimestamps(
                                 getDate(startDate!, startTime!),
                                 movingTime!
@@ -359,7 +359,7 @@
                             );
                         }
                     } else if (item instanceof ListTrackItem) {
-                        if (artificial || !$gpxStatistics.global.time.moving) {
+                        if (artificial && !$gpxStatistics.global.time.moving) {
                             file.createArtificialTimestamps(
                                 getDate(startDate!, startTime!),
                                 movingTime!,
@@ -374,7 +374,7 @@
                             );
                         }
                     } else if (item instanceof ListTrackSegmentItem) {
-                        if (artificial || !$gpxStatistics.global.time.moving) {
+                        if (artificial && !$gpxStatistics.global.time.moving) {
                             file.createArtificialTimestamps(
                                 getDate(startDate!, startTime!),
                                 movingTime!,
