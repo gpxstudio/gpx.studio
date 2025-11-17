@@ -2,7 +2,7 @@
     "metadata": {
         "home_title": "edytor online plików GPX",
         "app_title": "Aplikacja",
-        "embed_title": "online'owy edytor plików GPX",
+        "embed_title": "Online'owy edytor plików GPX",
         "help_title": "pomoc",
         "404_title": "nie odnaleziono strony",
         "description": "Przeglądaj, edytuj i twórz pliki GPX online z zaawansowanymi możliwościami planowania trasy i narzędziami do przetwarzania plików, pięknymi mapami i szczegółowymi wizualizacjami danych."
@@ -304,7 +304,7 @@
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
             "cyclOSM": "CyclOSM",
-            "utagawaVTT": "UtagawaMTB",
+            "utagawaVTT": "",
             "linz": "LINZ Topo",
             "linzTopo": "LINZ Topo50",
             "swisstopoRaster": "swisstopo Raster",
