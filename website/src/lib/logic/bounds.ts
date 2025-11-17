@@ -66,10 +66,8 @@ export class BoundsManager {
 
     finalizeFitBounds() {
         if (
-            this._bounds.getSouth() === 90 &&
-            this._bounds.getWest() === 180 &&
-            this._bounds.getNorth() === -90 &&
-            this._bounds.getEast() === -180
+            this._bounds.getSouth() >= this._bounds.getNorth() &&
+            this._bounds.getWest() >= this._bounds.getEast()
         ) {
             return;
         }
