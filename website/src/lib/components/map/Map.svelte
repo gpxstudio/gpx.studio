@@ -9,6 +9,8 @@
     import { page } from '$app/state';
     import { map } from '$lib/components/map/map';
 
+    const DUMMY_TOKEN = 'pk.dummy';
+
     let {
         accessToken = PUBLIC_MAPBOX_TOKEN,
         geolocate = true,
@@ -23,7 +25,7 @@
         class?: string;
     } = $props();
 
-    mapboxgl.accessToken = accessToken;
+    mapboxgl.accessToken = accessToken || DUMMY_TOKEN;
 
     let webgl2Supported = $state(true);
     let embeddedApp = $state(false);
@@ -48,7 +50,7 @@
             language = 'en';
         }
 
-        map.init(PUBLIC_MAPBOX_TOKEN, language, hash, geocoder, geolocate);
+        map.init(PUBLIC_MAPBOX_TOKEN || DUMMY_TOKEN, language, hash, geocoder, geolocate);
     });
 
     onDestroy(() => {

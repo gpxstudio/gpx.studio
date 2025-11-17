@@ -3,8 +3,11 @@ import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import { get, writable, type Writable } from 'svelte/store';
 import { settings } from '$lib/logic/settings';
 import { tick } from 'svelte';
+import type { ImportSpecification } from 'mapbox-gl';
 
 const { treeFileView, elevationProfile, bottomPanelSize, rightPanelSize, distanceUnits } = settings;
+
+const DUMMY_TOKEN = 'pk.dummy';
 
 let fitBoundsOptions: mapboxgl.MapOptions['fitBoundsOptions'] = {
     maxZoom: 15,
@@ -28,38 +31,45 @@ export class MapboxGLMap {
         geocoder: boolean,
         geolocate: boolean
     ) {
+        const hasToken = accessToken && accessToken.trim() !== '' && accessToken !== DUMMY_TOKEN;
+
+        const imports: ImportSpecification[] = [
+            {
+                id: 'basemap',
+                url: '',
+            },
+            {
+                id: 'overlays',
+                url: '',
+                data: {
+                    version: 8,
+                    sources: {},
+                    layers: [],
+                },
+            },
+        ];
+
+        if (hasToken) {
+            imports.unshift({
+                id: 'glyphs-and-sprite', // make Mapbox glyphs and sprite available to other styles
+                url: '',
+                data: {
+                    version: 8,
+                    sources: {},
+                    layers: [],
+                    glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
+                    sprite: `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/sprite?access_token=${accessToken}`,
+                },
+            });
+        }
+
         const map = new mapboxgl.Map({
             container: 'map',
             style: {
                 version: 8,
                 sources: {},
                 layers: [],
-                imports: [
-                    {
-                        id: 'glyphs-and-sprite', // make Mapbox glyphs and sprite available to other styles
-                        url: '',
-                        data: {
-                            version: 8,
-                            sources: {},
-                            layers: [],
-                            glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
-                            sprite: `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/sprite?access_token=${accessToken}`,
-                        },
-                    },
-                    {
-                        id: 'basemap',
-                        url: '',
-                    },
-                    {
-                        id: 'overlays',
-                        url: '',
-                        data: {
-                            version: 8,
-                            sources: {},
-                            layers: [],
-                        },
-                    },
-                ],
+                imports,
             },
             projection: 'globe',
             zoom: 0,
@@ -79,7 +89,8 @@ export class MapboxGLMap {
                 visualizePitch: true,
             })
         );
-        if (geocoder) {
+        // Only add geocoder if access token is available (MapboxGeocoder requires it)
+        if (geocoder && hasToken) {
             let geocoder = new MapboxGeocoder({
                 mapboxgl: mapboxgl,
                 enableEventLogging: false,
@@ -134,16 +145,29 @@ export class MapboxGLMap {
         });
         map.addControl(scaleControl);
         map.on('style.load', () => {
-            map.addSource('mapbox-dem', {
-                type: 'raster-dem',
-                url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-                tileSize: 512,
-                maxzoom: 14,
-            });
-            if (map.getPitch() > 0) {
-                map.setTerrain({
-                    source: 'mapbox-dem',
-                    exaggeration: 1,
+            // Only add Mapbox DEM if access token is available
+            if (hasToken) {
+                map.addSource('mapbox-dem', {
+                    type: 'raster-dem',
+                    url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                    tileSize: 512,
+                    maxzoom: 14,
+                });
+                if (map.getPitch() > 0) {
+                    map.setTerrain({
+                        source: 'mapbox-dem',
+                        exaggeration: 1,
+                    });
+                }
+                map.on('pitch', () => {
+                    if (map.getPitch() > 0) {
+                        map.setTerrain({
+                            source: 'mapbox-dem',
+                            exaggeration: 1,
+                        });
+                    } else {
+                        map.setTerrain(null);
+                    }
                 });
             }
             map.setFog({
@@ -151,16 +175,6 @@ export class MapboxGLMap {
                 'high-color': 'rgb(36, 92, 223)',
                 'horizon-blend': 0.1,
                 'space-color': 'rgb(156, 240, 255)',
-            });
-            map.on('pitch', () => {
-                if (map.getPitch() > 0) {
-                    map.setTerrain({
-                        source: 'mapbox-dem',
-                        exaggeration: 1,
-                    });
-                } else {
-                    map.setTerrain(null);
-                }
             });
         });
         map.on('load', () => {

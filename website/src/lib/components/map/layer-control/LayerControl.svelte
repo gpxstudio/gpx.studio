@@ -11,6 +11,7 @@
     import { customBasemapUpdate, getLayers } from './utils';
     import type { ImportSpecification, StyleSpecification } from 'mapbox-gl';
     import { untrack } from 'svelte';
+    import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
 
     let container: HTMLDivElement;
     let overpassLayer: OverpassLayer;
@@ -27,61 +28,71 @@
         opacities,
     } = settings;
 
-    function setStyle() {
-        if (!$map) {
-            return;
-        }
-        let basemap = basemaps.hasOwnProperty($currentBasemap)
-            ? basemaps[$currentBasemap]
-            : ($customLayers[$currentBasemap]?.value ?? basemaps[defaultBasemap]);
-        $map.removeImport('basemap');
+    function requiresMapboxToken(basemap: string | StyleSpecification): boolean {
         if (typeof basemap === 'string') {
-            $map.addImport({ id: 'basemap', url: basemap }, 'overlays');
-        } else {
-            $map.addImport(
-                {
-                    id: 'basemap',
-                    url: '',
-                    data: basemap as StyleSpecification,
-                },
-                'overlays'
-            );
+            return basemap.startsWith('mapbox://') || basemap.includes('mapbox.com');
         }
+        return false;
+    }
+
+    function setStyle() {
+        if (!$map) return;
+
+        const hasMapboxToken = PUBLIC_MAPBOX_TOKEN && PUBLIC_MAPBOX_TOKEN.trim() !== '';
+        const basemapId = $currentBasemap || defaultBasemap;
+        let basemap = basemaps[basemapId] || $customLayers[basemapId]?.value || basemaps[defaultBasemap];
+
+        if (requiresMapboxToken(basemap) && !hasMapboxToken) {
+            basemap = basemaps['openStreetMap'];
+        }
+
+        $map.removeImport('basemap');
+        $map.addImport(
+            typeof basemap === 'string'
+                ? { id: 'basemap', url: basemap }
+                : { id: 'basemap', url: '', data: basemap as StyleSpecification },
+            'overlays'
+        );
     }
 
     $effect(() => {
-        if ($map && ($currentBasemap || $customBasemapUpdate)) {
-            untrack(() => setStyle());
+        if ($map) {
+            setStyle();
         }
     });
 
     function addOverlay(id: string) {
-        if (!$map) {
-            return;
-        }
+        if (!$map) return;
+
         try {
-            let overlay = $customLayers.hasOwnProperty(id) ? $customLayers[id].value : overlays[id];
+            const overlay = $customLayers[id]?.value ?? overlays[id];
+            if (!overlay) return;
+
             if (typeof overlay === 'string') {
                 $map.addImport({ id, url: overlay });
             } else {
-                if ($opacities.hasOwnProperty(id)) {
-                    overlay = {
-                        ...overlay,
-                        layers: (overlay as StyleSpecification).layers.map((layer) => {
-                            if (layer.type === 'raster') {
-                                if (!layer.paint) {
-                                    layer.paint = {};
-                                }
-                                layer.paint['raster-opacity'] = $opacities[id];
-                            }
-                            return layer;
-                        }),
-                    };
-                }
+                const overlayWithOpacity = $opacities[id] !== undefined
+                    ? {
+                          ...overlay,
+                          layers: (overlay as StyleSpecification).layers.map((layer) => {
+                              if (layer.type === 'raster') {
+                                  return {
+                                      ...layer,
+                                      paint: {
+                                          ...layer.paint,
+                                          'raster-opacity': $opacities[id],
+                                      },
+                                  };
+                              }
+                              return layer;
+                          }),
+                      }
+                    : overlay;
+
                 $map.addImport({
                     id,
                     url: '',
-                    data: overlay as StyleSpecification,
+                    data: overlayWithOpacity as StyleSpecification,
                 });
             }
         } catch (e) {
@@ -115,7 +126,7 @@
                     $map?.removeImport(id);
                 });
                 let toAdd = Object.entries(overlayLayers)
-                    .filter(([id, selected]) => selected && !activeOverlays.hasOwnProperty(id))
+                    .filter(([id, selected]) => selected && !(id in activeOverlays))
                     .map(([id]) => id);
                 toAdd.forEach((id) => {
                     addOverlay(id);
