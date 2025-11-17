@@ -51,7 +51,7 @@
     import { editStyle } from '$lib/components/file-list/style/utils.svelte';
     import { exportState, ExportState } from '$lib/components/export/utils.svelte';
     import { anySelectedLayer } from '$lib/components/map/layer-control/utils';
-    import { defaultOverlays } from '$lib/assets/layers';
+    import { defaultOverlays, type CustomLayer } from '$lib/assets/layers';
     import LayerControlSettings from '$lib/components/map/layer-control/LayerControlSettings.svelte';
     import { ListFileItem, ListTrackItem } from '$lib/components/file-list/file-list';
     import Export from '$lib/components/export/Export.svelte';
@@ -116,12 +116,29 @@
                 settings: {},
             };
 
-            // Export all settings except excluded ones
-            for (const [key, setting] of Object.entries(settings)) {
-                if (typeof setting === 'object' && 'subscribe' in setting) {
-                    settingsData.settings[key] = get(setting);
-                }
-            }
+            settingsData.settings.additionalDatasets = get(settings.additionalDatasets);
+            settingsData.settings.defaultOpacity = get(settings.defaultOpacity);
+            settingsData.settings.defaultWidth = get(settings.defaultWidth);
+            settingsData.settings.directionMarkers = get(settings.directionMarkers);
+            settingsData.settings.distanceMarkers = get(settings.distanceMarkers);
+            settingsData.settings.distanceUnits = get(settings.distanceUnits);
+            settingsData.settings.elevationFill = get(settings.elevationFill);
+            settingsData.settings.opacities = get(settings.opacities);
+            settingsData.settings.privateRoads = get(settings.privateRoads);
+            settingsData.settings.routing = get(settings.routing);
+            settingsData.settings.routingProfile = get(settings.routingProfile);
+            settingsData.settings.streetViewSource = get(settings.streetViewSource);
+            settingsData.settings.temperatureUnits = get(settings.temperatureUnits);
+            settingsData.settings.velocityUnits = get(settings.velocityUnits);
+
+            settingsData.settings.selectedBasemapTree = get(settings.selectedBasemapTree);
+            settingsData.settings.selectedOverlayTree = get(settings.selectedOverlayTree);
+            settingsData.settings.selectedOverpassTree = get(settings.selectedOverpassTree);
+            // import will handle custom layers separately
+            delete settingsData.settings.selectedBasemapTree.basemaps.custom;
+            delete settingsData.settings.selectedOverlayTree.overlays.custom;
+
+            settingsData.settings.customLayers = get(settings.customLayers);
 
             const json = JSON.stringify(settingsData, null, 2);
             const blob = new Blob([json], { type: 'application/json' });
@@ -158,12 +175,109 @@
                     throw new Error('Invalid settings file format');
                 }
 
-                // Import settings with special handling
-                for (const [key, value] of Object.entries(data.settings)) {
-                    const setting = (settings as any)[key];
-                    if (!setting || !('set' in setting)) continue;
-                    setting.set(value);
+                if (data.settings.distanceUnits !== undefined) {
+                    distanceUnits.set(data.settings.distanceUnits);
                 }
+                if (data.settings.velocityUnits !== undefined) {
+                    velocityUnits.set(data.settings.velocityUnits);
+                }
+                if (data.settings.temperatureUnits !== undefined) {
+                    temperatureUnits.set(data.settings.temperatureUnits);
+                }
+                if (data.settings.additionalDatasets !== undefined) {
+                    settings.additionalDatasets.set(data.settings.additionalDatasets);
+                }
+                if (data.settings.elevationFill !== undefined) {
+                    settings.elevationFill.set(data.settings.elevationFill);
+                }
+                if (data.settings.routing !== undefined) {
+                    settings.routing.set(data.settings.routing);
+                }
+                if (data.settings.routingProfile !== undefined) {
+                    settings.routingProfile.set(data.settings.routingProfile);
+                }
+                if (data.settings.privateRoads !== undefined) {
+                    settings.privateRoads.set(data.settings.privateRoads);
+                }
+                if (data.settings.opacities !== undefined) {
+                    settings.opacities.set(data.settings.opacities);
+                }
+                if (data.settings.directionMarkers !== undefined) {
+                    directionMarkers.set(data.settings.directionMarkers);
+                }
+                if (data.settings.distanceMarkers !== undefined) {
+                    distanceMarkers.set(data.settings.distanceMarkers);
+                }
+                if (data.settings.streetViewSource !== undefined) {
+                    streetViewSource.set(data.settings.streetViewSource);
+                }
+                if (data.settings.defaultOpacity !== undefined) {
+                    settings.defaultOpacity.set(data.settings.defaultOpacity);
+                }
+                if (data.settings.defaultWidth !== undefined) {
+                    settings.defaultWidth.set(data.settings.defaultWidth);
+                }
+                if (data.settings.selectedOverpassTree !== undefined) {
+                    settings.selectedOverpassTree.set(data.settings.selectedOverpassTree);
+                }
+                let selectedBasemapTree = get(settings.selectedBasemapTree);
+                if (data.settings.selectedBasemapTree !== undefined) {
+                    settings.selectedBasemapTree.set(data.settings.selectedBasemapTree);
+                    selectedBasemapTree = data.settings.selectedBasemapTree;
+                }
+                let selectedOverlayTree = get(settings.selectedOverlayTree);
+                if (data.settings.selectedOverlayTree !== undefined) {
+                    settings.selectedOverlayTree.set(data.settings.selectedOverlayTree);
+                    selectedOverlayTree = data.settings.selectedOverlayTree;
+                }
+                let customLayers = get(settings.customLayers);
+                if (data.settings.customLayers !== undefined) {
+                    // Special handling to avoid overwriting existing custom layers
+                    // instead only add new ones and try to avoid duplicates
+                    const duplicationKey = (l: CustomLayer) =>
+                        String(l.layerType) + String(l.name) + l.tileUrls.sort().join(',');
+
+                    const existingsLayers = new Set();
+                    for (const l of Object.values(get(settings.customLayers))) {
+                        existingsLayers.add(duplicationKey(l));
+                    }
+
+                    const newLayers: Record<string, CustomLayer> = {};
+                    for (const l of Object.values(data.settings.customLayers) as CustomLayer[]) {
+                        const key = duplicationKey(l);
+                        if (!existingsLayers.has(key)) {
+                            const id = `custom-${Object.keys(newLayers).length + Object.keys(get(settings.customLayers)).length}`;
+                            l.id = id;
+                            newLayers[id] = l;
+                        }
+                    }
+                    console.log('New custom layers to add:', newLayers);
+
+                    if (Object.keys(newLayers).length > 0) {
+                        customLayers = {
+                            ...get(settings.customLayers),
+                            ...newLayers,
+                        };
+                        settings.customLayers.set(customLayers);
+                    }
+                }
+
+                // assign new IDs to avoid conflicts
+                const customBaseTree: Record<string, boolean> = {};
+                const customOverlayTree: Record<string, boolean> = {};
+
+                for (const layer of Object.values(customLayers) as CustomLayer[]) {
+                    if (layer.layerType === 'basemap') {
+                        customBaseTree[layer.id] = true;
+                    } else {
+                        customOverlayTree[layer.id] = true;
+                    }
+                }
+                (selectedBasemapTree.basemaps as any).custom = customBaseTree;
+                settings.selectedBasemapTree.set(selectedBasemapTree);
+
+                (selectedOverlayTree.overlays as any).custom = customOverlayTree;
+                settings.selectedOverlayTree.set(selectedOverlayTree);
 
                 toast.success(i18n._('menu.settings_export.import_success'));
             } catch (error) {
