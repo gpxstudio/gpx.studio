@@ -90,6 +90,7 @@ export class GPXLayer {
     selected: boolean = false;
     currentWaypointData: GeoJSON.FeatureCollection | null = null;
     draggedWaypointIndex: number | null = null;
+    draggingStartingPosition: mapboxgl.Point = new mapboxgl.Point(0, 0);
     unsubscribe: Function[] = [];
 
     updateBinded: () => void = this.update.bind(this);
@@ -544,7 +545,7 @@ export class GPXLayer {
         }
     }
 
-    waypointLayerOnMouseDown(e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) {
+    waypointLayerOnMouseDown(e: mapboxgl.MapMouseEvent) {
         if (get(currentTool) !== Tool.WAYPOINT || !this.selected) {
             return;
         }
@@ -556,6 +557,7 @@ export class GPXLayer {
         e.preventDefault();
 
         this.draggedWaypointIndex = e.features![0].properties!.waypointIndex;
+        this.draggingStartingPosition = e.point;
         waypointPopup?.hide();
 
         _map.on('mousemove', this.waypointLayerOnMouseMoveBinded);
@@ -574,7 +576,7 @@ export class GPXLayer {
             return;
         }
 
-        let features = _map.queryRenderedFeatures(e.points[0], {
+        let features = _map.queryRenderedFeatures(e.point, {
             layers: [this.fileId + '-waypoints'],
         });
         if (features.length === 0) {
@@ -582,6 +584,7 @@ export class GPXLayer {
         }
 
         this.draggedWaypointIndex = features[0].properties!.waypointIndex;
+        this.draggingStartingPosition = e.point;
         waypointPopup?.hide();
 
         e.preventDefault();
@@ -591,7 +594,7 @@ export class GPXLayer {
     }
 
     waypointLayerOnMouseMove(e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) {
-        if (!this.draggedWaypointIndex) {
+        if (!this.draggedWaypointIndex || e.point.equals(this.draggingStartingPosition)) {
             return;
         }
 
@@ -616,6 +619,10 @@ export class GPXLayer {
         get(map)?.off('touchmove', this.waypointLayerOnMouseMoveBinded);
 
         if (this.draggedWaypointIndex === null) {
+            return;
+        }
+        if (e.point.equals(this.draggingStartingPosition)) {
+            this.draggedWaypointIndex = null;
             return;
         }
 
