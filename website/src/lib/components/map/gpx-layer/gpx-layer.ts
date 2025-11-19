@@ -598,7 +598,10 @@ export class GPXLayer {
     }
 
     waypointLayerOnMouseMove(e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) {
-        if (!this.draggedWaypointIndex || e.point.equals(this.draggingStartingPosition)) {
+        if (
+            !this.draggedWaypointIndex ||
+            (e.type === 'mousemove' && e.point.equals(this.draggingStartingPosition))
+        ) {
             return;
         }
 
