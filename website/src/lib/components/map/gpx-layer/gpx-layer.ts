@@ -241,7 +241,11 @@ export class GPXLayer {
                     this.fileId + '-waypoints',
                     this.waypointLayerOnMouseDownBinded
                 );
-                _map.on('touchstart', this.waypointLayerOnTouchStartBinded);
+                _map.on(
+                    'touchstart',
+                    this.fileId + '-waypoints',
+                    this.waypointLayerOnTouchStartBinded
+                );
             }
 
             if (get(directionMarkers)) {
@@ -569,10 +573,7 @@ export class GPXLayer {
     }
 
     waypointLayerOnTouchStart(e: mapboxgl.MapTouchEvent) {
-        if (e.points.length !== 1) {
-            return;
-        }
-        if (get(currentTool) !== Tool.WAYPOINT || !this.selected) {
+        if (e.points.length !== 1 || get(currentTool) !== Tool.WAYPOINT || !this.selected) {
             return;
         }
         const _map = get(map);
@@ -580,14 +581,7 @@ export class GPXLayer {
             return;
         }
 
-        let features = _map.queryRenderedFeatures(e.point, {
-            layers: [this.fileId + '-waypoints'],
-        });
-        if (features.length === 0) {
-            return;
-        }
-
-        this.draggedWaypointIndex = features[0].properties!.waypointIndex;
+        this.draggedWaypointIndex = e.features![0].properties!.waypointIndex;
         this.draggingStartingPosition = e.point;
         waypointPopup?.hide();
 
@@ -598,10 +592,7 @@ export class GPXLayer {
     }
 
     waypointLayerOnMouseMove(e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) {
-        if (
-            !this.draggedWaypointIndex ||
-            (e.type === 'mousemove' && e.point.equals(this.draggingStartingPosition))
-        ) {
+        if (!this.draggedWaypointIndex || e.point.equals(this.draggingStartingPosition)) {
             return;
         }
 
