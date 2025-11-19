@@ -55,14 +55,18 @@ function decrementColor(color: string) {
     }
 }
 
-function getSvgForSymbol(symbol: string | undefined, layerColor: string) {
+export function getSvgForSymbol(symbol?: string | undefined, layerColor?: string | undefined) {
     let symbolSvg = symbol ? symbols[symbol]?.iconSvg : undefined;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-    ${Square.replace('width="24"', 'width="12"')
-        .replace('height="24"', 'height="12"')
-        .replace('stroke="currentColor"', 'stroke="SteelBlue"')
-        .replace('stroke-width="2"', 'stroke-width="1.5" x="9.6" y="0.4"')
-        .replace('fill="none"', `fill="${layerColor}"`)}
+    ${
+        layerColor
+            ? Square.replace('width="24"', 'width="12"')
+                  .replace('height="24"', 'height="12"')
+                  .replace('stroke="currentColor"', 'stroke="SteelBlue"')
+                  .replace('stroke-width="2"', 'stroke-width="1.5" x="9.6" y="0.4"')
+                  .replace('fill="none"', `fill="${layerColor}"`)
+            : ''
+    }
     ${MapPin.replace('width="24"', '')
         .replace('height="24"', '')
         .replace('stroke="currentColor"', '')

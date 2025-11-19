@@ -16,6 +16,8 @@
     import { fileActions } from '$lib/logic/file-actions';
     import { map } from '$lib/components/map/map';
     import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+    import mapboxgl from 'mapbox-gl';
+    import { getSvgForSymbol } from '$lib/components/map/gpx-layer/gpx-layer';
 
     let props: {
         class?: string;
@@ -39,6 +41,21 @@
         })
     );
 
+    let marker: mapboxgl.Marker | null = null;
+
+    function reset() {
+        if ($selectedWaypoint) {
+            selectedWaypoint.reset();
+        } else {
+            name = '';
+            description = '';
+            link = '';
+            sym = '';
+            longitude = 0;
+            latitude = 0;
+        }
+    }
+
     $effect(() => {
         if ($selectedWaypoint) {
             const wpt = $selectedWaypoint[0];
@@ -54,14 +71,7 @@
                 latitude = parseFloat(wpt.getLatitude().toFixed(6));
             });
         } else {
-            untrack(() => {
-                name = '';
-                description = '';
-                link = '';
-                sym = '';
-                longitude = 0;
-                latitude = 0;
-            });
+            untrack(reset);
         }
     });
 
@@ -92,13 +102,44 @@
                 : undefined
         );
 
-        selectedWaypoint.reset();
+        reset();
     }
 
     function setCoordinates(e: any) {
         latitude = e.lngLat.lat.toFixed(6);
         longitude = e.lngLat.lng.toFixed(6);
     }
+
+    $effect(() => {
+        if ($selectedWaypoint) {
+            if (marker) {
+                marker.remove();
+                marker = null;
+            }
+        } else if (latitude != 0 || longitude != 0) {
+            if ($map) {
+                if (marker) {
+                    marker.setLngLat([longitude, latitude]).getElement().innerHTML =
+                        getSvgForSymbol(symbolKey);
+                } else {
+                    let element = document.createElement('div');
+                    element.classList.add('w-8', 'h-8');
+                    element.innerHTML = getSvgForSymbol(symbolKey);
+                    marker = new mapboxgl.Marker({
+                        element,
+                        anchor: 'bottom',
+                    })
+                        .setLngLat([longitude, latitude])
+                        .addTo($map);
+                }
+            }
+        } else {
+            if (marker) {
+                marker.remove();
+                marker = null;
+            }
+        }
+    });
 
     onMount(() => {
         if ($map) {
@@ -111,6 +152,10 @@
         if ($map) {
             $map.off('click', setCoordinates);
             mapCursor.notify(MapCursorState.TOOL_WITH_CROSSHAIR, false);
+        }
+        if (marker) {
+            marker.remove();
+            marker = null;
         }
     });
 </script>
@@ -210,7 +255,7 @@
                 {i18n._('toolbar.waypoint.create')}
             {/if}
         </Button>
-        <Button variant="outline" size="icon" onclick={() => selectedWaypoint.reset()}>
+        <Button variant="outline" size="icon" onclick={reset}>
             <CircleX size="16" />
         </Button>
     </div>
