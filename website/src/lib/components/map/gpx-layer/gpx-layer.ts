@@ -356,7 +356,11 @@ export class GPXLayer {
             );
             _map.off('click', this.fileId + '-waypoints', this.waypointLayerOnClickBinded);
             _map.off('mousedown', this.fileId + '-waypoints', this.waypointLayerOnMouseDownBinded);
-            _map.off('touchstart', this.waypointLayerOnTouchStartBinded);
+            _map.off(
+                'touchstart',
+                this.fileId + '-waypoints',
+                this.waypointLayerOnTouchStartBinded
+            );
 
             if (_map.getLayer(this.fileId + '-direction')) {
                 _map.removeLayer(this.fileId + '-direction');
@@ -592,7 +596,7 @@ export class GPXLayer {
     }
 
     waypointLayerOnMouseMove(e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) {
-        if (!this.draggedWaypointIndex || e.point.equals(this.draggingStartingPosition)) {
+        if (this.draggedWaypointIndex === null || e.point.equals(this.draggingStartingPosition)) {
             return;
         }
 
