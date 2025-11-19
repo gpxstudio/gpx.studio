@@ -179,6 +179,112 @@ export class Selection {
         }
     }
 
+    updateFromKey(down: boolean, shift: boolean) {
+        let selected = get(this._selection).getSelected();
+        if (selected.length === 0) {
+            return;
+        }
+
+        let next: ListItem | undefined = undefined;
+        if (selected[0] instanceof ListFileItem) {
+            let order = get(settings.fileOrder);
+            let limitIndex: number | undefined = undefined;
+            selected.forEach((item) => {
+                let index = order.indexOf(item.getFileId());
+                if (
+                    limitIndex === undefined ||
+                    (down && index > limitIndex) ||
+                    (!down && index < limitIndex)
+                ) {
+                    limitIndex = index;
+                }
+            });
+
+            if (limitIndex !== undefined) {
+                let nextIndex = down ? limitIndex + 1 : limitIndex - 1;
+
+                while (true) {
+                    if (nextIndex < 0) {
+                        nextIndex = order.length - 1;
+                    } else if (nextIndex >= order.length) {
+                        nextIndex = 0;
+                    }
+
+                    if (nextIndex === limitIndex) {
+                        break;
+                    }
+
+                    next = new ListFileItem(order[nextIndex]);
+                    if (!get(selection).has(next)) {
+                        break;
+                    }
+
+                    nextIndex += down ? 1 : -1;
+                }
+            }
+        } else if (
+            selected[0] instanceof ListTrackItem &&
+            selected[selected.length - 1] instanceof ListTrackItem
+        ) {
+            let fileId = selected[0].getFileId();
+            let file = fileStateCollection.getFile(fileId);
+            if (file) {
+                let numberOfTracks = file.trk.length;
+                let trackIndex = down
+                    ? selected[selected.length - 1].getTrackIndex()
+                    : selected[0].getTrackIndex();
+                if (down && trackIndex < numberOfTracks - 1) {
+                    next = new ListTrackItem(fileId, trackIndex + 1);
+                } else if (!down && trackIndex > 0) {
+                    next = new ListTrackItem(fileId, trackIndex - 1);
+                }
+            }
+        } else if (
+            selected[0] instanceof ListTrackSegmentItem &&
+            selected[selected.length - 1] instanceof ListTrackSegmentItem
+        ) {
+            let fileId = selected[0].getFileId();
+            let file = fileStateCollection.getFile(fileId);
+            if (file) {
+                let trackIndex = selected[0].getTrackIndex();
+                let numberOfSegments = file.trk[trackIndex].trkseg.length;
+                let segmentIndex = down
+                    ? selected[selected.length - 1].getSegmentIndex()
+                    : selected[0].getSegmentIndex();
+                if (down && segmentIndex < numberOfSegments - 1) {
+                    next = new ListTrackSegmentItem(fileId, trackIndex, segmentIndex + 1);
+                } else if (!down && segmentIndex > 0) {
+                    next = new ListTrackSegmentItem(fileId, trackIndex, segmentIndex - 1);
+                }
+            }
+        } else if (
+            selected[0] instanceof ListWaypointItem &&
+            selected[selected.length - 1] instanceof ListWaypointItem
+        ) {
+            let fileId = selected[0].getFileId();
+            let file = fileStateCollection.getFile(fileId);
+            if (file) {
+                let numberOfWaypoints = file.wpt.length;
+                let waypointIndex = down
+                    ? selected[selected.length - 1].getWaypointIndex()
+                    : selected[0].getWaypointIndex();
+                if (down && waypointIndex < numberOfWaypoints - 1) {
+                    next = new ListWaypointItem(fileId, waypointIndex + 1);
+                } else if (!down && waypointIndex > 0) {
+                    next = new ListWaypointItem(fileId, waypointIndex - 1);
+                }
+            }
+        }
+
+        if (next && (!get(this._selection).has(next) || !shift)) {
+            if (shift) {
+                this.addSelectItem(next);
+            } else {
+                this.selectItem(next);
+            }
+        }
+    }
+
     getOrderedSelection(reverse: boolean = false): ListItem[] {
         let selected: ListItem[] = [];
         this.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
