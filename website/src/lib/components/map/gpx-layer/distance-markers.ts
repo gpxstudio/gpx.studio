@@ -8,14 +8,7 @@ import { allHidden } from '$lib/logic/hidden';
 
 const { distanceMarkers, distanceUnits } = settings;
 
-const stops = [
-    [100, 0],
-    [50, 7],
-    [25, 8, 10],
-    [10, 10],
-    [5, 11],
-    [1, 13],
-];
+const levels = [100, 50, 25, 10, 5, 1];
 
 export class DistanceMarkers {
     updateBinded: () => void = this.update.bind(this);
@@ -50,43 +43,50 @@ export class DistanceMarkers {
                         data: this.getDistanceMarkersGeoJSON(),
                     });
                 }
-                stops.forEach(([d, minzoom, maxzoom]) => {
-                    if (!map_.getLayer(`distance-markers-${d}`)) {
-                        map_.addLayer({
-                            id: `distance-markers-${d}`,
-                            type: 'symbol',
-                            source: 'distance-markers',
-                            filter:
-                                d === 5
-                                    ? [
-                                          'any',
-                                          ['==', ['get', 'level'], 5],
-                                          ['==', ['get', 'level'], 25],
-                                      ]
-                                    : ['==', ['get', 'level'], d],
-                            minzoom: minzoom,
-                            maxzoom: maxzoom ?? 24,
-                            layout: {
-                                'text-field': ['get', 'distance'],
-                                'text-size': 14,
-                                'text-font': ['Open Sans Bold'],
-                            },
-                            paint: {
-                                'text-color': 'black',
-                                'text-halo-width': 2,
-                                'text-halo-color': 'white',
-                            },
-                        });
-                    } else {
-                        map_.moveLayer(`distance-markers-${d}`);
-                    }
-                });
+                if (!map_.getLayer('distance-markers')) {
+                    map_.addLayer({
+                        id: 'distance-markers',
+                        type: 'symbol',
+                        source: 'distance-markers',
+                        filter: [
+                            'match',
+                            ['get', 'level'],
+                            100,
+                            ['>=', ['zoom'], 0],
+                            50,
+                            ['>=', ['zoom'], 7],
+                            25,
+                            [
+                                'any',
+                                ['all', ['>=', ['zoom'], 8], ['<=', ['zoom'], 9]],
+                                ['>=', ['zoom'], 11],
+                            ],
+                            10,
+                            ['>=', ['zoom'], 10],
+                            5,
+                            ['>=', ['zoom'], 11],
+                            1,
+                            ['>=', ['zoom'], 13],
+                            false,
+                        ],
+                        layout: {
+                            'text-field': ['get', 'distance'],
+                            'text-size': 14,
+                            'text-font': ['Open Sans Bold'],
+                        },
+                        paint: {
+                            'text-color': 'black',
+                            'text-halo-width': 2,
+                            'text-halo-color': 'white',
+                        },
+                    });
+                } else {
+                    map_.moveLayer('distance-markers');
+                }
             } else {
-                stops.forEach(([d]) => {
-                    if (map_.getLayer(`distance-markers-${d}`)) {
-                        map_.removeLayer(`distance-markers-${d}`);
-                    }
-                });
+                if (map_.getLayer('distance-markers')) {
+                    map_.removeLayer('distance-markers');
+                }
             }
         } catch (e) {
             // No reliable way to check if the map is ready to add sources and layers
@@ -109,9 +109,7 @@ export class DistanceMarkers {
                 getConvertedDistanceToKilometers(currentTargetDistance)
             ) {
                 let distance = currentTargetDistance.toFixed(0);
-                let [level, minzoom] = stops.find(([d]) => currentTargetDistance % d === 0) ?? [
-                    0, 0,
-                ];
+                let level = levels.find((level) => currentTargetDistance % level === 0) || 1;
                 features.push({
                     type: 'Feature',
                     geometry: {
@@ -124,7 +122,6 @@ export class DistanceMarkers {
                     properties: {
                         distance,
                         level,
-                        minzoom,
                     },
                 } as GeoJSON.Feature);
                 currentTargetDistance += 1;

@@ -175,7 +175,7 @@
                         let file = fileStateCollection.getFile(item.getFileId());
                         if (layer && file) {
                             let waypoint = file.wpt[item.getWaypointIndex()];
-                            if (waypoint) {
+                            if (waypoint && !waypoint._data.hidden) {
                                 waypointPopup?.setItem({
                                     item: waypoint,
                                     fileId: item.getFileId(),

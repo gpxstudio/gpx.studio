@@ -101,7 +101,9 @@ export class OverpassLayer {
                 this.map.on('click', 'overpass', this.onHoverBinded);
             }
 
-            this.map.setFilter('overpass', ['in', 'query', ...getCurrentQueries()]);
+            this.map.setFilter('overpass', ['in', 'query', ...getCurrentQueries()], {
+                validate: false,
+            });
         } catch (e) {
             // No reliable way to check if the map is ready to add sources and layers
         }

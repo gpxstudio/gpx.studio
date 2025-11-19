@@ -4,9 +4,10 @@ import { get, writable, type Writable } from 'svelte/store';
 export enum MapCursorState {
     DEFAULT,
     LAYER_HOVER,
+    TOOL_WITH_CROSSHAIR,
+    WAYPOINT_HOVER,
     WAYPOINT_DRAGGING,
     TRACKPOINT_DRAGGING,
-    TOOL_WITH_CROSSHAIR,
     SCISSORS,
     SPLIT_CONTROL,
     MAPILLARY_HOVER,
@@ -17,6 +18,7 @@ const scissorsCursor = `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/20
 const cursorStyles = {
     [MapCursorState.DEFAULT]: 'default',
     [MapCursorState.LAYER_HOVER]: 'pointer',
+    [MapCursorState.WAYPOINT_HOVER]: 'pointer',
     [MapCursorState.WAYPOINT_DRAGGING]: 'grabbing',
     [MapCursorState.TRACKPOINT_DRAGGING]: 'grabbing',
     [MapCursorState.TOOL_WITH_CROSSHAIR]: 'crosshair',
