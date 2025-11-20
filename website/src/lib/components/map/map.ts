@@ -43,7 +43,7 @@ export class MapboxGLMap {
                             sources: {},
                             layers: [],
                             glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
-                            sprite: `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/sprite?access_token=${accessToken}`,
+                            sprite: 'mapbox://sprites/mapbox/outdoors-v12',
                         },
                     },
                     {
