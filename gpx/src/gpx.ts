@@ -973,7 +973,7 @@ export class TrackSegment extends GPXTreeLeaf {
     _elevationComputation(statistics: GPXStatistics) {
         let simplified = ramerDouglasPeucker(
             this.trkpt,
-            5,
+            20,
             getElevationDistanceFunction(statistics)
         );
 
@@ -981,59 +981,67 @@ export class TrackSegment extends GPXTreeLeaf {
             let start = simplified[i].point._data.index;
             let end = simplified[i + 1].point._data.index;
 
-            const ele = this.trkpt[end].ele - this.trkpt[start].ele || 0;
-            const dist =
-                statistics.local.distance.total[end] - statistics.local.distance.total[start];
+            let cumulEle = 0;
+            let currentStart = start;
+            let currentEnd = start;
+            let smoothedEle = distanceWindowSmoothing(start, end + 1, statistics, 0.1, (s, e) => {
+                for (let i = currentStart; i < s; i++) {
+                    cumulEle -= this.trkpt[i].ele ?? 0;
+                }
+                for (let i = currentEnd; i <= e; i++) {
+                    cumulEle += this.trkpt[i].ele ?? 0;
+                }
+                currentStart = s;
+                currentEnd = e + 1;
+                return cumulEle / (e - s + 1);
+            });
+            smoothedEle[0] = this.trkpt[start].ele ?? 0;
+            smoothedEle[smoothedEle.length - 1] = this.trkpt[end].ele ?? 0;
 
-            for (let j = start; j < end + (i + 1 == simplified.length - 1 ? 1 : 0); j++) {
-                const localDist =
-                    statistics.local.distance.total[j] - statistics.local.distance.total[start];
-                const localEle = dist > 0 ? (localDist / dist) * ele : 0;
-                statistics.local.elevation.gain.push(
-                    statistics.global.elevation.gain + (localEle > 0 ? localEle : 0)
-                );
-                statistics.local.elevation.loss.push(
-                    statistics.global.elevation.loss + (localEle < 0 ? -localEle : 0)
-                );
-            }
+            for (let j = start; j < end; j++) {
+                statistics.local.elevation.gain.push(statistics.global.elevation.gain);
+                statistics.local.elevation.loss.push(statistics.global.elevation.loss);
 
-            if (ele > 0) {
-                statistics.global.elevation.gain += ele;
-            } else if (ele < 0) {
-                statistics.global.elevation.loss -= ele;
+                const ele = smoothedEle[j - start + 1] - smoothedEle[j - start];
+                if (ele > 0) {
+                    statistics.global.elevation.gain += ele;
+                } else if (ele < 0) {
+                    statistics.global.elevation.loss -= ele;
+                }
             }
         }
+        statistics.local.elevation.gain.push(statistics.global.elevation.gain);
+        statistics.local.elevation.loss.push(statistics.global.elevation.loss);
 
         let slope = [];
         let length = [];
-        for (let a = 0; a < simplified.length - 1; ) {
-            let b = a + 1;
-            while (b < simplified.length - 1 && simplified[b].distance < 20) {
-                b++;
-            }
-
-            let start = simplified[a].point._data.index;
-            let end = simplified[b].point._data.index;
+        for (let i = 0; i < simplified.length - 1; i++) {
+            let start = simplified[i].point._data.index;
+            let end = simplified[i + 1].point._data.index;
             let dist =
                 statistics.local.distance.total[end] - statistics.local.distance.total[start];
-            let ele = (simplified[b].point.ele ?? 0) - (simplified[a].point.ele ?? 0);
+            let ele = (simplified[i + 1].point.ele ?? 0) - (simplified[i].point.ele ?? 0);
 
-            for (let j = start; j < end + (b === simplified.length - 1 ? 1 : 0); j++) {
+            for (let j = start; j < end + (i + 1 === simplified.length - 1 ? 1 : 0); j++) {
                 slope.push((0.1 * ele) / dist);
                 length.push(dist);
             }
-
-            a = b;
         }
 
         statistics.local.slope.segment = slope;
         statistics.local.slope.length = length;
-        statistics.local.slope.at = distanceWindowSmoothing(statistics, 0.05, (start, end) => {
-            const ele = this.trkpt[end].ele - this.trkpt[start].ele || 0;
-            const dist =
-                statistics.local.distance.total[end] - statistics.local.distance.total[start];
-            return dist > 0 ? (0.1 * ele) / dist : 0;
-        });
+        statistics.local.slope.at = distanceWindowSmoothing(
+            0,
+            this.trkpt.length,
+            statistics,
+            0.05,
+            (start, end) => {
+                const ele = this.trkpt[end].ele - this.trkpt[start].ele || 0;
+                const dist =
+                    statistics.local.distance.total[end] - statistics.local.distance.total[start];
+                return dist > 0 ? (0.1 * ele) / dist : 0;
+            }
+        );
     }
 
     getNumberOfTrackPoints(): number {
@@ -1938,36 +1946,39 @@ export function getElevationDistanceFunction(statistics: GPXStatistics) {
 }
 
 function windowSmoothing(
-    length: number,
+    left: number,
+    right: number,
     distance: (index1: number, index2: number) => number,
     window: number,
     compute: (start: number, end: number) => number
 ): number[] {
     let result = [];
 
-    let start = 0,
-        end = 0;
-    for (var i = 0; i < length; i++) {
+    let start = left;
+    for (var i = left; i < right; i++) {
         while (start + 1 < i && distance(start, i) > window) {
             start++;
         }
-        end = Math.min(i + 2, length);
-        while (end < length && distance(i, end) <= window) {
+        let end = Math.min(i + 2, right);
+        while (end < right && distance(i, end) <= window) {
             end++;
         }
-        result[i] = compute(start, end - 1);
+        result.push(compute(start, end - 1));
     }
 
     return result;
 }
 
 function distanceWindowSmoothing(
+    left: number,
+    right: number,
     statistics: GPXStatistics,
     window: number,
     compute: (start: number, end: number) => number
 ): number[] {
     return windowSmoothing(
-        statistics.local.points.length,
+        left,
+        right,
         (index1, index2) =>
             statistics.local.distance.total[index2] - statistics.local.distance.total[index1],
         window,
@@ -1981,6 +1992,7 @@ function timeWindowSmoothing(
     compute: (start: number, end: number) => number
 ): number[] {
     return windowSmoothing(
+        0,
         points.length,
         (index1, index2) =>
             points[index2].time?.getTime() - points[index1].time?.getTime() || 2 * window,
