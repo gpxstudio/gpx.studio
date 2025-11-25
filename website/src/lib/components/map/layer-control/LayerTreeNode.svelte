@@ -85,7 +85,7 @@
         {:else if anySelectedLayer(node[id])}
             <CollapsibleTreeNode {id}>
                 {#snippet trigger()}
-                    <span>{i18n._(`layers.label.${id}`)}</span>
+                    <span>{i18n._(`layers.label.${id}`, id)}</span>
                 {/snippet}
                 {#snippet content()}
                     <div class="ml-2">

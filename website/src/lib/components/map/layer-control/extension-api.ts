@@ -8,6 +8,7 @@ import { map } from '$lib/components/map/map';
 const { currentOverlays, previousOverlays, selectedOverlayTree } = settings;
 
 export type CustomOverlay = {
+    extensionName: string;
     id: string;
     name: string;
     tileUrls: string[];
@@ -46,8 +47,16 @@ export class ExtensionAPI {
     }
 
     addOrUpdateOverlay(overlay: CustomOverlay) {
-        if (!overlay.id || !overlay.name || !overlay.tileUrls || overlay.tileUrls.length === 0) {
-            throw new Error('Overlay must have an id, name, and at least one tile URL.');
+        if (
+            !overlay.extensionName ||
+            !overlay.id ||
+            !overlay.name ||
+            !overlay.tileUrls ||
+            overlay.tileUrls.length === 0
+        ) {
+            throw new Error(
+                'Overlay must have an extensionName, id, name, and at least one tile URL.'
+            );
         }
         overlay.id = this.getOverlayId(overlay.id);
 
@@ -75,10 +84,17 @@ export class ExtensionAPI {
             ],
         };
 
-        overlayTree.overlays.world[overlay.id] = true;
+        if (!overlayTree.overlays.hasOwnProperty(overlay.extensionName)) {
+            overlayTree.overlays[overlay.extensionName] = {};
+        }
+
+        overlayTree.overlays[overlay.extensionName][overlay.id] = true;
 
         selectedOverlayTree.update((selected) => {
-            selected.overlays.world[overlay.id] = true;
+            if (!selected.overlays.hasOwnProperty(overlay.extensionName)) {
+                selected.overlays[overlay.extensionName] = {};
+            }
+            selected.overlays[overlay.extensionName][overlay.id] = true;
             return selected;
         });
 
@@ -94,7 +110,10 @@ export class ExtensionAPI {
         }
 
         currentOverlays.update((current) => {
-            current.overlays.world[overlay.id] = show;
+            if (!current.overlays.hasOwnProperty(overlay.extensionName)) {
+                current.overlays[overlay.extensionName] = {};
+            }
+            current.overlays[overlay.extensionName][overlay.id] = show;
             return current;
         });
     }
@@ -130,6 +149,29 @@ export class ExtensionAPI {
                 }
             });
             return $overlays;
+        });
+    }
+
+    updateOverlaysOrder(ids: string[]) {
+        ids = ids.map((id) => this.getOverlayId(id));
+        selectedOverlayTree.update((selected) => {
+            let isSelected: Record<string, boolean> = {};
+            ids.forEach((id) => {
+                const overlay = get(this._overlays).get(id);
+                if (
+                    overlay &&
+                    selected.overlays.hasOwnProperty(overlay.extensionName) &&
+                    selected.overlays[overlay.extensionName].hasOwnProperty(id)
+                ) {
+                    isSelected[id] = selected.overlays[overlay.extensionName][id];
+                    delete selected.overlays[overlay.extensionName][id];
+                }
+            });
+            Object.entries(isSelected).forEach(([id, value]) => {
+                const overlay = get(this._overlays).get(id)!;
+                selected.overlays[overlay.extensionName][id] = value;
+            });
+            return selected;
         });
     }
 

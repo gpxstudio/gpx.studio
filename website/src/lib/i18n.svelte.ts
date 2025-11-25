@@ -14,7 +14,7 @@ class Locale {
     private _isLoadingInitial = $state(true);
     private _isLoading = $state(true);
     private dictionary: Dictionary = $state({});
-    private _t = $derived((key: string) => {
+    private _t = $derived((key: string, fallback?: string) => {
         const keys = key.split('.');
         let value: string | Dictionary = this.dictionary;
 
@@ -22,7 +22,7 @@ class Locale {
             if (value && typeof value === 'object' && k in value) {
                 value = value[k];
             } else {
-                return key;
+                return fallback || key;
             }
         }
 
