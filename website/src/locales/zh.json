@@ -28,7 +28,7 @@
         "undo": "撤销",
         "redo": "恢复",
         "delete": "删除",
-        "delete_all": "Delete all",
+        "delete_all": "",
         "select_all": "全选",
         "view": "显示",
         "elevation_profile": "海拔剖面图",
