@@ -17,6 +17,9 @@ import {
 import { immerable, isDraft, original, freeze } from 'immer';
 
 function cloneJSON<T>(obj: T): T {
+    if (obj === undefined) {
+        return undefined;
+    }
     if (obj === null || typeof obj !== 'object') {
         return null;
     }
