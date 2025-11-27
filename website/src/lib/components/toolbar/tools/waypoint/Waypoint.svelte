@@ -95,7 +95,7 @@
                 desc: description.length > 0 ? description : undefined,
                 cmt: description.length > 0 ? description : undefined,
                 link: link.length > 0 ? { attributes: { href: link } } : undefined,
-                sym: sym,
+                sym: sym.length > 0 ? sym : undefined,
             },
             selectedWaypoint.wpt && selectedWaypoint.fileId
                 ? new ListWaypointItem(selectedWaypoint.fileId, selectedWaypoint.wpt._data.index)

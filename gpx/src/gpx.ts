@@ -1495,12 +1495,18 @@ export class Waypoint {
         this.attributes = waypoint.attributes;
         this.ele = waypoint.ele;
         this.time = waypoint.time;
-        this.name = waypoint.name;
-        this.cmt = waypoint.cmt;
-        this.desc = waypoint.desc;
-        this.link = waypoint.link;
-        this.sym = waypoint.sym;
-        this.type = waypoint.type;
+        this.name = waypoint.name === '' ? undefined : waypoint.name;
+        this.cmt = waypoint.cmt === '' ? undefined : waypoint.cmt;
+        this.desc = waypoint.desc === '' ? undefined : waypoint.desc;
+        this.link =
+            !waypoint.link ||
+            !waypoint.link.attributes ||
+            !waypoint.link.attributes.href ||
+            waypoint.link.attributes.href === ''
+                ? undefined
+                : waypoint.link;
+        this.sym = waypoint.sym === '' ? undefined : waypoint.sym;
+        this.type = waypoint.type === '' ? undefined : waypoint.type;
         if (waypoint.hasOwnProperty('_data')) {
             this._data = waypoint._data;
         }
