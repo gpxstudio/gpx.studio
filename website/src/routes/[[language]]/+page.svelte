@@ -64,7 +64,11 @@
                     {i18n._('metadata.description')}
                 </div>
                 <div class="w-full flex flex-row justify-center gap-3">
-                    <Button href={getURLForLanguage(i18n.lang, '/app')} class="w-1/3 min-w-fit">
+                    <Button
+                        data-sveltekit-reload
+                        href={getURLForLanguage(i18n.lang, '/app')}
+                        class="w-1/3 min-w-fit"
+                    >
                         <Map size="18" />
                         {i18n._('homepage.app')}
                     </Button>

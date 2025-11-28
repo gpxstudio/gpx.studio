@@ -34,6 +34,7 @@
                         {i18n._('homepage.home')}
                     </Button>
                     <Button
+                        data-sveltekit-reload
                         variant="link"
                         class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
                         href={getURLForLanguage(i18n.lang, '/app')}

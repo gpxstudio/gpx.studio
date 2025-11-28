@@ -19,6 +19,7 @@
             {i18n._('homepage.home')}
         </Button>
         <Button
+            data-sveltekit-reload
             href={getURLForLanguage(i18n.lang, '/app')}
             class="text-base w-1/4 min-w-fit rounded-full"
         >
