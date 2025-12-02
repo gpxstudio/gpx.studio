@@ -195,7 +195,7 @@
                 disabled={!validSelection}
                 onclick={fileActions.reverseSelection}
             >
-                <ArrowRightLeft size="12" />{i18n._('toolbar.routing.reverse.button')}
+                <ArrowRightLeft class="size-3" />{i18n._('toolbar.routing.reverse.button')}
             </ButtonWithTooltip>
             <ButtonWithTooltip
                 label={i18n._('toolbar.routing.route_back_to_start.tooltip')}
@@ -231,7 +231,7 @@
                     }
                 }}
             >
-                <House size="12" />{i18n._('toolbar.routing.route_back_to_start.button')}
+                <House class="size-3" />{i18n._('toolbar.routing.route_back_to_start.button')}
             </ButtonWithTooltip>
             <ButtonWithTooltip
                 label={i18n._('toolbar.routing.round_trip.tooltip')}
@@ -240,7 +240,7 @@
                 disabled={!validSelection}
                 onclick={fileActions.createRoundTripForSelection}
             >
-                <Repeat size="12" />{i18n._('toolbar.routing.round_trip.button')}
+                <Repeat class="size-3" />{i18n._('toolbar.routing.round_trip.button')}
             </ButtonWithTooltip>
         </div>
         <div class="w-full flex flex-row gap-2 items-end justify-between">
