@@ -145,7 +145,7 @@ export const basemaps: { [key: string]: string | StyleSpecification } = {
     swisstopoVector: 'https://vectortiles.geo.admin.ch/styles/ch.swisstopo.basemap.vt/style.json',
     swisstopoSatellite:
         'https://vectortiles.geo.admin.ch/styles/ch.swisstopo.imagerybasemap.vt/style.json',
-    linz: 'https://basemaps.linz.govt.nz/v1/tiles/topographic/EPSG:3857/style/topographic.json?api=d01fbtg0ar23gctac5m0jgyy2ds',
+    linz: 'https://basemaps.linz.govt.nz/v1/styles/topographic-v2.json?api=d01fbtg0ar23gctac5m0jgyy2ds',
     linzTopo: {
         version: 8,
         sources: {
