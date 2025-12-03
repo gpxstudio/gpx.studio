@@ -24,6 +24,14 @@ export async function handle({ event, resolve }) {
 
     let headTag = `<head>
     <title>gpx.studio — ${title}</title>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "gpx.studio",
+        "url": "https://gpx.studio"
+    }
+    </script>
     <meta name="description" content="${description}" />
     <meta property="og:title" content="gpx.studio — ${title}" />
     <meta property="og:description" content="${description}" />
