@@ -79,7 +79,15 @@
         "unhide": "Unhide",
         "center": "Center",
         "open_in": "Open in",
-        "copy_coordinates": "Copy coordinates"
+        "copy_coordinates": "Copy coordinates",
+        "settings_export": {
+            "export": "Export settings...",
+            "import": "Import settings...",
+            "success": "Settings exported successfully!",
+            "error": "Failed to export settings. Please try again.",
+            "import_success": "Settings imported successfully!",
+            "import_error": "Failed to import settings. Please check the file format."
+        }
     },
     "toolbar": {
         "routing": {
