@@ -174,19 +174,27 @@
             bind:value={description}
             id="description"
             disabled={!canCreate && !$selectedWaypoint}
+            class="min-h-8 h-8 py-1 px-3 text-sm"
         />
         <Label for="symbol">{i18n._('toolbar.waypoint.icon')}</Label>
         <Select.Root bind:value={sym} type="single">
             <Select.Trigger
                 id="symbol"
-                class="w-full h-8"
+                size="sm"
+                class="w-full"
                 disabled={!canCreate && !$selectedWaypoint}
             >
-                {#if symbolKey}
-                    {i18n._(`gpx.symbol.${symbolKey}`)}
-                {:else}
-                    {sym}
-                {/if}
+                <span class="flex flex-row gap-1.5 items-center">
+                    {#if symbolKey}
+                        {#if symbols[symbolKey].icon}
+                            {@const Component = symbols[symbolKey].icon}
+                            <Component size="14" />
+                        {/if}
+                        {i18n._(`gpx.symbol.${symbolKey}`)}
+                    {:else}
+                        {sym}
+                    {/if}
+                </span>
             </Select.Trigger>
             <Select.Content class="max-h-60 overflow-y-scroll">
                 {#each sortedSymbols as [key, symbol]}
