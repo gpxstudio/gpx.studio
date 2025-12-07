@@ -1,6 +1,5 @@
 import {
     Landmark,
-    Icon,
     Shell,
     Bike,
     Building,
@@ -29,6 +28,7 @@ import {
     TriangleAlert,
     Anchor,
     Toilet,
+    X,
     type IconProps,
 } from '@lucide/svelte';
 import {
@@ -61,6 +61,7 @@ import {
     TriangleAlert as TriangleAlertSvg,
     Anchor as AnchorSvg,
     Toilet as ToiletSvg,
+    X as XSvg,
 } from 'lucide-static';
 import type { Component } from 'svelte';
 
@@ -87,7 +88,11 @@ export const symbols: { [key: string]: Symbol } = {
         icon: ShoppingBasket,
         iconSvg: ShoppingBasketSvg,
     },
-    crossing: { value: 'Crossing' },
+    crossing: {
+        value: 'Crossing',
+        icon: X,
+        iconSvg: XSvg,
+    },
     department_store: {
         value: 'Department Store',
         icon: ShoppingBasket,
