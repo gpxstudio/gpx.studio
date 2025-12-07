@@ -80,7 +80,7 @@
         "center": "Centrer",
         "open_in": "Ouvrir avec",
         "copy_coordinates": "Copier les coordonnées",
-        "edit_osm": "Edit in OpenStreetMap"
+        "edit_osm": "Éditer dans OpenStreetMap"
     },
     "toolbar": {
         "routing": {
