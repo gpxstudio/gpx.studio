@@ -836,6 +836,7 @@ export const overpassTree: LayerTreeType = {
             shower: true,
             shelter: true,
             barrier: true,
+            cemetery: true,
         },
         tourism: {
             attraction: true,
@@ -919,6 +920,7 @@ export const defaultOverpassQueries: LayerTreeType = {
             shower: false,
             shelter: false,
             barrier: false,
+            cemetery: false,
         },
         tourism: {
             attraction: false,
@@ -1053,6 +1055,7 @@ export const defaultOverpassTree: LayerTreeType = {
             shower: false,
             shelter: false,
             barrier: false,
+            cemetery: false,
         },
         tourism: {
             attraction: false,
@@ -1099,9 +1102,7 @@ type OverpassQueryData = {
         svg: string;
         color: string;
     };
-    tags:
-        | Record<string, string | boolean | string[]>
-        | Record<string, string | boolean | string[]>[];
+    tags: Record<string, string | string[]> | Record<string, string | string[]>[];
     symbol?: string;
 };
 
@@ -1182,6 +1183,20 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         },
         symbol: 'Shelter',
     },
+    cemetery: {
+        icon: {
+            svg: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17v-10a6 5 0 1 1 12 0v10"/><path d="M 4 21 a 1 1 0 0 0 1 1 h 14 a 1 1 0 0 0 1-1 v -1 a 2 2 0 0 0-2-2 H6 a 2 2 0 0 0-2 2 z"/></svg>',
+            color: '#000000',
+        },
+        tags: [
+            {
+                landuse: 'cemetery',
+            },
+            {
+                amenity: 'grave_yard',
+            },
+        ],
+    },
     'fuel-station': {
         icon: {
             svg: Fuel,
@@ -1218,7 +1233,25 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
             color: '#000000',
         },
         tags: {
-            barrier: true,
+            barrier: [
+                'bar',
+                'barrier_board',
+                'block',
+                'chain',
+                'cycle_barrier',
+                'gate',
+                'hampshire_gate',
+                'horse_stile',
+                'kissing_gate',
+                'lift_gate',
+                'motorcycle_barrier',
+                'sliding_beam',
+                'sliding_gate',
+                'stile',
+                'swing_gate',
+                'turnstile',
+                'wicket_gate',
+            ],
         },
     },
     attraction: {

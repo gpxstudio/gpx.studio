@@ -285,10 +285,12 @@ function getQuery(query: string) {
     }
 }
 
-function getQueryItem(tags: Record<string, string | boolean | string[]>) {
-    let arrayEntry = Object.values(tags).find((value) => Array.isArray(value));
+function getQueryItem(tags: Record<string, string | string[]>) {
+    let arrayEntry = Object.entries(tags).find((entry): entry is [string, string[]] =>
+        Array.isArray(entry[1])
+    );
     if (arrayEntry !== undefined) {
-        return arrayEntry
+        return arrayEntry[1]
             .map(
                 (val) =>
                     `nwr${Object.entries(tags)
@@ -311,7 +313,7 @@ function belongsToQuery(element: any, query: string) {
     }
 }
 
-function belongsToQueryItem(element: any, tags: Record<string, string | boolean | string[]>) {
+function belongsToQueryItem(element: any, tags: Record<string, string | string[]>) {
     return Object.entries(tags).every(([tag, value]) =>
         Array.isArray(value) ? value.includes(element.tags[tag]) : element.tags[tag] === value
     );
