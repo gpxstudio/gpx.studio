@@ -1,9 +1,10 @@
 <script lang="ts">
     import type { TrackPoint } from 'gpx';
+    import { Button } from '$lib/components/ui/button';
     import CopyCoordinates from '$lib/components/map/gpx-layer/CopyCoordinates.svelte';
     import * as Card from '$lib/components/ui/card';
     import WithUnits from '$lib/components/WithUnits.svelte';
-    import { Compass, Mountain, Timer } from '@lucide/svelte';
+    import { Compass, Earth, Mountain, Timer } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
     import type { PopupItem } from '$lib/components/map/map-popup';
 
@@ -35,5 +36,16 @@
             onCopy={() => trackpoint.hide?.()}
             class="mt-0.5"
         />
+        {#if trackpoint.fileId === undefined}
+            <Button
+                size="sm"
+                variant="outline"
+                href={`https://www.openstreetmap.org/edit?#map=18/${trackpoint.item.getLatitude().toFixed(5)}/${trackpoint.item.getLongitude().toFixed(5)}`}
+                target="_blank"
+            >
+                <Earth size="14" />
+                {i18n._('menu.edit_osm')}
+            </Button>
+        {/if}
     </Card.Content>
 </Card.Root>

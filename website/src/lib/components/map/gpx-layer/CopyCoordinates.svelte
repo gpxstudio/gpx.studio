@@ -16,7 +16,8 @@
 </script>
 
 <Button
-    class="p-1 has-[>svg]:px-2 h-8 justify-start {className}"
+    size="sm"
+    class="justify-start {className}"
     variant="outline"
     onclick={() => {
         navigator.clipboard.writeText(
