@@ -163,7 +163,7 @@
                             {i18n._('toolbar.routing.activity')}
                         </span>
                         <Select.Root type="single" bind:value={$routingProfile}>
-                            <Select.Trigger class="h-8 grow">
+                            <Select.Trigger class="grow" size="sm">
                                 {i18n._(`toolbar.routing.activities.${$routingProfile}`)}
                             </Select.Trigger>
                             <Select.Content>

@@ -107,7 +107,7 @@
             {i18n._('toolbar.scissors.split_as')}
         </span>
         <Select.Root bind:value={$splitAs} type="single">
-            <Select.Trigger class="h-8 w-fit grow">
+            <Select.Trigger class="w-fit grow" size="sm">
                 {i18n._('gpx.' + $splitAs)}
             </Select.Trigger>
             <Select.Content>

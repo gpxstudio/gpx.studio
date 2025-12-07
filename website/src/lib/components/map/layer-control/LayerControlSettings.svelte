@@ -160,7 +160,7 @@
                                     type="single"
                                     onValueChange={setOpacityFromSelection}
                                 >
-                                    <Select.Trigger class="h-8 mr-1 w-full">
+                                    <Select.Trigger class="mr-1 w-full" size="sm">
                                         {#if selectedOverlay}
                                             {#if isSelected($selectedOverlayTree, selectedOverlay)}
                                                 {#if $isLayerFromExtension(selectedOverlay)}
