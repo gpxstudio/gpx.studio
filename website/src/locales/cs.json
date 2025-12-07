@@ -79,7 +79,8 @@
         "unhide": "Zobrazit skryté",
         "center": "Vycentrovat",
         "open_in": "Otevřít v",
-        "copy_coordinates": "Zkopírovat souřadnice"
+        "copy_coordinates": "Zkopírovat souřadnice",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
