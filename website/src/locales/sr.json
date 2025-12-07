@@ -79,7 +79,8 @@
         "unhide": "Prikaži",
         "center": "Centar",
         "open_in": "Otvorite u",
-        "copy_coordinates": "Kopiraj koordinate"
+        "copy_coordinates": "Kopiraj koordinate",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
