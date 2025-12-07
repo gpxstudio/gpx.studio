@@ -79,7 +79,8 @@
         "unhide": "Mostrar",
         "center": "Centro",
         "open_in": "Abrir em",
-        "copy_coordinates": "Copiar coordenadas"
+        "copy_coordinates": "Copiar coordenadas",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
