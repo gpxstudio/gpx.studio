@@ -79,7 +79,8 @@
         "unhide": "显示",
         "center": "居中",
         "open_in": "打开于",
-        "copy_coordinates": "复制坐标"
+        "copy_coordinates": "复制坐标",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
