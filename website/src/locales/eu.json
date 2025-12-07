@@ -79,7 +79,8 @@
         "unhide": "Erakutsi",
         "center": "Erdiratu",
         "open_in": "Ireki hemen",
-        "copy_coordinates": "Kopiatu koordenatuak"
+        "copy_coordinates": "Kopiatu koordenatuak",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
