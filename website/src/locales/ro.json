@@ -79,7 +79,8 @@
         "unhide": "Dezvăluie",
         "center": "Center",
         "open_in": "Open in",
-        "copy_coordinates": "Copiază coordonatele"
+        "copy_coordinates": "Copiază coordonatele",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
