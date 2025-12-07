@@ -79,7 +79,8 @@
         "unhide": "Mostra",
         "center": "Centra",
         "open_in": "Apri con",
-        "copy_coordinates": "Copia le coordinate"
+        "copy_coordinates": "Copia le coordinate",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
