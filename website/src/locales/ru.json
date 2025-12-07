@@ -79,7 +79,8 @@
         "unhide": "Отобразить",
         "center": "По центру",
         "open_in": "Открыть в",
-        "copy_coordinates": "Скопировать координаты"
+        "copy_coordinates": "Скопировать координаты",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
