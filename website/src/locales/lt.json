@@ -79,7 +79,8 @@
         "unhide": "Rodyti",
         "center": "Center",
         "open_in": "Atverti naudojant",
-        "copy_coordinates": "Copy coordinates"
+        "copy_coordinates": "Copy coordinates",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -352,6 +353,7 @@
             "water": "Vanduo",
             "shower": "Dušas",
             "shelter": "Prieglauda",
+            "cemetery": "Cemetery",
             "motorized": "Automobiliai ir motociklai",
             "fuel-station": "Degalinė",
             "parking": "Automobilių stovėjimo aikštelė",

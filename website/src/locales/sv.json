@@ -79,7 +79,8 @@
         "unhide": "Visa",
         "center": "Center",
         "open_in": "Öppna i",
-        "copy_coordinates": "Copy coordinates"
+        "copy_coordinates": "Copy coordinates",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -352,6 +353,7 @@
             "water": "Water",
             "shower": "Dusch",
             "shelter": "Shelter",
+            "cemetery": "Cemetery",
             "motorized": "Cars and Motorcycles",
             "fuel-station": "Bensinstation",
             "parking": "Parkering",

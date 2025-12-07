@@ -36,7 +36,7 @@
         "switch_basemap": "Cambiar al mapa base anterior",
         "toggle_overlays": "Alternar capas",
         "toggle_3d": "Alternar 3D",
-        "settings": "Configuraciones",
+        "settings": "Configuración",
         "distance_units": "Unidades de distancia",
         "metric": "Métrico",
         "imperial": "Imperial",
@@ -79,7 +79,8 @@
         "unhide": "Mostrar",
         "center": "Centrar",
         "open_in": "Abrir en",
-        "copy_coordinates": "Copiar coordenadas"
+        "copy_coordinates": "Copiar coordenadas",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -352,6 +353,7 @@
             "water": "Agua",
             "shower": "Ducha",
             "shelter": "Refugio",
+            "cemetery": "Cemetery",
             "motorized": "Coches y motos",
             "fuel-station": "Gasolinera",
             "parking": "Aparcamiento",

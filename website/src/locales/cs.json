@@ -79,7 +79,8 @@
         "unhide": "Zobrazit skryté",
         "center": "Vycentrovat",
         "open_in": "Otevřít v",
-        "copy_coordinates": "Zkopírovat souřadnice"
+        "copy_coordinates": "Zkopírovat souřadnice",
+        "edit_osm": "Upravit v OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -352,6 +353,7 @@
             "water": "Voda",
             "shower": "Sprcha",
             "shelter": "Přístřeší",
+            "cemetery": "Hřbitov",
             "motorized": "Automobily a motocykly",
             "fuel-station": "Čerpací stanice",
             "parking": "Parkoviště",

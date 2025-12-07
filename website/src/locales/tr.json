@@ -79,7 +79,8 @@
         "unhide": "Göster",
         "center": "Merkez",
         "open_in": "Uygulamada Aç",
-        "copy_coordinates": "Koordinatları kopyala"
+        "copy_coordinates": "Koordinatları kopyala",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -352,6 +353,7 @@
             "water": "Su",
             "shower": "Duş",
             "shelter": "Barınak",
+            "cemetery": "Cemetery",
             "motorized": "Araba ve Motosiklet",
             "fuel-station": "Benzin istasyonu",
             "parking": "Otopark",

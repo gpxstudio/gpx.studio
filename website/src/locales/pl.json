@@ -79,7 +79,8 @@
         "unhide": "Pokaż",
         "center": "Wyśrodkuj",
         "open_in": "Otwórz w",
-        "copy_coordinates": "Kopiuj współrzędne"
+        "copy_coordinates": "Kopiuj współrzędne",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -352,6 +353,7 @@
             "water": "Woda",
             "shower": "Prysznic",
             "shelter": "Schronienie",
+            "cemetery": "Cemetery",
             "motorized": "Samochody i motocykle",
             "fuel-station": "Stacja paliw",
             "parking": "Parking",

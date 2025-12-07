@@ -79,7 +79,8 @@
         "unhide": "Felfedés ",
         "center": "Középre ",
         "open_in": "Megnyitás itt ",
-        "copy_coordinates": "Koordináták másolása"
+        "copy_coordinates": "Koordináták másolása",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -352,6 +353,7 @@
             "water": "Víz",
             "shower": "Zuhanyozó",
             "shelter": "Menedék",
+            "cemetery": "Cemetery",
             "motorized": "Autók és Motorok",
             "fuel-station": "Benzinkút",
             "parking": "Parkoló",

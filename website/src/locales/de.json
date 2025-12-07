@@ -79,7 +79,8 @@
         "unhide": "Einblenden",
         "center": "Zentrieren",
         "open_in": "Öffnen in",
-        "copy_coordinates": "Koordinaten kopieren"
+        "copy_coordinates": "Koordinaten kopieren",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -352,6 +353,7 @@
             "water": "Trinkwasser",
             "shower": "Dusche",
             "shelter": "Unterstand",
+            "cemetery": "Cemetery",
             "motorized": "Autos und Motorräder",
             "fuel-station": "Tankstelle",
             "parking": "Parken",

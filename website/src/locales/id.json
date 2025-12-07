@@ -79,7 +79,8 @@
         "unhide": "Tampilkan",
         "center": "Tengah",
         "open_in": "Buka di",
-        "copy_coordinates": "Salin koordinat"
+        "copy_coordinates": "Salin koordinat",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -352,6 +353,7 @@
             "water": "Air",
             "shower": "Mandi",
             "shelter": "Penampungan",
+            "cemetery": "Cemetery",
             "motorized": "Mobil dan Motor",
             "fuel-station": "Stasiun bahan bakar",
             "parking": "Parkir",

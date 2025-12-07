@@ -79,7 +79,8 @@
         "unhide": "Maak zichtbaar",
         "center": "Midden",
         "open_in": "Openen in",
-        "copy_coordinates": "Coördinaten kopiëren"
+        "copy_coordinates": "Coördinaten kopiëren",
+        "edit_osm": "Bewerken in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -352,6 +353,7 @@
             "water": "Water",
             "shower": "Douche",
             "shelter": "Schuilplaats",
+            "cemetery": "Begraafplaats",
             "motorized": "Auto's en Motorfietsen",
             "fuel-station": "Tankstation",
             "parking": "Parkeren",

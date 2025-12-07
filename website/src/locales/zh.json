@@ -79,7 +79,8 @@
         "unhide": "显示",
         "center": "居中",
         "open_in": "打开于",
-        "copy_coordinates": "复制坐标"
+        "copy_coordinates": "复制坐标",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -352,6 +353,7 @@
             "water": "饮用水",
             "shower": "淋浴",
             "shelter": "庇护所",
+            "cemetery": "Cemetery",
             "motorized": "汽车和摩托车",
             "fuel-station": "加油站",
             "parking": "停车场",

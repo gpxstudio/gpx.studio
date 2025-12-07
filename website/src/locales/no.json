@@ -79,7 +79,8 @@
         "unhide": "Vis",
         "center": "Sentrer",
         "open_in": "Åpne I",
-        "copy_coordinates": "Kopier koordinater"
+        "copy_coordinates": "Kopier koordinater",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -352,6 +353,7 @@
             "water": "Vann",
             "shower": "Dusj",
             "shelter": "Ly",
+            "cemetery": "Cemetery",
             "motorized": "Biler og motorsykler",
             "fuel-station": "Bensinstasjon",
             "parking": "Parkering",

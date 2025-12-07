@@ -79,7 +79,8 @@
         "unhide": "Unhide",
         "center": "Center",
         "open_in": "Open in",
-        "copy_coordinates": "Copy coordinates"
+        "copy_coordinates": "Copy coordinates",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -352,6 +353,7 @@
             "water": "Water",
             "shower": "Shower",
             "shelter": "Shelter",
+            "cemetery": "Cemetery",
             "motorized": "Cars and Motorcycles",
             "fuel-station": "Fuel Station",
             "parking": "Parking",
