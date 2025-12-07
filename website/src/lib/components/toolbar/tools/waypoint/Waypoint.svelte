@@ -194,7 +194,7 @@
                         <span>
                             {#if symbol.icon}
                                 {@const Component = symbol.icon}
-                                <Component size="14" class="inline-block align-sub mr-0.5" />
+                                <Component size="14" class="inline-block align-sub" />
                             {:else}
                                 <span class="w-4 inline-block"></span>
                             {/if}
