@@ -79,7 +79,8 @@
         "unhide": "Maak zichtbaar",
         "center": "Midden",
         "open_in": "Openen in",
-        "copy_coordinates": "Coördinaten kopiëren"
+        "copy_coordinates": "Coördinaten kopiëren",
+        "edit_osm": "Edit in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
