@@ -7,6 +7,7 @@
     import { Compass, Earth, Mountain, Timer } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
     import type { PopupItem } from '$lib/components/map/map-popup';
+    import { map } from '$lib/components/map/map';
 
     let { trackpoint }: { trackpoint: PopupItem<TrackPoint> } = $props();
 </script>
@@ -40,7 +41,7 @@
             <Button
                 size="sm"
                 variant="outline"
-                href={`https://www.openstreetmap.org/edit?#map=18/${trackpoint.item.getLatitude().toFixed(5)}/${trackpoint.item.getLongitude().toFixed(5)}`}
+                href={`https://www.openstreetmap.org/edit?#map=${(($map?.getZoom() ?? 17) + 1).toFixed(0)}/${trackpoint.item.getLatitude().toFixed(5)}/${trackpoint.item.getLongitude().toFixed(5)}`}
                 target="_blank"
             >
                 <Earth size="14" />
