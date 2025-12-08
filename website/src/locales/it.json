@@ -28,7 +28,7 @@
         "undo": "Annulla",
         "redo": "Ripeti",
         "delete": "Elimina",
-        "delete_all": "Delete all",
+        "delete_all": "Cancella tutto",
         "select_all": "Seleziona tutto",
         "view": "Visualizza",
         "elevation_profile": "Profilo altimetrico",
@@ -80,7 +80,7 @@
         "center": "Centra",
         "open_in": "Apri con",
         "copy_coordinates": "Copia le coordinate",
-        "edit_osm": "Edit in OpenStreetMap"
+        "edit_osm": "Modifica in OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -353,7 +353,7 @@
             "water": "Acqua",
             "shower": "Doccia",
             "shelter": "Riparo",
-            "cemetery": "Cemetery",
+            "cemetery": "Cimitero",
             "motorized": "Auto e Motocicli",
             "fuel-station": "Stazione di Rifornimento",
             "parking": "Parcheggio",
