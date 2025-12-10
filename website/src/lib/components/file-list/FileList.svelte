@@ -2,6 +2,7 @@
     import { ScrollArea } from '$lib/components/ui/scroll-area/index';
     import * as ContextMenu from '$lib/components/ui/context-menu';
     import FileListNode from './FileListNode.svelte';
+    import FileListContextMenu from './FileListContextMenu.svelte';
     import { onMount, setContext } from 'svelte';
     import { ListFileItem, ListLevel, ListRootItem } from './file-list';
     import { ClipboardPaste, FileStack, Plus } from '@lucide/svelte';
@@ -89,3 +90,6 @@
         {/if}
     </div>
 </ScrollArea>
+
+<!-- Single shared context menu for file list items -->
+<FileListContextMenu {orientation} />
