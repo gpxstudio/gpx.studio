@@ -28,7 +28,7 @@
         "undo": "Desegin",
         "redo": "Berregin",
         "delete": "Ezabatu",
-        "delete_all": "Delete all",
+        "delete_all": "Ezabatu guztiak",
         "select_all": "Hautatu dena",
         "view": "Ikusi",
         "elevation_profile": "Altuera profila",
@@ -80,7 +80,7 @@
         "center": "Erdiratu",
         "open_in": "Ireki hemen",
         "copy_coordinates": "Kopiatu koordenatuak",
-        "edit_osm": "Edit in OpenStreetMap"
+        "edit_osm": "Editatu OpenStreeMapen"
     },
     "toolbar": {
         "routing": {
@@ -353,7 +353,7 @@
             "water": "Ura",
             "shower": "Dutxa",
             "shelter": "Babeslekua",
-            "cemetery": "Cemetery",
+            "cemetery": "Hilerria",
             "motorized": "Kotxeak eta motorrak",
             "fuel-station": "Gasolindegia",
             "parking": "Aparkalekua",
