@@ -80,7 +80,7 @@
         "center": "Centrar",
         "open_in": "Abrir en",
         "copy_coordinates": "Copiar coordenadas",
-        "edit_osm": "Edit in OpenStreetMap"
+        "edit_osm": "Editar en OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -353,7 +353,7 @@
             "water": "Agua",
             "shower": "Ducha",
             "shelter": "Refugio",
-            "cemetery": "Cemetery",
+            "cemetery": "Cementerio",
             "motorized": "Coches y motos",
             "fuel-station": "Gasolinera",
             "parking": "Aparcamiento",

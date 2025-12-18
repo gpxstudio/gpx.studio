@@ -28,7 +28,7 @@
         "undo": "撤销",
         "redo": "恢复",
         "delete": "删除",
-        "delete_all": "",
+        "delete_all": "全部删除",
         "select_all": "全选",
         "view": "显示",
         "elevation_profile": "海拔剖面图",
@@ -80,7 +80,7 @@
         "center": "居中",
         "open_in": "打开于",
         "copy_coordinates": "复制坐标",
-        "edit_osm": "Edit in OpenStreetMap"
+        "edit_osm": "在 OpenStreetMap 中编辑"
     },
     "toolbar": {
         "routing": {
@@ -353,7 +353,7 @@
             "water": "饮用水",
             "shower": "淋浴",
             "shelter": "庇护所",
-            "cemetery": "Cemetery",
+            "cemetery": "墓地",
             "motorized": "汽车和摩托车",
             "fuel-station": "加油站",
             "parking": "停车场",
