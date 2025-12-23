@@ -1,0 +1,3 @@
+src/lib/components/ui
+src/lib/docs/**/*.mdx
+**/*.webmanifest
