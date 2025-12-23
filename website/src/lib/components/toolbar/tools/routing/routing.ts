@@ -6,35 +6,141 @@ import { get } from 'svelte/store';
 
 const { routing, routingProfile, privateRoads } = settings;
 
-export const brouterProfiles: { [key: string]: string } = {
-    bike: 'Trekking-dry',
-    racing_bike: 'fastbike',
-    gravel_bike: 'gravel',
-    mountain_bike: 'MTB',
-    foot: 'Hiking-Alpine-SAC6',
-    motorcycle: 'Car-FastEco',
-    water: 'river',
-    railway: 'rail',
+export type RoutingProfile = {
+    engine: 'graphhopper' | 'brouter';
+    profile: string;
+};
+
+export const routingProfiles: { [key: string]: RoutingProfile } = {
+    bike: { engine: 'graphhopper', profile: 'bike' },
+    racing_bike: { engine: 'graphhopper', profile: 'racingbike' },
+    gravel_bike: { engine: 'brouter', profile: 'gravel' },
+    mountain_bike: { engine: 'graphhopper', profile: 'mtb' },
+    foot: { engine: 'graphhopper', profile: 'foot' },
+    motorcycle: { engine: 'graphhopper', profile: 'motorcycle' },
+    water: { engine: 'brouter', profile: 'river' },
+    railway: { engine: 'brouter', profile: 'rail' },
 };
 
 export function route(points: Coordinates[]): Promise<TrackPoint[]> {
     if (get(routing)) {
-        return getRoute(points, brouterProfiles[get(routingProfile)], get(privateRoads));
+        const profile = routingProfiles[get(routingProfile)];
+        if (profile.engine === 'graphhopper') {
+            return getGraphHopperRoute(points, profile.profile, get(privateRoads));
+        } else {
+            return getBRouterRoute(points, profile.profile);
+        }
     } else {
         return getIntermediatePoints(points);
     }
 }
 
-async function getRoute(
+const graphhopperDetails = ['road_class', 'surface', 'hike_rating', 'mtb_rating'];
+const hikeRatingToSACScale: { [key: string]: string } = {
+    '1': 'hiking',
+    '2': 'mountain_hiking',
+    '3': 'demanding_mountain_hiking',
+    '4': 'alpine_hiking',
+    '5': 'demanding_alpine_hiking',
+    '6': 'difficult_alpine_hiking',
+};
+const mtbRatingToScale: { [key: string]: string } = {
+    '1': '0',
+    '2': '1',
+    '3': '2',
+    '4': '3',
+    '5': '4',
+    '6': '5',
+    '7': '6',
+};
+async function getGraphHopperRoute(
     points: Coordinates[],
-    brouterProfile: string,
+    graphHopperProfile: string,
     privateRoads: boolean
 ): Promise<TrackPoint[]> {
-    let url = `https://brouter.gpx.studio?lonlats=${points.map((point) => `${point.lon.toFixed(8)},${point.lat.toFixed(8)}`).join('|')}&profile=${brouterProfile + (privateRoads ? '-private' : '')}&format=geojson&alternativeidx=0`;
+    let response = await fetch('https://graphhopper-a.gpx.studio/route', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            points: points.map((point) => [point.lon, point.lat]),
+            profile: graphHopperProfile,
+            elevation: true,
+            points_encoded: false,
+            details: graphhopperDetails,
+            custom_model: privateRoads
+                ? {}
+                : {
+                      priority: [
+                          {
+                              if: 'road_access == PRIVATE',
+                              multiply_by: '0.0',
+                          },
+                      ],
+                  },
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`${await response.text()}`);
+    }
+
+    let json = await response.json();
+
+    let route: TrackPoint[] = [];
+    let coordinates = json.paths[0].points.coordinates;
+    let details = json.paths[0].details;
+
+    for (let i = 0; i < coordinates.length; i++) {
+        route.push(
+            new TrackPoint({
+                attributes: {
+                    lat: coordinates[i][1],
+                    lon: coordinates[i][0],
+                },
+                ele: coordinates[i][2] ?? (i > 0 ? route[i - 1].ele : 0),
+                extensions: {},
+            })
+        );
+    }
+
+    for (let key of graphhopperDetails) {
+        let detail = details[key];
+        for (let i = 0; i < detail.length; i++) {
+            for (let j = detail[i][0]; j < detail[i][1]; j++) {
+                if (detail[i][2] !== undefined && detail[i][2] !== 'missing') {
+                    if (key === 'road_class') {
+                        route[j].setExtension('highway', detail[i][2]);
+                    } else if (key === 'hike_rating') {
+                        const sacScale = hikeRatingToSACScale[detail[i][2]];
+                        if (sacScale) {
+                            route[j].setExtension('sac_scale', sacScale);
+                        }
+                    } else if (key === 'mtb_rating') {
+                        const mtbScale = mtbRatingToScale[detail[i][2]];
+                        if (mtbScale) {
+                            route[j].setExtension('mtb_scale', mtbScale);
+                        }
+                    } else {
+                        route[j].setExtension(key, detail[i][2]);
+                    }
+                }
+            }
+        }
+    }
+
+    return route;
+}
+
+async function getBRouterRoute(
+    points: Coordinates[],
+    brouterProfile: string
+): Promise<TrackPoint[]> {
+    let url = `https://brouter.de/brouter?lonlats=${points.map((point) => `${point.lon.toFixed(8)},${point.lat.toFixed(8)}`).join('|')}&profile=${brouterProfile}&format=geojson&alternativeidx=0`;
 
     let response = await fetch(url);
 
-    // Check if the response is ok
     if (!response.ok) {
         throw new Error(`${await response.text()}`);
     }
@@ -52,14 +158,13 @@ async function getRoute(
     let tags = messageIdx < messages.length ? getTags(messages[messageIdx][tagIdx]) : {};
 
     for (let i = 0; i < coordinates.length; i++) {
-        let coord = coordinates[i];
         route.push(
             new TrackPoint({
                 attributes: {
-                    lat: coord[1],
-                    lon: coord[0],
+                    lat: coordinates[i][1],
+                    lon: coordinates[i][0],
                 },
-                ele: coord[2] ?? (i > 0 ? route[i - 1].ele : 0),
+                ele: coordinates[i][2] ?? (i > 0 ? route[i - 1].ele : 0),
             })
         );
 

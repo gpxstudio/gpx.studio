@@ -1375,10 +1375,7 @@ export class TrackPoint {
             : undefined;
     }
 
-    setExtensions(extensions: Record<string, string>) {
-        if (Object.keys(extensions).length === 0) {
-            return;
-        }
+    setExtension(key: string, value: string) {
         if (!this.extensions) {
             this.extensions = {};
         }
@@ -1388,8 +1385,12 @@ export class TrackPoint {
         if (!this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:Extensions']) {
             this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:Extensions'] = {};
         }
+        this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:Extensions'][key] = value;
+    }
+
+    setExtensions(extensions: Record<string, string>) {
         Object.entries(extensions).forEach(([key, value]) => {
-            this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:Extensions'][key] = value;
+            this.setExtension(key, value);
         });
     }
 

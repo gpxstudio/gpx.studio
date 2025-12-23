@@ -21,7 +21,7 @@
         SquareArrowUpLeft,
         SquareArrowOutDownRight,
     } from '@lucide/svelte';
-    import { brouterProfiles } from '$lib/components/toolbar/tools/routing/routing';
+    import { routingProfiles } from '$lib/components/toolbar/tools/routing/routing';
     import { i18n } from '$lib/i18n.svelte';
     import { slide } from 'svelte/transition';
     import {
@@ -167,7 +167,7 @@
                                 {i18n._(`toolbar.routing.activities.${$routingProfile}`)}
                             </Select.Trigger>
                             <Select.Content>
-                                {#each Object.keys(brouterProfiles) as profile}
+                                {#each Object.keys(routingProfiles) as profile}
                                     <Select.Item value={profile}
                                         >{i18n._(
                                             `toolbar.routing.activities.${profile}`
