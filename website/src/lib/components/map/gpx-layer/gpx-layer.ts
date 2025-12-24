@@ -153,8 +153,6 @@ export class GPXLayer {
             return;
         }
 
-        this.loadIcons();
-
         if (
             file._data.style &&
             file._data.style.color &&
@@ -163,6 +161,8 @@ export class GPXLayer {
             decrementColor(this.layerColor);
             this.layerColor = `#${file._data.style.color}`;
         }
+
+        this.loadIcons();
 
         try {
             let source = _map.getSource(this.fileId) as mapboxgl.GeoJSONSource | undefined;
@@ -702,7 +702,7 @@ export class GPXLayer {
                 properties: {
                     fileId: this.fileId,
                     waypointIndex: index,
-                    icon: `${this.fileId}-waypoint-${getSymbolKey(waypoint.sym) ?? 'default'}`,
+                    icon: `waypoint-${getSymbolKey(waypoint.sym) ?? 'default'}-${this.layerColor}`,
                 },
             });
         });
@@ -723,7 +723,7 @@ export class GPXLayer {
         });
 
         symbols.forEach((symbol) => {
-            const iconId = `${this.fileId}-waypoint-${symbol ?? 'default'}`;
+            const iconId = `waypoint-${symbol ?? 'default'}-${this.layerColor}`;
             if (!_map.hasImage(iconId)) {
                 let icon = new Image(100, 100);
                 icon.onload = () => {
