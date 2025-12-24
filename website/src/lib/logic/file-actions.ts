@@ -473,13 +473,11 @@ export const fileActions = {
                                 newFile.replaceWaypoints(
                                     0,
                                     file.wpt.length - 1,
-                                    closest
-                                        .filter((c) =>
-                                            c.some(
-                                                ([trackIndex, segmentIndex]) => trackIndex === index
-                                            )
+                                    file.wpt.filter((wpt, wptIndex) =>
+                                        closest[wptIndex].some(
+                                            ([trackIndex, segmentIndex]) => trackIndex === index
                                         )
-                                        .map((c, wptIndex) => file.wpt[wptIndex])
+                                    )
                                 );
                                 newFile._data.id = fileIds[index];
                                 newFile.metadata.name =
@@ -499,14 +497,11 @@ export const fileActions = {
                                 newFile.replaceWaypoints(
                                     0,
                                     file.wpt.length - 1,
-                                    closest
-                                        .filter((c) =>
-                                            c.some(
-                                                ([trackIndex, segmentIndex]) =>
-                                                    segmentIndex === index
-                                            )
+                                    file.wpt.filter((wpt, wptIndex) =>
+                                        closest[wptIndex].some(
+                                            ([trackIndex, segmentIndex]) => segmentIndex === index
                                         )
-                                        .map((c, wptIndex) => file.wpt[wptIndex])
+                                    )
                                 );
                                 newFile._data.id = fileIds[index];
                                 newFile.metadata.name = `${file.trk[0].name ?? file.metadata.name} (${index + 1})`;

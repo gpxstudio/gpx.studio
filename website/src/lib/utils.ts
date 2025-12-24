@@ -62,15 +62,20 @@ export function getClosestTrackSegments(
         let segmentBounds = segmentStatistics.global.bounds;
         let northEast = segmentBounds.northEast;
         let southWest = segmentBounds.southWest;
-        let northWest: Coordinates = { lat: northEast.lat, lon: southWest.lon };
-        let southEast: Coordinates = { lat: southWest.lat, lon: northEast.lon };
-        let distanceToSegment = Math.min(
-            crossarcDistance(northWest, northEast, point),
-            crossarcDistance(northEast, southEast, point),
-            crossarcDistance(southEast, southWest, point),
-            crossarcDistance(southWest, northWest, point)
-        );
-        segmentBoundsDistances.push([distanceToSegment, trackIndex, segmentIndex]);
+        let bounds = new mapboxgl.LngLatBounds(southWest, northEast);
+        if (bounds.contains(point)) {
+            segmentBoundsDistances.push([0, trackIndex, segmentIndex]);
+        } else {
+            let northWest: Coordinates = { lat: northEast.lat, lon: southWest.lon };
+            let southEast: Coordinates = { lat: southWest.lat, lon: northEast.lon };
+            let distanceToBounds = Math.min(
+                crossarcDistance(northWest, northEast, point),
+                crossarcDistance(northEast, southEast, point),
+                crossarcDistance(southEast, southWest, point),
+                crossarcDistance(southWest, northWest, point)
+            );
+            segmentBoundsDistances.push([distanceToBounds, trackIndex, segmentIndex]);
+        }
     });
     segmentBoundsDistances.sort((a, b) => a[0] - b[0]);
 
