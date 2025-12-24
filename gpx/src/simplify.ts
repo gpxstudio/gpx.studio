@@ -59,13 +59,13 @@ function ramerDouglasPeuckerRecursive(
 }
 
 export function crossarcDistance(
-    point1: TrackPoint,
-    point2: TrackPoint,
+    point1: TrackPoint | Coordinates,
+    point2: TrackPoint | Coordinates,
     point3: TrackPoint | Coordinates
 ): number {
     return crossarc(
-        point1.getCoordinates(),
-        point2.getCoordinates(),
+        point1 instanceof TrackPoint ? point1.getCoordinates() : point1,
+        point2 instanceof TrackPoint ? point2.getCoordinates() : point2,
         point3 instanceof TrackPoint ? point3.getCoordinates() : point3
     );
 }
