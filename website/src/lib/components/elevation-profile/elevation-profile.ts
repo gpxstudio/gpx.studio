@@ -14,7 +14,12 @@ import {
     getTemperatureWithUnits,
     getVelocityWithUnits,
 } from '$lib/units';
-import Chart from 'chart.js/auto';
+import Chart, {
+    type ChartEvent,
+    type ChartOptions,
+    type ScriptableLineSegmentContext,
+    type TooltipItem,
+} from 'chart.js/auto';
 import mapboxgl from 'mapbox-gl';
 import { get, type Readable, type Writable } from 'svelte/store';
 import { map } from '$lib/components/map/map';
@@ -26,6 +31,20 @@ const { distanceUnits, velocityUnits, temperatureUnits } = settings;
 
 Chart.defaults.font.family =
     'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'; // Tailwind CSS font
+
+interface ElevationProfilePoint {
+    x: number;
+    y: number;
+    time?: Date;
+    slope: {
+        at: number;
+        segment: number;
+        length: number;
+    };
+    extensions: Record<string, any>;
+    coordinates: [number, number];
+    index: number;
+}
 
 export class ElevationProfile {
     private _chart: Chart | null = null;
@@ -90,7 +109,7 @@ export class ElevationProfile {
     }
 
     initialize() {
-        let options = {
+        let options: ChartOptions<'line'> = {
             animation: false,
             parsing: false,
             maintainAspectRatio: false,
@@ -98,8 +117,8 @@ export class ElevationProfile {
                 x: {
                     type: 'linear',
                     ticks: {
-                        callback: function (value: number) {
-                            return `${value.toFixed(1).replace(/\.0+$/, '')} ${getDistanceUnits()}`;
+                        callback: function (value: number | string) {
+                            return `${(value as number).toFixed(1).replace(/\.0+$/, '')} ${getDistanceUnits()}`;
                         },
                         align: 'inner',
                         maxRotation: 0,
@@ -108,8 +127,8 @@ export class ElevationProfile {
                 y: {
                     type: 'linear',
                     ticks: {
-                        callback: function (value: number) {
-                            return getElevationWithUnits(value, false);
+                        callback: function (value: number | string) {
+                            return getElevationWithUnits(value as number, false);
                         },
                     },
                 },
@@ -140,8 +159,8 @@ export class ElevationProfile {
                         title: () => {
                             return '';
                         },
-                        label: (context: Chart.TooltipContext) => {
-                            let point = context.raw;
+                        label: (context: TooltipItem<'line'>) => {
+                            let point = context.raw as ElevationProfilePoint;
                             if (context.datasetIndex === 0) {
                                 const map_ = get(map);
                                 if (map_ && this._marker) {
@@ -165,10 +184,10 @@ export class ElevationProfile {
                                 return `${i18n._('quantities.power')}: ${getPowerWithUnits(point.y)}`;
                             }
                         },
-                        afterBody: (contexts: Chart.TooltipContext[]) => {
+                        afterBody: (contexts: TooltipItem<'line'>[]) => {
                             let context = contexts.filter((context) => context.datasetIndex === 0);
                             if (context.length === 0) return;
-                            let point = context[0].raw;
+                            let point = context[0].raw as ElevationProfilePoint;
                             let slope = {
                                 at: point.slope.at.toFixed(1),
                                 segment: point.slope.segment.toFixed(1),
@@ -227,6 +246,7 @@ export class ElevationProfile {
                         onPanStart: () => {
                             this._panning = true;
                             this._slicedGPXStatistics.set(undefined);
+                            return true;
                         },
                         onPanComplete: () => {
                             this._panning = false;
@@ -238,13 +258,13 @@ export class ElevationProfile {
                         },
                         mode: 'x',
                         onZoomStart: ({ chart, event }: { chart: Chart; event: any }) => {
+                            if (!this._chart) {
+                                return false;
+                            }
+                            const maxZoom = this._chart.getInitialScaleBounds()?.x?.max ?? 0;
                             if (
                                 event.deltaY < 0 &&
-                                Math.abs(
-                                    this._chart.getInitialScaleBounds().x.max /
-                                        this._chart.options.plugins.zoom.limits.x.minRange -
-                                        this._chart.getZoomLevel()
-                                ) < 0.01
+                                Math.abs(maxZoom / this._chart.getZoomLevel()) < 0.01
                             ) {
                                 // Disable wheel pan if zoomed in to the max, and zooming in
                                 return false;
@@ -262,7 +282,6 @@ export class ElevationProfile {
                     },
                 },
             },
-            stacked: false,
             onResize: () => {
                 this.updateOverlay();
             },
@@ -270,7 +289,7 @@ export class ElevationProfile {
 
         let datasets: string[] = ['speed', 'hr', 'cad', 'atemp', 'power'];
         datasets.forEach((id) => {
-            options.scales[`y${id}`] = {
+            options.scales![`y${id}`] = {
                 type: 'linear',
                 position: 'right',
                 grid: {
@@ -291,7 +310,7 @@ export class ElevationProfile {
                 {
                     id: 'toggleMarker',
                     events: ['mouseout'],
-                    afterEvent: (chart: Chart, args: { event: Chart.ChartEvent }) => {
+                    afterEvent: (chart: Chart, args: { event: ChartEvent }) => {
                         if (args.event.type === 'mouseout') {
                             const map_ = get(map);
                             if (map_ && this._marker) {
@@ -305,7 +324,7 @@ export class ElevationProfile {
 
         let startIndex = 0;
         let endIndex = 0;
-        const getIndex = (evt) => {
+        const getIndex = (evt: PointerEvent) => {
             if (!this._chart) {
                 return undefined;
             }
@@ -329,16 +348,16 @@ export class ElevationProfile {
                 }
             }
 
-            let point = points.find((point) => point.element.raw);
+            const point = points.find((point) => (point.element as any).raw);
             if (point) {
-                return point.element.raw.index;
+                return (point.element as any).raw.index;
             } else {
                 return points[0].index;
             }
         };
 
         let dragStarted = false;
-        const onMouseDown = (evt) => {
+        const onMouseDown = (evt: PointerEvent) => {
             if (evt.shiftKey) {
                 // Panning interaction
                 return;
@@ -347,7 +366,7 @@ export class ElevationProfile {
             this._canvas.style.cursor = 'col-resize';
             startIndex = getIndex(evt);
         };
-        const onMouseMove = (evt) => {
+        const onMouseMove = (evt: PointerEvent) => {
             if (dragStarted) {
                 this._dragging = true;
                 endIndex = getIndex(evt);
@@ -367,7 +386,7 @@ export class ElevationProfile {
                 }
             }
         };
-        const onMouseUp = (evt) => {
+        const onMouseUp = (evt: PointerEvent) => {
             dragStarted = false;
             this._dragging = false;
             this._canvas.style.cursor = '';
@@ -463,8 +482,8 @@ export class ElevationProfile {
             normalized: true,
             yAxisID: 'ypower',
         };
-        this._chart.options.scales.x['min'] = 0;
-        this._chart.options.scales.x['max'] = getConvertedDistance(data.global.distance.total);
+        this._chart.options.scales!.x!['min'] = 0;
+        this._chart.options.scales!.x!['max'] = getConvertedDistance(data.global.distance.total);
 
         this.setVisibility();
         this.setFill();
@@ -513,21 +532,24 @@ export class ElevationProfile {
             return;
         }
         const elevationFill = get(this._elevationFill);
+        const dataset = this._chart.data.datasets[0];
+        let segment: any = {};
         if (elevationFill === 'slope') {
-            this._chart.data.datasets[0]['segment'] = {
+            segment = {
                 backgroundColor: this.slopeFillCallback,
             };
         } else if (elevationFill === 'surface') {
-            this._chart.data.datasets[0]['segment'] = {
+            segment = {
                 backgroundColor: this.surfaceFillCallback,
             };
         } else if (elevationFill === 'highway') {
-            this._chart.data.datasets[0]['segment'] = {
+            segment = {
                 backgroundColor: this.highwayFillCallback,
             };
         } else {
-            this._chart.data.datasets[0]['segment'] = {};
+            segment = {};
         }
+        Object.assign(dataset, { segment });
     }
 
     updateOverlay() {
@@ -575,19 +597,22 @@ export class ElevationProfile {
         }
     }
 
-    slopeFillCallback(context) {
-        return getSlopeColor(context.p0.raw.slope.segment);
+    slopeFillCallback(context: ScriptableLineSegmentContext & { p0: { raw: any } }) {
+        const point = context.p0.raw as ElevationProfilePoint;
+        return getSlopeColor(point.slope.segment);
     }
 
-    surfaceFillCallback(context) {
-        return getSurfaceColor(context.p0.raw.extensions.surface);
+    surfaceFillCallback(context: ScriptableLineSegmentContext & { p0: { raw: any } }) {
+        const point = context.p0.raw as ElevationProfilePoint;
+        return getSurfaceColor(point.extensions.surface);
     }
 
-    highwayFillCallback(context) {
+    highwayFillCallback(context: ScriptableLineSegmentContext & { p0: { raw: any } }) {
+        const point = context.p0.raw as ElevationProfilePoint;
         return getHighwayColor(
-            context.p0.raw.extensions.highway,
-            context.p0.raw.extensions.sac_scale,
-            context.p0.raw.extensions.mtb_scale
+            point.extensions.highway,
+            point.extensions.sac_scale,
+            point.extensions.mtb_scale
         );
     }
 
