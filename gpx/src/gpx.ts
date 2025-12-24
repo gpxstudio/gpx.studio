@@ -138,7 +138,9 @@ export class GPXFile extends GPXTreeNode<Track> {
                     },
                 },
             };
-            this.wpt = gpx.wpt ? gpx.wpt.map((waypoint) => new Waypoint(waypoint)) : [];
+            this.wpt = gpx.wpt
+                ? gpx.wpt.map((waypoint, index) => new Waypoint(waypoint, index))
+                : [];
             this.trk = gpx.trk ? gpx.trk.map((track) => new Track(track)) : [];
             if (gpx.rte && gpx.rte.length > 0) {
                 this.trk = this.trk.concat(gpx.rte.map((route) => convertRouteToTrack(route)));
@@ -175,9 +177,6 @@ export class GPXFile extends GPXTreeNode<Track> {
                 segment._data['trackIndex'] = trackIndex;
                 segment._data['segmentIndex'] = segmentIndex;
             });
-        });
-        this.wpt.forEach((waypoint, waypointIndex) => {
-            waypoint._data['index'] = waypointIndex;
         });
     }
 
@@ -797,7 +796,7 @@ export class TrackSegment extends GPXTreeLeaf {
     constructor(segment?: (TrackSegmentType & { _data?: any }) | TrackSegment) {
         super();
         if (segment) {
-            this.trkpt = segment.trkpt.map((point) => new TrackPoint(point));
+            this.trkpt = segment.trkpt.map((point, index) => new TrackPoint(point, index));
             if (segment.hasOwnProperty('_data')) {
                 this._data = segment._data;
             }
@@ -809,12 +808,10 @@ export class TrackSegment extends GPXTreeLeaf {
     _computeStatistics(): GPXStatistics {
         let statistics = new GPXStatistics();
 
-        statistics.local.points = this.trkpt.map((point) => point);
+        statistics.local.points = this.trkpt.slice(0);
 
         const points = this.trkpt;
         for (let i = 0; i < points.length; i++) {
-            points[i]._data['index'] = i;
-
             // distance
             let dist = 0;
             if (i > 0) {
@@ -1307,13 +1304,16 @@ export class TrackPoint {
 
     _data: { [key: string]: any } = {};
 
-    constructor(point: (TrackPointType & { _data?: any }) | TrackPoint) {
+    constructor(point: (TrackPointType & { _data?: any }) | TrackPoint, index?: number) {
         this.attributes = point.attributes;
         this.ele = point.ele;
         this.time = point.time;
         this.extensions = point.extensions;
         if (point.hasOwnProperty('_data')) {
             this._data = point._data;
+        }
+        if (index !== undefined) {
+            this._data.index = index;
         }
     }
 
@@ -1488,7 +1488,7 @@ export class Waypoint {
     type?: string;
     _data: { [key: string]: any } = {};
 
-    constructor(waypoint: (WaypointType & { _data?: any }) | Waypoint) {
+    constructor(waypoint: (WaypointType & { _data?: any }) | Waypoint, index?: number) {
         this.attributes = waypoint.attributes;
         this.ele = waypoint.ele;
         this.time = waypoint.time;
@@ -1506,6 +1506,9 @@ export class Waypoint {
         this.type = waypoint.type === '' ? undefined : waypoint.type;
         if (waypoint.hasOwnProperty('_data')) {
             this._data = waypoint._data;
+        }
+        if (index !== undefined) {
+            this._data.index = index;
         }
     }
 
