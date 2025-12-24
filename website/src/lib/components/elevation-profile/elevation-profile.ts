@@ -428,57 +428,72 @@ export class ElevationProfile {
             segment: {},
         };
         this._chart.data.datasets[1] = {
-            data: data.local.points.map((point, index) => {
-                return {
-                    x: getConvertedDistance(data.local.distance.total[index]),
-                    y: getConvertedVelocity(data.local.speed[index]),
-                    index: index,
-                };
-            }),
+            data:
+                data.global.time.total > 0
+                    ? data.local.points.map((point, index) => {
+                          return {
+                              x: getConvertedDistance(data.local.distance.total[index]),
+                              y: getConvertedVelocity(data.local.speed[index]),
+                              index: index,
+                          };
+                      })
+                    : [],
             normalized: true,
             yAxisID: 'yspeed',
         };
         this._chart.data.datasets[2] = {
-            data: data.local.points.map((point, index) => {
-                return {
-                    x: getConvertedDistance(data.local.distance.total[index]),
-                    y: point.getHeartRate(),
-                    index: index,
-                };
-            }),
+            data:
+                data.global.hr.count > 0
+                    ? data.local.points.map((point, index) => {
+                          return {
+                              x: getConvertedDistance(data.local.distance.total[index]),
+                              y: point.getHeartRate(),
+                              index: index,
+                          };
+                      })
+                    : [],
             normalized: true,
             yAxisID: 'yhr',
         };
         this._chart.data.datasets[3] = {
-            data: data.local.points.map((point, index) => {
-                return {
-                    x: getConvertedDistance(data.local.distance.total[index]),
-                    y: point.getCadence(),
-                    index: index,
-                };
-            }),
+            data:
+                data.global.cad.count > 0
+                    ? data.local.points.map((point, index) => {
+                          return {
+                              x: getConvertedDistance(data.local.distance.total[index]),
+                              y: point.getCadence(),
+                              index: index,
+                          };
+                      })
+                    : [],
             normalized: true,
             yAxisID: 'ycad',
         };
         this._chart.data.datasets[4] = {
-            data: data.local.points.map((point, index) => {
-                return {
-                    x: getConvertedDistance(data.local.distance.total[index]),
-                    y: getConvertedTemperature(point.getTemperature()),
-                    index: index,
-                };
-            }),
+            data:
+                data.global.atemp.count > 0
+                    ? data.local.points.map((point, index) => {
+                          return {
+                              x: getConvertedDistance(data.local.distance.total[index]),
+                              y: getConvertedTemperature(point.getTemperature()),
+                              index: index,
+                          };
+                      })
+                    : [],
             normalized: true,
             yAxisID: 'yatemp',
         };
         this._chart.data.datasets[5] = {
-            data: data.local.points.map((point, index) => {
-                return {
-                    x: getConvertedDistance(data.local.distance.total[index]),
-                    y: point.getPower(),
-                    index: index,
-                };
-            }),
+            data:
+                data.global.power.count > 0
+                    ? data.local.points.map((point, index) => {
+                          return {
+                              x: getConvertedDistance(data.local.distance.total[index]),
+                              y: point.getPower(),
+                              index: index,
+                          };
+                      })
+                    : [],
             normalized: true,
             yAxisID: 'ypower',
         };
