@@ -16,16 +16,6 @@ import {
 } from './types';
 import { immerable, isDraft, original, freeze } from 'immer';
 
-function cloneJSON<T>(obj: T): T {
-    if (obj === undefined) {
-        return undefined;
-    }
-    if (obj === null || typeof obj !== 'object') {
-        return null;
-    }
-    return JSON.parse(JSON.stringify(obj));
-}
-
 // An abstract class that groups functions that need to be computed recursively in the GPX file hierarchy
 export abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
     _data: { [key: string]: any } = {};
@@ -249,12 +239,12 @@ export class GPXFile extends GPXTreeNode<Track> {
 
     clone(): GPXFile {
         return new GPXFile({
-            attributes: cloneJSON(this.attributes),
-            metadata: cloneJSON(this.metadata),
+            attributes: structuredClone(this.attributes),
+            metadata: structuredClone(this.metadata),
             wpt: this.wpt.map((waypoint) => waypoint.clone()),
             trk: this.trk.map((track) => track.clone()),
             rte: [],
-            _data: cloneJSON(this._data),
+            _data: structuredClone(this._data),
         });
     }
 
@@ -267,7 +257,7 @@ export class GPXFile extends GPXTreeNode<Track> {
 
     toGPXFileType(exclude: string[] = []): GPXFileType {
         let file: GPXFileType = {
-            attributes: cloneJSON(this.attributes),
+            attributes: structuredClone(this.attributes),
             metadata: {},
             wpt: this.wpt.map((wpt) => wpt.toWaypointType(exclude)),
             trk: this.trk.map((track) => track.toTrackType(exclude)),
@@ -281,10 +271,10 @@ export class GPXFile extends GPXTreeNode<Track> {
                 file.metadata.desc = this.metadata.desc;
             }
             if (this.metadata.author) {
-                file.metadata.author = cloneJSON(this.metadata.author);
+                file.metadata.author = structuredClone(this.metadata.author);
             }
             if (this.metadata.link) {
-                file.metadata.link = cloneJSON(this.metadata.link);
+                file.metadata.link = structuredClone(this.metadata.link);
             }
             if (this.metadata.time && !exclude.includes('time')) {
                 file.metadata.time = this.metadata.time;
@@ -577,11 +567,11 @@ export class Track extends GPXTreeNode<TrackSegment> {
             cmt: this.cmt,
             desc: this.desc,
             src: this.src,
-            link: cloneJSON(this.link),
+            link: structuredClone(this.link),
             type: this.type,
-            extensions: cloneJSON(this.extensions),
+            extensions: structuredClone(this.extensions),
             trkseg: this.trkseg.map((seg) => seg.clone()),
-            _data: cloneJSON(this._data),
+            _data: structuredClone(this._data),
         });
     }
 
@@ -1100,7 +1090,7 @@ export class TrackSegment extends GPXTreeLeaf {
     clone(): TrackSegment {
         return new TrackSegment({
             trkpt: this.trkpt.map((point) => point.clone()),
-            _data: cloneJSON(this._data),
+            _data: structuredClone(this._data),
         });
     }
 
@@ -1226,14 +1216,14 @@ export class TrackSegment extends GPXTreeLeaf {
             let trkpt = og.trkpt.map(
                 (point, i) =>
                     new TrackPoint({
-                        attributes: cloneJSON(point.attributes),
+                        attributes: structuredClone(point.attributes),
                         ele: point.ele,
                         time: new Date(
                             newStartTimestamp.getTime() +
                                 (originalEndTimestamp.getTime() - og.trkpt[i].time.getTime())
                         ),
-                        extensions: cloneJSON(point.extensions),
-                        _data: cloneJSON(point._data),
+                        extensions: structuredClone(point.extensions),
+                        _data: structuredClone(point._data),
                     })
             );
 
@@ -1468,11 +1458,18 @@ export class TrackPoint {
 
     clone(): TrackPoint {
         return new TrackPoint({
-            attributes: cloneJSON(this.attributes),
+            attributes: {
+                lat: this.attributes.lat,
+                lon: this.attributes.lon,
+            },
             ele: this.ele,
             time: this.time ? new Date(this.time.getTime()) : undefined,
-            extensions: cloneJSON(this.extensions),
-            _data: cloneJSON(this._data),
+            extensions: this.extensions ? structuredClone(this.extensions) : undefined,
+            _data: {
+                index: this._data?.index,
+                anchor: this._data?.anchor,
+                zoom: this._data?.zoom,
+            },
         });
     }
 }
@@ -1557,13 +1554,16 @@ export class Waypoint {
 
     clone(): Waypoint {
         return new Waypoint({
-            attributes: cloneJSON(this.attributes),
+            attributes: {
+                lat: this.attributes.lat,
+                lon: this.attributes.lon,
+            },
             ele: this.ele,
             time: this.time ? new Date(this.time.getTime()) : undefined,
             name: this.name,
             cmt: this.cmt,
             desc: this.desc,
-            link: cloneJSON(this.link),
+            link: structuredClone(this.link),
             sym: this.sym,
             type: this.type,
         });
