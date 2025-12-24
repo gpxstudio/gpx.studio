@@ -108,7 +108,7 @@ async function getGraphHopperRoute(
     for (let key of graphhopperDetails) {
         let detail = details[key];
         for (let i = 0; i < detail.length; i++) {
-            for (let j = detail[i][0]; j < detail[i][1]; j++) {
+            for (let j = detail[i][0]; j < detail[i][1] + (i == detail.length - 1); j++) {
                 if (detail[i][2] !== undefined && detail[i][2] !== 'missing') {
                     if (key === 'road_class') {
                         route[j].setExtension('highway', detail[i][2]);
@@ -122,8 +122,8 @@ async function getGraphHopperRoute(
                         if (mtbScale) {
                             route[j].setExtension('mtb_scale', mtbScale);
                         }
-                    } else {
-                        route[j].setExtension(key, detail[i][2]);
+                    } else if (key === 'surface' && detail[i][2] !== 'other') {
+                        route[j].setExtension('surface', detail[i][2]);
                     }
                 }
             }
