@@ -65,7 +65,7 @@
         "drag": "Drag",
         "metadata": {
             "button": "Info...",
-            "name": "Name",
+            "name": "Tên",
             "description": "Description",
             "save": "Save"
         },
