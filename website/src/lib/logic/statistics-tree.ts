@@ -22,25 +22,34 @@ export class GPXStatisticsTree {
     }
 
     getStatisticsFor(item: ListItem): GPXStatistics {
-        let statistics = new GPXStatistics();
+        let statistics = [];
         let id = item.getIdAtLevel(this.level);
         if (id === undefined || id === 'waypoints') {
             Object.keys(this.statistics).forEach((key) => {
                 if (this.statistics[key] instanceof GPXStatistics) {
-                    statistics.mergeWith(this.statistics[key]);
+                    statistics.push(this.statistics[key]);
                 } else {
-                    statistics.mergeWith(this.statistics[key].getStatisticsFor(item));
+                    statistics.push(this.statistics[key].getStatisticsFor(item));
                 }
             });
         } else {
             let child = this.statistics[id];
             if (child instanceof GPXStatistics) {
-                statistics.mergeWith(child);
+                statistics.push(child);
             } else if (child !== undefined) {
-                statistics.mergeWith(child.getStatisticsFor(item));
+                statistics.push(child.getStatisticsFor(item));
             }
         }
-        return statistics;
+        if (statistics.length === 0) {
+            return new GPXStatistics();
+        } else if (statistics.length === 1) {
+            return statistics[0];
+        } else {
+            return statistics.reduce((acc, curr) => {
+                acc.mergeWith(curr);
+                return acc;
+            }, new GPXStatistics());
+        }
     }
 }
 export type GPXFileWithStatistics = { file: GPXFile; statistics: GPXStatisticsTree };
