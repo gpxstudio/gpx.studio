@@ -230,8 +230,8 @@
             "help_invalid_selection": "须先选择包含多个轨迹的文件以提取。"
         },
         "elevation": {
-            "button": "请求数据",
-            "help": "请求成功后将使用 Mapbox 海拔数据替换原有数据。",
+            "button": "请求海拔数据",
+            "help": "请求成功后将移除原有的海拔数据，并使用 Mapbox 的海拔数据替换原有数据。",
             "help_no_selection": "选择要请求海拔数据的文件。"
         },
         "waypoint": {
