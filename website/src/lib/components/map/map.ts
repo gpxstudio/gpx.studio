@@ -36,17 +36,6 @@ export class MapboxGLMap {
                 layers: [],
                 imports: [
                     {
-                        id: 'glyphs-and-sprite', // make Mapbox glyphs and sprite available to other styles
-                        url: '',
-                        data: {
-                            version: 8,
-                            sources: {},
-                            layers: [],
-                            glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
-                            sprite: 'mapbox://sprites/mapbox/outdoors-v12',
-                        },
-                    },
-                    {
                         id: 'basemap',
                         url: '',
                     },
@@ -162,6 +151,12 @@ export class MapboxGLMap {
                     map.setTerrain(null);
                 }
             });
+        });
+        map.on('style.import.load', () => {
+            const basemap = map.getStyle().imports?.find((imprt) => imprt.id === 'basemap');
+            if (basemap && basemap.data && basemap.data.glyphs) {
+                map.setGlyphsUrl(basemap.data.glyphs);
+            }
         });
         map.on('load', () => {
             this._map.set(map); // only set the store after the map has loaded
