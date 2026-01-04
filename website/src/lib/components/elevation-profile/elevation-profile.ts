@@ -405,12 +405,17 @@ export class ElevationProfile {
             return;
         }
         const data = get(this._gpxStatistics);
+        const units = {
+            distance: get(distanceUnits),
+            velocity: get(velocityUnits),
+            temperature: get(temperatureUnits),
+        };
         this._chart.data.datasets[0] = {
             label: i18n._('quantities.elevation'),
             data: data.local.points.map((point, index) => {
                 return {
-                    x: getConvertedDistance(data.local.distance.total[index]),
-                    y: point.ele ? getConvertedElevation(point.ele) : 0,
+                    x: getConvertedDistance(data.local.distance.total[index], units.distance),
+                    y: point.ele ? getConvertedElevation(point.ele, units.distance) : 0,
                     time: point.time,
                     slope: {
                         at: data.local.slope.at[index],
@@ -432,8 +437,15 @@ export class ElevationProfile {
                 data.global.time.total > 0
                     ? data.local.points.map((point, index) => {
                           return {
-                              x: getConvertedDistance(data.local.distance.total[index]),
-                              y: getConvertedVelocity(data.local.speed[index]),
+                              x: getConvertedDistance(
+                                  data.local.distance.total[index],
+                                  units.distance
+                              ),
+                              y: getConvertedVelocity(
+                                  data.local.speed[index],
+                                  units.velocity,
+                                  units.distance
+                              ),
                               index: index,
                           };
                       })
@@ -446,7 +458,10 @@ export class ElevationProfile {
                 data.global.hr.count > 0
                     ? data.local.points.map((point, index) => {
                           return {
-                              x: getConvertedDistance(data.local.distance.total[index]),
+                              x: getConvertedDistance(
+                                  data.local.distance.total[index],
+                                  units.distance
+                              ),
                               y: point.getHeartRate(),
                               index: index,
                           };
@@ -460,7 +475,10 @@ export class ElevationProfile {
                 data.global.cad.count > 0
                     ? data.local.points.map((point, index) => {
                           return {
-                              x: getConvertedDistance(data.local.distance.total[index]),
+                              x: getConvertedDistance(
+                                  data.local.distance.total[index],
+                                  units.distance
+                              ),
                               y: point.getCadence(),
                               index: index,
                           };
@@ -474,8 +492,11 @@ export class ElevationProfile {
                 data.global.atemp.count > 0
                     ? data.local.points.map((point, index) => {
                           return {
-                              x: getConvertedDistance(data.local.distance.total[index]),
-                              y: getConvertedTemperature(point.getTemperature()),
+                              x: getConvertedDistance(
+                                  data.local.distance.total[index],
+                                  units.distance
+                              ),
+                              y: getConvertedTemperature(point.getTemperature(), units.temperature),
                               index: index,
                           };
                       })
@@ -488,7 +509,10 @@ export class ElevationProfile {
                 data.global.power.count > 0
                     ? data.local.points.map((point, index) => {
                           return {
-                              x: getConvertedDistance(data.local.distance.total[index]),
+                              x: getConvertedDistance(
+                                  data.local.distance.total[index],
+                                  units.distance
+                              ),
                               y: point.getPower(),
                               index: index,
                           };
@@ -498,7 +522,10 @@ export class ElevationProfile {
             yAxisID: 'ypower',
         };
         this._chart.options.scales!.x!['min'] = 0;
-        this._chart.options.scales!.x!['max'] = getConvertedDistance(data.global.distance.total);
+        this._chart.options.scales!.x!['max'] = getConvertedDistance(
+            data.global.distance.total,
+            units.distance
+        );
 
         this.setVisibility();
         this.setFill();

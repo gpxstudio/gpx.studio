@@ -229,6 +229,9 @@ export function getConvertedVelocity(
     }
 }
 
-export function getConvertedTemperature(value: number) {
-    return get(temperatureUnits) === 'celsius' ? value : celsiusToFahrenheit(value);
+export function getConvertedTemperature(
+    value: number,
+    targetTemperatureUnits = get(temperatureUnits)
+) {
+    return targetTemperatureUnits === 'celsius' ? value : celsiusToFahrenheit(value);
 }
