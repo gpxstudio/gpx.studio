@@ -54,7 +54,7 @@
     }
 
     $effect(() => {
-        if ($selectedBasemapTree && $currentBasemap) {
+        if (open && $selectedBasemapTree && $currentBasemap) {
             if (!isSelected($selectedBasemapTree, $currentBasemap)) {
                 if (!isSelected($selectedBasemapTree, defaultBasemap)) {
                     $selectedBasemapTree = toggle($selectedBasemapTree, defaultBasemap);
@@ -65,7 +65,7 @@
     });
 
     $effect(() => {
-        if ($selectedOverlayTree) {
+        if (open && $selectedOverlayTree) {
             untrack(() => {
                 if ($currentOverlays) {
                     let overlayLayers = getLayers($currentOverlays);
@@ -86,7 +86,7 @@
     });
 
     $effect(() => {
-        if ($selectedOverpassTree) {
+        if (open && $selectedOverpassTree) {
             untrack(() => {
                 if ($currentOverpassQueries) {
                     let overlayLayers = getLayers($currentOverpassQueries);
