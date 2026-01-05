@@ -3,6 +3,7 @@ import { TrackPoint, distance } from 'gpx';
 import { settings } from '$lib/logic/settings';
 import { getElevation } from '$lib/utils';
 import { get } from 'svelte/store';
+import { PUBLIC_BROUTER_BASE_URL } from '$env/static/public';
 
 const { routing, routingProfile, privateRoads } = settings;
 
@@ -30,7 +31,8 @@ async function getRoute(
     brouterProfile: string,
     privateRoads: boolean
 ): Promise<TrackPoint[]> {
-    let url = `https://brouter.gpx.studio?lonlats=${points.map((point) => `${point.lon.toFixed(8)},${point.lat.toFixed(8)}`).join('|')}&profile=${brouterProfile + (privateRoads ? '-private' : '')}&format=geojson&alternativeidx=0`;
+    const brouterBaseUrl = PUBLIC_BROUTER_BASE_URL ?? 'https://brouter.gpx.studio';
+    let url = `${brouterBaseUrl}?lonlats=${points.map((point) => `${point.lon.toFixed(8)},${point.lat.toFixed(8)}`).join('|')}&profile=${brouterProfile + (privateRoads ? '-private' : '')}&format=geojson&alternativeidx=0`;
 
     let response = await fetch(url);
 
