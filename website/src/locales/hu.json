@@ -324,6 +324,7 @@
             "bgMountains": "BGMountains",
             "usgs": "USGS",
             "bikerouterGravel": "kerékpár és terepkerékpár út",
+            "openRailwayMap": "OpenRailwayMap",
             "cyclOSMlite": "CyclOSM Lite",
             "swisstopoSlope": "swisstopo Lejtő",
             "swisstopoHiking": "swisstopo Túra",
