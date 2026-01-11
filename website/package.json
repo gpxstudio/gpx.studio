@@ -10,8 +10,8 @@
         "preview": "vite preview",
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
         "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-        "lint": "prettier --check . --config ../.prettierrc && eslint .",
-        "format": "prettier --write . --config ../.prettierrc"
+        "lint": "prettier --check . --config ../.prettierrc --ignore-path ../.prettierignore --ignore-path ./.gitignore && eslint .",
+        "format": "prettier --write . --config ../.prettierrc --ignore-path ../.prettierignore --ignore-path ./.gitignore"
     },
     "devDependencies": {
         "@lucide/svelte": "^0.544.0",
