@@ -350,7 +350,7 @@
             "eat-and-drink": "Nourriture et boissons",
             "amenities": "Commodités",
             "toilets": "Toilettes",
-            "water": "Cours d'eau",
+            "water": "Eau potable",
             "shower": "Douche",
             "shelter": "Abri",
             "cemetery": "Cimetière",
@@ -443,7 +443,7 @@
             "convenience_store": "Épicerie",
             "crossing": "Croisement",
             "department_store": "Grand magasin",
-            "drinking_water": "Cours d'eau",
+            "drinking_water": "Eau potable",
             "exit": "Sortie",
             "lodge": "Refuge",
             "lodging": "Hébergement",
@@ -468,7 +468,7 @@
             "summit": "Sommet",
             "telephone": "Téléphone",
             "tunnel": "Tunnel",
-            "water_source": "Source d'eau"
+            "water_source": "Point d'eau"
         }
     },
     "homepage": {
