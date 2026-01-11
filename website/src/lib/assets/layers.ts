@@ -368,6 +368,26 @@ export const overlays: { [key: string]: string | StyleSpecification } = {
         ],
     },
     bikerouterGravel: bikerouterGravel as StyleSpecification,
+    openRailwayMap: {
+        version: 8,
+        sources: {
+            openRailwayMap: {
+                type: 'raster',
+                tiles: ['https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 19,
+                attribution:
+                    'Data <a href="https://www.openstreetmap.org/copyright">&copy; OpenStreetMap contributors</a>, Style: <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA 2.0</a> <a href="http://www.openrailwaymap.org/">OpenRailwayMap</a>',
+            },
+        },
+        layers: [
+            {
+                id: 'openRailwayMap',
+                type: 'raster',
+                source: 'openRailwayMap',
+            },
+        ],
+    },
     swisstopoSlope: {
         version: 8,
         sources: {
@@ -801,6 +821,7 @@ export const overlayTree: LayerTreeType = {
             },
             cyclOSMlite: true,
             bikerouterGravel: true,
+            openRailwayMap: true,
         },
         countries: {
             france: {
@@ -885,6 +906,7 @@ export const defaultOverlays: LayerTreeType = {
             },
             cyclOSMlite: false,
             bikerouterGravel: false,
+            openRailwayMap: false,
         },
         countries: {
             france: {
@@ -1020,6 +1042,7 @@ export const defaultOverlayTree: LayerTreeType = {
             },
             cyclOSMlite: false,
             bikerouterGravel: false,
+            openRailwayMap: false,
         },
         countries: {
             france: {
