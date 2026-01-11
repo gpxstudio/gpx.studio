@@ -18,7 +18,7 @@
         Construction,
     } from '@lucide/svelte';
     import type { Readable, Writable } from 'svelte/store';
-    import type { GPXStatistics } from 'gpx';
+    import type { GPXGlobalStatistics, GPXStatisticsGroup } from 'gpx';
     import { settings } from '$lib/logic/settings';
     import { i18n } from '$lib/i18n.svelte';
     import { ElevationProfile } from '$lib/components/elevation-profile/elevation-profile';
@@ -32,8 +32,8 @@
         elevationFill,
         showControls = true,
     }: {
-        gpxStatistics: Readable<GPXStatistics>;
-        slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined>;
+        gpxStatistics: Readable<GPXStatisticsGroup>;
+        slicedGPXStatistics: Writable<[GPXGlobalStatistics, number, number] | undefined>;
         additionalDatasets: Writable<string[]>;
         elevationFill: Writable<'slope' | 'surface' | 'highway' | undefined>;
         showControls?: boolean;

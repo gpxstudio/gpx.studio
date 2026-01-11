@@ -23,7 +23,7 @@ import Chart, {
 import mapboxgl from 'mapbox-gl';
 import { get, type Readable, type Writable } from 'svelte/store';
 import { map } from '$lib/components/map/map';
-import type { GPXStatistics } from 'gpx';
+import type { GPXGlobalStatistics, GPXStatisticsGroup } from 'gpx';
 import { mode } from 'mode-watcher';
 import { getHighwayColor, getSlopeColor, getSurfaceColor } from '$lib/assets/colors';
 
@@ -54,14 +54,14 @@ export class ElevationProfile {
     private _dragging = false;
     private _panning = false;
 
-    private _gpxStatistics: Readable<GPXStatistics>;
-    private _slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined>;
+    private _gpxStatistics: Readable<GPXStatisticsGroup>;
+    private _slicedGPXStatistics: Writable<[GPXGlobalStatistics, number, number] | undefined>;
     private _additionalDatasets: Readable<string[]>;
     private _elevationFill: Readable<'slope' | 'surface' | 'highway' | undefined>;
 
     constructor(
-        gpxStatistics: Readable<GPXStatistics>,
-        slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined>,
+        gpxStatistics: Readable<GPXStatisticsGroup>,
+        slicedGPXStatistics: Writable<[GPXGlobalStatistics, number, number] | undefined>,
         additionalDatasets: Readable<string[]>,
         elevationFill: Readable<'slope' | 'surface' | 'highway' | undefined>,
         canvas: HTMLCanvasElement,
@@ -342,7 +342,7 @@ export class ElevationProfile {
                 if (evt.x - rect.left <= this._chart.chartArea.left) {
                     return 0;
                 } else if (evt.x - rect.left >= this._chart.chartArea.right) {
-                    return get(this._gpxStatistics).local.points.length - 1;
+                    return this._chart.data.datasets[0].data.length - 1;
                 } else {
                     return undefined;
                 }
@@ -375,7 +375,7 @@ export class ElevationProfile {
                         startIndex = endIndex;
                     } else if (startIndex !== endIndex) {
                         this._slicedGPXStatistics.set([
-                            get(this._gpxStatistics).slice(
+                            get(this._gpxStatistics).sliced(
                                 Math.min(startIndex, endIndex),
                                 Math.max(startIndex, endIndex)
                             ),
@@ -410,117 +410,89 @@ export class ElevationProfile {
             velocity: get(velocityUnits),
             temperature: get(temperatureUnits),
         };
+
+        const datasets: Array<Array<any>> = [[], [], [], [], [], []];
+        data.forEachTrackPoint((trkpt, distance, speed, slope, index) => {
+            datasets[0].push({
+                x: getConvertedDistance(distance, units.distance),
+                y: trkpt.ele ? getConvertedElevation(trkpt.ele, units.distance) : 0,
+                time: trkpt.time,
+                slope: slope,
+                extensions: trkpt.getExtensions(),
+                coordinates: trkpt.getCoordinates(),
+                index: index,
+            });
+            if (data.global.time.total > 0) {
+                datasets[1].push({
+                    x: getConvertedDistance(distance, units.distance),
+                    y: getConvertedVelocity(speed, units.velocity, units.distance),
+                    index: index,
+                });
+            }
+            if (data.global.hr.count > 0) {
+                datasets[2].push({
+                    x: getConvertedDistance(distance, units.distance),
+                    y: trkpt.getHeartRate(),
+                    index: index,
+                });
+            }
+            if (data.global.cad.count > 0) {
+                datasets[3].push({
+                    x: getConvertedDistance(distance, units.distance),
+                    y: trkpt.getCadence(),
+                    index: index,
+                });
+            }
+            if (data.global.atemp.count > 0) {
+                datasets[4].push({
+                    x: getConvertedDistance(distance, units.distance),
+                    y: getConvertedTemperature(trkpt.getTemperature(), units.temperature),
+                    index: index,
+                });
+            }
+            if (data.global.power.count > 0) {
+                datasets[5].push({
+                    x: getConvertedDistance(distance, units.distance),
+                    y: trkpt.getPower(),
+                    index: index,
+                });
+            }
+        });
+
         this._chart.data.datasets[0] = {
             label: i18n._('quantities.elevation'),
-            data: data.local.points.map((point, index) => {
-                return {
-                    x: getConvertedDistance(data.local.distance.total[index], units.distance),
-                    y: point.ele ? getConvertedElevation(point.ele, units.distance) : 0,
-                    time: point.time,
-                    slope: {
-                        at: data.local.slope.at[index],
-                        segment: data.local.slope.segment[index],
-                        length: data.local.slope.length[index],
-                    },
-                    extensions: point.getExtensions(),
-                    coordinates: point.getCoordinates(),
-                    index: index,
-                };
-            }),
+            data: datasets[0],
             normalized: true,
             fill: 'start',
             order: 1,
             segment: {},
         };
         this._chart.data.datasets[1] = {
-            data:
-                data.global.time.total > 0
-                    ? data.local.points.map((point, index) => {
-                          return {
-                              x: getConvertedDistance(
-                                  data.local.distance.total[index],
-                                  units.distance
-                              ),
-                              y: getConvertedVelocity(
-                                  data.local.speed[index],
-                                  units.velocity,
-                                  units.distance
-                              ),
-                              index: index,
-                          };
-                      })
-                    : [],
+            data: datasets[1],
             normalized: true,
             yAxisID: 'yspeed',
         };
         this._chart.data.datasets[2] = {
-            data:
-                data.global.hr.count > 0
-                    ? data.local.points.map((point, index) => {
-                          return {
-                              x: getConvertedDistance(
-                                  data.local.distance.total[index],
-                                  units.distance
-                              ),
-                              y: point.getHeartRate(),
-                              index: index,
-                          };
-                      })
-                    : [],
+            data: datasets[2],
             normalized: true,
             yAxisID: 'yhr',
         };
         this._chart.data.datasets[3] = {
-            data:
-                data.global.cad.count > 0
-                    ? data.local.points.map((point, index) => {
-                          return {
-                              x: getConvertedDistance(
-                                  data.local.distance.total[index],
-                                  units.distance
-                              ),
-                              y: point.getCadence(),
-                              index: index,
-                          };
-                      })
-                    : [],
+            data: datasets[3],
             normalized: true,
             yAxisID: 'ycad',
         };
         this._chart.data.datasets[4] = {
-            data:
-                data.global.atemp.count > 0
-                    ? data.local.points.map((point, index) => {
-                          return {
-                              x: getConvertedDistance(
-                                  data.local.distance.total[index],
-                                  units.distance
-                              ),
-                              y: getConvertedTemperature(point.getTemperature(), units.temperature),
-                              index: index,
-                          };
-                      })
-                    : [],
+            data: datasets[4],
             normalized: true,
             yAxisID: 'yatemp',
         };
         this._chart.data.datasets[5] = {
-            data:
-                data.global.power.count > 0
-                    ? data.local.points.map((point, index) => {
-                          return {
-                              x: getConvertedDistance(
-                                  data.local.distance.total[index],
-                                  units.distance
-                              ),
-                              y: point.getPower(),
-                              index: index,
-                          };
-                      })
-                    : [],
+            data: datasets[5],
             normalized: true,
             yAxisID: 'ypower',
         };
+
         this._chart.options.scales!.x!['min'] = 0;
         this._chart.options.scales!.x!['max'] = getConvertedDistance(
             data.global.distance.total,
@@ -618,10 +590,12 @@ export class ElevationProfile {
 
                 const gpxStatistics = get(this._gpxStatistics);
                 let startPixel = this._chart.scales.x.getPixelForValue(
-                    getConvertedDistance(gpxStatistics.local.distance.total[startIndex])
+                    getConvertedDistance(
+                        gpxStatistics.getTrackPoint(startIndex)?.distance.total ?? 0
+                    )
                 );
                 let endPixel = this._chart.scales.x.getPixelForValue(
-                    getConvertedDistance(gpxStatistics.local.distance.total[endIndex])
+                    getConvertedDistance(gpxStatistics.getTrackPoint(endIndex)?.distance.total ?? 0)
                 );
 
                 selectionContext.fillRect(

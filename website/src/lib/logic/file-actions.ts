@@ -215,7 +215,7 @@ export const fileActions = {
     reverseSelection: () => {
         if (
             !get(selection).hasAnyChildren(new ListRootItem(), true, ['waypoints']) ||
-            get(gpxStatistics).local.points?.length <= 1
+            get(gpxStatistics).global.length <= 1
         ) {
             return;
         }
@@ -345,19 +345,20 @@ export const fileActions = {
                 let startTime: Date | undefined = undefined;
                 if (speed !== undefined) {
                     if (
-                        statistics.local.points.length > 0 &&
-                        statistics.local.points[0].time !== undefined
+                        statistics.global.length > 0 &&
+                        statistics.getTrackPoint(0)!.trkpt.time !== undefined
                     ) {
-                        startTime = statistics.local.points[0].time;
+                        startTime = statistics.getTrackPoint(0)!.trkpt.time;
                     } else {
-                        let index = statistics.local.points.findIndex(
-                            (point) => point.time !== undefined
-                        );
-                        if (index !== -1 && statistics.local.points[index].time) {
-                            startTime = new Date(
-                                statistics.local.points[index].time.getTime() -
-                                    (1000 * 3600 * statistics.local.distance.total[index]) / speed
-                            );
+                        for (let i = 0; i < statistics.global.length; i++) {
+                            const point = statistics.getTrackPoint(i)!;
+                            if (point.trkpt.time !== undefined) {
+                                startTime = new Date(
+                                    point.trkpt.time.getTime() -
+                                        (1000 * 3600 * point.distance.total) / speed
+                                );
+                                break;
+                            }
                         }
                     }
                 }

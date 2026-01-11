@@ -6,7 +6,7 @@
     import { MoveDownRight, MoveUpRight, Ruler, Timer, Zap } from '@lucide/svelte';
 
     import { i18n } from '$lib/i18n.svelte';
-    import type { GPXStatistics } from 'gpx';
+    import type { GPXGlobalStatistics, GPXStatisticsGroup } from 'gpx';
     import type { Readable } from 'svelte/store';
     import { settings } from '$lib/logic/settings';
 
@@ -18,14 +18,14 @@
         orientation,
         panelSize,
     }: {
-        gpxStatistics: Readable<GPXStatistics>;
-        slicedGPXStatistics: Readable<[GPXStatistics, number, number] | undefined>;
+        gpxStatistics: Readable<GPXStatisticsGroup>;
+        slicedGPXStatistics: Readable<[GPXGlobalStatistics, number, number] | undefined>;
         orientation: 'horizontal' | 'vertical';
         panelSize: number;
     } = $props();
 
     let statistics = $derived(
-        $slicedGPXStatistics !== undefined ? $slicedGPXStatistics[0] : $gpxStatistics
+        $slicedGPXStatistics !== undefined ? $slicedGPXStatistics[0] : $gpxStatistics.global
     );
 </script>
 
@@ -42,15 +42,15 @@
         <Tooltip label={i18n._('quantities.distance')}>
             <span class="flex flex-row items-center">
                 <Ruler size="16" class="mr-1" />
-                <WithUnits value={statistics.global.distance.total} type="distance" />
+                <WithUnits value={statistics.distance.total} type="distance" />
             </span>
         </Tooltip>
         <Tooltip label={i18n._('quantities.elevation_gain_loss')}>
             <span class="flex flex-row items-center">
                 <MoveUpRight size="16" class="mr-1" />
-                <WithUnits value={statistics.global.elevation.gain} type="elevation" />
+                <WithUnits value={statistics.elevation.gain} type="elevation" />
                 <MoveDownRight size="16" class="mx-1" />
-                <WithUnits value={statistics.global.elevation.loss} type="elevation" />
+                <WithUnits value={statistics.elevation.loss} type="elevation" />
             </span>
         </Tooltip>
         {#if panelSize > 120 || orientation === 'horizontal'}
@@ -64,13 +64,9 @@
             >
                 <span class="flex flex-row items-center">
                     <Zap size="16" class="mr-1" />
-                    <WithUnits
-                        value={statistics.global.speed.moving}
-                        type="speed"
-                        showUnits={false}
-                    />
+                    <WithUnits value={statistics.speed.moving} type="speed" showUnits={false} />
                     <span class="mx-1">/</span>
-                    <WithUnits value={statistics.global.speed.total} type="speed" />
+                    <WithUnits value={statistics.speed.total} type="speed" />
                 </span>
             </Tooltip>
         {/if}
@@ -83,9 +79,9 @@
             >
                 <span class="flex flex-row items-center">
                     <Timer size="16" class="mr-1" />
-                    <WithUnits value={statistics.global.time.moving} type="time" />
+                    <WithUnits value={statistics.time.moving} type="time" />
                     <span class="mx-1">/</span>
-                    <WithUnits value={statistics.global.time.total} type="time" />
+                    <WithUnits value={statistics.time.total} type="time" />
                 </span>
             </Tooltip>
         {/if}

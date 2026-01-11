@@ -1,5 +1,5 @@
 import { selection } from '$lib/logic/selection';
-import { GPXStatistics } from 'gpx';
+import { GPXGlobalStatistics, GPXStatisticsGroup } from 'gpx';
 import { fileStateCollection, GPXFileState } from '$lib/logic/file-state';
 import {
     ListFileItem,
@@ -12,7 +12,7 @@ import { settings } from '$lib/logic/settings';
 const { fileOrder } = settings;
 
 export class SelectedGPXStatistics {
-    private _statistics: Writable<GPXStatistics>;
+    private _statistics: Writable<GPXStatisticsGroup>;
     private _files: Map<
         string,
         {
@@ -22,18 +22,21 @@ export class SelectedGPXStatistics {
     >;
 
     constructor() {
-        this._statistics = writable(new GPXStatistics());
+        this._statistics = writable(new GPXStatisticsGroup());
         this._files = new Map();
         selection.subscribe(() => this.update());
         fileOrder.subscribe(() => this.update());
     }
 
-    subscribe(run: (value: GPXStatistics) => void, invalidate?: (value?: GPXStatistics) => void) {
+    subscribe(
+        run: (value: GPXStatisticsGroup) => void,
+        invalidate?: (value?: GPXStatisticsGroup) => void
+    ) {
         return this._statistics.subscribe(run, invalidate);
     }
 
     update() {
-        let statistics = new GPXStatistics();
+        let statistics = new GPXStatisticsGroup();
         selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
             let stats = fileStateCollection.getStatistics(fileId);
             if (stats) {
@@ -43,7 +46,7 @@ export class SelectedGPXStatistics {
                         !(item instanceof ListWaypointItem || item instanceof ListWaypointsItem) ||
                         first
                     ) {
-                        statistics.mergeWith(stats.getStatisticsFor(item));
+                        statistics.add(stats.getStatisticsFor(item));
                         first = false;
                     }
                 });
@@ -76,7 +79,7 @@ export class SelectedGPXStatistics {
 
 export const gpxStatistics = new SelectedGPXStatistics();
 
-export const slicedGPXStatistics: Writable<[GPXStatistics, number, number] | undefined> =
+export const slicedGPXStatistics: Writable<[GPXGlobalStatistics, number, number] | undefined> =
     writable(undefined);
 
 gpxStatistics.subscribe(() => {

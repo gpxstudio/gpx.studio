@@ -28,17 +28,15 @@ export class ReducedGPXLayer {
 
     update() {
         const file = this._fileState.file;
-        const stats = this._fileState.statistics;
-        if (!file || !stats) {
+        if (!file) {
             return;
         }
         file.forEachSegment((segment, trackIndex, segmentIndex) => {
             let segmentItem = new ListTrackSegmentItem(file._data.id, trackIndex, segmentIndex);
-            let statistics = stats.getStatisticsFor(segmentItem);
             this._updateSimplified(segmentItem.getFullId(), [
                 segmentItem,
-                statistics.local.points.length,
-                ramerDouglasPeucker(statistics.local.points, minTolerance),
+                segment.trkpt.length,
+                ramerDouglasPeucker(segment.trkpt, minTolerance),
             ]);
         });
     }

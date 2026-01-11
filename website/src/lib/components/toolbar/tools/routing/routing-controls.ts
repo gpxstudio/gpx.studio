@@ -793,24 +793,25 @@ export class RoutingControls {
                 replacingDistance +=
                     distance(response[i - 1].getCoordinates(), response[i].getCoordinates()) / 1000;
             }
+            let startAnchorStats = stats.getTrackPoint(anchors[0].point._data.index)!;
+            let endAnchorStats = stats.getTrackPoint(
+                anchors[anchors.length - 1].point._data.index
+            )!;
+
             let replacedDistance =
-                stats.local.distance.moving[anchors[anchors.length - 1].point._data.index] -
-                stats.local.distance.moving[anchors[0].point._data.index];
+                endAnchorStats.distance.moving - startAnchorStats.distance.moving;
 
             let newDistance = stats.global.distance.moving + replacingDistance - replacedDistance;
             let newTime = (newDistance / stats.global.speed.moving) * 3600;
 
             let remainingTime =
                 stats.global.time.moving -
-                (stats.local.time.moving[anchors[anchors.length - 1].point._data.index] -
-                    stats.local.time.moving[anchors[0].point._data.index]);
+                (endAnchorStats.time.moving - startAnchorStats.time.moving);
             let replacingTime = newTime - remainingTime;
 
             if (replacingTime <= 0) {
                 // Fallback to simple time difference
-                replacingTime =
-                    stats.local.time.total[anchors[anchors.length - 1].point._data.index] -
-                    stats.local.time.total[anchors[0].point._data.index];
+                replacingTime = endAnchorStats.time.total - startAnchorStats.time.total;
             }
 
             speed = (replacingDistance / replacingTime) * 3600;
@@ -820,9 +821,7 @@ export class RoutingControls {
                 let endIndex = anchors[anchors.length - 1].point._data.index;
                 startTime = new Date(
                     (segment.trkpt[endIndex].time?.getTime() ?? 0) -
-                        (replacingTime +
-                            stats.local.time.total[endIndex] -
-                            stats.local.time.moving[endIndex]) *
+                        (replacingTime + endAnchorStats.time.total - endAnchorStats.time.moving) *
                             1000
                 );
             }

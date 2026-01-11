@@ -101,23 +101,17 @@ export class DistanceMarkers {
     getDistanceMarkersGeoJSON(): GeoJSON.FeatureCollection {
         let statistics = get(gpxStatistics);
 
-        let features = [];
+        let features: GeoJSON.Feature[] = [];
         let currentTargetDistance = 1;
-        for (let i = 0; i < statistics.local.distance.total.length; i++) {
-            if (
-                statistics.local.distance.total[i] >=
-                getConvertedDistanceToKilometers(currentTargetDistance)
-            ) {
+        statistics.forEachTrackPoint((trkpt, dist) => {
+            if (dist >= getConvertedDistanceToKilometers(currentTargetDistance)) {
                 let distance = currentTargetDistance.toFixed(0);
                 let level = levels.find((level) => currentTargetDistance % level === 0) || 1;
                 features.push({
                     type: 'Feature',
                     geometry: {
                         type: 'Point',
-                        coordinates: [
-                            statistics.local.points[i].getLongitude(),
-                            statistics.local.points[i].getLatitude(),
-                        ],
+                        coordinates: [trkpt.getLongitude(), trkpt.getLatitude()],
                     },
                     properties: {
                         distance,
@@ -126,7 +120,7 @@ export class DistanceMarkers {
                 } as GeoJSON.Feature);
                 currentTargetDistance += 1;
             }
-        }
+        });
 
         return {
             type: 'FeatureCollection',
