@@ -3,8 +3,16 @@ import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import { get, writable, type Writable } from 'svelte/store';
 import { settings } from '$lib/logic/settings';
 import { tick } from 'svelte';
+import { terrainSources } from '$lib/assets/layers';
 
-const { treeFileView, elevationProfile, bottomPanelSize, rightPanelSize, distanceUnits } = settings;
+const {
+    treeFileView,
+    elevationProfile,
+    bottomPanelSize,
+    rightPanelSize,
+    distanceUnits,
+    terrainSource,
+} = settings;
 
 let fitBoundsOptions: mapboxgl.MapOptions['fitBoundsOptions'] = {
     maxZoom: 15,
@@ -123,34 +131,14 @@ export class MapboxGLMap {
         });
         map.addControl(scaleControl);
         map.on('style.load', () => {
-            map.addSource('mapbox-dem', {
-                type: 'raster-dem',
-                url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-                tileSize: 512,
-                maxzoom: 14,
-            });
-            if (map.getPitch() > 0) {
-                map.setTerrain({
-                    source: 'mapbox-dem',
-                    exaggeration: 1,
-                });
-            }
             map.setFog({
                 color: 'rgb(186, 210, 235)',
                 'high-color': 'rgb(36, 92, 223)',
                 'horizon-blend': 0.1,
                 'space-color': 'rgb(156, 240, 255)',
             });
-            map.on('pitch', () => {
-                if (map.getPitch() > 0) {
-                    map.setTerrain({
-                        source: 'mapbox-dem',
-                        exaggeration: 1,
-                    });
-                } else {
-                    map.setTerrain(null);
-                }
-            });
+            map.on('pitch', this.setTerrain.bind(this));
+            this.setTerrain();
         });
         map.on('style.import.load', () => {
             const basemap = map.getStyle().imports?.find((imprt) => imprt.id === 'basemap');
@@ -162,6 +150,7 @@ export class MapboxGLMap {
             this._map.set(map); // only set the store after the map has loaded
             window._map = map; // entry point for extensions
             this.resize();
+            this.setTerrain();
             scaleControl.setUnit(get(distanceUnits));
 
             this._onLoadCallbacks.forEach((callback) => callback(map));
@@ -177,6 +166,7 @@ export class MapboxGLMap {
                 scaleControl.setUnit(units);
             })
         );
+        this._unsubscribes.push(terrainSource.subscribe(() => this.setTerrain()));
     }
 
     onLoad(callback: (map: mapboxgl.Map) => void) {
@@ -214,6 +204,24 @@ export class MapboxGLMap {
                 map.easeTo({ pitch: 70 });
             } else {
                 map.easeTo({ pitch: 0 });
+            }
+        }
+    }
+
+    setTerrain() {
+        const map = get(this._map);
+        if (map) {
+            const source = get(terrainSource);
+            if (!map.getSource(source)) {
+                map.addSource(source, terrainSources[source]);
+            }
+            if (map.getPitch() > 0) {
+                map.setTerrain({
+                    source: source,
+                    exaggeration: 1,
+                });
+            } else {
+                map.setTerrain(null);
             }
         }
     }

@@ -8,6 +8,7 @@ import {
     defaultOverlayTree,
     defaultOverpassQueries,
     defaultOverpassTree,
+    defaultTerrainSource,
     type CustomLayer,
 } from '$lib/assets/layers';
 import { browser } from '$app/environment';
@@ -154,6 +155,7 @@ export const settings = {
     customLayers: new Setting<Record<string, CustomLayer>>('customLayers', {}),
     customBasemapOrder: new Setting<string[]>('customBasemapOrder', []),
     customOverlayOrder: new Setting<string[]>('customOverlayOrder', []),
+    terrainSource: new Setting('terrainSource', defaultTerrainSource),
     directionMarkers: new Setting('directionMarkers', false),
     distanceMarkers: new Setting('distanceMarkers', false),
     streetViewSource: new Setting('streetViewSource', 'mapillary'),

@@ -22,7 +22,7 @@ import {
     Binoculars,
     Toilet,
 } from 'lucide-static';
-import { type StyleSpecification } from 'mapbox-gl';
+import { type RasterDEMSourceSpecification, type StyleSpecification } from 'mapbox-gl';
 import ignFrTopo from './custom/ign-fr-topo.json';
 import ignFrPlan from './custom/ign-fr-plan.json';
 import ignFrSatellite from './custom/ign-fr-satellite.json';
@@ -1453,3 +1453,18 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         symbol: 'Anchor',
     },
 };
+
+export const terrainSources: { [key: string]: RasterDEMSourceSpecification } = {
+    'mapbox-dem': {
+        type: 'raster-dem',
+        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+        tileSize: 512,
+        maxzoom: 14,
+    },
+    mapterhorn: {
+        type: 'raster-dem',
+        url: 'https://tiles.mapterhorn.com/tilejson.json',
+    },
+};
+
+export const defaultTerrainSource = 'mapbox-dem';

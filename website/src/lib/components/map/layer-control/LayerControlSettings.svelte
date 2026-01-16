@@ -13,6 +13,7 @@
         overlays,
         overlayTree,
         overpassTree,
+        terrainSources,
     } from '$lib/assets/layers';
     import { getLayers, isSelected, toggle } from '$lib/components/map/layer-control/utils';
     import { i18n } from '$lib/i18n.svelte';
@@ -31,6 +32,7 @@
         currentOverpassQueries,
         customLayers,
         opacities,
+        terrainSource,
     } = settings;
 
     const { isLayerFromExtension, getLayerName } = extensionAPI;
@@ -231,6 +233,23 @@
                             <ScrollArea>
                                 <CustomLayers />
                             </ScrollArea>
+                        </Accordion.Content>
+                    </Accordion.Item>
+                    <Accordion.Item value="terrain-source">
+                        <Accordion.Trigger>{i18n._('layers.terrain')}</Accordion.Trigger>
+                        <Accordion.Content class="flex flex-col gap-3 overflow-visible">
+                            <Select.Root bind:value={$terrainSource} type="single">
+                                <Select.Trigger class="mr-1 w-full" size="sm">
+                                    {i18n._(`layers.label.${$terrainSource}`)}
+                                </Select.Trigger>
+                                <Select.Content class="h-fit max-h-[40dvh] overflow-y-auto">
+                                    {#each Object.keys(terrainSources) as id}
+                                        <Select.Item value={id}>
+                                            {i18n._(`layers.label.${id}`)}
+                                        </Select.Item>
+                                    {/each}
+                                </Select.Content>
+                            </Select.Root>
                         </Accordion.Content>
                     </Accordion.Item>
                 </Accordion.Root>

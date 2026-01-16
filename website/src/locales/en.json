@@ -282,6 +282,7 @@
             "update": "Update layer"
         },
         "opacity": "Overlay opacity",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Basemaps",
             "overlays": "Overlays",
@@ -379,7 +380,9 @@
             "railway-station": "Railway Station",
             "tram-stop": "Tram Stop",
             "bus-stop": "Bus Stop",
-            "ferry": "Ferry"
+            "ferry": "Ferry",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {
