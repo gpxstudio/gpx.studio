@@ -282,7 +282,7 @@
             "update": "Aktualizovat vrstvu"
         },
         "opacity": "Průhlednost překryvu",
-        "terrain": "Terrain source",
+        "terrain": "Zdroj terénu",
         "label": {
             "basemaps": "Základní mapy",
             "overlays": "Překrytí",
