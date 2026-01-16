@@ -282,6 +282,7 @@
             "update": "Eguneratu geruza"
         },
         "opacity": "Geruzaren opakutasuna",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Oinarrizko mapak",
             "overlays": "Geruzak",
@@ -324,8 +325,9 @@
             "bgMountains": "BGMountains",
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
-            "openRailwayMap": "OpenRailwayMap",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Malda",
             "swisstopoHiking": "swisstopo Mendi ibilaldiak",
             "swisstopoHikingClosures": "swisstopo Hiking Closures",
@@ -378,7 +380,9 @@
             "railway-station": "Tren geltokia",
             "tram-stop": "Tranbia geltokia",
             "bus-stop": "Autobus geltokia",
-            "ferry": "Ferria"
+            "ferry": "Ferria",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {
