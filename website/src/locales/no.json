@@ -282,6 +282,7 @@
             "update": "Oppdater lag"
         },
         "opacity": "Gjennomsiktighet for overlegg",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Basiskart",
             "overlays": "Overlag",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "sykkelrute Grus",
             "cyclOSMlite": "SyklOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopografisk helningskart",
             "swisstopoHiking": "swisstopografisk Fottur",
             "swisstopoHikingClosures": "swisstopografi Stengte turstier",
@@ -377,7 +380,9 @@
             "railway-station": "Jernbanestasjon",
             "tram-stop": "Trikkestopp",
             "bus-stop": "Bussholdeplass",
-            "ferry": "Ferge"
+            "ferry": "Ferge",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

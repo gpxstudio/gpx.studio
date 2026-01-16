@@ -282,6 +282,7 @@
             "update": "Mettre à jour la couche"
         },
         "opacity": "Opacité de la surcouche",
+        "terrain": "Source du relief",
         "label": {
             "basemaps": "Fonds de carte",
             "overlays": "Surcouches",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Relief",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Pente",
             "swisstopoHiking": "swisstopo Randonnée",
             "swisstopoHikingClosures": "swisstopo Fermetures de randonnée",
@@ -377,7 +380,9 @@
             "railway-station": "Gare",
             "tram-stop": "Arrêt de tram",
             "bus-stop": "Arrêt de bus",
-            "ferry": "Ferry"
+            "ferry": "Ferry",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

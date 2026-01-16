@@ -282,6 +282,7 @@
             "update": "Naujinti sluoksnį"
         },
         "opacity": "Sluoksnio skaidrumas",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Pagrindo žemėlapiai",
             "overlays": "Sluoksniai",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Slope",
             "swisstopoHiking": "swisstopo Hiking",
             "swisstopoHikingClosures": "swisstopo Hiking Closures",
@@ -377,7 +380,9 @@
             "railway-station": "Geležinkelio stotis",
             "tram-stop": "Tramvajaus stotelė",
             "bus-stop": "Autobusų stotelė",
-            "ferry": "Keltas"
+            "ferry": "Keltas",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

@@ -282,6 +282,7 @@
             "update": "Оновити шар"
         },
         "opacity": "Непрозорість накладання",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Базові карти",
             "overlays": "Накладання",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Slope",
             "swisstopoHiking": "swisstopo Hiking",
             "swisstopoHikingClosures": "swisstopo Hiking Closures",
@@ -377,7 +380,9 @@
             "railway-station": "Залізнична Станція",
             "tram-stop": "Трамвайна Зупинка",
             "bus-stop": "Автобусна Зупинка",
-            "ferry": "Пором"
+            "ferry": "Пором",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

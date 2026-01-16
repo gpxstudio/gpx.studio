@@ -282,6 +282,7 @@
             "update": "更新图层"
         },
         "opacity": "图层透明度",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "底图",
             "overlays": "叠加层",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "Swisstopo Slope",
             "swisstopoHiking": "Swisstopo Hiking",
             "swisstopoHikingClosures": "Swisstopo Hiking Closures",
@@ -377,7 +380,9 @@
             "railway-station": "火车站",
             "tram-stop": "有轨电车站",
             "bus-stop": "小型公交站台",
-            "ferry": "渡口"
+            "ferry": "渡口",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

@@ -282,6 +282,7 @@
             "update": "Обновить слой"
         },
         "opacity": "Прозрачность наложения",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Основные карты",
             "overlays": "Наложения",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Slope",
             "swisstopoHiking": "swisstopo Hiking",
             "swisstopoHikingClosures": "swisstopo Hiking Closures",
@@ -377,7 +380,9 @@
             "railway-station": "Железнодорожная станция",
             "tram-stop": "Трамвайная остановка",
             "bus-stop": "Автобусная остановка",
-            "ferry": "Паром"
+            "ferry": "Паром",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

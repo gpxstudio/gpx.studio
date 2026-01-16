@@ -282,6 +282,7 @@
             "update": "Atualizar camada"
         },
         "opacity": "Opacidade da sobreposição",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Mapas base",
             "overlays": "Sobreposições",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Slope",
             "swisstopoHiking": "swisstopo Hiking",
             "swisstopoHikingClosures": "swisstopo Hiking Closures",
@@ -377,7 +380,9 @@
             "railway-station": "Estações ferroviárias",
             "tram-stop": "Parada de bonde",
             "bus-stop": "Parada de Ônibus",
-            "ferry": "Balsa"
+            "ferry": "Balsa",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

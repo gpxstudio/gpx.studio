@@ -282,6 +282,7 @@
             "update": "Actualizează stratul"
         },
         "opacity": "Opacitatea overlay-ului",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Hărți de bază",
             "overlays": "Suprapuneri",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Slope",
             "swisstopoHiking": "swisstopo Hiking",
             "swisstopoHikingClosures": "swisstopo Hiking Closures",
@@ -377,7 +380,9 @@
             "railway-station": "Gară",
             "tram-stop": "Tram Stop",
             "bus-stop": "Stație de autobuz",
-            "ferry": "Feribot"
+            "ferry": "Feribot",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

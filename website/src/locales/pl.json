@@ -282,6 +282,7 @@
             "update": "Zaktualizuj warstwę"
         },
         "opacity": "Przezroczystość nakładki",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Mapy bazowe",
             "overlays": "Nakładki",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Stoki",
             "swisstopoHiking": "swisstopo Szlaki Turystyczne",
             "swisstopoHikingClosures": "swisstopo Zamknięcia Szlaków",
@@ -377,7 +380,9 @@
             "railway-station": "Stacja kolejowa",
             "tram-stop": "Przystanek tramwajowy",
             "bus-stop": "Przystanek autobusowy",
-            "ferry": "Prom"
+            "ferry": "Prom",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

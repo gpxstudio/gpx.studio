@@ -282,6 +282,7 @@
             "update": "Aktualizovat vrstvu"
         },
         "opacity": "Průhlednost překryvu",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Základní mapy",
             "overlays": "Překrytí",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Vrstevnice",
             "swisstopoHiking": "swisstopo Turistická",
             "swisstopoHikingClosures": "swisstopo Turistické uzávěry",
@@ -377,7 +380,9 @@
             "railway-station": "Železniční stanice",
             "tram-stop": "Zastávka tramvaje",
             "bus-stop": "Autobusová zastávka",
-            "ferry": "Trajekt"
+            "ferry": "Trajekt",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {
