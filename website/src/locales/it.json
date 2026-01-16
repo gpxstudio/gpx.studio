@@ -282,6 +282,7 @@
             "update": "Aggiorna livello"
         },
         "opacity": "Opacità di sovrapposizione",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Mappe di base",
             "overlays": "Sovrapposizioni",
@@ -324,8 +325,9 @@
             "bgMountains": "BGMountains",
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
-            "openRailwayMap": "OpenRailwayMap",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Pendenza",
             "swisstopoHiking": "swisstopo Escursione",
             "swisstopoHikingClosures": "swisstopo Fine escursione",
@@ -378,7 +380,9 @@
             "railway-station": "Stazione ferroviaria",
             "tram-stop": "Fermata del tram",
             "bus-stop": "Fermata dell'autobus",
-            "ferry": "Traghetto"
+            "ferry": "Traghetto",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {
