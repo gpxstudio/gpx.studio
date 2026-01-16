@@ -388,6 +388,22 @@ export const overlays: { [key: string]: string | StyleSpecification } = {
             },
         ],
     },
+    mapterhornHillshade: {
+        version: 8,
+        sources: {
+            mapterhornHillshade: {
+                type: 'raster-dem',
+                url: 'https://tiles.mapterhorn.com/tilejson.json',
+            },
+        },
+        layers: [
+            {
+                id: 'mapterhornHillshade',
+                type: 'hillshade',
+                source: 'mapterhornHillshade',
+            },
+        ],
+    },
     swisstopoSlope: {
         version: 8,
         sources: {
@@ -819,8 +835,9 @@ export const overlayTree: LayerTreeType = {
                 waymarkedTrailsHorseRiding: true,
                 waymarkedTrailsWinter: true,
             },
-            cyclOSMlite: true,
             bikerouterGravel: true,
+            cyclOSMlite: true,
+            mapterhornHillshade: true,
             openRailwayMap: true,
         },
         countries: {
@@ -904,8 +921,9 @@ export const defaultOverlays: LayerTreeType = {
                 waymarkedTrailsHorseRiding: false,
                 waymarkedTrailsWinter: false,
             },
-            cyclOSMlite: false,
             bikerouterGravel: false,
+            cyclOSMlite: false,
+            mapterhornHillshade: false,
             openRailwayMap: false,
         },
         countries: {
@@ -1040,8 +1058,9 @@ export const defaultOverlayTree: LayerTreeType = {
                 waymarkedTrailsHorseRiding: false,
                 waymarkedTrailsWinter: false,
             },
-            cyclOSMlite: false,
             bikerouterGravel: false,
+            cyclOSMlite: false,
+            mapterhornHillshade: false,
             openRailwayMap: false,
         },
         countries: {
