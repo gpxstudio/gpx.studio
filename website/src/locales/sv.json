@@ -282,6 +282,7 @@
             "update": "Update layer"
         },
         "opacity": "Overlay opacity",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Baskartor",
             "overlays": "Lager",
@@ -324,8 +325,9 @@
             "bgMountains": "BGMountains",
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
-            "openRailwayMap": "OpenRailwayMap",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Slope",
             "swisstopoHiking": "swisstopo Hiking",
             "swisstopoHikingClosures": "swisstopo Hiking Closures",
@@ -378,7 +380,9 @@
             "railway-station": "Järnvägsstation",
             "tram-stop": "Spårvagnshållplats",
             "bus-stop": "Busshållplats",
-            "ferry": "Ferry"
+            "ferry": "Ferry",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {
