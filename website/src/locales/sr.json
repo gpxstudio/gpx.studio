@@ -282,6 +282,7 @@
             "update": "Ažurirajte sloj"
         },
         "opacity": "Providnost preklapanja",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Osnovne mape",
             "overlays": "Preklapanja",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Slope",
             "swisstopoHiking": "swisstopo Hiking",
             "swisstopoHikingClosures": "swisstopo Hiking Closures",
@@ -377,7 +380,9 @@
             "railway-station": "Železnička stanica",
             "tram-stop": "Tramvajsko stajalište",
             "bus-stop": "Autobusko stajalište",
-            "ferry": "Trajekt"
+            "ferry": "Trajekt",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

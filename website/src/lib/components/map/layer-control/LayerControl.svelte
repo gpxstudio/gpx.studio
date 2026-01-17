@@ -101,9 +101,7 @@
                                 acc: Record<string, ImportSpecification>,
                                 imprt: ImportSpecification
                             ) => {
-                                if (
-                                    !['basemap', 'overlays', 'glyphs-and-sprite'].includes(imprt.id)
-                                ) {
+                                if (!['basemap', 'overlays'].includes(imprt.id)) {
                                     acc[imprt.id] = imprt;
                                 }
                                 return acc;

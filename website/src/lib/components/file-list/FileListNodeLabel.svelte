@@ -72,17 +72,15 @@
                 }
 
                 let style = node.getStyle(defaultColor);
-                style.color.forEach((c) => {
-                    if (!colors.includes(c)) {
-                        colors.push(c);
-                    }
-                });
+                colors = style.color;
             } else if (node instanceof Track) {
                 let style = node.getStyle();
-                if (style) {
-                    if (style['gpx_style:color'] && !colors.includes(style['gpx_style:color'])) {
-                        colors.push(style['gpx_style:color']);
-                    }
+                if (
+                    style &&
+                    style['gpx_style:color'] &&
+                    !colors.includes(style['gpx_style:color'])
+                ) {
+                    colors.push(style['gpx_style:color']);
                 }
                 if (colors.length === 0) {
                     let layer = gpxLayers.getLayer(item.getFileId());

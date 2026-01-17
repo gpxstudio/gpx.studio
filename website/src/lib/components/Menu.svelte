@@ -538,6 +538,7 @@
         let targetInput =
             e &&
             e.target &&
+            e.target instanceof HTMLElement &&
             (e.target.tagName === 'INPUT' ||
                 e.target.tagName === 'TEXTAREA' ||
                 e.target.tagName === 'SELECT' ||

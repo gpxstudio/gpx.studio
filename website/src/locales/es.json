@@ -2,7 +2,7 @@
     "metadata": {
         "home_title": "el editor online de archivos GPX",
         "app_title": "app",
-        "embed_title": "El editor online de archivos GPX",
+        "embed_title": " editor online de archivos GPX",
         "help_title": "ayuda",
         "404_title": "página no encontrada",
         "description": "Mira, edita y crea archivos GPX online con  planificación avanzada de rutas y herramientas de procesamiento de archivos, bonitos mapas y visualizaciones detalladas de datos."
@@ -282,6 +282,7 @@
             "update": "Actualizar capa"
         },
         "opacity": "Opacidad de la capa superpuesta",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Mapas base",
             "overlays": "Capas",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "Gravel bikerouter.de",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Slope",
             "swisstopoHiking": "swisstopo Senderismo",
             "swisstopoHikingClosures": "swisstopo Rutas Senderismo",
@@ -377,7 +380,9 @@
             "railway-station": "Estación de tren",
             "tram-stop": "Parada de tranvía",
             "bus-stop": "Parada de autobús",
-            "ferry": "Ferri"
+            "ferry": "Ferri",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

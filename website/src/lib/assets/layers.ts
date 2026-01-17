@@ -22,7 +22,7 @@ import {
     Binoculars,
     Toilet,
 } from 'lucide-static';
-import { type StyleSpecification } from 'mapbox-gl';
+import { type RasterDEMSourceSpecification, type StyleSpecification } from 'mapbox-gl';
 import ignFrTopo from './custom/ign-fr-topo.json';
 import ignFrPlan from './custom/ign-fr-plan.json';
 import ignFrSatellite from './custom/ign-fr-satellite.json';
@@ -368,6 +368,42 @@ export const overlays: { [key: string]: string | StyleSpecification } = {
         ],
     },
     bikerouterGravel: bikerouterGravel as StyleSpecification,
+    openRailwayMap: {
+        version: 8,
+        sources: {
+            openRailwayMap: {
+                type: 'raster',
+                tiles: ['https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                maxzoom: 19,
+                attribution:
+                    'Data <a href="https://www.openstreetmap.org/copyright">&copy; OpenStreetMap contributors</a>, Style: <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA 2.0</a> <a href="http://www.openrailwaymap.org/">OpenRailwayMap</a>',
+            },
+        },
+        layers: [
+            {
+                id: 'openRailwayMap',
+                type: 'raster',
+                source: 'openRailwayMap',
+            },
+        ],
+    },
+    mapterhornHillshade: {
+        version: 8,
+        sources: {
+            mapterhornHillshade: {
+                type: 'raster-dem',
+                url: 'https://tiles.mapterhorn.com/tilejson.json',
+            },
+        },
+        layers: [
+            {
+                id: 'mapterhornHillshade',
+                type: 'hillshade',
+                source: 'mapterhornHillshade',
+            },
+        ],
+    },
     swisstopoSlope: {
         version: 8,
         sources: {
@@ -799,8 +835,10 @@ export const overlayTree: LayerTreeType = {
                 waymarkedTrailsHorseRiding: true,
                 waymarkedTrailsWinter: true,
             },
-            cyclOSMlite: true,
             bikerouterGravel: true,
+            cyclOSMlite: true,
+            mapterhornHillshade: true,
+            openRailwayMap: true,
         },
         countries: {
             france: {
@@ -883,8 +921,10 @@ export const defaultOverlays: LayerTreeType = {
                 waymarkedTrailsHorseRiding: false,
                 waymarkedTrailsWinter: false,
             },
-            cyclOSMlite: false,
             bikerouterGravel: false,
+            cyclOSMlite: false,
+            mapterhornHillshade: false,
+            openRailwayMap: false,
         },
         countries: {
             france: {
@@ -1018,8 +1058,10 @@ export const defaultOverlayTree: LayerTreeType = {
                 waymarkedTrailsHorseRiding: false,
                 waymarkedTrailsWinter: false,
             },
-            cyclOSMlite: false,
             bikerouterGravel: false,
+            cyclOSMlite: false,
+            mapterhornHillshade: false,
+            openRailwayMap: false,
         },
         countries: {
             france: {
@@ -1411,3 +1453,18 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
         symbol: 'Anchor',
     },
 };
+
+export const terrainSources: { [key: string]: RasterDEMSourceSpecification } = {
+    'mapbox-dem': {
+        type: 'raster-dem',
+        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+        tileSize: 512,
+        maxzoom: 14,
+    },
+    mapterhorn: {
+        type: 'raster-dem',
+        url: 'https://tiles.mapterhorn.com/tilejson.json',
+    },
+};
+
+export const defaultTerrainSource = 'mapbox-dem';

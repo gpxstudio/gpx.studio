@@ -17,7 +17,6 @@ import {
 import { i18n } from '$lib/i18n.svelte';
 import { freeze, type WritableDraft } from 'immer';
 import {
-    distance,
     GPXFile,
     parseGPX,
     Track,
@@ -30,7 +29,7 @@ import {
 } from 'gpx';
 import { get } from 'svelte/store';
 import { settings } from '$lib/logic/settings';
-import { getClosestLinePoint, getElevation } from '$lib/utils';
+import { getClosestLinePoint, getClosestTrackSegments, getElevation } from '$lib/utils';
 import { gpxStatistics } from '$lib/logic/statistics';
 import { boundsManager } from './bounds';
 
@@ -216,7 +215,7 @@ export const fileActions = {
     reverseSelection: () => {
         if (
             !get(selection).hasAnyChildren(new ListRootItem(), true, ['waypoints']) ||
-            get(gpxStatistics).local.points?.length <= 1
+            get(gpxStatistics).global.length <= 1
         ) {
             return;
         }
@@ -346,19 +345,20 @@ export const fileActions = {
                 let startTime: Date | undefined = undefined;
                 if (speed !== undefined) {
                     if (
-                        statistics.local.points.length > 0 &&
-                        statistics.local.points[0].time !== undefined
+                        statistics.global.length > 0 &&
+                        statistics.getTrackPoint(0)!.trkpt.time !== undefined
                     ) {
-                        startTime = statistics.local.points[0].time;
+                        startTime = statistics.getTrackPoint(0)!.trkpt.time;
                     } else {
-                        let index = statistics.local.points.findIndex(
-                            (point) => point.time !== undefined
-                        );
-                        if (index !== -1 && statistics.local.points[index].time) {
-                            startTime = new Date(
-                                statistics.local.points[index].time.getTime() -
-                                    (1000 * 3600 * statistics.local.distance.total[index]) / speed
-                            );
+                        for (let i = 0; i < statistics.global.length; i++) {
+                            const point = statistics.getTrackPoint(i)!;
+                            if (point.trkpt.time !== undefined) {
+                                startTime = new Date(
+                                    point.trkpt.time.getTime() -
+                                        (1000 * 3600 * point.distance.total) / speed
+                                );
+                                break;
+                            }
                         }
                     }
                 }
@@ -453,34 +453,13 @@ export const fileActions = {
             selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
                 if (level === ListLevel.FILE) {
                     let file = fileStateCollection.getFile(fileId);
-                    if (file) {
+                    let statistics = fileStateCollection.getStatistics(fileId);
+                    if (file && statistics) {
                         if (file.trk.length > 1) {
                             let fileIds = getFileIds(file.trk.length);
-                            let closest = file.wpt.map((wpt, wptIndex) => {
-                                return {
-                                    wptIndex: wptIndex,
-                                    index: [0],
-                                    distance: Number.MAX_VALUE,
-                                };
-                            });
-                            file.trk.forEach((track, index) => {
-                                track.getSegments().forEach((segment) => {
-                                    segment.trkpt.forEach((point) => {
-                                        file.wpt.forEach((wpt, wptIndex) => {
-                                            let dist = distance(
-                                                point.getCoordinates(),
-                                                wpt.getCoordinates()
-                                            );
-                                            if (dist < closest[wptIndex].distance) {
-                                                closest[wptIndex].distance = dist;
-                                                closest[wptIndex].index = [index];
-                                            } else if (dist === closest[wptIndex].distance) {
-                                                closest[wptIndex].index.push(index);
-                                            }
-                                        });
-                                    });
-                                });
-                            });
+                            let closest = file.wpt.map((wpt) =>
+                                getClosestTrackSegments(file, statistics, wpt.getCoordinates())
+                            );
                             file.trk.forEach((track, index) => {
                                 let newFile = file.clone();
                                 let tracks = track.trkseg.map((segment, segmentIndex) => {
@@ -495,9 +474,11 @@ export const fileActions = {
                                 newFile.replaceWaypoints(
                                     0,
                                     file.wpt.length - 1,
-                                    closest
-                                        .filter((c) => c.index.includes(index))
-                                        .map((c) => file.wpt[c.wptIndex])
+                                    file.wpt.filter((wpt, wptIndex) =>
+                                        closest[wptIndex].some(
+                                            ([trackIndex, segmentIndex]) => trackIndex === index
+                                        )
+                                    )
                                 );
                                 newFile._data.id = fileIds[index];
                                 newFile.metadata.name =
@@ -506,29 +487,9 @@ export const fileActions = {
                             });
                         } else if (file.trk.length === 1) {
                             let fileIds = getFileIds(file.trk[0].trkseg.length);
-                            let closest = file.wpt.map((wpt, wptIndex) => {
-                                return {
-                                    wptIndex: wptIndex,
-                                    index: [0],
-                                    distance: Number.MAX_VALUE,
-                                };
-                            });
-                            file.trk[0].trkseg.forEach((segment, index) => {
-                                segment.trkpt.forEach((point) => {
-                                    file.wpt.forEach((wpt, wptIndex) => {
-                                        let dist = distance(
-                                            point.getCoordinates(),
-                                            wpt.getCoordinates()
-                                        );
-                                        if (dist < closest[wptIndex].distance) {
-                                            closest[wptIndex].distance = dist;
-                                            closest[wptIndex].index = [index];
-                                        } else if (dist === closest[wptIndex].distance) {
-                                            closest[wptIndex].index.push(index);
-                                        }
-                                    });
-                                });
-                            });
+                            let closest = file.wpt.map((wpt) =>
+                                getClosestTrackSegments(file, statistics, wpt.getCoordinates())
+                            );
                             file.trk[0].trkseg.forEach((segment, index) => {
                                 let newFile = file.clone();
                                 newFile.replaceTrackSegments(0, 0, file.trk[0].trkseg.length - 1, [
@@ -537,9 +498,11 @@ export const fileActions = {
                                 newFile.replaceWaypoints(
                                     0,
                                     file.wpt.length - 1,
-                                    closest
-                                        .filter((c) => c.index.includes(index))
-                                        .map((c) => file.wpt[c.wptIndex])
+                                    file.wpt.filter((wpt, wptIndex) =>
+                                        closest[wptIndex].some(
+                                            ([trackIndex, segmentIndex]) => segmentIndex === index
+                                        )
+                                    )
                                 );
                                 newFile._data.id = fileIds[index];
                                 newFile.metadata.name = `${file.trk[0].name ?? file.metadata.name} (${index + 1})`;

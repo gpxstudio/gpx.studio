@@ -2,7 +2,7 @@
     "metadata": {
         "home_title": "edytor online plików GPX",
         "app_title": "Aplikacja",
-        "embed_title": "Online'owy edytor plików GPX",
+        "embed_title": "Edytor plików GPX online",
         "help_title": "pomoc",
         "404_title": "nie odnaleziono strony",
         "description": "Przeglądaj, edytuj i twórz pliki GPX online z zaawansowanymi możliwościami planowania trasy i narzędziami do przetwarzania plików, pięknymi mapami i szczegółowymi wizualizacjami danych."
@@ -28,7 +28,7 @@
         "undo": "Cofnij",
         "redo": "Ponów",
         "delete": "Usuń",
-        "delete_all": "Delete all",
+        "delete_all": "Usuń wszystko",
         "select_all": "Zaznacz wszystko",
         "view": "Widok",
         "elevation_profile": "Profil wysokości",
@@ -80,7 +80,7 @@
         "center": "Wyśrodkuj",
         "open_in": "Otwórz w",
         "copy_coordinates": "Kopiuj współrzędne",
-        "edit_osm": "Edit in OpenStreetMap"
+        "edit_osm": "Edytuj w OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -282,6 +282,7 @@
             "update": "Zaktualizuj warstwę"
         },
         "opacity": "Przezroczystość nakładki",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Mapy bazowe",
             "overlays": "Nakładki",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Stoki",
             "swisstopoHiking": "swisstopo Szlaki Turystyczne",
             "swisstopoHikingClosures": "swisstopo Zamknięcia Szlaków",
@@ -353,7 +356,7 @@
             "water": "Woda",
             "shower": "Prysznic",
             "shelter": "Schronienie",
-            "cemetery": "Cemetery",
+            "cemetery": "Cmentarz",
             "motorized": "Samochody i motocykle",
             "fuel-station": "Stacja paliw",
             "parking": "Parking",
@@ -377,7 +380,9 @@
             "railway-station": "Stacja kolejowa",
             "tram-stop": "Przystanek tramwajowy",
             "bus-stop": "Przystanek autobusowy",
-            "ferry": "Prom"
+            "ferry": "Prom",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

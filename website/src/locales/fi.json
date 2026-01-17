@@ -282,6 +282,7 @@
             "update": "Päivitä karttataso"
         },
         "opacity": "Peitetason läpinäkyvyys",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Taustakartat",
             "overlays": "Peitetasot",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Rinnekaltevuus",
             "swisstopoHiking": "swisstopo Retkeilyreitit",
             "swisstopoHikingClosures": "swisstopo Hiking Closures",
@@ -377,7 +380,9 @@
             "railway-station": "Rautatieasemat",
             "tram-stop": "Raitiovaunupysäkit",
             "bus-stop": "Linja-autopysäkit",
-            "ferry": "Lautat"
+            "ferry": "Lautat",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

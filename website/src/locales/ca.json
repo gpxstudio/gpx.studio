@@ -282,6 +282,7 @@
             "update": "Actualitza la capa"
         },
         "opacity": "Opacitat de la superposició",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Mapes base",
             "overlays": "Capes",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Slope",
             "swisstopoHiking": "swisstopo Hiking",
             "swisstopoHikingClosures": "swisstopo Hiking Closures",
@@ -377,7 +380,9 @@
             "railway-station": "Estació de tren",
             "tram-stop": "Parada de tramvia",
             "bus-stop": "Parada d'autobús",
-            "ferry": "Ferri"
+            "ferry": "Ferri",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

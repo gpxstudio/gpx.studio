@@ -230,8 +230,8 @@
             "help_invalid_selection": "须先选择包含多个轨迹的文件以提取。"
         },
         "elevation": {
-            "button": "请求数据",
-            "help": "请求成功后将使用 Mapbox 海拔数据替换原有数据。",
+            "button": "请求海拔数据",
+            "help": "请求成功后将移除原有的海拔数据，并使用 Mapbox 的海拔数据替换原有数据。",
             "help_no_selection": "选择要请求海拔数据的文件。"
         },
         "waypoint": {
@@ -282,6 +282,7 @@
             "update": "更新图层"
         },
         "opacity": "图层透明度",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "底图",
             "overlays": "叠加层",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "Swisstopo Slope",
             "swisstopoHiking": "Swisstopo Hiking",
             "swisstopoHikingClosures": "Swisstopo Hiking Closures",
@@ -377,7 +380,9 @@
             "railway-station": "火车站",
             "tram-stop": "有轨电车站",
             "bus-stop": "小型公交站台",
-            "ferry": "渡口"
+            "ferry": "渡口",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

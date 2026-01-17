@@ -34,13 +34,20 @@ export class StartEndMarkers {
         if (!map_) return;
 
         const tool = get(currentTool);
-        const statistics = get(slicedGPXStatistics)?.[0] ?? get(gpxStatistics);
+        const statistics = get(gpxStatistics);
+        const slicedStatistics = get(slicedGPXStatistics);
         const hidden = get(allHidden);
-        if (statistics.local.points.length > 0 && tool !== Tool.ROUTING && !hidden) {
-            this.start.setLngLat(statistics.local.points[0].getCoordinates()).addTo(map_);
+        if (statistics.global.length > 0 && tool !== Tool.ROUTING && !hidden) {
+            this.start
+                .setLngLat(
+                    statistics.getTrackPoint(slicedStatistics?.[1] ?? 0)!.trkpt.getCoordinates()
+                )
+                .addTo(map_);
             this.end
                 .setLngLat(
-                    statistics.local.points[statistics.local.points.length - 1].getCoordinates()
+                    statistics
+                        .getTrackPoint(slicedStatistics?.[2] ?? statistics.global.length - 1)!
+                        .trkpt.getCoordinates()
                 )
                 .addTo(map_);
         } else {

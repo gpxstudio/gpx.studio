@@ -282,6 +282,7 @@
             "update": "Update laag"
         },
         "opacity": "Laag Transparantie",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Basis kaarten",
             "overlays": "Lagen",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Grind",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Helling",
             "swisstopoHiking": "swisstopo Wandelen",
             "swisstopoHikingClosures": "swisstopo Hiking Sluiting",
@@ -377,7 +380,9 @@
             "railway-station": "Treinstation",
             "tram-stop": "Tramhalte",
             "bus-stop": "Bushalte",
-            "ferry": "Veerboot"
+            "ferry": "Veerboot",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

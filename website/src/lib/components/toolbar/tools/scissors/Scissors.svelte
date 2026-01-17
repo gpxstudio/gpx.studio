@@ -26,12 +26,10 @@
 
     let validSelection = $derived(
         $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints']) &&
-            $gpxStatistics.local.points.length > 0
+            $gpxStatistics.global.length > 0
     );
     let maxSliderValue = $derived(
-        validSelection && $gpxStatistics.local.points.length > 0
-            ? $gpxStatistics.local.points.length - 1
-            : 1
+        validSelection && $gpxStatistics.global.length > 0 ? $gpxStatistics.global.length - 1 : 1
     );
     let sliderValues = $derived([0, maxSliderValue]);
     let canCrop = $derived(sliderValues[0] != 0 || sliderValues[1] != maxSliderValue);
@@ -45,7 +43,7 @@
     function updateSlicedGPXStatistics() {
         if (validSelection && canCrop) {
             $slicedGPXStatistics = [
-                get(gpxStatistics).slice(sliderValues[0], sliderValues[1]),
+                get(gpxStatistics).sliced(sliderValues[0], sliderValues[1]),
                 sliderValues[0],
                 sliderValues[1],
             ];

@@ -21,7 +21,7 @@
         SquareActivity,
     } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
-    import { GPXStatistics } from 'gpx';
+    import { GPXGlobalStatistics } from 'gpx';
     import { ListRootItem } from '$lib/components/file-list/file-list';
     import { fileStateCollection } from '$lib/logic/file-state';
     import { selection } from '$lib/logic/selection';
@@ -48,24 +48,24 @@
                 extensions: false,
             };
         } else {
-            let statistics = $gpxStatistics;
+            let statistics = $gpxStatistics.global;
             if (exportState.current === ExportState.ALL) {
                 statistics = Array.from(get(fileStateCollection).values())
                     .map((file) => file.statistics)
                     .reduce((acc, cur) => {
                         if (cur !== undefined) {
-                            acc.mergeWith(cur.getStatisticsFor(new ListRootItem()));
+                            acc.mergeWith(cur.getStatisticsFor(new ListRootItem()).global);
                         }
                         return acc;
-                    }, new GPXStatistics());
+                    }, new GPXGlobalStatistics());
             }
             return {
-                time: statistics.global.time.total === 0,
-                hr: statistics.global.hr.count === 0,
-                cad: statistics.global.cad.count === 0,
-                atemp: statistics.global.atemp.count === 0,
-                power: statistics.global.power.count === 0,
-                extensions: Object.keys(statistics.global.extensions).length === 0,
+                time: statistics.time.total === 0,
+                hr: statistics.hr.count === 0,
+                cad: statistics.cad.count === 0,
+                atemp: statistics.atemp.count === 0,
+                power: statistics.power.count === 0,
+                extensions: Object.keys(statistics.extensions).length === 0,
             };
         }
     });

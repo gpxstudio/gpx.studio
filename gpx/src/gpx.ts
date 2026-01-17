@@ -1,4 +1,5 @@
 import { ramerDouglasPeucker } from './simplify';
+import { GPXStatistics, GPXStatisticsGroup, TrackPointLocalStatistics } from './statistics';
 import {
     Coordinates,
     GPXFileAttributes,
@@ -36,7 +37,6 @@ export abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
     abstract getNumberOfTrackPoints(): number;
     abstract getStartTimestamp(): Date | undefined;
     abstract getEndTimestamp(): Date | undefined;
-    abstract getStatistics(): GPXStatistics;
     abstract getSegments(): TrackSegment[];
     abstract getTrackPoints(): TrackPoint[];
 
@@ -74,14 +74,6 @@ abstract class GPXTreeNode<T extends GPXTreeElement<any>> extends GPXTreeElement
             return undefined;
         }
         return this.children[this.children.length - 1].getEndTimestamp();
-    }
-
-    getStatistics(): GPXStatistics {
-        let statistics = new GPXStatistics();
-        for (let child of this.children) {
-            statistics.mergeWith(child.getStatistics());
-        }
-        return statistics;
     }
 
     getSegments(): TrackSegment[] {
@@ -148,7 +140,9 @@ export class GPXFile extends GPXTreeNode<Track> {
                     },
                 },
             };
-            this.wpt = gpx.wpt ? gpx.wpt.map((waypoint) => new Waypoint(waypoint)) : [];
+            this.wpt = gpx.wpt
+                ? gpx.wpt.map((waypoint, index) => new Waypoint(waypoint, index))
+                : [];
             this.trk = gpx.trk ? gpx.trk.map((track) => new Track(track)) : [];
             if (gpx.rte && gpx.rte.length > 0) {
                 this.trk = this.trk.concat(gpx.rte.map((route) => convertRouteToTrack(route)));
@@ -186,9 +180,6 @@ export class GPXFile extends GPXTreeNode<Track> {
                 segment._data['segmentIndex'] = segmentIndex;
             });
         });
-        this.wpt.forEach((waypoint, waypointIndex) => {
-            waypoint._data['index'] = waypointIndex;
-        });
     }
 
     get children(): Array<Track> {
@@ -209,8 +200,16 @@ export class GPXFile extends GPXTreeNode<Track> {
         });
     }
 
+    getStatistics(): GPXStatisticsGroup {
+        let statistics = new GPXStatisticsGroup();
+        this.forEachSegment((segment) => {
+            statistics.add(segment.getStatistics());
+        });
+        return statistics;
+    }
+
     getStyle(defaultColor?: string): MergedLineStyles {
-        return this.trk
+        const style = this.trk
             .map((track) => track.getStyle())
             .reduce(
                 (acc, style) => {
@@ -220,8 +219,6 @@ export class GPXFile extends GPXTreeNode<Track> {
                         !acc.color.includes(style['gpx_style:color'])
                     ) {
                         acc.color.push(style['gpx_style:color']);
-                    } else if (defaultColor && !acc.color.includes(defaultColor)) {
-                        acc.color.push(defaultColor);
                     }
                     if (
                         style &&
@@ -245,6 +242,10 @@ export class GPXFile extends GPXTreeNode<Track> {
                     width: [],
                 }
             );
+        if (style.color.length === 0 && defaultColor) {
+            style.color.push(defaultColor);
+        }
+        return style;
     }
 
     clone(): GPXFile {
@@ -807,7 +808,7 @@ export class TrackSegment extends GPXTreeLeaf {
     constructor(segment?: (TrackSegmentType & { _data?: any }) | TrackSegment) {
         super();
         if (segment) {
-            this.trkpt = segment.trkpt.map((point) => new TrackPoint(point));
+            this.trkpt = segment.trkpt.map((point, index) => new TrackPoint(point, index));
             if (segment.hasOwnProperty('_data')) {
                 this._data = segment._data;
             }
@@ -819,12 +820,12 @@ export class TrackSegment extends GPXTreeLeaf {
     _computeStatistics(): GPXStatistics {
         let statistics = new GPXStatistics();
 
-        statistics.local.points = this.trkpt.map((point) => point);
+        statistics.global.length = this.trkpt.length;
+        statistics.local.points = this.trkpt.slice(0);
+        statistics.local.data = this.trkpt.map(() => new TrackPointLocalStatistics());
 
         const points = this.trkpt;
         for (let i = 0; i < points.length; i++) {
-            points[i]._data['index'] = i;
-
             // distance
             let dist = 0;
             if (i > 0) {
@@ -833,19 +834,18 @@ export class TrackSegment extends GPXTreeLeaf {
                 statistics.global.distance.total += dist;
             }
 
-            statistics.local.distance.total.push(statistics.global.distance.total);
+            statistics.local.data[i].distance.total = statistics.global.distance.total;
 
             // time
             if (points[i].time === undefined) {
-                statistics.local.time.total.push(0);
+                statistics.local.data[i].time.total = 0;
             } else {
                 if (statistics.global.time.start === undefined) {
                     statistics.global.time.start = points[i].time;
                 }
                 statistics.global.time.end = points[i].time;
-                statistics.local.time.total.push(
-                    (points[i].time.getTime() - statistics.global.time.start.getTime()) / 1000
-                );
+                statistics.local.data[i].time.total =
+                    (points[i].time.getTime() - statistics.global.time.start.getTime()) / 1000;
             }
 
             // speed
@@ -860,8 +860,8 @@ export class TrackSegment extends GPXTreeLeaf {
                 }
             }
 
-            statistics.local.distance.moving.push(statistics.global.distance.moving);
-            statistics.local.time.moving.push(statistics.global.time.moving);
+            statistics.local.data[i].distance.moving = statistics.global.distance.moving;
+            statistics.local.data[i].time.moving = statistics.global.time.moving;
 
             // bounds
             statistics.global.bounds.southWest.lat = Math.min(
@@ -961,13 +961,22 @@ export class TrackSegment extends GPXTreeLeaf {
                 ? statistics.global.distance.moving / (statistics.global.time.moving / 3600)
                 : 0;
 
-        statistics.local.speed = timeWindowSmoothing(points, 10000, (start, end) =>
-            points[start].time && points[end].time
-                ? (3600 *
-                      (statistics.local.distance.total[end] -
-                          statistics.local.distance.total[start])) /
-                  Math.max((points[end].time.getTime() - points[start].time.getTime()) / 1000, 1)
-                : undefined
+        timeWindowSmoothing(
+            points,
+            10000,
+            (start, end) =>
+                points[start].time && points[end].time
+                    ? (3600 *
+                          (statistics.local.data[end].distance.total -
+                              statistics.local.data[start].distance.total)) /
+                      Math.max(
+                          (points[end].time.getTime() - points[start].time.getTime()) / 1000,
+                          1
+                      )
+                    : undefined,
+            (value, index) => {
+                statistics.local.data[index].speed = value;
+            }
         );
 
         return statistics;
@@ -987,53 +996,65 @@ export class TrackSegment extends GPXTreeLeaf {
             let cumulEle = 0;
             let currentStart = start;
             let currentEnd = start;
-            let smoothedEle = distanceWindowSmoothing(start, end + 1, statistics, 0.1, (s, e) => {
-                for (let i = currentStart; i < s; i++) {
-                    cumulEle -= this.trkpt[i].ele ?? 0;
+            let prevSmoothedEle = 0;
+            distanceWindowSmoothing(
+                start,
+                end + 1,
+                statistics,
+                0.1,
+                (s, e) => {
+                    for (let i = currentStart; i < s; i++) {
+                        cumulEle -= this.trkpt[i].ele ?? 0;
+                    }
+                    for (let i = currentEnd; i <= e; i++) {
+                        cumulEle += this.trkpt[i].ele ?? 0;
+                    }
+                    currentStart = s;
+                    currentEnd = e + 1;
+                    return cumulEle / (e - s + 1);
+                },
+                (smoothedEle, j) => {
+                    if (j === start) {
+                        smoothedEle = this.trkpt[start].ele ?? 0;
+                        prevSmoothedEle = smoothedEle;
+                    } else if (j === end) {
+                        smoothedEle = this.trkpt[end].ele ?? 0;
+                    }
+                    const ele = smoothedEle - prevSmoothedEle;
+                    if (ele > 0) {
+                        statistics.global.elevation.gain += ele;
+                    } else if (ele < 0) {
+                        statistics.global.elevation.loss -= ele;
+                    }
+                    prevSmoothedEle = smoothedEle;
+                    if (j < end) {
+                        statistics.local.data[j].elevation.gain = statistics.global.elevation.gain;
+                        statistics.local.data[j].elevation.loss = statistics.global.elevation.loss;
+                    }
                 }
-                for (let i = currentEnd; i <= e; i++) {
-                    cumulEle += this.trkpt[i].ele ?? 0;
-                }
-                currentStart = s;
-                currentEnd = e + 1;
-                return cumulEle / (e - s + 1);
-            });
-            smoothedEle[0] = this.trkpt[start].ele ?? 0;
-            smoothedEle[smoothedEle.length - 1] = this.trkpt[end].ele ?? 0;
-
-            for (let j = start; j < end; j++) {
-                statistics.local.elevation.gain.push(statistics.global.elevation.gain);
-                statistics.local.elevation.loss.push(statistics.global.elevation.loss);
-
-                const ele = smoothedEle[j - start + 1] - smoothedEle[j - start];
-                if (ele > 0) {
-                    statistics.global.elevation.gain += ele;
-                } else if (ele < 0) {
-                    statistics.global.elevation.loss -= ele;
-                }
-            }
+            );
         }
-        statistics.local.elevation.gain.push(statistics.global.elevation.gain);
-        statistics.local.elevation.loss.push(statistics.global.elevation.loss);
+        if (statistics.global.length > 0) {
+            statistics.local.data[statistics.global.length - 1].elevation.gain =
+                statistics.global.elevation.gain;
+            statistics.local.data[statistics.global.length - 1].elevation.loss =
+                statistics.global.elevation.loss;
+        }
 
-        let slope = [];
-        let length = [];
         for (let i = 0; i < simplified.length - 1; i++) {
             let start = simplified[i].point._data.index;
             let end = simplified[i + 1].point._data.index;
             let dist =
-                statistics.local.distance.total[end] - statistics.local.distance.total[start];
+                statistics.local.data[end].distance.total -
+                statistics.local.data[start].distance.total;
             let ele = (simplified[i + 1].point.ele ?? 0) - (simplified[i].point.ele ?? 0);
-
             for (let j = start; j < end + (i + 1 === simplified.length - 1 ? 1 : 0); j++) {
-                slope.push((0.1 * ele) / dist);
-                length.push(dist);
+                statistics.local.data[j].slope.segment = (0.1 * ele) / dist;
+                statistics.local.data[j].slope.length = dist;
             }
         }
 
-        statistics.local.slope.segment = slope;
-        statistics.local.slope.length = length;
-        statistics.local.slope.at = distanceWindowSmoothing(
+        distanceWindowSmoothing(
             0,
             this.trkpt.length,
             statistics,
@@ -1041,8 +1062,12 @@ export class TrackSegment extends GPXTreeLeaf {
             (start, end) => {
                 const ele = this.trkpt[end].ele - this.trkpt[start].ele || 0;
                 const dist =
-                    statistics.local.distance.total[end] - statistics.local.distance.total[start];
+                    statistics.local.data[end].distance.total -
+                    statistics.local.data[start].distance.total;
                 return dist > 0 ? (0.1 * ele) / dist : 0;
+            },
+            (value, index) => {
+                statistics.local.data[index].slope.at = value;
             }
         );
     }
@@ -1292,13 +1317,7 @@ export class TrackSegment extends GPXTreeLeaf {
     ) {
         let og = getOriginal(this); // Read as much as possible from the original object because it is faster
         let statistics = og._computeStatistics();
-        let trkpt = withArtificialTimestamps(
-            og.trkpt,
-            totalTime,
-            lastPoint,
-            startTime,
-            statistics.local.slope.at
-        );
+        let trkpt = withArtificialTimestamps(og.trkpt, totalTime, lastPoint, startTime, statistics);
         this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
     }
 
@@ -1307,6 +1326,7 @@ export class TrackSegment extends GPXTreeLeaf {
     }
 }
 
+const emptyExtensions: Record<string, string> = {};
 export class TrackPoint {
     [immerable] = true;
 
@@ -1317,13 +1337,16 @@ export class TrackPoint {
 
     _data: { [key: string]: any } = {};
 
-    constructor(point: (TrackPointType & { _data?: any }) | TrackPoint) {
+    constructor(point: (TrackPointType & { _data?: any }) | TrackPoint, index?: number) {
         this.attributes = point.attributes;
         this.ele = point.ele;
         this.time = point.time;
         this.extensions = point.extensions;
         if (point.hasOwnProperty('_data')) {
             this._data = point._data;
+        }
+        if (index !== undefined) {
+            this._data.index = index;
         }
     }
 
@@ -1399,7 +1422,7 @@ export class TrackPoint {
             this.extensions['gpxtpx:TrackPointExtension'] &&
             this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:Extensions']
             ? this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:Extensions']
-            : {};
+            : emptyExtensions;
     }
 
     toTrackPointType(exclude: string[] = []): TrackPointType {
@@ -1469,11 +1492,18 @@ export class TrackPoint {
 
     clone(): TrackPoint {
         return new TrackPoint({
-            attributes: cloneJSON(this.attributes),
+            attributes: {
+                lat: this.attributes.lat,
+                lon: this.attributes.lon,
+            },
             ele: this.ele,
             time: this.time ? new Date(this.time.getTime()) : undefined,
-            extensions: cloneJSON(this.extensions),
-            _data: cloneJSON(this._data),
+            extensions: this.extensions ? cloneJSON(this.extensions) : undefined,
+            _data: {
+                index: this._data?.index,
+                anchor: this._data?.anchor,
+                zoom: this._data?.zoom,
+            },
         });
     }
 }
@@ -1492,7 +1522,7 @@ export class Waypoint {
     type?: string;
     _data: { [key: string]: any } = {};
 
-    constructor(waypoint: (WaypointType & { _data?: any }) | Waypoint) {
+    constructor(waypoint: (WaypointType & { _data?: any }) | Waypoint, index?: number) {
         this.attributes = waypoint.attributes;
         this.ele = waypoint.ele;
         this.time = waypoint.time;
@@ -1510,6 +1540,9 @@ export class Waypoint {
         this.type = waypoint.type === '' ? undefined : waypoint.type;
         if (waypoint.hasOwnProperty('_data')) {
             this._data = waypoint._data;
+        }
+        if (index !== undefined) {
+            this._data.index = index;
         }
     }
 
@@ -1558,7 +1591,10 @@ export class Waypoint {
 
     clone(): Waypoint {
         return new Waypoint({
-            attributes: cloneJSON(this.attributes),
+            attributes: {
+                lat: this.attributes.lat,
+                lon: this.attributes.lon,
+            },
             ele: this.ele,
             time: this.time ? new Date(this.time.getTime()) : undefined,
             name: this.name,
@@ -1607,305 +1643,6 @@ export class Waypoint {
     }
 }
 
-export class GPXStatistics {
-    global: {
-        distance: {
-            moving: number;
-            total: number;
-        };
-        time: {
-            start: Date | undefined;
-            end: Date | undefined;
-            moving: number;
-            total: number;
-        };
-        speed: {
-            moving: number;
-            total: number;
-        };
-        elevation: {
-            gain: number;
-            loss: number;
-        };
-        bounds: {
-            southWest: Coordinates;
-            northEast: Coordinates;
-        };
-        atemp: {
-            avg: number;
-            count: number;
-        };
-        hr: {
-            avg: number;
-            count: number;
-        };
-        cad: {
-            avg: number;
-            count: number;
-        };
-        power: {
-            avg: number;
-            count: number;
-        };
-        extensions: Record<string, Record<string, number>>;
-    };
-    local: {
-        points: TrackPoint[];
-        distance: {
-            moving: number[];
-            total: number[];
-        };
-        time: {
-            moving: number[];
-            total: number[];
-        };
-        speed: number[];
-        elevation: {
-            gain: number[];
-            loss: number[];
-        };
-        slope: {
-            at: number[];
-            segment: number[];
-            length: number[];
-        };
-    };
-
-    constructor() {
-        this.global = {
-            distance: {
-                moving: 0,
-                total: 0,
-            },
-            time: {
-                start: undefined,
-                end: undefined,
-                moving: 0,
-                total: 0,
-            },
-            speed: {
-                moving: 0,
-                total: 0,
-            },
-            elevation: {
-                gain: 0,
-                loss: 0,
-            },
-            bounds: {
-                southWest: {
-                    lat: 90,
-                    lon: 180,
-                },
-                northEast: {
-                    lat: -90,
-                    lon: -180,
-                },
-            },
-            atemp: {
-                avg: 0,
-                count: 0,
-            },
-            hr: {
-                avg: 0,
-                count: 0,
-            },
-            cad: {
-                avg: 0,
-                count: 0,
-            },
-            power: {
-                avg: 0,
-                count: 0,
-            },
-            extensions: {},
-        };
-        this.local = {
-            points: [],
-            distance: {
-                moving: [],
-                total: [],
-            },
-            time: {
-                moving: [],
-                total: [],
-            },
-            speed: [],
-            elevation: {
-                gain: [],
-                loss: [],
-            },
-            slope: {
-                at: [],
-                segment: [],
-                length: [],
-            },
-        };
-    }
-
-    mergeWith(other: GPXStatistics): void {
-        this.local.points = this.local.points.concat(other.local.points);
-
-        this.local.distance.total = this.local.distance.total.concat(
-            other.local.distance.total.map((distance) => distance + this.global.distance.total)
-        );
-        this.local.distance.moving = this.local.distance.moving.concat(
-            other.local.distance.moving.map((distance) => distance + this.global.distance.moving)
-        );
-        this.local.time.total = this.local.time.total.concat(
-            other.local.time.total.map((time) => time + this.global.time.total)
-        );
-        this.local.time.moving = this.local.time.moving.concat(
-            other.local.time.moving.map((time) => time + this.global.time.moving)
-        );
-        this.local.elevation.gain = this.local.elevation.gain.concat(
-            other.local.elevation.gain.map((gain) => gain + this.global.elevation.gain)
-        );
-        this.local.elevation.loss = this.local.elevation.loss.concat(
-            other.local.elevation.loss.map((loss) => loss + this.global.elevation.loss)
-        );
-
-        this.local.speed = this.local.speed.concat(other.local.speed);
-        this.local.slope.at = this.local.slope.at.concat(other.local.slope.at);
-        this.local.slope.segment = this.local.slope.segment.concat(other.local.slope.segment);
-        this.local.slope.length = this.local.slope.length.concat(other.local.slope.length);
-
-        this.global.distance.total += other.global.distance.total;
-        this.global.distance.moving += other.global.distance.moving;
-
-        this.global.time.start =
-            this.global.time.start !== undefined && other.global.time.start !== undefined
-                ? new Date(
-                      Math.min(this.global.time.start.getTime(), other.global.time.start.getTime())
-                  )
-                : (this.global.time.start ?? other.global.time.start);
-        this.global.time.end =
-            this.global.time.end !== undefined && other.global.time.end !== undefined
-                ? new Date(
-                      Math.max(this.global.time.end.getTime(), other.global.time.end.getTime())
-                  )
-                : (this.global.time.end ?? other.global.time.end);
-
-        this.global.time.total += other.global.time.total;
-        this.global.time.moving += other.global.time.moving;
-
-        this.global.speed.moving =
-            this.global.time.moving > 0
-                ? this.global.distance.moving / (this.global.time.moving / 3600)
-                : 0;
-        this.global.speed.total =
-            this.global.time.total > 0
-                ? this.global.distance.total / (this.global.time.total / 3600)
-                : 0;
-
-        this.global.elevation.gain += other.global.elevation.gain;
-        this.global.elevation.loss += other.global.elevation.loss;
-
-        this.global.bounds.southWest.lat = Math.min(
-            this.global.bounds.southWest.lat,
-            other.global.bounds.southWest.lat
-        );
-        this.global.bounds.southWest.lon = Math.min(
-            this.global.bounds.southWest.lon,
-            other.global.bounds.southWest.lon
-        );
-        this.global.bounds.northEast.lat = Math.max(
-            this.global.bounds.northEast.lat,
-            other.global.bounds.northEast.lat
-        );
-        this.global.bounds.northEast.lon = Math.max(
-            this.global.bounds.northEast.lon,
-            other.global.bounds.northEast.lon
-        );
-
-        this.global.atemp.avg =
-            (this.global.atemp.count * this.global.atemp.avg +
-                other.global.atemp.count * other.global.atemp.avg) /
-            Math.max(1, this.global.atemp.count + other.global.atemp.count);
-        this.global.atemp.count += other.global.atemp.count;
-        this.global.hr.avg =
-            (this.global.hr.count * this.global.hr.avg +
-                other.global.hr.count * other.global.hr.avg) /
-            Math.max(1, this.global.hr.count + other.global.hr.count);
-        this.global.hr.count += other.global.hr.count;
-        this.global.cad.avg =
-            (this.global.cad.count * this.global.cad.avg +
-                other.global.cad.count * other.global.cad.avg) /
-            Math.max(1, this.global.cad.count + other.global.cad.count);
-        this.global.cad.count += other.global.cad.count;
-        this.global.power.avg =
-            (this.global.power.count * this.global.power.avg +
-                other.global.power.count * other.global.power.avg) /
-            Math.max(1, this.global.power.count + other.global.power.count);
-        this.global.power.count += other.global.power.count;
-        Object.keys(other.global.extensions).forEach((extension) => {
-            if (this.global.extensions[extension] === undefined) {
-                this.global.extensions[extension] = {};
-            }
-            Object.keys(other.global.extensions[extension]).forEach((value) => {
-                if (this.global.extensions[extension][value] === undefined) {
-                    this.global.extensions[extension][value] = 0;
-                }
-                this.global.extensions[extension][value] +=
-                    other.global.extensions[extension][value];
-            });
-        });
-    }
-
-    slice(start: number, end: number): GPXStatistics {
-        if (start < 0) {
-            start = 0;
-        } else if (start >= this.local.points.length) {
-            return new GPXStatistics();
-        }
-        if (end < start) {
-            return new GPXStatistics();
-        } else if (end >= this.local.points.length) {
-            end = this.local.points.length - 1;
-        }
-
-        let statistics = new GPXStatistics();
-
-        statistics.local.points = this.local.points.slice(start, end + 1);
-
-        statistics.global.distance.total =
-            this.local.distance.total[end] - this.local.distance.total[start];
-        statistics.global.distance.moving =
-            this.local.distance.moving[end] - this.local.distance.moving[start];
-
-        statistics.global.time.start = this.local.points[start].time;
-        statistics.global.time.end = this.local.points[end].time;
-
-        statistics.global.time.total = this.local.time.total[end] - this.local.time.total[start];
-        statistics.global.time.moving = this.local.time.moving[end] - this.local.time.moving[start];
-
-        statistics.global.speed.moving =
-            statistics.global.time.moving > 0
-                ? statistics.global.distance.moving / (statistics.global.time.moving / 3600)
-                : 0;
-        statistics.global.speed.total =
-            statistics.global.time.total > 0
-                ? statistics.global.distance.total / (statistics.global.time.total / 3600)
-                : 0;
-
-        statistics.global.elevation.gain =
-            this.local.elevation.gain[end] - this.local.elevation.gain[start];
-        statistics.global.elevation.loss =
-            this.local.elevation.loss[end] - this.local.elevation.loss[start];
-
-        statistics.global.bounds.southWest.lat = this.global.bounds.southWest.lat;
-        statistics.global.bounds.southWest.lon = this.global.bounds.southWest.lon;
-        statistics.global.bounds.northEast.lat = this.global.bounds.northEast.lat;
-        statistics.global.bounds.northEast.lon = this.global.bounds.northEast.lon;
-
-        statistics.global.atemp = this.global.atemp;
-        statistics.global.hr = this.global.hr;
-        statistics.global.cad = this.global.cad;
-        statistics.global.power = this.global.power;
-
-        return statistics;
-    }
-}
-
 const earthRadius = 6371008.8;
 export function distance(
     coord1: TrackPoint | Coordinates,
@@ -1939,9 +1676,9 @@ export function getElevationDistanceFunction(statistics: GPXStatistics) {
         if (point1.ele === undefined || point2.ele === undefined || point3.ele === undefined) {
             return 0;
         }
-        let x1 = statistics.local.distance.total[point1._data.index] * 1000;
-        let x2 = statistics.local.distance.total[point2._data.index] * 1000;
-        let x3 = statistics.local.distance.total[point3._data.index] * 1000;
+        let x1 = statistics.local.data[point1._data.index].distance.total * 1000;
+        let x2 = statistics.local.data[point2._data.index].distance.total * 1000;
+        let x3 = statistics.local.data[point3._data.index].distance.total * 1000;
         let y1 = point1.ele;
         let y2 = point2.ele;
         let y3 = point3.ele;
@@ -1960,10 +1697,9 @@ function windowSmoothing(
     right: number,
     distance: (index1: number, index2: number) => number,
     window: number,
-    compute: (start: number, end: number) => number
-): number[] {
-    let result = [];
-
+    compute: (start: number, end: number) => number,
+    callback: (value: number, index: number) => void
+): void {
     let start = left;
     for (var i = left; i < right; i++) {
         while (start + 1 < i && distance(start, i) > window) {
@@ -1973,10 +1709,8 @@ function windowSmoothing(
         while (end < right && distance(i, end) <= window) {
             end++;
         }
-        result.push(compute(start, end - 1));
+        callback(compute(start, end - 1), i);
     }
-
-    return result;
 }
 
 function distanceWindowSmoothing(
@@ -1984,30 +1718,35 @@ function distanceWindowSmoothing(
     right: number,
     statistics: GPXStatistics,
     window: number,
-    compute: (start: number, end: number) => number
-): number[] {
-    return windowSmoothing(
+    compute: (start: number, end: number) => number,
+    callback: (value: number, index: number) => void
+): void {
+    windowSmoothing(
         left,
         right,
         (index1, index2) =>
-            statistics.local.distance.total[index2] - statistics.local.distance.total[index1],
+            statistics.local.data[index2].distance.total -
+            statistics.local.data[index1].distance.total,
         window,
-        compute
+        compute,
+        callback
     );
 }
 
 function timeWindowSmoothing(
     points: TrackPoint[],
     window: number,
-    compute: (start: number, end: number) => number
-): number[] {
-    return windowSmoothing(
+    compute: (start: number, end: number) => number,
+    callback: (value: number, index: number) => void
+): void {
+    windowSmoothing(
         0,
         points.length,
         (index1, index2) =>
             points[index2].time?.getTime() - points[index1].time?.getTime() || 2 * window,
         window,
-        compute
+        compute,
+        callback
     );
 }
 
@@ -2059,14 +1798,14 @@ function withArtificialTimestamps(
     totalTime: number,
     lastPoint: TrackPoint | undefined,
     startTime: Date,
-    slope: number[]
+    statistics: GPXStatistics
 ): TrackPoint[] {
     let weight = [];
     let totalWeight = 0;
 
     for (let i = 0; i < points.length - 1; i++) {
         let dist = distance(points[i].getCoordinates(), points[i + 1].getCoordinates());
-        let w = dist * (0.5 + 1 / (1 + Math.exp(-0.2 * slope[i])));
+        let w = dist * (0.5 + 1 / (1 + Math.exp(-0.2 * statistics.local.data[i].slope.at)));
         weight.push(w);
         totalWeight += w;
     }

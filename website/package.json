@@ -10,8 +10,8 @@
         "preview": "vite preview",
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
         "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-        "lint": "prettier --check . && eslint .",
-        "format": "prettier --write ."
+        "lint": "prettier --check . --config ../.prettierrc --ignore-path ../.prettierignore --ignore-path ./.gitignore && eslint .",
+        "format": "prettier --write . --config ../.prettierrc --ignore-path ../.prettierignore --ignore-path ./.gitignore"
     },
     "devDependencies": {
         "@lucide/svelte": "^0.544.0",
@@ -31,7 +31,7 @@
         "@types/sortablejs": "^1.15.8",
         "@typescript-eslint/eslint-plugin": "^8.33.1",
         "@typescript-eslint/parser": "^8.33.1",
-        "bits-ui": "^2.12.0",
+        "bits-ui": "^2.14.4",
         "eslint": "^9.28.0",
         "eslint-config-prettier": "^10.1.5",
         "eslint-plugin-svelte": "^3.9.1",
@@ -66,7 +66,7 @@
         "@mapbox/sphericalmercator": "^2.0.1",
         "@mapbox/tilebelt": "^2.0.2",
         "@types/mapbox__sphericalmercator": "^1.2.3",
-        "chart.js": "^4.4.9",
+        "chart.js": "^4.5.1",
         "chartjs-plugin-zoom": "^2.2.0",
         "clsx": "^2.1.1",
         "dexie": "^4.0.11",
@@ -74,7 +74,7 @@
         "gpx": "file:../gpx",
         "immer": "^10.1.1",
         "jszip": "^3.10.1",
-        "mapbox-gl": "^3.16.0",
+        "mapbox-gl": "^3.17.0",
         "mapillary-js": "^4.1.2",
         "png.js": "^0.2.1",
         "sanitize-html": "^2.17.0",

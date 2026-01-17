@@ -282,6 +282,7 @@
             "update": "Perbarui lapisan"
         },
         "opacity": "Opasitas Overlay",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Peta dasar",
             "overlays": "Overlay",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Kemiringan",
             "swisstopoHiking": "swisstopo Pendakian",
             "swisstopoHikingClosures": "Penutupan Jalur Pendakian swisstopo",
@@ -377,7 +380,9 @@
             "railway-station": "Stasiun kereta api",
             "tram-stop": "Halt trem",
             "bus-stop": "Pemberhentian Bus",
-            "ferry": "Feri"
+            "ferry": "Feri",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

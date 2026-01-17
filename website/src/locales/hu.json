@@ -282,6 +282,7 @@
             "update": "Réteg feltöltése"
         },
         "opacity": "Átfedés átlátszósága",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Alaptérkép",
             "overlays": "Térkép rétegek",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "kerékpár és terepkerékpár út",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Lejtő",
             "swisstopoHiking": "swisstopo Túra",
             "swisstopoHikingClosures": "swisstopo túralezárások",
@@ -377,7 +380,9 @@
             "railway-station": "Vasútállomás",
             "tram-stop": "Villamos megálló",
             "bus-stop": "Buszmegálló",
-            "ferry": "Komp"
+            "ferry": "Komp",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

@@ -282,6 +282,7 @@
             "update": "Katman güncelle"
         },
         "opacity": "Katman şeffaflığı",
+        "terrain": "Terrain source",
         "label": {
             "basemaps": "Temel haritalar",
             "overlays": "Katmanlar",
@@ -325,6 +326,8 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Eğim",
             "swisstopoHiking": "swisstopo Yürüyüş",
             "swisstopoHikingClosures": "swisstopo Yürüyüş Sonu",
@@ -377,7 +380,9 @@
             "railway-station": "Tren istasyonu",
             "tram-stop": "Tramvay Durağı",
             "bus-stop": "Otobüs Durağı",
-            "ferry": "Feribot"
+            "ferry": "Feribot",
+            "mapbox-dem": "Mapbox DEM",
+            "mapterhorn": "Mapterhorn"
         }
     },
     "chart": {

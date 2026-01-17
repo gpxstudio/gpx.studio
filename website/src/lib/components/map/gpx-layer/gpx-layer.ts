@@ -1,5 +1,5 @@
 import { get, type Readable } from 'svelte/store';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl, { type FilterSpecification } from 'mapbox-gl';
 import { map } from '$lib/components/map/map';
 import { waypointPopup, trackpointPopup } from './gpx-layer-popup';
 import {
@@ -153,8 +153,6 @@ export class GPXLayer {
             return;
         }
 
-        this.loadIcons();
-
         if (
             file._data.style &&
             file._data.style.color &&
@@ -163,6 +161,8 @@ export class GPXLayer {
             decrementColor(this.layerColor);
             this.layerColor = `#${file._data.style.color}`;
         }
+
+        this.loadIcons();
 
         try {
             let source = _map.getSource(this.fileId) as mapboxgl.GeoJSONSource | undefined;
@@ -281,25 +281,23 @@ export class GPXLayer {
                 }
             }
 
-            let visibleSegments: [number, number][] = [];
+            let visibleTrackSegmentIds: string[] = [];
             file.forEachSegment((segment, trackIndex, segmentIndex) => {
                 if (!segment._data.hidden) {
-                    visibleSegments.push([trackIndex, segmentIndex]);
+                    visibleTrackSegmentIds.push(`${trackIndex}-${segmentIndex}`);
                 }
             });
+            const segmentFilter: FilterSpecification = [
+                'in',
+                ['get', 'trackSegmentId'],
+                ['literal', visibleTrackSegmentIds],
+            ];
 
-            _map.setFilter(
-                this.fileId,
-                [
-                    'any',
-                    ...visibleSegments.map(([trackIndex, segmentIndex]) => [
-                        'all',
-                        ['==', 'trackIndex', trackIndex],
-                        ['==', 'segmentIndex', segmentIndex],
-                    ]),
-                ],
-                { validate: false }
-            );
+            _map.setFilter(this.fileId, segmentFilter, { validate: false });
+
+            if (_map.getLayer(this.fileId + '-direction')) {
+                _map.setFilter(this.fileId + '-direction', segmentFilter, { validate: false });
+            }
 
             let visibleWaypoints: number[] = [];
             file.wpt.forEach((waypoint, waypointIndex) => {
@@ -313,21 +311,6 @@ export class GPXLayer {
                 ['in', ['get', 'waypointIndex'], ['literal', visibleWaypoints]],
                 { validate: false }
             );
-
-            if (_map.getLayer(this.fileId + '-direction')) {
-                _map.setFilter(
-                    this.fileId + '-direction',
-                    [
-                        'any',
-                        ...visibleSegments.map(([trackIndex, segmentIndex]) => [
-                            'all',
-                            ['==', 'trackIndex', trackIndex],
-                            ['==', 'segmentIndex', segmentIndex],
-                        ]),
-                    ],
-                    { validate: false }
-                );
-            }
         } catch (e) {
             // No reliable way to check if the map is ready to add sources and layers
             return;
@@ -686,6 +669,7 @@ export class GPXLayer {
             }
             feature.properties.trackIndex = trackIndex;
             feature.properties.segmentIndex = segmentIndex;
+            feature.properties.trackSegmentId = `${trackIndex}-${segmentIndex}`;
 
             segmentIndex++;
             if (segmentIndex >= file.trk[trackIndex].trkseg.length) {
@@ -718,7 +702,7 @@ export class GPXLayer {
                 properties: {
                     fileId: this.fileId,
                     waypointIndex: index,
-                    icon: `${this.fileId}-waypoint-${getSymbolKey(waypoint.sym) ?? 'default'}`,
+                    icon: `waypoint-${getSymbolKey(waypoint.sym) ?? 'default'}-${this.layerColor}`,
                 },
             });
         });
@@ -739,7 +723,7 @@ export class GPXLayer {
         });
 
         symbols.forEach((symbol) => {
-            const iconId = `${this.fileId}-waypoint-${symbol ?? 'default'}`;
+            const iconId = `waypoint-${symbol ?? 'default'}-${this.layerColor}`;
             if (!_map.hasImage(iconId)) {
                 let icon = new Image(100, 100);
                 icon.onload = () => {

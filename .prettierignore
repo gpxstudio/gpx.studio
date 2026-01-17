@@ -1,6 +1,3 @@
-# Ignore files for PNPM, NPM and YARN
-pnpm-lock.yaml
-package-lock.json
-yarn.lock
-src/lib/components/ui
-*.mdx
+website/src/lib/components/ui
+website/src/lib/docs/**/*.mdx
+**/*.webmanifest
