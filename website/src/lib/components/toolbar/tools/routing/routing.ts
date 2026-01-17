@@ -14,7 +14,7 @@ export type RoutingProfile = {
 export const routingProfiles: { [key: string]: RoutingProfile } = {
     bike: { engine: 'graphhopper', profile: 'bike' },
     racing_bike: { engine: 'graphhopper', profile: 'racingbike' },
-    gravel_bike: { engine: 'brouter', profile: 'gravel' },
+    gravel_bike: { engine: 'graphhopper', profile: 'gravelbike' },
     mountain_bike: { engine: 'graphhopper', profile: 'mtb' },
     foot: { engine: 'graphhopper', profile: 'foot' },
     motorcycle: { engine: 'graphhopper', profile: 'motorcycle' },
