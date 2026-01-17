@@ -282,7 +282,7 @@
             "update": "Update laag"
         },
         "opacity": "Laag Transparantie",
-        "terrain": "Terrain source",
+        "terrain": "Terrein bron",
         "label": {
             "basemaps": "Basis kaarten",
             "overlays": "Lagen",
