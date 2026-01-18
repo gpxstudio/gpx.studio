@@ -53,6 +53,57 @@ const mtbRatingToScale: { [key: string]: string } = {
     '6': '5',
     '7': '6',
 };
+
+const graphhopperBlockPrivateCustomModels: { [key: string]: any } = {
+    bike: {
+        priority: [
+            {
+                if: 'bike_road_access == PRIVATE',
+                multiply_by: '0.0',
+            },
+        ],
+    },
+    racingbike: {
+        priority: [
+            {
+                if: 'bike_road_access == PRIVATE',
+                multiply_by: '0.0',
+            },
+        ],
+    },
+    gravelbike: {
+        priority: [
+            {
+                if: 'bike_road_access == PRIVATE',
+                multiply_by: '0.0',
+            },
+        ],
+    },
+    mtb: {
+        priority: [
+            {
+                if: 'bike_road_access == PRIVATE',
+                multiply_by: '0.0',
+            },
+        ],
+    },
+    foot: {
+        priority: [
+            {
+                if: 'foot_road_access == PRIVATE',
+                multiply_by: '0.0',
+            },
+        ],
+    },
+    motorcycle: {
+        priority: [
+            {
+                if: 'road_access == PRIVATE',
+                multiply_by: '0.0',
+            },
+        ],
+    },
+};
 async function getGraphHopperRoute(
     points: Coordinates[],
     graphHopperProfile: string,
@@ -71,14 +122,7 @@ async function getGraphHopperRoute(
             details: graphhopperDetails,
             custom_model: privateRoads
                 ? {}
-                : {
-                      priority: [
-                          {
-                              if: 'road_access == PRIVATE',
-                              multiply_by: '0.0',
-                          },
-                      ],
-                  },
+                : graphhopperBlockPrivateCustomModels[graphHopperProfile] || {},
         }),
     });
 
