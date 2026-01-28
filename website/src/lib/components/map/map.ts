@@ -212,16 +212,21 @@ export class MapboxGLMap {
         const map = get(this._map);
         if (map) {
             const source = get(terrainSource);
-            if (!map.getSource(source)) {
-                map.addSource(source, terrainSources[source]);
-            }
-            if (map.getPitch() > 0) {
-                map.setTerrain({
-                    source: source,
-                    exaggeration: 1,
-                });
-            } else {
-                map.setTerrain(null);
+            try {
+                if (!map.getSource(source)) {
+                    map.addSource(source, terrainSources[source]);
+                }
+                if (map.getPitch() > 0) {
+                    map.setTerrain({
+                        source: source,
+                        exaggeration: 1,
+                    });
+                } else {
+                    map.setTerrain(null);
+                }
+            } catch (e) {
+                // No reliable way to check if the map is ready to add sources and layers
+                return;
             }
         }
     }
