@@ -282,7 +282,7 @@
             "update": "Actualizar capa"
         },
         "opacity": "Opacidad de la capa superpuesta",
-        "terrain": "Terrain source",
+        "terrain": "Origen del terreno",
         "label": {
             "basemaps": "Mapas base",
             "overlays": "Capas",

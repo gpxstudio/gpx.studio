@@ -282,7 +282,7 @@
             "update": "Zaktualizuj warstwę"
         },
         "opacity": "Przezroczystość nakładki",
-        "terrain": "Terrain source",
+        "terrain": "Źródło danych terenowych",
         "label": {
             "basemaps": "Mapy bazowe",
             "overlays": "Nakładki",
