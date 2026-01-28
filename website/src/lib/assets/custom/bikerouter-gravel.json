@@ -17,7 +17,6 @@
         }
     },
     "sprite": "https://demotiles.maplibre.org/styles/osm-bright-gl-style/sprite",
-    "glyphs": "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key={key}",
     "layers": [
         {
             "id": "background",
