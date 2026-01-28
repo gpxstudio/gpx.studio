@@ -1,5 +1,10 @@
 import fs from 'fs';
+import { config as dotenvConfig } from 'dotenv';
 import { languages } from '../languages';
+
+dotenvConfig();
+
+const basePath = process.env.BASE_PATH || '';
 
 function localizeManifest(manifestTemplateData: any, language: string) {
     const localizedManifestFile = `static/${language}.manifest.webmanifest`;
@@ -8,9 +13,9 @@ function localizeManifest(manifestTemplateData: any, language: string) {
 
     manifestTemplateData.description = localizedStrings.metadata.description;
     manifestTemplateData.lang = language;
-    manifestTemplateData.start_url = `/${language}/app`;
-    manifestTemplateData.scope = `/${language}/app`;
-    manifestTemplateData.id = `https://gpx.studio/${language}/app`;
+    manifestTemplateData.start_url = `${basePath}/${language}/app`;
+    manifestTemplateData.scope = `${basePath}/${language}/app`;
+    manifestTemplateData.id = `https://gpx.studio${basePath}/${language}/app`;
 
     fs.writeFileSync(localizedManifestFile, JSON.stringify(manifestTemplateData, null, 2));
 }
