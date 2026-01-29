@@ -282,7 +282,7 @@
             "update": "更新图层"
         },
         "opacity": "图层透明度",
-        "terrain": "Terrain source",
+        "terrain": "地形来源",
         "label": {
             "basemaps": "底图",
             "overlays": "叠加层",
@@ -326,7 +326,7 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
-            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "mapterhornHillshade": "山体阴影",
             "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "Swisstopo Slope",
             "swisstopoHiking": "Swisstopo Hiking",
