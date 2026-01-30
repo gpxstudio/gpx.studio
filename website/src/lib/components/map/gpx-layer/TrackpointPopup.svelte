@@ -41,6 +41,7 @@
             <Button
                 size="sm"
                 variant="outline"
+                class="justify-start"
                 href={`https://www.openstreetmap.org/edit?#map=${(($map?.getZoom() ?? 17) + 1).toFixed(0)}/${trackpoint.item.getLatitude().toFixed(5)}/${trackpoint.item.getLongitude().toFixed(5)}`}
                 target="_blank"
             >

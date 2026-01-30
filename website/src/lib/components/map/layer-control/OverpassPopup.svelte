@@ -54,28 +54,27 @@
 
 <Card.Root class="border-none shadow-md text-base p-2 max-w-[50dvw] gap-0">
     <Card.Header class="p-0 gap-0">
-        <Card.Title class="text-md">
-            <div class="flex flex-row gap-3">
-                <div class="flex flex-col">
-                    {name}
-                    <div class="text-muted-foreground text-xs font-normal">
-                        {poi.item.lat.toFixed(6)}&deg; {poi.item.lon.toFixed(6)}&deg;
-                    </div>
+        <Card.Title class="text-md flex flex-row">
+            <div class="flex flex-col">
+                <p>{name}</p>
+                <div class="text-muted-foreground text-xs font-normal">
+                    {poi.item.lat.toFixed(6)}&deg; {poi.item.lon.toFixed(6)}&deg;
                 </div>
-                <Button
-                    class="ml-auto"
-                    variant="outline"
-                    size="icon"
-                    href="https://www.openstreetmap.org/edit?editor=id&{poi.item.type ??
-                        'node'}={poi.item.id}"
-                    target="_blank"
-                >
-                    <PencilLine size="16" />
-                </Button>
             </div>
+
+            <Button
+                class="ml-auto"
+                variant="outline"
+                size="icon-sm"
+                href="https://www.openstreetmap.org/edit?editor=id&{poi.item.type ?? 'node'}={poi
+                    .item.id}"
+                target="_blank"
+            >
+                <PencilLine size="16" />
+            </Button>
         </Card.Title>
     </Card.Header>
-    <Card.Content class="flex flex-col p-0 text-sm mt-1 whitespace-normal break-all">
+    <Card.Content class="flex flex-col gap-1 p-0 text-sm whitespace-normal break-all">
         <ScrollArea class="flex flex-col max-h-[30dvh]">
             {#if tags.image || tags['image:0']}
                 <div class="w-full rounded-md overflow-clip my-2 max-w-96 mx-auto">
@@ -100,8 +99,14 @@
                 {/each}
             </div>
         </ScrollArea>
-        <Button class="mt-2" variant="outline" disabled={$selection.size === 0} onclick={addToFile}>
-            <MapPin size="16" />
+        <Button
+            size="sm"
+            class="mt-1 justify-start"
+            variant="outline"
+            disabled={$selection.size === 0}
+            onclick={addToFile}
+        >
+            <MapPin size="14" />
             {i18n._('toolbar.waypoint.add')}
         </Button>
     </Card.Content>
