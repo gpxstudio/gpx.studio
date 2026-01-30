@@ -6,6 +6,7 @@ import { overpassQueryData } from '$lib/assets/layers';
 import { MapPopup } from '$lib/components/map/map-popup';
 import { settings } from '$lib/logic/settings';
 import { db } from '$lib/db';
+import { ANCHOR_LAYER_KEY } from '$lib/components/map/map';
 
 const { currentOverpassQueries } = settings;
 
@@ -85,17 +86,20 @@ export class OverpassLayer {
             }
 
             if (!this.map.getLayer('overpass')) {
-                this.map.addLayer({
-                    id: 'overpass',
-                    type: 'symbol',
-                    source: 'overpass',
-                    layout: {
-                        'icon-image': ['get', 'icon'],
-                        'icon-size': 0.25,
-                        'icon-padding': 0,
-                        'icon-allow-overlap': ['step', ['zoom'], false, 14, true],
+                this.map.addLayer(
+                    {
+                        id: 'overpass',
+                        type: 'symbol',
+                        source: 'overpass',
+                        layout: {
+                            'icon-image': ['get', 'icon'],
+                            'icon-size': 0.25,
+                            'icon-padding': 0,
+                            'icon-allow-overlap': ['step', ['zoom'], false, 14, true],
+                        },
                     },
-                });
+                    ANCHOR_LAYER_KEY.overpass
+                );
 
                 this.map.on('mouseenter', 'overpass', this.onHoverBinded);
                 this.map.on('click', 'overpass', this.onHoverBinded);

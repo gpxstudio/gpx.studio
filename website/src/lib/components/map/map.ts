@@ -20,6 +20,28 @@ let fitBoundsOptions: mapboxgl.MapOptions['fitBoundsOptions'] = {
     easing: () => 1,
 };
 
+const emptySource: mapboxgl.GeoJSONSourceSpecification = {
+    type: 'geojson',
+    data: {
+        type: 'FeatureCollection',
+        features: [],
+    },
+};
+export const ANCHOR_LAYER_KEY = {
+    mapillary: 'mapillary-end',
+    tracks: 'tracks-end',
+    directionMarkers: 'direction-markers-end',
+    distanceMarkers: 'distance-markers-end',
+    interactions: 'interactions-end',
+    overpass: 'overpass-end',
+    waypoints: 'waypoints-end',
+};
+const anchorLayers: mapboxgl.LayerSpecification[] = Object.values(ANCHOR_LAYER_KEY).map((id) => ({
+    id: id,
+    type: 'symbol',
+    source: 'empty-source',
+}));
+
 export class MapboxGLMap {
     private _map: Writable<mapboxgl.Map | null> = writable(null);
     private _onLoadCallbacks: ((map: mapboxgl.Map) => void)[] = [];
@@ -29,19 +51,15 @@ export class MapboxGLMap {
         return this._map.subscribe(run, invalidate);
     }
 
-    init(
-        accessToken: string,
-        language: string,
-        hash: boolean,
-        geocoder: boolean,
-        geolocate: boolean
-    ) {
+    init(language: string, hash: boolean, geocoder: boolean, geolocate: boolean) {
         const map = new mapboxgl.Map({
             container: 'map',
             style: {
                 version: 8,
-                sources: {},
-                layers: [],
+                sources: {
+                    'empty-source': emptySource,
+                },
+                layers: anchorLayers,
                 imports: [
                     {
                         id: 'basemap',
@@ -50,11 +68,6 @@ export class MapboxGLMap {
                     {
                         id: 'overlays',
                         url: '',
-                        data: {
-                            version: 8,
-                            sources: {},
-                            layers: [],
-                        },
                     },
                 ],
             },

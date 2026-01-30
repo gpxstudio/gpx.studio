@@ -48,7 +48,7 @@
             language = 'en';
         }
 
-        map.init(PUBLIC_MAPBOX_TOKEN, language, hash, geocoder, geolocate);
+        map.init(language, hash, geocoder, geolocate);
     });
 
     onDestroy(() => {

@@ -8,6 +8,7 @@ import { get } from 'svelte/store';
 import { fileStateCollection } from '$lib/logic/file-state';
 import { fileActions } from '$lib/logic/file-actions';
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+import { ANCHOR_LAYER_KEY } from '$lib/components/map/map';
 
 export class SplitControls {
     map: mapboxgl.Map;
@@ -108,24 +109,25 @@ export class SplitControls {
             }
 
             if (!this.map.getLayer('split-controls')) {
-                this.map.addLayer({
-                    id: 'split-controls',
-                    type: 'symbol',
-                    source: 'split-controls',
-                    layout: {
-                        'icon-image': 'split-control',
-                        'icon-size': 0.25,
-                        'icon-padding': 0,
+                this.map.addLayer(
+                    {
+                        id: 'split-controls',
+                        type: 'symbol',
+                        source: 'split-controls',
+                        layout: {
+                            'icon-image': 'split-control',
+                            'icon-size': 0.25,
+                            'icon-padding': 0,
+                        },
+                        filter: ['<=', ['get', 'minZoom'], ['zoom']],
                     },
-                    filter: ['<=', ['get', 'minZoom'], ['zoom']],
-                });
+                    ANCHOR_LAYER_KEY.interactions
+                );
 
                 this.map.on('mouseenter', 'split-controls', this.layerOnMouseEnterBinded);
                 this.map.on('mouseleave', 'split-controls', this.layerOnMouseLeaveBinded);
                 this.map.on('click', 'split-controls', this.layerOnClickBinded);
             }
-
-            this.map.moveLayer('split-controls');
         } catch (e) {
             // No reliable way to check if the map is ready to add sources and layers
         }

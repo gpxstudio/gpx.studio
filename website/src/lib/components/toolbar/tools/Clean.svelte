@@ -15,7 +15,7 @@
     import { onDestroy, onMount } from 'svelte';
     import { getURLForLanguage } from '$lib/utils';
     import { Trash2 } from '@lucide/svelte';
-    import { map } from '$lib/components/map/map';
+    import { ANCHOR_LAYER_KEY, map } from '$lib/components/map/map';
     import type { GeoJSONSource } from 'mapbox-gl';
     import { selection } from '$lib/logic/selection';
     import { fileActions } from '$lib/logic/file-actions';
@@ -63,15 +63,18 @@
                     });
                 }
                 if (!$map.getLayer('rectangle')) {
-                    $map.addLayer({
-                        id: 'rectangle',
-                        type: 'fill',
-                        source: 'rectangle',
-                        paint: {
-                            'fill-color': 'SteelBlue',
-                            'fill-opacity': 0.5,
+                    $map.addLayer(
+                        {
+                            id: 'rectangle',
+                            type: 'fill',
+                            source: 'rectangle',
+                            paint: {
+                                'fill-color': 'SteelBlue',
+                                'fill-opacity': 0.5,
+                            },
                         },
-                    });
+                        ANCHOR_LAYER_KEY.interactions
+                    );
                 }
             }
         }

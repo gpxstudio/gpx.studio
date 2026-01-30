@@ -2,6 +2,7 @@ import mapboxgl, { type LayerSpecification, type VectorSourceSpecification } fro
 import { Viewer, type ViewerBearingEvent } from 'mapillary-js/dist/mapillary.module';
 import 'mapillary-js/dist/mapillary.css';
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+import { ANCHOR_LAYER_KEY } from '$lib/components/map/map';
 
 const mapillarySource: VectorSourceSpecification = {
     type: 'vector',
@@ -99,10 +100,10 @@ export class MapillaryLayer {
             this.map.addSource('mapillary', mapillarySource);
         }
         if (!this.map.getLayer('mapillary-sequence')) {
-            this.map.addLayer(mapillarySequenceLayer);
+            this.map.addLayer(mapillarySequenceLayer, ANCHOR_LAYER_KEY.mapillary);
         }
         if (!this.map.getLayer('mapillary-image')) {
-            this.map.addLayer(mapillaryImageLayer);
+            this.map.addLayer(mapillaryImageLayer, ANCHOR_LAYER_KEY.mapillary);
         }
         this.map.on('style.load', this.addBinded);
         this.map.on('mouseenter', 'mapillary-image', this.onMouseEnterBinded);

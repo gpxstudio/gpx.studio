@@ -1,6 +1,6 @@
 import { get, type Readable } from 'svelte/store';
 import mapboxgl, { type FilterSpecification } from 'mapbox-gl';
-import { map } from '$lib/components/map/map';
+import { ANCHOR_LAYER_KEY, map } from '$lib/components/map/map';
 import { waypointPopup, trackpointPopup } from './gpx-layer-popup';
 import {
     ListTrackSegmentItem,
@@ -196,20 +196,23 @@ export class GPXLayer {
             }
 
             if (!_map.getLayer(this.fileId)) {
-                _map.addLayer({
-                    id: this.fileId,
-                    type: 'line',
-                    source: this.fileId,
-                    layout: {
-                        'line-join': 'round',
-                        'line-cap': 'round',
+                _map.addLayer(
+                    {
+                        id: this.fileId,
+                        type: 'line',
+                        source: this.fileId,
+                        layout: {
+                            'line-join': 'round',
+                            'line-cap': 'round',
+                        },
+                        paint: {
+                            'line-color': ['get', 'color'],
+                            'line-width': ['get', 'width'],
+                            'line-opacity': ['get', 'opacity'],
+                        },
                     },
-                    paint: {
-                        'line-color': ['get', 'color'],
-                        'line-width': ['get', 'width'],
-                        'line-opacity': ['get', 'opacity'],
-                    },
-                });
+                    ANCHOR_LAYER_KEY.tracks
+                );
 
                 _map.on('click', this.fileId, this.layerOnClickBinded);
                 _map.on('contextmenu', this.fileId, this.layerOnContextMenuBinded);
@@ -232,18 +235,21 @@ export class GPXLayer {
             }
 
             if (!_map.getLayer(this.fileId + '-waypoints')) {
-                _map.addLayer({
-                    id: this.fileId + '-waypoints',
-                    type: 'symbol',
-                    source: this.fileId + '-waypoints',
-                    layout: {
-                        'icon-image': ['get', 'icon'],
-                        'icon-size': 0.3,
-                        'icon-anchor': 'bottom',
-                        'icon-padding': 0,
-                        'icon-allow-overlap': true,
+                _map.addLayer(
+                    {
+                        id: this.fileId + '-waypoints',
+                        type: 'symbol',
+                        source: this.fileId + '-waypoints',
+                        layout: {
+                            'icon-image': ['get', 'icon'],
+                            'icon-size': 0.3,
+                            'icon-anchor': 'bottom',
+                            'icon-padding': 0,
+                            'icon-allow-overlap': true,
+                        },
                     },
-                });
+                    ANCHOR_LAYER_KEY.waypoints
+                );
 
                 _map.on(
                     'mouseenter',
@@ -292,7 +298,7 @@ export class GPXLayer {
                                 'text-halo-color': 'white',
                             },
                         },
-                        _map.getLayer('distance-markers') ? 'distance-markers' : undefined
+                        ANCHOR_LAYER_KEY.directionMarkers
                     );
                 }
             } else {
@@ -393,13 +399,13 @@ export class GPXLayer {
             return;
         }
         if (_map.getLayer(this.fileId)) {
-            _map.moveLayer(this.fileId);
+            _map.moveLayer(this.fileId, ANCHOR_LAYER_KEY.tracks);
         }
         if (_map.getLayer(this.fileId + '-waypoints')) {
-            _map.moveLayer(this.fileId + '-waypoints');
+            _map.moveLayer(this.fileId + '-waypoints', ANCHOR_LAYER_KEY.waypoints);
         }
         if (_map.getLayer(this.fileId + '-direction')) {
-            _map.moveLayer(this.fileId + '-direction');
+            _map.moveLayer(this.fileId + '-direction', ANCHOR_LAYER_KEY.directionMarkers);
         }
     }
 
