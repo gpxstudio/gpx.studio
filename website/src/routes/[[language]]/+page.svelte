@@ -29,7 +29,7 @@
         data: {
             fundingModule: Promise<any>;
             translationModule: Promise<any>;
-            mapboxModule: Promise<any>;
+            maptilerModule: Promise<any>;
         };
     } = $props();
 
@@ -152,14 +152,14 @@
                 class="relative w-full max-w-[320px] aspect-square rounded-2xl shadow-xl overflow-clip"
             >
                 <enhanced:img
-                    src="/src/lib/assets/img/home/mapbox-outdoors.png"
-                    alt="Mapbox Outdoors map screenshot."
+                    src="/src/lib/assets/img/home/maptiler-topo.png"
+                    alt="MapTiler Topo map screenshot."
                     class="absolute"
                     style="clip-path: inset(0 50% 50% 0);"
                 />
                 <enhanced:img
-                    src="/src/lib/assets/img/home/mapbox-satellite.png"
-                    alt="Mapbox Satellite map screenshot."
+                    src="/src/lib/assets/img/home/maptiler-satellite.png"
+                    alt="MapTiler Satellite map screenshot."
                     class="absolute"
                     style="clip-path: inset(0 0 50% 50%);"
                 />
@@ -280,12 +280,12 @@
                 <div class="text-lg font-semibold text-muted-foreground">
                     ❤️ {i18n._('homepage.supported_by')}
                 </div>
-                <a href="https://www.mapbox.com/" target="_blank">
-                    <Logo company="mapbox" class="w-60" />
+                <a href="https://www.maptiler.com/" target="_blank">
+                    <Logo company="maptiler" class="w-60" />
                 </a>
             </div>
-            {#await data.mapboxModule then mapboxModule}
-                <DocsContainer module={mapboxModule.default} />
+            {#await data.maptilerModule then maptilerModule}
+                <DocsContainer module={maptilerModule.default} />
             {/await}
         </div>
     </div>

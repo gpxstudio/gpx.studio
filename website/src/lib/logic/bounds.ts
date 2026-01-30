@@ -1,6 +1,6 @@
 import { get } from 'svelte/store';
 import { selection } from '$lib/logic/selection';
-import mapboxgl from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 import { ListFileItem, ListWaypointItem } from '$lib/components/file-list/file-list';
 import { fileStateCollection, GPXFileStateCollectionObserver } from '$lib/logic/file-state';
 import { gpxStatistics } from '$lib/logic/statistics';
@@ -10,7 +10,7 @@ import type { Coordinates } from 'gpx';
 import { page } from '$app/state';
 
 export class BoundsManager {
-    private _bounds: mapboxgl.LngLatBounds = new mapboxgl.LngLatBounds();
+    private _bounds: maplibregl.LngLatBounds = new maplibregl.LngLatBounds();
     private _files: Set<string> = new Set();
     private _fileStateCollectionObserver: GPXFileStateCollectionObserver | null = null;
     private _unsubscribes: (() => void)[] = [];
@@ -87,12 +87,12 @@ export class BoundsManager {
         }
         this._unsubscribes.forEach((unsubscribe) => unsubscribe());
         this._unsubscribes = [];
-        this._bounds = new mapboxgl.LngLatBounds([180, 90, -180, -90]);
+        this._bounds = new maplibregl.LngLatBounds([180, 90, -180, -90]);
     }
 
     centerMapOnSelection() {
         let selected = get(selection).getSelected();
-        let bounds = new mapboxgl.LngLatBounds();
+        let bounds = new maplibregl.LngLatBounds();
 
         if (selected.find((item) => item instanceof ListWaypointItem)) {
             selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {

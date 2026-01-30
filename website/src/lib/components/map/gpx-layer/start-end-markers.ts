@@ -1,13 +1,13 @@
 import { currentTool, Tool } from '$lib/components/toolbar/tools';
 import { gpxStatistics, slicedGPXStatistics } from '$lib/logic/statistics';
-import mapboxgl from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 import { get } from 'svelte/store';
 import { map } from '$lib/components/map/map';
 import { allHidden } from '$lib/logic/hidden';
 
 export class StartEndMarkers {
-    start: mapboxgl.Marker;
-    end: mapboxgl.Marker;
+    start: maplibregl.Marker;
+    end: maplibregl.Marker;
     updateBinded: () => void = this.update.bind(this);
     unsubscribes: (() => void)[] = [];
 
@@ -19,8 +19,8 @@ export class StartEndMarkers {
         endElement.style.background =
             'repeating-conic-gradient(#fff 0 90deg, #000 0 180deg) 0 0/8px 8px round';
 
-        this.start = new mapboxgl.Marker({ element: startElement });
-        this.end = new mapboxgl.Marker({ element: endElement });
+        this.start = new maplibregl.Marker({ element: startElement });
+        this.end = new maplibregl.Marker({ element: endElement });
 
         map.onLoad(() => this.update());
         this.unsubscribes.push(gpxStatistics.subscribe(this.updateBinded));

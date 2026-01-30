@@ -3,12 +3,11 @@ import { twMerge } from 'tailwind-merge';
 import { base } from '$app/paths';
 import { languages } from '$lib/languages';
 import { TrackPoint, Waypoint, type Coordinates, crossarcDistance, distance, GPXFile } from 'gpx';
-import mapboxgl from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 import { pointToTile, pointToTileFraction } from '@mapbox/tilebelt';
-import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
-import PNGReader from 'png.js';
 import type { GPXStatisticsTree } from '$lib/logic/statistics-tree';
 import { ListTrackSegmentItem } from '$lib/components/file-list/file-list';
+import { PUBLIC_MAPTILER_KEY } from '$env/static/public';
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -62,7 +61,7 @@ export function getClosestTrackSegments(
         let segmentBounds = segmentStatistics.global.bounds;
         let northEast = segmentBounds.northEast;
         let southWest = segmentBounds.southWest;
-        let bounds = new mapboxgl.LngLatBounds(southWest, northEast);
+        let bounds = new maplibregl.LngLatBounds(southWest, northEast);
         if (bounds.contains(point)) {
             segmentBoundsDistances.push([0, trackIndex, segmentIndex]);
         } else {
@@ -110,33 +109,49 @@ export function getElevation(
     let coordinates = points.map((point) =>
         point instanceof TrackPoint || point instanceof Waypoint ? point.getCoordinates() : point
     );
-    let bbox = new mapboxgl.LngLatBounds();
+    let bbox = new maplibregl.LngLatBounds();
     coordinates.forEach((coord) => bbox.extend(coord));
 
     let tiles = coordinates.map((coord) => pointToTile(coord.lon, coord.lat, ELEVATION_ZOOM));
     let uniqueTiles = Array.from(new Set(tiles.map((tile) => tile.join(',')))).map((tile) =>
         tile.split(',').map((x) => parseInt(x))
     );
-    let pngs = new Map<string, any>();
+    let images = new Map<string, ImageData>();
+
+    const getPixelFromImageData = (imageData: ImageData, x: number, y: number): number[] => {
+        const index = (y * imageData.width + x) * 4;
+        return [imageData.data[index], imageData.data[index + 1], imageData.data[index + 2]];
+    };
 
     let promises = uniqueTiles.map((tile) =>
         fetch(
-            `https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/${ELEVATION_ZOOM}/${tile[0]}/${tile[1]}@2x.pngraw?access_token=${PUBLIC_MAPBOX_TOKEN}`,
+            `https://api.maptiler.com/tiles/terrain-rgb-v2/${ELEVATION_ZOOM}/${tile[0]}/${tile[1]}.webp?key=${PUBLIC_MAPTILER_KEY}`,
             { cache: 'force-cache' }
         )
-            .then((response) => response.arrayBuffer())
+            .then((response) => response.blob())
             .then(
-                (buffer) =>
-                    new Promise((resolve) => {
-                        let png = new PNGReader(new Uint8Array(buffer));
-                        png.parse((err, png) => {
-                            if (err) {
-                                resolve(false); // Also resolve so that Promise.all doesn't fail
-                            } else {
-                                pngs.set(tile.join(','), png);
-                                resolve(true);
+                (blob) =>
+                    new Promise<void>((resolve) => {
+                        const url = URL.createObjectURL(blob);
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            const ctx = canvas.getContext('2d');
+                            if (ctx) {
+                                ctx.drawImage(img, 0, 0);
+                                const imageData = ctx.getImageData(0, 0, img.width, img.height);
+                                images.set(tile.join(','), imageData);
                             }
-                        });
+                            URL.revokeObjectURL(url);
+                            resolve();
+                        };
+                        img.onerror = () => {
+                            URL.revokeObjectURL(url);
+                            resolve();
+                        };
+                        img.src = url;
                     })
             )
     );
@@ -144,9 +159,9 @@ export function getElevation(
     return Promise.all(promises).then(() =>
         coordinates.map((coord, index) => {
             let tile = tiles[index];
-            let png = pngs.get(tile.join(','));
+            let imageData = images.get(tile.join(','));
 
-            if (!png) {
+            if (!imageData) {
                 return 0;
             }
 
@@ -158,10 +173,11 @@ export function getElevation(
             let dx = x - _x;
             let dy = y - _y;
 
-            const p00 = png.getPixel(_x, _y);
-            const p01 = png.getPixel(_x, _y + (_y + 1 == tileSize ? 0 : 1));
-            const p10 = png.getPixel(_x + (_x + 1 == tileSize ? 0 : 1), _y);
-            const p11 = png.getPixel(
+            const p00 = getPixelFromImageData(imageData, _x, _y);
+            const p01 = getPixelFromImageData(imageData, _x, _y + (_y + 1 == tileSize ? 0 : 1));
+            const p10 = getPixelFromImageData(imageData, _x + (_x + 1 == tileSize ? 0 : 1), _y);
+            const p11 = getPixelFromImageData(
+                imageData,
                 _x + (_x + 1 == tileSize ? 0 : 1),
                 _y + (_y + 1 == tileSize ? 0 : 1)
             );

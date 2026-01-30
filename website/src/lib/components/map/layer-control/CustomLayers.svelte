@@ -42,13 +42,8 @@
     let maxZoom: number = $state(20);
     let layerType: 'basemap' | 'overlay' = $state('basemap');
     let resourceType: 'raster' | 'vector' = $derived.by(() => {
-        if (tileUrls[0].length > 0) {
-            if (
-                tileUrls[0].includes('.json') ||
-                (tileUrls[0].includes('api.mapbox.com/styles') && !tileUrls[0].includes('tiles'))
-            ) {
-                return 'vector';
-            }
+        if (tileUrls[0].length > 0 && tileUrls[0].includes('.json')) {
+            return 'vector';
         }
         return 'raster';
     });

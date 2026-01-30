@@ -1,97 +1,77 @@
-import mapboxgl from 'mapbox-gl';
-import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import MaplibreGeocoder, {
+    type MaplibreGeocoderFeatureResults,
+} from '@maplibre/maplibre-gl-geocoder';
+import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
 import { get, writable, type Writable } from 'svelte/store';
 import { settings } from '$lib/logic/settings';
 import { tick } from 'svelte';
-import { terrainSources } from '$lib/assets/layers';
+import { ANCHOR_LAYER_KEY, StyleManager } from '$lib/components/map/style';
 
-const {
-    treeFileView,
-    elevationProfile,
-    bottomPanelSize,
-    rightPanelSize,
-    distanceUnits,
-    terrainSource,
-} = settings;
+const { treeFileView, elevationProfile, bottomPanelSize, rightPanelSize, distanceUnits } = settings;
 
-let fitBoundsOptions: mapboxgl.MapOptions['fitBoundsOptions'] = {
+let fitBoundsOptions: maplibregl.MapOptions['fitBoundsOptions'] = {
     maxZoom: 15,
     linear: true,
     easing: () => 1,
 };
 
-export class MapboxGLMap {
-    private _map: Writable<mapboxgl.Map | null> = writable(null);
-    private _onLoadCallbacks: ((map: mapboxgl.Map) => void)[] = [];
+export class MapLibreGLMap {
+    private _maptilerKey: string = '';
+    private _map: maplibregl.Map | null = null;
+    private _mapStore: Writable<maplibregl.Map | null> = writable(null);
+    private _styleManager: StyleManager | null = null;
+    private _onLoadCallbacks: ((map: maplibregl.Map) => void)[] = [];
     private _unsubscribes: (() => void)[] = [];
+    private callOnLoadBinded: () => void = this.callOnLoad.bind(this);
 
-    subscribe(run: (value: mapboxgl.Map | null) => void, invalidate?: () => void) {
-        return this._map.subscribe(run, invalidate);
+    subscribe(run: (value: maplibregl.Map | null) => void, invalidate?: () => void) {
+        return this._mapStore.subscribe(run, invalidate);
     }
 
     init(
-        accessToken: string,
+        maptilerKey: string,
         language: string,
         hash: boolean,
         geocoder: boolean,
         geolocate: boolean
     ) {
-        const map = new mapboxgl.Map({
+        this._maptilerKey = maptilerKey;
+        this._styleManager = new StyleManager(this._mapStore, this._maptilerKey);
+        const map = new maplibregl.Map({
             container: 'map',
             style: {
                 version: 8,
+                projection: {
+                    type: 'globe',
+                },
                 sources: {},
                 layers: [],
-                imports: [
-                    {
-                        id: 'basemap',
-                        url: '',
-                    },
-                    {
-                        id: 'overlays',
-                        url: '',
-                        data: {
-                            version: 8,
-                            sources: {},
-                            layers: [],
-                        },
-                    },
-                ],
             },
-            projection: 'globe',
             zoom: 0,
             hash: hash,
-            language,
-            attributionControl: false,
-            logoPosition: 'bottom-right',
             boxZoom: false,
+            maxPitch: 85,
         });
         map.addControl(
-            new mapboxgl.AttributionControl({
-                compact: true,
-            })
-        );
-        map.addControl(
-            new mapboxgl.NavigationControl({
+            new maplibregl.NavigationControl({
                 visualizePitch: true,
             })
         );
         if (geocoder) {
-            let geocoder = new MapboxGeocoder({
-                mapboxgl: mapboxgl,
-                enableEventLogging: false,
-                collapsed: true,
-                flyTo: fitBoundsOptions,
-                language,
-                localGeocoder: () => [],
-                localGeocoderOnly: true,
-                externalGeocoder: (query: string) =>
-                    fetch(
-                        `https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=5&accept-language=${language}`
-                    )
-                        .then((response) => response.json())
-                        .then((data) => {
-                            return data.map((result: any) => {
+            let geocoder = new MaplibreGeocoder(
+                {
+                    forwardGeocode: async (config) => {
+                        const results: MaplibreGeocoderFeatureResults = {
+                            features: [],
+                            type: 'FeatureCollection',
+                        };
+                        try {
+                            const request = `https://nominatim.openstreetmap.org/search?format=json&q=${config.query}&limit=5&accept-language=${language}`;
+                            const response = await fetch(request);
+                            const geojson = await response.json();
+                            results.features = geojson.map((result: any) => {
                                 return {
                                     type: 'Feature',
                                     geometry: {
@@ -101,61 +81,43 @@ export class MapboxGLMap {
                                     place_name: result.display_name,
                                 };
                             });
-                        }),
-            });
-            let onKeyDown = geocoder._onKeyDown;
-            geocoder._onKeyDown = (e: KeyboardEvent) => {
-                // Trigger search on Enter key only
-                if (e.key === 'Enter') {
-                    onKeyDown.apply(geocoder, [{ target: geocoder._inputEl }]);
-                } else if (geocoder._typeahead.data.length > 0) {
-                    geocoder._typeahead.clear();
+                        } catch (e) {}
+                        return results;
+                    },
+                },
+                {
+                    maplibregl: maplibregl,
+                    enableEventLogging: false,
+                    collapsed: true,
+                    flyTo: fitBoundsOptions,
+                    language,
                 }
-            };
+            );
             map.addControl(geocoder);
         }
         if (geolocate) {
             map.addControl(
-                new mapboxgl.GeolocateControl({
+                new maplibregl.GeolocateControl({
                     positionOptions: {
                         enableHighAccuracy: true,
                     },
                     fitBoundsOptions,
                     trackUserLocation: true,
-                    showUserHeading: true,
                 })
             );
         }
-        const scaleControl = new mapboxgl.ScaleControl({
+        const scaleControl = new maplibregl.ScaleControl({
             unit: get(distanceUnits),
         });
         map.addControl(scaleControl);
-        map.on('style.load', () => {
-            map.setFog({
-                color: 'rgb(186, 210, 235)',
-                'high-color': 'rgb(36, 92, 223)',
-                'horizon-blend': 0.1,
-                'space-color': 'rgb(156, 240, 255)',
-            });
-            map.on('pitch', this.setTerrain.bind(this));
-            this.setTerrain();
-        });
-        map.on('style.import.load', () => {
-            const basemap = map.getStyle().imports?.find((imprt) => imprt.id === 'basemap');
-            if (basemap && basemap.data && basemap.data.glyphs) {
-                map.setGlyphsUrl(basemap.data.glyphs);
-            }
-        });
         map.on('load', () => {
-            this._map.set(map); // only set the store after the map has loaded
+            this._map = map;
+            this._mapStore.set(map); // only set the store after the map has loaded
             window._map = map; // entry point for extensions
             this.resize();
-            this.setTerrain();
             scaleControl.setUnit(get(distanceUnits));
-
-            this._onLoadCallbacks.forEach((callback) => callback(map));
-            this._onLoadCallbacks = [];
         });
+        map.on('style.load', this.callOnLoadBinded);
 
         this._unsubscribes.push(treeFileView.subscribe(() => this.resize()));
         this._unsubscribes.push(elevationProfile.subscribe(() => this.resize()));
@@ -166,70 +128,50 @@ export class MapboxGLMap {
                 scaleControl.setUnit(units);
             })
         );
-        this._unsubscribes.push(terrainSource.subscribe(() => this.setTerrain()));
-    }
-
-    onLoad(callback: (map: mapboxgl.Map) => void) {
-        const map = get(this._map);
-        if (map) {
-            callback(map);
-        } else {
-            this._onLoadCallbacks.push(callback);
-        }
     }
 
     destroy() {
-        const map = get(this._map);
-        if (map) {
-            map.remove();
-            this._map.set(null);
+        if (this._map) {
+            this._map.remove();
+            this._mapStore.set(null);
         }
         this._unsubscribes.forEach((unsubscribe) => unsubscribe());
         this._unsubscribes = [];
     }
 
     resize() {
-        const map = get(this._map);
-        if (map) {
+        if (this._map) {
             tick().then(() => {
-                map.resize();
+                this._map?.resize();
             });
         }
     }
 
     toggle3D() {
-        const map = get(this._map);
-        if (map) {
-            if (map.getPitch() === 0) {
-                map.easeTo({ pitch: 70 });
+        if (this._map) {
+            if (this._map.getPitch() === 0) {
+                this._map.easeTo({ pitch: 70 });
             } else {
-                map.easeTo({ pitch: 0 });
+                this._map.easeTo({ pitch: 0 });
             }
         }
     }
 
-    setTerrain() {
-        const map = get(this._map);
-        if (map) {
-            const source = get(terrainSource);
-            try {
-                if (!map.getSource(source)) {
-                    map.addSource(source, terrainSources[source]);
-                }
-                if (map.getPitch() > 0) {
-                    map.setTerrain({
-                        source: source,
-                        exaggeration: 1,
-                    });
-                } else {
-                    map.setTerrain(null);
-                }
-            } catch (e) {
-                // No reliable way to check if the map is ready to add sources and layers
-                return;
-            }
+    onLoad(callback: (map: maplibregl.Map) => void) {
+        if (this._map) {
+            callback(this._map);
+        } else {
+            this._onLoadCallbacks.push(callback);
+        }
+    }
+
+    callOnLoad() {
+        if (this._map && this._map.getLayer(ANCHOR_LAYER_KEY.overlays)) {
+            this._onLoadCallbacks.forEach((callback) => callback(this._map!));
+            this._onLoadCallbacks = [];
+            this._map.off('style.load', this.callOnLoadBinded);
         }
     }
 }
 
-export const map = new MapboxGLMap();
+export const map = new MapLibreGLMap();

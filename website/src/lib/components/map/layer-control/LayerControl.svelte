@@ -5,12 +5,8 @@
     import { Separator } from '$lib/components/ui/separator';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
     import { Layers } from '@lucide/svelte';
-    import { basemaps, defaultBasemap, overlays } from '$lib/assets/layers';
     import { settings } from '$lib/logic/settings';
     import { map } from '$lib/components/map/map';
-    import { customBasemapUpdate, getLayers } from './utils';
-    import type { ImportSpecification, StyleSpecification } from 'mapbox-gl';
-    import { untrack } from 'svelte';
 
     let container: HTMLDivElement;
     let overpassLayer: OverpassLayer;
@@ -23,125 +19,14 @@
         selectedBasemapTree,
         selectedOverlayTree,
         selectedOverpassTree,
-        customLayers,
-        opacities,
     } = settings;
 
-    function setStyle() {
-        if (!$map) {
-            return;
-        }
-        let basemap = basemaps.hasOwnProperty($currentBasemap)
-            ? basemaps[$currentBasemap]
-            : ($customLayers[$currentBasemap]?.value ?? basemaps[defaultBasemap]);
-        $map.removeImport('basemap');
-        if (typeof basemap === 'string') {
-            $map.addImport({ id: 'basemap', url: basemap }, 'overlays');
-        } else {
-            $map.addImport(
-                {
-                    id: 'basemap',
-                    url: '',
-                    data: basemap as StyleSpecification,
-                },
-                'overlays'
-            );
-        }
-    }
-
-    $effect(() => {
-        if ($map && ($currentBasemap || $customBasemapUpdate)) {
-            untrack(() => setStyle());
-        }
-    });
-
-    function addOverlay(id: string) {
-        if (!$map) {
-            return;
-        }
-        try {
-            let overlay = $customLayers.hasOwnProperty(id) ? $customLayers[id].value : overlays[id];
-            if (typeof overlay === 'string') {
-                $map.addImport({ id, url: overlay });
-            } else {
-                if ($opacities.hasOwnProperty(id)) {
-                    overlay = {
-                        ...overlay,
-                        layers: (overlay as StyleSpecification).layers.map((layer) => {
-                            if (layer.type === 'raster') {
-                                if (!layer.paint) {
-                                    layer.paint = {};
-                                }
-                                layer.paint['raster-opacity'] = $opacities[id];
-                            }
-                            return layer;
-                        }),
-                    };
-                }
-                $map.addImport({
-                    id,
-                    url: '',
-                    data: overlay as StyleSpecification,
-                });
-            }
-        } catch (e) {
-            // No reliable way to check if the map is ready to add sources and layers
-        }
-    }
-
-    function updateOverlays() {
-        if ($map && $currentOverlays && $opacities) {
-            let overlayLayers = getLayers($currentOverlays);
-            try {
-                let activeOverlays =
-                    $map
-                        .getStyle()
-                        .imports?.reduce(
-                            (
-                                acc: Record<string, ImportSpecification>,
-                                imprt: ImportSpecification
-                            ) => {
-                                if (!['basemap', 'overlays'].includes(imprt.id)) {
-                                    acc[imprt.id] = imprt;
-                                }
-                                return acc;
-                            },
-                            {}
-                        ) || {};
-                let toRemove = Object.keys(activeOverlays).filter((id) => !overlayLayers[id]);
-                toRemove.forEach((id) => {
-                    $map?.removeImport(id);
-                });
-                let toAdd = Object.entries(overlayLayers)
-                    .filter(([id, selected]) => selected && !activeOverlays.hasOwnProperty(id))
-                    .map(([id]) => id);
-                toAdd.forEach((id) => {
-                    addOverlay(id);
-                });
-            } catch (e) {
-                // No reliable way to check if the map is ready to add sources and layers
-            }
-        }
-    }
-
-    $effect(() => {
-        if ($map && $currentOverlays && $opacities) {
-            untrack(() => updateOverlays());
-        }
-    });
-
-    map.onLoad((_map: mapboxgl.Map) => {
+    map.onLoad((_map: maplibregl.Map) => {
         if (overpassLayer) {
             overpassLayer.remove();
         }
         overpassLayer = new OverpassLayer(_map);
         overpassLayer.add();
-        let first = true;
-        _map.on('style.import.load', () => {
-            if (!first) return;
-            first = false;
-            updateOverlays();
-        });
     });
 
     let open = $state(false);

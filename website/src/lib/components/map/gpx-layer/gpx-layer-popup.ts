@@ -3,13 +3,14 @@ import { MapPopup } from '$lib/components/map/map-popup';
 export let waypointPopup: MapPopup | null = null;
 export let trackpointPopup: MapPopup | null = null;
 
-export function createPopups(map: mapboxgl.Map) {
+export function createPopups(map: maplibregl.Map) {
     removePopups();
     waypointPopup = new MapPopup(map, {
         closeButton: false,
         focusAfterOpen: false,
         maxWidth: undefined,
         offset: {
+            center: [0, 0],
             top: [0, 0],
             'top-left': [0, 0],
             'top-right': [0, 0],

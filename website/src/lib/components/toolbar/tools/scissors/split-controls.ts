@@ -8,16 +8,18 @@ import { get } from 'svelte/store';
 import { fileStateCollection } from '$lib/logic/file-state';
 import { fileActions } from '$lib/logic/file-actions';
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+import type { GeoJSONSource } from 'maplibre-gl';
+import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 
 export class SplitControls {
-    map: mapboxgl.Map;
+    map: maplibregl.Map;
     unsubscribes: Function[] = [];
 
     layerOnMouseEnterBinded: (e: any) => void = this.layerOnMouseEnter.bind(this);
     layerOnMouseLeaveBinded: () => void = this.layerOnMouseLeave.bind(this);
     layerOnClickBinded: (e: any) => void = this.layerOnClick.bind(this);
 
-    constructor(map: mapboxgl.Map) {
+    constructor(map: maplibregl.Map) {
         this.map = map;
 
         if (!this.map.hasImage('split-control')) {
@@ -97,7 +99,7 @@ export class SplitControls {
         }, false);
 
         try {
-            let source = this.map.getSource('split-controls') as mapboxgl.GeoJSONSource | undefined;
+            let source = this.map.getSource('split-controls') as GeoJSONSource | undefined;
             if (source) {
                 source.setData(data);
             } else {
@@ -108,24 +110,25 @@ export class SplitControls {
             }
 
             if (!this.map.getLayer('split-controls')) {
-                this.map.addLayer({
-                    id: 'split-controls',
-                    type: 'symbol',
-                    source: 'split-controls',
-                    layout: {
-                        'icon-image': 'split-control',
-                        'icon-size': 0.25,
-                        'icon-padding': 0,
+                this.map.addLayer(
+                    {
+                        id: 'split-controls',
+                        type: 'symbol',
+                        source: 'split-controls',
+                        layout: {
+                            'icon-image': 'split-control',
+                            'icon-size': 0.25,
+                            'icon-padding': 0,
+                        },
+                        filter: ['<=', ['get', 'minZoom'], ['zoom']],
                     },
-                    filter: ['<=', ['get', 'minZoom'], ['zoom']],
-                });
+                    ANCHOR_LAYER_KEY.interactions
+                );
 
                 this.map.on('mouseenter', 'split-controls', this.layerOnMouseEnterBinded);
                 this.map.on('mouseleave', 'split-controls', this.layerOnMouseLeaveBinded);
                 this.map.on('click', 'split-controls', this.layerOnClickBinded);
             }
-
-            this.map.moveLayer('split-controls');
         } catch (e) {
             // No reliable way to check if the map is ready to add sources and layers
         }
@@ -157,7 +160,7 @@ export class SplitControls {
         mapCursor.notify(MapCursorState.SPLIT_CONTROL, false);
     }
 
-    layerOnClick(e: mapboxgl.MapMouseEvent) {
+    layerOnClick(e: maplibregl.MapLayerMouseEvent) {
         let coordinates = (e.features![0].geometry as GeoJSON.Point).coordinates;
         fileActions.split(
             get(splitAs),

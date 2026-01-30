@@ -27,8 +27,8 @@ Any help is greatly appreciated!
 
 The code is split into two parts:
 
--   `gpx`: a Typescript library for parsing and manipulating GPX files,
--   `website`: the website itself, which is a [SvelteKit](https://kit.svelte.dev/) application.
+- `gpx`: a Typescript library for parsing and manipulating GPX files,
+- `website`: the website itself, which is a [SvelteKit](https://kit.svelte.dev/) application.
 
 You will need [Node.js](https://nodejs.org/) to build and run these two parts.
 
@@ -42,11 +42,11 @@ npm run build
 
 ### Running the website
 
-To be able to load the map, you will need to create your own <a href="https://account.mapbox.com/auth/signup" target="_blank">Mapbox access token</a> and store it in a `.env` file in the `website` directory.
+To be able to load the map, you will need to create your own <a href="https://cloud.maptiler.com/auth/widget?next=https://cloud.maptiler.com/maps/" target="_blank">MapTiler key</a> and store it in a `.env` file in the `website` directory.
 
 ```bash
 cd website
-echo PUBLIC_MAPBOX_TOKEN={YOUR_MAPBOX_TOKEN} >> .env
+echo PUBLIC_MAPTILER_KEY={YOUR_MAPTILER_KEY} >> .env
 npm install
 npm run dev
 ```
@@ -55,25 +55,25 @@ npm run dev
 
 This project has been made possible thanks to the following open source projects:
 
--   Development:
-    -   [Svelte](https://github.com/sveltejs/svelte) and [SvelteKit](https://github.com/sveltejs/kit) — seamless development experience
-    -   [MDsveX](https://github.com/pngwn/MDsveX) — allowing a Markdown-based documentation
--   Design:
-    -   [shadcn-svelte](https://github.com/huntabyte/shadcn-svelte) — beautiful components
-    -   [@lucide/svelte](https://github.com/lucide-icons/lucide/tree/main/packages/svelte) — beautiful icons
-    -   [tailwindcss](https://github.com/tailwindlabs/tailwindcss) — easy styling
-    -   [Chart.js](https://github.com/chartjs/Chart.js) — beautiful and fast charts
--   Logic:
-    -   [immer](https://github.com/immerjs/immer) — complex state management
-    -   [Dexie.js](https://github.com/dexie/Dexie.js) — IndexedDB wrapper
-    -   [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser) — fast GPX file parsing
-    -   [SortableJS](https://github.com/SortableJS/Sortable) — creating a sortable file tree
--   Mapping:
-    -   [Mapbox GL JS](https://github.com/mapbox/mapbox-gl-js) — beautiful and fast interactive maps
-    -   [brouter](https://github.com/abrensch/brouter) — routing engine
-    -   [OpenStreetMap](https://www.openstreetmap.org) — map data used by Mapbox and brouter
--   Search:
-    -   [DocSearch](https://github.com/algolia/docsearch) — search engine for the documentation
+- Development:
+    - [Svelte](https://github.com/sveltejs/svelte) and [SvelteKit](https://github.com/sveltejs/kit) — seamless development experience
+    - [MDsveX](https://github.com/pngwn/MDsveX) — allowing a Markdown-based documentation
+- Design:
+    - [shadcn-svelte](https://github.com/huntabyte/shadcn-svelte) — beautiful components
+    - [@lucide/svelte](https://github.com/lucide-icons/lucide/tree/main/packages/svelte) — beautiful icons
+    - [tailwindcss](https://github.com/tailwindlabs/tailwindcss) — easy styling
+    - [Chart.js](https://github.com/chartjs/Chart.js) — beautiful and fast charts
+- Logic:
+    - [immer](https://github.com/immerjs/immer) — complex state management
+    - [Dexie.js](https://github.com/dexie/Dexie.js) — IndexedDB wrapper
+    - [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser) — fast GPX file parsing
+    - [SortableJS](https://github.com/SortableJS/Sortable) — creating a sortable file tree
+- Mapping:
+    - [MapLibre GL JS](https://github.com/maplibre/maplibre-gl-js) — beautiful and fast interactive maps
+    - [brouter](https://github.com/abrensch/brouter) — routing engine
+    - [OpenStreetMap](https://www.openstreetmap.org) — map data used by most of the map layers, and by the routing engine
+- Search:
+    - [DocSearch](https://github.com/algolia/docsearch) — search engine for the documentation
 
 ## License
 

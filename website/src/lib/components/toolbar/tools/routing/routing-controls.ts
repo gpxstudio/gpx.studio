@@ -1,6 +1,6 @@
 import { distance, type Coordinates, TrackPoint, TrackSegment, Track, projectedPoint } from 'gpx';
 import { get, writable, type Readable } from 'svelte/store';
-import mapboxgl from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 import { route } from './routing';
 import { toast } from 'svelte-sonner';
 import {
@@ -32,7 +32,7 @@ export class RoutingControls {
     file: Readable<GPXFileWithStatistics | undefined>;
     anchors: AnchorWithMarker[] = [];
     shownAnchors: AnchorWithMarker[] = [];
-    popup: mapboxgl.Popup;
+    popup: maplibregl.Popup;
     popupElement: HTMLElement;
     temporaryAnchor: AnchorWithMarker;
     lastDragEvent = 0;
@@ -43,12 +43,12 @@ export class RoutingControls {
         this.toggleAnchorsForZoomLevelAndBounds.bind(this);
     showTemporaryAnchorBinded: (e: any) => void = this.showTemporaryAnchor.bind(this);
     updateTemporaryAnchorBinded: (e: any) => void = this.updateTemporaryAnchor.bind(this);
-    appendAnchorBinded: (e: mapboxgl.MapMouseEvent) => void = this.appendAnchor.bind(this);
+    appendAnchorBinded: (e: maplibregl.MapMouseEvent) => void = this.appendAnchor.bind(this);
 
     constructor(
         fileId: string,
         file: Readable<GPXFileWithStatistics | undefined>,
-        popup: mapboxgl.Popup,
+        popup: maplibregl.Popup,
         popupElement: HTMLElement
     ) {
         this.fileId = fileId;
@@ -180,7 +180,7 @@ export class RoutingControls {
         let element = document.createElement('div');
         element.className = `h-5 w-5 xs:h-4 xs:w-4 md:h-3 md:w-3 rounded-full bg-white border-2 border-black cursor-pointer`;
 
-        let marker = new mapboxgl.Marker({
+        let marker = new maplibregl.Marker({
             draggable: true,
             className: 'z-10',
             element,
@@ -215,7 +215,7 @@ export class RoutingControls {
         return anchor;
     }
 
-    handleClickForAnchor(anchor: Anchor, marker: mapboxgl.Marker) {
+    handleClickForAnchor(anchor: Anchor, marker: maplibregl.Marker) {
         return (e: any) => {
             e.preventDefault();
             e.stopPropagation();
@@ -607,7 +607,7 @@ export class RoutingControls {
         });
     }
 
-    async appendAnchor(e: mapboxgl.MapMouseEvent) {
+    async appendAnchor(e: maplibregl.MapMouseEvent) {
         // Add a new anchor to the end of the last segment
         if (get(streetViewEnabled) && get(streetViewSource) === 'google') {
             return;
@@ -858,6 +858,6 @@ type Anchor = {
 };
 
 type AnchorWithMarker = Anchor & {
-    marker: mapboxgl.Marker;
+    marker: maplibregl.Marker;
     inZoom: boolean;
 };

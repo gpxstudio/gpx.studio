@@ -2,7 +2,6 @@
     import { Button } from '$lib/components/ui/button';
     import Help from '$lib/components/Help.svelte';
     import { MountainSnow } from '@lucide/svelte';
-    import { map } from '$lib/components/map/map';
     import { i18n } from '$lib/i18n.svelte';
     import { getURLForLanguage } from '$lib/utils';
     import { selection } from '$lib/logic/selection';
@@ -20,11 +19,7 @@
         variant="outline"
         class="whitespace-normal h-fit"
         disabled={!validSelection}
-        onclick={() => {
-            if ($map) {
-                fileActions.addElevationToSelection($map);
-            }
-        }}
+        onclick={() => fileActions.addElevationToSelection()}
     >
         <MountainSnow size="16" class="shrink-0" />
         {i18n._('toolbar.elevation.button')}

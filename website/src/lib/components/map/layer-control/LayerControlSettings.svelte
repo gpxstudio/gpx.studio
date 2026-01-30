@@ -213,7 +213,9 @@
                                                     isSelected($currentOverlays, selectedOverlay)
                                                 ) {
                                                     try {
-                                                        $map.removeImport(selectedOverlay);
+                                                        if ($map.getLayer(selectedOverlay)) {
+                                                            $map.removeLayer(selectedOverlay);
+                                                        }
                                                     } catch (e) {
                                                         // No reliable way to check if the map is ready to remove sources and layers
                                                     }

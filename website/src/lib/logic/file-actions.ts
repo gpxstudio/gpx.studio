@@ -807,7 +807,7 @@ export const fileActions = {
             });
         });
     },
-    addElevationToSelection: async (map: mapboxgl.Map) => {
+    addElevationToSelection: async () => {
         if (get(selection).size === 0) {
             return;
         }

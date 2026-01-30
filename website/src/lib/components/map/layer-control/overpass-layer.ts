@@ -6,6 +6,8 @@ import { overpassQueryData } from '$lib/assets/layers';
 import { MapPopup } from '$lib/components/map/map-popup';
 import { settings } from '$lib/logic/settings';
 import { db } from '$lib/db';
+import type { GeoJSONSource } from 'maplibre-gl';
+import { ANCHOR_LAYER_KEY } from '../style';
 
 const { currentOverpassQueries } = settings;
 
@@ -20,11 +22,11 @@ liveQuery(() => db.overpassdata.toArray()).subscribe((pois) => {
 });
 
 export class OverpassLayer {
-    overpassUrl = 'https://overpass.private.coffee/api/interpreter';
+    overpassUrl = 'https://maps.mail.ru/osm/tools/overpass/api/interpreter';
     minZoom = 12;
     queryZoom = 12;
     expirationTime = 7 * 24 * 3600 * 1000;
-    map: mapboxgl.Map;
+    map: maplibregl.Map;
     popup: MapPopup;
 
     currentQueries: Set<string> = new Set();
@@ -35,7 +37,7 @@ export class OverpassLayer {
     updateBinded = this.update.bind(this);
     onHoverBinded = this.onHover.bind(this);
 
-    constructor(map: mapboxgl.Map) {
+    constructor(map: maplibregl.Map) {
         this.map = map;
         this.popup = new MapPopup(map, {
             closeButton: false,
@@ -47,7 +49,7 @@ export class OverpassLayer {
 
     add() {
         this.map.on('moveend', this.queryIfNeededBinded);
-        this.map.on('style.import.load', this.updateBinded);
+        this.map.on('style.load', this.updateBinded);
         this.unsubscribes.push(data.subscribe(this.updateBinded));
         this.unsubscribes.push(
             currentOverpassQueries.subscribe(() => {
@@ -74,7 +76,7 @@ export class OverpassLayer {
         let d = get(data);
 
         try {
-            let source = this.map.getSource('overpass') as mapboxgl.GeoJSONSource | undefined;
+            let source = this.map.getSource('overpass') as GeoJSONSource | undefined;
             if (source) {
                 source.setData(d);
             } else {
@@ -85,17 +87,20 @@ export class OverpassLayer {
             }
 
             if (!this.map.getLayer('overpass')) {
-                this.map.addLayer({
-                    id: 'overpass',
-                    type: 'symbol',
-                    source: 'overpass',
-                    layout: {
-                        'icon-image': ['get', 'icon'],
-                        'icon-size': 0.25,
-                        'icon-padding': 0,
-                        'icon-allow-overlap': ['step', ['zoom'], false, 14, true],
+                this.map.addLayer(
+                    {
+                        id: 'overpass',
+                        type: 'symbol',
+                        source: 'overpass',
+                        layout: {
+                            'icon-image': ['get', 'icon'],
+                            'icon-size': 0.25,
+                            'icon-padding': 0,
+                            'icon-allow-overlap': ['step', ['zoom'], false, 14, true],
+                        },
                     },
-                });
+                    ANCHOR_LAYER_KEY.overpass
+                );
 
                 this.map.on('mouseenter', 'overpass', this.onHoverBinded);
                 this.map.on('click', 'overpass', this.onHoverBinded);
@@ -111,7 +116,7 @@ export class OverpassLayer {
 
     remove() {
         this.map.off('moveend', this.queryIfNeededBinded);
-        this.map.off('style.import.load', this.updateBinded);
+        this.map.off('style.load', this.updateBinded);
         this.unsubscribes.forEach((unsubscribe) => unsubscribe());
 
         try {

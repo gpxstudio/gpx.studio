@@ -1,7 +1,8 @@
-import mapboxgl, { type LayerSpecification, type VectorSourceSpecification } from 'mapbox-gl';
+import maplibregl, { type LayerSpecification, type VectorSourceSpecification } from 'maplibre-gl';
 import { Viewer, type ViewerBearingEvent } from 'mapillary-js/dist/mapillary.module';
 import 'mapillary-js/dist/mapillary.css';
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+import { ANCHOR_LAYER_KEY } from '../style';
 
 const mapillarySource: VectorSourceSpecification = {
     type: 'vector',
@@ -41,8 +42,8 @@ const mapillaryImageLayer: LayerSpecification = {
 };
 
 export class MapillaryLayer {
-    map: mapboxgl.Map;
-    marker: mapboxgl.Marker;
+    map: maplibregl.Map;
+    marker: maplibregl.Marker;
     viewer: Viewer;
 
     active = false;
@@ -52,7 +53,7 @@ export class MapillaryLayer {
     onMouseEnterBinded = this.onMouseEnter.bind(this);
     onMouseLeaveBinded = this.onMouseLeave.bind(this);
 
-    constructor(map: mapboxgl.Map, container: HTMLElement, popupOpen: { value: boolean }) {
+    constructor(map: maplibregl.Map, container: HTMLElement, popupOpen: { value: boolean }) {
         this.map = map;
 
         this.viewer = new Viewer({
@@ -61,15 +62,12 @@ export class MapillaryLayer {
         });
 
         const element = document.createElement('div');
-        element.className = 'mapboxgl-user-location mapboxgl-user-location-show-heading';
+        element.className = 'maplibregl-user-location maplibregl-user-location-show-heading';
         const dot = document.createElement('div');
-        dot.className = 'mapboxgl-user-location-dot';
-        const heading = document.createElement('div');
-        heading.className = 'mapboxgl-user-location-heading';
+        dot.className = 'maplibregl-user-location-dot';
         element.appendChild(dot);
-        element.appendChild(heading);
 
-        this.marker = new mapboxgl.Marker({
+        this.marker = new maplibregl.Marker({
             rotationAlignment: 'map',
             element,
         });
@@ -99,10 +97,10 @@ export class MapillaryLayer {
             this.map.addSource('mapillary', mapillarySource);
         }
         if (!this.map.getLayer('mapillary-sequence')) {
-            this.map.addLayer(mapillarySequenceLayer);
+            this.map.addLayer(mapillarySequenceLayer, ANCHOR_LAYER_KEY.mapillary);
         }
         if (!this.map.getLayer('mapillary-image')) {
-            this.map.addLayer(mapillaryImageLayer);
+            this.map.addLayer(mapillaryImageLayer, ANCHOR_LAYER_KEY.mapillary);
         }
         this.map.on('style.load', this.addBinded);
         this.map.on('mouseenter', 'mapillary-image', this.onMouseEnterBinded);
@@ -134,7 +132,7 @@ export class MapillaryLayer {
         this.popupOpen.value = false;
     }
 
-    onMouseEnter(e: mapboxgl.MapMouseEvent) {
+    onMouseEnter(e: maplibregl.MapLayerMouseEvent) {
         if (
             e.features &&
             e.features.length > 0 &&

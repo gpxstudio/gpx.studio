@@ -20,7 +20,7 @@ import Chart, {
     type ScriptableLineSegmentContext,
     type TooltipItem,
 } from 'chart.js/auto';
-import mapboxgl from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 import { get, type Readable, type Writable } from 'svelte/store';
 import { map } from '$lib/components/map/map';
 import type { GPXGlobalStatistics, GPXStatisticsGroup } from 'gpx';
@@ -50,7 +50,7 @@ export class ElevationProfile {
     private _chart: Chart | null = null;
     private _canvas: HTMLCanvasElement;
     private _overlay: HTMLCanvasElement;
-    private _marker: mapboxgl.Marker | null = null;
+    private _marker: maplibregl.Marker | null = null;
     private _dragging = false;
     private _panning = false;
 
@@ -76,7 +76,7 @@ export class ElevationProfile {
 
         let element = document.createElement('div');
         element.className = 'h-4 w-4 rounded-full bg-cyan-500 border-2 border-white';
-        this._marker = new mapboxgl.Marker({
+        this._marker = new maplibregl.Marker({
             element,
         });
 

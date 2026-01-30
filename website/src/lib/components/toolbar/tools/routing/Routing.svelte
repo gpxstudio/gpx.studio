@@ -51,7 +51,7 @@
     }: {
         minimized?: boolean;
         minimizable?: boolean;
-        popup?: mapboxgl.Popup;
+        popup?: maplibregl.Popup;
         popupElement?: HTMLDivElement;
         class?: string;
     } = $props();

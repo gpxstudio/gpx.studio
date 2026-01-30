@@ -1,29 +1,24 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
-    import mapboxgl from 'mapbox-gl';
-    import 'mapbox-gl/dist/mapbox-gl.css';
-    import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
     import { Button } from '$lib/components/ui/button';
     import { i18n } from '$lib/i18n.svelte';
-    import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
     import { page } from '$app/state';
     import { map } from '$lib/components/map/map';
+    import { PUBLIC_MAPTILER_KEY } from '$env/static/public';
 
     let {
-        accessToken = PUBLIC_MAPBOX_TOKEN,
+        maptilerKey = PUBLIC_MAPTILER_KEY,
         geolocate = true,
         geocoder = true,
         hash = true,
         class: className = '',
     }: {
-        accessToken?: string;
+        maptilerKey?: string;
         geolocate?: boolean;
         geocoder?: boolean;
         hash?: boolean;
         class?: string;
     } = $props();
-
-    mapboxgl.accessToken = accessToken;
 
     let webgl2Supported = $state(true);
     let embeddedApp = $state(false);
@@ -48,7 +43,7 @@
             language = 'en';
         }
 
-        map.init(PUBLIC_MAPBOX_TOKEN, language, hash, geocoder, geolocate);
+        map.init(maptilerKey, language, hash, geocoder, geolocate);
     });
 
     onDestroy(() => {
@@ -81,21 +76,21 @@
 <style lang="postcss">
     @reference "../../../app.css";
 
-    div :global(.mapboxgl-map) {
+    div :global(.maplibregl-map) {
         @apply font-sans;
     }
 
-    div :global(.mapboxgl-ctrl-top-right > .mapboxgl-ctrl) {
+    div :global(.maplibregl-ctrl-top-right > .maplibregl-ctrl) {
         @apply shadow-md;
         @apply bg-background;
         @apply text-foreground;
     }
 
-    div :global(.mapboxgl-ctrl-icon) {
+    div :global(.maplibregl-ctrl-icon) {
         @apply dark:brightness-[4.7];
     }
 
-    div :global(.mapboxgl-ctrl-geocoder) {
+    div :global(.maplibregl-ctrl-geocoder) {
         @apply flex;
         @apply flex-row;
         @apply w-fit;
@@ -110,27 +105,27 @@
         @apply text-foreground;
     }
 
-    div :global(.mapboxgl-ctrl-geocoder .suggestions > li > a) {
+    div :global(.maplibregl-ctrl-geocoder .suggestions > li > a) {
         @apply text-foreground;
         @apply hover:text-accent-foreground;
         @apply hover:bg-accent;
     }
 
-    div :global(.mapboxgl-ctrl-geocoder .suggestions > .active > a) {
+    div :global(.maplibregl-ctrl-geocoder .suggestions > .active > a) {
         @apply bg-background;
     }
 
-    div :global(.mapboxgl-ctrl-geocoder--button) {
+    div :global(.maplibregl-ctrl-geocoder--button) {
         @apply bg-transparent;
         @apply hover:bg-transparent;
     }
 
-    div :global(.mapboxgl-ctrl-geocoder--icon) {
+    div :global(.maplibregl-ctrl-geocoder--icon) {
         @apply fill-foreground;
         @apply hover:fill-accent-foreground;
     }
 
-    div :global(.mapboxgl-ctrl-geocoder--icon-search) {
+    div :global(.maplibregl-ctrl-geocoder--icon-search) {
         @apply relative;
         @apply top-0;
         @apply left-0;
@@ -138,7 +133,7 @@
         @apply w-[29px];
     }
 
-    div :global(.mapboxgl-ctrl-geocoder--input) {
+    div :global(.maplibregl-ctrl-geocoder--input) {
         @apply relative;
         @apply w-64;
         @apply py-0;
@@ -149,12 +144,12 @@
         @apply text-foreground;
     }
 
-    div :global(.mapboxgl-ctrl-geocoder--collapsed .mapboxgl-ctrl-geocoder--input) {
+    div :global(.maplibregl-ctrl-geocoder--collapsed .maplibregl-ctrl-geocoder--input) {
         @apply w-0;
         @apply p-0;
     }
 
-    div :global(.mapboxgl-ctrl-top-right) {
+    div :global(.maplibregl-ctrl-top-right) {
         @apply z-40;
         @apply flex;
         @apply flex-col;
@@ -163,77 +158,76 @@
         @apply overflow-hidden;
     }
 
-    .horizontal :global(.mapboxgl-ctrl-bottom-left) {
+    .horizontal :global(.maplibregl-ctrl-bottom-left) {
         @apply bottom-[42px];
     }
 
-    .horizontal :global(.mapboxgl-ctrl-bottom-right) {
+    .horizontal :global(.maplibregl-ctrl-bottom-right) {
         @apply bottom-[42px];
     }
 
-    div :global(.mapboxgl-ctrl-attrib) {
+    div :global(.maplibregl-ctrl-attrib) {
         @apply dark:bg-transparent;
     }
 
-    div :global(.mapboxgl-compact-show.mapboxgl-ctrl-attrib) {
+    div :global(.maplibregl-compact-show.maplibregl-ctrl-attrib) {
         @apply dark:bg-background;
     }
 
-    div :global(.mapboxgl-ctrl-attrib-button) {
+    div :global(.maplibregl-ctrl-attrib-button) {
         @apply dark:bg-foreground;
     }
 
-    div :global(.mapboxgl-compact-show .mapboxgl-ctrl-attrib-button) {
+    div :global(.maplibregl-compact-show .maplibregl-ctrl-attrib-button) {
         @apply dark:bg-foreground;
     }
 
-    div :global(.mapboxgl-ctrl-attrib a) {
+    div :global(.maplibregl-ctrl-attrib a) {
         @apply text-foreground;
     }
 
-    div :global(.mapboxgl-popup) {
-        @apply w-fit;
+    div :global(.maplibregl-popup) {
         @apply z-50;
     }
 
-    div :global(.mapboxgl-popup-content) {
+    div :global(.maplibregl-popup-content) {
         @apply p-0;
         @apply bg-transparent;
         @apply shadow-none;
     }
 
-    div :global(.mapboxgl-popup-anchor-top .mapboxgl-popup-tip) {
+    div :global(.maplibregl-popup-anchor-top .maplibregl-popup-tip) {
         @apply border-b-background;
     }
 
-    div :global(.mapboxgl-popup-anchor-top-left .mapboxgl-popup-tip) {
+    div :global(.maplibregl-popup-anchor-top-left .maplibregl-popup-tip) {
         @apply border-b-background;
     }
 
-    div :global(.mapboxgl-popup-anchor-top-right .mapboxgl-popup-tip) {
+    div :global(.maplibregl-popup-anchor-top-right .maplibregl-popup-tip) {
         @apply border-b-background;
     }
 
-    div :global(.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip) {
+    div :global(.maplibregl-popup-anchor-bottom .maplibregl-popup-tip) {
         @apply border-t-background;
         @apply drop-shadow-md;
     }
 
-    div :global(.mapboxgl-popup-anchor-bottom-left .mapboxgl-popup-tip) {
+    div :global(.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip) {
         @apply border-t-background;
         @apply drop-shadow-md;
     }
 
-    div :global(.mapboxgl-popup-anchor-bottom-right .mapboxgl-popup-tip) {
+    div :global(.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip) {
         @apply border-t-background;
         @apply drop-shadow-md;
     }
 
-    div :global(.mapboxgl-popup-anchor-left .mapboxgl-popup-tip) {
+    div :global(.maplibregl-popup-anchor-left .maplibregl-popup-tip) {
         @apply border-r-background;
     }
 
-    div :global(.mapboxgl-popup-anchor-right .mapboxgl-popup-tip) {
+    div :global(.maplibregl-popup-anchor-right .maplibregl-popup-tip) {
         @apply border-l-background;
     }
 </style>

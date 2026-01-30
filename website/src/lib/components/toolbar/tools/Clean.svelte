@@ -16,10 +16,11 @@
     import { getURLForLanguage } from '$lib/utils';
     import { Trash2 } from '@lucide/svelte';
     import { map } from '$lib/components/map/map';
-    import type { GeoJSONSource } from 'mapbox-gl';
+    import type { GeoJSONSource } from 'maplibre-gl';
     import { selection } from '$lib/logic/selection';
     import { fileActions } from '$lib/logic/file-actions';
     import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+    import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 
     let props: {
         class?: string;
@@ -28,7 +29,7 @@
     let cleanType = $state(CleanType.INSIDE);
     let deleteTrackpoints = $state(true);
     let deleteWaypoints = $state(true);
-    let rectangleCoordinates: mapboxgl.LngLat[] = $state([]);
+    let rectangleCoordinates: maplibregl.LngLat[] = $state([]);
 
     $effect(() => {
         if ($map) {
@@ -63,15 +64,18 @@
                     });
                 }
                 if (!$map.getLayer('rectangle')) {
-                    $map.addLayer({
-                        id: 'rectangle',
-                        type: 'fill',
-                        source: 'rectangle',
-                        paint: {
-                            'fill-color': 'SteelBlue',
-                            'fill-opacity': 0.5,
+                    $map.addLayer(
+                        {
+                            id: 'rectangle',
+                            type: 'fill',
+                            source: 'rectangle',
+                            paint: {
+                                'fill-color': 'SteelBlue',
+                                'fill-opacity': 0.5,
+                            },
                         },
-                    });
+                        ANCHOR_LAYER_KEY.interactions
+                    );
                 }
             }
         }

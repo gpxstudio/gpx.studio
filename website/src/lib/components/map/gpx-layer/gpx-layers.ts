@@ -1,4 +1,5 @@
 import { GPXFileStateCollectionObserver } from '$lib/logic/file-state';
+import { writable } from 'svelte/store';
 import { GPXLayer } from './gpx-layer';
 
 export class GPXLayerCollection {
@@ -42,3 +43,4 @@ export class GPXLayerCollection {
 }
 
 export const gpxLayers = new GPXLayerCollection();
+export const gpxColors = writable(new Map<string, string>());

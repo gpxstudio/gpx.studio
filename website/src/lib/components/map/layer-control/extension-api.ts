@@ -103,7 +103,7 @@ export class ExtensionAPI {
         if (current && isSelected(current, overlay.id)) {
             show = true;
             try {
-                get(map)?.removeImport(overlay.id);
+                get(map)?.removeLayer(overlay.id);
             } catch (e) {
                 // No reliable way to check if the map is ready to remove sources and layers
             }

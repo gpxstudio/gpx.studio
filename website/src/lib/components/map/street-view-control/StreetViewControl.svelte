@@ -20,7 +20,7 @@
     let container: HTMLElement;
 
     onMount(() => {
-        map.onLoad((map: mapboxgl.Map) => {
+        map.onLoad((map: maplibregl.Map) => {
             googleRedirect = new GoogleRedirect(map);
             mapillaryLayer = new MapillaryLayer(map, container, mapillaryOpen);
         });

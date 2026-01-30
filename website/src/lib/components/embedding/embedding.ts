@@ -1,8 +1,8 @@
-import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
+import { PUBLIC_MAPTILER_KEY } from '$env/static/public';
 import { basemaps } from '$lib/assets/layers';
 
 export type EmbeddingOptions = {
-    token: string;
+    key: string;
     files: string[];
     ids: string[];
     basemap: string;
@@ -26,10 +26,10 @@ export type EmbeddingOptions = {
 };
 
 export const defaultEmbeddingOptions = {
-    token: '',
+    key: '',
     files: [],
     ids: [],
-    basemap: 'mapboxOutdoors',
+    basemap: 'maptilerTopo',
     elevation: {
         show: true,
         height: 170,
@@ -107,7 +107,7 @@ export function getURLForGoogleDriveFile(fileId: string): string {
 
 export function convertOldEmbeddingOptions(options: URLSearchParams): any {
     let newOptions: any = {
-        token: PUBLIC_MAPBOX_TOKEN,
+        key: PUBLIC_MAPTILER_KEY,
         files: [],
         ids: [],
     };
@@ -123,7 +123,7 @@ export function convertOldEmbeddingOptions(options: URLSearchParams): any {
     if (options.has('source')) {
         let basemap = options.get('source')!;
         if (basemap === 'satellite') {
-            newOptions.basemap = 'mapboxSatellite';
+            newOptions.basemap = 'maptilerSatellite';
         } else if (basemap === 'otm') {
             newOptions.basemap = 'openTopoMap';
         } else if (basemap === 'ohm') {

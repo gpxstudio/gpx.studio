@@ -1,10 +1,11 @@
 import { settings } from '$lib/logic/settings';
 import { gpxStatistics } from '$lib/logic/statistics';
 import { getConvertedDistanceToKilometers } from '$lib/units';
-import type { GeoJSONSource } from 'mapbox-gl';
 import { get } from 'svelte/store';
 import { map } from '$lib/components/map/map';
 import { allHidden } from '$lib/logic/hidden';
+import type { GeoJSONSource } from 'maplibre-gl';
+import { ANCHOR_LAYER_KEY } from '../style';
 
 const { distanceMarkers, distanceUnits } = settings;
 
@@ -22,7 +23,7 @@ export class DistanceMarkers {
         this.unsubscribes.push(
             map.subscribe((map_) => {
                 if (map_) {
-                    map_.on('style.import.load', this.updateBinded);
+                    map_.on('style.load', this.updateBinded);
                 }
             })
         );
@@ -44,44 +45,45 @@ export class DistanceMarkers {
                     });
                 }
                 if (!map_.getLayer('distance-markers')) {
-                    map_.addLayer({
-                        id: 'distance-markers',
-                        type: 'symbol',
-                        source: 'distance-markers',
-                        filter: [
-                            'match',
-                            ['get', 'level'],
-                            100,
-                            ['>=', ['zoom'], 0],
-                            50,
-                            ['>=', ['zoom'], 7],
-                            25,
-                            [
-                                'any',
-                                ['all', ['>=', ['zoom'], 8], ['<=', ['zoom'], 9]],
+                    map_.addLayer(
+                        {
+                            id: 'distance-markers',
+                            type: 'symbol',
+                            source: 'distance-markers',
+                            filter: [
+                                'match',
+                                ['get', 'level'],
+                                100,
+                                ['>=', ['zoom'], 0],
+                                50,
+                                ['>=', ['zoom'], 7],
+                                25,
+                                [
+                                    'any',
+                                    ['all', ['>=', ['zoom'], 8], ['<=', ['zoom'], 9]],
+                                    ['>=', ['zoom'], 11],
+                                ],
+                                10,
+                                ['>=', ['zoom'], 10],
+                                5,
                                 ['>=', ['zoom'], 11],
+                                1,
+                                ['>=', ['zoom'], 13],
+                                false,
                             ],
-                            10,
-                            ['>=', ['zoom'], 10],
-                            5,
-                            ['>=', ['zoom'], 11],
-                            1,
-                            ['>=', ['zoom'], 13],
-                            false,
-                        ],
-                        layout: {
-                            'text-field': ['get', 'distance'],
-                            'text-size': 14,
-                            'text-font': ['Open Sans Bold'],
+                            layout: {
+                                'text-field': ['get', 'distance'],
+                                'text-size': 14,
+                                'text-font': ['Open Sans Bold'],
+                            },
+                            paint: {
+                                'text-color': 'black',
+                                'text-halo-width': 2,
+                                'text-halo-color': 'white',
+                            },
                         },
-                        paint: {
-                            'text-color': 'black',
-                            'text-halo-width': 2,
-                            'text-halo-color': 'white',
-                        },
-                    });
-                } else {
-                    map_.moveLayer('distance-markers');
+                        ANCHOR_LAYER_KEY.distanceMarkers
+                    );
                 }
             } else {
                 if (map_.getLayer('distance-markers')) {

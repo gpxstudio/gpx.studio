@@ -34,11 +34,10 @@
     import { editStyle } from '$lib/components/file-list/style/utils.svelte';
     import { getSymbolKey, symbols } from '$lib/assets/symbols';
     import { selection, copied, cut } from '$lib/logic/selection';
-    import { map } from '$lib/components/map/map';
     import { fileActions, pasteSelection } from '$lib/logic/file-actions';
     import { allHidden } from '$lib/logic/hidden';
     import { boundsManager } from '$lib/logic/bounds';
-    import { gpxLayers } from '$lib/components/map/gpx-layer/gpx-layers';
+    import { gpxColors, gpxLayers } from '$lib/components/map/gpx-layer/gpx-layers';
     import { fileStateCollection } from '$lib/logic/file-state';
     import { waypointPopup } from '$lib/components/map/gpx-layer/gpx-layer-popup';
     import { allowedPastes } from './sortable-file-list';
@@ -58,19 +57,11 @@
 
     let singleSelection = $derived($selection.size === 1);
 
-    let nodeColors: string[] = $state([]);
-
-    $effect.pre(() => {
+    let nodeColors: string[] = $derived.by(() => {
         let colors: string[] = [];
-        if (node && $map) {
+        if (node) {
             if (node instanceof GPXFile) {
-                let defaultColor = undefined;
-
-                let layer = gpxLayers.getLayer(item.getFileId());
-                if (layer) {
-                    defaultColor = layer.layerColor;
-                }
-
+                let defaultColor = $gpxColors.get(item.getFileId());
                 let style = node.getStyle(defaultColor);
                 colors = style.color;
             } else if (node instanceof Track) {
@@ -83,14 +74,14 @@
                     colors.push(style['gpx_style:color']);
                 }
                 if (colors.length === 0) {
-                    let layer = gpxLayers.getLayer(item.getFileId());
-                    if (layer) {
-                        colors.push(layer.layerColor);
+                    let defaultColor = $gpxColors.get(item.getFileId());
+                    if (defaultColor) {
+                        colors.push(defaultColor);
                     }
                 }
             }
         }
-        nodeColors = colors;
+        return colors;
     });
 
     let symbolKey = $derived(node instanceof Waypoint ? getSymbolKey(node.sym) : undefined);
