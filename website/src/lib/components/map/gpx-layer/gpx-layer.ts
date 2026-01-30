@@ -22,6 +22,7 @@ import { fileActionManager } from '$lib/logic/file-action-manager';
 import { fileActions } from '$lib/logic/file-actions';
 import { splitAs } from '$lib/components/toolbar/tools/scissors/scissors';
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+import { gpxColors } from '$lib/components/map/gpx-layer/gpx-layers';
 
 const colors = [
     '#ff0000',
@@ -43,16 +44,35 @@ for (let color of colors) {
 }
 
 // Get the color with the least amount of uses
-function getColor() {
+function getColor(fileId: string) {
     let color = colors.reduce((a, b) => (colorCount[a] <= colorCount[b] ? a : b));
     colorCount[color]++;
+    gpxColors.update((colors) => {
+        colors.set(fileId, color);
+        return colors;
+    });
     return color;
 }
 
-function decrementColor(color: string) {
+function replaceColor(fileId: string, oldColor: string, newColor: string) {
+    if (colorCount.hasOwnProperty(oldColor)) {
+        colorCount[oldColor]--;
+    }
+    colorCount[newColor]++;
+    gpxColors.update((colors) => {
+        colors.set(fileId, newColor);
+        return colors;
+    });
+}
+
+function removeColor(fileId: string, color: string) {
     if (colorCount.hasOwnProperty(color)) {
         colorCount[color]--;
     }
+    gpxColors.update((colors) => {
+        colors.delete(fileId);
+        return colors;
+    });
 }
 
 export function getSvgForSymbol(symbol?: string | undefined, layerColor?: string | undefined) {
@@ -121,7 +141,7 @@ export class GPXLayer {
     constructor(fileId: string, file: Readable<GPXFileWithStatistics | undefined>) {
         this.fileId = fileId;
         this.file = file;
-        this.layerColor = getColor();
+        this.layerColor = getColor(fileId);
         this.unsubscribe.push(
             map.subscribe(($map) => {
                 if ($map) {
@@ -158,7 +178,7 @@ export class GPXLayer {
             file._data.style.color &&
             this.layerColor !== `#${file._data.style.color}`
         ) {
-            decrementColor(this.layerColor);
+            replaceColor(this.fileId, this.layerColor, `#${file._data.style.color}`);
             this.layerColor = `#${file._data.style.color}`;
         }
 
@@ -364,7 +384,7 @@ export class GPXLayer {
 
         this.unsubscribe.forEach((unsubscribe) => unsubscribe());
 
-        decrementColor(this.layerColor);
+        removeColor(this.fileId, this.layerColor);
     }
 
     moveToFront() {
