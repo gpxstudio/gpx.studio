@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onDestroy, onMount } from 'svelte';
+    import { onDestroy } from 'svelte';
     import { gpxLayers } from '$lib/components/map/gpx-layer/gpx-layers';
     import { DistanceMarkers } from '$lib/components/map/gpx-layer/distance-markers';
     import { StartEndMarkers } from '$lib/components/map/gpx-layer/start-end-markers';
@@ -9,13 +9,10 @@
     let distanceMarkers: DistanceMarkers;
     let startEndMarkers: StartEndMarkers;
 
-    onMount(() => {
+    map.onLoad((map_) => {
         gpxLayers.init();
         startEndMarkers = new StartEndMarkers();
         distanceMarkers = new DistanceMarkers();
-    });
-
-    map.onLoad((map_) => {
         createPopups(map_);
     });
 
