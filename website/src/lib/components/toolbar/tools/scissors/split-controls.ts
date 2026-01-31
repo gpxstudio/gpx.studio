@@ -10,17 +10,20 @@ import { fileActions } from '$lib/logic/file-actions';
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
+import type { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
 
 export class SplitControls {
     map: maplibregl.Map;
+    layerEventManager: MapLayerEventManager;
     unsubscribes: Function[] = [];
 
     layerOnMouseEnterBinded: (e: any) => void = this.layerOnMouseEnter.bind(this);
     layerOnMouseLeaveBinded: () => void = this.layerOnMouseLeave.bind(this);
     layerOnClickBinded: (e: any) => void = this.layerOnClick.bind(this);
 
-    constructor(map: maplibregl.Map) {
+    constructor(map: maplibregl.Map, layerEventManager: MapLayerEventManager) {
         this.map = map;
+        this.layerEventManager = layerEventManager;
 
         if (!this.map.hasImage('split-control')) {
             let icon = new Image(100, 100);
@@ -125,9 +128,17 @@ export class SplitControls {
                     ANCHOR_LAYER_KEY.interactions
                 );
 
-                this.map.on('mouseenter', 'split-controls', this.layerOnMouseEnterBinded);
-                this.map.on('mouseleave', 'split-controls', this.layerOnMouseLeaveBinded);
-                this.map.on('click', 'split-controls', this.layerOnClickBinded);
+                this.layerEventManager.on(
+                    'mouseenter',
+                    'split-controls',
+                    this.layerOnMouseEnterBinded
+                );
+                this.layerEventManager.on(
+                    'mouseleave',
+                    'split-controls',
+                    this.layerOnMouseLeaveBinded
+                );
+                this.layerEventManager.on('click', 'split-controls', this.layerOnClickBinded);
             }
         } catch (e) {
             // No reliable way to check if the map is ready to add sources and layers
@@ -135,9 +146,9 @@ export class SplitControls {
     }
 
     remove() {
-        this.map.off('mouseenter', 'split-controls', this.layerOnMouseEnterBinded);
-        this.map.off('mouseleave', 'split-controls', this.layerOnMouseLeaveBinded);
-        this.map.off('click', 'split-controls', this.layerOnClickBinded);
+        this.layerEventManager.off('mouseenter', 'split-controls', this.layerOnMouseEnterBinded);
+        this.layerEventManager.off('mouseleave', 'split-controls', this.layerOnMouseLeaveBinded);
+        this.layerEventManager.off('click', 'split-controls', this.layerOnClickBinded);
 
         try {
             if (this.map.getLayer('split-controls')) {

@@ -174,8 +174,9 @@ export class GPXLayer {
 
     update() {
         const _map = get(map);
+        const layerEventManager = map.layerEventManager;
         let file = get(this.file)?.file;
-        if (!_map || !file) {
+        if (!_map || !layerEventManager || !file) {
             return;
         }
 
@@ -220,11 +221,11 @@ export class GPXLayer {
                     ANCHOR_LAYER_KEY.tracks
                 );
 
-                _map.on('click', this.fileId, this.layerOnClickBinded);
-                _map.on('contextmenu', this.fileId, this.layerOnContextMenuBinded);
-                _map.on('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
-                _map.on('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
-                _map.on('mousemove', this.fileId, this.layerOnMouseMoveBinded);
+                layerEventManager.on('click', this.fileId, this.layerOnClickBinded);
+                layerEventManager.on('contextmenu', this.fileId, this.layerOnContextMenuBinded);
+                layerEventManager.on('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
+                layerEventManager.on('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
+                layerEventManager.on('mousemove', this.fileId, this.layerOnMouseMoveBinded);
             }
             let waypointSource = _map.getSource(this.fileId + '-waypoints') as
                 | GeoJSONSource
@@ -256,23 +257,27 @@ export class GPXLayer {
                     ANCHOR_LAYER_KEY.waypoints
                 );
 
-                _map.on(
+                layerEventManager.on(
                     'mouseenter',
                     this.fileId + '-waypoints',
                     this.waypointLayerOnMouseEnterBinded
                 );
-                _map.on(
+                layerEventManager.on(
                     'mouseleave',
                     this.fileId + '-waypoints',
                     this.waypointLayerOnMouseLeaveBinded
                 );
-                _map.on('click', this.fileId + '-waypoints', this.waypointLayerOnClickBinded);
-                _map.on(
+                layerEventManager.on(
+                    'click',
+                    this.fileId + '-waypoints',
+                    this.waypointLayerOnClickBinded
+                );
+                layerEventManager.on(
                     'mousedown',
                     this.fileId + '-waypoints',
                     this.waypointLayerOnMouseDownBinded
                 );
-                _map.on(
+                layerEventManager.on(
                     'touchstart',
                     this.fileId + '-waypoints',
                     this.waypointLayerOnTouchStartBinded
@@ -350,32 +355,47 @@ export class GPXLayer {
 
     remove() {
         const _map = get(map);
-        if (_map) {
-            _map.off('click', this.fileId, this.layerOnClickBinded);
-            _map.off('contextmenu', this.fileId, this.layerOnContextMenuBinded);
-            _map.off('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
-            _map.off('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
-            _map.off('mousemove', this.fileId, this.layerOnMouseMoveBinded);
-            _map.off('style.load', this.updateBinded);
 
-            _map.off(
+        if (_map) {
+            _map.off('style.load', this.updateBinded);
+        }
+
+        const layerEventManager = map.layerEventManager;
+        if (layerEventManager) {
+            layerEventManager.off('click', this.fileId, this.layerOnClickBinded);
+            layerEventManager.off('contextmenu', this.fileId, this.layerOnContextMenuBinded);
+            layerEventManager.off('mouseenter', this.fileId, this.layerOnMouseEnterBinded);
+            layerEventManager.off('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
+            layerEventManager.off('mousemove', this.fileId, this.layerOnMouseMoveBinded);
+
+            layerEventManager.off(
                 'mouseenter',
                 this.fileId + '-waypoints',
                 this.waypointLayerOnMouseEnterBinded
             );
-            _map.off(
+            layerEventManager.off(
                 'mouseleave',
                 this.fileId + '-waypoints',
                 this.waypointLayerOnMouseLeaveBinded
             );
-            _map.off('click', this.fileId + '-waypoints', this.waypointLayerOnClickBinded);
-            _map.off('mousedown', this.fileId + '-waypoints', this.waypointLayerOnMouseDownBinded);
-            _map.off(
+            layerEventManager.off(
+                'click',
+                this.fileId + '-waypoints',
+                this.waypointLayerOnClickBinded
+            );
+            layerEventManager.off(
+                'mousedown',
+                this.fileId + '-waypoints',
+                this.waypointLayerOnMouseDownBinded
+            );
+            layerEventManager.off(
                 'touchstart',
                 this.fileId + '-waypoints',
                 this.waypointLayerOnTouchStartBinded
             );
+        }
 
+        if (_map) {
             if (_map.getLayer(this.fileId + '-direction')) {
                 _map.removeLayer(this.fileId + '-direction');
             }
@@ -581,6 +601,7 @@ export class GPXLayer {
         }
 
         e.preventDefault();
+        _map.dragPan.disable();
 
         this.draggedWaypointIndex = e.features![0].properties!.waypointIndex;
         this.draggingStartingPosition = e.point;
@@ -604,6 +625,7 @@ export class GPXLayer {
         waypointPopup?.hide();
 
         e.preventDefault();
+        _map.dragPan.disable();
 
         _map.on('touchmove', this.waypointLayerOnMouseMoveBinded);
         _map.once('touchend', this.waypointLayerOnMouseUpBinded);
@@ -631,8 +653,15 @@ export class GPXLayer {
     waypointLayerOnMouseUp(e: MapLayerMouseEvent | MapLayerTouchEvent) {
         mapCursor.notify(MapCursorState.WAYPOINT_DRAGGING, false);
 
-        get(map)?.off('mousemove', this.waypointLayerOnMouseMoveBinded);
-        get(map)?.off('touchmove', this.waypointLayerOnMouseMoveBinded);
+        const _map = get(map);
+        if (!_map) {
+            return;
+        }
+
+        _map.dragPan.enable();
+
+        _map.off('mousemove', this.waypointLayerOnMouseMoveBinded);
+        _map.off('touchmove', this.waypointLayerOnMouseMoveBinded);
 
         if (this.draggedWaypointIndex === null) {
             return;

@@ -25,7 +25,7 @@
         if (overpassLayer) {
             overpassLayer.remove();
         }
-        overpassLayer = new OverpassLayer(_map);
+        overpassLayer = new OverpassLayer(_map, map.layerEventManager!);
         overpassLayer.add();
     });
 

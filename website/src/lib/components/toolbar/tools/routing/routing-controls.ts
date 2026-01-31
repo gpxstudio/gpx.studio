@@ -94,7 +94,8 @@ export class RoutingControls {
 
     add() {
         const map_ = get(map);
-        if (!map_) {
+        const layerEventManager = map.layerEventManager;
+        if (!map_ || !layerEventManager) {
             return;
         }
 
@@ -102,8 +103,8 @@ export class RoutingControls {
 
         map_.on('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
         map_.on('click', this.appendAnchorBinded);
-        map_.on('mousemove', this.fileId, this.showTemporaryAnchorBinded);
-        map_.on('click', this.fileId, stopPropagation);
+        layerEventManager.on('mousemove', this.fileId, this.showTemporaryAnchorBinded);
+        layerEventManager.on('click', this.fileId, stopPropagation);
 
         this.fileUnsubscribe = this.file.subscribe(this.updateControls.bind(this));
     }
@@ -152,20 +153,18 @@ export class RoutingControls {
 
     remove() {
         const map_ = get(map);
-        if (!map_) {
-            return;
-        }
+        const layerEventManager = map.layerEventManager;
 
         this.active = false;
 
         for (let anchor of this.anchors) {
             anchor.marker.remove();
         }
-        map_.off('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
-        map_.off('click', this.appendAnchorBinded);
-        map_.off('mousemove', this.fileId, this.showTemporaryAnchorBinded);
-        map_.off('click', this.fileId, stopPropagation);
-        map_.off('mousemove', this.updateTemporaryAnchorBinded);
+        map_?.off('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
+        map_?.off('click', this.appendAnchorBinded);
+        layerEventManager?.off('mousemove', this.fileId, this.showTemporaryAnchorBinded);
+        layerEventManager?.off('click', this.fileId, stopPropagation);
+        map_?.off('mousemove', this.updateTemporaryAnchorBinded);
         this.temporaryAnchor.marker.remove();
 
         this.fileUnsubscribe();

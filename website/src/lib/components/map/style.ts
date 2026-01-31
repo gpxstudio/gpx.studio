@@ -45,22 +45,51 @@ export class StyleManager {
         this._maptilerKey = maptilerKey;
         this._map.subscribe((map_) => {
             if (map_) {
-                this.update();
+                this.updateBasemap();
                 map_.on('style.load', () => this.updateOverlays());
                 map_.on('pitch', () => this.updateTerrain());
             }
         });
-        currentBasemap.subscribe(() => this.update());
-        customBasemapUpdate.subscribe(() => this.update());
+        currentBasemap.subscribe(() => this.updateBasemap());
+        customBasemapUpdate.subscribe(() => this.updateBasemap());
         currentOverlays.subscribe(() => this.updateOverlays());
         opacities.subscribe(() => this.updateOverlays());
         terrainSource.subscribe(() => this.updateTerrain());
     }
 
-    update() {
+    updateBasemap() {
         const map_ = get(this._map);
         if (!map_) return;
-        this.build().then((style) => map_.setStyle(style));
+        this.buildStyle().then((style) => map_.setStyle(style));
+    }
+
+    async buildStyle(): Promise<maplibregl.StyleSpecification> {
+        const custom = get(customLayers);
+
+        const style: maplibregl.StyleSpecification = {
+            version: 8,
+            projection: {
+                type: 'globe',
+            },
+            sources: {
+                'empty-source': emptySource,
+            },
+            layers: [],
+        };
+
+        let basemap = get(currentBasemap);
+        const basemapInfo = basemaps[basemap] ?? custom[basemap]?.value ?? basemaps[defaultBasemap];
+        const basemapStyle = await this.get(basemapInfo);
+
+        this.merge(style, basemapStyle);
+
+        const terrain = this.getCurrentTerrain();
+        style.sources[terrain.source] = terrainSources[terrain.source];
+        style.terrain = terrain.exaggeration > 0 ? terrain : undefined;
+
+        style.layers.push(...anchorLayers);
+
+        return style;
     }
 
     async updateOverlays() {
@@ -127,36 +156,12 @@ export class StyleManager {
         const mapTerrain = map_.getTerrain();
         const terrain = this.getCurrentTerrain();
         if (JSON.stringify(mapTerrain) !== JSON.stringify(terrain)) {
-            map_.setTerrain(terrain);
+            if (terrain.exaggeration > 0) {
+                map_.setTerrain(terrain);
+            } else {
+                map_.setTerrain(null);
+            }
         }
-    }
-
-    async build(): Promise<maplibregl.StyleSpecification> {
-        const custom = get(customLayers);
-
-        const style: maplibregl.StyleSpecification = {
-            version: 8,
-            projection: {
-                type: 'globe',
-            },
-            sources: {
-                'empty-source': emptySource,
-            },
-            layers: [],
-        };
-
-        let basemap = get(currentBasemap);
-        const basemapInfo = basemaps[basemap] ?? custom[basemap]?.value ?? basemaps[defaultBasemap];
-        const basemapStyle = await this.get(basemapInfo);
-
-        this.merge(style, basemapStyle);
-
-        style.terrain = this.getCurrentTerrain();
-        style.sources[style.terrain.source] = terrainSources[style.terrain.source];
-
-        style.layers.push(...anchorLayers);
-
-        return style;
     }
 
     async get(

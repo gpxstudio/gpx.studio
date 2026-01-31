@@ -8,6 +8,7 @@ import { settings } from '$lib/logic/settings';
 import { db } from '$lib/db';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { ANCHOR_LAYER_KEY } from '../style';
+import type { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
 
 const { currentOverpassQueries } = settings;
 
@@ -27,6 +28,7 @@ export class OverpassLayer {
     queryZoom = 12;
     expirationTime = 7 * 24 * 3600 * 1000;
     map: maplibregl.Map;
+    layerEventManager: MapLayerEventManager;
     popup: MapPopup;
 
     currentQueries: Set<string> = new Set();
@@ -37,8 +39,9 @@ export class OverpassLayer {
     updateBinded = this.update.bind(this);
     onHoverBinded = this.onHover.bind(this);
 
-    constructor(map: maplibregl.Map) {
+    constructor(map: maplibregl.Map, layerEventManager: MapLayerEventManager) {
         this.map = map;
+        this.layerEventManager = layerEventManager;
         this.popup = new MapPopup(map, {
             closeButton: false,
             focusAfterOpen: false,
@@ -102,8 +105,8 @@ export class OverpassLayer {
                     ANCHOR_LAYER_KEY.overpass
                 );
 
-                this.map.on('mouseenter', 'overpass', this.onHoverBinded);
-                this.map.on('click', 'overpass', this.onHoverBinded);
+                this.layerEventManager.on('mouseenter', 'overpass', this.onHoverBinded);
+                this.layerEventManager.on('click', 'overpass', this.onHoverBinded);
             }
 
             this.map.setFilter('overpass', ['in', 'query', ...getCurrentQueries()], {
@@ -117,6 +120,8 @@ export class OverpassLayer {
     remove() {
         this.map.off('moveend', this.queryIfNeededBinded);
         this.map.off('style.load', this.updateBinded);
+        this.layerEventManager.off('mouseenter', 'overpass', this.onHoverBinded);
+        this.layerEventManager.off('click', 'overpass', this.onHoverBinded);
         this.unsubscribes.forEach((unsubscribe) => unsubscribe());
 
         try {

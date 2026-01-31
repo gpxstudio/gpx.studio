@@ -36,7 +36,7 @@
 
     onMount(() => {
         if ($map) {
-            splitControls = new SplitControls($map);
+            splitControls = new SplitControls($map, map.layerEventManager!);
         }
     });
 

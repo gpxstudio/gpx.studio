@@ -3,6 +3,7 @@ import { Viewer, type ViewerBearingEvent } from 'mapillary-js/dist/mapillary.mod
 import 'mapillary-js/dist/mapillary.css';
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
 import { ANCHOR_LAYER_KEY } from '../style';
+import type { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
 
 const mapillarySource: VectorSourceSpecification = {
     type: 'vector',
@@ -43,6 +44,7 @@ const mapillaryImageLayer: LayerSpecification = {
 
 export class MapillaryLayer {
     map: maplibregl.Map;
+    layerEventManager: MapLayerEventManager;
     marker: maplibregl.Marker;
     viewer: Viewer;
 
@@ -53,8 +55,14 @@ export class MapillaryLayer {
     onMouseEnterBinded = this.onMouseEnter.bind(this);
     onMouseLeaveBinded = this.onMouseLeave.bind(this);
 
-    constructor(map: maplibregl.Map, container: HTMLElement, popupOpen: { value: boolean }) {
+    constructor(
+        map: maplibregl.Map,
+        layerEventManager: MapLayerEventManager,
+        container: HTMLElement,
+        popupOpen: { value: boolean }
+    ) {
         this.map = map;
+        this.layerEventManager = layerEventManager;
 
         this.viewer = new Viewer({
             accessToken: 'MLY|4381405525255083|3204871ec181638c3c31320490f03011',
@@ -103,14 +111,14 @@ export class MapillaryLayer {
             this.map.addLayer(mapillaryImageLayer, ANCHOR_LAYER_KEY.mapillary);
         }
         this.map.on('style.load', this.addBinded);
-        this.map.on('mouseenter', 'mapillary-image', this.onMouseEnterBinded);
-        this.map.on('mouseleave', 'mapillary-image', this.onMouseLeaveBinded);
+        this.layerEventManager.on('mouseenter', 'mapillary-image', this.onMouseEnterBinded);
+        this.layerEventManager.on('mouseleave', 'mapillary-image', this.onMouseLeaveBinded);
     }
 
     remove() {
         this.map.off('style.load', this.addBinded);
-        this.map.off('mouseenter', 'mapillary-image', this.onMouseEnterBinded);
-        this.map.off('mouseleave', 'mapillary-image', this.onMouseLeaveBinded);
+        this.layerEventManager.off('mouseenter', 'mapillary-image', this.onMouseEnterBinded);
+        this.layerEventManager.off('mouseleave', 'mapillary-image', this.onMouseLeaveBinded);
 
         if (this.map.getLayer('mapillary-image')) {
             this.map.removeLayer('mapillary-image');

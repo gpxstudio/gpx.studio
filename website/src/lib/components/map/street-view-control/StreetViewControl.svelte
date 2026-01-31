@@ -20,9 +20,14 @@
     let container: HTMLElement;
 
     onMount(() => {
-        map.onLoad((map: maplibregl.Map) => {
-            googleRedirect = new GoogleRedirect(map);
-            mapillaryLayer = new MapillaryLayer(map, container, mapillaryOpen);
+        map.onLoad((map_: maplibregl.Map) => {
+            googleRedirect = new GoogleRedirect(map_);
+            mapillaryLayer = new MapillaryLayer(
+                map_,
+                map.layerEventManager!,
+                container,
+                mapillaryOpen
+            );
         });
     });
 

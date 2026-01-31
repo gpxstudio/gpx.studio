@@ -8,6 +8,7 @@ import { get, writable, type Writable } from 'svelte/store';
 import { settings } from '$lib/logic/settings';
 import { tick } from 'svelte';
 import { ANCHOR_LAYER_KEY, StyleManager } from '$lib/components/map/style';
+import { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
 
 const { treeFileView, elevationProfile, bottomPanelSize, rightPanelSize, distanceUnits } = settings;
 
@@ -25,6 +26,7 @@ export class MapLibreGLMap {
     private _onLoadCallbacks: ((map: maplibregl.Map) => void)[] = [];
     private _unsubscribes: (() => void)[] = [];
     private callOnLoadBinded: () => void = this.callOnLoad.bind(this);
+    public layerEventManager: MapLayerEventManager | null = null;
 
     subscribe(run: (value: maplibregl.Map | null) => void, invalidate?: () => void) {
         return this._mapStore.subscribe(run, invalidate);
@@ -54,6 +56,7 @@ export class MapLibreGLMap {
             boxZoom: false,
             maxPitch: 85,
         });
+        this.layerEventManager = new MapLayerEventManager(map);
         map.addControl(
             new maplibregl.NavigationControl({
                 visualizePitch: true,
