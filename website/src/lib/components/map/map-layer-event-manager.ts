@@ -263,6 +263,7 @@ export class MapLayerEventManager {
         lngLat: maplibregl.LngLat
     ): string[] {
         let result = layerIds.filter((layerId) => {
+            if (!this._map.getLayer(layerId)) return false;
             const fileId = layerId.replace('-waypoints', '');
             if (fileId === layerId) {
                 return fileStateCollection.getStatistics(fileId)?.inBBox(lngLat) ?? true;
