@@ -6,7 +6,7 @@ import { get } from 'svelte/store';
 
 const { routing, routingProfile, privateRoads } = settings;
 
-export const brouterProfiles: { [key: string]: string } = {
+export const routingProfiles: { [key: string]: string } = {
     bike: 'Trekking-dry',
     racing_bike: 'fastbike',
     gravel_bike: 'gravel',
@@ -19,7 +19,7 @@ export const brouterProfiles: { [key: string]: string } = {
 
 export function route(points: Coordinates[]): Promise<TrackPoint[]> {
     if (get(routing)) {
-        return getRoute(points, brouterProfiles[get(routingProfile)], get(privateRoads));
+        return getRoute(points, routingProfiles[get(routingProfile)], get(privateRoads));
     } else {
         return getIntermediatePoints(points);
     }
