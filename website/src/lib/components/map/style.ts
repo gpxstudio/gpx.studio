@@ -7,7 +7,7 @@ import {
     overlays,
     terrainSources,
 } from '$lib/assets/layers';
-import { customBasemapUpdate, getLayers } from '$lib/components/map/layer-control/utils';
+import { getLayers } from '$lib/components/map/layer-control/utils';
 import { i18n } from '$lib/i18n.svelte';
 
 const { currentBasemap, currentOverlays, customLayers, opacities, terrainSource } = settings;
@@ -52,10 +52,10 @@ export class StyleManager {
             }
         });
         currentBasemap.subscribe(() => this.updateBasemap());
-        customBasemapUpdate.subscribe(() => this.updateBasemap());
         currentOverlays.subscribe(() => this.updateOverlays());
         opacities.subscribe(() => this.updateOverlays());
         terrainSource.subscribe(() => this.updateTerrain());
+        customLayers.subscribe(() => this.updateBasemap());
     }
 
     updateBasemap() {

@@ -20,9 +20,8 @@
     import { i18n } from '$lib/i18n.svelte';
     import { defaultBasemap, type CustomLayer } from '$lib/assets/layers';
     import { onMount } from 'svelte';
-    import { customBasemapUpdate, isSelected, remove } from './utils';
+    import { remove } from './utils';
     import { settings } from '$lib/logic/settings';
-    import { map } from '$lib/components/map/map';
     import { dndzone } from 'svelte-dnd-action';
 
     const {
@@ -129,8 +128,8 @@
                 ],
             };
         }
-        $customLayers[layerId] = layer;
         addLayer(layerId);
+        $customLayers[layerId] = layer;
         selectedLayerId = undefined;
         setDataFromSelectedLayer();
     }
@@ -153,9 +152,7 @@
                 return $tree;
             });
 
-            if ($currentBasemap === layerId) {
-                $customBasemapUpdate++;
-            } else {
+            if ($currentBasemap !== layerId) {
                 $currentBasemap = layerId;
             }
 
@@ -170,14 +167,6 @@
                 $tree.overlays['custom'][layerId] = true;
                 return $tree;
             });
-
-            if ($map && $currentOverlays && isSelected($currentOverlays, layerId)) {
-                try {
-                    $map.removeImport(layerId);
-                } catch (e) {
-                    // No reliable way to check if the map is ready to remove sources and layers
-                }
-            }
 
             currentOverlays.update(($overlays) => {
                 if (!$overlays.overlays.hasOwnProperty('custom')) {

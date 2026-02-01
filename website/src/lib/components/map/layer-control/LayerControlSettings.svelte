@@ -167,11 +167,11 @@
                                             {#if isSelected($selectedOverlayTree, selectedOverlay)}
                                                 {#if $isLayerFromExtension(selectedOverlay)}
                                                     {$getLayerName(selectedOverlay)}
+                                                {:else if $customLayers.hasOwnProperty(selectedOverlay)}
+                                                    {$customLayers[selectedOverlay].name}
                                                 {:else}
                                                     {i18n._(`layers.label.${selectedOverlay}`)}
                                                 {/if}
-                                            {:else if $customLayers.hasOwnProperty(selectedOverlay)}
-                                                {$customLayers[selectedOverlay].name}
                                             {/if}
                                         {/if}
                                     </Select.Trigger>
