@@ -32,7 +32,7 @@
     let options = $state(
         getMergedEmbeddingOptions(
             {
-                token: 'YOUR_MAPTILER_KEY',
+                key: 'YOUR_MAPTILER_KEY',
                 theme: mode.current,
             },
             defaultEmbeddingOptions
@@ -46,7 +46,7 @@
     let iframeOptions = $derived(
         getMergedEmbeddingOptions(
             {
-                token:
+                key:
                     options.key.length === 0 || options.key === 'YOUR_MAPTILER_KEY'
                         ? PUBLIC_MAPTILER_KEY
                         : options.key,

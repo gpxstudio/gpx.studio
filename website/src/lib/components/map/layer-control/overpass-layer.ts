@@ -9,6 +9,7 @@ import { db } from '$lib/db';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { ANCHOR_LAYER_KEY } from '../style';
 import type { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
+import { loadSVGIcon } from '$lib/utils';
 
 const { currentOverpassQueries } = settings;
 
@@ -257,27 +258,16 @@ export class OverpassLayer {
     loadIcons() {
         let currentQueries = getCurrentQueries();
         currentQueries.forEach((query) => {
-            if (!this.map.hasImage(`overpass-${query}`)) {
-                let icon = new Image(100, 100);
-                icon.onload = () => {
-                    if (!this.map.hasImage(`overpass-${query}`)) {
-                        this.map.addImage(`overpass-${query}`, icon);
-                    }
-                };
-
-                // Lucide icons are SVG files with a 24x24 viewBox
-                // Create a new SVG with a 32x32 viewBox and center the icon in a circle
-                icon.src =
-                    'data:image/svg+xml,' +
-                    encodeURIComponent(`
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+            loadSVGIcon(
+                this.map,
+                `overpass-${query}`,
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
                     <circle cx="20" cy="20" r="20" fill="${overpassQueryData[query].icon.color}" />
                     <g transform="translate(8 8)">
                     ${overpassQueryData[query].icon.svg.replace('stroke="currentColor"', 'stroke="white"')}
                     </g>
-                </svg>
-            `);
-            }
+                </svg>`
+            );
         });
     }
 }

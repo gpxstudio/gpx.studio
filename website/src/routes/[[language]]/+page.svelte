@@ -35,6 +35,7 @@
 
     let gpxStatistics = writable(exampleGPXFile.getStatistics());
     let slicedGPXStatistics = writable(undefined);
+    let hoveredPoint = writable(null);
     let additionalDatasets = writable(['speed', 'atemp']);
     let elevationFill = writable(undefined);
 
@@ -197,6 +198,7 @@
             <ElevationProfile
                 {gpxStatistics}
                 {slicedGPXStatistics}
+                {hoveredPoint}
                 {additionalDatasets}
                 {elevationFill}
             />

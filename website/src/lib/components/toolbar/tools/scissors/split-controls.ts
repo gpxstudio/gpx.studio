@@ -11,6 +11,7 @@ import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 import type { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
+import { loadSVGIcon } from '$lib/utils';
 
 export class SplitControls {
     map: maplibregl.Map;
@@ -24,28 +25,16 @@ export class SplitControls {
     constructor(map: maplibregl.Map, layerEventManager: MapLayerEventManager) {
         this.map = map;
         this.layerEventManager = layerEventManager;
-
-        if (!this.map.hasImage('split-control')) {
-            let icon = new Image(100, 100);
-            icon.onload = () => {
-                if (!this.map.hasImage('split-control')) {
-                    this.map.addImage('split-control', icon);
-                }
-            };
-
-            // Lucide icons are SVG files with a 24x24 viewBox
-            // Create a new SVG with a 32x32 viewBox and center the icon in a circle
-            icon.src =
-                'data:image/svg+xml,' +
-                encodeURIComponent(`
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
-                            <circle cx="20" cy="20" r="20" fill="white" />
-                            <g transform="translate(8 8)">
-                            ${Scissors.replace('stroke="currentColor"', 'stroke="black"')}
-                            </g>
-                        </svg>
-                    `);
-        }
+        loadSVGIcon(
+            this.map,
+            'split-control',
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+                <circle cx="20" cy="20" r="20" fill="white" />
+                <g transform="translate(8 8)">
+                ${Scissors.replace('stroke="currentColor"', 'stroke="black"')}
+                </g>
+            </svg>`
+        );
 
         this.unsubscribes.push(gpxStatistics.subscribe(this.addIfNeeded.bind(this)));
         this.unsubscribes.push(currentTool.subscribe(this.addIfNeeded.bind(this)));

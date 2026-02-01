@@ -15,7 +15,7 @@ import {
     ListFileItem,
     ListRootItem,
 } from '$lib/components/file-list/file-list';
-import { getClosestLinePoint, getElevation } from '$lib/utils';
+import { getClosestLinePoint, getElevation, loadSVGIcon } from '$lib/utils';
 import { selectedWaypoint } from '$lib/components/toolbar/tools/waypoint/waypoint';
 import { MapPin, Square } from 'lucide-static';
 import { getSymbolKey, symbols } from '$lib/assets/symbols';
@@ -783,20 +783,7 @@ export class GPXLayer {
 
         symbols.forEach((symbol) => {
             const iconId = `waypoint-${symbol ?? 'default'}-${this.layerColor}`;
-            if (!_map.hasImage(iconId)) {
-                let icon = new Image(100, 100);
-                icon.onload = () => {
-                    if (!_map.hasImage(iconId)) {
-                        _map.addImage(iconId, icon);
-                    }
-                };
-
-                // Lucide icons are SVG files with a 24x24 viewBox
-                // Create a new SVG with a 32x32 viewBox and center the icon in a circle
-                icon.src =
-                    'data:image/svg+xml,' +
-                    encodeURIComponent(getSvgForSymbol(symbol, this.layerColor));
-            }
+            loadSVGIcon(_map, iconId, getSvgForSymbol(symbol, this.layerColor));
         });
     }
 }

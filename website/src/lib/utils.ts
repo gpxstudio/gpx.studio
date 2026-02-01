@@ -197,6 +197,18 @@ export function getElevation(
     );
 }
 
+export function loadSVGIcon(map: maplibregl.Map, id: string, svg: string) {
+    if (!map.hasImage(id)) {
+        let icon = new Image(100, 100);
+        icon.onload = () => {
+            if (!map.hasImage(id)) {
+                map.addImage(id, icon);
+            }
+        };
+        icon.src = 'data:image/svg+xml,' + encodeURIComponent(svg);
+    }
+}
+
 export function isMac() {
     return navigator.userAgent.toUpperCase().indexOf('MAC') >= 0;
 }

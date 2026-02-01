@@ -25,6 +25,7 @@ export const ANCHOR_LAYER_KEY = {
     tracks: 'tracks-end',
     directionMarkers: 'direction-markers-end',
     distanceMarkers: 'distance-markers-end',
+    startEndMarkers: 'start-end-markers-end',
     interactions: 'interactions-end',
     overpass: 'overpass-end',
     waypoints: 'waypoints-end',

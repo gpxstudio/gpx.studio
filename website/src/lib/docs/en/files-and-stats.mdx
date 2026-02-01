@@ -12,6 +12,7 @@ title: Files and statistics
 
     let gpxStatistics = writable(exampleGPXFile.getStatistics());
     let slicedGPXStatistics = writable(undefined);
+    let hoveredPoint = writable(null);
     let additionalDatasets = writable(['speed', 'atemp']);
     let elevationFill = writable(undefined);
 </script>
@@ -84,6 +85,7 @@ You can also use the mouse wheel to zoom in and out on the elevation profile, an
     <ElevationProfile
         {gpxStatistics}
         {slicedGPXStatistics}
+        {hoveredPoint}
         {additionalDatasets}
         {elevationFill}
     />

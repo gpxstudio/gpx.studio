@@ -16,7 +16,7 @@
     import { loadFiles } from '$lib/logic/file-actions';
     import { onDestroy, onMount } from 'svelte';
     import { page } from '$app/state';
-    import { gpxStatistics, slicedGPXStatistics } from '$lib/logic/statistics';
+    import { gpxStatistics, hoveredPoint, slicedGPXStatistics } from '$lib/logic/statistics';
     import { getURLForGoogleDriveFile } from '$lib/components/embedding/embedding';
     import { db } from '$lib/db';
     import { fileStateCollection } from '$lib/logic/file-state';
@@ -140,6 +140,7 @@
                 <ElevationProfile
                     {gpxStatistics}
                     {slicedGPXStatistics}
+                    {hoveredPoint}
                     {additionalDatasets}
                     {elevationFill}
                 />
