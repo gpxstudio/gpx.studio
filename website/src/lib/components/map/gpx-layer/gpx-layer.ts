@@ -227,6 +227,56 @@ export class GPXLayer {
                 layerEventManager.on('mouseleave', this.fileId, this.layerOnMouseLeaveBinded);
                 layerEventManager.on('mousemove', this.fileId, this.layerOnMouseMoveBinded);
             }
+
+            let visibleTrackSegmentIds: string[] = [];
+            file.forEachSegment((segment, trackIndex, segmentIndex) => {
+                if (!segment._data.hidden) {
+                    visibleTrackSegmentIds.push(`${trackIndex}-${segmentIndex}`);
+                }
+            });
+            const segmentFilter: FilterSpecification = [
+                'in',
+                ['get', 'trackSegmentId'],
+                ['literal', visibleTrackSegmentIds],
+            ];
+
+            _map.setFilter(this.fileId, segmentFilter, { validate: false });
+
+            if (get(directionMarkers)) {
+                if (!_map.getLayer(this.fileId + '-direction')) {
+                    _map.addLayer(
+                        {
+                            id: this.fileId + '-direction',
+                            type: 'symbol',
+                            source: this.fileId,
+                            layout: {
+                                'text-field': '»',
+                                'text-offset': [0, -0.1],
+                                'text-keep-upright': false,
+                                'text-max-angle': 361,
+                                'text-allow-overlap': true,
+                                'text-font': ['Open Sans Bold'],
+                                'symbol-placement': 'line',
+                                'symbol-spacing': 20,
+                            },
+                            paint: {
+                                'text-color': 'white',
+                                'text-opacity': 0.7,
+                                'text-halo-width': 0.2,
+                                'text-halo-color': 'white',
+                            },
+                        },
+                        ANCHOR_LAYER_KEY.directionMarkers
+                    );
+                }
+
+                _map.setFilter(this.fileId + '-direction', segmentFilter, { validate: false });
+            } else {
+                if (_map.getLayer(this.fileId + '-direction')) {
+                    _map.removeLayer(this.fileId + '-direction');
+                }
+            }
+
             let waypointSource = _map.getSource(this.fileId + '-waypoints') as
                 | GeoJSONSource
                 | undefined;
@@ -282,57 +332,6 @@ export class GPXLayer {
                     this.fileId + '-waypoints',
                     this.waypointLayerOnTouchStartBinded
                 );
-            }
-
-            if (get(directionMarkers)) {
-                if (!_map.getLayer(this.fileId + '-direction')) {
-                    _map.addLayer(
-                        {
-                            id: this.fileId + '-direction',
-                            type: 'symbol',
-                            source: this.fileId,
-                            layout: {
-                                'text-field': '»',
-                                'text-offset': [0, -0.1],
-                                'text-keep-upright': false,
-                                'text-max-angle': 361,
-                                'text-allow-overlap': true,
-                                'text-font': ['Open Sans Bold'],
-                                'symbol-placement': 'line',
-                                'symbol-spacing': 20,
-                            },
-                            paint: {
-                                'text-color': 'white',
-                                'text-opacity': 0.7,
-                                'text-halo-width': 0.2,
-                                'text-halo-color': 'white',
-                            },
-                        },
-                        ANCHOR_LAYER_KEY.directionMarkers
-                    );
-                }
-            } else {
-                if (_map.getLayer(this.fileId + '-direction')) {
-                    _map.removeLayer(this.fileId + '-direction');
-                }
-            }
-
-            let visibleTrackSegmentIds: string[] = [];
-            file.forEachSegment((segment, trackIndex, segmentIndex) => {
-                if (!segment._data.hidden) {
-                    visibleTrackSegmentIds.push(`${trackIndex}-${segmentIndex}`);
-                }
-            });
-            const segmentFilter: FilterSpecification = [
-                'in',
-                ['get', 'trackSegmentId'],
-                ['literal', visibleTrackSegmentIds],
-            ];
-
-            _map.setFilter(this.fileId, segmentFilter, { validate: false });
-
-            if (_map.getLayer(this.fileId + '-direction')) {
-                _map.setFilter(this.fileId + '-direction', segmentFilter, { validate: false });
             }
 
             let visibleWaypoints: number[] = [];

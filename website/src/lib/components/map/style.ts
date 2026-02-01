@@ -157,6 +157,9 @@ export class StyleManager {
         const terrain = this.getCurrentTerrain();
         if (JSON.stringify(mapTerrain) !== JSON.stringify(terrain)) {
             if (terrain.exaggeration > 0) {
+                if (!map_.getSource(terrain.source)) {
+                    map_.addSource(terrain.source, terrainSources[terrain.source]);
+                }
                 map_.setTerrain(terrain);
             } else {
                 map_.setTerrain(null);

@@ -1,3 +1,4 @@
+import { fileStateCollection } from '$lib/logic/file-state';
 import maplibregl from 'maplibre-gl';
 
 type MapLayerMouseEventListener = (e: maplibregl.MapLayerMouseEvent) => void;
@@ -141,7 +142,10 @@ export class MapLayerEventManager {
     }
 
     private _handleMouseMove(e: maplibregl.MapMouseEvent) {
-        const layerIds = Object.keys(this._listeners);
+        const layerIds = this._filterLayersContainingCoordinate(
+            Object.keys(this._listeners),
+            e.lngLat
+        );
         const features =
             layerIds.length > 0
                 ? this._map.queryRenderedFeatures(e.point, { layers: layerIds })
@@ -224,8 +228,11 @@ export class MapLayerEventManager {
     }
 
     private _handleTouchStart(e: maplibregl.MapTouchEvent) {
-        const layerIds = Object.keys(this._listeners).filter(
-            (layerId) => this._listeners[layerId].touchstarts.length > 0
+        const layerIds = this._filterLayersContainingCoordinate(
+            Object.keys(this._listeners).filter(
+                (layerId) => this._listeners[layerId].touchstarts.length > 0
+            ),
+            e.lngLat
         );
         if (layerIds.length === 0) return;
         const features = this._map.queryRenderedFeatures(e.points[0], { layers: layerIds });
@@ -249,5 +256,20 @@ export class MapLayerEventManager {
                 listener.touchstarts.forEach((l) => l(event));
             }
         });
+    }
+
+    private _filterLayersContainingCoordinate(
+        layerIds: string[],
+        lngLat: maplibregl.LngLat
+    ): string[] {
+        let result = layerIds.filter((layerId) => {
+            const fileId = layerId.replace('-waypoints', '');
+            if (fileId === layerId) {
+                return fileStateCollection.getStatistics(fileId)?.inBBox(lngLat) ?? true;
+            } else {
+                return fileStateCollection.getStatistics(fileId)?.inWaypointBBox(lngLat) ?? true;
+            }
+        });
+        return result;
     }
 }

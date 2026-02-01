@@ -76,7 +76,14 @@ export class OverpassLayer {
     update() {
         this.loadIcons();
 
-        let d = get(data);
+        const fullData = get(data);
+        const queries = getCurrentQueries();
+        const d: GeoJSON.FeatureCollection = {
+            type: 'FeatureCollection',
+            features: fullData.features.filter((feature) =>
+                queries.includes(feature.properties!.query)
+            ),
+        };
 
         try {
             let source = this.map.getSource('overpass') as GeoJSONSource | undefined;
@@ -108,10 +115,6 @@ export class OverpassLayer {
                 this.layerEventManager.on('mouseenter', 'overpass', this.onHoverBinded);
                 this.layerEventManager.on('click', 'overpass', this.onHoverBinded);
             }
-
-            this.map.setFilter('overpass', ['in', 'query', ...getCurrentQueries()], {
-                validate: false,
-            });
         } catch (e) {
             // No reliable way to check if the map is ready to add sources and layers
         }
