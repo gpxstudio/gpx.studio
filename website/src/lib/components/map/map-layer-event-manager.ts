@@ -142,9 +142,9 @@ export class MapLayerEventManager {
     }
 
     private _handleMouseMove(e: maplibregl.MapMouseEvent) {
-        const layerIds = this._filterLayersContainingCoordinate(
+        const layerIds = this._filterLayersIntersectingBounds(
             Object.keys(this._listeners),
-            e.lngLat
+            this._getBounds(e.point)
         );
         const features =
             layerIds.length > 0
@@ -228,11 +228,11 @@ export class MapLayerEventManager {
     }
 
     private _handleTouchStart(e: maplibregl.MapTouchEvent) {
-        const layerIds = this._filterLayersContainingCoordinate(
+        const layerIds = this._filterLayersIntersectingBounds(
             Object.keys(this._listeners).filter(
                 (layerId) => this._listeners[layerId].touchstarts.length > 0
             ),
-            e.lngLat
+            this._getBounds(e.point)
         );
         if (layerIds.length === 0) return;
         const features = this._map.queryRenderedFeatures(e.points[0], { layers: layerIds });
@@ -258,17 +258,28 @@ export class MapLayerEventManager {
         });
     }
 
-    private _filterLayersContainingCoordinate(
+    private _getBounds(point: maplibregl.Point) {
+        const delta = 30;
+        return new maplibregl.LngLatBounds(
+            this._map.unproject([point.x - delta, point.y + delta]),
+            this._map.unproject([point.x + delta, point.y - delta])
+        );
+    }
+
+    private _filterLayersIntersectingBounds(
         layerIds: string[],
-        lngLat: maplibregl.LngLat
+        bounds: maplibregl.LngLatBounds
     ): string[] {
         let result = layerIds.filter((layerId) => {
             if (!this._map.getLayer(layerId)) return false;
             const fileId = layerId.replace('-waypoints', '');
             if (fileId === layerId) {
-                return fileStateCollection.getStatistics(fileId)?.inBBox(lngLat) ?? true;
+                return fileStateCollection.getStatistics(fileId)?.intersectsBBox(bounds) ?? true;
             } else {
-                return fileStateCollection.getStatistics(fileId)?.inWaypointBBox(lngLat) ?? true;
+                return (
+                    fileStateCollection.getStatistics(fileId)?.intersectsWaypointBBox(bounds) ??
+                    true
+                );
             }
         });
         return result;

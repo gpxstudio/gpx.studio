@@ -49,7 +49,7 @@ export class GPXStatisticsTree {
         return statistics;
     }
 
-    inBBox(coordinates: { lat: number; lng: number }): boolean {
+    intersectsBBox(bounds: maplibregl.LngLatBounds): boolean {
         for (let key in this.statistics) {
             const stats = this.statistics[key];
             if (stats instanceof GPXStatistics) {
@@ -57,18 +57,18 @@ export class GPXStatisticsTree {
                     stats.global.bounds.southWest,
                     stats.global.bounds.northEast
                 );
-                if (!bbox.isEmpty() && bbox.contains(coordinates)) {
+                if (!bbox.isEmpty() && bbox.intersects(bounds)) {
                     return true;
                 }
-            } else if (stats.inBBox(coordinates)) {
+            } else if (stats.intersectsBBox(bounds)) {
                 return true;
             }
         }
         return false;
     }
 
-    inWaypointBBox(coordinates: { lat: number; lng: number }): boolean {
-        return !this.wptBounds.isEmpty() && this.wptBounds.contains(coordinates);
+    intersectsWaypointBBox(bounds: maplibregl.LngLatBounds): boolean {
+        return !this.wptBounds.isEmpty() && this.wptBounds.intersects(bounds);
     }
 }
 export type GPXFileWithStatistics = { file: GPXFile; statistics: GPXStatisticsTree };
