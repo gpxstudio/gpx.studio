@@ -21,14 +21,14 @@
         "export_all": "Alle exportieren...",
         "export_options": "Export-Einstellungen",
         "support_message": "Das Tool darf frei benutzt werden, aber es darf nicht woanders aufgesetzt werden. Bitte unterstützen Sie die Website, wenn Sie sie häufig benutzen. Vielen Dank!",
-        "support_button": "Hilf dabei, die Webseite kostenlos zu belassen",
+        "support_button": "Hilf uns, die Website weiterhin kostenlos bereitzustellen",
         "download_file": "Datei herunterladen",
         "download_files": "Dateien herunterladen",
         "edit": "Bearbeiten",
         "undo": "Rückgängig",
         "redo": "Wiederholen",
         "delete": "Löschen",
-        "delete_all": "Delete all",
+        "delete_all": "Alle löschen",
         "select_all": "Alle auswählen",
         "view": "Ansicht",
         "elevation_profile": "Höhenprofil",
@@ -80,7 +80,7 @@
         "center": "Zentrieren",
         "open_in": "Öffnen in",
         "copy_coordinates": "Koordinaten kopieren",
-        "edit_osm": "Edit in OpenStreetMap"
+        "edit_osm": "In OpenStreetMap bearbeiten"
     },
     "toolbar": {
         "routing": {
@@ -282,7 +282,7 @@
             "update": "Layer aktualisieren"
         },
         "opacity": "Deckkraft der Überlagerung",
-        "terrain": "Terrain source",
+        "terrain": "Geländequelle",
         "label": {
             "basemaps": "Basiskarte",
             "overlays": "Ebenen",
@@ -326,7 +326,7 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
-            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "mapterhornHillshade": "MapTiler Hillshade",
             "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Neigung",
             "swisstopoHiking": "swisstopo Wandern",
@@ -356,7 +356,7 @@
             "water": "Trinkwasser",
             "shower": "Dusche",
             "shelter": "Unterstand",
-            "cemetery": "Cemetery",
+            "cemetery": "Friedhof",
             "motorized": "Autos und Motorräder",
             "fuel-station": "Tankstelle",
             "parking": "Parken",
