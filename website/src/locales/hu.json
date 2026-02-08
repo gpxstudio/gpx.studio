@@ -235,13 +235,13 @@
             "help_no_selection": "Select a file item to request elevation data."
         },
         "waypoint": {
-            "tooltip": "Create and edit points of interest",
-            "icon": "Icon",
+            "tooltip": "PoI létrehozása és módosítása",
+            "icon": "Ikon",
             "link": "Link",
-            "longitude": "Longitude",
+            "longitude": "Földrajzi hosszúság",
             "latitude": "Szélesség",
             "create": "POI fájlba mentése",
-            "add": "Add point of interest to file",
+            "add": "PoI fájlhoz adása",
             "help": "Töltsd ki az űrlapot egy új POI létrehozásához, vagy kattints egy meglévőre a szerkesztéshez. Kattints a térképre a koordináták megadásához, vagy áthelyezéshez egérrel húzd el a POI-kat.",
             "help_no_selection": "Select a file to create or edit points of interest."
         },
@@ -249,8 +249,8 @@
             "tooltip": "Reduce the number of GPS points",
             "tolerance": "Tűréshatár",
             "number_of_points": "GPS pontok száma",
-            "button": "Minify",
-            "help": "Use the slider to choose the number of GPS points to keep.",
+            "button": "Minimalizálás",
+            "help": "",
             "help_no_selection": "Select a trace to reduce the number of its GPS points."
         },
         "clean": {
