@@ -197,9 +197,9 @@ export function getElevation(
     );
 }
 
-export function loadSVGIcon(map: maplibregl.Map, id: string, svg: string) {
+export function loadSVGIcon(map: maplibregl.Map, id: string, svg: string, size: number = 100) {
     if (!map.hasImage(id)) {
-        let icon = new Image(100, 100);
+        let icon = new Image(size, size);
         icon.onload = () => {
             if (!map.hasImage(id)) {
                 map.addImage(id, icon);

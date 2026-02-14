@@ -29,6 +29,7 @@ export const ANCHOR_LAYER_KEY = {
     interactions: 'interactions-end',
     overpass: 'overpass-end',
     waypoints: 'waypoints-end',
+    routingControls: 'routing-controls-end',
 };
 const anchorLayers: maplibregl.LayerSpecification[] = Object.values(ANCHOR_LAYER_KEY).map((id) => ({
     id: id,

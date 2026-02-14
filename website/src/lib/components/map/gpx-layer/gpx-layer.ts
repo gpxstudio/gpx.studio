@@ -287,6 +287,7 @@ export class GPXLayer {
                 _map.addSource(this.fileId + '-waypoints', {
                     type: 'geojson',
                     data: this.currentWaypointData,
+                    promoteId: 'waypointIndex',
                 });
             }
 
@@ -645,7 +646,17 @@ export class GPXLayer {
             | GeoJSONSource
             | undefined;
         if (waypointSource) {
-            waypointSource.setData(this.currentWaypointData!);
+            waypointSource.updateData({
+                update: [
+                    {
+                        id: this.draggedWaypointIndex,
+                        newGeometry: {
+                            type: 'Point',
+                            coordinates: [e.lngLat.lng, e.lngLat.lat],
+                        },
+                    },
+                ],
+            });
         }
     }
 

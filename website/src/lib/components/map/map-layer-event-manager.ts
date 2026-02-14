@@ -142,21 +142,7 @@ export class MapLayerEventManager {
     }
 
     private _handleMouseMove(e: maplibregl.MapMouseEvent) {
-        const layerIds = this._filterLayersIntersectingBounds(
-            Object.keys(this._listeners),
-            this._getBounds(e.point)
-        );
-        const features =
-            layerIds.length > 0
-                ? this._map.queryRenderedFeatures(e.point, { layers: layerIds })
-                : [];
-        const featuresByLayer: Record<string, maplibregl.MapGeoJSONFeature[]> = {};
-        features.forEach((f) => {
-            if (!featuresByLayer[f.layer.id]) {
-                featuresByLayer[f.layer.id] = [];
-            }
-            featuresByLayer[f.layer.id].push(f);
-        });
+        const featuresByLayer = this._getRenderedFeaturesByLayer(e);
         Object.keys(this._listeners).forEach((layerId) => {
             const features = featuresByLayer[layerId] || [];
             const listener = this._listeners[layerId];
@@ -183,7 +169,6 @@ export class MapLayerEventManager {
                         listener.mouseleaves.forEach((l) => l(event));
                     }
                 }
-                listener.features = features;
             }
             if (features.length > 0 && listener.mousemoves.length > 0) {
                 const event = new maplibregl.MapMouseEvent('mousemove', e.target, e.originalEvent, {
@@ -191,15 +176,19 @@ export class MapLayerEventManager {
                 });
                 listener.mousemoves.forEach((l) => l(event));
             }
+            listener.features = features;
         });
     }
 
     private _handleMouseClick(type: string, e: maplibregl.MapMouseEvent) {
-        Object.values(this._listeners).forEach((listener) => {
-            if (listener.features.length > 0) {
+        const featuresByLayer = this._getRenderedFeaturesByLayer(e);
+        Object.keys(this._listeners).forEach((layerId) => {
+            const features = featuresByLayer[layerId] || [];
+            const listener = this._listeners[layerId];
+            if (features.length > 0) {
                 if (type === 'click' && listener.clicks.length > 0) {
                     const event = new maplibregl.MapMouseEvent('click', e.target, e.originalEvent, {
-                        features: listener.features,
+                        features: features,
                     });
                     listener.clicks.forEach((l) => l(event));
                 } else if (type === 'contextmenu' && listener.contextmenus.length > 0) {
@@ -208,7 +197,7 @@ export class MapLayerEventManager {
                         e.target,
                         e.originalEvent,
                         {
-                            features: listener.features,
+                            features: features,
                         }
                     );
                     listener.contextmenus.forEach((l) => l(event));
@@ -218,7 +207,7 @@ export class MapLayerEventManager {
                         e.target,
                         e.originalEvent,
                         {
-                            features: listener.features,
+                            features: features,
                         }
                     );
                     listener.mousedowns.forEach((l) => l(event));
@@ -228,21 +217,7 @@ export class MapLayerEventManager {
     }
 
     private _handleTouchStart(e: maplibregl.MapTouchEvent) {
-        const layerIds = this._filterLayersIntersectingBounds(
-            Object.keys(this._listeners).filter(
-                (layerId) => this._listeners[layerId].touchstarts.length > 0
-            ),
-            this._getBounds(e.point)
-        );
-        if (layerIds.length === 0) return;
-        const features = this._map.queryRenderedFeatures(e.points[0], { layers: layerIds });
-        const featuresByLayer: Record<string, maplibregl.MapGeoJSONFeature[]> = {};
-        features.forEach((f) => {
-            if (!featuresByLayer[f.layer.id]) {
-                featuresByLayer[f.layer.id] = [];
-            }
-            featuresByLayer[f.layer.id].push(f);
-        });
+        const featuresByLayer = this._getRenderedFeaturesByLayer(e);
         Object.keys(this._listeners).forEach((layerId) => {
             const features = featuresByLayer[layerId] || [];
             const listener = this._listeners[layerId];
@@ -283,5 +258,24 @@ export class MapLayerEventManager {
             }
         });
         return result;
+    }
+
+    private _getRenderedFeaturesByLayer(e: maplibregl.MapMouseEvent | maplibregl.MapTouchEvent) {
+        const layerIds = this._filterLayersIntersectingBounds(
+            Object.keys(this._listeners),
+            this._getBounds(e.point)
+        );
+        const features =
+            layerIds.length > 0
+                ? this._map.queryRenderedFeatures(e.point, { layers: layerIds })
+                : [];
+        const featuresByLayer: Record<string, maplibregl.MapGeoJSONFeature[]> = {};
+        features.forEach((f) => {
+            if (!featuresByLayer[f.layer.id]) {
+                featuresByLayer[f.layer.id] = [];
+            }
+            featuresByLayer[f.layer.id].push(f);
+        });
+        return featuresByLayer;
     }
 }

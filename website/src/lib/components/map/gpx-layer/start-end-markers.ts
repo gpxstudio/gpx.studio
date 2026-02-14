@@ -50,38 +50,40 @@ export class StartEndMarkers {
         const slicedStatistics = get(slicedGPXStatistics);
         const hovered = get(hoveredPoint);
         const hidden = get(allHidden);
-        if (statistics.global.length > 0 && tool !== Tool.ROUTING && !hidden) {
-            const start = statistics
-                .getTrackPoint(slicedStatistics?.[1] ?? 0)!
-                .trkpt.getCoordinates();
-            const end = statistics
-                .getTrackPoint(slicedStatistics?.[2] ?? statistics.global.length - 1)!
-                .trkpt.getCoordinates();
+        if (!hidden) {
             const data: GeoJSON.FeatureCollection = {
                 type: 'FeatureCollection',
-                features: [
-                    {
-                        type: 'Feature',
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [start.lon, start.lat],
-                        },
-                        properties: {
-                            icon: 'start-marker',
-                        },
-                    },
-                    {
-                        type: 'Feature',
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [end.lon, end.lat],
-                        },
-                        properties: {
-                            icon: 'end-marker',
-                        },
-                    },
-                ],
+                features: [],
             };
+
+            if (statistics.global.length > 0 && tool !== Tool.ROUTING) {
+                const start = statistics
+                    .getTrackPoint(slicedStatistics?.[1] ?? 0)!
+                    .trkpt.getCoordinates();
+                const end = statistics
+                    .getTrackPoint(slicedStatistics?.[2] ?? statistics.global.length - 1)!
+                    .trkpt.getCoordinates();
+                data.features.push({
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [start.lon, start.lat],
+                    },
+                    properties: {
+                        icon: 'start-marker',
+                    },
+                });
+                data.features.push({
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [end.lon, end.lat],
+                    },
+                    properties: {
+                        icon: 'end-marker',
+                    },
+                });
+            }
 
             if (hovered) {
                 data.features.push({
