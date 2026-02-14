@@ -24,6 +24,7 @@ import { fileActionManager } from '$lib/logic/file-action-manager';
 import { i18n } from '$lib/i18n.svelte';
 import { map } from '$lib/components/map/map';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
+import { MAX_ANCHOR_ZOOM, MIN_ANCHOR_ZOOM } from './simplify';
 
 const { streetViewSource } = settings;
 export const canChangeStart = writable(false);
@@ -41,6 +42,13 @@ export class RoutingControls {
     active: boolean = false;
     fileId: string = '';
     file: Readable<GPXFileWithStatistics | undefined>;
+    layers: Map<
+        number,
+        {
+            id: string;
+            anchors: GeoJSON.Feature<GeoJSON.Point, AnchorProperties>[];
+        }
+    > = new Map();
     anchors: GeoJSON.Feature<GeoJSON.Point, AnchorProperties>[] = [];
     popup: maplibregl.Popup;
     popupElement: HTMLElement;
@@ -74,6 +82,12 @@ export class RoutingControls {
     ) {
         this.fileId = fileId;
         this.file = file;
+        for (let zoom = MIN_ANCHOR_ZOOM; zoom <= MAX_ANCHOR_ZOOM; zoom++) {
+            this.layers.set(zoom, {
+                id: `routing-controls-${zoom}`,
+                anchors: [],
+            });
+        }
         this.popup = popup;
         this.popupElement = popupElement;
 
@@ -129,6 +143,7 @@ export class RoutingControls {
             return;
         }
 
+        this.layers.forEach((layer) => (layer.anchors = []));
         this.anchors = [];
 
         file.forEachSegment((segment, trackIndex, segmentIndex) => {
@@ -140,7 +155,7 @@ export class RoutingControls {
                 for (let i = 0; i < segment.trkpt.length; i++) {
                     const point = segment.trkpt[i];
                     if (point._data.anchor) {
-                        this.anchors.push({
+                        const anchor: Anchor = {
                             type: 'Feature',
                             geometry: {
                                 type: 'Point',
@@ -153,58 +168,62 @@ export class RoutingControls {
                                 anchorIndex: this.anchors.length,
                                 minZoom: point._data.zoom,
                             },
-                        });
+                        };
+                        this.layers.get(point._data.zoom)?.anchors.push(anchor);
+                        this.anchors.push(anchor);
                     }
                 }
             }
         });
 
-        try {
-            let source = map_.getSource('routing-controls') as maplibregl.GeoJSONSource | undefined;
-            if (source) {
-                source.setData({
-                    type: 'FeatureCollection',
-                    features: this.anchors,
-                });
-            } else {
-                map_.addSource('routing-controls', {
-                    type: 'geojson',
-                    data: {
+        this.layers.forEach((layer, zoom) => {
+            try {
+                let source = map_.getSource(layer.id) as maplibregl.GeoJSONSource | undefined;
+                if (source) {
+                    source.setData({
                         type: 'FeatureCollection',
-                        features: this.anchors,
-                    },
-                    promoteId: 'anchorIndex',
-                });
-            }
-
-            if (!map_.getLayer('routing-controls')) {
-                map_.addLayer(
-                    {
-                        id: 'routing-controls',
-                        type: 'symbol',
-                        source: 'routing-controls',
-                        layout: {
-                            'icon-image': 'routing-control',
-                            'icon-size': 0.25,
-                            'icon-padding': 0,
-                            'icon-allow-overlap': true,
+                        features: layer.anchors,
+                    });
+                } else {
+                    map_.addSource(layer.id, {
+                        type: 'geojson',
+                        data: {
+                            type: 'FeatureCollection',
+                            features: layer.anchors,
                         },
-                        filter: ['<=', ['get', 'minZoom'], ['zoom']],
-                    },
-                    ANCHOR_LAYER_KEY.routingControls
-                );
+                        promoteId: 'anchorIndex',
+                    });
+                }
 
-                layerEventManager.on('mouseenter', 'routing-controls', this.onMouseEnterBinded);
-                layerEventManager.on('mouseleave', 'routing-controls', this.onMouseLeaveBinded);
-                layerEventManager.on('click', 'routing-controls', this.onClickBinded);
-                layerEventManager.on('contextmenu', 'routing-controls', this.onClickBinded);
-                layerEventManager.on('mousedown', 'routing-controls', this.onMouseDownBinded);
-                layerEventManager.on('touchstart', 'routing-controls', this.onTouchStartBinded);
+                if (!map_.getLayer(layer.id)) {
+                    map_.addLayer(
+                        {
+                            id: layer.id,
+                            type: 'symbol',
+                            source: layer.id,
+                            layout: {
+                                'icon-image': 'routing-control',
+                                'icon-size': 0.25,
+                                'icon-padding': 0,
+                                'icon-allow-overlap': true,
+                            },
+                            minzoom: zoom,
+                        },
+                        ANCHOR_LAYER_KEY.routingControls
+                    );
+
+                    layerEventManager.on('mouseenter', layer.id, this.onMouseEnterBinded);
+                    layerEventManager.on('mouseleave', layer.id, this.onMouseLeaveBinded);
+                    layerEventManager.on('click', layer.id, this.onClickBinded);
+                    layerEventManager.on('contextmenu', layer.id, this.onClickBinded);
+                    layerEventManager.on('mousedown', layer.id, this.onMouseDownBinded);
+                    layerEventManager.on('touchstart', layer.id, this.onTouchStartBinded);
+                }
+            } catch (e) {
+                // No reliable way to check if the map is ready to add sources and layers
+                return;
             }
-        } catch (e) {
-            // No reliable way to check if the map is ready to add sources and layers
-            return;
-        }
+        });
     }
 
     remove() {
@@ -217,24 +236,26 @@ export class RoutingControls {
         layerEventManager?.off('mousemove', this.fileId, this.showTemporaryAnchorBinded);
         map_?.off('mousemove', this.updateTemporaryAnchorBinded);
 
-        try {
-            layerEventManager?.off('mouseenter', 'routing-controls', this.onMouseEnterBinded);
-            layerEventManager?.off('mouseleave', 'routing-controls', this.onMouseLeaveBinded);
-            layerEventManager?.off('click', 'routing-controls', this.onClickBinded);
-            layerEventManager?.off('contextmenu', 'routing-controls', this.onClickBinded);
-            layerEventManager?.off('mousedown', 'routing-controls', this.onMouseDownBinded);
-            layerEventManager?.off('touchstart', 'routing-controls', this.onTouchStartBinded);
+        this.layers.forEach((layer) => {
+            try {
+                layerEventManager?.off('mouseenter', layer.id, this.onMouseEnterBinded);
+                layerEventManager?.off('mouseleave', layer.id, this.onMouseLeaveBinded);
+                layerEventManager?.off('click', layer.id, this.onClickBinded);
+                layerEventManager?.off('contextmenu', layer.id, this.onClickBinded);
+                layerEventManager?.off('mousedown', layer.id, this.onMouseDownBinded);
+                layerEventManager?.off('touchstart', layer.id, this.onTouchStartBinded);
 
-            if (map_?.getLayer('routing-controls')) {
-                map_?.removeLayer('routing-controls');
-            }
+                if (map_?.getLayer(layer.id)) {
+                    map_?.removeLayer(layer.id);
+                }
 
-            if (map_?.getSource('routing-controls')) {
-                map_?.removeSource('routing-controls');
+                if (map_?.getSource(layer.id)) {
+                    map_?.removeSource(layer.id);
+                }
+            } catch (e) {
+                // No reliable way to check if the map is ready to remove sources and layers
             }
-        } catch (e) {
-            // No reliable way to check if the map is ready to remove sources and layers
-        }
+        });
 
         this.popup.remove();
 
@@ -497,7 +518,14 @@ export class RoutingControls {
         if (get(streetViewEnabled) && get(streetViewSource) === 'google') {
             return;
         }
-        if (e.target.queryRenderedFeatures(e.point, { layers: ['routing-controls'] }).length) {
+        if (
+            e.target.queryRenderedFeatures(e.point, {
+                layers: this.layers
+                    .values()
+                    .map((layer) => layer.id)
+                    .toArray(),
+            }).length
+        ) {
             // Clicked on routing control, ignoring
             return;
         }
@@ -578,6 +606,7 @@ export class RoutingControls {
 
         for (let i = 0; i < this.anchors.length; i++) {
             if (
+                this.anchors[i].properties.trackIndex === anchor.properties.trackIndex &&
                 this.anchors[i].properties.segmentIndex === anchor.properties.segmentIndex &&
                 zoom >= this.anchors[i].properties.minZoom
             ) {
@@ -1030,7 +1059,11 @@ export class RoutingControls {
     }
 
     moveAnchorFeature(anchorIndex: number, coordinates: Coordinates) {
-        let source = get(map)?.getSource('routing-controls') as GeoJSONSource | undefined;
+        const anchor =
+            anchorIndex === this.anchors.length ? this.temporaryAnchor : this.anchors[anchorIndex];
+        let source = get(map)?.getSource(
+            this.layers.get(anchor?.properties.minZoom ?? MIN_ANCHOR_ZOOM)?.id ?? ''
+        ) as GeoJSONSource | undefined;
         if (source) {
             source.updateData({
                 update: [
@@ -1050,7 +1083,7 @@ export class RoutingControls {
         if (!this.temporaryAnchor) {
             return;
         }
-        let source = get(map)?.getSource('routing-controls') as GeoJSONSource | undefined;
+        let source = get(map)?.getSource('routing-controls-0') as GeoJSONSource | undefined;
         if (source) {
             if (this.temporaryAnchor) {
                 source.updateData({
@@ -1065,7 +1098,7 @@ export class RoutingControls {
             return;
         }
         const map_ = get(map);
-        let source = map_?.getSource('routing-controls') as GeoJSONSource | undefined;
+        let source = map_?.getSource('routing-controls-0') as GeoJSONSource | undefined;
         if (source) {
             if (this.temporaryAnchor) {
                 source.updateData({

@@ -2,15 +2,21 @@ import { ramerDouglasPeucker, type GPXFile, type TrackSegment } from 'gpx';
 
 const earthRadius = 6371008.8;
 
+export const MIN_ANCHOR_ZOOM = 0;
+export const MAX_ANCHOR_ZOOM = 22;
+
 export function getZoomLevelForDistance(latitude: number, distance?: number): number {
     if (distance === undefined) {
-        return 0;
+        return MIN_ANCHOR_ZOOM;
     }
 
     const rad = Math.PI / 180;
     const lat = latitude * rad;
 
-    return Math.min(22, Math.max(0, Math.log2((earthRadius * Math.cos(lat)) / distance)));
+    return Math.min(
+        MAX_ANCHOR_ZOOM,
+        Math.max(MIN_ANCHOR_ZOOM, Math.round(Math.log2((earthRadius * Math.cos(lat)) / distance)))
+    );
 }
 
 export function updateAnchorPoints(file: GPXFile) {
