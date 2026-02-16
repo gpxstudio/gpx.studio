@@ -9,6 +9,7 @@ import { settings } from '$lib/logic/settings';
 import { tick } from 'svelte';
 import { ANCHOR_LAYER_KEY, StyleManager } from '$lib/components/map/style';
 import { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
+import { setContourDemSource } from '$lib/assets/layers';
 
 const { treeFileView, elevationProfile, bottomPanelSize, rightPanelSize, distanceUnits } = settings;
 
@@ -17,6 +18,23 @@ let fitBoundsOptions: maplibregl.MapOptions['fitBoundsOptions'] = {
     linear: true,
     easing: () => 1,
 };
+
+// Protocol registration flag — ensures we only register once
+let _protocolsRegistered = false;
+async function registerProtocols() {
+    if (_protocolsRegistered) return;
+    _protocolsRegistered = true;
+
+    // maplibre-contour DemSource (contour lines + hillshade)
+    const mlcontour = (await import('maplibre-contour')).default;
+    const contourDemSource = new mlcontour.DemSource({
+        url: 'https://tiles.mapterhorn.com/{z}/{x}/{y}.webp',
+        encoding: 'terrarium',
+        maxzoom: 12,
+    });
+    setContourDemSource(contourDemSource);
+    contourDemSource.setupMaplibre(maplibregl);
+}
 
 export class MapLibreGLMap {
     private _maptilerKey: string = '';
@@ -32,13 +50,14 @@ export class MapLibreGLMap {
         return this._mapStore.subscribe(run, invalidate);
     }
 
-    init(
+    async init(
         maptilerKey: string,
         language: string,
         hash: boolean,
         geocoder: boolean,
         geolocate: boolean
     ) {
+        await registerProtocols();
         this._maptilerKey = maptilerKey;
         this._styleManager = new StyleManager(this._mapStore, this._maptilerKey);
         const map = new maplibregl.Map({
