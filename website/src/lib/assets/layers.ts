@@ -1233,7 +1233,7 @@ export type CustomLayer = {
     tileUrls: string[];
     maxZoom: number;
     layerType: 'basemap' | 'overlay';
-    resourceType: 'raster' | 'vector';
+    resourceType: 'raster' | 'vector' | 'pmtiles';
     value: string | maplibregl.StyleSpecification;
 };
 
