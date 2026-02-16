@@ -25,6 +25,11 @@ async function registerProtocols() {
     if (_protocolsRegistered) return;
     _protocolsRegistered = true;
 
+    // PMTiles protocol
+    const { Protocol: PmtilesProtocol } = await import('pmtiles');
+    const pmtilesProtocol = new PmtilesProtocol();
+    maplibregl.addProtocol('pmtiles', pmtilesProtocol.tile);
+
     // maplibre-contour DemSource (contour lines + hillshade)
     const mlcontour = (await import('maplibre-contour')).default;
     const contourDemSource = new mlcontour.DemSource({

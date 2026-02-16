@@ -362,6 +362,8 @@ export const basemaps: { [key: string]: string | StyleSpecification } = {
             },
         ],
     },
+    pubmapTest: 'pmtiles://https://pubmap.montagne.top/Test.pmtiles',
+    pubmapBugianen: 'pmtiles://https://pubmap.montagne.top/Bugianen.pmtiles',
 };
 
 export const overlays: { [key: string]: string | StyleSpecification } = {
@@ -868,6 +870,8 @@ export const basemapTree: LayerTreeType = {
             openHikingMap: true,
             cyclOSM: true,
             utagawaVTT: true,
+            pubmapTest: true,
+            pubmapBugianen: true,
         },
         countries: {
             belgium: {
@@ -1094,6 +1098,8 @@ export const defaultBasemapTree: LayerTreeType = {
             openHikingMap: true,
             cyclOSM: true,
             utagawaVTT: true,
+            pubmapTest: false,
+            pubmapBugianen: false,
         },
         countries: {
             belgium: {
