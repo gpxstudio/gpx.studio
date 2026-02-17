@@ -129,12 +129,21 @@
         @apply relative;
         @apply top-0;
         @apply left-0;
-        @apply my-2;
         @apply w-[29px];
+    }
+
+    div :global(.maplibregl-ctrl-geocoder--icon-loading) {
+        @apply -mt-1;
+        @apply mb-0;
+    }
+
+    div :global(.maplibregl-ctrl-geocoder--icon-close) {
+        @apply my-0;
     }
 
     div :global(.maplibregl-ctrl-geocoder--input) {
         @apply relative;
+        @apply h-8;
         @apply w-64;
         @apply py-0;
         @apply pl-2;

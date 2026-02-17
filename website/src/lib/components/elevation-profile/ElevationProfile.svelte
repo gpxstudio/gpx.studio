@@ -64,7 +64,7 @@
     });
 </script>
 
-<div class="h-full grow min-w-0 relative py-2">
+<div class="h-full grow min-w-0 min-h-0 relative">
     <canvas bind:this={overlay} class="w-full h-full absolute pointer-events-none"></canvas>
     <canvas bind:this={canvas} class="w-full h-full absolute"></canvas>
     {#if showControls}

@@ -31,13 +31,13 @@
 
 <Card.Root
     class="h-full {orientation === 'vertical'
-        ? 'min-w-40 sm:min-w-44 text-sm sm:text-base'
-        : 'w-full'} border-none shadow-none p-0"
+        ? 'min-w-40 sm:min-w-44'
+        : 'w-full h-10'} border-none shadow-none p-0 text-sm sm:text-base"
 >
     <Card.Content
         class="h-full flex {orientation === 'vertical'
             ? 'flex-col justify-center'
-            : 'flex-row w-full justify-between'} gap-4  p-0"
+            : 'flex-row w-full justify-evenly'} gap-4 p-0"
     >
         <Tooltip label={i18n._('quantities.distance')}>
             <span class="flex flex-row items-center">

@@ -30,6 +30,11 @@
         elevationFill,
     } = settings;
 
+    let bottomPanelWidth: number | undefined = $state();
+    let bottomPanelOrientation = $derived(
+        bottomPanelWidth && bottomPanelWidth >= 540 && $elevationProfile ? 'horizontal' : 'vertical'
+    );
+
     onMount(async () => {
         settings.connectToDatabase(db);
         fileStateCollection.connectToDatabase(db).then(() => {
@@ -127,14 +132,17 @@
             />
         {/if}
         <div
-            class="{$elevationProfile ? '' : 'h-10'} flex flex-row gap-2 px-2 sm:px-4"
+            bind:offsetWidth={bottomPanelWidth}
+            class="flex {bottomPanelOrientation == 'vertical'
+                ? 'flex-col'
+                : 'flex-row py-2'} gap-1 px-2"
             style={$elevationProfile ? `height: ${$bottomPanelSize}px` : ''}
         >
             <GPXStatistics
                 {gpxStatistics}
                 {slicedGPXStatistics}
                 panelSize={$bottomPanelSize}
-                orientation={$elevationProfile ? 'vertical' : 'horizontal'}
+                orientation={bottomPanelOrientation == 'horizontal' ? 'vertical' : 'horizontal'}
             />
             {#if $elevationProfile}
                 <ElevationProfile
