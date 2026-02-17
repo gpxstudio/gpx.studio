@@ -810,7 +810,7 @@ export class RoutingControls {
             `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                 <circle cx="10" cy="10" r="8" fill="white" stroke="black" stroke-width="2" />
             </svg>`,
-            60
+            _map.getCanvasContainer().offsetWidth > 1000 ? 50 : 80
         );
     }
 
