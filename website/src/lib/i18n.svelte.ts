@@ -9,6 +9,8 @@ function getDateFormatter(locale: string) {
     });
 }
 
+const localeLoaders = import.meta.glob('../locales/*.json');
+
 class Locale {
     private _lang = $state('');
     private _isLoadingInitial = $state(true);
@@ -36,15 +38,35 @@ class Locale {
             if (!this._isLoading) {
                 this._isLoading = true;
             }
-            import(`../locales/${this._lang}.json`).then((module) => {
-                this.dictionary = module.default;
+            const localePath = `../locales/${this._lang}.json`;
+            const loadLocale = localeLoaders[localePath];
+
+            if (!loadLocale) {
+                console.error(`Missing locale file for language: ${this._lang}`);
                 if (this._isLoadingInitial) {
                     this._isLoadingInitial = false;
                 }
                 if (this._isLoading) {
                     this._isLoading = false;
                 }
-            });
+                return;
+            }
+
+            loadLocale()
+                .then((module) => {
+                    this.dictionary = (module as { default: Dictionary }).default;
+                })
+                .catch((error) => {
+                    console.error(`Failed to load locale: ${this._lang}`, error);
+                })
+                .finally(() => {
+                    if (this._isLoadingInitial) {
+                        this._isLoadingInitial = false;
+                    }
+                    if (this._isLoading) {
+                        this._isLoading = false;
+                    }
+                });
         }
     }
 

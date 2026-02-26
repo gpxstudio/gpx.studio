@@ -362,7 +362,7 @@ export const basemaps: { [key: string]: string | StyleSpecification } = {
             },
         ],
     },
-    pubmapTest: 'pmtiles://https://pubmap.montagne.top/Test.pmtiles',
+    pubmapEsloWAlps: 'pmtiles://https://pubmap.montagne.top/AlpsW_eslo.pmtiles',
     pubmapBugianen: 'pmtiles://https://pubmap.montagne.top/Bugianen.pmtiles',
 };
 
@@ -854,6 +854,9 @@ export const defaultOpacities: { [key: string]: number } = {
     ignFrCadastre: 0.5,
     ignSlope: 0.4,
     swisstopoSlope: 0.4,
+    mapterhornHillshade: 0.3,
+    mapterhornContours: 1,
+    pubmapEsloWAlps: 0.5,
 };
 
 export type LayerTreeType = { [key: string]: LayerTreeType | boolean };
@@ -870,8 +873,6 @@ export const basemapTree: LayerTreeType = {
             openHikingMap: true,
             cyclOSM: true,
             utagawaVTT: true,
-            pubmapTest: true,
-            pubmapBugianen: true,
         },
         countries: {
             belgium: {
@@ -888,6 +889,9 @@ export const basemapTree: LayerTreeType = {
                 ignFrTopo: true,
                 ignFrScan25: true,
                 ignFrSatellite: true,
+            },
+            italy: {
+                pubmapBugianen: true,
             },
             new_zealand: {
                 linz: true,
@@ -932,6 +936,7 @@ export const overlayTree: LayerTreeType = {
             mapterhornHillshade: true,
             mapterhornContours: true,
             openRailwayMap: true,
+            pubmapEsloWAlps: true,
         },
         countries: {
             france: {
@@ -1098,8 +1103,6 @@ export const defaultBasemapTree: LayerTreeType = {
             openHikingMap: true,
             cyclOSM: true,
             utagawaVTT: true,
-            pubmapTest: false,
-            pubmapBugianen: false,
         },
         countries: {
             belgium: {
@@ -1116,6 +1119,9 @@ export const defaultBasemapTree: LayerTreeType = {
                 ignFrTopo: false,
                 ignFrScan25: false,
                 ignFrSatellite: false,
+            },
+            italy: {
+                pubmapBugianen: false,
             },
             new_zealand: {
                 linz: false,
@@ -1157,8 +1163,9 @@ export const defaultOverlayTree: LayerTreeType = {
             },
             bikerouterGravel: false,
             cyclOSMlite: false,
-            mapterhornHillshade: false,
-            mapterhornContours: false,
+            mapterhornHillshade: true,
+            mapterhornContours: true,
+            pubmapEsloWAlps: false,
             openRailwayMap: false,
         },
         countries: {
