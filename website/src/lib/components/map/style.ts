@@ -174,6 +174,9 @@ export class StyleManager {
     ): Promise<maplibregl.StyleSpecification> {
         if (typeof styleInfo === 'string') {
             let styleUrl = styleInfo as string;
+            if (styleUrl.startsWith('pmtiles://')) {
+                return this.getPmtilesStyle(styleUrl);
+            }
             if (styleUrl.includes(maptilerKeyPlaceHolder)) {
                 styleUrl = styleUrl.replace(maptilerKeyPlaceHolder, this._maptilerKey);
             }
@@ -183,6 +186,61 @@ export class StyleManager {
         } else {
             return styleInfo;
         }
+    }
+
+    async getPmtilesStyle(pmtilesUrl: string): Promise<maplibregl.StyleSpecification> {
+        const sourceId = pmtilesUrl.replace(/[^a-zA-Z0-9]/g, '_');
+        const { PMTiles } = await import('pmtiles');
+        const httpUrl = pmtilesUrl.replace('pmtiles://', '');
+        const pmtiles = new PMTiles(httpUrl);
+        const metadata = (await pmtiles.getMetadata()) as any;
+        const header = await pmtiles.getHeader();
+
+        const isVector = header.tileType === 1; // MVT
+        if (isVector && metadata.json) {
+            const tileJson = metadata.json;
+            if (tileJson.vector_layers) {
+                const style: maplibregl.StyleSpecification = {
+                    version: 8,
+                    sources: {
+                        [sourceId]: {
+                            type: 'vector',
+                            url: pmtilesUrl,
+                        },
+                    },
+                    layers: tileJson.vector_layers.map((vl: any) => ({
+                        id: `${sourceId}-${vl.id}`,
+                        type: 'line',
+                        source: sourceId,
+                        'source-layer': vl.id,
+                        paint: {
+                            'line-color': '#333',
+                            'line-width': 1,
+                        },
+                    })),
+                };
+                return style;
+            }
+        }
+
+        // Fallback: raster tiles
+        return {
+            version: 8,
+            sources: {
+                [sourceId]: {
+                    type: 'raster',
+                    url: pmtilesUrl,
+                    tileSize: 256,
+                },
+            },
+            layers: [
+                {
+                    id: sourceId,
+                    type: 'raster',
+                    source: sourceId,
+                },
+            ],
+        };
     }
 
     merge(style: maplibregl.StyleSpecification, other: maplibregl.StyleSpecification) {

@@ -30,6 +30,25 @@ import bikerouterGravel from './custom/bikerouter-gravel.json';
 
 export const maptilerKeyPlaceHolder = 'MAPTILER_KEY';
 
+// Shared DemSource for contour lines and hillshade.
+// Set by map.ts at init time (browser-only) to avoid SSR crashes (Node has no Worker).
+let _contourDemSource: {
+    sharedDemProtocolUrl: string;
+    contourProtocolUrl: (opts: any) => string;
+    setupMaplibre: (ml: any) => void;
+} | null = null;
+export function setContourDemSource(src: typeof _contourDemSource) {
+    _contourDemSource = src;
+}
+export function getContourDemSource() {
+    if (!_contourDemSource) {
+        throw new Error(
+            'contourDemSource not initialized — call setContourDemSource() first (browser-only)'
+        );
+    }
+    return _contourDemSource;
+}
+
 export const basemaps: { [key: string]: string | StyleSpecification } = {
     maptilerTopo: `https://api.maptiler.com/maps/topo-v4/style.json?key=${maptilerKeyPlaceHolder}`,
     maptilerOutdoors: `https://api.maptiler.com/maps/outdoor-v4/style.json?key=${maptilerKeyPlaceHolder}`,
@@ -343,6 +362,8 @@ export const basemaps: { [key: string]: string | StyleSpecification } = {
             },
         ],
     },
+    pubmapEsloWAlps: 'pmtiles://https://pubmap.montagne.top/AlpsW_eslo.pmtiles',
+    pubmapBugianen: 'pmtiles://https://pubmap.montagne.top/Bugianen.pmtiles',
 };
 
 export const overlays: { [key: string]: string | StyleSpecification } = {
@@ -391,21 +412,86 @@ export const overlays: { [key: string]: string | StyleSpecification } = {
             },
         ],
     },
-    mapterhornHillshade: {
-        version: 8,
-        sources: {
-            mapterhornHillshade: {
-                type: 'raster-dem',
-                url: 'https://tiles.mapterhorn.com/tilejson.json',
+    get mapterhornHillshade(): StyleSpecification {
+        const demSource = getContourDemSource();
+        return {
+            version: 8,
+            sources: {
+                mapterhornHillshade: {
+                    type: 'raster-dem',
+                    encoding: 'terrarium',
+                    tiles: [demSource.sharedDemProtocolUrl],
+                    maxzoom: 12,
+                    tileSize: 256,
+                } as unknown as RasterDEMSourceSpecification,
             },
-        },
-        layers: [
-            {
-                id: 'mapterhornHillshade',
-                type: 'hillshade',
-                source: 'mapterhornHillshade',
+            layers: [
+                {
+                    id: 'mapterhornHillshade',
+                    type: 'hillshade',
+                    source: 'mapterhornHillshade',
+                },
+            ],
+        } as unknown as StyleSpecification;
+    },
+    get mapterhornContours(): StyleSpecification {
+        const demSource = getContourDemSource();
+        return {
+            version: 8,
+            sources: {
+                mapterhornContours: {
+                    type: 'vector',
+                    tiles: [
+                        demSource.contourProtocolUrl({
+                            thresholds: {
+                                11: [200, 1000],
+                                12: [100, 500],
+                                13: [100, 500],
+                                14: [50, 200],
+                                15: [20, 100],
+                            },
+                            elevationKey: 'ele',
+                            levelKey: 'level',
+                            contourLayer: 'contours',
+                        }),
+                    ],
+                    maxzoom: 16,
+                },
             },
-        ],
+            layers: [
+                {
+                    id: 'mapterhornContours',
+                    type: 'line',
+                    source: 'mapterhornContours',
+                    'source-layer': 'contours',
+                    paint: {
+                        'line-color': 'rgba(0,0,0,50%)',
+                        'line-width': ['match', ['get', 'level'], 1, 1, 0.5],
+                    },
+                    layout: {
+                        'line-join': 'round',
+                    },
+                },
+                {
+                    id: 'mapterhornContoursLabel',
+                    type: 'symbol',
+                    source: 'mapterhornContours',
+                    'source-layer': 'contours',
+                    filter: ['>', ['get', 'level'], 0],
+                    paint: {
+                        'text-halo-color': 'white',
+                        'text-halo-width': 1,
+                    },
+                    layout: {
+                        'symbol-placement': 'line',
+                        'text-anchor': 'center',
+                        'text-size': 10,
+                        'text-field': ['concat', ['number-format', ['get', 'ele'], {}], 'm'],
+                        'text-font': ['Noto Sans Bold'],
+                    },
+                },
+            ],
+        } as unknown as StyleSpecification;
     },
     swisstopoSlope: {
         version: 8,
@@ -768,6 +854,9 @@ export const defaultOpacities: { [key: string]: number } = {
     ignFrCadastre: 0.5,
     ignSlope: 0.4,
     swisstopoSlope: 0.4,
+    mapterhornHillshade: 0.3,
+    mapterhornContours: 1,
+    pubmapEsloWAlps: 0.5,
 };
 
 export type LayerTreeType = { [key: string]: LayerTreeType | boolean };
@@ -800,6 +889,9 @@ export const basemapTree: LayerTreeType = {
                 ignFrTopo: true,
                 ignFrScan25: true,
                 ignFrSatellite: true,
+            },
+            italy: {
+                pubmapBugianen: true,
             },
             new_zealand: {
                 linz: true,
@@ -842,7 +934,9 @@ export const overlayTree: LayerTreeType = {
             bikerouterGravel: true,
             cyclOSMlite: true,
             mapterhornHillshade: true,
+            mapterhornContours: true,
             openRailwayMap: true,
+            pubmapEsloWAlps: true,
         },
         countries: {
             france: {
@@ -928,6 +1022,7 @@ export const defaultOverlays: LayerTreeType = {
             bikerouterGravel: false,
             cyclOSMlite: false,
             mapterhornHillshade: false,
+            mapterhornContours: false,
             openRailwayMap: false,
         },
         countries: {
@@ -1025,6 +1120,9 @@ export const defaultBasemapTree: LayerTreeType = {
                 ignFrScan25: false,
                 ignFrSatellite: false,
             },
+            italy: {
+                pubmapBugianen: false,
+            },
             new_zealand: {
                 linz: false,
                 linzTopo: false,
@@ -1065,7 +1163,9 @@ export const defaultOverlayTree: LayerTreeType = {
             },
             bikerouterGravel: false,
             cyclOSMlite: false,
-            mapterhornHillshade: false,
+            mapterhornHillshade: true,
+            mapterhornContours: true,
+            pubmapEsloWAlps: false,
             openRailwayMap: false,
         },
         countries: {
@@ -1140,7 +1240,7 @@ export type CustomLayer = {
     tileUrls: string[];
     maxZoom: number;
     layerType: 'basemap' | 'overlay';
-    resourceType: 'raster' | 'vector';
+    resourceType: 'raster' | 'vector' | 'pmtiles';
     value: string | maplibregl.StyleSpecification;
 };
 

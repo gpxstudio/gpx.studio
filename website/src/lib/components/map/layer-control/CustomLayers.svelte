@@ -40,7 +40,10 @@
     let tileUrls: string[] = $state(['']);
     let maxZoom: number = $state(20);
     let layerType: 'basemap' | 'overlay' = $state('basemap');
-    let resourceType: 'raster' | 'vector' = $derived.by(() => {
+    let resourceType: 'raster' | 'vector' | 'pmtiles' = $derived.by(() => {
+        if (tileUrls[0].length > 0 && tileUrls[0].endsWith('.pmtiles')) {
+            return 'pmtiles';
+        }
         if (tileUrls[0].length > 0 && tileUrls[0].includes('.json')) {
             return 'vector';
         }
@@ -106,7 +109,10 @@
             value: '',
         };
 
-        if (resourceType === 'vector') {
+        if (resourceType === 'pmtiles') {
+            const url = layer.tileUrls[0];
+            layer.value = `pmtiles://${url.startsWith('http') ? url : 'https://' + url}`;
+        } else if (resourceType === 'vector') {
             layer.value = layer.tileUrls[0];
         } else {
             layer.value = {
