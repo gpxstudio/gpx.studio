@@ -127,7 +127,23 @@ async function getGraphHopperRoute(
     });
 
     if (!response.ok) {
-        throw new Error(`${await response.text()}`);
+        const error = await response.json();
+        console.log(error);
+        if (error.message.includes('Cannot find point 0')) {
+            throw new Error('toolbar.routing.error.from');
+        } else if (error.message.includes('Cannot find point 1')) {
+            if (points.length == 3) {
+                throw new Error('toolbar.routing.error.via');
+            } else {
+                throw new Error('toolbar.routing.error.to');
+            }
+        } else if (error.hints[0].details.includes('PointDistanceExceededException')) {
+            throw new Error('toolbar.routing.error.distance');
+        } else if (error.hints[0].details.includes('ConnectionNotFoundException')) {
+            throw new Error('toolbar.routing.error.connection');
+        } else {
+            throw new Error(error.message);
+        }
     }
 
     let json = await response.json();
@@ -186,7 +202,18 @@ async function getBRouterRoute(
     let response = await fetch(url);
 
     if (!response.ok) {
-        throw new Error(`${await response.text()}`);
+        const error = await response.text();
+        if (error.includes('from-position not mapped in existing datafile')) {
+            throw new Error('toolbar.routing.error.from');
+        } else if (error.includes('via1-position not mapped in existing datafile')) {
+            throw new Error('toolbar.routing.error.via');
+        } else if (error.includes('to-position not mapped in existing datafile')) {
+            throw new Error('toolbar.routing.error.to');
+        } else if (error.includes('Time-out')) {
+            throw new Error('toolbar.routing.error.timeout');
+        } else {
+            throw new Error(error);
+        }
     }
 
     let geojson = await response.json();

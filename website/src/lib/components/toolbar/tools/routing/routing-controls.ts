@@ -731,17 +731,7 @@ export class RoutingControls {
         try {
             response = await route(targetCoordinates);
         } catch (e: any) {
-            if (e.message.includes('from-position not mapped in existing datafile')) {
-                toast.error(i18n._('toolbar.routing.error.from'));
-            } else if (e.message.includes('via1-position not mapped in existing datafile')) {
-                toast.error(i18n._('toolbar.routing.error.via'));
-            } else if (e.message.includes('to-position not mapped in existing datafile')) {
-                toast.error(i18n._('toolbar.routing.error.to'));
-            } else if (e.message.includes('Time-out')) {
-                toast.error(i18n._('toolbar.routing.error.timeout'));
-            } else {
-                toast.error(e.message);
-            }
+            toast.error(i18n._(e.message, e.message));
             return false;
         }
 
