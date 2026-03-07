@@ -128,7 +128,6 @@ async function getGraphHopperRoute(
 
     if (!response.ok) {
         const error = await response.json();
-        console.log(error);
         if (error.message.includes('Cannot find point 0')) {
             throw new Error('toolbar.routing.error.from');
         } else if (error.message.includes('Cannot find point 1')) {
