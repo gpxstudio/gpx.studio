@@ -28,7 +28,7 @@
         "undo": "Desfer",
         "redo": "Refer",
         "delete": "Elimina el track",
-        "delete_all": "Delete all",
+        "delete_all": "Esborra-ho tot",
         "select_all": "Seleccionar-ho tot",
         "view": "Vista",
         "elevation_profile": "Perfil d’elevacions",
@@ -80,7 +80,7 @@
         "center": "Centrar",
         "open_in": "Obrir amb",
         "copy_coordinates": "Copiar coordenades",
-        "edit_osm": "Edit in OpenStreetMap"
+        "edit_osm": "Edita a OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -282,7 +282,7 @@
             "update": "Actualitza la capa"
         },
         "opacity": "Opacitat de la superposició",
-        "terrain": "Terrain source",
+        "terrain": "Terreny",
         "label": {
             "basemaps": "Mapes base",
             "overlays": "Capes",
@@ -356,7 +356,7 @@
             "water": "Aigua",
             "shower": "Dutxa",
             "shelter": "Refugi",
-            "cemetery": "Cemetery",
+            "cemetery": "Cementiri",
             "motorized": "Cotxes i motos",
             "fuel-station": "Gasolinera",
             "parking": "Aparcament",
