@@ -190,6 +190,8 @@
                 "from": "Početna tačka je predaleko od najbližeg puta",
                 "via": "Putna tačka je predaleko od najbližeg puta",
                 "to": "Krajnja tačka je predaleko od najbližeg puta",
+                "distance": "The end point is to far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "Računanje rute je trajalo predugo, pokušajte da dodate putne tačke bliže jednu drugoj"
             }
         },
