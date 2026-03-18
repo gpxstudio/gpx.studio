@@ -190,6 +190,8 @@
                 "from": "Počáteční bod je příliš daleko od nejbližší cesty",
                 "via": "Průchozí bod je příliš daleko od nejbližší cesty",
                 "to": "Koncový bod je příliš daleko od nejbližší cesty",
+                "distance": "The end point is to far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "Výpočet trasy trval příliš dlouho, zkuste přidat body blíže k sobě"
             }
         },
