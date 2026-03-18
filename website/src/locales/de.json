@@ -190,6 +190,8 @@
                 "from": "Der Startpunkt ist zu weit von der nächsten Straße entfernt",
                 "via": "Der Via-Punkt ist zu weit entfernt von der nächsten Straße",
                 "to": "Der Endpunkt ist zu weit von der nächsten Straße entfernt",
+                "distance": "The end point is to far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "Route-Berechnung benötigte zu viel Zeit; versuche, die Punkte näher aneinander zu setzen"
             }
         },
