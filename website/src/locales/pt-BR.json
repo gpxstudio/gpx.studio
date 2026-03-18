@@ -190,6 +190,8 @@
                 "from": "O ponto de partida está muito longe da estrada mais próxima",
                 "via": "O ponto intermediário está muito longe da estrada mais próxima",
                 "to": "O ponto de chegada está muito longe da estrada mais próxima",
+                "distance": "The end point is to far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "O cálculo da rota demorou muito tempo, tente adicionar pontos mais próximos"
             }
         },
