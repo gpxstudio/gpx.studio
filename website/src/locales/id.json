@@ -190,6 +190,8 @@
                 "from": "Titik awal terlalu jauh dari jalan terdekat",
                 "via": "Titik via terlalu jauh dari jalan terdekat",
                 "to": "Titik akhir terlalu jauh dari jalan terdekat",
+                "distance": "The end point is to far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "Perhitungan rute memakan waktu terlalu lama, coba tambahkan titik-titik yang lebih dekat satu sama lain"
             }
         },
