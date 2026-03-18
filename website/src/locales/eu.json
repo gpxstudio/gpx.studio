@@ -190,6 +190,8 @@
                 "from": "Hasiera puntua errepide hurbilenetik oso hurrun dago",
                 "via": "Puntua errepide hurbilenetik oso hurrun dago",
                 "to": "Bukaera puntua errepide hurbilenetik oso hurrun dago",
+                "distance": "The end point is to far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "Ibilbidea kalkulatzea luzeegi joan da, saiatu hurbilago dauden puntuak gehitzen"
             }
         },
