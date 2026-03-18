@@ -190,6 +190,8 @@
                 "from": "נקודת ההתחלה רחוקה מדיי מהכביש הקרוב ביותר",
                 "via": "נקודת המעבר רחוקה מדיי מהכביש הקרוב ביותר",
                 "to": "נקודת הסיום רחוקה מדיי מהכביש הקרוב ביותר",
+                "distance": "The end point is to far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "Route calculation took too long, try adding points closer together"
             }
         },
