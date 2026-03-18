@@ -190,7 +190,7 @@
                 "from": "El punt d'inici és massa lluny de la via més propera",
                 "via": "El punt és massa lluny de la via més propera",
                 "to": "El punt final és massa lluny de la via més propera",
-                "distance": "The end point is to far from the start point",
+                "distance": "The end point is too far from the start point",
                 "connection": "No connection found between the points",
                 "timeout": "El càlcul de la ruta tarda més del compte, prova d'afegir punts més propers entre si"
             }
