@@ -190,7 +190,7 @@
                 "from": "Начальная точка слишком далеко от ближайшей дороги",
                 "via": "Точка маршрута слишком далеко от ближайшей дороги",
                 "to": "Конечная точка слишком далеко от ближайшей дороги",
-                "distance": "The end point is to far from the start point",
+                "distance": "The end point is too far from the start point",
                 "connection": "No connection found between the points",
                 "timeout": "Расчет маршрута занял слишком много времени, попробуйте добавить точки ближе"
             }
