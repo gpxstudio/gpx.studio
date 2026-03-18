@@ -190,7 +190,7 @@
                 "from": "Startpunkten är för långt bort från närmaste väg",
                 "via": "Ruttpunkten är för långt bort från närmaste väg",
                 "to": "Slutpunkten är för långt bort från närmaste väg",
-                "distance": "The end point is to far from the start point",
+                "distance": "The end point is too far from the start point",
                 "connection": "No connection found between the points",
                 "timeout": "Ruttberäkningen tog för lång tid, försök att lägga punkterna närmare varandra"
             }
