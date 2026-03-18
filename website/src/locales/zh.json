@@ -190,6 +190,8 @@
                 "from": "起点离最近的道路太远",
                 "via": "途径点离最近的道路太远",
                 "to": "终点离最近的道路太远",
+                "distance": "The end point is to far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "轨迹计算耗时太长，请尝试添加更靠近路网的点"
             }
         },
