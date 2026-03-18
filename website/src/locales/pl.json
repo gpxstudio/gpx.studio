@@ -190,7 +190,7 @@
                 "from": "Punkt początkowy jest zbyt daleko od najbliższej drogi",
                 "via": "Punkt przelotowy jest zbyt daleko od najbliższej drogi",
                 "to": "Punkt końcowy jest zbyt daleko od najbliższej drogi",
-                "distance": "The end point is to far from the start point",
+                "distance": "The end point is too far from the start point",
                 "connection": "No connection found between the points",
                 "timeout": "Obliczanie trasy trwało zbyt długo, spróbuj dodać punkty bliżej siebie"
             }
