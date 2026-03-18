@@ -190,7 +190,7 @@
                 "from": "Startpunktet er for langt unna nærmeste vei",
                 "via": "Via-punktet er for langt fra nærmeste vei",
                 "to": "Sluttpunktet er for langt unna nærmeste vei",
-                "distance": "The end point is to far from the start point",
+                "distance": "The end point is too far from the start point",
                 "connection": "No connection found between the points",
                 "timeout": "Ruteberegning tok for lang tid, prøv å legge til flere punkter"
             }
