@@ -190,6 +190,8 @@
                 "from": "The start point is too far from the nearest road",
                 "via": "The via point is too far from the nearest road",
                 "to": "The end point is too far from the nearest road",
+                "distance": "The end point is to far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "Route calculation took too long, try adding points closer together"
             }
         },
