@@ -190,6 +190,8 @@
                 "from": "A kiindulási pont túl messze van a legközelebbi úttól",
                 "via": "A köztes pont túl messze van a legközelebbi úttól",
                 "to": "A végpont túl messze van a legközelebbi úttól",
+                "distance": "The end point is to far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "Az útvonal kiszámítása túl sokáig tartott. Próbáljon meg közelebbi pontokat adni egymáshoz"
             }
         },
