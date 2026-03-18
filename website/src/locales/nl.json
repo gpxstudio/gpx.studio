@@ -190,6 +190,8 @@
                 "from": "Het startpunt ligt te ver van de dichtstbijzijnde weg",
                 "via": "Het via punt ligt te ver van de dichtstbijzijnde weg",
                 "to": "Het eindpunt is te ver van de dichtstbijzijnde weg",
+                "distance": "The end point is to far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "Routeberekening heeft te lang geduurd, probeer punten dichter bij elkaar toe te voegen"
             }
         },
