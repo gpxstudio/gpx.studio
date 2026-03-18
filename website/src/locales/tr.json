@@ -190,7 +190,7 @@
                 "from": "Başlangıç noktası en yakın yoldan çok uzak",
                 "via": "Geçiş noktası en yakın yoldan çok uzak",
                 "to": "Bitiş noktası en yakın yoldan çok uzak",
-                "distance": "The end point is to far from the start point",
+                "distance": "The end point is too far from the start point",
                 "connection": "No connection found between the points",
                 "timeout": "Rota hesaplaması uzun sürdü, daha yakın noktalar eklemeyi deneyin"
             }
