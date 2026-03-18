@@ -190,6 +190,8 @@
                 "from": "Aloituspiste on liian kaukana lähimmästä tiestä",
                 "via": "Reittipiste on liian kaukana lähimmästä tiestä",
                 "to": "Päätepiste on liian kaukana lähimmästä tiestä",
+                "distance": "The end point is to far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "Reitin laskenta kesti liian kauan. Tihennä reittipisteitä"
             }
         },
