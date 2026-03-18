@@ -190,7 +190,7 @@
                 "from": "Pradžios taškas yra per toli nuo artimiausio kelio",
                 "via": "Tarpinis taškas yra per toli nuo artimiausio kelio",
                 "to": "Pabaigos taškas yra per toli nuo artimiausio kelio",
-                "distance": "The end point is to far from the start point",
+                "distance": "The end point is too far from the start point",
                 "connection": "No connection found between the points",
                 "timeout": "Maršruto skaičiavimas užtruko per ilgai, pabandykite pridėti taškus arčiau vienas kito"
             }
