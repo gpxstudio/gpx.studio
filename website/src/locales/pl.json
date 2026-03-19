@@ -4,7 +4,7 @@
         "app_title": "Aplikacja",
         "embed_title": "Edytor plików GPX online",
         "help_title": "pomoc",
-        "404_title": "nie odnaleziono strony",
+        "404_title": "Strona nie odnaleziona",
         "description": "Przeglądaj, edytuj i twórz pliki GPX online z zaawansowanymi możliwościami planowania trasy i narzędziami do przetwarzania plików, pięknymi mapami i szczegółowymi wizualizacjami danych."
     },
     "menu": {
@@ -190,8 +190,8 @@
                 "from": "Punkt początkowy jest zbyt daleko od najbliższej drogi",
                 "via": "Punkt przelotowy jest zbyt daleko od najbliższej drogi",
                 "to": "Punkt końcowy jest zbyt daleko od najbliższej drogi",
-                "distance": "The end point is too far from the start point",
-                "connection": "No connection found between the points",
+                "distance": "Punkt końcowy jest zbyt daleko od punktu początkowego",
+                "connection": "Nie znaleziono połączenia między punktami",
                 "timeout": "Obliczanie trasy trwało zbyt długo, spróbuj dodać punkty bliżej siebie"
             }
         },
@@ -328,7 +328,7 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
-            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "mapterhornHillshade": "Cieniowanie terenu Mapterhorn",
             "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Stoki",
             "swisstopoHiking": "swisstopo Szlaki Turystyczne",
