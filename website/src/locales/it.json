@@ -84,10 +84,10 @@
     },
     "toolbar": {
         "routing": {
-            "tooltip": "Pianifica o modifica un percorsoo",
+            "tooltip": "Pianifica o modifica un percorso",
             "activity": "Attività",
             "use_routing": "Instradamento",
-            "use_routing_tooltip": "Collega i punti di ancoraggio tramite la rete stradale (o in linea retta se disabilitato)",
+            "use_routing_tooltip": "Collega i punti di ancoraggio tramite la rete stradale, o in linea retta se disabilitato",
             "allow_private": "Consenti strade private",
             "reverse": {
                 "button": "Inverti la traccia",
