@@ -9,6 +9,8 @@ function getDateFormatter(locale: string) {
     });
 }
 
+const localeModules = import.meta.glob<{ default: Dictionary }>('../locales/*.json');
+
 class Locale {
     private _lang = $state('');
     private _isLoadingInitial = $state(true);
@@ -36,7 +38,7 @@ class Locale {
             if (!this._isLoading) {
                 this._isLoading = true;
             }
-            import(`../locales/${this._lang}.json`).then((module) => {
+            localeModules[`../locales/${this._lang}.json`]().then((module) => {
                 this.dictionary = module.default;
                 if (this._isLoadingInitial) {
                     this._isLoadingInitial = false;

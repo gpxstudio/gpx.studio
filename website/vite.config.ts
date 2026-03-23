@@ -5,6 +5,16 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
+    server: {
+        host: '0.0.0.0',
+        proxy: {
+            '/api/brouter': {
+                target: 'https://brouter.gpx.studio',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/api\/brouter/, ''),
+            },
+        },
+    },
     ssr: {
         noExternal: ['gpx'],
     },

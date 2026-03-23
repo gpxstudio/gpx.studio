@@ -26,6 +26,7 @@ import { map } from '$lib/components/map/map';
 import type { GPXGlobalStatistics, GPXStatisticsGroup } from 'gpx';
 import { mode } from 'mode-watcher';
 import { getHighwayColor, getSlopeColor, getSurfaceColor } from '$lib/assets/colors';
+import { displayCoord } from '$lib/utils/gcj02';
 
 const { distanceUnits, velocityUnits, temperatureUnits } = settings;
 
@@ -167,7 +168,7 @@ export class ElevationProfile {
                                     if (this._dragging) {
                                         this._marker.remove();
                                     } else {
-                                        this._marker.setLngLat(point.coordinates);
+                                        this._marker.setLngLat(displayCoord(point.coordinates));
                                         this._marker.addTo(map_);
                                     }
                                 }

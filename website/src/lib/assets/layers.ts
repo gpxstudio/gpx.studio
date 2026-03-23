@@ -340,6 +340,56 @@ export const basemaps: { [key: string]: string | StyleSpecification } = {
             },
         ],
     },
+    amapNormal: {
+        version: 8,
+        sources: {
+            amapNormal: {
+                type: 'raster',
+                tiles: [
+                    'https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',
+                    'https://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',
+                    'https://webrd03.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',
+                    'https://webrd04.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',
+                ],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution:
+                    '&copy; <a href="https://www.amap.com/" target="_blank">高德地图</a>',
+            },
+        },
+        layers: [
+            {
+                id: 'amapNormal',
+                type: 'raster',
+                source: 'amapNormal',
+            },
+        ],
+    },
+    amapSatellite: {
+        version: 8,
+        sources: {
+            amapSatellite: {
+                type: 'raster',
+                tiles: [
+                    'https://webst01.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',
+                    'https://webst02.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',
+                    'https://webst03.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',
+                    'https://webst04.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',
+                ],
+                tileSize: 256,
+                maxzoom: 18,
+                attribution:
+                    '&copy; <a href="https://www.amap.com/" target="_blank">高德地图</a>',
+            },
+        },
+        layers: [
+            {
+                id: 'amapSatellite',
+                type: 'raster',
+                source: 'amapSatellite',
+            },
+        ],
+    },
 };
 
 export const overlays: { [key: string]: string | StyleSpecification } = {
@@ -788,6 +838,10 @@ export const basemapTree: LayerTreeType = {
             bulgaria: {
                 bgMountains: true,
             },
+            china: {
+                amapNormal: true,
+                amapSatellite: true,
+            },
             finland: {
                 finlandTopo: true,
             },
@@ -1010,6 +1064,10 @@ export const defaultBasemapTree: LayerTreeType = {
             },
             bulgaria: {
                 bgMountains: false,
+            },
+            china: {
+                amapNormal: false,
+                amapSatellite: false,
             },
             finland: {
                 finlandTopo: false,

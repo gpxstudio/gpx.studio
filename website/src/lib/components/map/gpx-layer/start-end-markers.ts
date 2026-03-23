@@ -4,6 +4,7 @@ import mapboxgl from 'mapbox-gl';
 import { get } from 'svelte/store';
 import { map } from '$lib/components/map/map';
 import { allHidden } from '$lib/logic/hidden';
+import { displayCoord, isGCJ02 } from '$lib/utils/gcj02';
 
 export class StartEndMarkers {
     start: mapboxgl.Marker;
@@ -27,6 +28,7 @@ export class StartEndMarkers {
         this.unsubscribes.push(slicedGPXStatistics.subscribe(this.updateBinded));
         this.unsubscribes.push(currentTool.subscribe(this.updateBinded));
         this.unsubscribes.push(allHidden.subscribe(this.updateBinded));
+        this.unsubscribes.push(isGCJ02.subscribe(this.updateBinded));
     }
 
     update() {
@@ -38,18 +40,16 @@ export class StartEndMarkers {
         const slicedStatistics = get(slicedGPXStatistics);
         const hidden = get(allHidden);
         if (statistics.global.length > 0 && tool !== Tool.ROUTING && !hidden) {
-            this.start
-                .setLngLat(
-                    statistics.getTrackPoint(slicedStatistics?.[1] ?? 0)!.trkpt.getCoordinates()
-                )
-                .addTo(map_);
-            this.end
-                .setLngLat(
-                    statistics
-                        .getTrackPoint(slicedStatistics?.[2] ?? statistics.global.length - 1)!
-                        .trkpt.getCoordinates()
-                )
-                .addTo(map_);
+            const startCoord = displayCoord(
+                statistics.getTrackPoint(slicedStatistics?.[1] ?? 0)!.trkpt.getCoordinates()
+            );
+            const endCoord = displayCoord(
+                statistics
+                    .getTrackPoint(slicedStatistics?.[2] ?? statistics.global.length - 1)!
+                    .trkpt.getCoordinates()
+            );
+            this.start.setLngLat(startCoord).addTo(map_);
+            this.end.setLngLat(endCoord).addTo(map_);
         } else {
             this.start.remove();
             this.end.remove();

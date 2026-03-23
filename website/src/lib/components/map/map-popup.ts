@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import { mount, tick, unmount } from 'svelte';
 import { get, writable, type Writable } from 'svelte/store';
 import MapPopupComponent from '$lib/components/map/MapPopup.svelte';
+import { displayCoord } from '$lib/utils/gcj02';
 
 export type PopupItem<T = Waypoint | TrackPoint | any> = {
     item: T;
@@ -77,8 +78,11 @@ export class MapPopup {
         if (item === null) {
             return new mapboxgl.LngLat(0, 0);
         }
-        return item.item instanceof Waypoint || item.item instanceof TrackPoint
-            ? item.item.getCoordinates()
-            : new mapboxgl.LngLat(item.item.lon, item.item.lat);
+        const coords =
+            item.item instanceof Waypoint || item.item instanceof TrackPoint
+                ? item.item.getCoordinates()
+                : { lon: item.item.lon, lat: item.item.lat };
+        const dc = displayCoord(coords);
+        return new mapboxgl.LngLat(dc.lon, dc.lat);
     }
 }

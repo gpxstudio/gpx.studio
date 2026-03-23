@@ -20,6 +20,7 @@
     import { selection } from '$lib/logic/selection';
     import { fileActions } from '$lib/logic/file-actions';
     import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+    import { eventCoord } from '$lib/utils/gcj02';
 
     let props: {
         class?: string;
@@ -162,15 +163,17 @@
         class="w-full"
         disabled={!validSelection || rectangleCoordinates.length != 2}
         onclick={() => {
+            const c0 = eventCoord(rectangleCoordinates[0]);
+            const c1 = eventCoord(rectangleCoordinates[1]);
             fileActions.cleanSelection(
                 [
                     {
-                        lat: Math.min(rectangleCoordinates[0].lat, rectangleCoordinates[1].lat),
-                        lon: Math.min(rectangleCoordinates[0].lng, rectangleCoordinates[1].lng),
+                        lat: Math.min(c0.lat, c1.lat),
+                        lon: Math.min(c0.lng, c1.lng),
                     },
                     {
-                        lat: Math.max(rectangleCoordinates[0].lat, rectangleCoordinates[1].lat),
-                        lon: Math.max(rectangleCoordinates[0].lng, rectangleCoordinates[1].lng),
+                        lat: Math.max(c0.lat, c1.lat),
+                        lon: Math.max(c0.lng, c1.lng),
                     },
                 ],
                 cleanType === CleanType.INSIDE,
