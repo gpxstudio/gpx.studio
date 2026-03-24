@@ -22,14 +22,45 @@
         if (value === '--' || value === '') {
             return 0;
         }
-        return typeof value === 'string' ? parseInt(value) : value;
+        const parsed = typeof value === 'string' ? parseInt(value, 10) : value;
+        return Number.isNaN(parsed) ? 0 : parsed;
     }
 
-    function computeValue(): number {
+    function isEmptyValue(value: string | number) {
+        return value === '--' || value === '';
+    }
+
+    function computeValue(): number | undefined {
+        if (isEmptyValue(hours) && isEmptyValue(minutes) && isEmptyValue(seconds)) {
+            return undefined;
+        }
+
         return Math.max(
             maybeParseInt(hours) * 3600 + maybeParseInt(minutes) * 60 + maybeParseInt(seconds),
             1
         );
+    }
+
+    function getDigits(value: string | number): string {
+        return value.toString().replace(/\D/g, '');
+    }
+
+    function normalizeHours(value: string | number) {
+        const digits = getDigits(value);
+        if (digits === '') {
+            return '';
+        }
+        return Math.max(parseInt(digits, 10), 0);
+    }
+
+    function normalizeTimeUnit(value: string | number, max: number, padLength: number) {
+        const digits = getDigits(value);
+        if (digits === '') {
+            return '';
+        }
+
+        const parsed = Math.min(Math.max(parseInt(digits, 10), 0), max);
+        return parsed.toString().padStart(padLength, '0');
     }
 
     $effect(() => {
@@ -98,15 +129,7 @@
             {disabled}
             class="w-[30px]"
             oninput={() => {
-                if (typeof hours === 'string') {
-                    hours = parseInt(hours);
-                }
-                if (hours >= 0) {
-                } else if (hours < 0) {
-                    hours = 0;
-                } else {
-                    hours = 0;
-                }
+                hours = normalizeHours(hours);
                 onChange();
             }}
             onkeypress={onKeyPress}
@@ -121,18 +144,7 @@
         bind:value={minutes}
         {disabled}
         oninput={() => {
-            if (typeof minutes === 'string') {
-                minutes = parseInt(minutes);
-            }
-            if (minutes >= 0 && (minutes <= 59 || !showHours)) {
-            } else if (minutes < 0) {
-                minutes = 0;
-            } else if (showHours && minutes > 59) {
-                minutes = 59;
-            } else {
-                minutes = 0;
-            }
-            minutes = minutes.toString().padStart(showHours ? 2 : 1, '0');
+            minutes = normalizeTimeUnit(minutes, showHours ? 59 : Number.MAX_SAFE_INTEGER, showHours ? 2 : 1);
             onChange();
         }}
         onkeypress={onKeyPress}
@@ -146,18 +158,7 @@
         bind:value={seconds}
         {disabled}
         oninput={() => {
-            if (typeof seconds === 'string') {
-                seconds = parseInt(seconds);
-            }
-            if (seconds >= 0 && seconds <= 59) {
-            } else if (seconds < 0) {
-                seconds = 0;
-            } else if (seconds > 59) {
-                seconds = 59;
-            } else {
-                seconds = 0;
-            }
-            seconds = seconds.toString().padStart(2, '0');
+            seconds = normalizeTimeUnit(seconds, 59, 2);
             onChange();
         }}
         onkeypress={onKeyPress}

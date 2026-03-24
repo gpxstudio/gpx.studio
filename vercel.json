@@ -2,6 +2,8 @@
     "buildCommand": "cd website && npm run build",
     "outputDirectory": "website/build",
     "installCommand": "cd gpx && npm install && cd ../website && npm install",
+    "cleanUrls": true,
+    "trailingSlash": false,
     "rewrites": [
         {
             "source": "/api/brouter",
