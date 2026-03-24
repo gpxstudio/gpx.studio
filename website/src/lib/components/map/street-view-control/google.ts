@@ -1,5 +1,6 @@
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
 import type mapboxgl from 'mapbox-gl';
+import { eventCoord } from '$lib/utils/gcj02';
 
 export class GoogleRedirect {
     map: mapboxgl.Map;
@@ -26,8 +27,9 @@ export class GoogleRedirect {
     }
 
     openStreetView(e: mapboxgl.MapMouseEvent) {
+        const ec = eventCoord(e.lngLat);
         window.open(
-            `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${e.lngLat.lat},${e.lngLat.lng}`
+            `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${ec.lat},${ec.lng}`
         );
     }
 }

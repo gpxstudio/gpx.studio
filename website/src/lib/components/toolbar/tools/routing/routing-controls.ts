@@ -18,6 +18,7 @@ import { streetViewEnabled } from '$lib/components/map/street-view-control/utils
 import { fileActionManager } from '$lib/logic/file-action-manager';
 import { i18n } from '$lib/i18n.svelte';
 import { map } from '$lib/components/map/map';
+import { displayCoord, eventCoord, isGCJ02 } from '$lib/utils/gcj02';
 
 const { streetViewSource } = settings;
 export const canChangeStart = writable(false);
@@ -37,6 +38,7 @@ export class RoutingControls {
     temporaryAnchor: AnchorWithMarker;
     lastDragEvent = 0;
     fileUnsubscribe: () => void = () => {};
+    gcj02Unsubscribe: () => void = () => {};
     unsubscribes: Function[] = [];
 
     toggleAnchorsForZoomLevelAndBoundsBinded: () => void =
@@ -106,6 +108,9 @@ export class RoutingControls {
         map_.on('click', this.fileId, stopPropagation);
 
         this.fileUnsubscribe = this.file.subscribe(this.updateControls.bind(this));
+        this.gcj02Unsubscribe = isGCJ02.subscribe(() => {
+            if (this.active) this.updateControls();
+        });
     }
 
     updateControls() {
@@ -130,7 +135,7 @@ export class RoutingControls {
                             this.anchors[anchorIndex].segment = segment;
                             this.anchors[anchorIndex].trackIndex = trackIndex;
                             this.anchors[anchorIndex].segmentIndex = segmentIndex;
-                            this.anchors[anchorIndex].marker.setLngLat(point.getCoordinates());
+                            this.anchors[anchorIndex].marker.setLngLat(displayCoord(point.getCoordinates()));
                         } else {
                             this.anchors.push(
                                 this.createAnchor(point, segment, trackIndex, segmentIndex)
@@ -169,6 +174,7 @@ export class RoutingControls {
         this.temporaryAnchor.marker.remove();
 
         this.fileUnsubscribe();
+        this.gcj02Unsubscribe();
     }
 
     createAnchor(
@@ -184,7 +190,7 @@ export class RoutingControls {
             draggable: true,
             className: 'z-10',
             element,
-        }).setLngLat(point.getCoordinates());
+        }).setLngLat(displayCoord(point.getCoordinates()));
 
         let anchor = {
             point,
@@ -322,11 +328,12 @@ export class RoutingControls {
             return;
         }
 
+        const tempCoord = eventCoord(e.lngLat);
         this.temporaryAnchor.point.setCoordinates({
-            lat: e.lngLat.lat,
-            lon: e.lngLat.lng,
+            lat: tempCoord.lat,
+            lon: tempCoord.lng,
         });
-        this.temporaryAnchor.marker.setLngLat(e.lngLat).addTo(map_);
+        this.temporaryAnchor.marker.setLngLat(displayCoord({ lon: tempCoord.lng, lat: tempCoord.lat })).addTo(map_);
 
         map_.on('mousemove', this.updateTemporaryAnchorBinded);
     }
@@ -353,7 +360,7 @@ export class RoutingControls {
             return;
         }
 
-        this.temporaryAnchor.marker.setLngLat(e.lngLat); // Update the position of the temporary anchor
+        this.temporaryAnchor.marker.setLngLat(displayCoord({ lon: e.lngLat.lng, lat: e.lngLat.lat })); // Update the position of the temporary anchor
     }
 
     temporaryAnchorCloseToOtherAnchor(e: any) {
@@ -406,7 +413,7 @@ export class RoutingControls {
 
         if (!success) {
             // Route failed, revert the anchor to the previous position
-            anchorWithMarker.marker.setLngLat(anchorWithMarker.point.getCoordinates());
+            anchorWithMarker.marker.setLngLat(displayCoord(anchorWithMarker.point.getCoordinates()));
         }
     }
 
@@ -613,9 +620,10 @@ export class RoutingControls {
             return;
         }
 
+        const appendCoord = eventCoord(e.lngLat);
         this.appendAnchorWithCoordinates({
-            lat: e.lngLat.lat,
-            lon: e.lngLat.lng,
+            lat: appendCoord.lat,
+            lon: appendCoord.lng,
         });
     }
 

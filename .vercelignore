@@ -1,0 +1,9 @@
+node_modules
+.git
+.claude
+.codex
+.vscode
+.vercel
+gpx/node_modules
+website/.svelte-kit
+website/build

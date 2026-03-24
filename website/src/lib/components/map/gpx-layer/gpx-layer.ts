@@ -23,6 +23,8 @@ import { fileActions } from '$lib/logic/file-actions';
 import { splitAs } from '$lib/components/toolbar/tools/scissors/scissors';
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
 import { gpxColors } from '$lib/components/map/gpx-layer/gpx-layers';
+import { displayGeoJSON, displayCoord, eventCoord, isGCJ02 } from '$lib/utils/gcj02';
+import { openTrackSplitMenu } from './track-split-menu.svelte';
 
 const colors = [
     '#ff0000',
@@ -164,6 +166,7 @@ export class GPXLayer {
             })
         );
         this.unsubscribe.push(directionMarkers.subscribe(this.updateBinded));
+        this.unsubscribe.push(isGCJ02.subscribe(this.updateBinded));
     }
 
     update() {
@@ -437,9 +440,10 @@ export class GPXLayer {
 
             const file = get(this.file)?.file;
             if (file) {
+                const ec = eventCoord(e.lngLat);
                 const closest = getClosestLinePoint(
                     file.trk[trackIndex].trkseg[segmentIndex].trkpt,
-                    { lat: e.lngLat.lat, lon: e.lngLat.lng }
+                    { lat: ec.lat, lon: ec.lng }
                 );
                 trackpointPopup?.setItem({ item: closest, fileId: this.fileId });
             }
@@ -468,9 +472,10 @@ export class GPXLayer {
                 return;
             }
 
+            const splitCoord = eventCoord(e.lngLat);
             fileActions.split(get(splitAs), this.fileId, trackIndex, segmentIndex, {
-                lat: e.lngLat.lat,
-                lon: e.lngLat.lng,
+                lat: splitCoord.lat,
+                lon: splitCoord.lng,
             });
             return;
         }
@@ -499,9 +504,28 @@ export class GPXLayer {
     }
 
     layerOnContextMenu(e: any) {
-        if (e.originalEvent.ctrlKey) {
+        if (e.originalEvent.ctrlKey || e.originalEvent.metaKey) {
             this.layerOnClick(e);
+            return;
         }
+
+        e.preventDefault();
+
+        const trackIndex = e.features![0].properties!.trackIndex;
+        const segmentIndex = e.features![0].properties!.segmentIndex;
+        const splitCoord = eventCoord(e.lngLat);
+
+        openTrackSplitMenu({
+            fileId: this.fileId,
+            trackIndex,
+            segmentIndex,
+            coordinates: {
+                lat: splitCoord.lat,
+                lon: splitCoord.lng,
+            },
+            screenX: e.originalEvent.clientX,
+            screenY: e.originalEvent.clientY,
+        });
     }
 
     waypointLayerOnMouseEnter(e: mapboxgl.MapMouseEvent) {
@@ -611,9 +635,10 @@ export class GPXLayer {
 
         mapCursor.notify(MapCursorState.WAYPOINT_DRAGGING, true);
 
+        const displayPos = displayCoord({ lon: e.lngLat.lng, lat: e.lngLat.lat });
         (
             this.currentWaypointData!.features[this.draggedWaypointIndex].geometry as GeoJSON.Point
-        ).coordinates = [e.lngLat.lng, e.lngLat.lat];
+        ).coordinates = [displayPos.lon, displayPos.lat];
 
         let waypointSource = get(map)?.getSource(this.fileId + '-waypoints') as
             | mapboxgl.GeoJSONSource
@@ -637,10 +662,11 @@ export class GPXLayer {
             return;
         }
 
+        const wptCoord = eventCoord(e.lngLat);
         getElevation([
             {
-                lat: e.lngLat.lat,
-                lon: e.lngLat.lng,
+                lat: wptCoord.lat,
+                lon: wptCoord.lng,
             },
         ]).then((ele) => {
             if (this.draggedWaypointIndex === null) {
@@ -649,8 +675,8 @@ export class GPXLayer {
             fileActionManager.applyToFile(this.fileId, (file) => {
                 let wpt = file.wpt[this.draggedWaypointIndex!];
                 wpt.setCoordinates({
-                    lat: e.lngLat.lat,
-                    lon: e.lngLat.lng,
+                    lat: wptCoord.lat,
+                    lon: wptCoord.lng,
                 });
                 wpt.ele = ele[0];
             });
@@ -703,7 +729,7 @@ export class GPXLayer {
                 trackIndex++;
             }
         }
-        return data;
+        return displayGeoJSON(data);
     }
 
     getWaypointsGeoJSON(): GeoJSON.FeatureCollection {
@@ -733,7 +759,7 @@ export class GPXLayer {
             });
         });
 
-        return data;
+        return displayGeoJSON(data);
     }
 
     loadIcons() {

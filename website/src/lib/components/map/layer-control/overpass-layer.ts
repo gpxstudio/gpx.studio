@@ -7,6 +7,7 @@ import { MapPopup } from '$lib/components/map/map-popup';
 import { settings } from '$lib/logic/settings';
 import { db } from '$lib/db';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/map';
+import { displayGeoJSON, isGCJ02 } from '$lib/utils/gcj02';
 
 const { currentOverpassQueries } = settings;
 
@@ -56,6 +57,7 @@ export class OverpassLayer {
                 this.queryIfNeededBinded();
             })
         );
+        this.unsubscribes.push(isGCJ02.subscribe(this.updateBinded));
 
         this.update();
     }
@@ -72,7 +74,7 @@ export class OverpassLayer {
     update() {
         this.loadIcons();
 
-        let d = get(data);
+        let d = displayGeoJSON(get(data));
 
         try {
             let source = this.map.getSource('overpass') as mapboxgl.GeoJSONSource | undefined;

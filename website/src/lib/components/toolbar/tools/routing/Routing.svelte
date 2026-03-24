@@ -41,6 +41,7 @@
     import { fileActions, getFileIds, newGPXFile } from '$lib/logic/file-actions';
     import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
     import { RoutingControls, routingControls } from './routing-controls';
+    import { eventCoord } from '$lib/utils/gcj02';
 
     let {
         minimized = $bindable(false),
@@ -66,12 +67,13 @@
 
     function createFileWithPoint(e: any) {
         if ($selection.size === 0) {
+            const ec = eventCoord(e.lngLat);
             let file = newGPXFile();
             file.replaceTrackPoints(0, 0, 0, 0, [
                 new TrackPoint({
                     attributes: {
-                        lat: e.lngLat.lat,
-                        lon: e.lngLat.lng,
+                        lat: ec.lat,
+                        lon: ec.lng,
                     },
                 }),
             ]);

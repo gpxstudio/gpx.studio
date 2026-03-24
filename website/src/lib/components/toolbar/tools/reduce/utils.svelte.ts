@@ -6,6 +6,7 @@ import { selection } from '$lib/logic/selection';
 import { ramerDouglasPeucker, TrackPoint, type SimplifiedTrackPoint } from 'gpx';
 import type { GeoJSONSource } from 'mapbox-gl';
 import { get, writable } from 'svelte/store';
+import { displayGeoJSON } from '$lib/utils/gcj02';
 
 export const minTolerance = 0.1;
 
@@ -135,12 +136,13 @@ export class ReducedGPXLayerCollection {
         }
 
         let source: GeoJSONSource | undefined = map_.getSource('simplified');
+        let transformedData = displayGeoJSON(data);
         if (source) {
-            source.setData(data);
+            source.setData(transformedData);
         } else {
             map_.addSource('simplified', {
                 type: 'geojson',
-                data: data,
+                data: transformedData,
             });
         }
         if (!map_.getLayer('simplified')) {

@@ -4,6 +4,7 @@ import { get, writable, type Writable } from 'svelte/store';
 import { settings } from '$lib/logic/settings';
 import { tick } from 'svelte';
 import { terrainSources } from '$lib/assets/layers';
+import { patchGeolocationForGCJ02, isGCJ02 } from '$lib/utils/gcj02';
 
 const {
     treeFileView,
@@ -128,14 +129,29 @@ export class MapboxGLMap {
             map.addControl(geocoder);
         }
         if (geolocate) {
-            map.addControl(
-                new mapboxgl.GeolocateControl({
-                    positionOptions: {
-                        enableHighAccuracy: true,
-                    },
-                    fitBoundsOptions,
-                    trackUserLocation: true,
-                    showUserHeading: true,
+            patchGeolocationForGCJ02();
+            const geolocateControl = new mapboxgl.GeolocateControl({
+                positionOptions: {
+                    enableHighAccuracy: true,
+                },
+                fitBoundsOptions,
+                trackUserLocation: true,
+                showUserHeading: true,
+            });
+            map.addControl(geolocateControl);
+
+            // Re-trigger geolocation when switching between GCJ-02 and WGS-84 basemaps
+            let firstGCJ02 = true;
+            this._unsubscribes.push(
+                isGCJ02.subscribe(() => {
+                    if (firstGCJ02) {
+                        firstGCJ02 = false;
+                        return;
+                    }
+                    // Trigger re-acquisition so the blue dot jumps to the correct position
+                    if (geolocateControl._watchState === 'ACTIVE_LOCK' || geolocateControl._watchState === 'ACTIVE_ERROR' || geolocateControl._watchState === 'BACKGROUND') {
+                        geolocateControl.trigger();
+                    }
                 })
             );
         }

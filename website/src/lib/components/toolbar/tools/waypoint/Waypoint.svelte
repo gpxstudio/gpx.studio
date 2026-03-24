@@ -18,6 +18,7 @@
     import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
     import mapboxgl from 'mapbox-gl';
     import { getSvgForSymbol } from '$lib/components/map/gpx-layer/gpx-layer';
+    import { eventCoord, displayCoord } from '$lib/utils/gcj02';
 
     let props: {
         class?: string;
@@ -106,8 +107,9 @@
     }
 
     function setCoordinates(e: any) {
-        latitude = e.lngLat.lat.toFixed(6);
-        longitude = e.lngLat.lng.toFixed(6);
+        const ec = eventCoord(e.lngLat);
+        latitude = ec.lat.toFixed(6);
+        longitude = ec.lng.toFixed(6);
     }
 
     $effect(() => {
@@ -118,8 +120,9 @@
             }
         } else if (latitude != 0 || longitude != 0) {
             if ($map) {
+                const dc = displayCoord({ lon: longitude, lat: latitude });
                 if (marker) {
-                    marker.setLngLat([longitude, latitude]).getElement().innerHTML =
+                    marker.setLngLat([dc.lon, dc.lat]).getElement().innerHTML =
                         getSvgForSymbol(symbolKey);
                 } else {
                     let element = document.createElement('div');
@@ -129,7 +132,7 @@
                         element,
                         anchor: 'bottom',
                     })
-                        .setLngLat([longitude, latitude])
+                        .setLngLat([dc.lon, dc.lat])
                         .addTo($map);
                 }
             }

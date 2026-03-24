@@ -30,7 +30,7 @@ async function getRoute(
     brouterProfile: string,
     privateRoads: boolean
 ): Promise<TrackPoint[]> {
-    let url = `https://brouter.gpx.studio?lonlats=${points.map((point) => `${point.lon.toFixed(8)},${point.lat.toFixed(8)}`).join('|')}&profile=${brouterProfile + (privateRoads ? '-private' : '')}&format=geojson&alternativeidx=0`;
+    let url = `/api/brouter?lonlats=${points.map((point) => `${point.lon.toFixed(8)},${point.lat.toFixed(8)}`).join('|')}&profile=${brouterProfile + (privateRoads ? '-private' : '')}&format=geojson&alternativeidx=0`;
 
     let response = await fetch(url);
 
@@ -77,7 +77,47 @@ async function getRoute(
         route[route.length - 1].setExtensions(tags);
     }
 
-    return route;
+    return densifyRoute(route);
+}
+
+// Insert intermediate points when consecutive points are too far apart,
+// so that timestamp generation produces smooth, even intervals.
+function densifyRoute(route: TrackPoint[], maxGap: number = 50): TrackPoint[] {
+    if (route.length < 2) return route;
+
+    let result: TrackPoint[] = [route[0]];
+    for (let i = 1; i < route.length; i++) {
+        const prev = route[i - 1];
+        const curr = route[i];
+        const dist = distance(prev.getCoordinates(), curr.getCoordinates());
+
+        if (dist > maxGap) {
+            const steps = Math.ceil(dist / maxGap);
+            for (let s = 1; s < steps; s++) {
+                const ratio = s / steps;
+                const lat = prev.getLatitude() + ratio * (curr.getLatitude() - prev.getLatitude());
+                const lon =
+                    prev.getLongitude() + ratio * (curr.getLongitude() - prev.getLongitude());
+                const ele =
+                    prev.ele !== undefined && curr.ele !== undefined
+                        ? prev.ele + ratio * (curr.ele - prev.ele)
+                        : curr.ele ?? prev.ele;
+                const pt = new TrackPoint({
+                    attributes: { lat, lon },
+                    ele,
+                });
+                // Carry over extensions from the previous point
+                if (prev.extensions) {
+                    pt.setExtensions(prev.extensions);
+                }
+                // Mark interpolated points so they don't become routing anchors
+                pt._data.interpolated = true;
+                result.push(pt);
+            }
+        }
+        result.push(curr);
+    }
+    return result;
 }
 
 function getTags(message: string): { [key: string]: string } {

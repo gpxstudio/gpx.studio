@@ -9,6 +9,8 @@ import { fileStateCollection } from '$lib/logic/file-state';
 import { fileActions } from '$lib/logic/file-actions';
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/map';
+import { displayGeoJSON } from '$lib/utils/gcj02';
+import { isGCJ02 } from '$lib/utils/gcj02';
 
 export class SplitControls {
     map: mapboxgl.Map;
@@ -46,6 +48,7 @@ export class SplitControls {
         this.unsubscribes.push(gpxStatistics.subscribe(this.addIfNeeded.bind(this)));
         this.unsubscribes.push(currentTool.subscribe(this.addIfNeeded.bind(this)));
         this.unsubscribes.push(selection.subscribe(this.addIfNeeded.bind(this)));
+        this.unsubscribes.push(isGCJ02.subscribe(this.addIfNeeded.bind(this)));
     }
 
     addIfNeeded() {
@@ -98,13 +101,14 @@ export class SplitControls {
         }, false);
 
         try {
+            let transformedData = displayGeoJSON(data);
             let source = this.map.getSource('split-controls') as mapboxgl.GeoJSONSource | undefined;
             if (source) {
-                source.setData(data);
+                source.setData(transformedData);
             } else {
                 this.map.addSource('split-controls', {
                     type: 'geojson',
-                    data: data,
+                    data: transformedData,
                 });
             }
 

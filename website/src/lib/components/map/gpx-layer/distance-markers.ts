@@ -5,6 +5,7 @@ import type { GeoJSONSource } from 'mapbox-gl';
 import { get } from 'svelte/store';
 import { ANCHOR_LAYER_KEY, map } from '$lib/components/map/map';
 import { allHidden } from '$lib/logic/hidden';
+import { displayGeoJSON, isGCJ02 } from '$lib/utils/gcj02';
 
 const { distanceMarkers, distanceUnits } = settings;
 
@@ -19,6 +20,7 @@ export class DistanceMarkers {
         this.unsubscribes.push(distanceMarkers.subscribe(this.updateBinded));
         this.unsubscribes.push(distanceUnits.subscribe(this.updateBinded));
         this.unsubscribes.push(allHidden.subscribe(this.updateBinded));
+        this.unsubscribes.push(isGCJ02.subscribe(this.updateBinded));
         this.unsubscribes.push(
             map.subscribe((map_) => {
                 if (map_) {
@@ -123,9 +125,9 @@ export class DistanceMarkers {
             }
         });
 
-        return {
+        return displayGeoJSON({
             type: 'FeatureCollection',
             features,
-        };
+        });
     }
 }

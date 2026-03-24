@@ -23,6 +23,8 @@ import {
     TrackPoint,
     TrackSegment,
     Waypoint,
+    crossarcDistance,
+    distance,
     type Coordinates,
     type LineStyleExtension,
     type WaypointType,
@@ -122,6 +124,71 @@ export async function loadFile(file: File): Promise<GPXFile | null> {
         reader.readAsText(file);
     });
     return result;
+}
+
+function getInterpolatedSplitData(
+    segment: TrackSegment,
+    coordinates: Coordinates,
+    trkptIndex?: number
+): {
+    splitPoint: TrackPoint;
+    beforeIndex: number;
+} | null {
+    let beforeIndex: number | undefined;
+
+    if (trkptIndex !== undefined) {
+        beforeIndex = trkptIndex - 1;
+    } else {
+        let minDistance = Number.MAX_VALUE;
+        for (let i = 0; i < segment.trkpt.length - 1; i++) {
+            const currentDistance = crossarcDistance(
+                segment.trkpt[i],
+                segment.trkpt[i + 1],
+                coordinates
+            );
+            if (currentDistance < minDistance) {
+                minDistance = currentDistance;
+                beforeIndex = i;
+            }
+        }
+
+        if (beforeIndex === undefined) {
+            return null;
+        }
+    }
+
+    if (beforeIndex === undefined || beforeIndex < 0 || beforeIndex >= segment.trkpt.length - 1) {
+        return null;
+    }
+
+    const beforePoint = segment.trkpt[beforeIndex];
+    const afterPoint = segment.trkpt[beforeIndex + 1];
+    const totalDistance = distance(beforePoint.getCoordinates(), afterPoint.getCoordinates());
+    const splitDistance = distance(beforePoint.getCoordinates(), coordinates);
+    const ratio = totalDistance > 0 ? Math.min(Math.max(splitDistance / totalDistance, 0), 1) : 0;
+
+    const splitPoint = new TrackPoint({
+        attributes: {
+            lat: coordinates.lat,
+            lon: coordinates.lon,
+        },
+        ele:
+            beforePoint.ele !== undefined && afterPoint.ele !== undefined
+                ? beforePoint.ele + (afterPoint.ele - beforePoint.ele) * ratio
+                : beforePoint.ele ?? afterPoint.ele,
+        time:
+            beforePoint.time && afterPoint.time
+                ? new Date(
+                      beforePoint.time.getTime() +
+                          (afterPoint.time.getTime() - beforePoint.time.getTime()) * ratio
+                  )
+                : undefined,
+    });
+
+    return {
+        splitPoint,
+        beforeIndex,
+    };
 }
 
 // Helper functions for file operations
@@ -593,6 +660,78 @@ export const fileActions = {
                     }
                 }
             }
+        });
+    },
+    splitFileWithDuration(
+        fileId: string,
+        trackIndex: number,
+        segmentIndex: number,
+        coordinates: Coordinates,
+        firstSegmentMovingTime: number,
+        trkptIndex?: number
+    ) {
+        const file = fileStateCollection.getFile(fileId);
+        if (!file) {
+            return;
+        }
+
+        const totalMovingTime = file.getStatistics().global.time.moving;
+        const startTime = file.getStartTimestamp();
+        if (
+            startTime === undefined ||
+            totalMovingTime === undefined ||
+            totalMovingTime <= 0 ||
+            firstSegmentMovingTime <= 0 ||
+            firstSegmentMovingTime >= totalMovingTime
+        ) {
+            return;
+        }
+
+        const segment = file.trk[trackIndex]?.trkseg[segmentIndex];
+        if (!segment || segment.trkpt.length < 2) {
+            return;
+        }
+
+        const splitData = getInterpolatedSplitData(segment, coordinates, trkptIndex);
+        if (!splitData) {
+            return;
+        }
+        const { splitPoint, beforeIndex } = splitData;
+
+        let absoluteIndex = beforeIndex;
+        file.forEachSegment((seg, trkIndex, segIndex) => {
+            if (trkIndex < trackIndex || (trkIndex === trackIndex && segIndex < segmentIndex)) {
+                absoluteIndex += seg.trkpt.length;
+            }
+        });
+
+        const remainingMovingTime = totalMovingTime - firstSegmentMovingTime;
+        const newFileId = getFileIds(1)[0];
+
+        const firstFile = file.clone();
+        firstFile._data.id = fileId;
+        firstFile.crop(0, absoluteIndex);
+        firstFile.replaceTrackPoints(
+            trackIndex,
+            segmentIndex,
+            firstFile.trk[trackIndex].trkseg[segmentIndex].trkpt.length,
+            firstFile.trk[trackIndex].trkseg[segmentIndex].trkpt.length - 1,
+            [splitPoint.clone()]
+        );
+        firstFile.createArtificialTimestamps(new Date(startTime.getTime()), firstSegmentMovingTime);
+
+        const secondFile = file.clone();
+        secondFile._data.id = newFileId;
+        secondFile.crop(absoluteIndex + 1, file.getNumberOfTrackPoints() - 1);
+        secondFile.replaceTrackPoints(0, 0, 0, -1, [splitPoint.clone()]);
+        secondFile.createArtificialTimestamps(
+            new Date(startTime.getTime() + firstSegmentMovingTime * 1000),
+            remainingMovingTime
+        );
+
+        return fileActionManager.applyGlobal((draft) => {
+            draft.set(fileId, freeze(firstFile));
+            draft.set(secondFile._data.id, freeze(secondFile));
         });
     },
     cleanSelection: (
