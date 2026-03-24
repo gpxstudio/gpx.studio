@@ -4,6 +4,7 @@
     import { DistanceMarkers } from '$lib/components/map/gpx-layer/distance-markers';
     import { StartEndMarkers } from '$lib/components/map/gpx-layer/start-end-markers';
     import { createPopups, removePopups } from '$lib/components/map/gpx-layer/gpx-layer-popup';
+    import TrackSplitMenu from '$lib/components/map/gpx-layer/TrackSplitMenu.svelte';
     import { map } from '$lib/components/map/map';
 
     let distanceMarkers: DistanceMarkers;
@@ -26,3 +27,5 @@
         removePopups();
     });
 </script>
+
+<TrackSplitMenu />

@@ -24,6 +24,7 @@ import { splitAs } from '$lib/components/toolbar/tools/scissors/scissors';
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
 import { gpxColors } from '$lib/components/map/gpx-layer/gpx-layers';
 import { displayGeoJSON, displayCoord, eventCoord, isGCJ02 } from '$lib/utils/gcj02';
+import { openTrackSplitMenu } from './track-split-menu.svelte';
 
 const colors = [
     '#ff0000',
@@ -503,9 +504,28 @@ export class GPXLayer {
     }
 
     layerOnContextMenu(e: any) {
-        if (e.originalEvent.ctrlKey) {
+        if (e.originalEvent.ctrlKey || e.originalEvent.metaKey) {
             this.layerOnClick(e);
+            return;
         }
+
+        e.preventDefault();
+
+        const trackIndex = e.features![0].properties!.trackIndex;
+        const segmentIndex = e.features![0].properties!.segmentIndex;
+        const splitCoord = eventCoord(e.lngLat);
+
+        openTrackSplitMenu({
+            fileId: this.fileId,
+            trackIndex,
+            segmentIndex,
+            coordinates: {
+                lat: splitCoord.lat,
+                lon: splitCoord.lng,
+            },
+            screenX: e.originalEvent.clientX,
+            screenY: e.originalEvent.clientY,
+        });
     }
 
     waypointLayerOnMouseEnter(e: mapboxgl.MapMouseEvent) {

@@ -1129,6 +1129,16 @@ export class TrackSegment extends GPXTreeLeaf {
         });
     }
 
+    private _withNormalizedIndices(points: TrackPoint[]) {
+        return freeze(
+            points.map((point, index) => {
+                let clone = point.clone();
+                clone._data.index = index;
+                return clone;
+            })
+        );
+    }
+
     // Producers
     replaceTrackPoints(
         start: number,
@@ -1220,7 +1230,7 @@ export class TrackSegment extends GPXTreeLeaf {
         }
 
         trkpt.splice(start, end - start + 1, ...points);
-        this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+        this.trkpt = this._withNormalizedIndices(trkpt);
     }
 
     _reverse(originalNextTimestamp?: Date, newPreviousTimestamp?: Date) {
@@ -1264,9 +1274,9 @@ export class TrackSegment extends GPXTreeLeaf {
 
             trkpt.reverse();
 
-            this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+            this.trkpt = this._withNormalizedIndices(trkpt);
         } else {
-            this.trkpt.reverse();
+            this.trkpt = this._withNormalizedIndices(this.trkpt.slice().reverse());
         }
     }
 
@@ -1278,7 +1288,7 @@ export class TrackSegment extends GPXTreeLeaf {
     }
 
     crop(start: number, end: number) {
-        this.trkpt = this.trkpt.slice(start, end + 1);
+        this.trkpt = this._withNormalizedIndices(this.trkpt.slice(start, end + 1));
     }
 
     clean(bounds: [Coordinates, Coordinates], inside: boolean) {
@@ -1291,7 +1301,7 @@ export class TrackSegment extends GPXTreeLeaf {
                 point.attributes.lon <= bounds[1].lon;
             return inBounds !== inside;
         });
-        this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+        this.trkpt = this._withNormalizedIndices(trkpt);
     }
 
     changeTimestamps(startTime: Date, speed: number, ratio: number, lastPoint?: TrackPoint) {
@@ -1303,10 +1313,10 @@ export class TrackSegment extends GPXTreeLeaf {
         let og = getOriginal(this); // Read as much as possible from the original object because it is faster
         if (og.trkpt.length > 0 && og.trkpt[0].time === undefined) {
             let trkpt = withTimestamps(og.trkpt, speed, lastPoint, startTime);
-            this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+            this.trkpt = this._withNormalizedIndices(trkpt);
         } else {
             let trkpt = withShiftedAndCompressedTimestamps(og.trkpt, speed, ratio, lastPoint);
-            this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+            this.trkpt = this._withNormalizedIndices(trkpt);
         }
     }
 
@@ -1318,7 +1328,7 @@ export class TrackSegment extends GPXTreeLeaf {
         let og = getOriginal(this); // Read as much as possible from the original object because it is faster
         let statistics = og._computeStatistics();
         let trkpt = withArtificialTimestamps(og.trkpt, totalTime, lastPoint, startTime, statistics);
-        this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+        this.trkpt = this._withNormalizedIndices(trkpt);
     }
 
     setHidden(hidden: boolean) {
