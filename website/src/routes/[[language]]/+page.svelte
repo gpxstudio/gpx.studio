@@ -253,7 +253,7 @@
             {#await data.fundingModule then fundingModule}
                 <DocsContainer module={fundingModule.default} />
             {/await}
-            <Button href="https://ko-fi.com/gpxstudio" target="_blank" class="text-base">
+            <Button href="https://opencollective.com/gpxstudio" target="_blank" class="text-base">
                 <Heart size="16" fill="var(--support)" color="var(--support)" />
                 <span>{i18n._('homepage.support_button')}</span>
             </Button>

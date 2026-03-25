@@ -515,7 +515,7 @@
             </Button>
             <Button
                 variant="ghost"
-                href="https://ko-fi.com/gpxstudio"
+                href="https://opencollective.com/gpxstudio"
                 target="_blank"
                 class="cursor-default h-fit rounded-sm font-bold text-support hover:text-support px-3 py-0.5"
                 aria-label={i18n._('menu.donate')}

@@ -100,7 +100,11 @@
                 </span>
             </div>
             <div class="w-full flex flex-row flex-wrap gap-2">
-                <Button class="bg-support grow" href="https://ko-fi.com/gpxstudio" target="_blank">
+                <Button
+                    class="bg-support grow"
+                    href="https://opencollective.com/gpxstudio"
+                    target="_blank"
+                >
                     {i18n._('menu.support_button')}
                     <span>🙏</span>
                 </Button>

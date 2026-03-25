@@ -86,7 +86,7 @@
                     <Button
                         variant="link"
                         class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
-                        href="https://ko-fi.com/gpxstudio"
+                        href="https://opencollective.com/gpxstudio"
                         target="_blank"
                     >
                         <Heart size="16" />
