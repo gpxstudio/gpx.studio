@@ -107,7 +107,7 @@
             "activities": {
                 "bike": "Bicicletta",
                 "racing_bike": "Bici da strada",
-                "gravel_bike": "Bici gravel",
+                "gravel_bike": "Bici da gravel",
                 "mountain_bike": "Mountain bike",
                 "foot": "Corsa/escursione",
                 "motorcycle": "Moto",
@@ -490,7 +490,7 @@
         "email": "Email",
         "contribute": "Contribuire",
         "supported_by": "supportato da",
-        "support_button": "Supporta gpx.studio su Ko-fi",
+        "support_button": "Support gpx.studio on Open Collective",
         "route_planning": "Pianificazione del percorso",
         "route_planning_description": "Un'interfaccia intuitiva per creare itinerari su misura per ogni sport, basata sui dati OpenStreetMap.",
         "file_processing": "Elaborazione avanzata dei file",
