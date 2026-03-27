@@ -254,7 +254,7 @@ export const settings = {
     previousBasemap: new Setting(
         'previousBasemap',
         defaultBasemap,
-        getLayerValidator(Object.keys(basemaps), defaultBasemap)
+        getLayerValidator(basemaps, defaultBasemap)
     ),
     selectedBasemapTree: new Setting(
         'selectedBasemapTree',
