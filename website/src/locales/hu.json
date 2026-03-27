@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Magassági információk lekérése",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Select a file item to request elevation data."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "New custom layer",
             "edit": "Edit custom layer",
             "urls": "Webcím(ek)",
-            "url_placeholder": "WMTS, WMS vagy Mapbox stílus JSON",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Max nagyítás",
             "layer_type": "Réteg típus",
             "basemap": "Alap térkép",
@@ -302,8 +302,9 @@
             "switzerland": "Svájc",
             "united_kingdom": "Anglia",
             "united_states": "Amerika",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satellite",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "Túraútvonal jelzések",
@@ -383,7 +384,7 @@
             "tram-stop": "Villamos megálló",
             "bus-stop": "Buszmegálló",
             "ferry": "Komp",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Készítse el saját térképét",
-        "mapbox_token": "Mapbox hozzáférési token",
+        "maptiler_key": "MapTiler key",
         "file_urls": "Fájl elérési URL-ek (vesszővel elválasztva)",
         "drive_ids": "Google Drive ID-ik (a fájlazonosítók vesszővel elválasztva)",
         "basemap": "Alap térkép",
