@@ -303,6 +303,7 @@
             "switzerland": "Svájc",
             "united_kingdom": "Anglia",
             "united_states": "Amerika",
+            "maptilerStreets": "MapTiler Streets",
             "maptilerTopo": "MapTiler Topo",
             "maptilerOutdoors": "MapTiler Outdoors",
             "maptilerSatellite": "MapTiler Satellite",
