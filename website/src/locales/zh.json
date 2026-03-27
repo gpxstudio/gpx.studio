@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "单击",
         "drag": "拖拽",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "信息...",
             "name": "名称",
