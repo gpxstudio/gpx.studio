@@ -1,10 +1,10 @@
 <script lang="ts">
-    import mapboxOutdoorsMap from '$lib/assets/img/home/mapbox-outdoors.png?enhanced';
+    import maptilerTopoMap from '$lib/assets/img/home/maptiler-topo.png?enhanced';
     import waymarkedMap from '$lib/assets/img/home/waymarked.png?enhanced';
 </script>
 
 <div class="relative h-80 aspect-square rounded-2xl shadow-xl overflow-clip">
-    <enhanced:img src={mapboxOutdoorsMap} alt="Mapbox Outdoors map screenshot." class="absolute" />
+    <enhanced:img src={maptilerTopoMap} alt="MapTiler Topo map screenshot." class="absolute" />
     <enhanced:img
         src={waymarkedMap}
         alt="Waymarked Trails map screenshot."

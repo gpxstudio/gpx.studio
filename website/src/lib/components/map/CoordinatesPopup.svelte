@@ -5,6 +5,16 @@
 
     map.onLoad((map_) => {
         map_.on('contextmenu', (e) => {
+            if (
+                map_.queryRenderedFeatures(e.point, {
+                    layers: map_
+                        .getLayersOrder()
+                        .filter((layerId) => layerId.startsWith('routing-controls')),
+                }).length
+            ) {
+                // Clicked on routing control, ignoring
+                return;
+            }
             trackpointPopup?.setItem({
                 item: new TrackPoint({
                     attributes: {

@@ -1,10 +1,11 @@
 import { ListItem, ListTrackSegmentItem } from '$lib/components/file-list/file-list';
-import { ANCHOR_LAYER_KEY, map } from '$lib/components/map/map';
+import { map } from '$lib/components/map/map';
+import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 import { fileActions } from '$lib/logic/file-actions';
 import { GPXFileStateCollectionObserver, type GPXFileState } from '$lib/logic/file-state';
 import { selection } from '$lib/logic/selection';
 import { ramerDouglasPeucker, TrackPoint, type SimplifiedTrackPoint } from 'gpx';
-import type { GeoJSONSource } from 'mapbox-gl';
+import type { GeoJSONSource } from 'maplibre-gl';
 import { get, writable } from 'svelte/store';
 
 export const minTolerance = 0.1;

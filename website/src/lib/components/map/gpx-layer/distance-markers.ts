@@ -1,10 +1,11 @@
 import { settings } from '$lib/logic/settings';
 import { gpxStatistics } from '$lib/logic/statistics';
 import { getConvertedDistanceToKilometers } from '$lib/units';
-import type { GeoJSONSource } from 'mapbox-gl';
 import { get } from 'svelte/store';
-import { ANCHOR_LAYER_KEY, map } from '$lib/components/map/map';
+import { map } from '$lib/components/map/map';
 import { allHidden } from '$lib/logic/hidden';
+import type { GeoJSONSource } from 'maplibre-gl';
+import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 
 const { distanceMarkers, distanceUnits } = settings;
 
@@ -22,7 +23,7 @@ export class DistanceMarkers {
         this.unsubscribes.push(
             map.subscribe((map_) => {
                 if (map_) {
-                    map_.on('style.import.load', this.updateBinded);
+                    map_.on('style.load', this.updateBinded);
                 }
             })
         );

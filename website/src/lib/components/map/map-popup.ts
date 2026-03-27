@@ -1,5 +1,5 @@
 import { TrackPoint, Waypoint } from 'gpx';
-import mapboxgl from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 import { mount, tick, unmount } from 'svelte';
 import { get, writable, type Writable } from 'svelte/store';
 import MapPopupComponent from '$lib/components/map/MapPopup.svelte';
@@ -11,15 +11,15 @@ export type PopupItem<T = Waypoint | TrackPoint | any> = {
 };
 
 export class MapPopup {
-    map: mapboxgl.Map;
-    popup: mapboxgl.Popup;
+    map: maplibregl.Map;
+    popup: maplibregl.Popup;
     item: Writable<PopupItem | null> = writable(null);
     component: ReturnType<typeof mount>;
     maybeHideBinded = this.maybeHide.bind(this);
 
-    constructor(map: mapboxgl.Map, options?: mapboxgl.PopupOptions) {
+    constructor(map: maplibregl.Map, options?: maplibregl.PopupOptions) {
         this.map = map;
-        this.popup = new mapboxgl.Popup(options);
+        this.popup = new maplibregl.Popup(options);
         this.component = mount(MapPopupComponent, {
             target: document.body,
             props: {
@@ -51,7 +51,7 @@ export class MapPopup {
         this.map.on('mousemove', this.maybeHideBinded);
     }
 
-    maybeHide(e: mapboxgl.MapMouseEvent) {
+    maybeHide(e: maplibregl.MapMouseEvent) {
         const item = get(this.item);
         if (item === null) {
             this.hide();
@@ -75,10 +75,10 @@ export class MapPopup {
     getCoordinates() {
         const item = get(this.item);
         if (item === null) {
-            return new mapboxgl.LngLat(0, 0);
+            return new maplibregl.LngLat(0, 0);
         }
         return item.item instanceof Waypoint || item.item instanceof TrackPoint
             ? item.item.getCoordinates()
-            : new mapboxgl.LngLat(item.item.lon, item.item.lat);
+            : new maplibregl.LngLat(item.item.lon, item.item.lat);
     }
 }

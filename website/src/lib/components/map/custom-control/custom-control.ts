@@ -1,4 +1,4 @@
-import { type Map, type IControl } from 'mapbox-gl';
+import { type Map, type IControl } from 'maplibre-gl';
 
 export default class CustomControl implements IControl {
     _map: Map | undefined;

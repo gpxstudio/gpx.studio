@@ -1,6 +1,11 @@
 import { distance, type Coordinates, TrackPoint, TrackSegment, Track, projectedPoint } from 'gpx';
 import { get, writable, type Readable } from 'svelte/store';
-import mapboxgl from 'mapbox-gl';
+import maplibregl, {
+    type MapMouseEvent,
+    type GeoJSONSource,
+    type MapLayerMouseEvent,
+    type MapLayerTouchEvent,
+} from 'maplibre-gl';
 import { route } from './routing';
 import { toast } from 'svelte-sonner';
 import {
@@ -8,7 +13,7 @@ import {
     ListTrackItem,
     ListTrackSegmentItem,
 } from '$lib/components/file-list/file-list';
-import { getClosestLinePoint } from '$lib/utils';
+import { getClosestLinePoint, loadSVGIcon } from '$lib/utils';
 import type { GPXFileWithStatistics } from '$lib/logic/statistics-tree';
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
 import { settings } from '$lib/logic/settings';
@@ -18,52 +23,73 @@ import { streetViewEnabled } from '$lib/components/map/street-view-control/utils
 import { fileActionManager } from '$lib/logic/file-action-manager';
 import { i18n } from '$lib/i18n.svelte';
 import { map } from '$lib/components/map/map';
+import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
+import { MAX_ANCHOR_ZOOM, MIN_ANCHOR_ZOOM } from './simplify';
 
 const { streetViewSource } = settings;
 export const canChangeStart = writable(false);
 
-function stopPropagation(e: any) {
-    e.stopPropagation();
-}
+type AnchorProperties = {
+    trackIndex: number;
+    segmentIndex: number;
+    pointIndex: number;
+    anchorIndex: number;
+    minZoom: number;
+};
+type Anchor = GeoJSON.Feature<GeoJSON.Point, AnchorProperties>;
 
 export class RoutingControls {
     active: boolean = false;
     fileId: string = '';
     file: Readable<GPXFileWithStatistics | undefined>;
-    anchors: AnchorWithMarker[] = [];
-    shownAnchors: AnchorWithMarker[] = [];
-    popup: mapboxgl.Popup;
+    layers: Map<
+        number,
+        {
+            id: string;
+            anchors: GeoJSON.Feature<GeoJSON.Point, AnchorProperties>[];
+        }
+    > = new Map();
+    anchors: GeoJSON.Feature<GeoJSON.Point, AnchorProperties>[] = [];
+    popup: maplibregl.Popup;
     popupElement: HTMLElement;
-    temporaryAnchor: AnchorWithMarker;
-    lastDragEvent = 0;
     fileUnsubscribe: () => void = () => {};
     unsubscribes: Function[] = [];
 
-    toggleAnchorsForZoomLevelAndBoundsBinded: () => void =
-        this.toggleAnchorsForZoomLevelAndBounds.bind(this);
-    showTemporaryAnchorBinded: (e: any) => void = this.showTemporaryAnchor.bind(this);
-    updateTemporaryAnchorBinded: (e: any) => void = this.updateTemporaryAnchor.bind(this);
-    appendAnchorBinded: (e: mapboxgl.MapMouseEvent) => void = this.appendAnchor.bind(this);
+    appendAnchorBinded: (e: MapMouseEvent) => void = this.appendAnchor.bind(this);
+
+    draggedAnchorIndex: number | null = null;
+    draggingStartingPosition: maplibregl.Point = new maplibregl.Point(0, 0);
+    onMouseEnterBinded: () => void = this.onMouseEnter.bind(this);
+    onMouseLeaveBinded: () => void = this.onMouseLeave.bind(this);
+    onClickBinded: (e: MapLayerMouseEvent) => void = this.onClick.bind(this);
+    onMouseDownBinded: (e: MapLayerMouseEvent) => void = this.onMouseDown.bind(this);
+    onTouchStartBinded: (e: MapLayerTouchEvent) => void = this.onTouchStart.bind(this);
+    onMouseMoveBinded: (e: MapLayerMouseEvent | MapLayerTouchEvent) => void =
+        this.onMouseMove.bind(this);
+    onMouseUpBinded: (e: MapLayerMouseEvent | MapLayerTouchEvent) => void =
+        this.onMouseUp.bind(this);
+
+    temporaryAnchor: GeoJSON.Feature<GeoJSON.Point, AnchorProperties> | null = null;
+    showTemporaryAnchorBinded: (e: MapLayerMouseEvent) => void =
+        this.showTemporaryAnchor.bind(this);
+    updateTemporaryAnchorBinded: (e: MapMouseEvent) => void = this.updateTemporaryAnchor.bind(this);
 
     constructor(
         fileId: string,
         file: Readable<GPXFileWithStatistics | undefined>,
-        popup: mapboxgl.Popup,
+        popup: maplibregl.Popup,
         popupElement: HTMLElement
     ) {
         this.fileId = fileId;
         this.file = file;
+        for (let zoom = MIN_ANCHOR_ZOOM; zoom <= MAX_ANCHOR_ZOOM; zoom++) {
+            this.layers.set(zoom, {
+                id: `routing-controls-${zoom}`,
+                anchors: [],
+            });
+        }
         this.popup = popup;
         this.popupElement = popupElement;
-
-        let point = new TrackPoint({
-            attributes: {
-                lat: 0,
-                lon: 0,
-            },
-        });
-        this.temporaryAnchor = this.createAnchor(point, new TrackSegment(), 0, 0);
-        this.temporaryAnchor.marker.getElement().classList.remove('z-10'); // Show below the other markers
 
         this.unsubscribes.push(selection.subscribe(this.addIfNeeded.bind(this)));
         this.unsubscribes.push(currentTool.subscribe(this.addIfNeeded.bind(this)));
@@ -94,435 +120,288 @@ export class RoutingControls {
 
     add() {
         const map_ = get(map);
-        if (!map_) {
+        const layerEventManager = map.layerEventManager;
+        if (!map_ || !layerEventManager) {
             return;
         }
 
         this.active = true;
 
-        map_.on('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
+        this.loadIcons();
+
         map_.on('click', this.appendAnchorBinded);
-        map_.on('mousemove', this.fileId, this.showTemporaryAnchorBinded);
-        map_.on('click', this.fileId, stopPropagation);
+        layerEventManager.on('mousemove', this.fileId, this.showTemporaryAnchorBinded);
 
         this.fileUnsubscribe = this.file.subscribe(this.updateControls.bind(this));
     }
 
     updateControls() {
-        // Update the markers when the file changes
-        let file = get(this.file)?.file;
-        if (!file) {
+        const map_ = get(map);
+        const layerEventManager = map.layerEventManager;
+        const file = get(this.file)?.file;
+        if (!map_ || !layerEventManager || !file) {
             return;
         }
 
-        let anchorIndex = 0;
+        this.layers.forEach((layer) => (layer.anchors = []));
+        this.anchors = [];
+
         file.forEachSegment((segment, trackIndex, segmentIndex) => {
             if (
                 get(selection).hasAnyParent(
                     new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)
                 )
             ) {
-                for (let point of segment.trkpt) {
-                    // Update the existing anchors (could be improved by matching the existing anchors with the new ones?)
+                for (let i = 0; i < segment.trkpt.length; i++) {
+                    const point = segment.trkpt[i];
                     if (point._data.anchor) {
-                        if (anchorIndex < this.anchors.length) {
-                            this.anchors[anchorIndex].point = point;
-                            this.anchors[anchorIndex].segment = segment;
-                            this.anchors[anchorIndex].trackIndex = trackIndex;
-                            this.anchors[anchorIndex].segmentIndex = segmentIndex;
-                            this.anchors[anchorIndex].marker.setLngLat(point.getCoordinates());
-                        } else {
-                            this.anchors.push(
-                                this.createAnchor(point, segment, trackIndex, segmentIndex)
-                            );
-                        }
-                        anchorIndex++;
+                        const anchor: Anchor = {
+                            type: 'Feature',
+                            geometry: {
+                                type: 'Point',
+                                coordinates: [point.getLongitude(), point.getLatitude()],
+                            },
+                            properties: {
+                                trackIndex: trackIndex,
+                                segmentIndex: segmentIndex,
+                                pointIndex: i,
+                                anchorIndex: this.anchors.length,
+                                minZoom: point._data.zoom,
+                            },
+                        };
+                        this.layers.get(point._data.zoom)?.anchors.push(anchor);
+                        this.anchors.push(anchor);
                     }
                 }
             }
         });
 
-        while (anchorIndex < this.anchors.length) {
-            // Remove the extra anchors
-            this.anchors.pop()?.marker.remove();
-        }
+        this.layers.forEach((layer, zoom) => {
+            try {
+                let source = map_.getSource(layer.id) as maplibregl.GeoJSONSource | undefined;
+                if (source) {
+                    source.setData({
+                        type: 'FeatureCollection',
+                        features: layer.anchors,
+                    });
+                } else {
+                    map_.addSource(layer.id, {
+                        type: 'geojson',
+                        data: {
+                            type: 'FeatureCollection',
+                            features: layer.anchors,
+                        },
+                        promoteId: 'anchorIndex',
+                    });
+                }
 
-        this.toggleAnchorsForZoomLevelAndBounds();
+                if (!map_.getLayer(layer.id)) {
+                    map_.addLayer(
+                        {
+                            id: layer.id,
+                            type: 'symbol',
+                            source: layer.id,
+                            layout: {
+                                'icon-image': 'routing-control',
+                                'icon-size': 0.25,
+                                'icon-padding': 0,
+                                'icon-allow-overlap': true,
+                            },
+                            minzoom: zoom,
+                        },
+                        ANCHOR_LAYER_KEY.routingControls
+                    );
+
+                    layerEventManager.on('mouseenter', layer.id, this.onMouseEnterBinded);
+                    layerEventManager.on('mouseleave', layer.id, this.onMouseLeaveBinded);
+                    layerEventManager.on('click', layer.id, this.onClickBinded);
+                    layerEventManager.on('contextmenu', layer.id, this.onClickBinded);
+                    layerEventManager.on('mousedown', layer.id, this.onMouseDownBinded);
+                    layerEventManager.on('touchstart', layer.id, this.onTouchStartBinded);
+                }
+            } catch (e) {
+                // No reliable way to check if the map is ready to add sources and layers
+                return;
+            }
+        });
     }
 
     remove() {
         const map_ = get(map);
-        if (!map_) {
-            return;
-        }
+        const layerEventManager = map.layerEventManager;
 
         this.active = false;
 
-        for (let anchor of this.anchors) {
-            anchor.marker.remove();
-        }
-        map_.off('move', this.toggleAnchorsForZoomLevelAndBoundsBinded);
-        map_.off('click', this.appendAnchorBinded);
-        map_.off('mousemove', this.fileId, this.showTemporaryAnchorBinded);
-        map_.off('click', this.fileId, stopPropagation);
-        map_.off('mousemove', this.updateTemporaryAnchorBinded);
-        this.temporaryAnchor.marker.remove();
+        map_?.off('click', this.appendAnchorBinded);
+        layerEventManager?.off('mousemove', this.fileId, this.showTemporaryAnchorBinded);
+        map_?.off('mousemove', this.updateTemporaryAnchorBinded);
+
+        this.layers.forEach((layer) => {
+            try {
+                layerEventManager?.off('mouseenter', layer.id, this.onMouseEnterBinded);
+                layerEventManager?.off('mouseleave', layer.id, this.onMouseLeaveBinded);
+                layerEventManager?.off('click', layer.id, this.onClickBinded);
+                layerEventManager?.off('contextmenu', layer.id, this.onClickBinded);
+                layerEventManager?.off('mousedown', layer.id, this.onMouseDownBinded);
+                layerEventManager?.off('touchstart', layer.id, this.onTouchStartBinded);
+
+                if (map_?.getLayer(layer.id)) {
+                    map_?.removeLayer(layer.id);
+                }
+
+                if (map_?.getSource(layer.id)) {
+                    map_?.removeSource(layer.id);
+                }
+            } catch (e) {
+                // No reliable way to check if the map is ready to remove sources and layers
+            }
+        });
+
+        this.popup.remove();
 
         this.fileUnsubscribe();
     }
 
-    createAnchor(
-        point: TrackPoint,
-        segment: TrackSegment,
-        trackIndex: number,
-        segmentIndex: number
-    ): AnchorWithMarker {
-        let element = document.createElement('div');
-        element.className = `h-5 w-5 xs:h-4 xs:w-4 md:h-3 md:w-3 rounded-full bg-white border-2 border-black cursor-pointer`;
-
-        let marker = new mapboxgl.Marker({
-            draggable: true,
-            className: 'z-10',
-            element,
-        }).setLngLat(point.getCoordinates());
-
-        let anchor = {
-            point,
-            segment,
-            trackIndex,
-            segmentIndex,
-            marker,
-            inZoom: false,
-        };
-
-        marker.on('dragstart', (e) => {
-            this.lastDragEvent = Date.now();
-            mapCursor.notify(MapCursorState.TRACKPOINT_DRAGGING, true);
-            element.classList.remove('cursor-pointer');
-            element.classList.add('cursor-grabbing');
-        });
-        marker.on('dragend', (e) => {
-            this.lastDragEvent = Date.now();
-            mapCursor.notify(MapCursorState.TRACKPOINT_DRAGGING, false);
-            element.classList.remove('cursor-grabbing');
-            element.classList.add('cursor-pointer');
-            this.moveAnchor(anchor);
-        });
-        let handleAnchorClick = this.handleClickForAnchor(anchor, marker);
-        marker.getElement().addEventListener('click', handleAnchorClick);
-        marker.getElement().addEventListener('contextmenu', handleAnchorClick);
-
-        return anchor;
-    }
-
-    handleClickForAnchor(anchor: Anchor, marker: mapboxgl.Marker) {
-        return (e: any) => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            if (Date.now() - this.lastDragEvent < 100) {
-                // Prevent click event during drag
-                return;
-            }
-
-            if (marker === this.temporaryAnchor.marker) {
-                this.turnIntoPermanentAnchor();
-                return;
-            }
-
-            if (e.shiftKey) {
-                this.deleteAnchor(anchor);
-                return;
-            }
-
-            canChangeStart.update(() => {
-                if (anchor.point._data.index === 0) {
-                    return false;
-                }
-                let segment = anchor.segment;
-                if (
-                    distance(
-                        segment.trkpt[0].getCoordinates(),
-                        segment.trkpt[segment.trkpt.length - 1].getCoordinates()
-                    ) > 1000
-                ) {
-                    return false;
-                }
-                return true;
-            });
-
-            marker.setPopup(this.popup);
-            marker.togglePopup();
-
-            let deleteThisAnchor = this.getDeleteAnchor(anchor);
-            this.popupElement.addEventListener('delete', deleteThisAnchor); // Register the delete event for this anchor
-            let startLoopAtThisAnchor = this.getStartLoopAtAnchor(anchor);
-            this.popupElement.addEventListener('change-start', startLoopAtThisAnchor); // Register the start loop event for this anchor
-            this.popup.once('close', () => {
-                this.popupElement.removeEventListener('delete', deleteThisAnchor);
-                this.popupElement.removeEventListener('change-start', startLoopAtThisAnchor);
-            });
-        };
-    }
-
-    toggleAnchorsForZoomLevelAndBounds() {
-        const map_ = get(map);
-        if (!map_) {
-            return;
-        }
-
-        // Show markers only if they are in the current zoom level and bounds
-        this.shownAnchors.splice(0, this.shownAnchors.length);
-
-        let center = map_.getCenter();
-        let bottomLeft = map_.unproject([0, map_.getCanvas().height]);
-        let topRight = map_.unproject([map_.getCanvas().width, 0]);
-        let diagonal = bottomLeft.distanceTo(topRight);
-
-        let zoom = map_.getZoom();
-        this.anchors.forEach((anchor) => {
-            anchor.inZoom = anchor.point._data.zoom <= zoom;
-            if (anchor.inZoom && center.distanceTo(anchor.marker.getLngLat()) < diagonal) {
-                anchor.marker.addTo(map_);
-                this.shownAnchors.push(anchor);
-            } else {
-                anchor.marker.remove();
-            }
-        });
-    }
-
-    showTemporaryAnchor(e: any) {
-        const map_ = get(map);
-        if (!map_) {
-            return;
-        }
-
-        if (this.temporaryAnchor.marker.getElement().classList.contains('cursor-grabbing')) {
-            // Do not not change the source point if it is already being dragged
-            return;
-        }
-
-        if (get(streetViewEnabled)) {
-            return;
-        }
-
-        if (
-            !get(selection).hasAnyParent(
-                new ListTrackSegmentItem(
-                    this.fileId,
-                    e.features[0].properties.trackIndex,
-                    e.features[0].properties.segmentIndex
-                )
-            )
-        ) {
-            return;
-        }
-
-        if (this.temporaryAnchorCloseToOtherAnchor(e)) {
-            return;
-        }
-
-        this.temporaryAnchor.point.setCoordinates({
-            lat: e.lngLat.lat,
-            lon: e.lngLat.lng,
-        });
-        this.temporaryAnchor.marker.setLngLat(e.lngLat).addTo(map_);
-
-        map_.on('mousemove', this.updateTemporaryAnchorBinded);
-    }
-
-    updateTemporaryAnchor(e: any) {
-        const map_ = get(map);
-        if (!map_) {
-            return;
-        }
-
-        if (this.temporaryAnchor.marker.getElement().classList.contains('cursor-grabbing')) {
-            // Do not hide if it is being dragged, and stop listening for mousemove
-            map_.off('mousemove', this.updateTemporaryAnchorBinded);
-            return;
-        }
-
-        if (
-            e.point.dist(map_.project(this.temporaryAnchor.point.getCoordinates())) > 20 ||
-            this.temporaryAnchorCloseToOtherAnchor(e)
-        ) {
-            // Hide if too far from the layer
-            this.temporaryAnchor.marker.remove();
-            map_.off('mousemove', this.updateTemporaryAnchorBinded);
-            return;
-        }
-
-        this.temporaryAnchor.marker.setLngLat(e.lngLat); // Update the position of the temporary anchor
-    }
-
-    temporaryAnchorCloseToOtherAnchor(e: any) {
-        const map_ = get(map);
-        if (!map_) {
-            return false;
-        }
-
-        for (let anchor of this.shownAnchors) {
-            if (e.point.dist(map_.project(anchor.marker.getLngLat())) < 10) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    async moveAnchor(anchorWithMarker: AnchorWithMarker) {
+    async moveAnchor(anchor: Anchor, coordinates: Coordinates) {
         // Move the anchor and update the route from and to the neighbouring anchors
-        let coordinates = {
-            lat: anchorWithMarker.marker.getLngLat().lat,
-            lon: anchorWithMarker.marker.getLngLat().lng,
-        };
-
-        let anchor = anchorWithMarker as Anchor;
-        if (anchorWithMarker === this.temporaryAnchor) {
+        if (anchor === this.temporaryAnchor) {
             // Temporary anchor, need to find the closest point of the segment and create an anchor for it
-            this.temporaryAnchor.marker.remove();
-            anchor = this.getPermanentAnchor();
+            anchor = this.getPermanentAnchor(this.temporaryAnchor);
+            this.removeTemporaryAnchor();
         }
+        const file = get(this.file)?.file;
+        if (!file) {
+            return;
+        }
+
+        const segment = file.getSegment(
+            anchor.properties.trackIndex,
+            anchor.properties.segmentIndex
+        );
+        const initialAnchorCoordinates =
+            segment.trkpt[anchor.properties.pointIndex].getCoordinates();
 
         let [previousAnchor, nextAnchor] = this.getNeighbouringAnchors(anchor);
 
         let anchors = [];
-        let targetCoordinates = [];
+        let targetTrackpoints = [];
 
         if (previousAnchor !== null) {
             anchors.push(previousAnchor);
-            targetCoordinates.push(previousAnchor.point.getCoordinates());
+            targetTrackpoints.push(segment.trkpt[previousAnchor.properties.pointIndex]);
         }
 
         anchors.push(anchor);
-        targetCoordinates.push(coordinates);
+        targetTrackpoints.push(
+            new TrackPoint({
+                attributes: coordinates,
+            })
+        );
 
         if (nextAnchor !== null) {
             anchors.push(nextAnchor);
-            targetCoordinates.push(nextAnchor.point.getCoordinates());
+            targetTrackpoints.push(segment.trkpt[nextAnchor.properties.pointIndex]);
         }
 
-        let success = await this.routeBetweenAnchors(anchors, targetCoordinates);
+        let success = await this.routeBetweenAnchors(anchors, targetTrackpoints);
 
-        if (!success) {
+        if (!success && anchor.properties.anchorIndex != this.anchors.length) {
             // Route failed, revert the anchor to the previous position
-            anchorWithMarker.marker.setLngLat(anchorWithMarker.point.getCoordinates());
+            this.moveAnchorFeature(anchor.properties.anchorIndex, initialAnchorCoordinates);
         }
     }
 
-    getPermanentAnchor(): Anchor {
-        let file = get(this.file)?.file;
-
-        // Find the point closest to the temporary anchor
-        let minDetails: any = { distance: Number.MAX_VALUE };
-        let minAnchor = this.temporaryAnchor as Anchor;
-        file?.forEachSegment((segment, trackIndex, segmentIndex) => {
-            if (
-                get(selection).hasAnyParent(
-                    new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)
-                )
-            ) {
-                let details: any = {};
-                let closest = getClosestLinePoint(
-                    segment.trkpt,
-                    this.temporaryAnchor.point,
-                    details
-                );
-                if (details.distance < minDetails.distance) {
-                    minDetails = details;
-                    minAnchor = {
-                        point: closest,
-                        segment,
-                        trackIndex,
-                        segmentIndex,
-                    };
-                }
-            }
-        });
-
-        if (minAnchor.point._data.anchor) {
-            minAnchor.point = minAnchor.point.clone();
-            if (minDetails.before) {
-                minAnchor.point._data.index = minAnchor.point._data.index + 0.5;
-            } else {
-                minAnchor.point._data.index = minAnchor.point._data.index - 0.5;
-            }
+    getPermanentAnchor(anchor: Anchor): Anchor {
+        const file = get(this.file)?.file;
+        if (!file) {
+            return anchor;
         }
+        const segment = file.getSegment(
+            anchor.properties.trackIndex,
+            anchor.properties.segmentIndex
+        );
+        // Find the point closest to the temporary anchor
+        const anchorPoint = new TrackPoint({
+            attributes: {
+                lon: anchor.geometry.coordinates[0],
+                lat: anchor.geometry.coordinates[1],
+            },
+        });
+        let details: any = {};
+        let closest = getClosestLinePoint(segment.trkpt, anchorPoint, details);
 
-        return minAnchor;
+        let permanentAnchor: Anchor = {
+            type: 'Feature',
+            geometry: {
+                type: 'Point',
+                coordinates: [closest.getLongitude(), closest.getLatitude()],
+            },
+            properties: {
+                trackIndex: anchor.properties.trackIndex,
+                segmentIndex: anchor.properties.segmentIndex,
+                pointIndex: closest._data.index,
+                anchorIndex: this.anchors.length,
+                minZoom: 0,
+            },
+        };
+
+        return permanentAnchor;
     }
 
     turnIntoPermanentAnchor() {
-        let file = get(this.file)?.file;
-
+        const file = get(this.file)?.file;
+        if (!file || !this.temporaryAnchor) {
+            return;
+        }
+        const segment = file.getSegment(
+            this.temporaryAnchor.properties.trackIndex,
+            this.temporaryAnchor.properties.segmentIndex
+        );
         // Find the point closest to the temporary anchor
-        let minDetails: any = { distance: Number.MAX_VALUE };
-        let minInfo = {
-            point: this.temporaryAnchor.point,
-            trackIndex: -1,
-            segmentIndex: -1,
-            trkptIndex: -1,
+        const anchorPoint = new TrackPoint({
+            attributes: {
+                lon: this.temporaryAnchor.geometry.coordinates[0],
+                lat: this.temporaryAnchor.geometry.coordinates[1],
+            },
+        });
+        let details: any = {};
+        getClosestLinePoint(segment.trkpt, anchorPoint, details);
+
+        let before = details.before ? details.index : details.index - 1;
+
+        let projectedPt = projectedPoint(
+            segment.trkpt[before],
+            segment.trkpt[before + 1],
+            anchorPoint
+        );
+        let ratio =
+            distance(segment.trkpt[before], projectedPt) /
+            distance(segment.trkpt[before], segment.trkpt[before + 1]);
+
+        let point = segment.trkpt[before].clone();
+        point.setCoordinates(projectedPt);
+        point.ele =
+            (1 - ratio) * (segment.trkpt[before].ele ?? 0) +
+            ratio * (segment.trkpt[before + 1].ele ?? 0);
+        point.time =
+            segment.trkpt[before].time && segment.trkpt[before + 1].time
+                ? new Date(
+                      (1 - ratio) * segment.trkpt[before].time.getTime() +
+                          ratio * segment.trkpt[before + 1].time!.getTime()
+                  )
+                : undefined;
+        point._data = {
+            anchor: true,
+            zoom: 0,
         };
 
-        file?.forEachSegment((segment, trackIndex, segmentIndex) => {
-            if (
-                get(selection).hasAnyParent(
-                    new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)
-                )
-            ) {
-                let details: any = {};
-                getClosestLinePoint(segment.trkpt, this.temporaryAnchor.point, details);
-                if (details.distance < minDetails.distance) {
-                    minDetails = details;
-                    let before = details.before ? details.index : details.index - 1;
+        const trackIndex = this.temporaryAnchor!.properties.trackIndex;
+        const segmentIndex = this.temporaryAnchor!.properties.segmentIndex;
+        fileActionManager.applyToFile(this.fileId, (file) =>
+            file.replaceTrackPoints(trackIndex, segmentIndex, before + 1, before, [point])
+        );
 
-                    let projectedPt = projectedPoint(
-                        segment.trkpt[before],
-                        segment.trkpt[before + 1],
-                        this.temporaryAnchor.point
-                    );
-                    let ratio =
-                        distance(segment.trkpt[before], projectedPt) /
-                        distance(segment.trkpt[before], segment.trkpt[before + 1]);
-
-                    let point = segment.trkpt[before].clone();
-                    point.setCoordinates(projectedPt);
-                    point.ele =
-                        (1 - ratio) * (segment.trkpt[before].ele ?? 0) +
-                        ratio * (segment.trkpt[before + 1].ele ?? 0);
-                    point.time =
-                        segment.trkpt[before].time && segment.trkpt[before + 1].time
-                            ? new Date(
-                                  (1 - ratio) * segment.trkpt[before].time.getTime() +
-                                      ratio * segment.trkpt[before + 1].time!.getTime()
-                              )
-                            : undefined;
-                    point._data = {
-                        anchor: true,
-                        zoom: 0,
-                    };
-
-                    minInfo = {
-                        point,
-                        trackIndex,
-                        segmentIndex,
-                        trkptIndex: before + 1,
-                    };
-                }
-            }
-        });
-
-        if (minInfo.trackIndex !== -1) {
-            fileActionManager.applyToFile(this.fileId, (file) =>
-                file.replaceTrackPoints(
-                    minInfo.trackIndex,
-                    minInfo.segmentIndex,
-                    minInfo.trkptIndex,
-                    minInfo.trkptIndex - 1,
-                    [minInfo.point]
-                )
-            );
-        }
+        this.temporaryAnchor = null;
     }
 
     getDeleteAnchor(anchor: Anchor) {
@@ -538,36 +417,56 @@ export class RoutingControls {
         if (previousAnchor === null && nextAnchor === null) {
             // Only one point, remove it
             fileActionManager.applyToFile(this.fileId, (file) =>
-                file.replaceTrackPoints(anchor.trackIndex, anchor.segmentIndex, 0, 0, [])
+                file.replaceTrackPoints(
+                    anchor.properties.trackIndex,
+                    anchor.properties.segmentIndex,
+                    0,
+                    0,
+                    []
+                )
             );
         } else if (previousAnchor === null && nextAnchor !== null) {
             // First point, remove trackpoints until nextAnchor
             fileActionManager.applyToFile(this.fileId, (file) =>
                 file.replaceTrackPoints(
-                    anchor.trackIndex,
-                    anchor.segmentIndex,
+                    anchor.properties.trackIndex,
+                    anchor.properties.segmentIndex,
                     0,
-                    nextAnchor.point._data.index - 1,
+                    nextAnchor.properties.pointIndex - 1,
                     []
                 )
             );
         } else if (nextAnchor === null && previousAnchor !== null) {
             // Last point, remove trackpoints from previousAnchor
             fileActionManager.applyToFile(this.fileId, (file) => {
-                let segment = file.getSegment(anchor.trackIndex, anchor.segmentIndex);
+                const segment = file.getSegment(
+                    anchor.properties.trackIndex,
+                    anchor.properties.segmentIndex
+                );
                 file.replaceTrackPoints(
-                    anchor.trackIndex,
-                    anchor.segmentIndex,
-                    previousAnchor.point._data.index + 1,
+                    anchor.properties.trackIndex,
+                    anchor.properties.segmentIndex,
+                    previousAnchor.properties.pointIndex + 1,
                     segment.trkpt.length - 1,
                     []
                 );
             });
         } else if (previousAnchor !== null && nextAnchor !== null) {
             // Route between previousAnchor and nextAnchor
+            const file = get(this.file)?.file;
+            if (!file) {
+                return;
+            }
+            const segment = file.getSegment(
+                anchor.properties.trackIndex,
+                anchor.properties.segmentIndex
+            );
             this.routeBetweenAnchors(
                 [previousAnchor, nextAnchor],
-                [previousAnchor.point.getCoordinates(), nextAnchor.point.getCoordinates()]
+                [
+                    segment.trkpt[previousAnchor.properties.pointIndex],
+                    segment.trkpt[nextAnchor.properties.pointIndex],
+                ]
             );
         }
     }
@@ -579,40 +478,57 @@ export class RoutingControls {
     startLoopAtAnchor(anchor: Anchor) {
         this.popup.remove();
 
-        let fileWithStats = get(this.file);
+        const fileWithStats = get(this.file);
         if (!fileWithStats) {
             return;
         }
 
-        let speed = fileWithStats.statistics.getStatisticsFor(
-            new ListTrackSegmentItem(this.fileId, anchor.trackIndex, anchor.segmentIndex)
+        const speed = fileWithStats.statistics.getStatisticsFor(
+            new ListTrackSegmentItem(
+                this.fileId,
+                anchor.properties.trackIndex,
+                anchor.properties.segmentIndex
+            )
         ).global.speed.moving;
 
-        let segment = anchor.segment;
+        const segment = fileWithStats.file.getSegment(
+            anchor.properties.trackIndex,
+            anchor.properties.segmentIndex
+        );
         fileActionManager.applyToFile(this.fileId, (file) => {
             file.replaceTrackPoints(
-                anchor.trackIndex,
-                anchor.segmentIndex,
+                anchor.properties.trackIndex,
+                anchor.properties.segmentIndex,
                 segment.trkpt.length,
                 segment.trkpt.length - 1,
-                segment.trkpt.slice(0, anchor.point._data.index),
+                segment.trkpt.slice(0, anchor.properties.pointIndex),
                 speed > 0 ? speed : undefined
             );
             file.crop(
-                anchor.point._data.index,
-                anchor.point._data.index + segment.trkpt.length - 1,
-                [anchor.trackIndex],
-                [anchor.segmentIndex]
+                anchor.properties.pointIndex,
+                anchor.properties.pointIndex + segment.trkpt.length - 1,
+                [anchor.properties.trackIndex],
+                [anchor.properties.segmentIndex]
             );
         });
     }
 
-    async appendAnchor(e: mapboxgl.MapMouseEvent) {
+    async appendAnchor(e: maplibregl.MapMouseEvent) {
         // Add a new anchor to the end of the last segment
         if (get(streetViewEnabled) && get(streetViewSource) === 'google') {
             return;
         }
-
+        if (
+            e.target.queryRenderedFeatures(e.point, {
+                layers: this.layers
+                    .values()
+                    .map((layer) => layer.id)
+                    .toArray(),
+            }).length
+        ) {
+            // Clicked on routing control, ignoring
+            return;
+        }
         this.appendAnchorWithCoordinates({
             lat: e.lngLat.lat,
             lon: e.lngLat.lng,
@@ -621,21 +537,121 @@ export class RoutingControls {
 
     async appendAnchorWithCoordinates(coordinates: Coordinates) {
         // Add a new anchor to the end of the last segment
-        let selected = selection.getOrderedSelection();
-        if (selected.length === 0 || selected[selected.length - 1].getFileId() !== this.fileId) {
+        let newAnchorPoint = new TrackPoint({
+            attributes: coordinates,
+        });
+
+        if (this.anchors.length == 0) {
+            this.routeBetweenAnchors(
+                [
+                    {
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [
+                                newAnchorPoint.getLongitude(),
+                                newAnchorPoint.getLatitude(),
+                            ],
+                        },
+                        properties: {
+                            trackIndex: 0,
+                            segmentIndex: 0,
+                            pointIndex: 0,
+                            anchorIndex: 0,
+                            minZoom: 0,
+                        },
+                    },
+                ],
+                [newAnchorPoint]
+            );
             return;
         }
-        let item = selected[selected.length - 1];
 
         let lastAnchor = this.anchors[this.anchors.length - 1];
 
-        let newPoint = new TrackPoint({
-            attributes: coordinates,
-        });
-        newPoint._data.anchor = true;
-        newPoint._data.zoom = 0;
+        const file = get(this.file)?.file;
+        if (!file) {
+            return;
+        }
 
-        if (!lastAnchor) {
+        const segment = file.getSegment(
+            lastAnchor.properties.trackIndex,
+            lastAnchor.properties.segmentIndex
+        );
+        const lastAnchorPoint = segment.trkpt[lastAnchor.properties.pointIndex];
+
+        let newAnchor: Anchor = {
+            type: 'Feature',
+            geometry: {
+                type: 'Point',
+                coordinates: [newAnchorPoint.getLongitude(), newAnchorPoint.getLatitude()],
+            },
+            properties: {
+                trackIndex: lastAnchor.properties.trackIndex,
+                segmentIndex: lastAnchor.properties.segmentIndex,
+                pointIndex: segment.trkpt.length - 1, // Do as if the point was the last point in the segment
+                anchorIndex: 0,
+                minZoom: 0,
+            },
+        };
+
+        await this.routeBetweenAnchors([lastAnchor, newAnchor], [lastAnchorPoint, newAnchorPoint]);
+    }
+
+    getNeighbouringAnchors(anchor: Anchor): [Anchor | null, Anchor | null] {
+        let previousAnchor: Anchor | null = null;
+        let nextAnchor: Anchor | null = null;
+
+        const zoom = get(map)?.getZoom() ?? 20;
+
+        for (let i = 0; i < this.anchors.length; i++) {
+            if (
+                this.anchors[i].properties.trackIndex === anchor.properties.trackIndex &&
+                this.anchors[i].properties.segmentIndex === anchor.properties.segmentIndex &&
+                zoom >= this.anchors[i].properties.minZoom
+            ) {
+                if (this.anchors[i].properties.pointIndex < anchor.properties.pointIndex) {
+                    if (
+                        !previousAnchor ||
+                        this.anchors[i].properties.pointIndex > previousAnchor.properties.pointIndex
+                    ) {
+                        previousAnchor = this.anchors[i];
+                    }
+                } else if (this.anchors[i].properties.pointIndex > anchor.properties.pointIndex) {
+                    if (
+                        !nextAnchor ||
+                        this.anchors[i].properties.pointIndex < nextAnchor.properties.pointIndex
+                    ) {
+                        nextAnchor = this.anchors[i];
+                    }
+                }
+            }
+        }
+
+        return [previousAnchor, nextAnchor];
+    }
+
+    async routeBetweenAnchors(
+        anchors: Anchor[],
+        targetTrackPoints: TrackPoint[]
+    ): Promise<boolean> {
+        const fileWithStats = get(this.file);
+        if (!fileWithStats) {
+            return false;
+        }
+
+        if (anchors.length <= 1) {
+            // Only one anchor, update the point in the segment
+            targetTrackPoints[0]._data.anchor = true;
+            targetTrackPoints[0]._data.zoom = 0;
+            let selected = selection.getOrderedSelection();
+            if (
+                selected.length === 0 ||
+                selected[selected.length - 1].getFileId() !== this.fileId
+            ) {
+                return false;
+            }
+            let item = selected[selected.length - 1];
             fileActionManager.applyToFile(this.fileId, (file) => {
                 let trackIndex = file.trk.length > 0 ? file.trk.length - 1 : 0;
                 if (item instanceof ListTrackItem || item instanceof ListTrackSegmentItem) {
@@ -650,132 +666,67 @@ export class RoutingControls {
                 }
                 if (file.trk.length === 0) {
                     let track = new Track();
-                    track.replaceTrackPoints(0, 0, 0, [newPoint]);
+                    track.replaceTrackPoints(0, 0, 0, targetTrackPoints);
                     file.replaceTracks(0, 0, [track]);
                 } else if (file.trk[trackIndex].trkseg.length === 0) {
                     let segment = new TrackSegment();
-                    segment.replaceTrackPoints(0, 0, [newPoint]);
+                    segment.replaceTrackPoints(0, 0, targetTrackPoints);
                     file.replaceTrackSegments(trackIndex, 0, 0, [segment]);
                 } else {
-                    file.replaceTrackPoints(trackIndex, segmentIndex, 0, 0, [newPoint]);
+                    file.replaceTrackPoints(trackIndex, segmentIndex, 0, 0, targetTrackPoints);
                 }
             });
-            return;
-        }
-
-        newPoint._data.index = lastAnchor.segment.trkpt.length - 1; // Do as if the point was the last point in the segment
-        let newAnchor = {
-            point: newPoint,
-            segment: lastAnchor.segment,
-            trackIndex: lastAnchor.trackIndex,
-            segmentIndex: lastAnchor.segmentIndex,
-        };
-
-        await this.routeBetweenAnchors(
-            [lastAnchor, newAnchor],
-            [lastAnchor.point.getCoordinates(), newAnchor.point.getCoordinates()]
-        );
-    }
-
-    getNeighbouringAnchors(anchor: Anchor): [Anchor | null, Anchor | null] {
-        let previousAnchor: Anchor | null = null;
-        let nextAnchor: Anchor | null = null;
-
-        for (let i = 0; i < this.anchors.length; i++) {
-            if (this.anchors[i].segment === anchor.segment && this.anchors[i].inZoom) {
-                if (this.anchors[i].point._data.index < anchor.point._data.index) {
-                    if (
-                        !previousAnchor ||
-                        this.anchors[i].point._data.index > previousAnchor.point._data.index
-                    ) {
-                        previousAnchor = this.anchors[i];
-                    }
-                } else if (this.anchors[i].point._data.index > anchor.point._data.index) {
-                    if (
-                        !nextAnchor ||
-                        this.anchors[i].point._data.index < nextAnchor.point._data.index
-                    ) {
-                        nextAnchor = this.anchors[i];
-                    }
-                }
-            }
-        }
-
-        return [previousAnchor, nextAnchor];
-    }
-
-    async routeBetweenAnchors(
-        anchors: Anchor[],
-        targetCoordinates: Coordinates[]
-    ): Promise<boolean> {
-        let segment = anchors[0].segment;
-
-        let fileWithStats = get(this.file);
-        if (!fileWithStats) {
-            return false;
-        }
-
-        if (anchors.length === 1) {
-            // Only one anchor, update the point in the segment
-            fileActionManager.applyToFile(this.fileId, (file) =>
-                file.replaceTrackPoints(anchors[0].trackIndex, anchors[0].segmentIndex, 0, 0, [
-                    new TrackPoint({
-                        attributes: targetCoordinates[0],
-                    }),
-                ])
-            );
             return true;
         }
 
         let response: TrackPoint[];
         try {
-            response = await route(targetCoordinates);
+            response = await route(targetTrackPoints.map((trkpt) => trkpt.getCoordinates()));
         } catch (e: any) {
             toast.error(i18n._(e.message, e.message));
             return false;
         }
 
-        if (anchors[0].point._data.index === 0) {
-            // First anchor is the first point of the segment
-            anchors[0].point = response[0]; // replace the first anchor
-            anchors[0].point._data.index = 0;
-        } else if (
-            anchors[0].point._data.index === segment.trkpt.length - 1 &&
-            distance(anchors[0].point.getCoordinates(), response[0].getCoordinates()) < 1
+        const segment = fileWithStats.file.getSegment(
+            anchors[0].properties.trackIndex,
+            anchors[0].properties.segmentIndex
+        );
+
+        if (
+            anchors[0].properties.pointIndex !== 0 &&
+            (anchors[0].properties.pointIndex !== segment.trkpt.length - 1 ||
+                distance(targetTrackPoints[0].getCoordinates(), response[0].getCoordinates()) > 1)
         ) {
-            // First anchor is the last point of the segment, and the new point is close enough
-            anchors[0].point = response[0]; // replace the first anchor
-            anchors[0].point._data.index = segment.trkpt.length - 1;
-        } else {
-            anchors[0].point = anchors[0].point.clone(); // Clone the anchor to assign new properties
-            response.splice(0, 0, anchors[0].point); // Insert it in the response to keep it
+            response.splice(0, 0, targetTrackPoints[0].clone()); // Keep the current first anchor
         }
 
-        if (anchors[anchors.length - 1].point._data.index === segment.trkpt.length - 1) {
-            // Last anchor is the last point of the segment
-            anchors[anchors.length - 1].point = response[response.length - 1]; // replace the last anchor
-            anchors[anchors.length - 1].point._data.index = segment.trkpt.length - 1;
-        } else {
-            anchors[anchors.length - 1].point = anchors[anchors.length - 1].point.clone(); // Clone the anchor to assign new properties
-            response.push(anchors[anchors.length - 1].point); // Insert it in the response to keep it
+        if (anchors[anchors.length - 1].properties.pointIndex !== segment.trkpt.length - 1) {
+            response.push(targetTrackPoints[anchors.length - 1].clone()); // Keep the current last anchor
         }
 
+        let anchorTrackPoints = [response[0], response[response.length - 1]];
         for (let i = 1; i < anchors.length - 1; i++) {
-            // Find the closest point to the intermediate anchor
-            // and transfer the marker to that point
-            anchors[i].point = getClosestLinePoint(response.slice(1, -1), targetCoordinates[i]);
+            // Find the closest point to the intermediate anchor, which will become an anchor
+            anchorTrackPoints.push(
+                getClosestLinePoint(response.slice(1, -1), targetTrackPoints[i])
+            );
         }
 
-        anchors.forEach((anchor) => {
-            anchor.point._data.anchor = true;
-            anchor.point._data.zoom = 0; // Make these anchors permanent
+        anchorTrackPoints.forEach((trkpt) => {
+            // Turn them into permanent anchors
+            trkpt._data.anchor = true;
+            trkpt._data.zoom = 0;
         });
 
-        let stats = fileWithStats.statistics.getStatisticsFor(
-            new ListTrackSegmentItem(this.fileId, anchors[0].trackIndex, anchors[0].segmentIndex)
+        const stats = fileWithStats.statistics.getStatisticsFor(
+            new ListTrackSegmentItem(
+                this.fileId,
+                anchors[0].properties.trackIndex,
+                anchors[0].properties.segmentIndex
+            )
         );
         let speed: number | undefined = undefined;
-        let startTime = anchors[0].point.time;
+        let startTime = segment.trkpt[anchors[0].properties.pointIndex].time;
 
         if (stats.global.speed.moving > 0) {
             let replacingDistance = 0;
@@ -783,9 +734,9 @@ export class RoutingControls {
                 replacingDistance +=
                     distance(response[i - 1].getCoordinates(), response[i].getCoordinates()) / 1000;
             }
-            let startAnchorStats = stats.getTrackPoint(anchors[0].point._data.index)!;
+            let startAnchorStats = stats.getTrackPoint(anchors[0].properties.pointIndex)!;
             let endAnchorStats = stats.getTrackPoint(
-                anchors[anchors.length - 1].point._data.index
+                anchors[anchors.length - 1].properties.pointIndex
             )!;
 
             let replacedDistance =
@@ -808,7 +759,7 @@ export class RoutingControls {
 
             if (startTime === undefined) {
                 // Replacing the first point
-                let endIndex = anchors[anchors.length - 1].point._data.index;
+                let endIndex = anchors[anchors.length - 1].properties.pointIndex;
                 startTime = new Date(
                     (segment.trkpt[endIndex].time?.getTime() ?? 0) -
                         (replacingTime + endAnchorStats.time.total - endAnchorStats.time.moving) *
@@ -819,10 +770,10 @@ export class RoutingControls {
 
         fileActionManager.applyToFile(this.fileId, (file) =>
             file.replaceTrackPoints(
-                anchors[0].trackIndex,
-                anchors[0].segmentIndex,
-                anchors[0].point._data.index,
-                anchors[anchors.length - 1].point._data.index,
+                anchors[0].properties.trackIndex,
+                anchors[0].properties.segmentIndex,
+                anchors[0].properties.pointIndex,
+                anchors[anchors.length - 1].properties.pointIndex,
                 response,
                 speed,
                 startTime
@@ -836,18 +787,319 @@ export class RoutingControls {
         this.remove();
         this.unsubscribes.forEach((unsubscribe) => unsubscribe());
     }
+
+    loadIcons() {
+        const _map = get(map);
+        if (!_map) {
+            return;
+        }
+
+        loadSVGIcon(
+            _map,
+            'routing-control',
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <circle cx="10" cy="10" r="8" fill="white" stroke="black" stroke-width="2" />
+            </svg>`,
+            _map.getCanvasContainer().offsetWidth > 1000 ? 50 : 80
+        );
+    }
+
+    onMouseEnter() {
+        mapCursor.notify(MapCursorState.ANCHOR_HOVER, true);
+    }
+
+    onMouseLeave() {
+        if (this.temporaryAnchor !== null) {
+            return;
+        }
+        mapCursor.notify(MapCursorState.ANCHOR_HOVER, false);
+    }
+
+    onClick(e: MapLayerMouseEvent) {
+        e.preventDefault();
+
+        if (this.temporaryAnchor !== null) {
+            this.turnIntoPermanentAnchor();
+            return;
+        }
+
+        const anchor = this.anchors[e.features![0].properties.anchorIndex];
+        if (e.originalEvent.shiftKey) {
+            this.deleteAnchor(anchor);
+            return;
+        }
+
+        canChangeStart.update(() => {
+            if (anchor.properties.pointIndex === 0) {
+                return false;
+            }
+            const segment = get(this.file)?.file.getSegment(
+                anchor.properties.trackIndex,
+                anchor.properties.segmentIndex
+            );
+            if (
+                !segment ||
+                distance(
+                    segment.trkpt[0].getCoordinates(),
+                    segment.trkpt[segment.trkpt.length - 1].getCoordinates()
+                ) > 1000
+            ) {
+                return false;
+            }
+            return true;
+        });
+
+        this.popup.setLngLat(e.lngLat);
+        this.popup.addTo(e.target);
+
+        let deleteThisAnchor = this.getDeleteAnchor(anchor);
+        this.popupElement.addEventListener('delete', deleteThisAnchor); // Register the delete event for this anchor
+        let startLoopAtThisAnchor = this.getStartLoopAtAnchor(anchor);
+        this.popupElement.addEventListener('change-start', startLoopAtThisAnchor); // Register the start loop event for this anchor
+        this.popup.once('close', () => {
+            this.popupElement.removeEventListener('delete', deleteThisAnchor);
+            this.popupElement.removeEventListener('change-start', startLoopAtThisAnchor);
+        });
+    }
+
+    onMouseDown(e: MapLayerMouseEvent) {
+        const _map = get(map);
+        if (!_map) {
+            return;
+        }
+
+        e.preventDefault();
+        _map.dragPan.disable();
+
+        this.draggedAnchorIndex = e.features![0].properties.anchorIndex;
+        this.draggingStartingPosition = e.point;
+
+        _map.on('mousemove', this.onMouseMoveBinded);
+        _map.once('mouseup', this.onMouseUpBinded);
+    }
+
+    onTouchStart(e: MapLayerTouchEvent) {
+        if (e.points.length !== 1) {
+            return;
+        }
+        const _map = get(map);
+        if (!_map) {
+            return;
+        }
+
+        this.draggedAnchorIndex = e.features![0].properties.anchorIndex;
+        this.draggingStartingPosition = e.point;
+
+        e.preventDefault();
+        _map.dragPan.disable();
+
+        _map.on('touchmove', this.onMouseMoveBinded);
+        _map.once('touchend', this.onMouseUpBinded);
+    }
+
+    onMouseMove(e: MapLayerMouseEvent | MapLayerTouchEvent) {
+        if (this.draggedAnchorIndex === null || e.point.equals(this.draggingStartingPosition)) {
+            return;
+        }
+
+        mapCursor.notify(MapCursorState.ANCHOR_DRAGGING, true);
+
+        this.moveAnchorFeature(this.draggedAnchorIndex, {
+            lat: e.lngLat.lat,
+            lon: e.lngLat.lng,
+        });
+    }
+
+    onMouseUp(e: MapLayerMouseEvent | MapLayerTouchEvent) {
+        mapCursor.notify(MapCursorState.ANCHOR_DRAGGING, false);
+
+        const _map = get(map);
+        if (!_map) {
+            return;
+        }
+
+        _map.dragPan.enable();
+
+        _map.off('mousemove', this.onMouseMoveBinded);
+        _map.off('touchmove', this.onMouseMoveBinded);
+
+        if (this.draggedAnchorIndex === null) {
+            return;
+        }
+        if (e.point.equals(this.draggingStartingPosition)) {
+            this.draggedAnchorIndex = null;
+            return;
+        }
+
+        if (this.draggedAnchorIndex === this.anchors.length) {
+            if (this.temporaryAnchor) {
+                this.moveAnchor(this.temporaryAnchor, {
+                    lat: e.lngLat.lat,
+                    lon: e.lngLat.lng,
+                });
+            }
+        } else {
+            this.moveAnchor(this.anchors[this.draggedAnchorIndex], {
+                lat: e.lngLat.lat,
+                lon: e.lngLat.lng,
+            });
+        }
+
+        this.draggedAnchorIndex = null;
+    }
+
+    showTemporaryAnchor(e: MapLayerMouseEvent) {
+        const map_ = get(map);
+        if (!map_) {
+            return;
+        }
+
+        if (this.draggedAnchorIndex !== null) {
+            // Do not not change the source point if it is already being dragged
+            return;
+        }
+
+        if (get(streetViewEnabled)) {
+            return;
+        }
+
+        if (
+            !get(selection).hasAnyParent(
+                new ListTrackSegmentItem(
+                    this.fileId,
+                    e.features![0].properties.trackIndex,
+                    e.features![0].properties.segmentIndex
+                )
+            )
+        ) {
+            return;
+        }
+
+        if (this.temporaryAnchorCloseToOtherAnchor(e)) {
+            return;
+        }
+
+        this.temporaryAnchor = {
+            type: 'Feature',
+            geometry: {
+                type: 'Point',
+                coordinates: [e.lngLat.lng, e.lngLat.lat],
+            },
+            properties: {
+                trackIndex: e.features![0].properties.trackIndex,
+                segmentIndex: e.features![0].properties.segmentIndex,
+                pointIndex: 0,
+                anchorIndex: this.anchors.length,
+                minZoom: 0,
+            },
+        };
+
+        this.addTemporaryAnchor();
+        mapCursor.notify(MapCursorState.ANCHOR_HOVER, true);
+
+        map_.on('mousemove', this.updateTemporaryAnchorBinded);
+    }
+
+    updateTemporaryAnchor(e: MapMouseEvent) {
+        const map_ = get(map);
+        if (!map_ || !this.temporaryAnchor) {
+            return;
+        }
+
+        if (this.draggedAnchorIndex !== null) {
+            // Do not hide if it is being dragged, and stop listening for mousemove
+            map_.off('mousemove', this.updateTemporaryAnchorBinded);
+            return;
+        }
+
+        if (
+            e.point.dist(
+                map_.project(this.temporaryAnchor.geometry.coordinates as [number, number])
+            ) > 20 ||
+            this.temporaryAnchorCloseToOtherAnchor(e)
+        ) {
+            // Hide if too far from the layer
+            this.removeTemporaryAnchor();
+            return;
+        }
+
+        // Update the position of the temporary anchor
+        this.moveAnchorFeature(this.anchors.length, {
+            lat: e.lngLat.lat,
+            lon: e.lngLat.lng,
+        });
+    }
+
+    temporaryAnchorCloseToOtherAnchor(e: any) {
+        const map_ = get(map);
+        if (!map_) {
+            return false;
+        }
+
+        const zoom = map_.getZoom();
+        for (let anchor of this.anchors) {
+            if (
+                zoom >= anchor.properties.minZoom &&
+                e.point.dist(map_.project(anchor.geometry.coordinates as [number, number])) < 10
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    moveAnchorFeature(anchorIndex: number, coordinates: Coordinates) {
+        const anchor =
+            anchorIndex === this.anchors.length ? this.temporaryAnchor : this.anchors[anchorIndex];
+        let source = get(map)?.getSource(
+            this.layers.get(anchor?.properties.minZoom ?? MIN_ANCHOR_ZOOM)?.id ?? ''
+        ) as GeoJSONSource | undefined;
+        if (source) {
+            source.updateData({
+                update: [
+                    {
+                        id: anchorIndex,
+                        newGeometry: {
+                            type: 'Point',
+                            coordinates: [coordinates.lon, coordinates.lat],
+                        },
+                    },
+                ],
+            });
+        }
+    }
+
+    addTemporaryAnchor() {
+        if (!this.temporaryAnchor) {
+            return;
+        }
+        let source = get(map)?.getSource('routing-controls-0') as GeoJSONSource | undefined;
+        if (source) {
+            if (this.temporaryAnchor) {
+                source.updateData({
+                    add: [this.temporaryAnchor],
+                });
+            }
+        }
+    }
+
+    removeTemporaryAnchor() {
+        if (!this.temporaryAnchor) {
+            return;
+        }
+        const map_ = get(map);
+        let source = map_?.getSource('routing-controls-0') as GeoJSONSource | undefined;
+        if (source) {
+            if (this.temporaryAnchor) {
+                source.updateData({
+                    remove: [this.temporaryAnchor.properties.anchorIndex],
+                });
+            }
+        }
+        map_?.off('mousemove', this.updateTemporaryAnchorBinded);
+        mapCursor.notify(MapCursorState.ANCHOR_HOVER, false);
+        this.temporaryAnchor = null;
+    }
 }
 
 export const routingControls: Map<string, RoutingControls> = new Map();
-
-type Anchor = {
-    segment: TrackSegment;
-    trackIndex: number;
-    segmentIndex: number;
-    point: TrackPoint;
-};
-
-type AnchorWithMarker = Anchor & {
-    marker: mapboxgl.Marker;
-    inZoom: boolean;
-};

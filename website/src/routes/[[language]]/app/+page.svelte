@@ -16,7 +16,7 @@
     import { loadFiles } from '$lib/logic/file-actions';
     import { onDestroy, onMount } from 'svelte';
     import { page } from '$app/state';
-    import { gpxStatistics, slicedGPXStatistics } from '$lib/logic/statistics';
+    import { gpxStatistics, hoveredPoint, slicedGPXStatistics } from '$lib/logic/statistics';
     import { getURLForGoogleDriveFile } from '$lib/components/embedding/embedding';
     import { db } from '$lib/db';
     import { fileStateCollection } from '$lib/logic/file-state';
@@ -29,6 +29,11 @@
         additionalDatasets,
         elevationFill,
     } = settings;
+
+    let bottomPanelWidth: number | undefined = $state();
+    let bottomPanelOrientation = $derived(
+        bottomPanelWidth && bottomPanelWidth >= 540 && $elevationProfile ? 'horizontal' : 'vertical'
+    );
 
     onMount(async () => {
         settings.connectToDatabase(db);
@@ -127,19 +132,23 @@
             />
         {/if}
         <div
-            class="{$elevationProfile ? '' : 'h-10'} flex flex-row gap-2 px-2 sm:px-4"
+            bind:offsetWidth={bottomPanelWidth}
+            class="flex {bottomPanelOrientation == 'vertical'
+                ? 'flex-col'
+                : 'flex-row py-2'} gap-1 px-2"
             style={$elevationProfile ? `height: ${$bottomPanelSize}px` : ''}
         >
             <GPXStatistics
                 {gpxStatistics}
                 {slicedGPXStatistics}
                 panelSize={$bottomPanelSize}
-                orientation={$elevationProfile ? 'vertical' : 'horizontal'}
+                orientation={bottomPanelOrientation == 'horizontal' ? 'vertical' : 'horizontal'}
             />
             {#if $elevationProfile}
                 <ElevationProfile
                     {gpxStatistics}
                     {slicedGPXStatistics}
+                    {hoveredPoint}
                     {additionalDatasets}
                     {elevationFill}
                 />

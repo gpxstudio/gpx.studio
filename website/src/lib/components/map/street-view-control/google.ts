@@ -1,11 +1,10 @@
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
-import type mapboxgl from 'mapbox-gl';
 
 export class GoogleRedirect {
-    map: mapboxgl.Map;
+    map: maplibregl.Map;
     enabled = false;
 
-    constructor(map: mapboxgl.Map) {
+    constructor(map: maplibregl.Map) {
         this.map = map;
     }
 
@@ -25,7 +24,7 @@ export class GoogleRedirect {
         this.map.off('click', this.openStreetView);
     }
 
-    openStreetView(e: mapboxgl.MapMouseEvent) {
+    openStreetView(e: maplibregl.MapMouseEvent) {
         window.open(
             `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${e.lngLat.lat},${e.lngLat.lng}`
         );

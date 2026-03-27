@@ -167,11 +167,11 @@
                                             {#if isSelected($selectedOverlayTree, selectedOverlay)}
                                                 {#if $isLayerFromExtension(selectedOverlay)}
                                                     {$getLayerName(selectedOverlay)}
+                                                {:else if $customLayers.hasOwnProperty(selectedOverlay)}
+                                                    {$customLayers[selectedOverlay].name}
                                                 {:else}
                                                     {i18n._(`layers.label.${selectedOverlay}`)}
                                                 {/if}
-                                            {:else if $customLayers.hasOwnProperty(selectedOverlay)}
-                                                {$customLayers[selectedOverlay].name}
                                             {/if}
                                         {/if}
                                     </Select.Trigger>
@@ -213,7 +213,9 @@
                                                     isSelected($currentOverlays, selectedOverlay)
                                                 ) {
                                                     try {
-                                                        $map.removeImport(selectedOverlay);
+                                                        if ($map.getLayer(selectedOverlay)) {
+                                                            $map.removeLayer(selectedOverlay);
+                                                        }
                                                     } catch (e) {
                                                         // No reliable way to check if the map is ready to remove sources and layers
                                                     }

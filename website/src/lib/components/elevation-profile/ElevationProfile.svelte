@@ -18,7 +18,7 @@
         Construction,
     } from '@lucide/svelte';
     import type { Readable, Writable } from 'svelte/store';
-    import type { GPXGlobalStatistics, GPXStatisticsGroup } from 'gpx';
+    import type { Coordinates, GPXGlobalStatistics, GPXStatisticsGroup } from 'gpx';
     import { settings } from '$lib/logic/settings';
     import { i18n } from '$lib/i18n.svelte';
     import { ElevationProfile } from '$lib/components/elevation-profile/elevation-profile';
@@ -28,12 +28,14 @@
     let {
         gpxStatistics,
         slicedGPXStatistics,
+        hoveredPoint,
         additionalDatasets,
         elevationFill,
         showControls = true,
     }: {
         gpxStatistics: Readable<GPXStatisticsGroup>;
         slicedGPXStatistics: Writable<[GPXGlobalStatistics, number, number] | undefined>;
+        hoveredPoint: Writable<Coordinates | null>;
         additionalDatasets: Writable<string[]>;
         elevationFill: Writable<'slope' | 'surface' | 'highway' | undefined>;
         showControls?: boolean;
@@ -47,6 +49,7 @@
         elevationProfile = new ElevationProfile(
             gpxStatistics,
             slicedGPXStatistics,
+            hoveredPoint,
             additionalDatasets,
             elevationFill,
             canvas,
@@ -61,7 +64,7 @@
     });
 </script>
 
-<div class="h-full grow min-w-0 relative py-2">
+<div class="h-full grow min-w-0 min-h-0 relative">
     <canvas bind:this={overlay} class="w-full h-full absolute pointer-events-none"></canvas>
     <canvas bind:this={canvas} class="w-full h-full absolute"></canvas>
     {#if showControls}

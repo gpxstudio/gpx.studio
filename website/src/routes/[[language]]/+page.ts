@@ -9,6 +9,5 @@ export async function load({ params }) {
     return {
         fundingModule: getModule(language, 'funding'),
         translationModule: getModule(language, 'translation'),
-        mapboxModule: getModule(language, 'mapbox'),
     };
 }

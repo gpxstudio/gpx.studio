@@ -16,7 +16,7 @@
     import { setMode } from 'mode-watcher';
     import { settings } from '$lib/logic/settings';
     import { fileStateCollection } from '$lib/logic/file-state';
-    import { gpxStatistics, slicedGPXStatistics } from '$lib/logic/statistics';
+    import { gpxStatistics, hoveredPoint, slicedGPXStatistics } from '$lib/logic/statistics';
     import { loadFile } from '$lib/logic/file-actions';
     import { selection } from '$lib/logic/selection';
     import { untrack } from 'svelte';
@@ -102,7 +102,7 @@
     <div class="grow relative">
         <Map
             class="h-full {$fileStateCollection.size > 1 ? 'horizontal' : ''}"
-            accessToken={options.token}
+            maptilerKey={options.key}
             geocoder={false}
             geolocate={true}
             hash={useHash}
@@ -130,6 +130,7 @@
             <ElevationProfile
                 {gpxStatistics}
                 {slicedGPXStatistics}
+                {hoveredPoint}
                 {additionalDatasets}
                 {elevationFill}
                 showControls={options.elevation.controls}

@@ -22,15 +22,18 @@ import {
     Binoculars,
     Toilet,
 } from 'lucide-static';
-import { type RasterDEMSourceSpecification, type StyleSpecification } from 'mapbox-gl';
+import { type RasterDEMSourceSpecification, type StyleSpecification } from 'maplibre-gl';
 import ignFrTopo from './custom/ign-fr-topo.json';
 import ignFrPlan from './custom/ign-fr-plan.json';
 import ignFrSatellite from './custom/ign-fr-satellite.json';
 import bikerouterGravel from './custom/bikerouter-gravel.json';
 
+export const maptilerKeyPlaceHolder = 'MAPTILER_KEY';
+
 export const basemaps: { [key: string]: string | StyleSpecification } = {
-    mapboxOutdoors: 'mapbox://styles/mapbox/outdoors-v12',
-    mapboxSatellite: 'mapbox://styles/mapbox/satellite-streets-v12',
+    maptilerTopo: `https://api.maptiler.com/maps/topo-v4/style.json?key=${maptilerKeyPlaceHolder}`,
+    maptilerOutdoors: `https://api.maptiler.com/maps/outdoor-v4/style.json?key=${maptilerKeyPlaceHolder}`,
+    maptilerSatellite: `https://api.maptiler.com/maps/hybrid-v4/style.json?key=${maptilerKeyPlaceHolder}`,
     openStreetMap: {
         version: 8,
         sources: {
@@ -773,8 +776,9 @@ export type LayerTreeType = { [key: string]: LayerTreeType | boolean };
 export const basemapTree: LayerTreeType = {
     basemaps: {
         world: {
-            mapboxOutdoors: true,
-            mapboxSatellite: true,
+            maptilerTopo: true,
+            maptilerOutdoors: true,
+            maptilerSatellite: true,
             openStreetMap: true,
             openTopoMap: true,
             openHikingMap: true,
@@ -907,7 +911,7 @@ export const overpassTree: LayerTreeType = {
 };
 
 // Default basemap used
-export const defaultBasemap = 'mapboxOutdoors';
+export const defaultBasemap = 'maptilerTopo';
 
 // Default overlays used (none)
 export const defaultOverlays: LayerTreeType = {
@@ -996,8 +1000,9 @@ export const defaultOverpassQueries: LayerTreeType = {
 export const defaultBasemapTree: LayerTreeType = {
     basemaps: {
         world: {
-            mapboxOutdoors: true,
-            mapboxSatellite: true,
+            maptilerTopo: true,
+            maptilerOutdoors: true,
+            maptilerSatellite: true,
             openStreetMap: true,
             openTopoMap: true,
             openHikingMap: true,
@@ -1136,7 +1141,7 @@ export type CustomLayer = {
     maxZoom: number;
     layerType: 'basemap' | 'overlay';
     resourceType: 'raster' | 'vector';
-    value: string | {};
+    value: string | maplibregl.StyleSpecification;
 };
 
 type OverpassQueryData = {
@@ -1455,11 +1460,9 @@ export const overpassQueryData: Record<string, OverpassQueryData> = {
 };
 
 export const terrainSources: { [key: string]: RasterDEMSourceSpecification } = {
-    'mapbox-dem': {
+    'maptiler-dem': {
         type: 'raster-dem',
-        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-        tileSize: 512,
-        maxzoom: 14,
+        url: `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${maptilerKeyPlaceHolder}`,
     },
     mapterhorn: {
         type: 'raster-dem',
@@ -1467,4 +1470,4 @@ export const terrainSources: { [key: string]: RasterDEMSourceSpecification } = {
     },
 };
 
-export const defaultTerrainSource = 'mapbox-dem';
+export const defaultTerrainSource = 'maptiler-dem';

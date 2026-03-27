@@ -76,5 +76,3 @@ export function removeAll(node: LayerTreeType, ids: string[]) {
     });
     return node;
 }
-
-export const customBasemapUpdate = writable(0);

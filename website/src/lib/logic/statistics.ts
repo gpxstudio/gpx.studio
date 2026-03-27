@@ -1,5 +1,5 @@
 import { selection } from '$lib/logic/selection';
-import { GPXGlobalStatistics, GPXStatisticsGroup } from 'gpx';
+import { GPXGlobalStatistics, GPXStatisticsGroup, type Coordinates } from 'gpx';
 import { fileStateCollection, GPXFileState } from '$lib/logic/file-state';
 import {
     ListFileItem,
@@ -81,6 +81,8 @@ export const gpxStatistics = new SelectedGPXStatistics();
 
 export const slicedGPXStatistics: Writable<[GPXGlobalStatistics, number, number] | undefined> =
     writable(undefined);
+
+export const hoveredPoint: Writable<Coordinates | null> = writable(null);
 
 gpxStatistics.subscribe(() => {
     slicedGPXStatistics.set(undefined);

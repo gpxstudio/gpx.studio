@@ -1,6 +1,7 @@
 import { type Database } from '$lib/db';
 import { liveQuery } from 'dexie';
 import {
+    basemaps,
     defaultBasemap,
     defaultBasemapTree,
     defaultOpacities,
@@ -9,7 +10,10 @@ import {
     defaultOverpassQueries,
     defaultOverpassTree,
     defaultTerrainSource,
+    overlays,
+    overpassQueryData,
     type CustomLayer,
+    type LayerTreeType,
 } from '$lib/assets/layers';
 import { browser } from '$app/environment';
 import { get, writable, type Writable } from 'svelte/store';
@@ -19,10 +23,12 @@ export class Setting<V> {
     private _subscription: { unsubscribe: () => void } | null = null;
     private _key: string;
     private _value: Writable<V>;
+    private _validator?: (value: V) => V;
 
-    constructor(key: string, initial: V) {
+    constructor(key: string, initial: V, validator?: (value: V) => V) {
         this._key = key;
         this._value = writable(initial);
+        this._validator = validator;
     }
 
     connectToDatabase(db: Database) {
@@ -36,6 +42,9 @@ export class Setting<V> {
                     this._value.set(value);
                 }
             } else {
+                if (this._validator) {
+                    value = this._validator(value);
+                }
                 this._value.set(value);
             }
             first = false;
@@ -73,11 +82,13 @@ export class SettingInitOnFirstRead<V> {
     private _key: string;
     private _value: Writable<V | undefined>;
     private _initial: V;
+    private _validator?: (value: V) => V;
 
-    constructor(key: string, initial: V) {
+    constructor(key: string, initial: V, validator?: (value: V) => V) {
         this._key = key;
         this._value = writable(undefined);
         this._initial = initial;
+        this._validator = validator;
     }
 
     connectToDatabase(db: Database) {
@@ -93,6 +104,9 @@ export class SettingInitOnFirstRead<V> {
                     this._value.set(value);
                 }
             } else {
+                if (this._validator) {
+                    value = this._validator(value);
+                }
                 this._value.set(value);
             }
             first = false;
@@ -128,37 +142,166 @@ export class SettingInitOnFirstRead<V> {
     }
 }
 
+function getValueValidator<V>(allowed: V[], fallback: V) {
+    const dict = new Set<V>(allowed);
+    return (value: V) => (dict.has(value) ? value : fallback);
+}
+
+function getArrayValidator<V>(allowed: V[]) {
+    const dict = new Set<V>(allowed);
+    return (value: V[]) => value.filter((v) => dict.has(v));
+}
+
+function getLayerValidator(allowed: Record<string, any>, fallback: string) {
+    return (layer: string) =>
+        allowed.hasOwnProperty(layer) ||
+        layer.startsWith('custom-') ||
+        layer.startsWith('extension-')
+            ? layer
+            : fallback;
+}
+
+function filterLayerTree(t: LayerTreeType, allowed: Record<string, any>): LayerTreeType {
+    const filtered: LayerTreeType = {};
+    Object.entries(t).forEach(([key, value]) => {
+        if (typeof value === 'object') {
+            filtered[key] = filterLayerTree(value, allowed);
+        } else if (
+            allowed.hasOwnProperty(key) ||
+            key.startsWith('custom-') ||
+            key.startsWith('extension-')
+        ) {
+            filtered[key] = value;
+        }
+    });
+    return filtered;
+}
+
+function getLayerTreeValidator(allowed: Record<string, any>) {
+    return (value: LayerTreeType) => filterLayerTree(value, allowed);
+}
+
+type DistanceUnits = 'metric' | 'imperial' | 'nautical';
+type VelocityUnits = 'speed' | 'pace';
+type TemperatureUnits = 'celsius' | 'fahrenheit';
+type AdditionalDataset = 'speed' | 'hr' | 'cad' | 'atemp' | 'power';
+type ElevationFill = 'slope' | 'surface' | undefined;
+type RoutingProfile =
+    | 'bike'
+    | 'racing_bike'
+    | 'gravel_bike'
+    | 'mountain_bike'
+    | 'foot'
+    | 'motorcycle'
+    | 'water'
+    | 'railway';
+type TerrainSource = 'maptiler-dem' | 'mapterhorn';
+type StreetViewSource = 'mapillary' | 'google';
+
 export const settings = {
-    distanceUnits: new Setting<'metric' | 'imperial' | 'nautical'>('distanceUnits', 'metric'),
-    velocityUnits: new Setting<'speed' | 'pace'>('velocityUnits', 'speed'),
-    temperatureUnits: new Setting<'celsius' | 'fahrenheit'>('temperatureUnits', 'celsius'),
+    distanceUnits: new Setting<DistanceUnits>(
+        'distanceUnits',
+        'metric',
+        getValueValidator<DistanceUnits>(['metric', 'imperial', 'nautical'], 'metric')
+    ),
+    velocityUnits: new Setting<VelocityUnits>(
+        'velocityUnits',
+        'speed',
+        getValueValidator<VelocityUnits>(['speed', 'pace'], 'speed')
+    ),
+    temperatureUnits: new Setting<TemperatureUnits>(
+        'temperatureUnits',
+        'celsius',
+        getValueValidator<TemperatureUnits>(['celsius', 'fahrenheit'], 'celsius')
+    ),
     elevationProfile: new Setting<boolean>('elevationProfile', true),
-    additionalDatasets: new Setting<string[]>('additionalDatasets', []),
-    elevationFill: new Setting<'slope' | 'surface' | undefined>('elevationFill', undefined),
+    additionalDatasets: new Setting<AdditionalDataset[]>(
+        'additionalDatasets',
+        [],
+        getArrayValidator<AdditionalDataset>(['speed', 'hr', 'cad', 'atemp', 'power'])
+    ),
+    elevationFill: new Setting<ElevationFill>(
+        'elevationFill',
+        undefined,
+        getValueValidator(['slope', 'surface', undefined], undefined)
+    ),
     treeFileView: new Setting<boolean>('fileView', false),
     minimizeRoutingMenu: new Setting('minimizeRoutingMenu', false),
     routing: new Setting('routing', true),
-    routingProfile: new Setting('routingProfile', 'bike'),
+    routingProfile: new Setting<RoutingProfile>(
+        'routingProfile',
+        'bike',
+        getValueValidator<RoutingProfile>(
+            [
+                'bike',
+                'racing_bike',
+                'gravel_bike',
+                'mountain_bike',
+                'foot',
+                'motorcycle',
+                'water',
+                'railway',
+            ],
+            'bike'
+        )
+    ),
     privateRoads: new Setting('privateRoads', false),
-    currentBasemap: new Setting('currentBasemap', defaultBasemap),
-    previousBasemap: new Setting('previousBasemap', defaultBasemap),
-    selectedBasemapTree: new Setting('selectedBasemapTree', defaultBasemapTree),
-    currentOverlays: new SettingInitOnFirstRead('currentOverlays', defaultOverlays),
-    previousOverlays: new Setting('previousOverlays', defaultOverlays),
-    selectedOverlayTree: new Setting('selectedOverlayTree', defaultOverlayTree),
+    currentBasemap: new Setting(
+        'currentBasemap',
+        defaultBasemap,
+        getLayerValidator(basemaps, defaultBasemap)
+    ),
+    previousBasemap: new Setting(
+        'previousBasemap',
+        defaultBasemap,
+        getLayerValidator(Object.keys(basemaps), defaultBasemap)
+    ),
+    selectedBasemapTree: new Setting(
+        'selectedBasemapTree',
+        defaultBasemapTree,
+        getLayerTreeValidator(basemaps)
+    ),
+    currentOverlays: new SettingInitOnFirstRead(
+        'currentOverlays',
+        defaultOverlays,
+        getLayerTreeValidator(overlays)
+    ),
+    previousOverlays: new Setting(
+        'previousOverlays',
+        defaultOverlays,
+        getLayerTreeValidator(overlays)
+    ),
+    selectedOverlayTree: new Setting(
+        'selectedOverlayTree',
+        defaultOverlayTree,
+        getLayerTreeValidator(overlays)
+    ),
     currentOverpassQueries: new SettingInitOnFirstRead(
         'currentOverpassQueries',
-        defaultOverpassQueries
+        defaultOverpassQueries,
+        getLayerTreeValidator(overpassQueryData)
     ),
-    selectedOverpassTree: new Setting('selectedOverpassTree', defaultOverpassTree),
+    selectedOverpassTree: new Setting(
+        'selectedOverpassTree',
+        defaultOverpassTree,
+        getLayerTreeValidator(overpassQueryData)
+    ),
     opacities: new Setting('opacities', defaultOpacities),
     customLayers: new Setting<Record<string, CustomLayer>>('customLayers', {}),
     customBasemapOrder: new Setting<string[]>('customBasemapOrder', []),
     customOverlayOrder: new Setting<string[]>('customOverlayOrder', []),
-    terrainSource: new Setting('terrainSource', defaultTerrainSource),
+    terrainSource: new Setting<TerrainSource>(
+        'terrainSource',
+        defaultTerrainSource,
+        getValueValidator(['maptiler-dem', 'mapterhorn'], defaultTerrainSource)
+    ),
     directionMarkers: new Setting('directionMarkers', false),
     distanceMarkers: new Setting('distanceMarkers', false),
-    streetViewSource: new Setting('streetViewSource', 'mapillary'),
+    streetViewSource: new Setting<StreetViewSource>(
+        'streetViewSource',
+        'mapillary',
+        getValueValidator<StreetViewSource>(['mapillary', 'google'], 'mapillary')
+    ),
     fileOrder: new Setting<string[]>('fileOrder', []),
     defaultOpacity: new Setting('defaultOpacity', 0.7),
     defaultWidth: new Setting('defaultWidth', browser && window.innerWidth < 600 ? 8 : 5),

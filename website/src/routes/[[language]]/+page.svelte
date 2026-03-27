@@ -29,12 +29,12 @@
         data: {
             fundingModule: Promise<any>;
             translationModule: Promise<any>;
-            mapboxModule: Promise<any>;
         };
     } = $props();
 
     let gpxStatistics = writable(exampleGPXFile.getStatistics());
     let slicedGPXStatistics = writable(undefined);
+    let hoveredPoint = writable(null);
     let additionalDatasets = writable(['speed', 'atemp']);
     let elevationFill = writable(undefined);
 
@@ -152,14 +152,14 @@
                 class="relative w-full max-w-[320px] aspect-square rounded-2xl shadow-xl overflow-clip"
             >
                 <enhanced:img
-                    src="/src/lib/assets/img/home/mapbox-outdoors.png"
-                    alt="Mapbox Outdoors map screenshot."
+                    src="/src/lib/assets/img/home/maptiler-topo.png"
+                    alt="MapTiler Topo map screenshot."
                     class="absolute"
                     style="clip-path: inset(0 50% 50% 0);"
                 />
                 <enhanced:img
-                    src="/src/lib/assets/img/home/mapbox-satellite.png"
-                    alt="Mapbox Satellite map screenshot."
+                    src="/src/lib/assets/img/home/maptiler-satellite.png"
+                    alt="MapTiler Satellite map screenshot."
                     class="absolute"
                     style="clip-path: inset(0 0 50% 50%);"
                 />
@@ -197,6 +197,7 @@
             <ElevationProfile
                 {gpxStatistics}
                 {slicedGPXStatistics}
+                {hoveredPoint}
                 {additionalDatasets}
                 {elevationFill}
             />
@@ -268,25 +269,6 @@
                 <PenLine size="16" />
                 <span>{i18n._('homepage.contribute')}</span>
             </Button>
-        </div>
-    </div>
-    <div class="px-12 md:px-24 flex flex-col items-center">
-        <div
-            class="max-w-4xl flex flex-col lg:flex-row items-center justify-center gap-x-12 gap-y-6 p-6 border rounded-2xl shadow-xl bg-secondary"
-        >
-            <div
-                class="shrink-0 flex flex-col sm:flex-row lg:flex-col items-center gap-x-4 gap-y-2"
-            >
-                <div class="text-lg font-semibold text-muted-foreground">
-                    ❤️ {i18n._('homepage.supported_by')}
-                </div>
-                <a href="https://www.mapbox.com/" target="_blank">
-                    <Logo company="mapbox" class="w-60" />
-                </a>
-            </div>
-            {#await data.mapboxModule then mapboxModule}
-                <DocsContainer module={mapboxModule.default} />
-            {/await}
         </div>
     </div>
 </div>

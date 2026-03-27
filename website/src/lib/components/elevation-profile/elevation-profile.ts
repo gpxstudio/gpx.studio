@@ -20,10 +20,8 @@ import Chart, {
     type ScriptableLineSegmentContext,
     type TooltipItem,
 } from 'chart.js/auto';
-import mapboxgl from 'mapbox-gl';
 import { get, type Readable, type Writable } from 'svelte/store';
-import { map } from '$lib/components/map/map';
-import type { GPXGlobalStatistics, GPXStatisticsGroup } from 'gpx';
+import type { Coordinates, GPXGlobalStatistics, GPXStatisticsGroup } from 'gpx';
 import { mode } from 'mode-watcher';
 import { getHighwayColor, getSlopeColor, getSurfaceColor } from '$lib/assets/colors';
 
@@ -42,7 +40,7 @@ interface ElevationProfilePoint {
         length: number;
     };
     extensions: Record<string, any>;
-    coordinates: [number, number];
+    coordinates: Coordinates;
     index: number;
 }
 
@@ -50,18 +48,19 @@ export class ElevationProfile {
     private _chart: Chart | null = null;
     private _canvas: HTMLCanvasElement;
     private _overlay: HTMLCanvasElement;
-    private _marker: mapboxgl.Marker | null = null;
     private _dragging = false;
     private _panning = false;
 
     private _gpxStatistics: Readable<GPXStatisticsGroup>;
     private _slicedGPXStatistics: Writable<[GPXGlobalStatistics, number, number] | undefined>;
+    private _hoveredPoint: Writable<Coordinates | null>;
     private _additionalDatasets: Readable<string[]>;
     private _elevationFill: Readable<'slope' | 'surface' | 'highway' | undefined>;
 
     constructor(
         gpxStatistics: Readable<GPXStatisticsGroup>,
         slicedGPXStatistics: Writable<[GPXGlobalStatistics, number, number] | undefined>,
+        hoveredPoint: Writable<Coordinates | null>,
         additionalDatasets: Readable<string[]>,
         elevationFill: Readable<'slope' | 'surface' | 'highway' | undefined>,
         canvas: HTMLCanvasElement,
@@ -69,16 +68,11 @@ export class ElevationProfile {
     ) {
         this._gpxStatistics = gpxStatistics;
         this._slicedGPXStatistics = slicedGPXStatistics;
+        this._hoveredPoint = hoveredPoint;
         this._additionalDatasets = additionalDatasets;
         this._elevationFill = elevationFill;
         this._canvas = canvas;
         this._overlay = overlay;
-
-        let element = document.createElement('div');
-        element.className = 'h-4 w-4 rounded-full bg-cyan-500 border-2 border-white';
-        this._marker = new mapboxgl.Marker({
-            element,
-        });
 
         import('chartjs-plugin-zoom').then((module) => {
             Chart.register(module.default);
@@ -162,14 +156,10 @@ export class ElevationProfile {
                         label: (context: TooltipItem<'line'>) => {
                             let point = context.raw as ElevationProfilePoint;
                             if (context.datasetIndex === 0) {
-                                const map_ = get(map);
-                                if (map_ && this._marker) {
-                                    if (this._dragging) {
-                                        this._marker.remove();
-                                    } else {
-                                        this._marker.setLngLat(point.coordinates);
-                                        this._marker.addTo(map_);
-                                    }
+                                if (this._dragging) {
+                                    this._hoveredPoint.set(null);
+                                } else {
+                                    this._hoveredPoint.set(point.coordinates);
                                 }
                                 return `${i18n._('quantities.elevation')}: ${getElevationWithUnits(point.y, false)}`;
                             } else if (context.datasetIndex === 1) {
@@ -312,10 +302,7 @@ export class ElevationProfile {
                     events: ['mouseout'],
                     afterEvent: (chart: Chart, args: { event: ChartEvent }) => {
                         if (args.event.type === 'mouseout') {
-                            const map_ = get(map);
-                            if (map_ && this._marker) {
-                                this._marker.remove();
-                            }
+                            this._hoveredPoint.set(null);
                         }
                     },
                 },
@@ -636,9 +623,6 @@ export class ElevationProfile {
         if (this._chart) {
             this._chart.destroy();
             this._chart = null;
-        }
-        if (this._marker) {
-            this._marker.remove();
         }
     }
 }

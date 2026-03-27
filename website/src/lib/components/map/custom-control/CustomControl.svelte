@@ -17,7 +17,7 @@
     let control: CustomControl | null = null;
 
     onMount(() => {
-        map.onLoad((map: mapboxgl.Map) => {
+        map.onLoad((map: maplibregl.Map) => {
             if (position.includes('right')) container.classList.add('float-right');
             else container.classList.add('float-left');
             container.classList.remove('hidden');

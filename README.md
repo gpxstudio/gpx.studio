@@ -42,11 +42,11 @@ npm run build
 
 ### Running the website
 
-To be able to load the map, you will need to create your own <a href="https://account.mapbox.com/auth/signup" target="_blank">Mapbox access token</a> and store it in a `.env` file in the `website` directory.
+To be able to load the map, you will need to create your own <a href="https://cloud.maptiler.com/auth/widget?next=https://cloud.maptiler.com/maps/" target="_blank">MapTiler key</a> and store it in a `.env` file in the `website` directory.
 
 ```bash
 cd website
-echo PUBLIC_MAPBOX_TOKEN={YOUR_MAPBOX_TOKEN} >> .env
+echo PUBLIC_MAPTILER_KEY={YOUR_MAPTILER_KEY} >> .env
 npm install
 npm run dev
 ```
@@ -69,9 +69,9 @@ This project has been made possible thanks to the following open source projects
     - [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser) — fast GPX file parsing
     - [SortableJS](https://github.com/SortableJS/Sortable) — creating a sortable file tree
 - Mapping:
-    - [Mapbox GL JS](https://github.com/mapbox/mapbox-gl-js) — beautiful and fast interactive maps
+    - [MapLibre GL JS](https://github.com/maplibre/maplibre-gl-js) — beautiful and fast interactive map rendering
     - [GraphHopper](https://github.com/graphhopper/graphhopper) — routing engine
-    - [OpenStreetMap](https://www.openstreetmap.org) — map data used by Mapbox and GraphHopper
+    - [OpenStreetMap](https://www.openstreetmap.org) — map data used by most of the map layers, and by the routing engine
 - Search:
     - [DocSearch](https://github.com/algolia/docsearch) — search engine for the documentation
 

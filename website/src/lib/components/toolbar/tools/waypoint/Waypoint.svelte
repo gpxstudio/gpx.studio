@@ -16,7 +16,7 @@
     import { fileActions } from '$lib/logic/file-actions';
     import { map } from '$lib/components/map/map';
     import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
-    import mapboxgl from 'mapbox-gl';
+    import maplibregl from 'maplibre-gl';
     import { getSvgForSymbol } from '$lib/components/map/gpx-layer/gpx-layer';
 
     let props: {
@@ -41,7 +41,7 @@
         })
     );
 
-    let marker: mapboxgl.Marker | null = null;
+    let marker: maplibregl.Marker | null = null;
 
     function reset() {
         if ($selectedWaypoint) {
@@ -125,7 +125,7 @@
                     let element = document.createElement('div');
                     element.classList.add('w-8', 'h-8');
                     element.innerHTML = getSvgForSymbol(symbolKey);
-                    marker = new mapboxgl.Marker({
+                    marker = new maplibregl.Marker({
                         element,
                         anchor: 'bottom',
                     })

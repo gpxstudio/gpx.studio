@@ -6,7 +6,10 @@ import { overpassQueryData } from '$lib/assets/layers';
 import { MapPopup } from '$lib/components/map/map-popup';
 import { settings } from '$lib/logic/settings';
 import { db } from '$lib/db';
-import { ANCHOR_LAYER_KEY } from '$lib/components/map/map';
+import type { GeoJSONSource } from 'maplibre-gl';
+import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
+import type { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
+import { loadSVGIcon } from '$lib/utils';
 
 const { currentOverpassQueries } = settings;
 
@@ -25,7 +28,8 @@ export class OverpassLayer {
     minZoom = 12;
     queryZoom = 12;
     expirationTime = 7 * 24 * 3600 * 1000;
-    map: mapboxgl.Map;
+    map: maplibregl.Map;
+    layerEventManager: MapLayerEventManager;
     popup: MapPopup;
 
     currentQueries: Set<string> = new Set();
@@ -36,8 +40,9 @@ export class OverpassLayer {
     updateBinded = this.update.bind(this);
     onHoverBinded = this.onHover.bind(this);
 
-    constructor(map: mapboxgl.Map) {
+    constructor(map: maplibregl.Map, layerEventManager: MapLayerEventManager) {
         this.map = map;
+        this.layerEventManager = layerEventManager;
         this.popup = new MapPopup(map, {
             closeButton: false,
             focusAfterOpen: false,
@@ -48,7 +53,7 @@ export class OverpassLayer {
 
     add() {
         this.map.on('moveend', this.queryIfNeededBinded);
-        this.map.on('style.import.load', this.updateBinded);
+        this.map.on('style.load', this.updateBinded);
         this.unsubscribes.push(data.subscribe(this.updateBinded));
         this.unsubscribes.push(
             currentOverpassQueries.subscribe(() => {
@@ -72,10 +77,17 @@ export class OverpassLayer {
     update() {
         this.loadIcons();
 
-        let d = get(data);
+        const fullData = get(data);
+        const queries = getCurrentQueries();
+        const d: GeoJSON.FeatureCollection = {
+            type: 'FeatureCollection',
+            features: fullData.features.filter((feature) =>
+                queries.includes(feature.properties!.query)
+            ),
+        };
 
         try {
-            let source = this.map.getSource('overpass') as mapboxgl.GeoJSONSource | undefined;
+            let source = this.map.getSource('overpass') as GeoJSONSource | undefined;
             if (source) {
                 source.setData(d);
             } else {
@@ -101,13 +113,9 @@ export class OverpassLayer {
                     ANCHOR_LAYER_KEY.overpass
                 );
 
-                this.map.on('mouseenter', 'overpass', this.onHoverBinded);
-                this.map.on('click', 'overpass', this.onHoverBinded);
+                this.layerEventManager.on('mouseenter', 'overpass', this.onHoverBinded);
+                this.layerEventManager.on('click', 'overpass', this.onHoverBinded);
             }
-
-            this.map.setFilter('overpass', ['in', 'query', ...getCurrentQueries()], {
-                validate: false,
-            });
         } catch (e) {
             // No reliable way to check if the map is ready to add sources and layers
         }
@@ -115,7 +123,9 @@ export class OverpassLayer {
 
     remove() {
         this.map.off('moveend', this.queryIfNeededBinded);
-        this.map.off('style.import.load', this.updateBinded);
+        this.map.off('style.load', this.updateBinded);
+        this.layerEventManager.off('mouseenter', 'overpass', this.onHoverBinded);
+        this.layerEventManager.off('click', 'overpass', this.onHoverBinded);
         this.unsubscribes.forEach((unsubscribe) => unsubscribe());
 
         try {
@@ -248,27 +258,16 @@ export class OverpassLayer {
     loadIcons() {
         let currentQueries = getCurrentQueries();
         currentQueries.forEach((query) => {
-            if (!this.map.hasImage(`overpass-${query}`)) {
-                let icon = new Image(100, 100);
-                icon.onload = () => {
-                    if (!this.map.hasImage(`overpass-${query}`)) {
-                        this.map.addImage(`overpass-${query}`, icon);
-                    }
-                };
-
-                // Lucide icons are SVG files with a 24x24 viewBox
-                // Create a new SVG with a 32x32 viewBox and center the icon in a circle
-                icon.src =
-                    'data:image/svg+xml,' +
-                    encodeURIComponent(`
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+            loadSVGIcon(
+                this.map,
+                `overpass-${query}`,
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
                     <circle cx="20" cy="20" r="20" fill="${overpassQueryData[query].icon.color}" />
                     <g transform="translate(8 8)">
                     ${overpassQueryData[query].icon.svg.replace('stroke="currentColor"', 'stroke="white"')}
                     </g>
-                </svg>
-            `);
-            }
+                </svg>`
+            );
         });
     }
 }
