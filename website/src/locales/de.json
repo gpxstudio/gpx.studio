@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Höhendaten anfragen",
-            "help": "Das Anfordern von Höhendaten löscht die vorhandenen Höhendaten, falls vorhanden, und ersetzt diese durch Daten von Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Wählen Sie ein Datei-Element, um Höhendaten anzufordern."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "Neue benutzerdefinierte Ebene",
             "edit": "Eigene Ebene bearbeiten",
             "urls": "URL(s)",
-            "url_placeholder": "WMTS, WMS oder Mapbox Stil JSON",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Max. Zoom",
             "layer_type": "Ebenenart",
             "basemap": "Basiskarte",
@@ -302,8 +302,9 @@
             "switzerland": "Schweiz",
             "united_kingdom": "Großbritannien",
             "united_states": "USA",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satellit",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "Straßenbahnhaltestelle",
             "bus-stop": "Bushaltestelle",
             "ferry": "Fähre",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Erstelle deine eigene Karte!",
-        "mapbox_token": "Mapbox Zugangs-Token",
+        "maptiler_key": "MapTiler key",
         "file_urls": "Datei URLs (getrennt durch Kommas)",
         "drive_ids": "Google Drive Datei IDs (getrennt durch Kommas)",
         "basemap": "Basiskarte",
