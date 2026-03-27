@@ -251,7 +251,7 @@ export class GPXLayer {
                             source: this.fileId,
                             layout: {
                                 'text-field': '»',
-                                'text-offset': [0, -0.1],
+                                'text-offset': [0, -0.06],
                                 'text-keep-upright': false,
                                 'text-max-angle': 361,
                                 'text-allow-overlap': true,
@@ -261,7 +261,6 @@ export class GPXLayer {
                             },
                             paint: {
                                 'text-color': 'white',
-                                'text-opacity': 0.7,
                                 'text-halo-width': 0.2,
                                 'text-halo-color': 'white',
                             },
