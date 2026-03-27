@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Clic",
         "drag": "Glisser",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Infos...",
             "name": "Nom",
