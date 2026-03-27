@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Vyžádat si výškové údaje",
-            "help": "Vyžádáte-li si údaje o nadmořské výšce, vymažou se stávající výškové údaje, pokud existují, a nahradí se údaji z Mapboxu.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Vyberte položku souboru pro vyžádání výškových dat."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "Nová vlastní vrstva",
             "edit": "Upravit vlastní vrstvu",
             "urls": "Adresy URL",
-            "url_placeholder": "WMTS, WMS nebo Mapbox style JSON",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Max. přiblížení",
             "layer_type": "Typ vrstvy",
             "basemap": "Základní mapa",
@@ -302,8 +302,9 @@
             "switzerland": "Švýcarsko",
             "united_kingdom": "Velká Británie",
             "united_states": "Spojené státy",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satellite",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "Zastávka tramvaje",
             "bus-stop": "Autobusová zastávka",
             "ferry": "Trajekt",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Vytvořte si vlastní mapu",
-        "mapbox_token": "Přístupový token Mapbox",
+        "maptiler_key": "MapTiler key",
         "file_urls": "URL souborů (oddělené čárkami)",
         "drive_ids": "ID souborů Google Drive (oddělené čárkami)",
         "basemap": "Základní mapa",
