@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Sol·licita dades d'altimetria",
-            "help": "Sol·licitar dades d'altimetria eliminarà qualsevol dada d'altimetria existent i ho reemplaçarà amb dades de Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Seleccioneu un fitxer per sol·licitar dades d'altimetria."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "Nova capa a mida",
             "edit": "Edita una capa a mida",
             "urls": "URL(s)",
-            "url_placeholder": "WMTS, WMS o Mapbox estil JSON",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Zoom màxim",
             "layer_type": "Tipus de capa",
             "basemap": "Mapa base",
@@ -302,8 +302,9 @@
             "switzerland": "Suïssa",
             "united_kingdom": "Regne Unit",
             "united_states": "Estats Units",
-            "mapboxOutdoors": "Mapbox a l'aire lliure",
-            "mapboxSatellite": "Mapbox Satèl·lit",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "Parada de tramvia",
             "bus-stop": "Parada d'autobús",
             "ferry": "Ferri",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Crea el teu propi mapa",
-        "mapbox_token": "Token d'accés a Mapbox",
+        "maptiler_key": "MapTiler key",
         "file_urls": "URL dels fitxers (separades per comes)",
         "drive_ids": "ID del fitxer a Google Drive (separats per comes)",
         "basemap": "Mapa base",
