@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Клик",
         "drag": "Перетащить",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Информация...",
             "name": "Название",
