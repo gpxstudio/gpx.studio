@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Request elevation data",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Select a file item to request elevation data."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "Strat nou personalizat",
             "edit": "Editează strat personalizat",
             "urls": "URL(s)",
-            "url_placeholder": "Fișier JSON de tipul WMTS, WMS sau Mapbox",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Zoom maxim",
             "layer_type": "Tipul stratului",
             "basemap": "Hartă de bază",
@@ -302,8 +302,9 @@
             "switzerland": "Elveția",
             "united_kingdom": "Regatul Unit",
             "united_states": "Statele Unite ale Americii",
-            "mapboxOutdoors": "Mapbox exterior",
-            "mapboxSatellite": "Mapbox Satellite",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "Tram Stop",
             "bus-stop": "Stație de autobuz",
             "ferry": "Feribot",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Create your own map",
-        "mapbox_token": "Mapbox access token",
+        "maptiler_key": "MapTiler key",
         "file_urls": "File URLs (separated by commas)",
         "drive_ids": "Google Drive file IDs (separated by commas)",
         "basemap": "Basemap",
