@@ -12,6 +12,7 @@ title: Datoteke i statistike
 
     let gpxStatistics = writable(exampleGPXFile.getStatistics());
     let slicedGPXStatistics = writable(undefined);
+    let hoveredPoint = writable(null);
     let additionalDatasets = writable(['speed', 'atemp']);
     let elevationFill = writable(undefined);
 </script>
@@ -84,6 +85,7 @@ Takođe možete da koristite točkić miša da zumirate i umanjite profil nadmo
     <ElevationProfile
         {gpxStatistics}
         {slicedGPXStatistics}
+        {hoveredPoint}
         {additionalDatasets}
         {elevationFill}
     />
