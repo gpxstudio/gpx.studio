@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Clique",
         "drag": "Arrastar",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Informações...",
             "name": "Nome",
