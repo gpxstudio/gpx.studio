@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Klik",
         "drag": "Prevucite",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Informacije...",
             "name": "Naziv",
