@@ -73,7 +73,7 @@
         "immer": "^10.1.1",
         "jszip": "^3.10.1",
         "mapillary-js": "^4.1.2",
-        "maplibre-gl": "^5.16.0",
+        "maplibre-gl": "^5.21.1",
         "sanitize-html": "^2.17.0",
         "sortablejs": "^1.15.6",
         "tailwind-merge": "^3.3.0"
