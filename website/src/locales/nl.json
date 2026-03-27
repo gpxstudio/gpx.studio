@@ -234,7 +234,7 @@
         },
         "elevation": {
             "button": "Hoogtegegevens opvragen",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
+            "help": "Het opvragen van hoogtegegevens verwijdert de bestaande hoogtegegevens, indien aanwezig, en vervangt deze door gegevens van MapTiler.",
             "help_no_selection": "Selecteer een bestand om hoogte gegevens op te vragen."
         },
         "waypoint": {
@@ -276,7 +276,7 @@
             "new": "Nieuwe aangepaste laag",
             "edit": "Aangepaste laag bewerken",
             "urls": "URL('s)",
-            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
+            "url_placeholder": "WMTS, WMS of MapLibre stijl JSON",
             "max_zoom": "Maximale zoom",
             "layer_type": "Type van de laag",
             "basemap": "Basiskaart",
@@ -303,9 +303,10 @@
             "switzerland": "Zwitserland",
             "united_kingdom": "Verenigd Koninkrijk",
             "united_states": "Verenigde Staten",
+            "maptilerStreets": "MapTiler Streets",
             "maptilerTopo": "MapTiler Topo",
-            "maptilerOutdoors": "MapTiler Outdoors",
-            "maptilerSatellite": "MapTiler Satellite",
+            "maptilerOutdoors": "MapTiler Buiten",
+            "maptilerSatellite": "MapTiler satelliet",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -527,7 +528,7 @@
     },
     "embedding": {
         "title": "Maak je eigen kaart",
-        "maptiler_key": "MapTiler key",
+        "maptiler_key": "MapTiler sleutel",
         "file_urls": "Bestands URL's (komma gescheiden)",
         "drive_ids": "Google Drive bestand ID's (gescheiden door komma's)",
         "basemap": "Basiskaart",
