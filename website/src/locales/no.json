@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Be om høydedata",
-            "help": "Å be om høydedata sletter eksisterende høydedata, hvis noen, og erstatter det med data fra Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Velg et element for å be om høydedata."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "Nytt egendefinert lag",
             "edit": "Redigere egendefinert lag",
             "urls": "Nettadresse(r)",
-            "url_placeholder": "WMTS-, WMS-, eller Mapbox stil JSON",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Maks forstørring",
             "layer_type": "Lagtype",
             "basemap": "Basiskart",
@@ -302,8 +302,9 @@
             "switzerland": "Sveits",
             "united_kingdom": "Storbritannia",
             "united_states": "USA",
-            "mapboxOutdoors": "Mapbox Utendørs",
-            "mapboxSatellite": "Mapbox Satellitt",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "Trikkestopp",
             "bus-stop": "Bussholdeplass",
             "ferry": "Ferge",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Lag ditt eget kart",
-        "mapbox_token": "Tilgangskode for Mapbox",
+        "maptiler_key": "MapTiler key",
         "file_urls": "Fil URL'er (adskilt med komma)",
         "drive_ids": "Google Drive fil-ID'er (separert med komma)",
         "basemap": "Basiskart",
