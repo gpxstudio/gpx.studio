@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Kliknout",
         "drag": "Přetáhnout",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Informace...",
             "name": "Název",
