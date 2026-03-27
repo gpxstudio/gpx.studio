@@ -55,6 +55,7 @@ export class RoutingControls {
     fileUnsubscribe: () => void = () => {};
     unsubscribes: Function[] = [];
 
+    updateControlsBinded: () => void = this.updateControls.bind(this);
     appendAnchorBinded: (e: MapMouseEvent) => void = this.appendAnchor.bind(this);
 
     draggedAnchorIndex: number | null = null;
@@ -129,10 +130,11 @@ export class RoutingControls {
 
         this.loadIcons();
 
+        map_.on('style.load', this.updateControlsBinded);
         map_.on('click', this.appendAnchorBinded);
         layerEventManager.on('mousemove', this.fileId, this.showTemporaryAnchorBinded);
 
-        this.fileUnsubscribe = this.file.subscribe(this.updateControls.bind(this));
+        this.fileUnsubscribe = this.file.subscribe(this.updateControlsBinded);
     }
 
     updateControls() {
@@ -232,6 +234,7 @@ export class RoutingControls {
 
         this.active = false;
 
+        map_?.off('style.load', this.updateControlsBinded);
         map_?.off('click', this.appendAnchorBinded);
         layerEventManager?.off('mousemove', this.fileId, this.showTemporaryAnchorBinded);
         map_?.off('mousemove', this.updateTemporaryAnchorBinded);
