@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Nhấp chuột",
         "drag": "Kéo",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Thông tin...",
             "name": "Tên",
