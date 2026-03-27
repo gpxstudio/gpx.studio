@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Dodaj dane o wysokości terenu",
-            "help": "Dodanie tych danych nadpisze wszystkie naniesione informacje o wysokościach danymi pobranymi z Mapbox. ",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Wybierz plik do wczytania danych o wysokości w terenie."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "Nowa warstwa niestandardowa",
             "edit": "Edytuj niestandardową warstwę",
             "urls": "URL(e)",
-            "url_placeholder": "JSON w stylu WMTS, WMS lub Mapbox",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Maksymalne powiększenie",
             "layer_type": "Rodzaj warstwy",
             "basemap": "Mapa bazowa",
@@ -302,8 +302,9 @@
             "switzerland": "Szwajcaria",
             "united_kingdom": "Wielka Brytania",
             "united_states": "Stany Zjednoczone",
-            "mapboxOutdoors": "Teren (Mapbox)",
-            "mapboxSatellite": "Satelita (Mapbox)",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "Przystanek tramwajowy",
             "bus-stop": "Przystanek autobusowy",
             "ferry": "Prom",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Utwórz własną mapę",
-        "mapbox_token": "Token dostępu do Mapbox",
+        "maptiler_key": "MapTiler key",
         "file_urls": "Adres URL do pliku (rozdzielonego przecinkami)",
         "drive_ids": "ID pliku na Google Drive (rozdzielonego przecinkami)",
         "basemap": "Mapa bazowa",
