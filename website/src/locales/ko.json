@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "",
         "drag": "Drag",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "정보...",
             "name": "이름",
