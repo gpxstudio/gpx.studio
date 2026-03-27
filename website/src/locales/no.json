@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Klikk",
         "drag": "Dra",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Informasjon...",
             "name": "Navn",
