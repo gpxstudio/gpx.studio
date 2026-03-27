@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Yükselti verisi talep et",
-            "help": "Yükselti verisi talep etmek, varsa mevcut yükselti verilerini silecek ve Mapbox verisi ile değiştirecektir.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Yükselti verisi talep etmek için bir dosya öğesi seçin."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "Yeni özel katman",
             "edit": "Özel katmanı düzenle",
             "urls": "URL(ler)",
-            "url_placeholder": "WMTS, WMS veya Mapbox JSON stili",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Maksimum yakınlık",
             "layer_type": "Katman Tipi",
             "basemap": "Temel Harita",
@@ -302,8 +302,9 @@
             "switzerland": "İsviçre",
             "united_kingdom": "Birleşik Krallık",
             "united_states": "Birlişik Devletler",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Uydu",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "Tramvay Durağı",
             "bus-stop": "Otobüs Durağı",
             "ferry": "Feribot",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Kendi haritanı oluştur!",
-        "mapbox_token": "Mapbox erişim token'ı",
+        "maptiler_key": "MapTiler key",
         "file_urls": "Dosya URLleri (virgülle ayrımış)",
         "drive_ids": "Google Drive dosya ID'si (virgülle ayrılmış)",
         "basemap": "Temel Harita",
