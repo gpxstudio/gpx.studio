@@ -31,7 +31,7 @@ export class StartEndMarkers {
     unsubscribes: (() => void)[] = [];
 
     constructor() {
-        map.onLoad(() => this.update());
+        map.onLoad((map_) => map_.on('style.load', this.updateBinded));
         this.unsubscribes.push(gpxStatistics.subscribe(this.updateBinded));
         this.unsubscribes.push(slicedGPXStatistics.subscribe(this.updateBinded));
         this.unsubscribes.push(hoveredPoint.subscribe(this.updateBinded));
