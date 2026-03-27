@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Запросить данные о высоте",
-            "help": "При запросе данных о высоте будут удалены существующие данные о высотах, если таковые имеются, и заменены данными из Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Выберите файл для запроса данных о высоте."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "Новый пользовательский слой",
             "edit": "Редактировать пользовательский слой",
             "urls": "URL-адрес(а)",
-            "url_placeholder": "WMTS, WMS или стиль Mapbox JSON",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Максимальное приближение",
             "layer_type": "Тип слоя",
             "basemap": "Основная карта",
@@ -302,8 +302,9 @@
             "switzerland": "Швейцария",
             "united_kingdom": "Великобритания",
             "united_states": "Соединенные Штаты Америки",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satellite",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "Трамвайная остановка",
             "bus-stop": "Автобусная остановка",
             "ferry": "Паром",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Создайте свою собственную карту",
-        "mapbox_token": "Токен доступа Mapbox",
+        "maptiler_key": "MapTiler key",
         "file_urls": "URL-адреса файлов (разделенные запятыми)",
         "drive_ids": "Идентификаторы файлов Google Диска (разделенные запятыми)",
         "basemap": "Основная карта",
