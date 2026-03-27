@@ -12,6 +12,7 @@ title: Fitxategiak eta estatistikak
 
     let gpxStatistics = writable(exampleGPXFile.getStatistics());
     let slicedGPXStatistics = writable(undefined);
+    let hoveredPoint = writable(null);
     let additionalDatasets = writable(['speed', 'atemp']);
     let elevationFill = writable(undefined);
 </script>
@@ -83,6 +84,7 @@ Saguaren gurpila ere erabil dezakezu altueren profila handitzeko eta mugitzeko e
     <ElevationProfile
         {gpxStatistics}
         {slicedGPXStatistics}
+        {hoveredPoint}
         {additionalDatasets}
         {elevationFill}
     />
