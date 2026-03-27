@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Запит даних висот",
-            "help": "Запит даних висот призведе до видалення наявних даних висот, якщо вони є, і замінить їх даними з Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Виберіть елемент файлу, щоб запросити дані про висоту."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "Новий користувацький шар",
             "edit": "Редагувати користувацький шар",
             "urls": "URL-адреса(и)",
-            "url_placeholder": "WMTS, WMS або Mapbox style JSON",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Максимальний зум",
             "layer_type": "Тип шару",
             "basemap": "Базова карта",
@@ -302,8 +302,9 @@
             "switzerland": "Швейцарія",
             "united_kingdom": "Велика Британія\nВеликобританія",
             "united_states": "Сполучені Штати",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Супутник Mapbox",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "Трамвайна Зупинка",
             "bus-stop": "Автобусна Зупинка",
             "ferry": "Пором",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Створити власну карту",
-        "mapbox_token": "Токен доступу Mapbox",
+        "maptiler_key": "MapTiler key",
         "file_urls": "URL-адреси файлів (розділені комами)",
         "drive_ids": "Ідентифікатори файлів Google Drive (розділені комами)",
         "basemap": "Базова карта",
