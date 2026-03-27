@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Richiedi dati elevazione",
-            "help": "Richiedere dati di altitudine cancellerà i dati di altitudine attuali, se presenti, e li rimpiazzerà con quelli provenienti da Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Seleziona un file per richiedere i dati di altitudine."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "Nuovo livello personalizzato",
             "edit": "Modifica livello personalizzato",
             "urls": "URL(s)",
-            "url_placeholder": "WMTS, WMS o JSON in stile Mapbox",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Zoom massimo",
             "layer_type": "Tipo del layer",
             "basemap": "Mappa Base",
@@ -302,8 +302,9 @@
             "switzerland": "Svizzera",
             "united_kingdom": "United Kingdom",
             "united_states": "Stati Uniti",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satellite",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "Fermata del tram",
             "bus-stop": "Fermata dell'autobus",
             "ferry": "Traghetto",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Crea la tua mappa",
-        "mapbox_token": "Token di accesso a Mapbox",
+        "maptiler_key": "MapTiler key",
         "file_urls": "URL dei file (separati da virgole)",
         "drive_ids": "ID dei file in Google Drive (separati da virgole)",
         "basemap": "Mappa Base",
