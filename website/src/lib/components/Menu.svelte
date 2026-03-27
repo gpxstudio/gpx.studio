@@ -375,7 +375,7 @@
                     <Menubar.Item inset onclick={() => map.toggle3D()}>
                         <Box size="16" />
                         {i18n._('menu.toggle_3d')}
-                        <Shortcut key="{i18n._('menu.ctrl')} {i18n._('menu.drag')}" />
+                        <Shortcut key={i18n._('menu.right_click_drag')} />
                     </Menubar.Item>
                 </Menubar.Content>
             </Menubar.Menu>
