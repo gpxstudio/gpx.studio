@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Request elevation data",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Select a file item to request elevation data."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "사용자 정의 레이어 생성",
             "edit": "사용자 정의 레이어 편집",
             "urls": "URL",
-            "url_placeholder": "WMTS, WMS 또는 Mapbox 스타일 JSON",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "최대 확대 정도",
             "layer_type": "레이어 유형",
             "basemap": "배경 지도",
@@ -302,8 +302,9 @@
             "switzerland": "스위스",
             "united_kingdom": "영국",
             "united_states": "미국",
-            "mapboxOutdoors": "Mapbox 아웃도어",
-            "mapboxSatellite": "Mapbox 위성",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "오픈스트리트맵",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "트램 정류장",
             "bus-stop": "버스 정류장",
             "ferry": "페리",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Create your own map",
-        "mapbox_token": "Mapbox access token",
+        "maptiler_key": "MapTiler key",
         "file_urls": "File URLs (separated by commas)",
         "drive_ids": "Google Drive file IDs (separated by commas)",
         "basemap": "Basemap",
