@@ -12,6 +12,7 @@ title: File e statistiche
 
     let gpxStatistics = writable(exampleGPXFile.getStatistics());
     let slicedGPXStatistics = writable(undefined);
+    let hoveredPoint = writable(null);
     let additionalDatasets = writable(['speed', 'atemp']);
     let elevationFill = writable(undefined);
 </script>
@@ -84,6 +85,7 @@ Fare clic sul profilo per resettare la selezione.
     <ElevationProfile
         {gpxStatistics}
         {slicedGPXStatistics}
+        {hoveredPoint}
         {additionalDatasets}
         {elevationFill}
     />
