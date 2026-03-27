@@ -12,6 +12,7 @@ title: Dosyalar ve istatistikler
 
     let gpxStatistics = writable(exampleGPXFile.getStatistics());
     let slicedGPXStatistics = writable(undefined);
+    let hoveredPoint = writable(null);
     let additionalDatasets = writable(['speed', 'atemp']);
     let elevationFill = writable(undefined);
 </script>
@@ -83,6 +84,7 @@ Ayrıca, fare tekerleği ile yükselti profiline yakınlaşıp uzaklaşabilir ve
     <ElevationProfile
         {gpxStatistics}
         {slicedGPXStatistics}
+        {hoveredPoint}
         {additionalDatasets}
         {elevationFill}
     />
