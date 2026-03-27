@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Hae korkeustiedot",
-            "help": "Tietojen haku korvaa aiemmat korkeustiedot Mapboxin tiedoilla.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Valitse tiedosto, jolle haet korkeustietoja."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "Lisää oma karttataso",
             "edit": "Muokkaa omaa karttatasoa",
             "urls": "URL(t)",
-            "url_placeholder": "WMTS, WMS tai Mapbox style JSON",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Enimmäissuurennus",
             "layer_type": "Tason tyyppi",
             "basemap": "Taustakartta",
@@ -302,8 +302,9 @@
             "switzerland": "Sveitsi",
             "united_kingdom": "Iso-Britannia",
             "united_states": "Yhdysvallat",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satelliittikuva",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "Raitiovaunupysäkit",
             "bus-stop": "Linja-autopysäkit",
             "ferry": "Lautat",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Luo oma kartta",
-        "mapbox_token": "Mapbox access token",
+        "maptiler_key": "MapTiler key",
         "file_urls": "File URLs (separated by commas)",
         "drive_ids": "Google Drive tiedostotunnisteet (pilkkuerotetut)",
         "basemap": "Taustakartta",
