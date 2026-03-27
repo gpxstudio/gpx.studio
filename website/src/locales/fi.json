@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Klikkaa",
         "drag": "Raahaa",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Tiedot...",
             "name": "Nimi",
