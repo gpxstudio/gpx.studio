@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Solicitar dados de elevação",
-            "help": "Solicitar dados de elevação apagará os dados de elevação existentes, se houver, e os substituirá pelos dados do Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Selecione um item de arquivo para solicitar os dados de elevação."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "Nova camada personalizada",
             "edit": "Editar camada personalizada",
             "urls": "URL(s)",
-            "url_placeholder": "WMTS, WMS ou JSON estilo Mapbox",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Zoom máximo",
             "layer_type": "Tipo de camada",
             "basemap": "Mapa-base",
@@ -302,8 +302,9 @@
             "switzerland": "Suíça",
             "united_kingdom": "Reino Unido",
             "united_states": "Estados Unidos",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Satélite do Mapbox",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "Parada de bonde",
             "bus-stop": "Parada de Ônibus",
             "ferry": "Balsa",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Crie seu próprio mapa",
-        "mapbox_token": "Token de acesso do Mapbox",
+        "maptiler_key": "MapTiler key",
         "file_urls": "URLs de arquivos (separados por vírgula)",
         "drive_ids": "IDs de arquivos do Google Drive (separados por vírgulas)",
         "basemap": "Mapa-base",
