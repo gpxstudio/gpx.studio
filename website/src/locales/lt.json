@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Spustelėjimas",
         "drag": "Vilkti",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Informacija...",
             "name": "Pavadinimas",
