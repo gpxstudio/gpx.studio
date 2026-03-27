@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Request elevation data",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Select a file item to request elevation data."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "Naujas vartotojo sluoksnis",
             "edit": "Keisti vartotojo sluoksnį",
             "urls": "URL adresas(-ai)",
-            "url_placeholder": "WMTS, WMS arba Mapbox stiliaus JSON failas",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Didžiausias mastelis",
             "layer_type": "Sluoksnio tipas",
             "basemap": "Pagrindas",
@@ -302,8 +302,9 @@
             "switzerland": "Šveicarija",
             "united_kingdom": "Jungtinė Karalystė",
             "united_states": "Jungtinės Amerikos Valstijos",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satellite",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "Tramvajaus stotelė",
             "bus-stop": "Autobusų stotelė",
             "ferry": "Keltas",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Susikurkite savo žemėlapį",
-        "mapbox_token": "Prieigos prie „Mapbox“ atpažinimo ženklas",
+        "maptiler_key": "MapTiler key",
         "file_urls": "Failų URL adresai (atskirti kableliais)",
         "drive_ids": "Google Drive file IDs (separated by commas)",
         "basemap": "Pagrindo žemėlapis",
