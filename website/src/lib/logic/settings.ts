@@ -185,7 +185,7 @@ type DistanceUnits = 'metric' | 'imperial' | 'nautical';
 type VelocityUnits = 'speed' | 'pace';
 type TemperatureUnits = 'celsius' | 'fahrenheit';
 type AdditionalDataset = 'speed' | 'hr' | 'cad' | 'atemp' | 'power';
-type ElevationFill = 'slope' | 'surface' | undefined;
+type ElevationFill = 'slope' | 'surface' | 'highway' | undefined;
 type RoutingProfile =
     | 'bike'
     | 'racing_bike'
@@ -223,7 +223,7 @@ export const settings = {
     elevationFill: new Setting<ElevationFill>(
         'elevationFill',
         undefined,
-        getValueValidator(['slope', 'surface', undefined], undefined)
+        getValueValidator(['slope', 'surface', 'highway', undefined], undefined)
     ),
     treeFileView: new Setting<boolean>('fileView', false),
     minimizeRoutingMenu: new Setting('minimizeRoutingMenu', false),
