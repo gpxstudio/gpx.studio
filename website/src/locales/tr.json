@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Tıkla",
         "drag": "Sürükle",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Bilgi...",
             "name": "Ad",
