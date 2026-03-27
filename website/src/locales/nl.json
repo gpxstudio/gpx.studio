@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Hoogtegegevens opvragen",
-            "help": "Het opvragen van hoogtegegevens zal de bestaande hoogtegegevens wissen, indien aanwezig, en vervangen door gegevens uit Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Selecteer een bestand om hoogte gegevens op te vragen."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "Nieuwe aangepaste laag",
             "edit": "Aangepaste laag bewerken",
             "urls": "URL('s)",
-            "url_placeholder": "WMTS, WMS of Mapbox-stijl JSON",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Maximale zoom",
             "layer_type": "Type van de laag",
             "basemap": "Basiskaart",
@@ -302,8 +302,9 @@
             "switzerland": "Zwitserland",
             "united_kingdom": "Verenigd Koninkrijk",
             "united_states": "Verenigde Staten",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satelliet",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "Tramhalte",
             "bus-stop": "Bushalte",
             "ferry": "Veerboot",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Maak je eigen kaart",
-        "mapbox_token": "Toegangstoken voor Mapbox",
+        "maptiler_key": "MapTiler key",
         "file_urls": "Bestands URL's (komma gescheiden)",
         "drive_ids": "Google Drive bestand ID's (gescheiden door komma's)",
         "basemap": "Basiskaart",
