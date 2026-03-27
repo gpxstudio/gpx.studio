@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Eskatu altueraren datuak",
-            "help": "Altueraren datuak eskatzeak beren egungo datuak ezabatzea ekarriko du, eta, baldin badago, Mapboxeko datuekin ordezkatzea.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Aukeratu fitxategi bat altuera datuak eskatzeko."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "Geruza pertsonalizatu berria",
             "edit": "Editatu geruza pertsonalizatua",
             "urls": "URLa(k)",
-            "url_placeholder": "WMTS, WMS edo Mapbox-erako JSONa",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Zoom max",
             "layer_type": "Geruza mota",
             "basemap": "Oinarrizko-mapa",
@@ -302,8 +302,9 @@
             "switzerland": "Suitza",
             "united_kingdom": "Erresuma Batua",
             "united_states": "Ameriketako Estatu Batuak",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satelitea",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "Tranbia geltokia",
             "bus-stop": "Autobus geltokia",
             "ferry": "Ferria",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Sortu zure mapa",
-        "mapbox_token": "Mapbox sarbide-tokena",
+        "maptiler_key": "MapTiler key",
         "file_urls": "Fitxategien URLak (komarekin banatuta)",
         "drive_ids": "Google Drive fitxategien IDak (komarekin banatuta)",
         "basemap": "Oinarrizko-mapa",
