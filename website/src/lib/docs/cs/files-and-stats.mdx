@@ -12,6 +12,7 @@ title: Soubory a statistiky
 
     let gpxStatistics = writable(exampleGPXFile.getStatistics());
     let slicedGPXStatistics = writable(undefined);
+    let hoveredPoint = writable(null);
     let additionalDatasets = writable(['speed', 'atemp']);
     let elevationFill = writable(undefined);
 </script>
@@ -84,6 +85,7 @@ Pomocí kolečka myši můžete také výškový profil přiblížit a oddálit 
     <ElevationProfile
         {gpxStatistics}
         {slicedGPXStatistics}
+        {hoveredPoint}
         {additionalDatasets}
         {elevationFill}
     />
