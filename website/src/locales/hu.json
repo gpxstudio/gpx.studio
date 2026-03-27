@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Kattints",
         "drag": "Húzza",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Infó...",
             "name": "Név",
