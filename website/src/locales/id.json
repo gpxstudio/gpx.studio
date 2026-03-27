@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Minta data elevasi",
-            "help": "Meminta data elevasi akan menghapus data elevasi yang ada, jika ada, dan menggantinya dengan data dari Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Pilih item file untuk meminta data elevasi."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "Lapisan kustom baru",
             "edit": "Edit lapisan kustom",
             "urls": "URL",
-            "url_placeholder": "WMTS, WMS, atau JSON gaya Mapbox",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Zoom maksimum",
             "layer_type": "Tipe lapisan",
             "basemap": "Peta dasar",
@@ -302,8 +302,9 @@
             "switzerland": "Swiss",
             "united_kingdom": "Britania Raya",
             "united_states": "Amerika Serikat",
-            "mapboxOutdoors": "Mapbox Luar Ruang",
-            "mapboxSatellite": "Satelit Mapbox",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "Halt trem",
             "bus-stop": "Pemberhentian Bus",
             "ferry": "Feri",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Create your own map",
-        "mapbox_token": "Mapbox access token",
+        "maptiler_key": "MapTiler key",
         "file_urls": "File URLs (separated by commas)",
         "drive_ids": "Google Drive file IDs (separated by commas)",
         "basemap": "Basemap",
