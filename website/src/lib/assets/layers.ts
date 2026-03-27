@@ -31,6 +31,7 @@ import bikerouterGravel from './custom/bikerouter-gravel.json';
 export const maptilerKeyPlaceHolder = 'MAPTILER_KEY';
 
 export const basemaps: { [key: string]: string | StyleSpecification } = {
+    maptilerStreets: `https://api.maptiler.com/maps/streets-v4/style.json?key=${maptilerKeyPlaceHolder}`,
     maptilerTopo: `https://api.maptiler.com/maps/topo-v4/style.json?key=${maptilerKeyPlaceHolder}`,
     maptilerOutdoors: `https://api.maptiler.com/maps/outdoor-v4/style.json?key=${maptilerKeyPlaceHolder}`,
     maptilerSatellite: `https://api.maptiler.com/maps/hybrid-v4/style.json?key=${maptilerKeyPlaceHolder}`,
@@ -776,6 +777,7 @@ export type LayerTreeType = { [key: string]: LayerTreeType | boolean };
 export const basemapTree: LayerTreeType = {
     basemaps: {
         world: {
+            maptilerStreets: true,
             maptilerTopo: true,
             maptilerOutdoors: true,
             maptilerSatellite: true,
@@ -911,7 +913,7 @@ export const overpassTree: LayerTreeType = {
 };
 
 // Default basemap used
-export const defaultBasemap = 'maptilerTopo';
+export const defaultBasemap = 'maptilerStreets';
 
 // Default overlays used (none)
 export const defaultOverlays: LayerTreeType = {
@@ -1000,6 +1002,7 @@ export const defaultOverpassQueries: LayerTreeType = {
 export const defaultBasemapTree: LayerTreeType = {
     basemaps: {
         world: {
+            maptilerStreets: true,
             maptilerTopo: true,
             maptilerOutdoors: true,
             maptilerSatellite: true,

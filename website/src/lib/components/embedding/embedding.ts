@@ -29,7 +29,7 @@ export const defaultEmbeddingOptions = {
     key: '',
     files: [],
     ids: [],
-    basemap: 'maptilerTopo',
+    basemap: 'maptilerStreets',
     elevation: {
         show: true,
         height: 170,
