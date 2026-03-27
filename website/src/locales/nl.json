@@ -63,7 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Klik",
         "drag": "Slepen",
-        "right_click_drag": "Right-click drag",
+        "right_click_drag": "Rechtsklik slepen",
         "metadata": {
             "button": "Info...",
             "name": "Naam",
@@ -303,7 +303,7 @@
             "switzerland": "Zwitserland",
             "united_kingdom": "Verenigd Koninkrijk",
             "united_states": "Verenigde Staten",
-            "maptilerStreets": "MapTiler Streets",
+            "maptilerStreets": "MapTiler straten",
             "maptilerTopo": "MapTiler Topo",
             "maptilerOutdoors": "MapTiler Buiten",
             "maptilerSatellite": "MapTiler satelliet",
