@@ -303,6 +303,7 @@
             "switzerland": "Schweiz",
             "united_kingdom": "Storbritannien",
             "united_states": "USA",
+            "maptilerStreets": "MapTiler Streets",
             "maptilerTopo": "MapTiler Topo",
             "maptilerOutdoors": "MapTiler Outdoors",
             "maptilerSatellite": "MapTiler Satellite",
