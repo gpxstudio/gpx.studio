@@ -68,7 +68,7 @@
     <canvas bind:this={overlay} class="w-full h-full absolute pointer-events-none"></canvas>
     <canvas bind:this={canvas} class="w-full h-full absolute"></canvas>
     {#if showControls}
-        <div class="absolute bottom-10 right-1.5">
+        <div class="absolute bottom-9 right-2.5">
             <Popover.Root>
                 <Popover.Trigger>
                     <ButtonWithTooltip

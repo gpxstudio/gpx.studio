@@ -135,7 +135,7 @@
             bind:offsetWidth={bottomPanelWidth}
             class="flex {bottomPanelOrientation == 'vertical'
                 ? 'flex-col'
-                : 'flex-row py-2'} gap-1 px-2"
+                : 'flex-row py-2'} gap-1 px-4"
             style={$elevationProfile ? `height: ${$bottomPanelSize}px` : ''}
         >
             <GPXStatistics
