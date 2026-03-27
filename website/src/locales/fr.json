@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "Ajouter des données d'altitude",
-            "help": "Ajouter des données d'altitude effacera les données d'altitude existantes, le cas échéant, et les remplacera par des données de Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Sélectionnez un élément de fichier pour ajouter des données d'altitude."
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "Nouvelle couche personnalisée",
             "edit": "Modifier la couche personnalisée",
             "urls": "URL(s)",
-            "url_placeholder": "WMTS, WMS ou Mapbox style JSON",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Zoom max",
             "layer_type": "Type de couche",
             "basemap": "Fond de carte",
@@ -302,8 +302,9 @@
             "switzerland": "Suisse",
             "united_kingdom": "Royaume-Uni",
             "united_states": "États-Unis",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satellite",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "Arrêt de tram",
             "bus-stop": "Arrêt de bus",
             "ferry": "Ferry",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "Créez votre propre carte",
-        "mapbox_token": "Jeton d'accès Mapbox",
+        "maptiler_key": "MapTiler key",
         "file_urls": "URLs des fichiers (séparées par des virgules)",
         "drive_ids": "IDs des fichiers Google Drive (séparés par des virgules)",
         "basemap": "Fond de carte",
