@@ -233,7 +233,7 @@
         },
         "elevation": {
             "button": "请求海拔数据",
-            "help": "请求成功后将移除原有的海拔数据，并使用 Mapbox 的海拔数据替换原有数据。",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "选择要请求海拔数据的文件。"
         },
         "waypoint": {
@@ -275,7 +275,7 @@
             "new": "新建自定义图层",
             "edit": "编辑自定义图层",
             "urls": "URL(s)",
-            "url_placeholder": "WMTS，WMS 或 Mapbox style JSON",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "最大缩放等级",
             "layer_type": "图层类型",
             "basemap": "底图",
@@ -302,8 +302,9 @@
             "switzerland": "瑞士",
             "united_kingdom": "英国",
             "united_states": "美国",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satellite",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -383,7 +384,7 @@
             "tram-stop": "有轨电车站",
             "bus-stop": "小型公交站台",
             "ferry": "渡口",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -525,7 +526,7 @@
     },
     "embedding": {
         "title": "创建您自己的地图",
-        "mapbox_token": "Mapbox 密钥",
+        "maptiler_key": "MapTiler key",
         "file_urls": "文件链接（英文逗号分隔）",
         "drive_ids": "谷歌云盘文件 IDs（英文逗号分隔）",
         "basemap": "底图",
