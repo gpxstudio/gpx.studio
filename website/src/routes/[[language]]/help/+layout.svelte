@@ -1,5 +1,6 @@
 <script lang="ts">
     import { Button } from '$lib/components/ui/button';
+    import AlgoliaDocSearch from '$lib/components/AlgoliaDocSearch.svelte';
     import { getURLForLanguage } from '$lib/utils';
     import { i18n } from '$lib/i18n.svelte';
     import { page } from '$app/state';
@@ -18,9 +19,10 @@
 </script>
 
 <div class="grow px-12 pt-6 pb-12 flex flex-row gap-24">
-    <div
-        class="hidden md:flex flex-col gap-2 w-40 sticky mt-[27px] top-[108px] self-start shrink-0"
-    >
+    <div class="hidden md:flex flex-col gap-2 w-40 sticky top-[108px] self-start shrink-0">
+        <div class="mb-2">
+            <AlgoliaDocSearch />
+        </div>
         {#each Object.keys(guides) as guide}
             <Button
                 variant="link"

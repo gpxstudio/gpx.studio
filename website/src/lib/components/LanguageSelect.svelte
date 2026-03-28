@@ -5,16 +5,10 @@
     import { getURLForLanguage } from '$lib/utils';
     import { Languages } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
-
-    let {
-        class: className = '',
-    }: {
-        class?: string;
-    } = $props();
 </script>
 
 <Select.Root type="single" value={i18n.lang}>
-    <Select.Trigger class="min-w-[180px] {className}" aria-label={i18n._('menu.language')}>
+    <Select.Trigger class="w-[180px] px-2" aria-label={i18n._('menu.language')}>
         <Languages size="16" />
         <span class="mr-auto">
             {languages[i18n.lang]}

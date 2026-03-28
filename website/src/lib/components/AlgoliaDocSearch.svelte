@@ -64,3 +64,9 @@
 </svelte:head>
 
 <div id="docsearch" class={props.class ?? ''}></div>
+
+<style>
+    #docsearch :global(button) {
+        margin-left: 0px;
+    }
+</style>

@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Button } from '$lib/components/ui/button';
     import LanguageSelect from '$lib/components/LanguageSelect.svelte';
+    import ModeSwitch from '$lib/components/ModeSwitch.svelte';
     import Logo from '$lib/components/Logo.svelte';
     import { AtSign, BookOpenText, Heart, House, Map } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
@@ -20,7 +21,10 @@
                 >
                     MIT © 2026 gpx.studio
                 </Button>
-                <LanguageSelect class="w-40 mt-3" />
+                <div class="mt-3 flex flex-row gap-1.5">
+                    <LanguageSelect />
+                    <ModeSwitch />
+                </div>
             </div>
             <div class="grow max-w-2xl flex flex-row flex-wrap justify-between gap-x-10 gap-y-6">
                 <div class="flex flex-col items-start gap-1">

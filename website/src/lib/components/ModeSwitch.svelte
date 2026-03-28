@@ -12,7 +12,7 @@
 </script>
 
 <Button
-    variant="ghost"
+    variant="outline"
     size="icon"
     class={className}
     onclick={() => {
