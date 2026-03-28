@@ -85,9 +85,11 @@ export class StyleManager {
 
         this.merge(style, basemapStyle);
 
-        const terrain = this.getCurrentTerrain();
-        style.sources[terrain.source] = terrainSources[terrain.source];
-        style.terrain = terrain.exaggeration > 0 ? terrain : undefined;
+        if (this._maptilerKey !== '') {
+            const terrain = this.getCurrentTerrain();
+            style.sources[terrain.source] = terrainSources[terrain.source];
+            style.terrain = terrain.exaggeration > 0 ? terrain : undefined;
+        }
 
         style.layers.push(...anchorLayers);
 
@@ -152,6 +154,7 @@ export class StyleManager {
     }
 
     updateTerrain() {
+        if (this._maptilerKey === '') return;
         const map_ = get(this._map);
         if (!map_) return;
 

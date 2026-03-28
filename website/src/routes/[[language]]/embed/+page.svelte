@@ -19,6 +19,9 @@
             return;
         }
         embeddingOptions = getMergedEmbeddingOptions(options);
+        if (embeddingOptions.key === '' && embeddingOptions.basemap.startsWith('maptiler')) {
+            embeddingOptions.basemap = 'openStreetMap';
+        }
     });
 </script>
 

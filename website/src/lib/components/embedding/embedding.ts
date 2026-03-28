@@ -90,6 +90,9 @@ export function getCleanedEmbeddingOptions(
             delete cleanedOptions[key];
         }
     }
+    if (cleanedOptions['key'] && cleanedOptions['key'] === PUBLIC_MAPTILER_KEY) {
+        delete cleanedOptions['key'];
+    }
     return cleanedOptions;
 }
 

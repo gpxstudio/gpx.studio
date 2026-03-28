@@ -528,7 +528,7 @@
     },
     "embedding": {
         "title": "Create your own map",
-        "maptiler_key": "MapTiler key",
+        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
         "file_urls": "File URLs (separated by commas)",
         "drive_ids": "Google Drive file IDs (separated by commas)",
         "basemap": "Basemap",
