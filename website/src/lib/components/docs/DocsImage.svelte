@@ -12,7 +12,7 @@
     <div class="rounded-md overflow-hidden overflow-clip shadow-xl mx-auto">
         {#if src === 'getting-started/interface'}
             <enhanced:img
-                src="/src/lib/assets/img/docs/getting-started/interface.png"
+                src="/src/lib/assets/img/docs/getting-started/interface.webp"
                 {alt}
                 class="w-full max-w-3xl"
             />
@@ -20,13 +20,13 @@
             <enhanced:img
                 src="/src/lib/assets/img/docs/tools/routing.png"
                 {alt}
-                class="w-full max-w-3xl"
+                class="w-full max-w-lg"
             />
         {:else if src === 'tools/split'}
             <enhanced:img
                 src="/src/lib/assets/img/docs/tools/split.png"
                 {alt}
-                class="w-full max-w-3xl"
+                class="w-full max-w-lg"
             />
         {/if}
     </div>

@@ -5,7 +5,7 @@
 
 [**gpx.studio**](https://gpx.studio) is an online tool for creating and editing GPX files.
 
-![gpx.studio screenshot](website/src/lib/assets/img/docs/getting-started/interface.png)
+![gpx.studio screenshot](website/src/lib/assets/img/docs/getting-started/interface.webp)
 
 This repository contains the source code of the website.
 
