@@ -123,7 +123,6 @@
         <GPXStatistics
             {gpxStatistics}
             {slicedGPXStatistics}
-            panelSize={options.elevation.height}
             orientation={options.elevation.show ? 'vertical' : 'horizontal'}
         />
         {#if options.elevation.show}

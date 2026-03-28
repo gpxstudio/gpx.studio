@@ -494,6 +494,7 @@
         "contribute": "Contribute",
         "supported_by": "supported by",
         "support_button": "Support gpx.studio on Open Collective",
+        "features": "Features",
         "route_planning": "Route planning",
         "route_planning_description": "An intuitive interface to create itineraries tailored to each sport, based on OpenStreetMap data.",
         "file_processing": "Advanced file processing",
@@ -502,6 +503,7 @@
         "maps_description": "A large collection of basemaps, overlays and points of interest to help you craft your next outdoor adventure, or visualize your latest achievement.",
         "data_visualization": "Data visualization",
         "data_visualization_description": "An interactive elevation profile with detailed statistics to analyze recorded activities and future objectives.",
+        "philosophy": "Philosophy",
         "identity": "Free, ad-free and open source",
         "identity_description": "The website is free to use, without ads, and the source code is publicly available on GitHub. This is only possible thanks to the incredible support of the community."
     },

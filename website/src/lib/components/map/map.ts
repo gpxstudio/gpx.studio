@@ -54,7 +54,7 @@ export class MapLibreGLMap {
             zoom: 0,
             hash: hash,
             boxZoom: false,
-            maxPitch: 85,
+            maxPitch: 90,
         });
         this.layerEventManager = new MapLayerEventManager(map);
         map.addControl(

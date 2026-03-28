@@ -141,7 +141,6 @@
             <GPXStatistics
                 {gpxStatistics}
                 {slicedGPXStatistics}
-                panelSize={$bottomPanelSize}
                 orientation={bottomPanelOrientation == 'horizontal' ? 'vertical' : 'horizontal'}
             />
             {#if $elevationProfile}

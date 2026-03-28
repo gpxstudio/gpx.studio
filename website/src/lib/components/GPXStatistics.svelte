@@ -12,16 +12,17 @@
 
     const { velocityUnits } = settings;
 
+    let panelHeight: number = $state(0);
+    let panelWidth: number = $state(0);
+
     let {
         gpxStatistics,
         slicedGPXStatistics,
         orientation,
-        panelSize,
     }: {
         gpxStatistics: Readable<GPXStatisticsGroup>;
         slicedGPXStatistics: Readable<[GPXGlobalStatistics, number, number] | undefined>;
         orientation: 'horizontal' | 'vertical';
-        panelSize: number;
     } = $props();
 
     let statistics = $derived(
@@ -32,58 +33,60 @@
 <Card.Root
     class="h-full {orientation === 'vertical'
         ? 'min-w-40 sm:min-w-44'
-        : 'w-full h-10'} border-none shadow-none p-0 text-sm sm:text-base bg-inherit"
+        : 'w-full h-fit my-1'} border-none shadow-none p-0 text-sm sm:text-base bg-transparent"
 >
-    <Card.Content
-        class="h-full flex {orientation === 'vertical'
-            ? 'flex-col justify-center'
-            : 'flex-row w-full justify-evenly'} gap-4 p-0"
-    >
-        <Tooltip label={i18n._('quantities.distance')}>
-            <span class="flex flex-row items-center">
-                <Ruler size="16" class="mr-1" />
-                <WithUnits value={statistics.distance.total} type="distance" />
-            </span>
-        </Tooltip>
-        <Tooltip label={i18n._('quantities.elevation_gain_loss')}>
-            <span class="flex flex-row items-center">
-                <MoveUpRight size="16" class="mr-1" />
-                <WithUnits value={statistics.elevation.gain} type="elevation" />
-                <MoveDownRight size="16" class="mx-1" />
-                <WithUnits value={statistics.elevation.loss} type="elevation" />
-            </span>
-        </Tooltip>
-        {#if panelSize > 120 || orientation === 'horizontal'}
-            <Tooltip
-                class={orientation === 'horizontal' ? 'hidden xs:block' : ''}
-                label="{$velocityUnits === 'speed'
-                    ? i18n._('quantities.speed')
-                    : i18n._('quantities.pace')} ({i18n._('quantities.moving')} / {i18n._(
-                    'quantities.total'
-                )})"
-            >
+    <Card.Content class="h-full p-0">
+        <div
+            bind:clientHeight={panelHeight}
+            bind:clientWidth={panelWidth}
+            class="flex {orientation === 'vertical'
+                ? 'flex-col h-full justify-center'
+                : 'flex-row w-full justify-evenly'} gap-4"
+        >
+            <Tooltip label={i18n._('quantities.distance')}>
                 <span class="flex flex-row items-center">
-                    <Zap size="16" class="mr-1" />
-                    <WithUnits value={statistics.speed.moving} type="speed" showUnits={false} />
-                    <span class="mx-1">/</span>
-                    <WithUnits value={statistics.speed.total} type="speed" />
+                    <Ruler size="16" class="mr-1" />
+                    <WithUnits value={statistics.distance.total} type="distance" />
                 </span>
             </Tooltip>
-        {/if}
-        {#if panelSize > 160 || orientation === 'horizontal'}
-            <Tooltip
-                class={orientation === 'horizontal' ? 'hidden md:block' : ''}
-                label="{i18n._('quantities.time')} ({i18n._('quantities.moving')} / {i18n._(
-                    'quantities.total'
-                )})"
-            >
+            <Tooltip label={i18n._('quantities.elevation_gain_loss')}>
                 <span class="flex flex-row items-center">
-                    <Timer size="16" class="mr-1" />
-                    <WithUnits value={statistics.time.moving} type="time" />
-                    <span class="mx-1">/</span>
-                    <WithUnits value={statistics.time.total} type="time" />
+                    <MoveUpRight size="16" class="mr-1" />
+                    <WithUnits value={statistics.elevation.gain} type="elevation" />
+                    <MoveDownRight size="16" class="mx-1" />
+                    <WithUnits value={statistics.elevation.loss} type="elevation" />
                 </span>
             </Tooltip>
-        {/if}
+            {#if panelHeight > 120 || (orientation === 'horizontal' && panelWidth > 450)}
+                <Tooltip
+                    label="{$velocityUnits === 'speed'
+                        ? i18n._('quantities.speed')
+                        : i18n._('quantities.pace')} ({i18n._('quantities.moving')} / {i18n._(
+                        'quantities.total'
+                    )})"
+                >
+                    <span class="flex flex-row items-center">
+                        <Zap size="16" class="mr-1" />
+                        <WithUnits value={statistics.speed.moving} type="speed" showUnits={false} />
+                        <span class="mx-1">/</span>
+                        <WithUnits value={statistics.speed.total} type="speed" />
+                    </span>
+                </Tooltip>
+            {/if}
+            {#if panelHeight > 160 || (orientation === 'horizontal' && panelWidth > 620)}
+                <Tooltip
+                    label="{i18n._('quantities.time')} ({i18n._('quantities.moving')} / {i18n._(
+                        'quantities.total'
+                    )})"
+                >
+                    <span class="flex flex-row items-center">
+                        <Timer size="16" class="mr-1" />
+                        <WithUnits value={statistics.time.moving} type="time" />
+                        <span class="mx-1">/</span>
+                        <WithUnits value={statistics.time.total} type="time" />
+                    </span>
+                </Tooltip>
+            {/if}
+        </div>
     </Card.Content>
 </Card.Root>

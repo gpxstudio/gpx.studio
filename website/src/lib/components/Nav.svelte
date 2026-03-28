@@ -6,8 +6,8 @@
     import { getURLForLanguage } from '$lib/utils';
 </script>
 
-<nav class="w-full sticky top-0 bg-background z-50">
-    <div class="px-12 py-2 flex flex-row items-center border-b gap-4 sm:gap-8">
+<nav class="sticky top-0 w-full px-12 py-2 bg-background z-50 flex flex-col items-center border-b">
+    <div class="w-full max-w-5xl flex flex-row items-center gap-4 sm:gap-8">
         <a
             href={getURLForLanguage(i18n.lang, '/')}
             class="shrink-0 translate-y-0.25 justify-self-start"
