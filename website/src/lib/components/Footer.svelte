@@ -9,7 +9,7 @@
 </script>
 
 <footer class="w-full">
-    <div class="mx-6 border-t">
+    <div class="px-6 border-t">
         <div class="mx-12 py-10 flex flex-row flex-wrap justify-between gap-x-10 gap-y-6">
             <div class="grow flex flex-col items-start">
                 <Logo class="h-8" width="153" />

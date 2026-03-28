@@ -7,10 +7,10 @@
 </script>
 
 <nav class="w-full sticky top-0 bg-background z-50">
-    <div class="mx-6 py-2 flex flex-row items-center border-b gap-4 sm:gap-8">
+    <div class="px-12 py-2 flex flex-row items-center border-b gap-4 sm:gap-8">
         <a
             href={getURLForLanguage(i18n.lang, '/')}
-            class="shrink-0 translate-y-0.5 justify-self-start"
+            class="shrink-0 translate-y-0.25 justify-self-start"
         >
             <Logo class="h-8 xs:hidden" iconOnly={true} width="26" />
             <Logo class="h-8 hidden xs:block" width="153" />

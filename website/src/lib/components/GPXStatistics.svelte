@@ -32,7 +32,7 @@
 <Card.Root
     class="h-full {orientation === 'vertical'
         ? 'min-w-40 sm:min-w-44'
-        : 'w-full h-10'} border-none shadow-none p-0 text-sm sm:text-base"
+        : 'w-full h-10'} border-none shadow-none p-0 text-sm sm:text-base bg-inherit"
 >
     <Card.Content
         class="h-full flex {orientation === 'vertical'

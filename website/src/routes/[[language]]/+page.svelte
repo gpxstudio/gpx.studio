@@ -236,15 +236,6 @@
             </div>
         </div>
     </div>
-    <div class="px-12 w-full">
-        <div class="w-full max-w-7xl mx-auto rounded-2xl shadow-xl overflow-hidden overflow-clip">
-            <enhanced:img
-                src="/src/lib/assets/img/home/map.png"
-                alt="Screenshot of the gpx.studio map in 3D."
-                class="min-w-[800px] ml-[15%] -translate-x-[15%]"
-            />
-        </div>
-    </div>
     <div
         class="px-12 md:px-24 flex flex-row flex-wrap lg:flex-nowrap items-center justify-center -space-y-0.5 lg:-space-x-6"
     >
