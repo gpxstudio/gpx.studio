@@ -117,7 +117,7 @@
         {/if}
     </div>
     <div
-        class="{options.elevation.show ? '' : 'h-10'} flex flex-row gap-2 px-2 sm:px-4"
+        class="{options.elevation.show ? '' : 'h-10'} flex flex-row gap-2 p-2 sm:px-4"
         style={options.elevation.show ? `height: ${options.elevation.height}px` : ''}
     >
         <GPXStatistics
