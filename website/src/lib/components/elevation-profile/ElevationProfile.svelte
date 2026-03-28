@@ -75,7 +75,7 @@
                         label={i18n._('chart.settings')}
                         variant="outline"
                         side="left"
-                        class="w-7 h-7 p-0 flex justify-center opacity-70 hover:opacity-100 transition-opacity duration-300 hover:bg-background"
+                        class="w-7 h-7 p-0 flex justify-center opacity-70 hover:opacity-100 transition-opacity duration-300 bg-background"
                     >
                         <ChartNoAxesColumn size="18" />
                     </ButtonWithTooltip>
