@@ -59,7 +59,7 @@
             href="https://github.com/gpxstudio/gpx.studio/edit/dev/website/src/lib/docs/en/{page
                 .params.guide}.mdx"
             target="_blank"
-            class="p-0 h-6 ml-auto text-link"
+            class="p-0 has-[>svg]:px-0 h-6 ml-auto text-link"
         >
             <PenLine size="16" />
             Edit this page on GitHub
