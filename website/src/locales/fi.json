@@ -493,7 +493,7 @@
         "email": "Sähköposti",
         "contribute": "Osallistu",
         "supported_by": "tukijat:",
-        "support_button": "Support gpx.studio on Open Collective",
+        "features": "Features",
         "route_planning": "Reittisuunnittelu",
         "route_planning_description": "Käyttäjäystävällinen, OpenStreetMap-aineistoon pohjautuva reittisuunnittelutyökalu.",
         "file_processing": "Advanced file processing",
@@ -502,8 +502,15 @@
         "maps_description": "A large collection of basemaps, overlays and points of interest to help you craft your next outdoor adventure, or visualize your latest achievement.",
         "data_visualization": "Data visualization",
         "data_visualization_description": "Korkeusprofiili ja -tiedot suunnittelun ja analysoinnin tueksi.",
-        "identity": "Maksuton, mainokseton ja avoin",
-        "identity_description": "Sovellus on ilmainen, mainokseton, ja sen lähdekoodi on saatavilla Githubissa mahtavan yhteisön tuen ansiosta."
+        "philosophy": "Philosophy",
+        "foss": "Free, ad-free and open source",
+        "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
+        "privacy": "Privacy-friendly",
+        "privacy_description": "Your GPX files never leave your browser. No tracking, no analytics.",
+        "community": "Made possible by the community",
+        "community_description": "gpx.studio is funded by user donations, which have sustainably covered its costs for years. The community also helps shape the project through feature suggestions, bug reports, and collaborative translations into many languages.",
+        "support_button": "Support gpx.studio on Open Collective",
+        "translate_button": "Help translate the website on Crowdin"
     },
     "docs": {
         "translate": "Paranna käännöstä Crowdinissa",
@@ -528,7 +535,7 @@
     },
     "embedding": {
         "title": "Luo oma kartta",
-        "maptiler_key": "MapTiler key",
+        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
         "file_urls": "File URLs (separated by commas)",
         "drive_ids": "Google Drive tiedostotunnisteet (pilkkuerotetut)",
         "basemap": "Taustakartta",
