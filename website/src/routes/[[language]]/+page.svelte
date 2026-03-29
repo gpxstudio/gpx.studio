@@ -123,18 +123,11 @@
                     </h1>
                     <p>{i18n._('homepage.maps_description')}</p>
                 </div>
-                <div class="relative">
-                    <enhanced:img
-                        src="/src/lib/assets/img/home/map.png"
-                        alt="MapTiler Topo map screenshot."
-                        class="h-full object-cover rounded-xl shadow-lg"
-                    />
-                    <enhanced:img
-                        src="/src/lib/assets/img/home/map-overlay.png"
-                        alt="MapTiler Topo map screenshot."
-                        class="absolute top-0 left-0 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-200"
-                    />
-                </div>
+                <enhanced:img
+                    src="/src/lib/assets/img/home/map-overlay.png"
+                    alt="3D map with multiple layers and points of interest."
+                    class="h-full object-cover rounded-xl shadow-lg"
+                />
             </div>
             <div class="grid md:grid-rows-subgrid md:row-start-3 md:row-end-6 gap-4">
                 <div class="markdown homepage">
