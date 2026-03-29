@@ -493,7 +493,7 @@
         "email": "E-Posta",
         "contribute": "Bağış Yap",
         "supported_by": "sponsor",
-        "support_button": "Support gpx.studio on Open Collective",
+        "features": "Features",
         "route_planning": "Rota Planlama",
         "route_planning_description": "OpenStreetMap verilerini kullanarak, her spora özel rotalar oluşturabileceğiniz, kullanımı kolay bir arayüz.",
         "file_processing": "Gelişmiş dosya işleme",
@@ -502,8 +502,15 @@
         "maps_description": "Geniş bir temel harita koleksiyonu, bir sonraki açık hava maceranızı ustalıkla yapmanıza yardımcı olacak katmanlar ve ilgi alana noktaları, veya en son başarı hikayenizi görselleştirin.",
         "data_visualization": "Veri görselleştirme",
         "data_visualization_description": "Kayıtlı aktiviteleri ve gelecek hedeflerinizi detaylı istatistiklerle analiz edebileceğiniz bir interaktif yükselti profili.",
-        "identity": "Ücretsiz, reklamsız ve açık kaynak",
-        "identity_description": "Website kullunımı ücretsizdir, reklam olmadan, ve kaynak kodu GitHub'da erişime açaktır. Bu sadece inanılmaz topluluk desteğiyle mümkün."
+        "philosophy": "Philosophy",
+        "foss": "Free, ad-free and open source",
+        "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
+        "privacy": "Privacy-friendly",
+        "privacy_description": "Your GPX files never leave your browser. No tracking, no analytics.",
+        "community": "Made possible by the community",
+        "community_description": "gpx.studio is funded by user donations, which have sustainably covered its costs for years. The community also helps shape the project through feature suggestions, bug reports, and collaborative translations into many languages.",
+        "support_button": "Support gpx.studio on Open Collective",
+        "translate_button": "Help translate the website on Crowdin"
     },
     "docs": {
         "translate": "Çevirimleri Crowdin ile iyileştir",
@@ -528,7 +535,7 @@
     },
     "embedding": {
         "title": "Kendi haritanı oluştur!",
-        "maptiler_key": "MapTiler key",
+        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
         "file_urls": "Dosya URLleri (virgülle ayrımış)",
         "drive_ids": "Google Drive dosya ID'si (virgülle ayrılmış)",
         "basemap": "Temel Harita",
