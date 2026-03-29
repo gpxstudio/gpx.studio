@@ -493,7 +493,7 @@
         "email": "电子邮箱",
         "contribute": "参与贡献",
         "supported_by": "技术支持",
-        "support_button": "在 Open Collective 上支持 gpx.studio",
+        "features": "Features",
         "route_planning": "路线规划",
         "route_planning_description": "基于 OpenStreetMap 数据，在直观的界面中为每项运动创建量身定制的行程。",
         "file_processing": "高级文件处理",
@@ -502,8 +502,15 @@
         "maps_description": "内置大量地图底图、叠加图层和兴趣点，用于帮助规划户外冒险或可视化成果。",
         "data_visualization": "数据可视化",
         "data_visualization_description": "可交互的海拔剖面图，带有详细的统计数据，用于分析已记录的活动和规划中的目标。",
-        "identity": "免费、 无广告且开源",
-        "identity_description": "免费使用，无广告，源代码已在 GitHub 上开源。感谢社区的鼎力支持。"
+        "philosophy": "Philosophy",
+        "foss": "Free, ad-free and open source",
+        "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
+        "privacy": "Privacy-friendly",
+        "privacy_description": "Your GPX files never leave your browser. No tracking, no analytics.",
+        "community": "Made possible by the community",
+        "community_description": "gpx.studio is funded by user donations, which have sustainably covered its costs for years. The community also helps shape the project through feature suggestions, bug reports, and collaborative translations into many languages.",
+        "support_button": "在 Open Collective 上支持 gpx.studio",
+        "translate_button": "Help translate the website on Crowdin"
     },
     "docs": {
         "translate": "在 Crowdin 上改进此翻译",
@@ -528,7 +535,7 @@
     },
     "embedding": {
         "title": "创建您自己的地图",
-        "maptiler_key": "MapTiler key",
+        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
         "file_urls": "文件链接（英文逗号分隔）",
         "drive_ids": "谷歌云盘文件 IDs（英文逗号分隔）",
         "basemap": "底图",
