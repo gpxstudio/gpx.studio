@@ -493,7 +493,7 @@
         "email": "Email",
         "contribute": "Wesprzyj",
         "supported_by": "wspierane przez",
-        "support_button": "Support gpx.studio on Open Collective",
+        "features": "Features",
         "route_planning": "Planowanie trasy",
         "route_planning_description": "Intuicyjny interfejs do tworzenia tras dostosowanych do każdego sportu, na bazie danych OpenStreetMap.",
         "file_processing": "Rozbudowanie przetwarzanie plików",
@@ -502,8 +502,15 @@
         "maps_description": "Duża kolekcja podstawowych map, nakładek i ulubionych punktów, które pomogą Ci stworzyć następną przygodę lub zwizualizować swoje ostatnie osiągnięcie.",
         "data_visualization": "Prezentacja danych",
         "data_visualization_description": "Interaktywny profil ukształtowania terenu wraz ze szczegółowymi danymi statystycznymi, służącymi do analizy odbytych wycieczek i przyszłych aktywności.",
-        "identity": "Darmowa, wolna od reklam i w duchu open-source",
-        "identity_description": "Ta strona jest darmowa w użyciu, bez reklam, a kod źródłowy jest publicznie dostępny na platformie GitHub. Jest to możliwe tylko dzięki niesamowitemu wsparciu społeczności."
+        "philosophy": "Philosophy",
+        "foss": "Free, ad-free and open source",
+        "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
+        "privacy": "Privacy-friendly",
+        "privacy_description": "Your GPX files never leave your browser. No tracking, no analytics.",
+        "community": "Made possible by the community",
+        "community_description": "gpx.studio is funded by user donations, which have sustainably covered its costs for years. The community also helps shape the project through feature suggestions, bug reports, and collaborative translations into many languages.",
+        "support_button": "Support gpx.studio on Open Collective",
+        "translate_button": "Help translate the website on Crowdin"
     },
     "docs": {
         "translate": "Ulepsz tłumaczenie na Crowdin",
@@ -528,7 +535,7 @@
     },
     "embedding": {
         "title": "Utwórz własną mapę",
-        "maptiler_key": "MapTiler key",
+        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
         "file_urls": "Adres URL do pliku (rozdzielonego przecinkami)",
         "drive_ids": "ID pliku na Google Drive (rozdzielonego przecinkami)",
         "basemap": "Mapa bazowa",
