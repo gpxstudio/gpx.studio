@@ -55,15 +55,15 @@
 
 <div class="w-full px-12 flex flex-col items-center">
     <div class="w-full max-w-5xl flex flex-col items-center">
-        <div class="mt-12 flex flex-col lg:items-center gap-12">
-            <div class="flex flex-col lg:items-center gap-6 max-w-3xl">
-                <h1 class="text-4xl xs:text-5xl sm:text-6xl lg:text-center font-black">
+        <div class="mt-12 flex flex-col xs:items-center gap-12">
+            <div class="flex flex-col xs:items-center gap-6 max-w-3xl">
+                <h1 class="text-4xl xs:text-5xl sm:text-6xl xs:text-center font-black">
                     {i18n._('metadata.home_title')}
                 </h1>
-                <div class="text-lg sm:text-xl text-muted-foreground lg:text-center">
+                <div class="text-lg sm:text-xl text-muted-foreground xs:text-center">
                     {i18n._('metadata.description')}
                 </div>
-                <div class="w-full flex flex-row lg:justify-center gap-3">
+                <div class="w-full flex flex-row xs:justify-center gap-3">
                     <Button
                         data-sveltekit-reload
                         href={getURLForLanguage(i18n.lang, '/app')}
