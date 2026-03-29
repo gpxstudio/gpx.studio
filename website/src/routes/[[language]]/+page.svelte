@@ -1,19 +1,20 @@
 <script lang="ts">
     import { Button } from '$lib/components/ui/button';
-    import DocsContainer from '$lib/components/docs/DocsContainer.svelte';
-    import Logo from '$lib/components/Logo.svelte';
     import ElevationProfile from '$lib/components/elevation-profile/ElevationProfile.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
     import Routing from '$lib/components/toolbar/tools/routing/Routing.svelte';
     import {
         BookOpenText,
         Heart,
+        HeartHandshake,
         ChartArea,
         Map,
         PencilRuler,
-        PenLine,
         Route,
         Scale,
+        HatGlasses,
+        Languages,
+        ExternalLink,
     } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
     import { getURLForLanguage } from '$lib/utils';
@@ -22,15 +23,6 @@
     import Scissors from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
     import { currentTool, Tool } from '$lib/components/toolbar/tools';
     import { onDestroy, onMount } from 'svelte';
-
-    let {
-        data,
-    }: {
-        data: {
-            fundingModule: Promise<any>;
-            translationModule: Promise<any>;
-        };
-    } = $props();
 
     let gpxStatistics = writable(exampleGPXFile.getStatistics());
     let slicedGPXStatistics = writable(undefined);
@@ -88,16 +80,16 @@
                 class="rounded-xl shadow-2xl w-full"
             />
         </div>
-        <div class="text-center text-4xl font-extrabold mt-24 mb-6">
+        <h2>
             {i18n._('homepage.features')}
-        </div>
+        </h2>
         <div class="grid md:grid-cols-2 gap-12 border-t pt-6">
             <div class="grid md:grid-rows-subgrid md:row-start-1 md:row-end-3 gap-4">
-                <div class="markdown homepage">
-                    <h1>
+                <div>
+                    <h3>
                         <Route size="20" class="inline-block align-baseline" />
                         {i18n._('homepage.route_planning')}
-                    </h1>
+                    </h3>
                     <p>
                         {i18n._('homepage.route_planning_description')}
                     </p>
@@ -116,11 +108,11 @@
                 </div>
             </div>
             <div class="grid md:grid-rows-subgrid md:row-start-1 md:row-end-3 gap-4">
-                <div class="markdown homepage">
-                    <h1>
+                <div>
+                    <h3>
                         <Map size="20" class="inline-block align-baseline" />
                         {i18n._('homepage.maps')}
-                    </h1>
+                    </h3>
                     <p>{i18n._('homepage.maps_description')}</p>
                 </div>
                 <enhanced:img
@@ -129,18 +121,18 @@
                     class="h-full object-cover rounded-xl shadow-lg"
                 />
             </div>
-            <div class="grid md:grid-rows-subgrid md:row-start-3 md:row-end-6 gap-4">
-                <div class="markdown homepage">
-                    <h1>
+            <div class="grid md:grid-rows-subgrid md:row-start-3 md:row-end-5 gap-4">
+                <div>
+                    <h3>
                         <ChartArea size="20" class="inline-block align-baseline" />
                         {i18n._('homepage.data_visualization')}
-                    </h1>
+                    </h3>
                     <p>
                         {i18n._('homepage.data_visualization_description')}
                     </p>
                 </div>
                 <div
-                    class="h-full w-full aspect-3/2 overflow-hidden flex flex-col gap-2 rounded-xl pt-6 pb-4 px-6 bg-secondary/50 border shadow-lg"
+                    class="w-full aspect-3/2 overflow-hidden flex flex-col gap-2 rounded-xl pt-6 pb-4 px-6 bg-secondary/50 border shadow-lg"
                 >
                     <div class="grow">
                         <ElevationProfile
@@ -158,12 +150,12 @@
                     />
                 </div>
             </div>
-            <div class="grid md:grid-rows-subgrid md:row-start-3 md:row-end-6 gap-4">
-                <div class="markdown homepage">
-                    <h1>
+            <div class="grid md:grid-rows-subgrid md:row-start-3 md:row-end-5 gap-4">
+                <div>
+                    <h3>
                         <PencilRuler size="20" class="inline-block align-baseline" />
                         {i18n._('homepage.file_processing')}
-                    </h1>
+                    </h3>
                     <p>
                         {i18n._('homepage.file_processing_description')}
                     </p>
@@ -182,103 +174,61 @@
                 </div>
             </div>
         </div>
-        <div class="text-center text-4xl font-extrabold mt-24 mb-6">
+        <h2>
             {i18n._('homepage.philosophy')}
-        </div>
-        <div class="grid md:grid-cols-2 gap-12 border-t pt-6">
-            <div class="grid md:grid-rows-subgrid md:row-start-1 md:row-end-3 gap-4">
-                <div class="markdown homepage">
-                    <h1>
-                        <PencilRuler size="20" class="inline-block align-baseline" />
-                        Free and ad-free
-                    </h1>
-                    <p>explanation</p>
-                </div>
-                <p>image?</p>
+        </h2>
+        <div class="w-full grid md:grid-cols-2 gap-12 border-t pt-6">
+            <div class="w-full">
+                <h3>
+                    <Scale size="20" class="inline-block align-baseline" />
+                    {i18n._('homepage.foss')}
+                </h3>
+                <p>
+                    {i18n._('homepage.foss_description')}
+                    <Button
+                        variant="link"
+                        href="https://github.com/gpxstudio/gpx.studio"
+                        target="_blank"
+                        class="p-0 has-[>svg]:p-0 h-fit"
+                    >
+                        <ExternalLink size="20" class="inline-block align-baseline" />
+                    </Button>
+                </p>
             </div>
-            <div class="grid md:grid-rows-subgrid md:row-start-1 md:row-end-3 gap-4">
-                <div class="markdown homepage">
-                    <h1>
-                        <PencilRuler size="20" class="inline-block align-baseline" />
-                        Privacy first
-                    </h1>
-                    <p>explanation</p>
-                </div>
-                <p>image?</p>
-            </div>
-            <div class="grid md:grid-rows-subgrid md:row-start-3 md:row-end-6 gap-4">
-                <div class="markdown homepage">
-                    <h1>
-                        <PencilRuler size="20" class="inline-block align-baseline" />
-                        Free and ad-free
-                    </h1>
-                    <p>explanation</p>
-                </div>
-                <p>image?</p>
-            </div>
-            <div class="grid md:grid-rows-subgrid md:row-start-3 md:row-end-6 gap-4">
-                <div class="markdown homepage">
-                    <h1>
-                        <PencilRuler size="20" class="inline-block align-baseline" />
-                        Free and ad-free
-                    </h1>
-                    <p>explanation</p>
-                </div>
-                <p>image?</p>
+            <div>
+                <h3>
+                    <HatGlasses size="20" class="inline-block align-baseline" />
+                    {i18n._('homepage.privacy')}
+                </h3>
+                <p>{i18n._('homepage.privacy_description')}</p>
             </div>
         </div>
-        <div class="px-12 sm:px-24 w-full flex flex-col items-center">
-            <div
-                class="flex flex-col md:flex-row gap-x-12 gap-y-6 items-center justify-between max-w-5xl"
-            >
-                <div class="markdown text-center md:hidden">
-                    <h1>
-                        <Scale size="20" class="inline-block align-baseline" />
-                        {i18n._('homepage.identity')}
-                    </h1>
-                    <p class="text-muted-foreground">{i18n._('homepage.identity_description')}</p>
-                </div>
-                <a href="https://github.com/gpxstudio/gpx.studio" target="_blank">
-                    <Logo class="h-32" company="github" />
-                </a>
-                <div class="markdown text-center hidden md:block">
-                    <h1>
-                        <Scale size="20" class="inline-block align-baseline" />
-                        {i18n._('homepage.identity')}
-                    </h1>
-                    <p class="text-muted-foreground">{i18n._('homepage.identity_description')}</p>
-                </div>
-            </div>
-        </div>
-        <div class="flex flex-row flex-wrap lg:flex-nowrap items-center justify-center">
-            <div
-                class="grow max-w-xl flex flex-col items-center gap-6 p-8 border rounded-2xl shadow-xl"
-            >
-                {#await data.fundingModule then fundingModule}
-                    <DocsContainer module={fundingModule.default} />
-                {/await}
+        <div
+            class="md:text-center flex flex-col md:items-center mt-12 mb-24 p-6 border bg-secondary/50 rounded-xl"
+        >
+            <h3>
+                {i18n._('homepage.community')}
+            </h3>
+            <p class="md:max-w-2/3">{i18n._('homepage.community_description')}</p>
+            <HeartHandshake size="80" class="mt-6 self-center" />
+            <div class="flex flex-row flex-wrap gap-4 justify-center mt-6">
                 <Button
+                    variant="outline"
                     href="https://opencollective.com/gpxstudio"
                     target="_blank"
-                    class="text-base"
+                    class="text-support text-base"
                 >
-                    <Heart size="16" fill="var(--support)" color="var(--support)" />
                     <span>{i18n._('homepage.support_button')}</span>
+                    <Heart size="16" fill="var(--support)" />
                 </Button>
-            </div>
-            <div
-                class="grow max-w-lg mx-6 h-fit bg-background flex flex-col items-center gap-6 p-8 border rounded-2xl shadow-xl"
-            >
-                {#await data.translationModule then translationModule}
-                    <DocsContainer module={translationModule.default} />
-                {/await}
                 <Button
+                    variant="outline"
                     href="https://crowdin.com/project/gpxstudio"
                     target="_blank"
                     class="text-base"
                 >
-                    <PenLine size="16" />
-                    <span>{i18n._('homepage.contribute')}</span>
+                    <Languages size="16" />
+                    <span>{i18n._('homepage.translate_button')}</span>
                 </Button>
             </div>
         </div>
@@ -288,8 +238,15 @@
 <style lang="postcss">
     @reference "../../app.css";
 
-    :global(.markdown.homepage > h1) {
-        @apply text-2xl;
-        @apply pt-0;
+    div :global(h2) {
+        @apply text-center text-4xl font-extrabold mt-24 mb-6;
+    }
+
+    div :global(h3) {
+        @apply text-2xl pt-0 font-semibold mb-3;
+    }
+
+    div :global(p) {
+        @apply text-muted-foreground;
     }
 </style>
