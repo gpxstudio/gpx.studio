@@ -5,6 +5,7 @@ title: Zusammenfügen
 <script>
     import { Group } from '@lucide/svelte';
     import Merge from '$lib/components/toolbar/tools/Merge.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # <Group size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
@@ -14,6 +15,13 @@ Um dieses Tool nutzen zu können, musst du [select](../files-and-stats) mehrere 
 - Wenn Ihr Ziel darin besteht, eine einzige kontinuierliche Spur aus Ihrer Auswahl zu erstellen, verwenden Sie die Option **Verbinden Sie die Spuren** und validieren Sie sie.
 - Die zweite Option kann verwendet werden, um Dateien mit mehreren [Tracks oder Segments](../gpx) zu erstellen oder zu verwalten.
   Das Zusammenführen von Dateien (oder Tracks) führt zu einer einzigen Datei (oder Track), die alle Tracks (oder Segmente) aus der Auswahl enthält.
+
+<DocsNote>
+
+Selected items are merged in the order they appear in the files list.
+Reorder items by drag-and-drop if needed.
+
+</DocsNote>
 
 <div class="flex flex-row justify-center">
     <Merge class="text-foreground p-3 border rounded-md shadow-lg" />
