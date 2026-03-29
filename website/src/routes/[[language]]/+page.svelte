@@ -219,7 +219,7 @@
                     class="text-support text-base"
                 >
                     <span>{i18n._('homepage.support_button')}</span>
-                    <Heart size="16" fill="var(--support)" />
+                    <Heart size="16" fill="var(--support)" color="var(--support)" />
                 </Button>
                 <Button
                     variant="outline"
