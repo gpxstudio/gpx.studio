@@ -216,7 +216,7 @@
                     variant="outline"
                     href="https://opencollective.com/gpxstudio"
                     target="_blank"
-                    class="text-support text-base"
+                    class="text-support text-base max-w-full h-auto whitespace-normal"
                 >
                     <span>{i18n._('homepage.support_button')}</span>
                     <Heart size="16" fill="var(--support)" color="var(--support)" />
@@ -225,7 +225,7 @@
                     variant="outline"
                     href="https://crowdin.com/project/gpxstudio"
                     target="_blank"
-                    class="text-base"
+                    class="text-base max-w-full h-auto whitespace-normal"
                 >
                     <Languages size="16" />
                     <span>{i18n._('homepage.translate_button')}</span>
