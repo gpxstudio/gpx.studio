@@ -5,6 +5,7 @@ title: Samenvoegen
 <script>
     import { Group } from '@lucide/svelte';
     import Merge from '$lib/components/toolbar/tools/Merge.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # <Group size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
@@ -14,6 +15,13 @@ Om dit gereedschap te gebruiken, moet je [select](../files-and-stats) meerdere b
 - Als je doel is om een enkel doorlopend spoor te maken vanuit je selectie, gebruik dan de **Verbind de sporen** optie en valideer.
 - De tweede optie kan worden gebruikt om bestanden te maken of te beheren met meerdere [routes of segmenten](../gpx).
   Bestanden (of routes) samenvoegen resulteert in één enkel bestand (of route) met alle routes (of segmenten) uit de selectie.
+
+<DocsNote>
+
+Selected items are merged in the order they appear in the files list.
+Reorder items by drag-and-drop if needed.
+
+</DocsNote>
 
 <div class="flex flex-row justify-center">
     <Merge class="text-foreground p-3 border rounded-md shadow-lg" />
