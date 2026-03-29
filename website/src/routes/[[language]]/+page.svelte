@@ -209,7 +209,7 @@
             <h3>
                 {i18n._('homepage.community')}
             </h3>
-            <p class="md:max-w-2/3">{i18n._('homepage.community_description')}</p>
+            <p class="md:max-w-3/4">{i18n._('homepage.community_description')}</p>
             <HeartHandshake size="80" class="mt-6 self-center" />
             <div class="flex flex-row flex-wrap gap-4 justify-center mt-6">
                 <Button

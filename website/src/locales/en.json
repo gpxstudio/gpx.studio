@@ -508,7 +508,7 @@
         "privacy": "Privacy-friendly",
         "privacy_description": "Your GPX files never leave your browser. No tracking, no data collection.",
         "community": "Made possible by the community",
-        "community_description": "gpx.studio is funded by user donations, which have sustainably covered its costs for years. The community also helps shape the project through feature suggestions, bug reports, and collaborative translations into many languages.",
+        "community_description": "Thanks to user donations, gpx.studio has remained sustainable for years, with an amazing community contributing ideas, reporting issues, and translating the website worldwide.",
         "support_button": "Support gpx.studio on Open Collective",
         "translate_button": "Help translate the website on Crowdin"
     },
