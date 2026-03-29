@@ -506,9 +506,9 @@
         "foss": "Gratis, advertentievrije en open source",
         "foss_description": "De website is gratis te gebruiken, zonder advertenties, en de broncode is openbaar beschikbaar op GitHub.",
         "privacy": "Privacyvriendelijk",
-        "privacy_description": "Your GPX files never leave your browser. No tracking, no data collection.",
+        "privacy_description": "Uw GPX-bestanden verlaten nooit uw browser. Geen tracking, geen analyse.",
         "community": "Mogelijk gemaakt door de community",
-        "community_description": "Thanks to user donations, gpx.studio has remained sustainable for years, with an amazing community contributing ideas, reporting issues, and translating the website worldwide.",
+        "community_description": "gpx.studio has an amazing community that has covered its costs through donations for years, while shaping the project through feature suggestions, bug reports, and translations into many languages.",
         "support_button": "Ondersteun gpx.studio op Open Collective",
         "translate_button": "Help de website te vertalen op Crowdin"
     },
