@@ -493,7 +493,7 @@
         "email": "Email",
         "contribute": "Contribuir",
         "supported_by": "con el apoyo de",
-        "support_button": "Apoya a gpx.studio en Open Collective",
+        "features": "Features",
         "route_planning": "Planificación de ruta",
         "route_planning_description": "Una interfaz intuitiva para crear itinerarios adaptados a cada deporte, basada en datos de OpenStreetMap.",
         "file_processing": "Procesamiento avanzado de archivo",
@@ -502,8 +502,15 @@
         "maps_description": "Una gran colección de mapas base, capas y puntos de interés para ayudarle a crear su próxima aventura al aire libre o visualizar su último logro.",
         "data_visualization": "Visualización de datos",
         "data_visualization_description": "Un perfil de elevación interactivo con estadísticas detalladas para analizar actividades registradas y futuros objetivos.",
-        "identity": "Gratis, sin anuncios y código abierto",
-        "identity_description": "Este sitio web es de uso gratuito, sin anuncios y el código fuente está disponible públicamente en GitHub. Esto solo es posible gracias al increíble apoyo de la comunidad."
+        "philosophy": "Philosophy",
+        "foss": "Free, ad-free and open source",
+        "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
+        "privacy": "Privacy-friendly",
+        "privacy_description": "Your GPX files never leave your browser. No tracking, no analytics.",
+        "community": "Made possible by the community",
+        "community_description": "gpx.studio is funded by user donations, which have sustainably covered its costs for years. The community also helps shape the project through feature suggestions, bug reports, and collaborative translations into many languages.",
+        "support_button": "Apoya a gpx.studio en Open Collective",
+        "translate_button": "Help translate the website on Crowdin"
     },
     "docs": {
         "translate": "Mejorar la traducción en Crowdin",
@@ -528,7 +535,7 @@
     },
     "embedding": {
         "title": "Crear su propio mapa",
-        "maptiler_key": "MapTiler key",
+        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
         "file_urls": "URLs de archivo (separados por comas)",
         "drive_ids": "IDs de archivo de Google Drive (separados por comas)",
         "basemap": "Mapa base",
