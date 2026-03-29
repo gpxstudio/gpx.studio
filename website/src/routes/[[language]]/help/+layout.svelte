@@ -18,9 +18,9 @@
     } = $props();
 </script>
 
-<div class="grow flex flex-col items-center px-12 pt-6 pb-12">
+<div class="grow flex flex-col items-center p-12">
     <div class="max-w-5xl flex flex-row gap-24">
-        <div class="hidden md:flex flex-col gap-2 w-40 sticky top-[108px] self-start shrink-0">
+        <div class="hidden md:flex flex-col gap-2 w-40 sticky top-26 self-start shrink-0">
             <div class="mb-2">
                 <AlgoliaDocSearch />
             </div>

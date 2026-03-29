@@ -19,7 +19,7 @@
         @apply text-foreground;
         @apply text-3xl;
         @apply font-semibold;
-        @apply mb-3 pt-6;
+        @apply mb-3;
     }
 
     :global(.markdown h2) {
