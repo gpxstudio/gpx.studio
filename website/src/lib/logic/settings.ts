@@ -10,8 +10,7 @@ import {
     defaultOverpassQueries,
     defaultOverpassTree,
     defaultTerrainSource,
-    overlays,
-    overpassQueryData,
+    overpassTree,
     type CustomLayer,
     type LayerTreeType,
 } from '$lib/assets/layers';
@@ -161,23 +160,42 @@ function getLayerValidator(allowed: Record<string, any>, fallback: string) {
             : fallback;
 }
 
-function filterLayerTree(t: LayerTreeType, allowed: Record<string, any>): LayerTreeType {
+function filterLayerTree(t: LayerTreeType, allowed: LayerTreeType | undefined): LayerTreeType {
     const filtered: LayerTreeType = {};
-    Object.entries(t).forEach(([key, value]) => {
-        if (typeof value === 'object') {
-            filtered[key] = filterLayerTree(value, allowed);
-        } else if (
-            allowed.hasOwnProperty(key) ||
-            key.startsWith('custom-') ||
-            key.startsWith('extension-')
-        ) {
-            filtered[key] = value;
+    const values = Object.values(t);
+    if (values.length == 0) return filtered;
+    if (typeof values[0] === 'boolean') {
+        if (allowed) {
+            Object.keys(allowed).forEach((key) => {
+                if (Object.hasOwn(t, key)) {
+                    filtered[key] = t[key];
+                }
+            });
         }
-    });
+        Object.entries(t).forEach(([key, value]) => {
+            if (
+                !Object.hasOwn(filtered, key) &&
+                (key.startsWith('custom-') || key.startsWith('extension-'))
+            ) {
+                filtered[key] = value;
+            }
+        });
+    } else {
+        Object.entries(t).forEach(([key, value]) => {
+            if (typeof value === 'object') {
+                filtered[key] = filterLayerTree(
+                    value,
+                    typeof allowed === 'object' && typeof allowed[key] === 'object'
+                        ? allowed[key]
+                        : undefined
+                );
+            }
+        });
+    }
     return filtered;
 }
 
-function getLayerTreeValidator(allowed: Record<string, any>) {
+function getLayerTreeValidator(allowed: LayerTreeType) {
     return (value: LayerTreeType) => filterLayerTree(value, allowed);
 }
 
@@ -259,32 +277,32 @@ export const settings = {
     selectedBasemapTree: new Setting(
         'selectedBasemapTree',
         defaultBasemapTree,
-        getLayerTreeValidator(basemaps)
+        getLayerTreeValidator(defaultBasemapTree)
     ),
     currentOverlays: new SettingInitOnFirstRead(
         'currentOverlays',
         defaultOverlays,
-        getLayerTreeValidator(overlays)
+        getLayerTreeValidator(defaultOverlayTree)
     ),
     previousOverlays: new Setting(
         'previousOverlays',
         defaultOverlays,
-        getLayerTreeValidator(overlays)
+        getLayerTreeValidator(defaultOverlayTree)
     ),
     selectedOverlayTree: new Setting(
         'selectedOverlayTree',
         defaultOverlayTree,
-        getLayerTreeValidator(overlays)
+        getLayerTreeValidator(defaultOverlayTree)
     ),
     currentOverpassQueries: new SettingInitOnFirstRead(
         'currentOverpassQueries',
         defaultOverpassQueries,
-        getLayerTreeValidator(overpassQueryData)
+        getLayerTreeValidator(overpassTree)
     ),
     selectedOverpassTree: new Setting(
         'selectedOverpassTree',
         defaultOverpassTree,
-        getLayerTreeValidator(overpassQueryData)
+        getLayerTreeValidator(overpassTree)
     ),
     opacities: new Setting('opacities', defaultOpacities),
     customLayers: new Setting<Record<string, CustomLayer>>('customLayers', {}),
