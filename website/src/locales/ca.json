@@ -28,7 +28,7 @@
         "undo": "Desfer",
         "redo": "Refer",
         "delete": "Elimina el track",
-        "delete_all": "Delete all",
+        "delete_all": "Esborra-ho tot",
         "select_all": "Seleccionar-ho tot",
         "view": "Vista",
         "elevation_profile": "Perfil d’elevacions",
@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Clic",
         "drag": "Arrossega",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Informació...",
             "name": "Nom",
@@ -80,7 +81,7 @@
         "center": "Centrar",
         "open_in": "Obrir amb",
         "copy_coordinates": "Copiar coordenades",
-        "edit_osm": "Edit in OpenStreetMap"
+        "edit_osm": "Edita a OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -190,6 +191,8 @@
                 "from": "El punt d'inici és massa lluny de la via més propera",
                 "via": "El punt és massa lluny de la via més propera",
                 "to": "El punt final és massa lluny de la via més propera",
+                "distance": "The end point is too far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "El càlcul de la ruta tarda més del compte, prova d'afegir punts més propers entre si"
             }
         },
@@ -231,7 +234,7 @@
         },
         "elevation": {
             "button": "Sol·licita dades d'altimetria",
-            "help": "Sol·licitar dades d'altimetria eliminarà qualsevol dada d'altimetria existent i ho reemplaçarà amb dades de Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Seleccioneu un fitxer per sol·licitar dades d'altimetria."
         },
         "waypoint": {
@@ -273,7 +276,7 @@
             "new": "Nova capa a mida",
             "edit": "Edita una capa a mida",
             "urls": "URL(s)",
-            "url_placeholder": "WMTS, WMS o Mapbox estil JSON",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Zoom màxim",
             "layer_type": "Tipus de capa",
             "basemap": "Mapa base",
@@ -282,7 +285,7 @@
             "update": "Actualitza la capa"
         },
         "opacity": "Opacitat de la superposició",
-        "terrain": "Terrain source",
+        "terrain": "Terreny",
         "label": {
             "basemaps": "Mapes base",
             "overlays": "Capes",
@@ -300,8 +303,10 @@
             "switzerland": "Suïssa",
             "united_kingdom": "Regne Unit",
             "united_states": "Estats Units",
-            "mapboxOutdoors": "Mapbox a l'aire lliure",
-            "mapboxSatellite": "Mapbox Satèl·lit",
+            "maptilerStreets": "MapTiler Streets",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -356,7 +361,7 @@
             "water": "Aigua",
             "shower": "Dutxa",
             "shelter": "Refugi",
-            "cemetery": "Cemetery",
+            "cemetery": "Cementiri",
             "motorized": "Cotxes i motos",
             "fuel-station": "Gasolinera",
             "parking": "Aparcament",
@@ -381,7 +386,7 @@
             "tram-stop": "Parada de tramvia",
             "bus-stop": "Parada d'autobús",
             "ferry": "Ferri",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -488,7 +493,7 @@
         "email": "Correu electrònic",
         "contribute": "Contribuir-hi",
         "supported_by": "amb la col·laboració de",
-        "support_button": "Doneu suport a gpx.studio a Ko-fi",
+        "features": "Features",
         "route_planning": "Planificació de rutes",
         "route_planning_description": "Una interfície intuïtiva per crear itineraris a mida per cada esport basat en les dades d'OpenStreetMap.",
         "file_processing": "Processament avançat de fitxers",
@@ -497,8 +502,15 @@
         "maps_description": "Una gran col·lecció de mapes base, capes i punts d'interès per ajudar-vos a crear la vostra propera aventura a l'aire lliure o visualitzar els vostres últims reptes.",
         "data_visualization": "Visualització de dades",
         "data_visualization_description": "Un perfil d'altimetria interactiu amb estadístiques detallades per analitzar activitats enregistrades i futurs objectius.",
-        "identity": "Gratuït, sense anuncis i de codi obert",
-        "identity_description": "Aquest lloc web es pot usar gratuïtament, sense publicitat i el codi font es pot trobar a GitHub. Això és possible gràcies a l'increïble suport de la comunitat."
+        "philosophy": "Philosophy",
+        "foss": "Free, ad-free and open source",
+        "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
+        "privacy": "Privacy-friendly",
+        "privacy_description": "Your GPX files never leave your browser. No tracking, no data collection.",
+        "community": "Made possible by the community",
+        "community_description": "gpx.studio has an amazing community that has covered its costs through donations for years, while shaping the project through feature suggestions, bug reports, and translations into many languages.",
+        "support_button": "Support gpx.studio on Open Collective",
+        "translate_button": "Help translate the website on Crowdin"
     },
     "docs": {
         "translate": "Milloreu la traducció a Crowdin",
@@ -523,7 +535,7 @@
     },
     "embedding": {
         "title": "Crea el teu propi mapa",
-        "mapbox_token": "Token d'accés a Mapbox",
+        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
         "file_urls": "URL dels fitxers (separades per comes)",
         "drive_ids": "ID del fitxer a Google Drive (separats per comes)",
         "basemap": "Mapa base",

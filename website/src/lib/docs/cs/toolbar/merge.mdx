@@ -5,6 +5,7 @@ title: Sloučit
 <script>
     import { Group } from '@lucide/svelte';
     import Merge from '$lib/components/toolbar/tools/Merge.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # <Group size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
@@ -14,6 +15,13 @@ Chcete-li použít tento nástroj, musíte [vybrat](../files-and-stats) více so
 - Pokud je vaším cílem vytvořit z vašeho výběru jednu spojitou stopu, použijte možnost **Připojit stopy** a potvrďte.
 - Druhá možnost může být použita k vytvoření nebo správě souborů s více [trasami nebo segmenty](../gpx).
   Sloučením souborů (nebo tras) vznikne jeden soubor (nebo trasa) obsahující všechny trasy (nebo úseky) z výběru.
+
+<DocsNote>
+
+Selected items are merged in the order they appear in the files list.
+Reorder items by drag-and-drop if needed.
+
+</DocsNote>
 
 <div class="flex flex-row justify-center">
     <Merge class="text-foreground p-3 border rounded-md shadow-lg" />

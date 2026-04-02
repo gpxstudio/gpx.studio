@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Spustelėjimas",
         "drag": "Vilkti",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Informacija...",
             "name": "Pavadinimas",
@@ -190,6 +191,8 @@
                 "from": "Pradžios taškas yra per toli nuo artimiausio kelio",
                 "via": "Tarpinis taškas yra per toli nuo artimiausio kelio",
                 "to": "Pabaigos taškas yra per toli nuo artimiausio kelio",
+                "distance": "The end point is too far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "Maršruto skaičiavimas užtruko per ilgai, pabandykite pridėti taškus arčiau vienas kito"
             }
         },
@@ -231,7 +234,7 @@
         },
         "elevation": {
             "button": "Request elevation data",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Select a file item to request elevation data."
         },
         "waypoint": {
@@ -273,7 +276,7 @@
             "new": "Naujas vartotojo sluoksnis",
             "edit": "Keisti vartotojo sluoksnį",
             "urls": "URL adresas(-ai)",
-            "url_placeholder": "WMTS, WMS arba Mapbox stiliaus JSON failas",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Didžiausias mastelis",
             "layer_type": "Sluoksnio tipas",
             "basemap": "Pagrindas",
@@ -300,8 +303,10 @@
             "switzerland": "Šveicarija",
             "united_kingdom": "Jungtinė Karalystė",
             "united_states": "Jungtinės Amerikos Valstijos",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satellite",
+            "maptilerStreets": "MapTiler Streets",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -381,7 +386,7 @@
             "tram-stop": "Tramvajaus stotelė",
             "bus-stop": "Autobusų stotelė",
             "ferry": "Keltas",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -488,7 +493,7 @@
         "email": "El. paštas",
         "contribute": "Prisidėti",
         "supported_by": "remia",
-        "support_button": "Paremkite „gpx.studio“ per „Ko-fi“",
+        "features": "Features",
         "route_planning": "Maršruto planavimas",
         "route_planning_description": "Lengvai suprantama sąsaja, leidžianti kurti maršrutus, pritaikytus kiekvienai sporto šakai, remiantis „OpenStreetMap“ duomenimis.",
         "file_processing": "Pažangus failo apdorojimas",
@@ -497,8 +502,15 @@
         "maps_description": "Didelis pagrindo žemėlapių, sluoksnių ir svarbių vietų rinkinys, padedantis pasiruošti kitam nuotykiui lauke arba atvaizduoti naujausią pasiekimą.",
         "data_visualization": "Duomenų atvaizdvimas",
         "data_visualization_description": "Interaktyvus aukščio profilis su išsamiais statistiniais duomenimis, kad būtų galima analizuoti užregistruotą veiklą ir būsimus tikslus.",
-        "identity": "Nemokamai, be reklamų ir atviro kodo",
-        "identity_description": "Tinklalapiu galima naudotis nemokamai, jame nėra reklamų, o kodas yra atviras ir prieinamas „GitHub“ svetainėje. Tai įmanoma tik dėl neįtikėtinos bendruomenės paramos."
+        "philosophy": "Philosophy",
+        "foss": "Free, ad-free and open source",
+        "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
+        "privacy": "Privacy-friendly",
+        "privacy_description": "Your GPX files never leave your browser. No tracking, no data collection.",
+        "community": "Made possible by the community",
+        "community_description": "gpx.studio has an amazing community that has covered its costs through donations for years, while shaping the project through feature suggestions, bug reports, and translations into many languages.",
+        "support_button": "Support gpx.studio on Open Collective",
+        "translate_button": "Help translate the website on Crowdin"
     },
     "docs": {
         "translate": "Improve the translation on Crowdin",
@@ -523,7 +535,7 @@
     },
     "embedding": {
         "title": "Susikurkite savo žemėlapį",
-        "mapbox_token": "Prieigos prie „Mapbox“ atpažinimo ženklas",
+        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
         "file_urls": "Failų URL adresai (atskirti kableliais)",
         "drive_ids": "Google Drive file IDs (separated by commas)",
         "basemap": "Pagrindo žemėlapis",

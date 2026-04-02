@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Clic",
         "drag": "Glisser",
+        "right_click_drag": "Clic droit glisser",
         "metadata": {
             "button": "Infos...",
             "name": "Nom",
@@ -190,6 +191,8 @@
                 "from": "Le point de départ est trop éloigné de la route la plus proche",
                 "via": "Le point de passage est trop éloigné de la route la plus proche",
                 "to": "Le point d'arrivée est trop éloigné de la route la plus proche",
+                "distance": "Le point d'arrivée est trop loin du point de départ",
+                "connection": "Aucune connexion trouvée entre les points",
                 "timeout": "Le calcul de l'itinéraire a pris trop de temps, essayez d'ajouter des points plus rapprochés"
             }
         },
@@ -231,7 +234,7 @@
         },
         "elevation": {
             "button": "Ajouter des données d'altitude",
-            "help": "Ajouter des données d'altitude effacera les données d'altitude existantes, le cas échéant, et les remplacera par des données de Mapbox.",
+            "help": "Ajouter des données d'altitude effacera les données d'altitude existantes, le cas échéant, et les remplacera par des données fournies par MapTiler.",
             "help_no_selection": "Sélectionnez un élément de fichier pour ajouter des données d'altitude."
         },
         "waypoint": {
@@ -273,7 +276,7 @@
             "new": "Nouvelle couche personnalisée",
             "edit": "Modifier la couche personnalisée",
             "urls": "URL(s)",
-            "url_placeholder": "WMTS, WMS ou Mapbox style JSON",
+            "url_placeholder": "WMTS, WMS ou MapLibre style JSON",
             "max_zoom": "Zoom max",
             "layer_type": "Type de couche",
             "basemap": "Fond de carte",
@@ -300,8 +303,10 @@
             "switzerland": "Suisse",
             "united_kingdom": "Royaume-Uni",
             "united_states": "États-Unis",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satellite",
+            "maptilerStreets": "MapTiler Streets",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -381,7 +386,7 @@
             "tram-stop": "Arrêt de tram",
             "bus-stop": "Arrêt de bus",
             "ferry": "Ferry",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -488,7 +493,7 @@
         "email": "Email",
         "contribute": "Contribuer",
         "supported_by": "soutenu par",
-        "support_button": "Soutenir gpx.studio sur Ko-fi",
+        "features": "Fonctionnalités ",
         "route_planning": "Planification d’itinéraire",
         "route_planning_description": "Une interface intuitive pour créer des itinéraires adaptés à chaque sport, basés sur les données d'OpenStreetMap.",
         "file_processing": "Traitement de fichiers avancé",
@@ -497,8 +502,15 @@
         "maps_description": "Une vaste collection de fonds de carte, de surcouches et de points d'intérêt pour vous aider à planifier votre prochaine aventure en plein air ou à visualiser vos dernières expéditions.",
         "data_visualization": "Visualisation de données",
         "data_visualization_description": "Un profil altimétrique interactif avec des statistiques détaillées pour analyser les activités enregistrées et les objectifs futurs.",
-        "identity": "Gratuit, sans pub et open source",
-        "identity_description": "Le site Web est gratuit, sans publicité, et le code source est disponible publiquement sur GitHub. Cela est possible uniquement grâce au soutien incroyable de la communauté."
+        "philosophy": "Philosophie",
+        "foss": "Gratuit, sans pub et open source",
+        "foss_description": "Le site web est gratuit, sans publicité, et le code source est disponible publiquement sur GitHub.",
+        "privacy": "Respectueux de la vie privée",
+        "privacy_description": "Vos fichiers GPX ne quittent jamais votre navigateur. Aucun suivi, aucune collecte de données.",
+        "community": "Rendu possible par la communauté",
+        "community_description": "gpx.studio a une communauté incroyable dont les dons financent les coûts du projet depuis plusieurs années, tout en contribuant à l'améliorer à travers des suggestions de nouvelles fonctionnalités, des signalements de bugs et la traduction du site dans de nombreuses langues.",
+        "support_button": "Soutenir gpx.studio sur Open Collective",
+        "translate_button": "Aidez à traduire le site sur Crowdin"
     },
     "docs": {
         "translate": "Améliorer la traduction sur Crowdin",
@@ -523,7 +535,7 @@
     },
     "embedding": {
         "title": "Créez votre propre carte",
-        "mapbox_token": "Jeton d'accès Mapbox",
+        "maptiler_key": "Clé MapTiler (optionnelle, uniquement nécessaire pour les cartes MapTiler)",
         "file_urls": "URLs des fichiers (séparées par des virgules)",
         "drive_ids": "IDs des fichiers Google Drive (séparés par des virgules)",
         "basemap": "Fond de carte",

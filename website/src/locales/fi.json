@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Klikkaa",
         "drag": "Raahaa",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Tiedot...",
             "name": "Nimi",
@@ -190,6 +191,8 @@
                 "from": "Aloituspiste on liian kaukana lähimmästä tiestä",
                 "via": "Reittipiste on liian kaukana lähimmästä tiestä",
                 "to": "Päätepiste on liian kaukana lähimmästä tiestä",
+                "distance": "The end point is too far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "Reitin laskenta kesti liian kauan. Tihennä reittipisteitä"
             }
         },
@@ -231,7 +234,7 @@
         },
         "elevation": {
             "button": "Hae korkeustiedot",
-            "help": "Tietojen haku korvaa aiemmat korkeustiedot Mapboxin tiedoilla.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Valitse tiedosto, jolle haet korkeustietoja."
         },
         "waypoint": {
@@ -273,7 +276,7 @@
             "new": "Lisää oma karttataso",
             "edit": "Muokkaa omaa karttatasoa",
             "urls": "URL(t)",
-            "url_placeholder": "WMTS, WMS tai Mapbox style JSON",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Enimmäissuurennus",
             "layer_type": "Tason tyyppi",
             "basemap": "Taustakartta",
@@ -300,8 +303,10 @@
             "switzerland": "Sveitsi",
             "united_kingdom": "Iso-Britannia",
             "united_states": "Yhdysvallat",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satelliittikuva",
+            "maptilerStreets": "MapTiler Streets",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -381,7 +386,7 @@
             "tram-stop": "Raitiovaunupysäkit",
             "bus-stop": "Linja-autopysäkit",
             "ferry": "Lautat",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -488,7 +493,7 @@
         "email": "Sähköposti",
         "contribute": "Osallistu",
         "supported_by": "tukijat:",
-        "support_button": "Tue gpx.studiota Ko-fi:ssa",
+        "features": "Features",
         "route_planning": "Reittisuunnittelu",
         "route_planning_description": "Käyttäjäystävällinen, OpenStreetMap-aineistoon pohjautuva reittisuunnittelutyökalu.",
         "file_processing": "Advanced file processing",
@@ -497,8 +502,15 @@
         "maps_description": "A large collection of basemaps, overlays and points of interest to help you craft your next outdoor adventure, or visualize your latest achievement.",
         "data_visualization": "Data visualization",
         "data_visualization_description": "Korkeusprofiili ja -tiedot suunnittelun ja analysoinnin tueksi.",
-        "identity": "Maksuton, mainokseton ja avoin",
-        "identity_description": "Sovellus on ilmainen, mainokseton, ja sen lähdekoodi on saatavilla Githubissa mahtavan yhteisön tuen ansiosta."
+        "philosophy": "Philosophy",
+        "foss": "Free, ad-free and open source",
+        "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
+        "privacy": "Privacy-friendly",
+        "privacy_description": "Your GPX files never leave your browser. No tracking, no data collection.",
+        "community": "Made possible by the community",
+        "community_description": "gpx.studio has an amazing community that has covered its costs through donations for years, while shaping the project through feature suggestions, bug reports, and translations into many languages.",
+        "support_button": "Support gpx.studio on Open Collective",
+        "translate_button": "Help translate the website on Crowdin"
     },
     "docs": {
         "translate": "Paranna käännöstä Crowdinissa",
@@ -523,7 +535,7 @@
     },
     "embedding": {
         "title": "Luo oma kartta",
-        "mapbox_token": "Mapbox access token",
+        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
         "file_urls": "File URLs (separated by commas)",
         "drive_ids": "Google Drive tiedostotunnisteet (pilkkuerotetut)",
         "basemap": "Taustakartta",

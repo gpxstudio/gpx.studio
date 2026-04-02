@@ -21,14 +21,14 @@
         "export_all": "Alle exportieren...",
         "export_options": "Export-Einstellungen",
         "support_message": "Das Tool darf frei benutzt werden, aber es darf nicht woanders aufgesetzt werden. Bitte unterstützen Sie die Website, wenn Sie sie häufig benutzen. Vielen Dank!",
-        "support_button": "Hilf dabei, die Webseite kostenlos zu belassen",
+        "support_button": "Hilf uns, die Website weiterhin kostenlos bereitzustellen",
         "download_file": "Datei herunterladen",
         "download_files": "Dateien herunterladen",
         "edit": "Bearbeiten",
         "undo": "Rückgängig",
         "redo": "Wiederholen",
         "delete": "Löschen",
-        "delete_all": "Delete all",
+        "delete_all": "Alle löschen",
         "select_all": "Alle auswählen",
         "view": "Ansicht",
         "elevation_profile": "Höhenprofil",
@@ -63,6 +63,7 @@
         "ctrl": "Strg",
         "click": "Klick",
         "drag": "Ziehen",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Info...",
             "name": "Bezeichnung",
@@ -80,7 +81,7 @@
         "center": "Zentrieren",
         "open_in": "Öffnen in",
         "copy_coordinates": "Koordinaten kopieren",
-        "edit_osm": "Edit in OpenStreetMap"
+        "edit_osm": "In OpenStreetMap bearbeiten"
     },
     "toolbar": {
         "routing": {
@@ -190,6 +191,8 @@
                 "from": "Der Startpunkt ist zu weit von der nächsten Straße entfernt",
                 "via": "Der Via-Punkt ist zu weit entfernt von der nächsten Straße",
                 "to": "Der Endpunkt ist zu weit von der nächsten Straße entfernt",
+                "distance": "The end point is too far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "Route-Berechnung benötigte zu viel Zeit; versuche, die Punkte näher aneinander zu setzen"
             }
         },
@@ -231,7 +234,7 @@
         },
         "elevation": {
             "button": "Höhendaten anfragen",
-            "help": "Das Anfordern von Höhendaten löscht die vorhandenen Höhendaten, falls vorhanden, und ersetzt diese durch Daten von Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Wählen Sie ein Datei-Element, um Höhendaten anzufordern."
         },
         "waypoint": {
@@ -273,7 +276,7 @@
             "new": "Neue benutzerdefinierte Ebene",
             "edit": "Eigene Ebene bearbeiten",
             "urls": "URL(s)",
-            "url_placeholder": "WMTS, WMS oder Mapbox Stil JSON",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Max. Zoom",
             "layer_type": "Ebenenart",
             "basemap": "Basiskarte",
@@ -282,7 +285,7 @@
             "update": "Layer aktualisieren"
         },
         "opacity": "Deckkraft der Überlagerung",
-        "terrain": "Terrain source",
+        "terrain": "Geländequelle",
         "label": {
             "basemaps": "Basiskarte",
             "overlays": "Ebenen",
@@ -300,8 +303,10 @@
             "switzerland": "Schweiz",
             "united_kingdom": "Großbritannien",
             "united_states": "USA",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satellit",
+            "maptilerStreets": "MapTiler Streets",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -326,7 +331,7 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
-            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "mapterhornHillshade": "MapTiler Hillshade",
             "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Neigung",
             "swisstopoHiking": "swisstopo Wandern",
@@ -356,7 +361,7 @@
             "water": "Trinkwasser",
             "shower": "Dusche",
             "shelter": "Unterstand",
-            "cemetery": "Cemetery",
+            "cemetery": "Friedhof",
             "motorized": "Autos und Motorräder",
             "fuel-station": "Tankstelle",
             "parking": "Parken",
@@ -381,7 +386,7 @@
             "tram-stop": "Straßenbahnhaltestelle",
             "bus-stop": "Bushaltestelle",
             "ferry": "Fähre",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -488,7 +493,7 @@
         "email": "E-Mail",
         "contribute": "Beitragen",
         "supported_by": "unterstützt durch",
-        "support_button": "Unterstütze gpx.studio auf Ko-fi",
+        "features": "Features",
         "route_planning": "Routenplanung",
         "route_planning_description": "Eine intuitive Benutzeroberfläche, um Routen für jeden Sport zu erstellen, basierend auf OpenStreetMap-Daten.",
         "file_processing": "Erweiterte Dateiverarbeitung",
@@ -497,8 +502,15 @@
         "maps_description": "Eine große Sammlung von Basemaps, Overlays und interessanten Punkten, die dir helfen dein nächstes Outdoor-Abenteuer zu gestalten oder deine neueste Errungenschaft zu visualisieren.",
         "data_visualization": "Datenvisualisierung",
         "data_visualization_description": "Ein interaktives Höhenprofil mit detaillierten Statistiken zur Analyse erfasster Aktivitäten und zukünftiger Ziele.",
-        "identity": "Kostenlos, werbefrei und Open Source",
-        "identity_description": "Die Website ist frei zu nutzen, ohne Werbung, und der Quellcode ist auf GitHub öffentlich zugänglich. Dies ist nur dank der unglaublichen Unterstützung der Gemeinschaft möglich."
+        "philosophy": "Philosophy",
+        "foss": "Free, ad-free and open source",
+        "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
+        "privacy": "Privacy-friendly",
+        "privacy_description": "Your GPX files never leave your browser. No tracking, no data collection.",
+        "community": "Made possible by the community",
+        "community_description": "gpx.studio has an amazing community that has covered its costs through donations for years, while shaping the project through feature suggestions, bug reports, and translations into many languages.",
+        "support_button": "Support gpx.studio on Open Collective",
+        "translate_button": "Help translate the website on Crowdin"
     },
     "docs": {
         "translate": "Verbessere die Übersetzung auf Crowdin",
@@ -523,7 +535,7 @@
     },
     "embedding": {
         "title": "Erstelle deine eigene Karte!",
-        "mapbox_token": "Mapbox Zugangs-Token",
+        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
         "file_urls": "Datei URLs (getrennt durch Kommas)",
         "drive_ids": "Google Drive Datei IDs (getrennt durch Kommas)",
         "basemap": "Basiskarte",

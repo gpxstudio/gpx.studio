@@ -5,6 +5,7 @@ title: 合并要素
 <script>
     import { Group } from '@lucide/svelte';
     import Merge from '$lib/components/toolbar/tools/Merge.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # <Group size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
@@ -14,6 +15,13 @@ title: 合并要素
 - 若要生成一条连续轨迹，请选择 **合并为一条连续轨迹**；
 - 第二个选项可用于创建或管理包含多个 [轨迹或路段](../gpx) 的文件。
   并将所有内容存储在一个文件（或轨迹）中，请选择 **合并但保持轨迹独立**；
+
+<DocsNote>
+
+Selected items are merged in the order they appear in the files list.
+Reorder items by drag-and-drop if needed.
+
+</DocsNote>
 
 <div class="flex flex-row justify-center">
     <Merge class="text-foreground p-3 border rounded-md shadow-lg" />

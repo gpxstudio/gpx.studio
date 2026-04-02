@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Click",
         "drag": "Trascina",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Informazioni...",
             "name": "Nome",
@@ -84,10 +85,10 @@
     },
     "toolbar": {
         "routing": {
-            "tooltip": "Pianifica o modifica un percorsoo",
+            "tooltip": "Pianifica o modifica un percorso",
             "activity": "Attività",
             "use_routing": "Instradamento",
-            "use_routing_tooltip": "Collega i punti di ancoraggio tramite la rete stradale (o in linea retta se disabilitato)",
+            "use_routing_tooltip": "Collega i punti di ancoraggio tramite la rete stradale, o in linea retta se disabilitato",
             "allow_private": "Consenti strade private",
             "reverse": {
                 "button": "Inverti la traccia",
@@ -107,7 +108,7 @@
             "activities": {
                 "bike": "Bicicletta",
                 "racing_bike": "Bici da strada",
-                "gravel_bike": "Bici gravel",
+                "gravel_bike": "Bici da gravel",
                 "mountain_bike": "Mountain bike",
                 "foot": "Corsa/escursione",
                 "motorcycle": "Moto",
@@ -190,6 +191,8 @@
                 "from": "Il punto di partenza è troppo lontano dalla strada più vicina",
                 "via": "Il punto di arrivo è troppo lontano dalla strada più vicina",
                 "to": "Il punto di arrivo è troppo lontano dalla strada più vicina",
+                "distance": "The end point is too far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "Il calcolo del percorso ha richiesto troppo tempo, prova ad aggiungere punti più vicini"
             }
         },
@@ -231,7 +234,7 @@
         },
         "elevation": {
             "button": "Richiedi dati elevazione",
-            "help": "Richiedere dati di altitudine cancellerà i dati di altitudine attuali, se presenti, e li rimpiazzerà con quelli provenienti da Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Seleziona un file per richiedere i dati di altitudine."
         },
         "waypoint": {
@@ -273,7 +276,7 @@
             "new": "Nuovo livello personalizzato",
             "edit": "Modifica livello personalizzato",
             "urls": "URL(s)",
-            "url_placeholder": "WMTS, WMS o JSON in stile Mapbox",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Zoom massimo",
             "layer_type": "Tipo del layer",
             "basemap": "Mappa Base",
@@ -300,8 +303,10 @@
             "switzerland": "Svizzera",
             "united_kingdom": "United Kingdom",
             "united_states": "Stati Uniti",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satellite",
+            "maptilerStreets": "MapTiler Streets",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -381,7 +386,7 @@
             "tram-stop": "Fermata del tram",
             "bus-stop": "Fermata dell'autobus",
             "ferry": "Traghetto",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -488,7 +493,7 @@
         "email": "Email",
         "contribute": "Contribuire",
         "supported_by": "supportato da",
-        "support_button": "Supporta gpx.studio su Ko-fi",
+        "features": "Features",
         "route_planning": "Pianificazione del percorso",
         "route_planning_description": "Un'interfaccia intuitiva per creare itinerari su misura per ogni sport, basata sui dati OpenStreetMap.",
         "file_processing": "Elaborazione avanzata dei file",
@@ -497,8 +502,15 @@
         "maps_description": "Una vasta collezione di mappe di base, sovrapposizioni e punti d'interesse per aiutarti a creare la tua prossima avventura all'aperto o visualizzare la tua ultima impresa.",
         "data_visualization": "Visualizzazione dei dati",
         "data_visualization_description": "Un profilo di elevazione interattivo con statistiche dettagliate per analizzare attività registrate e obiettivi futuri.",
-        "identity": "Gratuito, senza pubblicità e open source",
-        "identity_description": "Il sito web è gratuito da usare, senza pubblicità, e il codice sorgente è pubblicamente disponibile su GitHub. Questo è possibile solo grazie all'incredibile sostegno della comunità."
+        "philosophy": "Philosophy",
+        "foss": "Free, ad-free and open source",
+        "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
+        "privacy": "Privacy-friendly",
+        "privacy_description": "Your GPX files never leave your browser. No tracking, no data collection.",
+        "community": "Made possible by the community",
+        "community_description": "gpx.studio has an amazing community that has covered its costs through donations for years, while shaping the project through feature suggestions, bug reports, and translations into many languages.",
+        "support_button": "Support gpx.studio on Open Collective",
+        "translate_button": "Help translate the website on Crowdin"
     },
     "docs": {
         "translate": "Migliora la traduzione su Crowdin",
@@ -523,7 +535,7 @@
     },
     "embedding": {
         "title": "Crea la tua mappa",
-        "mapbox_token": "Token di accesso a Mapbox",
+        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
         "file_urls": "URL dei file (separati da virgole)",
         "drive_ids": "ID dei file in Google Drive (separati da virgole)",
         "basemap": "Mappa Base",

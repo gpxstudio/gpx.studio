@@ -4,7 +4,7 @@
         "app_title": "Aplikacja",
         "embed_title": "Edytor plików GPX online",
         "help_title": "pomoc",
-        "404_title": "nie odnaleziono strony",
+        "404_title": "Strona nie odnaleziona",
         "description": "Przeglądaj, edytuj i twórz pliki GPX online z zaawansowanymi możliwościami planowania trasy i narzędziami do przetwarzania plików, pięknymi mapami i szczegółowymi wizualizacjami danych."
     },
     "menu": {
@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Klik",
         "drag": "Przeciągnij",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Informacje...",
             "name": "Nazwa",
@@ -190,6 +191,8 @@
                 "from": "Punkt początkowy jest zbyt daleko od najbliższej drogi",
                 "via": "Punkt przelotowy jest zbyt daleko od najbliższej drogi",
                 "to": "Punkt końcowy jest zbyt daleko od najbliższej drogi",
+                "distance": "Punkt końcowy jest zbyt daleko od punktu początkowego",
+                "connection": "Nie znaleziono połączenia między punktami",
                 "timeout": "Obliczanie trasy trwało zbyt długo, spróbuj dodać punkty bliżej siebie"
             }
         },
@@ -231,7 +234,7 @@
         },
         "elevation": {
             "button": "Dodaj dane o wysokości terenu",
-            "help": "Dodanie tych danych nadpisze wszystkie naniesione informacje o wysokościach danymi pobranymi z Mapbox. ",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Wybierz plik do wczytania danych o wysokości w terenie."
         },
         "waypoint": {
@@ -273,7 +276,7 @@
             "new": "Nowa warstwa niestandardowa",
             "edit": "Edytuj niestandardową warstwę",
             "urls": "URL(e)",
-            "url_placeholder": "JSON w stylu WMTS, WMS lub Mapbox",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Maksymalne powiększenie",
             "layer_type": "Rodzaj warstwy",
             "basemap": "Mapa bazowa",
@@ -300,8 +303,10 @@
             "switzerland": "Szwajcaria",
             "united_kingdom": "Wielka Brytania",
             "united_states": "Stany Zjednoczone",
-            "mapboxOutdoors": "Teren (Mapbox)",
-            "mapboxSatellite": "Satelita (Mapbox)",
+            "maptilerStreets": "MapTiler Streets",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -326,7 +331,7 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
-            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "mapterhornHillshade": "Cieniowanie terenu Mapterhorn",
             "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Stoki",
             "swisstopoHiking": "swisstopo Szlaki Turystyczne",
@@ -381,7 +386,7 @@
             "tram-stop": "Przystanek tramwajowy",
             "bus-stop": "Przystanek autobusowy",
             "ferry": "Prom",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -488,7 +493,7 @@
         "email": "Email",
         "contribute": "Wesprzyj",
         "supported_by": "wspierane przez",
-        "support_button": "Wesprzyj gpx.studio na Ko-fi",
+        "features": "Features",
         "route_planning": "Planowanie trasy",
         "route_planning_description": "Intuicyjny interfejs do tworzenia tras dostosowanych do każdego sportu, na bazie danych OpenStreetMap.",
         "file_processing": "Rozbudowanie przetwarzanie plików",
@@ -497,8 +502,15 @@
         "maps_description": "Duża kolekcja podstawowych map, nakładek i ulubionych punktów, które pomogą Ci stworzyć następną przygodę lub zwizualizować swoje ostatnie osiągnięcie.",
         "data_visualization": "Prezentacja danych",
         "data_visualization_description": "Interaktywny profil ukształtowania terenu wraz ze szczegółowymi danymi statystycznymi, służącymi do analizy odbytych wycieczek i przyszłych aktywności.",
-        "identity": "Darmowa, wolna od reklam i w duchu open-source",
-        "identity_description": "Ta strona jest darmowa w użyciu, bez reklam, a kod źródłowy jest publicznie dostępny na platformie GitHub. Jest to możliwe tylko dzięki niesamowitemu wsparciu społeczności."
+        "philosophy": "Philosophy",
+        "foss": "Free, ad-free and open source",
+        "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
+        "privacy": "Privacy-friendly",
+        "privacy_description": "Your GPX files never leave your browser. No tracking, no data collection.",
+        "community": "Made possible by the community",
+        "community_description": "gpx.studio has an amazing community that has covered its costs through donations for years, while shaping the project through feature suggestions, bug reports, and translations into many languages.",
+        "support_button": "Support gpx.studio on Open Collective",
+        "translate_button": "Help translate the website on Crowdin"
     },
     "docs": {
         "translate": "Ulepsz tłumaczenie na Crowdin",
@@ -523,7 +535,7 @@
     },
     "embedding": {
         "title": "Utwórz własną mapę",
-        "mapbox_token": "Token dostępu do Mapbox",
+        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
         "file_urls": "Adres URL do pliku (rozdzielonego przecinkami)",
         "drive_ids": "ID pliku na Google Drive (rozdzielonego przecinkami)",
         "basemap": "Mapa bazowa",

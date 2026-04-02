@@ -5,6 +5,7 @@ title: Fusionner
 <script>
     import { Group } from '@lucide/svelte';
     import Merge from '$lib/components/toolbar/tools/Merge.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # <Group size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
@@ -14,6 +15,13 @@ Pour utiliser cet outil, vous devez [sélectionner](../files-and-stats) plusieur
 - Si votre objectif est de créer une seule trace continue à partir de votre sélection, utilisez l'option **Connecter les traces** et validez.
 - La deuxième option peut être utilisée pour créer ou gérer des fichiers avec plusieurs [pistes ou segments](../gpx).
   Fusionner des fichiers (ou des pistes) résultera en un seul fichier (ou piste) contenant toutes les pistes (ou tous les segments) de la sélection.
+
+<DocsNote>
+
+Les éléments sélectionnés sont fusionnés dans l'ordre dans lequel ils apparaissent dans la liste des fichiers.
+Vous pouvez réordonner les éléments par glisser-déposer si besoin.
+
+</DocsNote>
 
 <div class="flex flex-row justify-center">
     <Merge class="text-foreground p-3 border rounded-md shadow-lg" />

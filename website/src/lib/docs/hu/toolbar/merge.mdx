@@ -5,6 +5,7 @@ title: Egyesítés
 <script>
     import { Group } from '@lucide/svelte';
     import Merge from '$lib/components/toolbar/tools/Merge.svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # <Group size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
@@ -14,6 +15,13 @@ Az eszköz használatához [ki kell választania](../files-and-stats) több fáj
 - Ha az a cél, hogy egyetlen folyamatos nyomkövetést hozzon létre a kiválasztottból, használja a **A nyomkövetések összekapcsolása** opciót, és érvényesítse.
 - A második lehetőség több [sávot vagy szegmenst] tartalmazó fájlok létrehozására vagy kezelésére használható (../gpx).
   A fájlok (vagy útvonalak) egyesítése egyetlen fájlt (vagy útvonalat) eredményez, amely tartalmazza a kijelölés összes útvonalát (vagy szegmensét).
+
+<DocsNote>
+
+Selected items are merged in the order they appear in the files list.
+Reorder items by drag-and-drop if needed.
+
+</DocsNote>
 
 <div class="flex flex-row justify-center">
     <Merge class="text-foreground p-3 border rounded-md shadow-lg" />

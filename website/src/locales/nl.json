@@ -54,7 +54,7 @@
         "mapillary": "Mapillary",
         "google": "Google",
         "toggle_street_view": "Street view",
-        "layers": "Kaart lagen...",
+        "layers": "Kaartlagen...",
         "distance_markers": "Afstandsmarkeringen",
         "direction_markers": "Richtingspijlen",
         "help": "Help",
@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Klik",
         "drag": "Slepen",
+        "right_click_drag": "Rechtsklik slepen",
         "metadata": {
             "button": "Info...",
             "name": "Naam",
@@ -190,6 +191,8 @@
                 "from": "Het startpunt ligt te ver van de dichtstbijzijnde weg",
                 "via": "Het via punt ligt te ver van de dichtstbijzijnde weg",
                 "to": "Het eindpunt is te ver van de dichtstbijzijnde weg",
+                "distance": "Het eindpunt is te ver vanaf het startpunt",
+                "connection": "Geen verbinding gevonden tussen de punten",
                 "timeout": "Routeberekening heeft te lang geduurd, probeer punten dichter bij elkaar toe te voegen"
             }
         },
@@ -231,7 +234,7 @@
         },
         "elevation": {
             "button": "Hoogtegegevens opvragen",
-            "help": "Het opvragen van hoogtegegevens zal de bestaande hoogtegegevens wissen, indien aanwezig, en vervangen door gegevens uit Mapbox.",
+            "help": "Het opvragen van hoogtegegevens verwijdert de bestaande hoogtegegevens, indien aanwezig, en vervangt deze door gegevens van MapTiler.",
             "help_no_selection": "Selecteer een bestand om hoogte gegevens op te vragen."
         },
         "waypoint": {
@@ -273,7 +276,7 @@
             "new": "Nieuwe aangepaste laag",
             "edit": "Aangepaste laag bewerken",
             "urls": "URL('s)",
-            "url_placeholder": "WMTS, WMS of Mapbox-stijl JSON",
+            "url_placeholder": "WMTS, WMS of MapLibre stijl JSON",
             "max_zoom": "Maximale zoom",
             "layer_type": "Type van de laag",
             "basemap": "Basiskaart",
@@ -300,8 +303,10 @@
             "switzerland": "Zwitserland",
             "united_kingdom": "Verenigd Koninkrijk",
             "united_states": "Verenigde Staten",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satelliet",
+            "maptilerStreets": "MapTiler straten",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Buiten",
+            "maptilerSatellite": "MapTiler satelliet",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -381,7 +386,7 @@
             "tram-stop": "Tramhalte",
             "bus-stop": "Bushalte",
             "ferry": "Veerboot",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -488,7 +493,7 @@
         "email": "E-mail",
         "contribute": "Draag bij",
         "supported_by": "ondersteund door",
-        "support_button": "Ondersteun gpx.studio op Ko-fi",
+        "features": "Functies",
         "route_planning": "Routeplannersoftware",
         "route_planning_description": "Een intuïtieve interface voor het maken van routes, aangepast aan elke sport, gebaseerd op OpenStreetMap gegevens.",
         "file_processing": "Geavanceerde bestandsverwerking",
@@ -497,8 +502,15 @@
         "maps_description": "Een grote verzameling van basiskaarten, lagen en interessante punten om je te helpen je volgende avontuur op te zetten, of om je laatste prestatie te visualiseren.",
         "data_visualization": "Data visualisatie",
         "data_visualization_description": "Een interactief hoogteprofiel met gedetailleerde statistieken om opgenomen activiteiten en toekomstige doelstellingen te analyseren.",
-        "identity": "Gratis, advertentievrij en open source",
-        "identity_description": "De website is gratis te gebruiken, zonder advertenties, en de broncode is publiekelijk beschikbaar op GitHub. Dit is alleen mogelijk dankzij de ongelooflijke steun van de gemeenschap."
+        "philosophy": "Filosofie",
+        "foss": "Gratis, advertentievrije en open source",
+        "foss_description": "De website is gratis te gebruiken, zonder advertenties, en de broncode is openbaar beschikbaar op GitHub.",
+        "privacy": "Privacyvriendelijk",
+        "privacy_description": "Uw GPX-bestanden verlaten nooit uw browser. Geen tracking, geen analyse.",
+        "community": "Mogelijk gemaakt door de community",
+        "community_description": "gpx.studio heeft een verbazingwekkende gemeenschap die zijn kosten al jaren dekt door donaties bij het vormgeven van het project door suggesties, foutrapporten en vertalingen in vele talen.",
+        "support_button": "Ondersteun gpx.studio op Open Collective",
+        "translate_button": "Help de website te vertalen op Crowdin"
     },
     "docs": {
         "translate": "Verbeter de vertaling op Crowdin",
@@ -523,7 +535,7 @@
     },
     "embedding": {
         "title": "Maak je eigen kaart",
-        "mapbox_token": "Toegangstoken voor Mapbox",
+        "maptiler_key": "MapTiler sleutel (optioneel, alleen vereist voor MapTiler kaarten)",
         "file_urls": "Bestands URL's (komma gescheiden)",
         "drive_ids": "Google Drive bestand ID's (gescheiden door komma's)",
         "basemap": "Basiskaart",

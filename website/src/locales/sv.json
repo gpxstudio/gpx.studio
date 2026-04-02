@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Klicka",
         "drag": "Dra",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Info...",
             "name": "Namn",
@@ -190,6 +191,8 @@
                 "from": "Startpunkten är för långt bort från närmaste väg",
                 "via": "Ruttpunkten är för långt bort från närmaste väg",
                 "to": "Slutpunkten är för långt bort från närmaste väg",
+                "distance": "The end point is too far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "Ruttberäkningen tog för lång tid, försök att lägga punkterna närmare varandra"
             }
         },
@@ -231,7 +234,7 @@
         },
         "elevation": {
             "button": "Request elevation data",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Select a file item to request elevation data."
         },
         "waypoint": {
@@ -273,7 +276,7 @@
             "new": "New custom layer",
             "edit": "Edit custom layer",
             "urls": "URL(s)",
-            "url_placeholder": "WMTS, WMS or Mapbox style JSON",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Max zoom",
             "layer_type": "Lagertyp",
             "basemap": "Baskarta",
@@ -300,8 +303,10 @@
             "switzerland": "Schweiz",
             "united_kingdom": "Storbritannien",
             "united_states": "USA",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Satellite",
+            "maptilerStreets": "MapTiler Streets",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -381,7 +386,7 @@
             "tram-stop": "Spårvagnshållplats",
             "bus-stop": "Busshållplats",
             "ferry": "Ferry",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -488,7 +493,7 @@
         "email": "Email",
         "contribute": "Contribute",
         "supported_by": "supported by",
-        "support_button": "Support gpx.studio on Ko-fi",
+        "features": "Features",
         "route_planning": "Route planning",
         "route_planning_description": "An intuitive interface to create itineraries tailored to each sport, based on OpenStreetMap data.",
         "file_processing": "Advanced file processing",
@@ -497,8 +502,15 @@
         "maps_description": "A large collection of basemaps, overlays and points of interest to help you craft your next outdoor adventure, or visualize your latest achievement.",
         "data_visualization": "Data visualization",
         "data_visualization_description": "En interaktiv höjdprofil med detaljerad statistik för att analysera sparade aktiviter och framtida mål.",
-        "identity": "Free, ad-free and open source",
-        "identity_description": "The website is free to use, without ads, and the source code is publicly available on GitHub. This is only possible thanks to the incredible support of the community."
+        "philosophy": "Philosophy",
+        "foss": "Free, ad-free and open source",
+        "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
+        "privacy": "Privacy-friendly",
+        "privacy_description": "Your GPX files never leave your browser. No tracking, no data collection.",
+        "community": "Made possible by the community",
+        "community_description": "gpx.studio has an amazing community that has covered its costs through donations for years, while shaping the project through feature suggestions, bug reports, and translations into many languages.",
+        "support_button": "Support gpx.studio on Open Collective",
+        "translate_button": "Help translate the website on Crowdin"
     },
     "docs": {
         "translate": "Improve the translation on Crowdin",
@@ -523,7 +535,7 @@
     },
     "embedding": {
         "title": "Create your own map",
-        "mapbox_token": "Mapbox access token",
+        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
         "file_urls": "Fil-URL:er (separerade med kommatecken)",
         "drive_ids": "Google Drive file IDs (separerade med kommatecken)",
         "basemap": "Baskarta",

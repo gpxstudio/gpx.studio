@@ -1,5 +1,5 @@
 ---
-title: Map controls
+title: Sterowanie mapą
 ---
 
 <script>
@@ -10,36 +10,36 @@ title: Map controls
 
 # { title }
 
-The map controls are located on the right side of the interface.
-These controls allow you to navigate the map, zoom in and out, and switch between different map styles.
+Elementy sterujące mapą znajdują się po prawej stronie interfejsu.
+Za pomocą tych elementów sterujących można poruszać się po mapie, powiększać i pomniejszać widok oraz przełączać się między różnymi stylami mapy.
 
-### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Map navigation
+### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Nawigacja mapą
 
-The controls at the top allow you to zoom in <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> and out <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, and to change the orientation and tilt of the map <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
-
-<DocsNote>
-
-To control the orientation and tilt of the map, you can also drag the map while holding <kbd>Ctrl</kbd>.
-
-</DocsNote>
-
-### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Search bar
-
-You can use the search bar to look for an address and navigate to it on the map.
-
-### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Locate button
-
-The locate button centers the map on your current location.
+Sterowanie na górze pozwala powiększać <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> i pomniejszać <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, zmieniać orientacje oraz pochylenie mapy<Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
 
 <DocsNote>
 
-This only works if you have allowed your browser and <b>gpx.studio</b> to access your location.
+Aby kontrolować orientację i pochylenie mapy, możesz również przeciągnąć mapę przytrzymując <kbd>Ctrl</kbd>.
 
 </DocsNote>
 
-### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Street view
+### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Pasek wyszukiwania
 
-This button can be used to enable street view mode on the map.
+Możesz użyć paska wyszukiwania, aby wyszukać adres i przejść do niego na mapie.
+
+### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Przycisk lokalizacji
+
+Przycisk lokalizacji wyśrodkuje mapę na bieżącej lokalizacji.
+
+<DocsNote>
+
+Działa tylko wtedy, gdy zezwoliłeś przeglądarce i <b>gpx.studio</b> na dostęp do Twojej lokalizacji.
+
+</DocsNote>
+
+### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> widok na ulicę, Street view
+
+Ten przycisk może być użyty do włączenia trybu street view na mapie.
 Depending on the street view source chosen in the [settings](./menu/settings), street view imagery can be accessed differently.
 
 - <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: the street view coverage will appear as green lines on the map. When zoomed in enough, green dots will show the exact locations where street view imagery is available. Hovering over a green dot will show the street view image at that location.
@@ -56,10 +56,12 @@ The map layers button allows you to switch between different basemaps, and toggl
 - **Points of interest** can be added to the map to show different categories of places, such as shops, restaurants, or accommodations.
 
 <div class="flex flex-col items-center">
-    <DocsLayers />
-    <span class="text-sm text-center mt-2">
-        Hover over the map to show the <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> overlay on top of the <a href="https://www.mapbox.com/maps/outdoors" target="_blank">Mapbox Outdoors</a> basemap.
-    </span>
+<DocsLayers />
+<span class="text-sm text-center mt-2">
+
+Hover over the map to show the <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> overlay on top of the <a href="https://www.maptiler.com/maps/outdoor-topo/" target="_blank">MapTiler Topo</a> basemap.
+
+</span>
 </div>
 
 A large collection of global and local basemaps and overlays is available in **gpx.studio**, as well as a selection of point-of-interest categories.
@@ -67,4 +69,4 @@ They can be enabled in the [map layer settings dialog](./menu/settings).
 
 In these settings, you can also manage the opacity of the overlays.
 
-For advanced users, it is possible to add custom basemaps and overlays by providing <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, or <a href="https://docs.mapbox.com/help/glossary/style/" target="_blank">Mapbox style JSON</a> URLs.
+For advanced users, it is possible to add custom basemaps and overlays by providing <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, or <a href="https://maplibre.org/maplibre-style-spec/" target="_blank">MapLibre style JSON</a> URLs.

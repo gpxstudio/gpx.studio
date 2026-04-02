@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Tıkla",
         "drag": "Sürükle",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Bilgi...",
             "name": "Ad",
@@ -190,6 +191,8 @@
                 "from": "Başlangıç noktası en yakın yoldan çok uzak",
                 "via": "Geçiş noktası en yakın yoldan çok uzak",
                 "to": "Bitiş noktası en yakın yoldan çok uzak",
+                "distance": "The end point is too far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "Rota hesaplaması uzun sürdü, daha yakın noktalar eklemeyi deneyin"
             }
         },
@@ -231,7 +234,7 @@
         },
         "elevation": {
             "button": "Yükselti verisi talep et",
-            "help": "Yükselti verisi talep etmek, varsa mevcut yükselti verilerini silecek ve Mapbox verisi ile değiştirecektir.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Yükselti verisi talep etmek için bir dosya öğesi seçin."
         },
         "waypoint": {
@@ -273,7 +276,7 @@
             "new": "Yeni özel katman",
             "edit": "Özel katmanı düzenle",
             "urls": "URL(ler)",
-            "url_placeholder": "WMTS, WMS veya Mapbox JSON stili",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Maksimum yakınlık",
             "layer_type": "Katman Tipi",
             "basemap": "Temel Harita",
@@ -300,8 +303,10 @@
             "switzerland": "İsviçre",
             "united_kingdom": "Birleşik Krallık",
             "united_states": "Birlişik Devletler",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Mapbox Uydu",
+            "maptilerStreets": "MapTiler Streets",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -381,7 +386,7 @@
             "tram-stop": "Tramvay Durağı",
             "bus-stop": "Otobüs Durağı",
             "ferry": "Feribot",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -488,7 +493,7 @@
         "email": "E-Posta",
         "contribute": "Bağış Yap",
         "supported_by": "sponsor",
-        "support_button": "gpx.studio'yu Ko-fi'de destekle",
+        "features": "Features",
         "route_planning": "Rota Planlama",
         "route_planning_description": "OpenStreetMap verilerini kullanarak, her spora özel rotalar oluşturabileceğiniz, kullanımı kolay bir arayüz.",
         "file_processing": "Gelişmiş dosya işleme",
@@ -497,8 +502,15 @@
         "maps_description": "Geniş bir temel harita koleksiyonu, bir sonraki açık hava maceranızı ustalıkla yapmanıza yardımcı olacak katmanlar ve ilgi alana noktaları, veya en son başarı hikayenizi görselleştirin.",
         "data_visualization": "Veri görselleştirme",
         "data_visualization_description": "Kayıtlı aktiviteleri ve gelecek hedeflerinizi detaylı istatistiklerle analiz edebileceğiniz bir interaktif yükselti profili.",
-        "identity": "Ücretsiz, reklamsız ve açık kaynak",
-        "identity_description": "Website kullunımı ücretsizdir, reklam olmadan, ve kaynak kodu GitHub'da erişime açaktır. Bu sadece inanılmaz topluluk desteğiyle mümkün."
+        "philosophy": "Philosophy",
+        "foss": "Free, ad-free and open source",
+        "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
+        "privacy": "Privacy-friendly",
+        "privacy_description": "Your GPX files never leave your browser. No tracking, no data collection.",
+        "community": "Made possible by the community",
+        "community_description": "gpx.studio has an amazing community that has covered its costs through donations for years, while shaping the project through feature suggestions, bug reports, and translations into many languages.",
+        "support_button": "Support gpx.studio on Open Collective",
+        "translate_button": "Help translate the website on Crowdin"
     },
     "docs": {
         "translate": "Çevirimleri Crowdin ile iyileştir",
@@ -523,7 +535,7 @@
     },
     "embedding": {
         "title": "Kendi haritanı oluştur!",
-        "mapbox_token": "Mapbox erişim token'ı",
+        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
         "file_urls": "Dosya URLleri (virgülle ayrımış)",
         "drive_ids": "Google Drive dosya ID'si (virgülle ayrılmış)",
         "basemap": "Temel Harita",

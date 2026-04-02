@@ -63,6 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Клац",
         "drag": "Перетягти",
+        "right_click_drag": "Right-click drag",
         "metadata": {
             "button": "Інформація...",
             "name": "Назва",
@@ -190,6 +191,8 @@
                 "from": "Початкова точка знаходиться занадто далеко від найближчої дороги",
                 "via": "Проміжна точка знаходиться занадто далеко від найближчої дороги",
                 "to": "Кінцева точка знаходиться занадто далеко від найближчої дороги",
+                "distance": "The end point is too far from the start point",
+                "connection": "No connection found between the points",
                 "timeout": "Розрахунок маршруту є занадто довгий, спробуйте додати ближчі точки"
             }
         },
@@ -231,7 +234,7 @@
         },
         "elevation": {
             "button": "Запит даних висот",
-            "help": "Запит даних висот призведе до видалення наявних даних висот, якщо вони є, і замінить їх даними з Mapbox.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
             "help_no_selection": "Виберіть елемент файлу, щоб запросити дані про висоту."
         },
         "waypoint": {
@@ -273,7 +276,7 @@
             "new": "Новий користувацький шар",
             "edit": "Редагувати користувацький шар",
             "urls": "URL-адреса(и)",
-            "url_placeholder": "WMTS, WMS або Mapbox style JSON",
+            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
             "max_zoom": "Максимальний зум",
             "layer_type": "Тип шару",
             "basemap": "Базова карта",
@@ -300,8 +303,10 @@
             "switzerland": "Швейцарія",
             "united_kingdom": "Велика Британія\nВеликобританія",
             "united_states": "Сполучені Штати",
-            "mapboxOutdoors": "Mapbox Outdoors",
-            "mapboxSatellite": "Супутник Mapbox",
+            "maptilerStreets": "MapTiler Streets",
+            "maptilerTopo": "MapTiler Topo",
+            "maptilerOutdoors": "MapTiler Outdoors",
+            "maptilerSatellite": "MapTiler Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
@@ -381,7 +386,7 @@
             "tram-stop": "Трамвайна Зупинка",
             "bus-stop": "Автобусна Зупинка",
             "ferry": "Пором",
-            "mapbox-dem": "Mapbox DEM",
+            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
@@ -488,7 +493,7 @@
         "email": "Електронна пошта",
         "contribute": "Зробити внесок",
         "supported_by": "за підтримки",
-        "support_button": "Підтримати gpx.studio на Ko-fi",
+        "features": "Features",
         "route_planning": "Планування маршруту",
         "route_planning_description": "Інтуїтивно зрозумілий інтерфейс для створення маршрутів, адаптованих під кожен вид спорту, на основі даних OpenStreetMap.",
         "file_processing": "Розширена обробка файлу",
@@ -497,8 +502,15 @@
         "maps_description": "Велика колекція базових карт, шарів та точок інтересу, щоб допомогти вам спланувати наступну outdoor-пригоду або візуалізувати своє останнє досягнення.",
         "data_visualization": "Візуалізація даних",
         "data_visualization_description": "Інтерактивний профіль висот з детальною статистикою для аналізу записаних активностей та майбутніх цілей.",
-        "identity": "Безоплатно, без реклами та відкритим вихідним кодом",
-        "identity_description": "Сайт безоплатний для використання, без реклами, а вихідний код відкрито доступний на GitHub. Це можливо лише завдяки неймовірній підтримці спільноти."
+        "philosophy": "Philosophy",
+        "foss": "Free, ad-free and open source",
+        "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
+        "privacy": "Privacy-friendly",
+        "privacy_description": "Your GPX files never leave your browser. No tracking, no data collection.",
+        "community": "Made possible by the community",
+        "community_description": "gpx.studio has an amazing community that has covered its costs through donations for years, while shaping the project through feature suggestions, bug reports, and translations into many languages.",
+        "support_button": "Support gpx.studio on Open Collective",
+        "translate_button": "Help translate the website on Crowdin"
     },
     "docs": {
         "translate": "Покращити переклад на Crowdin",
@@ -523,7 +535,7 @@
     },
     "embedding": {
         "title": "Створити власну карту",
-        "mapbox_token": "Токен доступу Mapbox",
+        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
         "file_urls": "URL-адреси файлів (розділені комами)",
         "drive_ids": "Ідентифікатори файлів Google Drive (розділені комами)",
         "basemap": "Базова карта",
