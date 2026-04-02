@@ -73,7 +73,7 @@
                     </span>
                 </Tooltip>
             {/if}
-            {#if panelHeight > 160 || (orientation === 'horizontal' && panelWidth > 620)}
+            {#if panelHeight > 150 || (orientation === 'horizontal' && panelWidth > 620)}
                 <Tooltip
                     label="{i18n._('quantities.time')} ({i18n._('quantities.moving')} / {i18n._(
                         'quantities.total'
