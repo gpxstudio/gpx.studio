@@ -47,7 +47,7 @@
 
 <div class="w-full px-12 flex flex-col items-center">
     <div class="w-full max-w-5xl flex flex-col items-center">
-        <div class="mt-12 flex flex-col xs:items-center gap-12">
+        <div class="w-full mt-12 flex flex-col xs:items-center gap-12">
             <div class="flex flex-col xs:items-center gap-6 max-w-3xl">
                 <h1 class="text-4xl xs:text-5xl sm:text-6xl xs:text-center font-black">
                     {i18n._('metadata.home_title')}
@@ -78,7 +78,7 @@
                 <enhanced:img
                     src="/src/lib/assets/img/docs/getting-started/interface.webp"
                     alt="The gpx.studio interface."
-                    class="rounded-xl shadow-2xl w-full"
+                    class="rounded-xl shadow-2xl"
                 /></a
             >
         </div>
