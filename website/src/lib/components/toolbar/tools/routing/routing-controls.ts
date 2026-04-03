@@ -523,10 +523,7 @@ export class RoutingControls {
         }
         if (
             e.target.queryRenderedFeatures(e.point, {
-                layers: this.layers
-                    .values()
-                    .map((layer) => layer.id)
-                    .toArray(),
+                layers: [...this.layers.values()].map((layer) => layer.id),
             }).length
         ) {
             // Clicked on routing control, ignoring
