@@ -1,11 +1,14 @@
+import maplibregl from 'maplibre-gl';
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
 
 export class GoogleRedirect {
     map: maplibregl.Map;
     enabled = false;
+    onLocationClick?: (lat: number, lng: number) => void;
 
-    constructor(map: maplibregl.Map) {
+    constructor(map: maplibregl.Map, onLocationClick?: (lat: number, lng: number) => void) {
         this.map = map;
+        this.onLocationClick = onLocationClick;
     }
 
     add() {
@@ -24,9 +27,14 @@ export class GoogleRedirect {
         this.map.off('click', this.openStreetView);
     }
 
-    openStreetView(e: maplibregl.MapMouseEvent) {
+    openStreetView = (e: maplibregl.MapMouseEvent) => {
+        if (this.onLocationClick) {
+            this.onLocationClick(e.lngLat.lat, e.lngLat.lng);
+            return;
+        }
+
         window.open(
             `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${e.lngLat.lat},${e.lngLat.lng}`
         );
-    }
+    };
 }

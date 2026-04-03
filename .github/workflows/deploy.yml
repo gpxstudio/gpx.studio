@@ -32,6 +32,7 @@ jobs:
               run: |
                   touch website/.env
                   echo PUBLIC_MAPTILER_KEY=${{ secrets.PUBLIC_MAPTILER_KEY }} >> website/.env
+                  echo PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.PUBLIC_GOOGLE_MAPS_API_KEY }} >> website/.env
                   cat website/.env
 
             - name: Build website

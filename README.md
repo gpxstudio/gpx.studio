@@ -43,10 +43,13 @@ npm run build
 ### Running the website
 
 To be able to load the map, you will need to create your own <a href="https://cloud.maptiler.com/auth/widget?next=https://cloud.maptiler.com/maps/" target="_blank">MapTiler key</a> and store it in a `.env` file in the `website` directory.
+If you also want Google Street View to open inside the app instead of a new tab, create a <a href="https://developers.google.com/maps/documentation/embed/get-api-key" target="_blank">Google Maps Embed API key</a> and store it in the same file.
 
 ```bash
 cd website
 echo PUBLIC_MAPTILER_KEY={YOUR_MAPTILER_KEY} >> .env
+# optional, enables the in-app full-screen Google Street View modal
+echo PUBLIC_GOOGLE_MAPS_API_KEY={YOUR_GOOGLE_API_KEY} >> .env
 npm install
 npm run dev
 ```
