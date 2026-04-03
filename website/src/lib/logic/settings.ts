@@ -169,6 +169,8 @@ function filterLayerTree(t: LayerTreeType, allowed: LayerTreeType | undefined): 
             Object.keys(allowed).forEach((key) => {
                 if (Object.hasOwn(t, key)) {
                     filtered[key] = t[key];
+                } else {
+                    filtered[key] = allowed[key];
                 }
             });
         }
