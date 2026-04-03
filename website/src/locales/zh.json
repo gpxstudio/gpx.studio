@@ -63,7 +63,7 @@
         "ctrl": "Ctrl",
         "click": "单击",
         "drag": "拖拽",
-        "right_click_drag": "Right-click drag",
+        "right_click_drag": "右键拖动",
         "metadata": {
             "button": "信息...",
             "name": "名称",
@@ -234,7 +234,7 @@
         },
         "elevation": {
             "button": "请求海拔数据",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
+            "help": "请求成功后将移除原有的海拔数据，并使用 MapTiler 的海拔数据替换原有数据。",
             "help_no_selection": "选择要请求海拔数据的文件。"
         },
         "waypoint": {
@@ -276,7 +276,7 @@
             "new": "新建自定义图层",
             "edit": "编辑自定义图层",
             "urls": "URL(s)",
-            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
+            "url_placeholder": "WMTS，WMS 或 MapLibre style JSON",
             "max_zoom": "最大缩放等级",
             "layer_type": "图层类型",
             "basemap": "底图",
@@ -485,7 +485,7 @@
         "website": "官方网站",
         "home": "首页",
         "app": "应用",
-        "contact": "联系方式",
+        "contact": "联系我们",
         "reddit": "Reddit",
         "facebook": "Facebook",
         "github": "GitHub",
@@ -493,7 +493,7 @@
         "email": "电子邮箱",
         "contribute": "参与贡献",
         "supported_by": "技术支持",
-        "features": "Features",
+        "features": "功能",
         "route_planning": "路线规划",
         "route_planning_description": "基于 OpenStreetMap 数据，在直观的界面中为每项运动创建量身定制的行程。",
         "file_processing": "高级文件处理",
@@ -502,15 +502,15 @@
         "maps_description": "内置大量地图底图、叠加图层和兴趣点，用于帮助规划户外冒险或可视化成果。",
         "data_visualization": "数据可视化",
         "data_visualization_description": "可交互的海拔剖面图，带有详细的统计数据，用于分析已记录的活动和规划中的目标。",
-        "philosophy": "Philosophy",
-        "foss": "Free, ad-free and open source",
-        "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
-        "privacy": "Privacy-friendly",
-        "privacy_description": "Your GPX files never leave your browser. No tracking, no data collection.",
-        "community": "Made possible by the community",
-        "community_description": "gpx.studio has an amazing community that has covered its costs through donations for years, while shaping the project through feature suggestions, bug reports, and translations into many languages.",
+        "philosophy": "宗旨",
+        "foss": "免费、 无广告且开源",
+        "foss_description": "该网站可自由使用，无广告，源代码可在 GitHub 上公开查阅。",
+        "privacy": "注重隐私",
+        "privacy_description": "你的 GPX 文件永远不会离开你的浏览器。我们不会跟踪用户的使用行为，也不会收集用户产生的数据。",
+        "community": "该项目由社区驱动",
+        "community_description": "gpx.studio 有一个绝赞的社区，它通过社区成员的捐助持续运营。它通过社区的力量，不断增加新的功能、修复 bug, 并支持多种语言。",
         "support_button": "在 Open Collective 上支持 gpx.studio",
-        "translate_button": "Help translate the website on Crowdin"
+        "translate_button": "在 Crowdin 上协助翻译"
     },
     "docs": {
         "translate": "在 Crowdin 上改进此翻译",
@@ -535,7 +535,7 @@
     },
     "embedding": {
         "title": "创建您自己的地图",
-        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
+        "maptiler_key": "MapTiler key (可选，仅在使用 MapTiler 地图时需要提供)",
         "file_urls": "文件链接（英文逗号分隔）",
         "drive_ids": "谷歌云盘文件 IDs（英文逗号分隔）",
         "basemap": "底图",
