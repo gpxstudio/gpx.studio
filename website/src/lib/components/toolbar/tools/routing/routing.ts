@@ -17,7 +17,7 @@ export const routingProfiles: { [key: string]: RoutingProfile } = {
     gravel_bike: { engine: 'graphhopper', profile: 'gravelbike' },
     mountain_bike: { engine: 'graphhopper', profile: 'mtb' },
     foot: { engine: 'graphhopper', profile: 'foot' },
-    motorcycle: { engine: 'graphhopper', profile: 'motorcycle' },
+    motorcycle: { engine: 'graphhopper', profile: 'motorbike' },
     water: { engine: 'brouter', profile: 'river' },
     railway: { engine: 'brouter', profile: 'rail' },
 };
