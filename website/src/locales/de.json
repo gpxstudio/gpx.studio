@@ -63,7 +63,7 @@
         "ctrl": "Strg",
         "click": "Klick",
         "drag": "Ziehen",
-        "right_click_drag": "Right-click drag",
+        "right_click_drag": "Rechtsklick ziehen",
         "metadata": {
             "button": "Info...",
             "name": "Bezeichnung",
@@ -191,8 +191,8 @@
                 "from": "Der Startpunkt ist zu weit von der nächsten Straße entfernt",
                 "via": "Der Via-Punkt ist zu weit entfernt von der nächsten Straße",
                 "to": "Der Endpunkt ist zu weit von der nächsten Straße entfernt",
-                "distance": "The end point is too far from the start point",
-                "connection": "No connection found between the points",
+                "distance": "Der Endpunkt ist zu weit vom Startpunkt entfernt",
+                "connection": "Keine Verbindung zwischen den Punkten gefunden",
                 "timeout": "Route-Berechnung benötigte zu viel Zeit; versuche, die Punkte näher aneinander zu setzen"
             }
         },
@@ -234,7 +234,7 @@
         },
         "elevation": {
             "button": "Höhendaten anfragen",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
+            "help": "Das Anfordern von Höhendaten löscht die vorhandenen Höhendaten, falls vorhanden, und ersetzt diese durch Daten von MapTiler.",
             "help_no_selection": "Wählen Sie ein Datei-Element, um Höhendaten anzufordern."
         },
         "waypoint": {
@@ -276,7 +276,7 @@
             "new": "Neue benutzerdefinierte Ebene",
             "edit": "Eigene Ebene bearbeiten",
             "urls": "URL(s)",
-            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
+            "url_placeholder": "WMTS, WMS oder MapTiler Stil JSON",
             "max_zoom": "Max. Zoom",
             "layer_type": "Ebenenart",
             "basemap": "Basiskarte",
@@ -493,7 +493,7 @@
         "email": "E-Mail",
         "contribute": "Beitragen",
         "supported_by": "unterstützt durch",
-        "features": "Features",
+        "features": "Funktionen",
         "route_planning": "Routenplanung",
         "route_planning_description": "Eine intuitive Benutzeroberfläche, um Routen für jeden Sport zu erstellen, basierend auf OpenStreetMap-Daten.",
         "file_processing": "Erweiterte Dateiverarbeitung",
@@ -502,15 +502,15 @@
         "maps_description": "Eine große Sammlung von Basemaps, Overlays und interessanten Punkten, die dir helfen dein nächstes Outdoor-Abenteuer zu gestalten oder deine neueste Errungenschaft zu visualisieren.",
         "data_visualization": "Datenvisualisierung",
         "data_visualization_description": "Ein interaktives Höhenprofil mit detaillierten Statistiken zur Analyse erfasster Aktivitäten und zukünftiger Ziele.",
-        "philosophy": "Philosophy",
-        "foss": "Free, ad-free and open source",
-        "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
-        "privacy": "Privacy-friendly",
-        "privacy_description": "Your GPX files never leave your browser. No tracking, no data collection.",
-        "community": "Made possible by the community",
-        "community_description": "gpx.studio has an amazing community that has covered its costs through donations for years, while shaping the project through feature suggestions, bug reports, and translations into many languages.",
-        "support_button": "Support gpx.studio on Open Collective",
-        "translate_button": "Help translate the website on Crowdin"
+        "philosophy": "Philosophie",
+        "foss": "Kostenlos, werbefrei und Open Source",
+        "foss_description": "Die Website ist kostenlos, werbefrei und der Quellcode ist auf GitHub öffentlich zugänglich.",
+        "privacy": "Datenschutzfreundlich",
+        "privacy_description": "Deine GPX-Dateien verlassen niemals deinen Browser. Kein Tracking, keine Datenerfassung.",
+        "community": "Ermöglicht durch die Community",
+        "community_description": "gpx.studio hat eine großartige Community, die seit Jahren die Kosten durch Spenden deckt und das Projekt durch Funktionsvorschläge, Fehlermeldungen und Übersetzungen in viele Sprachen mitgestaltet.",
+        "support_button": "Unterstütze gpx.studio auf Open Collective",
+        "translate_button": "Hilf dabei, die Website auf Crowdin zu übersetzen"
     },
     "docs": {
         "translate": "Verbessere die Übersetzung auf Crowdin",
@@ -535,7 +535,7 @@
     },
     "embedding": {
         "title": "Erstelle deine eigene Karte!",
-        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
+        "maptiler_key": "MapTiler-Schlüssel (optional, nur für MapTiler-Karten erforderlich)",
         "file_urls": "Datei URLs (getrennt durch Kommas)",
         "drive_ids": "Google Drive Datei IDs (getrennt durch Kommas)",
         "basemap": "Basiskarte",
