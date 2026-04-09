@@ -52,7 +52,7 @@
         "dark": "Dark",
         "street_view_source": "Street view source",
         "mapillary": "Mapillary",
-        "google": "Google",
+        "google": "Google (not permitted for mapping use)",
         "toggle_street_view": "Street view",
         "layers": "Map layers...",
         "distance_markers": "Distance markers",
