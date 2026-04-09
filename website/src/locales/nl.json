@@ -307,6 +307,7 @@
             "maptilerTopo": "MapTiler Topo",
             "maptilerOutdoors": "MapTiler Buiten",
             "maptilerSatellite": "MapTiler satelliet",
+            "esriSatellite": "Esri Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
             "openHikingMap": "OpenHikingMap",
