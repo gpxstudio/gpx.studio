@@ -28,7 +28,7 @@
         "undo": "Скасувати",
         "redo": "Повторити",
         "delete": "Видалити",
-        "delete_all": "Delete all",
+        "delete_all": "Видалити все",
         "select_all": "Вибрати все",
         "view": "Вигляд",
         "elevation_profile": "Профіль рельєфу",
@@ -63,7 +63,7 @@
         "ctrl": "Ctrl",
         "click": "Клац",
         "drag": "Перетягти",
-        "right_click_drag": "Right-click drag",
+        "right_click_drag": "Перетягування правою кнопкою миші",
         "metadata": {
             "button": "Інформація...",
             "name": "Назва",
@@ -81,7 +81,7 @@
         "center": "Центр",
         "open_in": "Відкрити в",
         "copy_coordinates": "Копіювати координати",
-        "edit_osm": "Edit in OpenStreetMap"
+        "edit_osm": "Редагувати в OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -191,8 +191,8 @@
                 "from": "Початкова точка знаходиться занадто далеко від найближчої дороги",
                 "via": "Проміжна точка знаходиться занадто далеко від найближчої дороги",
                 "to": "Кінцева точка знаходиться занадто далеко від найближчої дороги",
-                "distance": "The end point is too far from the start point",
-                "connection": "No connection found between the points",
+                "distance": "Кінцева точка знаходиться занадто далеко від початкової точки",
+                "connection": "Зв'язку між точками не виявлено",
                 "timeout": "Розрахунок маршруту є занадто довгий, спробуйте додати ближчі точки"
             }
         },
@@ -234,7 +234,7 @@
         },
         "elevation": {
             "button": "Запит даних висот",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
+            "help": "Запит даних про висоту призведе до видалення наявних даних про висоту (якщо такі є) та їх заміни даними з MapTiler.",
             "help_no_selection": "Виберіть елемент файлу, щоб запросити дані про висоту."
         },
         "waypoint": {
@@ -276,7 +276,7 @@
             "new": "Новий користувацький шар",
             "edit": "Редагувати користувацький шар",
             "urls": "URL-адреса(и)",
-            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
+            "url_placeholder": "JSON у форматі WMTS, WMS або MapLibre",
             "max_zoom": "Максимальний зум",
             "layer_type": "Тип шару",
             "basemap": "Базова карта",
@@ -285,7 +285,7 @@
             "update": "Оновити шар"
         },
         "opacity": "Непрозорість накладання",
-        "terrain": "Terrain source",
+        "terrain": "Джерело інформації про місцевість",
         "label": {
             "basemaps": "Базові карти",
             "overlays": "Накладання",
@@ -331,7 +331,7 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
-            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "mapterhornHillshade": "Рельєфна карта Маптерхорна",
             "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Slope",
             "swisstopoHiking": "swisstopo Hiking",
@@ -361,7 +361,7 @@
             "water": "Вода",
             "shower": "Душ",
             "shelter": "Укриття",
-            "cemetery": "Cemetery",
+            "cemetery": "Кладовище",
             "motorized": "Автомобілі та Мотоцикли",
             "fuel-station": "Паливна станція",
             "parking": "Парковка",
