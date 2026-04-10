@@ -43,6 +43,7 @@
         BookOpenText,
         ChartArea,
         Maximize,
+        Maximize2,
     } from '@lucide/svelte';
     import { map } from '$lib/components/map/map';
     import { editMetadata } from '$lib/components/file-list/metadata/utils.svelte';
@@ -70,7 +71,7 @@
     import { copied, selection } from '$lib/logic/selection';
     import { allHidden } from '$lib/logic/hidden';
     import { boundsManager } from '$lib/logic/bounds';
-    import { tick } from 'svelte';
+    import { tick, onMount } from 'svelte';
     import { allowedPastes } from '$lib/components/file-list/sortable-file-list';
 
     const {
@@ -105,6 +106,23 @@
     }
 
     let layerSettingsOpen = $state(false);
+    let fullscreen = $state(false);
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen?.();
+        } else {
+            document.exitFullscreen?.();
+        }
+    }
+
+    onMount(() => {
+        const handler = () => {
+            fullscreen = !!document.fullscreenElement;
+        };
+        document.addEventListener('fullscreenchange', handler);
+        return () => document.removeEventListener('fullscreenchange', handler);
+    });
 </script>
 
 <div class="absolute md:top-2 left-0 right-0 z-20 flex flex-row justify-center pointer-events-none">
@@ -377,6 +395,12 @@
                         {i18n._('menu.toggle_3d')}
                         <Shortcut key={i18n._('menu.right_click_drag')} />
                     </Menubar.Item>
+                    <Menubar.Separator />
+                    <Menubar.CheckboxItem checked={fullscreen} onCheckedChange={toggleFullscreen}>
+                        <Maximize2 size="16" />
+                        {i18n._('menu.fullscreen')}
+                        <Shortcut key="F11" />
+                    </Menubar.CheckboxItem>
                 </Menubar.Content>
             </Menubar.Menu>
             <Menubar.Menu>
