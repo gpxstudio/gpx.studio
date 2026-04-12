@@ -536,7 +536,7 @@
     },
     "embedding": {
         "title": "Crear su propio mapa",
-        "maptiler_key": "MapTiler key (optional, only required for MapTiler maps)",
+        "maptiler_key": "Clave MapTiler (opcional, sólo se requiere para mapas MapTiler)",
         "file_urls": "URLs de archivo (separados por comas)",
         "drive_ids": "IDs de archivo de Google Drive (separados por comas)",
         "basemap": "Mapa base",
