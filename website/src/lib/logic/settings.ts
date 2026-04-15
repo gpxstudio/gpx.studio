@@ -162,38 +162,26 @@ function getLayerValidator(allowed: Record<string, any>, fallback: string) {
 
 function filterLayerTree(t: LayerTreeType, allowed: LayerTreeType | undefined): LayerTreeType {
     const filtered: LayerTreeType = {};
-    const values = Object.values(t);
-    if (values.length == 0) return filtered;
-    if (typeof values[0] === 'boolean') {
-        if (allowed) {
-            Object.keys(allowed).forEach((key) => {
-                if (Object.hasOwn(t, key)) {
-                    filtered[key] = t[key];
-                } else {
-                    filtered[key] = allowed[key];
-                }
-            });
+    if (!allowed) return filtered;
+    Object.keys(allowed).forEach((key) => {
+        const allowedVal = allowed[key];
+        if (typeof allowedVal === 'boolean') {
+            filtered[key] = typeof t?.[key] === 'boolean' ? t[key] : allowedVal;
+        } else {
+            filtered[key] = filterLayerTree(
+                typeof t?.[key] === 'object' ? (t[key] as LayerTreeType) : {},
+                allowedVal
+            );
         }
-        Object.entries(t).forEach(([key, value]) => {
-            if (
-                !Object.hasOwn(filtered, key) &&
-                (key.startsWith('custom-') || key.startsWith('extension-'))
-            ) {
-                filtered[key] = value;
-            }
-        });
-    } else {
-        Object.entries(t).forEach(([key, value]) => {
-            if (typeof value === 'object') {
-                filtered[key] = filterLayerTree(
-                    value,
-                    typeof allowed === 'object' && typeof allowed[key] === 'object'
-                        ? allowed[key]
-                        : undefined
-                );
-            }
-        });
-    }
+    });
+    Object.entries(t ?? {}).forEach(([key, value]) => {
+        if (
+            !Object.hasOwn(filtered, key) &&
+            (key.startsWith('custom-') || key.startsWith('extension-'))
+        ) {
+            filtered[key] = value;
+        }
+    });
     return filtered;
 }
 
