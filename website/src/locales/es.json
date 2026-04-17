@@ -2,10 +2,10 @@
     "metadata": {
         "home_title": "el editor online de archivos GPX",
         "app_title": "app",
-        "embed_title": " editor online de archivos GPX",
+        "embed_title": "Editor online de archivos GPX",
         "help_title": "ayuda",
         "404_title": "página no encontrada",
-        "description": "Mira, edita y crea archivos GPX online con  planificación avanzada de rutas y herramientas de procesamiento de archivos, bonitos mapas y visualizaciones detalladas de datos."
+        "description": "Visualiza, edita y crea archivos GPX online con planificación avanzada de rutas y herramientas de procesamiento de archivos, bonitos mapas y visualizaciones detalladas de datos."
     },
     "menu": {
         "new": "Nuevo",
@@ -234,7 +234,7 @@
         },
         "elevation": {
             "button": "Solicitar datos de desnivel",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
+            "help": "La solicitud de datos de desnivel borrará los datos de desnivel existentes, si los hay, y los reemplazará con datos de Mapbox.",
             "help_no_selection": "Seleccione un elemento del archivo para solicitar datos de desnivel."
         },
         "waypoint": {
@@ -276,7 +276,7 @@
             "new": "Nueva capa personalizada",
             "edit": "Editar capa personalizada",
             "urls": "URL(s)",
-            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
+            "url_placeholder": "WMTS, WMS o JSON estilo Mapbox",
             "max_zoom": "Zoom máximo",
             "layer_type": "Tipo de capa",
             "basemap": "Mapa base",
@@ -494,7 +494,7 @@
         "email": "Email",
         "contribute": "Contribuir",
         "supported_by": "con el apoyo de",
-        "features": "Features",
+        "features": "Características",
         "route_planning": "Planificación de ruta",
         "route_planning_description": "Una interfaz intuitiva para crear itinerarios adaptados a cada deporte, basada en datos de OpenStreetMap.",
         "file_processing": "Procesamiento avanzado de archivo",
@@ -503,15 +503,15 @@
         "maps_description": "Una gran colección de mapas base, capas y puntos de interés para ayudarle a crear su próxima aventura al aire libre o visualizar su último logro.",
         "data_visualization": "Visualización de datos",
         "data_visualization_description": "Un perfil de elevación interactivo con estadísticas detalladas para analizar actividades registradas y futuros objetivos.",
-        "philosophy": "Philosophy",
-        "foss": "Free, ad-free and open source",
-        "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
-        "privacy": "Privacy-friendly",
+        "philosophy": "Filosofía",
+        "foss": "Gratis, sin anuncios y código abierto",
+        "foss_description": "El sitio web es de uso gratuito, sin anuncios, y el código fuente está disponible públicamente en GitHub.",
+        "privacy": "Respetuosa con la privacidad",
         "privacy_description": "Tus archivos GPX nunca abandonan tu navegador. Sin seguimiento, sin recopilación de datos.",
-        "community": "Made possible by the community",
+        "community": "Posible gracias a la comunidad",
         "community_description": "gpx.studio tiene una comunidad asombrosa que ha cubierto sus costes a través de donaciones durante años, mientras ha dado forma al proyecto a través de sugerencias de características, informes de fallos y traducciones a muchos idiomas.",
         "support_button": "Apoya a gpx.studio en Open Collective",
-        "translate_button": "Help translate the website on Crowdin"
+        "translate_button": "Ayuda a traducir el sitio web en Crowdin"
     },
     "docs": {
         "translate": "Mejorar la traducción en Crowdin",
