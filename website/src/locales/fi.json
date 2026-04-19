@@ -36,6 +36,7 @@
         "switch_basemap": "Vaihda edelliseen taustakarttaan",
         "toggle_overlays": "Peiteaineistot päälle/pois",
         "toggle_3d": "3D päälle/pois",
+        "fullscreen": "Full screen",
         "settings": "Asetukset",
         "distance_units": "Mittayksikkö",
         "metric": "Metri",
