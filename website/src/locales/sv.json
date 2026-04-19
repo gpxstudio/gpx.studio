@@ -36,6 +36,7 @@
         "switch_basemap": "Växla till föregående baskarta",
         "toggle_overlays": "Växla överlagring",
         "toggle_3d": "Växla 3D",
+        "fullscreen": "Full screen",
         "settings": "Inställningar",
         "distance_units": "Enhet för distans",
         "metric": "Metrisk",
