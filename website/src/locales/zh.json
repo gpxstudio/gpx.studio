@@ -36,6 +36,7 @@
         "switch_basemap": "切换到上一个底图",
         "toggle_overlays": "切换叠加层",
         "toggle_3d": "三维视图",
+        "fullscreen": "Full screen",
         "settings": "设置",
         "distance_units": "距离单位",
         "metric": "公制",
