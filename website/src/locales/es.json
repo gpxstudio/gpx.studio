@@ -36,6 +36,7 @@
         "switch_basemap": "Cambiar al mapa base anterior",
         "toggle_overlays": "Alternar capas",
         "toggle_3d": "Alternar 3D",
+        "fullscreen": "Full screen",
         "settings": "Configuración",
         "distance_units": "Unidades de distancia",
         "metric": "Métrico",
