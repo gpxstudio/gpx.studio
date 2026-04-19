@@ -36,6 +36,7 @@
         "switch_basemap": "Переключиться на предыдущую базовую карту",
         "toggle_overlays": "Переключить слои",
         "toggle_3d": "Включить 3D",
+        "fullscreen": "Full screen",
         "settings": "Настройки",
         "distance_units": "Единицы измерения расстояния",
         "metric": "Метрические",
