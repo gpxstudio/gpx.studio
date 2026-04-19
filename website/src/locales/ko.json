@@ -36,6 +36,7 @@
         "switch_basemap": "이전 배경 지도로 전환",
         "toggle_overlays": "오버레이 전환",
         "toggle_3d": "3D 전환",
+        "fullscreen": "Full screen",
         "settings": "설정",
         "distance_units": "거리 단위",
         "metric": "미터법",
