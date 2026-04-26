@@ -28,7 +28,7 @@
         "undo": "Отменить",
         "redo": "Повторить",
         "delete": "Удалить",
-        "delete_all": "Delete all",
+        "delete_all": "Удалить всё",
         "select_all": "Выбрать все",
         "view": "Вид",
         "elevation_profile": "Профиль рельефа",
@@ -36,7 +36,7 @@
         "switch_basemap": "Переключиться на предыдущую базовую карту",
         "toggle_overlays": "Переключить слои",
         "toggle_3d": "Включить 3D",
-        "fullscreen": "Full screen",
+        "fullscreen": "Полный экран",
         "settings": "Настройки",
         "distance_units": "Единицы измерения расстояния",
         "metric": "Метрические",
@@ -64,7 +64,7 @@
         "ctrl": "Ctrl",
         "click": "Клик",
         "drag": "Перетащить",
-        "right_click_drag": "Right-click drag",
+        "right_click_drag": "Перетаскивание правой кнопкой мыши",
         "metadata": {
             "button": "Информация...",
             "name": "Название",
@@ -82,7 +82,7 @@
         "center": "По центру",
         "open_in": "Открыть в",
         "copy_coordinates": "Скопировать координаты",
-        "edit_osm": "Edit in OpenStreetMap"
+        "edit_osm": "Редактировать в OpenStreetMap"
     },
     "toolbar": {
         "routing": {
@@ -192,8 +192,8 @@
                 "from": "Начальная точка слишком далеко от ближайшей дороги",
                 "via": "Точка маршрута слишком далеко от ближайшей дороги",
                 "to": "Конечная точка слишком далеко от ближайшей дороги",
-                "distance": "The end point is too far from the start point",
-                "connection": "No connection found between the points",
+                "distance": "Конечная точка находится слишком далеко от начальной",
+                "connection": "Связь между точками не обнаружена",
                 "timeout": "Расчет маршрута занял слишком много времени, попробуйте добавить точки ближе"
             }
         },
@@ -235,7 +235,7 @@
         },
         "elevation": {
             "button": "Запросить данные о высоте",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
+            "help": "Запрос данных о высотах приведет к удалению существующих данных о высотах, если таковые имеются, и замене их данными из MapTiler.",
             "help_no_selection": "Выберите файл для запроса данных о высоте."
         },
         "waypoint": {
@@ -277,7 +277,7 @@
             "new": "Новый пользовательский слой",
             "edit": "Редактировать пользовательский слой",
             "urls": "URL-адрес(а)",
-            "url_placeholder": "WMTS, WMS or MapLibre style JSON",
+            "url_placeholder": "WMTS, WMS или MapLibre стиль JSON",
             "max_zoom": "Максимальное приближение",
             "layer_type": "Тип слоя",
             "basemap": "Основная карта",
@@ -286,7 +286,7 @@
             "update": "Обновить слой"
         },
         "opacity": "Прозрачность наложения",
-        "terrain": "Terrain source",
+        "terrain": "Источник рельефа местности",
         "label": {
             "basemaps": "Основные карты",
             "overlays": "Наложения",
@@ -333,7 +333,7 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
-            "mapterhornHillshade": "Mapterhorn Hillshade",
+            "mapterhornHillshade": "Mapterhorn тень холма",
             "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "swisstopo Slope",
             "swisstopoHiking": "swisstopo Hiking",
@@ -363,7 +363,7 @@
             "water": "Вода",
             "shower": "Душ",
             "shelter": "Укрытие",
-            "cemetery": "Cemetery",
+            "cemetery": "Кладбище",
             "motorized": "Автомобили и мотоциклы",
             "fuel-station": "Заправочная станция",
             "parking": "Парковка",
