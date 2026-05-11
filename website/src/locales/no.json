@@ -36,7 +36,7 @@
         "switch_basemap": "Bytt til forrige basekart",
         "toggle_overlays": "Vis eller skjul kartlag",
         "toggle_3d": "Skru av/på 3D",
-        "fullscreen": "Full screen",
+        "fullscreen": "Fullskjerm",
         "settings": "Innstillinger",
         "distance_units": "Avstandsenhet",
         "metric": "Metrisk",
@@ -64,7 +64,7 @@
         "ctrl": "Ctrl",
         "click": "Klikk",
         "drag": "Dra",
-        "right_click_drag": "Right-click drag",
+        "right_click_drag": "Høyreklikk dra",
         "metadata": {
             "button": "Informasjon...",
             "name": "Navn",
@@ -192,8 +192,8 @@
                 "from": "Startpunktet er for langt unna nærmeste vei",
                 "via": "Via-punktet er for langt fra nærmeste vei",
                 "to": "Sluttpunktet er for langt unna nærmeste vei",
-                "distance": "The end point is too far from the start point",
-                "connection": "No connection found between the points",
+                "distance": "Sluttpunktet er for langt fra startpunktet",
+                "connection": "Ingen forbindelse mellom punktene funnet",
                 "timeout": "Ruteberegning tok for lang tid, prøv å legge til flere punkter"
             }
         },
