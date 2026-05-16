@@ -210,7 +210,8 @@
             "total_time": "Moving time",
             "pick_date": "Pick a date",
             "artificial": "Create realistic time data",
-            "update": "Update time data",
+            "update": "Update",
+            "delete": "Delete",
             "help": "Use the form to set new time data.",
             "help_invalid_selection": "Select a single trace to manage its time data."
         },
