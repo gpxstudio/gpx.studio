@@ -423,29 +423,176 @@ export class GPXFile extends GPXTreeNode<Track> {
         startTime: Date,
         speed: number,
         ratio: number,
+        lastPoint?: TrackPoint,
         trackIndex?: number,
-        segmentIndex?: number
-    ) {
-        let lastPoint = undefined;
-        this.trk.forEach((track, index) => {
-            if (trackIndex === undefined || trackIndex === index) {
-                track.changeTimestamps(startTime, speed, ratio, lastPoint, segmentIndex);
-            }
-        });
+        segmentIndex?: number,
+        selectionItems: ArtificialTimestampSelectionItem[] = []
+    ): TrackPoint | undefined {
+        if (selectionItems.length === 0) {
+            selectionItems = [{ kind: 'file' }];
+        }
+
+        if (selectionItems.some((item) => item.kind === 'file')) {
+            // the whole file is selected: chain all tracks in file order
+            this.trk.forEach((track) => {
+                lastPoint = track.changeTimestamps(startTime, speed, ratio, lastPoint);
+            });
+            return lastPoint;
+        }
+
+        const selectedTracks = selectionItems.filter(
+            (item): item is Extract<ArtificialTimestampSelectionItem, { kind: 'track' }> =>
+                item.kind === 'track'
+        );
+        if (selectedTracks.length > 0) {
+            // only some tracks are selected, so process them as one ordered batch
+            const tracks = selectedTracks
+                .map((item) => this.trk[item.trackIndex])
+                .filter((track): track is Track => track !== undefined);
+            tracks.forEach((track) => {
+                lastPoint = track.changeTimestamps(startTime, speed, ratio, lastPoint);
+            });
+            return lastPoint;
+        }
+
+        const selectedSegments = selectionItems
+            .filter(
+                (item): item is Extract<ArtificialTimestampSelectionItem, { kind: 'segment' }> =>
+                    item.kind === 'segment'
+            )
+            .sort((a, b) =>
+                a.trackIndex === b.trackIndex
+                    ? a.segmentIndex - b.segmentIndex
+                    : a.trackIndex - b.trackIndex
+            );
+        if (selectedSegments.length > 0) {
+            // only some segments are selected, so process them as one ordered batch
+            selectedSegments.forEach((item) => {
+                const segment = this.trk[item.trackIndex]?.trkseg[item.segmentIndex];
+                if (segment) {
+                    lastPoint = segment.changeTimestamps(startTime, speed, ratio, lastPoint);
+                }
+            });
+            return lastPoint;
+        }
+        return lastPoint;
     }
 
     createArtificialTimestamps(
         startTime: Date,
         totalTime: number,
+        lastPoint?: TrackPoint,
         trackIndex?: number,
-        segmentIndex?: number
-    ) {
-        let lastPoint = undefined;
-        this.trk.forEach((track, index) => {
-            if (trackIndex === undefined || trackIndex === index) {
-                track.createArtificialTimestamps(startTime, totalTime, lastPoint, segmentIndex);
-            }
-        });
+        segmentIndex?: number,
+        selectionItems: ArtificialTimestampSelectionItem[] = []
+    ): TrackPoint | undefined {
+        if (selectionItems.length === 0) {
+            selectionItems = [{ kind: 'file' }];
+        }
+
+        if (selectionItems.some((item) => item.kind === 'file')) {
+            // the whole file is selected: first distribute time across tracks
+            const tracks = this.trk.map((track) => ({
+                track,
+                weight: getArtificialTimestampWeightForTrack(track),
+            }));
+
+            const totalWeight = tracks.reduce((acc, entry) => acc + entry.weight, 0);
+            tracks.forEach((entry) => {
+                // using its weight proportion and the total time budget, allocate time
+                const allocatedTime =
+                    totalWeight > 0
+                        ? (totalTime * entry.weight) / totalWeight
+                        : tracks.length > 0
+                          ? totalTime / tracks.length
+                          : totalTime;
+                // apply the allocated time budget
+                lastPoint = entry.track.createArtificialTimestamps(
+                    startTime,
+                    allocatedTime,
+                    lastPoint
+                );
+            });
+            return lastPoint;
+        }
+
+        const selectedTracks = selectionItems.filter(
+            (item): item is Extract<ArtificialTimestampSelectionItem, { kind: 'track' }> =>
+                item.kind === 'track'
+        );
+        if (selectedTracks.length > 0) {
+            // only some tracks are selected, so distribute the budget across them
+            const tracks = selectedTracks
+                .map((item) => ({
+                    item,
+                    track: this.trk[item.trackIndex],
+                    weight: this.trk[item.trackIndex]
+                        ? getArtificialTimestampWeightForTrack(this.trk[item.trackIndex])
+                        : 0,
+                }))
+                .filter(({ track }) => track !== undefined);
+            const totalWeight = tracks.reduce((acc, entry) => acc + entry.weight, 0);
+            tracks.forEach((entry) => {
+                const allocatedTime =
+                    totalWeight > 0
+                        ? (totalTime * entry.weight) / totalWeight
+                        : tracks.length > 0
+                          ? totalTime / tracks.length
+                          : totalTime;
+                lastPoint = entry.track.createArtificialTimestamps(
+                    startTime,
+                    allocatedTime,
+                    lastPoint
+                );
+            });
+            return lastPoint;
+        }
+
+        const selectedSegments = selectionItems
+            .filter(
+                (item): item is Extract<ArtificialTimestampSelectionItem, { kind: 'segment' }> =>
+                    item.kind === 'segment'
+            )
+            .sort((a, b) =>
+                a.trackIndex === b.trackIndex
+                    ? a.segmentIndex - b.segmentIndex
+                    : a.trackIndex - b.trackIndex
+            );
+        if (selectedSegments.length > 0) {
+            // only some segments are selected, so distribute the budget across them
+            const segments = selectedSegments
+                .map((item) => {
+                    const segment = this.trk[item.trackIndex]?.trkseg[item.segmentIndex];
+                    return {
+                        item,
+                        segment,
+                        weight: segment
+                            ? getArtificialTimestampWeight(
+                                  segment.getTrackPoints(),
+                                  segment.getStatistics()
+                              )
+                            : 0,
+                    };
+                })
+                .filter(({ segment }) => segment !== undefined);
+            const totalWeight = segments.reduce((acc, entry) => acc + entry.weight, 0);
+            segments.forEach((entry) => {
+                const allocatedTime =
+                    totalWeight > 0
+                        ? (totalTime * entry.weight) / totalWeight
+                        : segments.length > 0
+                          ? totalTime / segments.length
+                          : totalTime;
+                lastPoint = entry.segment.createArtificialTimestamps(
+                    startTime,
+                    allocatedTime,
+                    lastPoint
+                );
+            });
+            return lastPoint;
+        }
+
+        return lastPoint;
     }
 
     clearTimestamps(trackIndex?: number, segmentIndex?: number) {
@@ -737,15 +884,14 @@ export class Track extends GPXTreeNode<TrackSegment> {
         ratio: number,
         lastPoint?: TrackPoint,
         segmentIndex?: number
-    ) {
+    ): TrackPoint | undefined {
         this.trkseg.forEach((segment, index) => {
             if (segmentIndex === undefined || segmentIndex === index) {
-                segment.changeTimestamps(startTime, speed, ratio, lastPoint);
-                if (segment.trkpt.length > 0) {
-                    lastPoint = segment.trkpt[segment.trkpt.length - 1];
-                }
+                lastPoint = segment.changeTimestamps(startTime, speed, ratio, lastPoint);
             }
         });
+        // pass through to next Track
+        return lastPoint;
     }
 
     createArtificialTimestamps(
@@ -753,15 +899,46 @@ export class Track extends GPXTreeNode<TrackSegment> {
         totalTime: number,
         lastPoint: TrackPoint | undefined,
         segmentIndex?: number
-    ) {
-        this.trkseg.forEach((segment, index) => {
-            if (segmentIndex === undefined || segmentIndex === index) {
-                segment.createArtificialTimestamps(startTime, totalTime, lastPoint);
-                if (segment.trkpt.length > 0) {
-                    lastPoint = segment.trkpt[segment.trkpt.length - 1];
-                }
-            }
-        });
+    ): TrackPoint | undefined {
+        if (segmentIndex === undefined) {
+            // the whole track is selected
+            // calculate the slope and distance dependent weights for each segment
+            const segments = this.trkseg.map((segment) => ({
+                segment,
+                weight: getArtificialTimestampWeight(
+                    segment.getTrackPoints(),
+                    segment.getStatistics()
+                ),
+            }));
+
+            const totalWeight = segments.reduce((acc, entry) => acc + entry.weight, 0);
+            segments.forEach((entry) => {
+                // using its weight proportion and the total time budget, allocate time
+                const allocatedTime =
+                    totalWeight > 0
+                        ? (totalTime * entry.weight) / totalWeight
+                        : segments.length > 0
+                          ? totalTime / segments.length
+                          : totalTime;
+                // apply the allocated time budget
+                lastPoint = entry.segment.createArtificialTimestamps(
+                    startTime,
+                    allocatedTime,
+                    lastPoint
+                );
+            });
+            return lastPoint;
+        }
+
+        if (this.trkseg[segmentIndex] === undefined) {
+            return lastPoint;
+        }
+
+        return this.trkseg[segmentIndex].createArtificialTimestamps(
+            startTime,
+            totalTime,
+            lastPoint
+        );
     }
 
     clearTimestamps(segmentIndex?: number) {
@@ -1310,12 +1487,20 @@ export class TrackSegment extends GPXTreeLeaf {
         this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
     }
 
-    changeTimestamps(startTime: Date, speed: number, ratio: number, lastPoint?: TrackPoint) {
-        if (lastPoint === undefined && this.trkpt.length > 0) {
+    changeTimestamps(
+        startTime: Date,
+        speed: number,
+        ratio: number,
+        lastPoint?: TrackPoint
+    ): TrackPoint | undefined {
+        // lastPoint is the _previous_ last point, which we will _continue from_
+        if (this.trkpt.length === 0) {
+            return lastPoint; // pass through for empty segments
+        }
+        if (lastPoint === undefined) {
             lastPoint = this.trkpt[0].clone();
             lastPoint.time = startTime;
         }
-
         let og = getOriginal(this); // Read as much as possible from the original object because it is faster
         if (og.trkpt.length > 0 && og.trkpt[0].time === undefined) {
             let trkpt = withTimestamps(og.trkpt, speed, lastPoint, startTime);
@@ -1324,26 +1509,36 @@ export class TrackSegment extends GPXTreeLeaf {
             let trkpt = withShiftedAndCompressedTimestamps(og.trkpt, speed, ratio, lastPoint);
             this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
         }
+        // return the last point of this segment, which will become the start point of the next one
+        return this.trkpt[this.trkpt.length - 1];
     }
 
     createArtificialTimestamps(
         startTime: Date,
         totalTime: number,
         lastPoint: TrackPoint | undefined
-    ) {
+    ): TrackPoint | undefined {
+        // lastPoint is the _previous_ last point, which we will _continue from_
+        if (this.trkpt.length === 0) {
+            return lastPoint; // pass through for empty segments
+        }
         let og = getOriginal(this); // Read as much as possible from the original object because it is faster
         let statistics = og._computeStatistics();
         let trkpt = withArtificialTimestamps(og.trkpt, totalTime, lastPoint, startTime, statistics);
         this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+        // return the last point of this segment, which will become the start point of the next one
+        return this.trkpt[this.trkpt.length - 1];
     }
 
     clearTimestamps() {
         let og = getOriginal(this);
-        this.trkpt = freeze(og.trkpt.map((point) => {
-            let cloned = point.clone();
-            cloned.time = undefined;
-            return cloned;
-        }));
+        this.trkpt = freeze(
+            og.trkpt.map((point) => {
+                let cloned = point.clone();
+                cloned.time = undefined;
+                return cloned;
+            })
+        );
     }
 
     setHidden(hidden: boolean) {
@@ -1825,29 +2020,136 @@ function withArtificialTimestamps(
     startTime: Date,
     statistics: GPXStatistics
 ): TrackPoint[] {
-    let weight = [];
-    let totalWeight = 0;
-
-    for (let i = 0; i < points.length - 1; i++) {
-        let dist = distance(points[i].getCoordinates(), points[i + 1].getCoordinates());
-        let w = dist * (0.5 + 1 / (1 + Math.exp(-0.2 * statistics.local.data[i].slope.at)));
-        weight.push(w);
-        totalWeight += w;
-    }
+    const totalWeight = getArtificialTimestampWeight(points, statistics);
 
     let last = lastPoint;
+
+    if (last === undefined) {
+        last = points[0].clone();
+        last.time = startTime;
+    } else if (last.time === undefined) {
+        last.time = startTime;
+    }
     return points.map((point, i) => {
         let pt = point.clone();
         if (i === 0) {
             pt.time = lastPoint?.time ?? startTime;
         } else {
+            const gapWeight =
+                distance(points[i - 1].getCoordinates(), points[i].getCoordinates()) *
+                (0.5 + 1 / (1 + Math.exp(-0.2 * statistics.local.data[i - 1].slope.at)));
             pt.time = new Date(
-                last.time.getTime() + (totalTime * 1000 * weight[i - 1]) / totalWeight
+                last.time.getTime() +
+                    (totalWeight > 0
+                        ? (totalTime * 1000 * gapWeight) / totalWeight
+                        : (totalTime * 1000) / Math.max(points.length - 1, 1))
             );
         }
         last = pt;
         return pt;
     });
+}
+
+export function getArtificialTimestampWeight(
+    points: TrackPoint[],
+    statistics: GPXStatistics
+): number {
+    let totalWeight = 0;
+    for (let i = 0; i < points.length - 1; i++) {
+        let dist = distance(points[i].getCoordinates(), points[i + 1].getCoordinates());
+        totalWeight += dist * (0.5 + 1 / (1 + Math.exp(-0.2 * statistics.local.data[i].slope.at)));
+    }
+    return totalWeight;
+}
+
+export function getArtificialTimestampWeightForTrack(track: Track): number {
+    return track.trkseg.reduce(
+        (acc, segment) =>
+            acc + getArtificialTimestampWeight(segment.getTrackPoints(), segment.getStatistics()),
+        0
+    );
+}
+
+export function getArtificialTimestampWeightForFile(file: GPXFile): number {
+    return file.trk.reduce((acc, track) => acc + getArtificialTimestampWeightForTrack(track), 0);
+}
+
+export type ArtificialTimestampSelectionItem =
+    | { kind: 'file' }
+    | { kind: 'track'; trackIndex: number }
+    | { kind: 'segment'; trackIndex: number; segmentIndex: number };
+
+export type ArtificialTimestampSelectionGroup = {
+    fileId: string;
+    items: ArtificialTimestampSelectionItem[];
+};
+
+export function getArtificialTimestampWeightForSelection(
+    file: GPXFile,
+    items: ArtificialTimestampSelectionItem[]
+): number {
+    if (items.length === 0 || items.some((item) => item.kind === 'file')) {
+        return getArtificialTimestampWeightForFile(file);
+    }
+
+    const trackItems = items.filter(
+        (item): item is Extract<ArtificialTimestampSelectionItem, { kind: 'track' }> =>
+            item.kind === 'track'
+    );
+    if (trackItems.length > 0) {
+        return trackItems.reduce((acc, item) => {
+            const track = file.trk[item.trackIndex];
+            return track ? acc + getArtificialTimestampWeightForTrack(track) : acc;
+        }, 0);
+    }
+
+    const segmentItems = items.filter(
+        (item): item is Extract<ArtificialTimestampSelectionItem, { kind: 'segment' }> =>
+            item.kind === 'segment'
+    );
+    return segmentItems.reduce((acc, item) => {
+        const segment = file.trk[item.trackIndex]?.trkseg[item.segmentIndex];
+        return segment
+            ? acc + getArtificialTimestampWeight(segment.getTrackPoints(), segment.getStatistics())
+            : acc;
+    }, 0);
+}
+
+export function createArtificialTimestampsForSelection(
+    files: Map<string, GPXFile>,
+    startTime: Date,
+    totalTime: number,
+    groups: ArtificialTimestampSelectionGroup[]
+): TrackPoint | undefined {
+    // weight the ordered selection once at the file level, then let each file split internally
+    const weightedGroups = groups.map((group) => {
+        const file = files.get(group.fileId);
+        return {
+            group,
+            file,
+            weight: file ? getArtificialTimestampWeightForSelection(file, group.items) : 0,
+        };
+    });
+
+    const totalWeight = weightedGroups.reduce((acc, entry) => acc + entry.weight, 0);
+    const evenShare = weightedGroups.length > 0 ? totalTime / weightedGroups.length : totalTime;
+
+    let lastPoint: TrackPoint | undefined = undefined;
+    weightedGroups.forEach(({ group, file, weight }) => {
+        if (!file) {
+            return;
+        }
+        const allocatedTime = totalWeight > 0 ? (totalTime * weight) / totalWeight : evenShare;
+        lastPoint = file.createArtificialTimestamps(
+            startTime,
+            allocatedTime,
+            lastPoint,
+            undefined,
+            undefined,
+            group.items
+        );
+    });
+    return lastPoint;
 }
 
 function getTimestamp(a: TrackPoint, b: TrackPoint, speed: number): Date {

@@ -35,6 +35,12 @@
     import { settings } from '$lib/logic/settings';
     import { fileActionManager } from '$lib/logic/file-action-manager';
     import { gpxStatistics } from '$lib/logic/statistics';
+    import {
+        createArtificialTimestampsForSelection,
+        type ArtificialTimestampSelectionGroup,
+        type ArtificialTimestampSelectionItem,
+        type TrackPoint,
+    } from 'gpx';
 
     let props: {
         class?: string;
@@ -91,6 +97,59 @@
             movingTime = undefined;
             speed = undefined;
         }
+    }
+
+    type TimingGroup = ArtificialTimestampSelectionGroup;
+    function buildSelectionGroups(): TimingGroup[] {
+        const groups: TimingGroup[] = [];
+        selection.applyToOrderedSelectedItemsFromFile((fileId, _level, orderedItems) => {
+            // collapse to the highest selected level per file so nested items are not double-counted
+            if (orderedItems.some((item) => item instanceof ListFileItem)) {
+                groups.push({ fileId, items: [{ kind: 'file' }] });
+                return;
+            }
+
+            const trackItems = orderedItems
+                .filter((item): item is ListTrackItem => item instanceof ListTrackItem)
+                .sort((a, b) => a.getTrackIndex() - b.getTrackIndex());
+            if (trackItems.length > 0) {
+                // only tracks are selected in this file, so keep them as one ordered batch
+                groups.push({
+                    fileId,
+                    items: trackItems.map(
+                        (item): ArtificialTimestampSelectionItem => ({
+                            kind: 'track',
+                            trackIndex: item.getTrackIndex(),
+                        })
+                    ),
+                });
+                return;
+            }
+
+            const segmentItems = orderedItems
+                .filter(
+                    (item): item is ListTrackSegmentItem => item instanceof ListTrackSegmentItem
+                )
+                .sort((a, b) =>
+                    a.getTrackIndex() === b.getTrackIndex()
+                        ? a.getSegmentIndex() - b.getSegmentIndex()
+                        : a.getTrackIndex() - b.getTrackIndex()
+                );
+            if (segmentItems.length > 0) {
+                // only segments are selected in this file, keep them as one ordered batch
+                groups.push({
+                    fileId,
+                    items: segmentItems.map(
+                        (item): ArtificialTimestampSelectionItem => ({
+                            kind: 'segment',
+                            trackIndex: item.getTrackIndex(),
+                            segmentIndex: item.getSegmentIndex(),
+                        })
+                    ),
+                });
+            }
+        }, false);
+        return groups;
     }
 
     function clearGPXData() {
@@ -207,7 +266,7 @@
     }
 
     let canUpdate = $derived(
-        $selection.size === 1 && $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints'])
+        $selection.size > 0 && $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints'])
     );
 </script>
 
@@ -374,56 +433,32 @@
                     ratio = $gpxStatistics.global.speed.moving / effectiveSpeed;
                 }
 
-                let item = $selection.getSelected()[0];
-                let fileId = item.getFileId();
-                fileActionManager.applyToFile(fileId, (file) => {
-                    if (item instanceof ListFileItem) {
-                        if (artificial && !$gpxStatistics.global.time.moving) {
-                            file.createArtificialTimestamps(
-                                getDate(startDate!, startTime!),
-                                movingTime!
-                            );
-                        } else {
-                            file.changeTimestamps(
-                                getDate(startDate!, startTime!),
-                                effectiveSpeed,
-                                ratio
-                            );
-                        }
-                    } else if (item instanceof ListTrackItem) {
-                        if (artificial && !$gpxStatistics.global.time.moving) {
-                            file.createArtificialTimestamps(
-                                getDate(startDate!, startTime!),
-                                movingTime!,
-                                item.getTrackIndex()
-                            );
-                        } else {
-                            file.changeTimestamps(
-                                getDate(startDate!, startTime!),
+                const start = getDate(startDate!, startTime!);
+                const groups = buildSelectionGroups();
+                if (groups.length === 0) return;
+
+                if (artificial && !$gpxStatistics.global.time.moving) {
+                    fileActionManager.applyGlobal((draft) => {
+                        createArtificialTimestampsForSelection(draft, start, movingTime!, groups);
+                    });
+                } else {
+                    fileActionManager.applyGlobal((draft) => {
+                        let lastPoint: TrackPoint | undefined = undefined;
+                        groups.forEach((group) => {
+                            const file = draft.get(group.fileId);
+                            if (!file) return;
+                            lastPoint = file.changeTimestamps(
+                                start,
                                 effectiveSpeed,
                                 ratio,
-                                item.getTrackIndex()
+                                lastPoint,
+                                undefined,
+                                undefined,
+                                group.items
                             );
-                        }
-                    } else if (item instanceof ListTrackSegmentItem) {
-                        if (artificial && !$gpxStatistics.global.time.moving) {
-                            file.createArtificialTimestamps(
-                                getDate(startDate!, startTime!),
-                                movingTime!,
-                                item.getTrackIndex(),
-                                item.getSegmentIndex()
-                            );
-                        } else {
-                            file.changeTimestamps(
-                                getDate(startDate!, startTime!),
-                                effectiveSpeed,
-                                ratio,
-                                item.getTrackIndex(),
-                                item.getSegmentIndex()
-                            );
-                        }
-                    }
-                });
+                        });
+                    });
+                }
             }}
         >
             <CalendarClock size="16" class="shrink-0" />
