@@ -27,6 +27,10 @@ function cloneJSON<T>(obj: T): T {
     return JSON.parse(JSON.stringify(obj));
 }
 
+function dropInterpolatedElevationTrackPoints(points: TrackPoint[]): TrackPoint[] {
+    return points.filter((p) => p._data?.anchor);
+}
+
 // An abstract class that groups functions that need to be computed recursively in the GPX file hierarchy
 export abstract class GPXTreeElement<T extends GPXTreeElement<any>> {
     _data: { [key: string]: any } = {};
@@ -1117,8 +1121,12 @@ export class TrackSegment extends GPXTreeLeaf {
     }
 
     toTrackSegmentType(exclude: string[] = []): TrackSegmentType {
+        let points = this.trkpt;
+        if (exclude.includes('ele')) {
+            points = dropInterpolatedElevationTrackPoints(points);
+        }
         return {
-            trkpt: this.trkpt.map((point) => point.toTrackPointType(exclude)),
+            trkpt: points.map((point) => point.toTrackPointType(exclude)),
         };
     }
 
@@ -1428,8 +1436,10 @@ export class TrackPoint {
     toTrackPointType(exclude: string[] = []): TrackPointType {
         let trkpt: TrackPointType = {
             attributes: this.attributes,
-            ele: this.ele,
         };
+        if (!exclude.includes('ele')) {
+            trkpt = { ...trkpt, ele: this.ele };
+        }
         if (!exclude.includes('time')) {
             trkpt = { ...trkpt, time: this.time };
         }
@@ -1563,30 +1573,22 @@ export class Waypoint {
     }
 
     toWaypointType(exclude: string[] = []): WaypointType {
-        if (!exclude.includes('time')) {
-            return {
-                attributes: this.attributes,
-                ele: this.ele,
-                time: this.time,
-                name: this.name,
-                cmt: this.cmt,
-                desc: this.desc,
-                link: this.link,
-                sym: this.sym,
-                type: this.type,
-            };
-        } else {
-            return {
-                attributes: this.attributes,
-                ele: this.ele,
-                name: this.name,
-                cmt: this.cmt,
-                desc: this.desc,
-                link: this.link,
-                sym: this.sym,
-                type: this.type,
-            };
+        const wpt: WaypointType = {
+            attributes: this.attributes,
+            name: this.name,
+            cmt: this.cmt,
+            desc: this.desc,
+            link: this.link,
+            sym: this.sym,
+            type: this.type,
+        };
+        if (!exclude.includes('ele')) {
+            wpt.ele = this.ele;
         }
+        if (!exclude.includes('time')) {
+            wpt.time = this.time;
+        }
+        return wpt;
     }
 
     clone(): Waypoint {

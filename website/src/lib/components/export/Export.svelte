@@ -16,6 +16,7 @@
         Zap,
         Earth,
         HeartPulse,
+        Mountain,
         Orbit,
         Thermometer,
         SquareActivity,
@@ -31,6 +32,7 @@
     let open = $derived(exportState.current !== ExportState.NONE);
     let exportOptions: Record<string, boolean> = $state({
         time: true,
+        ele: false,
         hr: true,
         cad: true,
         atemp: true,
@@ -41,6 +43,7 @@
         if (exportState.current === ExportState.NONE) {
             return {
                 time: false,
+                ele: false,
                 hr: false,
                 cad: false,
                 atemp: false,
@@ -61,6 +64,7 @@
             }
             return {
                 time: statistics.time.total === 0,
+                ele: statistics.elevation.gain === 0 && statistics.elevation.loss === 0,
                 hr: statistics.hr.count === 0,
                 cad: statistics.cad.count === 0,
                 atemp: statistics.atemp.count === 0,
@@ -153,6 +157,13 @@
                         <Label for="export-time" class="flex flex-row items-center gap-1">
                             <Zap size="16" />
                             {i18n._('quantities.time')}
+                        </Label>
+                    </div>
+                    <div class="flex flex-row items-center gap-1.5 {hide.ele ? 'hidden' : ''}">
+                        <Checkbox id="export-elevation" bind:checked={exportOptions.ele} />
+                        <Label for="export-elevation" class="flex flex-row items-center gap-1">
+                            <Mountain size="16" />
+                            {i18n._('quantities.elevation')}
                         </Label>
                     </div>
                     <div class="flex flex-row items-center gap-1.5 {hide.hr ? 'hidden' : ''}">
