@@ -235,7 +235,7 @@
         },
         "elevation": {
             "button": "Richiedi dati elevazione",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapterhorn.",
             "help_no_selection": "Seleziona un file per richiedere i dati di altitudine."
         },
         "waypoint": {
@@ -304,10 +304,8 @@
             "switzerland": "Svizzera",
             "united_kingdom": "United Kingdom",
             "united_states": "Stati Uniti",
-            "maptilerStreets": "MapTiler Streets",
-            "maptilerTopo": "MapTiler Topo",
-            "maptilerOutdoors": "MapTiler Outdoors",
-            "maptilerSatellite": "MapTiler Satellite",
+            "topo": "Topo",
+            "satellite": "Satellite",
             "esriSatellite": "Esri Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
@@ -388,7 +386,6 @@
             "tram-stop": "Fermata del tram",
             "bus-stop": "Fermata dell'autobus",
             "ferry": "Traghetto",
-            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
