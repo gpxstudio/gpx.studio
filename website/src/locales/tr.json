@@ -235,7 +235,7 @@
         },
         "elevation": {
             "button": "Yükselti verisi talep et",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapterhorn.",
             "help_no_selection": "Yükselti verisi talep etmek için bir dosya öğesi seçin."
         },
         "waypoint": {
@@ -304,10 +304,8 @@
             "switzerland": "İsviçre",
             "united_kingdom": "Birleşik Krallık",
             "united_states": "Birlişik Devletler",
-            "maptilerStreets": "MapTiler Streets",
-            "maptilerTopo": "MapTiler Topo",
-            "maptilerOutdoors": "MapTiler Outdoors",
-            "maptilerSatellite": "MapTiler Satellite",
+            "topo": "Topo",
+            "satellite": "Satellite",
             "esriSatellite": "Esri Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
@@ -388,7 +386,6 @@
             "tram-stop": "Tramvay Durağı",
             "bus-stop": "Otobüs Durağı",
             "ferry": "Feribot",
-            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
