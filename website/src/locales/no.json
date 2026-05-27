@@ -235,7 +235,7 @@
         },
         "elevation": {
             "button": "Be om høydedata",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from MapTiler.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapterhorn.",
             "help_no_selection": "Velg et element for å be om høydedata."
         },
         "waypoint": {
@@ -304,10 +304,8 @@
             "switzerland": "Sveits",
             "united_kingdom": "Storbritannia",
             "united_states": "USA",
-            "maptilerStreets": "MapTiler Streets",
-            "maptilerTopo": "MapTiler Topo",
-            "maptilerOutdoors": "MapTiler Outdoors",
-            "maptilerSatellite": "MapTiler Satellite",
+            "topo": "Topo",
+            "satellite": "Satellite",
             "esriSatellite": "Esri Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
@@ -388,7 +386,6 @@
             "tram-stop": "Trikkestopp",
             "bus-stop": "Bussholdeplass",
             "ferry": "Ferge",
-            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
