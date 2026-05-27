@@ -235,7 +235,7 @@
         },
         "elevation": {
             "button": "Minta data elevasi",
-            "help": "Meminta data elevasi akan menghapus data elevasi yang ada, jika ada, dan menggantinya dengan data dari MapTiler.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapterhorn.",
             "help_no_selection": "Pilih item file untuk meminta data elevasi."
         },
         "waypoint": {
@@ -304,10 +304,8 @@
             "switzerland": "Swiss",
             "united_kingdom": "Britania Raya",
             "united_states": "Amerika Serikat",
-            "maptilerStreets": "MapTiler Streets",
-            "maptilerTopo": "MapTiler Topo",
-            "maptilerOutdoors": "MapTiler Outdoors",
-            "maptilerSatellite": "MapTiler Satellite",
+            "topo": "Topo",
+            "satellite": "Satellite",
             "esriSatellite": "Esri Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
@@ -388,7 +386,6 @@
             "tram-stop": "Halt trem",
             "bus-stop": "Pemberhentian Bus",
             "ferry": "Feri",
-            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
