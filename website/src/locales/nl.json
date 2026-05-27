@@ -235,7 +235,7 @@
         },
         "elevation": {
             "button": "Hoogtegegevens opvragen",
-            "help": "Het opvragen van hoogtegegevens verwijdert de bestaande hoogtegegevens, indien aanwezig, en vervangt deze door gegevens van MapTiler.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapterhorn.",
             "help_no_selection": "Selecteer een bestand om hoogte gegevens op te vragen."
         },
         "waypoint": {
@@ -304,10 +304,8 @@
             "switzerland": "Zwitserland",
             "united_kingdom": "Verenigd Koninkrijk",
             "united_states": "Verenigde Staten",
-            "maptilerStreets": "MapTiler straten",
-            "maptilerTopo": "MapTiler Topo",
-            "maptilerOutdoors": "MapTiler Buiten",
-            "maptilerSatellite": "MapTiler satelliet",
+            "topo": "Topo",
+            "satellite": "Satellite",
             "esriSatellite": "Esri Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
@@ -388,7 +386,6 @@
             "tram-stop": "Tramhalte",
             "bus-stop": "Bushalte",
             "ferry": "Veerboot",
-            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
