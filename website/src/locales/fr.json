@@ -235,7 +235,7 @@
         },
         "elevation": {
             "button": "Ajouter des données d'altitude",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapterhorn.",
+            "help": "Ajouter des données d'altitude effacera les données d'altitude existantes, le cas échéant, et les remplacera par des données fournies par Mapterhorn.",
             "help_no_selection": "Sélectionnez un élément de fichier pour ajouter des données d'altitude."
         },
         "waypoint": {
