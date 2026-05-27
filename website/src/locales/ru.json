@@ -235,7 +235,7 @@
         },
         "elevation": {
             "button": "Запросить данные о высоте",
-            "help": "Запрос данных о высотах приведет к удалению существующих данных о высотах, если таковые имеются, и замене их данными из MapTiler.",
+            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapterhorn.",
             "help_no_selection": "Выберите файл для запроса данных о высоте."
         },
         "waypoint": {
@@ -304,10 +304,8 @@
             "switzerland": "Швейцария",
             "united_kingdom": "Великобритания",
             "united_states": "Соединенные Штаты Америки",
-            "maptilerStreets": "MapTiler Streets",
-            "maptilerTopo": "MapTiler Topo",
-            "maptilerOutdoors": "MapTiler Outdoors",
-            "maptilerSatellite": "MapTiler Satellite",
+            "topo": "Topo",
+            "satellite": "Satellite",
             "esriSatellite": "Esri Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
@@ -388,7 +386,6 @@
             "tram-stop": "Трамвайная остановка",
             "bus-stop": "Автобусная остановка",
             "ferry": "Паром",
-            "maptiler-dem": "MapTiler DEM",
             "mapterhorn": "Mapterhorn"
         }
     },
