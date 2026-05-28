@@ -235,7 +235,7 @@
         },
         "elevation": {
             "button": "Solicitar datos de desnivel",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapterhorn.",
+            "help": "La solicitud de datos de elevación borrará los datos de elevación existentes, si los hay, y los reemplazará con datos de Mapterhorn.",
             "help_no_selection": "Seleccione un elemento del archivo para solicitar datos de desnivel."
         },
         "waypoint": {
@@ -304,8 +304,8 @@
             "switzerland": "Suiza",
             "united_kingdom": "Reino Unido",
             "united_states": "Estados Unidos",
-            "topo": "Topo",
-            "satellite": "Satellite",
+            "topo": "Topográfico",
+            "satellite": "Satélite",
             "esriSatellite": "Esri Satellite",
             "openStreetMap": "OpenStreetMap",
             "openTopoMap": "OpenTopoMap",
