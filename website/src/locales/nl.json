@@ -235,7 +235,7 @@
         },
         "elevation": {
             "button": "Hoogtegegevens opvragen",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapterhorn.",
+            "help": "Het opvragen van hoogtegegevens verwijdert de bestaande hoogtegegevens, indien aanwezig, en vervangt deze door gegevens van Mapterhorn.",
             "help_no_selection": "Selecteer een bestand om hoogte gegevens op te vragen."
         },
         "waypoint": {
@@ -305,7 +305,7 @@
             "united_kingdom": "Verenigd Koninkrijk",
             "united_states": "Verenigde Staten",
             "libertyTopo": "Liberty Topo",
-            "libertySatellite": "Liberty Satellite",
+            "libertySatellite": "Liberty Satelliet",
             "osm": "OpenMapTiles OSM",
             "osmTopo": "OpenMapTiles OSM Topo",
             "esriSatellite": "Esri Satellite",
