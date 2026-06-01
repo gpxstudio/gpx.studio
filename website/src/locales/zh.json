@@ -235,7 +235,7 @@
         },
         "elevation": {
             "button": "请求海拔数据",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapterhorn.",
+            "help": "请求成功后将移除原有的海拔数据，并使用 Mapterhorn 的海拔数据替换原有数据。",
             "help_no_selection": "选择要请求海拔数据的文件。"
         },
         "waypoint": {
