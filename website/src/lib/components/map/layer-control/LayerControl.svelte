@@ -2,14 +2,17 @@
     import CustomControl from '$lib/components/map/custom-control/CustomControl.svelte';
     import LayerTree from './LayerTree.svelte';
     import { OverpassLayer } from './overpass-layer';
+    import { WikipediaLayer } from './wikipedia-layer';
     import { Separator } from '$lib/components/ui/separator';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
     import { Layers } from '@lucide/svelte';
     import { settings } from '$lib/logic/settings';
     import { map } from '$lib/components/map/map';
+    import { i18n } from '$lib/i18n.svelte';
 
     let container: HTMLDivElement;
     let overpassLayer: OverpassLayer;
+    let wikipediaLayer: WikipediaLayer;
 
     const {
         currentBasemap,
@@ -25,8 +28,18 @@
         if (overpassLayer) {
             overpassLayer.remove();
         }
+        if (wikipediaLayer) {
+            wikipediaLayer.remove();
+        }
         overpassLayer = new OverpassLayer(_map, map.layerEventManager!);
+        wikipediaLayer = new WikipediaLayer(_map, map.layerEventManager!);
         overpassLayer.add();
+        wikipediaLayer.add();
+    });
+
+    $effect(() => {
+        i18n.lang;
+        wikipediaLayer?.update();
     });
 
     let open = $state(false);

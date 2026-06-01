@@ -369,6 +369,11 @@ export const basemaps: { [key: string]: string | StyleSpecification } = {
 };
 
 export const overlays: { [key: string]: string | StyleSpecification } = {
+    wiki: {
+        version: 8,
+        sources: {},
+        layers: [],
+    },
     cyclOSMlite: {
         version: 8,
         sources: {
@@ -868,6 +873,7 @@ export const overlayTree: LayerTreeType = {
             cyclOSMlite: true,
             mapterhornHillshade: true,
             openRailwayMap: true,
+            wiki: true,
         },
         countries: {
             france: {
@@ -954,6 +960,7 @@ export const defaultOverlays: LayerTreeType = {
             cyclOSMlite: false,
             mapterhornHillshade: false,
             openRailwayMap: false,
+            wiki: false,
         },
         countries: {
             france: {
@@ -1094,6 +1101,7 @@ export const defaultOverlayTree: LayerTreeType = {
             cyclOSMlite: false,
             mapterhornHillshade: false,
             openRailwayMap: false,
+            wiki: false,
         },
         countries: {
             france: {
