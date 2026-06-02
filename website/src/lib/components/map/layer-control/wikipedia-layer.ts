@@ -17,7 +17,7 @@ const WIKIPEDIA_LABEL_LAYER_ID = 'wiki-label';
 const WIKIPEDIA_SOURCE_LAYER = 'wiki';
 const WIKIPEDIA_ARTICLE_CACHE_LIMIT = 500;
 // TODO: change to real tile URL when available.
-const WIKIPEDIA_TILE_URL = 'http://localhost:8000/pbf/{lang}_tiles/{z}/{x}/{y}.pbf';
+const WIKIPEDIA_TILE_URL = 'https://gpx.home.arpa/tiles/pbf/{lang}_tiles/{z}/{x}/{y}.pbf';
 
 type WikipediaTileProperties = {
     label: string;
@@ -50,7 +50,6 @@ export class WikipediaLayer {
     layerEventManager: MapLayerEventManager;
     popup: MapPopup;
     currentTileUrl: string | undefined;
-    ignoreClickUntil = 0;
     currentArticleRequestKey: string | undefined;
     articleCache = new Map<string, Promise<WikipediaPopupArticle>>();
 
@@ -58,8 +57,6 @@ export class WikipediaLayer {
 
     updateBinded = this.update.bind(this);
     onHoverBinded = this.onHover.bind(this);
-    onClickBinded = this.onClick.bind(this);
-    onTouchStartBinded = this.onTouchStart.bind(this);
     onMouseLeaveBinded = this.onMouseLeave.bind(this);
 
     constructor(map: maplibregl.Map, layerEventManager: MapLayerEventManager) {
@@ -123,7 +120,7 @@ export class WikipediaLayer {
                             'icon-image': WIKIPEDIA_ICON_ID,
                             'icon-size': 0.25,
                             'icon-padding': 0,
-                            'icon-allow-overlap': ['step', ['zoom'], false, 14, true],
+                            'icon-allow-overlap': ['step', ['zoom'], false, 13, true],
                         },
                     },
                     ANCHOR_LAYER_KEY.overlays
@@ -201,44 +198,17 @@ export class WikipediaLayer {
     private registerEvents(layerId: string) {
         this.layerEventManager.on('mouseenter', layerId, this.onHoverBinded);
         this.layerEventManager.on('mouseleave', layerId, this.onMouseLeaveBinded);
-        this.layerEventManager.on('click', layerId, this.onClickBinded);
-        this.layerEventManager.on('touchstart', layerId, this.onTouchStartBinded);
+        this.layerEventManager.on('click', layerId, this.onHoverBinded);
     }
 
     private unregisterEvents(layerId: string) {
         this.layerEventManager.off('mouseenter', layerId, this.onHoverBinded);
         this.layerEventManager.off('mouseleave', layerId, this.onMouseLeaveBinded);
-        this.layerEventManager.off('click', layerId, this.onClickBinded);
-        this.layerEventManager.off('touchstart', layerId, this.onTouchStartBinded);
+        this.layerEventManager.off('click', layerId, this.onHoverBinded);
     }
 
     private onHover(e: maplibregl.MapLayerMouseEvent) {
         this.map.getCanvas().style.cursor = 'pointer';
-        this.showPopup(e.features?.[0]);
-    }
-
-    private async onClick(e: maplibregl.MapLayerMouseEvent) {
-        if (Date.now() < this.ignoreClickUntil) return;
-        const feature = e.features?.[0];
-        if (!feature) return;
-
-        const article = createPopupArticleFromFeature(feature);
-
-        try {
-            const resolvedArticle = await this.resolveArticle(article);
-            if (resolvedArticle.article_url) {
-                window.open(resolvedArticle.article_url, '_blank', 'noopener,noreferrer');
-            }
-        } catch {
-            const fallbackUrl = getFallbackArticleUrl(article);
-            if (fallbackUrl) {
-                window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
-            }
-        }
-    }
-
-    private onTouchStart(e: maplibregl.MapLayerTouchEvent) {
-        this.ignoreClickUntil = Date.now() + 500;
         this.showPopup(e.features?.[0]);
     }
 
@@ -404,10 +374,6 @@ async function fetchJson(url: URL) {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Wikipedia API request failed: ${response.status}`);
     return await response.json();
-}
-
-function getFallbackArticleUrl(article: WikipediaPopupArticle) {
-    return getWikipediaArticleUrl(getWikiTileLanguage(i18n.lang), article.article_title);
 }
 
 function getWikipediaArticleUrl(lang: string, title: string | undefined) {
