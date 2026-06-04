@@ -5,7 +5,7 @@ import { liveQuery } from 'dexie';
 import { overpassQueryData } from '$lib/assets/layers';
 import { MapPopup } from '$lib/components/map/map-popup';
 import { settings } from '$lib/logic/settings';
-import { db } from '$lib/db';
+import { sharedDb } from '$lib/shared-db';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 import type { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
@@ -19,7 +19,7 @@ const mercator = new SphericalMercator({
 
 let data = writable<GeoJSON.FeatureCollection>({ type: 'FeatureCollection', features: [] });
 
-liveQuery(() => db.overpassdata.toArray()).subscribe((pois) => {
+liveQuery(() => sharedDb.overpassdata.toArray()).subscribe((pois) => {
     data.set({ type: 'FeatureCollection', features: pois.map((poi) => poi.poi) });
 });
 
@@ -165,7 +165,7 @@ export class OverpassLayer {
                     continue;
                 }
 
-                db.overpasstiles
+                sharedDb.overpasstiles
                     .where('[x+y]')
                     .equals([x, y])
                     .toArray()
@@ -247,9 +247,9 @@ export class OverpassLayer {
             }
         }
 
-        db.transaction('rw', db.overpasstiles, db.overpassdata, async () => {
-            await db.overpasstiles.bulkPut(queryTiles);
-            await db.overpassdata.bulkPut(pois);
+        sharedDb.transaction('rw', sharedDb.overpasstiles, sharedDb.overpassdata, async () => {
+            await sharedDb.overpasstiles.bulkPut(queryTiles);
+            await sharedDb.overpassdata.bulkPut(pois);
         });
 
         this.currentQueries.delete(`${x},${y}`);
