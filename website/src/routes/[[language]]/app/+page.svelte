@@ -21,6 +21,7 @@
     import { fileStateCollection } from '$lib/logic/file-state';
     import { initializeProjects } from '$lib/logic/project-registry';
     import { currentDb, saveMapCamera } from '$lib/logic/active-project';
+    import { fileActionManager } from '$lib/logic/file-action-manager';
     import ProjectTabBar from '$lib/components/ProjectTabBar.svelte';
     import { get } from 'svelte/store';
 
@@ -45,6 +46,7 @@
 
         settings.connectToDatabase(activeDb);
         await fileStateCollection.connectToDatabase(activeDb);
+        fileActionManager.reconnectToDatabase(activeDb);
 
         // Load files from URL params after DB is ready
         let files: string[] = JSON.parse(page.url.searchParams.get('files') || '[]');
@@ -75,6 +77,7 @@
         }
         settings.disconnectFromDatabase();
         fileStateCollection.disconnectFromDatabase();
+        fileActionManager.disconnectFromDatabase();
     });
 </script>
 

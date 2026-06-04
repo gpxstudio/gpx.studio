@@ -48,11 +48,24 @@ export async function restoreMapCamera(db: Database): Promise<void> {
 
 // ── Tab switching ──────────────────────────────────────────────────────────
 
+let _switching = false;
+
 /**
  * Switch the active project to `newProjectId`.
  * Saves camera from old project, swaps all DB connections, restores camera for new project.
+ * Re-entrant calls are ignored while a switch is in progress.
  */
 export async function switchToProject(newProjectId: string): Promise<void> {
+    if (_switching) return;
+    _switching = true;
+    try {
+        await _doSwitchToProject(newProjectId);
+    } finally {
+        _switching = false;
+    }
+}
+
+async function _doSwitchToProject(newProjectId: string): Promise<void> {
     const oldDb = get(currentDb);
 
     // 1. Save current map camera to old project DB

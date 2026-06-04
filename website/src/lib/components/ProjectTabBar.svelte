@@ -10,6 +10,7 @@
         type ProjectMeta,
     } from '$lib/logic/project-registry';
     import { switchToProject, currentDb } from '$lib/logic/active-project';
+    import { createProjectDatabase } from '$lib/db';
     import { i18n } from '$lib/i18n.svelte';
     import * as AlertDialog from '$lib/components/ui/alert-dialog';
     import * as ContextMenu from '$lib/components/ui/context-menu';
@@ -62,14 +63,24 @@
     }
 
     async function handleDeleteRequest(project: ProjectMeta) {
-        // Check if project has files
-        const db = get(currentDb);
-        if (db) {
-            const fileCount = await db.fileids.count();
-            if (fileCount > 0) {
-                deleteConfirmId = project.id;
-                return;
+        // Check if the target project (not the active one) has files
+        let fileCount = 0;
+        if (project.id === $activeProjectId) {
+            // Active project — use currentDb directly
+            const db = get(currentDb);
+            if (db) fileCount = await db.fileids.count();
+        } else {
+            // Inactive project — open its DB temporarily to check
+            const db = createProjectDatabase(project.id);
+            try {
+                fileCount = await db.fileids.count();
+            } finally {
+                db.close();
             }
+        }
+        if (fileCount > 0) {
+            deleteConfirmId = project.id;
+            return;
         }
         // No files — delete immediately
         await performDelete(project.id);
@@ -78,10 +89,12 @@
     async function performDelete(id: string) {
         const projects = $projectRegistry;
         const idx = projects.findIndex((p) => p.id === id);
-        // Switch to adjacent tab before deleting
-        const nextProject = projects[idx + 1] ?? projects[idx - 1];
-        if (nextProject) {
-            await switchToProject(nextProject.id);
+        // Only switch tabs if we're deleting the currently active project
+        if (id === $activeProjectId) {
+            const nextProject = projects[idx + 1] ?? projects[idx - 1];
+            if (nextProject) {
+                await switchToProject(nextProject.id);
+            }
         }
         await deleteProject(id);
         deleteConfirmId = null;
@@ -177,7 +190,7 @@
         </AlertDialog.Header>
         <AlertDialog.Footer>
             <AlertDialog.Cancel onclick={() => { deleteConfirmId = null; }}>
-                {i18n._('cancel')}
+                {i18n._('project.cancel')}
             </AlertDialog.Cancel>
             <AlertDialog.Action onclick={() => { if (deleteConfirmId) performDelete(deleteConfirmId); }}>
                 {i18n._('project.delete')}
