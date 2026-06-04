@@ -556,5 +556,14 @@
     },
     "webgl2_required": "WebGL 2 is required to display the map.",
     "enable_webgl2": "Learn how to enable WebGL 2 in your browser",
-    "page_not_found": "page not found"
+    "page_not_found": "page not found",
+    "project": {
+        "new": "New project",
+        "rename": "Rename",
+        "delete": "Delete project",
+        "delete_confirm_title": "Delete this project?",
+        "delete_confirm_desc": "This project contains files. Deleting it will permanently remove all its data. This cannot be undone.",
+        "max_reached": "Maximum number of projects reached (10)",
+        "cancel": "Cancel"
+    }
 }

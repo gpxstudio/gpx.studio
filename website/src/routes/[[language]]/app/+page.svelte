@@ -18,8 +18,11 @@
     import { page } from '$app/state';
     import { gpxStatistics, hoveredPoint, slicedGPXStatistics } from '$lib/logic/statistics';
     import { getURLForGoogleDriveFile } from '$lib/components/embedding/embedding';
-    import { db } from '$lib/db';
     import { fileStateCollection } from '$lib/logic/file-state';
+    import { initializeProjects } from '$lib/logic/project-registry';
+    import { currentDb, saveMapCamera } from '$lib/logic/active-project';
+    import ProjectTabBar from '$lib/components/ProjectTabBar.svelte';
+    import { get } from 'svelte/store';
 
     const {
         treeFileView,
@@ -36,30 +39,40 @@
     );
 
     onMount(async () => {
-        settings.connectToDatabase(db);
-        fileStateCollection.connectToDatabase(db).then(() => {
-            let files: string[] = JSON.parse(page.url.searchParams.get('files') || '[]');
-            let ids: string[] = JSON.parse(page.url.searchParams.get('ids') || '[]');
-            let urls: string[] = files.concat(ids.map(getURLForGoogleDriveFile));
+        // Initialize project registry (handles migration from legacy DB)
+        const activeDb = await initializeProjects();
+        currentDb.set(activeDb);
 
-            if (urls.length > 0) {
-                let downloads: Promise<File | null>[] = [];
-                urls.forEach((url) => {
-                    downloads.push(
-                        fetch(url)
-                            .then((response) => response.blob())
-                            .then((blob) => new File([blob], url.split('/').pop() ?? ''))
-                    );
-                });
+        settings.connectToDatabase(activeDb);
+        await fileStateCollection.connectToDatabase(activeDb);
 
-                Promise.all(downloads).then((files) => {
-                    loadFiles(files.filter((file) => file !== null));
-                });
-            }
-        });
+        // Load files from URL params after DB is ready
+        let files: string[] = JSON.parse(page.url.searchParams.get('files') || '[]');
+        let ids: string[] = JSON.parse(page.url.searchParams.get('ids') || '[]');
+        let urls: string[] = files.concat(ids.map(getURLForGoogleDriveFile));
+
+        if (urls.length > 0) {
+            let downloads: Promise<File | null>[] = [];
+            urls.forEach((url) => {
+                downloads.push(
+                    fetch(url)
+                        .then((response) => response.blob())
+                        .then((blob) => new File([blob], url.split('/').pop() ?? ''))
+                );
+            });
+
+            Promise.all(downloads).then((downloadedFiles) => {
+                loadFiles(downloadedFiles.filter((file) => file !== null));
+            });
+        }
     });
 
-    onDestroy(() => {
+    onDestroy(async () => {
+        // Save camera position before leaving
+        const db = get(currentDb);
+        if (db) {
+            await saveMapCamera(db);
+        }
         settings.disconnectFromDatabase();
         fileStateCollection.disconnectFromDatabase();
     });
@@ -104,6 +117,7 @@
 
 <div class="fixed flex flex-row w-dvw h-dvh">
     <div class="flex flex-col grow h-full min-w-0">
+        <ProjectTabBar />
         <div class="grow relative">
             <Menu />
             <div
@@ -111,7 +125,7 @@
             >
                 <Toolbar />
             </div>
-            <Map class="h-full {$treeFileView ? '' : 'horizontal'}" />
+            <Map class="h-full {$treeFileView ? '' : 'horizontal'}" hash={false} />
             <StreetViewControl />
             <LayerControl />
             <GPXLayers />
