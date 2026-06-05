@@ -28,7 +28,7 @@
         "undo": "Anulează",
         "redo": "Refă",
         "delete": "Șterge",
-        "delete_all": "Delete all",
+        "delete_all": "Șterge tot",
         "select_all": "Selectează tot",
         "view": "Vizualizare",
         "elevation_profile": "Profil de altitudine",
@@ -36,7 +36,7 @@
         "switch_basemap": "Comutați la harta de bază anterioară",
         "toggle_overlays": "Comută suprapunerile",
         "toggle_3d": "Comută 3D",
-        "fullscreen": "Full screen",
+        "fullscreen": "Ecran complet",
         "settings": "Setări",
         "distance_units": "Unități de distanță",
         "metric": "Metric",
@@ -62,46 +62,46 @@
         "more": "Mai multe...",
         "donate": "Donați",
         "ctrl": "Ctrl",
-        "click": "Click",
+        "click": "Clic",
         "drag": "Drag",
         "right_click_drag": "Right-click drag",
         "metadata": {
-            "button": "Info...",
-            "name": "Name",
+            "button": "Informații...",
+            "name": "Nume",
             "description": "Descriere",
-            "save": "Save"
+            "save": "Salvează"
         },
         "style": {
             "button": "Aspect...",
-            "color": "Color",
+            "color": "Culoare",
             "opacity": "Opacitate",
-            "width": "Width"
+            "width": "Lățime"
         },
         "hide": "Ascunde",
         "unhide": "Dezvăluie",
-        "center": "Center",
-        "open_in": "Open in",
+        "center": "Centrează",
+        "open_in": "Deschide în",
         "copy_coordinates": "Copiază coordonatele",
-        "edit_osm": "Edit in OpenStreetMap"
+        "edit_osm": "Editează în OpenStreetMap"
     },
     "toolbar": {
         "routing": {
             "tooltip": "Planifică sau editează o rută",
             "activity": "Activitate",
             "use_routing": "Rutare",
-            "use_routing_tooltip": "Connect anchor points via road network, or in a straight line if disabled",
-            "allow_private": "Allow private roads",
+            "use_routing_tooltip": "Conectează puncte de ancorare prin rețeaua rutieră sau în linie dreaptă dacă este dezactivată",
+            "allow_private": "Permite drumuri private",
             "reverse": {
-                "button": "Reverse",
+                "button": "Inversează",
                 "tooltip": "Reverse the direction of the route"
             },
             "route_back_to_start": {
-                "button": "Back to start",
-                "tooltip": "Connect the last point of the route with the starting point"
+                "button": "Înapoi la punctul de plecare",
+                "tooltip": "Conectează ultimul punct al rutei cu punctul de plecare"
             },
             "round_trip": {
-                "button": "Round trip",
-                "tooltip": "Return to the starting point by the same route"
+                "button": "Călătorie dus-întors",
+                "tooltip": "Întoarce-te la punctul de plecare pe aceeași rută"
             },
             "start_loop_here": "Start loop here",
             "help_no_file": "Select a trace to use the routing tool, or click on the map to start creating a new route.",
@@ -120,7 +120,7 @@
                 "unknown": "Necunoscut",
                 "paved": "Asfaltat",
                 "unpaved": "Unpaved",
-                "asphalt": "Asphalt",
+                "asphalt": "Asfalt",
                 "concrete": "Concrete",
                 "cobblestone": "Pavaj",
                 "paving_stones": "Pavaj din pietre",
@@ -140,11 +140,11 @@
                 "grass": "Iarbă",
                 "grass_paver": "Pavaj cu iarbă",
                 "clay": "Clay",
-                "stone": "Stone"
+                "stone": "Piatră"
             },
             "highway": {
-                "unknown": "Unknown",
-                "motorway": "Highway",
+                "unknown": "Necunoscut",
+                "motorway": "Autostradă",
                 "motorway_link": "Highway link",
                 "trunk": "Primary road",
                 "trunk_link": "Primary road link",
