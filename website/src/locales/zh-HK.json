@@ -4,12 +4,12 @@
         "app_title": "app",
         "embed_title": "",
         "help_title": "",
-        "404_title": "page not found",
+        "404_title": "無法找到相關頁面",
         "description": "。"
     },
     "menu": {
-        "new": "New",
-        "new_file": "New file",
+        "new": "新建",
+        "new_file": "新增檔案",
         "new_track": "New track",
         "new_segment": "New segment",
         "open": "Open...",
