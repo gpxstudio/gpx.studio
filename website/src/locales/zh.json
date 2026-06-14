@@ -187,7 +187,7 @@
                 "demanding_alpine_hiking": "相对简单的攀爬部分，UIAA I-II 级（T5）",
                 "difficult_alpine_hiking": "更长的攀爬部分，UIAA II 级（T6）"
             },
-            "mtb_scale": "山地地形",
+            "mtb_scale": "山地自行车难度分级",
             "error": {
                 "from": "起点离最近的道路太远",
                 "via": "途径点离最近的道路太远",
@@ -222,9 +222,9 @@
             "remove_gaps": "删除轨迹间的时间间隔",
             "tooltip": "合并要素",
             "help_merge_traces": "连接所选内容并生成一个连续轨迹。",
-            "help_cannot_merge_traces": "须先选择多个文件以合并，",
+            "help_cannot_merge_traces": "须先选择多个文件以合并。",
             "help_merge_contents": "合并所选内容并将结果存储于第一个文件。",
-            "help_cannot_merge_contents": "须先选择多个文件以合并，",
+            "help_cannot_merge_contents": "须先选择多个文件以合并。",
             "selection_tip": "可使用 {KEYBOARD_SHORTCUT} 进行多选。"
         },
         "extract": {
@@ -264,8 +264,8 @@
             "delete_inside": "清除选区内部要素",
             "delete_outside": "清除选区外部要素",
             "button": "删除",
-            "help": "在地图上绘制矩形选区以清除",
-            "help_no_selection": "选择一个轨迹以清除其 GPS 点和兴趣点"
+            "help": "在地图上绘制矩形选区以清除。",
+            "help_no_selection": "选择一个轨迹以清除其 GPS 点和兴趣点。"
         }
     },
     "layers": {
@@ -277,7 +277,7 @@
             "new": "新建自定义图层",
             "edit": "编辑自定义图层",
             "urls": "URL(s)",
-            "url_placeholder": "WMTS，WMS 或 MapLibre style JSON",
+            "url_placeholder": "WMTS、WMS 或 MapLibre style JSON",
             "max_zoom": "最大缩放等级",
             "layer_type": "图层类型",
             "basemap": "底图",
@@ -333,7 +333,7 @@
             "usgs": "USGS",
             "bikerouterGravel": "bikerouter.de Gravel",
             "cyclOSMlite": "CyclOSM Lite",
-            "mapterhornHillshade": "山体阴影",
+            "mapterhornHillshade": "Mapterhorn Hillshade",
             "openRailwayMap": "OpenRailwayMap",
             "swisstopoSlope": "Swisstopo Slope",
             "swisstopoHiking": "Swisstopo Hiking",
