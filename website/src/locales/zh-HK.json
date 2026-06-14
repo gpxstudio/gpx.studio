@@ -166,7 +166,7 @@
                 "steps": "石級",
                 "road": "道路",
                 "bridleway": "馬道",
-                "platform": "Platform",
+                "platform": "停靠站台",
                 "raceway": "競賽賽道",
                 "rest_area": "停車區",
                 "abandoned": "廢棄道路",
@@ -174,10 +174,10 @@
                 "corridor": "走廊",
                 "bus_stop": "巴士站",
                 "busway": "巴士線",
-                "elevator": "Elevator",
-                "via_ferrata": "Via ferrata",
-                "proposed": "已規劃但未興建的道路",
-                "construction": "Road under construction"
+                "elevator": "升降機",
+                "via_ferrata": "鐵鎖攀岩",
+                "proposed": "未興建的道路",
+                "construction": "興建中的道路"
             },
             "sac_scale": {
                 "hiking": "遠足",
@@ -198,9 +198,9 @@
             }
         },
         "scissors": {
-            "tooltip": "Crop or split",
-            "crop": "Crop",
-            "split_as": "Split the trace into",
+            "tooltip": "裁剪或拆分",
+            "crop": "裁剪",
+            "split_as": "將軌跡拆分為",
             "help_invalid_selection": "Select a trace to crop or split.",
             "help": "Use the slider to crop the trace, or split it by clicking on one of the split markers or on the trace itself."
         },
