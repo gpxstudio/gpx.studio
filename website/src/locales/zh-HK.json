@@ -2,10 +2,10 @@
     "metadata": {
         "home_title": "線上 GPX 檔案編輯器",
         "app_title": "app",
-        "embed_title": "",
-        "help_title": "",
+        "embed_title": "線上 GPX 檔案編輯器",
+        "help_title": "幫助",
         "404_title": "無法找到相關頁面",
-        "description": "。"
+        "description": "線上查看、編輯和建立 GPX 檔案，包含高級路線規劃、檔案管理器、精美的地圖和詳細的資料可視化功能。"
     },
     "menu": {
         "new": "新建",
