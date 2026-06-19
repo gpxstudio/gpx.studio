@@ -10,17 +10,9 @@ export class Database extends Dexie {
     files!: Dexie.Table<GPXFile, string>;
     patches!: Dexie.Table<{ patch: Patch[]; inversePatch: Patch[]; index: number }, number>;
     settings!: Dexie.Table<any, string>;
-    overpasstiles!: Dexie.Table<
-        { query: string; x: number; y: number; time: number },
-        [string, number, number]
-    >;
-    overpassdata!: Dexie.Table<
-        { query: string; id: number; poi: GeoJSON.Feature },
-        [string, number]
-    >;
 
-    constructor() {
-        super('Database', {
+    constructor(name: string = 'gpxstudio') {
+        super(name, {
             cache: 'immutable',
         });
         this.version(1).stores({
@@ -28,10 +20,12 @@ export class Database extends Dexie {
             files: '',
             patches: ',patch',
             settings: '',
-            overpasstiles: '[query+x+y],[x+y]',
-            overpassdata: '[query+id]',
         });
     }
 }
 
 export const db = new Database();
+
+export function createProjectDatabase(projectId: string): Database {
+    return new Database(`gpxstudio-${projectId}`);
+}

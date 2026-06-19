@@ -25,6 +25,8 @@ export class FileActionManager {
     private _patchMaxIndex: Writable<number>;
     private _canUndo: Readable<boolean>;
     private _canRedo: Readable<boolean>;
+    private _patchIndexSub: { unsubscribe: () => void } | null = null;
+    private _patchKeysSub: { unsubscribe: () => void } | null = null;
 
     constructor(db: Database) {
         this._db = db;
@@ -62,23 +64,7 @@ export class FileActionManager {
         this._patchMinIndex = writable(0);
         this._patchMaxIndex = writable(0);
 
-        liveQuery(() => db.settings.get('patchIndex')).subscribe((value) => {
-            if (value !== undefined) {
-                this._patchIndex.set(value);
-            }
-        });
-        liveQuery(() =>
-            (db.patches.orderBy(':id').keys() as Promise<number[]>).then((keys) => {
-                if (keys.length === 0) {
-                    return { min: 0, max: 0 };
-                } else {
-                    return { min: keys[0], max: keys[keys.length - 1] + 1 };
-                }
-            })
-        ).subscribe((value) => {
-            this._patchMinIndex.set(value.min);
-            this._patchMaxIndex.set(value.max);
-        });
+        this._subscribeToDb(db);
 
         this._canUndo = derived(
             [this._patchIndex, this._patchMinIndex],
@@ -100,6 +86,43 @@ export class FileActionManager {
 
     get canRedo(): Readable<boolean> {
         return this._canRedo;
+    }
+
+    private _subscribeToDb(db: Database): void {
+        this._patchIndexSub = liveQuery(() => db.settings.get('patchIndex')).subscribe((value) => {
+            if (value !== undefined) {
+                this._patchIndex.set(value);
+            }
+        });
+        this._patchKeysSub = liveQuery(() =>
+            (db.patches.orderBy(':id').keys() as Promise<number[]>).then((keys) => {
+                if (keys.length === 0) {
+                    return { min: 0, max: 0 };
+                } else {
+                    return { min: keys[0], max: keys[keys.length - 1] + 1 };
+                }
+            })
+        ).subscribe((value) => {
+            this._patchMinIndex.set(value.min);
+            this._patchMaxIndex.set(value.max);
+        });
+    }
+
+    disconnectFromDatabase(): void {
+        this._patchIndexSub?.unsubscribe();
+        this._patchIndexSub = null;
+        this._patchKeysSub?.unsubscribe();
+        this._patchKeysSub = null;
+        // Reset patch index state
+        this._patchIndex.set(-1);
+        this._patchMinIndex.set(0);
+        this._patchMaxIndex.set(0);
+    }
+
+    reconnectToDatabase(newDb: Database): void {
+        this.disconnectFromDatabase();
+        this._db = newDb;
+        this._subscribeToDb(newDb);
     }
 
     undo() {
