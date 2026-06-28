@@ -1,5 +1,5 @@
 ---
-title: Route planning and editing
+title: Планування та редагування маршруту
 ---
 
 <script>
@@ -11,28 +11,28 @@ title: Route planning and editing
 
 # <Pencil size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
 
-The route planning and editing tool allows you to create and edit routes by placing or moving anchor points on the map.
+Інструмент планування та редагування маршруту дає змогу створювати й редагувати маршрути, розміщуючи або переміщуючи точки на карті.
 
 ## Налаштування
 
-As shown below, the tool dialog contains a few settings to control the routing behavior.
-You can minimize the dialog to save space by clicking on <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
+Як показано нижче, діалогове вікно інструмент містить кілька параметрів, які можна контролювати поведінку побудови маршруту.
+Щоб звільнити місце, діалогове вікно можна згорнути, натиснувши <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
 
 <div class="flex flex-row justify-center">
     <Routing minimizable={false} class="text-foreground p-3 border rounded-md shadow-lg" />
 </div>
 
-### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routing
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Побудова маршруту
 
-When routing is enabled, anchor points placed or moved on the map will be connected by a route calculated on the <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> road network.
-Disable routing to connect anchor points with straight lines.
-This setting can also be toggled by pressing <kbd>F5</kbd>.
+Якщо побудову маршруту ввімкнено, точки, які ви розміщуєте або переміщуєте на карті, з’єднуються маршрутом, розрахованим за дорожньою мережею <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a>.
+Вимкніть побудову маршруту, щоб з’єднувати точки прямими лініями.
+Це налаштування також можна перемкнути, натиснувши <kbd>F5</kbd>.
 
-### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Activity
+### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Активність
 
-Select the activity type to tailor the routes for.
+Виберіть тип активності, для якої прокладати маршрути.
 
-### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Allow private roads
+### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Дозволити приватні дороги
 
 When enabled, the routing engine will consider private roads when computing routes.
 
