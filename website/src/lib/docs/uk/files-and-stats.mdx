@@ -54,32 +54,32 @@ title: Файли та статистика
 Крім того, у дереві файлів можна переглядати [треки, сегменти та цікаві місця](./gpx), що містяться у файлах, за допомогою розгортальних розділів.
 
 Ви також можете застосовувати [дії редагування](./menu/edit) та [інструменти](./toolbar) до елементів внутрішніх файлів.
-Furthermore, you can drag and drop the inner items to reorder them, or move them in the hierarchy or even to another file.
+Крім того, внутрішні елементи можна перетягувати, щоб змінювати їхній порядок, переміщувати в ієрархії або навіть переносити до іншого файлу.
 
 <DocsNote>
 
-The size of the file list can be adjusted by dragging the separator between the map and the file list.
+Розмір списку файлів можна налаштувати, перетягнувши розділювач між картою та списком файлів.
 
 </DocsNote>
 
-## Elevation profile and statistics
+## Профіль висоти та статистика
 
-At the bottom of the interface, you can find the elevation profile and statistics for the current selection.
+У нижній частині інтерфейсу можна знайти профіль висоти та статистику для поточного виділення.
 
 <DocsNote>
 
-The size of the elevation profile can be adjusted by dragging the separator between the map and the elevation profile.
+Розмір профілю висоти можна змінити, перетягнувши розділювач між картою та профілем висоти.
 
 </DocsNote>
 
-### Interactive statistics
+### Інтерактивна статистика
 
-When hovering over the elevation profile, a tooltip will show statistics at the cursor position.
+Під час наведення на профіль висоти підказка показує статистику в позиції курсора.
 
-To get the statistics for a specific section of the elevation profile, you can drag a selection rectangle on the profile.
-Click on the profile to reset the selection.
+Щоб отримати статистику для певної ділянки профілю висоти, можна створити прямокутне виділення на профілі.
+Клацніть на профілі, щоб скинути виділення.
 
-You can also use the mouse wheel to zoom in and out on the elevation profile, and move left and right by dragging the profile while holding the <kbd>Shift</kbd> key.
+Також можна використовувати колесо миші, щоб наближати й віддаляти профіль висоти, а також переміщатися ліворуч і праворуч, перетягуючи профіль із затиснутою клавішею <kbd>Shift</kbd>.
 
 <div class="h-48 w-full">
     <ElevationProfile
@@ -98,12 +98,12 @@ You can also use the mouse wheel to zoom in and out on the elevation profile, an
     />
 </div>
 
-### Additional data
+### Додаткові дані
 
-Using the <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> button at the bottom-right of the elevation profile, you can optionally color the elevation profile by:
+За допомогою кнопки <kbd><ChartNoAxesColumn size="16" class="inline-block" style="margin-bottom: 2px"/></kbd> у правому нижньому куті профілю висоти можна за бажанням розфарбувати профіль висоти за:
 
-- **slope** information computed from the elevation data, or
-- **surface** or **category** data coming from <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a>'s <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> and <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a> tags.
-  This is only available for files created with **gpx.studio**.
+- даними про **ухил**, обчисленими з даних висоти; або
+- даними про **покриття** чи **категорію дороги** з тегів <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> <a href="https://wiki.openstreetmap.org/wiki/Key:surface" target="_blank">surface</a> і <a href="https://wiki.openstreetmap.org/wiki/Key:highway" target="_blank">highway</a>.
+  Це доступно лише для файлів, створених у **gpx.studio**.
 
-If your selection includes it, you can also visualize: **speed**, **heart rate**, **cadence**, **temperature** and **power** data on the elevation profile.
+Якщо вибраний трек містить відповідні дані, на профілі висоти також можна відобразити **швидкість**, **пульс**, **каденс**, **температуру** та **потужність**.
