@@ -36,7 +36,7 @@
         "switch_basemap": "Перехід до попередньої базової карти",
         "toggle_overlays": "Перемикання накладок",
         "toggle_3d": "Перемикнути 3D",
-        "fullscreen": "Full screen",
+        "fullscreen": "На весь екран",
         "settings": "Налаштування",
         "distance_units": "Одиниці виміру відстані",
         "metric": "Метричні",
@@ -235,7 +235,7 @@
         },
         "elevation": {
             "button": "Запит даних висот",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapterhorn.",
+            "help": "Запит даних висот призведе до видалення наявних даних висот, якщо вони є, і замінить їх даними з Mapterhorn.",
             "help_no_selection": "Виберіть елемент файлу, щоб запросити дані про висоту."
         },
         "waypoint": {
