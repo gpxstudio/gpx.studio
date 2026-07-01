@@ -12,6 +12,7 @@
         Funnel,
         Scissors,
         MountainSnow,
+        Magnet,
     } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
 
@@ -51,6 +52,9 @@
         </ToolbarItem>
         <ToolbarItem itemTool={Tool.CLEAN} label={i18n._('toolbar.clean.tooltip')}>
             <SquareDashedMousePointer size="18" class="size-4.5" />
+        </ToolbarItem>
+        <ToolbarItem itemTool={Tool.MAP_MATCHING} label={i18n._('toolbar.map_matching.tooltip')}>
+            <Magnet size="18" class="size-4.5" />
         </ToolbarItem>
     </div>
     <ToolbarItemMenu class={props.class ?? ''} />

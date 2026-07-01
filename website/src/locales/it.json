@@ -266,6 +266,14 @@
             "button": "Elimina",
             "help": "Selezionare un'area rettangolare sulla mappa per rimuovere i punti GPS e i punti d'interesse.",
             "help_no_selection": "Seleziona una traccia per pulire i punti GPS e i punti d'interesse."
+        },
+        "map_matching": {
+            "tooltip": "Snap every point to the nearest road",
+            "button": "Snap to roads",
+            "help": "Snap the selected track to the road network.",
+            "help_no_selection": "Select a track or segment to snap to roads.",
+            "error": "Map matching failed.",
+            "error_too_few_points": "Not enough points to match."
         }
     },
     "layers": {

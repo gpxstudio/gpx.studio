@@ -3,6 +3,7 @@ import { fileActionManager } from '$lib/logic/file-action-manager';
 import { applyToOrderedItemsFromFile, copied, cut, selection } from '$lib/logic/selection';
 import { currentTool, Tool } from '$lib/components/toolbar/tools';
 import { SplitType } from '$lib/components/toolbar/tools/scissors/scissors';
+import { routingProfiles } from '$lib/components/toolbar/tools/routing/routing';
 import {
     ListFileItem,
     ListLevel,
@@ -675,6 +676,119 @@ export const fileActions = {
                     }
                 }
             });
+        });
+    },
+    mapMatch: async () => {
+        if (get(selection).size === 0) return;
+
+        // Collect track points per segment for all selected items
+        const segmentPoints = new Map<ListTrackSegmentItem, TrackPoint[]>();
+
+        selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+            const file = fileStateCollection.getFile(fileId);
+            if (!file) return;
+
+            const addSegment = (trackIndex: number, segmentIndex: number) =>
+                segmentPoints.set(new ListTrackSegmentItem(fileId, trackIndex, segmentIndex), [
+                    ...file.trk[trackIndex].trkseg[segmentIndex].trkpt,
+                ]);
+
+            if (level === ListLevel.FILE) {
+                // All segments in all tracks in file
+                file.trk.forEach((track, ti) =>
+                    track.trkseg.forEach((_, si) => addSegment(ti, si))
+                );
+            } else if (level === ListLevel.TRACK) {
+                // All segments in selected tracks
+                items.forEach((item) => {
+                    const ti = (item as ListTrackItem).getTrackIndex();
+                    file.trk[ti].trkseg.forEach((_, si) => addSegment(ti, si));
+                });
+            } else if (level === ListLevel.SEGMENT) {
+                // Only selected segments
+                items.forEach((item) => {
+                    const ti = (item as ListTrackSegmentItem).getTrackIndex();
+                    const si = (item as ListTrackSegmentItem).getSegmentIndex();
+                    addSegment(ti, si);
+                });
+            }
+        });
+
+        if (segmentPoints.size === 0) return;
+
+        // Resolve the GraphHopper profile from the current routing selection.
+        // Fall back to 'bike' for BRouter-based profiles (e.g. water, railway)
+        // which have no equivalent map matching profile.
+        const profileKey = get(settings.routingProfile);
+        const profileDef = routingProfiles[profileKey];
+        const ghProfile = profileDef?.engine === 'graphhopper' ? profileDef.profile : 'bike';
+
+        // Wrap points in a minimal GPX envelope for the /match endpoint
+        const buildGPX = (points: TrackPoint[]) => {
+            const trkpts = points
+                .map(
+                    (p) => `    <trkpt lat="${p.attributes.lat}" lon="${p.attributes.lon}"></trkpt>`
+                )
+                .join('\n');
+            return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="gpx.studio">\n  <trk><trkseg>\n${trkpts}\n  </trkseg></trk>\n</gpx>`;
+        };
+
+        // Match all segments in parallel. Segments that fail (no road nearby,
+        // outside covered area, etc.) are silently kept as-is.
+        const matchedPoints = new Map<ListTrackSegmentItem, TrackPoint[]>();
+
+        await Promise.all(
+            Array.from(segmentPoints.entries()).map(async ([item, points]) => {
+                try {
+                    const response = await fetch(
+                        `/graphhopper/match?profile=${ghProfile}&points_encoded=false&gps_accuracy=40`,
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/gpx+xml' },
+                            body: buildGPX(points),
+                        }
+                    );
+
+                    const json = response.ok ? await response.json() : null;
+                    const coordinates: [number, number, number?][] | undefined =
+                        json?.paths?.[0]?.points?.coordinates;
+
+                    // Use matched coordinates if available, otherwise keep original points
+                    matchedPoints.set(
+                        item,
+                        coordinates
+                            ? coordinates.map(
+                                  ([lon, lat, ele]) =>
+                                      new TrackPoint({
+                                          attributes: { lat, lon },
+                                          ele: ele ?? 0,
+                                          extensions: {},
+                                      })
+                              )
+                            : points
+                    );
+                } catch {
+                    // Network error or unexpected response — keep original points
+                    matchedPoints.set(item, points);
+                }
+            })
+        );
+
+        // Apply all segment replacements as a single action
+        fileActionManager.applyGlobal((draft) => {
+            for (const [item, matched] of matchedPoints) {
+                const file = draft.get(item.getFileId());
+                if (!file) continue;
+                const ti = item.getTrackIndex();
+                const si = item.getSegmentIndex();
+                file.replaceTrackPoints(
+                    ti,
+                    si,
+                    0,
+                    file.trk[ti].trkseg[si].getNumberOfTrackPoints() - 1,
+                    matched
+                );
+            }
         });
     },
     addOrUpdateWaypoint: (waypoint: WaypointType, item?: ListWaypointItem) => {

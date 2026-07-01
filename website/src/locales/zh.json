@@ -266,6 +266,14 @@
             "button": "删除",
             "help": "在地图上绘制矩形选区以清除。",
             "help_no_selection": "选择一个轨迹以清除其 GPS 点和兴趣点。"
+        },
+        "map_matching": {
+            "tooltip": "Snap every point to the nearest road",
+            "button": "Snap to roads",
+            "help": "Snap the selected track to the road network.",
+            "help_no_selection": "Select a track or segment to snap to roads.",
+            "error": "Map matching failed.",
+            "error_too_few_points": "Not enough points to match."
         }
     },
     "layers": {

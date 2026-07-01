@@ -266,6 +266,14 @@
             "button": "Izbrišite",
             "help": "Odaberite pravougaonu sekciju na mapi ged želite da izbrišete GPS tačke i tačke od interesa.",
             "help_no_selection": "Odaberite trek da biste izbrisali GPS tačke i tačke od interesa."
+        },
+        "map_matching": {
+            "tooltip": "Snap every point to the nearest road",
+            "button": "Snap to roads",
+            "help": "Snap the selected track to the road network.",
+            "help_no_selection": "Select a track or segment to snap to roads.",
+            "error": "Map matching failed.",
+            "error_too_few_points": "Not enough points to match."
         }
     },
     "layers": {
