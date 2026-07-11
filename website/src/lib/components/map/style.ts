@@ -58,6 +58,7 @@ export class StyleManager {
         opacities.subscribe(() => this.updateOverlays());
         terrainSource.subscribe(() => this.updateTerrain());
         customLayers.subscribe(() => this.updateBasemap());
+        i18n.subscribe(() => this.updateBasemap());
         distanceUnits.subscribe(() => {
             const map = get(this._map);
             if (map && (map.getLayer('contours_m') || map.getLayer('contours_ft'))) {
