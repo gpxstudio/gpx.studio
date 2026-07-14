@@ -20,6 +20,7 @@
     import { getURLForGoogleDriveFile } from '$lib/components/embedding/embedding';
     import { db } from '$lib/db';
     import { fileStateCollection } from '$lib/logic/file-state';
+    import { browser } from '$app/environment';
 
     const {
         treeFileView,
@@ -36,6 +37,14 @@
     );
 
     onMount(async () => {
+        if (browser) {
+            const wasm = await import('gpx-rs');
+            const controller = new wasm.Controller();
+
+            console.log(controller);
+
+            controller.create_file();
+        }
         settings.connectToDatabase(db);
         fileStateCollection.connectToDatabase(db).then(() => {
             let files: string[] = JSON.parse(page.url.searchParams.get('files') || '[]');
