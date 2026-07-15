@@ -1,3 +1,5 @@
+import { writable } from 'svelte/store';
+
 type Dictionary = {
     [key: string]: string | Dictionary;
 };
@@ -10,6 +12,7 @@ function getDateFormatter(locale: string) {
 }
 
 class Locale {
+    private _store = writable(this);
     private _lang = $state('');
     private _isLoadingInitial = $state(true);
     private _isLoading = $state(true);
@@ -38,6 +41,7 @@ class Locale {
             }
             import(`../locales/${this._lang}.json`).then((module) => {
                 this.dictionary = module.default;
+                this._store.set(this);
                 if (this._isLoadingInitial) {
                     this._isLoadingInitial = false;
                 }
@@ -66,6 +70,10 @@ class Locale {
 
     public get df() {
         return this._df;
+    }
+
+    public subscribe(run: (value: Locale) => void, invalidate?: (value?: Locale) => void) {
+        return this._store.subscribe(run, invalidate);
     }
 }
 
