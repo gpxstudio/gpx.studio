@@ -36,7 +36,7 @@
         "switch_basemap": "Zur vorherigen Basemap wechseln",
         "toggle_overlays": "Overlay umschalten",
         "toggle_3d": "3D umschalten",
-        "fullscreen": "Full screen",
+        "fullscreen": "Vollbildmodus",
         "settings": "Einstellungen",
         "distance_units": "Entfernungseinheiten",
         "metric": "Metrisch",
@@ -235,7 +235,7 @@
         },
         "elevation": {
             "button": "Höhendaten anfragen",
-            "help": "Requesting elevation data will erase the existing elevation data, if any, and replace it with data from Mapterhorn.",
+            "help": "Das Anfordern von Höhendaten löscht die vorhandenen Höhendaten, falls vorhanden, und ersetzt diese durch Daten von Mapterhorn.",
             "help_no_selection": "Wählen Sie ein Datei-Element, um Höhendaten anzufordern."
         },
         "waypoint": {
@@ -305,7 +305,7 @@
             "united_kingdom": "Großbritannien",
             "united_states": "USA",
             "libertyTopo": "Liberty Topo",
-            "libertySatellite": "Liberty Satellite",
+            "libertySatellite": "Liberty Satellit",
             "osm": "OpenMapTiles OSM",
             "osmTopo": "OpenMapTiles OSM Topo",
             "esriSatellite": "Esri Satellite",
