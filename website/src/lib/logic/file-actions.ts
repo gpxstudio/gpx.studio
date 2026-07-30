@@ -33,6 +33,7 @@ import { settings } from '$lib/logic/settings';
 import { getClosestLinePoint, getClosestTrackSegments, getElevation } from '$lib/utils';
 import { gpxStatistics } from '$lib/logic/statistics';
 import { boundsManager } from './bounds';
+import { toast } from 'svelte-sonner';
 
 // Generate unique file ids, different from the ones in the database
 export function getFileIds(n: number) {
@@ -723,6 +724,14 @@ export const fileActions = {
         const profileDef = routingProfiles[profileKey];
         const ghProfile = profileDef?.engine === 'graphhopper' ? profileDef.profile : 'bike';
 
+        // GraphHopper's matcher searches for candidate roads within roughly
+        // 2x this radius (meters) of each point, and treats it as the Gaussian
+        // sigma of GPS noise when scoring candidates.
+        const gpsAccuracy = 20;
+        // A matched point further than this from the original is treated as a
+        // snap to the wrong road rather than noise correction (3 sigma).
+        const confidenceThreshold = Math.max(3 * gpsAccuracy, 50);
+
         // Wrap points in a minimal GPX envelope for the /match endpoint
         const buildGPX = (points: TrackPoint[]) => {
             const trkpts = points
@@ -733,15 +742,24 @@ export const fileActions = {
             return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="gpx.studio">\n  <trk><trkseg>\n${trkpts}\n  </trkseg></trk>\n</gpx>`;
         };
 
-        // Match all segments in parallel. Segments that fail (no road nearby,
-        // outside covered area, etc.) are silently kept as-is.
+        // Match all segments in parallel. Segments that fail or come back
+        // with a low-confidence match are kept as-is, and reported below.
         const matchedPoints = new Map<ListTrackSegmentItem, TrackPoint[]>();
+        let hasTooFewPoints = false;
+        let hasRequestFailure = false;
+        let hasLowConfidence = false;
 
         await Promise.all(
             Array.from(segmentPoints.entries()).map(async ([item, points]) => {
+                if (points.length < 2) {
+                    hasTooFewPoints = true;
+                    matchedPoints.set(item, points);
+                    return;
+                }
+
                 try {
                     const response = await fetch(
-                        `/graphhopper/match?profile=${ghProfile}&points_encoded=false&gps_accuracy=40`,
+                        `https://graphhopper.gpx.studio/match?profile=${ghProfile}&points_encoded=false&elevation=true&gps_accuracy=${gpsAccuracy}&max_visited_nodes=10000`,
                         {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/gpx+xml' },
@@ -749,32 +767,67 @@ export const fileActions = {
                         }
                     );
 
-                    const json = response.ok ? await response.json() : null;
+                    if (!response.ok) {
+                        hasRequestFailure = true;
+                        matchedPoints.set(item, points);
+                        return;
+                    }
+
+                    const json = await response.json();
                     const coordinates: [number, number, number?][] | undefined =
                         json?.paths?.[0]?.points?.coordinates;
 
-                    // Use matched coordinates if available, otherwise keep original points
-                    matchedPoints.set(
-                        item,
-                        coordinates
-                            ? coordinates.map(
-                                  ([lon, lat, ele]) =>
-                                      new TrackPoint({
-                                          attributes: { lat, lon },
-                                          ele: ele ?? 0,
-                                          extensions: {},
-                                      })
-                              )
-                            : points
-                    );
+                    if (!coordinates || coordinates.length === 0) {
+                        hasRequestFailure = true;
+                        matchedPoints.set(item, points);
+                        return;
+                    }
+
+                    const matched: TrackPoint[] = [];
+                    for (let i = 0; i < coordinates.length; i++) {
+                        matched.push(
+                            new TrackPoint({
+                                attributes: { lat: coordinates[i][1], lon: coordinates[i][0] },
+                                ele: coordinates[i][2] ?? (i > 0 ? matched[i - 1].ele : 0),
+                                extensions: {},
+                            })
+                        );
+                    }
+
+                    // Reject the match for this segment if any original point
+                    // ended up far from the resulting line — a sign it snapped
+                    // to the wrong road among several nearby candidates.
+                    const isLowConfidence = points.some((point) => {
+                        const details: { distance?: number } = {};
+                        getClosestLinePoint(matched, point, details);
+                        return (details.distance ?? Number.MAX_VALUE) > confidenceThreshold;
+                    });
+
+                    if (isLowConfidence) {
+                        hasLowConfidence = true;
+                        matchedPoints.set(item, points);
+                    } else {
+                        matchedPoints.set(item, matched);
+                    }
                 } catch {
                     // Network error or unexpected response — keep original points
+                    hasRequestFailure = true;
                     matchedPoints.set(item, points);
                 }
             })
         );
 
-        // Apply all segment replacements as a single action
+        if (hasTooFewPoints) toast.error(i18n._('toolbar.map_matching.error_too_few_points'));
+        if (hasRequestFailure) toast.error(i18n._('toolbar.map_matching.error'));
+        if (hasLowConfidence) toast.error(i18n._('toolbar.map_matching.error_low_confidence'));
+
+        // Apply all segment replacements as a single action, skipping entirely
+        // if every segment was kept as-is (nothing to undo)
+        const anyChanged = Array.from(matchedPoints.entries()).some(
+            ([item, matched]) => matched !== segmentPoints.get(item)
+        );
+        if (!anyChanged) return;
+
         fileActionManager.applyGlobal((draft) => {
             for (const [item, matched] of matchedPoints) {
                 const file = draft.get(item.getFileId());

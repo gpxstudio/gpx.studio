@@ -273,7 +273,8 @@
             "help": "Snap the selected track to the road network.",
             "help_no_selection": "Select a track or segment to snap to roads.",
             "error": "Map matching failed.",
-            "error_too_few_points": "Not enough points to match."
+            "error_too_few_points": "Not enough points to match.",
+            "error_low_confidence": "Some segments were kept unchanged because the match was too uncertain (multiple nearby roads)."
         }
     },
     "layers": {
