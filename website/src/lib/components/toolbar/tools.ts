@@ -10,6 +10,7 @@ export enum Tool {
     ELEVATION,
     REDUCE,
     CLEAN,
+    MAP_MATCHING,
 }
 
 export const currentTool: Writable<Tool | null> = writable(null);

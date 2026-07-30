@@ -3,6 +3,7 @@ import { fileActionManager } from '$lib/logic/file-action-manager';
 import { applyToOrderedItemsFromFile, copied, cut, selection } from '$lib/logic/selection';
 import { currentTool, Tool } from '$lib/components/toolbar/tools';
 import { SplitType } from '$lib/components/toolbar/tools/scissors/scissors';
+import { routingProfiles } from '$lib/components/toolbar/tools/routing/routing';
 import {
     ListFileItem,
     ListLevel,
@@ -32,6 +33,7 @@ import { settings } from '$lib/logic/settings';
 import { getClosestLinePoint, getClosestTrackSegments, getElevation } from '$lib/utils';
 import { gpxStatistics } from '$lib/logic/statistics';
 import { boundsManager } from './bounds';
+import { toast } from 'svelte-sonner';
 
 // Generate unique file ids, different from the ones in the database
 export function getFileIds(n: number) {
@@ -675,6 +677,171 @@ export const fileActions = {
                     }
                 }
             });
+        });
+    },
+    mapMatch: async () => {
+        if (get(selection).size === 0) return;
+
+        // Collect track points per segment for all selected items
+        const segmentPoints = new Map<ListTrackSegmentItem, TrackPoint[]>();
+
+        selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
+            const file = fileStateCollection.getFile(fileId);
+            if (!file) return;
+
+            const addSegment = (trackIndex: number, segmentIndex: number) =>
+                segmentPoints.set(new ListTrackSegmentItem(fileId, trackIndex, segmentIndex), [
+                    ...file.trk[trackIndex].trkseg[segmentIndex].trkpt,
+                ]);
+
+            if (level === ListLevel.FILE) {
+                // All segments in all tracks in file
+                file.trk.forEach((track, ti) =>
+                    track.trkseg.forEach((_, si) => addSegment(ti, si))
+                );
+            } else if (level === ListLevel.TRACK) {
+                // All segments in selected tracks
+                items.forEach((item) => {
+                    const ti = (item as ListTrackItem).getTrackIndex();
+                    file.trk[ti].trkseg.forEach((_, si) => addSegment(ti, si));
+                });
+            } else if (level === ListLevel.SEGMENT) {
+                // Only selected segments
+                items.forEach((item) => {
+                    const ti = (item as ListTrackSegmentItem).getTrackIndex();
+                    const si = (item as ListTrackSegmentItem).getSegmentIndex();
+                    addSegment(ti, si);
+                });
+            }
+        });
+
+        if (segmentPoints.size === 0) return;
+
+        // Resolve the GraphHopper profile from the current routing selection.
+        // Fall back to 'bike' for BRouter-based profiles (e.g. water, railway)
+        // which have no equivalent map matching profile.
+        const profileKey = get(settings.routingProfile);
+        const profileDef = routingProfiles[profileKey];
+        const ghProfile = profileDef?.engine === 'graphhopper' ? profileDef.profile : 'bike';
+
+        // GraphHopper's matcher searches for candidate roads within roughly
+        // 2x this radius (meters) of each point, and treats it as the Gaussian
+        // sigma of GPS noise when scoring candidates.
+        const gpsAccuracy = 20;
+        // A matched point further than this from the original is treated as a
+        // snap to the wrong road rather than noise correction (3 sigma).
+        const confidenceThreshold = Math.max(3 * gpsAccuracy, 50);
+
+        // Wrap points in a minimal GPX envelope for the /match endpoint
+        const buildGPX = (points: TrackPoint[]) => {
+            const trkpts = points
+                .map(
+                    (p) => `    <trkpt lat="${p.attributes.lat}" lon="${p.attributes.lon}"></trkpt>`
+                )
+                .join('\n');
+            return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="gpx.studio">\n  <trk><trkseg>\n${trkpts}\n  </trkseg></trk>\n</gpx>`;
+        };
+
+        // Match all segments in parallel. Segments that fail or come back
+        // with a low-confidence match are kept as-is, and reported below.
+        const matchedPoints = new Map<ListTrackSegmentItem, TrackPoint[]>();
+        let hasTooFewPoints = false;
+        let hasRequestFailure = false;
+        let hasLowConfidence = false;
+
+        await Promise.all(
+            Array.from(segmentPoints.entries()).map(async ([item, points]) => {
+                if (points.length < 2) {
+                    hasTooFewPoints = true;
+                    matchedPoints.set(item, points);
+                    return;
+                }
+
+                try {
+                    const response = await fetch(
+                        `https://graphhopper.gpx.studio/match?profile=${ghProfile}&points_encoded=false&elevation=true&gps_accuracy=${gpsAccuracy}&max_visited_nodes=10000`,
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/gpx+xml' },
+                            body: buildGPX(points),
+                        }
+                    );
+
+                    if (!response.ok) {
+                        hasRequestFailure = true;
+                        matchedPoints.set(item, points);
+                        return;
+                    }
+
+                    const json = await response.json();
+                    const coordinates: [number, number, number?][] | undefined =
+                        json?.paths?.[0]?.points?.coordinates;
+
+                    if (!coordinates || coordinates.length === 0) {
+                        hasRequestFailure = true;
+                        matchedPoints.set(item, points);
+                        return;
+                    }
+
+                    const matched: TrackPoint[] = [];
+                    for (let i = 0; i < coordinates.length; i++) {
+                        matched.push(
+                            new TrackPoint({
+                                attributes: { lat: coordinates[i][1], lon: coordinates[i][0] },
+                                ele: coordinates[i][2] ?? (i > 0 ? matched[i - 1].ele : 0),
+                                extensions: {},
+                            })
+                        );
+                    }
+
+                    // Reject the match for this segment if any original point
+                    // ended up far from the resulting line — a sign it snapped
+                    // to the wrong road among several nearby candidates.
+                    const isLowConfidence = points.some((point) => {
+                        const details: { distance?: number } = {};
+                        getClosestLinePoint(matched, point, details);
+                        return (details.distance ?? Number.MAX_VALUE) > confidenceThreshold;
+                    });
+
+                    if (isLowConfidence) {
+                        hasLowConfidence = true;
+                        matchedPoints.set(item, points);
+                    } else {
+                        matchedPoints.set(item, matched);
+                    }
+                } catch {
+                    // Network error or unexpected response — keep original points
+                    hasRequestFailure = true;
+                    matchedPoints.set(item, points);
+                }
+            })
+        );
+
+        if (hasTooFewPoints) toast.error(i18n._('toolbar.map_matching.error_too_few_points'));
+        if (hasRequestFailure) toast.error(i18n._('toolbar.map_matching.error'));
+        if (hasLowConfidence) toast.error(i18n._('toolbar.map_matching.error_low_confidence'));
+
+        // Apply all segment replacements as a single action, skipping entirely
+        // if every segment was kept as-is (nothing to undo)
+        const anyChanged = Array.from(matchedPoints.entries()).some(
+            ([item, matched]) => matched !== segmentPoints.get(item)
+        );
+        if (!anyChanged) return;
+
+        fileActionManager.applyGlobal((draft) => {
+            for (const [item, matched] of matchedPoints) {
+                const file = draft.get(item.getFileId());
+                if (!file) continue;
+                const ti = item.getTrackIndex();
+                const si = item.getSegmentIndex();
+                file.replaceTrackPoints(
+                    ti,
+                    si,
+                    0,
+                    file.trk[ti].trkseg[si].getNumberOfTrackPoints() - 1,
+                    matched
+                );
+            }
         });
     },
     addOrUpdateWaypoint: (waypoint: WaypointType, item?: ListWaypointItem) => {
