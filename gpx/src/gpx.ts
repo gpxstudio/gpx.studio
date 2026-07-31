@@ -448,6 +448,14 @@ export class GPXFile extends GPXTreeNode<Track> {
         });
     }
 
+    clearTimestamps(trackIndex?: number, segmentIndex?: number) {
+        this.trk.forEach((track, index) => {
+            if (trackIndex === undefined || trackIndex === index) {
+                track.clearTimestamps(segmentIndex);
+            }
+        });
+    }
+
     addElevation(
         elevations: number[],
         trackIndices?: number[],
@@ -752,6 +760,14 @@ export class Track extends GPXTreeNode<TrackSegment> {
                 if (segment.trkpt.length > 0) {
                     lastPoint = segment.trkpt[segment.trkpt.length - 1];
                 }
+            }
+        });
+    }
+
+    clearTimestamps(segmentIndex?: number) {
+        this.trkseg.forEach((segment, index) => {
+            if (segmentIndex === undefined || segmentIndex === index) {
+                segment.clearTimestamps();
             }
         });
     }
@@ -1319,6 +1335,15 @@ export class TrackSegment extends GPXTreeLeaf {
         let statistics = og._computeStatistics();
         let trkpt = withArtificialTimestamps(og.trkpt, totalTime, lastPoint, startTime, statistics);
         this.trkpt = freeze(trkpt); // Pre-freeze the array, faster as well
+    }
+
+    clearTimestamps() {
+        let og = getOriginal(this);
+        this.trkpt = freeze(og.trkpt.map((point) => {
+            let cloned = point.clone();
+            cloned.time = undefined;
+            return cloned;
+        }));
     }
 
     setHidden(hidden: boolean) {
