@@ -64,7 +64,7 @@
         "ctrl": "Ctrl",
         "click": "Clique",
         "drag": "Arrastar",
-        "right_click_drag": "Right-click drag",
+        "right_click_drag": "Clique direito arraste",
         "metadata": {
             "button": "Informações...",
             "name": "Nome",
@@ -181,7 +181,7 @@
             },
             "sac_scale": {
                 "hiking": "Caminhada",
-                "mountain_hiking": "Mountain hiking",
+                "mountain_hiking": "",
                 "demanding_mountain_hiking": "Demanding mountain hiking",
                 "alpine_hiking": "Alpine hiking",
                 "demanding_alpine_hiking": "Demanding alpine hiking",
@@ -239,7 +239,7 @@
             "help_no_selection": "Select a file item to request elevation data."
         },
         "waypoint": {
-            "tooltip": "Create and edit points of interest",
+            "tooltip": "Criar ponto de interesse",
             "icon": "Icon",
             "link": "Link",
             "longitude": "Longitude",
