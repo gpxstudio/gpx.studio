@@ -239,7 +239,7 @@
             "help_no_selection": "Select a file item to request elevation data."
         },
         "waypoint": {
-            "tooltip": "Create and edit points of interest",
+            "tooltip": "Criar ponto de interesse",
             "icon": "Icon",
             "link": "Link",
             "longitude": "Longitude",
