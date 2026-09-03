@@ -6,10 +6,10 @@ import ignFrSatellite from './custom/ign-fr-satellite.json';
 import bikerouterGravel from './custom/bikerouter-gravel.json';
 import { LucideArrowDownZA, TabletSmartphone } from 'lucide-svelte';
 
-import { env } from '$env/dynamic/public';
+import { PUBLIC_TILES_URL } from '$env/static/public';
 
 /** Caching tile proxy (map-tiles). Override with PUBLIC_TILES_URL for local docker (:4009). */
-const TILES = (env.PUBLIC_TILES_URL ?? 'https://tiles.wanderstories.space').replace(/\/$/, '');
+const TILES = (PUBLIC_TILES_URL || 'https://tiles.wanderstories.space').replace(/\/$/, '');
 
 export const basemaps: { [key: string]: string | StyleSpecification; } = {
     /*wsOutdoors: {
@@ -17,7 +17,7 @@ export const basemaps: { [key: string]: string | StyleSpecification; } = {
         sources: {
             wsOutdoors: {
                 type: 'raster',
-                tiles: [`${TILES}/mapbox/topo/{z}/{x}/{y}`],
+                tiles: ['https://maps.wanderstories.space/outdoor/{z}/{x}/{y}'],
                 tileSize: 256,
                 maxzoom: 18,
                 attribution: '&copy; <a href="https://www.mapbox.com/about/maps/" target="_blank">Mapbox</a>'
@@ -37,7 +37,7 @@ export const basemaps: { [key: string]: string | StyleSpecification; } = {
         sources: {
             mapboxSatellite: {
                 type: 'raster',
-                tiles: [`${TILES}/mapbox/satellite/{z}/{x}/{y}`],
+                tiles: ['https://maps.wanderstories.space/mapboxsatellite/{z}/{x}/{y}'],
                 tileSize: 256,
                 maxzoom: 18,
                 attribution: '&copy; <a href="https://www.mapbox.com/about/maps/" target="_blank">Mapbox</a>'

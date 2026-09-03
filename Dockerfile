@@ -19,6 +19,10 @@ COPY website/ ./
 # Perform a Clean Install
 RUN npx ci
 
+# Public env used at build/prerender time (overridable via --build-arg)
+ARG PUBLIC_TILES_URL=https://tiles.wanderstories.space
+ENV PUBLIC_TILES_URL=$PUBLIC_TILES_URL
+
 # Build the app
 RUN NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
