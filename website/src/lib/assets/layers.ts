@@ -2239,8 +2239,8 @@ export const overlays: { [key: string]: StyleSpecification; } = {
         sources: {
             stravaAll: {
                 type: 'raster',
-                //tiles: [`${TILES}/strava/{z}/{x}/{y}/512/all/hot`],
-                tiles: ['https://strava.wanderstories.space/{z}/{x}/{y}/512/all/hot'],
+                //tiles: [`${TILES}/strava/identified/globalheat/all/hot/{z}/{x}/{y}.png?v=19`],
+                tiles: ['https://strava.wanderstories.space/identified/globalheat/all/hot/{z}/{x}/{y}.png?v=19'],
                 tileSize: 256,
                 maxzoom: 14,
                 attribution: '&copy; <a href="https://strava.com" target="_blank">Strava</a>'
@@ -2257,8 +2257,8 @@ export const overlays: { [key: string]: StyleSpecification; } = {
         sources: {
             stravaRide: {
                 type: 'raster',
-                //tiles: [`${TILES}/strava/{z}/{x}/{y}/512/ride/hot`],
-                tiles: ['https://strava.wanderstories.space/{z}/{x}/{y}/512/ride/hot'],
+                //tiles: [`${TILES}/strava/identified/globalheat/ride/hot/{z}/{x}/{y}.png?v=19`],
+                tiles: ['https://strava.wanderstories.space/identified/globalheat/ride/hot/{z}/{x}/{y}.png?v=19'],
                 tileSize: 256,
                 maxzoom: 14,
                 attribution: '&copy; <a href="https://strava.com" target="_blank">Strava</a>'
@@ -2275,8 +2275,8 @@ export const overlays: { [key: string]: StyleSpecification; } = {
         sources: {
             stravaRun: {
                 type: 'raster',
-                //tiles: [`${TILES}/strava/{z}/{x}/{y}/512/run/hot`],
-                tiles: ['https://strava.wanderstories.space/{z}/{x}/{y}/512/run/hot'],
+                //tiles: [`${TILES}/strava/identified/globalheat/run/hot/{z}/{x}/{y}.png?v=19`],
+                tiles: ['https://strava.wanderstories.space/identified/globalheat/run/hot/{z}/{x}/{y}.png?v=19'],
                 tileSize: 256,
                 maxzoom: 14,
                 attribution: '&copy; <a href="https://strava.com" target="_blank">Strava</a>'
@@ -2293,8 +2293,8 @@ export const overlays: { [key: string]: StyleSpecification; } = {
         sources: {
             stravaWater: {
                 type: 'raster',
-                //tiles: [`${TILES}/strava/{z}/{x}/{y}/512/water/hot`],
-                tiles: ['https://strava.wanderstories.space/{z}/{x}/{y}/512/water/hot'],
+                //tiles: [`${TILES}/strava/identified/globalheat/water/hot/{z}/{x}/{y}.png?v=19`],
+                tiles: ['https://strava.wanderstories.space/identified/globalheat/water/hot/{z}/{x}/{y}.png?v=19'],
                 tileSize: 256,
                 maxzoom: 14,
                 attribution: '&copy; <a href="https://strava.com" target="_blank">Strava</a>'
@@ -2311,8 +2311,8 @@ export const overlays: { [key: string]: StyleSpecification; } = {
         sources: {
             stravaWinter: {
                 type: 'raster',
-                //tiles: [`${TILES}/strava/{z}/{x}/{y}/512/winter/hot`],
-                tiles: ['https://strava.wanderstories.space/{z}/{x}/{y}/512/winter/hot'],
+                //tiles: [`${TILES}/strava/identified/globalheat/winter/hot/{z}/{x}/{y}.png?v=19`],
+                tiles: ['https://strava.wanderstories.space/identified/globalheat/winter/hot/{z}/{x}/{y}.png?v=19'],
                 tileSize: 256,
                 maxzoom: 14,
                 attribution: '&copy; <a href="https://strava.com" target="_blank">Strava</a>'
