@@ -781,6 +781,23 @@ export const basemaps: { [key: string]: string | StyleSpecification; } = {
             source: 'yandexSatellite',
         }],
     },
+    libertySatellite: {
+        version: 8,
+        sources: {
+            libertySatellite: {
+                type: 'raster',
+                tiles: ['https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key=LtuJ7yoNmtLdbRSVn9bb'],
+                tileSize: 512,
+                maxzoom: 22,
+                attribution: '&copy; <a href="https://www.maptiler.com/copyright/" target="_blank">MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
+            }
+        },
+        layers: [{
+            id: 'libertySatellite',
+            type: 'raster',
+            source: 'libertySatellite',
+        }],
+    },
     arcTopo: {
         version: 8,
         sources: {
@@ -3397,6 +3414,7 @@ export const basemapTree: LayerTreeType = {
             googleSatellite: true,
             appleSatellite: true,
             yandexSatellite: true,
+            libertySatellite: true,
         },
         countries: {
             australia: {
@@ -3785,6 +3803,7 @@ export const defaultBasemapTree: LayerTreeType = {
             googleSatellite: true,
             appleSatellite: true,
             yandexSatellite: false,
+            libertySatellite: true,
         },
         countries: {
             australia: {
