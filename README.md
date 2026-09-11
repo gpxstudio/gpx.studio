@@ -51,6 +51,18 @@ npm install
 npm run dev
 ```
 
+### Running the website with Docker
+
+Alternatively, the development server can run in a container, which pins Node to the same version used for deployment and avoids installing anything locally. You still need the `.env` file described above, and you still edit the files on your machine as usual.
+
+```bash
+docker compose up
+```
+
+The site is served on [http://localhost:5173](http://localhost:5173). Set `DEV_PORT` if that port is already taken. Dependencies are installed into Docker volumes on the first run, which takes a few minutes; later runs start in seconds, and the container reinstalls automatically whenever a lockfile changes.
+
+Note that file changes are picked up by polling, because file system events do not cross the container boundary reliably on macOS. If hot reloading works for you with `CHOKIDAR_USEPOLLING=0`, you can turn polling off and save some CPU.
+
 ## Credits
 
 This project has been made possible thanks to the following open source projects:
