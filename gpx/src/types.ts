@@ -85,6 +85,8 @@ export type TrackPointType = {
 
 export type TrackPointExtensions = {
     'gpxtpx:TrackPointExtension'?: TrackPointExtension;
+    'gpxpx:PowerInWatts'?: number;
+    // Retained for files and saved data using the previous nonstandard wrapper.
     'gpxpx:PowerExtension'?: PowerExtension;
 };
 
