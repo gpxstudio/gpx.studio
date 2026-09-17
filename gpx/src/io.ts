@@ -12,7 +12,7 @@ const attributesWithNamespace = {
     cad: 'gpxtpx:cad',
     Extensions: 'gpxtpx:Extensions',
     PowerInWatts: 'gpxpx:PowerInWatts',
-    power: 'gpxpx:PowerExtension',
+    power: 'gpxpx:PowerInWatts',
     line: 'gpx_style:line',
     color: 'gpx_style:color',
     opacity: 'gpx_style:opacity',
@@ -86,14 +86,6 @@ export function parseGPX(gpxData: string): GPXFile {
                     tagName === 'gpx_style:width'
                 ) {
                     return safeParseFloat(tagValue);
-                }
-
-                if (tagName === 'gpxpx:PowerExtension') {
-                    // Finish the transformation of the simple <power> tag to the more complex <gpxpx:PowerExtension> tag
-                    // Note that this only targets the transformed <power> tag, since it must be a leaf node
-                    return {
-                        'gpxpx:PowerInWatts': safeParseFloat(tagValue),
-                    };
                 }
             }
 

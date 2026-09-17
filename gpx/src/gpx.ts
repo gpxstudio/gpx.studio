@@ -913,11 +913,8 @@ export class TrackSegment extends GPXTreeLeaf {
                         (statistics.global.cad.count + 1);
                     statistics.global.cad.count++;
                 }
-                if (
-                    points[i].extensions['gpxpx:PowerExtension'] &&
-                    points[i].extensions['gpxpx:PowerExtension']['gpxpx:PowerInWatts']
-                ) {
-                    let power = points[i].extensions['gpxpx:PowerExtension']['gpxpx:PowerInWatts'];
+                const power = points[i].getPower();
+                if (power !== undefined) {
                     statistics.global.power.avg =
                         (statistics.global.power.count * statistics.global.power.avg + power) /
                         (statistics.global.power.count + 1);
@@ -1391,11 +1388,10 @@ export class TrackPoint {
     }
 
     getPower(): number {
-        return this.extensions &&
-            this.extensions['gpxpx:PowerExtension'] &&
-            this.extensions['gpxpx:PowerExtension']['gpxpx:PowerInWatts']
-            ? this.extensions['gpxpx:PowerExtension']['gpxpx:PowerInWatts']
-            : undefined;
+        return (
+            this.extensions?.['gpxpx:PowerInWatts'] ??
+            this.extensions?.['gpxpx:PowerExtension']?.['gpxpx:PowerInWatts']
+        );
     }
 
     setExtension(key: string, value: string) {
@@ -1438,7 +1434,6 @@ export class TrackPoint {
                 ...trkpt,
                 extensions: {
                     'gpxtpx:TrackPointExtension': {},
-                    'gpxpx:PowerExtension': {},
                 },
             };
             if (
@@ -1465,13 +1460,9 @@ export class TrackPoint {
                 trkpt.extensions['gpxtpx:TrackPointExtension']['gpxtpx:cad'] =
                     this.extensions['gpxtpx:TrackPointExtension']['gpxtpx:cad'];
             }
-            if (
-                this.extensions['gpxpx:PowerExtension'] &&
-                this.extensions['gpxpx:PowerExtension']['gpxpx:PowerInWatts'] &&
-                !exclude.includes('power')
-            ) {
-                trkpt.extensions['gpxpx:PowerExtension']['gpxpx:PowerInWatts'] =
-                    this.extensions['gpxpx:PowerExtension']['gpxpx:PowerInWatts'];
+            const power = this.getPower();
+            if (power !== undefined && !exclude.includes('power')) {
+                trkpt.extensions['gpxpx:PowerInWatts'] = power;
             }
             if (
                 this.extensions['gpxtpx:TrackPointExtension'] &&
