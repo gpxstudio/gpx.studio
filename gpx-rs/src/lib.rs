@@ -1,3 +1,4 @@
+mod actions;
 mod controller;
+mod gpx;
 mod stack;
-mod types;

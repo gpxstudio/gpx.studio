@@ -1,6 +1,8 @@
 use std::{collections::HashMap, rc::Rc};
 
-use crate::types::{GPXFile, GPXFileId};
+use crate::gpx::GPXFile;
+
+pub type GPXFileId = usize;
 
 #[derive(Default)]
 pub struct Stack {
@@ -29,13 +31,13 @@ impl Stack {
         }
     }
 
-    pub fn update(&mut self, files: &[Rc<GPXFile>]) {
+    pub fn update(&mut self, files: &[Rc<GPXFile>], ids: &[GPXFileId]) {
         let mut next = match self.current() {
             Some(current) => current.clone(),
             None => StackEntry::default(),
         };
-        for file in files {
-            next.insert(file.id, file.clone());
+        for (file, id) in files.iter().zip(ids) {
+            next.insert(*id, file.clone());
         }
         self.push(next);
     }
