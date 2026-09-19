@@ -4,7 +4,7 @@
     import FileListNode from './FileListNode.svelte';
     import { onMount, setContext } from 'svelte';
     import { ListFileItem, ListLevel, ListRootItem } from './file-list';
-    import { ClipboardPaste, FileStack, Plus } from '@lucide/svelte';
+    import { ClipboardPaste, FileStack, Plus, SquareDashed } from '@lucide/svelte';
     import Shortcut from '$lib/components/Shortcut.svelte';
     import { i18n } from '$lib/i18n.svelte';
     import { fileStateCollection } from '$lib/logic/file-state';
@@ -72,6 +72,16 @@
                         <FileStack size="16" />
                         {i18n._('menu.select_all')}
                         <Shortcut key="A" ctrl={true} />
+                    </ContextMenu.Item>
+                    <!-- onSelect, not onclick: clearing the selection disables this item, and
+                         bits-ui checks that after onclick, so the menu would stay open -->
+                    <ContextMenu.Item
+                        onSelect={() => selection.set([])}
+                        disabled={$selection.size === 0}
+                    >
+                        <SquareDashed size="16" />
+                        {i18n._('menu.deselect_all')}
+                        <Shortcut key="Esc" />
                     </ContextMenu.Item>
                     <ContextMenu.Separator />
                     <ContextMenu.Item
