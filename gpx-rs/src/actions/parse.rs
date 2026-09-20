@@ -4,6 +4,7 @@ use crate::gpx::{
     Author, GPXFile, Link, LngLat, Track, TrackPoint, TrackPointChunk, TrackSegment, Waypoint,
     WaypointChunk,
 };
+use chrono::DateTime;
 use quick_xml::Error;
 use quick_xml::events::Event;
 use quick_xml::events::attributes::Attributes;
@@ -22,10 +23,19 @@ enum GPXElement {
     SEGMENT(TrackSegment),
     TRACKPOINT(TrackPoint),
     WAYPOINT(Waypoint),
+    ELEVATION,
+    TIME,
+    TEMPERATURE,
+    HEARTRATE,
+    CADENCE,
+    POWER,
     SYMBOL,
     TYPE,
-    ELEVATION,
+    COLOR,
+    OPACITY,
+    WIDTH,
 }
+
 fn parse_coordinates(attributes: Attributes<'_>) -> LngLat {
     let mut coordinates = LngLat::default();
     for attr in attributes {
@@ -83,8 +93,17 @@ pub fn parse(data: &[u8]) -> Result<GPXFile, Error> {
                     stack.push(GPXElement::WAYPOINT(wpt));
                 }
                 "ele" => stack.push(GPXElement::ELEVATION),
+                "time" => stack.push(GPXElement::TIME),
+                e if e.ends_with("atemp") => stack.push(GPXElement::TEMPERATURE),
+                e if e.ends_with("hr") => stack.push(GPXElement::HEARTRATE),
+                e if e.ends_with("cad") => stack.push(GPXElement::CADENCE),
+                "power" => stack.push(GPXElement::POWER),
+                e if e.ends_with("PowerInWatts") => stack.push(GPXElement::POWER),
                 "sym" => stack.push(GPXElement::SYMBOL),
                 "type" => stack.push(GPXElement::TYPE),
+                e if e.ends_with("color") => stack.push(GPXElement::COLOR),
+                e if e.ends_with("opacity") => stack.push(GPXElement::OPACITY),
+                e if e.ends_with("width") => stack.push(GPXElement::WIDTH),
                 _ => println!("{:?}", e),
             },
             Ok(Event::End(e)) => match e.name().as_ref() {
@@ -229,6 +248,47 @@ pub fn parse(data: &[u8]) -> Result<GPXFile, Error> {
                         _ => (),
                     }
                 }
+                Some(GPXElement::TIME) => {
+                    stack.pop();
+                    if let Some(GPXElement::TRACKPOINT(trkpt)) = stack.last_mut() {
+                        if let Ok(time) = DateTime::parse_from_rfc3339(e.as_ref()) {
+                            trkpt.time = Some(time.timestamp_millis());
+                        }
+                    }
+                }
+                Some(GPXElement::TEMPERATURE) => {
+                    stack.pop();
+                    if let Some(GPXElement::TRACKPOINT(trkpt)) = stack.last_mut() {
+                        trkpt.atemp = e.parse().ok();
+                    }
+                }
+                Some(GPXElement::HEARTRATE) => {
+                    stack.pop();
+                    if let Some(GPXElement::TRACKPOINT(trkpt)) = stack.last_mut() {
+                        trkpt.hr = e.parse().ok();
+                    }
+                }
+                Some(GPXElement::CADENCE) => {
+                    stack.pop();
+                    if let Some(GPXElement::TRACKPOINT(trkpt)) = stack.last_mut() {
+                        trkpt.cad = e.parse().ok();
+                    }
+                }
+                Some(GPXElement::POWER) => {
+                    stack.pop();
+                    if let Some(GPXElement::TRACKPOINT(trkpt)) = stack.last_mut() {
+                        trkpt.power = e.parse().ok();
+                    }
+                }
+                Some(GPXElement::SYMBOL) => {
+                    stack.pop();
+                    match stack.last_mut() {
+                        Some(GPXElement::WAYPOINT(wpt)) => {
+                            wpt.sym = Some(e.to_string());
+                        }
+                        _ => (),
+                    }
+                }
                 Some(GPXElement::TYPE) => {
                     stack.pop();
                     match stack.last_mut() {
@@ -241,11 +301,31 @@ pub fn parse(data: &[u8]) -> Result<GPXFile, Error> {
                         _ => (),
                     }
                 }
-                Some(GPXElement::SYMBOL) => {
+                Some(GPXElement::COLOR) => {
                     stack.pop();
                     match stack.last_mut() {
-                        Some(GPXElement::WAYPOINT(wpt)) => {
-                            wpt.sym = Some(e.to_string());
+                        Some(GPXElement::TRACK(trk)) => {
+                            let mut color = "#".to_string();
+                            color.push_str(&e);
+                            trk.info.color = Some(color);
+                        }
+                        _ => (),
+                    }
+                }
+                Some(GPXElement::OPACITY) => {
+                    stack.pop();
+                    match stack.last_mut() {
+                        Some(GPXElement::TRACK(trk)) => {
+                            trk.info.opacity = e.parse().ok();
+                        }
+                        _ => (),
+                    }
+                }
+                Some(GPXElement::WIDTH) => {
+                    stack.pop();
+                    match stack.last_mut() {
+                        Some(GPXElement::TRACK(trk)) => {
+                            trk.info.width = e.parse().ok();
                         }
                         _ => (),
                     }
@@ -301,8 +381,8 @@ mod tests {
         assert!(link.text.as_ref().is_some_and(|t| t == "track link text"));
         assert!(trk.info.type_.as_ref().is_some_and(|c| c == "Cycling"));
 
-        assert_eq!(gpx.trk[0].trkseg.len(), 1);
-        let trkseg = &gpx.trk[0].trkseg[0];
+        assert_eq!(trk.trkseg.len(), 1);
+        let trkseg = &trk.trkseg[0];
         assert_eq!(trkseg.chunks.len(), 1);
         let chunk = &trkseg.chunks[0];
         assert_eq!(chunk.trkpt.len(), 80);
@@ -313,12 +393,129 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_tracks() {
+        let mut f = File::open("data/with_tracks.gpx").unwrap();
+        let mut data = String::new();
+        let _ = f.read_to_string(&mut data);
+        let gpx = parse(data.as_bytes()).unwrap();
+
+        assert_eq!(gpx.trk.len(), 2);
+        let trk = &gpx.trk[0];
+        assert!(trk.info.name.as_ref().is_some_and(|n| n == "track 1"));
+        assert!(trk.info.type_.as_ref().is_some_and(|c| c == "Cycling"));
+
+        assert_eq!(trk.trkseg.len(), 1);
+        let trkseg = &trk.trkseg[0];
+        assert_eq!(trkseg.chunks.len(), 1);
+        let chunk = &trkseg.chunks[0];
+        assert_eq!(chunk.trkpt.len(), 49);
+        let trkpt = &chunk.trkpt[0];
+        assert_eq!(trkpt.coordinates.lat, 50.790867);
+        assert_eq!(trkpt.coordinates.lng, 4.404968);
+        assert_eq!(trkpt.ele, 109.0);
+
+        let trk = &gpx.trk[1];
+        assert!(trk.info.name.as_ref().is_some_and(|n| n == "track 2"));
+        assert!(trk.info.type_.as_ref().is_some_and(|c| c == "Cycling"));
+
+        assert_eq!(trk.trkseg.len(), 1);
+        let trkseg = &trk.trkseg[0];
+        assert_eq!(trkseg.chunks.len(), 1);
+        let chunk = &trkseg.chunks[0];
+        assert_eq!(chunk.trkpt.len(), 28);
+        let trkpt = &chunk.trkpt[0];
+        assert_eq!(trkpt.coordinates.lat, 50.782212);
+        assert_eq!(trkpt.coordinates.lng, 4.406377);
+        assert_eq!(trkpt.ele, 115.5);
+    }
+
+    #[test]
+    fn test_parse_segments() {
+        let mut f = File::open("data/with_segments.gpx").unwrap();
+        let mut data = String::new();
+        let _ = f.read_to_string(&mut data);
+        let gpx = parse(data.as_bytes()).unwrap();
+
+        assert_eq!(gpx.trk.len(), 1);
+        let trk = &gpx.trk[0];
+
+        assert_eq!(trk.trkseg.len(), 2);
+        let trkseg = &trk.trkseg[0];
+        assert_eq!(trkseg.chunks.len(), 1);
+        let chunk = &trkseg.chunks[0];
+        assert_eq!(chunk.trkpt.len(), 49);
+        let trkpt = &chunk.trkpt[0];
+        assert_eq!(trkpt.coordinates.lat, 50.790867);
+        assert_eq!(trkpt.coordinates.lng, 4.404968);
+        assert_eq!(trkpt.ele, 109.0);
+
+        let trkseg = &trk.trkseg[1];
+        assert_eq!(trkseg.chunks.len(), 1);
+        let chunk = &trkseg.chunks[0];
+        assert_eq!(chunk.trkpt.len(), 28);
+        let trkpt = &chunk.trkpt[0];
+        assert_eq!(trkpt.coordinates.lat, 50.782212);
+        assert_eq!(trkpt.coordinates.lng, 4.406377);
+        assert_eq!(trkpt.ele, 115.5);
+    }
+
+    #[test]
+    fn test_parse_tracks_and_segments() {
+        let mut f = File::open("data/with_tracks_and_segments.gpx").unwrap();
+        let mut data = String::new();
+        let _ = f.read_to_string(&mut data);
+        let gpx = parse(data.as_bytes()).unwrap();
+
+        assert_eq!(gpx.trk.len(), 2);
+        let trk = &gpx.trk[0];
+
+        assert_eq!(trk.trkseg.len(), 2);
+        let trkseg = &trk.trkseg[0];
+        assert_eq!(trkseg.chunks.len(), 1);
+        let chunk = &trkseg.chunks[0];
+        assert_eq!(chunk.trkpt.len(), 16);
+        let trkpt = &chunk.trkpt[0];
+        assert_eq!(trkpt.coordinates.lat, 50.790867);
+        assert_eq!(trkpt.coordinates.lng, 4.404968);
+        assert_eq!(trkpt.ele, 109.0);
+
+        let trkseg = &trk.trkseg[1];
+        assert_eq!(trkseg.chunks.len(), 1);
+        let chunk = &trkseg.chunks[0];
+        assert_eq!(chunk.trkpt.len(), 34);
+        let trkpt = &chunk.trkpt[0];
+        assert_eq!(trkpt.coordinates.lat, 50.78727108169855);
+        assert_eq!(trkpt.coordinates.lng, 4.406133681127736);
+        assert_eq!(trkpt.ele, 115.0);
+
+        let trk = &gpx.trk[1];
+
+        assert_eq!(trk.trkseg.len(), 2);
+        let trkseg = &trk.trkseg[0];
+        assert_eq!(trkseg.chunks.len(), 1);
+        let chunk = &trkseg.chunks[0];
+        assert_eq!(chunk.trkpt.len(), 19);
+        let trkpt = &chunk.trkpt[0];
+        assert_eq!(trkpt.coordinates.lat, 50.782212);
+        assert_eq!(trkpt.coordinates.lng, 4.406377);
+        assert_eq!(trkpt.ele, 115.5);
+
+        let trkseg = &trk.trkseg[1];
+        assert_eq!(trkseg.chunks.len(), 1);
+        let chunk = &trkseg.chunks[0];
+        assert_eq!(chunk.trkpt.len(), 10);
+        let trkpt = &chunk.trkpt[0];
+        assert_eq!(trkpt.coordinates.lat, 50.77906316558724);
+        assert_eq!(trkpt.coordinates.lng, 4.412547477922485);
+        assert_eq!(trkpt.ele, 133.3);
+    }
+
+    #[test]
     fn test_parse_waypoint() {
         let mut f = File::open("data/with_waypoint.gpx").unwrap();
         let mut data = String::new();
         let _ = f.read_to_string(&mut data);
         let gpx = parse(data.as_bytes()).unwrap();
-        println!("{:?}", gpx);
 
         assert_eq!(gpx.wpt.len(), 1);
         let chunk = &gpx.wpt[0];
@@ -343,5 +540,128 @@ mod tests {
         );
         assert!(wpt.sym.as_ref().is_some_and(|s| s == "Bike Trail"));
         assert!(wpt.type_.as_ref().is_some_and(|t| t == "Bike Trail"));
+    }
+
+    #[test]
+    fn test_parse_trackpoint_time() {
+        let mut f = File::open("data/with_time.gpx").unwrap();
+        let mut data = String::new();
+        let _ = f.read_to_string(&mut data);
+        let gpx = parse(data.as_bytes()).unwrap();
+
+        assert_eq!(gpx.trk.len(), 1);
+        let trk = &gpx.trk[0];
+        assert_eq!(trk.trkseg.len(), 1);
+        let trkseg = &trk.trkseg[0];
+        assert_eq!(trkseg.chunks.len(), 1);
+        let chunk = &trkseg.chunks[0];
+        assert!(!chunk.trkpt.is_empty());
+        let trkpt = &chunk.trkpt[0];
+        assert!(trkpt.time.is_some_and(|t| t == 1704063600000));
+    }
+
+    #[test]
+    fn test_parse_trackpoint_hr() {
+        let mut f = File::open("data/with_hr.gpx").unwrap();
+        let mut data = String::new();
+        let _ = f.read_to_string(&mut data);
+        let gpx = parse(data.as_bytes()).unwrap();
+
+        assert_eq!(gpx.trk.len(), 1);
+        let trk = &gpx.trk[0];
+        assert_eq!(trk.trkseg.len(), 1);
+        let trkseg = &trk.trkseg[0];
+        assert_eq!(trkseg.chunks.len(), 1);
+        let chunk = &trkseg.chunks[0];
+        assert!(!chunk.trkpt.is_empty());
+        let trkpt = &chunk.trkpt[0];
+        assert!(trkpt.hr.is_some_and(|h| h == 150));
+    }
+
+    #[test]
+    fn test_parse_trackpoint_cad() {
+        let mut f = File::open("data/with_cad.gpx").unwrap();
+        let mut data = String::new();
+        let _ = f.read_to_string(&mut data);
+        let gpx = parse(data.as_bytes()).unwrap();
+
+        assert_eq!(gpx.trk.len(), 1);
+        let trk = &gpx.trk[0];
+        assert_eq!(trk.trkseg.len(), 1);
+        let trkseg = &trk.trkseg[0];
+        assert_eq!(trkseg.chunks.len(), 1);
+        let chunk = &trkseg.chunks[0];
+        assert!(!chunk.trkpt.is_empty());
+        let trkpt = &chunk.trkpt[0];
+        assert!(trkpt.cad.is_some_and(|c| c == 80));
+    }
+
+    #[test]
+    fn test_parse_trackpoint_power_1() {
+        let mut f = File::open("data/with_power_1.gpx").unwrap();
+        let mut data = String::new();
+        let _ = f.read_to_string(&mut data);
+        let gpx = parse(data.as_bytes()).unwrap();
+
+        assert_eq!(gpx.trk.len(), 1);
+        let trk = &gpx.trk[0];
+        assert_eq!(trk.trkseg.len(), 1);
+        let trkseg = &trk.trkseg[0];
+        assert_eq!(trkseg.chunks.len(), 1);
+        let chunk = &trkseg.chunks[0];
+        assert!(!chunk.trkpt.is_empty());
+        let trkpt = &chunk.trkpt[0];
+        assert!(trkpt.power.is_some_and(|p| p == 200));
+    }
+
+    #[test]
+    fn test_parse_trackpoint_power_2() {
+        let mut f = File::open("data/with_power_2.gpx").unwrap();
+        let mut data = String::new();
+        let _ = f.read_to_string(&mut data);
+        let gpx = parse(data.as_bytes()).unwrap();
+
+        assert_eq!(gpx.trk.len(), 1);
+        let trk = &gpx.trk[0];
+        assert_eq!(trk.trkseg.len(), 1);
+        let trkseg = &trk.trkseg[0];
+        assert_eq!(trkseg.chunks.len(), 1);
+        let chunk = &trkseg.chunks[0];
+        assert!(!chunk.trkpt.is_empty());
+        let trkpt = &chunk.trkpt[0];
+        assert!(trkpt.power.is_some_and(|p| p == 200));
+    }
+
+    #[test]
+    fn test_parse_trackpoint_atemp() {
+        let mut f = File::open("data/with_temp.gpx").unwrap();
+        let mut data = String::new();
+        let _ = f.read_to_string(&mut data);
+        let gpx = parse(data.as_bytes()).unwrap();
+
+        assert_eq!(gpx.trk.len(), 1);
+        let trk = &gpx.trk[0];
+        assert_eq!(trk.trkseg.len(), 1);
+        let trkseg = &trk.trkseg[0];
+        assert_eq!(trkseg.chunks.len(), 1);
+        let chunk = &trkseg.chunks[0];
+        assert!(!chunk.trkpt.is_empty());
+        let trkpt = &chunk.trkpt[0];
+        assert!(trkpt.atemp.is_some_and(|t| t == 21));
+    }
+
+    #[test]
+    fn test_parse_track_style() {
+        let mut f = File::open("data/with_style.gpx").unwrap();
+        let mut data = String::new();
+        let _ = f.read_to_string(&mut data);
+        let gpx = parse(data.as_bytes()).unwrap();
+
+        assert_eq!(gpx.trk.len(), 1);
+        let trk = &gpx.trk[0];
+        assert_eq!(trk.trkseg.len(), 1);
+        assert!(trk.info.color.as_ref().is_some_and(|c| c == "#2d3ee9"));
+        assert!(trk.info.opacity.is_some_and(|o| o == 0.5));
+        assert!(trk.info.width.is_some_and(|w| w == 6.0));
     }
 }
