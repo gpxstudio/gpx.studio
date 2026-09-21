@@ -7,6 +7,7 @@ pub struct GPXFile {
     pub info: GPXFileInfo,
     pub trk: Vec<Track>,
     pub wpt: Vec<Rc<WaypointChunk>>,
+    // TODO routes
 }
 
 #[derive(Debug, Default)]

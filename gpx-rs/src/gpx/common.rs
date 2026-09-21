@@ -4,7 +4,7 @@ pub struct Link {
     pub text: Option<String>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct LngLat {
     pub lng: f64,
     pub lat: f64,
