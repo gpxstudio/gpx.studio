@@ -30,6 +30,7 @@ import { MAX_ANCHOR_ZOOM, MIN_ANCHOR_ZOOM } from './simplify';
 
 const { streetViewSource } = settings;
 export const canChangeStart = writable(false);
+export const canRouteBackToStart = writable(false);
 
 type AnchorProperties = {
     trackIndex: number;
@@ -522,6 +523,25 @@ export class RoutingControls {
         });
     }
 
+    getRouteBackToStart(anchor: Anchor) {
+        return () => this.routeBackToStart(anchor);
+    }
+
+    routeBackToStart(anchor: Anchor) {
+        // Connect the last point of the segment with its first point
+        this.popup.remove();
+
+        const segment = get(this.file)?.file.getSegment(
+            anchor.properties.trackIndex,
+            anchor.properties.segmentIndex
+        );
+        if (!segment || segment.trkpt.length === 0) {
+            return;
+        }
+
+        this.appendAnchorWithCoordinates(segment.trkpt[0].getCoordinates());
+    }
+
     async appendAnchor(e: MapMouseEvent) {
         // Add a new anchor to the end of the last segment
         if (get(streetViewEnabled) && get(streetViewSource) === 'google') {
@@ -874,6 +894,28 @@ export class RoutingControls {
             return true;
         });
 
+        canRouteBackToStart.update(() => {
+            if (anchor.properties.pointIndex !== 0) {
+                return false;
+            }
+            const segment = get(this.file)?.file.getSegment(
+                anchor.properties.trackIndex,
+                anchor.properties.segmentIndex
+            );
+            if (
+                !segment ||
+                segment.trkpt.length < 2 ||
+                distance(
+                    segment.trkpt[0].getCoordinates(),
+                    segment.trkpt[segment.trkpt.length - 1].getCoordinates()
+                ) <= 1
+            ) {
+                // Nothing to connect, or the segment already ends at its start
+                return false;
+            }
+            return true;
+        });
+
         this.popup.setLngLat(e.lngLat);
         this.popup.addTo(e.target);
 
@@ -881,9 +923,12 @@ export class RoutingControls {
         this.popupElement.addEventListener('delete', deleteThisAnchor); // Register the delete event for this anchor
         let startLoopAtThisAnchor = this.getStartLoopAtAnchor(anchor);
         this.popupElement.addEventListener('change-start', startLoopAtThisAnchor); // Register the start loop event for this anchor
+        let routeBackFromThisAnchor = this.getRouteBackToStart(anchor);
+        this.popupElement.addEventListener('route-back-to-start', routeBackFromThisAnchor); // Register the route back to start event for this anchor
         this.popup.once('close', () => {
             this.popupElement.removeEventListener('delete', deleteThisAnchor);
             this.popupElement.removeEventListener('change-start', startLoopAtThisAnchor);
+            this.popupElement.removeEventListener('route-back-to-start', routeBackFromThisAnchor);
         });
     }
 
