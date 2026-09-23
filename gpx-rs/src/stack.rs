@@ -1,8 +1,8 @@
 use std::{collections::HashMap, rc::Rc};
 
-use crate::gpx::GPXFile;
+use uuid::Uuid;
 
-pub type GPXFileId = usize;
+use crate::gpx::GPXFile;
 
 #[derive(Default)]
 pub struct Stack {
@@ -18,39 +18,36 @@ impl Stack {
         }
     }
 
-    pub fn get_new_file_id(&self) -> GPXFileId {
-        if let Some(current) = self.current() {
-            for id in 0..current.len() {
-                if !current.contains_key(&id) {
-                    return id;
-                }
-            }
-            current.len() as GPXFileId
-        } else {
-            0
-        }
-    }
-
-    pub fn update(&mut self, files: &[Rc<GPXFile>], ids: &[GPXFileId]) {
-        let mut next = match self.current() {
-            Some(current) => current.clone(),
-            None => StackEntry::default(),
-        };
-        for (file, id) in files.iter().zip(ids) {
-            next.insert(*id, file.clone());
-        }
-        self.push(next);
-    }
-
-    pub fn delete(&mut self, files: &[GPXFileId]) {
-        if let Some(current) = self.current() {
-            let mut next = current.clone();
-            for file in files {
-                next.remove(file);
-            }
+    pub fn create_and_push_next<F>(&mut self, f: F)
+    where
+        F: FnOnce(&mut StackEntry) -> bool,
+    {
+        let mut next = self.current().map_or_default(|c| c.clone());
+        if f(&mut next) {
             self.push(next);
         }
     }
+
+    // pub fn update(&mut self, files: &[Rc<GPXFile>], ids: &[GPXFileId]) {
+    //     let mut next = match self.current() {
+    //         Some(current) => current.clone(),
+    //         None => StackEntry::default(),
+    //     };
+    //     for (file, id) in files.iter().zip(ids) {
+    //         next.insert(*id, file.clone());
+    //     }
+    //     self.push(next);
+    // }
+
+    // pub fn delete(&mut self, files: &[GPXFileId]) {
+    //     if let Some(current) = self.current() {
+    //         let mut next = current.clone();
+    //         for file in files {
+    //             next.remove(file);
+    //         }
+    //         self.push(next);
+    //     }
+    // }
 
     pub fn can_undo(&self) -> bool {
         self.index.is_some()
@@ -100,4 +97,4 @@ impl Stack {
     }
 }
 
-pub type StackEntry = HashMap<GPXFileId, Rc<GPXFile>>;
+pub type StackEntry = HashMap<Uuid, Rc<GPXFile>>;

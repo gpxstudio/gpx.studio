@@ -1,7 +1,7 @@
 use crate::{
     algorithms::ramer_douglas_peucker,
     for_each_window,
-    gpx::{LngLat, LngLatBounds, TrackPoint, TrackPointChunk},
+    gpx::{LngLat, LngLatBounds, TrackSegment, Trackpoint},
     utils::{distance, slope, speed},
 };
 
@@ -33,26 +33,25 @@ impl GPXStatistics {
             .map(|(d, t)| speed(d, t))
     }
 
-    pub fn compute(chunk: &TrackPointChunk) -> Self {
+    pub fn compute(trkseg: &TrackSegment) -> Self {
         let mut stats = Self::default();
-        if chunk.trkpt.is_empty() {
+        if trkseg.len() == 0 {
             return stats;
         }
 
-        let mut prev = &chunk.trkpt[0];
-        for i in 0..chunk.trkpt.len() {
-            let cur = &chunk.trkpt[i];
+        let mut prev = &trkseg[0];
+        for cur in trkseg.iter() {
             stats.accumulate(prev, cur);
             prev = cur;
         }
 
-        stats.compute_smoothed_speed(chunk);
-        stats.compute_smoothed_elevation_gain(chunk);
+        stats.compute_smoothed_speed(trkseg);
+        stats.compute_smoothed_elevation_gain(trkseg);
 
         stats
     }
 
-    fn accumulate(&mut self, prev: &TrackPoint, cur: &TrackPoint) {
+    fn accumulate(&mut self, prev: &Trackpoint, cur: &Trackpoint) {
         self.accumulate_distance_and_time(prev, cur);
         self.update_time_bounds(cur.time);
         self.update_bounds(&cur.coordinates);
@@ -60,9 +59,9 @@ impl GPXStatistics {
             .push(TrackpointStatistics::from_partial_stats(&self));
     }
 
-    fn accumulate_distance_and_time(&mut self, prev: &TrackPoint, cur: &TrackPoint) {
+    fn accumulate_distance_and_time(&mut self, prev: &Trackpoint, cur: &Trackpoint) {
         let dist = distance(prev.coordinates, cur.coordinates);
-        let time = prev.time.zip(cur.time).map(|(t1, t2)| t2 - t1);
+        let time = cur.time_diff(prev);
 
         self.total_distance += dist;
 
@@ -91,42 +90,37 @@ impl GPXStatistics {
         self.bounds.ne.lat = self.bounds.ne.lat.min(coordinates.lat);
     }
 
-    fn compute_smoothed_speed(&mut self, chunk: &TrackPointChunk) {
+    fn compute_smoothed_speed(&mut self, trkseg: &TrackSegment) {
         for_each_window!(
-            0,
-            chunk.trkpt.len(),
+            trkseg,
+            trkseg.first_index(),
+            trkseg.last_index(),
             Some(10000),
-            |i, j| {
-                chunk.trkpt[i]
-                    .time
-                    .zip(chunk.trkpt[j].time)
-                    .map(|(t1, t2)| t2 - t1)
-            },
+            |i, j| trkseg[i].time_diff(&trkseg[j]),
             |i, left, right| {
-                self.local[i].speed =
-                    chunk.trkpt[left]
-                        .time
-                        .zip(chunk.trkpt[right].time)
-                        .map(|(t1, t2)| {
-                            speed(
-                                self.local[right].total_distance - self.local[left].total_distance,
-                                t2 - t1,
-                            )
-                        });
+                let i = trkseg.to_flat_index(i);
+                let left = trkseg.to_flat_index(left);
+                let right = trkseg.to_flat_index(right);
+                self.local[i].speed = trkseg[right].time_diff(&trkseg[left]).map(|t| {
+                    speed(
+                        self.local[right].total_distance - self.local[left].total_distance,
+                        t,
+                    )
+                });
             },
         );
     }
 
-    fn compute_smoothed_elevation_gain(&mut self, chunk: &TrackPointChunk) {
+    fn compute_smoothed_elevation_gain(&mut self, trkseg: &TrackSegment) {
         let simplified = ramer_douglas_peucker(
-            chunk.trkpt.len(),
+            trkseg,
             &|i, j, k| {
-                let x1 = self.local[i].total_distance * 1000.0;
-                let x2 = self.local[j].total_distance * 1000.0;
-                let x3 = self.local[k].total_distance * 1000.0;
-                let y1 = chunk.trkpt[i].ele;
-                let y2 = chunk.trkpt[j].ele;
-                let y3 = chunk.trkpt[k].ele;
+                let x1 = self.local[trkseg.to_flat_index(i)].total_distance * 1000.0;
+                let x2 = self.local[trkseg.to_flat_index(j)].total_distance * 1000.0;
+                let x3 = self.local[trkseg.to_flat_index(k)].total_distance * 1000.0;
+                let y1 = trkseg[i].ele;
+                let y2 = trkseg[j].ele;
+                let y3 = trkseg[k].ele;
 
                 let dist = ((y2 - y1).powi(2) + (x2 - x1).powi(2)).sqrt();
                 if dist == 0.0 {
@@ -145,28 +139,40 @@ impl GPXStatistics {
 
             let mut cumul_ele = 0.0;
             let mut current_left = start;
-            let mut current_right = start;
-            let mut prev_smoothed_ele = chunk.trkpt[start].ele;
+            let mut current_right = Some(start);
+            let mut prev_smoothed_ele = trkseg[start].ele;
 
             for_each_window!(
-                start,
-                end,
+                trkseg,
+                Some(start),
+                Some(end),
                 0.1,
-                |i, j| self.local[j].total_distance - self.local[i].total_distance,
+                |i, j| {
+                    let i = trkseg.to_flat_index(i);
+                    let j = trkseg.to_flat_index(j);
+                    self.local[j].total_distance - self.local[i].total_distance
+                },
                 |i, left, right| {
-                    for i in current_left..left {
-                        cumul_ele -= chunk.trkpt[i].ele;
+                    while current_left != left {
+                        cumul_ele -= trkseg[current_left].ele;
+                        current_left = trkseg.next_index(Some(current_left)).unwrap();
                     }
-                    for i in current_right..=right {
-                        cumul_ele += chunk.trkpt[i].ele;
+                    while let Some(current) = current_right {
+                        if current > right {
+                            break;
+                        }
+                        cumul_ele += trkseg[current].ele;
+                        current_right = trkseg.next_index(current_right);
                     }
-                    current_left = left;
-                    current_right = right + 1;
+
+                    let flat_i = trkseg.to_flat_index(i);
+                    let flat_left = trkseg.to_flat_index(left);
+                    let flat_right = trkseg.to_flat_index(right);
 
                     let smoothed_ele: f64 = if i == start || i == end {
-                        chunk.trkpt[i].ele
+                        trkseg[i].ele
                     } else {
-                        cumul_ele / (right - left + 1) as f64
+                        cumul_ele / (flat_right - flat_left + 1) as f64
                     };
 
                     let delta = smoothed_ele - prev_smoothed_ele;
@@ -177,18 +183,22 @@ impl GPXStatistics {
                     }
 
                     if i < end || last {
-                        self.local[i].elevation_gain = self.elevation_gain;
-                        self.local[i].elevation_loss = self.elevation_loss;
+                        self.local[flat_i].elevation_gain = self.elevation_gain;
+                        self.local[flat_i].elevation_loss = self.elevation_loss;
                     }
 
                     prev_smoothed_ele = smoothed_ele;
                 },
             );
 
-            let segment_dist = self.local[end].total_distance - self.local[start].total_distance;
-            let segment_ele = chunk.trkpt[end].ele - chunk.trkpt[start].ele;
+            let flat_start = trkseg.to_flat_index(start);
+            let flat_end = trkseg.to_flat_index(end);
+
+            let segment_dist =
+                self.local[flat_end].total_distance - self.local[flat_start].total_distance;
+            let segment_ele = trkseg[end].ele - trkseg[start].ele;
             let segment_slope = slope(segment_ele, segment_dist);
-            for k in start..(end + last as usize) {
+            for k in flat_start..(flat_end + last as usize) {
                 self.local[k].slope_segment = SlopeSegment {
                     slope: segment_slope,
                     distance: segment_dist,
@@ -197,14 +207,23 @@ impl GPXStatistics {
         }
 
         for_each_window!(
-            0,
-            chunk.trkpt.len(),
+            trkseg,
+            trkseg.first_index(),
+            trkseg.last_index(),
             0.05,
-            |i, j| self.local[j].total_distance - self.local[i].total_distance,
+            |i, j| {
+                let i = trkseg.to_flat_index(i);
+                let j = trkseg.to_flat_index(j);
+                self.local[j].total_distance - self.local[i].total_distance
+            },
             |i, left, right| {
-                let dist = self.local[right].total_distance - self.local[left].total_distance;
-                let ele = chunk.trkpt[right].ele - chunk.trkpt[left].ele;
-                self.local[i].slope = slope(ele, dist);
+                let flat_i = trkseg.to_flat_index(i);
+                let flat_left = trkseg.to_flat_index(left);
+                let flat_right = trkseg.to_flat_index(right);
+                let dist =
+                    self.local[flat_right].total_distance - self.local[flat_left].total_distance;
+                let ele = trkseg[right].ele - trkseg[left].ele;
+                self.local[flat_i].slope = slope(ele, dist);
             },
         );
     }
@@ -254,15 +273,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_simple() {
+    fn test_compute_smoothed_speed() {
         let mut f = File::open("data/with_time.gpx").unwrap();
         let mut data = String::new();
         let _ = f.read_to_string(&mut data);
         let gpx = parse(data.as_bytes()).unwrap();
 
-        println!(
-            "{:?}",
-            GPXStatistics::compute(&gpx.trk[0].trkseg[0].chunks[0])
-        );
+        let trkseg = &gpx.trk[0].trkseg[0];
+        let stats = GPXStatistics::compute(trkseg);
+        assert_eq!(stats.local.len(), trkseg.len());
+        for trkpt_stats in stats.local.iter() {
+            assert!(trkpt_stats.speed.is_some());
+            let speed = trkpt_stats.speed.unwrap();
+            assert_ne!(speed, f64::NAN);
+            assert!((speed - 20.0).abs() < 0.1);
+        }
     }
 }

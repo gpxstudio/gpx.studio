@@ -1,42 +1,65 @@
-use crate::gpx::TrackPoint;
+use crate::gpx::{TrackSegment, TrackSegmentIndex};
 
-pub fn ramer_douglas_peucker<F>(n: usize, distance: &F, epsilon: f64) -> Vec<usize>
+pub fn ramer_douglas_peucker<F, T>(
+    trkseg: &TrackSegment,
+    distance: &F,
+    epsilon: T,
+) -> Vec<TrackSegmentIndex>
 where
-    F: Fn(usize, usize, usize) -> f64,
+    F: Fn(TrackSegmentIndex, TrackSegmentIndex, TrackSegmentIndex) -> T,
+    T: Default + PartialOrd + Copy,
 {
-    if n <= 2 {
-        (0..n).collect()
-    } else {
-        let mut indices = vec![0];
-        ramer_douglas_peucker_helper(0, n - 1, distance, epsilon, &mut indices);
-        indices.push(n - 1);
-        indices
+    match trkseg.len() {
+        0 => vec![],
+        1 => vec![trkseg.first_index().unwrap()],
+        2 => vec![trkseg.last_index().unwrap()],
+        _ => {
+            let first = trkseg.first_index().unwrap();
+            let last = trkseg.last_index().unwrap();
+
+            let mut indices = vec![first];
+            ramer_douglas_peucker_helper(trkseg, first, last, distance, epsilon, &mut indices);
+            indices.push(last);
+            indices
+        }
     }
 }
 
-fn ramer_douglas_peucker_helper<F>(
-    start: usize,
-    end: usize,
+fn ramer_douglas_peucker_helper<F, T>(
+    trkseg: &TrackSegment,
+    start: TrackSegmentIndex,
+    end: TrackSegmentIndex,
     distance: &F,
-    epsilon: f64,
-    indices: &mut Vec<usize>,
+    epsilon: T,
+    indices: &mut Vec<TrackSegmentIndex>,
 ) where
-    F: Fn(usize, usize, usize) -> f64,
+    F: Fn(TrackSegmentIndex, TrackSegmentIndex, TrackSegmentIndex) -> T,
+    T: Default + PartialOrd + Copy,
 {
-    let mut idx = 0;
-    let mut max_dist = 0.0;
+    let mut max_idx = None;
+    let mut max_dist = T::default();
 
-    for i in (start + 1)..end {
-        let dist = distance(start, end, i);
+    let mut cur = trkseg.next_index(Some(start));
+
+    while let Some(idx) = cur {
+        if idx == end {
+            break;
+        }
+
+        let dist = distance(start, end, idx);
         if dist > max_dist {
-            idx = i;
+            max_idx = Some(idx);
             max_dist = dist;
         }
+
+        cur = trkseg.next_index(cur);
     }
 
-    if max_dist > epsilon && idx != 0 {
-        ramer_douglas_peucker_helper(start, idx, distance, epsilon, indices);
-        indices.push(idx);
-        ramer_douglas_peucker_helper(idx, end, distance, epsilon, indices);
+    if let Some(idx) = max_idx {
+        if max_dist > epsilon {
+            ramer_douglas_peucker_helper(trkseg, start, idx, distance, epsilon, indices);
+            indices.push(idx);
+            ramer_douglas_peucker_helper(trkseg, idx, end, distance, epsilon, indices);
+        }
     }
 }

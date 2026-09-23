@@ -1,13 +1,27 @@
 use std::rc::Rc;
 
+use uuid::Uuid;
+
 use crate::gpx::{Link, Track, WaypointChunk};
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct GPXFile {
+    pub id: Uuid,
     pub info: GPXFileInfo,
     pub trk: Vec<Track>,
     pub wpt: Vec<Rc<WaypointChunk>>,
     // TODO routes
+}
+
+impl Default for GPXFile {
+    fn default() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            info: Default::default(),
+            trk: Default::default(),
+            wpt: Default::default(),
+        }
+    }
 }
 
 #[derive(Debug, Default)]

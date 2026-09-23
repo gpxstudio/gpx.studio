@@ -37,14 +37,6 @@
     );
 
     onMount(async () => {
-        if (browser) {
-            const wasm = await import('gpx-rs');
-            const controller = new wasm.Controller();
-
-            console.log(controller);
-
-            controller.create_file();
-        }
         settings.connectToDatabase(db);
         fileStateCollection.connectToDatabase(db).then(() => {
             let files: string[] = JSON.parse(page.url.searchParams.get('files') || '[]');

@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::gpx::{
-    Author, GPXFile, Link, LngLat, Track, TrackPoint, TrackPointChunk, TrackSegment, Waypoint,
+    Author, GPXFile, Link, LngLat, Track, TrackSegment, Trackpoint, TrackpointChunk, Waypoint,
     WaypointChunk,
 };
 use chrono::DateTime;
@@ -21,7 +21,7 @@ enum GPXElement {
     TEXT,
     TRACK(Track),
     SEGMENT(TrackSegment),
-    TRACKPOINT(TrackPoint),
+    TRACKPOINT(Trackpoint),
     WAYPOINT(Waypoint),
     ELEVATION,
     TIME,
@@ -55,7 +55,7 @@ pub fn parse(data: &[u8]) -> Result<GPXFile, Error> {
     let mut buf = vec![];
     let mut gpx = GPXFile::default();
     let mut stack: Vec<GPXElement> = vec![];
-    let mut trkpt_chunk = TrackPointChunk::default();
+    let mut trkpt_chunk = TrackpointChunk::default();
     let mut wpt_chunk = WaypointChunk::default();
     loop {
         match reader.read_event_into(&mut buf) {
@@ -83,7 +83,7 @@ pub fn parse(data: &[u8]) -> Result<GPXFile, Error> {
                     stack.push(GPXElement::SEGMENT(TrackSegment::default()));
                 }
                 "trkpt" => {
-                    let mut trkpt = TrackPoint::default();
+                    let mut trkpt = Trackpoint::default();
                     trkpt.coordinates = parse_coordinates(e.attributes());
                     stack.push(GPXElement::TRACKPOINT(trkpt));
                 }
@@ -104,7 +104,7 @@ pub fn parse(data: &[u8]) -> Result<GPXFile, Error> {
                 e if e.ends_with("color") => stack.push(GPXElement::COLOR),
                 e if e.ends_with("opacity") => stack.push(GPXElement::OPACITY),
                 e if e.ends_with("width") => stack.push(GPXElement::WIDTH),
-                _ => println!("{:?}", e),
+                _ => (),
             },
             Ok(Event::End(e)) => match e.name().as_ref() {
                 "gpx" => {
@@ -146,8 +146,8 @@ pub fn parse(data: &[u8]) -> Result<GPXFile, Error> {
                     if let Some(GPXElement::SEGMENT(mut trkseg)) = stack.pop() {
                         if let Some(GPXElement::TRACK(trk)) = stack.last_mut() {
                             if !trkpt_chunk.trkpt.is_empty() {
-                                trkseg.chunks.push(Rc::new(trkpt_chunk));
-                                trkpt_chunk = TrackPointChunk::default();
+                                trkseg.push(trkpt_chunk);
+                                trkpt_chunk = TrackpointChunk::default();
                             }
                             trk.trkseg.push(trkseg);
                         }
@@ -158,8 +158,8 @@ pub fn parse(data: &[u8]) -> Result<GPXFile, Error> {
                         if let Some(GPXElement::SEGMENT(trkseg)) = stack.last_mut() {
                             trkpt_chunk.trkpt.push(trkpt);
                             if trkpt_chunk.is_full() {
-                                trkseg.chunks.push(Rc::new(trkpt_chunk));
-                                trkpt_chunk = TrackPointChunk::default();
+                                trkseg.push(trkpt_chunk);
+                                trkpt_chunk = TrackpointChunk::default();
                             }
                         }
                     }
@@ -383,10 +383,8 @@ mod tests {
 
         assert_eq!(trk.trkseg.len(), 1);
         let trkseg = &trk.trkseg[0];
-        assert_eq!(trkseg.chunks.len(), 1);
-        let chunk = &trkseg.chunks[0];
-        assert_eq!(chunk.trkpt.len(), 80);
-        let trkpt = &chunk.trkpt[0];
+        assert_eq!(trkseg.len(), 80);
+        let trkpt = &trkseg[0];
         assert_eq!(trkpt.coordinates.lat, 50.790867);
         assert_eq!(trkpt.coordinates.lng, 4.404968);
         assert_eq!(trkpt.ele, 109.0);
@@ -406,10 +404,8 @@ mod tests {
 
         assert_eq!(trk.trkseg.len(), 1);
         let trkseg = &trk.trkseg[0];
-        assert_eq!(trkseg.chunks.len(), 1);
-        let chunk = &trkseg.chunks[0];
-        assert_eq!(chunk.trkpt.len(), 49);
-        let trkpt = &chunk.trkpt[0];
+        assert_eq!(trkseg.len(), 49);
+        let trkpt = &trkseg[0];
         assert_eq!(trkpt.coordinates.lat, 50.790867);
         assert_eq!(trkpt.coordinates.lng, 4.404968);
         assert_eq!(trkpt.ele, 109.0);
@@ -420,10 +416,8 @@ mod tests {
 
         assert_eq!(trk.trkseg.len(), 1);
         let trkseg = &trk.trkseg[0];
-        assert_eq!(trkseg.chunks.len(), 1);
-        let chunk = &trkseg.chunks[0];
-        assert_eq!(chunk.trkpt.len(), 28);
-        let trkpt = &chunk.trkpt[0];
+        assert_eq!(trkseg.len(), 28);
+        let trkpt = &trkseg[0];
         assert_eq!(trkpt.coordinates.lat, 50.782212);
         assert_eq!(trkpt.coordinates.lng, 4.406377);
         assert_eq!(trkpt.ele, 115.5);
@@ -441,19 +435,15 @@ mod tests {
 
         assert_eq!(trk.trkseg.len(), 2);
         let trkseg = &trk.trkseg[0];
-        assert_eq!(trkseg.chunks.len(), 1);
-        let chunk = &trkseg.chunks[0];
-        assert_eq!(chunk.trkpt.len(), 49);
-        let trkpt = &chunk.trkpt[0];
+        assert_eq!(trkseg.len(), 49);
+        let trkpt = &trkseg[0];
         assert_eq!(trkpt.coordinates.lat, 50.790867);
         assert_eq!(trkpt.coordinates.lng, 4.404968);
         assert_eq!(trkpt.ele, 109.0);
 
         let trkseg = &trk.trkseg[1];
-        assert_eq!(trkseg.chunks.len(), 1);
-        let chunk = &trkseg.chunks[0];
-        assert_eq!(chunk.trkpt.len(), 28);
-        let trkpt = &chunk.trkpt[0];
+        assert_eq!(trkseg.len(), 28);
+        let trkpt = &trkseg[0];
         assert_eq!(trkpt.coordinates.lat, 50.782212);
         assert_eq!(trkpt.coordinates.lng, 4.406377);
         assert_eq!(trkpt.ele, 115.5);
@@ -471,19 +461,15 @@ mod tests {
 
         assert_eq!(trk.trkseg.len(), 2);
         let trkseg = &trk.trkseg[0];
-        assert_eq!(trkseg.chunks.len(), 1);
-        let chunk = &trkseg.chunks[0];
-        assert_eq!(chunk.trkpt.len(), 16);
-        let trkpt = &chunk.trkpt[0];
+        assert_eq!(trkseg.len(), 16);
+        let trkpt = &trkseg[0];
         assert_eq!(trkpt.coordinates.lat, 50.790867);
         assert_eq!(trkpt.coordinates.lng, 4.404968);
         assert_eq!(trkpt.ele, 109.0);
 
         let trkseg = &trk.trkseg[1];
-        assert_eq!(trkseg.chunks.len(), 1);
-        let chunk = &trkseg.chunks[0];
-        assert_eq!(chunk.trkpt.len(), 34);
-        let trkpt = &chunk.trkpt[0];
+        assert_eq!(trkseg.len(), 34);
+        let trkpt = &trkseg[0];
         assert_eq!(trkpt.coordinates.lat, 50.78727108169855);
         assert_eq!(trkpt.coordinates.lng, 4.406133681127736);
         assert_eq!(trkpt.ele, 115.0);
@@ -492,19 +478,15 @@ mod tests {
 
         assert_eq!(trk.trkseg.len(), 2);
         let trkseg = &trk.trkseg[0];
-        assert_eq!(trkseg.chunks.len(), 1);
-        let chunk = &trkseg.chunks[0];
-        assert_eq!(chunk.trkpt.len(), 19);
-        let trkpt = &chunk.trkpt[0];
+        assert_eq!(trkseg.len(), 19);
+        let trkpt = &trkseg[0];
         assert_eq!(trkpt.coordinates.lat, 50.782212);
         assert_eq!(trkpt.coordinates.lng, 4.406377);
         assert_eq!(trkpt.ele, 115.5);
 
         let trkseg = &trk.trkseg[1];
-        assert_eq!(trkseg.chunks.len(), 1);
-        let chunk = &trkseg.chunks[0];
-        assert_eq!(chunk.trkpt.len(), 10);
-        let trkpt = &chunk.trkpt[0];
+        assert_eq!(trkseg.len(), 10);
+        let trkpt = &trkseg[0];
         assert_eq!(trkpt.coordinates.lat, 50.77906316558724);
         assert_eq!(trkpt.coordinates.lng, 4.412547477922485);
         assert_eq!(trkpt.ele, 133.3);
@@ -553,10 +535,8 @@ mod tests {
         let trk = &gpx.trk[0];
         assert_eq!(trk.trkseg.len(), 1);
         let trkseg = &trk.trkseg[0];
-        assert_eq!(trkseg.chunks.len(), 1);
-        let chunk = &trkseg.chunks[0];
-        assert!(!chunk.trkpt.is_empty());
-        let trkpt = &chunk.trkpt[0];
+        assert!(trkseg.len() > 0);
+        let trkpt = &trkseg[0];
         assert!(trkpt.time.is_some_and(|t| t == 1704063600000));
     }
 
@@ -571,10 +551,8 @@ mod tests {
         let trk = &gpx.trk[0];
         assert_eq!(trk.trkseg.len(), 1);
         let trkseg = &trk.trkseg[0];
-        assert_eq!(trkseg.chunks.len(), 1);
-        let chunk = &trkseg.chunks[0];
-        assert!(!chunk.trkpt.is_empty());
-        let trkpt = &chunk.trkpt[0];
+        assert!(trkseg.len() > 0);
+        let trkpt = &trkseg[0];
         assert!(trkpt.hr.is_some_and(|h| h == 150));
     }
 
@@ -589,10 +567,8 @@ mod tests {
         let trk = &gpx.trk[0];
         assert_eq!(trk.trkseg.len(), 1);
         let trkseg = &trk.trkseg[0];
-        assert_eq!(trkseg.chunks.len(), 1);
-        let chunk = &trkseg.chunks[0];
-        assert!(!chunk.trkpt.is_empty());
-        let trkpt = &chunk.trkpt[0];
+        assert!(trkseg.len() > 0);
+        let trkpt = &trkseg[0];
         assert!(trkpt.cad.is_some_and(|c| c == 80));
     }
 
@@ -607,10 +583,8 @@ mod tests {
         let trk = &gpx.trk[0];
         assert_eq!(trk.trkseg.len(), 1);
         let trkseg = &trk.trkseg[0];
-        assert_eq!(trkseg.chunks.len(), 1);
-        let chunk = &trkseg.chunks[0];
-        assert!(!chunk.trkpt.is_empty());
-        let trkpt = &chunk.trkpt[0];
+        assert!(trkseg.len() > 0);
+        let trkpt = &trkseg[0];
         assert!(trkpt.power.is_some_and(|p| p == 200));
     }
 
@@ -625,10 +599,8 @@ mod tests {
         let trk = &gpx.trk[0];
         assert_eq!(trk.trkseg.len(), 1);
         let trkseg = &trk.trkseg[0];
-        assert_eq!(trkseg.chunks.len(), 1);
-        let chunk = &trkseg.chunks[0];
-        assert!(!chunk.trkpt.is_empty());
-        let trkpt = &chunk.trkpt[0];
+        assert!(trkseg.len() > 0);
+        let trkpt = &trkseg[0];
         assert!(trkpt.power.is_some_and(|p| p == 200));
     }
 
@@ -643,10 +615,8 @@ mod tests {
         let trk = &gpx.trk[0];
         assert_eq!(trk.trkseg.len(), 1);
         let trkseg = &trk.trkseg[0];
-        assert_eq!(trkseg.chunks.len(), 1);
-        let chunk = &trkseg.chunks[0];
-        assert!(!chunk.trkpt.is_empty());
-        let trkpt = &chunk.trkpt[0];
+        assert!(trkseg.len() > 0);
+        let trkpt = &trkseg[0];
         assert!(trkpt.atemp.is_some_and(|t| t == 21));
     }
 
