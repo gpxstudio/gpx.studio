@@ -11,29 +11,29 @@ use quick_xml::events::attributes::Attributes;
 use quick_xml::reader::Reader;
 
 enum GPXElement {
-    METADATA,
-    NAME,
-    COMMENT,
-    DESCRIPTION,
-    SOURCE,
-    AUTHOR(Author),
-    LINK(Link),
-    TEXT,
-    TRACK(Track),
-    SEGMENT(TrackSegment),
-    TRACKPOINT(Trackpoint),
-    WAYPOINT(Waypoint),
-    ELEVATION,
-    TIME,
-    TEMPERATURE,
-    HEARTRATE,
-    CADENCE,
-    POWER,
-    SYMBOL,
-    TYPE,
-    COLOR,
-    OPACITY,
-    WIDTH,
+    Metadata,
+    Name,
+    Comment,
+    Description,
+    Source,
+    Author(Author),
+    Link(Link),
+    Text,
+    Track(Track),
+    Segment(TrackSegment),
+    Trackpoint(Trackpoint),
+    Waypoint(Waypoint),
+    Elevation,
+    Time,
+    Temperature,
+    Heartrate,
+    Cadence,
+    Power,
+    Symbol,
+    Type,
+    Color,
+    Opacity,
+    Width,
 }
 
 fn parse_coordinates(attributes: Attributes<'_>) -> LngLat {
@@ -60,12 +60,12 @@ pub fn parse(data: &[u8]) -> Result<GPXFile, Error> {
     loop {
         match reader.read_event_into(&mut buf) {
             Ok(Event::Start(e)) => match e.name().as_ref() {
-                "metadata" => stack.push(GPXElement::METADATA),
-                "name" => stack.push(GPXElement::NAME),
-                "cmt" => stack.push(GPXElement::COMMENT),
-                "desc" => stack.push(GPXElement::DESCRIPTION),
-                "src" => stack.push(GPXElement::SOURCE),
-                "author" => stack.push(GPXElement::AUTHOR(Author::default())),
+                "metadata" => stack.push(GPXElement::Metadata),
+                "name" => stack.push(GPXElement::Name),
+                "cmt" => stack.push(GPXElement::Comment),
+                "desc" => stack.push(GPXElement::Description),
+                "src" => stack.push(GPXElement::Source),
+                "author" => stack.push(GPXElement::Author(Author::default())),
                 "link" => {
                     let mut link = Link::default();
                     for attr in e.attributes() {
@@ -75,35 +75,35 @@ pub fn parse(data: &[u8]) -> Result<GPXFile, Error> {
                             }
                         }
                     }
-                    stack.push(GPXElement::LINK(link));
+                    stack.push(GPXElement::Link(link));
                 }
-                "text" => stack.push(GPXElement::TEXT),
-                "trk" => stack.push(GPXElement::TRACK(Track::default())),
+                "text" => stack.push(GPXElement::Text),
+                "trk" => stack.push(GPXElement::Track(Track::default())),
                 "trkseg" => {
-                    stack.push(GPXElement::SEGMENT(TrackSegment::default()));
+                    stack.push(GPXElement::Segment(TrackSegment::default()));
                 }
                 "trkpt" => {
                     let mut trkpt = Trackpoint::default();
                     trkpt.coordinates = parse_coordinates(e.attributes());
-                    stack.push(GPXElement::TRACKPOINT(trkpt));
+                    stack.push(GPXElement::Trackpoint(trkpt));
                 }
                 "wpt" => {
                     let mut wpt = Waypoint::default();
                     wpt.coordinates = parse_coordinates(e.attributes());
-                    stack.push(GPXElement::WAYPOINT(wpt));
+                    stack.push(GPXElement::Waypoint(wpt));
                 }
-                "ele" => stack.push(GPXElement::ELEVATION),
-                "time" => stack.push(GPXElement::TIME),
-                e if e.ends_with("atemp") => stack.push(GPXElement::TEMPERATURE),
-                e if e.ends_with("hr") => stack.push(GPXElement::HEARTRATE),
-                e if e.ends_with("cad") => stack.push(GPXElement::CADENCE),
-                "power" => stack.push(GPXElement::POWER),
-                e if e.ends_with("PowerInWatts") => stack.push(GPXElement::POWER),
-                "sym" => stack.push(GPXElement::SYMBOL),
-                "type" => stack.push(GPXElement::TYPE),
-                e if e.ends_with("color") => stack.push(GPXElement::COLOR),
-                e if e.ends_with("opacity") => stack.push(GPXElement::OPACITY),
-                e if e.ends_with("width") => stack.push(GPXElement::WIDTH),
+                "ele" => stack.push(GPXElement::Elevation),
+                "time" => stack.push(GPXElement::Time),
+                e if e.ends_with("atemp") => stack.push(GPXElement::Temperature),
+                e if e.ends_with("hr") => stack.push(GPXElement::Heartrate),
+                e if e.ends_with("cad") => stack.push(GPXElement::Cadence),
+                "power" => stack.push(GPXElement::Power),
+                e if e.ends_with("PowerInWatts") => stack.push(GPXElement::Power),
+                "sym" => stack.push(GPXElement::Symbol),
+                "type" => stack.push(GPXElement::Type),
+                e if e.ends_with("color") => stack.push(GPXElement::Color),
+                e if e.ends_with("opacity") => stack.push(GPXElement::Opacity),
+                e if e.ends_with("width") => stack.push(GPXElement::Width),
                 _ => (),
             },
             Ok(Event::End(e)) => match e.name().as_ref() {
@@ -117,20 +117,20 @@ pub fn parse(data: &[u8]) -> Result<GPXFile, Error> {
                     stack.pop();
                 }
                 "author" => {
-                    if let Some(GPXElement::AUTHOR(author)) = stack.pop() {
+                    if let Some(GPXElement::Author(author)) = stack.pop() {
                         gpx.info.author = Some(author);
                     }
                 }
                 "link" => {
-                    if let Some(GPXElement::LINK(link)) = stack.pop() {
+                    if let Some(GPXElement::Link(link)) = stack.pop() {
                         match stack.last_mut() {
-                            Some(GPXElement::AUTHOR(author)) => {
+                            Some(GPXElement::Author(author)) => {
                                 author.link = Some(link);
                             }
-                            Some(GPXElement::TRACK(trk)) => {
+                            Some(GPXElement::Track(trk)) => {
                                 trk.info.link = Some(link);
                             }
-                            Some(GPXElement::WAYPOINT(wpt)) => {
+                            Some(GPXElement::Waypoint(wpt)) => {
                                 wpt.link = Some(link);
                             }
                             _ => (),
@@ -138,13 +138,13 @@ pub fn parse(data: &[u8]) -> Result<GPXFile, Error> {
                     }
                 }
                 "trk" => {
-                    if let Some(GPXElement::TRACK(trk)) = stack.pop() {
+                    if let Some(GPXElement::Track(trk)) = stack.pop() {
                         gpx.trk.push(trk);
                     }
                 }
                 "trkseg" => {
-                    if let Some(GPXElement::SEGMENT(mut trkseg)) = stack.pop() {
-                        if let Some(GPXElement::TRACK(trk)) = stack.last_mut() {
+                    if let Some(GPXElement::Segment(mut trkseg)) = stack.pop() {
+                        if let Some(GPXElement::Track(trk)) = stack.last_mut() {
                             if !trkpt_chunk.trkpt.is_empty() {
                                 trkseg.push(trkpt_chunk);
                                 trkpt_chunk = TrackpointChunk::default();
@@ -154,8 +154,8 @@ pub fn parse(data: &[u8]) -> Result<GPXFile, Error> {
                     }
                 }
                 "trkpt" => {
-                    if let Some(GPXElement::TRACKPOINT(trkpt)) = stack.pop() {
-                        if let Some(GPXElement::SEGMENT(trkseg)) = stack.last_mut() {
+                    if let Some(GPXElement::Trackpoint(trkpt)) = stack.pop() {
+                        if let Some(GPXElement::Segment(trkseg)) = stack.last_mut() {
                             trkpt_chunk.trkpt.push(trkpt);
                             if trkpt_chunk.is_full() {
                                 trkseg.push(trkpt_chunk);
@@ -165,7 +165,7 @@ pub fn parse(data: &[u8]) -> Result<GPXFile, Error> {
                     }
                 }
                 "wpt" => {
-                    if let Some(GPXElement::WAYPOINT(wpt)) = stack.pop() {
+                    if let Some(GPXElement::Waypoint(wpt)) = stack.pop() {
                         wpt_chunk.wpt.push(wpt);
                         if wpt_chunk.is_full() {
                             gpx.wpt.push(Rc::new(wpt_chunk));
@@ -176,135 +176,135 @@ pub fn parse(data: &[u8]) -> Result<GPXFile, Error> {
                 _ => (),
             },
             Ok(Event::Text(e)) => match stack.last_mut() {
-                Some(GPXElement::NAME) => {
+                Some(GPXElement::Name) => {
                     stack.pop();
                     match stack.last_mut() {
-                        Some(GPXElement::METADATA) => {
+                        Some(GPXElement::Metadata) => {
                             gpx.info.name = e.to_string();
                         }
-                        Some(GPXElement::AUTHOR(author)) => {
+                        Some(GPXElement::Author(author)) => {
                             author.name = Some(e.to_string());
                         }
-                        Some(GPXElement::TRACK(trk)) => {
+                        Some(GPXElement::Track(trk)) => {
                             trk.info.name = Some(e.to_string());
                         }
-                        Some(GPXElement::WAYPOINT(wpt)) => {
+                        Some(GPXElement::Waypoint(wpt)) => {
                             wpt.name = Some(e.to_string());
                         }
                         _ => (),
                     }
                 }
-                Some(GPXElement::COMMENT) => {
+                Some(GPXElement::Comment) => {
                     stack.pop();
                     match stack.last_mut() {
-                        Some(GPXElement::TRACK(trk)) => {
+                        Some(GPXElement::Track(trk)) => {
                             trk.info.cmt = Some(e.to_string());
                         }
-                        Some(GPXElement::WAYPOINT(wpt)) => {
+                        Some(GPXElement::Waypoint(wpt)) => {
                             wpt.cmt = Some(e.to_string());
                         }
                         _ => (),
                     }
                 }
-                Some(GPXElement::DESCRIPTION) => {
+                Some(GPXElement::Description) => {
                     stack.pop();
                     match stack.last_mut() {
-                        Some(GPXElement::METADATA) => {
+                        Some(GPXElement::Metadata) => {
                             gpx.info.desc = Some(e.to_string());
                         }
-                        Some(GPXElement::TRACK(trk)) => {
+                        Some(GPXElement::Track(trk)) => {
                             trk.info.desc = Some(e.to_string());
                         }
-                        Some(GPXElement::WAYPOINT(wpt)) => {
+                        Some(GPXElement::Waypoint(wpt)) => {
                             wpt.desc = Some(e.to_string());
                         }
                         _ => (),
                     }
                 }
-                Some(GPXElement::SOURCE) => {
+                Some(GPXElement::Source) => {
                     stack.pop();
                     match stack.last_mut() {
-                        Some(GPXElement::TRACK(trk)) => {
+                        Some(GPXElement::Track(trk)) => {
                             trk.info.src = Some(e.to_string());
                         }
                         _ => (),
                     }
                 }
-                Some(GPXElement::TEXT) => {
+                Some(GPXElement::Text) => {
                     stack.pop();
-                    if let Some(GPXElement::LINK(link)) = stack.last_mut() {
+                    if let Some(GPXElement::Link(link)) = stack.last_mut() {
                         link.text = Some(e.to_string());
                     }
                 }
-                Some(GPXElement::ELEVATION) => {
+                Some(GPXElement::Elevation) => {
                     stack.pop();
                     match stack.last_mut() {
-                        Some(GPXElement::TRACKPOINT(trkpt)) => {
+                        Some(GPXElement::Trackpoint(trkpt)) => {
                             trkpt.ele = e.parse().unwrap_or_default();
                         }
-                        Some(GPXElement::WAYPOINT(wpt)) => {
+                        Some(GPXElement::Waypoint(wpt)) => {
                             wpt.ele = e.parse().unwrap_or_default();
                         }
                         _ => (),
                     }
                 }
-                Some(GPXElement::TIME) => {
+                Some(GPXElement::Time) => {
                     stack.pop();
-                    if let Some(GPXElement::TRACKPOINT(trkpt)) = stack.last_mut() {
+                    if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
                         if let Ok(time) = DateTime::parse_from_rfc3339(e.as_ref()) {
                             trkpt.time = Some(time.timestamp_millis());
                         }
                     }
                 }
-                Some(GPXElement::TEMPERATURE) => {
+                Some(GPXElement::Temperature) => {
                     stack.pop();
-                    if let Some(GPXElement::TRACKPOINT(trkpt)) = stack.last_mut() {
+                    if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
                         trkpt.atemp = e.parse().ok();
                     }
                 }
-                Some(GPXElement::HEARTRATE) => {
+                Some(GPXElement::Heartrate) => {
                     stack.pop();
-                    if let Some(GPXElement::TRACKPOINT(trkpt)) = stack.last_mut() {
+                    if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
                         trkpt.hr = e.parse().ok();
                     }
                 }
-                Some(GPXElement::CADENCE) => {
+                Some(GPXElement::Cadence) => {
                     stack.pop();
-                    if let Some(GPXElement::TRACKPOINT(trkpt)) = stack.last_mut() {
+                    if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
                         trkpt.cad = e.parse().ok();
                     }
                 }
-                Some(GPXElement::POWER) => {
+                Some(GPXElement::Power) => {
                     stack.pop();
-                    if let Some(GPXElement::TRACKPOINT(trkpt)) = stack.last_mut() {
+                    if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
                         trkpt.power = e.parse().ok();
                     }
                 }
-                Some(GPXElement::SYMBOL) => {
+                Some(GPXElement::Symbol) => {
                     stack.pop();
                     match stack.last_mut() {
-                        Some(GPXElement::WAYPOINT(wpt)) => {
+                        Some(GPXElement::Waypoint(wpt)) => {
                             wpt.sym = Some(e.to_string());
                         }
                         _ => (),
                     }
                 }
-                Some(GPXElement::TYPE) => {
+                Some(GPXElement::Type) => {
                     stack.pop();
                     match stack.last_mut() {
-                        Some(GPXElement::TRACK(trk)) => {
+                        Some(GPXElement::Track(trk)) => {
                             trk.info.type_ = Some(e.to_string());
                         }
-                        Some(GPXElement::WAYPOINT(wpt)) => {
+                        Some(GPXElement::Waypoint(wpt)) => {
                             wpt.type_ = Some(e.to_string());
                         }
                         _ => (),
                     }
                 }
-                Some(GPXElement::COLOR) => {
+                Some(GPXElement::Color) => {
                     stack.pop();
                     match stack.last_mut() {
-                        Some(GPXElement::TRACK(trk)) => {
+                        Some(GPXElement::Track(trk)) => {
                             let mut color = "#".to_string();
                             color.push_str(&e);
                             trk.info.color = Some(color);
@@ -312,19 +312,19 @@ pub fn parse(data: &[u8]) -> Result<GPXFile, Error> {
                         _ => (),
                     }
                 }
-                Some(GPXElement::OPACITY) => {
+                Some(GPXElement::Opacity) => {
                     stack.pop();
                     match stack.last_mut() {
-                        Some(GPXElement::TRACK(trk)) => {
+                        Some(GPXElement::Track(trk)) => {
                             trk.info.opacity = e.parse().ok();
                         }
                         _ => (),
                     }
                 }
-                Some(GPXElement::WIDTH) => {
+                Some(GPXElement::Width) => {
                     stack.pop();
                     match stack.last_mut() {
-                        Some(GPXElement::TRACK(trk)) => {
+                        Some(GPXElement::Track(trk)) => {
                             trk.info.width = e.parse().ok();
                         }
                         _ => (),

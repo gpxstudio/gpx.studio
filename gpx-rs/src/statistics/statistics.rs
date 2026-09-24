@@ -1,5 +1,7 @@
+use std::ops::Add;
+
 use crate::{
-    algorithms::ramer_douglas_peucker,
+    algorithm::ramer_douglas_peucker,
     for_each_window,
     gpx::{LngLat, LngLatBounds, TrackSegment, Trackpoint},
     utils::{distance, slope, speed},
@@ -7,29 +9,27 @@ use crate::{
 
 #[derive(Default, Debug)]
 pub struct GPXStatistics {
-    pub total_distance: f64,
-    pub moving_distance: Option<f64>,
-    pub moving_time: Option<i64>,
-    pub elevation_gain: f64,
-    pub elevation_loss: f64,
-    pub start_time: Option<i64>,
-    pub end_time: Option<i64>,
-    pub bounds: LngLatBounds,
+    pub global: GlobalStatistics,
     pub local: Vec<TrackpointStatistics>,
 }
 
 impl GPXStatistics {
     pub fn total_time(&self) -> Option<i64> {
-        self.start_time.zip(self.end_time).map(|(t1, t2)| t2 - t1)
+        self.global
+            .start_time
+            .zip(self.global.end_time)
+            .map(|(t1, t2)| t2 - t1)
     }
 
     pub fn total_speed(&self) -> Option<f64> {
-        self.total_time().map(|t| speed(self.total_distance, t))
+        self.total_time()
+            .map(|t| speed(self.global.total_distance, t))
     }
 
     pub fn moving_speed(&self) -> Option<f64> {
-        self.moving_distance
-            .zip(self.moving_time)
+        self.global
+            .moving_distance
+            .zip(self.global.moving_time)
             .map(|(d, t)| speed(d, t))
     }
 
@@ -54,7 +54,7 @@ impl GPXStatistics {
     fn accumulate(&mut self, prev: &Trackpoint, cur: &Trackpoint) {
         self.accumulate_distance_and_time(prev, cur);
         self.update_time_bounds(cur.time);
-        self.update_bounds(&cur.coordinates);
+        self.update_bounds(cur.coordinates);
         self.local
             .push(TrackpointStatistics::from_partial_stats(&self));
     }
@@ -63,31 +63,34 @@ impl GPXStatistics {
         let dist = distance(prev.coordinates, cur.coordinates);
         let time = cur.time_diff(prev);
 
-        self.total_distance += dist;
+        self.global.total_distance += dist;
 
         if let Some(time) = time {
             let speed = speed(dist, time);
             if speed >= 0.5 && speed <= 1500.0 {
-                self.moving_distance = self.moving_distance.map_or(Some(dist), |d| Some(d + dist));
-                self.moving_time = self.moving_time.map_or(Some(time), |t| Some(t + time));
+                self.global.moving_distance = self
+                    .global
+                    .moving_distance
+                    .map_or(Some(dist), |d| Some(d + dist));
+                self.global.moving_time = self
+                    .global
+                    .moving_time
+                    .map_or(Some(time), |t| Some(t + time));
             }
         }
     }
 
     fn update_time_bounds(&mut self, time: Option<i64>) {
         if let Some(time) = time {
-            if self.start_time.is_none() {
-                self.start_time = Some(time);
+            if self.global.start_time.is_none() {
+                self.global.start_time = Some(time);
             }
-            self.end_time = Some(time);
+            self.global.end_time = Some(time);
         }
     }
 
-    fn update_bounds(&mut self, coordinates: &LngLat) {
-        self.bounds.sw.lng = self.bounds.sw.lng.min(coordinates.lng);
-        self.bounds.sw.lat = self.bounds.sw.lat.min(coordinates.lat);
-        self.bounds.ne.lng = self.bounds.ne.lng.min(coordinates.lng);
-        self.bounds.ne.lat = self.bounds.ne.lat.min(coordinates.lat);
+    fn update_bounds(&mut self, coordinates: LngLat) {
+        self.global.bounds.extend(coordinates);
     }
 
     fn compute_smoothed_speed(&mut self, trkseg: &TrackSegment) {
@@ -177,14 +180,14 @@ impl GPXStatistics {
 
                     let delta = smoothed_ele - prev_smoothed_ele;
                     if delta > 0.0 {
-                        self.elevation_gain += delta;
+                        self.global.elevation_gain += delta;
                     } else if delta < 0.0 {
-                        self.elevation_loss -= delta;
+                        self.global.elevation_loss -= delta;
                     }
 
                     if i < end || last {
-                        self.local[flat_i].elevation_gain = self.elevation_gain;
-                        self.local[flat_i].elevation_loss = self.elevation_loss;
+                        self.local[flat_i].elevation_gain = self.global.elevation_gain;
+                        self.local[flat_i].elevation_loss = self.global.elevation_loss;
                     }
 
                     prev_smoothed_ele = smoothed_ele;
@@ -230,9 +233,38 @@ impl GPXStatistics {
 }
 
 #[derive(Default, Debug)]
-pub struct SlopeSegment {
-    pub slope: f64,
-    pub distance: f64,
+pub struct GlobalStatistics {
+    pub total_distance: f64,
+    pub moving_distance: Option<f64>,
+    pub moving_time: Option<i64>,
+    pub elevation_gain: f64,
+    pub elevation_loss: f64,
+    pub start_time: Option<i64>,
+    pub end_time: Option<i64>,
+    pub bounds: LngLatBounds,
+}
+
+fn sum_options<T>(a: Option<T>, b: Option<T>) -> Option<T>
+where
+    T: Add<Output = T>,
+{
+    match (a, b) {
+        (Some(a), Some(b)) => Some(a + b),
+        (Some(a), None) => Some(a),
+        (None, Some(b)) => Some(b),
+        (None, None) => None,
+    }
+}
+
+impl GlobalStatistics {
+    pub fn merge(&mut self, other: &GlobalStatistics) {
+        self.total_distance += other.total_distance;
+        self.moving_distance = sum_options(self.moving_distance, other.moving_distance);
+        self.moving_time = sum_options(self.moving_time, other.moving_time);
+        self.elevation_gain += other.elevation_gain;
+        self.elevation_loss += other.elevation_loss;
+        self.bounds.merge(&other.bounds);
+    }
 }
 
 #[derive(Default, Debug)]
@@ -251,24 +283,31 @@ pub struct TrackpointStatistics {
 impl TrackpointStatistics {
     fn from_partial_stats(stats: &GPXStatistics) -> Self {
         Self {
-            total_distance: stats.total_distance,
-            moving_distance: stats.moving_distance,
-            total_time: stats.start_time.zip(stats.end_time).map(|(t1, t2)| t2 - t1),
-            moving_time: stats.moving_time,
+            total_distance: stats.global.total_distance,
+            moving_distance: stats.global.moving_distance,
+            total_time: stats.total_time(),
+            moving_time: stats.global.moving_time,
+            // stats below are computed later
             speed: None,
-            elevation_gain: stats.elevation_gain,
-            elevation_loss: stats.elevation_loss,
+            elevation_gain: Default::default(),
+            elevation_loss: Default::default(),
             slope: Default::default(),
             slope_segment: Default::default(),
         }
     }
 }
 
+#[derive(Default, Debug)]
+pub struct SlopeSegment {
+    pub slope: f64,
+    pub distance: f64,
+}
+
 #[cfg(test)]
 mod tests {
     use std::{fs::File, io::Read};
 
-    use crate::actions::parse;
+    use crate::io::parse;
 
     use super::*;
 

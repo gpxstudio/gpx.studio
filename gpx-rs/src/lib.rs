@@ -1,7 +1,9 @@
-mod actions;
-mod controller;
+mod action;
+mod algorithm;
+mod engine;
 mod gpx;
+mod io;
+mod selection;
 mod stack;
 mod statistics;
 mod utils;
-mod algorithms;

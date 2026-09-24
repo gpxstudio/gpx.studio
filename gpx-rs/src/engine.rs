@@ -4,8 +4,9 @@ use uuid::Uuid;
 use wasm_bindgen::prelude::*;
 
 use crate::{
-    actions::parse,
     gpx::GPXFile,
+    io::parse,
+    selection::Selection,
     stack::{Stack, StackEntry},
 };
 
@@ -20,6 +21,7 @@ use crate::{
 #[wasm_bindgen]
 pub struct Controller {
     stack: Stack,
+    selection: Selection,
 }
 
 #[wasm_bindgen]
@@ -27,7 +29,8 @@ impl Controller {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
         Self {
-            stack: Stack::default(),
+            stack: Default::default(),
+            selection: Default::default(),
         }
     }
 
