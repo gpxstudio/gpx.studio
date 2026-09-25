@@ -1,5 +1,6 @@
 use std::rc::Rc;
 
+use js_sys::Function;
 use uuid::Uuid;
 use wasm_bindgen::prelude::*;
 
@@ -16,21 +17,23 @@ use crate::{
 // - update separate statistics
 // - update selection
 // - update selection statistics
-// - notify UI (changed files, updated selection, new stats)
+// - notify UI through callback (changed files, updated selection, new stats)
 
 #[wasm_bindgen]
-pub struct Controller {
+pub struct Engine {
     stack: Stack,
     selection: Selection,
+    callback: Function,
 }
 
 #[wasm_bindgen]
-impl Controller {
+impl Engine {
     #[wasm_bindgen(constructor)]
-    pub fn new() -> Self {
+    pub fn new(callback: Function) -> Self {
         Self {
             stack: Default::default(),
             selection: Default::default(),
+            callback,
         }
     }
 
@@ -52,6 +55,7 @@ impl Controller {
                 true
             });
         }
+        let _ = self.callback.call1(&JsValue::NULL, &JsValue::from("done!"));
     }
 
     #[wasm_bindgen]
