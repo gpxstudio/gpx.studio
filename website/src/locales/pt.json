@@ -222,8 +222,8 @@
             "remove_gaps": "Remove time gaps between traces",
             "tooltip": "Merge items together",
             "help_merge_traces": "Connecting the selected traces will create a single continuous trace.",
-            "help_cannot_merge_traces": "Your selection must contain several traces to connect them.",
-            "help_merge_contents": "Merging the contents of the selected items will group all the contents inside the first item.",
+            "help_cannot_merge_traces": "A sua seleção deve conter vários traços para conectá-los.",
+            "help_merge_contents": "Fundir o conteúdo dos itens selecionados agrupará todo o conteúdo no“item”.",
             "help_cannot_merge_contents": "Your selection must contain several items to merge their contents.",
             "selection_tip": "Tip: use {KEYBOARD_SHORTCUT} to add items to the selection."
         },
@@ -241,12 +241,12 @@
         "waypoint": {
             "tooltip": "Criar ponto de interesse",
             "icon": "Icon",
-            "link": "Link",
+            "link": "Ligação",
             "longitude": "Longitude",
             "latitude": "Latitude",
             "create": "Criar ponto de interesse",
             "add": "Adicionar ponto de interesse no ficheiro",
-            "help": "Fill in the form to create a new point of interest, or click on an existing one to edit it. Click on the map to fill the coordinates, or drag points of interest to move them.",
+            "help": "Preencha o formulário para criar um ponto de interesse, ou clique em um já existente para editá-lo. Clique no mapa para preencher as coordenadas ou arraste pontos de interesse para movê-las.",
             "help_no_selection": "Select a file to create or edit points of interest."
         },
         "reduce": {
