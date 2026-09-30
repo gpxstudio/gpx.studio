@@ -4,6 +4,6 @@ mod engine;
 mod gpx;
 mod io;
 mod selection;
-mod stack;
+mod state;
 mod statistics;
 mod utils;

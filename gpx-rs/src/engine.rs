@@ -8,7 +8,7 @@ use crate::{
     gpx::GPXFile,
     io::parse,
     selection::Selection,
-    stack::{Stack, StackEntry},
+    state::{Stack, StackEntry},
 };
 
 // Control flow

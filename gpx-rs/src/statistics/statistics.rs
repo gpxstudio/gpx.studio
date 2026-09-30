@@ -1,9 +1,8 @@
-use std::ops::Add;
-
 use crate::{
     algorithm::ramer_douglas_peucker,
     for_each_window,
     gpx::{LngLat, LngLatBounds, TrackSegment, Trackpoint},
+    statistics::sum_options,
     utils::{distance, slope, speed},
 };
 
@@ -15,22 +14,15 @@ pub struct GPXStatistics {
 
 impl GPXStatistics {
     pub fn total_time(&self) -> Option<i64> {
-        self.global
-            .start_time
-            .zip(self.global.end_time)
-            .map(|(t1, t2)| t2 - t1)
+        self.global.total_time()
     }
 
     pub fn total_speed(&self) -> Option<f64> {
-        self.total_time()
-            .map(|t| speed(self.global.total_distance, t))
+        self.global.total_speed()
     }
 
     pub fn moving_speed(&self) -> Option<f64> {
-        self.global
-            .moving_distance
-            .zip(self.global.moving_time)
-            .map(|(d, t)| speed(d, t))
+        self.global.moving_speed()
     }
 
     pub fn compute(trkseg: &TrackSegment) -> Self {
@@ -244,19 +236,21 @@ pub struct GlobalStatistics {
     pub bounds: LngLatBounds,
 }
 
-fn sum_options<T>(a: Option<T>, b: Option<T>) -> Option<T>
-where
-    T: Add<Output = T>,
-{
-    match (a, b) {
-        (Some(a), Some(b)) => Some(a + b),
-        (Some(a), None) => Some(a),
-        (None, Some(b)) => Some(b),
-        (None, None) => None,
-    }
-}
-
 impl GlobalStatistics {
+    pub fn total_time(&self) -> Option<i64> {
+        self.start_time.zip(self.end_time).map(|(t1, t2)| t2 - t1)
+    }
+
+    pub fn total_speed(&self) -> Option<f64> {
+        self.total_time().map(|t| speed(self.total_distance, t))
+    }
+
+    pub fn moving_speed(&self) -> Option<f64> {
+        self.moving_distance
+            .zip(self.moving_time)
+            .map(|(d, t)| speed(d, t))
+    }
+
     pub fn merge(&mut self, other: &GlobalStatistics) {
         self.total_distance += other.total_distance;
         self.moving_distance = sum_options(self.moving_distance, other.moving_distance);
