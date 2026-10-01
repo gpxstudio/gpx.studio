@@ -258,7 +258,7 @@
             "help_no_selection": "Select a trace to reduce the number of its GPS points."
         },
         "clean": {
-            "tooltip": "Clean GPS points and points of interest with a rectangle selection",
+            "tooltip": "Limpar pontos de GPS e pontos de interesse com uma seleção de retângulo",
             "delete_trackpoints": "Excluir pontos GPS",
             "delete_waypoints": "Excluir pontos de interesse",
             "delete_inside": "Excluir na seleção",
