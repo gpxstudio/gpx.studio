@@ -2,7 +2,7 @@ use std::{ops::Index, rc::Rc};
 
 use crate::gpx::{Trackpoint, TrackpointChunk};
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq)]
 pub struct TrackSegment {
     chunks: Vec<Rc<TrackpointChunk>>,
     cumul_length: Vec<usize>,

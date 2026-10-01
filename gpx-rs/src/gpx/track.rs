@@ -1,12 +1,12 @@
 use crate::gpx::{Link, TrackSegment};
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq)]
 pub struct Track {
     pub info: TrackInfo,
     pub trkseg: Vec<TrackSegment>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq)]
 pub struct TrackInfo {
     pub name: Option<String>,
     pub cmt: Option<String>,

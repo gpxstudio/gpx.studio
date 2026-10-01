@@ -1,4 +1,7 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{
+    collections::{HashMap, HashSet},
+    rc::Rc,
+};
 
 use uuid::Uuid;
 
@@ -12,42 +15,47 @@ pub struct Stack {
 
 impl Stack {
     pub fn current(&self) -> Option<&StackEntry> {
-        match self.index {
-            Some(i) => Some(&self.entries[i]),
-            None => None,
-        }
+        self.index.map_or_default(|i| self.get(i))
     }
 
-    pub fn create_and_push_next<F>(&mut self, f: F)
+    pub fn create_and_push_next<F>(&mut self, f: F) -> Option<Diff>
     where
         F: FnOnce(&mut StackEntry) -> bool,
     {
-        let mut next = self.current().map_or_default(|c| c.clone());
-        if f(&mut next) {
-            self.push(next);
-        }
+        self.record_diff(|stack| {
+            let mut next = stack.current().map_or_default(|c| c.clone());
+            if f(&mut next) {
+                stack.push(next);
+            }
+        })
     }
 
-    // pub fn update(&mut self, files: &[Rc<GPXFile>], ids: &[GPXFileId]) {
-    //     let mut next = match self.current() {
-    //         Some(current) => current.clone(),
-    //         None => StackEntry::default(),
-    //     };
-    //     for (file, id) in files.iter().zip(ids) {
-    //         next.insert(*id, file.clone());
-    //     }
-    //     self.push(next);
-    // }
+    pub fn undo(&mut self) -> Option<Diff> {
+        self.record_diff(|stack| {
+            if let Some(i) = stack.index {
+                if i == 0 {
+                    stack.index = None;
+                } else {
+                    stack.index = Some(i - 1);
+                }
+            }
+        })
+    }
 
-    // pub fn delete(&mut self, files: &[GPXFileId]) {
-    //     if let Some(current) = self.current() {
-    //         let mut next = current.clone();
-    //         for file in files {
-    //             next.remove(file);
-    //         }
-    //         self.push(next);
-    //     }
-    // }
+    pub fn redo(&mut self) -> Option<Diff> {
+        self.record_diff(|stack| match stack.index {
+            Some(i) => {
+                if i + 1 < stack.entries.len() {
+                    stack.index = Some(i + 1);
+                }
+            }
+            None => {
+                if !stack.entries.is_empty() {
+                    stack.index = Some(0);
+                }
+            }
+        })
+    }
 
     pub fn can_undo(&self) -> bool {
         self.index.is_some()
@@ -60,28 +68,11 @@ impl Stack {
         }
     }
 
-    pub fn undo(&mut self) {
-        if let Some(i) = self.index {
-            if i == 0 {
-                self.index = None;
-            } else {
-                self.index = Some(i - 1);
-            }
-        }
-    }
-
-    pub fn redo(&mut self) {
-        match self.index {
-            Some(i) => {
-                if i + 1 < self.entries.len() {
-                    self.index = Some(i + 1);
-                }
-            }
-            None => {
-                if !self.entries.is_empty() {
-                    self.index = Some(0);
-                }
-            }
+    fn get(&self, index: usize) -> Option<&StackEntry> {
+        if index < self.entries.len() {
+            Some(&self.entries[index])
+        } else {
+            None
         }
     }
 
@@ -95,6 +86,75 @@ impl Stack {
         self.entries.push(entry);
         self.index = Some(self.entries.len() - 1);
     }
+
+    fn record_diff<F>(&mut self, f: F) -> Option<Diff>
+    where
+        F: FnOnce(&mut Self),
+    {
+        let prev = self.index;
+        f(self);
+        let cur = self.index;
+        if prev == cur {
+            return None;
+        }
+        let prev = prev.map_or_default(|i| self.get(i));
+        let cur = cur.map_or_default(|i| self.get(i));
+        let prev_ids: HashSet<Uuid> = prev.map_or_default(|e| e.keys().copied().collect());
+        let cur_ids: HashSet<Uuid> = cur.map_or_default(|e| e.keys().copied().collect());
+        let mut modified = vec![];
+        for id in prev_ids.intersection(&cur_ids) {
+            let before = prev.map_or_default(|e| e.get(id));
+            let after = cur.map_or_default(|e| e.get(id));
+            if before != after {
+                modified.push(*id);
+            }
+        }
+        Some(Diff {
+            added: cur_ids.difference(&prev_ids).copied().collect(),
+            removed: prev_ids.difference(&cur_ids).copied().collect(),
+            modified,
+        })
+    }
 }
 
 pub type StackEntry = HashMap<Uuid, Rc<GPXFile>>;
+
+#[derive(Debug, Default)]
+pub struct Diff {
+    pub added: Vec<Uuid>,
+    pub removed: Vec<Uuid>,
+    pub modified: Vec<Uuid>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new_file() {
+        let mut stack = Stack::default();
+
+        assert!(!stack.can_undo());
+        assert!(!stack.can_redo());
+        assert!(stack.current().is_none());
+
+        let diff = stack.create_and_push_next(|e| {
+            let file = Rc::new(GPXFile::default());
+            e.insert(file.id, file);
+            true
+        });
+
+        assert!(stack.can_undo());
+        assert!(!stack.can_redo());
+        assert!(stack.current().is_some());
+
+        assert!(diff.is_some());
+
+        let diff = diff.unwrap();
+        assert_eq!(diff.added.len(), 1);
+        assert!(diff.removed.is_empty());
+        assert!(diff.modified.is_empty());
+    }
+
+    // TODO more tests
+}

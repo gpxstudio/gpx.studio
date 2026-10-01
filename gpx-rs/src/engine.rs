@@ -1,3 +1,5 @@
+// TODO license in every file
+
 use std::rc::Rc;
 
 use js_sys::Function;
@@ -9,20 +11,14 @@ use crate::{
     io::parse,
     selection::Selection,
     state::{Stack, StackEntry},
+    statistics::StatisticsBuffer,
 };
-
-// Control flow
-// - get lock to cancel any other updates
-// - update files
-// - update separate statistics
-// - update selection
-// - update selection statistics
-// - notify UI through callback (changed files, updated selection, new stats)
 
 #[wasm_bindgen]
 pub struct Engine {
     stack: Stack,
     selection: Selection,
+    statistics: StatisticsBuffer,
     callback: Function,
 }
 
@@ -33,6 +29,7 @@ impl Engine {
         Self {
             stack: Default::default(),
             selection: Default::default(),
+            statistics: Default::default(),
             callback,
         }
     }
@@ -64,5 +61,16 @@ impl Engine {
             self.stack
                 .create_and_push_next(|entry: &mut StackEntry| entry.remove(&id).is_some());
         }
+    }
+
+    fn event_loop(&mut self) {
+        // Control flow
+        // - get lock to cancel any other updates
+        // - update files
+        // - update separate statistics
+        // - update selection
+        // - update selection statistics
+        // self.statistics.update(stats);
+        // - notify UI through callback (changed files, updated selection, new stats)
     }
 }

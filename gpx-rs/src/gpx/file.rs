@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::gpx::{Link, Track, WaypointChunk};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct GPXFile {
     pub id: Uuid,
     pub info: GPXFileInfo,
@@ -24,7 +24,7 @@ impl Default for GPXFile {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq)]
 pub struct GPXFileInfo {
     pub name: String,
     pub desc: Option<String>,
@@ -33,7 +33,7 @@ pub struct GPXFileInfo {
     pub time: Option<i64>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq)]
 pub struct Author {
     pub name: Option<String>,
     pub email: Option<String>,

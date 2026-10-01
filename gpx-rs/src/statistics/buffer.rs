@@ -1,6 +1,7 @@
 use crate::statistics::{GPXStatistics, GlobalStatistics, sum_options};
 
-pub struct Buffer {
+#[derive(Debug, Default)]
+pub struct StatisticsBuffer {
     pub total_distance: Vec<f64>,
     pub moving_distance: Vec<f64>,
     pub total_time: Vec<i64>,
@@ -13,7 +14,7 @@ pub struct Buffer {
     pub slope_segment_distance: Vec<f64>,
 }
 
-impl Buffer {
+impl StatisticsBuffer {
     pub fn update(&mut self, stats: &[&GPXStatistics]) {
         self.total_distance.clear();
         self.moving_distance.clear();
