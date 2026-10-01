@@ -552,7 +552,7 @@
         "pitch": "Pitch",
         "bearing": "Bearing",
         "preview": "Prévia",
-        "code": "Integration code"
+        "code": "Código de integração"
     },
     "webgl2_required": "WebGL 2 é requerido para exibir o mapa.",
     "enable_webgl2": "Aprender como ativar WebGL 2 no seu navegador",
