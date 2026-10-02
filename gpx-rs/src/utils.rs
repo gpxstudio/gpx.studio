@@ -18,8 +18,15 @@ pub fn distance(p1: LngLat, p2: LngLat) -> f64 {
     EARTH_RADIUS * c
 }
 
+pub fn time_diff(a: &Option<i64>, b: &Option<i64>) -> Option<i32> {
+    match (a, b) {
+        (Some(t1), Some(t2)) => Some((t1 - t2) as i32),
+        _ => None,
+    }
+}
+
 /// Computes the speed for a given distance in kilometers and a time in milliseconds
-pub fn speed(distance: f64, time: i64) -> f64 {
+pub fn speed(distance: f64, time: i32) -> f64 {
     distance / (time as f64 / 3600_000.0)
 }
 
@@ -40,7 +47,7 @@ fn get_meters_per_longitude_degree(latitude: f64) -> f64 {
 // Calculates the point on the line segment defined by p1 and p2
 // that is closest to the third point, p3.
 // Uses simple planar geometry (ignores earth curvature).
-fn projected(p1: LngLat, p2: LngLat, coord3: LngLat) -> LngLat {
+fn projected(p1: LngLat, p2: LngLat, p3: LngLat) -> LngLat {
     // Convert to meters using approximate scaling
     let meters_per_longitude_degree = get_meters_per_longitude_degree(p1.lat);
 
@@ -48,8 +55,8 @@ fn projected(p1: LngLat, p2: LngLat, coord3: LngLat) -> LngLat {
     let y1 = p1.lat * METERS_PER_LATITUDE_DEGREE;
     let x2 = p2.lng * meters_per_longitude_degree;
     let y2 = p2.lat * METERS_PER_LATITUDE_DEGREE;
-    let x3 = coord3.lng * meters_per_longitude_degree;
-    let y3 = coord3.lat * METERS_PER_LATITUDE_DEGREE;
+    let x3 = p3.lng * meters_per_longitude_degree;
+    let y3 = p3.lat * METERS_PER_LATITUDE_DEGREE;
 
     let dx = x2 - x1;
     let dy = y2 - y1;
@@ -78,17 +85,20 @@ fn projected(p1: LngLat, p2: LngLat, coord3: LngLat) -> LngLat {
 /// Calculates the perpendicular distance in meters
 /// between a line segment (defined by p1 and p2) and a third point, p3.
 /// Uses simple planar geometry (ignores earth curvature).
-fn crossarc(p1: LngLat, p2: LngLat, p3: LngLat) -> f64 {
+fn crossarc_lnglat(p1: LngLat, p2: LngLat, p3: LngLat) -> f64 {
     // Convert to meters using approximate scaling
     let meters_per_longitude_degree = get_meters_per_longitude_degree(p1.lat);
+    crossarc(
+        p1.lng * meters_per_longitude_degree,
+        p1.lat * METERS_PER_LATITUDE_DEGREE,
+        p2.lng * meters_per_longitude_degree,
+        p2.lat * METERS_PER_LATITUDE_DEGREE,
+        p3.lng * meters_per_longitude_degree,
+        p3.lat * METERS_PER_LATITUDE_DEGREE,
+    )
+}
 
-    let x1 = p1.lng * meters_per_longitude_degree;
-    let y1 = p1.lat * METERS_PER_LATITUDE_DEGREE;
-    let x2 = p2.lng * meters_per_longitude_degree;
-    let y2 = p2.lat * METERS_PER_LATITUDE_DEGREE;
-    let x3 = p3.lng * meters_per_longitude_degree;
-    let y3 = p3.lat * METERS_PER_LATITUDE_DEGREE;
-
+pub fn crossarc(x1: f64, y1: f64, x2: f64, y2: f64, x3: f64, y3: f64) -> f64 {
     let dx = x2 - x1;
     let dy = y2 - y1;
     let segment_length_squared = dx * dx + dy * dy;

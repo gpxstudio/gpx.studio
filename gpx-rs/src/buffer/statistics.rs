@@ -1,11 +1,11 @@
-use crate::statistics::{GPXStatistics, GlobalStatistics, sum_options};
+use crate::statistics::{GlobalStatistics, Statistics, sum_options};
 
 #[derive(Debug, Default)]
 pub struct StatisticsBuffer {
     pub total_distance: Vec<f64>,
     pub moving_distance: Vec<f64>,
-    pub total_time: Vec<i64>,
-    pub moving_time: Vec<i64>,
+    pub total_time: Vec<i32>,
+    pub moving_time: Vec<i32>,
     pub speed: Vec<f64>,
     pub elevation_gain: Vec<f64>,
     pub elevation_loss: Vec<f64>,
@@ -15,7 +15,7 @@ pub struct StatisticsBuffer {
 }
 
 impl StatisticsBuffer {
-    pub fn update(&mut self, stats: &[&GPXStatistics]) {
+    pub fn update(&mut self, stats: &[&Statistics]) {
         self.total_distance.clear();
         self.moving_distance.clear();
         self.total_time.clear();

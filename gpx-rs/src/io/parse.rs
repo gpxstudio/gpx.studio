@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::gpx::{
-    Author, GPXFile, Link, LngLat, Track, TrackSegment, Trackpoint, TrackpointChunk, Waypoint,
+    Author, File, Link, LngLat, Track, TrackSegment, Trackpoint, TrackpointChunk, Waypoint,
     WaypointChunk,
 };
 use chrono::DateTime;
@@ -50,10 +50,10 @@ fn parse_coordinates(attributes: Attributes<'_>) -> LngLat {
     coordinates
 }
 
-pub fn parse(data: &[u8]) -> Result<GPXFile, Error> {
+pub fn parse(data: &[u8]) -> Result<File, Error> {
     let mut reader = Reader::from_reader(data);
     let mut buf = vec![];
-    let mut gpx = GPXFile::default();
+    let mut gpx = File::default();
     let mut stack: Vec<GPXElement> = vec![];
     let mut trkpt_chunk = TrackpointChunk::default();
     let mut wpt_chunk = WaypointChunk::default();

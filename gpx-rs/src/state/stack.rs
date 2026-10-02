@@ -3,11 +3,9 @@ use std::{
     rc::Rc,
 };
 
-use uuid::Uuid;
+use crate::gpx::{File, FileId};
 
-use crate::gpx::GPXFile;
-
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Stack {
     entries: Vec<StackEntry>,
     index: Option<usize>,
@@ -99,8 +97,8 @@ impl Stack {
         }
         let prev = prev.map_or_default(|i| self.get(i));
         let cur = cur.map_or_default(|i| self.get(i));
-        let prev_ids: HashSet<Uuid> = prev.map_or_default(|e| e.keys().copied().collect());
-        let cur_ids: HashSet<Uuid> = cur.map_or_default(|e| e.keys().copied().collect());
+        let prev_ids: HashSet<FileId> = prev.map_or_default(|e| e.keys().copied().collect());
+        let cur_ids: HashSet<FileId> = cur.map_or_default(|e| e.keys().copied().collect());
         let mut modified = vec![];
         for id in prev_ids.intersection(&cur_ids) {
             let before = prev.map_or_default(|e| e.get(id));
@@ -117,13 +115,13 @@ impl Stack {
     }
 }
 
-pub type StackEntry = HashMap<Uuid, Rc<GPXFile>>;
+pub type StackEntry = HashMap<FileId, Rc<File>>;
 
 #[derive(Debug, Default)]
 pub struct Diff {
-    pub added: Vec<Uuid>,
-    pub removed: Vec<Uuid>,
-    pub modified: Vec<Uuid>,
+    pub added: Vec<FileId>,
+    pub removed: Vec<FileId>,
+    pub modified: Vec<FileId>,
 }
 
 #[cfg(test)]
@@ -139,7 +137,7 @@ mod tests {
         assert!(stack.current().is_none());
 
         let diff = stack.create_and_push_next(|e| {
-            let file = Rc::new(GPXFile::default());
+            let file = Rc::new(File::default());
             e.insert(file.id, file);
             true
         });

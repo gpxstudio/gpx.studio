@@ -1,7 +1,7 @@
-mod buffer;
+mod cache;
 mod statistics;
 mod utils;
 
-pub use buffer::*;
+pub use cache::*;
 pub use statistics::*;
 pub use utils::*;

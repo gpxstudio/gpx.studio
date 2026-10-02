@@ -4,19 +4,19 @@ use crate::gpx::{Trackpoint, Waypoint};
 
 static MAX_TRKPT_CHUNK_SIZE: usize = 4096;
 
-#[derive(Debug)]
-pub struct TrackpointChunk {
-    pub id: Uuid,
-    pub trkpt: Vec<Trackpoint>,
+#[derive(Debug, PartialEq, Eq)]
+pub struct TrackpointChunkId(Uuid);
+
+impl Default for TrackpointChunkId {
+    fn default() -> Self {
+        Self(Uuid::new_v4())
+    }
 }
 
-impl Default for TrackpointChunk {
-    fn default() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            trkpt: Default::default(),
-        }
-    }
+#[derive(Debug, Default)]
+pub struct TrackpointChunk {
+    pub id: TrackpointChunkId,
+    pub trkpt: Vec<Trackpoint>,
 }
 
 impl PartialEq for TrackpointChunk {
@@ -31,21 +31,21 @@ impl TrackpointChunk {
     }
 }
 
-static MAX_WPT_CHUNK_SIZE: usize = 128;
+#[derive(Debug, PartialEq, Eq)]
+pub struct WaypointChunkId(Uuid);
 
-#[derive(Debug)]
-pub struct WaypointChunk {
-    pub id: Uuid,
-    pub wpt: Vec<Waypoint>,
+impl Default for WaypointChunkId {
+    fn default() -> Self {
+        Self(Uuid::new_v4())
+    }
 }
 
-impl Default for WaypointChunk {
-    fn default() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            wpt: Default::default(),
-        }
-    }
+static MAX_WPT_CHUNK_SIZE: usize = 128;
+
+#[derive(Debug, Default)]
+pub struct WaypointChunk {
+    pub id: WaypointChunkId,
+    pub wpt: Vec<Waypoint>,
 }
 
 impl PartialEq for WaypointChunk {

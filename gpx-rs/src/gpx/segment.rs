@@ -1,9 +1,31 @@
 use std::{ops::Index, rc::Rc};
 
+use uuid::Uuid;
+
 use crate::gpx::{Trackpoint, TrackpointChunk};
+
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct TrackSegmentId(Uuid);
+
+impl Default for TrackSegmentId {
+    fn default() -> Self {
+        Self(Uuid::new_v4())
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct TrackSegmentRevisionId(Uuid);
+
+impl Default for TrackSegmentRevisionId {
+    fn default() -> Self {
+        Self(Uuid::new_v4())
+    }
+}
 
 #[derive(Debug, Default, PartialEq)]
 pub struct TrackSegment {
+    pub id: TrackSegmentId,
+    pub rev_id: TrackSegmentRevisionId,
     chunks: Vec<Rc<TrackpointChunk>>,
     cumul_length: Vec<usize>,
 }

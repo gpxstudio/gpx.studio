@@ -4,28 +4,26 @@ use uuid::Uuid;
 
 use crate::gpx::{Link, Track, WaypointChunk};
 
-#[derive(Debug, PartialEq)]
-pub struct GPXFile {
-    pub id: Uuid,
-    pub info: GPXFileInfo,
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct FileId(pub Uuid);
+
+impl Default for FileId {
+    fn default() -> Self {
+        Self(Uuid::new_v4())
+    }
+}
+
+#[derive(Debug, Default, PartialEq)]
+pub struct File {
+    pub id: FileId,
+    pub info: FileInfo,
     pub trk: Vec<Track>,
     pub wpt: Vec<Rc<WaypointChunk>>,
     // TODO routes
 }
 
-impl Default for GPXFile {
-    fn default() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            info: Default::default(),
-            trk: Default::default(),
-            wpt: Default::default(),
-        }
-    }
-}
-
 #[derive(Debug, Default, PartialEq)]
-pub struct GPXFileInfo {
+pub struct FileInfo {
     pub name: String,
     pub desc: Option<String>,
     pub author: Option<Author>,

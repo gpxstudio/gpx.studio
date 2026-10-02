@@ -1,7 +1,19 @@
+use uuid::Uuid;
+
 use crate::gpx::{Link, TrackSegment};
+
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct TrackId(Uuid);
+
+impl Default for TrackId {
+    fn default() -> Self {
+        Self(Uuid::new_v4())
+    }
+}
 
 #[derive(Debug, Default, PartialEq)]
 pub struct Track {
+    pub id: TrackId,
     pub info: TrackInfo,
     pub trkseg: Vec<TrackSegment>,
 }
