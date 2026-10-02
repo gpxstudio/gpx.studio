@@ -1,19 +1,19 @@
 use crate::{
     algorithm::ramer_douglas_peucker,
     for_each_window,
-    gpx::{LngLat, LngLatBounds, TrackSegment, Trackpoint},
+    gpx::{LngLat, LngLatBounds, TrackSegment, TrackSegmentIndex, Trackpoint},
     statistics::sum_options,
-    utils::{distance, slope, speed},
+    utils::{distance, slope, speed, time_diff},
 };
 
 #[derive(Default, Debug)]
-pub struct GPXStatistics {
+pub struct Statistics {
     pub global: GlobalStatistics,
     pub local: Vec<TrackpointStatistics>,
 }
 
-impl GPXStatistics {
-    pub fn total_time(&self) -> Option<i64> {
+impl Statistics {
+    pub fn total_time(&self) -> Option<i32> {
         self.global.total_time()
     }
 
@@ -38,7 +38,8 @@ impl GPXStatistics {
         }
 
         stats.compute_smoothed_speed(trkseg);
-        stats.compute_smoothed_elevation_gain(trkseg);
+        stats.compute_smoothed_elevation_segments(trkseg);
+        stats.compute_smoothed_slope(trkseg);
 
         stats
     }
@@ -53,7 +54,7 @@ impl GPXStatistics {
 
     fn accumulate_distance_and_time(&mut self, prev: &Trackpoint, cur: &Trackpoint) {
         let dist = distance(prev.coordinates, cur.coordinates);
-        let time = cur.time_diff(prev);
+        let time = time_diff(&cur.time, &prev.time);
 
         self.global.total_distance += dist;
 
@@ -91,136 +92,124 @@ impl GPXStatistics {
             trkseg.first_index(),
             trkseg.last_index(),
             Some(10000),
-            |i, j| trkseg[i].time_diff(&trkseg[j]),
+            |i, j| time_diff(&trkseg[i].time, &trkseg[j].time),
             |i, left, right| {
-                let i = trkseg.to_flat_index(i);
-                let left = trkseg.to_flat_index(left);
-                let right = trkseg.to_flat_index(right);
-                self.local[i].speed = trkseg[right].time_diff(&trkseg[left]).map(|t| {
-                    speed(
-                        self.local[right].total_distance - self.local[left].total_distance,
-                        t,
-                    )
-                });
+                self.local[i.flat].speed =
+                    time_diff(&trkseg[right].time, &trkseg[left].time).map(|t| {
+                        speed(
+                            self.local[right.flat].total_distance
+                                - self.local[left.flat].total_distance,
+                            t,
+                        )
+                    });
             },
         );
     }
 
-    fn compute_smoothed_elevation_gain(&mut self, trkseg: &TrackSegment) {
-        let simplified = ramer_douglas_peucker(
-            trkseg,
-            &|i, j, k| {
-                let x1 = self.local[trkseg.to_flat_index(i)].total_distance * 1000.0;
-                let x2 = self.local[trkseg.to_flat_index(j)].total_distance * 1000.0;
-                let x3 = self.local[trkseg.to_flat_index(k)].total_distance * 1000.0;
-                let y1 = trkseg[i].ele;
-                let y2 = trkseg[j].ele;
-                let y3 = trkseg[k].ele;
-
-                let dist = ((y2 - y1).powi(2) + (x2 - x1).powi(2)).sqrt();
-                if dist == 0.0 {
-                    ((x3 - x1).powi(2) + (y3 - y1).powi(2)).sqrt()
-                } else {
-                    ((y2 - y1) * x3 - (x2 - x1) * y3 + x2 * y1 - y2 * x1).abs() / dist
-                }
-            },
-            20.0,
-        );
+    fn compute_smoothed_elevation_segments(&mut self, trkseg: &TrackSegment) {
+        let simplified = self.get_elevation_extremas(trkseg);
 
         for i in 0..(simplified.len() - 1) {
             let start = simplified[i];
             let end = simplified[i + 1];
             let last = i + 1 == simplified.len() - 1;
 
-            let mut cumul_ele = 0.0;
-            let mut current_left = start;
-            let mut current_right = Some(start);
-            let mut prev_smoothed_ele = trkseg[start].ele;
-
-            for_each_window!(
-                trkseg,
-                Some(start),
-                Some(end),
-                0.1,
-                |i, j| {
-                    let i = trkseg.to_flat_index(i);
-                    let j = trkseg.to_flat_index(j);
-                    self.local[j].total_distance - self.local[i].total_distance
-                },
-                |i, left, right| {
-                    while current_left != left {
-                        cumul_ele -= trkseg[current_left].ele;
-                        current_left = trkseg.next_index(Some(current_left)).unwrap();
-                    }
-                    while let Some(current) = current_right {
-                        if current > right {
-                            break;
-                        }
-                        cumul_ele += trkseg[current].ele;
-                        current_right = trkseg.next_index(current_right);
-                    }
-
-                    let flat_i = trkseg.to_flat_index(i);
-                    let flat_left = trkseg.to_flat_index(left);
-                    let flat_right = trkseg.to_flat_index(right);
-
-                    let smoothed_ele: f64 = if i == start || i == end {
-                        trkseg[i].ele
-                    } else {
-                        cumul_ele / (flat_right - flat_left + 1) as f64
-                    };
-
-                    let delta = smoothed_ele - prev_smoothed_ele;
-                    if delta > 0.0 {
-                        self.global.elevation_gain += delta;
-                    } else if delta < 0.0 {
-                        self.global.elevation_loss -= delta;
-                    }
-
-                    if i < end || last {
-                        self.local[flat_i].elevation_gain = self.global.elevation_gain;
-                        self.local[flat_i].elevation_loss = self.global.elevation_loss;
-                    }
-
-                    prev_smoothed_ele = smoothed_ele;
-                },
-            );
-
-            let flat_start = trkseg.to_flat_index(start);
-            let flat_end = trkseg.to_flat_index(end);
+            self.compute_smoothed_elevation_gain(trkseg, start, end, last);
 
             let segment_dist =
-                self.local[flat_end].total_distance - self.local[flat_start].total_distance;
+                self.local[end.flat].total_distance - self.local[start.flat].total_distance;
             let segment_ele = trkseg[end].ele - trkseg[start].ele;
             let segment_slope = slope(segment_ele, segment_dist);
-            for k in flat_start..(flat_end + last as usize) {
+            for k in start.flat..(end.flat + last as usize) {
                 self.local[k].slope_segment = SlopeSegment {
                     slope: segment_slope,
                     distance: segment_dist,
                 };
             }
         }
+    }
 
+    fn compute_smoothed_elevation_gain(
+        &mut self,
+        trkseg: &TrackSegment,
+        start: TrackSegmentIndex,
+        end: TrackSegmentIndex,
+        last: bool,
+    ) {
+        let mut cumul_ele = 0.0;
+        let mut current_left = start;
+        let mut current_right = Some(start);
+        let mut prev_smoothed_ele = trkseg[start].ele;
+
+        for_each_window!(
+            trkseg,
+            Some(start),
+            Some(end),
+            0.1,
+            |i, j| self.local[j.flat].total_distance - self.local[i.flat].total_distance,
+            |i, left, right| {
+                while current_left != left {
+                    cumul_ele -= trkseg[current_left].ele;
+                    current_left = trkseg.next_index(Some(current_left)).unwrap();
+                }
+                while let Some(current) = current_right {
+                    if current > right {
+                        break;
+                    }
+                    cumul_ele += trkseg[current].ele;
+                    current_right = trkseg.next_index(current_right);
+                }
+
+                let smoothed_ele = if i == start || i == end {
+                    trkseg[i].ele
+                } else {
+                    cumul_ele / (right.flat - left.flat + 1) as f64
+                };
+
+                let delta = smoothed_ele - prev_smoothed_ele;
+                if delta > 0.0 {
+                    self.global.elevation_gain += delta;
+                } else if delta < 0.0 {
+                    self.global.elevation_loss -= delta;
+                }
+
+                if i < end || last {
+                    self.local[i.flat].elevation_gain = self.global.elevation_gain;
+                    self.local[i.flat].elevation_loss = self.global.elevation_loss;
+                }
+
+                prev_smoothed_ele = smoothed_ele;
+            },
+        );
+    }
+
+    fn compute_smoothed_slope(&mut self, trkseg: &TrackSegment) {
         for_each_window!(
             trkseg,
             trkseg.first_index(),
             trkseg.last_index(),
             0.05,
-            |i, j| {
-                let i = trkseg.to_flat_index(i);
-                let j = trkseg.to_flat_index(j);
-                self.local[j].total_distance - self.local[i].total_distance
-            },
+            |i, j| self.local[j.flat].total_distance - self.local[i.flat].total_distance,
             |i, left, right| {
-                let flat_i = trkseg.to_flat_index(i);
-                let flat_left = trkseg.to_flat_index(left);
-                let flat_right = trkseg.to_flat_index(right);
                 let dist =
-                    self.local[flat_right].total_distance - self.local[flat_left].total_distance;
+                    self.local[right.flat].total_distance - self.local[left.flat].total_distance;
                 let ele = trkseg[right].ele - trkseg[left].ele;
-                self.local[flat_i].slope = slope(ele, dist);
+                self.local[i.flat].slope = slope(ele, dist);
             },
         );
+    }
+
+    fn get_elevation_extremas(&self, trkseg: &TrackSegment) -> Vec<TrackSegmentIndex> {
+        ramer_douglas_peucker(
+            trkseg,
+            &|idx| {
+                (
+                    self.local[idx.flat].total_distance * 1000.0,
+                    trkseg[idx].ele,
+                )
+            },
+            20.0,
+        )
     }
 }
 
@@ -228,7 +217,7 @@ impl GPXStatistics {
 pub struct GlobalStatistics {
     pub total_distance: f64,
     pub moving_distance: Option<f64>,
-    pub moving_time: Option<i64>,
+    pub moving_time: Option<i32>,
     pub elevation_gain: f64,
     pub elevation_loss: f64,
     pub start_time: Option<i64>,
@@ -237,8 +226,8 @@ pub struct GlobalStatistics {
 }
 
 impl GlobalStatistics {
-    pub fn total_time(&self) -> Option<i64> {
-        self.start_time.zip(self.end_time).map(|(t1, t2)| t2 - t1)
+    pub fn total_time(&self) -> Option<i32> {
+        time_diff(&self.start_time, &self.end_time)
     }
 
     pub fn total_speed(&self) -> Option<f64> {
@@ -265,8 +254,8 @@ impl GlobalStatistics {
 pub struct TrackpointStatistics {
     pub total_distance: f64,
     pub moving_distance: Option<f64>,
-    pub total_time: Option<i64>,
-    pub moving_time: Option<i64>,
+    pub total_time: Option<i32>,
+    pub moving_time: Option<i32>,
     pub speed: Option<f64>,
     pub elevation_gain: f64,
     pub elevation_loss: f64,
@@ -275,7 +264,7 @@ pub struct TrackpointStatistics {
 }
 
 impl TrackpointStatistics {
-    fn from_partial_stats(stats: &GPXStatistics) -> Self {
+    fn from_partial_stats(stats: &Statistics) -> Self {
         Self {
             total_distance: stats.global.total_distance,
             moving_distance: stats.global.moving_distance,
@@ -313,7 +302,7 @@ mod tests {
         let gpx = parse(data.as_bytes()).unwrap();
 
         let trkseg = &gpx.trk[0].trkseg[0];
-        let stats = GPXStatistics::compute(trkseg);
+        let stats = Statistics::compute(trkseg);
         assert_eq!(stats.local.len(), trkseg.len());
         for trkpt_stats in stats.local.iter() {
             assert!(trkpt_stats.speed.is_some());

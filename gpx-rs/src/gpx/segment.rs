@@ -60,6 +60,7 @@ impl TrackSegment {
         let mut next = cur.map_or_default(|idx| TrackSegmentIndex {
             chunk: idx.chunk,
             pos: idx.pos + 1,
+            flat: idx.flat + 1,
         });
         loop {
             if next.chunk >= self.chunks.len() {
@@ -78,6 +79,7 @@ impl TrackSegment {
         let mut prev = cur.unwrap_or(TrackSegmentIndex {
             chunk: self.chunks.len(),
             pos: 0,
+            flat: self.cumul_length.last().copied().unwrap_or_default(),
         });
         loop {
             if prev.pos == 0 {
@@ -86,20 +88,13 @@ impl TrackSegment {
                 }
                 prev.chunk -= 1;
                 prev.pos = self.chunks[prev.chunk].trkpt.len();
+                prev.flat -= 1;
             } else {
                 prev.pos -= 1;
+                prev.flat -= 1;
                 return Some(prev);
             }
         }
-    }
-
-    pub fn to_flat_index(&self, idx: TrackSegmentIndex) -> usize {
-        idx.pos
-            + if idx.chunk > 0 {
-                self.cumul_length[idx.chunk - 1]
-            } else {
-                0
-            }
     }
 
     fn locate(&self, idx: usize) -> Option<TrackSegmentIndex> {
@@ -115,7 +110,11 @@ impl TrackSegment {
         if pos >= self.chunks[chunk].trkpt.len() {
             None
         } else {
-            Some(TrackSegmentIndex { chunk, pos })
+            Some(TrackSegmentIndex {
+                chunk,
+                pos,
+                flat: idx,
+            })
         }
     }
 }
@@ -140,6 +139,7 @@ impl Index<usize> for TrackSegment {
 pub struct TrackSegmentIndex {
     pub chunk: usize,
     pub pos: usize,
+    pub flat: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -166,10 +166,7 @@ impl<'a> Iterator for TrackSegmentIterator<'a> {
     }
 
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        let idx = self
-            .idx
-            .map_or_default(|idx| self.trkseg.to_flat_index(idx))
-            + n;
+        let idx = self.idx.map_or_default(|idx| idx.flat) + n;
         self.idx = self.trkseg.locate(idx);
         self.idx.map(|idx| &self.trkseg[idx])
     }
@@ -242,6 +239,7 @@ mod tests {
         trkseg[TrackSegmentIndex {
             chunk: trkseg.chunks.len(),
             pos: 0,
+            flat: 0,
         }]
         .ele;
     }

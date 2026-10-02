@@ -45,6 +45,9 @@ macro_rules! for_each_window {
             let $r = window_end;
             $body
             // go next
+            if window_center == $right {
+                break;
+            }
             window_center = $trkseg.next_index(window_center);
         }
     }};
