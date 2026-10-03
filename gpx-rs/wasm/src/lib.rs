@@ -11,7 +11,7 @@ use std::cell::RefCell;
 
 use wasm_bindgen::prelude::*;
 
-use gpx_engine::{self as engine, Command, Engine, FileId, LngLat, LngLatBounds};
+use gpx_engine::{self as engine, Action, Command, Engine, FileId, LngLat, LngLatBounds};
 use js_sys::{Float64Array, Int32Array};
 
 #[wasm_bindgen]
@@ -50,11 +50,15 @@ thread_local! {
     static ENGINE: RefCell<Option<Engine>> = RefCell::new(None);
 }
 
-fn execute(command: Command) -> bool {
+fn execute(action: Action) -> bool {
     ENGINE.with(|engine| match engine.borrow_mut().as_mut() {
-        Some(engine) => engine.execute(command),
+        Some(engine) => engine.execute(action),
         None => false,
     })
+}
+
+fn edit(command: Command) -> bool {
+    execute(Action::Edit(command))
 }
 
 /// Decodes concatenated 16-byte UUIDs.
@@ -114,78 +118,78 @@ stats_getter!(slope_segment_distance, Float64Array);
 
 #[wasm_bindgen]
 pub fn new_file(name: &str) -> bool {
-    execute(Command::New { name })
+    edit(Command::New(engine::New { name }))
 }
 
 #[wasm_bindgen]
 pub fn load_file(data: &[u8]) -> bool {
-    execute(Command::Load { data })
+    edit(Command::Load(engine::Load { data }))
 }
 
 #[wasm_bindgen]
 pub fn duplicate() -> bool {
-    execute(Command::Duplicate)
+    edit(Command::Duplicate(engine::Duplicate))
 }
 
 #[wasm_bindgen]
 pub fn delete() -> bool {
-    execute(Command::Delete)
+    edit(Command::Delete(engine::Delete))
 }
 
 #[wasm_bindgen]
 pub fn delete_all() -> bool {
-    execute(Command::DeleteAll)
+    edit(Command::DeleteAll(engine::DeleteAll))
 }
 
 // Edit commands
 
 #[wasm_bindgen]
 pub fn metadata(name: &str, desc: &str) -> bool {
-    execute(Command::Metadata { name, desc })
+    edit(Command::Metadata(engine::Metadata { name, desc }))
 }
 
 #[wasm_bindgen]
 pub fn style(color: Option<String>, opacity: Option<f64>, width: Option<f64>) -> bool {
-    execute(Command::Style {
+    edit(Command::Style(engine::Style {
         color: color.as_deref(),
         opacity,
         width,
-    })
+    }))
 }
 
 #[wasm_bindgen]
 pub fn new_track() -> bool {
-    execute(Command::NewTrack)
+    edit(Command::NewTrack(engine::NewTrack))
 }
 
 #[wasm_bindgen]
 pub fn new_track_segment() -> bool {
-    execute(Command::NewTrackSegment)
+    edit(Command::NewTrackSegment(engine::NewTrackSegment))
 }
 
 // Tools
 
 #[wasm_bindgen]
 pub fn reverse() -> bool {
-    execute(Command::Reverse)
+    edit(Command::Reverse(engine::Reverse))
 }
 
 #[wasm_bindgen]
 pub fn append(lng: &[f64], lat: &[f64], ele: &[f64]) -> bool {
-    same_len(lng, lat, ele) && execute(Command::Append { lng, lat, ele })
+    same_len(lng, lat, ele) && edit(Command::Append(engine::Append { lng, lat, ele }))
 }
 
 #[wasm_bindgen]
 pub fn replace(start: u32, end: u32, lng: &[f64], lat: &[f64], ele: &[f64]) -> bool {
     start <= end
         && same_len(lng, lat, ele)
-        && execute(Command::Replace {
+        && edit(Command::Replace(engine::Replace {
             start,
             end,
             lng,
             lat,
             ele,
-        })
+        }))
 }
 
 #[wasm_bindgen]
@@ -198,7 +202,7 @@ pub fn new_waypoint(
     icon: &str,
     link: &str,
 ) -> bool {
-    execute(Command::NewWaypoint {
+    edit(Command::NewWaypoint(engine::NewWaypoint {
         lng,
         lat,
         ele,
@@ -206,44 +210,48 @@ pub fn new_waypoint(
         desc,
         icon,
         link,
-    })
+    }))
 }
 
 #[wasm_bindgen]
 pub fn move_waypoint(lng: f64, lat: f64, ele: f64) -> bool {
-    execute(Command::MoveWaypoint { lng, lat, ele })
+    edit(Command::MoveWaypoint(engine::MoveWaypoint {
+        lng,
+        lat,
+        ele,
+    }))
 }
 
 #[wasm_bindgen]
 pub fn crop(start: u32, end: u32) -> bool {
-    start <= end && execute(Command::Crop { start, end })
+    start <= end && edit(Command::Crop(engine::Crop { start, end }))
 }
 
 #[wasm_bindgen]
 pub fn split(at: u32) -> bool {
-    execute(Command::Split { at })
+    edit(Command::Split(engine::Split { at }))
 }
 
 #[wasm_bindgen]
 pub fn time() -> bool {
-    execute(Command::Time)
+    edit(Command::Time(engine::Time))
 }
 
 #[wasm_bindgen]
 pub fn merge(type_: MergeType) -> bool {
-    execute(Command::Merge {
+    edit(Command::Merge(engine::Merge {
         type_: type_.into(),
-    })
+    }))
 }
 
 #[wasm_bindgen]
 pub fn extract() -> bool {
-    execute(Command::Extract)
+    edit(Command::Extract(engine::Extract))
 }
 
 #[wasm_bindgen]
 pub fn elevation(ele: &[f64]) -> bool {
-    execute(Command::Elevation { ele })
+    edit(Command::Elevation(engine::Elevation { ele }))
 }
 
 #[wasm_bindgen]
@@ -256,7 +264,7 @@ pub fn clean(
     trkpt: bool,
     wpt: bool,
 ) -> bool {
-    execute(Command::Clean {
+    edit(Command::Clean(engine::Clean {
         bounds: LngLatBounds {
             sw: LngLat {
                 lng: west,
@@ -270,42 +278,42 @@ pub fn clean(
         type_: type_.into(),
         trkpt,
         wpt,
-    })
+    }))
 }
 
 // Undo-redo
 
 #[wasm_bindgen]
 pub fn undo() -> bool {
-    execute(Command::Undo)
+    execute(Action::Undo)
 }
 
 #[wasm_bindgen]
 pub fn redo() -> bool {
-    execute(Command::Redo)
+    execute(Action::Redo)
 }
 
 // Selection
 
-/// `file_ids`: concatenated 16-byte UUIDs.
+/// `file_ids_bytes`: concatenated 16-byte UUIDs.
 #[wasm_bindgen]
 pub fn select(file_ids_bytes: &[u8]) -> bool {
     match file_ids(file_ids_bytes) {
-        Some(file_ids) => execute(Command::Select { file_ids }),
+        Some(file_ids) => execute(Action::Select { file_ids }),
         None => false,
     }
 }
 
-/// `file_ids`: concatenated 16-byte UUIDs.
+/// `file_ids_bytes`: concatenated 16-byte UUIDs.
 #[wasm_bindgen]
 pub fn add_select(file_ids_bytes: &[u8]) -> bool {
     match file_ids(file_ids_bytes) {
-        Some(file_ids) => execute(Command::AddSelect { file_ids }),
+        Some(file_ids) => execute(Action::AddSelect { file_ids }),
         None => false,
     }
 }
 
 #[wasm_bindgen]
 pub fn select_all() -> bool {
-    execute(Command::SelectAll)
+    execute(Action::SelectAll)
 }

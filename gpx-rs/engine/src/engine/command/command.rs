@@ -1,102 +1,64 @@
-use crate::{FileId, LngLatBounds};
+use crate::{
+    Append, Clean, Crop, Delete, DeleteAll, Duplicate, Elevation, Extract, Load, Merge, Metadata,
+    MoveWaypoint, New, NewTrack, NewTrackSegment, NewWaypoint, Replace, Reverse, Split, Style,
+    Time,
+};
+use crate::{Apply, CommandError, State};
 
-/// A user action, decoded from the WASM boundary.
+/// A user action that edits the files. Each variant wraps the command's own struct, whose
+/// effect is implemented in its own file (see `Apply`).
 ///
 /// Bulk data (coordinates, file bytes) is borrowed straight from the wasm-bindgen argument
 /// buffers, so a command is built without copying; the engine only copies what it keeps.
+#[derive(Debug)]
 pub enum Command<'a> {
-    // File commands
-    New {
-        name: &'a str,
-    },
-    Load {
-        data: &'a [u8],
-    },
-    Duplicate,
-    Delete,
-    DeleteAll,
-    // Edit commands
-    Metadata {
-        name: &'a str,
-        desc: &'a str,
-    },
-    Style {
-        color: Option<&'a str>,
-        opacity: Option<f64>,
-        width: Option<f64>,
-    },
-    NewTrack,
-    NewTrackSegment,
-    // Tools
-    Reverse,
-    Append {
-        lng: &'a [f64],
-        lat: &'a [f64],
-        ele: &'a [f64],
-    },
-    Replace {
-        start: u32,
-        end: u32,
-        lng: &'a [f64],
-        lat: &'a [f64],
-        ele: &'a [f64],
-    },
-    NewWaypoint {
-        lng: f64,
-        lat: f64,
-        ele: f64,
-        name: &'a str,
-        desc: &'a str,
-        icon: &'a str,
-        link: &'a str,
-    },
-    MoveWaypoint {
-        lng: f64,
-        lat: f64,
-        ele: f64,
-    },
-    Crop {
-        start: u32,
-        end: u32,
-    },
-    Split {
-        at: u32,
-    },
-    Time,
-    Merge {
-        type_: MergeType,
-    },
-    Extract,
-    Elevation {
-        ele: &'a [f64],
-    },
-    Clean {
-        bounds: LngLatBounds,
-        type_: CleanType,
-        trkpt: bool,
-        wpt: bool,
-    },
-    // Undo-redo
-    Undo,
-    Redo,
-    // Selection
-    Select {
-        file_ids: Vec<FileId>,
-    },
-    AddSelect {
-        file_ids: Vec<FileId>,
-    },
-    SelectAll,
+    New(New<'a>),
+    Load(Load<'a>),
+    Duplicate(Duplicate),
+    Delete(Delete),
+    DeleteAll(DeleteAll),
+    Metadata(Metadata<'a>),
+    Style(Style<'a>),
+    NewTrack(NewTrack),
+    NewTrackSegment(NewTrackSegment),
+    Reverse(Reverse),
+    Append(Append<'a>),
+    Replace(Replace<'a>),
+    NewWaypoint(NewWaypoint<'a>),
+    MoveWaypoint(MoveWaypoint),
+    Crop(Crop),
+    Split(Split),
+    Time(Time),
+    Merge(Merge),
+    Extract(Extract),
+    Elevation(Elevation<'a>),
+    Clean(Clean),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum MergeType {
-    Connect,
-    Group,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CleanType {
-    Inside,
-    Outside,
+impl Apply for Command<'_> {
+    fn apply(self, state: &mut State) -> Result<(), CommandError> {
+        match self {
+            Command::New(c) => c.apply(state),
+            Command::Load(c) => c.apply(state),
+            Command::Duplicate(c) => c.apply(state),
+            Command::Delete(c) => c.apply(state),
+            Command::DeleteAll(c) => c.apply(state),
+            Command::Metadata(c) => c.apply(state),
+            Command::Style(c) => c.apply(state),
+            Command::NewTrack(c) => c.apply(state),
+            Command::NewTrackSegment(c) => c.apply(state),
+            Command::Reverse(c) => c.apply(state),
+            Command::Append(c) => c.apply(state),
+            Command::Replace(c) => c.apply(state),
+            Command::NewWaypoint(c) => c.apply(state),
+            Command::MoveWaypoint(c) => c.apply(state),
+            Command::Crop(c) => c.apply(state),
+            Command::Split(c) => c.apply(state),
+            Command::Time(c) => c.apply(state),
+            Command::Merge(c) => c.apply(state),
+            Command::Extract(c) => c.apply(state),
+            Command::Elevation(c) => c.apply(state),
+            Command::Clean(c) => c.apply(state),
+        }
+    }
 }
