@@ -117,7 +117,8 @@ impl Stack {
 
 pub type StackEntry = HashMap<FileId, Rc<File>>;
 
-#[derive(Debug, Default)]
+/// Which files were added, removed or modified by a change of the current stack entry.
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Diff {
     pub added: Vec<FileId>,
     pub removed: Vec<FileId>,

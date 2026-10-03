@@ -1,0 +1,140 @@
+use std::hash::{Hash, Hasher};
+
+use crate::{File, FileId, TrackId, TrackSegmentId, TrackSegmentRevisionId, WaypointId};
+
+/// What the UI needs to display a file: its name and the structure of its tracks and waypoints,
+/// with the ids that reference every element. Coordinates are not part of it, they are read
+/// from the buffers of the [`CoordinatesCache`](crate::CoordinatesCache) (the `i`-th waypoint
+/// of a file is the `i`-th coordinates pair of its waypoint buffer, same for the trackpoints of
+/// a segment).
+#[derive(Debug, Clone, PartialEq)]
+pub struct FileStructure {
+    pub id: FileId,
+    pub name: String,
+    pub tracks: Vec<TrackNode>,
+    pub waypoints: Vec<WaypointNode>,
+    /// Changes whenever the waypoints of the file (hence their buffer) change.
+    pub waypoints_rev: u64,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct TrackNode {
+    pub id: TrackId,
+    pub name: Option<String>,
+    pub segments: Vec<SegmentNode>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct SegmentNode {
+    pub id: TrackSegmentId,
+    /// Changes whenever the trackpoints of the segment (hence their buffer) change.
+    pub rev_id: TrackSegmentRevisionId,
+    pub len: usize,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct WaypointNode {
+    pub id: WaypointId,
+    pub name: Option<String>,
+}
+
+impl FileStructure {
+    pub fn new(file: &File) -> Self {
+        Self {
+            id: file.id,
+            name: file.info.name.clone(),
+            tracks: file
+                .trk
+                .iter()
+                .map(|trk| TrackNode {
+                    id: trk.id,
+                    name: trk.info.name.clone(),
+                    segments: trk
+                        .trkseg
+                        .iter()
+                        .map(|seg| SegmentNode {
+                            id: seg.id,
+                            rev_id: seg.rev_id,
+                            len: seg.len(),
+                        })
+                        .collect(),
+                })
+                .collect(),
+            waypoints: file
+                .wpt
+                .iter()
+                .flat_map(|chunk| &chunk.wpt)
+                .map(|wpt| WaypointNode {
+                    id: wpt.id,
+                    name: wpt.name.clone(),
+                })
+                .collect(),
+            waypoints_rev: waypoints_revision(file),
+        }
+    }
+}
+
+/// Identifies the current waypoints of a file: chunks are immutable, so their ids are enough.
+pub fn waypoints_revision(file: &File) -> u64 {
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    for chunk in &file.wpt {
+        chunk.id.hash(&mut hasher);
+    }
+    hasher.finish()
+}
+
+#[cfg(test)]
+mod tests {
+    use std::rc::Rc;
+
+    use crate::{Apply, Load, Waypoint, WaypointChunk, engine::command::fixture::Fixture};
+
+    use super::*;
+
+    #[test]
+    fn test_structure_of_a_file() {
+        let mut fx = Fixture::default();
+        let data = std::fs::read("data/with_tracks_and_segments.gpx").unwrap();
+        Load { data: &data }.apply(&mut fx.state()).unwrap();
+        let file = &fx.files[&fx.order.0[0]];
+        let node = FileStructure::new(file);
+        assert_eq!((node.id, &node.name), (file.id, &file.info.name));
+        assert_eq!(node.tracks.len(), file.trk.len());
+        for (n, t) in node.tracks.iter().zip(&file.trk) {
+            assert_eq!((n.id, &n.name), (t.id, &t.info.name));
+            assert_eq!(n.segments.len(), t.trkseg.len());
+            for (n, s) in n.segments.iter().zip(&t.trkseg) {
+                assert_eq!((n.id, n.rev_id, n.len), (s.id, s.rev_id, s.len()));
+            }
+        }
+    }
+
+    #[test]
+    fn test_waypoints_in_buffer_order_and_revision() {
+        let mut file = crate::File::default();
+        let wpt = |n: &str| Waypoint {
+            name: Some(n.to_string()),
+            ..Default::default()
+        };
+        let before = waypoints_revision(&file);
+        file.wpt = vec![
+            Rc::new(WaypointChunk {
+                wpt: vec![wpt("a"), wpt("b")],
+                ..Default::default()
+            }),
+            Rc::new(WaypointChunk {
+                wpt: vec![wpt("c")],
+                ..Default::default()
+            }),
+        ];
+        let node = FileStructure::new(&file);
+        let names: Vec<_> = node
+            .waypoints
+            .iter()
+            .map(|w| w.name.clone().unwrap())
+            .collect();
+        assert_eq!(names, ["a", "b", "c"]);
+        assert_ne!(node.waypoints_rev, before);
+        assert_eq!(node.waypoints_rev, waypoints_revision(&file));
+    }
+}

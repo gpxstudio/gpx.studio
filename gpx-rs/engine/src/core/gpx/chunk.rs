@@ -31,7 +31,7 @@ impl TrackpointChunk {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct WaypointChunkId(Uuid);
 
 impl Default for WaypointChunkId {

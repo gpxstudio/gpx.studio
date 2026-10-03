@@ -3,7 +3,7 @@ mod command;
 mod edit;
 mod file;
 #[cfg(test)]
-mod fixture;
+pub(crate) mod fixture;
 mod pattern;
 mod tools;
 

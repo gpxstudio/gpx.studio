@@ -3,7 +3,7 @@ use uuid::Uuid;
 use crate::{Link, LngLat};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct WaypointId(Uuid);
+pub struct WaypointId(pub Uuid);
 
 impl Default for WaypointId {
     fn default() -> Self {

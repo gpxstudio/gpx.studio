@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use crate::{FileId, StackEntry, TrackId, TrackSegmentId, WaypointId};
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub enum Selection {
     #[default]
     Empty,

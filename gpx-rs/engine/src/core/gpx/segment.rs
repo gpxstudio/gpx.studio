@@ -5,7 +5,7 @@ use uuid::Uuid;
 use crate::{Trackpoint, TrackpointChunk};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct TrackSegmentId(Uuid);
+pub struct TrackSegmentId(pub Uuid);
 
 impl Default for TrackSegmentId {
     fn default() -> Self {
@@ -14,7 +14,7 @@ impl Default for TrackSegmentId {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct TrackSegmentRevisionId(Uuid);
+pub struct TrackSegmentRevisionId(pub Uuid);
 
 impl Default for TrackSegmentRevisionId {
     fn default() -> Self {

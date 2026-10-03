@@ -3,8 +3,8 @@
 use std::collections::HashSet;
 
 use crate::{
-    Action, Apply, Command, FileId, FileOrder, Selection, Stack, State, StatisticsBuffer,
-    StatisticsCache,
+    Action, Apply, Command, CoordinatesCache, Diff, FileId, FileOrder, FileStructure,
+    FileStructureCache, Selection, Stack, State, StatisticsBuffer, StatisticsCache, TrackSegmentId,
 };
 
 #[derive(Debug, Default)]
@@ -13,6 +13,10 @@ pub struct Engine {
     selection: Selection,
     order: FileOrder,
     statistics_cache: StatisticsCache,
+    coordinates_cache: CoordinatesCache,
+    structure_cache: FileStructureCache,
+    diff: Option<Diff>,
+    order_changed: bool,
     statistics_buffer: StatisticsBuffer,
 }
 
@@ -21,18 +25,51 @@ impl Engine {
         &self.statistics_buffer
     }
 
+    /// Files in display order.
+    pub fn order(&self) -> &[FileId] {
+        &self.order.0
+    }
+
+    /// Name, tracks, segments and waypoints (with their ids) of a file.
+    pub fn file_structure(&self, id: &FileId) -> Option<&FileStructure> {
+        self.structure_cache.get(id)
+    }
+
+    /// Which files the last action added, removed or modified.
+    pub fn last_diff(&self) -> &Option<Diff> {
+        &self.diff
+    }
+
+    /// Whether the last action changed the order of the files.
+    pub fn order_changed(&self) -> bool {
+        self.order_changed
+    }
+
+    /// Coordinates (`[lng, lat, ...]`) of the trackpoints of a segment.
+    pub fn segment_coordinates(&self, id: &TrackSegmentId) -> &[f64] {
+        self.coordinates_cache.segment(id)
+    }
+
+    /// Coordinates (`[lng, lat, ...]`) of the waypoints of a file.
+    pub fn waypoint_coordinates(&self, id: &FileId) -> &[f64] {
+        self.coordinates_cache.waypoints(id)
+    }
+
     /// Single entry point for every action coming from the frontend. Returns whether anything
     /// changed.
     pub fn execute(&mut self, action: Action) -> bool {
-        let changed = match action {
+        let selection_before = self.selection.clone();
+        let order_before = self.order.0.clone();
+        // the files change iff there is a diff, but selection and order actions have none
+        self.diff = match action {
             Action::Edit(command) => self.edit(command),
-            Action::Undo => self.stack.undo().is_some(),
-            Action::Redo => self.stack.redo().is_some(),
+            Action::Undo => self.stack.undo(),
+            Action::Redo => self.stack.redo(),
             Action::Select { file_ids } => {
                 self.selection = Selection::File {
                     file_ids: file_ids.into_iter().collect(),
                 };
-                true
+                None
             }
             Action::AddSelect { file_ids } => {
                 match &mut self.selection {
@@ -43,33 +80,37 @@ impl Engine {
                         }
                     }
                 }
-                true
+                None
             }
-            Action::Reorder { file_ids, index } => self.order.move_files(&file_ids, index),
+            Action::Reorder { file_ids, index } => {
+                self.order.move_files(&file_ids, index);
+                None
+            }
             Action::SelectAll => {
                 self.selection = Selection::File {
                     file_ids: self.order.0.iter().copied().collect(),
                 };
-                true
+                None
             }
         };
+        let selection_changed = self.selection != selection_before;
+        self.order_changed = self.order.0 != order_before;
+        let changed = self.diff.is_some() || selection_changed || self.order_changed;
         if changed {
             self.refresh();
         }
         changed
     }
 
-    fn edit(&mut self, command: Command) -> bool {
-        self.stack
-            .create_and_push_next(|files| {
-                let mut state = State {
-                    files,
-                    selection: &mut self.selection,
-                    order: &mut self.order,
-                };
-                command.apply(&mut state).map_err(|err| err.to_string())
-            })
-            .is_some()
+    fn edit(&mut self, command: Command) -> Option<Diff> {
+        self.stack.create_and_push_next(|files| {
+            let mut state = State {
+                files,
+                selection: &mut self.selection,
+                order: &mut self.order,
+            };
+            command.apply(&mut state).map_err(|err| err.to_string())
+        })
     }
 
     /// Brings everything derived from the files back in line with the current stack entry.
@@ -87,6 +128,8 @@ impl Engine {
             }
         }
         self.statistics_cache.update(current);
+        self.coordinates_cache.update(current);
+        self.structure_cache.update(current, &self.diff);
         self.statistics_buffer
             .update(&self.statistics_cache.get(current, &self.selection));
     }
@@ -278,6 +321,64 @@ mod tests {
         // c comes back at the end
         assert!(engine.execute(Action::Redo));
         assert_eq!(engine.order.0, vec![a, b, c]);
+    }
+
+    #[test]
+    fn test_structures_and_coordinates_follow_actions() {
+        let mut engine = Engine::default();
+        assert!(engine.order().is_empty());
+        load(&mut engine, "data/simple.gpx");
+        let loaded_id = engine.order()[0];
+        let diff = engine.last_diff();
+        assert!(diff.is_some());
+        let diff = diff.as_ref().unwrap();
+        assert_eq!(diff.added, vec![loaded_id]);
+        assert!(engine.order_changed());
+
+        new(&mut engine, "empty");
+        let empty_id = engine.order()[1];
+        // only the new file is reported, the other one is not recomputed
+        let diff = engine.last_diff();
+        assert!(diff.is_some());
+        let diff = diff.as_ref().unwrap();
+        assert_eq!(diff.added, vec![empty_id]);
+        assert!(diff.modified.is_empty() && diff.removed.is_empty());
+        assert_eq!(engine.file_structure(&empty_id).unwrap().name, "empty");
+
+        let structure = engine.file_structure(&loaded_id).unwrap();
+        let seg = &structure.tracks[0].segments[0];
+        let (seg_id, len) = (seg.id, seg.len);
+        assert_eq!(engine.segment_coordinates(&seg_id).len(), len * 2);
+        assert!(engine.waypoint_coordinates(&loaded_id).is_empty());
+
+        // reordering only changes the order
+        assert!(engine.execute(Action::Reorder {
+            file_ids: vec![loaded_id],
+            index: 1
+        }));
+        assert_eq!(engine.order(), [empty_id, loaded_id]);
+        assert!(engine.last_diff().is_none());
+        assert!(engine.order_changed());
+
+        // an action that changes nothing reports nothing
+        assert!(!engine.execute(Action::Reorder {
+            file_ids: vec![loaded_id],
+            index: 1
+        }));
+        assert!(engine.last_diff().is_none());
+        assert!(!engine.order_changed());
+
+        // undo removes the empty file, redoing the load removes the other one too
+        assert!(engine.execute(Action::Undo));
+        let diff = engine.last_diff();
+        assert!(diff.is_some());
+        let diff = diff.as_ref().unwrap();
+        assert_eq!(diff.removed, vec![empty_id]);
+        assert!(engine.file_structure(&empty_id).is_none());
+        assert!(engine.execute(Action::Undo));
+        assert!(engine.order().is_empty());
+        assert!(engine.file_structure(&loaded_id).is_none());
+        assert!(engine.segment_coordinates(&seg_id).is_empty());
     }
 
     #[test]

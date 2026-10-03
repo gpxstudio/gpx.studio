@@ -3,7 +3,7 @@ use uuid::Uuid;
 use crate::{Link, TrackSegment};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct TrackId(Uuid);
+pub struct TrackId(pub Uuid);
 
 impl Default for TrackId {
     fn default() -> Self {

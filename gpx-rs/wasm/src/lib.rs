@@ -6,13 +6,15 @@
 //! - File bytes cross as `Uint8Array` (`&[u8]`), strings as `&str`.
 //! - File ids cross as one flat `Uint8Array` of concatenated 16-byte UUIDs (no `Array<string>`).
 //! - Rectangles cross as four numbers instead of an object.
+//! - Ids read from the file tree are hyphenated UUID strings; the functions reading buffers take
+//!   them as such.
 //! - Every function returns `false` when its arguments are invalid or the command did nothing.
 use std::cell::RefCell;
 
 use wasm_bindgen::prelude::*;
 
 use gpx_engine::{self as engine, Action, Command, Engine, FileId, LngLat, LngLatBounds};
-use js_sys::{Float64Array, Int32Array};
+use js_sys::{Array, Float64Array, Int32Array, Object, Reflect};
 
 #[wasm_bindgen]
 #[derive(Clone, Copy)]
@@ -318,4 +320,180 @@ pub fn add_select(file_ids_bytes: &[u8]) -> bool {
 #[wasm_bindgen]
 pub fn select_all() -> bool {
     execute(Action::SelectAll)
+}
+
+// File order and structures
+//
+// The files are described by one ordered list of ids and one structure object per file, so that
+// the UI can react to what changed only: after each action, `last_update` tells which
+// structures to (re)read or drop and whether the order changed. Ids are UUID strings. The
+// trackpoints of a segment and the waypoints of a file are in the same order as the coordinates
+// of their buffers (see below).
+
+#[wasm_bindgen(typescript_custom_section)]
+const FILE_STRUCTURE_TS: &str = r#"
+export interface FilesUpdate {
+    orderChanged: boolean;
+    /** Files to read the structure of. */
+    added: string[];
+    /** Files whose structure changed: reread it. */
+    modified: string[];
+    /** Files that do not exist anymore: drop their structure. */
+    removed: string[];
+}
+export interface FileStructure {
+    id: string;
+    name: string;
+    tracks: TrackNode[];
+    waypoints: WaypointNode[];
+    /** Changes when the waypoints of the file change: refetch their coordinates. */
+    waypointsRev: string;
+}
+export interface TrackNode {
+    id: string;
+    name?: string;
+    segments: SegmentNode[];
+}
+export interface SegmentNode {
+    id: string;
+    /** Changes when the trackpoints of the segment change: refetch their coordinates. */
+    rev: string;
+    /** Number of trackpoints. */
+    length: number;
+}
+export interface WaypointNode {
+    id: string;
+    name?: string;
+}
+"#;
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(typescript_type = "FilesUpdate")]
+    pub type FilesUpdate;
+    #[wasm_bindgen(typescript_type = "FileStructure | undefined")]
+    pub type FileStructure;
+    #[wasm_bindgen(typescript_type = "string[]")]
+    pub type FileOrder;
+}
+
+fn set(object: &Object, key: &str, value: impl Into<JsValue>) {
+    Reflect::set(object, &key.into(), &value.into()).unwrap();
+}
+
+fn array<T>(items: &[T], f: impl Fn(&T) -> JsValue) -> Array {
+    items.iter().map(f).collect()
+}
+
+fn ids(items: &[FileId]) -> Array {
+    array(items, |id| id.0.to_string().into())
+}
+
+fn named_node(id: uuid::Uuid, name: Option<&str>) -> Object {
+    let node = Object::new();
+    set(&node, "id", id.to_string());
+    if let Some(name) = name {
+        set(&node, "name", name);
+    }
+    node
+}
+
+fn structure_object(file: &engine::FileStructure) -> Object {
+    let node = named_node(file.id.0, Some(&file.name));
+    set(
+        &node,
+        "tracks",
+        array(&file.tracks, |trk| {
+            let node = named_node(trk.id.0, trk.name.as_deref());
+            set(
+                &node,
+                "segments",
+                array(&trk.segments, |seg| {
+                    let node = named_node(seg.id.0, None);
+                    set(&node, "rev", seg.rev_id.0.to_string());
+                    set(&node, "length", seg.len as f64);
+                    node.into()
+                }),
+            );
+            node.into()
+        }),
+    );
+    set(
+        &node,
+        "waypoints",
+        array(&file.waypoints, |wpt| {
+            named_node(wpt.id.0, wpt.name.as_deref()).into()
+        }),
+    );
+    set(&node, "waypointsRev", format!("{:x}", file.waypoints_rev));
+    node
+}
+
+fn with_engine<T>(f: impl FnOnce(&Engine) -> T) -> Option<T> {
+    ENGINE.with(|engine| engine.borrow().as_ref().map(f))
+}
+
+/// Ids of the files in display order.
+#[wasm_bindgen]
+pub fn file_order() -> FileOrder {
+    let order = with_engine(|e| ids(e.order())).unwrap_or_default();
+    order.unchecked_into()
+}
+
+/// Structure of a file, `undefined` if the id is unknown.
+#[wasm_bindgen]
+pub fn file_structure(file_id: &str) -> FileStructure {
+    let structure = uuid::Uuid::parse_str(file_id)
+        .ok()
+        .and_then(|id| {
+            with_engine(|e| e.file_structure(&FileId(id)).map(structure_object)).flatten()
+        })
+        .map_or(JsValue::UNDEFINED, JsValue::from);
+    structure.unchecked_into()
+}
+
+/// What the last action changed. Read it right after each action.
+#[wasm_bindgen]
+pub fn last_update() -> FilesUpdate {
+    let update = Object::new();
+    with_engine(|e| {
+        let diff = e.last_diff().clone().unwrap_or_default();
+        set(&update, "orderChanged", e.order_changed());
+        set(&update, "added", ids(&diff.added));
+        set(&update, "modified", ids(&diff.modified));
+        set(&update, "removed", ids(&diff.removed));
+    });
+    update.unchecked_into()
+}
+
+// Coordinates buffers
+//
+// Like the statistics buffers, these are views into wasm memory, invalidated by the next
+// command (and any allocation): read or copy them right away. They are flat `[lng, lat, ...]`
+// arrays. Compare `rev` / `waypointsRev` of the file structures with the previous ones to know which
+// buffers actually changed.
+
+fn coordinates_view(f: impl FnOnce(&Engine) -> Option<&[f64]>) -> Float64Array {
+    ENGINE.with(|engine| match engine.borrow().as_ref().and_then(f) {
+        Some(coordinates) => unsafe { Float64Array::view(coordinates) },
+        None => Float64Array::new_with_length(0),
+    })
+}
+
+/// Coordinates of the trackpoints of a segment (empty if the id is unknown).
+#[wasm_bindgen]
+pub fn segment_coordinates(segment_id: &str) -> Float64Array {
+    match uuid::Uuid::parse_str(segment_id) {
+        Ok(id) => coordinates_view(|e| Some(e.segment_coordinates(&engine::TrackSegmentId(id)))),
+        Err(_) => Float64Array::new_with_length(0),
+    }
+}
+
+/// Coordinates of the waypoints of a file (empty if the id is unknown).
+#[wasm_bindgen]
+pub fn waypoint_coordinates(file_id: &str) -> Float64Array {
+    match uuid::Uuid::parse_str(file_id) {
+        Ok(id) => coordinates_view(|e| Some(e.waypoint_coordinates(&FileId(id)))),
+        Err(_) => Float64Array::new_with_length(0),
+    }
 }
