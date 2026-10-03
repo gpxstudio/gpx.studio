@@ -425,7 +425,7 @@ fn structure_object(file: &engine::FileStructure) -> Object {
             named_node(wpt.id.0, wpt.name.as_deref()).into()
         }),
     );
-    set(&node, "waypointsRev", format!("{:x}", file.waypoints_rev));
+    set(&node, "waypointsRev", file.wpt_rev_id.0.to_string());
     node
 }
 

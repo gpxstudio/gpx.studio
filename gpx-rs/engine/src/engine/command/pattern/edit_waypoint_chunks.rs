@@ -33,5 +33,8 @@ pub fn edit_waypoint_chunks(
         }
     }
     file.wpt = chunks;
+    if changed {
+        file.wpt_rev_id = Default::default();
+    }
     changed
 }

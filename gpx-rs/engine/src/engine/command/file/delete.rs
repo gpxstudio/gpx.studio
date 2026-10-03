@@ -181,7 +181,9 @@ mod tests {
             file_id: id,
             wpt_ids: HashSet::from([ids[1]]),
         };
+        let rev = fx.files[&id].wpt_rev_id;
         Delete.apply(&mut fx.state()).unwrap();
+        assert_ne!(fx.files[&id].wpt_rev_id, rev);
         let left: Vec<_> = fx.files[&id]
             .wpt
             .iter()

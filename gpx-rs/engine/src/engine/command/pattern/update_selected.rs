@@ -305,7 +305,9 @@ mod tests {
             file_id: id,
             wpt_ids: HashSet::from([ids[1]]),
         };
+        let rev = fx.files[&id].wpt_rev_id;
         update_selected(&mut fx.state(), &mut Name);
+        assert_ne!(fx.files[&id].wpt_rev_id, rev);
         let chunk = &fx.files[&id].wpt[0];
         assert_ne!(chunk.id, chunk_id);
         let named: Vec<_> = chunk.wpt.iter().map(|w| w.name.is_some()).collect();

@@ -161,6 +161,7 @@ fn duplicate_waypoints(
         chunks
     };
     file.wpt.splice(last_chunk..=last_chunk, replacement);
+    file.wpt_rev_id = Default::default();
     files.insert(file_id, Rc::new(file));
     Ok(Selection::Waypoint {
         file_id,
@@ -304,7 +305,9 @@ mod tests {
             file_id: id,
             wpt_ids: HashSet::from([ids[0]]),
         };
+        let rev = fx.files[&id].wpt_rev_id;
         Duplicate.apply(&mut fx.state()).unwrap();
+        assert_ne!(fx.files[&id].wpt_rev_id, rev);
         let all: Vec<_> = fx.files[&id]
             .wpt
             .iter()

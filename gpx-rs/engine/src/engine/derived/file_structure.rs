@@ -1,6 +1,7 @@
-use std::hash::{Hash, Hasher};
-
-use crate::{File, FileId, TrackId, TrackSegmentId, TrackSegmentRevisionId, WaypointId};
+use crate::{
+    File, FileId, FileWaypointsRevisionId, TrackId, TrackSegmentId, TrackSegmentRevisionId,
+    WaypointId,
+};
 
 /// What the UI needs to display a file: its name and the structure of its tracks and waypoints,
 /// with the ids that reference every element. Coordinates are not part of it, they are read
@@ -14,7 +15,7 @@ pub struct FileStructure {
     pub tracks: Vec<TrackNode>,
     pub waypoints: Vec<WaypointNode>,
     /// Changes whenever the waypoints of the file (hence their buffer) change.
-    pub waypoints_rev: u64,
+    pub wpt_rev_id: FileWaypointsRevisionId,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -69,18 +70,9 @@ impl FileStructure {
                     name: wpt.name.clone(),
                 })
                 .collect(),
-            waypoints_rev: waypoints_revision(file),
+            wpt_rev_id: file.wpt_rev_id,
         }
     }
-}
-
-/// Identifies the current waypoints of a file: chunks are immutable, so their ids are enough.
-pub fn waypoints_revision(file: &File) -> u64 {
-    let mut hasher = std::collections::hash_map::DefaultHasher::new();
-    for chunk in &file.wpt {
-        chunk.id.hash(&mut hasher);
-    }
-    hasher.finish()
 }
 
 #[cfg(test)]
@@ -116,7 +108,8 @@ mod tests {
             name: Some(n.to_string()),
             ..Default::default()
         };
-        let before = waypoints_revision(&file);
+        let before = file.wpt_rev_id;
+        file.wpt_rev_id = Default::default();
         file.wpt = vec![
             Rc::new(WaypointChunk {
                 wpt: vec![wpt("a"), wpt("b")],
@@ -134,7 +127,7 @@ mod tests {
             .map(|w| w.name.clone().unwrap())
             .collect();
         assert_eq!(names, ["a", "b", "c"]);
-        assert_ne!(node.waypoints_rev, before);
-        assert_eq!(node.waypoints_rev, waypoints_revision(&file));
+        assert_ne!(node.wpt_rev_id, before);
+        assert_eq!(node.wpt_rev_id, file.wpt_rev_id);
     }
 }

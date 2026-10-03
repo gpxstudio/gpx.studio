@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::{
-    FileId, StackEntry as Files, TrackSegmentId, TrackSegmentRevisionId, waypoints_revision,
+    FileId, FileWaypointsRevisionId, StackEntry as Files, TrackSegmentId, TrackSegmentRevisionId,
 };
 
 /// Coordinates buffers, as flat `[lng, lat, lng, lat, ...]` arrays so that they can be handed
@@ -11,7 +11,7 @@ use crate::{
 #[derive(Debug, Default)]
 pub struct CoordinatesCache {
     segments: HashMap<TrackSegmentId, (TrackSegmentRevisionId, Vec<f64>)>,
-    waypoints: HashMap<FileId, (u64, Vec<f64>)>,
+    waypoints: HashMap<FileId, (FileWaypointsRevisionId, Vec<f64>)>,
 }
 
 impl CoordinatesCache {
@@ -20,15 +20,19 @@ impl CoordinatesCache {
         let mut waypoints = HashSet::new();
         for file in files.into_iter().flat_map(|files| files.values()) {
             waypoints.insert(file.id);
-            let rev = waypoints_revision(file);
-            if self.waypoints.get(&file.id).is_none_or(|(r, _)| *r != rev) {
+            if self
+                .waypoints
+                .get(&file.id)
+                .is_none_or(|(r, _)| *r != file.wpt_rev_id)
+            {
                 let coordinates = file
                     .wpt
                     .iter()
                     .flat_map(|chunk| &chunk.wpt)
                     .flat_map(|wpt| [wpt.coordinates.lng, wpt.coordinates.lat])
                     .collect();
-                self.waypoints.insert(file.id, (rev, coordinates));
+                self.waypoints
+                    .insert(file.id, (file.wpt_rev_id, coordinates));
             }
             for seg in file.trk.iter().flat_map(|trk| &trk.trkseg) {
                 segments.insert(seg.id);
@@ -131,6 +135,7 @@ mod tests {
             ..Default::default()
         };
         let mut file = (*fx.files[&id]).clone();
+        file.wpt_rev_id = Default::default();
         file.wpt = vec![
             Rc::new(WaypointChunk {
                 wpt: vec![wpt(1.0, 2.0)],
