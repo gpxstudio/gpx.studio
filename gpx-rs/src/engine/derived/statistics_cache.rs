@@ -43,28 +43,32 @@ impl StatisticsCache {
         if let Some(state) = state {
             match selection {
                 Selection::Empty => (),
-                Selection::File(s) => {
-                    for id in s.files.iter() {
+                Selection::File { file_ids } => {
+                    for id in file_ids.iter() {
                         if let Some(file) = state.get(id) {
                             self.add_file_stats(file, &mut stats);
                         }
                     }
                 }
-                Selection::Track(s) => {
-                    if let Some(file) = state.get(&s.file) {
+                Selection::Track { file_id, trk_ids } => {
+                    if let Some(file) = state.get(file_id) {
                         for trk in file.trk.iter() {
-                            if s.trk.contains(&trk.id) {
+                            if trk_ids.contains(&trk.id) {
                                 self.add_track_stats(trk, &mut stats);
                             }
                         }
                     }
                 }
-                Selection::TrackSegment(s) => {
-                    if let Some(file) = state.get(&s.file) {
+                Selection::TrackSegment {
+                    file_id,
+                    trk_id,
+                    trkseg_ids,
+                } => {
+                    if let Some(file) = state.get(file_id) {
                         for trk in file.trk.iter() {
-                            if s.trk == trk.id {
+                            if *trk_id == trk.id {
                                 for trkseg in trk.trkseg.iter() {
-                                    if s.trkseg.contains(&trkseg.id) {
+                                    if trkseg_ids.contains(&trkseg.id) {
                                         self.add_segment_stats(trkseg, &mut stats);
                                     }
                                 }
@@ -73,13 +77,16 @@ impl StatisticsCache {
                         }
                     }
                 }
-                Selection::Waypoints(s) => {
-                    if let Some(file) = state.get(&s.file) {
+                Selection::Waypoints { file_id } => {
+                    if let Some(file) = state.get(file_id) {
                         self.add_file_stats(file, &mut stats);
                     }
                 }
-                Selection::Waypoint(s) => {
-                    if let Some(file) = state.get(&s.file) {
+                Selection::Waypoint {
+                    file_id,
+                    wpt_ids: _,
+                } => {
+                    if let Some(file) = state.get(file_id) {
                         self.add_file_stats(file, &mut stats);
                     }
                 }
