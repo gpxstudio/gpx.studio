@@ -11,7 +11,40 @@ use std::cell::RefCell;
 
 use wasm_bindgen::prelude::*;
 
-use crate::{CleanType, Command, Engine, FileId, LngLat, LngLatBounds, MergeType};
+use gpx_engine::{self as engine, Command, Engine, FileId, LngLat, LngLatBounds};
+use js_sys::{Float64Array, Int32Array};
+
+#[wasm_bindgen]
+#[derive(Clone, Copy)]
+pub enum MergeType {
+    Connect,
+    Group,
+}
+
+#[wasm_bindgen]
+#[derive(Clone, Copy)]
+pub enum CleanType {
+    Inside,
+    Outside,
+}
+
+impl From<MergeType> for engine::MergeType {
+    fn from(t: MergeType) -> Self {
+        match t {
+            MergeType::Connect => Self::Connect,
+            MergeType::Group => Self::Group,
+        }
+    }
+}
+
+impl From<CleanType> for engine::CleanType {
+    fn from(t: CleanType) -> Self {
+        match t {
+            CleanType::Inside => Self::Inside,
+            CleanType::Outside => Self::Outside,
+        }
+    }
+}
 
 thread_local! {
     static ENGINE: RefCell<Option<Engine>> = RefCell::new(None);
@@ -46,6 +79,36 @@ pub fn start() {
         *engine.borrow_mut() = Some(Engine::default());
     });
 }
+
+// Statistics buffers
+//
+// These are views into wasm memory: they are invalidated by the next command (and any
+// allocation), so read or copy them right away.
+
+fn with_stats<T>(f: impl FnOnce(&engine::StatisticsBuffer) -> T) -> Option<T> {
+    ENGINE.with(|engine| engine.borrow().as_ref().map(|e| f(e.statistics())))
+}
+
+macro_rules! stats_getter {
+    ($name:ident, $array:ident) => {
+        #[wasm_bindgen]
+        pub fn $name() -> $array {
+            with_stats(|s| unsafe { $array::view(&s.$name) })
+                .unwrap_or_else(|| $array::new_with_length(0))
+        }
+    };
+}
+
+stats_getter!(total_distance, Float64Array);
+stats_getter!(moving_distance, Float64Array);
+stats_getter!(total_time, Int32Array);
+stats_getter!(moving_time, Int32Array);
+stats_getter!(speed, Float64Array);
+stats_getter!(elevation_gain, Float64Array);
+stats_getter!(elevation_loss, Float64Array);
+stats_getter!(slope, Float64Array);
+stats_getter!(slope_segment_slope, Float64Array);
+stats_getter!(slope_segment_distance, Float64Array);
 
 // File commands
 
@@ -168,7 +231,9 @@ pub fn time() -> bool {
 
 #[wasm_bindgen]
 pub fn merge(type_: MergeType) -> bool {
-    execute(Command::Merge { type_ })
+    execute(Command::Merge {
+        type_: type_.into(),
+    })
 }
 
 #[wasm_bindgen]
@@ -202,7 +267,7 @@ pub fn clean(
                 lat: north,
             },
         },
-        type_,
+        type_: type_.into(),
         trkpt,
         wpt,
     })

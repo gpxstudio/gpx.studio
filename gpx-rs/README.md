@@ -1,3 +1,3 @@
 ```
-wasm-pack build --target bundler
+wasm-pack build wasm --target bundler --out-dir ../pkg
 ```

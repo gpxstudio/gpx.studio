@@ -2,14 +2,11 @@
 
 use std::rc::Rc;
 
-use js_sys::{Float64Array, Function, Int32Array};
 use uuid::Uuid;
 
 use crate::{
     Command, File, FileId, Selection, Stack, StackEntry, StatisticsBuffer, StatisticsCache, parse,
 };
-
-extern crate console_error_panic_hook;
 
 #[derive(Debug, Default)]
 pub struct Engine {
@@ -20,44 +17,8 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub fn total_distance(&self) -> Float64Array {
-        unsafe { Float64Array::view(&self.statistics_buffer.total_distance) }
-    }
-
-    pub fn moving_distance(&self) -> Float64Array {
-        unsafe { Float64Array::view(&self.statistics_buffer.moving_distance) }
-    }
-
-    pub fn total_time(&self) -> Int32Array {
-        unsafe { Int32Array::view(&self.statistics_buffer.total_time) }
-    }
-
-    pub fn moving_time(&self) -> Int32Array {
-        unsafe { Int32Array::view(&self.statistics_buffer.moving_time) }
-    }
-
-    pub fn speed(&self) -> Float64Array {
-        unsafe { Float64Array::view(&self.statistics_buffer.speed) }
-    }
-
-    pub fn elevation_gain(&self) -> Float64Array {
-        unsafe { Float64Array::view(&self.statistics_buffer.elevation_gain) }
-    }
-
-    pub fn elevation_loss(&self) -> Float64Array {
-        unsafe { Float64Array::view(&self.statistics_buffer.elevation_loss) }
-    }
-
-    pub fn slope(&self) -> Float64Array {
-        unsafe { Float64Array::view(&self.statistics_buffer.slope) }
-    }
-
-    pub fn slope_segment_slope(&self) -> Float64Array {
-        unsafe { Float64Array::view(&self.statistics_buffer.slope_segment_slope) }
-    }
-
-    pub fn slope_segment_distance(&self) -> Float64Array {
-        unsafe { Float64Array::view(&self.statistics_buffer.slope_segment_distance) }
+    pub fn statistics(&self) -> &StatisticsBuffer {
+        &self.statistics_buffer
     }
 
     pub fn create_file(&mut self, name: &str) -> bool {

@@ -1,5 +1,3 @@
-use wasm_bindgen::prelude::*;
-
 use crate::{FileId, LngLatBounds};
 
 /// A user action, decoded from the WASM boundary.
@@ -91,14 +89,12 @@ pub enum Command<'a> {
     SelectAll,
 }
 
-#[wasm_bindgen]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MergeType {
     Connect,
     Group,
 }
 
-#[wasm_bindgen]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CleanType {
     Inside,
