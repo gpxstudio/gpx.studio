@@ -198,7 +198,6 @@ fn copy_file(file: &File) -> File {
         trk: file.trk.iter().map(copy_track).collect(),
         ..file.clone()
     };
-    copy.info.name = format!("{} (copy)", file.info.name);
     copy
 }
 
@@ -235,7 +234,7 @@ mod tests {
         assert_eq!(fx.selected_files(), [copy_id].into());
         let (orig, copy) = (&fx.files[&id], &fx.files[&copy_id]);
         assert_ne!(copy_id, id);
-        assert_eq!(copy.info.name, format!("{} (copy)", orig.info.name));
+        assert_eq!(copy.info.name, orig.info.name);
         assert_eq!(copy.trk.len(), orig.trk.len());
         for (a, b) in orig.trk.iter().zip(&copy.trk) {
             assert_ne!(a.id, b.id);
