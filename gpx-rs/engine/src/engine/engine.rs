@@ -17,6 +17,7 @@ pub struct Engine {
     structure_cache: FileStructureCache,
     diff: Option<Diff>,
     order_changed: bool,
+    selection_changed: bool,
     statistics_buffer: StatisticsBuffer,
 }
 
@@ -43,6 +44,16 @@ impl Engine {
     /// Whether the last action changed the order of the files.
     pub fn order_changed(&self) -> bool {
         self.order_changed
+    }
+
+    /// Currently selected elements.
+    pub fn selection(&self) -> &Selection {
+        &self.selection
+    }
+
+    /// Whether the last action changed the selection.
+    pub fn selection_changed(&self) -> bool {
+        self.selection_changed
     }
 
     /// Coordinates (`[lng, lat, ...]`) of the trackpoints of a segment.
@@ -93,12 +104,15 @@ impl Engine {
                 None
             }
         };
-        let selection_changed = self.selection != selection_before;
-        self.order_changed = self.order.0 != order_before;
-        let changed = self.diff.is_some() || selection_changed || self.order_changed;
+        let changed = self.diff.is_some()
+            || self.selection != selection_before
+            || self.order.0 != order_before;
         if changed {
             self.refresh();
         }
+        // after the refresh, which also syncs the order and selection with the files (undo, redo)
+        self.order_changed = self.order.0 != order_before;
+        self.selection_changed = self.selection != selection_before;
         changed
     }
 
@@ -374,11 +388,30 @@ mod tests {
         assert!(diff.is_some());
         let diff = diff.as_ref().unwrap();
         assert_eq!(diff.removed, vec![empty_id]);
+        assert!(engine.order_changed());
         assert!(engine.file_structure(&empty_id).is_none());
         assert!(engine.execute(Action::Undo));
         assert!(engine.order().is_empty());
         assert!(engine.file_structure(&loaded_id).is_none());
         assert!(engine.segment_coordinates(&seg_id).is_empty());
+    }
+
+    #[test]
+    fn test_selection_changed_flag() {
+        let mut engine = Engine::default();
+        new(&mut engine, "a");
+        let a = engine.order()[0];
+        // a new file is selected by the edit
+        assert!(engine.selection_changed());
+        assert!(!engine.execute(Action::Select { file_ids: vec![a] }));
+        assert!(!engine.selection_changed());
+        assert!(engine.execute(Action::Select { file_ids: vec![] }));
+        assert!(engine.selection_changed());
+        // undoing drops the selected file from the selection
+        engine.execute(Action::Select { file_ids: vec![a] });
+        assert!(engine.execute(Action::Undo));
+        assert!(engine.selection_changed());
+        assert_eq!(engine.selection(), &Selection::Empty);
     }
 
     #[test]

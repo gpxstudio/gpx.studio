@@ -332,8 +332,16 @@ pub fn select_all() -> bool {
 
 #[wasm_bindgen(typescript_custom_section)]
 const FILE_STRUCTURE_TS: &str = r#"
+export type Selection =
+    | { type: 'empty' }
+    | { type: 'file'; fileIds: string[] }
+    | { type: 'track'; fileId: string; trackIds: string[] }
+    | { type: 'segment'; fileId: string; trackId: string; segmentIds: string[] }
+    | { type: 'waypoints'; fileId: string }
+    | { type: 'waypoint'; fileId: string; waypointIds: string[] };
 export interface FilesUpdate {
     orderChanged: boolean;
+    selectionChanged: boolean;
     /** Files to read the structure of. */
     added: string[];
     /** Files whose structure changed: reread it. */
@@ -369,6 +377,8 @@ export interface WaypointNode {
 
 #[wasm_bindgen]
 extern "C" {
+    #[wasm_bindgen(typescript_type = "Selection")]
+    pub type Selection;
     #[wasm_bindgen(typescript_type = "FilesUpdate")]
     pub type FilesUpdate;
     #[wasm_bindgen(typescript_type = "FileStructure | undefined")]
@@ -452,6 +462,52 @@ pub fn file_structure(file_id: &str) -> FileStructure {
     structure.unchecked_into()
 }
 
+fn uuids<T>(items: impl IntoIterator<Item = T>, uuid: impl Fn(T) -> uuid::Uuid) -> Array {
+    items
+        .into_iter()
+        .map(|item| JsValue::from(uuid(item).to_string()))
+        .collect()
+}
+
+/// The current selection (ids are UUID strings).
+#[wasm_bindgen]
+pub fn selection() -> Selection {
+    use engine::Selection as S;
+    let object = Object::new();
+    with_engine(|e| match e.selection() {
+        S::Empty => set(&object, "type", "empty"),
+        S::File { file_ids } => {
+            set(&object, "type", "file");
+            set(&object, "fileIds", uuids(file_ids, |id| id.0));
+        }
+        S::Track { file_id, trk_ids } => {
+            set(&object, "type", "track");
+            set(&object, "fileId", file_id.0.to_string());
+            set(&object, "trackIds", uuids(trk_ids, |id| id.0));
+        }
+        S::TrackSegment {
+            file_id,
+            trk_id,
+            trkseg_ids,
+        } => {
+            set(&object, "type", "segment");
+            set(&object, "fileId", file_id.0.to_string());
+            set(&object, "trackId", trk_id.0.to_string());
+            set(&object, "segmentIds", uuids(trkseg_ids, |id| id.0));
+        }
+        S::Waypoints { file_id } => {
+            set(&object, "type", "waypoints");
+            set(&object, "fileId", file_id.0.to_string());
+        }
+        S::Waypoint { file_id, wpt_ids } => {
+            set(&object, "type", "waypoint");
+            set(&object, "fileId", file_id.0.to_string());
+            set(&object, "waypointIds", uuids(wpt_ids, |id| id.0));
+        }
+    });
+    object.unchecked_into()
+}
+
 /// What the last action changed. Read it right after each action.
 #[wasm_bindgen]
 pub fn last_update() -> FilesUpdate {
@@ -459,6 +515,7 @@ pub fn last_update() -> FilesUpdate {
     with_engine(|e| {
         let diff = e.last_diff().clone().unwrap_or_default();
         set(&update, "orderChanged", e.order_changed());
+        set(&update, "selectionChanged", e.selection_changed());
         set(&update, "added", ids(&diff.added));
         set(&update, "modified", ids(&diff.modified));
         set(&update, "removed", ids(&diff.removed));
