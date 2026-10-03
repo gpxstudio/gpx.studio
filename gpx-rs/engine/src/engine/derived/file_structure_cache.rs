@@ -11,7 +11,7 @@ pub struct FileStructureCache {
 
 impl FileStructureCache {
     /// Brings the cache in line with `files`, given what changed since the last update.
-    pub fn update(&mut self, files: Option<&Files>, diff: &Option<Diff>) {
+    pub fn update(&mut self, files: Option<&Files>, diff: Option<&Diff>) {
         if let Some(diff) = diff {
             for id in diff.removed.iter() {
                 self.map.remove(id);
@@ -48,7 +48,7 @@ mod tests {
         let mut cache = FileStructureCache::default();
         cache.update(
             Some(&fx.files),
-            &Some(Diff {
+            Some(&Diff {
                 added: vec![a, b],
                 ..Default::default()
             }),
@@ -60,7 +60,7 @@ mod tests {
         fx.files.insert(a, Rc::new(file));
         cache.update(
             Some(&fx.files),
-            &Some(Diff {
+            Some(&Diff {
                 modified: vec![a],
                 ..Default::default()
             }),
@@ -71,7 +71,7 @@ mod tests {
         fx.files.remove(&b);
         cache.update(
             Some(&fx.files),
-            &Some(Diff {
+            Some(&Diff {
                 removed: vec![b],
                 ..Default::default()
             }),

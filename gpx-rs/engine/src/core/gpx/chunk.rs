@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{Trackpoint, Waypoint};
 
-static MAX_TRKPT_CHUNK_SIZE: usize = 4096;
+const MAX_TRKPT_CHUNK_SIZE: usize = 4096;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct TrackpointChunkId(Uuid);
@@ -40,7 +40,7 @@ impl Default for WaypointChunkId {
     }
 }
 
-static MAX_WPT_CHUNK_SIZE: usize = 128;
+const MAX_WPT_CHUNK_SIZE: usize = 128;
 
 #[derive(Debug, Default)]
 pub struct WaypointChunk {
@@ -91,9 +91,10 @@ mod tests {
         let a = TrackpointChunk::default();
         let b = TrackpointChunk::default();
         assert_ne!(a, b);
-        let mut c = TrackpointChunk::default();
-        c.id = TrackpointChunkId(a.id.0);
-        c.trkpt.push(Trackpoint::default());
+        let c = TrackpointChunk {
+            id: TrackpointChunkId(a.id.0),
+            trkpt: vec![Trackpoint::default()],
+        };
         assert_eq!(a, c);
     }
 }

@@ -1,7 +1,5 @@
 // TODO license in every file
 
-use std::collections::HashSet;
-
 use crate::{
     Action, Apply, Command, CoordinatesCache, Diff, FileId, FileOrder, FileStructure,
     FileStructureCache, Selection, Stack, State, StatisticsBuffer, StatisticsCache, TrackSegmentId,
@@ -37,8 +35,8 @@ impl Engine {
     }
 
     /// Which files the last action added, removed or modified.
-    pub fn last_diff(&self) -> &Option<Diff> {
-        &self.diff
+    pub fn last_diff(&self) -> Option<&Diff> {
+        self.diff.as_ref()
     }
 
     /// Whether the last action changed the order of the files.
@@ -143,7 +141,7 @@ impl Engine {
         }
         self.statistics_cache.update(current);
         self.coordinates_cache.update(current);
-        self.structure_cache.update(current, &self.diff);
+        self.structure_cache.update(current, self.diff.as_ref());
         self.statistics_buffer
             .update(&self.statistics_cache.get(current, &self.selection));
     }
@@ -343,18 +341,14 @@ mod tests {
         assert!(engine.order().is_empty());
         load(&mut engine, "data/simple.gpx");
         let loaded_id = engine.order()[0];
-        let diff = engine.last_diff();
-        assert!(diff.is_some());
-        let diff = diff.as_ref().unwrap();
+        let diff = engine.last_diff().unwrap();
         assert_eq!(diff.added, vec![loaded_id]);
         assert!(engine.order_changed());
 
         new(&mut engine, "empty");
         let empty_id = engine.order()[1];
         // only the new file is reported, the other one is not recomputed
-        let diff = engine.last_diff();
-        assert!(diff.is_some());
-        let diff = diff.as_ref().unwrap();
+        let diff = engine.last_diff().unwrap();
         assert_eq!(diff.added, vec![empty_id]);
         assert!(diff.modified.is_empty() && diff.removed.is_empty());
         assert_eq!(engine.file_structure(&empty_id).unwrap().name, "empty");
@@ -384,9 +378,7 @@ mod tests {
 
         // undo removes the empty file, redoing the load removes the other one too
         assert!(engine.execute(Action::Undo));
-        let diff = engine.last_diff();
-        assert!(diff.is_some());
-        let diff = diff.as_ref().unwrap();
+        let diff = engine.last_diff().unwrap();
         assert_eq!(diff.removed, vec![empty_id]);
         assert!(engine.order_changed());
         assert!(engine.file_structure(&empty_id).is_none());

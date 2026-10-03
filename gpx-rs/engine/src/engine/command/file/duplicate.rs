@@ -194,12 +194,11 @@ fn copy_track(track: &Track) -> Track {
 }
 
 fn copy_file(file: &File) -> File {
-    let mut copy = File {
+    File {
         id: Default::default(),
         trk: file.trk.iter().map(copy_track).collect(),
         ..file.clone()
-    };
-    copy
+    }
 }
 
 #[cfg(test)]

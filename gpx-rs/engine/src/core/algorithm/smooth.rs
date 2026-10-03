@@ -55,7 +55,7 @@ macro_rules! for_each_window {
 
 #[cfg(test)]
 mod tests {
-    use crate::{TrackSegment, Trackpoint, TrackpointChunk, for_each_window};
+    use crate::{TrackSegment, Trackpoint, TrackpointChunk};
 
     fn segment(eles: &[f64]) -> TrackSegment {
         let mut trkseg = TrackSegment::default();
@@ -116,7 +116,7 @@ mod tests {
 
     #[test]
     fn test_window_sub_range() {
-        let trkseg = segment(&vec![0.0; 10]);
+        let trkseg = segment(&[0.0; 10]);
         let mut centers = vec![];
         let mut first = trkseg.first_index();
         for _ in 0..3 {

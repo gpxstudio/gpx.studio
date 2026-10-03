@@ -25,12 +25,10 @@ impl CoordinatesCache {
                 .get(&file.id)
                 .is_none_or(|(r, _)| *r != file.wpt_rev_id)
             {
-                let coordinates = file
-                    .wpt
-                    .iter()
-                    .flat_map(|chunk| &chunk.wpt)
-                    .flat_map(|wpt| [wpt.coordinates.lng, wpt.coordinates.lat])
-                    .collect();
+                let mut coordinates = Vec::new();
+                for wpt in file.wpt.iter().flat_map(|chunk| &chunk.wpt) {
+                    coordinates.extend([wpt.coordinates.lng, wpt.coordinates.lat]);
+                }
                 self.waypoints
                     .insert(file.id, (file.wpt_rev_id, coordinates));
             }
@@ -41,10 +39,10 @@ impl CoordinatesCache {
                     .get(&seg.id)
                     .is_none_or(|(r, _)| *r != seg.rev_id)
                 {
-                    let coordinates = seg
-                        .iter()
-                        .flat_map(|trkpt| [trkpt.coordinates.lng, trkpt.coordinates.lat])
-                        .collect();
+                    let mut coordinates = Vec::with_capacity(seg.len() * 2);
+                    for trkpt in seg.iter() {
+                        coordinates.extend([trkpt.coordinates.lng, trkpt.coordinates.lat]);
+                    }
                     self.segments.insert(seg.id, (seg.rev_id, coordinates));
                 }
             }

@@ -109,6 +109,10 @@ impl TrackSegment {
         self.cumul_length.last().copied().unwrap_or_default()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.chunks.is_empty()
+    }
+
     pub fn iter(&self) -> TrackSegmentIterator<'_> {
         TrackSegmentIterator::new(self)
     }
@@ -248,9 +252,10 @@ mod tests {
         for n in 1..=nb_chunks {
             let mut chunk = TrackpointChunk::default();
             for _ in 0..n {
-                let mut trkpt = Trackpoint::default();
-                trkpt.ele = count as f64;
-                chunk.trkpt.push(trkpt);
+                chunk.trkpt.push(Trackpoint {
+                    ele: count as f64,
+                    ..Default::default()
+                });
                 count += 1;
             }
             trkseg.push(chunk);
@@ -367,7 +372,7 @@ mod tests {
     fn test_index_out_of_bounds_1() {
         let nb_chunks = 10;
         let trkseg = create_track_segment(nb_chunks);
-        trkseg[trkseg.len()].ele;
+        let _ = trkseg[trkseg.len()];
     }
 
     #[test]
@@ -375,12 +380,11 @@ mod tests {
     fn test_index_out_of_bounds_2() {
         let nb_chunks = 10;
         let trkseg = create_track_segment(nb_chunks);
-        trkseg[TrackSegmentIndex {
+        let _ = trkseg[TrackSegmentIndex {
             chunk: trkseg.chunks.len(),
             pos: 0,
             flat: 0,
-        }]
-        .ele;
+        }];
     }
 
     #[test]

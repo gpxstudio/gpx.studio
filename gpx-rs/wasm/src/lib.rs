@@ -49,13 +49,15 @@ impl From<CleanType> for engine::CleanType {
 }
 
 thread_local! {
-    static ENGINE: RefCell<Option<Engine>> = RefCell::new(None);
+    static ENGINE: RefCell<Option<Engine>> = const { RefCell::new(None) };
 }
 
 fn execute(action: Action) -> bool {
-    ENGINE.with(|engine| match engine.borrow_mut().as_mut() {
-        Some(engine) => engine.execute(action),
-        None => false,
+    ENGINE.with(|engine| {
+        engine
+            .borrow_mut()
+            .as_mut()
+            .is_some_and(|engine| engine.execute(action))
     })
 }
 
@@ -65,13 +67,13 @@ fn edit(command: Command) -> bool {
 
 /// Decodes concatenated 16-byte UUIDs.
 fn file_ids(bytes: &[u8]) -> Option<Vec<FileId>> {
-    if bytes.len() % 16 != 0 {
-        return None;
-    }
-    bytes
-        .chunks_exact(16)
-        .map(|chunk| uuid::Uuid::from_slice(chunk).ok().map(FileId))
-        .collect()
+    let (chunks, rest) = bytes.as_chunks::<16>();
+    rest.is_empty().then(|| {
+        chunks
+            .iter()
+            .map(|c| FileId(uuid::Uuid::from_bytes(*c)))
+            .collect()
+    })
 }
 
 fn same_len(a: &[f64], b: &[f64], c: &[f64]) -> bool {
@@ -302,19 +304,13 @@ pub fn redo() -> bool {
 /// `file_ids_bytes`: concatenated 16-byte UUIDs.
 #[wasm_bindgen]
 pub fn select(file_ids_bytes: &[u8]) -> bool {
-    match file_ids(file_ids_bytes) {
-        Some(file_ids) => execute(Action::Select { file_ids }),
-        None => false,
-    }
+    file_ids(file_ids_bytes).is_some_and(|file_ids| execute(Action::Select { file_ids }))
 }
 
 /// `file_ids_bytes`: concatenated 16-byte UUIDs.
 #[wasm_bindgen]
 pub fn add_select(file_ids_bytes: &[u8]) -> bool {
-    match file_ids(file_ids_bytes) {
-        Some(file_ids) => execute(Action::AddSelect { file_ids }),
-        None => false,
-    }
+    file_ids(file_ids_bytes).is_some_and(|file_ids| execute(Action::AddSelect { file_ids }))
 }
 
 #[wasm_bindgen]
@@ -513,7 +509,7 @@ pub fn selection() -> Selection {
 pub fn last_update() -> FilesUpdate {
     let update = Object::new();
     with_engine(|e| {
-        let diff = e.last_diff().clone().unwrap_or_default();
+        let diff = e.last_diff().cloned().unwrap_or_default();
         set(&update, "orderChanged", e.order_changed());
         set(&update, "selectionChanged", e.selection_changed());
         set(&update, "added", ids(&diff.added));

@@ -67,18 +67,12 @@ impl Stack {
     }
 
     fn get(&self, index: usize) -> Option<&StackEntry> {
-        if index < self.entries.len() {
-            Some(&self.entries[index])
-        } else {
-            None
-        }
+        self.entries.get(index)
     }
 
     fn push(&mut self, entry: StackEntry) {
         if let Some(i) = self.index {
-            if i + 1 < self.entries.len() {
-                self.entries.truncate(i + 1);
-            }
+            self.entries.truncate(i + 1);
         }
 
         self.entries.push(entry);
@@ -103,7 +97,7 @@ impl Stack {
         for id in prev_ids.intersection(&cur_ids) {
             let before = prev.map_or_default(|e| e.get(id));
             let after = cur.map_or_default(|e| e.get(id));
-            if before != after {
+            if !before.zip(after).is_some_and(|(b, a)| Rc::ptr_eq(b, a)) && before != after {
                 modified.push(*id);
             }
         }

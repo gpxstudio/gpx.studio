@@ -20,7 +20,7 @@ impl Statistics {
 
     pub fn compute(trkseg: &TrackSegment) -> Self {
         let mut stats = Self::default();
-        if trkseg.len() == 0 {
+        if trkseg.is_empty() {
             return stats;
         }
 
@@ -42,18 +42,18 @@ impl Statistics {
         self.update_time_bounds(cur.time);
         self.update_bounds(cur.coordinates);
         self.local
-            .push(TrackpointStatistics::from_partial_stats(&self));
+            .push(TrackpointStatistics::from_partial_stats(self));
     }
 
     fn accumulate_distance_and_time(&mut self, prev: &Trackpoint, cur: &Trackpoint) {
         let dist = distance(prev.coordinates, cur.coordinates);
-        let time = time_diff(&cur.time, &prev.time);
+        let time = time_diff(cur.time, prev.time);
 
         self.global.total_distance += dist;
 
         if let Some(time) = time {
             let speed = speed(dist, time);
-            if speed >= 0.5 && speed <= 1500.0 {
+            if (0.5..=1500.0).contains(&speed) {
                 self.global.moving_distance = self
                     .global
                     .moving_distance
@@ -72,7 +72,7 @@ impl Statistics {
                 self.global.start_time = Some(time);
             }
             self.global.end_time = Some(time);
-            self.global.total_time = time_diff(&self.global.end_time, &self.global.start_time);
+            self.global.total_time = time_diff(self.global.end_time, self.global.start_time);
         }
     }
 
@@ -86,10 +86,10 @@ impl Statistics {
             trkseg.first_index(),
             trkseg.last_index(),
             Some(10000),
-            |i, j| time_diff(&trkseg[i].time, &trkseg[j].time),
+            |i, j| time_diff(trkseg[i].time, trkseg[j].time),
             |i, left, right| {
                 self.local[i.flat].speed =
-                    time_diff(&trkseg[right].time, &trkseg[left].time).map(|t| {
+                    time_diff(trkseg[right].time, trkseg[left].time).map(|t| {
                         speed(
                             self.local[right.flat].total_distance
                                 - self.local[left.flat].total_distance,
@@ -370,16 +370,20 @@ mod tests {
 
     #[test]
     fn test_global_merge() {
-        let mut a = GlobalStatistics::default();
-        a.total_distance = 1.0;
-        a.elevation_gain = 10.0;
-        a.moving_time = Some(5);
+        let mut a = GlobalStatistics {
+            total_distance: 1.0,
+            elevation_gain: 10.0,
+            moving_time: Some(5),
+            ..Default::default()
+        };
         a.bounds.extend(crate::LngLat { lng: 0.0, lat: 0.0 });
-        let mut b = GlobalStatistics::default();
-        b.total_distance = 2.0;
-        b.elevation_loss = 4.0;
-        b.moving_distance = Some(1.5);
-        b.moving_time = Some(7);
+        let mut b = GlobalStatistics {
+            total_distance: 2.0,
+            elevation_loss: 4.0,
+            moving_distance: Some(1.5),
+            moving_time: Some(7),
+            ..Default::default()
+        };
         b.bounds.extend(crate::LngLat { lng: 2.0, lat: 3.0 });
 
         a.merge(&b);
@@ -390,14 +394,18 @@ mod tests {
         assert_eq!(a.moving_time, Some(12));
         assert_eq!(a.total_time, None);
 
-        let mut c = GlobalStatistics::default();
-        c.start_time = Some(1_000);
-        c.end_time = Some(4_000);
-        c.total_time = Some(3_000);
-        let mut d = GlobalStatistics::default();
-        d.start_time = Some(10_000);
-        d.end_time = Some(12_000);
-        d.total_time = Some(2_000);
+        let mut c = GlobalStatistics {
+            start_time: Some(1_000),
+            end_time: Some(4_000),
+            total_time: Some(3_000),
+            ..Default::default()
+        };
+        let d = GlobalStatistics {
+            start_time: Some(10_000),
+            end_time: Some(12_000),
+            total_time: Some(2_000),
+            ..Default::default()
+        };
         c.merge(&d);
         // 3 s + 2 s, the gap between the two is ignored
         assert_eq!(c.total_time, Some(5_000));

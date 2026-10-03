@@ -59,12 +59,10 @@ fn ramer_douglas_peucker_helper<F>(
         cur = trkseg.next_index(cur);
     }
 
-    if let Some(idx) = max_idx {
-        if max_dist > epsilon {
-            ramer_douglas_peucker_helper(trkseg, start, idx, mapping, epsilon, indices);
-            indices.push(idx);
-            ramer_douglas_peucker_helper(trkseg, idx, end, mapping, epsilon, indices);
-        }
+    if let Some(idx) = max_idx.filter(|_| max_dist > epsilon) {
+        ramer_douglas_peucker_helper(trkseg, start, idx, mapping, epsilon, indices);
+        indices.push(idx);
+        ramer_douglas_peucker_helper(trkseg, idx, end, mapping, epsilon, indices);
     }
 }
 

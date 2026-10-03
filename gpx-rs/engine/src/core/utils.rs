@@ -2,8 +2,8 @@ use std::f64::consts::PI;
 
 use crate::LngLat;
 
-static TO_RADIANS: f64 = PI / 180.0;
-static EARTH_RADIUS: f64 = 6371.0088;
+const TO_RADIANS: f64 = PI / 180.0;
+const EARTH_RADIUS: f64 = 6371.0088;
 
 /// Computes the distance in kilometers between two coordinates using the Haversine formula
 pub fn distance(p1: LngLat, p2: LngLat) -> f64 {
@@ -18,16 +18,13 @@ pub fn distance(p1: LngLat, p2: LngLat) -> f64 {
     EARTH_RADIUS * c
 }
 
-pub fn time_diff(a: &Option<i64>, b: &Option<i64>) -> Option<i32> {
-    match (a, b) {
-        (Some(t1), Some(t2)) => Some((t1 - t2) as i32),
-        _ => None,
-    }
+pub fn time_diff(a: Option<i64>, b: Option<i64>) -> Option<i32> {
+    Some((a? - b?) as i32)
 }
 
 /// Computes the speed for a given distance in kilometers and a time in milliseconds
 pub fn speed(distance: f64, time: i32) -> f64 {
-    distance / (time as f64 / 3600_000.0)
+    distance / (time as f64 / 3_600_000.0)
 }
 
 pub fn slope(ele: f64, distance: f64) -> f64 {
@@ -38,86 +35,76 @@ pub fn slope(ele: f64, distance: f64) -> f64 {
     }
 }
 
-static METERS_PER_LATITUDE_DEGREE: f64 = 111320.0;
+const METERS_PER_LATITUDE_DEGREE: f64 = 111320.0;
 
-fn get_meters_per_longitude_degree(latitude: f64) -> f64 {
-    ((latitude * PI) / 180.0).cos() * METERS_PER_LATITUDE_DEGREE
+/// Approximate planar projection, in meters, around the latitude of `origin` (ignores the
+/// curvature of the earth).
+struct Planar {
+    meters_per_longitude_degree: f64,
 }
 
-// Calculates the point on the line segment defined by p1 and p2
-// that is closest to the third point, p3.
-// Uses simple planar geometry (ignores earth curvature).
-fn projected(p1: LngLat, p2: LngLat, p3: LngLat) -> LngLat {
-    // Convert to meters using approximate scaling
-    let meters_per_longitude_degree = get_meters_per_longitude_degree(p1.lat);
+impl Planar {
+    fn around(origin: LngLat) -> Self {
+        Self {
+            meters_per_longitude_degree: (origin.lat * TO_RADIANS).cos()
+                * METERS_PER_LATITUDE_DEGREE,
+        }
+    }
 
-    let x1 = p1.lng * meters_per_longitude_degree;
-    let y1 = p1.lat * METERS_PER_LATITUDE_DEGREE;
-    let x2 = p2.lng * meters_per_longitude_degree;
-    let y2 = p2.lat * METERS_PER_LATITUDE_DEGREE;
-    let x3 = p3.lng * meters_per_longitude_degree;
-    let y3 = p3.lat * METERS_PER_LATITUDE_DEGREE;
+    fn to_meters(&self, p: LngLat) -> (f64, f64) {
+        (
+            p.lng * self.meters_per_longitude_degree,
+            p.lat * METERS_PER_LATITUDE_DEGREE,
+        )
+    }
 
-    let dx = x2 - x1;
-    let dy = y2 - y1;
-    let segment_length_squared = dx * dx + dy * dy;
-
-    if segment_length_squared == 0.0 {
-        // p1 and p2 are the same point
-        p1
-    } else {
-        // Project p3 onto the line defined by p1-p2
-        let t =
-            0.0_f64.max(1.0_f64.min(((x3 - x1) * dx + (y3 - y1) * dy) / segment_length_squared));
-
-        // Find the closest point on the segment
-        let proj_x = x1 + t * dx;
-        let proj_y = y1 + t * dy;
-
-        // Convert back to degrees
+    fn to_degrees(&self, (x, y): (f64, f64)) -> LngLat {
         LngLat {
-            lng: proj_x / meters_per_longitude_degree,
-            lat: proj_y / METERS_PER_LATITUDE_DEGREE,
+            lng: x / self.meters_per_longitude_degree,
+            lat: y / METERS_PER_LATITUDE_DEGREE,
         }
     }
 }
 
-/// Calculates the perpendicular distance in meters
-/// between a line segment (defined by p1 and p2) and a third point, p3.
-/// Uses simple planar geometry (ignores earth curvature).
-fn crossarc_lnglat(p1: LngLat, p2: LngLat, p3: LngLat) -> f64 {
-    // Convert to meters using approximate scaling
-    let meters_per_longitude_degree = get_meters_per_longitude_degree(p1.lat);
-    crossarc(
-        p1.lng * meters_per_longitude_degree,
-        p1.lat * METERS_PER_LATITUDE_DEGREE,
-        p2.lng * meters_per_longitude_degree,
-        p2.lat * METERS_PER_LATITUDE_DEGREE,
-        p3.lng * meters_per_longitude_degree,
-        p3.lat * METERS_PER_LATITUDE_DEGREE,
-    )
-}
-
-pub fn crossarc(x1: f64, y1: f64, x2: f64, y2: f64, x3: f64, y3: f64) -> f64 {
+/// Position, between 0 (at `(x1, y1)`) and 1 (at `(x2, y2)`), of the point of the segment that is
+/// the closest to `(x3, y3)`. A degenerate segment (same ends) is a point.
+fn closest_on_segment(x1: f64, y1: f64, x2: f64, y2: f64, x3: f64, y3: f64) -> f64 {
     let dx = x2 - x1;
     let dy = y2 - y1;
     let segment_length_squared = dx * dx + dy * dy;
-
     if segment_length_squared == 0.0 {
-        // p1 and p2 are the same point
-        ((x3 - x1) * (x3 - x1) + (y3 - y1) * (y3 - y1)).sqrt()
+        0.0
     } else {
-        // Project p3 onto the line defined by p1 - p2
-        let t =
-            0.0_f64.max(1.0_f64.min(((x3 - x1) * dx + (y3 - y1) * dy) / segment_length_squared));
-
-        // Find the closest point on the segment
-        let proj_x = x1 + t * dx;
-        let proj_y = y1 + t * dy;
-
-        // Return distance from p3 to the projected point
-        ((x3 - proj_x) * (x3 - proj_x) + (y3 - proj_y) * (y3 - proj_y)).sqrt()
+        (((x3 - x1) * dx + (y3 - y1) * dy) / segment_length_squared).clamp(0.0, 1.0)
     }
+}
+
+/// Calculates the point on the line segment defined by p1 and p2 that is closest to the third
+/// point, p3. Uses simple planar geometry (ignores earth curvature).
+pub fn projected(p1: LngLat, p2: LngLat, p3: LngLat) -> LngLat {
+    let planar = Planar::around(p1);
+    let (x1, y1) = planar.to_meters(p1);
+    let (x2, y2) = planar.to_meters(p2);
+    let (x3, y3) = planar.to_meters(p3);
+    let t = closest_on_segment(x1, y1, x2, y2, x3, y3);
+    planar.to_degrees((x1 + t * (x2 - x1), y1 + t * (y2 - y1)))
+}
+
+/// Calculates the perpendicular distance in meters between a line segment (defined by p1 and p2)
+/// and a third point, p3. Uses simple planar geometry (ignores earth curvature).
+pub fn crossarc_lnglat(p1: LngLat, p2: LngLat, p3: LngLat) -> f64 {
+    let planar = Planar::around(p1);
+    let (x1, y1) = planar.to_meters(p1);
+    let (x2, y2) = planar.to_meters(p2);
+    let (x3, y3) = planar.to_meters(p3);
+    crossarc(x1, y1, x2, y2, x3, y3)
+}
+
+/// Distance from the point `(x3, y3)` to the segment `(x1, y1)`-`(x2, y2)`, in the units of the
+/// coordinates (planar geometry).
+pub fn crossarc(x1: f64, y1: f64, x2: f64, y2: f64, x3: f64, y3: f64) -> f64 {
+    let t = closest_on_segment(x1, y1, x2, y2, x3, y3);
+    (x3 - (x1 + t * (x2 - x1))).hypot(y3 - (y1 + t * (y2 - y1)))
 }
 
 #[cfg(test)]
@@ -145,10 +132,10 @@ mod tests {
 
     #[test]
     fn test_time_diff() {
-        assert_eq!(time_diff(&Some(5000), &Some(2000)), Some(3000));
-        assert_eq!(time_diff(&Some(2000), &Some(5000)), Some(-3000));
-        assert_eq!(time_diff(&None, &Some(1)), None);
-        assert_eq!(time_diff(&Some(1), &None), None);
+        assert_eq!(time_diff(Some(5000), Some(2000)), Some(3000));
+        assert_eq!(time_diff(Some(2000), Some(5000)), Some(-3000));
+        assert_eq!(time_diff(None, Some(1)), None);
+        assert_eq!(time_diff(Some(1), None), None);
     }
 
     #[test]
