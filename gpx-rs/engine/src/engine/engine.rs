@@ -45,6 +45,7 @@ impl Engine {
                 }
                 true
             }
+            Action::Reorder { file_ids, index } => self.order.move_files(&file_ids, index),
             Action::SelectAll => {
                 self.selection = Selection::File {
                     file_ids: self.order.0.iter().copied().collect(),
@@ -74,6 +75,17 @@ impl Engine {
     /// Brings everything derived from the files back in line with the current stack entry.
     fn refresh(&mut self) {
         let current = self.stack.current();
+        match current {
+            Some(files) => {
+                // files coming back after an undo/redo are added at the end of the order
+                self.order.sync(files);
+                self.selection.retain_existing(files);
+            }
+            None => {
+                self.order.0.clear();
+                self.selection = Selection::Empty;
+            }
+        }
         self.statistics_cache.update(current);
         self.statistics_buffer
             .update(&self.statistics_cache.get(current, &self.selection));
@@ -238,6 +250,34 @@ mod tests {
         assert!(engine.order.0.is_empty());
         assert!(!engine.execute(Action::Undo));
         assert!(engine.stack.current().is_none());
+    }
+
+    #[test]
+    fn test_reorder_is_not_undoable_and_returning_files_go_last() {
+        let mut engine = Engine::default();
+        new(&mut engine, "a");
+        let a = engine.order.0[0];
+        new(&mut engine, "b");
+        let b = engine.order.0[1];
+        new(&mut engine, "c");
+        let c = engine.order.0[2];
+
+        assert!(engine.execute(Action::Reorder {
+            file_ids: vec![c],
+            index: 0
+        }));
+        assert_eq!(engine.order.0, vec![c, a, b]);
+        assert!(!engine.execute(Action::Reorder {
+            file_ids: vec![c],
+            index: 0
+        }));
+
+        // undoing the creation of c does not undo the reorder
+        assert!(engine.execute(Action::Undo));
+        assert_eq!(engine.order.0, vec![a, b]);
+        // c comes back at the end
+        assert!(engine.execute(Action::Redo));
+        assert_eq!(engine.order.0, vec![a, b, c]);
     }
 
     #[test]

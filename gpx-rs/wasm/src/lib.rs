@@ -141,6 +141,13 @@ pub fn delete_all() -> bool {
     edit(Command::DeleteAll(engine::DeleteAll))
 }
 
+/// Moves the files to `index` among the other files, in the given order (not undoable).
+/// `file_ids_bytes`: concatenated 16-byte UUIDs.
+#[wasm_bindgen]
+pub fn reorder(file_ids_bytes: &[u8], index: usize) -> bool {
+    file_ids(file_ids_bytes).is_some_and(|file_ids| execute(Action::Reorder { file_ids, index }))
+}
+
 // Edit commands
 
 #[wasm_bindgen]
