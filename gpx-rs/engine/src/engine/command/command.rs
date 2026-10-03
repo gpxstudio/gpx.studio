@@ -1,9 +1,9 @@
-use crate::{
-    Append, Clean, Crop, Delete, DeleteAll, Duplicate, Elevation, Extract, Load, Merge, Metadata,
-    MoveWaypoint, New, NewTrack, NewTrackSegment, NewWaypoint, Replace, Reverse, Split, Style,
-    Time,
-};
 use crate::{Apply, CommandError, State};
+use crate::{
+    Clean, Crop, Delete, DeleteAll, Duplicate, Elevation, Extract, Load, Merge, Metadata,
+    MoveWaypoint, New, NewTrack, NewTrackSegment, NewWaypoint, Reverse, SpliceTrackpoints, Split,
+    Style, Time,
+};
 
 /// A user action that edits the files. Each variant wraps the command's own struct, whose
 /// effect is implemented in its own file (see `Apply`).
@@ -22,8 +22,7 @@ pub enum Command<'a> {
     NewTrack(NewTrack),
     NewTrackSegment(NewTrackSegment),
     Reverse(Reverse),
-    Append(Append<'a>),
-    Replace(Replace<'a>),
+    SpliceTrackpoints(SpliceTrackpoints<'a>),
     NewWaypoint(NewWaypoint<'a>),
     MoveWaypoint(MoveWaypoint),
     Crop(Crop),
@@ -48,8 +47,7 @@ impl Apply for Command<'_> {
             Command::NewTrack(c) => c.apply(state),
             Command::NewTrackSegment(c) => c.apply(state),
             Command::Reverse(c) => c.apply(state),
-            Command::Append(c) => c.apply(state),
-            Command::Replace(c) => c.apply(state),
+            Command::SpliceTrackpoints(c) => c.apply(state),
             Command::NewWaypoint(c) => c.apply(state),
             Command::MoveWaypoint(c) => c.apply(state),
             Command::Crop(c) => c.apply(state),

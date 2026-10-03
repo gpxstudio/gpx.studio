@@ -182,15 +182,10 @@ pub fn reverse() -> bool {
 }
 
 #[wasm_bindgen]
-pub fn append(lng: &[f64], lat: &[f64], ele: &[f64]) -> bool {
-    same_len(lng, lat, ele) && edit(Command::Append(engine::Append { lng, lat, ele }))
-}
-
-#[wasm_bindgen]
-pub fn replace(start: u32, end: u32, lng: &[f64], lat: &[f64], ele: &[f64]) -> bool {
+pub fn splice_trackpoints(start: u32, end: u32, lng: &[f64], lat: &[f64], ele: &[f64]) -> bool {
     start <= end
         && same_len(lng, lat, ele)
-        && edit(Command::Replace(engine::Replace {
+        && edit(Command::SpliceTrackpoints(engine::SpliceTrackpoints {
             start,
             end,
             lng,

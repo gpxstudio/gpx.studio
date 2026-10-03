@@ -1,4 +1,3 @@
-mod append;
 mod clean;
 mod crop;
 mod elevation;
@@ -6,12 +5,11 @@ mod extract;
 mod merge;
 mod move_waypoint;
 mod new_waypoint;
-mod replace;
 mod reverse;
+mod splice_trackpoints;
 mod split;
 mod time;
 
-pub use append::*;
 pub use clean::*;
 pub use crop::*;
 pub use elevation::*;
@@ -19,7 +17,7 @@ pub use extract::*;
 pub use merge::*;
 pub use move_waypoint::*;
 pub use new_waypoint::*;
-pub use replace::*;
 pub use reverse::*;
+pub use splice_trackpoints::*;
 pub use split::*;
 pub use time::*;
