@@ -154,5 +154,104 @@ mod tests {
         assert!(diff.modified.is_empty());
     }
 
-    // TODO more tests
+    fn add_file(stack: &mut Stack) -> FileId {
+        let file = Rc::new(File::default());
+        let id = file.id;
+        stack
+            .create_and_push_next(|e| {
+                e.insert(id, file);
+                Ok(())
+            })
+            .unwrap();
+        id
+    }
+
+    #[test]
+    fn test_failed_command_pushes_nothing() {
+        let mut stack = Stack::default();
+        let diff = stack.create_and_push_next(|e| {
+            e.insert(FileId::default(), Rc::new(File::default()));
+            Err("nope".to_string())
+        });
+        assert!(diff.is_none());
+        assert!(!stack.can_undo());
+        assert!(stack.current().is_none());
+    }
+
+    #[test]
+    fn test_undo_redo() {
+        let mut stack = Stack::default();
+        assert!(stack.undo().is_none());
+        assert!(stack.redo().is_none());
+
+        let id = add_file(&mut stack);
+
+        let diff = stack.undo().unwrap();
+        assert_eq!(diff.removed, vec![id]);
+        assert!(diff.added.is_empty());
+        assert!(stack.current().is_none());
+        assert!(!stack.can_undo());
+        assert!(stack.can_redo());
+        assert!(stack.undo().is_none());
+
+        let diff = stack.redo().unwrap();
+        assert_eq!(diff.added, vec![id]);
+        assert!(stack.current().unwrap().contains_key(&id));
+        assert!(stack.can_undo());
+        assert!(!stack.can_redo());
+        assert!(stack.redo().is_none());
+    }
+
+    #[test]
+    fn test_modified_and_removed() {
+        let mut stack = Stack::default();
+        let id = add_file(&mut stack);
+
+        let diff = stack
+            .create_and_push_next(|e| {
+                let mut file = (**e.get(&id).unwrap()).clone();
+                file.info.name = "renamed".to_string();
+                e.insert(id, Rc::new(file));
+                Ok(())
+            })
+            .unwrap();
+        assert_eq!(diff.modified, vec![id]);
+        assert!(diff.added.is_empty() && diff.removed.is_empty());
+
+        // an unchanged file is not reported as modified
+        let diff = stack.create_and_push_next(|_| Ok(())).unwrap();
+        assert!(diff.modified.is_empty());
+
+        let diff = stack
+            .create_and_push_next(|e| {
+                e.remove(&id);
+                Ok(())
+            })
+            .unwrap();
+        assert_eq!(diff.removed, vec![id]);
+        assert!(stack.current().unwrap().is_empty());
+
+        // going back restores the renamed file
+        stack.undo();
+        assert_eq!(stack.current().unwrap()[&id].info.name, "renamed");
+    }
+
+    #[test]
+    fn test_push_after_undo_drops_redo_branch() {
+        let mut stack = Stack::default();
+        let first = add_file(&mut stack);
+        let second = add_file(&mut stack);
+
+        stack.undo();
+        assert!(stack.can_redo());
+        assert!(!stack.current().unwrap().contains_key(&second));
+
+        let third = add_file(&mut stack);
+        assert!(!stack.can_redo());
+        assert!(stack.redo().is_none());
+        let current = stack.current().unwrap();
+        assert!(current.contains_key(&first));
+        assert!(current.contains_key(&third));
+        assert!(!current.contains_key(&second));
+    }
 }

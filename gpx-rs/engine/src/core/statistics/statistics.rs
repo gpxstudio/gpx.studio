@@ -1,6 +1,6 @@
 use crate::{
     LngLat, LngLatBounds, TrackSegment, TrackSegmentIndex, Trackpoint, distance, for_each_window,
-    ramer_douglas_peucker, slope, speed, sum_options, time_diff,
+    max_options, min_options, ramer_douglas_peucker, slope, speed, sum_options, time_diff,
 };
 
 #[derive(Default, Debug)]
@@ -10,10 +10,6 @@ pub struct Statistics {
 }
 
 impl Statistics {
-    pub fn total_time(&self) -> Option<i32> {
-        self.global.total_time()
-    }
-
     pub fn total_speed(&self) -> Option<f64> {
         self.global.total_speed()
     }
@@ -76,6 +72,7 @@ impl Statistics {
                 self.global.start_time = Some(time);
             }
             self.global.end_time = Some(time);
+            self.global.total_time = time_diff(&self.global.end_time, &self.global.start_time);
         }
     }
 
@@ -214,6 +211,7 @@ impl Statistics {
 pub struct GlobalStatistics {
     pub total_distance: f64,
     pub moving_distance: Option<f64>,
+    pub total_time: Option<i32>,
     pub moving_time: Option<i32>,
     pub elevation_gain: f64,
     pub elevation_loss: f64,
@@ -223,12 +221,8 @@ pub struct GlobalStatistics {
 }
 
 impl GlobalStatistics {
-    pub fn total_time(&self) -> Option<i32> {
-        time_diff(&self.start_time, &self.end_time)
-    }
-
     pub fn total_speed(&self) -> Option<f64> {
-        self.total_time().map(|t| speed(self.total_distance, t))
+        self.total_time.map(|t| speed(self.total_distance, t))
     }
 
     pub fn moving_speed(&self) -> Option<f64> {
@@ -240,9 +234,12 @@ impl GlobalStatistics {
     pub fn merge(&mut self, other: &GlobalStatistics) {
         self.total_distance += other.total_distance;
         self.moving_distance = sum_options(self.moving_distance, other.moving_distance);
+        self.total_time = sum_options(self.total_time, other.total_time);
         self.moving_time = sum_options(self.moving_time, other.moving_time);
         self.elevation_gain += other.elevation_gain;
         self.elevation_loss += other.elevation_loss;
+        self.start_time = min_options(self.start_time, other.start_time);
+        self.end_time = max_options(self.end_time, other.end_time);
         self.bounds.merge(&other.bounds);
     }
 }
@@ -265,7 +262,7 @@ impl TrackpointStatistics {
         Self {
             total_distance: stats.global.total_distance,
             moving_distance: stats.global.moving_distance,
-            total_time: stats.total_time(),
+            total_time: stats.global.total_time,
             moving_time: stats.global.moving_time,
             // stats below are computed later
             speed: None,
@@ -309,5 +306,107 @@ mod tests {
         }
     }
 
-    // TODO more tests
+    fn load(path: &str) -> crate::File {
+        let mut f = File::open(path).unwrap();
+        let mut data = String::new();
+        let _ = f.read_to_string(&mut data);
+        parse(data.as_bytes()).unwrap()
+    }
+
+    #[test]
+    fn test_compute_empty_segment() {
+        let stats = Statistics::compute(&TrackSegment::default());
+        assert!(stats.local.is_empty());
+        assert_eq!(stats.global.total_distance, 0.0);
+    }
+
+    #[test]
+    fn test_compute_distance_and_bounds() {
+        let gpx = load("data/simple.gpx");
+        let trkseg = &gpx.trk[0].trkseg[0];
+        let stats = Statistics::compute(trkseg);
+
+        assert_eq!(stats.local.len(), trkseg.len());
+        assert_eq!(stats.local[0].total_distance, 0.0);
+        assert!(stats.global.total_distance > 0.0);
+        // cumulative distance never decreases and ends at the global distance
+        assert!(
+            stats
+                .local
+                .windows(2)
+                .all(|w| w[0].total_distance <= w[1].total_distance)
+        );
+        let last = stats.local.last().unwrap();
+        assert!((last.total_distance - stats.global.total_distance).abs() < 1e-9);
+        assert!(stats.global.elevation_gain >= 0.0);
+        assert!(stats.global.elevation_loss >= 0.0);
+
+        // every point lies inside the bounds
+        let b = &stats.global.bounds;
+        for trkpt in trkseg.iter() {
+            assert!(b.sw.lng <= trkpt.coordinates.lng && trkpt.coordinates.lng <= b.ne.lng);
+            assert!(b.sw.lat <= trkpt.coordinates.lat && trkpt.coordinates.lat <= b.ne.lat);
+        }
+    }
+
+    #[test]
+    fn test_compute_time() {
+        let gpx = load("data/with_time.gpx");
+        let stats = Statistics::compute(&gpx.trk[0].trkseg[0]);
+        let total_time = stats.global.total_time.unwrap();
+        assert!(total_time > 0);
+        let speed = stats.global.total_speed().unwrap();
+        assert!((speed - 20.0).abs() < 0.5, "{speed}");
+    }
+
+    #[test]
+    fn test_no_time_without_timestamps() {
+        let gpx = load("data/simple.gpx");
+        let stats = Statistics::compute(&gpx.trk[0].trkseg[0]);
+        assert!(stats.global.total_time.is_none());
+        assert!(stats.global.total_speed().is_none());
+        assert!(stats.local.iter().all(|s| s.speed.is_none()));
+    }
+
+    #[test]
+    fn test_global_merge() {
+        let mut a = GlobalStatistics::default();
+        a.total_distance = 1.0;
+        a.elevation_gain = 10.0;
+        a.moving_time = Some(5);
+        a.bounds.extend(crate::LngLat { lng: 0.0, lat: 0.0 });
+        let mut b = GlobalStatistics::default();
+        b.total_distance = 2.0;
+        b.elevation_loss = 4.0;
+        b.moving_distance = Some(1.5);
+        b.moving_time = Some(7);
+        b.bounds.extend(crate::LngLat { lng: 2.0, lat: 3.0 });
+
+        a.merge(&b);
+        assert_eq!(a.total_distance, 3.0);
+        assert_eq!(a.elevation_gain, 10.0);
+        assert_eq!(a.elevation_loss, 4.0);
+        assert_eq!(a.moving_distance, Some(1.5));
+        assert_eq!(a.moving_time, Some(12));
+        assert_eq!(a.total_time, None);
+
+        let mut c = GlobalStatistics::default();
+        c.start_time = Some(1_000);
+        c.end_time = Some(4_000);
+        c.total_time = Some(3_000);
+        let mut d = GlobalStatistics::default();
+        d.start_time = Some(10_000);
+        d.end_time = Some(12_000);
+        d.total_time = Some(2_000);
+        c.merge(&d);
+        // 3 s + 2 s, the gap between the two is ignored
+        assert_eq!(c.total_time, Some(5_000));
+        let mut cumul = GlobalStatistics::default();
+        cumul.merge(&c);
+        cumul.merge(&d);
+        assert_eq!(cumul.start_time, Some(1_000));
+        assert_eq!(cumul.end_time, Some(12_000));
+        assert_eq!(cumul.total_time, Some(7_000));
+        assert_eq!((a.bounds.ne.lng, a.bounds.ne.lat), (2.0, 3.0));
+    }
 }

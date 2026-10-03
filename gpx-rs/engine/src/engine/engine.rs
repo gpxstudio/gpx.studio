@@ -100,4 +100,74 @@ mod tests {
 
         assert_eq!(engine.statistics_buffer.total_distance.len(), 80);
     }
+
+    fn load(engine: &mut Engine, path: &str) -> bool {
+        let data = std::fs::read(path).unwrap();
+        engine.execute(Command::Load { data: &data })
+    }
+
+    #[test]
+    fn test_new_file_has_no_statistics() {
+        let mut engine = Engine::default();
+        assert!(engine.execute(Command::New { name: "empty" }));
+        assert_eq!(engine.stack.current().unwrap().len(), 1);
+        assert_eq!(engine.order.0.len(), 1);
+        assert!(engine.statistics().total_distance.is_empty());
+    }
+
+    #[test]
+    fn test_statistics_follow_selection() {
+        let mut engine = Engine::default();
+        assert!(load(&mut engine, "data/simple.gpx"));
+        let n = engine.statistics().total_distance.len();
+        assert!(n > 0);
+
+        // a newly created (empty) file becomes the selection
+        assert!(engine.execute(Command::New { name: "empty" }));
+        assert!(engine.statistics().total_distance.is_empty());
+        assert_eq!(engine.stack.current().unwrap().len(), 2);
+
+        // loading a file selects it again
+        assert!(load(&mut engine, "data/simple.gpx"));
+        assert_eq!(engine.statistics().total_distance.len(), n);
+    }
+
+    #[test]
+    fn test_invalid_load_is_rejected() {
+        let mut engine = Engine::default();
+        assert!(!engine.execute(Command::Load {
+            data: b"<gpx><trk></gpx>"
+        }));
+        assert!(engine.stack.current().is_none());
+        assert!(!engine.stack.can_undo());
+        assert!(engine.order.0.is_empty());
+    }
+
+    #[test]
+    fn test_metadata_renames_selected_file() {
+        let mut engine = Engine::default();
+        engine.execute(Command::New { name: "before" });
+        assert!(engine.execute(Command::Metadata {
+            name: "after",
+            desc: "about",
+        }));
+        let state = engine.stack.current().unwrap();
+        let file = state.values().next().unwrap();
+        assert_eq!(file.info.name, "after");
+        assert_eq!(file.info.desc.as_deref(), Some("about"));
+        assert!(engine.stack.can_undo());
+    }
+
+    #[test]
+    fn test_metadata_without_selection_does_not_modify_files() {
+        let mut engine = Engine::default();
+        engine.execute(Command::New { name: "file" });
+        engine.selection = Selection::Empty;
+        engine.execute(Command::Metadata {
+            name: "renamed",
+            desc: "",
+        });
+        let state = engine.stack.current().unwrap();
+        assert_eq!(state.values().next().unwrap().info.name, "file");
+    }
 }

@@ -59,3 +59,41 @@ impl WaypointChunk {
         self.wpt.len() == MAX_WPT_CHUNK_SIZE
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_trackpoint_chunk_full() {
+        let mut chunk = TrackpointChunk::default();
+        assert!(!chunk.is_full());
+        for _ in 0..MAX_TRKPT_CHUNK_SIZE - 1 {
+            chunk.trkpt.push(Trackpoint::default());
+        }
+        assert!(!chunk.is_full());
+        chunk.trkpt.push(Trackpoint::default());
+        assert!(chunk.is_full());
+    }
+
+    #[test]
+    fn test_waypoint_chunk_full() {
+        let mut chunk = WaypointChunk::default();
+        assert!(!chunk.is_full());
+        for _ in 0..MAX_WPT_CHUNK_SIZE {
+            chunk.wpt.push(Waypoint::default());
+        }
+        assert!(chunk.is_full());
+    }
+
+    #[test]
+    fn test_chunk_equality_is_by_id() {
+        let a = TrackpointChunk::default();
+        let b = TrackpointChunk::default();
+        assert_ne!(a, b);
+        let mut c = TrackpointChunk::default();
+        c.id = TrackpointChunkId(a.id.0);
+        c.trkpt.push(Trackpoint::default());
+        assert_eq!(a, c);
+    }
+}

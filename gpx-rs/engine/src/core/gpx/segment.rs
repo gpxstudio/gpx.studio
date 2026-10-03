@@ -81,19 +81,20 @@ impl TrackSegment {
             pos: 0,
             flat: self.cumul_length.last().copied().unwrap_or_default(),
         });
-        loop {
-            if prev.pos == 0 {
-                if prev.chunk == 0 {
-                    return None;
-                }
+        if prev.pos == 0 {
+            while prev.chunk > 0 {
                 prev.chunk -= 1;
-                prev.pos = self.chunks[prev.chunk].trkpt.len();
-                prev.flat -= 1;
-            } else {
-                prev.pos -= 1;
-                prev.flat -= 1;
-                return Some(prev);
+                if !self.chunks[prev.chunk].trkpt.is_empty() {
+                    prev.pos = self.chunks[prev.chunk].trkpt.len() - 1;
+                    prev.flat -= 1;
+                    return Some(prev);
+                }
             }
+            None
+        } else {
+            prev.pos -= 1;
+            prev.flat -= 1;
+            Some(prev)
         }
     }
 
@@ -266,6 +267,44 @@ mod tests {
         let trkseg = create_track_segment(nb_chunks);
         for (i, trkpt) in trkseg.iter().enumerate().skip(5) {
             assert!(std::ptr::eq(&trkseg[i], trkpt));
+        }
+    }
+
+    #[test]
+    fn test_first_last_index() {
+        assert!(TrackSegment::default().first_index().is_none());
+        assert!(TrackSegment::default().last_index().is_none());
+
+        let trkseg = create_track_segment(5); // 15 points in chunks of 1..=5
+        let first = trkseg.first_index().unwrap();
+        let last = trkseg.last_index().unwrap();
+        assert_eq!((first.chunk, first.pos, first.flat), (0, 0, 0));
+        assert_eq!((last.chunk, last.pos, last.flat), (4, 4, 14));
+        assert_eq!(trkseg[last].ele, 14.0);
+        assert_eq!(trkseg.locate(14), Some(last));
+        assert!(trkseg.next_index(Some(last)).is_none());
+        assert!(trkseg.prev_index(Some(first)).is_none());
+    }
+
+    #[test]
+    fn test_prev_next_are_inverse() {
+        let trkseg = create_track_segment(6);
+        let mut idx = trkseg.last_index();
+        let mut visited = vec![];
+        while let Some(i) = idx {
+            assert_eq!(trkseg.locate(i.flat), Some(i));
+            visited.push(i.flat);
+            idx = trkseg.prev_index(Some(i));
+        }
+        assert_eq!(visited, (0..trkseg.len()).rev().collect::<Vec<_>>());
+
+        let mut idx = trkseg.first_index();
+        while let Some(i) = idx {
+            let next = trkseg.next_index(Some(i));
+            if let Some(n) = next {
+                assert_eq!(trkseg.prev_index(Some(n)), Some(i));
+            }
+            idx = next;
         }
     }
 }

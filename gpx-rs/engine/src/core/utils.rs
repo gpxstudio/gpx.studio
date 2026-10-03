@@ -119,3 +119,85 @@ pub fn crossarc(x1: f64, y1: f64, x2: f64, y2: f64, x3: f64, y3: f64) -> f64 {
         ((x3 - proj_x) * (x3 - proj_x) + (y3 - proj_y) * (y3 - proj_y)).sqrt()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn p(lng: f64, lat: f64) -> LngLat {
+        LngLat { lng, lat }
+    }
+
+    #[test]
+    fn test_distance() {
+        assert_eq!(distance(p(4.0, 50.0), p(4.0, 50.0)), 0.0);
+        // one degree of latitude
+        let d = distance(p(0.0, 0.0), p(0.0, 1.0));
+        assert!((d - 111.195).abs() < 0.01, "{d}");
+        // symmetric
+        let a = p(4.40, 50.79);
+        let b = p(6.13, 45.90);
+        assert!((distance(a, b) - distance(b, a)).abs() < 1e-9);
+        // half the Earth's circumference, without NaN from rounding
+        let antipodal = distance(p(0.0, 0.0), p(180.0, 0.0));
+        assert!((antipodal - PI * EARTH_RADIUS).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_time_diff() {
+        assert_eq!(time_diff(&Some(5000), &Some(2000)), Some(3000));
+        assert_eq!(time_diff(&Some(2000), &Some(5000)), Some(-3000));
+        assert_eq!(time_diff(&None, &Some(1)), None);
+        assert_eq!(time_diff(&Some(1), &None), None);
+    }
+
+    #[test]
+    fn test_speed() {
+        // 1 km in 1 h
+        assert!((speed(1.0, 3_600_000) - 1.0).abs() < 1e-12);
+        // 10 km in 30 min
+        assert!((speed(10.0, 1_800_000) - 20.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn test_slope() {
+        // 10 m of elevation over 100 m (distance is expressed in km, hence the 0.1 factor)
+        assert!((slope(10.0, 0.1) - 10.0).abs() < 1e-12);
+        assert!((slope(-5.0, 0.1) + 5.0).abs() < 1e-12);
+        assert_eq!(slope(0.0, 1.0), 0.0);
+        assert_eq!(slope(10.0, 0.0), 100.0);
+    }
+
+    #[test]
+    fn test_crossarc() {
+        // perpendicular distance to the segment (0,0)-(10,0)
+        assert!((crossarc(0.0, 0.0, 10.0, 0.0, 5.0, 3.0) - 3.0).abs() < 1e-12);
+        // beyond the ends: distance to the closest endpoint
+        assert!((crossarc(0.0, 0.0, 10.0, 0.0, 13.0, 4.0) - 5.0).abs() < 1e-12);
+        assert!((crossarc(0.0, 0.0, 10.0, 0.0, -3.0, 4.0) - 5.0).abs() < 1e-12);
+        // point on the segment
+        assert_eq!(crossarc(0.0, 0.0, 10.0, 0.0, 4.0, 0.0), 0.0);
+        // degenerate segment
+        assert!((crossarc(1.0, 1.0, 1.0, 1.0, 4.0, 5.0) - 5.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn test_projected() {
+        let proj = projected(p(0.0, 0.0), p(1.0, 0.0), p(0.5, 1.0));
+        assert!((proj.lng - 0.5).abs() < 1e-9);
+        assert!(proj.lat.abs() < 1e-9);
+        // clamped to the segment
+        let proj = projected(p(0.0, 0.0), p(1.0, 0.0), p(2.0, 1.0));
+        assert!((proj.lng - 1.0).abs() < 1e-9);
+        // degenerate segment
+        let proj = projected(p(3.0, 4.0), p(3.0, 4.0), p(5.0, 6.0));
+        assert_eq!((proj.lng, proj.lat), (3.0, 4.0));
+    }
+
+    #[test]
+    fn test_crossarc_lnglat() {
+        // about 1 degree of latitude away from an east-west segment on the equator
+        let d = crossarc_lnglat(p(0.0, 0.0), p(1.0, 0.0), p(0.5, 1.0));
+        assert!((d - METERS_PER_LATITUDE_DEGREE).abs() < 1e-6);
+    }
+}

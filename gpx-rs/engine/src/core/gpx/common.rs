@@ -46,3 +46,52 @@ impl LngLatBounds {
         self.ne.lat = self.ne.lat.max(other.ne.lat);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_bounds_extend() {
+        let mut bounds = LngLatBounds::default();
+        bounds.extend(LngLat {
+            lng: 4.0,
+            lat: 50.0,
+        });
+        assert_eq!((bounds.sw.lng, bounds.sw.lat), (4.0, 50.0));
+        assert_eq!((bounds.ne.lng, bounds.ne.lat), (4.0, 50.0));
+
+        bounds.extend(LngLat {
+            lng: 6.0,
+            lat: 45.0,
+        });
+        bounds.extend(LngLat {
+            lng: 5.0,
+            lat: 48.0,
+        });
+        assert_eq!((bounds.sw.lng, bounds.sw.lat), (4.0, 45.0));
+        assert_eq!((bounds.ne.lng, bounds.ne.lat), (6.0, 50.0));
+    }
+
+    #[test]
+    fn test_bounds_merge() {
+        let mut a = LngLatBounds::default();
+        a.extend(LngLat { lng: 0.0, lat: 0.0 });
+        a.extend(LngLat { lng: 1.0, lat: 1.0 });
+        let mut b = LngLatBounds::default();
+        b.extend(LngLat {
+            lng: -2.0,
+            lat: 0.5,
+        });
+        b.extend(LngLat { lng: 0.5, lat: 3.0 });
+
+        a.merge(&b);
+        assert_eq!((a.sw.lng, a.sw.lat), (-2.0, 0.0));
+        assert_eq!((a.ne.lng, a.ne.lat), (1.0, 3.0));
+
+        // merging an empty bounds changes nothing
+        a.merge(&LngLatBounds::default());
+        assert_eq!((a.sw.lng, a.sw.lat), (-2.0, 0.0));
+        assert_eq!((a.ne.lng, a.ne.lat), (1.0, 3.0));
+    }
+}

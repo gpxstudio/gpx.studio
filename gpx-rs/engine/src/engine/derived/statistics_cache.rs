@@ -113,3 +113,121 @@ impl StatisticsCache {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashSet;
+
+    use crate::{FileId, parse};
+
+    use super::*;
+
+    fn state(path: &str) -> (StackEntry, Rc<File>) {
+        let data = std::fs::read(path).unwrap();
+        let file = Rc::new(parse(&data).unwrap());
+        let mut state = StackEntry::default();
+        state.insert(file.id, file.clone());
+        (state, file)
+    }
+
+    fn file_selection(id: FileId) -> Selection {
+        Selection::File {
+            file_ids: HashSet::from([id]),
+        }
+    }
+
+    #[test]
+    fn test_update_and_select_file() {
+        let (state, file) = state("data/with_tracks_and_segments.gpx");
+        let nb_segments: usize = file.trk.iter().map(|t| t.trkseg.len()).sum();
+        let mut cache = StatisticsCache::default();
+        cache.update(Some(&state));
+        assert_eq!(cache.map.len(), nb_segments);
+
+        assert_eq!(
+            cache.get(Some(&state), &file_selection(file.id)).len(),
+            nb_segments
+        );
+        assert!(cache.get(Some(&state), &Selection::Empty).is_empty());
+        assert!(cache.get(None, &file_selection(file.id)).is_empty());
+        // unknown file
+        assert!(
+            cache
+                .get(Some(&state), &file_selection(FileId::default()))
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn test_select_track_and_segment() {
+        let (state, file) = state("data/with_tracks_and_segments.gpx");
+        let mut cache = StatisticsCache::default();
+        cache.update(Some(&state));
+
+        let trk = &file.trk[0];
+        let selection = Selection::Track {
+            file_id: file.id,
+            trk_ids: HashSet::from([trk.id]),
+        };
+        assert_eq!(cache.get(Some(&state), &selection).len(), trk.trkseg.len());
+
+        let trkseg = &trk.trkseg[1];
+        let selection = Selection::TrackSegment {
+            file_id: file.id,
+            trk_id: trk.id,
+            trkseg_ids: HashSet::from([trkseg.id]),
+        };
+        let stats = cache.get(Some(&state), &selection);
+        assert_eq!(stats.len(), 1);
+        assert_eq!(stats[0].local.len(), trkseg.len());
+
+        // a segment id under the wrong track selects nothing
+        let selection = Selection::TrackSegment {
+            file_id: file.id,
+            trk_id: file.trk[1].id,
+            trkseg_ids: HashSet::from([trkseg.id]),
+        };
+        assert!(cache.get(Some(&state), &selection).is_empty());
+    }
+
+    #[test]
+    fn test_unchanged_segments_are_not_recomputed() {
+        let (state, file) = state("data/simple.gpx");
+        let mut cache = StatisticsCache::default();
+        cache.update(Some(&state));
+        let before: *const Statistics = cache.get(Some(&state), &file_selection(file.id))[0];
+
+        // a new snapshot of the file that shares its segments (same revision ids)
+        let mut next = StackEntry::default();
+        let renamed = {
+            let mut f = (*file).clone();
+            f.info.name = "other".to_string();
+            Rc::new(f)
+        };
+        next.insert(renamed.id, renamed);
+        cache.update(Some(&next));
+        let after: *const Statistics = cache.get(Some(&next), &file_selection(file.id))[0];
+        assert!(std::ptr::eq(before, after));
+    }
+
+    #[test]
+    fn test_modified_segment_is_recomputed_and_stale_entries_dropped() {
+        let (state, file) = state("data/simple.gpx");
+        let mut cache = StatisticsCache::default();
+        cache.update(Some(&state));
+        let old_rev = file.trk[0].trkseg[0].rev_id;
+        assert!(cache.map.contains_key(&old_rev));
+
+        let mut f = (*file).clone();
+        f.trk[0].trkseg[0].rev_id = Default::default();
+        let new_rev = f.trk[0].trkseg[0].rev_id;
+        let mut next = StackEntry::default();
+        next.insert(f.id, Rc::new(f));
+        cache.update(Some(&next));
+        assert!(cache.map.contains_key(&new_rev));
+        assert!(!cache.map.contains_key(&old_rev));
+
+        cache.update(None);
+        assert!(cache.map.is_empty());
+    }
+}
