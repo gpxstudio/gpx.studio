@@ -1,6 +1,8 @@
 use std::rc::Rc;
 
-use crate::{Apply, CommandError, Selection, State};
+use crate::{
+    Apply, CommandError, FileId, Selection, StackEntry, State, Waypoint, edit_waypoint_chunks,
+};
 
 #[derive(Debug)]
 pub struct Delete;
@@ -53,14 +55,35 @@ impl Apply for Delete {
                     trk_ids: [*trk_id].into(),
                 }
             }
-            // TODO waypoints
-            Selection::Empty | Selection::Waypoints { .. } | Selection::Waypoint { .. } => {
-                return Err(CommandError::NothingToDo);
+            Selection::Waypoints { file_id } => delete_waypoints(state.files, *file_id, |_| true)?,
+            Selection::Waypoint { file_id, wpt_ids } => {
+                delete_waypoints(state.files, *file_id, |wpt| wpt_ids.contains(&wpt.id))?
             }
+            Selection::Empty => return Err(CommandError::NothingToDo),
         };
         *state.selection = next;
         Ok(())
     }
+}
+
+fn delete_waypoints(
+    files: &mut StackEntry,
+    file_id: FileId,
+    filter: impl Fn(&Waypoint) -> bool,
+) -> Result<Selection, CommandError> {
+    let file = files.get(&file_id).ok_or(CommandError::NothingToDo)?;
+    let mut file = (**file).clone();
+    let changed = edit_waypoint_chunks(&mut file, &filter, |wpts| {
+        wpts.retain(|wpt| !filter(wpt));
+        true
+    });
+    if !changed {
+        return Err(CommandError::NothingToDo);
+    }
+    files.insert(file_id, Rc::new(file));
+    Ok(Selection::File {
+        file_ids: [file_id].into(),
+    })
 }
 
 #[cfg(test)]
@@ -135,6 +158,50 @@ mod tests {
         assert!(trk.trkseg.iter().all(|s| s.id != seg_id));
         assert!(
             matches!(&fx.selection, Selection::Track { trk_ids, .. } if trk_ids.contains(&trk_id))
+        );
+    }
+
+    fn with_waypoints(fx: &mut Fixture, id: FileId, n: usize) -> Vec<crate::WaypointId> {
+        let wpts: Vec<_> = (0..n).map(|_| Waypoint::default()).collect();
+        let ids = wpts.iter().map(|w| w.id).collect();
+        let mut file = (*fx.files[&id]).clone();
+        file.wpt = vec![Rc::new(crate::WaypointChunk {
+            wpt: wpts,
+            ..Default::default()
+        })];
+        fx.files.insert(id, Rc::new(file));
+        ids
+    }
+
+    #[test]
+    fn test_delete_selected_waypoints() {
+        let (mut fx, id) = loaded();
+        let ids = with_waypoints(&mut fx, id, 3);
+        fx.selection = Selection::Waypoint {
+            file_id: id,
+            wpt_ids: HashSet::from([ids[1]]),
+        };
+        Delete.apply(&mut fx.state()).unwrap();
+        let left: Vec<_> = fx.files[&id]
+            .wpt
+            .iter()
+            .flat_map(|c| c.wpt.iter().map(|w| w.id))
+            .collect();
+        assert_eq!(left, vec![ids[0], ids[2]]);
+        assert_eq!(fx.selected_files(), HashSet::from([id]));
+    }
+
+    #[test]
+    fn test_delete_all_waypoints_of_file() {
+        let (mut fx, id) = loaded();
+        with_waypoints(&mut fx, id, 3);
+        fx.selection = Selection::Waypoints { file_id: id };
+        Delete.apply(&mut fx.state()).unwrap();
+        assert!(fx.files[&id].wpt.is_empty());
+        fx.selection = Selection::Waypoints { file_id: id };
+        assert_eq!(
+            Delete.apply(&mut fx.state()),
+            Err(CommandError::NothingToDo)
         );
     }
 

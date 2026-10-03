@@ -1,6 +1,9 @@
 use std::{collections::HashSet, rc::Rc};
 
-use crate::{Apply, CommandError, File, Selection, State, Track, TrackSegment};
+use crate::{
+    Apply, CommandError, File, FileId, Selection, StackEntry, State, Track, TrackSegment, Waypoint,
+    WaypointChunk,
+};
 
 #[derive(Debug)]
 pub struct Duplicate;
@@ -10,10 +13,9 @@ impl Apply for Duplicate {
         let next = match &*state.selection {
             Selection::File { file_ids } => {
                 let mut copies = HashSet::new();
-                let mut order = Vec::with_capacity(state.order.0.len() + file_ids.len());
-                for id in &state.order.0 {
-                    order.push(*id);
-                    let Some(file) = state.files.get(id).filter(|_| file_ids.contains(id)) else {
+                let mut order = Vec::new();
+                for id in state.order.0.iter().filter(|id| file_ids.contains(id)) {
+                    let Some(file) = state.files.get(id) else {
                         continue;
                     };
                     let copy = copy_file(file);
@@ -24,7 +26,13 @@ impl Apply for Duplicate {
                 if copies.is_empty() {
                     return Err(CommandError::NothingToDo);
                 }
-                state.order.0 = order;
+                let at = state
+                    .order
+                    .0
+                    .iter()
+                    .rposition(|id| file_ids.contains(id))
+                    .map_or(state.order.0.len(), |i| i + 1);
+                state.order.0.splice(at..at, order);
                 Selection::File { file_ids: copies }
             }
             Selection::Track { file_id, trk_ids } => {
@@ -34,7 +42,7 @@ impl Apply for Duplicate {
                     .ok_or(CommandError::NothingToDo)?;
                 let file = Rc::make_mut(file);
                 let mut copies = HashSet::new();
-                duplicate_after(
+                append_copies(
                     &mut file.trk,
                     |trk| trk_ids.contains(&trk.id),
                     |trk| {
@@ -67,7 +75,7 @@ impl Apply for Duplicate {
                     .find(|trk| trk.id == *trk_id)
                     .ok_or(CommandError::NothingToDo)?;
                 let mut copies = HashSet::new();
-                duplicate_after(
+                append_copies(
                     &mut trk.trkseg,
                     |seg| trkseg_ids.contains(&seg.id),
                     |seg| {
@@ -85,28 +93,88 @@ impl Apply for Duplicate {
                     trkseg_ids: copies,
                 }
             }
-            // TODO waypoints
-            Selection::Empty | Selection::Waypoints { .. } | Selection::Waypoint { .. } => {
-                return Err(CommandError::NothingToDo);
+            Selection::Waypoints { file_id } => {
+                duplicate_waypoints(state.files, *file_id, |_| true)?
             }
+            Selection::Waypoint { file_id, wpt_ids } => {
+                duplicate_waypoints(state.files, *file_id, |wpt| wpt_ids.contains(&wpt.id))?
+            }
+            Selection::Empty => return Err(CommandError::NothingToDo),
         };
         *state.selection = next;
         Ok(())
     }
 }
 
-/// Inserts a copy right after each item matching `filter`.
-fn duplicate_after<T>(
-    items: &mut Vec<T>,
-    filter: impl Fn(&T) -> bool,
-    mut copy: impl FnMut(&T) -> T,
-) {
-    let old = std::mem::take(items);
-    for item in old {
-        let dup = filter(&item).then(|| copy(&item));
-        items.push(item);
-        items.extend(dup);
+fn duplicate_waypoints(
+    files: &mut StackEntry,
+    file_id: FileId,
+    filter: impl Fn(&Waypoint) -> bool,
+) -> Result<Selection, CommandError> {
+    let file = files.get(&file_id).ok_or(CommandError::NothingToDo)?;
+    let mut file = (**file).clone();
+    let last_chunk = file
+        .wpt
+        .iter()
+        .rposition(|chunk| chunk.wpt.iter().any(&filter))
+        .ok_or(CommandError::NothingToDo)?;
+
+    let mut copies = HashSet::new();
+    let mut inserted = Vec::new();
+    let mut chunk = WaypointChunk::default();
+    for wpt in file
+        .wpt
+        .iter()
+        .flat_map(|chunk| &chunk.wpt)
+        .filter(|wpt| filter(wpt))
+    {
+        let mut copy = wpt.clone();
+        copy.id = Default::default();
+        copies.insert(copy.id);
+        chunk.wpt.push(copy);
+        if chunk.is_full() {
+            inserted.push(Rc::new(std::mem::take(&mut chunk)));
+        }
     }
+    if !chunk.wpt.is_empty() {
+        inserted.push(Rc::new(chunk));
+    }
+
+    // The copies go right after the last selected waypoint: only the chunk holding it is cut
+    // (when waypoints follow it), all the other chunks are kept as they are.
+    let cut = &file.wpt[last_chunk];
+    let split = cut.wpt.iter().rposition(&filter).unwrap() + 1;
+    let replacement = if split == cut.wpt.len() {
+        let mut chunks = vec![cut.clone()];
+        chunks.extend(inserted);
+        chunks
+    } else {
+        let part = |wpt: &[Waypoint]| {
+            Rc::new(WaypointChunk {
+                wpt: wpt.to_vec(),
+                ..Default::default()
+            })
+        };
+        let mut chunks = vec![part(&cut.wpt[..split])];
+        chunks.extend(inserted);
+        chunks.push(part(&cut.wpt[split..]));
+        chunks
+    };
+    file.wpt.splice(last_chunk..=last_chunk, replacement);
+    files.insert(file_id, Rc::new(file));
+    Ok(Selection::Waypoint {
+        file_id,
+        wpt_ids: copies,
+    })
+}
+
+/// Inserts a copy of each item matching `filter`, as a block after the last matching item.
+fn append_copies<T>(items: &mut Vec<T>, filter: impl Fn(&T) -> bool, copy: impl FnMut(&T) -> T) {
+    let Some(last) = items.iter().rposition(&filter) else {
+        return;
+    };
+    let copies: Vec<T> = items.iter().filter(|item| filter(item)).map(copy).collect();
+    items.splice(last + 1..last + 1, copies);
 }
 
 // Track points are shared chunks, so copies are cheap.
@@ -180,10 +248,30 @@ mod tests {
     }
 
     #[test]
-    fn test_duplicate_track_inserts_after_original() {
+    fn test_duplicate_files_go_after_last_selected() {
+        let mut fx = Fixture::default();
+        for name in ["a", "b", "c"] {
+            crate::New { name }.apply(&mut fx.state()).unwrap();
+        }
+        let [a, b, c] = [fx.order.0[0], fx.order.0[1], fx.order.0[2]];
+        fx.selection = Selection::File {
+            file_ids: [a, b].into(),
+        };
+        Duplicate.apply(&mut fx.state()).unwrap();
+        assert_eq!(fx.order.0.len(), 5);
+        assert_eq!(fx.order.0[..2], [a, b]);
+        assert_eq!(fx.order.0[4], c);
+        assert_eq!(
+            fx.selected_files(),
+            fx.order.0[2..4].iter().copied().collect()
+        );
+    }
+
+    #[test]
+    fn test_duplicate_track_appends_copy() {
         let (mut fx, id) = loaded();
         let before = fx.files[&id].trk.len();
-        let trk_id = fx.files[&id].trk[0].id;
+        let (trk_id, second_id) = (fx.files[&id].trk[0].id, fx.files[&id].trk[1].id);
         fx.selection = Selection::Track {
             file_id: id,
             trk_ids: [trk_id].into(),
@@ -193,13 +281,72 @@ mod tests {
         assert_eq!(file.trk.len(), before + 1);
         assert_eq!(file.trk[0].id, trk_id);
         assert_ne!(file.trk[1].id, trk_id);
+        // copies go right after the selected track, not at the end
+        assert_eq!(file.trk[2].id, second_id);
         assert!(
             matches!(&fx.selection, Selection::Track { trk_ids, .. } if trk_ids.contains(&file.trk[1].id))
         );
     }
 
     #[test]
-    fn test_duplicate_segment_inserts_after_original() {
+    fn test_duplicate_selected_waypoints() {
+        let (mut fx, id) = loaded();
+        let wpts: Vec<_> = (0..3).map(|_| Waypoint::default()).collect();
+        let ids: Vec<_> = wpts.iter().map(|w| w.id).collect();
+        let mut file = (*fx.files[&id]).clone();
+        file.wpt = vec![Rc::new(crate::WaypointChunk {
+            wpt: wpts,
+            ..Default::default()
+        })];
+        fx.files.insert(id, Rc::new(file));
+        let original_chunk = fx.files[&id].wpt[0].clone();
+
+        fx.selection = Selection::Waypoint {
+            file_id: id,
+            wpt_ids: HashSet::from([ids[0]]),
+        };
+        Duplicate.apply(&mut fx.state()).unwrap();
+        let all: Vec<_> = fx.files[&id]
+            .wpt
+            .iter()
+            .flat_map(|c| c.wpt.iter().map(|w| w.id))
+            .collect();
+        assert_eq!(all.len(), 4);
+        assert!(
+            matches!(&fx.selection, Selection::Waypoint { wpt_ids, .. } if wpt_ids == &HashSet::from([all[1]]))
+        );
+        // the chunk is cut after the selected waypoint: [w0] [copy] [w1 w2]
+        assert_eq!(all[..], [ids[0], all[1], ids[1], ids[2]]);
+        assert_eq!(fx.files[&id].wpt.len(), 3);
+        assert_ne!(fx.files[&id].wpt[0].id, original_chunk.id);
+
+        // selecting the last waypoint of a chunk does not cut it
+        let last = fx.files[&id].wpt.last().unwrap().wpt.last().unwrap().id;
+        let chunks = fx.files[&id].wpt.clone();
+        fx.selection = Selection::Waypoint {
+            file_id: id,
+            wpt_ids: HashSet::from([last]),
+        };
+        Duplicate.apply(&mut fx.state()).unwrap();
+        let file = &fx.files[&id];
+        assert_eq!(file.wpt.len(), 4);
+        assert!(
+            file.wpt[..3]
+                .iter()
+                .zip(&chunks)
+                .all(|(a, b)| Rc::ptr_eq(a, b))
+        );
+
+        fx.selection = Selection::Waypoints { file_id: id };
+        Duplicate.apply(&mut fx.state()).unwrap();
+        assert_eq!(
+            fx.files[&id].wpt.iter().map(|c| c.wpt.len()).sum::<usize>(),
+            10
+        );
+    }
+
+    #[test]
+    fn test_duplicate_segment_appends_copy() {
         let (mut fx, id) = loaded();
         let trk = &fx.files[&id].trk[0];
         let (trk_id, seg_id, before) = (trk.id, trk.trkseg[0].id, trk.trkseg.len());

@@ -1,6 +1,8 @@
 use std::rc::Rc;
 
-use crate::{File, FileId, Selection, StackEntry, State, Track, TrackSegment};
+use crate::{
+    File, FileId, Selection, StackEntry, State, Track, TrackSegment, Waypoint, edit_waypoint_chunks,
+};
 
 /// What an [`Editor`] hook did to the element it was given.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -24,6 +26,7 @@ impl Edit {
 /// A selected file, track or segment is passed to the hook of its own level. By default a
 /// file is forwarded to its tracks and a track to its segments, so an editor only overrides
 /// the level(s) it cares about (metadata: file and track, style: track, reverse: segment).
+/// Waypoints are only edited when selected, never through their file.
 pub trait Editor {
     fn file(&mut self, file: &mut File) -> Edit {
         edit_each(&mut file.trk, |trk| self.track(trk))
@@ -34,6 +37,10 @@ pub trait Editor {
     }
 
     fn segment(&mut self, _segment: &mut TrackSegment) -> Edit {
+        Edit::Unchanged
+    }
+
+    fn waypoint(&mut self, _waypoint: &mut Waypoint) -> Edit {
         Edit::Unchanged
     }
 }
@@ -75,6 +82,21 @@ fn update_file(files: &mut StackEntry, id: FileId, f: impl FnOnce(&mut File) -> 
     }
 }
 
+fn edit_waypoints<E: Editor + ?Sized>(
+    file: &mut File,
+    filter: impl Fn(&Waypoint) -> bool,
+    editor: &mut E,
+) -> Edit {
+    let changed = edit_waypoint_chunks(file, &filter, |wpts| {
+        edit_where(wpts, &filter, |wpt| editor.waypoint(wpt)) == Edit::Changed
+    });
+    if changed {
+        Edit::Changed
+    } else {
+        Edit::Unchanged
+    }
+}
+
 /// Applies the editor to every selected file, track or segment.
 pub fn update_selected<E: Editor>(state: &mut State, editor: &mut E) {
     match &*state.selection {
@@ -111,8 +133,17 @@ pub fn update_selected<E: Editor>(state: &mut State, editor: &mut E) {
                 )
             });
         }
-        // TODO waypoint-level hooks
-        Selection::Empty | Selection::Waypoints { .. } | Selection::Waypoint { .. } => {}
+        Selection::Waypoints { file_id } => {
+            update_file(state.files, *file_id, |file| {
+                edit_waypoints(file, |_| true, editor)
+            });
+        }
+        Selection::Waypoint { file_id, wpt_ids } => {
+            update_file(state.files, *file_id, |file| {
+                edit_waypoints(file, |wpt| wpt_ids.contains(&wpt.id), editor)
+            });
+        }
+        Selection::Empty => {}
     }
 }
 
@@ -244,6 +275,48 @@ mod tests {
     }
 
     #[test]
+    fn test_waypoint_selection_edits_only_selected_waypoints() {
+        struct Name;
+        impl Editor for Name {
+            fn waypoint(&mut self, wpt: &mut Waypoint) -> Edit {
+                wpt.name = Some("x".into());
+                Edit::Changed
+            }
+        }
+        let (mut fx, id) = fixture_with_tracks();
+        let wpts: Vec<_> = (0..3).map(|_| Waypoint::default()).collect();
+        let ids: Vec<_> = wpts.iter().map(|w| w.id).collect();
+        let mut file = (*fx.files[&id]).clone();
+        file.wpt = vec![Rc::new(crate::WaypointChunk {
+            wpt: wpts,
+            ..Default::default()
+        })];
+        fx.files.insert(id, Rc::new(file));
+        let chunk_id = fx.files[&id].wpt[0].id;
+
+        // A file selection never touches waypoints.
+        fx.selection = Selection::File {
+            file_ids: HashSet::from([id]),
+        };
+        update_selected(&mut fx.state(), &mut Name);
+        assert!(fx.files[&id].wpt[0].wpt.iter().all(|w| w.name.is_none()));
+
+        fx.selection = Selection::Waypoint {
+            file_id: id,
+            wpt_ids: HashSet::from([ids[1]]),
+        };
+        update_selected(&mut fx.state(), &mut Name);
+        let chunk = &fx.files[&id].wpt[0];
+        assert_ne!(chunk.id, chunk_id);
+        let named: Vec<_> = chunk.wpt.iter().map(|w| w.name.is_some()).collect();
+        assert_eq!(named, [false, true, false]);
+
+        fx.selection = Selection::Waypoints { file_id: id };
+        update_selected(&mut fx.state(), &mut Name);
+        assert!(fx.files[&id].wpt[0].wpt.iter().all(|w| w.name.is_some()));
+    }
+
+    #[test]
     fn test_missing_files_and_other_selections_are_ignored() {
         let mut fx = Fixture::default();
         let file = File::default();
@@ -255,7 +328,6 @@ mod tests {
             Selection::File {
                 file_ids: HashSet::from([FileId::default()]),
             },
-            Selection::Waypoints { file_id: id },
             Selection::Empty,
         ] {
             fx.selection = selection;

@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{Link, LngLat};
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct WaypointId(Uuid);
 
 impl Default for WaypointId {
@@ -11,7 +11,7 @@ impl Default for WaypointId {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Waypoint {
     pub id: WaypointId,
     pub coordinates: LngLat,
