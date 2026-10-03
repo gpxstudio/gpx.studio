@@ -1,4 +1,4 @@
-use crate::gpx::LngLat;
+use crate::LngLat;
 
 #[derive(Debug, Default)]
 pub struct Trackpoint {

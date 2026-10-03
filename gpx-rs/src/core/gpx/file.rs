@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use uuid::Uuid;
 
-use crate::gpx::{Link, Track, WaypointChunk};
+use crate::{Link, Track, WaypointChunk};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FileId(pub Uuid);

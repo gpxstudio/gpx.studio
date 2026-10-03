@@ -6,14 +6,7 @@ use js_sys::{Float64Array, Function, Int32Array};
 use uuid::Uuid;
 use wasm_bindgen::prelude::*;
 
-use crate::{
-    buffer::StatisticsBuffer,
-    gpx::{File, FileId},
-    io::parse,
-    selection::Selection,
-    state::{Stack, StackEntry},
-    statistics::StatisticsCache,
-};
+use crate::{File, FileId, Selection, Stack, StackEntry, StatisticsBuffer, StatisticsCache, parse};
 
 extern crate console_error_panic_hook;
 

@@ -1,4 +1,4 @@
-use crate::statistics::{GlobalStatistics, Statistics, sum_options};
+use crate::{GlobalStatistics, Statistics, sum_options};
 
 #[derive(Debug, Default)]
 pub struct StatisticsBuffer {

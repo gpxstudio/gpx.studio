@@ -1,6 +1,6 @@
 use std::f64::consts::PI;
 
-use crate::gpx::LngLat;
+use crate::LngLat;
 
 static TO_RADIANS: f64 = PI / 180.0;
 static EARTH_RADIUS: f64 = 6371.0088;

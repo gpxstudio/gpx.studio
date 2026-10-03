@@ -1,6 +1,6 @@
 use crate::{
-    gpx::{TrackSegment, TrackSegmentIndex},
-    utils::crossarc,
+    core::gpx::{TrackSegment, TrackSegmentIndex},
+    core::utils::crossarc,
 };
 
 pub fn ramer_douglas_peucker<F>(

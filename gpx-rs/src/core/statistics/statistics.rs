@@ -1,9 +1,6 @@
 use crate::{
-    algorithm::ramer_douglas_peucker,
-    for_each_window,
-    gpx::{LngLat, LngLatBounds, TrackSegment, TrackSegmentIndex, Trackpoint},
-    statistics::sum_options,
-    utils::{distance, slope, speed, time_diff},
+    LngLat, LngLatBounds, TrackSegment, TrackSegmentIndex, Trackpoint, distance, for_each_window,
+    ramer_douglas_peucker, slope, speed, sum_options, time_diff,
 };
 
 #[derive(Default, Debug)]
@@ -290,7 +287,7 @@ pub struct SlopeSegment {
 mod tests {
     use std::{fs::File, io::Read};
 
-    use crate::io::parse;
+    use crate::parse;
 
     use super::*;
 

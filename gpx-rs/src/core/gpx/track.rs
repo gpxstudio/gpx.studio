@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use crate::gpx::{Link, TrackSegment};
+use crate::{Link, TrackSegment};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct TrackId(Uuid);

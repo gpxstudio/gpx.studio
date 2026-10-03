@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use crate::gpx::{Link, LngLat};
+use crate::{Link, LngLat};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct WaypointId(Uuid);

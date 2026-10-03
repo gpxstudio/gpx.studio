@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use crate::gpx::{Trackpoint, Waypoint};
+use crate::{Trackpoint, Waypoint};
 
 static MAX_TRKPT_CHUNK_SIZE: usize = 4096;
 

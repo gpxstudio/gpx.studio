@@ -3,7 +3,7 @@ use std::{
     rc::Rc,
 };
 
-use crate::gpx::{File, FileId};
+use crate::{File, FileId};
 
 #[derive(Debug, Default)]
 pub struct Stack {

@@ -2,7 +2,7 @@ use std::{ops::Index, rc::Rc};
 
 use uuid::Uuid;
 
-use crate::gpx::{Trackpoint, TrackpointChunk};
+use crate::{Trackpoint, TrackpointChunk};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct TrackSegmentId(Uuid);
@@ -174,8 +174,6 @@ impl<'a> Iterator for TrackSegmentIterator<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::gpx::TrackpointChunk;
-
     use super::*;
 
     fn create_track_segment(nb_chunks: usize) -> TrackSegment {

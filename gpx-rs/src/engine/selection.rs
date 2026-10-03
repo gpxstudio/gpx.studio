@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::gpx::{FileId, TrackId, TrackSegmentId, WaypointId};
+use crate::{FileId, TrackId, TrackSegmentId, WaypointId};
 
 #[derive(Debug)]
 pub struct FileSelection {

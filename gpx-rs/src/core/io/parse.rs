@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::gpx::{
+use crate::{
     Author, File, Link, LngLat, Track, TrackSegment, Trackpoint, TrackpointChunk, Waypoint,
     WaypointChunk,
 };

@@ -3,12 +3,7 @@ use std::{
     rc::Rc,
 };
 
-use crate::{
-    gpx::{File, Track, TrackSegment, TrackSegmentRevisionId},
-    selection::Selection,
-    state::StackEntry,
-    statistics::Statistics,
-};
+use crate::{File, Selection, StackEntry, Statistics, Track, TrackSegment, TrackSegmentRevisionId};
 
 #[derive(Debug, Default)]
 pub struct StatisticsCache {
