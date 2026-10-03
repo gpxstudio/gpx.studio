@@ -1,4 +1,4 @@
-#[derive(Debug, Default, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Link {
     pub href: String,
     pub text: Option<String>,

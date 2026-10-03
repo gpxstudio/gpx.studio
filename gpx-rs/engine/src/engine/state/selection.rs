@@ -26,11 +26,3 @@ pub enum Selection {
         wpt_ids: HashSet<WaypointId>,
     },
 }
-
-impl Selection {
-    pub fn select(&mut self, id: FileId) {
-        let mut file_ids = HashSet::default();
-        file_ids.insert(id);
-        *self = Selection::File { file_ids };
-    }
-}

@@ -18,11 +18,11 @@ impl Stack {
 
     pub fn create_and_push_next<F>(&mut self, f: F) -> Option<Diff>
     where
-        F: FnOnce(&mut StackEntry) -> bool,
+        F: FnOnce(&mut StackEntry) -> Result<(), String>,
     {
         self.record_diff(|stack| {
             let mut next = stack.current().map_or_default(|c| c.clone());
-            if f(&mut next) {
+            if f(&mut next).is_ok() {
                 stack.push(next);
             }
         })
@@ -139,7 +139,7 @@ mod tests {
         let diff = stack.create_and_push_next(|e| {
             let file = Rc::new(File::default());
             e.insert(file.id, file);
-            true
+            Ok(())
         });
 
         assert!(stack.can_undo());

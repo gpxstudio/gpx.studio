@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{Link, TrackSegment};
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TrackId(Uuid);
 
 impl Default for TrackId {
@@ -11,14 +11,14 @@ impl Default for TrackId {
     }
 }
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Track {
     pub id: TrackId,
     pub info: TrackInfo,
     pub trkseg: Vec<TrackSegment>,
 }
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct TrackInfo {
     pub name: Option<String>,
     pub cmt: Option<String>,

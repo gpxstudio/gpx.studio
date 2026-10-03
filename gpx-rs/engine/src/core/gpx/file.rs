@@ -13,7 +13,7 @@ impl Default for FileId {
     }
 }
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct File {
     pub id: FileId,
     pub info: FileInfo,
@@ -22,7 +22,7 @@ pub struct File {
     // TODO routes
 }
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct FileInfo {
     pub name: String,
     pub desc: Option<String>,
@@ -31,7 +31,7 @@ pub struct FileInfo {
     pub time: Option<i64>,
 }
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Author {
     pub name: Option<String>,
     pub email: Option<String>,
