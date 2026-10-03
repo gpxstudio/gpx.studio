@@ -4,36 +4,22 @@ use std::rc::Rc;
 
 use js_sys::{Float64Array, Function, Int32Array};
 use uuid::Uuid;
-use wasm_bindgen::prelude::*;
 
-use crate::{File, FileId, Selection, Stack, StackEntry, StatisticsBuffer, StatisticsCache, parse};
+use crate::{
+    Command, File, FileId, Selection, Stack, StackEntry, StatisticsBuffer, StatisticsCache, parse,
+};
 
 extern crate console_error_panic_hook;
 
 #[derive(Debug, Default)]
-#[wasm_bindgen]
 pub struct Engine {
     stack: Stack,
     selection: Selection,
     statistics_cache: StatisticsCache,
     statistics_buffer: StatisticsBuffer,
-    callback: Option<Function>,
 }
 
-#[wasm_bindgen]
 impl Engine {
-    #[wasm_bindgen(constructor)]
-    pub fn new(callback: Function) -> Self {
-        console_error_panic_hook::set_once();
-        Self {
-            stack: Default::default(),
-            selection: Default::default(),
-            statistics_cache: Default::default(),
-            statistics_buffer: Default::default(),
-            callback: Some(callback),
-        }
-    }
-
     pub fn total_distance(&self) -> Float64Array {
         unsafe { Float64Array::view(&self.statistics_buffer.total_distance) }
     }
@@ -74,16 +60,16 @@ impl Engine {
         unsafe { Float64Array::view(&self.statistics_buffer.slope_segment_distance) }
     }
 
-    pub fn create_file(&mut self, name: &str) {
+    pub fn create_file(&mut self, name: &str) -> bool {
         self.event_loop(|entry| {
             let mut file = File::default();
             file.info.name = name.to_string();
             entry.insert(file.id, Rc::new(file));
             true
-        });
+        })
     }
 
-    pub fn load_file(&mut self, data: &[u8]) {
+    pub fn load_file(&mut self, data: &[u8]) -> bool {
         self.event_loop(|entry| {
             if let Ok(file) = parse(data) {
                 entry.insert(file.id, Rc::new(file));
@@ -91,10 +77,10 @@ impl Engine {
             } else {
                 false
             }
-        });
+        })
     }
 
-    pub fn delete_file(&mut self, id: &[u8]) {
+    pub fn delete_file(&mut self, id: &[u8]) -> bool {
         self.event_loop(|entry| {
             if let Ok(id) = Uuid::from_slice(id) {
                 let id = FileId(id);
@@ -102,10 +88,42 @@ impl Engine {
             } else {
                 false
             }
-        });
+        })
     }
 
-    fn event_loop<F>(&mut self, f: F)
+    /// Single entry point for every user action coming from the frontend.
+    pub fn execute(&mut self, command: Command) -> bool {
+        match command {
+            Command::New { name } => self.create_file(name),
+            Command::Load { data } => self.load_file(data),
+            Command::Delete
+            | Command::DeleteAll
+            | Command::Duplicate
+            | Command::Metadata { .. }
+            | Command::Style { .. }
+            | Command::NewTrack
+            | Command::NewTrackSegment
+            | Command::Reverse
+            | Command::Append { .. }
+            | Command::Replace { .. }
+            | Command::NewWaypoint { .. }
+            | Command::MoveWaypoint { .. }
+            | Command::Crop { .. }
+            | Command::Split { .. }
+            | Command::Time
+            | Command::Merge { .. }
+            | Command::Extract
+            | Command::Elevation { .. }
+            | Command::Clean { .. }
+            | Command::Undo
+            | Command::Redo
+            | Command::Select { .. }
+            | Command::AddSelect { .. }
+            | Command::SelectAll => todo!("command not implemented yet"),
+        }
+    }
+
+    fn event_loop<F>(&mut self, f: F) -> bool
     where
         F: FnOnce(&mut StackEntry) -> bool,
     {
@@ -117,9 +135,9 @@ impl Engine {
                     .statistics_cache
                     .get(self.stack.current(), &self.selection),
             );
-            if let Some(c) = &self.callback {
-                let _ = c.call0(&JsValue::NULL);
-            }
+            true
+        } else {
+            false
         }
     }
 }
