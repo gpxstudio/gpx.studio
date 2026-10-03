@@ -74,20 +74,6 @@ impl Engine {
     /// Brings everything derived from the files back in line with the current stack entry.
     fn refresh(&mut self) {
         let current = self.stack.current();
-        match current {
-            Some(files) => {
-                self.order.0.retain(|id| files.contains_key(id));
-                let known: HashSet<FileId> = self.order.0.iter().copied().collect();
-                self.order
-                    .0
-                    .extend(files.keys().filter(|id| !known.contains(id)).copied());
-                self.selection.retain_existing(files);
-            }
-            None => {
-                self.order.0.clear();
-                self.selection = Selection::Empty;
-            }
-        }
         self.statistics_cache.update(current);
         self.statistics_buffer
             .update(&self.statistics_cache.get(current, &self.selection));
