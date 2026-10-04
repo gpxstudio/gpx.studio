@@ -1,9 +1,9 @@
 import { settings } from '$lib/logic/settings';
-import { gpxStatistics } from '$lib/logic/statistics';
+import { engine } from '$lib/engine';
 import { getConvertedDistanceToKilometers } from '$lib/units';
 import { get } from 'svelte/store';
 import { map } from '$lib/components/map/map';
-import { allHidden } from '$lib/logic/hidden';
+import { allHidden } from '$lib/all-hidden';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 
@@ -16,7 +16,7 @@ export class DistanceMarkers {
     unsubscribes: (() => void)[] = [];
 
     constructor() {
-        this.unsubscribes.push(gpxStatistics.subscribe(this.updateBinded));
+        this.unsubscribes.push(engine.statistics.subscribe(this.updateBinded));
         this.unsubscribes.push(distanceMarkers.subscribe(this.updateBinded));
         this.unsubscribes.push(distanceUnits.subscribe(this.updateBinded));
         this.unsubscribes.push(allHidden.subscribe(this.updateBinded));
@@ -101,19 +101,20 @@ export class DistanceMarkers {
     }
 
     getDistanceMarkersGeoJSON(): GeoJSON.FeatureCollection {
-        let statistics = get(gpxStatistics);
+        // the distance from the start of the selection, and the position, of each trackpoint
+        const { length, totalDistance, lng, lat } = get(engine.statistics);
 
         let features: GeoJSON.Feature[] = [];
         let currentTargetDistance = 1;
-        statistics.forEachTrackPoint((trkpt, dist) => {
-            if (dist >= getConvertedDistanceToKilometers(currentTargetDistance)) {
+        for (let i = 0; i < length; i++) {
+            if (totalDistance[i] >= getConvertedDistanceToKilometers(currentTargetDistance)) {
                 let distance = currentTargetDistance.toFixed(0);
                 let level = levels.find((level) => currentTargetDistance % level === 0) || 1;
                 features.push({
                     type: 'Feature',
                     geometry: {
                         type: 'Point',
-                        coordinates: [trkpt.getLongitude(), trkpt.getLatitude()],
+                        coordinates: [lng[i], lat[i]],
                     },
                     properties: {
                         distance,
@@ -122,7 +123,7 @@ export class DistanceMarkers {
                 } as GeoJSON.Feature);
                 currentTargetDistance += 1;
             }
-        });
+        }
 
         return {
             type: 'FeatureCollection',
