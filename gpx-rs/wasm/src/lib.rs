@@ -66,14 +66,18 @@ fn edit(command: Command) -> bool {
 }
 
 /// Decodes concatenated 16-byte UUIDs.
-fn file_ids(bytes: &[u8]) -> Option<Vec<FileId>> {
+fn uuid_list(bytes: &[u8]) -> Option<Vec<uuid::Uuid>> {
     let (chunks, rest) = bytes.as_chunks::<16>();
-    rest.is_empty().then(|| {
-        chunks
-            .iter()
-            .map(|c| FileId(uuid::Uuid::from_bytes(*c)))
-            .collect()
-    })
+    rest.is_empty()
+        .then(|| chunks.iter().map(|c| uuid::Uuid::from_bytes(*c)).collect())
+}
+
+fn file_ids(bytes: &[u8]) -> Option<Vec<FileId>> {
+    uuid_list(bytes).map(|ids| ids.into_iter().map(FileId).collect())
+}
+
+fn parse_file_id(id: &str) -> Option<FileId> {
+    uuid::Uuid::parse_str(id).ok().map(FileId)
 }
 
 fn same_len(a: &[f64], b: &[f64], c: &[f64]) -> bool {
@@ -301,21 +305,76 @@ pub fn redo() -> bool {
 
 // Selection
 
-/// `file_ids_bytes`: concatenated 16-byte UUIDs.
+/// Selects files. `file_ids_bytes`: concatenated 16-byte UUIDs. Unknown files are ignored, and
+/// selecting nothing deselects everything. With `add`, the files are added to the selection if it
+/// already holds files.
 #[wasm_bindgen]
-pub fn select(file_ids_bytes: &[u8]) -> bool {
-    file_ids(file_ids_bytes).is_some_and(|file_ids| execute(Action::Select { file_ids }))
+pub fn select(file_ids_bytes: &[u8], add: bool) -> bool {
+    select_elements(
+        file_ids(file_ids_bytes).map(|ids| engine::Selection::File {
+            file_ids: ids.into_iter().collect(),
+        }),
+        add,
+    )
 }
 
-/// `file_ids_bytes`: concatenated 16-byte UUIDs.
-#[wasm_bindgen]
-pub fn add_select(file_ids_bytes: &[u8]) -> bool {
-    file_ids(file_ids_bytes).is_some_and(|file_ids| execute(Action::AddSelect { file_ids }))
+// The elements below cross as the id of their file (UUID string) and, like the files, as
+// concatenated 16-byte UUIDs. What does not exist is ignored. With `add`, the elements are added
+// to the selection when it holds elements of the same kind in the same place (same file, same
+// track for segments), otherwise they replace it.
+
+fn select_elements(selection: Option<engine::Selection>, add: bool) -> bool {
+    selection.is_some_and(|selection| execute(Action::Select { selection, add }))
 }
 
 #[wasm_bindgen]
-pub fn select_all() -> bool {
-    execute(Action::SelectAll)
+pub fn select_tracks(file_id: &str, track_ids_bytes: &[u8], add: bool) -> bool {
+    select_elements(
+        parse_file_id(file_id)
+            .zip(uuid_list(track_ids_bytes))
+            .map(|(file_id, ids)| engine::Selection::Track {
+                file_id,
+                trk_ids: ids.into_iter().map(engine::TrackId).collect(),
+            }),
+        add,
+    )
+}
+
+#[wasm_bindgen]
+pub fn select_segments(file_id: &str, track_id: &str, segment_ids_bytes: &[u8], add: bool) -> bool {
+    select_elements(
+        parse_file_id(file_id)
+            .zip(uuid::Uuid::parse_str(track_id).ok())
+            .zip(uuid_list(segment_ids_bytes))
+            .map(|((file_id, trk_id), ids)| engine::Selection::TrackSegment {
+                file_id,
+                trk_id: engine::TrackId(trk_id),
+                trkseg_ids: ids.into_iter().map(engine::TrackSegmentId).collect(),
+            }),
+        add,
+    )
+}
+
+/// Selects the node standing for all the waypoints of a file.
+#[wasm_bindgen]
+pub fn select_waypoint_group(file_id: &str) -> bool {
+    select_elements(
+        parse_file_id(file_id).map(|file_id| engine::Selection::Waypoints { file_id }),
+        false,
+    )
+}
+
+#[wasm_bindgen]
+pub fn select_waypoints(file_id: &str, waypoint_ids_bytes: &[u8], add: bool) -> bool {
+    select_elements(
+        parse_file_id(file_id)
+            .zip(uuid_list(waypoint_ids_bytes))
+            .map(|(file_id, ids)| engine::Selection::Waypoint {
+                file_id,
+                wpt_ids: ids.into_iter().map(engine::WaypointId).collect(),
+            }),
+        add,
+    )
 }
 
 // File order and structures

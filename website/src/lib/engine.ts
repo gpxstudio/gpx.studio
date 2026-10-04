@@ -154,16 +154,37 @@ class Engine {
         return this.run((w) => w.redo());
     }
 
-    select(fileIds: string[]) {
-        return this.run((w) => w.select(idsToBytes(fileIds)));
-    }
-
-    addSelect(fileIds: string[]) {
-        return this.run((w) => w.add_select(idsToBytes(fileIds)));
+    /**
+     * Selects files. With `add`, they are added to the selection if it already holds files.
+     * Selecting nothing (or only unknown files) deselects everything.
+     */
+    select(fileIds: string[], add = false) {
+        return this.run((w) => w.select(idsToBytes(fileIds), add));
     }
 
     selectAll() {
-        return this.run((w) => w.select_all());
+        return this.select(get(this._order));
+    }
+
+    // Selecting elements inside a file. With `add`, they are added to the selection when it holds
+    // elements of the same kind in the same place (same file, same track for segments),
+    // otherwise they replace it. Ids that do not exist are ignored.
+
+    selectTracks(fileId: string, trackIds: string[], add = false) {
+        return this.run((w) => w.select_tracks(fileId, idsToBytes(trackIds), add));
+    }
+
+    selectSegments(fileId: string, trackId: string, segmentIds: string[], add = false) {
+        return this.run((w) => w.select_segments(fileId, trackId, idsToBytes(segmentIds), add));
+    }
+
+    /** Selects the node standing for all the waypoints of the file. */
+    selectWaypointGroup(fileId: string) {
+        return this.run((w) => w.select_waypoint_group(fileId));
+    }
+
+    selectWaypoints(fileId: string, waypointIds: string[], add = false) {
+        return this.run((w) => w.select_waypoints(fileId, idsToBytes(waypointIds), add));
     }
 
     /** Moves the files, in the given order, to `index` among the other files. */
