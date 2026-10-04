@@ -3,7 +3,7 @@
 use crate::{
     Action, Apply, Clipboard, Command, CoordinatesCache, Diff, FileId, FileOrder, FileStructure,
     FileStructureCache, GlobalStatistics, SelectMode, Selection, Stack, State, StatisticsBuffer,
-    StatisticsCache, TrackSegmentId,
+    StatisticsCache, TrackSegmentId, Trackpoint, Waypoint, WaypointId,
 };
 
 #[derive(Debug, Default)]
@@ -58,6 +58,35 @@ impl Engine {
     /// Whether the last action changed the clipboard.
     pub fn clipboard_changed(&self) -> bool {
         self.clipboard_changed
+    }
+
+    /// A waypoint of a file, with all its data. `None` if it does not exist.
+    pub fn waypoint(&self, file_id: &FileId, id: &WaypointId) -> Option<&Waypoint> {
+        self.stack
+            .current()?
+            .get(file_id)?
+            .wpt
+            .iter()
+            .flat_map(|chunk| &chunk.wpt)
+            .find(|wpt| wpt.id == *id)
+    }
+
+    /// A trackpoint of a segment of a file. `None` if it does not exist.
+    pub fn trackpoint(
+        &self,
+        file_id: &FileId,
+        segment_id: &TrackSegmentId,
+        index: usize,
+    ) -> Option<&Trackpoint> {
+        let segment = self
+            .stack
+            .current()?
+            .get(file_id)?
+            .trk
+            .iter()
+            .flat_map(|trk| &trk.trkseg)
+            .find(|seg| seg.id == *segment_id)?;
+        (index < segment.len()).then(|| &segment[index])
     }
 
     /// Whether there is something to undo.
@@ -1109,5 +1138,121 @@ mod tests {
         assert_eq!(engine.order().len(), 1);
         assert!(engine.execute(Action::Redo));
         assert_eq!(engine.order().len(), 3);
+    }
+
+    #[test]
+    fn test_create_edit_and_move_a_waypoint() {
+        use crate::{EditWaypoint, MoveWaypoint, NewWaypoint};
+
+        let mut engine = Engine::default();
+        new(&mut engine, "file");
+        let file = engine.order()[0];
+        assert!(edit(
+            &mut engine,
+            Command::NewWaypoint(NewWaypoint {
+                lng: 4.0,
+                lat: 50.0,
+                ele: 10.0,
+                name: "created",
+                desc: "",
+                icon: "Flag",
+                link: "",
+            })
+        ));
+        let id = engine.file_structure(&file).unwrap().waypoints[0].id;
+        let waypoint = engine.waypoint(&file, &id).unwrap();
+        assert_eq!(waypoint.name.as_deref(), Some("created"));
+        assert_eq!(waypoint.sym.as_deref(), Some("Flag"));
+        assert_eq!(waypoint.ele, 10.0);
+        // unknown waypoint or file
+        assert!(engine.waypoint(&file, &Default::default()).is_none());
+        assert!(engine.waypoint(&Default::default(), &id).is_none());
+
+        // no selection needed
+        assert!(edit(
+            &mut engine,
+            Command::MoveWaypoint(MoveWaypoint {
+                file_id: file,
+                waypoint_id: id,
+                lng: 5.0,
+                lat: 51.0,
+                ele: 20.0,
+            })
+        ));
+        let moved = engine.waypoint(&file, &id).unwrap();
+        assert_eq!(
+            (moved.coordinates.lng, moved.coordinates.lat, moved.ele),
+            (5.0, 51.0, 20.0)
+        );
+        assert_eq!(moved.name.as_deref(), Some("created"));
+        // the coordinates buffer follows
+        assert_eq!(engine.waypoint_coordinates(&file), &[5.0, 51.0]);
+
+        // editing applies to the selected waypoints
+        select_elements(
+            &mut engine,
+            Selection::Waypoint {
+                file_id: file,
+                wpt_ids: [id].into(),
+            },
+            SelectMode::Replace,
+        );
+        assert!(edit(
+            &mut engine,
+            Command::EditWaypoint(EditWaypoint {
+                lng: 6.0,
+                lat: 52.0,
+                ele: 30.0,
+                name: "edited",
+                desc: "text",
+                icon: "",
+                link: "https://example.com",
+            })
+        ));
+        let edited = engine.waypoint(&file, &id).unwrap();
+        assert_eq!(edited.name.as_deref(), Some("edited"));
+        assert_eq!(edited.cmt.as_deref(), Some("text"));
+        assert!(edited.sym.is_none());
+        assert_eq!(engine.waypoint_coordinates(&file), &[6.0, 52.0]);
+
+        // each of them can be undone
+        assert!(engine.execute(Action::Undo));
+        assert_eq!(
+            engine.waypoint(&file, &id).unwrap().name.as_deref(),
+            Some("created")
+        );
+        assert!(engine.execute(Action::Undo));
+        assert_eq!(engine.waypoint_coordinates(&file), &[4.0, 50.0]);
+
+        // deleting does not need a selection either
+        assert!(edit(
+            &mut engine,
+            Command::DeleteWaypoint(crate::DeleteWaypoint {
+                file_id: file,
+                waypoint_id: id,
+            })
+        ));
+        assert!(engine.waypoint(&file, &id).is_none());
+        assert!(engine.waypoint_coordinates(&file).is_empty());
+        assert!(engine.execute(Action::Undo));
+        assert!(engine.waypoint(&file, &id).is_some());
+    }
+
+    #[test]
+    fn test_trackpoint() {
+        let mut engine = Engine::default();
+        load(&mut engine, "data/simple.gpx");
+        let file = engine.order()[0];
+        let structure = engine.file_structure(&file).unwrap();
+        let seg = &structure.tracks[0].segments[0];
+        let (seg_id, len) = (seg.id, seg.len);
+        let coordinates = engine.segment_coordinates(&seg_id).to_vec();
+        let last = engine.trackpoint(&file, &seg_id, len - 1).unwrap();
+        assert_eq!(
+            [last.coordinates.lng, last.coordinates.lat],
+            coordinates[(len - 1) * 2..]
+        );
+        assert!(engine.trackpoint(&file, &seg_id, len).is_none());
+        assert!(engine.trackpoint(&Default::default(), &seg_id, 0).is_none());
     }
 }

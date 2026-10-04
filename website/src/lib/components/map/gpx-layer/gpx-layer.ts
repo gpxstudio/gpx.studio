@@ -8,7 +8,8 @@ import maplibregl, {
 } from 'maplibre-gl';
 import { map } from '$lib/components/map/map';
 import { waypointPopup, trackpointPopup } from './gpx-layer-popup';
-import { getClosestLinePoint, getElevation, loadSVGIcon } from '$lib/utils';
+import { closestPointIndex } from '$lib/closest-point';
+import { getElevation, loadSVGIcon } from '$lib/utils';
 import { selectedWaypoint } from '$lib/components/toolbar/tools/waypoint/waypoint';
 import { MapPin, Square } from 'lucide-static';
 import { getSymbolKey, symbols } from '$lib/assets/symbols';
@@ -18,7 +19,6 @@ import { isCovered, hasSelectionWithin, type FileTreeNode } from '$lib/selection
 import { isSegmentHidden, isWaypointHidden } from '$lib/file-visibility';
 import { settings } from '$lib/logic/settings';
 import { currentTool, Tool } from '$lib/components/toolbar/tools';
-import { fileActionManager } from '$lib/logic/file-action-manager';
 import { fileActions } from '$lib/logic/file-actions';
 import { splitAs } from '$lib/components/toolbar/tools/scissors/scissors';
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
@@ -398,18 +398,18 @@ export class GPXLayer {
 
     layerOnMouseMove(e: any) {
         if (e.originalEvent.shiftKey) {
-            let trackIndex = e.features[0].properties.trackIndex;
-            let segmentIndex = e.features[0].properties.segmentIndex;
-
-            // TODO needs the trackpoints of the previous implementation (see oldFile)
-            // const file = null;
-            // if (file) {
-            //     const closest = getClosestLinePoint(
-            //         file.trk[trackIndex].trkseg[segmentIndex].trkpt,
-            //         { lat: e.lngLat.lat, lon: e.lngLat.lng }
-            //     );
-            //     trackpointPopup?.setItem({ item: closest, fileId: this.fileId });
-            // }
+            const { segmentId } = e.features[0].properties;
+            const lngLat = { lng: e.lngLat.lng, lat: e.lngLat.lat };
+            const index = closestPointIndex(engine.segmentCoordinates(segmentId), lngLat);
+            const trackpoint =
+                index === undefined ? undefined : engine.trackpoint(this.fileId, segmentId, index);
+            if (trackpoint) {
+                trackpointPopup?.setItem({
+                    item: trackpoint,
+                    kind: 'trackpoint',
+                    fileId: this.fileId,
+                });
+            }
         }
     }
 
@@ -471,13 +471,16 @@ export class GPXLayer {
             return;
         }
 
-        // TODO the popup needs the waypoint of the previous implementation (see oldFile)
-        // let waypoint = this.oldFile?.wpt[e.features![0].properties!.waypointIndex];
-        // if (waypoint) {
-        //     waypointPopup?.setItem({ item: waypoint, fileId: this.fileId });
-        // }
+        this.showWaypointPopup(e.features![0].properties!.waypointId);
 
         mapCursor.notify(MapCursorState.WAYPOINT_HOVER, true);
+    }
+
+    showWaypointPopup(waypointId: string) {
+        const waypoint = engine.waypoint(this.fileId, waypointId);
+        if (waypoint) {
+            waypointPopup?.setItem({ item: waypoint, kind: 'waypoint', fileId: this.fileId });
+        }
     }
 
     waypointLayerOnMouseLeave() {
@@ -487,19 +490,14 @@ export class GPXLayer {
     waypointLayerOnClick(e: MapLayerMouseEvent) {
         e.preventDefault();
 
-        const { waypointIndex, waypointId } = e.features![0].properties!;
-        // TODO the popup and the waypoint tool need the waypoint of the previous implementation
+        const { waypointId } = e.features![0].properties!;
         if (get(currentTool) === Tool.WAYPOINT) {
             if (this.selected) {
                 if (e.originalEvent.shiftKey) {
-                    // TODO
-                    // fileActions.deleteWaypoint(this.fileId, waypointIndex);
+                    engine.deleteWaypoint(this.fileId, waypointId);
                 } else {
                     engine.selectWaypoints(this.fileId, [waypointId]);
-                    // TODO
-                    // if (waypoint) {
-                    //     selectedWaypoint.set([waypoint, this.fileId]);
-                    // }
+                    selectedWaypoint.set({ fileId: this.fileId, id: waypointId });
                 }
             } else {
                 if (get(treeFileView)) {
@@ -507,10 +505,7 @@ export class GPXLayer {
                 } else {
                     engine.select([this.fileId]);
                 }
-                // TODO
-                // if (waypoint) {
-                //     selectedWaypoint.set([waypoint, this.fileId]);
-                // }
+                selectedWaypoint.set({ fileId: this.fileId, id: waypointId });
             }
         } else {
             if (get(treeFileView)) {
@@ -524,10 +519,7 @@ export class GPXLayer {
                 if (!this.selected) {
                     engine.select([this.fileId]);
                 }
-                // TODO
-                // if (waypoint) {
-                //     waypointPopup?.setItem({ item: waypoint, fileId: this.fileId });
-                // }
+                this.showWaypointPopup(waypointId);
             }
         }
     }
@@ -622,23 +614,27 @@ export class GPXLayer {
             return;
         }
 
+        // the dragged waypoint, as it is in the features of the source
+        const waypointId =
+            this.currentWaypointData?.features[this.draggedWaypointIndex].properties?.waypointId;
         getElevation([
             {
                 lat: e.lngLat.lat,
                 lon: e.lngLat.lng,
             },
-        ]).then((ele) => {
+        ]).then(async (ele) => {
             if (this.draggedWaypointIndex === null) {
                 return;
             }
-            fileActionManager.applyToFile(this.fileId, (file) => {
-                let wpt = file.wpt[this.draggedWaypointIndex!];
-                wpt.setCoordinates({
-                    lat: e.lngLat.lat,
-                    lon: e.lngLat.lng,
-                });
-                wpt.ele = ele[0];
-            });
+            if (waypointId) {
+                await engine.moveWaypoint(
+                    this.fileId,
+                    waypointId,
+                    e.lngLat.lng,
+                    e.lngLat.lat,
+                    ele[0]
+                );
+            }
             this.draggedWaypointIndex = null;
         });
     }

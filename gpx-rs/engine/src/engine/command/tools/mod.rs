@@ -1,5 +1,6 @@
 mod clean;
 mod crop;
+mod edit_waypoint;
 mod elevation;
 mod extract;
 mod merge;
@@ -12,6 +13,7 @@ mod time;
 
 pub use clean::*;
 pub use crop::*;
+pub use edit_waypoint::*;
 pub use elevation::*;
 pub use extract::*;
 pub use merge::*;

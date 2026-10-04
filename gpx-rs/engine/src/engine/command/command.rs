@@ -1,8 +1,8 @@
 use crate::{Apply, CommandError, State};
 use crate::{
-    Clean, Crop, Delete, DeleteAll, Duplicate, Elevation, Extract, Load, LoadFiles, Merge,
-    Metadata, Move, MoveWaypoint, New, NewTrack, NewTrackSegment, NewWaypoint, Paste, Reverse,
-    SpliceTrackpoints, Split, Style, Time,
+    Clean, Crop, Delete, DeleteAll, DeleteWaypoint, Duplicate, EditWaypoint, Elevation, Extract,
+    Load, LoadFiles, Merge, Metadata, Move, MoveWaypoint, New, NewTrack, NewTrackSegment,
+    NewWaypoint, Paste, Reverse, SpliceTrackpoints, Split, Style, Time,
 };
 
 /// A user action that edits the files. Each variant wraps the command's own struct, whose
@@ -20,6 +20,7 @@ pub enum Command<'a> {
     Paste(Paste),
     Move(Move),
     DeleteAll(DeleteAll),
+    DeleteWaypoint(DeleteWaypoint),
     Metadata(Metadata<'a>),
     Style(Style<'a>),
     NewTrack(NewTrack),
@@ -27,6 +28,7 @@ pub enum Command<'a> {
     Reverse(Reverse),
     SpliceTrackpoints(SpliceTrackpoints<'a>),
     NewWaypoint(NewWaypoint<'a>),
+    EditWaypoint(EditWaypoint<'a>),
     MoveWaypoint(MoveWaypoint),
     Crop(Crop),
     Split(Split),
@@ -48,6 +50,7 @@ impl Apply for Command<'_> {
             Command::Paste(c) => c.apply(state),
             Command::Move(c) => c.apply(state),
             Command::DeleteAll(c) => c.apply(state),
+            Command::DeleteWaypoint(c) => c.apply(state),
             Command::Metadata(c) => c.apply(state),
             Command::Style(c) => c.apply(state),
             Command::NewTrack(c) => c.apply(state),
@@ -55,6 +58,7 @@ impl Apply for Command<'_> {
             Command::Reverse(c) => c.apply(state),
             Command::SpliceTrackpoints(c) => c.apply(state),
             Command::NewWaypoint(c) => c.apply(state),
+            Command::EditWaypoint(c) => c.apply(state),
             Command::MoveWaypoint(c) => c.apply(state),
             Command::Crop(c) => c.apply(state),
             Command::Split(c) => c.apply(state),

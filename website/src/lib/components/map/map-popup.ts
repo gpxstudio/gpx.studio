@@ -1,11 +1,13 @@
-import { TrackPoint, Waypoint } from 'gpx';
 import maplibregl from 'maplibre-gl';
 import { mount, tick, unmount } from 'svelte';
 import { get, writable, type Writable } from 'svelte/store';
 import MapPopupComponent from '$lib/components/map/MapPopup.svelte';
 
-export type PopupItem<T = Waypoint | TrackPoint | any> = {
+export type PopupItem<T = any> = {
+    /** Has a position (`lng` and `lat`). */
     item: T;
+    /** What the item is: a `WaypointDetails`, a `TrackpointDetails` or an Overpass element. */
+    kind: 'waypoint' | 'trackpoint' | 'overpass';
     fileId?: string;
     hide?: () => void;
 };
@@ -77,8 +79,6 @@ export class MapPopup {
         if (item === null) {
             return new maplibregl.LngLat(0, 0);
         }
-        return item.item instanceof Waypoint || item.item instanceof TrackPoint
-            ? item.item.getCoordinates()
-            : new maplibregl.LngLat(item.item.lon, item.item.lat);
+        return new maplibregl.LngLat(item.item.lng, item.item.lat);
     }
 }

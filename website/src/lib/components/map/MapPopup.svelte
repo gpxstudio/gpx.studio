@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { TrackPoint, Waypoint } from 'gpx';
     import WaypointPopup from '$lib/components/map/gpx-layer/WaypointPopup.svelte';
     import TrackpointPopup from '$lib/components/map/gpx-layer/TrackpointPopup.svelte';
     import OverpassPopup from '$lib/components/map/layer-control/OverpassPopup.svelte';
@@ -23,9 +22,9 @@
 
 <div bind:this={container}>
     {#if $item}
-        {#if $item.item instanceof Waypoint}
+        {#if $item.kind === 'waypoint'}
             <WaypointPopup waypoint={$item} />
-        {:else if $item.item instanceof TrackPoint}
+        {:else if $item.kind === 'trackpoint'}
             <TrackpointPopup trackpoint={$item} />
         {:else}
             <OverpassPopup poi={$item} />

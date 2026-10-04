@@ -38,12 +38,8 @@
         selectionSize,
         type FileTreeNode,
     } from '$lib/selection-helpers';
-    // TODO centering on the selection and the waypoint popup still work on the previous
-    // implementation
     import { boundsManager } from '$lib/logic/bounds';
-    // import { gpxLayers } from '$lib/components/map/gpx-layer/gpx-layers';
-    // import { fileStateCollection } from '$lib/logic/file-state';
-    // import { waypointPopup } from '$lib/components/map/gpx-layer/gpx-layer-popup';
+    import { waypointPopup } from '$lib/components/map/gpx-layer/gpx-layer-popup';
 
     let {
         fileState,
@@ -165,26 +161,21 @@
                     }
                 }}
                 onmouseenter={() => {
-                    // TODO waypoint popup: it needs the waypoint of the previous implementation
-                    // if (node.type === 'waypoint') {
-                    //     let layer = gpxLayers.getLayer(node.fileId);
-                    //     let file = fileStateCollection.getFile(node.fileId);
-                    //     if (layer && file) {
-                    //         let waypoint = file.wpt[waypointIndex];
-                    //         if (waypoint && !waypoint._data.hidden) {
-                    //             waypointPopup?.setItem({ item: waypoint, fileId: node.fileId });
-                    //         }
-                    //     }
-                    // }
+                    if (node.type === 'waypoint' && !isHidden(fileState, node.waypointId)) {
+                        const waypoint = engine.waypoint(node.fileId, node.waypointId);
+                        if (waypoint) {
+                            waypointPopup?.setItem({
+                                item: waypoint,
+                                kind: 'waypoint',
+                                fileId: node.fileId,
+                            });
+                        }
+                    }
                 }}
                 onmouseleave={() => {
-                    // TODO waypoint popup
-                    // if (node.type === 'waypoint') {
-                    //     let layer = gpxLayers.getLayer(node.fileId);
-                    //     if (layer) {
-                    //         waypointPopup?.setItem(null);
-                    //     }
-                    // }
+                    if (node.type === 'waypoint') {
+                        waypointPopup?.setItem(null);
+                    }
                 }}
             >
                 {#if level === ListLevel.SEGMENT}

@@ -9,21 +9,23 @@
     import { getSymbolKey, symbols } from '$lib/assets/symbols';
     import { i18n } from '$lib/i18n.svelte';
     import sanitizeHtml from 'sanitize-html';
-    import type { Waypoint } from 'gpx';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
-    import { fileActions } from '$lib/logic/file-actions';
     import type { PopupItem } from '$lib/components/map/map-popup';
-    import { selection } from '$lib/logic/selection';
-    import { ListFileItem } from '$lib/components/file-list/file-list';
+    import { engine, type WaypointDetails } from '$lib/engine';
+    import { hasSelectionWithin } from '$lib/selection-helpers';
 
     let {
         waypoint,
     }: {
-        waypoint: PopupItem<Waypoint>;
+        waypoint: PopupItem<WaypointDetails>;
     } = $props();
 
+    const { selection } = engine;
+
     let selected = $derived(
-        waypoint.fileId ? $selection.hasAnyChildren(new ListFileItem(waypoint.fileId)) : false
+        waypoint.fileId
+            ? hasSelectionWithin($selection, { type: 'file', fileId: waypoint.fileId })
+            : false
     );
     let symbolKey = $derived(waypoint ? getSymbolKey(waypoint.item.sym) : undefined);
 
@@ -44,9 +46,9 @@
 <Card.Root class="border-none shadow-md text-base p-2 max-w-[50dvw] gap-0">
     <Card.Header class="p-0 gap-0">
         <Card.Title class="text-md">
-            {#if waypoint.item.link && waypoint.item.link.attributes && waypoint.item.link.attributes.href}
-                <a href={waypoint.item.link.attributes.href} target="_blank">
-                    {waypoint.item.name ?? waypoint.item.link.attributes.href}
+            {#if waypoint.item.link?.href}
+                <a href={waypoint.item.link.href} target="_blank">
+                    {waypoint.item.name ?? waypoint.item.link.href}
                     <ExternalLink size="12" class="inline-block mb-1.5" />
                 </a>
             {:else}
@@ -68,13 +70,9 @@
                 </span>
                 <Dot size="16" />
             {/if}
-            {waypoint.item.getLatitude().toFixed(6)}&deg; {waypoint.item
-                .getLongitude()
-                .toFixed(6)}&deg;
-            {#if waypoint.item.ele !== undefined}
-                <Dot size="16" />
-                <WithUnits value={waypoint.item.ele} type="elevation" />
-            {/if}
+            {waypoint.item.lat.toFixed(6)}&deg; {waypoint.item.lng.toFixed(6)}&deg;
+            <Dot size="16" />
+            <WithUnits value={waypoint.item.ele} type="elevation" />
         </div>
         <ScrollArea class="flex flex-col max-h-[30dvh]">
             {#if waypoint.item.desc}
@@ -85,13 +83,13 @@
             {/if}
         </ScrollArea>
         <div class="mt-2 flex flex-col gap-1">
-            <CopyCoordinates coordinates={waypoint.item.attributes} />
+            <CopyCoordinates coordinates={waypoint.item} />
             {#if $currentTool === Tool.WAYPOINT && selected}
                 <Button
                     variant="outline"
                     onclick={() => {
                         if (waypoint.fileId) {
-                            fileActions.deleteWaypoint(waypoint.fileId, waypoint.item._data.index);
+                            engine.deleteWaypoint(waypoint.fileId, waypoint.item.id);
                             waypoint.hide?.();
                         }
                     }}

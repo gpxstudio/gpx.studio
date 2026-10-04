@@ -143,6 +143,7 @@ export class OverpassLayer {
 
     onHover(e: any) {
         this.popup.setItem({
+            kind: 'overpass',
             item: {
                 ...e.features[0].properties,
                 sym: overpassQueryData[e.features[0].properties.query].symbol ?? '',
@@ -235,7 +236,7 @@ export class OverpassLayer {
                             properties: {
                                 id: element.id,
                                 lat: element.center ? element.center.lat : element.lat,
-                                lon: element.center ? element.center.lon : element.lon,
+                                lng: element.center ? element.center.lon : element.lon,
                                 query: query,
                                 icon: `overpass-${query}`,
                                 tags: element.tags,

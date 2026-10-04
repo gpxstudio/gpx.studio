@@ -2,14 +2,13 @@
     import { Button } from '$lib/components/ui/button';
     import { ClipboardCopy } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
-    import type { Coordinates } from 'gpx';
 
     let {
         coordinates,
         onCopy = () => {},
         class: className = '',
     }: {
-        coordinates: Coordinates;
+        coordinates: { lng: number; lat: number };
         onCopy?: () => void;
         class?: string;
     } = $props();
@@ -20,7 +19,7 @@
     variant="outline"
     onclick={() => {
         navigator.clipboard.writeText(
-            `${coordinates.lat.toFixed(6)}, ${coordinates.lon.toFixed(6)}`
+            `${coordinates.lat.toFixed(6)}, ${coordinates.lng.toFixed(6)}`
         );
         onCopy();
     }}

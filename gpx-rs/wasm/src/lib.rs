@@ -284,12 +284,59 @@ pub fn new_waypoint(
     }))
 }
 
+/// Moves a waypoint of a file, whatever is selected.
 #[wasm_bindgen]
-pub fn move_waypoint(lng: f64, lat: f64, ele: f64) -> bool {
-    edit(Command::MoveWaypoint(engine::MoveWaypoint {
+pub fn move_waypoint(file_id: &str, waypoint_id: &str, lng: f64, lat: f64, ele: f64) -> bool {
+    match (parse_file_id(file_id), parse_waypoint_id(waypoint_id)) {
+        (Some(file_id), Some(waypoint_id)) => edit(Command::MoveWaypoint(engine::MoveWaypoint {
+            file_id,
+            waypoint_id,
+            lng,
+            lat,
+            ele,
+        })),
+        _ => false,
+    }
+}
+
+/// Deletes a waypoint of a file, whatever is selected.
+#[wasm_bindgen]
+pub fn delete_waypoint(file_id: &str, waypoint_id: &str) -> bool {
+    match (parse_file_id(file_id), parse_waypoint_id(waypoint_id)) {
+        (Some(file_id), Some(waypoint_id)) => {
+            edit(Command::DeleteWaypoint(engine::DeleteWaypoint {
+                file_id,
+                waypoint_id,
+            }))
+        }
+        _ => false,
+    }
+}
+
+fn parse_waypoint_id(id: &str) -> Option<engine::WaypointId> {
+    uuid::Uuid::parse_str(id).ok().map(engine::WaypointId)
+}
+
+/// Changes the selected waypoints: their name, description, icon, link, position and elevation.
+/// The strings that are empty remove the field.
+#[wasm_bindgen]
+pub fn update_waypoint(
+    lng: f64,
+    lat: f64,
+    ele: f64,
+    name: &str,
+    desc: &str,
+    icon: &str,
+    link: &str,
+) -> bool {
+    edit(Command::EditWaypoint(engine::EditWaypoint {
         lng,
         lat,
         ele,
+        name,
+        desc,
+        icon,
+        link,
     }))
 }
 
@@ -629,6 +676,28 @@ export type MoveTarget =
     | { type: 'tracks'; fileId: string; index: number }
     | { type: 'segments'; fileId: string; trackId: string; index: number }
     | { type: 'waypoints'; fileId: string; index: number };
+/** All the data of a waypoint. The fields it does not have are absent. */
+export interface WaypointDetails {
+    id: string;
+    lng: number;
+    lat: number;
+    ele: number;
+    /** ms since epoch */
+    time?: number;
+    name?: string;
+    desc?: string;
+    cmt?: string;
+    link?: { href: string; text?: string };
+    sym?: string;
+}
+/** The position, elevation and time of a trackpoint. */
+export interface TrackpointDetails {
+    lng: number;
+    lat: number;
+    ele: number;
+    /** ms since epoch */
+    time?: number;
+}
 /** What was copied or cut, to be pasted: the kind of the elements and their ids. */
 export interface Clipboard {
     type: 'files' | 'tracks' | 'segments' | 'waypoints';
@@ -710,6 +779,10 @@ export interface WaypointNode {
 extern "C" {
     #[wasm_bindgen(typescript_type = "Selection")]
     pub type Selection;
+    #[wasm_bindgen(typescript_type = "WaypointDetails | undefined")]
+    pub type WaypointDetails;
+    #[wasm_bindgen(typescript_type = "TrackpointDetails | undefined")]
+    pub type TrackpointDetails;
     #[wasm_bindgen(typescript_type = "MoveTarget")]
     pub type MoveTarget;
     #[wasm_bindgen(typescript_type = "Clipboard | undefined")]
@@ -938,6 +1011,76 @@ fn selection_object(selection: &engine::Selection) -> Object {
 pub fn selection() -> Selection {
     with_engine(|e| selection_object(e.selection()))
         .unwrap_or_default()
+        .unchecked_into()
+}
+
+/// All the data of a waypoint of a file, `undefined` if it does not exist.
+#[wasm_bindgen]
+pub fn waypoint(file_id: &str, waypoint_id: &str) -> WaypointDetails {
+    uuid::Uuid::parse_str(file_id)
+        .ok()
+        .zip(uuid::Uuid::parse_str(waypoint_id).ok())
+        .and_then(|(file_id, id)| {
+            with_engine(|e| {
+                e.waypoint(&FileId(file_id), &engine::WaypointId(id))
+                    .map(|wpt| {
+                        let object = Object::new();
+                        set(&object, "id", wpt.id.0.to_string());
+                        set(&object, "lng", wpt.coordinates.lng);
+                        set(&object, "lat", wpt.coordinates.lat);
+                        set(&object, "ele", wpt.ele);
+                        if let Some(time) = wpt.time {
+                            set(&object, "time", time as f64);
+                        }
+                        for (key, value) in [
+                            ("name", &wpt.name),
+                            ("desc", &wpt.desc),
+                            ("cmt", &wpt.cmt),
+                            ("sym", &wpt.sym),
+                        ] {
+                            if let Some(value) = value {
+                                set(&object, key, value.as_str());
+                            }
+                        }
+                        if let Some(link) = &wpt.link {
+                            let link_object = Object::new();
+                            set(&link_object, "href", link.href.as_str());
+                            if let Some(text) = &link.text {
+                                set(&link_object, "text", text.as_str());
+                            }
+                            set(&object, "link", link_object);
+                        }
+                        JsValue::from(object)
+                    })
+            })
+            .flatten()
+        })
+        .unwrap_or(JsValue::UNDEFINED)
+        .unchecked_into()
+}
+
+/// A trackpoint of a segment of a file, `undefined` if it does not exist.
+#[wasm_bindgen]
+pub fn trackpoint(file_id: &str, segment_id: &str, index: usize) -> TrackpointDetails {
+    parse_file_id(file_id)
+        .zip(uuid::Uuid::parse_str(segment_id).ok())
+        .and_then(|(file_id, segment_id)| {
+            with_engine(|e| {
+                e.trackpoint(&file_id, &engine::TrackSegmentId(segment_id), index)
+                    .map(|pt| {
+                        let object = Object::new();
+                        set(&object, "lng", pt.coordinates.lng);
+                        set(&object, "lat", pt.coordinates.lat);
+                        set(&object, "ele", pt.ele);
+                        if let Some(time) = pt.time {
+                            set(&object, "time", time as f64);
+                        }
+                        JsValue::from(object)
+                    })
+            })
+            .flatten()
+        })
+        .unwrap_or(JsValue::UNDEFINED)
         .unchecked_into()
 }
 

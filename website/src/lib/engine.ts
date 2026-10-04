@@ -4,10 +4,20 @@ import { FileColorAllocator, normalizeColor } from '$lib/file-colors';
 import { setHidden, type Visibility } from '$lib/file-visibility';
 import { selectedElementIds, type FileTreeNode } from '$lib/selection-helpers';
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
-import type { Clipboard, GlobalStatistics, FileStructure, MoveTarget, Selection } from 'gpx-rs';
+import type {
+    Clipboard,
+    GlobalStatistics,
+    FileStructure,
+    MoveTarget,
+    Selection,
+    WaypointDetails,
+    TrackpointDetails,
+} from 'gpx-rs';
 
 export type {
     Clipboard,
+    WaypointDetails,
+    TrackpointDetails,
     MoveTarget,
     GlobalStatistics,
     FileStructure,
@@ -57,6 +67,17 @@ export type WaypointProperties = {
     index: number;
     name?: string;
     sym?: string;
+};
+
+/** The data of a waypoint to create or to change. Empty strings are fields it does not have. */
+export type NewWaypoint = {
+    lng: number;
+    lat: number;
+    ele: number;
+    name: string;
+    desc: string;
+    icon: string;
+    link: string;
 };
 
 /** Everything the UI knows about one file. */
@@ -401,6 +422,61 @@ class Engine {
      */
     move(what: Selection, to: MoveTarget) {
         return this.run((w) => w.move_elements(what, to));
+    }
+
+    // Waypoints
+
+    /** All the data of a waypoint, `undefined` if it does not exist (or before the engine is loaded). */
+    waypoint(fileId: string, waypointId: string): WaypointDetails | undefined {
+        return this.wasm?.waypoint(fileId, waypointId);
+    }
+
+    /**
+     * Adds a waypoint to each selected file (or to the file of the selected elements). Empty
+     * strings are fields that the waypoint does not have.
+     */
+    newWaypoint(waypoint: NewWaypoint) {
+        return this.run((w) =>
+            w.new_waypoint(
+                waypoint.lng,
+                waypoint.lat,
+                waypoint.ele,
+                waypoint.name,
+                waypoint.desc,
+                waypoint.icon,
+                waypoint.link
+            )
+        );
+    }
+
+    /** Changes the selected waypoints. Empty strings remove the field. */
+    updateWaypoint(waypoint: NewWaypoint) {
+        return this.run((w) =>
+            w.update_waypoint(
+                waypoint.lng,
+                waypoint.lat,
+                waypoint.ele,
+                waypoint.name,
+                waypoint.desc,
+                waypoint.icon,
+                waypoint.link
+            )
+        );
+    }
+
+    /** Moves a waypoint, selected or not: only its position and elevation change. */
+    moveWaypoint(fileId: string, waypointId: string, lng: number, lat: number, ele: number) {
+        return this.run((w) => w.move_waypoint(fileId, waypointId, lng, lat, ele));
+    }
+
+    /** Deletes a waypoint, selected or not. */
+    deleteWaypoint(fileId: string, waypointId: string) {
+        return this.run((w) => w.delete_waypoint(fileId, waypointId));
+    }
+
+    /** A trackpoint of a segment, `undefined` if it does not exist. */
+    trackpoint(fileId: string, segmentId: string, index: number): TrackpointDetails | undefined {
+        return this.wasm?.trackpoint(fileId, segmentId, index);
     }
 
     // Edits of the selection

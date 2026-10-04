@@ -76,7 +76,7 @@ impl Apply for Delete {
     }
 }
 
-fn delete_waypoints(
+pub(crate) fn delete_waypoints(
     files: &mut StackEntry,
     file_id: FileId,
     filter: impl Fn(&Waypoint) -> bool,
