@@ -149,9 +149,10 @@ pub fn new_file(name: &str) -> bool {
     edit(Command::New(engine::New { name }))
 }
 
+/// `name`: the name of the file when the data has none (the name on disk, without extension).
 #[wasm_bindgen]
-pub fn load_file(data: &[u8]) -> bool {
-    edit(Command::Load(engine::Load { data }))
+pub fn load_file(data: &[u8], name: &str) -> bool {
+    edit(Command::Load(engine::Load { data, name }))
 }
 
 #[wasm_bindgen]

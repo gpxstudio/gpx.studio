@@ -100,7 +100,12 @@ mod tests {
     fn test_structure_of_a_file() {
         let mut fx = Fixture::default();
         let data = std::fs::read("data/with_tracks_and_segments.gpx").unwrap();
-        Load { data: &data }.apply(&mut fx.state()).unwrap();
+        Load {
+            data: &data,
+            name: "file",
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         let file = &fx.files[&fx.order.0[0]];
         let node = FileStructure::new(file);
         assert_eq!(

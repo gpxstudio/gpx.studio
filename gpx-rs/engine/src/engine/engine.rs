@@ -164,7 +164,13 @@ mod tests {
 
     fn load(engine: &mut Engine, path: &str) -> bool {
         let data = std::fs::read(path).unwrap();
-        edit(engine, Command::Load(Load { data: &data }))
+        edit(
+            engine,
+            Command::Load(Load {
+                data: &data,
+                name: "file",
+            }),
+        )
     }
 
     fn selected(engine: &Engine) -> Vec<FileId> {
@@ -213,7 +219,8 @@ mod tests {
         assert!(!edit(
             &mut engine,
             Command::Load(Load {
-                data: b"<gpx><trk></gpx>"
+                data: b"<gpx><trk></gpx>",
+                name: "file",
             })
         ));
         assert!(engine.stack.current().is_none());

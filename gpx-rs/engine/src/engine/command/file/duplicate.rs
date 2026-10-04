@@ -211,7 +211,12 @@ mod tests {
     fn loaded() -> (Fixture, FileId) {
         let mut fx = Fixture::default();
         let data = std::fs::read("data/with_tracks_and_segments.gpx").unwrap();
-        Load { data: &data }.apply(&mut fx.state()).unwrap();
+        Load {
+            data: &data,
+            name: "file",
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         let id = fx.order.0[0];
         (fx, id)
     }

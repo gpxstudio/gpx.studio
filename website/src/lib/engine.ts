@@ -147,8 +147,9 @@ class Engine {
         return this.run((w) => w.new_file(name));
     }
 
-    loadFile(data: Uint8Array) {
-        return this.run((w) => w.load_file(data));
+    /** `name` is the name of the file when the data has none (the name on disk, without extension). */
+    loadFile(data: Uint8Array, name: string) {
+        return this.run((w) => w.load_file(data, name));
     }
 
     duplicate() {

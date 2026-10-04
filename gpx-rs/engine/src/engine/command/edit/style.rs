@@ -41,7 +41,12 @@ mod tests {
     fn test_style_applies_to_all_tracks_of_selected_file_and_keeps_unset_fields() {
         let mut fx = Fixture::default();
         let data = std::fs::read("data/with_style.gpx").unwrap();
-        crate::Load { data: &data }.apply(&mut fx.state()).unwrap();
+        crate::Load {
+            data: &data,
+            name: "file",
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         let id = *fx.files.keys().next().unwrap();
         let before = fx.files[&id].clone();
         assert!(!before.trk.is_empty());

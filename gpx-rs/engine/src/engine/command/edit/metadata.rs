@@ -68,7 +68,12 @@ mod tests {
     fn test_metadata_applies_to_selected_track() {
         let mut fx = Fixture::default();
         let data = std::fs::read("data/with_tracks.gpx").unwrap();
-        crate::Load { data: &data }.apply(&mut fx.state()).unwrap();
+        crate::Load {
+            data: &data,
+            name: "file",
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         let file = fx.files.values().next().unwrap().clone();
         fx.selection = Selection::Track {
             file_id: file.id,

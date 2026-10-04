@@ -106,7 +106,12 @@ mod tests {
     fn loaded() -> (Fixture, FileId) {
         let mut fx = Fixture::default();
         let data = std::fs::read("data/with_tracks_and_segments.gpx").unwrap();
-        Load { data: &data }.apply(&mut fx.state()).unwrap();
+        Load {
+            data: &data,
+            name: "file",
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         let id = fx.order.0[0];
         let trk = &fx.files[&id].trk[0];
         fx.selection = Selection::TrackSegment {
@@ -282,7 +287,12 @@ mod tests {
     fn test_splice_on_multiple_files_uses_last_in_file_order() {
         let (mut fx, first) = loaded();
         let data = std::fs::read("data/with_tracks_and_segments.gpx").unwrap();
-        Load { data: &data }.apply(&mut fx.state()).unwrap();
+        Load {
+            data: &data,
+            name: "file",
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         let second = fx.order.0[1];
         fx.selection = Selection::File {
             file_ids: HashSet::from([second, first]),

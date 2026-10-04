@@ -85,7 +85,11 @@ export class SortableFileList {
         this._unsubscribes.push(
             engine.selection.subscribe(() => tick().then(() => this.updateFromSelection()))
         );
-        this._unsubscribes.push(engine.order.subscribe(() => this.updateFromFileOrder()));
+        // after the elements are rendered: sorting a list that does not have the new files yet
+        // would put them at the beginning
+        this._unsubscribes.push(
+            engine.order.subscribe(() => tick().then(() => this.updateFromFileOrder()))
+        );
     }
 
     /** The node of a child of the list. */

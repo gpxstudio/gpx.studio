@@ -41,8 +41,18 @@ mod tests {
     fn test_only_files_of_the_diff_are_recomputed() {
         let mut fx = Fixture::default();
         let data = std::fs::read("data/with_tracks_and_segments.gpx").unwrap();
-        Load { data: &data }.apply(&mut fx.state()).unwrap();
-        Load { data: &data }.apply(&mut fx.state()).unwrap();
+        Load {
+            data: &data,
+            name: "file",
+        }
+        .apply(&mut fx.state())
+        .unwrap();
+        Load {
+            data: &data,
+            name: "file",
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         let (a, b) = (fx.order.0[0], fx.order.0[1]);
 
         let mut cache = FileStructureCache::default();
