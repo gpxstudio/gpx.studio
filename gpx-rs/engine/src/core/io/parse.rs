@@ -114,6 +114,30 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
                 e if e.ends_with("width") => stack.push(GPXElement::Width),
                 _ => (),
             },
+            // Self-closing points (`<trkpt lat=".." lon=".."/>`), which have no children
+            Ok(Event::Empty(e)) => match e.name().as_ref() {
+                "trkpt" => {
+                    if let Some(GPXElement::Segment(trkseg)) = stack.last_mut() {
+                        trkpt_chunk.trkpt.push(Trackpoint {
+                            coordinates: parse_coordinates(e.attributes()),
+                            ..Default::default()
+                        });
+                        if trkpt_chunk.is_full() {
+                            trkseg.push(std::mem::take(&mut trkpt_chunk));
+                        }
+                    }
+                }
+                "wpt" => {
+                    wpt_chunk.wpt.push(Waypoint {
+                        coordinates: parse_coordinates(e.attributes()),
+                        ..Default::default()
+                    });
+                    if wpt_chunk.is_full() {
+                        gpx.wpt.push(Rc::new(std::mem::take(&mut wpt_chunk)));
+                    }
+                }
+                _ => (),
+            },
             Ok(Event::End(e)) => match e.name().as_ref() {
                 "gpx" => {
                     if !wpt_chunk.wpt.is_empty() {
@@ -361,6 +385,30 @@ mod tests {
             &mut Default::default(),
         )
         .unwrap()
+    }
+
+    #[test]
+    fn test_parse_self_closing_points() {
+        let gpx = parse_data("self_closing_points");
+
+        assert_eq!(gpx.info.name, "self closing points");
+        let wpt: Vec<_> = gpx.wpt.iter().flat_map(|chunk| &chunk.wpt).collect();
+        assert_eq!(wpt.len(), 3);
+        assert_eq!(wpt[0].coordinates.lat, 50.0);
+        assert_eq!(wpt[0].name, None);
+        assert_eq!(wpt[1].name.as_deref(), Some("with children"));
+        assert_eq!(wpt[2].coordinates.lng, 4.2);
+
+        assert_eq!(gpx.trk.len(), 1);
+        let trk = &gpx.trk[0];
+        assert_eq!(trk.trkseg.len(), 2);
+        let seg = &trk.trkseg[0];
+        assert_eq!(seg.len(), 3);
+        assert_eq!(seg[0].coordinates.lat, 50.0);
+        assert_eq!(seg[0].ele, 0.0);
+        assert_eq!(seg[1].ele, 12.5);
+        assert_eq!(seg[2].coordinates.lng, 4.02);
+        assert_eq!(trk.trkseg[1].len(), 1);
     }
 
     #[test]
