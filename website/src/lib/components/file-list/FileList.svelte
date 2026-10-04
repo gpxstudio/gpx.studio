@@ -1,15 +1,17 @@
 <script lang="ts">
     import { ScrollArea } from '$lib/components/ui/scroll-area/index';
     import * as ContextMenu from '$lib/components/ui/context-menu';
-    import FileListNode from './FileListNode.svelte';
+    import FileListNodeContent from './FileListNodeContent.svelte';
     import { onMount, setContext } from 'svelte';
-    import { ListFileItem, ListLevel, ListRootItem } from './file-list';
+    import { ListLevel } from './file-list';
     import { ClipboardPaste, FileStack, Plus } from '@lucide/svelte';
     import Shortcut from '$lib/components/Shortcut.svelte';
     import { i18n } from '$lib/i18n.svelte';
-    import { fileStateCollection } from '$lib/logic/file-state';
+    import { engine } from '$lib/engine';
+    import { selectedFileIds } from '$lib/selection-helpers';
     import { createFile, pasteSelection } from '$lib/logic/file-actions';
-    import { selection, copied } from '$lib/logic/selection';
+    // TODO the clipboard still works on the previous implementation
+    import { copied } from '$lib/logic/selection';
     import { allowedPastes } from './sortable-file-list';
 
     let {
@@ -27,17 +29,12 @@
     setContext('orientation', orientation);
     setContext('recursive', recursive);
 
+    const { files, selection } = engine;
+
     onMount(() => {
-        if (orientation === 'horizontal') {
-            selection.update(($selection) => {
-                $selection.forEach((item) => {
-                    if (!(item instanceof ListFileItem)) {
-                        $selection.toggle(item);
-                        $selection.set(new ListFileItem(item.getFileId()), true);
-                    }
-                });
-                return $selection;
-            });
+        if (orientation === 'horizontal' && $selection.type !== 'file') {
+            // only files can be selected here
+            engine.select(selectedFileIds($selection));
         }
     });
 </script>
@@ -54,7 +51,7 @@
             : 'flex-row'} {className ?? ''}"
         {style}
     >
-        <FileListNode node={$fileStateCollection} item={new ListRootItem()} />
+        <FileListNodeContent node={null} />
         {#if orientation === 'vertical'}
             <ContextMenu.Root>
                 <ContextMenu.Trigger class="grow" />
@@ -66,8 +63,8 @@
                     </ContextMenu.Item>
                     <ContextMenu.Separator />
                     <ContextMenu.Item
-                        onclick={() => selection.selectAll()}
-                        disabled={$fileStateCollection.size === 0}
+                        onclick={() => engine.selectAll()}
+                        disabled={$files.size === 0}
                     >
                         <FileStack size="16" />
                         {i18n._('menu.select_all')}

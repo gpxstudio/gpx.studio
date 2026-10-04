@@ -1,41 +1,39 @@
 <script lang="ts">
-    import { GPXFile, Track, Waypoint, type AnyGPXTreeElement, type GPXTreeElement } from 'gpx';
     import { getContext, onDestroy, onMount } from 'svelte';
-    import { type Readable } from 'svelte/store';
     import FileListNodeStore from './FileListNodeStore.svelte';
     import FileListNode from './FileListNode.svelte';
     import FileListNodeContent from './FileListNodeContent.svelte';
-    import { ListFileItem, ListLevel, ListWaypointsItem, type ListItem } from './file-list';
-    import type { GPXFileWithStatistics } from '$lib/logic/statistics-tree';
+    import { ListLevel } from './file-list';
     import { allowedMoves, dragging, SortableFileList } from './sortable-file-list';
+    import { engine, type FileState } from '$lib/engine';
+    import type { FileTreeNode } from '$lib/selection-helpers';
 
     let {
+        fileState,
         node,
-        item,
         waypointRoot = false,
     }: {
-        node:
-            | Map<string, Readable<GPXFileWithStatistics | undefined>>
-            | GPXTreeElement<AnyGPXTreeElement>
-            | Waypoint[]
-            | Waypoint;
-        item: ListItem;
+        /** State of the file of the node (not needed for the root). */
+        fileState?: FileState;
+        /** The node whose children are listed, `null` for the list of the files. */
+        node: FileTreeNode | null;
+        /** List the node standing for the waypoints of the file, instead of its tracks. */
         waypointRoot?: boolean;
     } = $props();
 
+    const { files, order } = engine;
+
     let container: HTMLElement;
     let sortableLevel: ListLevel =
-        node instanceof Map
+        node === null
             ? ListLevel.FILE
-            : node instanceof GPXFile
+            : node.type === 'file'
               ? waypointRoot
                   ? ListLevel.WAYPOINTS
-                  : item instanceof ListWaypointsItem
-                    ? ListLevel.WAYPOINT
-                    : ListLevel.TRACK
-              : node instanceof Track
-                ? ListLevel.SEGMENT
-                : ListLevel.WAYPOINT;
+                  : ListLevel.TRACK
+              : node.type === 'waypoints'
+                ? ListLevel.WAYPOINT
+                : ListLevel.SEGMENT;
     let orientation = getContext<'vertical' | 'horizontal'>('orientation');
 
     let canDrop = $derived($dragging !== null && allowedMoves[$dragging].includes(sortableLevel));
@@ -43,18 +41,14 @@
     let sortable: SortableFileList;
 
     onMount(() => {
-        sortable = new SortableFileList(
-            container,
-            node,
-            item,
-            waypointRoot,
-            sortableLevel,
-            orientation
-        );
+        sortable = new SortableFileList(container, node, waypointRoot, sortableLevel, orientation);
     });
 
     $effect(() => {
-        if (sortable && node) {
+        // the elements of the list changed
+        $order;
+        fileState;
+        if (sortable) {
             sortable.updateElements();
         }
     });
@@ -70,45 +64,65 @@
         ? 'flex-col'
         : 'flex-row gap-1'} {canDrop ? 'min-h-5' : ''}"
 >
-    {#if node instanceof Map}
-        {#each node as [fileId, file] (fileId)}
-            <div data-id={fileId}>
-                <FileListNodeStore {file} />
-            </div>
-        {/each}
-    {:else if node instanceof GPXFile}
-        {#if item instanceof ListWaypointsItem}
-            {#each node.wpt as wpt, i (wpt)}
-                <div data-id={i} class="ml-1">
-                    <FileListNode node={wpt} item={item.extend(i)} />
-                </div>
-            {/each}
-        {:else if waypointRoot}
-            {#if node.wpt.length > 0}
-                <div data-id="waypoints">
-                    <FileListNode {node} item={item.extend('waypoints')} />
+    {#if node === null}
+        {#each $order as fileId (fileId)}
+            {@const file = $files.get(fileId)}
+            {#if file}
+                <div data-id={fileId}>
+                    <FileListNodeStore {file} />
                 </div>
             {/if}
-        {:else}
-            {#each node.children as child, i (child)}
-                <div data-id={i}>
-                    <FileListNode node={child} item={item.extend(i)} />
+        {/each}
+    {:else if fileState}
+        {#if node.type === 'file'}
+            {#if waypointRoot}
+                {#if fileState.structure.waypoints.length > 0}
+                    <div data-id="waypoints">
+                        <FileListNode
+                            {fileState}
+                            node={{ type: 'waypoints', fileId: node.fileId }}
+                        />
+                    </div>
+                {/if}
+            {:else}
+                {#each fileState.structure.tracks as track (track.id)}
+                    <div data-id={track.id}>
+                        <FileListNode
+                            {fileState}
+                            node={{ type: 'track', fileId: node.fileId, trackId: track.id }}
+                        />
+                    </div>
+                {/each}
+            {/if}
+        {:else if node.type === 'waypoints'}
+            {#each fileState.structure.waypoints as waypoint (waypoint.id)}
+                <div data-id={waypoint.id} class="ml-1">
+                    <FileListNode
+                        {fileState}
+                        node={{ type: 'waypoint', fileId: node.fileId, waypointId: waypoint.id }}
+                    />
+                </div>
+            {/each}
+        {:else if node.type === 'track'}
+            {#each fileState.structure.tracks.find((t) => t.id === node.trackId)?.segments ?? [] as segment (segment.id)}
+                <div data-id={segment.id} class="ml-1">
+                    <FileListNode
+                        {fileState}
+                        node={{
+                            type: 'segment',
+                            fileId: node.fileId,
+                            trackId: node.trackId,
+                            segmentId: segment.id,
+                        }}
+                    />
                 </div>
             {/each}
         {/if}
-    {:else if node instanceof Track}
-        {#each node.children as child, i (child)}
-            <div data-id={i} class="ml-1">
-                <FileListNode node={child} item={item.extend(i)} />
-            </div>
-        {/each}
     {/if}
 </div>
 
-{#if node instanceof GPXFile && item instanceof ListFileItem}
-    {#if !waypointRoot}
-        <FileListNodeContent {node} {item} waypointRoot={true} />
-    {/if}
+{#if fileState && node?.type === 'file' && !waypointRoot}
+    <FileListNodeContent {fileState} {node} waypointRoot={true} />
 {/if}
 
 <style lang="postcss">

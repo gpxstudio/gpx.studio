@@ -1,4 +1,5 @@
 import type { Selection } from 'gpx-rs';
+import { isHidden, waypointsKey, type VisibilityState } from '$lib/file-visibility';
 
 /**
  * An element of the file tree, to ask questions about the selection:
@@ -15,6 +16,25 @@ export type FileTreeNode =
     | { type: 'waypoints'; fileId: string }
     | { type: 'waypoint'; fileId: string; waypointId: string };
 
+/**
+ * The id of the element of a node, as used by the visibility (`waypointsKey` for the waypoints
+ * node).
+ */
+export function elementId(node: FileTreeNode): string {
+    switch (node.type) {
+        case 'file':
+            return node.fileId;
+        case 'track':
+            return node.trackId;
+        case 'segment':
+            return node.segmentId;
+        case 'waypoints':
+            return waypointsKey(node.fileId);
+        case 'waypoint':
+            return node.waypointId;
+    }
+}
+
 export function isEmpty(selection: Selection): boolean {
     return selection.type === 'empty';
 }
@@ -28,6 +48,45 @@ export function selectedFileIds(selection: Selection): string[] {
             return selection.fileIds;
         default:
             return [selection.fileId];
+    }
+}
+
+/** Number of selected elements (the waypoints node counts for one). */
+export function selectionSize(selection: Selection): number {
+    switch (selection.type) {
+        case 'empty':
+            return 0;
+        case 'file':
+            return selection.fileIds.length;
+        case 'track':
+            return selection.trackIds.length;
+        case 'segment':
+            return selection.segmentIds.length;
+        case 'waypoints':
+            return 1;
+        case 'waypoint':
+            return selection.waypointIds.length;
+    }
+}
+
+/**
+ * The ids of the selected elements, by file, as used by the visibility (a file, its tracks, its
+ * segments, its waypoints, or `waypointsKey` for the waypoints node).
+ */
+export function selectedElementIds(selection: Selection): { fileId: string; ids: string[] }[] {
+    switch (selection.type) {
+        case 'empty':
+            return [];
+        case 'file':
+            return selection.fileIds.map((fileId) => ({ fileId, ids: [fileId] }));
+        case 'track':
+            return [{ fileId: selection.fileId, ids: selection.trackIds }];
+        case 'segment':
+            return [{ fileId: selection.fileId, ids: selection.segmentIds }];
+        case 'waypoints':
+            return [{ fileId: selection.fileId, ids: [waypointsKey(selection.fileId)] }];
+        case 'waypoint':
+            return [{ fileId: selection.fileId, ids: selection.waypointIds }];
     }
 }
 
@@ -106,4 +165,22 @@ export function hasSelectionWithin(selection: Selection, node: FileTreeNode): bo
         case 'waypoint':
             return isSelected(selection, node);
     }
+}
+
+/**
+ * Whether all the selected elements are hidden (false when nothing is selected). `states` holds
+ * the files by id: an element of an unknown file is not hidden.
+ */
+export function isSelectionHidden(
+    selection: Selection,
+    states: ReadonlyMap<string, VisibilityState>
+): boolean {
+    const selected = selectedElementIds(selection);
+    return (
+        selected.length > 0 &&
+        selected.every(({ fileId, ids }) => {
+            const state = states.get(fileId);
+            return state !== undefined && ids.every((id) => isHidden(state, id));
+        })
+    );
 }

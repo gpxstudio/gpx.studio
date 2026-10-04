@@ -12,6 +12,7 @@ use crate::{
 pub struct FileStructure {
     pub id: FileId,
     pub name: String,
+    pub desc: Option<String>,
     pub tracks: Vec<TrackNode>,
     pub waypoints: Vec<WaypointNode>,
     /// Changes whenever the waypoints of the file (hence their buffer) change.
@@ -22,6 +23,7 @@ pub struct FileStructure {
 pub struct TrackNode {
     pub id: TrackId,
     pub name: Option<String>,
+    pub desc: Option<String>,
     /// Style of the track, only when the file defines it.
     pub color: Option<String>,
     pub opacity: Option<f64>,
@@ -49,12 +51,14 @@ impl FileStructure {
         Self {
             id: file.id,
             name: file.info.name.clone(),
+            desc: file.info.desc.clone(),
             tracks: file
                 .trk
                 .iter()
                 .map(|trk| TrackNode {
                     id: trk.id,
                     name: trk.info.name.clone(),
+                    desc: trk.info.desc.clone(),
                     color: trk.info.color.clone(),
                     opacity: trk.info.opacity,
                     width: trk.info.width,
@@ -99,10 +103,13 @@ mod tests {
         Load { data: &data }.apply(&mut fx.state()).unwrap();
         let file = &fx.files[&fx.order.0[0]];
         let node = FileStructure::new(file);
-        assert_eq!((node.id, &node.name), (file.id, &file.info.name));
+        assert_eq!(
+            (node.id, &node.name, &node.desc),
+            (file.id, &file.info.name, &file.info.desc)
+        );
         assert_eq!(node.tracks.len(), file.trk.len());
         for (n, t) in node.tracks.iter().zip(&file.trk) {
-            assert_eq!((n.id, &n.name), (t.id, &t.info.name));
+            assert_eq!((n.id, &n.name, &n.desc), (t.id, &t.info.name, &t.info.desc));
             assert_eq!(
                 (&n.color, n.opacity, n.width),
                 (&t.info.color, t.info.opacity, t.info.width)

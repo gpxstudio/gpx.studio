@@ -1,15 +1,15 @@
 import { isMac } from '$lib/utils';
 import Sortable, { type Direction } from 'sortablejs/Sortable';
-import { ListItem, ListLevel, ListRootItem } from './file-list';
-import { selection } from '$lib/logic/selection';
-import { getFileIds, moveItems } from '$lib/logic/file-actions';
-import { get, writable, type Readable } from 'svelte/store';
-import { settings } from '$lib/logic/settings';
-import type { GPXFileWithStatistics } from '$lib/logic/statistics-tree';
-import type { AnyGPXTreeElement, GPXTreeElement, Waypoint } from 'gpx';
+import { ListLevel } from './file-list';
+import { get, writable } from 'svelte/store';
 import { tick } from 'svelte';
-
-const { fileOrder } = settings;
+import { engine } from '$lib/engine';
+import { isSelected, type FileTreeNode } from '$lib/selection-helpers';
+// TODO moving elements between parents is not available in the engine yet
+// import { ListItem, ListRootItem } from './file-list';
+// import { getFileIds, moveItems } from '$lib/logic/file-actions';
+// import { settings } from '$lib/logic/settings';
+// const { fileOrder } = settings;
 
 export const allowedMoves: Record<ListLevel, ListLevel[]> = {
     [ListLevel.ROOT]: [],
@@ -31,13 +31,12 @@ export const allowedPastes: Record<ListLevel, ListLevel[]> = {
 
 export const dragging = writable<ListLevel | null>(null);
 
+/**
+ * Makes a list of the file tree sortable and selectable. The elements of the list are the
+ * children of `parent` (the files when `parent` is null), their ids are in their `data-id`.
+ */
 export class SortableFileList {
-    private _node:
-        | Map<string, Readable<GPXFileWithStatistics | undefined>>
-        | GPXTreeElement<AnyGPXTreeElement>
-        | Waypoint[]
-        | Waypoint;
-    private _item: ListItem;
+    private _parent: FileTreeNode | null;
     private _sortableLevel: ListLevel;
     private _container: HTMLElement;
     private _sortable: Sortable | null = null;
@@ -47,26 +46,24 @@ export class SortableFileList {
 
     constructor(
         container: HTMLElement,
-        node:
-            | Map<string, Readable<GPXFileWithStatistics | undefined>>
-            | GPXTreeElement<AnyGPXTreeElement>
-            | Waypoint[]
-            | Waypoint,
-        item: ListItem,
+        parent: FileTreeNode | null,
         waypointRoot: boolean,
         sortableLevel: ListLevel,
         orientation: Direction
     ) {
-        this._node = node;
-        this._item = item;
+        this._parent = parent;
         this._sortableLevel = sortableLevel;
         this._container = container;
+        // TODO only the order of the files can be changed for now: the other lists neither sort
+        // nor exchange elements (allowedMoves, to be used again once the engine can move elements)
+        const sortable = sortableLevel === ListLevel.FILE;
         this._sortable = Sortable.create(container, {
             group: {
                 name: sortableLevel,
-                pull: allowedMoves[sortableLevel],
-                put: true,
+                pull: sortable ? allowedMoves[sortableLevel] : false,
+                put: sortable ? [ListLevel.FILE] : false,
             },
+            sort: sortable,
             direction: orientation,
             forceAutoScrollFallback: true,
             multiDrag: true,
@@ -80,76 +77,103 @@ export class SortableFileList {
             onEnd: () => dragging.set(null),
             onSort: (e: Sortable.SortableEvent) => this.onSort(e),
         });
-        Object.defineProperty(this._sortable, '_item', {
-            value: item,
-            writable: true,
-        });
-
         Object.defineProperty(this._sortable, '_waypointRoot', {
             value: waypointRoot,
             writable: true,
         });
 
         this._unsubscribes.push(
-            selection.subscribe(() => tick().then(() => this.updateFromSelection()))
+            engine.selection.subscribe(() => tick().then(() => this.updateFromSelection()))
         );
-        this._unsubscribes.push(fileOrder.subscribe(() => this.updateFromFileOrder()));
+        this._unsubscribes.push(engine.order.subscribe(() => this.updateFromFileOrder()));
+    }
+
+    /** The node of a child of the list. */
+    childNode(id: string): FileTreeNode | undefined {
+        const parent = this._parent;
+        switch (this._sortableLevel) {
+            case ListLevel.FILE:
+                return { type: 'file', fileId: id };
+            case ListLevel.TRACK:
+                return parent ? { type: 'track', fileId: parent.fileId, trackId: id } : undefined;
+            case ListLevel.SEGMENT:
+                return parent?.type === 'track'
+                    ? {
+                          type: 'segment',
+                          fileId: parent.fileId,
+                          trackId: parent.trackId,
+                          segmentId: id,
+                      }
+                    : undefined;
+            case ListLevel.WAYPOINTS:
+                return parent ? { type: 'waypoints', fileId: parent.fileId } : undefined;
+            case ListLevel.WAYPOINT:
+                return parent
+                    ? { type: 'waypoint', fileId: parent.fileId, waypointId: id }
+                    : undefined;
+        }
     }
 
     onSort(e: Sortable.SortableEvent) {
         this.updateToFileOrder();
 
-        const from = Sortable.get(e.from);
-        const to = Sortable.get(e.to);
+        // TODO moving elements between parents: the engine has no command for it yet, the code
+        // below worked on the previous implementation
+        // onSort(e: Sortable.SortableEvent) {
+        //     this.updateToFileOrder();
 
-        if (!from || !to) {
-            return;
-        }
+        //     const from = Sortable.get(e.from);
+        //     const to = Sortable.get(e.to);
 
-        let fromItem = from._item;
-        let toItem = to._item;
+        //     if (!from || !to) {
+        //         return;
+        //     }
 
-        if (this._item === toItem && !(fromItem instanceof ListRootItem)) {
-            // Event is triggered on source and destination list, only handle it once
-            let fromItems = [];
-            let toItems = [];
+        //     let fromItem = from._item;
+        //     let toItem = to._item;
 
-            if (from._waypointRoot) {
-                fromItems = [fromItem.extend('waypoints')];
-            } else {
-                let oldIndices: number[] =
-                    e.oldIndicies.length > 0 ? e.oldIndicies.map((i) => i.index) : [e.oldIndex];
-                oldIndices = oldIndices.filter((i) => i >= 0);
-                oldIndices.sort((a, b) => a - b);
+        //     if (this._item === toItem && !(fromItem instanceof ListRootItem)) {
+        //         // Event is triggered on source and destination list, only handle it once
+        //         let fromItems = [];
+        //         let toItems = [];
 
-                fromItems = oldIndices.map((i) => fromItem.extend(i));
-            }
+        //         if (from._waypointRoot) {
+        //             fromItems = [fromItem.extend('waypoints')];
+        //         } else {
+        //             let oldIndices: number[] =
+        //                 e.oldIndicies.length > 0 ? e.oldIndicies.map((i) => i.index) : [e.oldIndex];
+        //             oldIndices = oldIndices.filter((i) => i >= 0);
+        //             oldIndices.sort((a, b) => a - b);
 
-            if (from._waypointRoot && to._waypointRoot) {
-                toItems = [toItem.extend('waypoints')];
-            } else {
-                if (to._waypointRoot) {
-                    toItem = toItem.extend('waypoints');
-                }
+        //             fromItems = oldIndices.map((i) => fromItem.extend(i));
+        //         }
 
-                let newIndices: number[] =
-                    e.newIndicies.length > 0 ? e.newIndicies.map((i) => i.index) : [e.newIndex];
-                newIndices = newIndices.filter((i) => i >= 0);
-                newIndices.sort((a, b) => a - b);
+        //         if (from._waypointRoot && to._waypointRoot) {
+        //             toItems = [toItem.extend('waypoints')];
+        //         } else {
+        //             if (to._waypointRoot) {
+        //                 toItem = toItem.extend('waypoints');
+        //             }
 
-                if (toItem instanceof ListRootItem) {
-                    let newFileIds = getFileIds(newIndices.length);
-                    toItems = newIndices.map((i, index) => {
-                        get(fileOrder).splice(i, 0, newFileIds[index]);
-                        return this._item.extend(newFileIds[index]);
-                    });
-                } else {
-                    toItems = newIndices.map((i) => toItem.extend(i));
-                }
-            }
+        //             let newIndices: number[] =
+        //                 e.newIndicies.length > 0 ? e.newIndicies.map((i) => i.index) : [e.newIndex];
+        //             newIndices = newIndices.filter((i) => i >= 0);
+        //             newIndices.sort((a, b) => a - b);
 
-            moveItems(fromItem, toItem, fromItems, toItems);
-        }
+        //             if (toItem instanceof ListRootItem) {
+        //                 let newFileIds = getFileIds(newIndices.length);
+        //                 toItems = newIndices.map((i, index) => {
+        //                     get(fileOrder).splice(i, 0, newFileIds[index]);
+        //                     return this._item.extend(newFileIds[index]);
+        //                 });
+        //             } else {
+        //                 toItems = newIndices.map((i) => toItem.extend(i));
+        //             }
+        //         }
+
+        //         moveItems(fromItem, toItem, fromItems, toItems);
+        //     }
+        // }
     }
 
     updateFromSelection() {
@@ -157,11 +181,12 @@ export class SortableFileList {
         if (changed.length === 0) {
             return;
         }
-        const selection_ = get(selection);
+        const selection_ = get(engine.selection);
         for (let id of changed) {
             let element = this._elements[id];
-            if (element) {
-                if (selection_.has(this._item.extend(id))) {
+            let node = this.childNode(id);
+            if (element && node) {
+                if (isSelected(selection_, node)) {
                     Sortable.utils.select(element);
                     element.scrollIntoView({
                         behavior: 'smooth',
@@ -183,27 +208,42 @@ export class SortableFileList {
             this._updatingSelection = false;
             return;
         }
-        selection.update(($selection) => {
-            $selection.clear();
-            Object.entries(this._elements).forEach(([id, element]) => {
-                $selection.set(
-                    this._item.extend(this.getRealId(id)),
-                    element.classList.contains('sortable-selected')
-                );
-            });
 
-            if (
-                e.originalEvent &&
-                !(e.originalEvent.ctrlKey || e.originalEvent.metaKey || e.originalEvent.shiftKey) &&
-                ($selection.size > 1 ||
-                    !$selection.has(this._item.extend(this.getRealId(changed[0]))))
-            ) {
-                // Fix bug that sometimes causes a single select to be treated as a multi-select
-                $selection.clear();
-                $selection.set(this._item.extend(this.getRealId(changed[0])), true);
+        let selected = Object.entries(this._elements)
+            .filter(([, element]) => element.classList.contains('sortable-selected'))
+            .map(([id]) => id);
+
+        if (
+            e.originalEvent &&
+            !(e.originalEvent.ctrlKey || e.originalEvent.metaKey || e.originalEvent.shiftKey) &&
+            (selected.length > 1 || !selected.includes(changed[0]))
+        ) {
+            // Fix bug that sometimes causes a single select to be treated as a multi-select
+            selected = [changed[0]];
+        }
+
+        const parent = this._parent;
+        if (selected.length === 0 || !this.childNode(selected[0])) {
+            engine.select([]);
+        } else {
+            switch (this._sortableLevel) {
+                case ListLevel.FILE:
+                    engine.select(selected);
+                    break;
+                case ListLevel.TRACK:
+                    engine.selectTracks(parent!.fileId, selected);
+                    break;
+                case ListLevel.SEGMENT:
+                    engine.selectSegments(parent!.fileId, (parent as any).trackId, selected);
+                    break;
+                case ListLevel.WAYPOINTS:
+                    engine.selectWaypointGroup(parent!.fileId);
+                    break;
+                case ListLevel.WAYPOINT:
+                    engine.selectWaypoints(parent!.fileId, selected);
+                    break;
             }
-            return $selection;
-        });
+        }
         this._updatingSelection = false;
     }
 
@@ -212,7 +252,7 @@ export class SortableFileList {
             return;
         }
 
-        const fileOrder_ = get(fileOrder);
+        const fileOrder_ = get(engine.order);
         const sortableOrder = this._sortable.toArray();
 
         if (
@@ -228,24 +268,25 @@ export class SortableFileList {
             return;
         }
 
-        const fileOrder_ = get(fileOrder);
+        const fileOrder_ = get(engine.order);
         const sortableOrder = this._sortable.toArray();
 
         if (
             fileOrder_.length !== sortableOrder.length ||
             fileOrder_.some((value, index) => value !== sortableOrder[index])
         ) {
-            fileOrder.set(sortableOrder);
+            engine.reorder(sortableOrder, 0);
         }
     }
 
     updateElements() {
         this._elements = {};
+        const files = get(engine.files);
         this._container.childNodes.forEach((element) => {
             if (element instanceof HTMLElement) {
                 let attr = element.getAttribute('data-id');
                 if (attr) {
-                    if (this._node instanceof Map && !this._node.has(attr)) {
+                    if (this._sortableLevel === ListLevel.FILE && !files.has(attr)) {
                         element.remove();
                     } else {
                         this._elements[attr] = element;
@@ -262,23 +303,16 @@ export class SortableFileList {
     }
 
     getChangedIds() {
-        let changed: (string | number)[] = [];
-        const selection_ = get(selection);
+        let changed: string[] = [];
+        const selection_ = get(engine.selection);
         Object.entries(this._elements).forEach(([id, element]) => {
-            let realId = this.getRealId(id);
-            let realItem = this._item.extend(realId);
-            let inSelection = selection_.has(realItem);
-            let isSelected = element.classList.contains('sortable-selected');
-            if (inSelection !== isSelected) {
-                changed.push(realId);
+            const node = this.childNode(id);
+            let inSelection = node !== undefined && isSelected(selection_, node);
+            let isSelectedInList = element.classList.contains('sortable-selected');
+            if (inSelection !== isSelectedInList) {
+                changed.push(id);
             }
         });
         return changed;
-    }
-
-    getRealId(id: string | number) {
-        return this._sortableLevel === ListLevel.FILE || this._sortableLevel === ListLevel.WAYPOINTS
-            ? id
-            : parseInt(id as string);
     }
 }

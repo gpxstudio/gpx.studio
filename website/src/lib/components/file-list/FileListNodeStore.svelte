@@ -4,24 +4,21 @@
 
     import { getContext } from 'svelte';
     import type { Readable } from 'svelte/store';
-    import { ListFileItem } from './file-list';
-    import type { GPXFileWithStatistics } from '$lib/logic/statistics-tree';
+    import type { FileState } from '$lib/engine';
 
     let {
         file,
     }: {
-        file: Readable<GPXFileWithStatistics | undefined>;
+        file: Readable<FileState>;
     } = $props();
 
     let recursive = getContext<boolean>('recursive');
 </script>
 
-{#if $file}
-    {#if recursive}
-        <CollapsibleTree side="left" defaultState="closed" slotInsideTrigger={false}>
-            <FileListNode node={$file.file} item={new ListFileItem($file.file._data.id)} />
-        </CollapsibleTree>
-    {:else}
-        <FileListNode node={$file.file} item={new ListFileItem($file.file._data.id)} />
-    {/if}
+{#if recursive}
+    <CollapsibleTree side="left" defaultState="closed" slotInsideTrigger={false}>
+        <FileListNode fileState={$file} node={{ type: 'file', fileId: $file.structure.id }} />
+    </CollapsibleTree>
+{:else}
+    <FileListNode fileState={$file} node={{ type: 'file', fileId: $file.structure.id }} />
 {/if}

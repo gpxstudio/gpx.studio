@@ -5,30 +5,26 @@
     import { Slider } from '$lib/components/ui/slider';
     import * as Popover from '$lib/components/ui/popover';
     import { Save } from '@lucide/svelte';
-    import {
-        ListFileItem,
-        ListTrackItem,
-        type ListItem,
-    } from '$lib/components/file-list/file-list';
     import { editStyle } from '$lib/components/file-list/style/utils.svelte';
     import { i18n } from '$lib/i18n.svelte';
-    import type { LineStyleExtension } from 'gpx';
     import { settings } from '$lib/logic/settings';
-    import { selection } from '$lib/logic/selection';
-    import { fileStateCollection } from '$lib/logic/file-state';
-    import { gpxLayers } from '$lib/components/map/gpx-layer/gpx-layers';
+    import { engine, type FileState } from '$lib/engine';
+    import { normalizeColor } from '$lib/file-colors';
+    import { selectedFileIds, type FileTreeNode } from '$lib/selection-helpers';
     import { untrack } from 'svelte';
-    import { fileActions } from '$lib/logic/file-actions';
 
     let {
-        item,
+        fileState,
+        node,
         open = $bindable(),
     }: {
-        item: ListItem;
+        fileState: FileState;
+        node: FileTreeNode;
         open: boolean;
     } = $props();
 
     const { defaultOpacity, defaultWidth } = settings;
+    const { files, selection } = engine;
 
     let color: string = $state('');
     let opacity: number = $state(0);
@@ -37,45 +33,24 @@
     let opacityChanged = $state(false);
     let widthChanged = $state(false);
 
+    // TODO the inputs used to come from the last selected item, they now come from this node
     function setStyleInputs() {
         opacity = $defaultOpacity;
         width = $defaultWidth;
+        color = fileState.color;
 
-        $selection.forEach((item) => {
-            if (item instanceof ListFileItem) {
-                let file = fileStateCollection.getFile(item.getFileId());
-                let layer = gpxLayers.getLayer(item.getFileId());
-                if (file && layer) {
-                    let style = file.getStyle();
-                    color = layer.layerColor;
-                    if (style.opacity.length > 0) {
-                        opacity = style.opacity[0];
-                    }
-                    if (style.width.length > 0) {
-                        width = style.width[0];
-                    }
-                }
-            } else if (item instanceof ListTrackItem) {
-                let file = fileStateCollection.getFile(item.getFileId());
-                let layer = gpxLayers.getLayer(item.getFileId());
-                if (file && layer) {
-                    color = layer.layerColor;
-                    let track = file.trk[item.getTrackIndex()];
-                    let style = track.getStyle();
-                    if (style) {
-                        if (style['gpx_style:color']) {
-                            color = style['gpx_style:color'];
-                        }
-                        if (style['gpx_style:opacity']) {
-                            opacity = style['gpx_style:opacity'];
-                        }
-                        if (style['gpx_style:width']) {
-                            width = style['gpx_style:width'];
-                        }
-                    }
-                }
+        const { tracks } = fileState.structure;
+        if (node.type === 'file') {
+            opacity = tracks.find((track) => track.opacity !== undefined)?.opacity ?? opacity;
+            width = tracks.find((track) => track.width !== undefined)?.width ?? width;
+        } else if (node.type === 'track') {
+            const track = tracks.find((track) => track.id === node.trackId);
+            if (track) {
+                color = track.color !== undefined ? normalizeColor(track.color) : color;
+                opacity = track.opacity ?? opacity;
+                width = track.width ?? width;
             }
-        });
+        }
 
         colorChanged = false;
         opacityChanged = false;
@@ -95,24 +70,18 @@
     });
 
     function applyStyle() {
-        let style: LineStyleExtension = {};
-        if (colorChanged) {
-            style['gpx_style:color'] = color;
-        }
-        if (opacityChanged) {
-            style['gpx_style:opacity'] = opacity;
-        }
-        if (widthChanged) {
-            style['gpx_style:width'] = width;
-        }
-        fileActions.setStyleToSelection(style);
+        engine.style({
+            color: colorChanged ? color : undefined,
+            opacity: opacityChanged ? opacity : undefined,
+            width: widthChanged ? width : undefined,
+        });
 
-        if (item instanceof ListFileItem && $selection.size === fileStateCollection.size) {
-            if (style['gpx_style:opacity']) {
-                $defaultOpacity = style['gpx_style:opacity'];
+        if (node.type === 'file' && selectedFileIds($selection).length === $files.size) {
+            if (opacityChanged) {
+                $defaultOpacity = opacity;
             }
-            if (style['gpx_style:width']) {
-                $defaultWidth = style['gpx_style:width'];
+            if (widthChanged) {
+                $defaultWidth = width;
             }
         }
 

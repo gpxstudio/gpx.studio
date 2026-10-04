@@ -436,6 +436,7 @@ export interface FilesUpdate {
 export interface FileStructure {
     id: string;
     name: string;
+    desc?: string;
     tracks: TrackNode[];
     waypoints: WaypointNode[];
     /** Changes when the waypoints of the file change: refetch their coordinates. */
@@ -463,6 +464,7 @@ export interface FileStatistics {
 export interface TrackNode {
     id: string;
     name?: string;
+    desc?: string;
     /** Style of the track, only present when the file defines it. */
     color?: string;
     opacity?: number;
@@ -520,11 +522,17 @@ fn named_node(id: uuid::Uuid, name: Option<&str>) -> Object {
 
 fn structure_object(file: &engine::FileStructure) -> Object {
     let node = named_node(file.id.0, Some(&file.name));
+    if let Some(desc) = &file.desc {
+        set(&node, "desc", desc.as_str());
+    }
     set(
         &node,
         "tracks",
         array(&file.tracks, |trk| {
             let node = named_node(trk.id.0, trk.name.as_deref());
+            if let Some(desc) = &trk.desc {
+                set(&node, "desc", desc.as_str());
+            }
             if let Some(color) = &trk.color {
                 set(&node, "color", color.as_str());
             }

@@ -1,12 +1,17 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import type { Selection } from 'gpx-rs';
+import type { FileStructure, Selection } from 'gpx-rs';
+import type { VisibilityState } from './file-visibility';
 import {
+    elementId,
     hasSelectionWithin,
     isCovered,
     isEmpty,
     isSelected,
+    isSelectionHidden,
+    selectedElementIds,
     selectedFileIds,
+    selectionSize,
     type FileTreeNode,
 } from './selection-helpers';
 
@@ -61,6 +66,36 @@ describe('selection helpers', () => {
         assert.deepEqual(selectedFileIds(segments('T1', 'S1')), ['F1']);
         assert.deepEqual(selectedFileIds(waypoints), ['F1']);
         assert.deepEqual(selectedFileIds(waypoint('W1')), ['F1']);
+    });
+
+    it('gives the id of the element of a node', () => {
+        assert.deepEqual(
+            Object.keys(nodes).map((name) => elementId(nodes[name])),
+            ['F1', 'F2', 'T1', 'T2', 'S1', 'S2', 'S3', 'F1:waypoints', 'W1', 'W2', 'F2:waypoints']
+        );
+    });
+
+    it('counts the selected elements', () => {
+        assert.equal(selectionSize(empty), 0);
+        assert.equal(selectionSize(files('F1', 'F2')), 2);
+        assert.equal(selectionSize(tracks('T1')), 1);
+        assert.equal(selectionSize(segments('T1', 'S1', 'S2')), 2);
+        assert.equal(selectionSize(waypoints), 1);
+        assert.equal(selectionSize(waypoint('W1', 'W2')), 2);
+    });
+
+    it('lists the ids of the selected elements by file', () => {
+        assert.deepEqual(selectedElementIds(empty), []);
+        assert.deepEqual(selectedElementIds(files('F1', 'F2')), [
+            { fileId: 'F1', ids: ['F1'] },
+            { fileId: 'F2', ids: ['F2'] },
+        ]);
+        assert.deepEqual(selectedElementIds(tracks('T1', 'T2')), [
+            { fileId: 'F1', ids: ['T1', 'T2'] },
+        ]);
+        assert.deepEqual(selectedElementIds(segments('T1', 'S1')), [{ fileId: 'F1', ids: ['S1'] }]);
+        assert.deepEqual(selectedElementIds(waypoints), [{ fileId: 'F1', ids: ['F1:waypoints'] }]);
+        assert.deepEqual(selectedElementIds(waypoint('W1')), [{ fileId: 'F1', ids: ['W1'] }]);
     });
 
     describe('isSelected', () => {
@@ -135,6 +170,50 @@ describe('selection helpers', () => {
         it('does not look at ancestors', () => {
             // a selected file does not mean that its segments hold a selection
             assert.deepEqual(matching(files('F1'), hasSelectionWithin), ['F1']);
+        });
+    });
+
+    describe('isSelectionHidden', () => {
+        const segment = (id: string) => ({ id, rev: id, length: 2 });
+        const structure: FileStructure = {
+            id: 'F1',
+            name: 'file',
+            waypointsRev: 'rev',
+            waypoints: [{ id: 'W1' }, { id: 'W2' }],
+            tracks: [
+                { id: 'T1', segments: [segment('S1'), segment('S2')] },
+                { id: 'T2', segments: [segment('S3')] },
+            ],
+        };
+        const states = (...hidden: string[]) =>
+            new Map<string, VisibilityState>([
+                [
+                    'F1',
+                    { structure, visibility: new Map(hidden.map((id) => [id, false] as const)) },
+                ],
+            ]);
+
+        it('is false when nothing is selected', () => {
+            assert.equal(isSelectionHidden(empty, states('F1')), false);
+        });
+
+        it('is true when everything selected is hidden', () => {
+            assert.equal(isSelectionHidden(files('F1'), states('F1')), true);
+            assert.equal(isSelectionHidden(tracks('T1', 'T2'), states('T1', 'T2')), true);
+            // through a hidden parent
+            assert.equal(isSelectionHidden(segments('T1', 'S1', 'S2'), states('T1')), true);
+            assert.equal(isSelectionHidden(waypoint('W1', 'W2'), states('F1:waypoints')), true);
+            assert.equal(isSelectionHidden(waypoints, states('F1:waypoints')), true);
+        });
+
+        it('is false as soon as one selected element is visible', () => {
+            assert.equal(isSelectionHidden(files('F1'), states()), false);
+            assert.equal(isSelectionHidden(tracks('T1', 'T2'), states('T1')), false);
+            assert.equal(isSelectionHidden(waypoint('W1', 'W2'), states('W1')), false);
+        });
+
+        it('is false for files that are not known', () => {
+            assert.equal(isSelectionHidden(files('F1', 'F2'), states('F1')), false);
         });
     });
 });

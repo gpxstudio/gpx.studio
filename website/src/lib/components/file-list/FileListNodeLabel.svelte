@@ -18,86 +18,95 @@
         Scissors,
         FileStack,
     } from '@lucide/svelte';
-    import {
-        ListFileItem,
-        ListLevel,
-        ListTrackItem,
-        ListWaypointItem,
-        type ListItem,
-    } from './file-list';
+    import { ListLevel } from './file-list';
     import { getContext } from 'svelte';
-    import { GPXTreeElement, Track, type AnyGPXTreeElement, Waypoint, GPXFile } from 'gpx';
     import { i18n } from '$lib/i18n.svelte';
     import MetadataDialog from '$lib/components/file-list/metadata/MetadataDialog.svelte';
     import { editMetadata } from '$lib/components/file-list/metadata/utils.svelte';
     import StyleDialog from '$lib/components/file-list/style/StyleDialog.svelte';
     import { editStyle } from '$lib/components/file-list/style/utils.svelte';
     import { getSymbolKey, symbols } from '$lib/assets/symbols';
-    import { selection, copied, cut } from '$lib/logic/selection';
-    import { fileActions, pasteSelection } from '$lib/logic/file-actions';
-    import { allHidden } from '$lib/logic/hidden';
+    import { engine, type FileState } from '$lib/engine';
+    import { allHidden } from '$lib/all-hidden';
+    import { normalizeColor } from '$lib/file-colors';
+    import { isHidden } from '$lib/file-visibility';
+    import {
+        elementId,
+        isSelected,
+        selectedElementIds,
+        selectionSize,
+        type FileTreeNode,
+    } from '$lib/selection-helpers';
+    // TODO the clipboard, centering on the selection and the waypoint popup still work on the
+    // previous implementation
+    import { copied, selection as oldSelection } from '$lib/logic/selection';
+    import { pasteSelection } from '$lib/logic/file-actions';
     import { boundsManager } from '$lib/logic/bounds';
-    import { gpxColors, gpxLayers } from '$lib/components/map/gpx-layer/gpx-layers';
-    import { fileStateCollection } from '$lib/logic/file-state';
-    import { waypointPopup } from '$lib/components/map/gpx-layer/gpx-layer-popup';
+    // import { gpxLayers } from '$lib/components/map/gpx-layer/gpx-layers';
+    // import { fileStateCollection } from '$lib/logic/file-state';
+    // import { waypointPopup } from '$lib/components/map/gpx-layer/gpx-layer-popup';
     import { allowedPastes } from './sortable-file-list';
 
     let {
+        fileState,
         node,
-        item,
         label,
     }: {
-        node: GPXTreeElement<AnyGPXTreeElement> | Waypoint[] | Waypoint;
-        item: ListItem;
+        fileState: FileState;
+        node: FileTreeNode;
         label: string | undefined;
     } = $props();
+
+    const { selection } = engine;
 
     let orientation = getContext<'vertical' | 'horizontal'>('orientation');
     let embedding = getContext<boolean>('embedding');
 
-    let singleSelection = $derived($selection.size === 1);
+    const levels = {
+        file: ListLevel.FILE,
+        track: ListLevel.TRACK,
+        segment: ListLevel.SEGMENT,
+        waypoints: ListLevel.WAYPOINTS,
+        waypoint: ListLevel.WAYPOINT,
+    };
+    let level = $derived(levels[node.type]);
+
+    let singleSelection = $derived(selectionSize($selection) === 1);
 
     let nodeColors: string[] = $derived.by(() => {
-        let colors: string[] = [];
-        if (node) {
-            if (node instanceof GPXFile) {
-                let defaultColor = $gpxColors.get(item.getFileId());
-                let style = node.getStyle(defaultColor);
-                colors = style.color;
-            } else if (node instanceof Track) {
-                let style = node.getStyle();
-                if (
-                    style &&
-                    style['gpx_style:color'] &&
-                    !colors.includes(style['gpx_style:color'])
-                ) {
-                    colors.push(style['gpx_style:color']);
-                }
-                if (colors.length === 0) {
-                    let defaultColor = $gpxColors.get(item.getFileId());
-                    if (defaultColor) {
-                        colors.push(defaultColor);
-                    }
-                }
-            }
+        const { tracks } = fileState.structure;
+        if (node.type === 'file') {
+            // the colors defined by the tracks, or else the one of the file
+            const colors = [
+                ...new Set(
+                    tracks.flatMap((track) =>
+                        track.color !== undefined ? [normalizeColor(track.color)] : []
+                    )
+                ),
+            ];
+            return colors.length > 0 ? colors : [fileState.color];
+        } else if (node.type === 'track') {
+            const color = tracks.find((track) => track.id === node.trackId)?.color;
+            return [color !== undefined ? normalizeColor(color) : fileState.color];
         }
-        return colors;
+        return [];
     });
 
-    let symbolKey = $derived(node instanceof Waypoint ? getSymbolKey(node.sym) : undefined);
-
-    let openEditMetadata: boolean = $derived(
-        editMetadata.current && singleSelection && $selection.has(item)
+    let symbolKey = $derived(
+        node.type === 'waypoint'
+            ? getSymbolKey(fileState.structure.waypoints.find((w) => w.id === node.waypointId)?.sym)
+            : undefined
     );
+
+    let selected = $derived(isSelected($selection, node));
+    let openEditMetadata: boolean = $derived(editMetadata.current && singleSelection && selected);
     let openEditStyle: boolean = $derived(
         editStyle.current &&
-            $selection.has(item) &&
-            $selection.getSelected().findIndex((i) => i.getFullId() === item.getFullId()) === 0
+            selected &&
+            selectedElementIds($selection)[0]?.ids[0] === elementId(node)
     );
 
-    let hidden = $derived(
-        item.level === ListLevel.WAYPOINTS ? node._data.hiddenWpt : node._data.hidden
-    );
+    let hidden = $derived(isHidden(fileState, elementId(node)));
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -105,8 +114,8 @@
 <ContextMenu.Root
     onOpenChange={(open) => {
         if (open) {
-            if (!$selection.has(item)) {
-                selection.selectItem(item);
+            if (!selected) {
+                engine.selectNode(node);
             }
         }
     }}
@@ -119,11 +128,11 @@
                 ? 'h-7'
                 : 'h-9 px-1.5'} pointer-events-auto"
         >
-            {#if item instanceof ListFileItem || item instanceof ListTrackItem}
-                <MetadataDialog bind:open={openEditMetadata} {node} {item} />
-                <StyleDialog bind:open={openEditStyle} {item} />
+            {#if node.type === 'file' || node.type === 'track'}
+                <MetadataDialog bind:open={openEditMetadata} {fileState} {node} />
+                <StyleDialog bind:open={openEditStyle} {fileState} {node} />
             {/if}
-            {#if item.level === ListLevel.FILE || item.level === ListLevel.TRACK}
+            {#if level === ListLevel.FILE || level === ListLevel.TRACK}
                 <div
                     class="absolute {orientation === 'vertical'
                         ? 'top-0 bottom-0 right-0 w-1'
@@ -141,9 +150,7 @@
             <span
                 class="grow text-left truncate ml-1 flex flex-row items-center {hidden
                     ? 'text-muted-foreground'
-                    : ''} {$cut && $copied?.some((i) => i.getFullId() === item.getFullId())
-                    ? 'text-muted-foreground'
-                    : ''}"
+                    : ''} {/* TODO cut elements: the clipboard works on the previous implementation */ ''}"
                 oncontextmenu={(e) => {
                     if (embedding) {
                         e.preventDefault();
@@ -154,37 +161,35 @@
                         // Add to selection instead of opening context menu
                         e.preventDefault();
                         e.stopPropagation();
-                        $selection.toggle(item);
-                        $selection = $selection;
+                        engine.selectNode(node, 'toggle');
                     }
                 }}
                 onmouseenter={() => {
-                    if (item instanceof ListWaypointItem) {
-                        let layer = gpxLayers.getLayer(item.getFileId());
-                        let file = fileStateCollection.getFile(item.getFileId());
-                        if (layer && file) {
-                            let waypoint = file.wpt[item.getWaypointIndex()];
-                            if (waypoint && !waypoint._data.hidden) {
-                                waypointPopup?.setItem({
-                                    item: waypoint,
-                                    fileId: item.getFileId(),
-                                });
-                            }
-                        }
-                    }
+                    // TODO waypoint popup: it needs the waypoint of the previous implementation
+                    // if (node.type === 'waypoint') {
+                    //     let layer = gpxLayers.getLayer(node.fileId);
+                    //     let file = fileStateCollection.getFile(node.fileId);
+                    //     if (layer && file) {
+                    //         let waypoint = file.wpt[waypointIndex];
+                    //         if (waypoint && !waypoint._data.hidden) {
+                    //             waypointPopup?.setItem({ item: waypoint, fileId: node.fileId });
+                    //         }
+                    //     }
+                    // }
                 }}
                 onmouseleave={() => {
-                    if (item instanceof ListWaypointItem) {
-                        let layer = gpxLayers.getLayer(item.getFileId());
-                        if (layer) {
-                            waypointPopup?.setItem(null);
-                        }
-                    }
+                    // TODO waypoint popup
+                    // if (node.type === 'waypoint') {
+                    //     let layer = gpxLayers.getLayer(node.fileId);
+                    //     if (layer) {
+                    //         waypointPopup?.setItem(null);
+                    //     }
+                    // }
                 }}
             >
-                {#if item.level === ListLevel.SEGMENT}
+                {#if level === ListLevel.SEGMENT}
                     <Waypoints size="16" class="mx-1 shrink-0" />
-                {:else if item.level === ListLevel.WAYPOINT}
+                {:else if level === ListLevel.WAYPOINT}
                     {#if symbolKey && symbols[symbolKey].icon}
                         {@const SymbolIcon = symbols[symbolKey].icon}
                         <SymbolIcon size="16" class="mx-1 shrink-0" />
@@ -211,7 +216,7 @@
         </Button>
     </ContextMenu.Trigger>
     <ContextMenu.Content>
-        {#if item instanceof ListFileItem || item instanceof ListTrackItem}
+        {#if node.type === 'file' || node.type === 'track'}
             <ContextMenu.Item
                 disabled={!singleSelection}
                 onclick={() => (editMetadata.current = true)}
@@ -225,15 +230,7 @@
                 {i18n._('menu.style.button')}
             </ContextMenu.Item>
         {/if}
-        <ContextMenu.Item
-            onclick={() => {
-                if ($allHidden) {
-                    fileActions.setHiddenToSelection(false);
-                } else {
-                    fileActions.setHiddenToSelection(true);
-                }
-            }}
-        >
+        <ContextMenu.Item onclick={() => engine.setSelectionHidden(!$allHidden)}>
             {#if $allHidden}
                 <Eye size="16" />
                 {i18n._('menu.unhide')}
@@ -245,20 +242,16 @@
         </ContextMenu.Item>
         <ContextMenu.Separator />
         {#if orientation === 'vertical'}
-            {#if item instanceof ListFileItem}
-                <ContextMenu.Item
-                    disabled={!singleSelection}
-                    onclick={() => fileActions.addNewTrack(item.getFileId())}
-                >
+            {#if node.type === 'file'}
+                <ContextMenu.Item disabled={!singleSelection} onclick={() => engine.newTrack()}>
                     <Plus size="16" />
                     {i18n._('menu.new_track')}
                 </ContextMenu.Item>
                 <ContextMenu.Separator />
-            {:else if item instanceof ListTrackItem}
+            {:else if node.type === 'track'}
                 <ContextMenu.Item
                     disabled={!singleSelection}
-                    onclick={() =>
-                        fileActions.addNewSegment(item.getFileId(), item.getTrackIndex())}
+                    onclick={() => engine.newTrackSegment()}
                 >
                     <Plus size="16" />
                     {i18n._('menu.new_segment')}
@@ -266,8 +259,8 @@
                 <ContextMenu.Separator />
             {/if}
         {/if}
-        {#if item.level !== ListLevel.WAYPOINTS}
-            <ContextMenu.Item onclick={() => selection.selectAll()}>
+        {#if level !== ListLevel.WAYPOINTS}
+            <ContextMenu.Item onclick={() => engine.selectAllSiblings(node)}>
                 <FileStack size="16" />
                 {i18n._('menu.select_all')}
                 <Shortcut key="A" ctrl={true} />
@@ -279,18 +272,18 @@
             <Shortcut key="⏎" ctrl={true} />
         </ContextMenu.Item>
         <ContextMenu.Separator />
-        <ContextMenu.Item onclick={fileActions.duplicateSelection}>
+        <ContextMenu.Item onclick={() => engine.duplicate()}>
             <Copy size="16" />
             {i18n._('menu.duplicate')}
             <Shortcut key="D" ctrl={true} />
         </ContextMenu.Item>
         {#if orientation === 'vertical'}
-            <ContextMenu.Item onclick={() => selection.copySelection()}>
+            <ContextMenu.Item onclick={() => oldSelection.copySelection()}>
                 <ClipboardCopy size="16" />
                 {i18n._('menu.copy')}
                 <Shortcut key="C" ctrl={true} />
             </ContextMenu.Item>
-            <ContextMenu.Item onclick={() => selection.cutSelection()}>
+            <ContextMenu.Item onclick={() => oldSelection.cutSelection()}>
                 <Scissors size="16" />
                 {i18n._('menu.cut')}
                 <Shortcut key="X" ctrl={true} />
@@ -298,7 +291,7 @@
             <ContextMenu.Item
                 disabled={$copied === undefined ||
                     $copied.length === 0 ||
-                    !allowedPastes[$copied[0].level].includes(item.level)}
+                    !allowedPastes[$copied[0].level].includes(level)}
                 onclick={pasteSelection}
             >
                 <ClipboardPaste size="16" />
@@ -307,7 +300,7 @@
             </ContextMenu.Item>
         {/if}
         <ContextMenu.Separator />
-        <ContextMenu.Item onclick={fileActions.deleteSelection}>
+        <ContextMenu.Item onclick={() => engine.delete()}>
             <Trash2 size="16" />
             {i18n._('menu.delete')}
             <Shortcut key="⌫" ctrl={true} />

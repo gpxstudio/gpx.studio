@@ -5,35 +5,31 @@
     import { Label } from '$lib/components/ui/label/index.js';
     import * as Popover from '$lib/components/ui/popover';
     import { Save } from '@lucide/svelte';
-    import { ListFileItem, ListTrackItem, type ListItem } from '../file-list';
-    import { GPXTreeElement, Track, type AnyGPXTreeElement, Waypoint, GPXFile } from 'gpx';
     import { i18n } from '$lib/i18n.svelte';
     import { editMetadata } from '$lib/components/file-list/metadata/utils.svelte';
-    import { fileActionManager } from '$lib/logic/file-action-manager';
+    import { engine, type FileState } from '$lib/engine';
+    import type { FileTreeNode } from '$lib/selection-helpers';
 
     let {
+        fileState,
         node,
-        item,
         open = $bindable(),
     }: {
-        node: GPXTreeElement<AnyGPXTreeElement> | Waypoint[] | Waypoint;
-        item: ListItem;
+        fileState: FileState;
+        node: FileTreeNode;
         open: boolean;
     } = $props();
 
+    let track = $derived(
+        node.type === 'track'
+            ? fileState.structure.tracks.find((track) => track.id === node.trackId)
+            : undefined
+    );
     let name: string = $derived(
-        node instanceof GPXFile
-            ? (node.metadata.name ?? '')
-            : node instanceof Track
-              ? (node.name ?? '')
-              : ''
+        node.type === 'file' ? fileState.structure.name : (track?.name ?? '')
     );
     let description: string = $derived(
-        node instanceof GPXFile
-            ? (node.metadata.desc ?? '')
-            : node instanceof Track
-              ? (node.desc ?? '')
-              : ''
+        node.type === 'file' ? (fileState.structure.desc ?? '') : (track?.desc ?? '')
     );
 
     $effect(() => {
@@ -53,18 +49,8 @@
         <Button
             variant="outline"
             onclick={() => {
-                fileActionManager.applyToFile(item.getFileId(), (file) => {
-                    if (item instanceof ListFileItem && node instanceof GPXFile) {
-                        file.metadata.name = name;
-                        file.metadata.desc = description;
-                        if (file.trk.length === 1) {
-                            file.trk[0].name = name;
-                        }
-                    } else if (item instanceof ListTrackItem && node instanceof Track) {
-                        file.trk[item.getTrackIndex()].name = name;
-                        file.trk[item.getTrackIndex()].desc = description;
-                    }
-                });
+                // the metadata of the selected elements are changed
+                engine.metadata(name, description);
                 open = false;
             }}
         >

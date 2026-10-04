@@ -2,6 +2,7 @@ import { browser } from '$app/environment';
 import { get, writable, type Readable, type Writable } from 'svelte/store';
 import { FileColorAllocator, normalizeColor } from '$lib/file-colors';
 import { setHidden, type Visibility } from '$lib/file-visibility';
+import { selectedElementIds, type FileTreeNode } from '$lib/selection-helpers';
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
 import type { FileStatistics, FileStructure, Selection } from 'gpx-rs';
 
@@ -213,6 +214,78 @@ class Engine {
     /** Moves the files, in the given order, to `index` among the other files. */
     reorder(fileIds: string[], index: number) {
         return this.run((w) => w.reorder(idsToBytes(fileIds), index));
+    }
+
+    /** Selects a node of the file tree. */
+    selectNode(node: FileTreeNode, mode: SelectMode = 'replace') {
+        switch (node.type) {
+            case 'file':
+                return this.select([node.fileId], mode);
+            case 'track':
+                return this.selectTracks(node.fileId, [node.trackId], mode);
+            case 'segment':
+                return this.selectSegments(node.fileId, node.trackId, [node.segmentId], mode);
+            case 'waypoints':
+                return this.selectWaypointGroup(node.fileId, mode);
+            case 'waypoint':
+                return this.selectWaypoints(node.fileId, [node.waypointId], mode);
+        }
+    }
+
+    /** Selects the node and its siblings (all the files, the tracks of a file, and so on). */
+    selectAllSiblings(node: FileTreeNode) {
+        const state = get(this._files).get(node.fileId);
+        if (node.type === 'file' || !state) {
+            return this.selectAll();
+        }
+        const { tracks, waypoints } = get(state).structure;
+        switch (node.type) {
+            case 'track':
+                return this.selectTracks(
+                    node.fileId,
+                    tracks.map((track) => track.id)
+                );
+            case 'segment':
+                return this.selectSegments(
+                    node.fileId,
+                    node.trackId,
+                    tracks.find((track) => track.id === node.trackId)?.segments.map((s) => s.id) ??
+                        []
+                );
+            case 'waypoint':
+                return this.selectWaypoints(
+                    node.fileId,
+                    waypoints.map((waypoint) => waypoint.id)
+                );
+            case 'waypoints':
+                return this.selectWaypointGroup(node.fileId);
+        }
+    }
+
+    // Edits of the selection
+
+    newTrack() {
+        return this.run((w) => w.new_track());
+    }
+
+    newTrackSegment() {
+        return this.run((w) => w.new_track_segment());
+    }
+
+    metadata(name: string, desc: string) {
+        return this.run((w) => w.metadata(name, desc));
+    }
+
+    /** Only the given fields are changed. */
+    style(style: { color?: string; opacity?: number; width?: number }) {
+        return this.run((w) => w.style(style.color, style.opacity, style.width));
+    }
+
+    /** Hides or shows the selected elements. */
+    setSelectionHidden(hidden: boolean) {
+        selectedElementIds(get(this._selection)).forEach(({ fileId, ids }) =>
+            this.setHidden(fileId, ids, hidden)
+        );
     }
 
     /**
