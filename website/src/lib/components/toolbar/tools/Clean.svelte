@@ -17,8 +17,7 @@
     import { Trash2 } from '@lucide/svelte';
     import { map } from '$lib/components/map/map';
     import type { GeoJSONSource } from 'maplibre-gl';
-    import { selection } from '$lib/logic/selection';
-    import { fileActions } from '$lib/logic/file-actions';
+    import { engine } from '$lib/engine';
     import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
     import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 
@@ -130,7 +129,8 @@
         }
     });
 
-    let validSelection = $derived($selection.size > 0);
+    const selection = engine.selection;
+    let validSelection = $derived($selection.type !== 'empty');
 </script>
 
 <div class="flex flex-col gap-3 w-full max-w-80 items-center {props.class ?? ''}">
@@ -163,17 +163,13 @@
         class="w-full"
         disabled={!validSelection || rectangleCoordinates.length != 2}
         onclick={() => {
-            fileActions.cleanSelection(
-                [
-                    {
-                        lat: Math.min(rectangleCoordinates[0].lat, rectangleCoordinates[1].lat),
-                        lon: Math.min(rectangleCoordinates[0].lng, rectangleCoordinates[1].lng),
-                    },
-                    {
-                        lat: Math.max(rectangleCoordinates[0].lat, rectangleCoordinates[1].lat),
-                        lon: Math.max(rectangleCoordinates[0].lng, rectangleCoordinates[1].lng),
-                    },
-                ],
+            engine.clean(
+                {
+                    west: Math.min(rectangleCoordinates[0].lng, rectangleCoordinates[1].lng),
+                    south: Math.min(rectangleCoordinates[0].lat, rectangleCoordinates[1].lat),
+                    east: Math.max(rectangleCoordinates[0].lng, rectangleCoordinates[1].lng),
+                    north: Math.max(rectangleCoordinates[0].lat, rectangleCoordinates[1].lat),
+                },
                 cleanType === CleanType.INSIDE,
                 deleteTrackpoints,
                 deleteWaypoints

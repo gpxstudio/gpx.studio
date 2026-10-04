@@ -494,6 +494,29 @@ class Engine {
         return this.run((w) => w.delete_waypoint(fileId, waypointId));
     }
 
+    /**
+     * Removes the trackpoints and/or waypoints of the selection inside (or outside) a rectangle.
+     * Resolves to `false` when nothing was removed.
+     */
+    clean(
+        bounds: { west: number; south: number; east: number; north: number },
+        inside: boolean,
+        trackpoints: boolean,
+        waypoints: boolean
+    ) {
+        return this.run((w) =>
+            w.clean(
+                bounds.west,
+                bounds.south,
+                bounds.east,
+                bounds.north,
+                inside ? w.CleanType.Inside : w.CleanType.Outside,
+                trackpoints,
+                waypoints
+            )
+        );
+    }
+
     /** A trackpoint of a segment, `undefined` if it does not exist. */
     trackpoint(fileId: string, segmentId: string, index: number): TrackpointDetails | undefined {
         return this.wasm?.trackpoint(fileId, segmentId, index);

@@ -570,57 +570,6 @@ export const fileActions = {
             }
         });
     },
-    cleanSelection: (
-        bounds: [Coordinates, Coordinates],
-        inside: boolean,
-        deleteTrackPoints: boolean,
-        deleteWaypoints: boolean
-    ) => {
-        if (get(selection).size === 0) {
-            return;
-        }
-        fileActionManager.applyGlobal((draft) => {
-            selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = draft.get(fileId);
-                if (file) {
-                    if (level === ListLevel.FILE) {
-                        file.clean(bounds, inside, deleteTrackPoints, deleteWaypoints);
-                    } else if (level === ListLevel.TRACK) {
-                        let trackIndices = items.map((item) =>
-                            (item as ListTrackItem).getTrackIndex()
-                        );
-                        file.clean(
-                            bounds,
-                            inside,
-                            deleteTrackPoints,
-                            deleteWaypoints,
-                            trackIndices
-                        );
-                    } else if (level === ListLevel.SEGMENT) {
-                        let trackIndices = [(items[0] as ListTrackSegmentItem).getTrackIndex()];
-                        let segmentIndices = items.map((item) =>
-                            (item as ListTrackSegmentItem).getSegmentIndex()
-                        );
-                        file.clean(
-                            bounds,
-                            inside,
-                            deleteTrackPoints,
-                            deleteWaypoints,
-                            trackIndices,
-                            segmentIndices
-                        );
-                    } else if (level === ListLevel.WAYPOINTS) {
-                        file.clean(bounds, inside, false, deleteWaypoints);
-                    } else if (level === ListLevel.WAYPOINT) {
-                        let waypointIndices = items.map((item) =>
-                            (item as ListWaypointItem).getWaypointIndex()
-                        );
-                        file.clean(bounds, inside, false, deleteWaypoints, [], [], waypointIndices);
-                    }
-                }
-            });
-        });
-    },
     reduce: (itemsAndPoints: Map<ListItem, TrackPoint[]>) => {
         if (itemsAndPoints.size === 0) {
             return;
