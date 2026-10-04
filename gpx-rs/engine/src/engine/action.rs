@@ -16,6 +16,16 @@ pub enum Action<'a> {
         selection: Selection,
         mode: SelectMode,
     },
+    /// Selects all the elements of the same kind as the selected ones, in the same place (see
+    /// [`Selection::all_at_level`]). Does nothing when there is nothing more to select.
+    SelectAll,
+    /// Moves the selection to the next (`down`) or previous element of the same kind, like the
+    /// arrow keys do in the file list (see [`Selection::neighbour`]). With `add`, the element is
+    /// added to the selection (shift + arrow), otherwise it replaces it.
+    ArrowSelect {
+        down: bool,
+        add: bool,
+    },
     /// Moves the files to `index` among the other files, in the given order. Not undoable.
     Reorder {
         file_ids: Vec<FileId>,

@@ -260,7 +260,7 @@
             {/if}
         {/if}
         {#if level !== ListLevel.WAYPOINTS}
-            <ContextMenu.Item onclick={() => engine.selectAllSiblings(node)}>
+            <ContextMenu.Item onclick={() => engine.selectAll()}>
                 <FileStack size="16" />
                 {i18n._('menu.select_all')}
                 <Shortcut key="A" ctrl={true} />

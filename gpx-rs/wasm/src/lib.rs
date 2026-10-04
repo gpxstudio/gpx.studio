@@ -182,9 +182,11 @@ pub fn duplicate() -> bool {
     edit(Command::Duplicate(engine::Duplicate))
 }
 
+/// Deletes the selected elements. With `whole_files`, the files holding the selected elements are
+/// deleted instead, even if only a track or a waypoint is selected.
 #[wasm_bindgen]
-pub fn delete() -> bool {
-    edit(Command::Delete(engine::Delete))
+pub fn delete(whole_files: bool) -> bool {
+    edit(Command::Delete(engine::Delete { whole_files }))
 }
 
 #[wasm_bindgen]
@@ -346,6 +348,16 @@ pub fn redo() -> bool {
     execute(Action::Redo)
 }
 
+#[wasm_bindgen]
+pub fn can_undo() -> bool {
+    with_engine(|e| e.can_undo()).unwrap_or(false)
+}
+
+#[wasm_bindgen]
+pub fn can_redo() -> bool {
+    with_engine(|e| e.can_redo()).unwrap_or(false)
+}
+
 // Selection
 
 /// Selects files. `file_ids_bytes`: concatenated 16-byte UUIDs. Unknown files are ignored, and
@@ -358,6 +370,22 @@ pub fn select(file_ids_bytes: &[u8], mode: SelectMode) -> bool {
         }),
         mode,
     )
+}
+
+/// Selects all the elements of the same kind as the selected ones, in the same place: all the
+/// files, the tracks of the file, the segments of the track, the waypoints of the file. All the
+/// files when nothing is selected.
+#[wasm_bindgen]
+pub fn select_all() -> bool {
+    execute(Action::SelectAll)
+}
+
+/// Moves the selection to the next (`down`) or previous element of the same kind, like the arrow
+/// keys do in the file list. With `add` (shift + arrow), the element is added to the selection,
+/// otherwise it replaces it.
+#[wasm_bindgen]
+pub fn arrow_select(down: bool, add: bool) -> bool {
+    execute(Action::ArrowSelect { down, add })
 }
 
 // The elements below cross as the id of their file (UUID string) and, like the files, as

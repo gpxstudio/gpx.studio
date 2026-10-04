@@ -41,6 +41,16 @@ impl Engine {
         Some(self.statistics_cache.file_global(file))
     }
 
+    /// Whether there is something to undo.
+    pub fn can_undo(&self) -> bool {
+        self.stack.can_undo()
+    }
+
+    /// Whether there is something to redo.
+    pub fn can_redo(&self) -> bool {
+        self.stack.can_redo()
+    }
+
     /// Which files the last action added, removed or modified.
     pub fn last_diff(&self) -> Option<&Diff> {
         self.diff.as_ref()
@@ -95,6 +105,26 @@ impl Engine {
                     _ if selection == Selection::Empty => {}
                     SelectMode::Add => self.selection.extend(selection),
                     SelectMode::Toggle => self.selection.toggle(selection),
+                }
+                None
+            }
+            Action::SelectAll => {
+                if let Some(files) = self.stack.current()
+                    && let Some(all) = self.selection.all_at_level(files, &self.order.0)
+                {
+                    self.selection = all;
+                }
+                None
+            }
+            Action::ArrowSelect { down, add } => {
+                if let Some(files) = self.stack.current()
+                    && let Some(next) = self.selection.neighbour(files, &self.order.0, down)
+                {
+                    if add {
+                        self.selection.extend(next);
+                    } else {
+                        self.selection = next;
+                    }
                 }
                 None
             }
@@ -154,6 +184,8 @@ impl Engine {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
+
     use crate::{Load, Metadata, New, NewTrack, Style, TrackId, TrackSegmentId};
 
     use super::*;
@@ -634,5 +666,147 @@ mod tests {
         );
         engine.execute(Action::Undo);
         assert_eq!(engine.selection(), &Selection::Empty);
+    }
+
+    #[test]
+    fn test_can_undo_and_redo() {
+        let mut engine = Engine::default();
+        assert!(!engine.can_undo() && !engine.can_redo());
+        new(&mut engine, "a");
+        assert!(engine.can_undo() && !engine.can_redo());
+        assert!(engine.execute(Action::Undo));
+        assert!(!engine.can_undo() && engine.can_redo());
+        // selecting does not change the history
+        new(&mut engine, "b");
+        let a = engine.order()[0];
+        select_files(&mut engine, &[a]);
+        assert!(engine.can_undo() && !engine.can_redo());
+        assert!(engine.execute(Action::Undo));
+        assert!(engine.execute(Action::Redo));
+        assert!(engine.can_undo() && !engine.can_redo());
+    }
+
+    #[test]
+    fn test_select_all_follows_the_selected_level() {
+        let mut engine = Engine::default();
+        new(&mut engine, "a");
+        new(&mut engine, "b");
+        let order = engine.order().to_vec();
+        select_files(&mut engine, &[order[0]]);
+
+        // files
+        assert!(engine.execute(Action::SelectAll));
+        assert_eq!(engine.selection(), &files(&order));
+        // everything is selected already
+        assert!(!engine.execute(Action::SelectAll));
+
+        // the tracks of a file
+        let load = |engine: &mut Engine| load(engine, "data/with_tracks_and_segments.gpx");
+        load(&mut engine);
+        let file = engine
+            .stack
+            .current()
+            .unwrap()
+            .values()
+            .find(|f| !f.trk.is_empty())
+            .unwrap()
+            .clone();
+        let tracks: HashSet<_> = file.trk.iter().map(|t| t.id).collect();
+        assert!(tracks.len() >= 2);
+        select_elements(
+            &mut engine,
+            Selection::Track {
+                file_id: file.id,
+                trk_ids: [file.trk[0].id].into(),
+            },
+            SelectMode::Replace,
+        );
+        assert!(engine.execute(Action::SelectAll));
+        assert_eq!(
+            engine.selection(),
+            &Selection::Track {
+                file_id: file.id,
+                trk_ids: tracks
+            }
+        );
+
+        // nothing selected: all the files
+        select_elements(&mut engine, Selection::Empty, SelectMode::Replace);
+        assert!(engine.execute(Action::SelectAll));
+        assert!(matches!(engine.selection(), Selection::File { file_ids } if file_ids.len() == 3));
+        // the waypoints node: nothing more to select
+        select_elements(
+            &mut engine,
+            Selection::Waypoints { file_id: file.id },
+            SelectMode::Replace,
+        );
+        assert!(!engine.execute(Action::SelectAll));
+        assert_eq!(
+            engine.selection(),
+            &Selection::Waypoints { file_id: file.id }
+        );
+    }
+
+    #[test]
+    fn test_arrow_select() {
+        let mut engine = Engine::default();
+        new(&mut engine, "file");
+        for _ in 0..3 {
+            edit(&mut engine, Command::NewTrack(NewTrack));
+        }
+        let file = engine
+            .stack
+            .current()
+            .unwrap()
+            .values()
+            .next()
+            .unwrap()
+            .clone();
+        let ids: Vec<TrackId> = file.trk.iter().map(|t| t.id).collect();
+        assert_eq!(ids.len(), 3);
+        let tracks = |ids: &[TrackId]| Selection::Track {
+            file_id: file.id,
+            trk_ids: ids.iter().copied().collect(),
+        };
+        let arrow =
+            |engine: &mut Engine, down, add| engine.execute(Action::ArrowSelect { down, add });
+
+        select_elements(&mut engine, tracks(&[ids[0]]), SelectMode::Replace);
+        // without shift the next one replaces the selection
+        assert!(arrow(&mut engine, true, false));
+        assert_eq!(engine.selection(), &tracks(&[ids[1]]));
+        assert!(engine.selection_changed());
+        // with shift it is added
+        assert!(arrow(&mut engine, true, true));
+        assert_eq!(engine.selection(), &tracks(&[ids[1], ids[2]]));
+        // the selection grows from its end, and the other way round from its start
+        assert!(arrow(&mut engine, false, true));
+        assert_eq!(engine.selection(), &tracks(&[ids[0], ids[1], ids[2]]));
+        // at the ends nothing happens
+        assert!(!arrow(&mut engine, false, false));
+        assert!(!arrow(&mut engine, true, true));
+        assert_eq!(engine.selection(), &tracks(&[ids[0], ids[1], ids[2]]));
+        // and there is nothing to move without selection
+        select_elements(&mut engine, Selection::Empty, SelectMode::Replace);
+        assert!(!arrow(&mut engine, true, false));
+        assert_eq!(engine.selection(), &Selection::Empty);
+    }
+
+    #[test]
+    fn test_arrow_select_does_not_create_undo_steps() {
+        let mut engine = Engine::default();
+        new(&mut engine, "a");
+        new(&mut engine, "b");
+        let a = engine.order()[0];
+        select_files(&mut engine, &[a]);
+        let before = engine.can_redo();
+        assert!(engine.execute(Action::ArrowSelect {
+            down: true,
+            add: false
+        }));
+        assert_eq!(engine.can_redo(), before);
+        assert_eq!(engine.selection(), &files(&[engine.order()[1]]));
+        assert!(engine.execute(Action::Undo));
+        assert_eq!(engine.order().len(), 1);
     }
 }

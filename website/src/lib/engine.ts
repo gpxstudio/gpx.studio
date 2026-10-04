@@ -197,6 +197,8 @@ class Engine {
     private _visibility = new Map<string, Visibility>();
     private _files = writable<Map<string, Writable<FileState>>>(new Map());
     private _selection = writable<Selection>({ type: 'empty' });
+    private _canUndo = writable(false);
+    private _canRedo = writable(false);
     private _statistics = writable<SelectionStatistics>(EMPTY_SELECTION_STATISTICS);
     /** Identifies the statistics currently in the engine's buffers. */
     private _statisticsVersion = 0;
@@ -205,6 +207,8 @@ class Engine {
     readonly order: Readable<string[]> = { subscribe: this._order.subscribe };
     /** Statistics of what is currently selected. */
     readonly statistics: Readable<SelectionStatistics> = { subscribe: this._statistics.subscribe };
+    readonly canUndo: Readable<boolean> = { subscribe: this._canUndo.subscribe };
+    readonly canRedo: Readable<boolean> = { subscribe: this._canRedo.subscribe };
     /** What is currently selected. */
     readonly selection: Readable<Selection> = { subscribe: this._selection.subscribe };
     /**
@@ -239,8 +243,12 @@ class Engine {
         return this.run((w) => w.duplicate());
     }
 
-    delete() {
-        return this.run((w) => w._delete());
+    /**
+     * Deletes the selected elements. With `wholeFiles`, the files holding the selected elements
+     * are deleted instead, even if only a track or a waypoint is selected.
+     */
+    delete(wholeFiles = false) {
+        return this.run((w) => w._delete(wholeFiles));
     }
 
     deleteAll() {
@@ -263,8 +271,22 @@ class Engine {
         return this.run((w) => w.select(idsToBytes(fileIds), selectMode(w, mode)));
     }
 
+    /**
+     * Selects all the elements of the same kind as the selected ones, in the same place: all the
+     * files, the tracks of the file, the segments of the track, the waypoints of the file. All
+     * the files when nothing is selected.
+     */
     selectAll() {
-        return this.select(get(this._order));
+        return this.run((w) => w.select_all());
+    }
+
+    /**
+     * Moves the selection to the next (`down`) or previous element of the same kind, like the
+     * arrow keys do. With `add` (shift + arrow), the element is added to the selection, otherwise
+     * it replaces it.
+     */
+    arrowSelect(down: boolean, add: boolean) {
+        return this.run((w) => w.arrow_select(down, add));
     }
 
     // Selecting elements inside a file. Ids that do not exist are ignored.
@@ -313,36 +335,6 @@ class Engine {
                 return this.selectWaypointGroup(node.fileId, mode);
             case 'waypoint':
                 return this.selectWaypoints(node.fileId, [node.waypointId], mode);
-        }
-    }
-
-    /** Selects the node and its siblings (all the files, the tracks of a file, and so on). */
-    selectAllSiblings(node: FileTreeNode) {
-        const state = get(this._files).get(node.fileId);
-        if (node.type === 'file' || !state) {
-            return this.selectAll();
-        }
-        const { tracks, waypoints } = get(state).structure;
-        switch (node.type) {
-            case 'track':
-                return this.selectTracks(
-                    node.fileId,
-                    tracks.map((track) => track.id)
-                );
-            case 'segment':
-                return this.selectSegments(
-                    node.fileId,
-                    node.trackId,
-                    tracks.find((track) => track.id === node.trackId)?.segments.map((s) => s.id) ??
-                        []
-                );
-            case 'waypoint':
-                return this.selectWaypoints(
-                    node.fileId,
-                    waypoints.map((waypoint) => waypoint.id)
-                );
-            case 'waypoints':
-                return this.selectWaypointGroup(node.fileId);
         }
     }
 
@@ -414,6 +406,8 @@ class Engine {
     /** Reads what the last action changed. */
     private sync(wasm: Wasm) {
         const update = wasm.last_update();
+        this._canUndo.set(wasm.can_undo());
+        this._canRedo.set(wasm.can_redo());
         if (update.selectionChanged) {
             this._selection.set(wasm.selection());
         }

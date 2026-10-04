@@ -4,12 +4,22 @@ use crate::{
     Apply, CommandError, FileId, Selection, StackEntry, State, Waypoint, edit_waypoint_chunks,
 };
 
+/// Deletes the selected elements. With `whole_files`, the files holding the selected elements
+/// are deleted instead, even if only a track or a waypoint is selected.
 #[derive(Debug)]
-pub struct Delete;
+pub struct Delete {
+    pub whole_files: bool,
+}
 
 impl Apply for Delete {
     fn apply(self, state: &mut State) -> Result<(), CommandError> {
-        let next = match &*state.selection {
+        let files = state.selection.to_files();
+        let selection = if self.whole_files {
+            &files
+        } else {
+            &*state.selection
+        };
+        let next = match selection {
             Selection::File { file_ids } => {
                 state.files.retain(|id, _| !file_ids.contains(id));
                 state.order.0.retain(|id| !file_ids.contains(id));
@@ -112,7 +122,7 @@ mod tests {
     fn test_delete_nothing_selected() {
         let mut fx = Fixture::default();
         assert_eq!(
-            Delete.apply(&mut fx.state()),
+            Delete { whole_files: false }.apply(&mut fx.state()),
             Err(CommandError::NothingToDo)
         );
     }
@@ -125,7 +135,9 @@ mod tests {
         fx.selection = Selection::File {
             file_ids: HashSet::from([id]),
         };
-        Delete.apply(&mut fx.state()).unwrap();
+        Delete { whole_files: false }
+            .apply(&mut fx.state())
+            .unwrap();
         assert_eq!(fx.order.0, vec![keep]);
         assert!(fx.files.contains_key(&keep) && !fx.files.contains_key(&id));
         assert!(matches!(fx.selection, Selection::Empty));
@@ -140,7 +152,9 @@ mod tests {
             file_id: id,
             trk_ids: HashSet::from([trk_id]),
         };
-        Delete.apply(&mut fx.state()).unwrap();
+        Delete { whole_files: false }
+            .apply(&mut fx.state())
+            .unwrap();
         let file = &fx.files[&id];
         assert_eq!(file.trk.len(), before - 1);
         assert!(file.trk.iter().all(|t| t.id != trk_id));
@@ -157,7 +171,9 @@ mod tests {
             trk_id,
             trkseg_ids: HashSet::from([seg_id]),
         };
-        Delete.apply(&mut fx.state()).unwrap();
+        Delete { whole_files: false }
+            .apply(&mut fx.state())
+            .unwrap();
         let trk = &fx.files[&id].trk[0];
         assert_eq!(trk.trkseg.len(), before - 1);
         assert!(trk.trkseg.iter().all(|s| s.id != seg_id));
@@ -187,7 +203,9 @@ mod tests {
             wpt_ids: HashSet::from([ids[1]]),
         };
         let rev = fx.files[&id].wpt_rev_id;
-        Delete.apply(&mut fx.state()).unwrap();
+        Delete { whole_files: false }
+            .apply(&mut fx.state())
+            .unwrap();
         assert_ne!(fx.files[&id].wpt_rev_id, rev);
         let left: Vec<_> = fx.files[&id]
             .wpt
@@ -203,11 +221,13 @@ mod tests {
         let (mut fx, id) = loaded();
         with_waypoints(&mut fx, id, 3);
         fx.selection = Selection::Waypoints { file_id: id };
-        Delete.apply(&mut fx.state()).unwrap();
+        Delete { whole_files: false }
+            .apply(&mut fx.state())
+            .unwrap();
         assert!(fx.files[&id].wpt.is_empty());
         fx.selection = Selection::Waypoints { file_id: id };
         assert_eq!(
-            Delete.apply(&mut fx.state()),
+            Delete { whole_files: false }.apply(&mut fx.state()),
             Err(CommandError::NothingToDo)
         );
     }
@@ -220,7 +240,44 @@ mod tests {
             trk_ids: HashSet::from([Default::default()]),
         };
         assert_eq!(
-            Delete.apply(&mut fx.state()),
+            Delete { whole_files: false }.apply(&mut fx.state()),
+            Err(CommandError::NothingToDo)
+        );
+    }
+
+    #[test]
+    fn test_delete_whole_files_of_the_selected_elements() {
+        for selection in [
+            |id: FileId, fx: &Fixture| Selection::Track {
+                file_id: id,
+                trk_ids: HashSet::from([fx.files[&id].trk[0].id]),
+            },
+            |id: FileId, fx: &Fixture| Selection::TrackSegment {
+                file_id: id,
+                trk_id: fx.files[&id].trk[0].id,
+                trkseg_ids: HashSet::from([fx.files[&id].trk[0].trkseg[0].id]),
+            },
+            |id: FileId, _: &Fixture| Selection::Waypoints { file_id: id },
+            |id: FileId, _: &Fixture| Selection::File {
+                file_ids: HashSet::from([id]),
+            },
+        ] {
+            let (mut fx, id) = loaded();
+            crate::New { name: "keep" }.apply(&mut fx.state()).unwrap();
+            let keep = fx.order.0[1];
+            fx.selection = selection(id, &fx);
+            Delete { whole_files: true }.apply(&mut fx.state()).unwrap();
+            assert_eq!(fx.order.0, vec![keep]);
+            assert!(!fx.files.contains_key(&id));
+            assert!(matches!(fx.selection, Selection::Empty));
+        }
+    }
+
+    #[test]
+    fn test_delete_whole_files_nothing_selected() {
+        let mut fx = Fixture::default();
+        assert_eq!(
+            Delete { whole_files: true }.apply(&mut fx.state()),
             Err(CommandError::NothingToDo)
         );
     }

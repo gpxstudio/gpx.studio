@@ -53,7 +53,7 @@
     import { anySelectedLayer } from '$lib/components/map/layer-control/utils';
     import { defaultOverlays } from '$lib/assets/layers';
     import LayerControlSettings from '$lib/components/map/layer-control/LayerControlSettings.svelte';
-    import { ListFileItem, ListTrackItem } from '$lib/components/file-list/file-list';
+    import { ListLevel } from '$lib/components/file-list/file-list';
     import Export from '$lib/components/export/Export.svelte';
     import { mode, setMode } from 'mode-watcher';
     import { i18n } from '$lib/i18n.svelte';
@@ -62,17 +62,17 @@
     import { settings } from '$lib/logic/settings';
     import {
         createFile,
-        fileActions,
         loadFiles,
         pasteSelection,
         triggerFileInput,
     } from '$lib/logic/file-actions';
-    import { fileStateCollection } from '$lib/logic/file-state';
-    import { fileActionManager } from '$lib/logic/file-action-manager';
-    import { copied, selection } from '$lib/logic/selection';
-    import { allHidden } from '$lib/logic/hidden';
+    import { engine } from '$lib/engine';
+    import { allHidden } from '$lib/all-hidden';
+    import { selectionSize } from '$lib/selection-helpers';
+    // TODO the clipboard and centering on the selection still work on the previous implementation
+    import { copied, selection as oldSelection } from '$lib/logic/selection';
     import { boundsManager } from '$lib/logic/bounds';
-    import { tick, onMount } from 'svelte';
+    import { onMount } from 'svelte';
     import { allowedPastes } from '$lib/components/file-list/sortable-file-list';
 
     const {
@@ -91,8 +91,22 @@
         routing,
     } = settings;
 
-    const canUndo = fileActionManager.canUndo;
-    const canRedo = fileActionManager.canRedo;
+    const { files, selection, canUndo, canRedo } = engine;
+
+    let selectionCount = $derived(selectionSize($selection));
+    let noFiles = $derived($files.size === 0);
+    // metadata and style can be edited for files and tracks only
+    let filesOrTracksSelected = $derived($selection.type === 'file' || $selection.type === 'track');
+    let selectionLevel = $derived(
+        {
+            empty: undefined,
+            file: ListLevel.FILE,
+            track: ListLevel.TRACK,
+            segment: ListLevel.SEGMENT,
+            waypoints: ListLevel.WAYPOINTS,
+            waypoint: ListLevel.WAYPOINT,
+        }[$selection.type]
+    );
 
     function switchBasemaps() {
         [$currentBasemap, $previousBasemap] = [$previousBasemap, $currentBasemap];
@@ -153,27 +167,21 @@
                         <Shortcut key="O" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Separator />
-                    <Menubar.Item
-                        onclick={fileActions.duplicateSelection}
-                        disabled={$selection.size == 0}
-                    >
+                    <Menubar.Item onclick={() => engine.duplicate()} disabled={selectionCount == 0}>
                         <Copy size="16" />
                         {i18n._('menu.duplicate')}
                         <Shortcut key="D" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Separator />
                     <Menubar.Item
-                        onclick={() => tick().then(fileActions.deleteSelectedFiles)}
-                        disabled={$selection.size == 0}
+                        onclick={() => engine.delete(true)}
+                        disabled={selectionCount == 0}
                     >
                         <FileX size="16" />
                         {i18n._('menu.delete')}
                         <Shortcut key="⌫" ctrl={true} />
                     </Menubar.Item>
-                    <Menubar.Item
-                        onclick={fileActions.deleteAllFiles}
-                        disabled={fileStateCollection.size == 0}
-                    >
+                    <Menubar.Item onclick={() => engine.deleteAll()} disabled={noFiles}>
                         <FileX size="16" />
                         {i18n._('menu.delete_all')}
                         <Shortcut key="⌫" ctrl={true} shift={true} />
@@ -181,7 +189,7 @@
                     <Menubar.Separator />
                     <Menubar.Item
                         onclick={() => (exportState.current = ExportState.SELECTION)}
-                        disabled={$selection.size == 0}
+                        disabled={selectionCount == 0}
                     >
                         <Download size="16" />
                         {i18n._('menu.export')}
@@ -189,7 +197,7 @@
                     </Menubar.Item>
                     <Menubar.Item
                         onclick={() => (exportState.current = ExportState.ALL)}
-                        disabled={fileStateCollection.size == 0}
+                        disabled={noFiles}
                     >
                         <Download size="16" />
                         {i18n._('menu.export_all')}
@@ -203,26 +211,19 @@
                     <span class="hidden md:block">{i18n._('menu.edit')}</span>
                 </Menubar.Trigger>
                 <Menubar.Content class="border-none">
-                    <Menubar.Item onclick={() => fileActionManager.undo()} disabled={!$canUndo}>
+                    <Menubar.Item onclick={() => engine.undo()} disabled={!$canUndo}>
                         <Undo2 size="16" />
                         {i18n._('menu.undo')}
                         <Shortcut key="Z" ctrl={true} />
                     </Menubar.Item>
-                    <Menubar.Item onclick={() => fileActionManager.redo()} disabled={!$canRedo}>
+                    <Menubar.Item onclick={() => engine.redo()} disabled={!$canRedo}>
                         <Redo2 size="16" />
                         {i18n._('menu.redo')}
                         <Shortcut key="Z" ctrl={true} shift={true} />
                     </Menubar.Item>
                     <Menubar.Separator />
                     <Menubar.Item
-                        disabled={$selection.size !== 1 ||
-                            !$selection
-                                .getSelected()
-                                .every(
-                                    (item) =>
-                                        item instanceof ListFileItem ||
-                                        item instanceof ListTrackItem
-                                )}
+                        disabled={selectionCount !== 1 || !filesOrTracksSelected}
                         onclick={() => (editMetadata.current = true)}
                     >
                         <Info size="16" />
@@ -230,28 +231,15 @@
                         <Shortcut key="I" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Item
-                        disabled={$selection.size === 0 ||
-                            !$selection
-                                .getSelected()
-                                .every(
-                                    (item) =>
-                                        item instanceof ListFileItem ||
-                                        item instanceof ListTrackItem
-                                )}
+                        disabled={selectionCount === 0 || !filesOrTracksSelected}
                         onclick={() => (editStyle.current = true)}
                     >
                         <PaintBucket size="16" />
                         {i18n._('menu.style.button')}
                     </Menubar.Item>
                     <Menubar.Item
-                        onclick={() => {
-                            if ($allHidden) {
-                                fileActions.setHiddenToSelection(false);
-                            } else {
-                                fileActions.setHiddenToSelection(true);
-                            }
-                        }}
-                        disabled={$selection.size == 0}
+                        onclick={() => engine.setSelectionHidden(!$allHidden)}
+                        disabled={selectionCount == 0}
                     >
                         {#if $allHidden}
                             <Eye size="16" />
@@ -263,31 +251,20 @@
                         <Shortcut key="H" ctrl={true} />
                     </Menubar.Item>
                     {#if $treeFileView}
-                        {#if $selection.getSelected().some((item) => item instanceof ListFileItem)}
+                        {#if $selection.type === 'file'}
                             <Menubar.Separator />
                             <Menubar.Item
-                                onclick={() =>
-                                    fileActions.addNewTrack(
-                                        $selection.getSelected()[0].getFileId()
-                                    )}
-                                disabled={$selection.size !== 1}
+                                onclick={() => engine.newTrack()}
+                                disabled={selectionCount !== 1}
                             >
                                 <Plus size="16" />
                                 {i18n._('menu.new_track')}
                             </Menubar.Item>
-                        {:else if $selection
-                            .getSelected()
-                            .some((item) => item instanceof ListTrackItem)}
+                        {:else if $selection.type === 'track'}
                             <Menubar.Separator />
                             <Menubar.Item
-                                onclick={() => {
-                                    let item = $selection.getSelected()[0];
-                                    fileActions.addNewSegment(
-                                        item.getFileId(),
-                                        item.getTrackIndex()
-                                    );
-                                }}
-                                disabled={$selection.size !== 1}
+                                onclick={() => engine.newTrackSegment()}
+                                disabled={selectionCount !== 1}
                             >
                                 <Plus size="16" />
                                 {i18n._('menu.new_segment')}
@@ -295,21 +272,18 @@
                         {/if}
                     {/if}
                     <Menubar.Separator />
-                    <Menubar.Item
-                        onclick={() => selection.selectAll()}
-                        disabled={fileStateCollection.size == 0}
-                    >
+                    <Menubar.Item onclick={() => engine.selectAll()} disabled={noFiles}>
                         <FileStack size="16" />
                         {i18n._('menu.select_all')}
                         <Shortcut key="A" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Item
                         onclick={() => {
-                            if ($selection.size > 0) {
+                            if (selectionCount > 0) {
                                 boundsManager.centerMapOnSelection();
                             }
                         }}
-                        disabled={$selection.size == 0}
+                        disabled={selectionCount == 0}
                     >
                         <Maximize size="16" />
                         {i18n._('menu.center')}
@@ -318,16 +292,16 @@
                     {#if $treeFileView}
                         <Menubar.Separator />
                         <Menubar.Item
-                            onclick={() => selection.copySelection()}
-                            disabled={$selection.size === 0}
+                            onclick={() => oldSelection.copySelection()}
+                            disabled={selectionCount === 0}
                         >
                             <ClipboardCopy size="16" />
                             {i18n._('menu.copy')}
                             <Shortcut key="C" ctrl={true} />
                         </Menubar.Item>
                         <Menubar.Item
-                            onclick={() => selection.cutSelection()}
-                            disabled={$selection.size === 0}
+                            onclick={() => oldSelection.cutSelection()}
+                            disabled={selectionCount === 0}
                         >
                             <Scissors size="16" />
                             {i18n._('menu.cut')}
@@ -336,10 +310,8 @@
                         <Menubar.Item
                             disabled={$copied === undefined ||
                                 $copied.length === 0 ||
-                                ($selection.size > 0 &&
-                                    !allowedPastes[$copied[0].level].includes(
-                                        $selection.getSelected().pop()!.level
-                                    ))}
+                                (selectionLevel !== undefined &&
+                                    !allowedPastes[$copied[0].level].includes(selectionLevel))}
                             onclick={pasteSelection}
                         >
                             <ClipboardPaste size="16" />
@@ -348,10 +320,7 @@
                         </Menubar.Item>
                     {/if}
                     <Menubar.Separator />
-                    <Menubar.Item
-                        onclick={() => tick().then(fileActions.deleteSelection)}
-                        disabled={$selection.size == 0}
-                    >
+                    <Menubar.Item onclick={() => engine.delete()} disabled={selectionCount == 0}>
                         <Trash2 size="16" />
                         {i18n._('menu.delete')}
                         <Shortcut key="⌫" ctrl={true} />
@@ -585,16 +554,16 @@
             triggerFileInput();
             e.preventDefault();
         } else if (e.key === 'd' && (e.metaKey || e.ctrlKey)) {
-            fileActions.duplicateSelection();
+            engine.duplicate();
             e.preventDefault();
         } else if (e.key === 'c' && (e.metaKey || e.ctrlKey)) {
             if (!targetInput) {
-                selection.copySelection();
+                oldSelection.copySelection();
                 e.preventDefault();
             }
         } else if (e.key === 'x' && (e.metaKey || e.ctrlKey)) {
             if (!targetInput) {
-                selection.cutSelection();
+                oldSelection.cutSelection();
                 e.preventDefault();
             }
         } else if (e.key === 'v' && (e.metaKey || e.ctrlKey)) {
@@ -604,41 +573,36 @@
             }
         } else if ((e.key === 's' || e.key == 'S') && (e.metaKey || e.ctrlKey)) {
             if (e.shiftKey) {
-                if (fileStateCollection.size > 0) {
+                if (!noFiles) {
                     exportState.current = ExportState.ALL;
                 }
-            } else if ($selection.size > 0) {
+            } else if (selectionCount > 0) {
                 exportState.current = ExportState.SELECTION;
             }
             e.preventDefault();
         } else if ((e.key === 'z' || e.key == 'Z') && (e.metaKey || e.ctrlKey)) {
             if (e.shiftKey) {
-                fileActionManager.redo();
+                engine.redo();
             } else {
-                fileActionManager.undo();
+                engine.undo();
             }
             e.preventDefault();
         } else if ((e.key === 'Backspace' || e.key === 'Delete') && (e.metaKey || e.ctrlKey)) {
             if (!targetInput) {
                 if (e.shiftKey) {
-                    fileActions.deleteAllFiles();
+                    engine.deleteAll();
                 } else {
-                    fileActions.deleteSelection();
+                    engine.delete();
                 }
                 e.preventDefault();
             }
         } else if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {
             if (!targetInput) {
-                selection.selectAll();
+                engine.selectAll();
                 e.preventDefault();
             }
         } else if (e.key === 'i' && (e.metaKey || e.ctrlKey)) {
-            if (
-                $selection.size === 1 &&
-                $selection
-                    .getSelected()
-                    .every((item) => item instanceof ListFileItem || item instanceof ListTrackItem)
-            ) {
+            if (selectionCount === 1 && filesOrTracksSelected) {
                 editMetadata.current = true;
             }
             e.preventDefault();
@@ -649,14 +613,10 @@
             $treeFileView = !$treeFileView;
             e.preventDefault();
         } else if (e.key === 'h' && (e.metaKey || e.ctrlKey)) {
-            if ($allHidden) {
-                fileActions.setHiddenToSelection(false);
-            } else {
-                fileActions.setHiddenToSelection(true);
-            }
+            engine.setSelectionHidden(!$allHidden);
             e.preventDefault();
         } else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-            if ($selection.size > 0) {
+            if (selectionCount > 0) {
                 boundsManager.centerMapOnSelection();
             }
         } else if (e.key === 'F1') {
@@ -681,10 +641,7 @@
             e.key === 'ArrowUp'
         ) {
             if (!targetInput) {
-                selection.updateFromKey(
-                    e.key === 'ArrowRight' || e.key === 'ArrowDown',
-                    e.shiftKey
-                );
+                engine.arrowSelect(e.key === 'ArrowRight' || e.key === 'ArrowDown', e.shiftKey);
                 e.preventDefault();
             }
         }
