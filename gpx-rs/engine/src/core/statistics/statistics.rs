@@ -89,8 +89,8 @@ impl Statistics {
             trkseg,
             trkseg.first_index(),
             trkseg.last_index(),
-            Some(10000),
-            |i, j| time_diff(trkseg[i].time, trkseg[j].time),
+            Some(10_000),
+            |i, j| time_diff(trkseg[j].time, trkseg[i].time),
             |i, left, right| {
                 self.local[i.flat].speed =
                     time_diff(trkseg[right].time, trkseg[left].time).map(|t| {
