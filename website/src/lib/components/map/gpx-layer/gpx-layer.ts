@@ -444,19 +444,19 @@ export class GPXLayer {
             return;
         }
 
-        const add = e.originalEvent.ctrlKey || e.originalEvent.metaKey;
+        const mode = e.originalEvent.ctrlKey || e.originalEvent.metaKey ? 'add' : 'replace';
         const { tracks } = get(this.file).structure;
         const segmentCount = tracks.reduce((count, track) => count + track.segments.length, 0);
         if (get(treeFileView) && segmentCount > 1) {
             // Select inner item
             const track = tracks.find((track) => track.id === trackId);
             if (track && track.segments.length > 1) {
-                engine.selectSegments(this.fileId, trackId, [segmentId], add);
+                engine.selectSegments(this.fileId, trackId, [segmentId], mode);
             } else {
-                engine.selectTracks(this.fileId, [trackId], add);
+                engine.selectTracks(this.fileId, [trackId], mode);
             }
         } else {
-            engine.select([this.fileId], add);
+            engine.select([this.fileId], mode);
         }
     }
 
@@ -515,7 +515,11 @@ export class GPXLayer {
         } else {
             if (get(treeFileView)) {
                 const add = e.originalEvent.ctrlKey || e.originalEvent.metaKey;
-                engine.selectWaypoints(this.fileId, [waypointId], add && this.selected);
+                engine.selectWaypoints(
+                    this.fileId,
+                    [waypointId],
+                    add && this.selected ? 'add' : 'replace'
+                );
             } else {
                 if (!this.selected) {
                     engine.select([this.fileId]);

@@ -30,6 +30,26 @@ pub enum CleanType {
     Outside,
 }
 
+/// How a selection combines with the current one: `Replace` it, `Add` to it, or `Toggle` the
+/// elements (the ones already selected are removed).
+#[wasm_bindgen]
+#[derive(Clone, Copy)]
+pub enum SelectMode {
+    Replace,
+    Add,
+    Toggle,
+}
+
+impl From<SelectMode> for engine::SelectMode {
+    fn from(m: SelectMode) -> Self {
+        match m {
+            SelectMode::Replace => Self::Replace,
+            SelectMode::Add => Self::Add,
+            SelectMode::Toggle => Self::Toggle,
+        }
+    }
+}
+
 impl From<MergeType> for engine::MergeType {
     fn from(t: MergeType) -> Self {
         match t {
@@ -306,29 +326,33 @@ pub fn redo() -> bool {
 // Selection
 
 /// Selects files. `file_ids_bytes`: concatenated 16-byte UUIDs. Unknown files are ignored, and
-/// selecting nothing deselects everything. With `add`, the files are added to the selection if it
-/// already holds files.
+/// selecting nothing deselects everything. See `SelectMode`.
 #[wasm_bindgen]
-pub fn select(file_ids_bytes: &[u8], add: bool) -> bool {
+pub fn select(file_ids_bytes: &[u8], mode: SelectMode) -> bool {
     select_elements(
         file_ids(file_ids_bytes).map(|ids| engine::Selection::File {
             file_ids: ids.into_iter().collect(),
         }),
-        add,
+        mode,
     )
 }
 
 // The elements below cross as the id of their file (UUID string) and, like the files, as
-// concatenated 16-byte UUIDs. What does not exist is ignored. With `add`, the elements are added
-// to the selection when it holds elements of the same kind in the same place (same file, same
+// concatenated 16-byte UUIDs. What does not exist is ignored. See `SelectMode`: elements are merged
+// with the selection when it holds elements of the same kind in the same place (same file, same
 // track for segments), otherwise they replace it.
 
-fn select_elements(selection: Option<engine::Selection>, add: bool) -> bool {
-    selection.is_some_and(|selection| execute(Action::Select { selection, add }))
+fn select_elements(selection: Option<engine::Selection>, mode: SelectMode) -> bool {
+    selection.is_some_and(|selection| {
+        execute(Action::Select {
+            selection,
+            mode: mode.into(),
+        })
+    })
 }
 
 #[wasm_bindgen]
-pub fn select_tracks(file_id: &str, track_ids_bytes: &[u8], add: bool) -> bool {
+pub fn select_tracks(file_id: &str, track_ids_bytes: &[u8], mode: SelectMode) -> bool {
     select_elements(
         parse_file_id(file_id)
             .zip(uuid_list(track_ids_bytes))
@@ -336,12 +360,17 @@ pub fn select_tracks(file_id: &str, track_ids_bytes: &[u8], add: bool) -> bool {
                 file_id,
                 trk_ids: ids.into_iter().map(engine::TrackId).collect(),
             }),
-        add,
+        mode,
     )
 }
 
 #[wasm_bindgen]
-pub fn select_segments(file_id: &str, track_id: &str, segment_ids_bytes: &[u8], add: bool) -> bool {
+pub fn select_segments(
+    file_id: &str,
+    track_id: &str,
+    segment_ids_bytes: &[u8],
+    mode: SelectMode,
+) -> bool {
     select_elements(
         parse_file_id(file_id)
             .zip(uuid::Uuid::parse_str(track_id).ok())
@@ -351,21 +380,21 @@ pub fn select_segments(file_id: &str, track_id: &str, segment_ids_bytes: &[u8], 
                 trk_id: engine::TrackId(trk_id),
                 trkseg_ids: ids.into_iter().map(engine::TrackSegmentId).collect(),
             }),
-        add,
+        mode,
     )
 }
 
 /// Selects the node standing for all the waypoints of a file.
 #[wasm_bindgen]
-pub fn select_waypoint_group(file_id: &str) -> bool {
+pub fn select_waypoint_group(file_id: &str, mode: SelectMode) -> bool {
     select_elements(
         parse_file_id(file_id).map(|file_id| engine::Selection::Waypoints { file_id }),
-        false,
+        mode,
     )
 }
 
 #[wasm_bindgen]
-pub fn select_waypoints(file_id: &str, waypoint_ids_bytes: &[u8], add: bool) -> bool {
+pub fn select_waypoints(file_id: &str, waypoint_ids_bytes: &[u8], mode: SelectMode) -> bool {
     select_elements(
         parse_file_id(file_id)
             .zip(uuid_list(waypoint_ids_bytes))
@@ -373,7 +402,7 @@ pub fn select_waypoints(file_id: &str, waypoint_ids_bytes: &[u8], add: bool) -> 
                 file_id,
                 wpt_ids: ids.into_iter().map(engine::WaypointId).collect(),
             }),
-        add,
+        mode,
     )
 }
 

@@ -2,6 +2,19 @@ use std::collections::HashSet;
 
 use crate::{FileId, StackEntry, TrackId, TrackSegmentId, WaypointId};
 
+/// How a new selection combines with the current one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SelectMode {
+    /// The new selection replaces the current one.
+    Replace,
+    /// The elements are added when they are of the same kind and in the same place as the
+    /// current selection (see [`Selection::extend`]), otherwise they replace it.
+    Add,
+    /// Like `Add`, but the elements already selected are removed instead (see
+    /// [`Selection::toggle`]).
+    Toggle,
+}
+
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub enum Selection {
     #[default]
@@ -114,6 +127,71 @@ impl Selection {
                 },
             ) if *file_id == other_file => wpt_ids.extend(other),
             (selection, other) => *selection = other,
+        }
+    }
+
+    /// Like [`Selection::extend`], but the elements of `other` that are already selected are
+    /// removed from the selection instead. A selection left with nothing is empty.
+    pub fn toggle(&mut self, other: Selection) {
+        fn toggle_ids<T: std::hash::Hash + Eq>(ids: &mut HashSet<T>, other: HashSet<T>) {
+            for id in other {
+                if !ids.remove(&id) {
+                    ids.insert(id);
+                }
+            }
+        }
+        let empty = match (&mut *self, other) {
+            (Selection::File { file_ids }, Selection::File { file_ids: other }) => {
+                toggle_ids(file_ids, other);
+                file_ids.is_empty()
+            }
+            (
+                Selection::Track { file_id, trk_ids },
+                Selection::Track {
+                    file_id: other_file,
+                    trk_ids: other,
+                },
+            ) if *file_id == other_file => {
+                toggle_ids(trk_ids, other);
+                trk_ids.is_empty()
+            }
+            (
+                Selection::TrackSegment {
+                    file_id,
+                    trk_id,
+                    trkseg_ids,
+                },
+                Selection::TrackSegment {
+                    file_id: other_file,
+                    trk_id: other_trk,
+                    trkseg_ids: other,
+                },
+            ) if *file_id == other_file && *trk_id == other_trk => {
+                toggle_ids(trkseg_ids, other);
+                trkseg_ids.is_empty()
+            }
+            (Selection::Waypoints { file_id }, Selection::Waypoints { file_id: other })
+                if *file_id == other =>
+            {
+                true
+            }
+            (
+                Selection::Waypoint { file_id, wpt_ids },
+                Selection::Waypoint {
+                    file_id: other_file,
+                    wpt_ids: other,
+                },
+            ) if *file_id == other_file => {
+                toggle_ids(wpt_ids, other);
+                wpt_ids.is_empty()
+            }
+            (selection, other) => {
+                *selection = other;
+                false
+            }
+        };
+        if empty {
+            *self = Selection::Empty;
         }
     }
 }
@@ -251,5 +329,47 @@ mod tests {
         let mut selection = segments(a);
         selection.extend(segments(b));
         assert_eq!(selection, segments(b));
+    }
+
+    #[test]
+    fn test_toggle() {
+        let file_id = FileId::default();
+        let (a, b) = (TrackId::default(), TrackId::default());
+        let tracks = |ids: &[TrackId]| Selection::Track {
+            file_id,
+            trk_ids: ids.iter().copied().collect(),
+        };
+
+        // same kind and place: toggled one by one
+        let mut selection = tracks(&[a]);
+        selection.toggle(tracks(&[b]));
+        assert_eq!(selection, tracks(&[a, b]));
+        selection.toggle(tracks(&[a]));
+        assert_eq!(selection, tracks(&[b]));
+        selection.toggle(tracks(&[a, b]));
+        assert_eq!(selection, tracks(&[a]));
+
+        // nothing left: empty
+        selection.toggle(tracks(&[a]));
+        assert_eq!(selection, Selection::Empty);
+
+        // another file, or another kind: replaced
+        let mut selection = tracks(&[a]);
+        selection.toggle(Selection::Waypoints { file_id });
+        assert_eq!(selection, Selection::Waypoints { file_id });
+        // the waypoints node toggles itself off
+        selection.toggle(Selection::Waypoints { file_id });
+        assert_eq!(selection, Selection::Empty);
+
+        // files
+        let (f1, f2) = (FileId::default(), FileId::default());
+        let files = |ids: &[FileId]| Selection::File {
+            file_ids: ids.iter().copied().collect(),
+        };
+        let mut selection = files(&[f1]);
+        selection.toggle(files(&[f2]));
+        assert_eq!(selection, files(&[f1, f2]));
+        selection.toggle(files(&[f1]));
+        assert_eq!(selection, files(&[f2]));
     }
 }

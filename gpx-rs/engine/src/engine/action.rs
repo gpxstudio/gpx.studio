@@ -1,4 +1,4 @@
-use crate::{Command, FileId, Selection};
+use crate::{Command, FileId, SelectMode, Selection};
 
 /// Everything the frontend can ask the engine to do.
 ///
@@ -11,11 +11,10 @@ pub enum Action<'a> {
     Redo,
     /// Selects files, tracks, segments or waypoints (or the waypoints node of one file),
     /// ignoring what does not exist: a selection left with nothing is empty, which deselects
-    /// everything. With `add`, the elements are added to the current selection when they can
-    /// be merged with it (see [`Selection::extend`]), otherwise they replace it.
+    /// everything. See [`SelectMode`] for how it combines with the current selection.
     Select {
         selection: Selection,
-        add: bool,
+        mode: SelectMode,
     },
     /// Moves the files to `index` among the other files, in the given order. Not undoable.
     Reorder {

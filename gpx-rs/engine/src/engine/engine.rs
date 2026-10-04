@@ -2,7 +2,7 @@
 
 use crate::{
     Action, Apply, Command, CoordinatesCache, Diff, FileId, FileOrder, FileStructure,
-    FileStructureCache, GlobalStatistics, Selection, Stack, State, StatisticsBuffer,
+    FileStructureCache, GlobalStatistics, SelectMode, Selection, Stack, State, StatisticsBuffer,
     StatisticsCache, TrackSegmentId,
 };
 
@@ -81,18 +81,20 @@ impl Engine {
             Action::Edit(command) => self.edit(command),
             Action::Undo => self.stack.undo(),
             Action::Redo => self.stack.redo(),
-            Action::Select { mut selection, add } => {
+            Action::Select {
+                mut selection,
+                mode,
+            } => {
                 match self.stack.current() {
                     Some(files) => selection.retain_existing(files),
                     None => selection = Selection::Empty,
                 }
-                if add {
-                    // nothing to add: keep the selection
-                    if selection != Selection::Empty {
-                        self.selection.extend(selection);
-                    }
-                } else {
-                    self.selection = selection;
+                match mode {
+                    SelectMode::Replace => self.selection = selection,
+                    // nothing to add or toggle: keep the selection
+                    _ if selection == Selection::Empty => {}
+                    SelectMode::Add => self.selection.extend(selection),
+                    SelectMode::Toggle => self.selection.toggle(selection),
                 }
                 None
             }
@@ -429,7 +431,7 @@ mod tests {
         assert!(select_files(&mut engine, &[a]));
         assert_eq!(selected(&engine), vec![a]);
 
-        assert!(select_elements(&mut engine, files(&[b]), true));
+        assert!(select_elements(&mut engine, files(&[b]), SelectMode::Add));
         assert_eq!(selected(&engine).len(), 2);
 
         select_files(&mut engine, &[]);
@@ -446,8 +448,8 @@ mod tests {
         assert!(engine.stack.current().is_none());
     }
 
-    fn select_elements(engine: &mut Engine, selection: Selection, add: bool) -> bool {
-        engine.execute(Action::Select { selection, add })
+    fn select_elements(engine: &mut Engine, selection: Selection, mode: SelectMode) -> bool {
+        engine.execute(Action::Select { selection, mode })
     }
 
     fn files(ids: &[FileId]) -> Selection {
@@ -457,7 +459,7 @@ mod tests {
     }
 
     fn select_files(engine: &mut Engine, ids: &[FileId]) -> bool {
-        select_elements(engine, files(ids), false)
+        select_elements(engine, files(ids), SelectMode::Replace)
     }
 
     fn select_all(engine: &mut Engine) -> bool {
@@ -486,9 +488,13 @@ mod tests {
             file_id: file.id,
             trk_ids: ids.iter().copied().collect(),
         };
-        assert!(select_elements(&mut engine, tracks(&[t0]), false));
+        assert!(select_elements(
+            &mut engine,
+            tracks(&[t0]),
+            SelectMode::Replace
+        ));
         assert_eq!(engine.selection(), &tracks(&[t0]));
-        assert!(select_elements(&mut engine, tracks(&[t1]), true));
+        assert!(select_elements(&mut engine, tracks(&[t1]), SelectMode::Add));
         assert_eq!(engine.selection(), &tracks(&[t0, t1]));
 
         // segments of a track, added only within the same track
@@ -497,9 +503,17 @@ mod tests {
             trk_id,
             trkseg_ids: ids.iter().copied().collect(),
         };
-        assert!(select_elements(&mut engine, segments(t0, &[s0]), true));
+        assert!(select_elements(
+            &mut engine,
+            segments(t0, &[s0]),
+            SelectMode::Add
+        ));
         assert_eq!(engine.selection(), &segments(t0, &[s0]));
-        assert!(select_elements(&mut engine, segments(t0, &[s1]), true));
+        assert!(select_elements(
+            &mut engine,
+            segments(t0, &[s1]),
+            SelectMode::Add
+        ));
         assert_eq!(engine.selection(), &segments(t0, &[s0, s1]));
         // the statistics follow the selected segments
         assert_eq!(
@@ -509,26 +523,80 @@ mod tests {
 
         // the waypoints node
         let node = Selection::Waypoints { file_id: file.id };
-        assert!(select_elements(&mut engine, node.clone(), false));
-        assert!(!select_elements(&mut engine, node.clone(), true));
+        assert!(select_elements(
+            &mut engine,
+            node.clone(),
+            SelectMode::Replace
+        ));
+        assert!(!select_elements(&mut engine, node.clone(), SelectMode::Add));
         assert_eq!(engine.selection(), &node);
         assert!(engine.selection_changed() == false);
 
         // unknown elements and files are ignored when adding
         let unknown = tracks(&[TrackId::default()]);
-        assert!(!select_elements(&mut engine, unknown.clone(), true));
+        assert!(!select_elements(
+            &mut engine,
+            unknown.clone(),
+            SelectMode::Add
+        ));
         let unknown_file = Selection::Waypoints {
             file_id: FileId::default(),
         };
-        assert!(!select_elements(&mut engine, unknown_file.clone(), true));
-        assert!(!select_elements(&mut engine, Selection::Empty, true));
+        assert!(!select_elements(
+            &mut engine,
+            unknown_file.clone(),
+            SelectMode::Add
+        ));
+        assert!(!select_elements(
+            &mut engine,
+            Selection::Empty,
+            SelectMode::Add
+        ));
         assert_eq!(engine.selection(), &node);
 
         // and select nothing otherwise
-        assert!(select_elements(&mut engine, unknown, false));
+        assert!(select_elements(&mut engine, unknown, SelectMode::Replace));
         assert_eq!(engine.selection(), &Selection::Empty);
-        select_elements(&mut engine, node, false);
-        assert!(select_elements(&mut engine, unknown_file, false));
+        select_elements(&mut engine, node, SelectMode::Replace);
+        assert!(select_elements(
+            &mut engine,
+            unknown_file,
+            SelectMode::Replace
+        ));
+        assert_eq!(engine.selection(), &Selection::Empty);
+    }
+
+    #[test]
+    fn test_toggle_elements() {
+        let mut engine = Engine::default();
+        load(&mut engine, "data/with_tracks_and_segments.gpx");
+        let file = engine
+            .stack
+            .current()
+            .unwrap()
+            .values()
+            .next()
+            .unwrap()
+            .clone();
+        let (t0, t1) = (file.trk[0].id, file.trk[1].id);
+        let tracks = |ids: &[TrackId]| Selection::Track {
+            file_id: file.id,
+            trk_ids: ids.iter().copied().collect(),
+        };
+        let toggle = |engine: &mut Engine, ids: &[TrackId]| {
+            select_elements(engine, tracks(ids), SelectMode::Toggle)
+        };
+
+        select_elements(&mut engine, tracks(&[t0]), SelectMode::Replace);
+        assert!(toggle(&mut engine, &[t1]));
+        assert_eq!(engine.selection(), &tracks(&[t0, t1]));
+        assert!(toggle(&mut engine, &[t0]));
+        assert_eq!(engine.selection(), &tracks(&[t1]));
+        // toggling the last element deselects everything
+        assert!(toggle(&mut engine, &[t1]));
+        assert_eq!(engine.selection(), &Selection::Empty);
+        // unknown elements change nothing
+        assert!(!toggle(&mut engine, &[TrackId::default()]));
         assert_eq!(engine.selection(), &Selection::Empty);
     }
 
@@ -551,7 +619,7 @@ mod tests {
                 file_id: file.id,
                 trk_ids: [trk_id].into(),
             },
-            false,
+            SelectMode::Replace,
         );
         engine.execute(Action::Undo);
         assert_eq!(engine.selection(), &Selection::Empty);

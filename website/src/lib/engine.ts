@@ -17,6 +17,22 @@ export type {
 
 type Wasm = typeof import('gpx-rs');
 
+/**
+ * How elements combine with the current selection: they `replace` it, are `add`ed to it, or are
+ * `toggle`d (the ones already selected are removed). Adding and toggling only merge with elements
+ * of the same kind in the same place (same file, same track for segments), otherwise the new
+ * elements replace the selection.
+ */
+export type SelectMode = 'replace' | 'add' | 'toggle';
+
+function selectMode(wasm: Wasm, mode: SelectMode) {
+    return {
+        replace: wasm.SelectMode.Replace,
+        add: wasm.SelectMode.Add,
+        toggle: wasm.SelectMode.Toggle,
+    }[mode];
+}
+
 export type SegmentProperties = {
     fileId: string;
     trackId: string;
@@ -155,36 +171,43 @@ class Engine {
     }
 
     /**
-     * Selects files. With `add`, they are added to the selection if it already holds files.
-     * Selecting nothing (or only unknown files) deselects everything.
+     * Selects files. Selecting nothing (or only unknown files) deselects everything. See
+     * `SelectMode` for how the files combine with the selection.
      */
-    select(fileIds: string[], add = false) {
-        return this.run((w) => w.select(idsToBytes(fileIds), add));
+    select(fileIds: string[], mode: SelectMode = 'replace') {
+        return this.run((w) => w.select(idsToBytes(fileIds), selectMode(w, mode)));
     }
 
     selectAll() {
         return this.select(get(this._order));
     }
 
-    // Selecting elements inside a file. With `add`, they are added to the selection when it holds
-    // elements of the same kind in the same place (same file, same track for segments),
-    // otherwise they replace it. Ids that do not exist are ignored.
+    // Selecting elements inside a file. Ids that do not exist are ignored.
 
-    selectTracks(fileId: string, trackIds: string[], add = false) {
-        return this.run((w) => w.select_tracks(fileId, idsToBytes(trackIds), add));
+    selectTracks(fileId: string, trackIds: string[], mode: SelectMode = 'replace') {
+        return this.run((w) => w.select_tracks(fileId, idsToBytes(trackIds), selectMode(w, mode)));
     }
 
-    selectSegments(fileId: string, trackId: string, segmentIds: string[], add = false) {
-        return this.run((w) => w.select_segments(fileId, trackId, idsToBytes(segmentIds), add));
+    selectSegments(
+        fileId: string,
+        trackId: string,
+        segmentIds: string[],
+        mode: SelectMode = 'replace'
+    ) {
+        return this.run((w) =>
+            w.select_segments(fileId, trackId, idsToBytes(segmentIds), selectMode(w, mode))
+        );
     }
 
     /** Selects the node standing for all the waypoints of the file. */
-    selectWaypointGroup(fileId: string) {
-        return this.run((w) => w.select_waypoint_group(fileId));
+    selectWaypointGroup(fileId: string, mode: SelectMode = 'replace') {
+        return this.run((w) => w.select_waypoint_group(fileId, selectMode(w, mode)));
     }
 
-    selectWaypoints(fileId: string, waypointIds: string[], add = false) {
-        return this.run((w) => w.select_waypoints(fileId, idsToBytes(waypointIds), add));
+    selectWaypoints(fileId: string, waypointIds: string[], mode: SelectMode = 'replace') {
+        return this.run((w) =>
+            w.select_waypoints(fileId, idsToBytes(waypointIds), selectMode(w, mode))
+        );
     }
 
     /** Moves the files, in the given order, to `index` among the other files. */
