@@ -1,9 +1,9 @@
-use std::{
-    collections::{HashMap, HashSet, hash_map::Entry},
-    rc::Rc,
-};
+use std::collections::{HashMap, HashSet, hash_map::Entry};
 
-use crate::{File, Selection, StackEntry, Statistics, Track, TrackSegment, TrackSegmentRevisionId};
+use crate::{
+    File, GlobalStatistics, Selection, StackEntry, Statistics, Track, TrackSegment,
+    TrackSegmentRevisionId,
+};
 
 #[derive(Debug, Default)]
 pub struct StatisticsCache {
@@ -95,7 +95,18 @@ impl StatisticsCache {
         stats
     }
 
-    fn add_file_stats<'a>(&'a self, file: &Rc<File>, stats: &mut Vec<&'a Statistics>) {
+    /// Global statistics of a file: its segments merged, in order.
+    pub fn file_global(&self, file: &File) -> GlobalStatistics {
+        let mut stats = vec![];
+        self.add_file_stats(file, &mut stats);
+        let mut global = GlobalStatistics::default();
+        for s in stats {
+            global.merge(&s.global);
+        }
+        global
+    }
+
+    fn add_file_stats<'a>(&'a self, file: &File, stats: &mut Vec<&'a Statistics>) {
         for trk in file.trk.iter() {
             self.add_track_stats(trk, stats);
         }
@@ -116,7 +127,7 @@ impl StatisticsCache {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashSet;
+    use std::{collections::HashSet, rc::Rc};
 
     use crate::{FileId, parse};
 

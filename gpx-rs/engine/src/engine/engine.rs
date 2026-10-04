@@ -2,7 +2,7 @@
 
 use crate::{
     Action, Apply, Command, CoordinatesCache, Diff, FileId, FileOrder, FileStructure,
-    FileStructureCache, Selection, Stack, State, StatisticsBuffer, StatisticsCache, TrackSegmentId,
+    FileStructureCache, GlobalStatistics, Selection, Stack, State, StatisticsBuffer, StatisticsCache, TrackSegmentId,
 };
 
 #[derive(Debug, Default)]
@@ -32,6 +32,12 @@ impl Engine {
     /// Name, tracks, segments and waypoints (with their ids) of a file.
     pub fn file_structure(&self, id: &FileId) -> Option<&FileStructure> {
         self.structure_cache.get(id)
+    }
+
+    /// Global statistics (distance, time, elevation, bounds...) of a file.
+    pub fn file_statistics(&self, id: &FileId) -> Option<GlobalStatistics> {
+        let file = self.stack.current()?.get(id)?;
+        Some(self.statistics_cache.file_global(file))
     }
 
     /// Which files the last action added, removed or modified.

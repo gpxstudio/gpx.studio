@@ -1,8 +1,10 @@
 import { browser } from '$app/environment';
-import { writable, type Readable } from 'svelte/store';
-import type { FileStructure, Selection } from 'gpx-rs';
+import { get, writable, type Readable, type Writable } from 'svelte/store';
+import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
+import type { FileStatistics, FileStructure, Selection } from 'gpx-rs';
 
 export type {
+    FileStatistics,
     FileStructure,
     FilesUpdate,
     Selection,
@@ -12,6 +14,44 @@ export type {
 } from 'gpx-rs';
 
 type Wasm = typeof import('gpx-rs');
+
+export type SegmentProperties = {
+    fileId: string;
+    trackId: string;
+    segmentId: string;
+    trackIndex: number;
+    segmentIndex: number;
+    /** Changes when the trackpoints of the segment change. */
+    rev: string;
+};
+
+export type WaypointProperties = {
+    fileId: string;
+    waypointId: string;
+    index: number;
+    name?: string;
+};
+
+/** Everything the UI knows about one file. */
+export type FileState = {
+    structure: FileStructure;
+    /** Global statistics of the file. */
+    statistics: FileStatistics;
+    /** One LineString feature per track segment, in file order. */
+    segments: FeatureCollection<LineString, SegmentProperties>;
+    /** One Point feature per waypoint, in file order. */
+    waypoints: FeatureCollection<Point, WaypointProperties>;
+};
+
+const EMPTY_STATISTICS: FileStatistics = { totalDistance: 0, elevationGain: 0, elevationLoss: 0 };
+
+function toPositions(flat: Float64Array): [number, number][] {
+    const positions: [number, number][] = new Array(flat.length / 2);
+    for (let i = 0; i < positions.length; i++) {
+        positions[i] = [flat[2 * i], flat[2 * i + 1]];
+    }
+    return positions;
+}
 
 /** Hyphenated UUID strings (as found in the file structures) to the concatenated 16-byte form. */
 function idsToBytes(ids: string[]): Uint8Array {
@@ -29,8 +69,9 @@ function idsToBytes(ids: string[]): Uint8Array {
  * Thin wrapper around the WASM engine.
  *
  * The engine owns the files; this class mirrors what the UI needs in stores. After each action,
- * only what the engine reports as changed is read again: the order of the files, and the
- * structure of the files that were added or modified.
+ * only what the engine reports as changed is read again: the order of the files, and the state
+ * of the files that were added or modified. Within a modified file, the GeoJSON features of the
+ * segments and waypoints that did not change are reused.
  */
 class Engine {
     private wasm: Wasm | null = null;
@@ -38,16 +79,19 @@ class Engine {
     readonly ready: Promise<void>;
 
     private _order = writable<string[]>([]);
-    private _structures = writable<Map<string, FileStructure>>(new Map());
+    private _files = writable<Map<string, Writable<FileState>>>(new Map());
     private _selection = writable<Selection>({ type: 'empty' });
 
     /** Ids of the files in display order. */
     readonly order: Readable<string[]> = { subscribe: this._order.subscribe };
     /** What is currently selected. */
     readonly selection: Readable<Selection> = { subscribe: this._selection.subscribe };
-    /** Structure (names, tracks, segments, waypoints and their ids) of each file. */
-    readonly structures: Readable<Map<string, FileStructure>> = {
-        subscribe: this._structures.subscribe,
+    /**
+     * The state of each file, in its own store. The map store only notifies when files are added
+     * or removed; editing a file only notifies the subscribers of that file's store.
+     */
+    readonly files: Readable<Map<string, Readable<FileState>>> = {
+        subscribe: this._files.subscribe,
     };
 
     constructor() {
@@ -134,19 +178,102 @@ class Engine {
         if (update.orderChanged) {
             this._order.set(wasm.file_order());
         }
-        if (update.added.length + update.modified.length + update.removed.length > 0) {
-            this._structures.update((structures) => {
-                const next = new Map(structures);
+        const added: [string, FileState][] = [];
+        for (const id of update.added) {
+            const state = this.readFile(wasm, id);
+            if (state) {
+                added.push([id, state]);
+            }
+        }
+        if (added.length > 0 || update.removed.length > 0) {
+            this._files.update((files) => {
+                const next = new Map(files);
                 update.removed.forEach((id) => next.delete(id));
-                [...update.added, ...update.modified].forEach((id) => {
-                    const structure = wasm.file_structure(id);
-                    if (structure) {
-                        next.set(id, structure);
-                    }
-                });
+                added.forEach(([id, state]) => next.set(id, writable(state)));
                 return next;
             });
         }
+        if (update.modified.length > 0) {
+            const files = get(this._files);
+            for (const id of update.modified) {
+                const store = files.get(id);
+                const state = store && this.readFile(wasm, id, get(store));
+                if (store && state) {
+                    store.set(state);
+                }
+            }
+        }
+    }
+
+    /** Reads the state of a file, reusing from `previous` what did not change. */
+    private readFile(wasm: Wasm, id: string, previous?: FileState): FileState | null {
+        const structure = wasm.file_structure(id);
+        if (!structure) {
+            return null;
+        }
+
+        const previousSegments = new Map(
+            previous?.segments.features.map((f) => [f.properties.segmentId, f]) ?? []
+        );
+        const segments: Feature<LineString, SegmentProperties>[] = [];
+        structure.tracks.forEach((track, trackIndex) => {
+            track.segments.forEach((segment, segmentIndex) => {
+                const old = previousSegments.get(segment.id);
+                const unchanged =
+                    old?.properties.rev === segment.rev &&
+                    old.properties.trackId === track.id &&
+                    old.properties.trackIndex === trackIndex &&
+                    old.properties.segmentIndex === segmentIndex;
+                segments.push(
+                    unchanged
+                        ? old
+                        : {
+                              type: 'Feature',
+                              geometry: {
+                                  type: 'LineString',
+                                  coordinates: toPositions(wasm.segment_coordinates(segment.id)),
+                              },
+                              properties: {
+                                  fileId: id,
+                                  trackId: track.id,
+                                  segmentId: segment.id,
+                                  trackIndex,
+                                  segmentIndex,
+                                  rev: segment.rev,
+                              },
+                          }
+                );
+            });
+        });
+
+        const previousStructure = previous?.structure;
+        const waypointsUnchanged =
+            previousStructure !== undefined &&
+            previousStructure.waypointsRev === structure.waypointsRev &&
+            previousStructure.waypoints.length === structure.waypoints.length &&
+            previousStructure.waypoints.every(
+                (w, i) =>
+                    w.id === structure.waypoints[i].id && w.name === structure.waypoints[i].name
+            );
+        let waypoints = previous?.waypoints;
+        if (!waypoints || !waypointsUnchanged) {
+            const coordinates = toPositions(wasm.waypoint_coordinates(id));
+            waypoints = {
+                type: 'FeatureCollection',
+                features: structure.waypoints.map((waypoint, index) => ({
+                    type: 'Feature',
+                    geometry: { type: 'Point', coordinates: coordinates[index] },
+                    properties: { fileId: id, waypointId: waypoint.id, index, name: waypoint.name },
+                })),
+            };
+        }
+
+        return {
+            structure,
+            statistics: wasm.file_statistics(id) ?? EMPTY_STATISTICS,
+            segments: { type: 'FeatureCollection', features: segments },
+            waypoints,
+        };
     }
 }
 

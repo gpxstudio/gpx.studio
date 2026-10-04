@@ -353,6 +353,25 @@ export interface FileStructure {
     /** Changes when the waypoints of the file change: refetch their coordinates. */
     waypointsRev: string;
 }
+/** Global statistics of a file (optional fields are absent when the file has no timestamps). */
+export interface FileStatistics {
+    /** km */
+    totalDistance: number;
+    movingDistance?: number;
+    /** seconds */
+    totalTime?: number;
+    movingTime?: number;
+    elevationGain: number;
+    elevationLoss: number;
+    /** ms since epoch */
+    startTime?: number;
+    endTime?: number;
+    /** km/h */
+    totalSpeed?: number;
+    movingSpeed?: number;
+    /** Absent when the file has no trackpoints. */
+    bounds?: { west: number; south: number; east: number; north: number };
+}
 export interface TrackNode {
     id: string;
     name?: string;
@@ -379,6 +398,8 @@ extern "C" {
     pub type FilesUpdate;
     #[wasm_bindgen(typescript_type = "FileStructure | undefined")]
     pub type FileStructure;
+    #[wasm_bindgen(typescript_type = "FileStatistics | undefined")]
+    pub type FileStatistics;
     #[wasm_bindgen(typescript_type = "string[]")]
     pub type FileOrder;
 }
@@ -456,6 +477,43 @@ pub fn file_structure(file_id: &str) -> FileStructure {
         })
         .map_or(JsValue::UNDEFINED, JsValue::from);
     structure.unchecked_into()
+}
+
+/// Global statistics of a file, `undefined` if the id is unknown.
+#[wasm_bindgen]
+pub fn file_statistics(file_id: &str) -> FileStatistics {
+    let stats = uuid::Uuid::parse_str(file_id)
+        .ok()
+        .and_then(|id| with_engine(|e| e.file_statistics(&FileId(id))).flatten())
+        .map_or(JsValue::UNDEFINED, |stats| {
+            let object = Object::new();
+            let optional = |key: &str, value: Option<f64>| {
+                if let Some(value) = value {
+                    set(&object, key, value);
+                }
+            };
+            set(&object, "totalDistance", stats.total_distance);
+            optional("movingDistance", stats.moving_distance);
+            optional("totalTime", stats.total_time.map(f64::from));
+            optional("movingTime", stats.moving_time.map(f64::from));
+            set(&object, "elevationGain", stats.elevation_gain);
+            set(&object, "elevationLoss", stats.elevation_loss);
+            optional("startTime", stats.start_time.map(|t| t as f64));
+            optional("endTime", stats.end_time.map(|t| t as f64));
+            optional("totalSpeed", stats.total_speed());
+            optional("movingSpeed", stats.moving_speed());
+            let (sw, ne) = (&stats.bounds.sw, &stats.bounds.ne);
+            if sw.lng <= ne.lng && sw.lat <= ne.lat {
+                let bounds = Object::new();
+                set(&bounds, "west", sw.lng);
+                set(&bounds, "south", sw.lat);
+                set(&bounds, "east", ne.lng);
+                set(&bounds, "north", ne.lat);
+                set(&object, "bounds", bounds);
+            }
+            object.into()
+        });
+    stats.unchecked_into()
 }
 
 fn uuids<T>(items: impl IntoIterator<Item = T>, uuid: impl Fn(T) -> uuid::Uuid) -> Array {
