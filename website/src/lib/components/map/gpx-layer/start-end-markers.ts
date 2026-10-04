@@ -1,11 +1,13 @@
 import { currentTool, Tool } from '$lib/components/toolbar/tools';
-import { gpxStatistics, hoveredPoint, slicedGPXStatistics } from '$lib/logic/statistics';
+import { hoveredPoint } from '$lib/logic/statistics';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { get } from 'svelte/store';
 import { map } from '$lib/components/map/map';
-import { allHidden } from '$lib/logic/hidden';
+import { allHidden } from '$lib/all-hidden';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 import { loadSVGIcon } from '$lib/utils';
+import { slicedStatistics } from '$lib/logic/selection-statistics';
+import { engine } from '$lib/engine';
 
 const startMarkerSVG = `<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
   <circle cx="8" cy="8" r="6" fill="#22c55e" stroke="white" stroke-width="1.5"/>
@@ -26,14 +28,16 @@ const hoverMarkerSVG = `<svg width="16" height="16" viewBox="0 0 16 16" xmlns="h
   <circle cx="8" cy="8" r="6" fill="#00b8db" stroke="white" stroke-width="1.5"/>
 </svg>`;
 
+const { statistics } = engine;
+
 export class StartEndMarkers {
     updateBinded: () => void = this.update.bind(this);
     unsubscribes: (() => void)[] = [];
 
     constructor() {
         map.onLoad((map_) => map_.on('style.load', this.updateBinded));
-        this.unsubscribes.push(gpxStatistics.subscribe(this.updateBinded));
-        this.unsubscribes.push(slicedGPXStatistics.subscribe(this.updateBinded));
+        this.unsubscribes.push(statistics.subscribe(this.updateBinded));
+        this.unsubscribes.push(slicedStatistics.subscribe(this.updateBinded));
         this.unsubscribes.push(hoveredPoint.subscribe(this.updateBinded));
         this.unsubscribes.push(currentTool.subscribe(this.updateBinded));
         this.unsubscribes.push(allHidden.subscribe(this.updateBinded));
@@ -46,8 +50,8 @@ export class StartEndMarkers {
         this.loadIcons();
 
         const tool = get(currentTool);
-        const statistics = get(gpxStatistics);
-        const slicedStatistics = get(slicedGPXStatistics);
+        const stats = get(statistics);
+        const sliced = get(slicedStatistics);
         const hovered = get(hoveredPoint);
         const hidden = get(allHidden);
         if (!hidden) {
@@ -56,18 +60,17 @@ export class StartEndMarkers {
                 features: [],
             };
 
-            if (statistics.global.length > 0 && tool !== Tool.ROUTING) {
-                const start = statistics
-                    .getTrackPoint(slicedStatistics?.[1] ?? 0)!
-                    .trkpt.getCoordinates();
-                const end = statistics
-                    .getTrackPoint(slicedStatistics?.[2] ?? statistics.global.length - 1)!
-                    .trkpt.getCoordinates();
+            if (stats.length > 0 && tool !== Tool.ROUTING) {
+                const start = [stats.lng[sliced?.start ?? 0], stats.lat[sliced?.start ?? 0]];
+                const end = [
+                    stats.lng[sliced?.end ?? stats.length - 1],
+                    stats.lat[sliced?.end ?? stats.length - 1],
+                ];
                 data.features.push({
                     type: 'Feature',
                     geometry: {
                         type: 'Point',
-                        coordinates: [start.lon, start.lat],
+                        coordinates: start,
                     },
                     properties: {
                         icon: 'start-marker',
@@ -77,7 +80,7 @@ export class StartEndMarkers {
                     type: 'Feature',
                     geometry: {
                         type: 'Point',
-                        coordinates: [end.lon, end.lat],
+                        coordinates: end,
                     },
                     properties: {
                         icon: 'end-marker',
