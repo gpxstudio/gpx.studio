@@ -9,6 +9,7 @@
         "postbuild": "npx tsx src/lib/scripts/sitemap.ts",
         "preview": "vite preview",
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+        "test": "node --import tsx --test \"src/**/*.test.ts\"",
         "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
         "lint": "prettier --check . --config ../.prettierrc --ignore-path ../.prettierignore --ignore-path ./.gitignore && eslint .",
         "format": "prettier --write . --config ../.prettierrc --ignore-path ../.prettierignore --ignore-path ./.gitignore"

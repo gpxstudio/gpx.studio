@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import { get, writable, type Readable, type Writable } from 'svelte/store';
 import { FileColorAllocator, normalizeColor } from '$lib/file-colors';
+import { setHidden, type Visibility } from '$lib/file-visibility';
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
 import type { FileStatistics, FileStructure, Selection } from 'gpx-rs';
 
@@ -50,6 +51,11 @@ export type FileState = {
     segments: FeatureCollection<LineString, SegmentProperties>;
     /** One Point feature per waypoint, in file order. */
     waypoints: FeatureCollection<Point, WaypointProperties>;
+    /**
+     * Visibility the user set explicitly (see `Visibility` and `isHidden`, `isSegmentHidden`,
+     * `isWaypointHidden` in `file-visibility`). Hidden elements are still part of the statistics.
+     */
+    visibility: Visibility;
 };
 
 const EMPTY_STATISTICS: FileStatistics = { totalDistance: 0, elevationGain: 0, elevationLoss: 0 };
@@ -89,6 +95,11 @@ class Engine {
 
     private _order = writable<string[]>([]);
     private _colors = new FileColorAllocator();
+    /**
+     * Explicit visibility per file. Not dropped with the files: it is back when a deletion is
+     * undone. UI state only, it is not part of the engine's history.
+     */
+    private _visibility = new Map<string, Visibility>();
     private _files = writable<Map<string, Writable<FileState>>>(new Map());
     private _selection = writable<Selection>({ type: 'empty' });
 
@@ -158,6 +169,26 @@ class Engine {
     /** Moves the files, in the given order, to `index` among the other files. */
     reorder(fileIds: string[], index: number) {
         return this.run((w) => w.reorder(idsToBytes(fileIds), index));
+    }
+
+    /**
+     * Hides or shows elements of a file (see `FileState.visibility`). What was set explicitly
+     * below these elements is reset, so that hiding a file then showing one of its segments
+     * leaves only that segment visible, and hiding the file again hides all of it.
+     */
+    setHidden(fileId: string, ids: string[], hidden: boolean) {
+        const store = get(this._files).get(fileId);
+        if (!store) {
+            return;
+        }
+        const visibility = setHidden(
+            get(store).structure,
+            this._visibility.get(fileId) ?? new Map(),
+            ids,
+            hidden
+        );
+        this._visibility.set(fileId, visibility);
+        store.update((state) => ({ ...state, visibility }));
     }
 
     // Coordinates, as flat [lng, lat, ...] arrays. They are copied out of the WASM memory.
@@ -304,6 +335,7 @@ class Engine {
             statistics: wasm.file_statistics(id) ?? EMPTY_STATISTICS,
             segments: { type: 'FeatureCollection', features: segments },
             waypoints,
+            visibility: this._visibility.get(id) ?? new Map(),
         };
     }
 }
