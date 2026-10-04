@@ -358,6 +358,32 @@ pub fn can_redo() -> bool {
     with_engine(|e| e.can_redo()).unwrap_or(false)
 }
 
+// Clipboard
+
+/// Puts the selected elements in the clipboard. Nothing happens when nothing is selected.
+#[wasm_bindgen]
+pub fn copy() -> bool {
+    execute(Action::Copy)
+}
+
+/// Like `copy`, but the elements are moved when they are pasted.
+#[wasm_bindgen]
+pub fn cut() -> bool {
+    execute(Action::Cut)
+}
+
+/// Pastes the clipboard according to the selection (see `can_paste`).
+#[wasm_bindgen]
+pub fn paste() -> bool {
+    edit(Command::Paste(engine::Paste))
+}
+
+/// Whether the clipboard can be pasted with the current selection.
+#[wasm_bindgen]
+pub fn can_paste() -> bool {
+    with_engine(|e| e.can_paste()).unwrap_or(false)
+}
+
 // Selection
 
 /// Selects files. `file_ids_bytes`: concatenated 16-byte UUIDs. Unknown files are ignored, and
@@ -474,9 +500,15 @@ export type Selection =
     | { type: 'segment'; fileId: string; trackId: string; segmentIds: string[] }
     | { type: 'waypoints'; fileId: string }
     | { type: 'waypoint'; fileId: string; waypointIds: string[] };
+/** What was copied or cut, to be pasted. */
+export interface Clipboard {
+    selection: Selection;
+    cut: boolean;
+}
 export interface FilesUpdate {
     orderChanged: boolean;
     selectionChanged: boolean;
+    clipboardChanged: boolean;
     /** Files to read the structure of. */
     added: string[];
     /** Files whose structure changed: reread it. */
@@ -548,6 +580,8 @@ export interface WaypointNode {
 extern "C" {
     #[wasm_bindgen(typescript_type = "Selection")]
     pub type Selection;
+    #[wasm_bindgen(typescript_type = "Clipboard | undefined")]
+    pub type Clipboard;
     #[wasm_bindgen(typescript_type = "FilesUpdate")]
     pub type FilesUpdate;
     #[wasm_bindgen(typescript_type = "FileStructure | undefined")]
@@ -730,12 +764,10 @@ fn uuids<T>(items: impl IntoIterator<Item = T>, uuid: impl Fn(T) -> uuid::Uuid) 
         .collect()
 }
 
-/// The current selection (ids are UUID strings).
-#[wasm_bindgen]
-pub fn selection() -> Selection {
+fn selection_object(selection: &engine::Selection) -> Object {
     use engine::Selection as S;
     let object = Object::new();
-    with_engine(|e| match e.selection() {
+    match selection {
         S::Empty => set(&object, "type", "empty"),
         S::File { file_ids } => {
             set(&object, "type", "file");
@@ -765,8 +797,31 @@ pub fn selection() -> Selection {
             set(&object, "fileId", file_id.0.to_string());
             set(&object, "waypointIds", uuids(wpt_ids, |id| id.0));
         }
-    });
-    object.unchecked_into()
+    }
+    object
+}
+
+/// The current selection (ids are UUID strings).
+#[wasm_bindgen]
+pub fn selection() -> Selection {
+    with_engine(|e| selection_object(e.selection()))
+        .unwrap_or_default()
+        .unchecked_into()
+}
+
+/// What was copied or cut and is waiting to be pasted, `undefined` if nothing.
+#[wasm_bindgen]
+pub fn clipboard() -> Clipboard {
+    with_engine(|e| {
+        e.clipboard().map_or(JsValue::UNDEFINED, |clipboard| {
+            let object = Object::new();
+            set(&object, "selection", selection_object(&clipboard.selection));
+            set(&object, "cut", clipboard.cut);
+            object.into()
+        })
+    })
+    .unwrap_or(JsValue::UNDEFINED)
+    .unchecked_into()
 }
 
 /// What the last action changed. Read it right after each action.
@@ -777,6 +832,7 @@ pub fn last_update() -> FilesUpdate {
         let diff = e.last_diff().cloned().unwrap_or_default();
         set(&update, "orderChanged", e.order_changed());
         set(&update, "selectionChanged", e.selection_changed());
+        set(&update, "clipboardChanged", e.clipboard_changed());
         set(&update, "added", ids(&diff.added));
         set(&update, "modified", ids(&diff.modified));
         set(&update, "removed", ids(&diff.removed));

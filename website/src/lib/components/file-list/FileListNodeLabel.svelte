@@ -37,15 +37,12 @@
         selectionSize,
         type FileTreeNode,
     } from '$lib/selection-helpers';
-    // TODO the clipboard, centering on the selection and the waypoint popup still work on the
-    // previous implementation
-    import { copied, selection as oldSelection } from '$lib/logic/selection';
-    import { pasteSelection } from '$lib/logic/file-actions';
+    // TODO centering on the selection and the waypoint popup still work on the previous
+    // implementation
     import { boundsManager } from '$lib/logic/bounds';
     // import { gpxLayers } from '$lib/components/map/gpx-layer/gpx-layers';
     // import { fileStateCollection } from '$lib/logic/file-state';
     // import { waypointPopup } from '$lib/components/map/gpx-layer/gpx-layer-popup';
-    import { allowedPastes } from './sortable-file-list';
 
     let {
         fileState,
@@ -57,7 +54,7 @@
         label: string | undefined;
     } = $props();
 
-    const { selection } = engine;
+    const { selection, clipboard, canPaste } = engine;
 
     let orientation = getContext<'vertical' | 'horizontal'>('orientation');
     let embedding = getContext<boolean>('embedding');
@@ -107,6 +104,8 @@
     );
 
     let hidden = $derived(isHidden(fileState, elementId(node)));
+    // cut elements are greyed until they are pasted
+    let isCut = $derived($clipboard?.cut === true && isSelected($clipboard.selection, node));
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -150,7 +149,7 @@
             <span
                 class="grow text-left truncate ml-1 flex flex-row items-center {hidden
                     ? 'text-muted-foreground'
-                    : ''} {/* TODO cut elements: the clipboard works on the previous implementation */ ''}"
+                    : ''} {isCut ? 'text-muted-foreground' : ''}"
                 oncontextmenu={(e) => {
                     if (embedding) {
                         e.preventDefault();
@@ -278,22 +277,17 @@
             <Shortcut key="D" ctrl={true} />
         </ContextMenu.Item>
         {#if orientation === 'vertical'}
-            <ContextMenu.Item onclick={() => oldSelection.copySelection()}>
+            <ContextMenu.Item onclick={() => engine.copy()}>
                 <ClipboardCopy size="16" />
                 {i18n._('menu.copy')}
                 <Shortcut key="C" ctrl={true} />
             </ContextMenu.Item>
-            <ContextMenu.Item onclick={() => oldSelection.cutSelection()}>
+            <ContextMenu.Item onclick={() => engine.cut()}>
                 <Scissors size="16" />
                 {i18n._('menu.cut')}
                 <Shortcut key="X" ctrl={true} />
             </ContextMenu.Item>
-            <ContextMenu.Item
-                disabled={$copied === undefined ||
-                    $copied.length === 0 ||
-                    !allowedPastes[$copied[0].level].includes(level)}
-                onclick={pasteSelection}
-            >
+            <ContextMenu.Item disabled={!$canPaste} onclick={() => engine.paste()}>
                 <ClipboardPaste size="16" />
                 {i18n._('menu.paste')}
                 <Shortcut key="V" ctrl={true} />

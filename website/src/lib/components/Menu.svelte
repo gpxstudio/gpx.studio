@@ -53,27 +53,19 @@
     import { anySelectedLayer } from '$lib/components/map/layer-control/utils';
     import { defaultOverlays } from '$lib/assets/layers';
     import LayerControlSettings from '$lib/components/map/layer-control/LayerControlSettings.svelte';
-    import { ListLevel } from '$lib/components/file-list/file-list';
     import Export from '$lib/components/export/Export.svelte';
     import { mode, setMode } from 'mode-watcher';
     import { i18n } from '$lib/i18n.svelte';
     import { languages } from '$lib/languages';
     import { getURLForLanguage } from '$lib/utils';
     import { settings } from '$lib/logic/settings';
-    import {
-        createFile,
-        loadFiles,
-        pasteSelection,
-        triggerFileInput,
-    } from '$lib/logic/file-actions';
+    import { createFile, loadFiles, triggerFileInput } from '$lib/logic/file-actions';
     import { engine } from '$lib/engine';
     import { allHidden } from '$lib/all-hidden';
     import { selectionSize } from '$lib/selection-helpers';
-    // TODO the clipboard and centering on the selection still work on the previous implementation
-    import { copied, selection as oldSelection } from '$lib/logic/selection';
+    // TODO centering on the selection still works on the previous implementation
     import { boundsManager } from '$lib/logic/bounds';
     import { onMount } from 'svelte';
-    import { allowedPastes } from '$lib/components/file-list/sortable-file-list';
 
     const {
         distanceUnits,
@@ -91,22 +83,12 @@
         routing,
     } = settings;
 
-    const { files, selection, canUndo, canRedo } = engine;
+    const { files, selection, canUndo, canRedo, canPaste } = engine;
 
     let selectionCount = $derived(selectionSize($selection));
     let noFiles = $derived($files.size === 0);
     // metadata and style can be edited for files and tracks only
     let filesOrTracksSelected = $derived($selection.type === 'file' || $selection.type === 'track');
-    let selectionLevel = $derived(
-        {
-            empty: undefined,
-            file: ListLevel.FILE,
-            track: ListLevel.TRACK,
-            segment: ListLevel.SEGMENT,
-            waypoints: ListLevel.WAYPOINTS,
-            waypoint: ListLevel.WAYPOINT,
-        }[$selection.type]
-    );
 
     function switchBasemaps() {
         [$currentBasemap, $previousBasemap] = [$previousBasemap, $currentBasemap];
@@ -291,29 +273,17 @@
                     </Menubar.Item>
                     {#if $treeFileView}
                         <Menubar.Separator />
-                        <Menubar.Item
-                            onclick={() => oldSelection.copySelection()}
-                            disabled={selectionCount === 0}
-                        >
+                        <Menubar.Item onclick={() => engine.copy()} disabled={selectionCount === 0}>
                             <ClipboardCopy size="16" />
                             {i18n._('menu.copy')}
                             <Shortcut key="C" ctrl={true} />
                         </Menubar.Item>
-                        <Menubar.Item
-                            onclick={() => oldSelection.cutSelection()}
-                            disabled={selectionCount === 0}
-                        >
+                        <Menubar.Item onclick={() => engine.cut()} disabled={selectionCount === 0}>
                             <Scissors size="16" />
                             {i18n._('menu.cut')}
                             <Shortcut key="X" ctrl={true} />
                         </Menubar.Item>
-                        <Menubar.Item
-                            disabled={$copied === undefined ||
-                                $copied.length === 0 ||
-                                (selectionLevel !== undefined &&
-                                    !allowedPastes[$copied[0].level].includes(selectionLevel))}
-                            onclick={pasteSelection}
-                        >
+                        <Menubar.Item disabled={!$canPaste} onclick={() => engine.paste()}>
                             <ClipboardPaste size="16" />
                             {i18n._('menu.paste')}
                             <Shortcut key="V" ctrl={true} />
@@ -558,17 +528,17 @@
             e.preventDefault();
         } else if (e.key === 'c' && (e.metaKey || e.ctrlKey)) {
             if (!targetInput) {
-                oldSelection.copySelection();
+                engine.copy();
                 e.preventDefault();
             }
         } else if (e.key === 'x' && (e.metaKey || e.ctrlKey)) {
             if (!targetInput) {
-                oldSelection.cutSelection();
+                engine.cut();
                 e.preventDefault();
             }
         } else if (e.key === 'v' && (e.metaKey || e.ctrlKey)) {
             if (!targetInput) {
-                pasteSelection();
+                engine.paste();
                 e.preventDefault();
             }
         } else if ((e.key === 's' || e.key == 'S') && (e.metaKey || e.ctrlKey)) {

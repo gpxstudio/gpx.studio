@@ -1,8 +1,8 @@
 use std::{collections::HashSet, rc::Rc};
 
 use crate::{
-    Apply, CommandError, File, FileId, Selection, StackEntry, State, Track, TrackSegment, Waypoint,
-    WaypointChunk,
+    Apply, CommandError, FileId, Selection, StackEntry, State, Waypoint, copy_file, copy_segment,
+    copy_track, copy_waypoint, insert_waypoints,
 };
 
 #[derive(Debug)]
@@ -112,60 +112,23 @@ fn duplicate_waypoints(
     filter: impl Fn(&Waypoint) -> bool,
 ) -> Result<Selection, CommandError> {
     let file = files.get(&file_id).ok_or(CommandError::NothingToDo)?;
-    let mut file = (**file).clone();
-    let last_chunk = file
-        .wpt
-        .iter()
-        .rposition(|chunk| chunk.wpt.iter().any(&filter))
-        .ok_or(CommandError::NothingToDo)?;
-
-    let mut copies = HashSet::new();
-    let mut inserted = Vec::new();
-    let mut chunk = WaypointChunk::default();
-    for wpt in file
+    let selected: Vec<&Waypoint> = file
         .wpt
         .iter()
         .flat_map(|chunk| &chunk.wpt)
         .filter(|wpt| filter(wpt))
-    {
-        let mut copy = wpt.clone();
-        copy.id = Default::default();
-        copies.insert(copy.id);
-        chunk.wpt.push(copy);
-        if chunk.is_full() {
-            inserted.push(Rc::new(std::mem::take(&mut chunk)));
-        }
-    }
-    if !chunk.wpt.is_empty() {
-        inserted.push(Rc::new(chunk));
-    }
+        .collect();
+    let last = selected.last().ok_or(CommandError::NothingToDo)?.id;
+    let copies: Vec<Waypoint> = selected.into_iter().map(copy_waypoint).collect();
+    let copy_ids = copies.iter().map(|wpt| wpt.id).collect();
 
-    // The copies go right after the last selected waypoint: only the chunk holding it is cut
-    // (when waypoints follow it), all the other chunks are kept as they are.
-    let cut = &file.wpt[last_chunk];
-    let split = cut.wpt.iter().rposition(&filter).unwrap() + 1;
-    let replacement = if split == cut.wpt.len() {
-        let mut chunks = vec![cut.clone()];
-        chunks.extend(inserted);
-        chunks
-    } else {
-        let part = |wpt: &[Waypoint]| {
-            Rc::new(WaypointChunk {
-                wpt: wpt.to_vec(),
-                ..Default::default()
-            })
-        };
-        let mut chunks = vec![part(&cut.wpt[..split])];
-        chunks.extend(inserted);
-        chunks.push(part(&cut.wpt[split..]));
-        chunks
-    };
-    file.wpt.splice(last_chunk..=last_chunk, replacement);
-    file.wpt_rev_id = Default::default();
+    // The copies go right after the last selected waypoint.
+    let mut file = (**file).clone();
+    insert_waypoints(&mut file, Some(last), copies);
     files.insert(file_id, Rc::new(file));
     Ok(Selection::Waypoint {
         file_id,
-        wpt_ids: copies,
+        wpt_ids: copy_ids,
     })
 }
 
@@ -176,29 +139,6 @@ fn append_copies<T>(items: &mut Vec<T>, filter: impl Fn(&T) -> bool, copy: impl 
     };
     let copies: Vec<T> = items.iter().filter(|item| filter(item)).map(copy).collect();
     items.splice(last + 1..last + 1, copies);
-}
-
-// Track points are shared chunks, so copies are cheap.
-fn copy_segment(segment: &TrackSegment) -> TrackSegment {
-    let mut copy = segment.clone();
-    copy.id = Default::default();
-    copy
-}
-
-fn copy_track(track: &Track) -> Track {
-    Track {
-        id: Default::default(),
-        trkseg: track.trkseg.iter().map(copy_segment).collect(),
-        ..track.clone()
-    }
-}
-
-fn copy_file(file: &File) -> File {
-    File {
-        id: Default::default(),
-        trk: file.trk.iter().map(copy_track).collect(),
-        ..file.clone()
-    }
 }
 
 #[cfg(test)]

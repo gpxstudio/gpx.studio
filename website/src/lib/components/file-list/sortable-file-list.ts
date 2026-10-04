@@ -20,15 +20,6 @@ export const allowedMoves: Record<ListLevel, ListLevel[]> = {
     [ListLevel.WAYPOINT]: [ListLevel.WAYPOINTS, ListLevel.WAYPOINT],
 };
 
-export const allowedPastes: Record<ListLevel, ListLevel[]> = {
-    [ListLevel.ROOT]: [],
-    [ListLevel.FILE]: [ListLevel.ROOT, ListLevel.FILE],
-    [ListLevel.TRACK]: [ListLevel.ROOT, ListLevel.FILE, ListLevel.TRACK],
-    [ListLevel.SEGMENT]: [ListLevel.ROOT, ListLevel.FILE, ListLevel.TRACK, ListLevel.SEGMENT],
-    [ListLevel.WAYPOINTS]: [ListLevel.FILE, ListLevel.WAYPOINTS, ListLevel.WAYPOINT],
-    [ListLevel.WAYPOINT]: [ListLevel.FILE, ListLevel.WAYPOINTS, ListLevel.WAYPOINT],
-};
-
 export const dragging = writable<ListLevel | null>(null);
 
 /**

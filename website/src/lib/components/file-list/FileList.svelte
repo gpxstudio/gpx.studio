@@ -3,16 +3,12 @@
     import * as ContextMenu from '$lib/components/ui/context-menu';
     import FileListNodeContent from './FileListNodeContent.svelte';
     import { onMount, setContext } from 'svelte';
-    import { ListLevel } from './file-list';
     import { ClipboardPaste, FileStack, Plus } from '@lucide/svelte';
     import Shortcut from '$lib/components/Shortcut.svelte';
     import { i18n } from '$lib/i18n.svelte';
     import { engine } from '$lib/engine';
     import { selectedFileIds } from '$lib/selection-helpers';
-    import { createFile, pasteSelection } from '$lib/logic/file-actions';
-    // TODO the clipboard still works on the previous implementation
-    import { copied } from '$lib/logic/selection';
-    import { allowedPastes } from './sortable-file-list';
+    import { createFile } from '$lib/logic/file-actions';
 
     let {
         orientation,
@@ -29,7 +25,7 @@
     setContext('orientation', orientation);
     setContext('recursive', recursive);
 
-    const { files, selection } = engine;
+    const { files, selection, canPaste } = engine;
 
     onMount(() => {
         if (orientation === 'horizontal' && $selection.type !== 'file') {
@@ -71,12 +67,7 @@
                         <Shortcut key="A" ctrl={true} />
                     </ContextMenu.Item>
                     <ContextMenu.Separator />
-                    <ContextMenu.Item
-                        disabled={$copied === undefined ||
-                            $copied.length === 0 ||
-                            !allowedPastes[$copied[0].level].includes(ListLevel.ROOT)}
-                        onclick={pasteSelection}
-                    >
+                    <ContextMenu.Item disabled={!$canPaste} onclick={() => engine.paste()}>
                         <ClipboardPaste size="16" />
                         {i18n._('menu.paste')}
                         <Shortcut key="V" ctrl={true} />

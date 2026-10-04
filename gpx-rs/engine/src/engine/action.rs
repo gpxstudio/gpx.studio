@@ -26,6 +26,11 @@ pub enum Action<'a> {
         down: bool,
         add: bool,
     },
+    /// Puts the selected elements in the clipboard, to be pasted by [`crate::Paste`]. Does
+    /// nothing when nothing is selected.
+    Copy,
+    /// Like `Copy`, but the elements are moved instead of copied when they are pasted.
+    Cut,
     /// Moves the files to `index` among the other files, in the given order. Not undoable.
     Reorder {
         file_ids: Vec<FileId>,

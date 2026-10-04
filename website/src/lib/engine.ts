@@ -4,9 +4,10 @@ import { FileColorAllocator, normalizeColor } from '$lib/file-colors';
 import { setHidden, type Visibility } from '$lib/file-visibility';
 import { selectedElementIds, type FileTreeNode } from '$lib/selection-helpers';
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
-import type { GlobalStatistics, FileStructure, Selection } from 'gpx-rs';
+import type { Clipboard, GlobalStatistics, FileStructure, Selection } from 'gpx-rs';
 
 export type {
+    Clipboard,
     GlobalStatistics,
     FileStructure,
     FilesUpdate,
@@ -199,6 +200,8 @@ class Engine {
     private _selection = writable<Selection>({ type: 'empty' });
     private _canUndo = writable(false);
     private _canRedo = writable(false);
+    private _canPaste = writable(false);
+    private _clipboard = writable<Clipboard | undefined>(undefined);
     private _statistics = writable<SelectionStatistics>(EMPTY_SELECTION_STATISTICS);
     /** Identifies the statistics currently in the engine's buffers. */
     private _statisticsVersion = 0;
@@ -209,6 +212,10 @@ class Engine {
     readonly statistics: Readable<SelectionStatistics> = { subscribe: this._statistics.subscribe };
     readonly canUndo: Readable<boolean> = { subscribe: this._canUndo.subscribe };
     readonly canRedo: Readable<boolean> = { subscribe: this._canRedo.subscribe };
+    /** What was copied or cut, waiting to be pasted. */
+    readonly clipboard: Readable<Clipboard | undefined> = { subscribe: this._clipboard.subscribe };
+    /** Whether the clipboard can be pasted with the current selection. */
+    readonly canPaste: Readable<boolean> = { subscribe: this._canPaste.subscribe };
     /** What is currently selected. */
     readonly selection: Readable<Selection> = { subscribe: this._selection.subscribe };
     /**
@@ -338,6 +345,28 @@ class Engine {
         }
     }
 
+    // Clipboard
+
+    /** Puts the selected elements in the clipboard. */
+    copy() {
+        return this.run((w) => w.copy());
+    }
+
+    /** Like `copy`, but the elements are moved when they are pasted. */
+    cut() {
+        return this.run((w) => w.cut());
+    }
+
+    /**
+     * Pastes the clipboard, depending on the selection: the files, tracks and segments become new
+     * files when nothing is selected, tracks and waypoints are added to a selected file,
+     * segments to a selected track, and pasted after a selected track, segment or waypoint of the
+     * same kind. The pasted elements are selected and the clipboard is emptied.
+     */
+    paste() {
+        return this.run((w) => w.paste());
+    }
+
     // Edits of the selection
 
     newTrack() {
@@ -408,6 +437,10 @@ class Engine {
         const update = wasm.last_update();
         this._canUndo.set(wasm.can_undo());
         this._canRedo.set(wasm.can_redo());
+        this._canPaste.set(wasm.can_paste());
+        if (update.clipboardChanged) {
+            this._clipboard.set(wasm.clipboard());
+        }
         if (update.selectionChanged) {
             this._selection.set(wasm.selection());
         }
