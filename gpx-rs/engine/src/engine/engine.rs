@@ -2,7 +2,8 @@
 
 use crate::{
     Action, Apply, Command, CoordinatesCache, Diff, FileId, FileOrder, FileStructure,
-    FileStructureCache, GlobalStatistics, Selection, Stack, State, StatisticsBuffer, StatisticsCache, TrackSegmentId,
+    FileStructureCache, GlobalStatistics, Selection, Stack, State, StatisticsBuffer,
+    StatisticsCache, TrackSegmentId,
 };
 
 #[derive(Debug, Default)]

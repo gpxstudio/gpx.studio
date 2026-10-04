@@ -1,5 +1,6 @@
 import { browser } from '$app/environment';
 import { get, writable, type Readable, type Writable } from 'svelte/store';
+import { FileColorAllocator, normalizeColor } from '$lib/file-colors';
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
 import type { FileStatistics, FileStructure, Selection } from 'gpx-rs';
 
@@ -23,6 +24,11 @@ export type SegmentProperties = {
     segmentIndex: number;
     /** Changes when the trackpoints of the segment change. */
     rev: string;
+    /** Color of the track, or else the base color of the file. */
+    color: string;
+    /** Only when the track defines it. */
+    opacity?: number;
+    width?: number;
 };
 
 export type WaypointProperties = {
@@ -30,11 +36,14 @@ export type WaypointProperties = {
     waypointId: string;
     index: number;
     name?: string;
+    sym?: string;
 };
 
 /** Everything the UI knows about one file. */
 export type FileState = {
     structure: FileStructure;
+    /** Color of the file: the one defined by its tracks if any, otherwise one from the palette. */
+    color: string;
     /** Global statistics of the file. */
     statistics: FileStatistics;
     /** One LineString feature per track segment, in file order. */
@@ -79,6 +88,7 @@ class Engine {
     readonly ready: Promise<void>;
 
     private _order = writable<string[]>([]);
+    private _colors = new FileColorAllocator();
     private _files = writable<Map<string, Writable<FileState>>>(new Map());
     private _selection = writable<Selection>({ type: 'empty' });
 
@@ -188,7 +198,10 @@ class Engine {
         if (added.length > 0 || update.removed.length > 0) {
             this._files.update((files) => {
                 const next = new Map(files);
-                update.removed.forEach((id) => next.delete(id));
+                update.removed.forEach((id) => {
+                    next.delete(id);
+                    this._colors.release(id);
+                });
                 added.forEach(([id, state]) => next.set(id, writable(state)));
                 return next;
             });
@@ -212,18 +225,34 @@ class Engine {
             return null;
         }
 
+        const color = this._colors.resolve(
+            id,
+            structure.tracks.map((track) => track.color)
+        );
+
         const previousSegments = new Map(
             previous?.segments.features.map((f) => [f.properties.segmentId, f]) ?? []
         );
         const segments: Feature<LineString, SegmentProperties>[] = [];
         structure.tracks.forEach((track, trackIndex) => {
             track.segments.forEach((segment, segmentIndex) => {
+                const properties: SegmentProperties = {
+                    fileId: id,
+                    trackId: track.id,
+                    segmentId: segment.id,
+                    trackIndex,
+                    segmentIndex,
+                    rev: segment.rev,
+                    color: track.color !== undefined ? normalizeColor(track.color) : color,
+                    opacity: track.opacity,
+                    width: track.width,
+                };
                 const old = previousSegments.get(segment.id);
                 const unchanged =
-                    old?.properties.rev === segment.rev &&
-                    old.properties.trackId === track.id &&
-                    old.properties.trackIndex === trackIndex &&
-                    old.properties.segmentIndex === segmentIndex;
+                    old !== undefined &&
+                    (Object.keys(properties) as (keyof SegmentProperties)[]).every(
+                        (key) => old.properties[key] === properties[key]
+                    );
                 segments.push(
                     unchanged
                         ? old
@@ -233,14 +262,7 @@ class Engine {
                                   type: 'LineString',
                                   coordinates: toPositions(wasm.segment_coordinates(segment.id)),
                               },
-                              properties: {
-                                  fileId: id,
-                                  trackId: track.id,
-                                  segmentId: segment.id,
-                                  trackIndex,
-                                  segmentIndex,
-                                  rev: segment.rev,
-                              },
+                              properties,
                           }
                 );
             });
@@ -253,7 +275,9 @@ class Engine {
             previousStructure.waypoints.length === structure.waypoints.length &&
             previousStructure.waypoints.every(
                 (w, i) =>
-                    w.id === structure.waypoints[i].id && w.name === structure.waypoints[i].name
+                    w.id === structure.waypoints[i].id &&
+                    w.name === structure.waypoints[i].name &&
+                    w.sym === structure.waypoints[i].sym
             );
         let waypoints = previous?.waypoints;
         if (!waypoints || !waypointsUnchanged) {
@@ -263,13 +287,20 @@ class Engine {
                 features: structure.waypoints.map((waypoint, index) => ({
                     type: 'Feature',
                     geometry: { type: 'Point', coordinates: coordinates[index] },
-                    properties: { fileId: id, waypointId: waypoint.id, index, name: waypoint.name },
+                    properties: {
+                        fileId: id,
+                        waypointId: waypoint.id,
+                        index,
+                        name: waypoint.name,
+                        sym: waypoint.sym,
+                    },
                 })),
             };
         }
 
         return {
             structure,
+            color,
             statistics: wasm.file_statistics(id) ?? EMPTY_STATISTICS,
             segments: { type: 'FeatureCollection', features: segments },
             waypoints,

@@ -291,7 +291,7 @@ pub fn parse(data: &[u8]) -> Result<File, Error> {
                 Some(GPXElement::Color) => {
                     stack.pop();
                     if let Some(GPXElement::Track(trk)) = stack.last_mut() {
-                        trk.info.color = Some(format!("#{}", &*e));
+                        trk.info.color = Some(e.to_string());
                     }
                 }
                 Some(GPXElement::Opacity) => {
@@ -572,7 +572,7 @@ mod tests {
         assert_eq!(gpx.trk.len(), 1);
         let trk = &gpx.trk[0];
         assert_eq!(trk.trkseg.len(), 1);
-        assert!(trk.info.color.as_ref().is_some_and(|c| c == "#2d3ee9"));
+        assert!(trk.info.color.as_ref().is_some_and(|c| c == "2d3ee9"));
         assert!(trk.info.opacity.is_some_and(|o| o == 0.5));
         assert!(trk.info.width.is_some_and(|w| w == 6.0));
     }

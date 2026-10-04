@@ -22,6 +22,10 @@ pub struct FileStructure {
 pub struct TrackNode {
     pub id: TrackId,
     pub name: Option<String>,
+    /// Style of the track, only when the file defines it.
+    pub color: Option<String>,
+    pub opacity: Option<f64>,
+    pub width: Option<f64>,
     pub segments: Vec<SegmentNode>,
 }
 
@@ -37,6 +41,7 @@ pub struct SegmentNode {
 pub struct WaypointNode {
     pub id: WaypointId,
     pub name: Option<String>,
+    pub sym: Option<String>,
 }
 
 impl FileStructure {
@@ -50,6 +55,9 @@ impl FileStructure {
                 .map(|trk| TrackNode {
                     id: trk.id,
                     name: trk.info.name.clone(),
+                    color: trk.info.color.clone(),
+                    opacity: trk.info.opacity,
+                    width: trk.info.width,
                     segments: trk
                         .trkseg
                         .iter()
@@ -68,6 +76,7 @@ impl FileStructure {
                 .map(|wpt| WaypointNode {
                     id: wpt.id,
                     name: wpt.name.clone(),
+                    sym: wpt.sym.clone(),
                 })
                 .collect(),
             wpt_rev_id: file.wpt_rev_id,
@@ -94,6 +103,10 @@ mod tests {
         assert_eq!(node.tracks.len(), file.trk.len());
         for (n, t) in node.tracks.iter().zip(&file.trk) {
             assert_eq!((n.id, &n.name), (t.id, &t.info.name));
+            assert_eq!(
+                (&n.color, n.opacity, n.width),
+                (&t.info.color, t.info.opacity, t.info.width)
+            );
             assert_eq!(n.segments.len(), t.trkseg.len());
             for (n, s) in n.segments.iter().zip(&t.trkseg) {
                 assert_eq!((n.id, n.rev_id, n.len), (s.id, s.rev_id, s.len()));

@@ -375,6 +375,10 @@ export interface FileStatistics {
 export interface TrackNode {
     id: string;
     name?: string;
+    /** Style of the track, only present when the file defines it. */
+    color?: string;
+    opacity?: number;
+    width?: number;
     segments: SegmentNode[];
 }
 export interface SegmentNode {
@@ -387,6 +391,7 @@ export interface SegmentNode {
 export interface WaypointNode {
     id: string;
     name?: string;
+    sym?: string;
 }
 "#;
 
@@ -432,6 +437,15 @@ fn structure_object(file: &engine::FileStructure) -> Object {
         "tracks",
         array(&file.tracks, |trk| {
             let node = named_node(trk.id.0, trk.name.as_deref());
+            if let Some(color) = &trk.color {
+                set(&node, "color", color.as_str());
+            }
+            if let Some(opacity) = trk.opacity {
+                set(&node, "opacity", opacity);
+            }
+            if let Some(width) = trk.width {
+                set(&node, "width", width);
+            }
             set(
                 &node,
                 "segments",
@@ -449,7 +463,11 @@ fn structure_object(file: &engine::FileStructure) -> Object {
         &node,
         "waypoints",
         array(&file.waypoints, |wpt| {
-            named_node(wpt.id.0, wpt.name.as_deref()).into()
+            let node = named_node(wpt.id.0, wpt.name.as_deref());
+            if let Some(sym) = &wpt.sym {
+                set(&node, "sym", sym.as_str());
+            }
+            node.into()
         }),
     );
     set(&node, "waypointsRev", file.wpt_rev_id.0.to_string());
