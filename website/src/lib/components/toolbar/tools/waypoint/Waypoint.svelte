@@ -111,6 +111,14 @@
     }
 
     function setCoordinates(e: any) {
+        if (
+            $map?.queryRenderedFeatures(e.point, {
+                layers: $map.getLayersOrder().filter((layerId) => layerId.endsWith('-waypoints')),
+            }).length
+        ) {
+            // Clicked on a waypoint, ignoring
+            return;
+        }
         latitude = e.lngLat.lat.toFixed(6);
         longitude = e.lngLat.lng.toFixed(6);
     }
