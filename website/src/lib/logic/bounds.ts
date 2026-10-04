@@ -1,22 +1,19 @@
 import { get } from 'svelte/store';
-import { selection } from '$lib/logic/selection';
 import maplibregl from 'maplibre-gl';
-import { ListFileItem, ListWaypointItem } from '$lib/components/file-list/file-list';
-import { fileStateCollection, GPXFileStateCollectionObserver } from '$lib/logic/file-state';
-import { gpxStatistics } from '$lib/logic/statistics';
 import { map } from '$lib/components/map/map';
-import type { GPXFileWithStatistics } from './statistics-tree';
-import type { Coordinates } from 'gpx';
 import { page } from '$app/state';
+import { engine, FileStateCollectionObserver, type FileState } from '$lib/engine';
+
+const { statistics } = engine;
 
 export class BoundsManager {
     private _bounds: maplibregl.LngLatBounds = new maplibregl.LngLatBounds();
     private _files: Set<string> = new Set();
-    private _fileStateCollectionObserver: GPXFileStateCollectionObserver | null = null;
+    private _fileStateCollectionObserver: FileStateCollectionObserver | null = null;
     private _unsubscribes: (() => void)[] = [];
 
     constructor() {
-        this._fileStateCollectionObserver = new GPXFileStateCollectionObserver(
+        this._fileStateCollectionObserver = new FileStateCollectionObserver(
             (newFiles) => {
                 if (page.url.hash.length == 0) {
                     this.fitBoundsOnLoad(Array.from(newFiles.keys()));
@@ -31,7 +28,7 @@ export class BoundsManager {
         this.reset();
 
         this._files = new Set(files);
-        this._fileStateCollectionObserver = new GPXFileStateCollectionObserver(
+        this._fileStateCollectionObserver = new FileStateCollectionObserver(
             (newFiles) => {
                 newFiles.forEach((fileState, fileId) => {
                     if (this._files.has(fileId)) {
@@ -48,16 +45,21 @@ export class BoundsManager {
         );
     }
 
-    addBoundsFromFile(fileId: string, file: GPXFileWithStatistics | undefined) {
+    addBoundsFromFile(fileId: string, file: FileState) {
         if (!file || !this._files.has(fileId)) return;
 
         this._files.delete(fileId);
 
-        const bounds = file.statistics.getStatisticsFor(new ListFileItem(fileId)).global.bounds;
-        if (!this.validBounds(bounds)) return;
-
-        this._bounds.extend(bounds.southWest);
-        this._bounds.extend(bounds.northEast);
+        if (file.statistics.bounds) {
+            let bounds = new maplibregl.LngLatBounds([
+                file.statistics.bounds.west,
+                file.statistics.bounds.south,
+                file.statistics.bounds.east,
+                file.statistics.bounds.north,
+            ]);
+            if (!this.validBounds(bounds)) return;
+            this._bounds.extend(bounds);
+        }
 
         if (this._files.size === 0) {
             this.finalizeFitBounds();
@@ -91,42 +93,30 @@ export class BoundsManager {
     }
 
     centerMapOnSelection() {
-        let selected = get(selection).getSelected();
-        let bounds = new maplibregl.LngLatBounds();
-
-        if (selected.find((item) => item instanceof ListWaypointItem)) {
-            selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = fileStateCollection.getFile(fileId);
-                if (file) {
-                    items.forEach((item) => {
-                        if (item instanceof ListWaypointItem) {
-                            let waypoint = file.wpt[item.getWaypointIndex()];
-                            if (waypoint) {
-                                bounds.extend([waypoint.getLongitude(), waypoint.getLatitude()]);
-                            }
-                        }
-                    });
-                }
+        let stats = get(statistics);
+        if (stats.global.bounds) {
+            // TODO take waypoints into account
+            let bounds = new maplibregl.LngLatBounds([
+                stats.global.bounds.west,
+                stats.global.bounds.south,
+                stats.global.bounds.east,
+                stats.global.bounds.north,
+            ]);
+            if (!this.validBounds(bounds)) return;
+            get(map)?.fitBounds(bounds, {
+                padding: 80,
+                easing: () => 1,
+                maxZoom: 15,
             });
-        } else {
-            let selectionBounds = get(gpxStatistics).global.bounds;
-            bounds.setNorthEast(selectionBounds.northEast);
-            bounds.setSouthWest(selectionBounds.southWest);
         }
-
-        get(map)?.fitBounds(bounds, {
-            padding: 80,
-            easing: () => 1,
-            maxZoom: 15,
-        });
     }
 
-    validBounds(bounds: { southWest: Coordinates; northEast: Coordinates }) {
+    validBounds(bounds: maplibregl.LngLatBounds) {
         return (
-            bounds.southWest.lat !== 90 ||
-            bounds.southWest.lon !== 180 ||
-            bounds.northEast.lat !== -90 ||
-            bounds.northEast.lon !== -180
+            bounds.getSouthWest().lat !== 90 ||
+            bounds.getSouthWest().lng !== 180 ||
+            bounds.getNorthEast().lat !== -90 ||
+            bounds.getNorthEast().lng !== -180
         );
     }
 }
