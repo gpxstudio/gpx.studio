@@ -1,4 +1,4 @@
-import type { Selection } from 'gpx-rs';
+import type { Clipboard, Selection } from 'gpx-rs';
 import { isHidden, waypointsKey, type VisibilityState } from '$lib/file-visibility';
 
 /**
@@ -48,6 +48,25 @@ export function selectedFileIds(selection: Selection): string[] {
             return selection.fileIds;
         default:
             return [selection.fileId];
+    }
+}
+
+/** Whether the node is one of the elements in the clipboard. */
+export function isInClipboard(clipboard: Clipboard | undefined, node: FileTreeNode): boolean {
+    if (!clipboard) {
+        return false;
+    }
+    switch (node.type) {
+        case 'file':
+            return clipboard.type === 'files' && clipboard.ids.includes(node.fileId);
+        case 'track':
+            return clipboard.type === 'tracks' && clipboard.ids.includes(node.trackId);
+        case 'segment':
+            return clipboard.type === 'segments' && clipboard.ids.includes(node.segmentId);
+        case 'waypoint':
+            return clipboard.type === 'waypoints' && clipboard.ids.includes(node.waypointId);
+        case 'waypoints':
+            return false;
     }
 }
 

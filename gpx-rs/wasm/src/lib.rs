@@ -372,7 +372,10 @@ pub fn cut() -> bool {
     execute(Action::Cut)
 }
 
-/// Pastes the clipboard according to the selection (see `can_paste`).
+/// Pastes the clipboard according to the selection (see `can_paste`). What is pasted is always
+/// the elements as they were when they were copied or cut, even if they were changed or deleted
+/// since. It can be pasted several times: what was copied is copied again, what was cut is moved
+/// the first time (and the clipboard is not cut after that), then it is copied.
 #[wasm_bindgen]
 pub fn paste() -> bool {
     edit(Command::Paste(engine::Paste))
@@ -610,9 +613,10 @@ export type MoveTarget =
     | { type: 'tracks'; fileId: string; index: number }
     | { type: 'segments'; fileId: string; trackId: string; index: number }
     | { type: 'waypoints'; fileId: string; index: number };
-/** What was copied or cut, to be pasted. */
+/** What was copied or cut, to be pasted: the kind of the elements and their ids. */
 export interface Clipboard {
-    selection: Selection;
+    type: 'files' | 'tracks' | 'segments' | 'waypoints';
+    ids: string[];
     cut: boolean;
 }
 export interface FilesUpdate {
@@ -921,13 +925,21 @@ pub fn selection() -> Selection {
         .unchecked_into()
 }
 
-/// What was copied or cut and is waiting to be pasted, `undefined` if nothing.
+/// What was copied or cut and is waiting to be pasted, `undefined` if nothing: the kind of the
+/// elements and their ids (UUID strings).
 #[wasm_bindgen]
 pub fn clipboard() -> Clipboard {
     with_engine(|e| {
         e.clipboard().map_or(JsValue::UNDEFINED, |clipboard| {
             let object = Object::new();
-            set(&object, "selection", selection_object(&clipboard.selection));
+            let (kind, ids) = match clipboard.content.ids() {
+                engine::ClipboardIds::Files(ids) => ("files", uuids(ids, |id| id.0)),
+                engine::ClipboardIds::Tracks(ids) => ("tracks", uuids(ids, |id| id.0)),
+                engine::ClipboardIds::Segments(ids) => ("segments", uuids(ids, |id| id.0)),
+                engine::ClipboardIds::Waypoints(ids) => ("waypoints", uuids(ids, |id| id.0)),
+            };
+            set(&object, "type", kind);
+            set(&object, "ids", ids);
             set(&object, "cut", clipboard.cut);
             object.into()
         })

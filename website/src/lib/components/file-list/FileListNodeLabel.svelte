@@ -32,6 +32,7 @@
     import { isHidden } from '$lib/file-visibility';
     import {
         elementId,
+        isInClipboard,
         isSelected,
         selectedElementIds,
         selectionSize,
@@ -105,7 +106,7 @@
 
     let hidden = $derived(isHidden(fileState, elementId(node)));
     // cut elements are greyed until they are pasted
-    let isCut = $derived($clipboard?.cut === true && isSelected($clipboard.selection, node));
+    let isCut = $derived($clipboard?.cut === true && isInClipboard($clipboard, node));
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->

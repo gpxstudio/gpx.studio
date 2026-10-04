@@ -1,11 +1,12 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import type { FileStructure, Selection } from 'gpx-rs';
+import type { Clipboard, FileStructure, Selection } from 'gpx-rs';
 import type { VisibilityState } from './file-visibility';
 import {
     elementId,
     hasSelectionWithin,
     isCovered,
+    isInClipboard,
     isEmpty,
     isSelected,
     isSelectionHidden,
@@ -73,6 +74,26 @@ describe('selection helpers', () => {
             Object.keys(nodes).map((name) => elementId(nodes[name])),
             ['F1', 'F2', 'T1', 'T2', 'S1', 'S2', 'S3', 'F1:waypoints', 'W1', 'W2', 'F2:waypoints']
         );
+    });
+
+    it('tells which nodes are in the clipboard', () => {
+        const clipboard = (type: Clipboard['type'], ids: string[]): Clipboard => ({
+            type,
+            ids,
+            cut: true,
+        });
+        assert.deepEqual(
+            matching(empty, (_, node) => isInClipboard(undefined, node)),
+            []
+        );
+        const inClipboard = (c: Clipboard) =>
+            Object.keys(nodes).filter((name) => isInClipboard(c, nodes[name]));
+        assert.deepEqual(inClipboard(clipboard('files', ['F2'])), ['F2']);
+        assert.deepEqual(inClipboard(clipboard('tracks', ['T2', 'S1'])), ['T2']);
+        assert.deepEqual(inClipboard(clipboard('segments', ['S1', 'S3'])), ['S1', 'S3']);
+        assert.deepEqual(inClipboard(clipboard('waypoints', ['W2'])), ['W2']);
+        // not mixed up with the other kinds of elements
+        assert.deepEqual(inClipboard(clipboard('files', ['T1', 'S1', 'W1'])), []);
     });
 
     it('counts the selected elements', () => {

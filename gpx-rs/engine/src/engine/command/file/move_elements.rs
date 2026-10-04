@@ -1,6 +1,5 @@
 use crate::{
-    Apply, CommandError, FileId, Place, SegmentsTo, Selection, State, TrackId, TracksTo,
-    transfer_files, transfer_segments, transfer_tracks, transfer_waypoints,
+    Apply, Clipboard, CommandError, Destination, FileId, Place, Selection, State, TrackId, transfer,
 };
 
 /// Where moved elements go: a list of the file tree, and the position in it. The position is
@@ -38,67 +37,30 @@ pub struct Move {
     pub to: MoveTarget,
 }
 
+impl From<MoveTarget> for Destination {
+    fn from(target: MoveTarget) -> Self {
+        match target {
+            MoveTarget::Files { index } => Destination::Files(Place::Index(index)),
+            MoveTarget::Tracks { file_id, index } => {
+                Destination::Tracks(file_id, Place::Index(index))
+            }
+            MoveTarget::Segments {
+                file_id,
+                trk_id,
+                index,
+            } => Destination::Segments(file_id, trk_id, Place::Index(index)),
+            MoveTarget::Waypoints { file_id, index } => {
+                Destination::Waypoints(file_id, Place::Index(index))
+            }
+        }
+    }
+}
+
 impl Apply for Move {
     fn apply(self, state: &mut State) -> Result<(), CommandError> {
-        use MoveTarget as To;
-        let next = match (&self.what, self.to) {
-            (Selection::File { file_ids }, To::Files { index }) => {
-                transfer_files(state, file_ids, true, Place::Index(index))?
-            }
-            (Selection::Track { file_id, trk_ids }, To::Files { index }) => transfer_tracks(
-                state,
-                *file_id,
-                trk_ids,
-                true,
-                TracksTo::Files(Place::Index(index)),
-            )?,
-            (Selection::Track { file_id, trk_ids }, To::Tracks { file_id: to, index }) => {
-                transfer_tracks(
-                    state,
-                    *file_id,
-                    trk_ids,
-                    true,
-                    TracksTo::File(to, Place::Index(index)),
-                )?
-            }
-            (
-                Selection::TrackSegment {
-                    file_id,
-                    trk_id,
-                    trkseg_ids,
-                },
-                to,
-            ) => {
-                let to = match to {
-                    To::Files { index } => SegmentsTo::Files(Place::Index(index)),
-                    To::Tracks { file_id, index } => {
-                        SegmentsTo::Tracks(file_id, Place::Index(index))
-                    }
-                    To::Segments {
-                        file_id,
-                        trk_id,
-                        index,
-                    } => SegmentsTo::Track(file_id, trk_id, Place::Index(index)),
-                    To::Waypoints { .. } => return Err(CommandError::NothingToDo),
-                };
-                transfer_segments(state, *file_id, *trk_id, trkseg_ids, true, to)?
-            }
-            (Selection::Waypoints { file_id }, To::Waypoints { file_id: to, index }) => {
-                transfer_waypoints(state, *file_id, None, true, to, Place::Index(index))?
-            }
-            (Selection::Waypoint { file_id, wpt_ids }, To::Waypoints { file_id: to, index }) => {
-                transfer_waypoints(
-                    state,
-                    *file_id,
-                    Some(wpt_ids),
-                    true,
-                    to,
-                    Place::Index(index),
-                )?
-            }
-            _ => return Err(CommandError::NothingToDo),
-        };
-        *state.selection = next;
+        let clipboard = Clipboard::new(&self.what, state.files, &state.order.0, true)
+            .ok_or(CommandError::NothingToDo)?;
+        *state.selection = transfer(state, &clipboard.content, true, self.to.into())?;
         Ok(())
     }
 }

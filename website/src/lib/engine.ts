@@ -362,7 +362,11 @@ class Engine {
      * Pastes the clipboard, depending on the selection: the files, tracks and segments become new
      * files when nothing is selected, tracks and waypoints are added to a selected file,
      * segments to a selected track, and pasted after a selected track, segment or waypoint of the
-     * same kind. The pasted elements are selected and the clipboard is emptied.
+     * same kind. The pasted elements are selected.
+     *
+     * What is pasted is always the elements as they were when they were copied or cut, even if
+     * they were changed or deleted since. It can be pasted several times: what was copied is
+     * copied again, what was cut is moved the first time and copied after that.
      */
     paste() {
         return this.run((w) => w.paste());

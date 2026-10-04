@@ -177,7 +177,9 @@ impl Engine {
 
     /// Puts the selection in the clipboard, if there is one.
     fn copy(&mut self, cut: bool) {
-        if let Some(clipboard) = Clipboard::new(self.selection.clone(), cut) {
+        if let Some(files) = self.stack.current()
+            && let Some(clipboard) = Clipboard::new(&self.selection, files, &self.order.0, cut)
+        {
             self.clipboard = Some(clipboard);
         }
     }
@@ -202,18 +204,10 @@ impl Engine {
                 // files coming back after an undo/redo are added at the end of the order
                 self.order.sync(files);
                 self.selection.retain_existing(files);
-                // what was copied is not pasted if it does not exist anymore
-                if let Some(clipboard) = &mut self.clipboard {
-                    clipboard.selection.retain_existing(files);
-                    if clipboard.selection == Selection::Empty {
-                        self.clipboard = None;
-                    }
-                }
             }
             None => {
                 self.order.0.clear();
                 self.selection = Selection::Empty;
-                self.clipboard = None;
             }
         }
         self.statistics_cache.update(current);
@@ -233,7 +227,8 @@ mod tests {
     use std::collections::HashSet;
 
     use crate::{
-        Delete, DeleteAll, Load, Metadata, New, NewTrack, Paste, Style, TrackId, TrackSegmentId,
+        ClipboardIds, Delete, DeleteAll, Load, Metadata, New, NewTrack, Paste, Style, TrackId,
+        TrackSegmentId,
     };
 
     use super::*;
@@ -902,8 +897,8 @@ mod tests {
         assert!(engine.execute(Action::Copy));
         assert!(engine.clipboard_changed() && !engine.selection_changed());
         assert_eq!(
-            engine.clipboard().map(|c| (c.cut, &c.selection)),
-            Some((false, &selected_tracks))
+            engine.clipboard().map(|c| (c.content.ids(), c.cut)),
+            Some((ClipboardIds::Tracks(tracks.clone()), false))
         );
         // tracks cannot be pasted onto themselves... but into a track, a file or the list of files
         assert!(engine.can_paste());
@@ -921,14 +916,19 @@ mod tests {
         assert!(paste(&mut engine));
         assert_eq!(track_ids(&engine, a), tracks);
         assert_eq!(track_ids(&engine, b).len(), 2);
-        assert!(engine.clipboard().is_none() && engine.clipboard_changed());
+        // a copy stays in the clipboard, to be pasted again
+        assert!(engine.clipboard().is_some() && !engine.clipboard_changed());
         assert!(
             matches!(engine.selection(), Selection::Track { file_id, trk_ids } if *file_id == b && trk_ids.len() == 2)
         );
-        // the clipboard is empty: nothing more to paste
-        assert!(!paste(&mut engine));
+        assert!(engine.can_paste());
+        assert!(paste(&mut engine));
+        assert_eq!(track_ids(&engine, b).len(), 4);
+        assert_eq!(track_ids(&engine, a), tracks);
 
         // and it can be undone
+        assert!(engine.execute(Action::Undo));
+        assert_eq!(track_ids(&engine, b).len(), 2);
         assert!(engine.execute(Action::Undo));
         assert!(track_ids(&engine, b).is_empty());
     }
@@ -962,7 +962,7 @@ mod tests {
     }
 
     #[test]
-    fn test_clipboard_drops_what_does_not_exist_anymore() {
+    fn test_clipboard_survives_what_happens_to_the_elements() {
         let mut engine = Engine::default();
         let a = file_with_tracks(&mut engine, "a", 2);
         let tracks = track_ids(&engine, a);
@@ -975,8 +975,10 @@ mod tests {
             SelectMode::Replace,
         );
         engine.execute(Action::Copy);
+        let clipboard = engine.clipboard().cloned();
+        assert!(clipboard.is_some());
 
-        // one of the tracks is deleted: the other one is still there to paste
+        // one of the tracks is deleted, then the whole file: the clipboard is not affected
         select_elements(
             &mut engine,
             Selection::Track {
@@ -989,15 +991,23 @@ mod tests {
             &mut engine,
             Command::Delete(Delete { whole_files: false })
         ));
-        assert!(
-            matches!(engine.clipboard().map(|c| &c.selection), Some(Selection::Track { trk_ids, .. }) if trk_ids.len() == 1)
-        );
-
-        // the whole file is deleted: nothing left
         select_elements(&mut engine, files(&[a]), SelectMode::Replace);
         assert!(edit(&mut engine, Command::DeleteAll(DeleteAll)));
-        assert!(engine.clipboard().is_none());
-        assert!(engine.clipboard_changed());
+        assert_eq!(engine.clipboard(), clipboard.as_ref());
+        assert!(!engine.clipboard_changed());
+
+        // both tracks are pasted in a new file, as they were when they were copied
+        let b = file_with_tracks(&mut engine, "b", 0);
+        select_files(&mut engine, &[b]);
+        assert!(engine.can_paste());
+        assert!(paste(&mut engine));
+        let pasted = track_ids(&engine, b);
+        assert_eq!(pasted.len(), 2);
+        // copies, with new ids
+        assert!(pasted.iter().all(|id| !tracks.contains(id)));
+        // and again
+        assert!(paste(&mut engine));
+        assert_eq!(track_ids(&engine, b).len(), 4);
     }
 
     #[test]
@@ -1010,12 +1020,12 @@ mod tests {
         select_files(&mut engine, &[b]);
         assert!(engine.execute(Action::Cut));
         assert_eq!(
-            engine.clipboard().map(|c| (c.cut, &c.selection)),
-            Some((true, &files(&[b])))
+            engine.clipboard().map(|c| (c.content.ids(), c.cut)),
+            Some((ClipboardIds::Files(vec![b]), true))
         );
-        // the same content again: nothing changed
-        assert!(!engine.execute(Action::Cut));
-        assert!(!engine.clipboard_changed());
+        // the same elements again are a new copy
+        assert!(engine.execute(Action::Cut));
+        assert!(engine.clipboard_changed());
         // only the creations of the files are in the history
         assert!(engine.execute(Action::Undo));
         assert!(engine.execute(Action::Undo));
