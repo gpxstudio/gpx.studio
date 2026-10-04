@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1"
+    xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1" version="1.1" creator="https://gpx.studio">
+    <metadata>
+        <name>with_highway</name>
+    </metadata>
+    <trk>
+        <name>with_highway</name>
+        <trkseg>
+            <trkpt lat="50.790867" lon="4.404968">
+                <ele>109.0</ele>
+                <extensions>
+                    <gpxtpx:TrackPointExtension>
+                        <gpxtpx:Extensions>
+                            <surface>asphalt</surface>
+                            <highway>residential</highway>
+                        </gpxtpx:Extensions>
+                    </gpxtpx:TrackPointExtension>
+                </extensions>
+            </trkpt>
+            <trkpt lat="50.791000" lon="4.405100">
+                <ele>110.0</ele>
+                <extensions>
+                    <gpxtpx:TrackPointExtension>
+                        <gpxtpx:Extensions>
+                            <surface>asphalt</surface>
+                            <highway>residential</highway>
+                        </gpxtpx:Extensions>
+                    </gpxtpx:TrackPointExtension>
+                </extensions>
+            </trkpt>
+            <trkpt lat="50.791200" lon="4.405300">
+                <ele>111.0</ele>
+            </trkpt>
+            <trkpt lat="50.791400" lon="4.405500">
+                <ele>112.0</ele>
+                <extensions>
+                    <gpxtpx:TrackPointExtension>
+                        <gpxtpx:Extensions>
+                            <surface>gravel</surface>
+                            <highway>track</highway>
+                        </gpxtpx:Extensions>
+                    </gpxtpx:TrackPointExtension>
+                </extensions>
+            </trkpt>
+            <trkpt lat="50.791600" lon="4.405700">
+                <ele>113.0</ele>
+                <extensions>
+                    <gpxtpx:TrackPointExtension>
+                        <gpxtpx:Extensions>
+                            <surface>gravel</surface>
+                        </gpxtpx:Extensions>
+                    </gpxtpx:TrackPointExtension>
+                </extensions>
+            </trkpt>
+        </trkseg>
+    </trk>
+</gpx>

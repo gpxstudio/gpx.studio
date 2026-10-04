@@ -1,4 +1,4 @@
-use crate::{Apply, CommandError, File, State, parse, produce};
+use crate::{Apply, CommandError, File, State, TrackpointCategories, parse, produce};
 
 #[derive(Debug)]
 pub struct Load<'a> {
@@ -9,9 +9,9 @@ pub struct Load<'a> {
 }
 
 impl Load<'_> {
-    fn parse(self) -> Result<File, CommandError> {
-        let mut file =
-            parse(self.data).map_err(|err| CommandError::InvalidData(err.to_string()))?;
+    fn parse(self, categories: &mut TrackpointCategories) -> Result<File, CommandError> {
+        let mut file = parse(self.data, categories)
+            .map_err(|err| CommandError::InvalidData(err.to_string()))?;
         if file.info.name.trim().is_empty() {
             file.info.name = self.name.to_owned();
         }
@@ -40,7 +40,7 @@ impl Apply for LoadFiles<'_> {
         let mut files = Vec::with_capacity(self.files.len());
         let mut first_error = None;
         for load in self.files {
-            match load.parse() {
+            match load.parse(state.categories) {
                 Ok(file) => files.push(file),
                 Err(error) => {
                     first_error.get_or_insert(error);

@@ -140,11 +140,14 @@ export type SelectionStatistics = {
     cad: Float64Array;
     atemp: Float64Array;
     power: Float64Array;
-    /**
-     * Extensions of the trackpoints (surface, highway...), or an empty array when they are not
-     * known. TODO the engine does not store them yet.
-     */
-    extensions: Record<string, string>[];
+    /** Surface of the trackpoints: 0 when unknown, else 1 + the index in `surfaces`. */
+    surface: Uint8Array;
+    /** Names of the surfaces, by code: a name keeps its index. */
+    surfaces: string[];
+    /** Highway of the trackpoints: 0 when unknown, else 1 + the index in `highways`. */
+    highway: Uint8Array;
+    /** Names of the highways, by code. */
+    highways: string[];
     /**
      * Global statistics of the trackpoints from `start` to `end` (both included), for example
      * the part of the elevation profile that was dragged over. `undefined` if the range is not
@@ -174,7 +177,10 @@ const EMPTY_SELECTION_STATISTICS: SelectionStatistics = {
     cad: new Float64Array(),
     atemp: new Float64Array(),
     power: new Float64Array(),
-    extensions: [],
+    surface: new Uint8Array(),
+    surfaces: [],
+    highway: new Uint8Array(),
+    highways: [],
     slice: () => undefined,
 };
 
@@ -625,7 +631,10 @@ class Engine {
             cad: wasm.cad().slice(),
             atemp: wasm.atemp().slice(),
             power: wasm.power().slice(),
-            extensions: [],
+            surface: wasm.surface().slice(),
+            surfaces: wasm.surfaces(),
+            highway: wasm.highway().slice(),
+            highways: wasm.highways(),
             slice: (start, end) =>
                 version === this._statisticsVersion ? wasm.slice_statistics(start, end) : undefined,
         };

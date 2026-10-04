@@ -331,7 +331,7 @@ mod tests {
         let mut f = File::open("data/with_time.gpx").unwrap();
         let mut data = String::new();
         let _ = f.read_to_string(&mut data);
-        let gpx = parse(data.as_bytes()).unwrap();
+        let gpx = parse(data.as_bytes(), &mut Default::default()).unwrap();
 
         let trkseg = &gpx.trk[0].trkseg[0];
         let stats = Statistics::compute(trkseg);
@@ -348,7 +348,7 @@ mod tests {
         let mut f = File::open(path).unwrap();
         let mut data = String::new();
         let _ = f.read_to_string(&mut data);
-        parse(data.as_bytes()).unwrap()
+        parse(data.as_bytes(), &mut Default::default()).unwrap()
     }
 
     #[test]
@@ -482,7 +482,7 @@ mod tests {
             ("data/with_power_1.gpx", 3),
         ] {
             let data = std::fs::read(path).unwrap();
-            let gpx = parse(&data).unwrap();
+            let gpx = parse(&data, &mut Default::default()).unwrap();
             let trkseg = &gpx.trk[0].trkseg[0];
             let global = Statistics::compute(trkseg).global;
             let values: Vec<f64> = trkseg

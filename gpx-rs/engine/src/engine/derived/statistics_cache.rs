@@ -161,7 +161,7 @@ mod tests {
 
     fn state(path: &str) -> (StackEntry, Rc<File>) {
         let data = std::fs::read(path).unwrap();
-        let file = Rc::new(parse(&data).unwrap());
+        let file = Rc::new(parse(&data, &mut Default::default()).unwrap());
         let mut state = StackEntry::default();
         state.insert(file.id, file.clone());
         (state, file)
@@ -273,7 +273,7 @@ mod tests {
         let (mut state, first) = state("data/simple.gpx");
         let (other, second) = {
             let data = std::fs::read("data/with_time.gpx").unwrap();
-            let file = Rc::new(parse(&data).unwrap());
+            let file = Rc::new(parse(&data, &mut Default::default()).unwrap());
             (file.clone(), file)
         };
         state.insert(other.id, other);

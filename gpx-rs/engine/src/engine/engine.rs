@@ -3,7 +3,7 @@
 use crate::{
     Action, Apply, Clipboard, Command, CoordinatesCache, Diff, FileId, FileOrder, FileStructure,
     FileStructureCache, GlobalStatistics, SelectMode, Selection, Stack, State, StatisticsBuffer,
-    StatisticsCache, TrackSegmentId, Trackpoint, Waypoint, WaypointId,
+    StatisticsCache, TrackSegmentId, Trackpoint, TrackpointCategories, Waypoint, WaypointId,
 };
 
 #[derive(Debug, Default)]
@@ -18,6 +18,7 @@ pub struct Engine {
     order_changed: bool,
     selection_changed: bool,
     statistics_buffer: StatisticsBuffer,
+    categories: TrackpointCategories,
     clipboard: Option<Clipboard>,
     clipboard_changed: bool,
 }
@@ -25,6 +26,11 @@ pub struct Engine {
 impl Engine {
     pub fn statistics(&self) -> &StatisticsBuffer {
         &self.statistics_buffer
+    }
+
+    /// The names of the surfaces and highways that the trackpoints refer to by code.
+    pub fn categories(&self) -> &TrackpointCategories {
+        &self.categories
     }
 
     /// Files in display order.
@@ -216,6 +222,7 @@ impl Engine {
     fn edit(&mut self, command: Command) -> Option<Diff> {
         self.stack.create_and_push_next(|files| {
             let mut state = State {
+                categories: &mut self.categories,
                 files,
                 selection: &mut self.selection,
                 order: &mut self.order,
@@ -1229,6 +1236,52 @@ mod tests {
         assert!(engine.waypoint_coordinates(&file).is_empty());
         assert!(engine.execute(Action::Undo));
         assert!(engine.waypoint(&file, &id).is_some());
+    }
+
+    #[test]
+    fn test_categories_are_shared_and_kept_by_the_history() {
+        let mut engine = Engine::default();
+        assert!(engine.categories().surface.names().is_empty());
+
+        load(&mut engine, "data/with_highway.gpx");
+        assert_eq!(engine.categories().surface.names(), ["asphalt", "gravel"]);
+        assert_eq!(
+            engine.categories().highway.names(),
+            ["residential", "track"]
+        );
+        // the trackpoints of the selection refer to them
+        assert_eq!(engine.statistics().surface, [1, 1, 0, 2, 2]);
+        assert_eq!(engine.statistics().highway, [1, 1, 0, 2, 0]);
+
+        // a second file goes on with the same table
+        load(&mut engine, "data/with_surface.gpx");
+        assert_eq!(
+            engine.categories().surface.names(),
+            ["asphalt", "gravel", "cobblestone"]
+        );
+        assert_eq!(engine.statistics().surface.len(), 80);
+        assert_eq!(engine.statistics().surface[0], 1);
+        assert_eq!(
+            engine
+                .statistics()
+                .surface
+                .iter()
+                .filter(|c| **c == 3)
+                .count(),
+            1
+        );
+
+        // undoing does not forget what was learned: the codes stay valid in every state
+        assert!(engine.execute(Action::Undo));
+        assert!(engine.execute(Action::Undo));
+        assert_eq!(
+            engine.categories().surface.names(),
+            ["asphalt", "gravel", "cobblestone"]
+        );
+        assert!(engine.execute(Action::Redo));
+        let first = engine.order()[0];
+        select_files(&mut engine, &[first]);
+        assert_eq!(engine.statistics().surface, [1, 1, 0, 2, 2]);
     }
 
     #[test]

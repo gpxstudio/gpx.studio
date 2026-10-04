@@ -1,3 +1,4 @@
+mod categories;
 mod chunk;
 mod common;
 mod file;
@@ -6,6 +7,7 @@ mod track;
 mod trackpoint;
 mod waypoint;
 
+pub use categories::*;
 pub use chunk::*;
 pub use common::*;
 pub use file::*;

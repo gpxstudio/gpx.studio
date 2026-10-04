@@ -9,6 +9,7 @@ pub use selection::*;
 pub use stack::*;
 
 pub struct State<'a> {
+    pub categories: &'a mut crate::TrackpointCategories,
     pub files: &'a mut StackEntry,
     pub selection: &'a mut Selection,
     pub order: &'a mut FileOrder,

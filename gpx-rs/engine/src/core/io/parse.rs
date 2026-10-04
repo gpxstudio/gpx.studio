@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
 use crate::{
-    Author, File, Link, LngLat, Track, TrackSegment, Trackpoint, TrackpointChunk, Waypoint,
-    WaypointChunk,
+    Author, File, Link, LngLat, Track, TrackSegment, Trackpoint, TrackpointCategories,
+    TrackpointChunk, Waypoint, WaypointChunk,
 };
 use chrono::DateTime;
 use quick_xml::Error;
@@ -29,6 +29,8 @@ enum GPXElement {
     Heartrate,
     Cadence,
     Power,
+    Surface,
+    Highway,
     Symbol,
     Type,
     Color,
@@ -48,7 +50,9 @@ fn parse_coordinates(attributes: Attributes<'_>) -> LngLat {
     coordinates
 }
 
-pub fn parse(data: &[u8]) -> Result<File, Error> {
+/// Parses a GPX file. The surface and the highway of the trackpoints are stored as codes of
+/// `categories`, which learns the values it does not know yet.
+pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File, Error> {
     let mut reader = Reader::from_reader(data);
     let mut buf = vec![];
     let mut gpx = File::default();
@@ -95,8 +99,10 @@ pub fn parse(data: &[u8]) -> Result<File, Error> {
                 e if e.ends_with("atemp") => stack.push(GPXElement::Temperature),
                 e if e.ends_with("hr") => stack.push(GPXElement::Heartrate),
                 e if e.ends_with("cad") => stack.push(GPXElement::Cadence),
-                "power" => stack.push(GPXElement::Power),
+                e if e.ends_with("power") => stack.push(GPXElement::Power),
                 e if e.ends_with("PowerInWatts") => stack.push(GPXElement::Power),
+                "surface" => stack.push(GPXElement::Surface),
+                "highway" => stack.push(GPXElement::Highway),
                 "sym" => stack.push(GPXElement::Symbol),
                 "type" => stack.push(GPXElement::Type),
                 e if e.ends_with("color") => stack.push(GPXElement::Color),
@@ -270,6 +276,18 @@ pub fn parse(data: &[u8]) -> Result<File, Error> {
                         trkpt.power = e.parse().ok();
                     }
                 }
+                Some(GPXElement::Surface) => {
+                    stack.pop();
+                    if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
+                        trkpt.surface = categories.surface.code(&e);
+                    }
+                }
+                Some(GPXElement::Highway) => {
+                    stack.pop();
+                    if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
+                        trkpt.highway = categories.highway.code(&e);
+                    }
+                }
                 Some(GPXElement::Symbol) => {
                     stack.pop();
                     if let Some(GPXElement::Waypoint(wpt)) = stack.last_mut() {
@@ -322,7 +340,11 @@ mod tests {
     use super::*;
 
     fn parse_data(name: &str) -> File {
-        parse(&std::fs::read(format!("data/{name}.gpx")).unwrap()).unwrap()
+        parse(
+            &std::fs::read(format!("data/{name}.gpx")).unwrap(),
+            &mut Default::default(),
+        )
+        .unwrap()
     }
 
     #[test]
@@ -511,6 +533,88 @@ mod tests {
         assert!(!trkseg.is_empty());
         let trkpt = &trkseg[0];
         assert!(trkpt.hr.is_some_and(|h| h == 150));
+    }
+
+    fn parse_data_with_categories(name: &str) -> (File, TrackpointCategories) {
+        let mut categories = TrackpointCategories::default();
+        let file = parse(
+            &std::fs::read(format!("data/{name}.gpx")).unwrap(),
+            &mut categories,
+        )
+        .unwrap();
+        (file, categories)
+    }
+
+    #[test]
+    fn test_parse_trackpoint_surface() {
+        let (gpx, categories) = parse_data_with_categories("with_surface");
+
+        let trkseg = &gpx.trk[0].trkseg[0];
+        assert_eq!(trkseg.len(), 80);
+        // the codes follow the order of appearance in the file
+        assert_eq!(categories.surface.names(), ["asphalt", "cobblestone"]);
+        let asphalt = Some(0);
+        let cobblestone = Some(1);
+        assert_eq!(trkseg.iter().filter(|p| p.surface == asphalt).count(), 79);
+        assert_eq!(
+            trkseg.iter().filter(|p| p.surface == cobblestone).count(),
+            1
+        );
+        // no highway in this file
+        assert!(trkseg.iter().all(|trkpt| trkpt.highway.is_none()));
+        assert!(categories.highway.names().is_empty());
+    }
+
+    #[test]
+    fn test_parse_trackpoint_surface_and_highway() {
+        let (gpx, categories) = parse_data_with_categories("with_highway");
+
+        let trkseg = &gpx.trk[0].trkseg[0];
+        let names = |code: Option<u8>, names: &crate::Categories| {
+            code.and_then(|code| names.name(code)).map(str::to_owned)
+        };
+        let values: Vec<_> = trkseg
+            .iter()
+            .map(|trkpt| {
+                (
+                    names(trkpt.surface, &categories.surface),
+                    names(trkpt.highway, &categories.highway),
+                )
+            })
+            .collect();
+        let some = |s: &str| Some(s.to_owned());
+        assert_eq!(
+            values,
+            [
+                (some("asphalt"), some("residential")),
+                (some("asphalt"), some("residential")),
+                (None, None),
+                (some("gravel"), some("track")),
+                (some("gravel"), None),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_parse_shares_the_categories_between_files() {
+        let mut categories = TrackpointCategories::default();
+        let mut parsed = |name: &str| {
+            parse(
+                &std::fs::read(format!("data/{name}.gpx")).unwrap(),
+                &mut categories,
+            )
+            .unwrap()
+        };
+        let first = parsed("with_highway");
+        let second = parsed("with_surface");
+        let code = |file: &File, i: usize| file.trk[0].trkseg[0][i].surface;
+        // "asphalt" is the same in both, "cobblestone" comes after "gravel"
+        assert_eq!(code(&first, 0), Some(0));
+        assert_eq!(code(&second, 0), Some(0));
+        assert_eq!(
+            categories.surface.names(),
+            ["asphalt", "gravel", "cobblestone"]
+        );
     }
 
     #[test]

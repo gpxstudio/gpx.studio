@@ -45,7 +45,10 @@
         cad: new Float64Array(),
         atemp: new Float64Array(),
         power: new Float64Array(),
-        extensions: [],
+        surface: new Uint8Array(),
+        surfaces: [],
+        highway: new Uint8Array(),
+        highways: [],
         slice: () => undefined,
     });
     let slicedStatistics = writable(undefined);

@@ -14,7 +14,7 @@ use std::cell::RefCell;
 use wasm_bindgen::prelude::*;
 
 use gpx_engine::{self as engine, Action, Command, Engine, FileId, LngLat, LngLatBounds};
-use js_sys::{Array, BigInt64Array, Float64Array, Object, Reflect};
+use js_sys::{Array, BigInt64Array, Float64Array, Object, Reflect, Uint8Array};
 
 #[wasm_bindgen]
 #[derive(Clone, Copy)]
@@ -163,6 +163,28 @@ stats_getter!(hr, Float64Array);
 stats_getter!(cad, Float64Array);
 stats_getter!(atemp, Float64Array);
 stats_getter!(power, Float64Array);
+
+// Surface and highway of the trackpoints: 0 when unknown, else 1 + the index in `surfaces()` or
+// `highways()`.
+stats_getter!(surface, Uint8Array);
+stats_getter!(highway, Uint8Array);
+
+/// The names of the surfaces, in the order of their codes (see `surface`). The list only grows:
+/// a name keeps its index.
+#[wasm_bindgen]
+pub fn surfaces() -> StringList {
+    with_engine(|e| array(e.categories().surface.names(), |name| name.as_str().into()))
+        .unwrap_or_default()
+        .unchecked_into()
+}
+
+/// The names of the highways, in the order of their codes (see `highway`).
+#[wasm_bindgen]
+pub fn highways() -> StringList {
+    with_engine(|e| array(e.categories().highway.names(), |name| name.as_str().into()))
+        .unwrap_or_default()
+        .unchecked_into()
+}
 
 // File commands
 
@@ -803,6 +825,8 @@ extern "C" {
     pub type GlobalStatistics;
     #[wasm_bindgen(typescript_type = "string[]")]
     pub type FileOrder;
+    #[wasm_bindgen(typescript_type = "string[]")]
+    pub type StringList;
 }
 
 fn set(object: &Object, key: &str, value: impl Into<JsValue>) {

@@ -25,6 +25,7 @@ import type { Coordinates } from 'gpx';
 import { NO_TIME, type SelectionStatistics } from '$lib/engine';
 import type { SlicedStatistics } from '$lib/logic/selection-statistics';
 import { mode } from 'mode-watcher';
+import { categoryAt } from '$lib/trackpoint-categories';
 import { getHighwayColor, getSlopeColor, getSurfaceColor } from '$lib/assets/colors';
 
 const { distanceUnits, velocityUnits, temperatureUnits } = settings;
@@ -41,7 +42,8 @@ interface ElevationProfilePoint {
         segment: number;
         length: number;
     };
-    extensions: Record<string, any>;
+    surface?: string;
+    highway?: string;
     coordinates: Coordinates;
     index: number;
 }
@@ -185,14 +187,11 @@ export class ElevationProfile {
                                 segment: point.slope.segment.toFixed(1),
                                 length: getDistanceWithUnits(point.slope.length),
                             };
-                            let surface = point.extensions.surface
-                                ? point.extensions.surface
-                                : 'unknown';
-                            let highway = point.extensions.highway
-                                ? point.extensions.highway
-                                : 'unknown';
-                            let sacScale = point.extensions.sac_scale;
-                            let mtbScale = point.extensions.mtb_scale;
+                            let surface = point.surface ?? 'unknown';
+                            let highway = point.highway ?? 'unknown';
+                            // TODO the engine does not store the sac and mtb scales yet
+                            let sacScale: string | undefined = undefined;
+                            let mtbScale: string | undefined = undefined;
 
                             let labels = [
                                 `    ${i18n._('quantities.distance')}: ${getDistanceWithUnits(point.x, false)}`,
@@ -413,8 +412,8 @@ export class ElevationProfile {
                     segment: data.slopeSegmentSlope[index],
                     length: data.slopeSegmentDistance[index],
                 },
-                // TODO the engine does not store the extensions (surface, highway...) yet
-                extensions: data.extensions[index] ?? {},
+                surface: categoryAt(data.surface, data.surfaces, index),
+                highway: categoryAt(data.highway, data.highways, index),
                 coordinates: { lat: data.lat[index], lon: data.lng[index] },
                 index,
             });
@@ -602,16 +601,13 @@ export class ElevationProfile {
 
     surfaceFillCallback(context: ScriptableLineSegmentContext & { p0: { raw: any } }) {
         const point = context.p0.raw as ElevationProfilePoint;
-        return getSurfaceColor(point.extensions.surface);
+        return getSurfaceColor(point.surface ?? '');
     }
 
     highwayFillCallback(context: ScriptableLineSegmentContext & { p0: { raw: any } }) {
         const point = context.p0.raw as ElevationProfilePoint;
-        return getHighwayColor(
-            point.extensions.highway,
-            point.extensions.sac_scale,
-            point.extensions.mtb_scale
-        );
+        // TODO the engine does not store the sac and mtb scales yet
+        return getHighwayColor(point.highway ?? '', undefined, undefined);
     }
 
     destroy() {

@@ -33,6 +33,17 @@ pub struct StatisticsBuffer {
     pub cad: Vec<f64>,
     pub atemp: Vec<f64>,
     pub power: Vec<f64>,
+    /// Surface of the trackpoints: 0 when unknown, else 1 + its code in the categories of the
+    /// engine (so that it is never 0 for a known surface).
+    pub surface: Vec<u8>,
+    /// Highway of the trackpoints, as the surface.
+    pub highway: Vec<u8>,
+}
+
+/// 0 for an unknown value, else the code plus one. The categories hold at most 255 values, so it
+/// fits.
+fn unknown_or_next(code: Option<u8>) -> u8 {
+    code.and_then(|code| code.checked_add(1)).unwrap_or(0)
 }
 
 impl StatisticsBuffer {
@@ -65,6 +76,8 @@ impl StatisticsBuffer {
         self.cad.clear();
         self.atemp.clear();
         self.power.clear();
+        self.surface.clear();
+        self.highway.clear();
 
         let optional = |value: Option<f64>| value.unwrap_or(f64::NAN);
 
@@ -102,6 +115,8 @@ impl StatisticsBuffer {
                 self.cad.push(optional(trkpt.cad.map(f64::from)));
                 self.atemp.push(optional(trkpt.atemp.map(f64::from)));
                 self.power.push(optional(trkpt.power.map(f64::from)));
+                self.surface.push(unknown_or_next(trkpt.surface));
+                self.highway.push(unknown_or_next(trkpt.highway));
             }
             self.global.merge(&stats.global);
         }
@@ -153,7 +168,7 @@ mod tests {
 
     fn computed(path: &str) -> (TrackSegment, Statistics) {
         let data = std::fs::read(path).unwrap();
-        let file = parse(&data).unwrap();
+        let file = parse(&data, &mut Default::default()).unwrap();
         let segment = file.trk[0].trkseg[0].clone();
         let stats = Statistics::compute(&segment);
         (segment, stats)
@@ -179,6 +194,8 @@ mod tests {
             buffer.cad.len(),
             buffer.atemp.len(),
             buffer.power.len(),
+            buffer.surface.len(),
+            buffer.highway.len(),
         ]
     }
 
@@ -279,6 +296,45 @@ mod tests {
     }
 
     #[test]
+    fn test_surface_and_highway_codes() {
+        let (segment, s) = computed("data/with_highway.gpx");
+        let mut buffer = StatisticsBuffer::default();
+        buffer.update(&[(&segment, &s)]);
+
+        // 0 for the trackpoints that have none, else the code of the engine plus one
+        assert_eq!(buffer.surface, [1, 1, 0, 2, 2]);
+        assert_eq!(buffer.highway, [1, 1, 0, 2, 0]);
+        assert!(all_lengths(&buffer).iter().all(|len| *len == 5));
+    }
+
+    #[test]
+    fn test_codes_of_the_trackpoints_are_used_as_they_are() {
+        let (mut segment, _) = computed("data/simple.gpx");
+        let mut point = segment[0].clone();
+        point.surface = Some(7);
+        point.highway = Some(254);
+        segment.splice(0, 1, vec![point]);
+        let s = Statistics::compute(&segment);
+        let mut buffer = StatisticsBuffer::default();
+        buffer.update(&[(&segment, &s)]);
+        assert_eq!((buffer.surface[0], buffer.highway[0]), (8, 255));
+        assert_eq!((buffer.surface[1], buffer.highway[1]), (0, 0));
+    }
+
+    #[test]
+    fn test_no_codes_without_surface_and_highway() {
+        let (segment, s) = computed("data/simple.gpx");
+        let mut buffer = StatisticsBuffer::default();
+        buffer.update(&[(&segment, &s)]);
+        assert_eq!(buffer.surface.len(), s.local.len());
+        assert!(buffer.surface.iter().all(|c| *c == 0));
+        assert!(buffer.highway.iter().all(|c| *c == 0));
+        // and they are reset by the next update
+        buffer.update(&[]);
+        assert!(buffer.surface.is_empty() && buffer.highway.is_empty());
+    }
+
+    #[test]
     fn test_update_replaces_previous_content() {
         let (segment, s) = computed("data/simple.gpx");
         let mut buffer = StatisticsBuffer::default();
@@ -344,7 +400,7 @@ mod tests {
     #[test]
     fn test_slice_keeps_the_bounds_and_averages_of_the_selection() {
         let data = std::fs::read("data/with_hr.gpx").unwrap();
-        let file = parse(&data).unwrap();
+        let file = parse(&data, &mut Default::default()).unwrap();
         let segment = file.trk[0].trkseg[0].clone();
         let s = Statistics::compute(&segment);
         let mut buffer = StatisticsBuffer::default();

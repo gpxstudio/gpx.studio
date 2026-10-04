@@ -179,7 +179,7 @@ mod tests {
     fn fixture_with_tracks() -> (Fixture, FileId) {
         let mut fx = Fixture::default();
         let data = std::fs::read("data/with_tracks_and_segments.gpx").unwrap();
-        let file = Rc::new(crate::parse(&data).unwrap());
+        let file = Rc::new(crate::parse(&data, &mut Default::default()).unwrap());
         let id = file.id;
         fx.files.insert(id, file);
         (fx, id)

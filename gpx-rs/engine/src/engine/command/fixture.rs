@@ -2,7 +2,7 @@
 
 use std::collections::HashSet;
 
-use crate::{Clipboard, FileId, FileOrder, Selection, StackEntry, State};
+use crate::{Clipboard, FileId, FileOrder, Selection, StackEntry, State, TrackpointCategories};
 
 #[derive(Default)]
 pub struct Fixture {
@@ -10,11 +10,13 @@ pub struct Fixture {
     pub selection: Selection,
     pub order: FileOrder,
     pub clipboard: Option<Clipboard>,
+    pub categories: TrackpointCategories,
 }
 
 impl Fixture {
     pub fn state(&mut self) -> State<'_> {
         State {
+            categories: &mut self.categories,
             files: &mut self.files,
             selection: &mut self.selection,
             order: &mut self.order,

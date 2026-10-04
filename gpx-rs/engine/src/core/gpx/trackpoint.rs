@@ -9,5 +9,8 @@ pub struct Trackpoint {
     pub hr: Option<u16>,
     pub cad: Option<u16>,
     pub power: Option<u16>,
-    // TODO OSM data? or store intervals at a higher level?
+    /// Code of the surface, see [`crate::TrackpointCategories`].
+    pub surface: Option<u8>,
+    /// Code of the highway, see [`crate::TrackpointCategories`].
+    pub highway: Option<u8>,
 }
