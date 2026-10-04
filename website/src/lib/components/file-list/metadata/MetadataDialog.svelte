@@ -49,9 +49,12 @@
         <Button
             variant="outline"
             onclick={() => {
+                // closes the dialog now: `open` follows `editMetadata`, and the change of the file
+                // would open the dialog again before the effect below has reset it
+                editMetadata.current = false;
+                open = false;
                 // the metadata of the selected elements are changed
                 engine.metadata(name, description);
-                open = false;
             }}
         >
             <Save size="16" />

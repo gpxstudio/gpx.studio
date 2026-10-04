@@ -70,6 +70,11 @@
     });
 
     function applyStyle() {
+        // closes the dialog now: `open` follows `editStyle`, and the style changes the file, which
+        // would open the dialog again before the effect below has reset it
+        editStyle.current = false;
+        open = false;
+
         engine.style({
             color: colorChanged ? color : undefined,
             opacity: opacityChanged ? opacity : undefined,
@@ -84,8 +89,6 @@
                 $defaultWidth = width;
             }
         }
-
-        open = false;
     }
 </script>
 
