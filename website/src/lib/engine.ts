@@ -4,10 +4,10 @@ import { FileColorAllocator, normalizeColor } from '$lib/file-colors';
 import { setHidden, type Visibility } from '$lib/file-visibility';
 import { selectedElementIds, type FileTreeNode } from '$lib/selection-helpers';
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
-import type { FileStatistics, FileStructure, Selection } from 'gpx-rs';
+import type { GlobalStatistics, FileStructure, Selection } from 'gpx-rs';
 
 export type {
-    FileStatistics,
+    GlobalStatistics,
     FileStructure,
     FilesUpdate,
     Selection,
@@ -63,7 +63,7 @@ export type FileState = {
     /** Color of the file: the one defined by its tracks if any, otherwise one from the palette. */
     color: string;
     /** Global statistics of the file. */
-    statistics: FileStatistics;
+    statistics: GlobalStatistics;
     /** One LineString feature per track segment, in file order. */
     segments: FeatureCollection<LineString, SegmentProperties>;
     /** One Point feature per waypoint, in file order. */
@@ -75,7 +75,85 @@ export type FileState = {
     visibility: Visibility;
 };
 
-const EMPTY_STATISTICS: FileStatistics = { totalDistance: 0, elevationGain: 0, elevationLoss: 0 };
+const EMPTY_STATISTICS: GlobalStatistics = { totalDistance: 0, elevationGain: 0, elevationLoss: 0 };
+
+/**
+ * Timestamp of the trackpoints that have none, in `SelectionStatistics.timestamps` (the smallest
+ * 64-bit integer, like `NO_TIME` in the engine).
+ */
+export const NO_TIME = -(2n ** 63n);
+
+/**
+ * The statistics of the selection: its global statistics, and the values at each of its
+ * trackpoints (all the selected segments, one after the other). The arrays are copies.
+ *
+ * Distances, times, moving values and elevation gain / loss are cumulative over the whole
+ * selection. Distances are in km, speeds in km/h, times in ms (timestamps since the epoch, as
+ * 64-bit integers), elevations in m and slopes in %. Missing timestamps are `NO_TIME`, missing
+ * measures are NaN.
+ */
+export type SelectionStatistics = {
+    global: GlobalStatistics;
+    /** Number of trackpoints. */
+    length: number;
+    totalDistance: Float64Array;
+    movingDistance: Float64Array;
+    /** Duration since the start of the selection, in ms. */
+    totalTime: BigInt64Array;
+    movingTime: BigInt64Array;
+    speed: Float64Array;
+    elevationGain: Float64Array;
+    elevationLoss: Float64Array;
+    /** Slope at the trackpoint. */
+    slope: Float64Array;
+    /** Slope and length (km) of the smoothed elevation segment the trackpoint belongs to. */
+    slopeSegmentSlope: Float64Array;
+    slopeSegmentDistance: Float64Array;
+    lng: Float64Array;
+    lat: Float64Array;
+    ele: Float64Array;
+    timestamps: BigInt64Array;
+    hr: Float64Array;
+    cad: Float64Array;
+    atemp: Float64Array;
+    power: Float64Array;
+    /**
+     * Extensions of the trackpoints (surface, highway...), or an empty array when they are not
+     * known. TODO the engine does not store them yet.
+     */
+    extensions: Record<string, string>[];
+    /**
+     * Global statistics of the trackpoints from `start` to `end` (both included), for example
+     * the part of the elevation profile that was dragged over. `undefined` if the range is not
+     * in the selection, or if the selection is not the current one anymore.
+     */
+    slice(start: number, end: number): GlobalStatistics | undefined;
+};
+
+const EMPTY_SELECTION_STATISTICS: SelectionStatistics = {
+    global: EMPTY_STATISTICS,
+    length: 0,
+    totalDistance: new Float64Array(),
+    movingDistance: new Float64Array(),
+    totalTime: new BigInt64Array(),
+    movingTime: new BigInt64Array(),
+    speed: new Float64Array(),
+    elevationGain: new Float64Array(),
+    elevationLoss: new Float64Array(),
+    slope: new Float64Array(),
+    slopeSegmentSlope: new Float64Array(),
+    slopeSegmentDistance: new Float64Array(),
+    lng: new Float64Array(),
+    lat: new Float64Array(),
+    ele: new Float64Array(),
+    timestamps: new BigInt64Array(),
+    hr: new Float64Array(),
+    cad: new Float64Array(),
+    atemp: new Float64Array(),
+    power: new Float64Array(),
+    extensions: [],
+    slice: () => undefined,
+};
 
 function toPositions(flat: Float64Array): [number, number][] {
     const positions: [number, number][] = new Array(flat.length / 2);
@@ -119,9 +197,14 @@ class Engine {
     private _visibility = new Map<string, Visibility>();
     private _files = writable<Map<string, Writable<FileState>>>(new Map());
     private _selection = writable<Selection>({ type: 'empty' });
+    private _statistics = writable<SelectionStatistics>(EMPTY_SELECTION_STATISTICS);
+    /** Identifies the statistics currently in the engine's buffers. */
+    private _statisticsVersion = 0;
 
     /** Ids of the files in display order. */
     readonly order: Readable<string[]> = { subscribe: this._order.subscribe };
+    /** Statistics of what is currently selected. */
+    readonly statistics: Readable<SelectionStatistics> = { subscribe: this._statistics.subscribe };
     /** What is currently selected. */
     readonly selection: Readable<Selection> = { subscribe: this._selection.subscribe };
     /**
@@ -365,6 +448,46 @@ class Engine {
                 }
             }
         }
+
+        // the statistics depend on the selection, on its order, and on the files
+        if (
+            update.selectionChanged ||
+            update.orderChanged ||
+            update.added.length + update.modified.length + update.removed.length > 0
+        ) {
+            this._statistics.set(this.readStatistics(wasm));
+        }
+    }
+
+    /** Copies the statistics buffers of the engine (they are overwritten by the next action). */
+    private readStatistics(wasm: Wasm): SelectionStatistics {
+        const version = ++this._statisticsVersion;
+        const totalDistance = wasm.total_distance().slice();
+        return {
+            global: wasm.selection_statistics() ?? EMPTY_STATISTICS,
+            length: totalDistance.length,
+            totalDistance,
+            movingDistance: wasm.moving_distance().slice(),
+            totalTime: wasm.total_time().slice(),
+            movingTime: wasm.moving_time().slice(),
+            speed: wasm.speed().slice(),
+            elevationGain: wasm.elevation_gain().slice(),
+            elevationLoss: wasm.elevation_loss().slice(),
+            slope: wasm.slope().slice(),
+            slopeSegmentSlope: wasm.slope_segment_slope().slice(),
+            slopeSegmentDistance: wasm.slope_segment_distance().slice(),
+            lng: wasm.lng().slice(),
+            lat: wasm.lat().slice(),
+            ele: wasm.ele().slice(),
+            timestamps: wasm.timestamps().slice(),
+            hr: wasm.hr().slice(),
+            cad: wasm.cad().slice(),
+            atemp: wasm.atemp().slice(),
+            power: wasm.power().slice(),
+            extensions: [],
+            slice: (start, end) =>
+                version === this._statisticsVersion ? wasm.slice_statistics(start, end) : undefined,
+        };
     }
 
     /** Reads the state of a file, reusing from `previous` what did not change. */

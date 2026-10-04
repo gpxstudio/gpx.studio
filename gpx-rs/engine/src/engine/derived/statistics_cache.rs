@@ -1,9 +1,12 @@
 use std::collections::{HashMap, HashSet, hash_map::Entry};
 
 use crate::{
-    File, GlobalStatistics, Selection, StackEntry, Statistics, Track, TrackSegment,
+    File, FileId, GlobalStatistics, Selection, StackEntry, Statistics, Track, TrackSegment,
     TrackSegmentRevisionId,
 };
+
+/// A segment and its statistics.
+pub type SelectedSegment<'a> = (&'a TrackSegment, &'a Statistics);
 
 #[derive(Debug, Default)]
 pub struct StatisticsCache {
@@ -34,19 +37,38 @@ impl StatisticsCache {
         }
     }
 
+    /// Statistics of the segments of the selection.
     pub fn get<'a>(
         &'a self,
-        state: Option<&StackEntry>,
+        state: Option<&'a StackEntry>,
         selection: &Selection,
     ) -> Vec<&'a Statistics> {
-        let mut stats = vec![];
+        self.selected(state, selection, &[])
+            .into_iter()
+            .map(|(_, stats)| stats)
+            .collect()
+    }
+
+    /// The segments of the selection with their statistics. The segments of several selected
+    /// files follow `order` (the files missing from it come last).
+    pub fn selected<'a>(
+        &'a self,
+        state: Option<&'a StackEntry>,
+        selection: &Selection,
+        order: &[FileId],
+    ) -> Vec<SelectedSegment<'a>> {
+        let mut selected = vec![];
         if let Some(state) = state {
             match selection {
                 Selection::Empty => (),
                 Selection::File { file_ids } => {
-                    for id in file_ids.iter() {
+                    let ordered = order
+                        .iter()
+                        .filter(|id| file_ids.contains(id))
+                        .chain(file_ids.iter().filter(|id| !order.contains(id)));
+                    for id in ordered {
                         if let Some(file) = state.get(id) {
-                            self.add_file_stats(file, &mut stats);
+                            self.add_file_stats(file, &mut selected);
                         }
                     }
                 }
@@ -54,7 +76,7 @@ impl StatisticsCache {
                     if let Some(file) = state.get(file_id) {
                         for trk in file.trk.iter() {
                             if trk_ids.contains(&trk.id) {
-                                self.add_track_stats(trk, &mut stats);
+                                self.add_track_stats(trk, &mut selected);
                             }
                         }
                     }
@@ -69,7 +91,7 @@ impl StatisticsCache {
                             if *trk_id == trk.id {
                                 for trkseg in trk.trkseg.iter() {
                                     if trkseg_ids.contains(&trkseg.id) {
-                                        self.add_segment_stats(trkseg, &mut stats);
+                                        self.add_segment_stats(trkseg, &mut selected);
                                     }
                                 }
                                 break;
@@ -79,7 +101,7 @@ impl StatisticsCache {
                 }
                 Selection::Waypoints { file_id } => {
                     if let Some(file) = state.get(file_id) {
-                        self.add_file_stats(file, &mut stats);
+                        self.add_file_stats(file, &mut selected);
                     }
                 }
                 Selection::Waypoint {
@@ -87,40 +109,44 @@ impl StatisticsCache {
                     wpt_ids: _,
                 } => {
                     if let Some(file) = state.get(file_id) {
-                        self.add_file_stats(file, &mut stats);
+                        self.add_file_stats(file, &mut selected);
                     }
                 }
             }
         }
-        stats
+        selected
     }
 
     /// Global statistics of a file: its segments merged, in order.
     pub fn file_global(&self, file: &File) -> GlobalStatistics {
-        let mut stats = vec![];
-        self.add_file_stats(file, &mut stats);
+        let mut selected = vec![];
+        self.add_file_stats(file, &mut selected);
         let mut global = GlobalStatistics::default();
-        for s in stats {
-            global.merge(&s.global);
+        for (_, stats) in selected {
+            global.merge(&stats.global);
         }
         global
     }
 
-    fn add_file_stats<'a>(&'a self, file: &File, stats: &mut Vec<&'a Statistics>) {
+    fn add_file_stats<'a>(&'a self, file: &'a File, selected: &mut Vec<SelectedSegment<'a>>) {
         for trk in file.trk.iter() {
-            self.add_track_stats(trk, stats);
+            self.add_track_stats(trk, selected);
         }
     }
 
-    fn add_track_stats<'a>(&'a self, trk: &Track, stats: &mut Vec<&'a Statistics>) {
+    fn add_track_stats<'a>(&'a self, trk: &'a Track, selected: &mut Vec<SelectedSegment<'a>>) {
         for trkseg in trk.trkseg.iter() {
-            self.add_segment_stats(trkseg, stats);
+            self.add_segment_stats(trkseg, selected);
         }
     }
 
-    fn add_segment_stats<'a>(&'a self, trkseg: &TrackSegment, stats: &mut Vec<&'a Statistics>) {
-        if let Some(s) = self.map.get(&trkseg.rev_id) {
-            stats.push(s);
+    fn add_segment_stats<'a>(
+        &'a self,
+        trkseg: &'a TrackSegment,
+        selected: &mut Vec<SelectedSegment<'a>>,
+    ) {
+        if let Some(stats) = self.map.get(&trkseg.rev_id) {
+            selected.push((trkseg, stats));
         }
     }
 }
@@ -240,5 +266,34 @@ mod tests {
 
         cache.update(None);
         assert!(cache.map.is_empty());
+    }
+
+    #[test]
+    fn test_segments_of_several_files_follow_the_given_order() {
+        let (mut state, first) = state("data/simple.gpx");
+        let (other, second) = {
+            let data = std::fs::read("data/with_time.gpx").unwrap();
+            let file = Rc::new(parse(&data).unwrap());
+            (file.clone(), file)
+        };
+        state.insert(other.id, other);
+        let mut cache = StatisticsCache::default();
+        cache.update(Some(&state));
+        let selection = Selection::File {
+            file_ids: HashSet::from([first.id, second.id]),
+        };
+
+        let ids = |order: &[FileId]| -> Vec<_> {
+            cache
+                .selected(Some(&state), &selection, order)
+                .iter()
+                .map(|(segment, _)| segment.id)
+                .collect()
+        };
+        let (a, b) = (first.trk[0].trkseg[0].id, second.trk[0].trkseg[0].id);
+        assert_eq!(ids(&[first.id, second.id]), vec![a, b]);
+        assert_eq!(ids(&[second.id, first.id]), vec![b, a]);
+        // the files that are not in the order come last
+        assert_eq!(ids(&[second.id]), vec![b, a]);
     }
 }

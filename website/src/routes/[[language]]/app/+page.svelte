@@ -16,7 +16,9 @@
     import { loadFiles } from '$lib/logic/file-actions';
     import { onDestroy, onMount } from 'svelte';
     import { page } from '$app/state';
-    import { gpxStatistics, hoveredPoint, slicedGPXStatistics } from '$lib/logic/statistics';
+    import { hoveredPoint } from '$lib/logic/statistics';
+    import { slicedStatistics } from '$lib/logic/selection-statistics';
+    import { engine } from '$lib/engine';
     import { getURLForGoogleDriveFile } from '$lib/components/embedding/embedding';
     import { db } from '$lib/db';
     import { fileStateCollection } from '$lib/logic/file-state';
@@ -140,14 +142,14 @@
             style={$elevationProfile ? `height: ${$bottomPanelSize}px` : ''}
         >
             <GPXStatistics
-                {gpxStatistics}
-                {slicedGPXStatistics}
+                statistics={engine.statistics}
+                {slicedStatistics}
                 orientation={bottomPanelOrientation == 'horizontal' ? 'vertical' : 'horizontal'}
             />
             {#if $elevationProfile}
                 <ElevationProfile
-                    {gpxStatistics}
-                    {slicedGPXStatistics}
+                    statistics={engine.statistics}
+                    {slicedStatistics}
                     {hoveredPoint}
                     {additionalDatasets}
                     {elevationFill}

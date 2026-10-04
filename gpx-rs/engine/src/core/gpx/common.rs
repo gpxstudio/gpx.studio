@@ -10,7 +10,7 @@ pub struct LngLat {
     pub lat: f64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct LngLatBounds {
     pub sw: LngLat,
     pub ne: LngLat,

@@ -18,14 +18,37 @@
     } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
     import { getURLForLanguage } from '$lib/utils';
-    import { exampleGPXFile } from '$lib/assets/example';
     import { writable } from 'svelte/store';
     import Scissors from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
     import { currentTool, Tool } from '$lib/components/toolbar/tools';
     import { onDestroy, onMount } from 'svelte';
 
-    let gpxStatistics = writable(exampleGPXFile.getStatistics());
-    let slicedGPXStatistics = writable(undefined);
+    // TODO the example comes from the previous implementation
+    let statistics = writable({
+        global: { totalDistance: 0, elevationGain: 0, elevationLoss: 0 },
+        length: 0,
+        totalDistance: new Float64Array(),
+        movingDistance: new Float64Array(),
+        totalTime: new BigInt64Array(),
+        movingTime: new BigInt64Array(),
+        speed: new Float64Array(),
+        elevationGain: new Float64Array(),
+        elevationLoss: new Float64Array(),
+        slope: new Float64Array(),
+        slopeSegmentSlope: new Float64Array(),
+        slopeSegmentDistance: new Float64Array(),
+        lng: new Float64Array(),
+        lat: new Float64Array(),
+        ele: new Float64Array(),
+        timestamps: new BigInt64Array(),
+        hr: new Float64Array(),
+        cad: new Float64Array(),
+        atemp: new Float64Array(),
+        power: new Float64Array(),
+        extensions: [],
+        slice: () => undefined,
+    });
+    let slicedStatistics = writable(undefined);
     let hoveredPoint = writable(null);
     let additionalDatasets = writable(['speed', 'atemp']);
     let elevationFill = writable(undefined);
@@ -138,18 +161,14 @@
                 >
                     <div class="grow">
                         <ElevationProfile
-                            {gpxStatistics}
-                            {slicedGPXStatistics}
+                            {statistics}
+                            {slicedStatistics}
                             {hoveredPoint}
                             {additionalDatasets}
                             {elevationFill}
                         />
                     </div>
-                    <GPXStatistics
-                        {gpxStatistics}
-                        {slicedGPXStatistics}
-                        orientation={'horizontal'}
-                    />
+                    <GPXStatistics {statistics} {slicedStatistics} orientation={'horizontal'} />
                 </div>
             </div>
             <div class="grid md:grid-rows-subgrid md:row-start-3 md:row-end-5 gap-4">

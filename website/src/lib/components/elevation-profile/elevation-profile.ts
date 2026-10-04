@@ -21,7 +21,9 @@ import Chart, {
     type TooltipItem,
 } from 'chart.js/auto';
 import { get, type Readable, type Writable } from 'svelte/store';
-import type { Coordinates, GPXGlobalStatistics, GPXStatisticsGroup } from 'gpx';
+import type { Coordinates } from 'gpx';
+import { NO_TIME, type SelectionStatistics } from '$lib/engine';
+import type { SlicedStatistics } from '$lib/logic/selection-statistics';
 import { mode } from 'mode-watcher';
 import { getHighwayColor, getSlopeColor, getSurfaceColor } from '$lib/assets/colors';
 
@@ -51,23 +53,23 @@ export class ElevationProfile {
     private _dragging = false;
     private _panning = false;
 
-    private _gpxStatistics: Readable<GPXStatisticsGroup>;
-    private _slicedGPXStatistics: Writable<[GPXGlobalStatistics, number, number] | undefined>;
+    private _statistics: Readable<SelectionStatistics>;
+    private _slicedStatistics: Writable<SlicedStatistics | undefined>;
     private _hoveredPoint: Writable<Coordinates | null>;
     private _additionalDatasets: Readable<string[]>;
     private _elevationFill: Readable<'slope' | 'surface' | 'highway' | undefined>;
 
     constructor(
-        gpxStatistics: Readable<GPXStatisticsGroup>,
-        slicedGPXStatistics: Writable<[GPXGlobalStatistics, number, number] | undefined>,
+        statistics: Readable<SelectionStatistics>,
+        slicedStatistics: Writable<SlicedStatistics | undefined>,
         hoveredPoint: Writable<Coordinates | null>,
         additionalDatasets: Readable<string[]>,
         elevationFill: Readable<'slope' | 'surface' | 'highway' | undefined>,
         canvas: HTMLCanvasElement,
         overlay: HTMLCanvasElement
     ) {
-        this._gpxStatistics = gpxStatistics;
-        this._slicedGPXStatistics = slicedGPXStatistics;
+        this._statistics = statistics;
+        this._slicedStatistics = slicedStatistics;
         this._hoveredPoint = hoveredPoint;
         this._additionalDatasets = additionalDatasets;
         this._elevationFill = elevationFill;
@@ -78,10 +80,10 @@ export class ElevationProfile {
             Chart.register(module.default);
             this.initialize();
 
-            this._gpxStatistics.subscribe(() => {
+            this._statistics.subscribe(() => {
                 this.updateData();
             });
-            this._slicedGPXStatistics.subscribe(() => {
+            this._slicedStatistics.subscribe(() => {
                 this.updateOverlay();
             });
             distanceUnits.subscribe(() => {
@@ -235,7 +237,7 @@ export class ElevationProfile {
                         modifierKey: 'shift',
                         onPanStart: () => {
                             this._panning = true;
-                            this._slicedGPXStatistics.set(undefined);
+                            this._slicedStatistics.set(undefined);
                             return true;
                         },
                         onPanComplete: () => {
@@ -260,7 +262,7 @@ export class ElevationProfile {
                                 return false;
                             }
 
-                            this._slicedGPXStatistics.set(undefined);
+                            this._slicedStatistics.set(undefined);
                         },
                     },
                     limits: {
@@ -361,14 +363,12 @@ export class ElevationProfile {
                     if (startIndex === undefined) {
                         startIndex = endIndex;
                     } else if (startIndex !== endIndex) {
-                        this._slicedGPXStatistics.set([
-                            get(this._gpxStatistics).sliced(
-                                Math.min(startIndex, endIndex),
-                                Math.max(startIndex, endIndex)
-                            ),
-                            Math.min(startIndex, endIndex),
-                            Math.max(startIndex, endIndex),
-                        ]);
+                        const start = Math.min(startIndex, endIndex);
+                        const end = Math.max(startIndex, endIndex);
+                        const global = get(this._statistics).slice(start, end);
+                        if (global) {
+                            this._slicedStatistics.set({ global, start, end });
+                        }
                     }
                 }
             }
@@ -379,7 +379,7 @@ export class ElevationProfile {
             this._canvas.style.cursor = '';
             endIndex = getIndex(evt);
             if (startIndex === endIndex) {
-                this._slicedGPXStatistics.set(undefined);
+                this._slicedStatistics.set(undefined);
             }
         };
         this._canvas.addEventListener('pointerdown', onMouseDown);
@@ -391,7 +391,7 @@ export class ElevationProfile {
         if (!this._chart) {
             return;
         }
-        const data = get(this._gpxStatistics);
+        const data = get(this._statistics);
         const units = {
             distance: get(distanceUnits),
             velocity: get(velocityUnits),
@@ -399,52 +399,49 @@ export class ElevationProfile {
         };
 
         const datasets: Array<Array<any>> = [[], [], [], [], [], []];
-        data.forEachTrackPoint((trkpt, distance, speed, slope, index) => {
+        const { global } = data;
+        for (let index = 0; index < data.length; index++) {
+            const x = getConvertedDistance(data.totalDistance[index], units.distance);
+            const ele = data.ele[index];
+            const timestamp = data.timestamps[index];
             datasets[0].push({
-                x: getConvertedDistance(distance, units.distance),
-                y: trkpt.ele ? getConvertedElevation(trkpt.ele, units.distance) : 0,
-                time: trkpt.time,
-                slope: slope,
-                extensions: trkpt.getExtensions(),
-                coordinates: trkpt.getCoordinates(),
-                index: index,
+                x,
+                y: ele ? getConvertedElevation(ele, units.distance) : 0,
+                time: timestamp === NO_TIME ? undefined : new Date(Number(timestamp)),
+                slope: {
+                    at: data.slope[index],
+                    segment: data.slopeSegmentSlope[index],
+                    length: data.slopeSegmentDistance[index],
+                },
+                // TODO the engine does not store the extensions (surface, highway...) yet
+                extensions: data.extensions[index] ?? {},
+                coordinates: { lat: data.lat[index], lon: data.lng[index] },
+                index,
             });
-            if (data.global.time.total > 0) {
+            if ((global.totalTime ?? 0) > 0) {
                 datasets[1].push({
-                    x: getConvertedDistance(distance, units.distance),
-                    y: getConvertedVelocity(speed, units.velocity, units.distance),
-                    index: index,
+                    x,
+                    y: getConvertedVelocity(data.speed[index], units.velocity, units.distance),
+                    index,
                 });
             }
-            if (data.global.hr.count > 0) {
-                datasets[2].push({
-                    x: getConvertedDistance(distance, units.distance),
-                    y: trkpt.getHeartRate(),
-                    index: index,
-                });
+            if (global.hr) {
+                datasets[2].push({ x, y: data.hr[index], index });
             }
-            if (data.global.cad.count > 0) {
-                datasets[3].push({
-                    x: getConvertedDistance(distance, units.distance),
-                    y: trkpt.getCadence(),
-                    index: index,
-                });
+            if (global.cad) {
+                datasets[3].push({ x, y: data.cad[index], index });
             }
-            if (data.global.atemp.count > 0) {
+            if (global.atemp) {
                 datasets[4].push({
-                    x: getConvertedDistance(distance, units.distance),
-                    y: getConvertedTemperature(trkpt.getTemperature(), units.temperature),
-                    index: index,
+                    x,
+                    y: getConvertedTemperature(data.atemp[index], units.temperature),
+                    index,
                 });
             }
-            if (data.global.power.count > 0) {
-                datasets[5].push({
-                    x: getConvertedDistance(distance, units.distance),
-                    y: trkpt.getPower(),
-                    index: index,
-                });
+            if (global.power) {
+                datasets[5].push({ x, y: data.power[index], index });
             }
-        });
+        }
 
         this._chart.data.datasets[0] = {
             label: i18n._('quantities.elevation'),
@@ -482,7 +479,7 @@ export class ElevationProfile {
 
         this._chart.options.scales!.x!['min'] = 0;
         this._chart.options.scales!.x!['max'] = getConvertedDistance(
-            data.global.distance.total,
+            global.totalDistance,
             units.distance
         );
 
@@ -563,10 +560,10 @@ export class ElevationProfile {
         this._overlay.style.width = `${this._overlay.width}px`;
         this._overlay.style.height = `${this._overlay.height}px`;
 
-        const slicedGPXStatistics = get(this._slicedGPXStatistics);
-        if (slicedGPXStatistics) {
-            let startIndex = slicedGPXStatistics[1];
-            let endIndex = slicedGPXStatistics[2];
+        const slicedStatistics = get(this._slicedStatistics);
+        if (slicedStatistics) {
+            let startIndex = slicedStatistics.start;
+            let endIndex = slicedStatistics.end;
 
             // Draw selection rectangle
             let selectionContext = this._overlay.getContext('2d');
@@ -575,14 +572,12 @@ export class ElevationProfile {
                 selectionContext.globalAlpha = mode.current === 'dark' ? 0.2 : 0.1;
                 selectionContext.clearRect(0, 0, this._overlay.width, this._overlay.height);
 
-                const gpxStatistics = get(this._gpxStatistics);
+                const statistics = get(this._statistics);
                 let startPixel = this._chart.scales.x.getPixelForValue(
-                    getConvertedDistance(
-                        gpxStatistics.getTrackPoint(startIndex)?.distance.total ?? 0
-                    )
+                    getConvertedDistance(statistics.totalDistance[startIndex] ?? 0)
                 );
                 let endPixel = this._chart.scales.x.getPixelForValue(
-                    getConvertedDistance(gpxStatistics.getTrackPoint(endIndex)?.distance.total ?? 0)
+                    getConvertedDistance(statistics.totalDistance[endIndex] ?? 0)
                 );
 
                 selectionContext.fillRect(

@@ -16,11 +16,13 @@
     import { setMode } from 'mode-watcher';
     import { settings } from '$lib/logic/settings';
     import { fileStateCollection } from '$lib/logic/file-state';
-    import { gpxStatistics, hoveredPoint, slicedGPXStatistics } from '$lib/logic/statistics';
     import { loadFile } from '$lib/logic/file-actions';
     import { selection } from '$lib/logic/selection';
     import { untrack } from 'svelte';
     import { isSelected, toggle } from '$lib/components/map/layer-control/utils';
+    import { engine } from '$lib/engine';
+    import { hoveredPoint } from '$lib/logic/statistics';
+    import { slicedStatistics } from '$lib/logic/selection-statistics';
 
     let {
         useHash = true,
@@ -31,6 +33,7 @@
     let additionalDatasets = writable<string[]>([]);
     let elevationFill = writable<'slope' | 'surface' | 'highway' | undefined>(undefined);
 
+    const { statistics } = engine;
     const {
         currentBasemap,
         selectedBasemapTree,
@@ -122,14 +125,14 @@
         style={options.elevation.show ? `height: ${options.elevation.height}px` : ''}
     >
         <GPXStatistics
-            {gpxStatistics}
-            {slicedGPXStatistics}
+            {statistics}
+            {slicedStatistics}
             orientation={options.elevation.show ? 'vertical' : 'horizontal'}
         />
         {#if options.elevation.show}
             <ElevationProfile
-                {gpxStatistics}
-                {slicedGPXStatistics}
+                {statistics}
+                {slicedStatistics}
                 {hoveredPoint}
                 {additionalDatasets}
                 {elevationFill}

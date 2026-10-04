@@ -18,12 +18,12 @@ pub fn distance(p1: LngLat, p2: LngLat) -> f64 {
     EARTH_RADIUS * c
 }
 
-pub fn time_diff(a: Option<i64>, b: Option<i64>) -> Option<i32> {
-    Some((a? - b?) as i32)
+pub fn time_diff(a: Option<i64>, b: Option<i64>) -> Option<i64> {
+    Some(a? - b?)
 }
 
 /// Computes the speed for a given distance in kilometers and a time in milliseconds
-pub fn speed(distance: f64, time: i32) -> f64 {
+pub fn speed(distance: f64, time: i64) -> f64 {
     distance / (time as f64 / 3_600_000.0)
 }
 
@@ -113,6 +113,19 @@ mod tests {
 
     fn p(lng: f64, lat: f64) -> LngLat {
         LngLat { lng, lat }
+    }
+
+    #[test]
+    fn test_time_diff_and_speed_with_long_durations() {
+        // 40 days in milliseconds, more than an i32 can hold
+        let forty_days = 40 * 24 * 3_600_000_i64;
+        assert!(forty_days > i64::from(i32::MAX));
+        assert_eq!(time_diff(Some(forty_days), Some(0)), Some(forty_days));
+        assert_eq!(time_diff(Some(0), Some(forty_days)), Some(-forty_days));
+        assert_eq!(time_diff(None, Some(1)), None);
+        assert_eq!(time_diff(Some(1), None), None);
+        // 1 km in one hour
+        assert!((speed(1.0, 3_600_000) - 1.0).abs() < 1e-12);
     }
 
     #[test]

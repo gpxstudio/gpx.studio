@@ -144,7 +144,11 @@ impl Engine {
         self.coordinates_cache.update(current);
         self.structure_cache.update(current, self.diff.as_ref());
         self.statistics_buffer
-            .update(&self.statistics_cache.get(current, &self.selection));
+            .update(
+                &self
+                    .statistics_cache
+                    .selected(current, &self.selection, &self.order.0),
+            );
     }
 }
 

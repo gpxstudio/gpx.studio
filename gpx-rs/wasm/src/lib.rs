@@ -14,7 +14,7 @@ use std::cell::RefCell;
 use wasm_bindgen::prelude::*;
 
 use gpx_engine::{self as engine, Action, Command, Engine, FileId, LngLat, LngLatBounds};
-use js_sys::{Array, Float64Array, Int32Array, Object, Reflect};
+use js_sys::{Array, BigInt64Array, Float64Array, Object, Reflect};
 
 #[wasm_bindgen]
 #[derive(Clone, Copy)]
@@ -133,14 +133,36 @@ macro_rules! stats_getter {
 
 stats_getter!(total_distance, Float64Array);
 stats_getter!(moving_distance, Float64Array);
-stats_getter!(total_time, Int32Array);
-stats_getter!(moving_time, Int32Array);
+// Durations since the start of the selection, in milliseconds.
+stats_getter!(total_time, BigInt64Array);
+stats_getter!(moving_time, BigInt64Array);
 stats_getter!(speed, Float64Array);
 stats_getter!(elevation_gain, Float64Array);
 stats_getter!(elevation_loss, Float64Array);
 stats_getter!(slope, Float64Array);
 stats_getter!(slope_segment_slope, Float64Array);
 stats_getter!(slope_segment_distance, Float64Array);
+stats_getter!(lng, Float64Array);
+stats_getter!(lat, Float64Array);
+stats_getter!(ele, Float64Array);
+
+/// Timestamps in milliseconds since the epoch (`NO_TIME`, the smallest i64, when missing).
+#[wasm_bindgen]
+pub fn timestamps() -> BigInt64Array {
+    with_stats(|s| unsafe { BigInt64Array::view(&s.time) })
+        .unwrap_or_else(|| BigInt64Array::new_with_length(0))
+}
+
+/// Value of the timestamps of the trackpoints that have none.
+#[wasm_bindgen]
+pub fn no_time() -> i64 {
+    engine::NO_TIME
+}
+
+stats_getter!(hr, Float64Array);
+stats_getter!(cad, Float64Array);
+stats_getter!(atemp, Float64Array);
+stats_getter!(power, Float64Array);
 
 // File commands
 
@@ -443,8 +465,11 @@ export interface FileStructure {
     /** Changes when the waypoints of the file change: refetch their coordinates. */
     waypointsRev: string;
 }
-/** Global statistics of a file (optional fields are absent when the file has no timestamps). */
-export interface FileStatistics {
+/**
+ * Global statistics of a file, of the selection, or of a part of it. The optional fields are
+ * absent when there is no data for them (no timestamps, no heart rate...).
+ */
+export interface GlobalStatistics {
     /** km */
     totalDistance: number;
     movingDistance?: number;
@@ -459,7 +484,12 @@ export interface FileStatistics {
     /** km/h */
     totalSpeed?: number;
     movingSpeed?: number;
-    /** Absent when the file has no trackpoints. */
+    /** Average and number of trackpoints having the measure. */
+    hr?: { avg: number; count: number };
+    cad?: { avg: number; count: number };
+    atemp?: { avg: number; count: number };
+    power?: { avg: number; count: number };
+    /** Absent when there are no trackpoints. */
     bounds?: { west: number; south: number; east: number; north: number };
 }
 export interface TrackNode {
@@ -494,8 +524,8 @@ extern "C" {
     pub type FilesUpdate;
     #[wasm_bindgen(typescript_type = "FileStructure | undefined")]
     pub type FileStructure;
-    #[wasm_bindgen(typescript_type = "FileStatistics | undefined")]
-    pub type FileStatistics;
+    #[wasm_bindgen(typescript_type = "GlobalStatistics | undefined")]
+    pub type GlobalStatistics;
     #[wasm_bindgen(typescript_type = "string[]")]
     pub type FileOrder;
 }
@@ -594,41 +624,75 @@ pub fn file_structure(file_id: &str) -> FileStructure {
     structure.unchecked_into()
 }
 
+fn statistics_object(stats: &engine::GlobalStatistics) -> GlobalStatistics {
+    let object = Object::new();
+    let optional = |key: &str, value: Option<f64>| {
+        if let Some(value) = value {
+            set(&object, key, value);
+        }
+    };
+    let seconds = |ms: Option<i64>| ms.map(|ms| ms as f64 / 1000.0);
+    let average = |key: &str, average: &engine::Average| {
+        if let Some(avg) = average.avg() {
+            let value = Object::new();
+            set(&value, "avg", avg);
+            set(&value, "count", f64::from(average.count));
+            set(&object, key, value);
+        }
+    };
+    set(&object, "totalDistance", stats.total_distance);
+    optional("movingDistance", stats.moving_distance);
+    optional("totalTime", seconds(stats.total_time));
+    optional("movingTime", seconds(stats.moving_time));
+    set(&object, "elevationGain", stats.elevation_gain);
+    set(&object, "elevationLoss", stats.elevation_loss);
+    optional("startTime", stats.start_time.map(|t| t as f64));
+    optional("endTime", stats.end_time.map(|t| t as f64));
+    optional("totalSpeed", stats.total_speed());
+    optional("movingSpeed", stats.moving_speed());
+    average("hr", &stats.hr);
+    average("cad", &stats.cad);
+    average("atemp", &stats.atemp);
+    average("power", &stats.power);
+    let (sw, ne) = (&stats.bounds.sw, &stats.bounds.ne);
+    if sw.lng <= ne.lng && sw.lat <= ne.lat {
+        let bounds = Object::new();
+        set(&bounds, "west", sw.lng);
+        set(&bounds, "south", sw.lat);
+        set(&bounds, "east", ne.lng);
+        set(&bounds, "north", ne.lat);
+        set(&object, "bounds", bounds);
+    }
+    object.unchecked_into()
+}
+
 /// Global statistics of a file, `undefined` if the id is unknown.
 #[wasm_bindgen]
-pub fn file_statistics(file_id: &str) -> FileStatistics {
-    let stats = uuid::Uuid::parse_str(file_id)
+pub fn file_statistics(file_id: &str) -> GlobalStatistics {
+    uuid::Uuid::parse_str(file_id)
         .ok()
         .and_then(|id| with_engine(|e| e.file_statistics(&FileId(id))).flatten())
-        .map_or(JsValue::UNDEFINED, |stats| {
-            let object = Object::new();
-            let optional = |key: &str, value: Option<f64>| {
-                if let Some(value) = value {
-                    set(&object, key, value);
-                }
-            };
-            set(&object, "totalDistance", stats.total_distance);
-            optional("movingDistance", stats.moving_distance);
-            optional("totalTime", stats.total_time.map(f64::from));
-            optional("movingTime", stats.moving_time.map(f64::from));
-            set(&object, "elevationGain", stats.elevation_gain);
-            set(&object, "elevationLoss", stats.elevation_loss);
-            optional("startTime", stats.start_time.map(|t| t as f64));
-            optional("endTime", stats.end_time.map(|t| t as f64));
-            optional("totalSpeed", stats.total_speed());
-            optional("movingSpeed", stats.moving_speed());
-            let (sw, ne) = (&stats.bounds.sw, &stats.bounds.ne);
-            if sw.lng <= ne.lng && sw.lat <= ne.lat {
-                let bounds = Object::new();
-                set(&bounds, "west", sw.lng);
-                set(&bounds, "south", sw.lat);
-                set(&bounds, "east", ne.lng);
-                set(&bounds, "north", ne.lat);
-                set(&object, "bounds", bounds);
-            }
-            object.into()
-        });
-    stats.unchecked_into()
+        .map_or(JsValue::UNDEFINED.unchecked_into(), |stats| {
+            statistics_object(&stats)
+        })
+}
+
+/// Global statistics of the whole selection (the arrays of the statistics buffers cover it).
+#[wasm_bindgen]
+pub fn selection_statistics() -> GlobalStatistics {
+    with_stats(|buffer| statistics_object(&buffer.global))
+        .unwrap_or_else(|| JsValue::UNDEFINED.unchecked_into())
+}
+
+/// Global statistics of the trackpoints from `start` to `end` (both included) of the selection,
+/// as indexed by the statistics buffers. `undefined` when the range is not in the selection.
+#[wasm_bindgen]
+pub fn slice_statistics(start: usize, end: usize) -> GlobalStatistics {
+    with_stats(|buffer| buffer.slice(start, end))
+        .flatten()
+        .map_or(JsValue::UNDEFINED.unchecked_into(), |stats| {
+            statistics_object(&stats)
+        })
 }
 
 fn uuids<T>(items: impl IntoIterator<Item = T>, uuid: impl Fn(T) -> uuid::Uuid) -> Array {
