@@ -317,10 +317,13 @@ fn parse_waypoint_id(id: &str) -> Option<engine::WaypointId> {
     uuid::Uuid::parse_str(id).ok().map(engine::WaypointId)
 }
 
-/// Changes the selected waypoints: their name, description, icon, link, position and elevation.
-/// The strings that are empty remove the field.
+/// Changes a waypoint of a file, whatever is selected: its name, description, icon, link, position
+/// and elevation. The strings that are empty remove the field.
 #[wasm_bindgen]
+#[allow(clippy::too_many_arguments)]
 pub fn update_waypoint(
+    file_id: &str,
+    waypoint_id: &str,
     lng: f64,
     lat: f64,
     ele: f64,
@@ -329,15 +332,20 @@ pub fn update_waypoint(
     icon: &str,
     link: &str,
 ) -> bool {
-    edit(Command::EditWaypoint(engine::EditWaypoint {
-        lng,
-        lat,
-        ele,
-        name,
-        desc,
-        icon,
-        link,
-    }))
+    match (parse_file_id(file_id), parse_waypoint_id(waypoint_id)) {
+        (Some(file_id), Some(waypoint_id)) => edit(Command::EditWaypoint(engine::EditWaypoint {
+            file_id,
+            waypoint_id,
+            lng,
+            lat,
+            ele,
+            name,
+            desc,
+            icon,
+            link,
+        })),
+        _ => false,
+    }
 }
 
 #[wasm_bindgen]

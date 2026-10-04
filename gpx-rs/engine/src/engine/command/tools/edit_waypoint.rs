@@ -1,11 +1,12 @@
-use crate::{
-    Apply, CommandError, Edit, Editor, State, Waypoint, set_waypoint_fields, update_selected,
-};
+use crate::{Apply, CommandError, FileId, State, WaypointId, set_waypoint_fields, update_waypoint};
 
-/// Changes the selected waypoints (what the form of the waypoint tool does): their name,
-/// description, icon, link, position and elevation. The strings that are empty remove the field.
+/// Changes a waypoint of a file, whatever is selected (what the form of the waypoint tool does):
+/// its name, description, icon, link, position and elevation. The strings that are empty remove
+/// the field.
 #[derive(Debug)]
 pub struct EditWaypoint<'a> {
+    pub file_id: FileId,
+    pub waypoint_id: WaypointId,
     pub lng: f64,
     pub lat: f64,
     pub ele: f64,
@@ -16,38 +17,32 @@ pub struct EditWaypoint<'a> {
 }
 
 impl Apply for EditWaypoint<'_> {
-    fn apply(mut self, state: &mut State) -> Result<(), CommandError> {
-        update_selected(state, &mut self);
-        Ok(())
-    }
-}
-
-impl Editor for EditWaypoint<'_> {
-    fn waypoint(&mut self, waypoint: &mut Waypoint) -> Edit {
-        set_waypoint_fields(
-            waypoint,
-            (self.lng, self.lat, self.ele),
-            self.name,
-            self.desc,
-            self.icon,
-            self.link,
-        );
-        Edit::Changed
+    fn apply(self, state: &mut State) -> Result<(), CommandError> {
+        update_waypoint(state, self.file_id, self.waypoint_id, |wpt| {
+            set_waypoint_fields(
+                wpt,
+                (self.lng, self.lat, self.ele),
+                self.name,
+                self.desc,
+                self.icon,
+                self.link,
+            )
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::{collections::HashSet, rc::Rc};
+    use std::rc::Rc;
 
     use crate::{
-        File, Link, Selection, WaypointChunk, engine::command::fixture::Fixture, waypoint_ids,
+        File, Link, Waypoint, WaypointChunk, engine::command::fixture::Fixture, waypoint_ids,
     };
 
     use super::*;
 
     #[test]
-    fn test_edit_the_selected_waypoint() {
+    fn test_edit_the_given_waypoint() {
         let mut fx = Fixture::default();
         let mut file = File::default();
         file.wpt.push(Rc::new(WaypointChunk {
@@ -73,12 +68,10 @@ mod tests {
         let id = file.id;
         let ids: Vec<_> = waypoint_ids(&file).collect();
         fx.files.insert(id, Rc::new(file));
-        fx.selection = Selection::Waypoint {
-            file_id: id,
-            wpt_ids: HashSet::from([ids[0]]),
-        };
 
         EditWaypoint {
+            file_id: id,
+            waypoint_id: ids[0],
             lng: 4.5,
             lat: 50.5,
             ele: 12.0,

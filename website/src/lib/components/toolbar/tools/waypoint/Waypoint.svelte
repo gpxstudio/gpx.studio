@@ -99,12 +99,10 @@
             link,
         };
         if (target) {
-            // the engine changes the selected waypoint
-            await engine.selectWaypoints(target.fileId, [target.id]);
-            await engine.updateWaypoint(waypoint);
+            engine.updateWaypoint(target.fileId, target.id, waypoint);
         } else {
             // it goes in the selected files
-            await engine.newWaypoint(waypoint);
+            engine.newWaypoint(waypoint);
         }
 
         reset();

@@ -1188,18 +1188,11 @@ mod tests {
         // the coordinates buffer follows
         assert_eq!(engine.waypoint_coordinates(&file), &[5.0, 51.0]);
 
-        // editing applies to the selected waypoints
-        select_elements(
-            &mut engine,
-            Selection::Waypoint {
-                file_id: file,
-                wpt_ids: [id].into(),
-            },
-            SelectMode::Replace,
-        );
         assert!(edit(
             &mut engine,
             Command::EditWaypoint(EditWaypoint {
+                file_id: file,
+                waypoint_id: id,
                 lng: 6.0,
                 lat: 52.0,
                 ele: 30.0,

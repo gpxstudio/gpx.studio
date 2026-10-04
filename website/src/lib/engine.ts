@@ -449,10 +449,12 @@ class Engine {
         );
     }
 
-    /** Changes the selected waypoints. Empty strings remove the field. */
-    updateWaypoint(waypoint: NewWaypoint) {
+    /** Changes a waypoint, selected or not. Empty strings remove the field. */
+    updateWaypoint(fileId: string, waypointId: string, waypoint: NewWaypoint) {
         return this.run((w) =>
             w.update_waypoint(
+                fileId,
+                waypointId,
                 waypoint.lng,
                 waypoint.lat,
                 waypoint.ele,

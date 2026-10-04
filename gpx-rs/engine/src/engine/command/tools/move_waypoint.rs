@@ -1,6 +1,4 @@
-use std::rc::Rc;
-
-use crate::{Apply, CommandError, FileId, LngLat, State, WaypointId, edit_waypoint_chunks};
+use crate::{Apply, CommandError, FileId, LngLat, State, WaypointId, update_waypoint};
 
 /// Moves a waypoint of a file, whatever is selected (what a drag does): only its position and
 /// elevation change.
@@ -15,30 +13,13 @@ pub struct MoveWaypoint {
 
 impl Apply for MoveWaypoint {
     fn apply(self, state: &mut State) -> Result<(), CommandError> {
-        let file = state
-            .files
-            .get(&self.file_id)
-            .ok_or(CommandError::NothingToDo)?;
-        let mut file = (**file).clone();
-        let changed = edit_waypoint_chunks(
-            &mut file,
-            |wpt| wpt.id == self.waypoint_id,
-            |wpts| {
-                for wpt in wpts.iter_mut().filter(|wpt| wpt.id == self.waypoint_id) {
-                    wpt.coordinates = LngLat {
-                        lng: self.lng,
-                        lat: self.lat,
-                    };
-                    wpt.ele = self.ele;
-                }
-                true
-            },
-        );
-        if !changed {
-            return Err(CommandError::NothingToDo);
-        }
-        state.files.insert(self.file_id, Rc::new(file));
-        Ok(())
+        update_waypoint(state, self.file_id, self.waypoint_id, |wpt| {
+            wpt.coordinates = LngLat {
+                lng: self.lng,
+                lat: self.lat,
+            };
+            wpt.ele = self.ele;
+        })
     }
 }
 
