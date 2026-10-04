@@ -171,10 +171,26 @@ pub fn new_file(name: &str) -> bool {
     edit(Command::New(engine::New { name }))
 }
 
-/// `name`: the name of the file when the data has none (the name on disk, without extension).
+/// Loads files as a single command (one undo step). The files are in `data`, one after the
+/// other, `lengths` being the number of bytes of each one. `names`: the name of each file when
+/// its data has none (the name on disk, without extension). The files that cannot be read are
+/// skipped, the first one that was read is selected.
 #[wasm_bindgen]
-pub fn load_file(data: &[u8], name: &str) -> bool {
-    edit(Command::Load(engine::Load { data, name }))
+pub fn load_files(data: &[u8], lengths: &[u32], names: Vec<String>) -> bool {
+    if lengths.len() != names.len() {
+        return false;
+    }
+    let mut files = Vec::with_capacity(names.len());
+    let mut offset = 0;
+    for (length, name) in lengths.iter().zip(&names) {
+        let end = offset + *length as usize;
+        let Some(data) = data.get(offset..end) else {
+            return false;
+        };
+        files.push(engine::Load { data, name });
+        offset = end;
+    }
+    edit(Command::LoadFiles(engine::LoadFiles { files }))
 }
 
 #[wasm_bindgen]

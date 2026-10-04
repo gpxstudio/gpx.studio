@@ -1071,4 +1071,43 @@ mod tests {
         assert!(engine.execute(Action::Undo));
         assert_eq!(track_ids(&engine, a), tracks);
     }
+
+    #[test]
+    fn test_load_several_files_is_one_edit() {
+        use crate::LoadFiles;
+
+        let mut engine = Engine::default();
+        new(&mut engine, "before");
+        let gpx = |name: &str| {
+            format!(r#"<gpx version="1.1"><metadata><name>{name}</name></metadata></gpx>"#)
+                .into_bytes()
+        };
+        let (a, b) = (gpx("a"), gpx("b"));
+        assert!(edit(
+            &mut engine,
+            Command::LoadFiles(LoadFiles {
+                files: vec![
+                    Load {
+                        data: &a,
+                        name: "x"
+                    },
+                    Load {
+                        data: &b,
+                        name: "x"
+                    },
+                ],
+            })
+        ));
+        assert_eq!(engine.order().len(), 3);
+        let diff = engine.last_diff().unwrap();
+        assert_eq!(diff.added.len(), 2);
+        // the first one that was loaded is selected
+        assert_eq!(engine.selection(), &files(&[engine.order()[1]]));
+
+        // a single undo removes both
+        assert!(engine.execute(Action::Undo));
+        assert_eq!(engine.order().len(), 1);
+        assert!(engine.execute(Action::Redo));
+        assert_eq!(engine.order().len(), 3);
+    }
 }

@@ -10,15 +10,12 @@ import {
     ListTrackItem,
     ListTrackSegmentItem,
     ListWaypointItem,
-    ListWaypointsItem,
-    sortItems,
     type ListItem,
 } from '$lib/components/file-list/file-list';
 import { i18n } from '$lib/i18n.svelte';
-import { freeze, type WritableDraft } from 'immer';
+import { freeze } from 'immer';
 import {
     GPXFile,
-    parseGPX,
     Track,
     TrackPoint,
     TrackSegment,
@@ -32,6 +29,8 @@ import { settings } from '$lib/logic/settings';
 import { getClosestLinePoint, getClosestTrackSegments, getElevation } from '$lib/utils';
 import { gpxStatistics } from '$lib/logic/statistics';
 import { boundsManager } from './bounds';
+import { engine } from '$lib/engine';
+import { defaultFileName } from '$lib/default-file-name';
 
 // Generate unique file ids, different from the ones in the database
 export function getFileIds(n: number) {
@@ -45,31 +44,21 @@ export function getFileIds(n: number) {
     return ids;
 }
 
+/** The name of a new file: the translated default name, numbered if other files have it. */
+export function newFileName() {
+    const names = [...get(engine.files).values()].map((file) => get(file).structure.name);
+    return defaultFileName(i18n._('menu.new_file'), names);
+}
+
 export function newGPXFile() {
-    const newFileName = i18n._('menu.new_file');
-
     let file = new GPXFile();
-
-    let maxNewFileNumber = 0;
-    fileStateCollection.forEach((fileId, file) => {
-        if (file.metadata.name && file.metadata.name.startsWith(newFileName)) {
-            let number = parseInt(file.metadata.name.split(' ').pop() ?? '0');
-            if (!isNaN(number) && number > maxNewFileNumber) {
-                maxNewFileNumber = number;
-            }
-        }
-    });
-
-    file.metadata.name = `${newFileName} ${maxNewFileNumber + 1}`;
-
+    file.metadata.name = newFileName();
     return file;
 }
 
 export function createFile() {
-    let file = newGPXFile();
-
-    fileActions.add(file);
-    selection.selectFileWhenLoaded(file._data.id);
+    // the engine selects the new file
+    engine.newFile(newFileName());
     currentTool.set(Tool.ROUTING);
 }
 
@@ -87,41 +76,27 @@ export function triggerFileInput() {
     input.click();
 }
 
-export async function loadFiles(list: FileList | File[]) {
-    let files: GPXFile[] = [];
-    for (let i = 0; i < list.length; i++) {
-        let file = await loadFile(list[i]);
-        if (file) {
-            files.push(file);
-        }
+/**
+ * Loads GPX files in the engine, as a single command: one undo step, the first file that could be
+ * read is selected, and the map fits the files. A file without name is named like the file on
+ * disk. Returns the ids of the files that were added.
+ */
+export async function loadFiles(list: FileList | File[]): Promise<string[]> {
+    const files = await Promise.all(
+        Array.from(list).map(async (file) => ({
+            data: new Uint8Array(await file.arrayBuffer()),
+            name: file.name.split('.').slice(0, -1).join('.'),
+        }))
+    );
+
+    const before = new Set(get(engine.order));
+    await engine.loadFiles(files);
+
+    const ids = get(engine.order).filter((id) => !before.has(id));
+    if (ids.length > 0) {
+        boundsManager.fitBoundsOnLoad(ids);
     }
-
-    let ids = fileActions.addMultiple(files);
-    selection.selectFileWhenLoaded(ids[0]);
-    boundsManager.fitBoundsOnLoad(ids);
-}
-
-export async function loadFile(file: File): Promise<GPXFile | null> {
-    let result = await new Promise<GPXFile | null>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            let data = reader.result?.toString() ?? null;
-            if (data) {
-                let gpx = parseGPX(data);
-                if (gpx.metadata === undefined) {
-                    gpx.metadata = {};
-                }
-                if (gpx.metadata.name === undefined || gpx.metadata.name.trim() === '') {
-                    gpx.metadata.name = file.name.split('.').slice(0, -1).join('.');
-                }
-                resolve(gpx);
-            } else {
-                resolve(null);
-            }
-        };
-        reader.readAsText(file);
-    });
-    return result;
+    return ids;
 }
 
 // Helper functions for file operations
@@ -891,249 +866,3 @@ export const fileActions = {
         });
     },
 };
-
-export function pasteSelection() {
-    let fromItems = get(copied);
-    if (fromItems === undefined || fromItems.length === 0) {
-        return;
-    }
-
-    let selected = get(selection).getSelected();
-    if (selected.length === 0) {
-        selected = [new ListRootItem()];
-    }
-
-    let fromParent = fromItems[0].getParent();
-    let toParent = selected[selected.length - 1];
-
-    let startIndex: number | undefined = undefined;
-
-    if (fromItems[0].level === toParent.level) {
-        if (
-            toParent instanceof ListTrackItem ||
-            toParent instanceof ListTrackSegmentItem ||
-            toParent instanceof ListWaypointItem
-        ) {
-            startIndex = toParent.getId() + 1;
-        }
-        toParent = toParent.getParent();
-    }
-
-    let toItems: ListItem[] = [];
-    if (toParent.level === ListLevel.ROOT) {
-        let fileIds = getFileIds(fromItems.length);
-        fileIds.forEach((fileId) => {
-            toItems.push(new ListFileItem(fileId));
-        });
-    } else {
-        let toFile = fileStateCollection.getFile(toParent.getFileId());
-        if (toFile) {
-            fromItems.forEach((item, index) => {
-                if (toParent instanceof ListFileItem) {
-                    if (item instanceof ListTrackItem || item instanceof ListTrackSegmentItem) {
-                        toItems.push(
-                            new ListTrackItem(
-                                toParent.getFileId(),
-                                (startIndex ?? toFile.trk.length) + index
-                            )
-                        );
-                    } else if (item instanceof ListWaypointsItem) {
-                        toItems.push(new ListWaypointsItem(toParent.getFileId()));
-                    } else if (item instanceof ListWaypointItem) {
-                        toItems.push(
-                            new ListWaypointItem(
-                                toParent.getFileId(),
-                                (startIndex ?? toFile.wpt.length) + index
-                            )
-                        );
-                    }
-                } else if (toParent instanceof ListTrackItem) {
-                    if (item instanceof ListTrackSegmentItem) {
-                        let toTrackIndex = toParent.getTrackIndex();
-                        toItems.push(
-                            new ListTrackSegmentItem(
-                                toParent.getFileId(),
-                                toTrackIndex,
-                                (startIndex ?? toFile.trk[toTrackIndex].trkseg.length) + index
-                            )
-                        );
-                    }
-                } else if (toParent instanceof ListWaypointsItem) {
-                    if (item instanceof ListWaypointItem) {
-                        toItems.push(
-                            new ListWaypointItem(
-                                toParent.getFileId(),
-                                (startIndex ?? toFile.wpt.length) + index
-                            )
-                        );
-                    }
-                }
-            });
-        }
-    }
-
-    if (fromItems.length === toItems.length) {
-        moveItems(fromParent, toParent, fromItems, toItems, get(cut));
-        selection.resetCopied();
-    }
-}
-
-export function moveItems(
-    fromParent: ListItem,
-    toParent: ListItem,
-    fromItems: ListItem[],
-    toItems: ListItem[],
-    remove: boolean = true
-) {
-    if (fromItems.length === 0) {
-        return;
-    }
-
-    sortItems(fromItems, false);
-    sortItems(toItems, false);
-
-    let context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[] = [];
-    fromItems.forEach((item) => {
-        let file = fileStateCollection.getFile(item.getFileId());
-        if (file) {
-            if (item instanceof ListFileItem) {
-                context.push(file.clone());
-            } else if (item instanceof ListTrackItem && item.getTrackIndex() < file.trk.length) {
-                context.push(file.trk[item.getTrackIndex()].clone());
-            } else if (
-                item instanceof ListTrackSegmentItem &&
-                item.getTrackIndex() < file.trk.length &&
-                item.getSegmentIndex() < file.trk[item.getTrackIndex()].trkseg.length
-            ) {
-                context.push(file.trk[item.getTrackIndex()].trkseg[item.getSegmentIndex()].clone());
-            } else if (item instanceof ListWaypointsItem) {
-                context.push(file.wpt.map((wpt) => wpt.clone()));
-            } else if (
-                item instanceof ListWaypointItem &&
-                item.getWaypointIndex() < file.wpt.length
-            ) {
-                context.push(file.wpt[item.getWaypointIndex()].clone());
-            }
-        }
-    });
-
-    if (remove && !(fromParent instanceof ListRootItem)) {
-        sortItems(fromItems, true);
-    }
-
-    let files = [fromParent.getFileId(), toParent.getFileId()];
-    let callbacks = [
-        (
-            file: WritableDraft<GPXFile>,
-            context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[]
-        ) => {
-            fromItems.forEach((item) => {
-                if (item instanceof ListTrackItem) {
-                    file.replaceTracks(item.getTrackIndex(), item.getTrackIndex(), []);
-                } else if (item instanceof ListTrackSegmentItem) {
-                    file.replaceTrackSegments(
-                        item.getTrackIndex(),
-                        item.getSegmentIndex(),
-                        item.getSegmentIndex(),
-                        []
-                    );
-                } else if (item instanceof ListWaypointsItem) {
-                    file.replaceWaypoints(0, file.wpt.length - 1, []);
-                } else if (item instanceof ListWaypointItem) {
-                    file.replaceWaypoints(item.getWaypointIndex(), item.getWaypointIndex(), []);
-                }
-            });
-        },
-        (
-            file: WritableDraft<GPXFile>,
-            context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[]
-        ) => {
-            toItems.forEach((item, i) => {
-                if (item instanceof ListTrackItem) {
-                    if (context[i] instanceof Track) {
-                        file.replaceTracks(item.getTrackIndex(), item.getTrackIndex() - 1, [
-                            context[i],
-                        ]);
-                    } else if (context[i] instanceof TrackSegment) {
-                        file.replaceTracks(item.getTrackIndex(), item.getTrackIndex() - 1, [
-                            new Track({
-                                trkseg: [context[i]],
-                            }),
-                        ]);
-                    }
-                } else if (
-                    item instanceof ListTrackSegmentItem &&
-                    context[i] instanceof TrackSegment
-                ) {
-                    file.replaceTrackSegments(
-                        item.getTrackIndex(),
-                        item.getSegmentIndex(),
-                        item.getSegmentIndex() - 1,
-                        [context[i]]
-                    );
-                } else if (item instanceof ListWaypointsItem) {
-                    if (
-                        Array.isArray(context[i]) &&
-                        context[i].length > 0 &&
-                        context[i][0] instanceof Waypoint
-                    ) {
-                        file.replaceWaypoints(file.wpt.length, file.wpt.length - 1, context[i]);
-                    } else if (context[i] instanceof Waypoint) {
-                        file.replaceWaypoints(file.wpt.length, file.wpt.length - 1, [context[i]]);
-                    }
-                } else if (item instanceof ListWaypointItem && context[i] instanceof Waypoint) {
-                    file.replaceWaypoints(item.getWaypointIndex(), item.getWaypointIndex() - 1, [
-                        context[i],
-                    ]);
-                }
-            });
-        },
-    ];
-
-    if (fromParent instanceof ListRootItem) {
-        files = [];
-        callbacks = [];
-    } else if (!remove) {
-        files.splice(0, 1);
-        callbacks.splice(0, 1);
-    }
-
-    fileActionManager.applyEachToFilesAndGlobal(
-        files,
-        callbacks,
-        (files, context: (GPXFile | Track | TrackSegment | Waypoint[] | Waypoint)[]) => {
-            toItems.forEach((item, i) => {
-                if (item instanceof ListFileItem) {
-                    if (context[i] instanceof GPXFile) {
-                        let newFile = context[i];
-                        if (remove) {
-                            files.delete(newFile._data.id);
-                        }
-                        newFile._data.id = item.getFileId();
-                        files.set(item.getFileId(), freeze(newFile));
-                    } else if (context[i] instanceof Track) {
-                        let newFile = newGPXFile();
-                        newFile._data.id = item.getFileId();
-                        if (context[i].name) {
-                            newFile.metadata.name = context[i].name;
-                        }
-                        newFile.replaceTracks(0, 0, [context[i]]);
-                        files.set(item.getFileId(), freeze(newFile));
-                    } else if (context[i] instanceof TrackSegment) {
-                        let newFile = newGPXFile();
-                        newFile._data.id = item.getFileId();
-                        newFile.replaceTracks(0, 0, [
-                            new Track({
-                                trkseg: [context[i]],
-                            }),
-                        ]);
-                        files.set(item.getFileId(), freeze(newFile));
-                    }
-                }
-            });
-        },
-        context
-    );
-
-    selection.set(toItems);
-}

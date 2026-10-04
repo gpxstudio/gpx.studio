@@ -7,7 +7,6 @@
     import LayerControl from '$lib/components/map/layer-control/LayerControl.svelte';
     import OpenIn from '$lib/components/embedding/OpenIn.svelte';
     import { writable } from 'svelte/store';
-    import type { GPXFile } from 'gpx';
     import {
         allowedEmbeddingBasemaps,
         getFilesFromEmbeddingOptions,
@@ -15,9 +14,7 @@
     } from './embedding';
     import { setMode } from 'mode-watcher';
     import { settings } from '$lib/logic/settings';
-    import { fileStateCollection } from '$lib/logic/file-state';
-    import { loadFile } from '$lib/logic/file-actions';
-    import { selection } from '$lib/logic/selection';
+    import { loadFiles } from '$lib/logic/file-actions';
     import { untrack } from 'svelte';
     import { isSelected, toggle } from '$lib/components/map/layer-control/utils';
     import { engine } from '$lib/engine';
@@ -29,6 +26,8 @@
         options = $bindable(),
         hash = $bindable(),
     }: { useHash?: boolean; options: EmbeddingOptions; hash: string } = $props();
+
+    const { files } = engine;
 
     let additionalDatasets = writable<string[]>([]);
     let elevationFill = writable<'slope' | 'surface' | 'highway' | undefined>(undefined);
@@ -74,26 +73,14 @@
         );
         elevationFill.set(options.elevation.fill == 'none' ? undefined : options.elevation.fill);
 
-        let downloads: Promise<GPXFile | null>[] = getFilesFromEmbeddingOptions(options).map(
-            (url) => {
-                return fetch(url)
-                    .then((response) => response.blob())
-                    .then((blob) => new File([blob], url.split('/').pop() ?? url))
-                    .then(loadFile);
-            }
-        );
-        Promise.all(downloads).then((answers) => {
-            const files = answers.filter((file) => file !== null) as GPXFile[];
-            let ids: string[] = [];
-            files.forEach((file, index) => {
-                let id = `gpx-${index}-embed`;
-                file._data.id = id;
-                ids.push(id);
-            });
-            fileStateCollection.setEmbeddedFiles(files);
-            $fileOrder = ids;
-            selection.selectAll();
+        let downloads: Promise<File>[] = getFilesFromEmbeddingOptions(options).map((url) => {
+            return fetch(url)
+                .then((response) => response.blob())
+                .then((blob) => new File([blob], url.split('/').pop() ?? url));
         });
+        Promise.all(downloads)
+            .then(loadFiles)
+            .then(() => engine.selectAll());
     }
 
     $effect(() => {
@@ -105,7 +92,7 @@
 <div class="absolute flex flex-col h-full w-full border rounded-xl overflow-clip">
     <div class="grow relative">
         <Map
-            class="h-full {$fileStateCollection.size > 1 ? 'horizontal' : ''}"
+            class="h-full {$files.size > 1 ? 'horizontal' : ''}"
             maptilerKey={options.key}
             geocoder={false}
             geolocate={true}
@@ -114,7 +101,7 @@
         <OpenIn files={options.files} ids={options.ids} />
         <LayerControl />
         <GPXLayers />
-        {#if $fileStateCollection.size > 1}
+        {#if $files.size > 1}
             <div class="h-10 -translate-y-10 w-full pointer-events-none absolute z-30">
                 <FileList orientation="horizontal" />
             </div>

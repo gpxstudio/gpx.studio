@@ -242,9 +242,26 @@ class Engine {
         return this.run((w) => w.new_file(name));
     }
 
-    /** `name` is the name of the file when the data has none (the name on disk, without extension). */
-    loadFile(data: Uint8Array, name: string) {
-        return this.run((w) => w.load_file(data, name));
+    /**
+     * Loads files as a single command (one undo step). `name` is the name of a file when its data
+     * has none (the name on disk, without extension). The files that cannot be read are skipped,
+     * the first one that was read is selected.
+     */
+    loadFiles(files: { data: Uint8Array; name: string }[]) {
+        const lengths = Uint32Array.from(files.map((file) => file.data.length));
+        const data = new Uint8Array(lengths.reduce((sum, length) => sum + length, 0));
+        let offset = 0;
+        for (const file of files) {
+            data.set(file.data, offset);
+            offset += file.data.length;
+        }
+        return this.run((w) =>
+            w.load_files(
+                data,
+                lengths,
+                files.map((file) => file.name)
+            )
+        );
     }
 
     duplicate() {
