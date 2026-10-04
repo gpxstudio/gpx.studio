@@ -40,6 +40,8 @@ impl Categories {
 pub struct TrackpointCategories {
     pub surface: Categories,
     pub highway: Categories,
+    pub sac_scale: Categories,
+    pub mtb_scale: Categories,
 }
 
 #[cfg(test)]
@@ -84,7 +86,11 @@ mod tests {
         let mut categories = TrackpointCategories::default();
         categories.surface.code("asphalt");
         assert_eq!(categories.highway.code("path"), Some(0));
+        assert_eq!(categories.sac_scale.code("hiking"), Some(0));
+        assert_eq!(categories.mtb_scale.code("1"), Some(0));
         assert_eq!(categories.surface.names(), ["asphalt"]);
         assert_eq!(categories.highway.names(), ["path"]);
+        assert_eq!(categories.sac_scale.names(), ["hiking"]);
+        assert_eq!(categories.mtb_scale.names(), ["1"]);
     }
 }

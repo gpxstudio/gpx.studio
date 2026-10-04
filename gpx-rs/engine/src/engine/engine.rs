@@ -1252,6 +1252,12 @@ mod tests {
         // the trackpoints of the selection refer to them
         assert_eq!(engine.statistics().surface, [1, 1, 0, 2, 2]);
         assert_eq!(engine.statistics().highway, [1, 1, 0, 2, 0]);
+        assert_eq!(
+            engine.categories().sac_scale.names(),
+            ["mountain_hiking", "hiking"]
+        );
+        assert_eq!(engine.statistics().sac_scale, [0, 0, 0, 1, 2]);
+        assert_eq!(engine.statistics().mtb_scale, [0, 0, 0, 1, 1]);
 
         // a second file goes on with the same table
         load(&mut engine, "data/with_surface.gpx");

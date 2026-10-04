@@ -13,4 +13,8 @@ pub struct Trackpoint {
     pub surface: Option<u8>,
     /// Code of the highway, see [`crate::TrackpointCategories`].
     pub highway: Option<u8>,
+    /// Code of the SAC hiking scale, see [`crate::TrackpointCategories`].
+    pub sac_scale: Option<u8>,
+    /// Code of the mountain biking scale, see [`crate::TrackpointCategories`].
+    pub mtb_scale: Option<u8>,
 }

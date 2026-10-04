@@ -39,6 +39,8 @@
                         <gpxtpx:Extensions>
                             <surface>gravel</surface>
                             <highway>track</highway>
+                            <sac_scale>mountain_hiking</sac_scale>
+                            <mtb_scale>1</mtb_scale>
                         </gpxtpx:Extensions>
                     </gpxtpx:TrackPointExtension>
                 </extensions>
@@ -49,6 +51,8 @@
                     <gpxtpx:TrackPointExtension>
                         <gpxtpx:Extensions>
                             <surface>gravel</surface>
+                            <sac_scale>hiking</sac_scale>
+                            <mtb_scale>1</mtb_scale>
                         </gpxtpx:Extensions>
                     </gpxtpx:TrackPointExtension>
                 </extensions>

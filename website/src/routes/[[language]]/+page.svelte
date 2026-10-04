@@ -49,6 +49,10 @@
         surfaces: [],
         highway: new Uint8Array(),
         highways: [],
+        sacScale: new Uint8Array(),
+        sacScales: [],
+        mtbScale: new Uint8Array(),
+        mtbScales: [],
         slice: () => undefined,
     });
     let slicedStatistics = writable(undefined);

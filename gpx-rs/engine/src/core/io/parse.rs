@@ -31,6 +31,8 @@ enum GPXElement {
     Power,
     Surface,
     Highway,
+    SacScale,
+    MtbScale,
     Symbol,
     Type,
     Color,
@@ -50,7 +52,7 @@ fn parse_coordinates(attributes: Attributes<'_>) -> LngLat {
     coordinates
 }
 
-/// Parses a GPX file. The surface and the highway of the trackpoints are stored as codes of
+/// Parses a GPX file. The surface, highway, SAC scale and MTB scale of the trackpoints are stored as codes of
 /// `categories`, which learns the values it does not know yet.
 pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File, Error> {
     let mut reader = Reader::from_reader(data);
@@ -103,6 +105,8 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
                 e if e.ends_with("PowerInWatts") => stack.push(GPXElement::Power),
                 "surface" => stack.push(GPXElement::Surface),
                 "highway" => stack.push(GPXElement::Highway),
+                "sac_scale" => stack.push(GPXElement::SacScale),
+                "mtb_scale" => stack.push(GPXElement::MtbScale),
                 "sym" => stack.push(GPXElement::Symbol),
                 "type" => stack.push(GPXElement::Type),
                 e if e.ends_with("color") => stack.push(GPXElement::Color),
@@ -286,6 +290,18 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
                     stack.pop();
                     if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
                         trkpt.highway = categories.highway.code(&e);
+                    }
+                }
+                Some(GPXElement::SacScale) => {
+                    stack.pop();
+                    if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
+                        trkpt.sac_scale = categories.sac_scale.code(&e);
+                    }
+                }
+                Some(GPXElement::MtbScale) => {
+                    stack.pop();
+                    if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
+                        trkpt.mtb_scale = categories.mtb_scale.code(&e);
                     }
                 }
                 Some(GPXElement::Symbol) => {
@@ -566,7 +582,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_trackpoint_surface_and_highway() {
+    fn test_parse_trackpoint_surface_highway_and_scales() {
         let (gpx, categories) = parse_data_with_categories("with_highway");
 
         let trkseg = &gpx.trk[0].trkseg[0];
@@ -576,23 +592,33 @@ mod tests {
         let values: Vec<_> = trkseg
             .iter()
             .map(|trkpt| {
-                (
+                [
                     names(trkpt.surface, &categories.surface),
                     names(trkpt.highway, &categories.highway),
-                )
+                    names(trkpt.sac_scale, &categories.sac_scale),
+                    names(trkpt.mtb_scale, &categories.mtb_scale),
+                ]
             })
             .collect();
         let some = |s: &str| Some(s.to_owned());
         assert_eq!(
             values,
             [
-                (some("asphalt"), some("residential")),
-                (some("asphalt"), some("residential")),
-                (None, None),
-                (some("gravel"), some("track")),
-                (some("gravel"), None),
+                [some("asphalt"), some("residential"), None, None],
+                [some("asphalt"), some("residential"), None, None],
+                [None, None, None, None],
+                [
+                    some("gravel"),
+                    some("track"),
+                    some("mountain_hiking"),
+                    some("1")
+                ],
+                [some("gravel"), None, some("hiking"), some("1")],
             ]
         );
+        // the tables are separate
+        assert_eq!(categories.sac_scale.names(), ["mountain_hiking", "hiking"]);
+        assert_eq!(categories.mtb_scale.names(), ["1"]);
     }
 
     #[test]

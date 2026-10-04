@@ -44,6 +44,8 @@ interface ElevationProfilePoint {
     };
     surface?: string;
     highway?: string;
+    sacScale?: string;
+    mtbScale?: string;
     coordinates: Coordinates;
     index: number;
 }
@@ -189,9 +191,8 @@ export class ElevationProfile {
                             };
                             let surface = point.surface ?? 'unknown';
                             let highway = point.highway ?? 'unknown';
-                            // TODO the engine does not store the sac and mtb scales yet
-                            let sacScale: string | undefined = undefined;
-                            let mtbScale: string | undefined = undefined;
+                            let sacScale = point.sacScale;
+                            let mtbScale = point.mtbScale;
 
                             let labels = [
                                 `    ${i18n._('quantities.distance')}: ${getDistanceWithUnits(point.x, false)}`,
@@ -414,6 +415,8 @@ export class ElevationProfile {
                 },
                 surface: categoryAt(data.surface, data.surfaces, index),
                 highway: categoryAt(data.highway, data.highways, index),
+                sacScale: categoryAt(data.sacScale, data.sacScales, index),
+                mtbScale: categoryAt(data.mtbScale, data.mtbScales, index),
                 coordinates: { lat: data.lat[index], lon: data.lng[index] },
                 index,
             });
@@ -606,8 +609,7 @@ export class ElevationProfile {
 
     highwayFillCallback(context: ScriptableLineSegmentContext & { p0: { raw: any } }) {
         const point = context.p0.raw as ElevationProfilePoint;
-        // TODO the engine does not store the sac and mtb scales yet
-        return getHighwayColor(point.highway ?? '', undefined, undefined);
+        return getHighwayColor(point.highway ?? '', point.sacScale, point.mtbScale);
     }
 
     destroy() {

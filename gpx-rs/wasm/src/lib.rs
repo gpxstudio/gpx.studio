@@ -164,10 +164,12 @@ stats_getter!(cad, Float64Array);
 stats_getter!(atemp, Float64Array);
 stats_getter!(power, Float64Array);
 
-// Surface and highway of the trackpoints: 0 when unknown, else 1 + the index in `surfaces()` or
-// `highways()`.
+// Surface, highway, SAC scale and MTB scale of the trackpoints: 0 when unknown, else 1 + the index
+// in `surfaces()`, `highways()`, `sac_scales()` or `mtb_scales()`.
 stats_getter!(surface, Uint8Array);
 stats_getter!(highway, Uint8Array);
+stats_getter!(sac_scale, Uint8Array);
+stats_getter!(mtb_scale, Uint8Array);
 
 /// The names of the surfaces, in the order of their codes (see `surface`). The list only grows:
 /// a name keeps its index.
@@ -184,6 +186,30 @@ pub fn highways() -> StringList {
     with_engine(|e| array(e.categories().highway.names(), |name| name.as_str().into()))
         .unwrap_or_default()
         .unchecked_into()
+}
+
+/// The names of the SAC scales, in the order of their codes (see `sac_scale`).
+#[wasm_bindgen]
+pub fn sac_scales() -> StringList {
+    with_engine(|e| {
+        array(e.categories().sac_scale.names(), |name| {
+            name.as_str().into()
+        })
+    })
+    .unwrap_or_default()
+    .unchecked_into()
+}
+
+/// The names of the MTB scales, in the order of their codes (see `mtb_scale`).
+#[wasm_bindgen]
+pub fn mtb_scales() -> StringList {
+    with_engine(|e| {
+        array(e.categories().mtb_scale.names(), |name| {
+            name.as_str().into()
+        })
+    })
+    .unwrap_or_default()
+    .unchecked_into()
 }
 
 // File commands

@@ -148,6 +148,14 @@ export type SelectionStatistics = {
     highway: Uint8Array;
     /** Names of the highways, by code. */
     highways: string[];
+    /** SAC hiking scale of the trackpoints: 0 when unknown, else 1 + the index in `sacScales`. */
+    sacScale: Uint8Array;
+    /** Names of the SAC scales, by code. */
+    sacScales: string[];
+    /** Mountain biking scale of the trackpoints: 0 when unknown, else 1 + the index in `mtbScales`. */
+    mtbScale: Uint8Array;
+    /** Names of the mountain biking scales, by code. */
+    mtbScales: string[];
     /**
      * Global statistics of the trackpoints from `start` to `end` (both included), for example
      * the part of the elevation profile that was dragged over. `undefined` if the range is not
@@ -181,6 +189,10 @@ const EMPTY_SELECTION_STATISTICS: SelectionStatistics = {
     surfaces: [],
     highway: new Uint8Array(),
     highways: [],
+    sacScale: new Uint8Array(),
+    sacScales: [],
+    mtbScale: new Uint8Array(),
+    mtbScales: [],
     slice: () => undefined,
 };
 
@@ -635,6 +647,10 @@ class Engine {
             surfaces: wasm.surfaces(),
             highway: wasm.highway().slice(),
             highways: wasm.highways(),
+            sacScale: wasm.sac_scale().slice(),
+            sacScales: wasm.sac_scales(),
+            mtbScale: wasm.mtb_scale().slice(),
+            mtbScales: wasm.mtb_scales(),
             slice: (start, end) =>
                 version === this._statisticsVersion ? wasm.slice_statistics(start, end) : undefined,
         };
