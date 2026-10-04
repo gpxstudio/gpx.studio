@@ -384,6 +384,107 @@ pub fn can_paste() -> bool {
     with_engine(|e| e.can_paste()).unwrap_or(false)
 }
 
+// Moving elements (drag and drop)
+//
+// Unlike the other functions, the arguments are objects, as they are in the `Selection` and
+// `MoveTarget` types: it happens once per drop, and they are much clearer than a list of ids.
+
+fn property(object: &JsValue, key: &str) -> Option<JsValue> {
+    Reflect::get(object, &key.into())
+        .ok()
+        .filter(|value| !value.is_undefined())
+}
+
+fn uuid_property(object: &JsValue, key: &str) -> Option<uuid::Uuid> {
+    uuid::Uuid::parse_str(&property(object, key)?.as_string()?).ok()
+}
+
+fn uuids_property(object: &JsValue, key: &str) -> Option<Vec<uuid::Uuid>> {
+    Array::from(&property(object, key)?)
+        .iter()
+        .map(|id| uuid::Uuid::parse_str(&id.as_string()?).ok())
+        .collect()
+}
+
+/// The inverse of `selection_object`.
+fn parse_selection(value: &JsValue) -> Option<engine::Selection> {
+    use engine::Selection as S;
+    let file_id = || uuid_property(value, "fileId").map(FileId);
+    Some(match property(value, "type")?.as_string()?.as_str() {
+        "empty" => S::Empty,
+        "file" => S::File {
+            file_ids: uuids_property(value, "fileIds")?
+                .into_iter()
+                .map(FileId)
+                .collect(),
+        },
+        "track" => S::Track {
+            file_id: file_id()?,
+            trk_ids: uuids_property(value, "trackIds")?
+                .into_iter()
+                .map(engine::TrackId)
+                .collect(),
+        },
+        "segment" => S::TrackSegment {
+            file_id: file_id()?,
+            trk_id: engine::TrackId(uuid_property(value, "trackId")?),
+            trkseg_ids: uuids_property(value, "segmentIds")?
+                .into_iter()
+                .map(engine::TrackSegmentId)
+                .collect(),
+        },
+        "waypoints" => S::Waypoints {
+            file_id: file_id()?,
+        },
+        "waypoint" => S::Waypoint {
+            file_id: file_id()?,
+            wpt_ids: uuids_property(value, "waypointIds")?
+                .into_iter()
+                .map(engine::WaypointId)
+                .collect(),
+        },
+        _ => return None,
+    })
+}
+
+fn parse_move_target(value: &JsValue) -> Option<engine::MoveTarget> {
+    use engine::MoveTarget as T;
+    // a negative index is the start, an infinite one is the end
+    let index = property(value, "index")?.as_f64()?.max(0.0) as usize;
+    let file_id = || uuid_property(value, "fileId").map(FileId);
+    Some(match property(value, "type")?.as_string()?.as_str() {
+        "files" => T::Files { index },
+        "tracks" => T::Tracks {
+            file_id: file_id()?,
+            index,
+        },
+        "segments" => T::Segments {
+            file_id: file_id()?,
+            trk_id: engine::TrackId(uuid_property(value, "trackId")?),
+            index,
+        },
+        "waypoints" => T::Waypoints {
+            file_id: file_id()?,
+            index,
+        },
+        _ => return None,
+    })
+}
+
+/// Moves elements (given as a `Selection`) to a place of the file tree, keeping their ids, like
+/// dragging and dropping them does. The moved elements are selected.
+///
+/// Files can only go among the files; tracks among the files (each becomes a file) or the tracks
+/// of a file; segments among the files (each becomes a file), the tracks of a file (each becomes
+/// a track) or the segments of a track; waypoints, or all the waypoints of a file, among the
+/// waypoints of a file.
+#[wasm_bindgen]
+pub fn move_elements(what: Selection, to: MoveTarget) -> bool {
+    parse_selection(&what)
+        .zip(parse_move_target(&to))
+        .is_some_and(|(what, to)| edit(Command::Move(engine::Move { what, to })))
+}
+
 // Selection
 
 /// Selects files. `file_ids_bytes`: concatenated 16-byte UUIDs. Unknown files are ignored, and
@@ -500,6 +601,15 @@ export type Selection =
     | { type: 'segment'; fileId: string; trackId: string; segmentIds: string[] }
     | { type: 'waypoints'; fileId: string }
     | { type: 'waypoint'; fileId: string; waypointIds: string[] };
+/**
+ * Where moved elements go: a list of the file tree and the position in it, counted among the
+ * elements of the list that are not moved.
+ */
+export type MoveTarget =
+    | { type: 'files'; index: number }
+    | { type: 'tracks'; fileId: string; index: number }
+    | { type: 'segments'; fileId: string; trackId: string; index: number }
+    | { type: 'waypoints'; fileId: string; index: number };
 /** What was copied or cut, to be pasted. */
 export interface Clipboard {
     selection: Selection;
@@ -580,6 +690,8 @@ export interface WaypointNode {
 extern "C" {
     #[wasm_bindgen(typescript_type = "Selection")]
     pub type Selection;
+    #[wasm_bindgen(typescript_type = "MoveTarget")]
+    pub type MoveTarget;
     #[wasm_bindgen(typescript_type = "Clipboard | undefined")]
     pub type Clipboard;
     #[wasm_bindgen(typescript_type = "FilesUpdate")]

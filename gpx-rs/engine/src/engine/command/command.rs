@@ -1,6 +1,6 @@
 use crate::{Apply, CommandError, State};
 use crate::{
-    Clean, Crop, Delete, DeleteAll, Duplicate, Elevation, Extract, Load, Merge, Metadata,
+    Clean, Crop, Delete, DeleteAll, Duplicate, Elevation, Extract, Load, Merge, Metadata, Move,
     MoveWaypoint, New, NewTrack, NewTrackSegment, NewWaypoint, Paste, Reverse, SpliceTrackpoints,
     Split, Style, Time,
 };
@@ -17,6 +17,7 @@ pub enum Command<'a> {
     Duplicate(Duplicate),
     Delete(Delete),
     Paste(Paste),
+    Move(Move),
     DeleteAll(DeleteAll),
     Metadata(Metadata<'a>),
     Style(Style<'a>),
@@ -43,6 +44,7 @@ impl Apply for Command<'_> {
             Command::Duplicate(c) => c.apply(state),
             Command::Delete(c) => c.apply(state),
             Command::Paste(c) => c.apply(state),
+            Command::Move(c) => c.apply(state),
             Command::DeleteAll(c) => c.apply(state),
             Command::Metadata(c) => c.apply(state),
             Command::Style(c) => c.apply(state),

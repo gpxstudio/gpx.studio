@@ -1,9 +1,8 @@
-use std::{collections::HashSet, hash::Hash, rc::Rc};
+use std::{collections::HashSet, hash::Hash};
 
 use crate::{
-    Apply, CommandError, File, FileId, Selection, State, Track, TrackId, TrackSegment,
-    TrackSegmentId, Waypoint, WaypointId, copy_file, copy_segment, copy_track, copy_waypoint,
-    edit_waypoint_chunks, insert_waypoints,
+    Apply, CommandError, Place, SegmentsTo, Selection, State, TracksTo, transfer_files,
+    transfer_segments, transfer_tracks, transfer_waypoints, waypoint_ids,
 };
 
 /// Pastes what was copied or cut (see [`crate::Clipboard`]), and empties the clipboard.
@@ -31,16 +30,83 @@ impl Apply for Paste {
             .ok_or(CommandError::NothingToDo)?;
         let cut = clipboard.cut;
         let next = match &clipboard.selection {
-            Selection::File { file_ids } => paste_files(state, file_ids, cut)?,
-            Selection::Track { file_id, trk_ids } => paste_tracks(state, *file_id, trk_ids, cut)?,
+            Selection::File { file_ids } => transfer_files(state, file_ids, cut, Place::End)?,
+            Selection::Track { file_id, trk_ids } => {
+                let to = match &*state.selection {
+                    Selection::Empty => TracksTo::Files(Place::End),
+                    Selection::File { file_ids } => TracksTo::File(
+                        last_selected(state.order.0.iter().copied(), file_ids)
+                            .ok_or(CommandError::NothingToDo)?,
+                        Place::End,
+                    ),
+                    Selection::Track { file_id, trk_ids } => {
+                        let file = state.files.get(file_id).ok_or(CommandError::NothingToDo)?;
+                        let last = last_selected(file.trk.iter().map(|trk| trk.id), trk_ids)
+                            .ok_or(CommandError::NothingToDo)?;
+                        TracksTo::File(*file_id, Place::After(last))
+                    }
+                    _ => return Err(CommandError::NothingToDo),
+                };
+                transfer_tracks(state, *file_id, trk_ids, cut, to)?
+            }
             Selection::TrackSegment {
                 file_id,
                 trk_id,
                 trkseg_ids,
-            } => paste_segments(state, *file_id, *trk_id, trkseg_ids, cut)?,
-            Selection::Waypoints { file_id } => paste_waypoints(state, *file_id, None, cut)?,
-            Selection::Waypoint { file_id, wpt_ids } => {
-                paste_waypoints(state, *file_id, Some(wpt_ids), cut)?
+            } => {
+                let to = match &*state.selection {
+                    Selection::Empty => SegmentsTo::Files(Place::End),
+                    Selection::File { file_ids } => SegmentsTo::Tracks(
+                        last_selected(state.order.0.iter().copied(), file_ids)
+                            .ok_or(CommandError::NothingToDo)?,
+                        Place::End,
+                    ),
+                    Selection::Track { file_id, trk_ids } => {
+                        let file = state.files.get(file_id).ok_or(CommandError::NothingToDo)?;
+                        let last = last_selected(file.trk.iter().map(|trk| trk.id), trk_ids)
+                            .ok_or(CommandError::NothingToDo)?;
+                        SegmentsTo::Track(*file_id, last, Place::End)
+                    }
+                    Selection::TrackSegment {
+                        file_id,
+                        trk_id,
+                        trkseg_ids,
+                    } => {
+                        let trk = state
+                            .files
+                            .get(file_id)
+                            .and_then(|file| file.trk.iter().find(|trk| trk.id == *trk_id))
+                            .ok_or(CommandError::NothingToDo)?;
+                        let last = last_selected(trk.trkseg.iter().map(|seg| seg.id), trkseg_ids)
+                            .ok_or(CommandError::NothingToDo)?;
+                        SegmentsTo::Track(*file_id, *trk_id, Place::After(last))
+                    }
+                    _ => return Err(CommandError::NothingToDo),
+                };
+                transfer_segments(state, *file_id, *trk_id, trkseg_ids, cut, to)?
+            }
+            Selection::Waypoints { .. } | Selection::Waypoint { .. } => {
+                let (file_id, source) = match &clipboard.selection {
+                    Selection::Waypoints { file_id } => (*file_id, None),
+                    Selection::Waypoint { file_id, wpt_ids } => (*file_id, Some(wpt_ids)),
+                    _ => unreachable!(),
+                };
+                let (to, place) = match &*state.selection {
+                    Selection::File { file_ids } => (
+                        last_selected(state.order.0.iter().copied(), file_ids)
+                            .ok_or(CommandError::NothingToDo)?,
+                        Place::End,
+                    ),
+                    Selection::Waypoints { file_id } => (*file_id, Place::End),
+                    Selection::Waypoint { file_id, wpt_ids } => {
+                        let file = state.files.get(file_id).ok_or(CommandError::NothingToDo)?;
+                        let last = last_selected(waypoint_ids(file), wpt_ids)
+                            .ok_or(CommandError::NothingToDo)?;
+                        (*file_id, Place::After(last))
+                    }
+                    _ => return Err(CommandError::NothingToDo),
+                };
+                transfer_waypoints(state, file_id, source, cut, to, place)?
             }
             Selection::Empty => return Err(CommandError::NothingToDo),
         };
@@ -58,382 +124,14 @@ fn last_selected<T: Copy + Eq + Hash>(
     all.filter(|id| selected.contains(id)).last()
 }
 
-fn waypoint_ids(file: &File) -> impl Iterator<Item = WaypointId> + '_ {
-    file.wpt
-        .iter()
-        .flat_map(|chunk| &chunk.wpt)
-        .map(|wpt| wpt.id)
-}
-
-fn file_mut<'a>(state: &'a mut State, id: FileId) -> Result<&'a mut File, CommandError> {
-    state
-        .files
-        .get_mut(&id)
-        .map(Rc::make_mut)
-        .ok_or(CommandError::NothingToDo)
-}
-
-/// Adds the file to the files, at the end of the order.
-fn add_file(state: &mut State, file: File) -> FileId {
-    let id = file.id;
-    state.files.insert(id, Rc::new(file));
-    state.order.0.push(id);
-    id
-}
-
-fn new_file(name: &str, trk: Vec<Track>) -> File {
-    let mut file = File {
-        trk,
-        ..Default::default()
-    };
-    file.info.name = name.to_owned();
-    file
-}
-
-fn paste_files(
-    state: &mut State,
-    source: &HashSet<FileId>,
-    cut: bool,
-) -> Result<Selection, CommandError> {
-    let ids: Vec<FileId> = state
-        .order
-        .0
-        .iter()
-        .copied()
-        .filter(|id| source.contains(id) && state.files.contains_key(id))
-        .collect();
-    if ids.is_empty() {
-        return Err(CommandError::NothingToDo);
-    }
-
-    let pasted = if cut {
-        // moved to the end of the list
-        state.order.move_files(&ids, usize::MAX);
-        ids
-    } else {
-        let copies: Vec<File> = ids.iter().map(|id| copy_file(&state.files[id])).collect();
-        copies
-            .into_iter()
-            .map(|file| add_file(state, file))
-            .collect()
-    };
-    Ok(Selection::File {
-        file_ids: pasted.into_iter().collect(),
-    })
-}
-
-fn paste_tracks(
-    state: &mut State,
-    file_id: FileId,
-    source: &HashSet<TrackId>,
-    cut: bool,
-) -> Result<Selection, CommandError> {
-    let source_file = state.files.get(&file_id).ok_or(CommandError::NothingToDo)?;
-    let source_name = source_file.info.name.clone();
-    let tracks: Vec<Track> = source_file
-        .trk
-        .iter()
-        .filter(|trk| source.contains(&trk.id))
-        .cloned()
-        .collect();
-    if tracks.is_empty() {
-        return Err(CommandError::NothingToDo);
-    }
-
-    // where to paste, checked before anything is changed
-    enum To {
-        Files,
-        End(FileId),
-        After(FileId, TrackId),
-    }
-    let to = match &*state.selection {
-        Selection::Empty => To::Files,
-        Selection::File { file_ids } => To::End(
-            last_selected(state.order.0.iter().copied(), file_ids)
-                .ok_or(CommandError::NothingToDo)?,
-        ),
-        Selection::Track { file_id, trk_ids } => {
-            let file = state.files.get(file_id).ok_or(CommandError::NothingToDo)?;
-            To::After(
-                *file_id,
-                last_selected(file.trk.iter().map(|trk| trk.id), trk_ids)
-                    .ok_or(CommandError::NothingToDo)?,
-            )
-        }
-        _ => return Err(CommandError::NothingToDo),
-    };
-    if let To::End(id) | To::After(id, _) = &to
-        && !state.files.contains_key(id)
-    {
-        return Err(CommandError::NothingToDo);
-    }
-
-    if cut {
-        file_mut(state, file_id)?
-            .trk
-            .retain(|trk| !source.contains(&trk.id));
-    }
-    let tracks: Vec<Track> = if cut {
-        tracks
-    } else {
-        tracks.iter().map(copy_track).collect()
-    };
-    let ids: HashSet<TrackId> = tracks.iter().map(|trk| trk.id).collect();
-
-    Ok(match to {
-        To::Files => {
-            let files = tracks
-                .into_iter()
-                .map(|track| {
-                    let name = track
-                        .info
-                        .name
-                        .clone()
-                        .unwrap_or_else(|| source_name.clone());
-                    new_file(&name, vec![track])
-                })
-                .collect::<Vec<_>>();
-            Selection::File {
-                file_ids: files
-                    .into_iter()
-                    .map(|file| add_file(state, file))
-                    .collect(),
-            }
-        }
-        To::End(id) => {
-            file_mut(state, id)?.trk.extend(tracks);
-            Selection::Track {
-                file_id: id,
-                trk_ids: ids,
-            }
-        }
-        To::After(id, after) => {
-            let file = file_mut(state, id)?;
-            // the track may have just been cut away
-            let at = file
-                .trk
-                .iter()
-                .position(|trk| trk.id == after)
-                .map_or(file.trk.len(), |i| i + 1);
-            file.trk.splice(at..at, tracks);
-            Selection::Track {
-                file_id: id,
-                trk_ids: ids,
-            }
-        }
-    })
-}
-
-fn paste_segments(
-    state: &mut State,
-    file_id: FileId,
-    trk_id: TrackId,
-    source: &HashSet<TrackSegmentId>,
-    cut: bool,
-) -> Result<Selection, CommandError> {
-    let source_file = state.files.get(&file_id).ok_or(CommandError::NothingToDo)?;
-    let source_track = source_file
-        .trk
-        .iter()
-        .find(|trk| trk.id == trk_id)
-        .ok_or(CommandError::NothingToDo)?;
-    let source_name = source_track
-        .info
-        .name
-        .clone()
-        .unwrap_or_else(|| source_file.info.name.clone());
-    let segments: Vec<TrackSegment> = source_track
-        .trkseg
-        .iter()
-        .filter(|seg| source.contains(&seg.id))
-        .cloned()
-        .collect();
-    if segments.is_empty() {
-        return Err(CommandError::NothingToDo);
-    }
-
-    enum To {
-        Files,
-        Tracks(FileId),
-        End(FileId, TrackId),
-        After(FileId, TrackId, TrackSegmentId),
-    }
-    let to = match &*state.selection {
-        Selection::Empty => To::Files,
-        Selection::File { file_ids } => To::Tracks(
-            last_selected(state.order.0.iter().copied(), file_ids)
-                .ok_or(CommandError::NothingToDo)?,
-        ),
-        Selection::Track { file_id, trk_ids } => {
-            let file = state.files.get(file_id).ok_or(CommandError::NothingToDo)?;
-            To::End(
-                *file_id,
-                last_selected(file.trk.iter().map(|trk| trk.id), trk_ids)
-                    .ok_or(CommandError::NothingToDo)?,
-            )
-        }
-        Selection::TrackSegment {
-            file_id,
-            trk_id,
-            trkseg_ids,
-        } => {
-            let trk = state
-                .files
-                .get(file_id)
-                .and_then(|file| file.trk.iter().find(|trk| trk.id == *trk_id))
-                .ok_or(CommandError::NothingToDo)?;
-            To::After(
-                *file_id,
-                *trk_id,
-                last_selected(trk.trkseg.iter().map(|seg| seg.id), trkseg_ids)
-                    .ok_or(CommandError::NothingToDo)?,
-            )
-        }
-        _ => return Err(CommandError::NothingToDo),
-    };
-    if let To::Tracks(id) = &to
-        && !state.files.contains_key(id)
-    {
-        return Err(CommandError::NothingToDo);
-    }
-
-    if cut {
-        let file = file_mut(state, file_id)?;
-        if let Some(trk) = file.trk.iter_mut().find(|trk| trk.id == trk_id) {
-            trk.trkseg.retain(|seg| !source.contains(&seg.id));
-        }
-    }
-    let segments: Vec<TrackSegment> = if cut {
-        segments
-    } else {
-        segments.iter().map(copy_segment).collect()
-    };
-    let ids: HashSet<TrackSegmentId> = segments.iter().map(|seg| seg.id).collect();
-
-    // a segment on its own needs a track
-    let own_track = |segment: TrackSegment| Track {
-        trkseg: vec![segment],
-        ..Default::default()
-    };
-    let in_track = |state: &mut State,
-                    file_id: FileId,
-                    trk_id: TrackId,
-                    after: Option<TrackSegmentId>,
-                    segments: Vec<TrackSegment>|
-     -> Result<(), CommandError> {
-        let trk = file_mut(state, file_id)?
-            .trk
-            .iter_mut()
-            .find(|trk| trk.id == trk_id)
-            .ok_or(CommandError::NothingToDo)?;
-        // the segment may have just been cut away
-        let at = after
-            .and_then(|after| trk.trkseg.iter().position(|seg| seg.id == after))
-            .map_or(trk.trkseg.len(), |i| i + 1);
-        trk.trkseg.splice(at..at, segments);
-        Ok(())
-    };
-
-    Ok(match to {
-        To::Files => {
-            let files = segments
-                .into_iter()
-                .map(|segment| new_file(&source_name, vec![own_track(segment)]))
-                .collect::<Vec<_>>();
-            Selection::File {
-                file_ids: files
-                    .into_iter()
-                    .map(|file| add_file(state, file))
-                    .collect(),
-            }
-        }
-        To::Tracks(id) => {
-            let tracks: Vec<Track> = segments.into_iter().map(own_track).collect();
-            let trk_ids = tracks.iter().map(|trk| trk.id).collect();
-            file_mut(state, id)?.trk.extend(tracks);
-            Selection::Track {
-                file_id: id,
-                trk_ids,
-            }
-        }
-        To::End(file_id, trk_id) => {
-            in_track(state, file_id, trk_id, None, segments)?;
-            Selection::TrackSegment {
-                file_id,
-                trk_id,
-                trkseg_ids: ids,
-            }
-        }
-        To::After(file_id, trk_id, after) => {
-            in_track(state, file_id, trk_id, Some(after), segments)?;
-            Selection::TrackSegment {
-                file_id,
-                trk_id,
-                trkseg_ids: ids,
-            }
-        }
-    })
-}
-
-fn paste_waypoints(
-    state: &mut State,
-    file_id: FileId,
-    source: Option<&HashSet<WaypointId>>,
-    cut: bool,
-) -> Result<Selection, CommandError> {
-    // all the waypoints of the file when no waypoints are given
-    let selected = |wpt: &Waypoint| source.is_none_or(|ids| ids.contains(&wpt.id));
-    let source_file = state.files.get(&file_id).ok_or(CommandError::NothingToDo)?;
-    let waypoints: Vec<Waypoint> = source_file
-        .wpt
-        .iter()
-        .flat_map(|chunk| &chunk.wpt)
-        .filter(|wpt| selected(wpt))
-        .cloned()
-        .collect();
-    if waypoints.is_empty() {
-        return Err(CommandError::NothingToDo);
-    }
-
-    let (to_file, after) = match &*state.selection {
-        Selection::File { file_ids } => (
-            last_selected(state.order.0.iter().copied(), file_ids)
-                .ok_or(CommandError::NothingToDo)?,
-            None,
-        ),
-        Selection::Waypoints { file_id } => (*file_id, None),
-        Selection::Waypoint { file_id, wpt_ids } => {
-            let file = state.files.get(file_id).ok_or(CommandError::NothingToDo)?;
-            (*file_id, last_selected(waypoint_ids(file), wpt_ids))
-        }
-        _ => return Err(CommandError::NothingToDo),
-    };
-    if !state.files.contains_key(&to_file) {
-        return Err(CommandError::NothingToDo);
-    }
-
-    if cut {
-        edit_waypoint_chunks(file_mut(state, file_id)?, selected, |wpts| {
-            wpts.retain(|wpt| !selected(wpt));
-            true
-        });
-    }
-    let waypoints: Vec<Waypoint> = if cut {
-        waypoints
-    } else {
-        waypoints.iter().map(copy_waypoint).collect()
-    };
-    let ids = waypoints.iter().map(|wpt| wpt.id).collect();
-    insert_waypoints(file_mut(state, to_file)?, after, waypoints);
-    Ok(Selection::Waypoint {
-        file_id: to_file,
-        wpt_ids: ids,
-    })
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::{Clipboard, TrackInfo, engine::command::fixture::Fixture};
+    use std::rc::Rc;
+
+    use crate::{
+        Clipboard, File, FileId, Track, TrackId, TrackInfo, TrackSegment, TrackSegmentId, Waypoint,
+        WaypointId, engine::command::fixture::Fixture, new_file,
+    };
 
     use super::*;
 

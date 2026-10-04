@@ -1021,4 +1021,44 @@ mod tests {
         assert!(engine.execute(Action::Undo));
         assert!(!engine.can_undo());
     }
+
+    #[test]
+    fn test_move_elements_is_an_edit_and_selects_what_moved() {
+        use crate::{Move, MoveTarget};
+
+        let mut engine = Engine::default();
+        let a = file_with_tracks(&mut engine, "a", 3);
+        let tracks = track_ids(&engine, a);
+        let moved = Selection::Track {
+            file_id: a,
+            trk_ids: [tracks[2]].into(),
+        };
+        assert!(edit(
+            &mut engine,
+            Command::Move(Move {
+                what: moved.clone(),
+                to: MoveTarget::Tracks {
+                    file_id: a,
+                    index: 0
+                },
+            })
+        ));
+        assert_eq!(track_ids(&engine, a), vec![tracks[2], tracks[0], tracks[1]]);
+        assert_eq!(engine.selection(), &moved);
+
+        // invalid moves change nothing
+        assert!(!edit(
+            &mut engine,
+            Command::Move(Move {
+                what: moved,
+                to: MoveTarget::Waypoints {
+                    file_id: a,
+                    index: 0
+                },
+            })
+        ));
+
+        assert!(engine.execute(Action::Undo));
+        assert_eq!(track_ids(&engine, a), tracks);
+    }
 }

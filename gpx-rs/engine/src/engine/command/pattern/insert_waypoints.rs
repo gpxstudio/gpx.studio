@@ -5,9 +5,25 @@ use crate::{File, Waypoint, WaypointChunk, WaypointId};
 /// Inserts waypoints in the file, right after the waypoint `after`, or at the end if there is
 /// none (or if it is not in the file).
 ///
-/// Only the chunk holding `after` is cut (when waypoints follow it), all the other chunks are
-/// kept as they are.
+/// See [`insert_waypoints_at`].
 pub fn insert_waypoints(file: &mut File, after: Option<WaypointId>, waypoints: Vec<Waypoint>) {
+    let index = after
+        .and_then(|after| {
+            file.wpt
+                .iter()
+                .flat_map(|chunk| &chunk.wpt)
+                .position(|wpt| wpt.id == after)
+        })
+        .map_or(usize::MAX, |i| i + 1);
+    insert_waypoints_at(file, index, waypoints);
+}
+
+/// Inserts waypoints in the file, so that the first one is at `index` among the waypoints of
+/// the file (at the end if the index is past it).
+///
+/// Only the chunk holding the waypoint that was at `index` is cut (when the waypoints are not
+/// inserted between two chunks), all the other chunks are kept as they are.
+pub fn insert_waypoints_at(file: &mut File, index: usize, waypoints: Vec<Waypoint>) {
     if waypoints.is_empty() {
         return;
     }
@@ -24,36 +40,32 @@ pub fn insert_waypoints(file: &mut File, after: Option<WaypointId>, waypoints: V
         inserted.push(Rc::new(chunk));
     }
 
-    let position = after.and_then(|after| {
-        file.wpt.iter().enumerate().find_map(|(i, chunk)| {
-            chunk
-                .wpt
-                .iter()
-                .position(|wpt| wpt.id == after)
-                .map(|j| (i, j + 1))
-        })
+    // the chunk holding the waypoint at `index`, and the position of that waypoint in it
+    let mut start = 0;
+    let position = file.wpt.iter().enumerate().find_map(|(i, chunk)| {
+        let offset = index
+            .checked_sub(start)
+            .filter(|offset| *offset < chunk.wpt.len());
+        start += chunk.wpt.len();
+        offset.map(|offset| (i, offset))
     });
     match position {
         None => file.wpt.extend(inserted),
-        Some((i, split)) => {
+        Some((i, 0)) => {
+            file.wpt.splice(i..i, inserted);
+        }
+        Some((i, offset)) => {
             let cut = &file.wpt[i];
-            let replacement = if split == cut.wpt.len() {
-                let mut chunks = vec![cut.clone()];
-                chunks.extend(inserted);
-                chunks
-            } else {
-                let part = |wpt: &[Waypoint]| {
-                    Rc::new(WaypointChunk {
-                        wpt: wpt.to_vec(),
-                        ..Default::default()
-                    })
-                };
-                let mut chunks = vec![part(&cut.wpt[..split])];
-                chunks.extend(inserted);
-                chunks.push(part(&cut.wpt[split..]));
-                chunks
+            let part = |wpt: &[Waypoint]| {
+                Rc::new(WaypointChunk {
+                    wpt: wpt.to_vec(),
+                    ..Default::default()
+                })
             };
-            file.wpt.splice(i..=i, replacement);
+            let mut chunks = vec![part(&cut.wpt[..offset])];
+            chunks.extend(inserted);
+            chunks.push(part(&cut.wpt[offset..]));
+            file.wpt.splice(i..=i, chunks);
         }
     }
     file.wpt_rev_id = Default::default();
@@ -154,5 +166,53 @@ mod tests {
         assert_eq!(ids(&file), new_ids);
         assert_eq!(file.wpt.len(), 3);
         assert!(file.wpt[..2].iter().all(|chunk| chunk.is_full()));
+    }
+
+    #[test]
+    fn test_insert_at_an_index() {
+        // at the start
+        let (mut file, before) = file_with(&[2, 1]);
+        let first = file.wpt[0].clone();
+        let one = waypoint();
+        let one_id = one.id;
+        insert_waypoints_at(&mut file, 0, vec![one]);
+        assert_eq!(ids(&file), [vec![one_id], before.clone()].concat());
+        // the existing chunks are kept
+        assert_eq!(file.wpt.len(), 3);
+        assert!(Rc::ptr_eq(&file.wpt[1], &first));
+
+        // between two chunks
+        let (mut file, before) = file_with(&[2, 1]);
+        let (first, last) = (file.wpt[0].clone(), file.wpt[1].clone());
+        let one = waypoint();
+        let one_id = one.id;
+        insert_waypoints_at(&mut file, 2, vec![one]);
+        assert_eq!(ids(&file), [&before[..2], &[one_id], &before[2..]].concat());
+        assert_eq!(file.wpt.len(), 3);
+        assert!(Rc::ptr_eq(&file.wpt[0], &first) && Rc::ptr_eq(&file.wpt[2], &last));
+
+        // inside a chunk
+        let (mut file, before) = file_with(&[3]);
+        let one = waypoint();
+        let one_id = one.id;
+        insert_waypoints_at(&mut file, 1, vec![one]);
+        assert_eq!(ids(&file), [&before[..1], &[one_id], &before[1..]].concat());
+        assert_eq!(file.wpt.len(), 3);
+
+        // at the end, or past it
+        for index in [3, 100] {
+            let (mut file, before) = file_with(&[3]);
+            let one = waypoint();
+            let one_id = one.id;
+            insert_waypoints_at(&mut file, index, vec![one]);
+            assert_eq!(ids(&file), [before, vec![one_id]].concat());
+        }
+
+        // in a file without waypoints
+        let mut file = File::default();
+        let one = waypoint();
+        let one_id = one.id;
+        insert_waypoints_at(&mut file, 0, vec![one]);
+        assert_eq!(ids(&file), vec![one_id]);
     }
 }

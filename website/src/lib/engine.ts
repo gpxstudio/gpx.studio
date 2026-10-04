@@ -4,10 +4,11 @@ import { FileColorAllocator, normalizeColor } from '$lib/file-colors';
 import { setHidden, type Visibility } from '$lib/file-visibility';
 import { selectedElementIds, type FileTreeNode } from '$lib/selection-helpers';
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
-import type { Clipboard, GlobalStatistics, FileStructure, Selection } from 'gpx-rs';
+import type { Clipboard, GlobalStatistics, FileStructure, MoveTarget, Selection } from 'gpx-rs';
 
 export type {
     Clipboard,
+    MoveTarget,
     GlobalStatistics,
     FileStructure,
     FilesUpdate,
@@ -365,6 +366,20 @@ class Engine {
      */
     paste() {
         return this.run((w) => w.paste());
+    }
+
+    /**
+     * Moves elements to a place of the file tree, keeping their ids, like dragging and dropping
+     * them does. The position of the target counts the elements of its list that are not moved.
+     * The moved elements are selected.
+     *
+     * Files go among the files; tracks among the files (each becomes a file) or the tracks of a
+     * file; segments among the files (each becomes a file), the tracks of a file (each becomes a
+     * track) or the segments of a track; waypoints, or all the waypoints of a file (the waypoints
+     * node), among the waypoints of a file.
+     */
+    move(what: Selection, to: MoveTarget) {
+        return this.run((w) => w.move_elements(what, to));
     }
 
     // Edits of the selection
