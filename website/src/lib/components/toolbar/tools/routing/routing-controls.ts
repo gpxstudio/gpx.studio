@@ -849,6 +849,14 @@ export class RoutingControls {
         }
 
         const anchor = this.anchors[e.features![0].properties.anchorIndex];
+        if (!anchor) {
+            // The temporary anchor on the line is not one of the anchors (nor is a feature
+            // still rendered from before they were rebuilt), a click on it adds it
+            if (e.type === 'click') {
+                this.addIntermediateAnchor(e);
+            }
+            return;
+        }
         if (e.originalEvent.shiftKey) {
             this.deleteAnchor(anchor);
             return;
