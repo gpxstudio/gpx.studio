@@ -20,7 +20,7 @@ import { isSegmentHidden, isWaypointHidden } from '$lib/file-visibility';
 import { settings } from '$lib/logic/settings';
 import { currentTool, Tool } from '$lib/components/toolbar/tools';
 import { fileActions } from '$lib/logic/file-actions';
-import { splitAs } from '$lib/components/toolbar/tools/scissors/scissors';
+import { splitAtPoint } from '$lib/components/toolbar/tools/scissors/scissors';
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 
@@ -415,7 +415,7 @@ export class GPXLayer {
 
     layerOnClick(e: MapLayerMouseEvent) {
         const properties = e.features![0].properties!;
-        const { trackId, segmentId, trackIndex, segmentIndex } = properties;
+        const { trackId, segmentId } = properties;
         const selectionType = this.selectionState.type;
 
         if (
@@ -436,11 +436,7 @@ export class GPXLayer {
                 return;
             }
 
-            // TODO the engine can split (Command::Split) but needs the index of the trackpoint
-            // fileActions.split(get(splitAs), this.fileId, trackIndex, segmentIndex, {
-            //     lat: e.lngLat.lat,
-            //     lon: e.lngLat.lng,
-            // });
+            splitAtPoint(segmentId, { lng: e.lngLat.lng, lat: e.lngLat.lat });
             return;
         }
 

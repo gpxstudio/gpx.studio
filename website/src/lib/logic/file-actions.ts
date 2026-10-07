@@ -2,7 +2,6 @@ import { fileStateCollection } from '$lib/logic/file-state';
 import { fileActionManager } from '$lib/logic/file-action-manager';
 import { applyToOrderedItemsFromFile, copied, cut, selection } from '$lib/logic/selection';
 import { currentTool, Tool } from '$lib/components/toolbar/tools';
-import { SplitType } from '$lib/components/toolbar/tools/scissors/scissors';
 import {
     ListFileItem,
     ListLevel,
@@ -20,13 +19,12 @@ import {
     TrackPoint,
     TrackSegment,
     Waypoint,
-    type Coordinates,
     type LineStyleExtension,
     type WaypointType,
 } from 'gpx';
 import { get } from 'svelte/store';
 import { settings } from '$lib/logic/settings';
-import { getClosestLinePoint, getClosestTrackSegments, getElevation } from '$lib/utils';
+import { getClosestTrackSegments, getElevation } from '$lib/utils';
 import { gpxStatistics } from '$lib/logic/statistics';
 import { boundsManager } from './bounds';
 import { engine } from '$lib/engine';
@@ -331,69 +329,6 @@ export const fileActions = {
                     }
                 }
             });
-        });
-    },
-    split(
-        splitType: SplitType,
-        fileId: string,
-        trackIndex: number,
-        segmentIndex: number,
-        coordinates: Coordinates,
-        trkptIndex?: number
-    ) {
-        return fileActionManager.applyGlobal((draft) => {
-            let file = fileStateCollection.getFile(fileId);
-            if (file) {
-                let segment = file.trk[trackIndex].trkseg[segmentIndex];
-                let minIndex = 0;
-                if (trkptIndex === undefined) {
-                    // Find the point closest to split
-                    let closest = getClosestLinePoint(segment.trkpt, coordinates);
-                    minIndex = closest._data.index;
-                } else {
-                    minIndex = trkptIndex;
-                }
-                let absoluteIndex = minIndex;
-                file.forEachSegment((seg, trkIndex, segIndex) => {
-                    if (
-                        (trkIndex < trackIndex && splitType === SplitType.FILES) ||
-                        (trkIndex === trackIndex && segIndex < segmentIndex)
-                    ) {
-                        absoluteIndex += seg.trkpt.length;
-                    }
-                });
-                if (splitType === SplitType.FILES) {
-                    let newFile = draft.get(fileId);
-                    if (newFile) {
-                        newFile.crop(0, absoluteIndex);
-                        let newFile2 = file.clone();
-                        newFile2._data.id = getFileIds(1)[0];
-                        newFile2.crop(absoluteIndex, file.getNumberOfTrackPoints() - 1);
-                        draft.set(newFile2._data.id, freeze(newFile2));
-                    }
-                } else if (splitType === SplitType.TRACKS) {
-                    let newFile = draft.get(fileId);
-                    if (newFile) {
-                        let start = file.trk[trackIndex].clone();
-                        start.crop(0, absoluteIndex);
-                        let end = file.trk[trackIndex].clone();
-                        end.crop(absoluteIndex, file.trk[trackIndex].getNumberOfTrackPoints() - 1);
-                        newFile.replaceTracks(trackIndex, trackIndex, [start, end]);
-                    }
-                } else if (splitType === SplitType.SEGMENTS) {
-                    let newFile = draft.get(fileId);
-                    if (newFile) {
-                        let start = segment.clone();
-                        start.crop(0, minIndex);
-                        let end = segment.clone();
-                        end.crop(minIndex, segment.trkpt.length - 1);
-                        newFile.replaceTrackSegments(trackIndex, segmentIndex, segmentIndex, [
-                            start,
-                            end,
-                        ]);
-                    }
-                }
-            }
         });
     },
     reduce: (itemsAndPoints: Map<ListItem, TrackPoint[]>) => {

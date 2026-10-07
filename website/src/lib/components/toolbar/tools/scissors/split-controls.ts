@@ -1,22 +1,32 @@
-import { ListTrackSegmentItem } from '$lib/components/file-list/file-list';
 import { currentTool, Tool } from '$lib/components/toolbar/tools';
 import { splitAs } from '$lib/components/toolbar/tools/scissors/scissors';
 import { Scissors } from 'lucide-static';
-import { selection } from '$lib/logic/selection';
-import { gpxStatistics } from '$lib/logic/statistics';
 import { get } from 'svelte/store';
-import { fileStateCollection } from '$lib/logic/file-state';
-import { fileActions } from '$lib/logic/file-actions';
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 import type { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
 import { loadSVGIcon } from '$lib/utils';
+import {
+    engine,
+    type Selection,
+    type SelectionStatistics,
+    type StatisticsRequest,
+} from '$lib/engine';
 
+/**
+ * The anchors inside the segments of the selection, where a click splits the file, the track or
+ * the segment: a command of the engine, which finds them by the index of their trackpoint in the
+ * selection.
+ */
 export class SplitControls {
     map: maplibregl.Map;
     layerEventManager: MapLayerEventManager;
     unsubscribes: Function[] = [];
+    /** What the tool needs from the engine, while it shows the anchors. */
+    request: StatisticsRequest = engine.requestStatistics();
+    selection: Selection = { type: 'empty' };
+    statistics: SelectionStatistics | undefined = undefined;
 
     layerOnMouseEnterBinded: (e: any) => void = this.layerOnMouseEnter.bind(this);
     layerOnMouseLeaveBinded: () => void = this.layerOnMouseLeave.bind(this);
@@ -36,13 +46,29 @@ export class SplitControls {
             </svg>`
         );
 
-        this.unsubscribes.push(gpxStatistics.subscribe(this.addIfNeeded.bind(this)));
+        this.unsubscribes.push(
+            engine.statistics.subscribe((statistics) => {
+                this.statistics = statistics;
+                this.addIfNeeded();
+            })
+        );
         this.unsubscribes.push(currentTool.subscribe(this.addIfNeeded.bind(this)));
-        this.unsubscribes.push(selection.subscribe(this.addIfNeeded.bind(this)));
+        this.unsubscribes.push(
+            engine.selection.subscribe((selection) => {
+                this.selection = selection;
+                this.addIfNeeded();
+            })
+        );
     }
 
     addIfNeeded() {
-        let scissors = get(currentTool) === Tool.SCISSORS;
+        // the tool works on files, tracks and segments, not on waypoints
+        const scissors =
+            get(currentTool) === Tool.SCISSORS &&
+            (this.selection.type === 'file' ||
+                this.selection.type === 'track' ||
+                this.selection.type === 'segment');
+        this.request.set(scissors ? ['anchors'] : []);
         if (!scissors) {
             this.remove();
             return;
@@ -51,44 +77,42 @@ export class SplitControls {
         this.updateControls();
     }
 
-    updateControls() {
-        let data: GeoJSON.FeatureCollection = {
-            type: 'FeatureCollection',
-            features: [],
-        };
-        selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-            let file = fileStateCollection.getFile(fileId);
-
-            if (file) {
-                file.forEachSegment((segment, trackIndex, segmentIndex) => {
-                    if (
-                        get(selection).hasAnyParent(
-                            new ListTrackSegmentItem(fileId, trackIndex, segmentIndex)
-                        )
-                    ) {
-                        for (let i = 1; i < segment.trkpt.length - 1; i++) {
-                            let point = segment.trkpt[i];
-                            if (point._data.anchor) {
-                                data.features.push({
-                                    type: 'Feature',
-                                    geometry: {
-                                        type: 'Point',
-                                        coordinates: [point.getLongitude(), point.getLatitude()],
-                                    },
-                                    properties: {
-                                        fileId: fileId,
-                                        trackIndex: trackIndex,
-                                        segmentIndex: segmentIndex,
-                                        pointIndex: i,
-                                        minZoom: point._data.zoom,
-                                    },
-                                });
-                            }
-                        }
-                    }
+    /** The anchors that are inside a segment, which is not where it starts or ends. */
+    inner(): GeoJSON.Feature[] {
+        const statistics = this.statistics;
+        const anchors = statistics?.anchors;
+        if (!statistics || !anchors) {
+            return [];
+        }
+        const starts = anchors.segmentStarts;
+        const features: GeoJSON.Feature[] = [];
+        let segment = 0;
+        for (let i = 0; i < anchors.indices.length; i++) {
+            const index = anchors.indices[i];
+            // the anchors are sorted: the segment can only be the same or a following one
+            while (segment + 1 < starts.length && starts[segment + 1] <= index) {
+                segment++;
+            }
+            const end = segment + 1 < starts.length ? starts[segment + 1] : statistics.length;
+            if (index > starts[segment] && index < end - 1) {
+                features.push({
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [statistics.lng[index], statistics.lat[index]],
+                    },
+                    properties: { index, minZoom: anchors.zooms[i] },
                 });
             }
-        }, false);
+        }
+        return features;
+    }
+
+    updateControls() {
+        const data: GeoJSON.FeatureCollection = {
+            type: 'FeatureCollection',
+            features: this.inner(),
+        };
 
         try {
             let source = this.map.getSource('split-controls') as GeoJSONSource | undefined;
@@ -161,19 +185,15 @@ export class SplitControls {
     }
 
     layerOnClick(e: maplibregl.MapLayerMouseEvent) {
-        let coordinates = (e.features![0].geometry as GeoJSON.Point).coordinates;
-        fileActions.split(
-            get(splitAs),
-            e.features![0].properties!.fileId,
-            e.features![0].properties!.trackIndex,
-            e.features![0].properties!.segmentIndex,
-            { lon: coordinates[0], lat: coordinates[1] },
-            e.features![0].properties!.pointIndex
-        );
+        const revision = this.statistics?.anchors?.revision;
+        if (revision !== undefined) {
+            engine.split(revision, e.features![0].properties!.index, get(splitAs));
+        }
     }
 
     destroy() {
         this.remove();
+        this.request.release();
         this.unsubscribes.forEach((unsubscribe) => unsubscribe());
     }
 }

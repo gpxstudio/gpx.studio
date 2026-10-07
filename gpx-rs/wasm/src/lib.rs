@@ -23,6 +23,25 @@ pub enum MergeType {
     Group,
 }
 
+/// What a split cuts in two.
+#[wasm_bindgen]
+#[derive(Clone, Copy)]
+pub enum SplitType {
+    Files,
+    Tracks,
+    Segments,
+}
+
+impl From<SplitType> for engine::SplitType {
+    fn from(t: SplitType) -> Self {
+        match t {
+            SplitType::Files => Self::Files,
+            SplitType::Tracks => Self::Tracks,
+            SplitType::Segments => Self::Segments,
+        }
+    }
+}
+
 #[wasm_bindgen]
 #[derive(Clone, Copy)]
 pub enum CleanType {
@@ -582,9 +601,16 @@ pub fn crop(start: u32, end: u32) -> bool {
     start <= end && edit(Command::Crop(engine::Crop { start, end }))
 }
 
+/// Cuts the file, the track or the segment (see `SplitType`) of the trackpoint `at` of the
+/// selection in two, there: the trackpoint ends the first part and starts the second one. Does
+/// nothing, and returns false, if the revision of the routing buffers is not the given one.
 #[wasm_bindgen]
-pub fn split(at: u32) -> bool {
-    edit(Command::Split(engine::Split { at }))
+pub fn split(revision: u32, at: u32, split_type: SplitType) -> bool {
+    routing_revision_is(revision)
+        && edit(Command::Split(engine::Split {
+            at,
+            split_type: split_type.into(),
+        }))
 }
 
 #[wasm_bindgen]

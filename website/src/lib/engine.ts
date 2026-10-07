@@ -32,6 +32,9 @@ export type {
 
 type Wasm = typeof import('gpx-rs');
 
+/** What a split cuts in two: the file, the track or the segment of the trackpoint. */
+export type SplitType = 'files' | 'tracks' | 'segments';
+
 /**
  * How elements combine with the current selection: they `replace` it, are `add`ed to it, or are
  * `toggle`d (the ones already selected are removed). Adding and toggling only merge with elements
@@ -643,6 +646,26 @@ class Engine {
      */
     reverse() {
         return this.run((w) => w.reverse());
+    }
+
+    /**
+     * Cuts the file, the track or the segment (see `SplitType`) of the trackpoint `at` of the
+     * selection in two, there: the trackpoint ends the first part and starts the second one. The
+     * first part keeps the ids, the second one (and what follows) gets new ones. `revision` is the
+     * one of `SelectionAnchors`, which `at` is an index of.
+     */
+    split(revision: number, at: number, splitType: SplitType) {
+        return this.run((w) =>
+            w.split(
+                revision,
+                at,
+                {
+                    files: w.SplitType.Files,
+                    tracks: w.SplitType.Tracks,
+                    segments: w.SplitType.Segments,
+                }[splitType]
+            )
+        );
     }
 
     /**
