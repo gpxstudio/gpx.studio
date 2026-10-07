@@ -3,6 +3,20 @@ use crate::{
     max_options, min_options, ramer_douglas_peucker, slope, speed, sum_options, time_diff,
 };
 
+/// Time between two trackpoints, to size the windows of a smoothing. It is unknown when one of
+/// them has no time, which is longer than any known time span: the window does not go there.
+#[derive(Clone, Copy, PartialEq, PartialOrd)]
+enum TimeSpan {
+    Known(i64),
+    Unknown,
+}
+
+impl TimeSpan {
+    fn between(end: Option<i64>, start: Option<i64>) -> Self {
+        time_diff(end, start).map_or(Self::Unknown, Self::Known)
+    }
+}
+
 #[derive(Default, Debug)]
 pub struct Statistics {
     pub global: GlobalStatistics,
@@ -84,22 +98,36 @@ impl Statistics {
         self.global.bounds.extend(coordinates);
     }
 
+    /// Speed over a window of 10 seconds on each side of the trackpoints that have a time (the
+    /// others have no speed). The windows do not extend to the trackpoints without time: if the
+    /// previous or next trackpoint has none, the window ends at the trackpoint itself on that side.
     fn compute_smoothed_speed(&mut self, trkseg: &TrackSegment) {
         for_each_window!(
             trkseg,
             trkseg.first_index(),
             trkseg.last_index(),
-            Some(10_000),
-            |i, j| time_diff(trkseg[j].time, trkseg[i].time),
+            TimeSpan::Known(10_000),
+            |i, j| TimeSpan::between(trkseg[j].time, trkseg[i].time),
             |i, left, right| {
-                self.local[i.flat].speed =
-                    time_diff(trkseg[right].time, trkseg[left].time).map(|t| {
-                        speed(
-                            self.local[right.flat].total_distance
-                                - self.local[left.flat].total_distance,
-                            t,
-                        )
-                    });
+                if trkseg[i].time.is_some() {
+                    let timed = |index: TrackSegmentIndex| {
+                        if trkseg[index].time.is_some() {
+                            index
+                        } else {
+                            i
+                        }
+                    };
+                    let (left, right) = (timed(left), timed(right));
+                    self.local[i.flat].speed = time_diff(trkseg[right].time, trkseg[left].time)
+                        .filter(|time| *time > 0)
+                        .map(|time| {
+                            speed(
+                                self.local[right.flat].total_distance
+                                    - self.local[left.flat].total_distance,
+                                time,
+                            )
+                        });
+                }
             },
         );
     }
@@ -342,6 +370,83 @@ mod tests {
             assert_ne!(speed, f64::NAN);
             assert!((speed - 20.0).abs() < 0.1);
         }
+    }
+
+    /// The speeds of the segment of `data/with_time.gpx` (80 trackpoints at 20 km/h) once the
+    /// trackpoints at `holes` have lost their time.
+    fn speeds_with_holes(holes: &[usize]) -> Vec<Option<f64>> {
+        let gpx = load("data/with_time.gpx");
+        let mut segment = gpx.trk[0].trkseg[0].clone();
+        let points: Vec<_> = segment
+            .iter()
+            .enumerate()
+            .map(|(i, trkpt)| {
+                let mut trkpt = trkpt.clone();
+                if holes.contains(&i) {
+                    trkpt.time = None;
+                }
+                trkpt
+            })
+            .collect();
+        segment.splice(0, points.len(), points);
+        Statistics::compute(&segment)
+            .local
+            .iter()
+            .map(|local| local.speed)
+            .collect()
+    }
+
+    /// Without time, there is no speed. With one, the speed is the one of the trackpoints around.
+    fn assert_speeds_with_holes(holes: &[usize]) {
+        let speeds = speeds_with_holes(holes);
+        assert_eq!(speeds.len(), 80);
+        for (i, speed) in speeds.iter().enumerate() {
+            if holes.contains(&i) {
+                assert_eq!(*speed, None, "trackpoint {i}");
+            } else {
+                let speed = speed.unwrap_or_else(|| panic!("no speed for trackpoint {i}"));
+                assert!((speed - 20.0).abs() < 0.1, "trackpoint {i}: {speed}");
+            }
+        }
+    }
+
+    #[test]
+    fn test_speed_without_holes() {
+        assert_speeds_with_holes(&[]);
+    }
+
+    #[test]
+    fn test_speed_with_holes_at_the_beginning() {
+        assert_speeds_with_holes(&[0, 1, 2, 3, 4]);
+    }
+
+    #[test]
+    fn test_speed_with_holes_at_the_end() {
+        assert_speeds_with_holes(&[75, 76, 77, 78, 79]);
+    }
+
+    #[test]
+    fn test_speed_with_holes_at_both_ends() {
+        assert_speeds_with_holes(&[0, 1, 2, 77, 78, 79]);
+    }
+
+    #[test]
+    fn test_speed_with_holes_in_the_middle() {
+        assert_speeds_with_holes(&[40]);
+        assert_speeds_with_holes(&[30, 31, 32, 33, 34]);
+        assert_speeds_with_holes(&(20..60).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn test_speed_with_scattered_holes() {
+        let holes: Vec<_> = (0..80).step_by(7).collect();
+        assert_speeds_with_holes(&holes);
+    }
+
+    #[test]
+    fn test_speed_without_any_time() {
+        let holes: Vec<_> = (0..80).collect();
+        assert!(speeds_with_holes(&holes).iter().all(Option::is_none));
     }
 
     fn load(path: &str) -> crate::File {

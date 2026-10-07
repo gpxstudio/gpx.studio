@@ -130,11 +130,6 @@ macro_rules! stats_getter {
 }
 
 stats_getter!(total_distance, Float64Array);
-stats_getter!(moving_distance, Float64Array);
-// Durations since the start of the selection, in milliseconds.
-stats_getter!(total_time, BigInt64Array);
-stats_getter!(moving_time, BigInt64Array);
-stats_getter!(speed, Float64Array);
 stats_getter!(elevation_gain, Float64Array);
 stats_getter!(elevation_loss, Float64Array);
 stats_getter!(slope, Float64Array);
@@ -145,7 +140,8 @@ stats_getter!(lat, Float64Array);
 stats_getter!(ele, Float64Array);
 
 // The optional values are `undefined` when no trackpoint of the selection has one, else they have
-// an entry per trackpoint, the missing ones being NaN (`NO_TIME` for the timestamps).
+// an entry per trackpoint, the missing ones being NaN (`NO_TIME` for the timestamps, 0 before the
+// first trackpoint that has them for the cumulative distances and durations).
 macro_rules! optional_stats_getter {
     ($name:ident, $field:ident, $array:ident) => {
         #[wasm_bindgen]
@@ -155,6 +151,11 @@ macro_rules! optional_stats_getter {
     };
 }
 
+optional_stats_getter!(moving_distance, moving_distance, Float64Array);
+// Durations since the start of the selection, in milliseconds.
+optional_stats_getter!(total_time, total_time, BigInt64Array);
+optional_stats_getter!(moving_time, moving_time, BigInt64Array);
+optional_stats_getter!(speed, speed, Float64Array);
 // Timestamps in milliseconds since the epoch (`NO_TIME`, the smallest i64, when missing).
 optional_stats_getter!(timestamps, time, BigInt64Array);
 

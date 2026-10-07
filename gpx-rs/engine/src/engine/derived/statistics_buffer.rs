@@ -11,17 +11,19 @@ pub const NO_TIME: i64 = i64::MIN;
 /// Times are in milliseconds, distances in kilometers, speeds in km/h. Missing times are
 /// [`NO_TIME`], missing measures are NaN.
 ///
-/// The optional values (`time`, `hr`, `cad`, `atemp`, `power`) are `None` when no trackpoint of the
-/// selection has one, and the OSM attributes are stored as [`Intervals`].
+/// The optional values (`moving_distance`, `total_time`, `moving_time`, `speed`, `time`, `hr`,
+/// `cad`, `atemp`, `power`) are `None` when no trackpoint of the selection has one, and the OSM
+/// attributes are stored as [`Intervals`]. The cumulative ones can only be missing before the
+/// first trackpoint that has them, where they are 0.
 #[derive(Debug, Default)]
 pub struct StatisticsBuffer {
     /// Statistics of the whole selection.
     pub global: GlobalStatistics,
     pub total_distance: Vec<f64>,
-    pub moving_distance: Vec<f64>,
-    pub total_time: Vec<i64>,
-    pub moving_time: Vec<i64>,
-    pub speed: Vec<f64>,
+    pub moving_distance: Option<Vec<f64>>,
+    pub total_time: Option<Vec<i64>>,
+    pub moving_time: Option<Vec<i64>>,
+    pub speed: Option<Vec<f64>>,
     pub elevation_gain: Vec<f64>,
     pub elevation_loss: Vec<f64>,
     pub slope: Vec<f64>,
@@ -108,10 +110,10 @@ impl StatisticsBuffer {
     pub fn update(&mut self, selected: &[(&TrackSegment, &Statistics)]) {
         self.global = GlobalStatistics::default();
         self.total_distance.clear();
-        self.moving_distance.clear();
-        self.total_time.clear();
-        self.moving_time.clear();
-        self.speed.clear();
+        self.moving_distance = None;
+        self.total_time = None;
+        self.moving_time = None;
+        self.speed = None;
         self.elevation_gain.clear();
         self.elevation_loss.clear();
         self.slope.clear();
@@ -136,18 +138,25 @@ impl StatisticsBuffer {
                 let cumul_stats = &self.global;
                 self.total_distance
                     .push(cumul_stats.total_distance + trkpt_stats.total_distance);
-                self.moving_distance.push(
-                    sum_options(cumul_stats.moving_distance, trkpt_stats.moving_distance)
-                        .unwrap_or_default(),
+                push_optional(
+                    &mut self.moving_distance,
+                    index,
+                    sum_options(cumul_stats.moving_distance, trkpt_stats.moving_distance),
+                    0.0,
                 );
-                self.total_time.push(
-                    sum_options(cumul_stats.total_time, trkpt_stats.total_time).unwrap_or_default(),
+                push_optional(
+                    &mut self.total_time,
+                    index,
+                    sum_options(cumul_stats.total_time, trkpt_stats.total_time),
+                    0,
                 );
-                self.moving_time.push(
-                    sum_options(cumul_stats.moving_time, trkpt_stats.moving_time)
-                        .unwrap_or_default(),
+                push_optional(
+                    &mut self.moving_time,
+                    index,
+                    sum_options(cumul_stats.moving_time, trkpt_stats.moving_time),
+                    0,
                 );
-                self.speed.push(trkpt_stats.speed.unwrap_or_default());
+                push_optional(&mut self.speed, index, trkpt_stats.speed, f64::NAN);
                 self.elevation_gain
                     .push(cumul_stats.elevation_gain + trkpt_stats.elevation_gain);
                 self.elevation_loss
@@ -193,15 +202,9 @@ impl StatisticsBuffer {
         };
         Some(GlobalStatistics {
             total_distance: delta(&self.total_distance),
-            moving_distance: self
-                .global
-                .moving_distance
-                .map(|_| delta(&self.moving_distance)),
-            total_time: self.global.total_time.map(|_| delta_time(&self.total_time)),
-            moving_time: self
-                .global
-                .moving_time
-                .map(|_| delta_time(&self.moving_time)),
+            moving_distance: self.moving_distance.as_deref().map(delta),
+            total_time: self.total_time.as_deref().map(delta_time),
+            moving_time: self.moving_time.as_deref().map(delta_time),
             elevation_gain: delta(&self.elevation_gain),
             elevation_loss: delta(&self.elevation_loss),
             start_time: time(start),
@@ -243,10 +246,6 @@ mod tests {
     fn all_lengths(buffer: &StatisticsBuffer) -> Vec<usize> {
         vec![
             buffer.total_distance.len(),
-            buffer.moving_distance.len(),
-            buffer.total_time.len(),
-            buffer.moving_time.len(),
-            buffer.speed.len(),
             buffer.elevation_gain.len(),
             buffer.elevation_loss.len(),
             buffer.slope.len(),
@@ -263,7 +262,7 @@ mod tests {
         let mut buffer = StatisticsBuffer::default();
         buffer.update(&[]);
         assert!(buffer.is_empty());
-        assert!(buffer.speed.is_empty());
+        assert!(buffer.speed.is_none());
         assert_eq!(buffer.global.total_distance, 0.0);
         assert!(buffer.slice(0, 0).is_none());
     }
@@ -335,10 +334,11 @@ mod tests {
         let mut buffer = StatisticsBuffer::default();
         buffer.update(&[(&segment, &s), (&segment, &s)]);
 
-        assert_eq!(buffer.total_time[n - 1], duration);
-        assert_eq!(buffer.total_time[n], duration);
-        assert_eq!(buffer.total_time[2 * n - 1], 2 * duration);
-        assert!(buffer.total_time.windows(2).all(|w| w[0] <= w[1]));
+        let total_time = buffer.total_time.as_ref().unwrap();
+        assert_eq!(total_time[n - 1], duration);
+        assert_eq!(total_time[n], duration);
+        assert_eq!(total_time[2 * n - 1], 2 * duration);
+        assert!(total_time.windows(2).all(|w| w[0] <= w[1]));
         assert!(buffer.time.unwrap().iter().all(|t| *t != NO_TIME));
     }
 
@@ -356,6 +356,11 @@ mod tests {
         assert_eq!(buffer.global.hr.count, 0);
         assert_eq!(buffer.global.total_time, None);
         assert_eq!(buffer.len(), s.local.len());
+        // they need times
+        assert!(buffer.speed.is_none());
+        assert!(buffer.moving_distance.is_none());
+        assert!(buffer.total_time.is_none());
+        assert!(buffer.moving_time.is_none());
         // the slices do not need them
         let slice = buffer.slice(0, 2).unwrap();
         assert_eq!((slice.start_time, slice.end_time), (None, None));
@@ -400,6 +405,29 @@ mod tests {
         assert_eq!(hr[1], 120.0);
         assert!(hr[0].is_nan() && hr[2].is_nan());
         assert!(buffer.cad.is_none());
+    }
+
+    #[test]
+    fn test_cumulative_values_are_zero_before_the_first_one() {
+        let (mut segment, _) = computed("data/with_time.gpx");
+        let n = segment.len();
+        let mut first = segment[0].clone();
+        first.time = None;
+        segment.splice(0, 1, vec![first]);
+        let s = Statistics::compute(&segment);
+        let mut buffer = StatisticsBuffer::default();
+        buffer.update(&[(&segment, &s)]);
+
+        let total_time = buffer.total_time.as_ref().unwrap();
+        assert_eq!(total_time.len(), n);
+        assert_eq!(total_time[0], 0);
+        assert_eq!(total_time[n - 1], s.global.total_time.unwrap());
+        assert!(total_time.windows(2).all(|w| w[0] <= w[1]));
+        // so a slice that starts on the first trackpoint is right
+        assert_eq!(
+            buffer.slice(0, n - 1).unwrap().total_time,
+            s.global.total_time
+        );
     }
 
     #[test]
@@ -547,11 +575,17 @@ mod tests {
         );
         assert_eq!(
             slice.total_time,
-            Some(buffer.total_time[end] - buffer.total_time[start])
+            Some(
+                buffer.total_time.as_ref().unwrap()[end]
+                    - buffer.total_time.as_ref().unwrap()[start]
+            )
         );
         assert_eq!(
             slice.moving_time,
-            Some(buffer.moving_time[end] - buffer.moving_time[start])
+            Some(
+                buffer.moving_time.as_ref().unwrap()[end]
+                    - buffer.moving_time.as_ref().unwrap()[start]
+            )
         );
         assert_eq!(slice.start_time, Some(buffer.time.as_ref().unwrap()[start]));
         assert_eq!(slice.end_time, Some(buffer.time.as_ref().unwrap()[end]));

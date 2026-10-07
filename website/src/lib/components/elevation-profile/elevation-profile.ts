@@ -39,6 +39,11 @@ const { distanceUnits, velocityUnits, temperatureUnits } = settings;
 Chart.defaults.font.family =
     'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'; // Tailwind CSS font
 
+/** `undefined` for a missing measure (NaN), so that Chart.js leaves a gap instead of a value. */
+function optional(value: number, convert: (value: number) => number = (v) => v) {
+    return Number.isNaN(value) ? undefined : convert(value);
+}
+
 interface ElevationProfilePoint {
     x: number;
     y: number;
@@ -440,7 +445,7 @@ export class ElevationProfile {
             const timestamp = data.timestamps?.[index] ?? NO_TIME;
             datasets[0].push({
                 x,
-                y: ele ? getConvertedElevation(ele, units.distance) : 0,
+                y: getConvertedElevation(ele, units.distance),
                 time: timestamp === NO_TIME ? undefined : new Date(Number(timestamp)),
                 slope: {
                     at: data.slope[index],
@@ -457,25 +462,29 @@ export class ElevationProfile {
             if (data.speed && (global.totalTime ?? 0) > 0) {
                 datasets[1].push({
                     x,
-                    y: getConvertedVelocity(data.speed[index], units.velocity, units.distance),
+                    y: optional(data.speed[index], (value) =>
+                        getConvertedVelocity(value, units.velocity, units.distance)
+                    ),
                     index,
                 });
             }
             if (data.hr) {
-                datasets[2].push({ x, y: data.hr[index], index });
+                datasets[2].push({ x, y: optional(data.hr[index]), index });
             }
             if (data.cad) {
-                datasets[3].push({ x, y: data.cad[index], index });
+                datasets[3].push({ x, y: optional(data.cad[index]), index });
             }
             if (data.atemp) {
                 datasets[4].push({
                     x,
-                    y: getConvertedTemperature(data.atemp[index], units.temperature),
+                    y: optional(data.atemp[index], (value) =>
+                        getConvertedTemperature(value, units.temperature)
+                    ),
                     index,
                 });
             }
             if (data.power) {
-                datasets[5].push({ x, y: data.power[index], index });
+                datasets[5].push({ x, y: optional(data.power[index]), index });
             }
         }
 
