@@ -618,10 +618,13 @@ pub fn time() -> bool {
     edit(Command::Time(engine::Time))
 }
 
+/// Merges the selection into its first element (see `MergeType`). `remove_gaps` brings the parts
+/// that are connected closer in time, if they have timestamps.
 #[wasm_bindgen]
-pub fn merge(type_: MergeType) -> bool {
+pub fn merge(type_: MergeType, remove_gaps: bool) -> bool {
     edit(Command::Merge(engine::Merge {
         type_: type_.into(),
+        remove_gaps,
     }))
 }
 

@@ -6,7 +6,6 @@
 </script>
 
 <script lang="ts">
-    import { ListFileItem, ListTrackItem } from '$lib/components/file-list/file-list';
     import Help from '$lib/components/Help.svelte';
     import { Button } from '$lib/components/ui/button';
     import { Label } from '$lib/components/ui/label/index.js';
@@ -16,43 +15,43 @@
     import { Group } from '@lucide/svelte';
     import { getURLForLanguage } from '$lib/utils';
     import Shortcut from '$lib/components/Shortcut.svelte';
-    import { selection } from '$lib/logic/selection';
-    import { fileStateCollection } from '$lib/logic/file-state';
-    import { fileActions } from '$lib/logic/file-actions';
-    import { gpxStatistics } from '$lib/logic/statistics';
+    import { onDestroy } from 'svelte';
+    import { engine } from '$lib/engine';
 
     let props: {
         class?: string;
     } = $props();
 
+    const selection = engine.selection;
+    const statistics = engine.statistics;
+
+    // the number of segments of the selection that have trackpoints
+    const request = engine.requestStatistics();
+    request.set(['anchors']);
+    onDestroy(() => request.release());
+    let segmentCount = $derived($statistics.anchors?.segmentStarts.length ?? 0);
+
+    // several files, tracks or segments, or a single file or track with several segments
     let canMergeTraces = $derived.by(() => {
-        if ($selection.size > 1) {
-            return true;
-        } else if ($selection.size === 1) {
-            let selected = $selection.getSelected()[0];
-            if (selected instanceof ListFileItem) {
-                let file = fileStateCollection.getFile(selected.getFileId());
-                if (file) {
-                    return file.getSegments().length > 1;
-                }
-            } else if (selected instanceof ListTrackItem) {
-                let trackIndex = selected.getTrackIndex();
-                let file = fileStateCollection.getFile(selected.getFileId());
-                if (file && trackIndex < file.trk.length) {
-                    return file.trk[trackIndex].getSegments().length > 1;
-                }
-            }
-            return false;
+        switch ($selection.type) {
+            case 'file':
+                return $selection.fileIds.length > 1 || segmentCount > 1;
+            case 'track':
+                return $selection.trackIds.length > 1 || segmentCount > 1;
+            case 'segment':
+                return $selection.segmentIds.length > 1;
+            default:
+                return false;
         }
     });
 
+    // several files or tracks, that can be put together
     let canMergeContents = $derived(
-        $selection.size > 1 &&
-            $selection
-                .getSelected()
-                .some((item) => item instanceof ListFileItem || item instanceof ListTrackItem)
+        ($selection.type === 'file' && $selection.fileIds.length > 1) ||
+            ($selection.type === 'track' && $selection.trackIds.length > 1)
     );
 
+    let hasTimes = $derived(($statistics.global.totalTime ?? 0) > 0);
     let removeGaps = $state(false);
     let mergeType = $state(MergeType.TRACES);
 </script>
@@ -68,7 +67,7 @@
             {i18n._('toolbar.merge.merge_contents')}
         </Label>
     </RadioGroup.Root>
-    {#if mergeType === MergeType.TRACES && $gpxStatistics.global.time.total > 0}
+    {#if mergeType === MergeType.TRACES && hasTimes}
         <div class="flex flex-row items-center gap-1.5">
             <Checkbox id="remove-gaps" bind:checked={removeGaps} />
             <Label for="remove-gaps">{i18n._('toolbar.merge.remove_gaps')}</Label>
@@ -80,9 +79,9 @@
         disabled={(mergeType === MergeType.TRACES && !canMergeTraces) ||
             (mergeType === MergeType.CONTENTS && !canMergeContents)}
         onclick={() => {
-            fileActions.mergeSelection(
-                mergeType === MergeType.TRACES,
-                mergeType === MergeType.TRACES && $gpxStatistics.global.time.total > 0 && removeGaps
+            engine.merge(
+                mergeType === MergeType.TRACES ? 'connect' : 'group',
+                mergeType === MergeType.TRACES && hasTimes && removeGaps
             );
         }}
     >

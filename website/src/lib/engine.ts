@@ -32,6 +32,12 @@ export type {
 
 type Wasm = typeof import('gpx-rs');
 
+/**
+ * How a merge puts the selected elements together: `connect` makes a single segment of their
+ * trackpoints, `group` keeps them as they are, in the first one.
+ */
+export type MergeType = 'connect' | 'group';
+
 /** What a split cuts in two: the file, the track or the segment of the trackpoint. */
 export type SplitType = 'files' | 'tracks' | 'segments';
 
@@ -646,6 +652,17 @@ class Engine {
      */
     reverse() {
         return this.run((w) => w.reverse());
+    }
+
+    /**
+     * Merges the selected files, tracks or segments into the first of them (see `MergeType`). With
+     * `removeGaps`, the parts that are connected get closer in time if they have timestamps.
+     * Resolves to `false` when there is nothing to merge.
+     */
+    merge(type: MergeType, removeGaps = false) {
+        return this.run((w) =>
+            w.merge(type === 'connect' ? w.MergeType.Connect : w.MergeType.Group, removeGaps)
+        );
     }
 
     /**
