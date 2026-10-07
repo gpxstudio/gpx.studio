@@ -68,25 +68,25 @@
         "metadata": {
             "button": "Infó...",
             "name": "Név",
-            "description": "Leírás ",
+            "description": "Leírás",
             "save": "Mentés"
         },
         "style": {
-            "button": "Megjelenés... ",
-            "color": "Szín ",
-            "opacity": "Átlátszóság ",
-            "width": "Szélesség "
+            "button": "Megjelenés...",
+            "color": "Szín",
+            "opacity": "Átlátszóság",
+            "width": "Szélesség"
         },
-        "hide": "Elrejtés ",
-        "unhide": "Felfedés ",
-        "center": "Középre ",
-        "open_in": "Megnyitás itt ",
+        "hide": "Elrejtés",
+        "unhide": "Felfedés",
+        "center": "Középre",
+        "open_in": "Megnyitás itt",
         "copy_coordinates": "Koordináták másolása",
         "edit_osm": "Szerkesztés OpenStreetMap-ben"
     },
     "toolbar": {
         "routing": {
-            "tooltip": "Útvonal tervezése vagy szerkesztése ",
+            "tooltip": "Útvonal tervezése vagy szerkesztése",
             "activity": "Tevékenység",
             "use_routing": "Útvonal választása ",
             "use_routing_tooltip": "Útvonal követés kikapcsolva egyenes vonal rajzolása ",
