@@ -655,6 +655,24 @@ class Engine {
     }
 
     /**
+     * Splits the selected files and tracks that have several segments into elements that have
+     * one each (one file per track or per segment, one track per segment), which get selected.
+     * Resolves to `false` when there is nothing to extract.
+     */
+    extract() {
+        return this.run((w) => w.extract());
+    }
+
+    /**
+     * Sets the elevation of the trackpoints of the selection, one elevation (m) per trackpoint, in
+     * the order of the statistics. Resolves to `false` when there is nothing to set, or when the
+     * number of elevations is not the number of trackpoints.
+     */
+    setElevation(ele: Float64Array) {
+        return this.run((w) => w.elevation(ele));
+    }
+
+    /**
      * Merges the selected files, tracks or segments into the first of them (see `MergeType`). With
      * `removeGaps`, the parts that are connected get closer in time if they have timestamps.
      * Resolves to `false` when there is nothing to merge.

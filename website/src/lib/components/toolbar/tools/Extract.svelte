@@ -1,51 +1,54 @@
 <script lang="ts">
     import { Button } from '$lib/components/ui/button';
     import { Ungroup } from '@lucide/svelte';
-    import {
-        ListFileItem,
-        ListTrackItem,
-        ListTrackSegmentItem,
-        ListWaypointItem,
-        ListWaypointsItem,
-    } from '$lib/components/file-list/file-list';
     import Help from '$lib/components/Help.svelte';
     import { i18n } from '$lib/i18n.svelte';
     import { getURLForLanguage } from '$lib/utils';
-    import { selection } from '$lib/logic/selection';
-    import { fileStateCollection } from '$lib/logic/file-state';
-    import { fileActions } from '$lib/logic/file-actions';
+    import { get } from 'svelte/store';
+    import { engine } from '$lib/engine';
 
     let props: {
         class?: string;
     } = $props();
 
-    let validSelection = $derived(
-        $selection.size > 0 &&
-            $selection.getSelected().every((item) => {
-                if (
-                    item instanceof ListWaypointsItem ||
-                    item instanceof ListWaypointItem ||
-                    item instanceof ListTrackSegmentItem
-                ) {
-                    return false;
-                }
-                let file = fileStateCollection.getFile(item.getFileId());
-                if (file) {
-                    if (item instanceof ListFileItem) {
-                        return file.getSegments().length > 1;
-                    } else if (item instanceof ListTrackItem) {
-                        if (item.getTrackIndex() < file.trk.length) {
-                            return file.trk[item.getTrackIndex()].getSegments().length > 1;
-                        }
-                    }
-                }
+    const selection = engine.selection;
+    const files = engine.files;
+    const statistics = engine.statistics;
+
+    /** The number of segments of a file or of one of its tracks. */
+    function segmentCount(fileId: string, trackId?: string) {
+        const file = $files.get(fileId);
+        const tracks = file ? get(file).structure.tracks : [];
+        return tracks
+            .filter((track) => trackId === undefined || track.id === trackId)
+            .reduce((count, track) => count + track.segments.length, 0);
+    }
+
+    // files or tracks, which all have several segments
+    let validSelection = $derived.by(() => {
+        // what is selected can change without the selection: the files are edited
+        void $statistics;
+        switch ($selection.type) {
+            case 'file':
+                return (
+                    $selection.fileIds.length > 0 &&
+                    $selection.fileIds.every((fileId) => segmentCount(fileId) > 1)
+                );
+            case 'track': {
+                const { fileId, trackIds } = $selection;
+                return (
+                    trackIds.length > 0 &&
+                    trackIds.every((trackId) => segmentCount(fileId, trackId) > 1)
+                );
+            }
+            default:
                 return false;
-            })
-    );
+        }
+    });
 </script>
 
 <div class="flex flex-col gap-3 w-full max-w-80 {props.class ?? ''}">
-    <Button variant="outline" disabled={!validSelection} onclick={fileActions.extractSelection}>
+    <Button variant="outline" disabled={!validSelection} onclick={() => engine.extract()}>
         <Ungroup size="16" />
         {i18n._('toolbar.extract.button')}
     </Button>

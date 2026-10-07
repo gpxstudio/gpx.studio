@@ -633,6 +633,7 @@ pub fn extract() -> bool {
     edit(Command::Extract(engine::Extract))
 }
 
+/// Sets the elevation of the trackpoints of the selection, one elevation per trackpoint.
 #[wasm_bindgen]
 pub fn elevation(ele: &[f64]) -> bool {
     edit(Command::Elevation(engine::Elevation { ele }))

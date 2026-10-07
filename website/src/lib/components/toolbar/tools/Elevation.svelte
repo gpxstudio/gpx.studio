@@ -3,15 +3,28 @@
     import Help from '$lib/components/Help.svelte';
     import { MountainSnow } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
-    import { getURLForLanguage } from '$lib/utils';
-    import { selection } from '$lib/logic/selection';
-    import { fileActions } from '$lib/logic/file-actions';
+    import { getElevation, getURLForLanguage } from '$lib/utils';
+    import { engine } from '$lib/engine';
+    import { get } from 'svelte/store';
 
     let props: {
         class?: string;
     } = $props();
 
-    let validSelection = $derived($selection.size > 0);
+    const statistics = engine.statistics;
+
+    let validSelection = $derived($statistics.length > 0);
+
+    async function addElevation() {
+        const stats = get(statistics);
+        const points = Array.from(stats.lng, (lon, i) => ({ lon, lat: stats.lat[i] }));
+        const ele = await getElevation(points);
+
+        // the selection or the files may have changed while the elevation was loading
+        if (get(statistics) === stats) {
+            await engine.setElevation(Float64Array.from(ele));
+        }
+    }
 </script>
 
 <div class="flex flex-col gap-3 w-full max-w-80 {props.class ?? ''}">
@@ -19,7 +32,7 @@
         variant="outline"
         class="whitespace-normal h-fit min-h-8 py-1"
         disabled={!validSelection}
-        onclick={() => fileActions.addElevationToSelection()}
+        onclick={() => addElevation()}
     >
         <MountainSnow size="16" class="shrink-0" />
         {i18n._('toolbar.elevation.button')}
