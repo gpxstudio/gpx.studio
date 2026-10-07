@@ -566,15 +566,15 @@ class Engine {
         store.update((state) => ({ ...state, visibility }));
     }
 
-    // Coordinates, as flat [lng, lat, ...] arrays. They are copied out of the WASM memory.
+    // Coordinates, as flat [lng, lat, ...] arrays. The getters copy them out of the WASM memory.
     // Refetch them when the `rev` of the segment (or the `waypointsRev` of the file) changed.
 
     segmentCoordinates(segmentId: string): Float64Array {
-        return this.wasm?.segment_coordinates(segmentId).slice() ?? new Float64Array();
+        return this.wasm?.segment_coordinates(segmentId) ?? new Float64Array();
     }
 
     waypointCoordinates(fileId: string): Float64Array {
-        return this.wasm?.waypoint_coordinates(fileId).slice() ?? new Float64Array();
+        return this.wasm?.waypoint_coordinates(fileId) ?? new Float64Array();
     }
 
     private async run(action: (wasm: Wasm) => boolean): Promise<boolean> {
@@ -640,22 +640,22 @@ class Engine {
     }
 
     /**
-     * Copies the statistics buffers of the engine (they are overwritten by the next action), but
-     * only the metrics that were requested.
+     * Reads the statistics buffers of the engine (the getters copy them), but only the metrics
+     * that were requested.
      */
     private readStatistics(wasm: Wasm): SelectionStatistics {
         const version = ++this._statisticsVersion;
         this._loadedMetrics.clear();
-        const totalDistance = wasm.total_distance().slice();
+        const totalDistance = wasm.total_distance();
         const statistics: SelectionStatistics = {
             global: wasm.selection_statistics() ?? EMPTY_STATISTICS,
             length: totalDistance.length,
             totalDistance,
-            slope: wasm.slope().slice(),
-            lng: wasm.lng().slice(),
-            lat: wasm.lat().slice(),
-            ele: wasm.ele().slice(),
-            timestamps: wasm.timestamps()?.slice(),
+            slope: wasm.slope(),
+            lng: wasm.lng(),
+            lat: wasm.lat(),
+            ele: wasm.ele(),
+            timestamps: wasm.timestamps(),
             slice: (start, end) =>
                 version === this._statisticsVersion ? wasm.slice_statistics(start, end) : undefined,
         };
@@ -680,8 +680,8 @@ class Engine {
             values: Uint8Array,
             names: () => string[]
         ): CategoryIntervals => ({
-            starts: starts.slice(),
-            values: values.slice(),
+            starts,
+            values,
             names: names(),
         });
 
@@ -692,23 +692,23 @@ class Engine {
             this._loadedMetrics.add(metric);
             switch (metric) {
                 case 'speed':
-                    statistics.speed = wasm.speed().slice();
+                    statistics.speed = wasm.speed();
                     break;
                 case 'hr':
-                    statistics.hr = wasm.hr()?.slice();
+                    statistics.hr = wasm.hr();
                     break;
                 case 'cad':
-                    statistics.cad = wasm.cad()?.slice();
+                    statistics.cad = wasm.cad();
                     break;
                 case 'atemp':
-                    statistics.atemp = wasm.atemp()?.slice();
+                    statistics.atemp = wasm.atemp();
                     break;
                 case 'power':
-                    statistics.power = wasm.power()?.slice();
+                    statistics.power = wasm.power();
                     break;
                 case 'slopeSegment':
-                    statistics.slopeSegmentSlope = wasm.slope_segment_slope().slice();
-                    statistics.slopeSegmentDistance = wasm.slope_segment_distance().slice();
+                    statistics.slopeSegmentSlope = wasm.slope_segment_slope();
+                    statistics.slopeSegmentDistance = wasm.slope_segment_distance();
                     break;
                 case 'surface':
                     statistics.surface = categories(

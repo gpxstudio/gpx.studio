@@ -114,8 +114,7 @@ pub fn start() {
 
 // Statistics buffers
 //
-// These are views into wasm memory: they are invalidated by the next command (and any
-// allocation), so read or copy them right away.
+// Each getter returns a copy of the buffer, as a new JS typed array.
 
 fn with_stats<T>(f: impl FnOnce(&engine::StatisticsBuffer) -> T) -> Option<T> {
     ENGINE.with(|engine| engine.borrow().as_ref().map(|e| f(e.statistics())))
@@ -125,8 +124,7 @@ macro_rules! stats_getter {
     ($name:ident, $array:ident) => {
         #[wasm_bindgen]
         pub fn $name() -> $array {
-            with_stats(|s| unsafe { $array::view(&s.$name) })
-                .unwrap_or_else(|| $array::new_with_length(0))
+            with_stats(|s| $array::from(&s.$name[..])).unwrap_or_else(|| $array::new_with_length(0))
         }
     };
 }
@@ -152,12 +150,7 @@ macro_rules! optional_stats_getter {
     ($name:ident, $field:ident, $array:ident) => {
         #[wasm_bindgen]
         pub fn $name() -> Option<$array> {
-            with_stats(|s| {
-                s.$field
-                    .as_ref()
-                    .map(|values| unsafe { $array::view(values) })
-            })
-            .flatten()
+            with_stats(|s| s.$field.as_deref().map($array::from)).flatten()
         }
     };
 }
@@ -185,13 +178,13 @@ macro_rules! intervals_getters {
     ($starts:ident, $values:ident, $field:ident) => {
         #[wasm_bindgen]
         pub fn $starts() -> Uint32Array {
-            with_stats(|s| unsafe { Uint32Array::view(&s.$field.starts) })
+            with_stats(|s| Uint32Array::from(&s.$field.starts[..]))
                 .unwrap_or_else(|| Uint32Array::new_with_length(0))
         }
 
         #[wasm_bindgen]
         pub fn $values() -> Uint8Array {
-            with_stats(|s| unsafe { Uint8Array::view(&s.$field.values) })
+            with_stats(|s| Uint8Array::from(&s.$field.values[..]))
                 .unwrap_or_else(|| Uint8Array::new_with_length(0))
         }
     };
@@ -1214,14 +1207,12 @@ pub fn last_update() -> FilesUpdate {
 
 // Coordinates buffers
 //
-// Like the statistics buffers, these are views into wasm memory, invalidated by the next
-// command (and any allocation): read or copy them right away. They are flat `[lng, lat, ...]`
-// arrays. Compare `rev` / `waypointsRev` of the file structures with the previous ones to know which
+// Like the statistics buffers, these are copies. They are flat `[lng, lat, ...]` arrays. Compare `rev` / `waypointsRev` of the file structures with the previous ones to know which
 // buffers actually changed.
 
-fn coordinates_view(f: impl FnOnce(&Engine) -> Option<&[f64]>) -> Float64Array {
+fn coordinates_array(f: impl FnOnce(&Engine) -> Option<&[f64]>) -> Float64Array {
     ENGINE.with(|engine| match engine.borrow().as_ref().and_then(f) {
-        Some(coordinates) => unsafe { Float64Array::view(coordinates) },
+        Some(coordinates) => Float64Array::from(coordinates),
         None => Float64Array::new_with_length(0),
     })
 }
@@ -1230,7 +1221,7 @@ fn coordinates_view(f: impl FnOnce(&Engine) -> Option<&[f64]>) -> Float64Array {
 #[wasm_bindgen]
 pub fn segment_coordinates(segment_id: &str) -> Float64Array {
     match uuid::Uuid::parse_str(segment_id) {
-        Ok(id) => coordinates_view(|e| Some(e.segment_coordinates(&engine::TrackSegmentId(id)))),
+        Ok(id) => coordinates_array(|e| Some(e.segment_coordinates(&engine::TrackSegmentId(id)))),
         Err(_) => Float64Array::new_with_length(0),
     }
 }
@@ -1239,7 +1230,7 @@ pub fn segment_coordinates(segment_id: &str) -> Float64Array {
 #[wasm_bindgen]
 pub fn waypoint_coordinates(file_id: &str) -> Float64Array {
     match uuid::Uuid::parse_str(file_id) {
-        Ok(id) => coordinates_view(|e| Some(e.waypoint_coordinates(&FileId(id)))),
+        Ok(id) => coordinates_array(|e| Some(e.waypoint_coordinates(&FileId(id)))),
         Err(_) => Float64Array::new_with_length(0),
     }
 }
