@@ -249,39 +249,6 @@ export const fileActions = {
             }
         });
     },
-    cropSelection: (start: number, end: number) => {
-        if (get(selection).size === 0) {
-            return;
-        }
-        fileActionManager.applyGlobal((draft) => {
-            selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = draft.get(fileId);
-                if (file) {
-                    if (level === ListLevel.FILE) {
-                        let length = file.getNumberOfTrackPoints();
-                        if (start >= length || end < 0) {
-                            draft.delete(fileId);
-                        } else if (start > 0 || end < length - 1) {
-                            file.crop(Math.max(0, start), Math.min(length - 1, end));
-                        }
-                        start -= length;
-                        end -= length;
-                    } else if (level === ListLevel.TRACK) {
-                        let trackIndices = items.map((item) =>
-                            (item as ListTrackItem).getTrackIndex()
-                        );
-                        file.crop(start, end, trackIndices);
-                    } else if (level === ListLevel.SEGMENT) {
-                        let trackIndices = [(items[0] as ListTrackSegmentItem).getTrackIndex()];
-                        let segmentIndices = items.map((item) =>
-                            (item as ListTrackSegmentItem).getSegmentIndex()
-                        );
-                        file.crop(start, end, trackIndices, segmentIndices);
-                    }
-                }
-            }, false);
-        });
-    },
     extractSelection: () => {
         return fileActionManager.applyGlobal((draft) => {
             selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {

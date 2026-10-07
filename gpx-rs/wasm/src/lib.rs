@@ -575,6 +575,8 @@ pub fn update_waypoint(
     }
 }
 
+/// Keeps the trackpoints `start` to `end` (both included) of the selection, counted over its
+/// segments one after the other, and removes the others (and what is left empty).
 #[wasm_bindgen]
 pub fn crop(start: u32, end: u32) -> bool {
     start <= end && edit(Command::Crop(engine::Crop { start, end }))

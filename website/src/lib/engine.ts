@@ -646,6 +646,16 @@ class Engine {
     }
 
     /**
+     * Keeps the trackpoints `start` to `end` (both included) of the selection, counted over its
+     * segments one after the other, and removes the others, with the segments, tracks and files
+     * that are left empty (tracks and files only if they are selected). Resolves to `false` when
+     * the range covers the whole selection.
+     */
+    crop(start: number, end: number) {
+        return this.run((w) => w.crop(Math.max(start, 0), Math.max(end, 0)));
+    }
+
+    /**
      * Makes each selected segment (or the segments of the selected files and tracks) come back to
      * where it started: a reversed copy of it is added after its last trackpoint (which is not
      * repeated), and goes on in time. Resolves to `false` when no segment has the two trackpoints that a way back needs.

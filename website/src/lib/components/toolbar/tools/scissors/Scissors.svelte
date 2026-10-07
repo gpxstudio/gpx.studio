@@ -15,8 +15,8 @@
     import { SplitControls } from './split-controls';
     import { getURLForLanguage } from '$lib/utils';
     import { selection } from '$lib/logic/selection';
-    import { fileActions } from '$lib/logic/file-actions';
     import { gpxStatistics, slicedGPXStatistics } from '$lib/logic/statistics';
+    import { engine } from '$lib/engine';
 
     let props: {
         class?: string;
@@ -95,7 +95,7 @@
     <Button
         variant="outline"
         disabled={!validSelection || !canCrop}
-        onclick={() => fileActions.cropSelection(sliderValues[0], sliderValues[1])}
+        onclick={() => engine.crop(sliderValues[0], sliderValues[1])}
     >
         <Crop size="16" />{i18n._('toolbar.scissors.crop')}
     </Button>
