@@ -2,13 +2,13 @@
     "metadata": {
         "home_title": "az online GPX szerkesztő",
         "app_title": "app",
-        "embed_title": "online útvonal (GPX fájl) szerkesztő",
+        "embed_title": "az online GPX szerkesztő",
         "help_title": "súgó",
         "404_title": "oldal nem található",
-        "description": "GPX fájlok online szerkesztése és létrehozása fejlett útvonal tervezési képességekkel és fájlfeldolgozó eszközökkel, gyönyörű térképekkel és részletekkel."
+        "description": "GPX fájlok online megtekintése, szerkesztése és létrehozása fejlett útvonal tervezési képességekkel és fájlfeldolgozó eszközökkel, gyönyörű térképekkel és részletes adatmegjelenítésekkel."
     },
     "menu": {
-        "new": "Új.",
+        "new": "Új",
         "new_file": "Új fájl ",
         "new_track": "Új útvonal",
         "new_segment": "Új szakasz",
@@ -504,7 +504,7 @@
         "data_visualization": "Adatvizualizáció",
         "data_visualization_description": "Interaktív magassági profil részletes statisztikákkal a rögzített tevékenységek és a jövőbeni célok elemzéséhez.",
         "philosophy": "Philosophy",
-        "foss": "Free, ad-free and open source",
+        "foss": "Ingyenes, reklámmentes és nyílt forráskódú",
         "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
         "privacy": "Privacy-friendly",
         "privacy_description": "Your GPX files never leave your browser. No tracking, no data collection.",
