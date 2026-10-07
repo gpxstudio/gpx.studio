@@ -156,7 +156,7 @@
                 variant="outline"
                 class="gap-1 text-xs px-1.5 py-1.5 h-fit"
                 disabled={!validSelection}
-                onclick={fileActions.reverseSelection}
+                onclick={() => engine.reverse()}
             >
                 <ArrowRightLeft class="size-3" />{i18n._('toolbar.routing.reverse.button')}
             </ButtonWithTooltip>

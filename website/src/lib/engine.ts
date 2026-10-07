@@ -636,6 +636,15 @@ class Engine {
         return this.run((w) => w.new_track_segment());
     }
 
+    /**
+     * Reverses the direction of the selection: the whole of each selected file or track, or each
+     * selected segment on its own. The timestamps are mirrored. Resolves to `false` when there is
+     * nothing to reverse (fewer than two trackpoints).
+     */
+    reverse() {
+        return this.run((w) => w.reverse());
+    }
+
     metadata(name: string, desc: string) {
         return this.run((w) => w.metadata(name, desc));
     }
