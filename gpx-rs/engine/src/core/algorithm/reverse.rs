@@ -61,6 +61,21 @@ pub fn reverse_segment(
     segment.rev_id = Default::default();
 }
 
+/// Makes a segment go back where it started: a reversed copy of it is added after its last
+/// trackpoint, without the first trackpoint of the copy, which is the last one of the segment.
+///
+/// The timestamps of the copy go on from the end of the segment: it would start at the time of the
+/// last trackpoint, and it lasts as long as the segment. Only the end of the segment changes, so
+/// its other chunks stay shared.
+pub fn round_trip(segment: &mut TrackSegment) {
+    let len = segment.len();
+    let end = end_time(segment);
+    let mut back = segment.clone();
+    reverse_segment(&mut back, end, end);
+    segment.splice(len, len, back.iter().skip(1).cloned().collect());
+    segment.rev_id = Default::default();
+}
+
 /// Reverses the segments of a track, and their trackpoints: see [`reverse_segment`] for the
 /// meaning of the times, which are the ones of the track as a whole.
 pub fn reverse_segments(
@@ -147,6 +162,29 @@ mod tests {
         reverse_segment(&mut s, None, None);
         assert_eq!(lngs(&s), [2.0, 1.0, 0.0]);
         assert_eq!(times(&s), [None, None, None]);
+    }
+
+    #[test]
+    fn test_round_trip_goes_back_in_time_from_the_end() {
+        let mut s = segment(&[(0.0, Some(0)), (1.0, Some(10)), (2.0, Some(40))]);
+        let first = s.rev_id;
+        round_trip(&mut s);
+        assert_ne!(s.rev_id, first);
+        // the last trackpoint is the turning point, it is not repeated
+        assert_eq!(lngs(&s), [0.0, 1.0, 2.0, 1.0, 0.0]);
+        // the way back lasts as long as the way there, and starts when it ended
+        assert_eq!(times(&s), [Some(0), Some(10), Some(40), Some(70), Some(80)]);
+        // and it is a segment whose ends are anchors
+        assert_eq!(s[0].anchor, Some(0));
+        assert_eq!(s[4].anchor, Some(0));
+    }
+
+    #[test]
+    fn test_round_trip_without_times() {
+        let mut s = segment(&[(0.0, None), (1.0, None)]);
+        round_trip(&mut s);
+        assert_eq!(lngs(&s), [0.0, 1.0, 0.0]);
+        assert_eq!(times(&s), [None; 3]);
     }
 
     #[test]

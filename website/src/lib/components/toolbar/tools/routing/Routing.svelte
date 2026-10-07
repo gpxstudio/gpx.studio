@@ -180,7 +180,7 @@
                 variant="outline"
                 class="gap-1 text-xs px-1.5 py-1.5 h-fit"
                 disabled={!validSelection}
-                onclick={fileActions.createRoundTripForSelection}
+                onclick={() => engine.roundTrip()}
             >
                 <Repeat class="size-3" />{i18n._('toolbar.routing.round_trip.button')}
             </ButtonWithTooltip>

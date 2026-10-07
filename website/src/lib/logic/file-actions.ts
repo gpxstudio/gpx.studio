@@ -101,32 +101,6 @@ export async function loadFiles(list: FileList | File[]): Promise<string[]> {
 
 // Helper functions for file operations
 export const fileActions = {
-    createRoundTripForSelection() {
-        if (!get(selection).hasAnyChildren(new ListRootItem(), true, ['waypoints'])) {
-            return;
-        }
-        fileActionManager.applyGlobal((draft) => {
-            selection.applyToOrderedSelectedItemsFromFile((fileId, level, items) => {
-                let file = draft.get(fileId);
-                if (file) {
-                    if (level === ListLevel.FILE) {
-                        file.roundTrip();
-                    } else if (level === ListLevel.TRACK) {
-                        for (let item of items) {
-                            let trackIndex = (item as ListTrackItem).getTrackIndex();
-                            file.roundTripTrack(trackIndex);
-                        }
-                    } else if (level === ListLevel.SEGMENT) {
-                        for (let item of items) {
-                            let trackIndex = (item as ListTrackSegmentItem).getTrackIndex();
-                            let segmentIndex = (item as ListTrackSegmentItem).getSegmentIndex();
-                            file.roundTripTrackSegment(trackIndex, segmentIndex);
-                        }
-                    }
-                }
-            });
-        });
-    },
     mergeSelection: (mergeTraces: boolean, removeGaps: boolean) => {
         fileActionManager.applyGlobal((draft) => {
             let first = true;

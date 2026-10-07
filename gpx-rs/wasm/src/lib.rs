@@ -375,6 +375,13 @@ pub fn reverse() -> bool {
     edit(Command::Reverse(engine::Reverse))
 }
 
+/// Adds to each selected segment a reversed copy of itself (without repeating its last point), so that it goes back to where it
+/// started.
+#[wasm_bindgen]
+pub fn round_trip() -> bool {
+    edit(Command::RoundTrip(engine::RoundTrip))
+}
+
 // Routing
 //
 // The indices of the trackpoints and of the anchors are the ones of the routing buffers: they only

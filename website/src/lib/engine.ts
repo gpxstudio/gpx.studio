@@ -645,6 +645,15 @@ class Engine {
         return this.run((w) => w.reverse());
     }
 
+    /**
+     * Makes each selected segment (or the segments of the selected files and tracks) come back to
+     * where it started: a reversed copy of it is added after its last trackpoint (which is not
+     * repeated), and goes on in time. Resolves to `false` when no segment has the two trackpoints that a way back needs.
+     */
+    roundTrip() {
+        return this.run((w) => w.round_trip());
+    }
+
     metadata(name: string, desc: string) {
         return this.run((w) => w.metadata(name, desc));
     }
