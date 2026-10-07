@@ -24,23 +24,15 @@
     import { routingProfiles } from '$lib/components/toolbar/tools/routing/routing';
     import { i18n } from '$lib/i18n.svelte';
     import { slide } from 'svelte/transition';
-    import {
-        ListFileItem,
-        ListRootItem,
-        ListTrackItem,
-        ListTrackSegmentItem,
-        type ListItem,
-    } from '$lib/components/file-list/file-list';
+    import { get } from 'svelte/store';
     import { getURLForLanguage } from '$lib/utils';
     import { onDestroy, onMount } from 'svelte';
-    import { TrackPoint } from 'gpx';
     import { settings } from '$lib/logic/settings';
     import { map } from '$lib/components/map/map';
-    import { fileStateCollection, GPXFileStateCollectionObserver } from '$lib/logic/file-state';
-    import { selection } from '$lib/logic/selection';
-    import { fileActions, getFileIds, newGPXFile } from '$lib/logic/file-actions';
+    import { engine } from '$lib/engine';
+    import { fileActions, newFileName } from '$lib/logic/file-actions';
     import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
-    import { RoutingControls, routingControls } from './routing-controls';
+    import { RoutingControls } from './routing-controls';
 
     let {
         minimized = $bindable(false),
@@ -58,52 +50,24 @@
 
     const { privateRoads, routing, routingProfile } = settings;
 
-    let fileStateCollectionObserver: GPXFileStateCollectionObserver;
+    const selection = engine.selection;
+    let routingControls: RoutingControls | undefined = undefined;
 
+    // the tool works on files, tracks and segments, not on waypoints
     let validSelection = $derived(
-        $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints'])
+        $selection.type === 'file' || $selection.type === 'track' || $selection.type === 'segment'
     );
 
     function createFileWithPoint(e: any) {
-        if ($selection.size === 0) {
-            let file = newGPXFile();
-            file.replaceTrackPoints(0, 0, 0, 0, [
-                new TrackPoint({
-                    attributes: {
-                        lat: e.lngLat.lat,
-                        lon: e.lngLat.lng,
-                    },
-                }),
-            ]);
-            file._data.id = getFileIds(1)[0];
-            fileActions.add(file);
-            selection.selectFileWhenLoaded(file._data.id);
+        if ($selection.type === 'empty') {
+            // the engine selects the new file, which starts with the trackpoint: one undo step
+            engine.newFile(newFileName(), { lng: e.lngLat.lng, lat: e.lngLat.lat });
         }
     }
 
     onMount(() => {
         if ($map && popup && popupElement) {
-            fileStateCollectionObserver = new GPXFileStateCollectionObserver(
-                (newFiles) => {
-                    newFiles.forEach((fileState, fileId) => {
-                        routingControls.set(
-                            fileId,
-                            new RoutingControls(fileId, fileState, popup, popupElement)
-                        );
-                    });
-                },
-                (fileId) => {
-                    const controls = routingControls.get(fileId);
-                    if (controls) {
-                        controls.destroy();
-                        routingControls.delete(fileId);
-                    }
-                },
-                () => {
-                    routingControls.forEach((controls) => controls.destroy());
-                    routingControls.clear();
-                }
-            );
+            routingControls = new RoutingControls(popup, popupElement);
 
             mapCursor.notify(MapCursorState.TOOL_WITH_CROSSHAIR, true);
             $map.on('click', createFileWithPoint);
@@ -112,9 +76,8 @@
 
     onDestroy(() => {
         if ($map) {
-            if (fileStateCollectionObserver) {
-                fileStateCollectionObserver.destroy();
-            }
+            routingControls?.destroy();
+            routingControls = undefined;
 
             mapCursor.notify(MapCursorState.TOOL_WITH_CROSSHAIR, false);
             $map.off('click', createFileWithPoint);
@@ -203,31 +166,10 @@
                 class="gap-1 text-xs px-1.5 py-1.5 h-fit"
                 disabled={!validSelection}
                 onclick={() => {
-                    const selected = selection.getOrderedSelection();
-                    if (selected.length > 0) {
-                        const firstFileId = selected[0].getFileId();
-                        const firstFile = fileStateCollection.getFile(firstFileId);
-                        if (firstFile) {
-                            let start = (() => {
-                                if (selected[0] instanceof ListFileItem) {
-                                    return firstFile.trk[0]?.trkseg[0]?.trkpt[0];
-                                } else if (selected[0] instanceof ListTrackItem) {
-                                    return firstFile.trk[selected[0].getTrackIndex()]?.trkseg[0]
-                                        ?.trkpt[0];
-                                } else if (selected[0] instanceof ListTrackSegmentItem) {
-                                    return firstFile.trk[selected[0].getTrackIndex()]?.trkseg[
-                                        selected[0].getSegmentIndex()
-                                    ]?.trkpt[0];
-                                }
-                            })();
-
-                            if (start !== undefined) {
-                                const lastFileId = selected[selected.length - 1].getFileId();
-                                routingControls
-                                    .get(lastFileId)
-                                    ?.appendAnchorWithCoordinates(start.getCoordinates());
-                            }
-                        }
+                    // the first trackpoint of the selection
+                    const { length, lng, lat } = get(engine.statistics);
+                    if (length > 0) {
+                        routingControls?.appendAnchorWithCoordinates({ lng: lng[0], lat: lat[0] });
                     }
                 }}
             >

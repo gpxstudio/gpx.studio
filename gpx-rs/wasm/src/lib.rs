@@ -237,11 +237,63 @@ pub fn mtb_scales() -> StringList {
     .unchecked_into()
 }
 
+// Routing buffers
+//
+// The anchors of the routing tool among the trackpoints of the selection (the numbering is the one
+// of the statistics buffers). The ends of the segments are always anchors.
+
+fn with_routing<T>(f: impl FnOnce(&engine::RoutingBuffer) -> T) -> Option<T> {
+    ENGINE.with(|engine| engine.borrow().as_ref().map(|e| f(e.routing())))
+}
+
+/// The index in the selection of each anchor.
+#[wasm_bindgen]
+pub fn anchor_indices() -> Uint32Array {
+    with_routing(|r| Uint32Array::from(&r.anchor_indices[..]))
+        .unwrap_or_else(|| Uint32Array::new_with_length(0))
+}
+
+/// The lowest map zoom level at which each anchor is shown.
+#[wasm_bindgen]
+pub fn anchor_zooms() -> Uint8Array {
+    with_routing(|r| Uint8Array::from(&r.anchor_zooms[..]))
+        .unwrap_or_else(|| Uint8Array::new_with_length(0))
+}
+
+/// Index in the selection of the first trackpoint of each selected segment that has some.
+#[wasm_bindgen]
+pub fn segment_starts() -> Uint32Array {
+    with_routing(|r| Uint32Array::from(&r.segment_starts[..]))
+        .unwrap_or_else(|| Uint32Array::new_with_length(0))
+}
+
+/// The id of each selected segment that has trackpoints, as `segment_starts`.
+#[wasm_bindgen]
+pub fn segment_ids() -> StringList {
+    with_routing(|r| array(&r.segment_ids, |id| id.0.to_string().into()))
+        .unwrap_or_default()
+        .unchecked_into()
+}
+
+/// Changes when the selected segments or their trackpoints change: the indices in the selection
+/// are only valid while it stays the same.
+#[wasm_bindgen]
+pub fn routing_revision() -> u32 {
+    with_routing(|r| r.revision).unwrap_or_default()
+}
+
 // File commands
 
+/// Creates a file and selects it. With `lng` and `lat`, it starts with a track and a segment that
+/// hold that trackpoint (at `ele`, 0 by default).
 #[wasm_bindgen]
-pub fn new_file(name: &str) -> bool {
-    edit(Command::New(engine::New { name }))
+pub fn new_file(name: &str, lng: Option<f64>, lat: Option<f64>, ele: Option<f64>) -> bool {
+    let trackpoint = lng.zip(lat).map(|(lng, lat)| engine::NewTrackpoint {
+        lng,
+        lat,
+        ele: ele.unwrap_or_default(),
+    });
+    edit(Command::New(engine::New { name, trackpoint }))
 }
 
 /// Loads files as a single command (one undo step). The files are in `data`, one after the
@@ -323,17 +375,112 @@ pub fn reverse() -> bool {
     edit(Command::Reverse(engine::Reverse))
 }
 
+// Routing
+//
+// The indices of the trackpoints and of the anchors are the ones of the routing buffers: they only
+// mean something for the `revision` they were read with (`routing_revision`), and the commands
+// that use them do nothing if the selection is not the one of that revision anymore.
+
+fn routing_revision_is(revision: u32) -> bool {
+    with_routing(|r| r.revision == revision).unwrap_or(false)
+}
+
+/// A category of the trackpoints of a route: see `RouteCategory` in `engine`.
+struct ParsedCategory {
+    starts: Vec<u32>,
+    values: Vec<u8>,
+    names: Vec<String>,
+}
+
+impl ParsedCategory {
+    fn parse(attributes: &JsValue, key: &str) -> Option<Self> {
+        let Some(category) = property(attributes, key) else {
+            return Some(Self {
+                starts: vec![],
+                values: vec![],
+                names: vec![],
+            });
+        };
+        Some(Self {
+            starts: property(&category, "starts")?
+                .unchecked_into::<Uint32Array>()
+                .to_vec(),
+            values: property(&category, "values")?
+                .unchecked_into::<Uint8Array>()
+                .to_vec(),
+            names: Array::from(&property(&category, "names")?)
+                .iter()
+                .map(|name| name.as_string())
+                .collect::<Option<_>>()?,
+        })
+    }
+
+    fn view(&self) -> engine::RouteCategory<'_> {
+        engine::RouteCategory {
+            starts: &self.starts,
+            values: &self.values,
+            names: &self.names,
+        }
+    }
+}
+
+/// Replaces the trackpoints `start..end` of the selection by the given ones, in a single segment
+/// (see `RoutingBuffer`). A pure insertion if `start == end`, a pure removal without new points.
+/// `attributes` holds the surface, highway, SAC scale and MTB scale of the new points, as
+/// intervals, and `anchors` the indices among the new points of the ones that become anchors.
+/// Does nothing, and returns false, if the revision of the routing buffers is not the given one.
 #[wasm_bindgen]
-pub fn splice_trackpoints(start: u32, end: u32, lng: &[f64], lat: &[f64], ele: &[f64]) -> bool {
-    start <= end
+#[allow(clippy::too_many_arguments)]
+pub fn route(
+    revision: u32,
+    start: u32,
+    end: u32,
+    lng: &[f64],
+    lat: &[f64],
+    ele: &[f64],
+    attributes: RouteAttributes,
+    anchors: &[u32],
+) -> bool {
+    let parse = |key| ParsedCategory::parse(&attributes, key);
+    let (Some(surface), Some(highway), Some(sac_scale), Some(mtb_scale)) = (
+        parse("surface"),
+        parse("highway"),
+        parse("sacScale"),
+        parse("mtbScale"),
+    ) else {
+        return false;
+    };
+    routing_revision_is(revision)
         && same_len(lng, lat, ele)
-        && edit(Command::SpliceTrackpoints(engine::SpliceTrackpoints {
+        && edit(Command::Route(engine::Route {
             start,
             end,
             lng,
             lat,
             ele,
+            surface: surface.view(),
+            highway: highway.view(),
+            sac_scale: sac_scale.view(),
+            mtb_scale: mtb_scale.view(),
+            anchors,
         }))
+}
+
+/// Makes an anchor of the point of the selected segments that is the closest to the coordinates,
+/// inserting a trackpoint on the path if none is there. Does nothing, and returns false, if the
+/// revision of the routing buffers is not the given one.
+#[wasm_bindgen]
+pub fn insert_anchor(revision: u32, lng: f64, lat: f64) -> bool {
+    routing_revision_is(revision) && edit(Command::InsertAnchor(engine::InsertAnchor { lng, lat }))
+}
+
+/// Makes the trackpoint `index` of the selection the start of its segment, which is a loop (the
+/// trackpoints before it go to the end, and the loop closes on it). Does nothing, and returns false, if the revision of the
+/// routing buffers is not the given one.
+#[wasm_bindgen]
+pub fn change_loop_start(revision: u32, index: u32) -> bool {
+    routing_revision_is(revision)
+        && edit(Command::ChangeLoopStart(engine::ChangeLoopStart { index }))
 }
 
 #[wasm_bindgen]
@@ -740,6 +887,27 @@ pub fn select_waypoints(file_id: &str, waypoint_ids_bytes: &[u8], mode: SelectMo
 // of their buffers (see below).
 
 #[wasm_bindgen(typescript_custom_section)]
+const ROUTE_TS: &str = r#"
+/**
+ * An OSM attribute of the new trackpoints of a route, as the intervals of trackpoints that share
+ * a value: `starts[i]` is the index of the first trackpoint of the interval `i`, and `values[i]`
+ * its value, 0 when unknown, else 1 + the index of its name in `names`.
+ */
+export interface RouteCategory {
+    starts: Uint32Array;
+    values: Uint8Array;
+    names: string[];
+}
+/** The attributes of the new trackpoints of a route. The ones that are missing are unknown. */
+export interface RouteAttributes {
+    surface?: RouteCategory;
+    highway?: RouteCategory;
+    sacScale?: RouteCategory;
+    mtbScale?: RouteCategory;
+}
+"#;
+
+#[wasm_bindgen(typescript_custom_section)]
 const FILE_STRUCTURE_TS: &str = r#"
 export type Selection =
     | { type: 'empty' }
@@ -866,6 +1034,9 @@ extern "C" {
     pub type TrackpointDetails;
     #[wasm_bindgen(typescript_type = "MoveTarget")]
     pub type MoveTarget;
+
+    #[wasm_bindgen(typescript_type = "RouteAttributes")]
+    pub type RouteAttributes;
     #[wasm_bindgen(typescript_type = "Clipboard | undefined")]
     pub type Clipboard;
     #[wasm_bindgen(typescript_type = "FilesUpdate")]

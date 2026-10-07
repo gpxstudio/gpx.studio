@@ -82,7 +82,12 @@ mod tests {
     #[test]
     fn test_load_invalid_file_changes_nothing() {
         let mut fx = Fixture::default();
-        crate::New { name: "keep" }.apply(&mut fx.state()).unwrap();
+        crate::New {
+            name: "keep",
+            trackpoint: None,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         let selected = fx.selected_files();
 
         let result = Load {
@@ -132,9 +137,12 @@ mod tests {
     #[test]
     fn test_load_several_files() {
         let mut fx = Fixture::default();
-        crate::New { name: "before" }
-            .apply(&mut fx.state())
-            .unwrap();
+        crate::New {
+            name: "before",
+            trackpoint: None,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         let before = fx.order.0[0];
         let (a, b, c) = (gpx("a"), gpx("b"), gpx("c"));
 
@@ -178,7 +186,12 @@ mod tests {
     #[test]
     fn test_load_several_invalid_files_changes_nothing() {
         let mut fx = Fixture::default();
-        crate::New { name: "keep" }.apply(&mut fx.state()).unwrap();
+        crate::New {
+            name: "keep",
+            trackpoint: None,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         let selected = fx.selected_files();
 
         let result = LoadFiles {

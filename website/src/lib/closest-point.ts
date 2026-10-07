@@ -9,7 +9,40 @@ export function closestPointIndex(
     coordinates: ArrayLike<number>,
     point: { lng: number; lat: number }
 ): number | undefined {
-    const count = Math.floor(coordinates.length / 2);
+    return closestIndex(
+        Math.floor(coordinates.length / 2),
+        (i) => coordinates[2 * i],
+        (i) => coordinates[2 * i + 1],
+        point
+    );
+}
+
+/**
+ * Like `closestPointIndex`, for the points `from` (included) to `to` (excluded) of a polyline
+ * given as the arrays of its longitudes and latitudes. The index is the one in the arrays.
+ */
+export function closestPointIndexIn(
+    lng: ArrayLike<number>,
+    lat: ArrayLike<number>,
+    from: number,
+    to: number,
+    point: { lng: number; lat: number }
+): number | undefined {
+    const closest = closestIndex(
+        Math.max(0, to - from),
+        (i) => lng[from + i],
+        (i) => lat[from + i],
+        point
+    );
+    return closest === undefined ? undefined : from + closest;
+}
+
+function closestIndex(
+    count: number,
+    lngAt: (index: number) => number,
+    latAt: (index: number) => number,
+    point: { lng: number; lat: number }
+): number | undefined {
     if (count === 0) {
         return undefined;
     }
@@ -17,8 +50,8 @@ export function closestPointIndex(
     const ky = metersPerDegree;
     const px = point.lng * kx;
     const py = point.lat * ky;
-    const x = (i: number) => coordinates[2 * i] * kx - px;
-    const y = (i: number) => coordinates[2 * i + 1] * ky - py;
+    const x = (i: number) => lngAt(i) * kx - px;
+    const y = (i: number) => latAt(i) * ky - py;
 
     let best = 0;
     let bestDistance = Number.MAX_VALUE;

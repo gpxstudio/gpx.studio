@@ -40,7 +40,59 @@ pub enum Selection {
     },
 }
 
+/// Where a track segment is: its file, then its track and its own position in it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SegmentLocation {
+    pub file_id: FileId,
+    pub trk: usize,
+    pub seg: usize,
+}
+
 impl Selection {
+    /// The track segments covered by the selection, in order: the segments of several selected
+    /// files follow `order` (the files missing from it come last), then the tracks and segments
+    /// follow the file. Waypoints are not segments: selecting only waypoints covers none.
+    pub fn segment_locations(&self, files: &StackEntry, order: &[FileId]) -> Vec<SegmentLocation> {
+        let mut locations = vec![];
+        let mut add = |file_id: FileId,
+                       trk_filter: &dyn Fn(&crate::Track) -> bool,
+                       seg_filter: &dyn Fn(&crate::TrackSegment) -> bool| {
+            let Some(file) = files.get(&file_id) else {
+                return;
+            };
+            for (trk, track) in file.trk.iter().enumerate().filter(|(_, t)| trk_filter(t)) {
+                for (seg, segment) in track.trkseg.iter().enumerate() {
+                    if seg_filter(segment) {
+                        locations.push(SegmentLocation { file_id, trk, seg });
+                    }
+                }
+            }
+        };
+        match self {
+            Selection::Empty | Selection::Waypoints { .. } | Selection::Waypoint { .. } => (),
+            Selection::File { file_ids } => {
+                let ordered = order
+                    .iter()
+                    .filter(|id| file_ids.contains(id))
+                    .chain(file_ids.iter().filter(|id| !order.contains(id)));
+                for id in ordered {
+                    add(*id, &|_| true, &|_| true);
+                }
+            }
+            Selection::Track { file_id, trk_ids } => {
+                add(*file_id, &|trk| trk_ids.contains(&trk.id), &|_| true)
+            }
+            Selection::TrackSegment {
+                file_id,
+                trk_id,
+                trkseg_ids,
+            } => add(*file_id, &|trk| trk.id == *trk_id, &|seg| {
+                trkseg_ids.contains(&seg.id)
+            }),
+        }
+        locations
+    }
+
     /// Drops what does not exist anymore (e.g. after an undo): files, and the tracks, segments
     /// and waypoints of the files that remain. A selection left with nothing becomes empty.
     pub fn retain_existing(&mut self, files: &StackEntry) {

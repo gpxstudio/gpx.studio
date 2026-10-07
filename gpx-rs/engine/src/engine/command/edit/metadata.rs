@@ -42,8 +42,18 @@ mod tests {
     #[test]
     fn test_metadata_applies_to_selected_file() {
         let mut fx = Fixture::default();
-        New { name: "first" }.apply(&mut fx.state()).unwrap();
-        New { name: "second" }.apply(&mut fx.state()).unwrap(); // now selected
+        New {
+            name: "first",
+            trackpoint: None,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
+        New {
+            name: "second",
+            trackpoint: None,
+        }
+        .apply(&mut fx.state())
+        .unwrap(); // now selected
         let selected = *fx.selected_files().iter().next().unwrap();
 
         Metadata {
@@ -95,7 +105,12 @@ mod tests {
 
     /// A new file with `nb_tracks` tracks (without name), selected.
     fn file_with_tracks(fx: &mut Fixture, nb_tracks: usize) {
-        New { name: "file" }.apply(&mut fx.state()).unwrap();
+        New {
+            name: "file",
+            trackpoint: None,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         for _ in 0..nb_tracks {
             NewTrack.apply(&mut fx.state()).unwrap();
         }

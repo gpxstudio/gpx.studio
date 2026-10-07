@@ -130,7 +130,12 @@ mod tests {
     #[test]
     fn test_delete_selected_files() {
         let (mut fx, id) = loaded();
-        crate::New { name: "keep" }.apply(&mut fx.state()).unwrap();
+        crate::New {
+            name: "keep",
+            trackpoint: None,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         let keep = fx.order.0[1];
         fx.selection = Selection::File {
             file_ids: HashSet::from([id]),
@@ -263,7 +268,12 @@ mod tests {
             },
         ] {
             let (mut fx, id) = loaded();
-            crate::New { name: "keep" }.apply(&mut fx.state()).unwrap();
+            crate::New {
+                name: "keep",
+                trackpoint: None,
+            }
+            .apply(&mut fx.state())
+            .unwrap();
             let keep = fx.order.0[1];
             fx.selection = selection(id, &fx);
             Delete { whole_files: true }.apply(&mut fx.state()).unwrap();

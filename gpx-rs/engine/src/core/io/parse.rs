@@ -179,6 +179,7 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
                     {
                         // `push` ignores the chunk if it is empty
                         trkseg.push(std::mem::take(&mut trkpt_chunk));
+                        trkseg.compute_anchors();
                         trk.trkseg.push(trkseg);
                     }
                 }

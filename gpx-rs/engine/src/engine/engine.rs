@@ -2,8 +2,9 @@
 
 use crate::{
     Action, Apply, Clipboard, Command, CoordinatesCache, Diff, FileId, FileOrder, FileStructure,
-    FileStructureCache, GlobalStatistics, SelectMode, Selection, Stack, State, StatisticsBuffer,
-    StatisticsCache, TrackSegmentId, Trackpoint, TrackpointCategories, Waypoint, WaypointId,
+    FileStructureCache, GlobalStatistics, RoutingBuffer, SelectMode, Selection, Stack, State,
+    StatisticsBuffer, StatisticsCache, TrackSegmentId, Trackpoint, TrackpointCategories, Waypoint,
+    WaypointId,
 };
 
 #[derive(Debug, Default)]
@@ -18,6 +19,7 @@ pub struct Engine {
     order_changed: bool,
     selection_changed: bool,
     statistics_buffer: StatisticsBuffer,
+    routing_buffer: RoutingBuffer,
     categories: TrackpointCategories,
     clipboard: Option<Clipboard>,
     clipboard_changed: bool,
@@ -26,6 +28,11 @@ pub struct Engine {
 impl Engine {
     pub fn statistics(&self) -> &StatisticsBuffer {
         &self.statistics_buffer
+    }
+
+    /// The anchors of the routing tool among the trackpoints of the selection.
+    pub fn routing(&self) -> &RoutingBuffer {
+        &self.routing_buffer
     }
 
     /// The names of the surfaces and highways that the trackpoints refer to by code.
@@ -249,6 +256,8 @@ impl Engine {
         self.statistics_cache.update(current);
         self.coordinates_cache.update(current);
         self.structure_cache.update(current, self.diff.as_ref());
+        self.routing_buffer
+            .update(current, &self.selection, &self.order.0);
         self.statistics_buffer
             .update(
                 &self
@@ -283,7 +292,13 @@ mod tests {
     }
 
     fn new(engine: &mut Engine, name: &str) -> bool {
-        edit(engine, Command::New(New { name }))
+        edit(
+            engine,
+            Command::New(New {
+                name,
+                trackpoint: None,
+            }),
+        )
     }
 
     fn load(engine: &mut Engine, path: &str) -> bool {

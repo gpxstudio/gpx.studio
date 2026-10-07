@@ -28,8 +28,18 @@ mod tests {
             DeleteAll.apply(&mut fx.state()),
             Err(CommandError::NothingToDo)
         );
-        crate::New { name: "a" }.apply(&mut fx.state()).unwrap();
-        crate::New { name: "b" }.apply(&mut fx.state()).unwrap();
+        crate::New {
+            name: "a",
+            trackpoint: None,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
+        crate::New {
+            name: "b",
+            trackpoint: None,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         assert!(DeleteAll.apply(&mut fx.state()).is_ok());
         assert!(fx.files.is_empty());
         assert!(fx.order.0.is_empty());

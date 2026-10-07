@@ -195,7 +195,12 @@ mod tests {
     fn test_duplicate_files_go_after_last_selected() {
         let mut fx = Fixture::default();
         for name in ["a", "b", "c"] {
-            crate::New { name }.apply(&mut fx.state()).unwrap();
+            crate::New {
+                name,
+                trackpoint: None,
+            }
+            .apply(&mut fx.state())
+            .unwrap();
         }
         let [a, b, c] = [fx.order.0[0], fx.order.0[1], fx.order.0[2]];
         fx.selection = Selection::File {

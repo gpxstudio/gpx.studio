@@ -1,5 +1,4 @@
-import type { Coordinates } from 'gpx';
-import { TrackPoint, distance } from 'gpx';
+import { distance, type Coordinates } from 'gpx';
 import { settings } from '$lib/logic/settings';
 import { getElevation } from '$lib/utils';
 import { get } from 'svelte/store';
@@ -22,7 +21,36 @@ export const routingProfiles: { [key: string]: RoutingProfile } = {
     railway: { engine: 'brouter', profile: 'rail' },
 };
 
-export function route(points: Coordinates[]): Promise<TrackPoint[]> {
+/**
+ * The trackpoints of a route, as arrays with an entry per trackpoint. The OSM attributes are
+ * `undefined` where the router does not know them.
+ */
+export type RoutedPoints = {
+    lng: number[];
+    lat: number[];
+    ele: number[];
+    surface: (string | undefined)[];
+    highway: (string | undefined)[];
+    sacScale: (string | undefined)[];
+    mtbScale: (string | undefined)[];
+};
+
+function emptyRoute(): RoutedPoints {
+    return { lng: [], lat: [], ele: [], surface: [], highway: [], sacScale: [], mtbScale: [] };
+}
+
+/** Adds a trackpoint, which has the elevation of the previous one if it has none. */
+function addPoint(route: RoutedPoints, lng: number, lat: number, ele: number | undefined) {
+    route.lng.push(lng);
+    route.lat.push(lat);
+    route.ele.push(ele ?? route.ele[route.ele.length - 1] ?? 0);
+    route.surface.push(undefined);
+    route.highway.push(undefined);
+    route.sacScale.push(undefined);
+    route.mtbScale.push(undefined);
+}
+
+export function route(points: Coordinates[]): Promise<RoutedPoints> {
     if (get(routing)) {
         const profile = routingProfiles[get(routingProfile)];
         if (profile.engine === 'graphhopper') {
@@ -108,7 +136,7 @@ async function getGraphHopperRoute(
     points: Coordinates[],
     graphHopperProfile: string,
     privateRoads: boolean
-): Promise<TrackPoint[]> {
+): Promise<RoutedPoints> {
     let response = await fetch('https://graphhopper.gpx.studio/route', {
         method: 'POST',
         headers: {
@@ -147,42 +175,27 @@ async function getGraphHopperRoute(
 
     let json = await response.json();
 
-    let route: TrackPoint[] = [];
-    let coordinates = json.paths[0].points.coordinates;
-    let details = json.paths[0].details;
+    const route = emptyRoute();
+    const coordinates = json.paths[0].points.coordinates;
+    const details = json.paths[0].details;
 
     for (let i = 0; i < coordinates.length; i++) {
-        route.push(
-            new TrackPoint({
-                attributes: {
-                    lat: coordinates[i][1],
-                    lon: coordinates[i][0],
-                },
-                ele: coordinates[i][2] ?? (i > 0 ? route[i - 1].ele : 0),
-                extensions: {},
-            })
-        );
+        addPoint(route, coordinates[i][0], coordinates[i][1], coordinates[i][2]);
     }
 
-    for (let key of graphhopperDetails) {
-        let detail = details[key];
+    for (const key of graphhopperDetails) {
+        const detail = details[key];
         for (let i = 0; i < detail.length; i++) {
-            for (let j = detail[i][0]; j < detail[i][1] + (i == detail.length - 1); j++) {
+            for (let j = detail[i][0]; j < detail[i][1] + (i == detail.length - 1 ? 1 : 0); j++) {
                 if (detail[i][2] !== undefined && detail[i][2] !== 'missing') {
                     if (key === 'road_class') {
-                        route[j].setExtension('highway', detail[i][2]);
+                        route.highway[j] = detail[i][2];
                     } else if (key === 'hike_rating') {
-                        const sacScale = hikeRatingToSACScale[detail[i][2]];
-                        if (sacScale) {
-                            route[j].setExtension('sac_scale', sacScale);
-                        }
+                        route.sacScale[j] = hikeRatingToSACScale[detail[i][2]];
                     } else if (key === 'mtb_rating') {
-                        const mtbScale = mtbRatingToScale[detail[i][2]];
-                        if (mtbScale) {
-                            route[j].setExtension('mtb_scale', mtbScale);
-                        }
+                        route.mtbScale[j] = mtbRatingToScale[detail[i][2]];
                     } else if (key === 'surface' && detail[i][2] !== 'other') {
-                        route[j].setExtension('surface', detail[i][2]);
+                        route.surface[j] = detail[i][2];
                     }
                 }
             }
@@ -195,7 +208,7 @@ async function getGraphHopperRoute(
 async function getBRouterRoute(
     points: Coordinates[],
     brouterProfile: string
-): Promise<TrackPoint[]> {
+): Promise<RoutedPoints> {
     let url = `https://brouter.de/brouter?lonlats=${points.map((point) => `${point.lon.toFixed(8)},${point.lat.toFixed(8)}`).join('|')}&profile=${brouterProfile}&format=geojson&alternativeidx=0`;
 
     let response = await fetch(url);
@@ -217,9 +230,9 @@ async function getBRouterRoute(
 
     let geojson = await response.json();
 
-    let route: TrackPoint[] = [];
-    let coordinates = geojson.features[0].geometry.coordinates;
-    let messages = geojson.features[0].properties.messages;
+    const route = emptyRoute();
+    const coordinates = geojson.features[0].geometry.coordinates;
+    const messages = geojson.features[0].properties.messages;
 
     const lngIdx = messages[0].indexOf('Longitude');
     const latIdx = messages[0].indexOf('Latitude');
@@ -228,15 +241,7 @@ async function getBRouterRoute(
     let tags = messageIdx < messages.length ? getTags(messages[messageIdx][tagIdx]) : {};
 
     for (let i = 0; i < coordinates.length; i++) {
-        route.push(
-            new TrackPoint({
-                attributes: {
-                    lat: coordinates[i][1],
-                    lon: coordinates[i][0],
-                },
-                ele: coordinates[i][2] ?? (i > 0 ? route[i - 1].ele : 0),
-            })
-        );
+        addPoint(route, coordinates[i][0], coordinates[i][1], coordinates[i][2]);
 
         if (
             messageIdx < messages.length &&
@@ -249,7 +254,10 @@ async function getBRouterRoute(
             else tags = getTags(messages[messageIdx][tagIdx]);
         }
 
-        route[route.length - 1].setExtensions(tags);
+        route.surface[i] = tags.surface;
+        route.highway[i] = tags.highway;
+        route.sacScale[i] = tags.sac_scale;
+        route.mtbScale[i] = tags.mtb_scale;
     }
 
     return route;
@@ -266,40 +274,27 @@ function getTags(message: string): { [key: string]: string } {
     return tags;
 }
 
-function getIntermediatePoints(points: Coordinates[]): Promise<TrackPoint[]> {
-    let route: TrackPoint[] = [];
-    let step = 0.05;
+function getIntermediatePoints(points: Coordinates[]): Promise<RoutedPoints> {
+    const route = emptyRoute();
+    const step = 0.05;
 
     for (let i = 0; i < points.length - 1; i++) {
         // Add intermediate points between each pair of points
-        let dist = distance(points[i], points[i + 1]) / 1000;
+        const dist = distance(points[i], points[i + 1]) / 1000;
         for (let d = 0; d < dist; d += step) {
-            let lat = points[i].lat + (d / dist) * (points[i + 1].lat - points[i].lat);
-            let lon = points[i].lon + (d / dist) * (points[i + 1].lon - points[i].lon);
-            route.push(
-                new TrackPoint({
-                    attributes: {
-                        lat: lat,
-                        lon: lon,
-                    },
-                })
-            );
+            const lat = points[i].lat + (d / dist) * (points[i + 1].lat - points[i].lat);
+            const lon = points[i].lon + (d / dist) * (points[i + 1].lon - points[i].lon);
+            addPoint(route, lon, lat, 0);
         }
     }
 
-    route.push(
-        new TrackPoint({
-            attributes: {
-                lat: points[points.length - 1].lat,
-                lon: points[points.length - 1].lon,
-            },
-        })
-    );
+    const last = points[points.length - 1];
+    addPoint(route, last.lon, last.lat, 0);
 
-    return getElevation(route).then((elevations) => {
-        route.forEach((point, i) => {
-            point.ele = elevations[i];
-        });
-        return route;
-    });
+    return getElevation(route.lng.map((lng, i) => ({ lon: lng, lat: route.lat[i] }))).then(
+        (elevations) => {
+            route.ele = elevations;
+            return route;
+        }
+    );
 }

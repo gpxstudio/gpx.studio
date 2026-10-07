@@ -1,8 +1,8 @@
 use crate::{Apply, CommandError, State};
 use crate::{
-    Clean, Crop, Delete, DeleteAll, DeleteWaypoint, Duplicate, EditWaypoint, Elevation, Extract,
-    Load, LoadFiles, Merge, Metadata, Move, MoveWaypoint, New, NewTrack, NewTrackSegment,
-    NewWaypoint, Paste, Reverse, SpliceTrackpoints, Split, Style, Time,
+    ChangeLoopStart, Clean, Crop, Delete, DeleteAll, DeleteWaypoint, Duplicate, EditWaypoint,
+    Elevation, Extract, InsertAnchor, Load, LoadFiles, Merge, Metadata, Move, MoveWaypoint, New,
+    NewTrack, NewTrackSegment, NewWaypoint, Paste, Reverse, Route, Split, Style, Time,
 };
 
 /// A user action that edits the files. Each variant wraps the command's own struct, whose
@@ -26,7 +26,7 @@ pub enum Command<'a> {
     NewTrack(NewTrack),
     NewTrackSegment(NewTrackSegment),
     Reverse(Reverse),
-    SpliceTrackpoints(SpliceTrackpoints<'a>),
+    Route(Route<'a>),
     NewWaypoint(NewWaypoint<'a>),
     EditWaypoint(EditWaypoint<'a>),
     MoveWaypoint(MoveWaypoint),
@@ -35,8 +35,10 @@ pub enum Command<'a> {
     Time(Time),
     Merge(Merge),
     Extract(Extract),
+    InsertAnchor(InsertAnchor),
     Elevation(Elevation<'a>),
     Clean(Clean),
+    ChangeLoopStart(ChangeLoopStart),
 }
 
 impl Apply for Command<'_> {
@@ -56,7 +58,7 @@ impl Apply for Command<'_> {
             Command::NewTrack(c) => c.apply(state),
             Command::NewTrackSegment(c) => c.apply(state),
             Command::Reverse(c) => c.apply(state),
-            Command::SpliceTrackpoints(c) => c.apply(state),
+            Command::Route(c) => c.apply(state),
             Command::NewWaypoint(c) => c.apply(state),
             Command::EditWaypoint(c) => c.apply(state),
             Command::MoveWaypoint(c) => c.apply(state),
@@ -65,8 +67,10 @@ impl Apply for Command<'_> {
             Command::Time(c) => c.apply(state),
             Command::Merge(c) => c.apply(state),
             Command::Extract(c) => c.apply(state),
+            Command::InsertAnchor(c) => c.apply(state),
             Command::Elevation(c) => c.apply(state),
             Command::Clean(c) => c.apply(state),
+            Command::ChangeLoopStart(c) => c.apply(state),
         }
     }
 }

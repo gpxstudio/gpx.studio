@@ -2,7 +2,7 @@ use std::{ops::Index, rc::Rc};
 
 use uuid::Uuid;
 
-use crate::{Trackpoint, TrackpointChunk};
+use crate::{Trackpoint, TrackpointChunk, compute_anchors};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TrackSegmentId(pub Uuid);
@@ -86,6 +86,72 @@ impl TrackSegment {
             self.fill(&mut pending, points);
         }
         self.flush(&mut pending);
+        self.ensure_end_anchors();
+    }
+
+    /// The first and the last trackpoints are always anchors, shown at every zoom level.
+    ///
+    /// It is done by [`TrackSegment::splice`]; commands that build segments in another way need to
+    /// call it.
+    pub fn ensure_end_anchors(&mut self) {
+        let Some(last) = self.len().checked_sub(1) else {
+            return;
+        };
+        for index in [0, last] {
+            if self[index].anchor != Some(0) {
+                self.point_mut(index).anchor = Some(0);
+            }
+        }
+    }
+
+    /// Makes the trackpoint at `index` an anchor shown from the map zoom level `zoom`. Panics if
+    /// there is no such trackpoint.
+    pub fn set_anchor(&mut self, index: usize, zoom: u8) {
+        self.point_mut(index).anchor = Some(zoom);
+    }
+
+    /// Sets the anchors of the trackpoints from the details of the path of the segment (see
+    /// [`compute_anchors`]), forgetting the previous ones.
+    pub fn compute_anchors(&mut self) {
+        let anchors = compute_anchors(self);
+        let mut anchors = anchors.into_iter().peekable();
+        self.map_points(|index, trkpt| {
+            trkpt.anchor = match anchors.peek() {
+                Some(&(anchor, zoom)) if anchor == index => {
+                    anchors.next();
+                    Some(zoom)
+                }
+                _ => None,
+            };
+        });
+    }
+
+    /// A chunk that can be modified: the shared chunks are copied first.
+    fn chunk_mut(&mut self, chunk: usize) -> &mut TrackpointChunk {
+        let shared = &mut self.chunks[chunk];
+        if Rc::get_mut(shared).is_none() {
+            *shared = Rc::new(TrackpointChunk {
+                trkpt: shared.trkpt.clone(),
+                ..Default::default()
+            });
+        }
+        Rc::get_mut(shared).unwrap()
+    }
+
+    fn point_mut(&mut self, index: usize) -> &mut Trackpoint {
+        let TrackSegmentIndex { chunk, pos, .. } = self.locate(index).unwrap();
+        &mut self.chunk_mut(chunk).trkpt[pos]
+    }
+
+    /// Applies `f` to every trackpoint, with its index in the segment.
+    fn map_points(&mut self, mut f: impl FnMut(usize, &mut Trackpoint)) {
+        let mut offset = 0;
+        for chunk in 0..self.chunks.len() {
+            for (i, trkpt) in self.chunk_mut(chunk).trkpt.iter_mut().enumerate() {
+                f(offset + i, trkpt);
+            }
+            offset += self.chunks[chunk].trkpt.len();
+        }
     }
 
     fn fill(
@@ -309,9 +375,58 @@ mod tests {
         assert!(trkseg.first_index().is_none());
     }
 
+    fn anchors(trkseg: &TrackSegment) -> Vec<Option<u8>> {
+        trkseg.iter().map(|p| p.anchor).collect()
+    }
+
+    #[test]
+    fn test_splice_keeps_the_ends_anchors() {
+        let mut trkseg = TrackSegment::default();
+        assert_eq!(anchors(&trkseg), vec![]);
+        trkseg.splice(0, 0, points(&[0.0, 1.0, 2.0]));
+        assert_eq!(anchors(&trkseg), [Some(0), None, Some(0)]);
+
+        // new ends: the previous ones stay anchors
+        trkseg.splice(3, 3, points(&[3.0]));
+        trkseg.splice(0, 0, points(&[-1.0]));
+        assert_eq!(anchors(&trkseg), [Some(0), Some(0), None, Some(0), Some(0)]);
+
+        // removing the ends: the new ones become anchors
+        trkseg.splice(4, 5, vec![]);
+        trkseg.splice(0, 2, vec![]);
+        assert_eq!(anchors(&trkseg), [Some(0), Some(0)]);
+
+        // a single point is both ends
+        trkseg.splice(1, 2, vec![]);
+        assert_eq!(anchors(&trkseg), [Some(0)]);
+    }
+
+    #[test]
+    fn test_compute_anchors_replaces_the_previous_ones() {
+        let mut trkseg = TrackSegment::default();
+        let line: Vec<_> = (0..10)
+            .map(|i| Trackpoint {
+                coordinates: crate::LngLat {
+                    lng: i as f64 * 0.001,
+                    lat: 0.0,
+                },
+                anchor: Some(5),
+                ..Default::default()
+            })
+            .collect();
+        trkseg.splice(0, 0, line);
+        trkseg.compute_anchors();
+        let mut expected = vec![None; 10];
+        expected[0] = Some(0);
+        expected[9] = Some(0);
+        assert_eq!(anchors(&trkseg), expected);
+    }
+
     #[test]
     fn test_splice_keeps_untouched_chunks_shared() {
         let mut trkseg = create_track_segment(5);
+        // the ends are anchors already, or their chunks would be copied
+        trkseg.ensure_end_anchors();
         let before = trkseg.chunks.clone();
         // inside the third chunk only
         trkseg.splice(4, 5, points(&[-1.0]));

@@ -26,7 +26,12 @@ mod tests {
     #[test]
     fn test_new_track_segment_on_each_track_of_selected_file() {
         let mut fx = Fixture::default();
-        New { name: "file" }.apply(&mut fx.state()).unwrap();
+        New {
+            name: "file",
+            trackpoint: None,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         NewTrack.apply(&mut fx.state()).unwrap();
         NewTrack.apply(&mut fx.state()).unwrap();
         NewTrackSegment.apply(&mut fx.state()).unwrap();

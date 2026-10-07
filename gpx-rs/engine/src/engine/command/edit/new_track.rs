@@ -37,7 +37,12 @@ mod tests {
     #[test]
     fn test_new_track() {
         let mut fx = Fixture::default();
-        New { name: "file" }.apply(&mut fx.state()).unwrap();
+        New {
+            name: "file",
+            trackpoint: None,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         NewTrack.apply(&mut fx.state()).unwrap();
         NewTrack.apply(&mut fx.state()).unwrap();
         let file = fx.files.values().next().unwrap();
@@ -48,7 +53,12 @@ mod tests {
     #[test]
     fn test_new_track_inherits_agreeing_style_only() {
         let mut fx = Fixture::default();
-        New { name: "file" }.apply(&mut fx.state()).unwrap();
+        New {
+            name: "file",
+            trackpoint: None,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         NewTrack.apply(&mut fx.state()).unwrap();
         NewTrack.apply(&mut fx.state()).unwrap();
         let file = std::rc::Rc::make_mut(fx.files.values_mut().next().unwrap());

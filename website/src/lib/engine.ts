@@ -2,7 +2,7 @@ import { browser } from '$app/environment';
 import { get, writable, type Readable, type Writable } from 'svelte/store';
 import { FileColorAllocator, normalizeColor } from '$lib/file-colors';
 import { setHidden, type Visibility } from '$lib/file-visibility';
-import type { CategoryIntervals } from '$lib/trackpoint-categories';
+import { categoryIntervals, type CategoryIntervals } from '$lib/trackpoint-categories';
 import { selectedElementIds, type FileTreeNode } from '$lib/selection-helpers';
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
 import type {
@@ -13,6 +13,7 @@ import type {
     Selection,
     WaypointDetails,
     TrackpointDetails,
+    RouteAttributes,
 } from 'gpx-rs';
 
 export type {
@@ -102,6 +103,20 @@ export type FileState = {
 const EMPTY_STATISTICS: GlobalStatistics = { totalDistance: 0, elevationGain: 0, elevationLoss: 0 };
 
 /**
+ * New trackpoints for `Engine.route`, as arrays with an entry per trackpoint. The OSM attributes
+ * are the names of the values (`undefined` when unknown), they are left unknown if missing.
+ */
+export type RoutePoints = {
+    lng: ArrayLike<number>;
+    lat: ArrayLike<number>;
+    ele: ArrayLike<number>;
+    surface?: readonly (string | undefined)[];
+    highway?: readonly (string | undefined)[];
+    sacScale?: readonly (string | undefined)[];
+    mtbScale?: readonly (string | undefined)[];
+};
+
+/**
  * Timestamp of the trackpoints that have none, in `SelectionStatistics.timestamps` (the smallest
  * 64-bit integer, like `NO_TIME` in the engine).
  */
@@ -121,7 +136,34 @@ export type StatisticsMetric =
     | 'slopeSegment'
     | 'surface'
     /** `highway`, `sacScale` and `mtbScale`. */
-    | 'highway';
+    | 'highway'
+    /** `anchors`. */
+    | 'anchors';
+
+/**
+ * The anchors of the routing tool among the trackpoints of the selection: the points that can be
+ * dragged to reroute a segment, which are few of them. The arrays are as long as the number of
+ * anchors, in the order of the trackpoints.
+ */
+export type SelectionAnchors = {
+    /** Index of the anchor in the trackpoints of the selection. */
+    indices: Uint32Array;
+    /** Lowest map zoom level at which the anchor is shown (0 for the ends of the segments). */
+    zooms: Uint8Array;
+    /**
+     * Index of the first trackpoint of each segment of the selection that has some: anchors that
+     * are between two consecutive starts belong to the same segment.
+     */
+    segmentStarts: Uint32Array;
+    /** Id of each of these segments. */
+    segmentIds: string[];
+    /**
+     * Changes when the selected segments, or their trackpoints, change. The indices in the
+     * selection (of trackpoints, of anchors) only mean something for one revision, which commands
+     * that use them have to give.
+     */
+    revision: number;
+};
 
 /**
  * The statistics of the selection: its global statistics, and the values at each of its
@@ -162,6 +204,7 @@ export type SelectionStatistics = {
     sacScale?: CategoryIntervals;
     /** Mountain biking scale. */
     mtbScale?: CategoryIntervals;
+    anchors?: SelectionAnchors;
 
     /**
      * Global statistics of the trackpoints from `start` to `end` (both included), for example
@@ -275,8 +318,12 @@ class Engine {
 
     // Actions. Each one resolves to whether the engine changed something.
 
-    newFile(name: string) {
-        return this.run((w) => w.new_file(name));
+    /**
+     * Creates a file, which gets selected. With a `trackpoint`, the file starts with a track and a
+     * segment that hold it, in the same undo step.
+     */
+    newFile(name: string, trackpoint?: { lng: number; lat: number; ele?: number }) {
+        return this.run((w) => w.new_file(name, trackpoint?.lng, trackpoint?.lat, trackpoint?.ele));
     }
 
     /**
@@ -515,6 +562,65 @@ class Engine {
         );
     }
 
+    /**
+     * Replaces the trackpoints `start` to `end` (excluded) of the selection by `points` (a pure
+     * insertion if `start === end`, a pure removal without points), in a single segment: the
+     * indices are the ones of `SelectionAnchors`, and `revision` the one they were read with. The
+     * indices in `anchors`, among the new points, become anchors of the routing tool. Resolves to
+     * `false` if the selection changed since the revision, or if the range is not valid.
+     */
+    route(
+        revision: number,
+        start: number,
+        end: number,
+        points: RoutePoints,
+        anchors: readonly number[] = []
+    ) {
+        const attributes = (values?: readonly (string | undefined)[]) =>
+            values && { ...categoryIntervals(values) };
+        const routeAttributes: RouteAttributes = {};
+        for (const [key, values] of [
+            ['surface', points.surface],
+            ['highway', points.highway],
+            ['sacScale', points.sacScale],
+            ['mtbScale', points.mtbScale],
+        ] as const) {
+            const intervals = attributes(values);
+            if (intervals && intervals.names.length > 0) {
+                routeAttributes[key] = intervals;
+            }
+        }
+        return this.run((w) =>
+            w.route(
+                revision,
+                start,
+                end,
+                Float64Array.from(points.lng),
+                Float64Array.from(points.lat),
+                Float64Array.from(points.ele),
+                routeAttributes,
+                Uint32Array.from(anchors)
+            )
+        );
+    }
+
+    /**
+     * Makes an anchor of the point of the selected segments that is the closest to the
+     * coordinates, inserting a trackpoint on the path if there is none there. `revision` is the
+     * one of `SelectionAnchors`.
+     */
+    insertAnchor(revision: number, lng: number, lat: number) {
+        return this.run((w) => w.insert_anchor(revision, lng, lat));
+    }
+
+    /**
+     * Makes the trackpoint `index` of the selection the start of its segment, which is a loop:
+     * the trackpoints before it go to the end, and the loop closes on it. `revision` is the one of `SelectionAnchors`.
+     */
+    changeLoopStart(revision: number, index: number) {
+        return this.run((w) => w.change_loop_start(revision, index));
+    }
+
     /** A trackpoint of a segment, `undefined` if it does not exist. */
     trackpoint(fileId: string, segmentId: string, index: number): TrackpointDetails | undefined {
         return this.wasm?.trackpoint(fileId, segmentId, index);
@@ -716,6 +822,15 @@ class Engine {
                         wasm.surface_values(),
                         wasm.surfaces
                     );
+                    break;
+                case 'anchors':
+                    statistics.anchors = {
+                        indices: wasm.anchor_indices(),
+                        zooms: wasm.anchor_zooms(),
+                        segmentStarts: wasm.segment_starts(),
+                        segmentIds: wasm.segment_ids(),
+                        revision: wasm.routing_revision(),
+                    };
                     break;
                 case 'highway':
                     statistics.highway = categories(

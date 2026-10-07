@@ -114,8 +114,18 @@ mod tests {
     #[test]
     fn test_new_waypoint_in_the_selected_file() {
         let mut fx = Fixture::default();
-        New { name: "a" }.apply(&mut fx.state()).unwrap();
-        New { name: "b" }.apply(&mut fx.state()).unwrap();
+        New {
+            name: "a",
+            trackpoint: None,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
+        New {
+            name: "b",
+            trackpoint: None,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         let (a, b) = (fx.order.0[0], fx.order.0[1]);
         let rev = fx.files[&b].wpt_rev_id;
 
@@ -155,7 +165,12 @@ mod tests {
     #[test]
     fn test_empty_fields_are_not_set() {
         let mut fx = Fixture::default();
-        New { name: "a" }.apply(&mut fx.state()).unwrap();
+        New {
+            name: "a",
+            trackpoint: None,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         let a = fx.order.0[0];
         NewWaypoint {
             lng: 1.0,
@@ -177,7 +192,12 @@ mod tests {
     fn test_each_selected_file_gets_its_own_waypoint() {
         let mut fx = Fixture::default();
         for name in ["a", "b", "c"] {
-            New { name }.apply(&mut fx.state()).unwrap();
+            New {
+                name,
+                trackpoint: None,
+            }
+            .apply(&mut fx.state())
+            .unwrap();
         }
         let ids = fx.order.0.clone();
         fx.selection = Selection::File {
@@ -210,7 +230,12 @@ mod tests {
             },
         ] {
             let mut fx = Fixture::default();
-            New { name: "a" }.apply(&mut fx.state()).unwrap();
+            New {
+                name: "a",
+                trackpoint: None,
+            }
+            .apply(&mut fx.state())
+            .unwrap();
             let a = fx.order.0[0];
             fx.selection = selection(a);
             new_waypoint("w").apply(&mut fx.state()).unwrap();
@@ -221,7 +246,12 @@ mod tests {
     #[test]
     fn test_nothing_selected_or_unknown_file() {
         let mut fx = Fixture::default();
-        New { name: "a" }.apply(&mut fx.state()).unwrap();
+        New {
+            name: "a",
+            trackpoint: None,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         fx.selection = Selection::Empty;
         assert_eq!(
             new_waypoint("w").apply(&mut fx.state()),

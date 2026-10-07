@@ -11,37 +11,58 @@ pub fn ramer_douglas_peucker<F>(
 where
     F: Fn(TrackSegmentIndex) -> (f64, f64),
 {
+    let measure = |start, end, idx| {
+        let (start, end, pt) = (mapping(start), mapping(end), mapping(idx));
+        crossarc(start.0, start.1, end.0, end.1, pt.0, pt.1)
+    };
+    ramer_douglas_peucker_by(trkseg, &measure, epsilon)
+        .into_iter()
+        .map(|(idx, _)| idx)
+        .collect()
+}
+
+/// Ramer-Douglas-Peucker with any distance from a point (the last argument) to the line made of
+/// two others (the first ones). Gives the kept points, with the distance at which each of them
+/// was selected (`None` for the ends of the segment, which are always kept).
+pub fn ramer_douglas_peucker_by<M>(
+    trkseg: &TrackSegment,
+    measure: &M,
+    epsilon: f64,
+) -> Vec<(TrackSegmentIndex, Option<f64>)>
+where
+    M: Fn(TrackSegmentIndex, TrackSegmentIndex, TrackSegmentIndex) -> f64,
+{
     match trkseg.len() {
         0 => vec![],
-        1 => vec![trkseg.first_index().unwrap()],
-        2 => vec![trkseg.first_index().unwrap(), trkseg.last_index().unwrap()],
+        1 => vec![(trkseg.first_index().unwrap(), None)],
+        2 => vec![
+            (trkseg.first_index().unwrap(), None),
+            (trkseg.last_index().unwrap(), None),
+        ],
         _ => {
             let first = trkseg.first_index().unwrap();
             let last = trkseg.last_index().unwrap();
 
-            let mut indices = vec![first];
-            ramer_douglas_peucker_helper(trkseg, first, last, mapping, epsilon, &mut indices);
-            indices.push(last);
-            indices
+            let mut kept = vec![(first, None)];
+            ramer_douglas_peucker_helper(trkseg, first, last, measure, epsilon, &mut kept);
+            kept.push((last, None));
+            kept
         }
     }
 }
 
-fn ramer_douglas_peucker_helper<F>(
+fn ramer_douglas_peucker_helper<M>(
     trkseg: &TrackSegment,
     start: TrackSegmentIndex,
     end: TrackSegmentIndex,
-    mapping: &F,
+    measure: &M,
     epsilon: f64,
-    indices: &mut Vec<TrackSegmentIndex>,
+    kept: &mut Vec<(TrackSegmentIndex, Option<f64>)>,
 ) where
-    F: Fn(TrackSegmentIndex) -> (f64, f64),
+    M: Fn(TrackSegmentIndex, TrackSegmentIndex, TrackSegmentIndex) -> f64,
 {
     let mut max_idx = None;
     let mut max_dist = 0.0;
-
-    let start_pt = mapping(start);
-    let end_pt = mapping(end);
 
     let mut cur = trkseg.next_index(Some(start));
     while let Some(idx) = cur {
@@ -49,8 +70,7 @@ fn ramer_douglas_peucker_helper<F>(
             break;
         }
 
-        let pt = mapping(idx);
-        let dist = crossarc(start_pt.0, start_pt.1, end_pt.0, end_pt.1, pt.0, pt.1);
+        let dist = measure(start, end, idx);
         if dist > max_dist {
             max_idx = Some(idx);
             max_dist = dist;
@@ -60,9 +80,9 @@ fn ramer_douglas_peucker_helper<F>(
     }
 
     if let Some(idx) = max_idx.filter(|_| max_dist > epsilon) {
-        ramer_douglas_peucker_helper(trkseg, start, idx, mapping, epsilon, indices);
-        indices.push(idx);
-        ramer_douglas_peucker_helper(trkseg, idx, end, mapping, epsilon, indices);
+        ramer_douglas_peucker_helper(trkseg, start, idx, measure, epsilon, kept);
+        kept.push((idx, Some(max_dist)));
+        ramer_douglas_peucker_helper(trkseg, idx, end, measure, epsilon, kept);
     }
 }
 
