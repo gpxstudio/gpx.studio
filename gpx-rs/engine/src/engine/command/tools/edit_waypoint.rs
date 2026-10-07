@@ -45,7 +45,7 @@ mod tests {
     fn test_edit_the_given_waypoint() {
         let mut fx = Fixture::default();
         let mut file = File::default();
-        file.wpt.push(Rc::new(WaypointChunk {
+        file.wpt.push(WaypointChunk {
             wpt: vec![
                 Waypoint {
                     name: Some("old".into()),
@@ -64,7 +64,7 @@ mod tests {
                 },
             ],
             ..Default::default()
-        }));
+        });
         let id = file.id;
         let ids: Vec<_> = waypoint_ids(&file).collect();
         fx.files.insert(id, Rc::new(file));
@@ -83,11 +83,7 @@ mod tests {
         .apply(&mut fx.state())
         .unwrap();
 
-        let wpts: Vec<_> = fx.files[&id]
-            .wpt
-            .iter()
-            .flat_map(|c| c.wpt.iter())
-            .collect();
+        let wpts: Vec<_> = fx.files[&id].wpt.iter().collect();
         let edited = wpts[0];
         assert_eq!(edited.id, ids[0]);
         assert_eq!(edited.name.as_deref(), Some("new"));

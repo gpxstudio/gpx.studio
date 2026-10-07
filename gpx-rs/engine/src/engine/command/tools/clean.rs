@@ -2,8 +2,7 @@ use std::{collections::HashSet, rc::Rc};
 
 use crate::{
     Apply, CommandError, Edit, Editor, File, FileId, LngLat, LngLatBounds, Selection, State,
-    TrackSegment, TrackSegmentId, Trackpoint, Waypoint, delete_waypoints, edit_waypoint_chunks,
-    update_selected,
+    TrackSegment, TrackSegmentId, Trackpoint, Waypoint, delete_waypoints, update_selected,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -91,8 +90,7 @@ impl Editor for Cleaner<'_> {
             }
         }
         if self.clean.wpt
-            && edit_waypoint_chunks(
-                file,
+            && file.wpt.edit(
                 |wpt| self.clean.removes(wpt.coordinates),
                 |wpts| {
                     wpts.retain(|wpt| !self.clean.removes(wpt.coordinates));
@@ -244,7 +242,7 @@ fn fixed_selection(state: &State) -> Selection {
 mod tests {
     use std::collections::HashSet;
 
-    use crate::{FileId, Load, engine::command::fixture::Fixture};
+    use crate::{FileId, Load, WaypointChunk, Waypoints, engine::command::fixture::Fixture};
 
     use super::*;
 
@@ -363,18 +361,14 @@ mod tests {
     fn test_waypoints_flag_and_selection() {
         let (mut fx, id) = loaded();
         let mut file = (*fx.files[&id]).clone();
-        file.wpt = vec![std::rc::Rc::new(crate::WaypointChunk {
+        file.wpt = Waypoints::new([WaypointChunk {
             wpt: vec![Waypoint::default(), Waypoint::default()],
             ..Default::default()
-        })];
-        let ids: Vec<_> = file.wpt[0].wpt.iter().map(|w| w.id).collect();
+        }]);
+        let ids: Vec<_> = file.wpt.iter().map(|w| w.id).collect();
         fx.files.insert(id, std::rc::Rc::new(file));
         let everywhere = bounds(-180.0, -90.0, 180.0, 90.0);
-        let wpt_count = |fx: &Fixture| {
-            fx.files
-                .get(&id)
-                .map_or(0, |f| f.wpt.iter().map(|c| c.wpt.len()).sum::<usize>())
-        };
+        let wpt_count = |fx: &Fixture| fx.files.get(&id).map_or(0, |f| f.wpt.len());
 
         // trackpoints only: waypoints are kept
         Clean {

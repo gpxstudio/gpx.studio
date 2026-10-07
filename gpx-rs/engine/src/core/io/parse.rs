@@ -1,7 +1,5 @@
-use std::rc::Rc;
-
 use crate::{
-    Author, File, Link, LngLat, Track, TrackSegment, Trackpoint, TrackpointCategories,
+    Author, Chunk, File, Link, LngLat, Track, TrackSegment, Trackpoint, TrackpointCategories,
     TrackpointChunk, Waypoint, WaypointChunk,
 };
 use chrono::DateTime;
@@ -133,7 +131,7 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
                         ..Default::default()
                     });
                     if wpt_chunk.is_full() {
-                        gpx.wpt.push(Rc::new(std::mem::take(&mut wpt_chunk)));
+                        gpx.wpt.push(std::mem::take(&mut wpt_chunk));
                     }
                 }
                 _ => (),
@@ -141,7 +139,7 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
             Ok(Event::End(e)) => match e.name().as_ref() {
                 "gpx" => {
                     if !wpt_chunk.wpt.is_empty() {
-                        gpx.wpt.push(Rc::new(std::mem::take(&mut wpt_chunk)));
+                        gpx.wpt.push(std::mem::take(&mut wpt_chunk));
                     }
                 }
                 "metadata" => {
@@ -197,7 +195,7 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
                     if let Some(GPXElement::Waypoint(wpt)) = stack.pop() {
                         wpt_chunk.wpt.push(wpt);
                         if wpt_chunk.is_full() {
-                            gpx.wpt.push(Rc::new(std::mem::take(&mut wpt_chunk)));
+                            gpx.wpt.push(std::mem::take(&mut wpt_chunk));
                         }
                     }
                 }
@@ -393,7 +391,7 @@ mod tests {
         let gpx = parse_data("self_closing_points");
 
         assert_eq!(gpx.info.name, "self closing points");
-        let wpt: Vec<_> = gpx.wpt.iter().flat_map(|chunk| &chunk.wpt).collect();
+        let wpt: Vec<_> = gpx.wpt.iter().collect();
         assert_eq!(wpt.len(), 3);
         assert_eq!(wpt[0].coordinates.lat, 50.0);
         assert_eq!(wpt[0].name, None);
@@ -550,9 +548,7 @@ mod tests {
         let gpx = parse_data("with_waypoint");
 
         assert_eq!(gpx.wpt.len(), 1);
-        let chunk = &gpx.wpt[0];
-        assert_eq!(chunk.wpt.len(), 1);
-        let wpt = &chunk.wpt[0];
+        let wpt = &gpx.wpt[0];
         assert_eq!(wpt.coordinates.lat, 50.7836710064975);
         assert_eq!(wpt.coordinates.lng, 4.410764082658738);
         assert!(wpt.name.as_ref().is_some_and(|n| n == "waypoint name"));

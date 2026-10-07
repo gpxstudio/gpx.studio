@@ -140,7 +140,8 @@ mod tests {
 
     use crate::{
         Clipboard, ClipboardIds, File, FileId, Track, TrackId, TrackInfo, TrackSegment,
-        TrackSegmentId, Waypoint, WaypointId, engine::command::fixture::Fixture, new_file,
+        TrackSegmentId, Waypoint, WaypointId, Waypoints, engine::command::fixture::Fixture,
+        new_file,
     };
 
     use super::*;
@@ -162,10 +163,10 @@ mod tests {
                 .collect(),
         );
         if waypoints > 0 {
-            file.wpt = vec![Rc::new(crate::WaypointChunk {
+            file.wpt = Waypoints::new([crate::WaypointChunk {
                 wpt: (0..waypoints).map(|_| Waypoint::default()).collect(),
                 ..Default::default()
-            })];
+            }]);
         }
         file
     }

@@ -126,12 +126,7 @@ impl Selection {
             Selection::Waypoints { file_id } => !files.contains_key(file_id),
             Selection::Waypoint { file_id, wpt_ids } => match files.get(file_id) {
                 Some(file) => {
-                    wpt_ids.retain(|id| {
-                        file.wpt
-                            .iter()
-                            .flat_map(|chunk| &chunk.wpt)
-                            .any(|wpt| wpt.id == *id)
-                    });
+                    wpt_ids.retain(|id| file.wpt.iter().any(|wpt| wpt.id == *id));
                     wpt_ids.is_empty()
                 }
                 None => true,
@@ -324,13 +319,7 @@ impl Selection {
             Selection::Waypoints { .. } => None,
             Selection::Waypoint { file_id, .. } => Some(Selection::Waypoint {
                 file_id: *file_id,
-                wpt_ids: files
-                    .get(file_id)?
-                    .wpt
-                    .iter()
-                    .flat_map(|chunk| &chunk.wpt)
-                    .map(|wpt| wpt.id)
-                    .collect(),
+                wpt_ids: files.get(file_id)?.wpt.iter().map(|wpt| wpt.id).collect(),
             }),
         }
     }
@@ -384,13 +373,8 @@ impl Selection {
                 })
             }
             Selection::Waypoint { file_id, wpt_ids } => {
-                let ids: Vec<WaypointId> = files
-                    .get(file_id)?
-                    .wpt
-                    .iter()
-                    .flat_map(|chunk| &chunk.wpt)
-                    .map(|wpt| wpt.id)
-                    .collect();
+                let ids: Vec<WaypointId> =
+                    files.get(file_id)?.wpt.iter().map(|wpt| wpt.id).collect();
                 Some(Selection::Waypoint {
                     file_id: *file_id,
                     wpt_ids: [neighbour(&ids, wpt_ids, down)?].into(),
@@ -444,12 +428,12 @@ mod tests {
             trkseg: vec![TrackSegment::default()],
             ..Default::default()
         });
-        file.wpt.push(Rc::new(WaypointChunk {
+        file.wpt.push(WaypointChunk {
             wpt: vec![Waypoint::default()],
             ..Default::default()
-        }));
+        });
         let (file_id, trk_id) = (file.id, file.trk[0].id);
-        let (seg_id, wpt_id) = (file.trk[0].trkseg[0].id, file.wpt[0].wpt[0].id);
+        let (seg_id, wpt_id) = (file.trk[0].trkseg[0].id, file.wpt[0].id);
         let mut files = StackEntry::default();
         files.insert(file_id, Rc::new(file));
 
@@ -595,14 +579,14 @@ mod tests {
                 ..Default::default()
             });
         }
-        file.wpt.push(Rc::new(WaypointChunk {
+        file.wpt.push(WaypointChunk {
             wpt: vec![Waypoint::default(), Waypoint::default()],
             ..Default::default()
-        }));
-        file.wpt.push(Rc::new(WaypointChunk {
+        });
+        file.wpt.push(WaypointChunk {
             wpt: vec![Waypoint::default()],
             ..Default::default()
-        }));
+        });
         let tree = Tree {
             file: file.id,
             tracks: file.trk.iter().map(|t| t.id).collect(),
@@ -611,12 +595,7 @@ mod tests {
                 .iter()
                 .map(|t| t.trkseg.iter().map(|s| s.id).collect())
                 .collect(),
-            waypoints: file
-                .wpt
-                .iter()
-                .flat_map(|chunk| &chunk.wpt)
-                .map(|w| w.id)
-                .collect(),
+            waypoints: file.wpt.iter().map(|w| w.id).collect(),
             order: vec![file.id],
             files: StackEntry::from([(file.id, Rc::new(file))]),
         };

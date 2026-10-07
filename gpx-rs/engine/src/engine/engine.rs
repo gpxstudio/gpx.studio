@@ -80,7 +80,6 @@ impl Engine {
             .get(file_id)?
             .wpt
             .iter()
-            .flat_map(|chunk| &chunk.wpt)
             .find(|wpt| wpt.id == *id)
     }
 

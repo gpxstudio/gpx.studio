@@ -23,14 +23,14 @@ impl CoordinatesCache {
             if self
                 .waypoints
                 .get(&file.id)
-                .is_none_or(|(r, _)| *r != file.wpt_rev_id)
+                .is_none_or(|(r, _)| *r != file.wpt.rev_id)
             {
                 let mut coordinates = Vec::new();
-                for wpt in file.wpt.iter().flat_map(|chunk| &chunk.wpt) {
+                for wpt in file.wpt.iter() {
                     coordinates.extend([wpt.coordinates.lng, wpt.coordinates.lat]);
                 }
                 self.waypoints
-                    .insert(file.id, (file.wpt_rev_id, coordinates));
+                    .insert(file.id, (file.wpt.rev_id, coordinates));
             }
             for seg in file.trk.iter().flat_map(|trk| &trk.trkseg) {
                 segments.insert(seg.id);
@@ -138,17 +138,16 @@ mod tests {
             ..Default::default()
         };
         let mut file = (*fx.files[&id]).clone();
-        file.wpt_rev_id = Default::default();
-        file.wpt = vec![
-            Rc::new(WaypointChunk {
+        file.wpt = crate::Waypoints::new([
+            WaypointChunk {
                 wpt: vec![wpt(1.0, 2.0)],
                 ..Default::default()
-            }),
-            Rc::new(WaypointChunk {
+            },
+            WaypointChunk {
                 wpt: vec![wpt(3.0, 4.0)],
                 ..Default::default()
-            }),
-        ];
+            },
+        ]);
         fx.files.insert(id, Rc::new(file));
         let mut cache = CoordinatesCache::default();
         cache.update(Some(&fx.files));

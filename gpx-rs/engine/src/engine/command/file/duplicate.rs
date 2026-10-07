@@ -2,7 +2,7 @@ use std::{collections::HashSet, rc::Rc};
 
 use crate::{
     Apply, CommandError, FileId, Selection, StackEntry, State, Waypoint, copy_file, copy_segment,
-    copy_track, copy_waypoint, insert_waypoints,
+    copy_track, copy_waypoint,
 };
 
 #[derive(Debug)]
@@ -112,19 +112,14 @@ fn duplicate_waypoints(
     filter: impl Fn(&Waypoint) -> bool,
 ) -> Result<Selection, CommandError> {
     let file = files.get(&file_id).ok_or(CommandError::NothingToDo)?;
-    let selected: Vec<&Waypoint> = file
-        .wpt
-        .iter()
-        .flat_map(|chunk| &chunk.wpt)
-        .filter(|wpt| filter(wpt))
-        .collect();
+    let selected: Vec<&Waypoint> = file.wpt.iter().filter(|wpt| filter(wpt)).collect();
     let last = selected.last().ok_or(CommandError::NothingToDo)?.id;
     let copies: Vec<Waypoint> = selected.into_iter().map(copy_waypoint).collect();
     let copy_ids = copies.iter().map(|wpt| wpt.id).collect();
 
     // The copies go right after the last selected waypoint.
     let mut file = (**file).clone();
-    insert_waypoints(&mut file, Some(last), copies);
+    file.wpt.insert_after(Some(last), copies);
     files.insert(file_id, Rc::new(file));
     Ok(Selection::Waypoint {
         file_id,
@@ -243,57 +238,44 @@ mod tests {
         let wpts: Vec<_> = (0..3).map(|_| Waypoint::default()).collect();
         let ids: Vec<_> = wpts.iter().map(|w| w.id).collect();
         let mut file = (*fx.files[&id]).clone();
-        file.wpt = vec![Rc::new(crate::WaypointChunk {
+        file.wpt = crate::Waypoints::new([crate::WaypointChunk {
             wpt: wpts,
             ..Default::default()
-        })];
+        }]);
         fx.files.insert(id, Rc::new(file));
-        let original_chunk = fx.files[&id].wpt[0].clone();
+        let original_chunk = fx.files[&id].wpt.chunks()[0].clone();
 
         fx.selection = Selection::Waypoint {
             file_id: id,
             wpt_ids: HashSet::from([ids[0]]),
         };
-        let rev = fx.files[&id].wpt_rev_id;
+        let rev = fx.files[&id].wpt.rev_id;
         Duplicate.apply(&mut fx.state()).unwrap();
-        assert_ne!(fx.files[&id].wpt_rev_id, rev);
-        let all: Vec<_> = fx.files[&id]
-            .wpt
-            .iter()
-            .flat_map(|c| c.wpt.iter().map(|w| w.id))
-            .collect();
+        assert_ne!(fx.files[&id].wpt.rev_id, rev);
+        let all: Vec<_> = fx.files[&id].wpt.iter().map(|w| w.id).collect();
         assert_eq!(all.len(), 4);
         assert!(
             matches!(&fx.selection, Selection::Waypoint { wpt_ids, .. } if wpt_ids == &HashSet::from([all[1]]))
         );
-        // the chunk is cut after the selected waypoint: [w0] [copy] [w1 w2]
+        // the copy comes right after the selected waypoint, in a new chunk
         assert_eq!(all[..], [ids[0], all[1], ids[1], ids[2]]);
-        assert_eq!(fx.files[&id].wpt.len(), 3);
-        assert_ne!(fx.files[&id].wpt[0].id, original_chunk.id);
+        assert_eq!(fx.files[&id].wpt.chunks().len(), 1);
+        assert_ne!(fx.files[&id].wpt.chunks()[0].id, original_chunk.id);
 
-        // selecting the last waypoint of a chunk does not cut it
-        let last = fx.files[&id].wpt.last().unwrap().wpt.last().unwrap().id;
-        let chunks = fx.files[&id].wpt.clone();
+        // selecting the last waypoint: the copy goes at the end
+        let last = fx.files[&id].wpt.iter().last().unwrap().id;
         fx.selection = Selection::Waypoint {
             file_id: id,
             wpt_ids: HashSet::from([last]),
         };
         Duplicate.apply(&mut fx.state()).unwrap();
-        let file = &fx.files[&id];
-        assert_eq!(file.wpt.len(), 4);
-        assert!(
-            file.wpt[..3]
-                .iter()
-                .zip(&chunks)
-                .all(|(a, b)| Rc::ptr_eq(a, b))
-        );
+        let all: Vec<_> = fx.files[&id].wpt.iter().map(|w| w.id).collect();
+        assert_eq!(all.len(), 5);
+        assert_eq!(all[..4], [ids[0], all[1], ids[1], ids[2]]);
 
         fx.selection = Selection::Waypoints { file_id: id };
         Duplicate.apply(&mut fx.state()).unwrap();
-        assert_eq!(
-            fx.files[&id].wpt.iter().map(|c| c.wpt.len()).sum::<usize>(),
-            10
-        );
+        assert_eq!(fx.files[&id].wpt.len(), 10);
     }
 
     #[test]

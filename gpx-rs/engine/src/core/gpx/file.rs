@@ -1,8 +1,6 @@
-use std::rc::Rc;
-
 use uuid::Uuid;
 
-use crate::{Link, Track, WaypointChunk};
+use crate::{Link, Track, Waypoints};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FileId(pub Uuid);
@@ -13,22 +11,12 @@ impl Default for FileId {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct FileWaypointsRevisionId(pub Uuid);
-
-impl Default for FileWaypointsRevisionId {
-    fn default() -> Self {
-        Self(Uuid::new_v4())
-    }
-}
-
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct File {
     pub id: FileId,
     pub info: FileInfo,
     pub trk: Vec<Track>,
-    pub wpt: Vec<Rc<WaypointChunk>>,
-    pub wpt_rev_id: FileWaypointsRevisionId,
+    pub wpt: Waypoints,
     // TODO routes
 }
 

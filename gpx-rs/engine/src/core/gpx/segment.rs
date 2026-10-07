@@ -1,8 +1,8 @@
-use std::{ops::Index, rc::Rc};
+use std::ops::{Deref, DerefMut};
 
 use uuid::Uuid;
 
-use crate::{Trackpoint, TrackpointChunk, compute_anchors};
+use crate::{ChunkIndex, Chunked, ChunkedIter, Trackpoint, TrackpointChunk, compute_anchors};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TrackSegmentId(pub Uuid);
@@ -26,66 +26,33 @@ impl Default for TrackSegmentRevisionId {
 pub struct TrackSegment {
     pub id: TrackSegmentId,
     pub rev_id: TrackSegmentRevisionId,
-    chunks: Vec<Rc<TrackpointChunk>>,
-    cumul_length: Vec<usize>,
+    points: Chunked<TrackpointChunk>,
+}
+
+/// The position of a trackpoint in a segment.
+pub type TrackSegmentIndex = ChunkIndex;
+
+pub type TrackSegmentIterator<'a> = ChunkedIter<'a, TrackpointChunk>;
+
+impl Deref for TrackSegment {
+    type Target = Chunked<TrackpointChunk>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.points
+    }
+}
+
+impl DerefMut for TrackSegment {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.points
+    }
 }
 
 impl TrackSegment {
-    pub fn push(&mut self, chunk: TrackpointChunk) {
-        self.push_shared(Rc::new(chunk));
-    }
-
-    fn push_shared(&mut self, chunk: Rc<TrackpointChunk>) {
-        if chunk.trkpt.is_empty() {
-            return;
-        }
-        self.cumul_length
-            .push(self.cumul_length.last().copied().unwrap_or_default() + chunk.trkpt.len());
-        self.chunks.push(chunk);
-    }
-
-    /// Replaces the points in `start..end` by `points`. Panics if the range is out of bounds.
-    ///
-    /// Chunks that are not concerned are kept as they are (shared), only the chunks around the
-    /// range are copied and refilled.
+    /// Replaces the points in `start..end` by `points`, see [`Chunked::splice`]. The first and
+    /// last trackpoints are anchors afterwards.
     pub fn splice(&mut self, start: usize, end: usize, points: Vec<Trackpoint>) {
-        assert!(
-            start <= end && end <= self.len(),
-            "splice range out of bounds"
-        );
-        let old = std::mem::take(&mut self.chunks);
-        self.cumul_length.clear();
-
-        let mut pending = TrackpointChunk::default();
-        let mut inserted = false;
-        let mut offset = 0;
-        for chunk in old {
-            let (lo, hi) = (offset, offset + chunk.trkpt.len());
-            offset = hi;
-            // a chunk ending at `start` is extended unless it is full, to avoid tiny chunks
-            if hi < start || (hi == start && chunk.is_full()) {
-                self.push_shared(chunk);
-                continue;
-            }
-            if !inserted {
-                self.fill(&mut pending, chunk.trkpt[..start - lo].iter().cloned());
-                self.fill(&mut pending, points.iter().cloned());
-                inserted = true;
-            }
-            if hi <= end {
-                continue;
-            }
-            if lo >= end {
-                self.flush(&mut pending);
-                self.push_shared(chunk);
-            } else {
-                self.fill(&mut pending, chunk.trkpt[end - lo..].iter().cloned());
-            }
-        }
-        if !inserted {
-            self.fill(&mut pending, points);
-        }
-        self.flush(&mut pending);
+        self.points.splice(start, end, points);
         self.ensure_end_anchors();
     }
 
@@ -99,7 +66,7 @@ impl TrackSegment {
         };
         for index in [0, last] {
             if self[index].anchor != Some(0) {
-                self.point_mut(index).anchor = Some(0);
+                self.set_anchor(index, 0);
             }
         }
     }
@@ -107,7 +74,7 @@ impl TrackSegment {
     /// Makes the trackpoint at `index` an anchor shown from the map zoom level `zoom`. Panics if
     /// there is no such trackpoint.
     pub fn set_anchor(&mut self, index: usize, zoom: u8) {
-        self.point_mut(index).anchor = Some(zoom);
+        self.points.update(index, |trkpt| trkpt.anchor = Some(zoom));
     }
 
     /// Sets the anchors of the trackpoints from the details of the path of the segment (see
@@ -115,7 +82,7 @@ impl TrackSegment {
     pub fn compute_anchors(&mut self) {
         let anchors = compute_anchors(self);
         let mut anchors = anchors.into_iter().peekable();
-        self.map_points(|index, trkpt| {
+        self.points.update_all(|index, trkpt| {
             trkpt.anchor = match anchors.peek() {
                 Some(&(anchor, zoom)) if anchor == index => {
                     anchors.next();
@@ -125,191 +92,12 @@ impl TrackSegment {
             };
         });
     }
-
-    /// A chunk that can be modified: the shared chunks are copied first.
-    fn chunk_mut(&mut self, chunk: usize) -> &mut TrackpointChunk {
-        let shared = &mut self.chunks[chunk];
-        if Rc::get_mut(shared).is_none() {
-            *shared = Rc::new(TrackpointChunk {
-                trkpt: shared.trkpt.clone(),
-                ..Default::default()
-            });
-        }
-        Rc::get_mut(shared).unwrap()
-    }
-
-    fn point_mut(&mut self, index: usize) -> &mut Trackpoint {
-        let TrackSegmentIndex { chunk, pos, .. } = self.locate(index).unwrap();
-        &mut self.chunk_mut(chunk).trkpt[pos]
-    }
-
-    /// Applies `f` to every trackpoint, with its index in the segment.
-    fn map_points(&mut self, mut f: impl FnMut(usize, &mut Trackpoint)) {
-        let mut offset = 0;
-        for chunk in 0..self.chunks.len() {
-            for (i, trkpt) in self.chunk_mut(chunk).trkpt.iter_mut().enumerate() {
-                f(offset + i, trkpt);
-            }
-            offset += self.chunks[chunk].trkpt.len();
-        }
-    }
-
-    fn fill(
-        &mut self,
-        pending: &mut TrackpointChunk,
-        points: impl IntoIterator<Item = Trackpoint>,
-    ) {
-        for trkpt in points {
-            pending.trkpt.push(trkpt);
-            if pending.is_full() {
-                self.flush(pending);
-            }
-        }
-    }
-
-    fn flush(&mut self, pending: &mut TrackpointChunk) {
-        self.push(std::mem::take(pending));
-    }
-
-    pub fn len(&self) -> usize {
-        self.cumul_length.last().copied().unwrap_or_default()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.chunks.is_empty()
-    }
-
-    pub fn iter(&self) -> TrackSegmentIterator<'_> {
-        TrackSegmentIterator::new(self)
-    }
-
-    pub fn first_index(&self) -> Option<TrackSegmentIndex> {
-        self.next_index(None)
-    }
-
-    pub fn last_index(&self) -> Option<TrackSegmentIndex> {
-        self.prev_index(None)
-    }
-
-    pub fn next_index(&self, cur: Option<TrackSegmentIndex>) -> Option<TrackSegmentIndex> {
-        let mut next = cur.map_or_default(|idx| TrackSegmentIndex {
-            chunk: idx.chunk,
-            pos: idx.pos + 1,
-            flat: idx.flat + 1,
-        });
-        loop {
-            if next.chunk >= self.chunks.len() {
-                return None;
-            }
-            if next.pos == self.chunks[next.chunk].trkpt.len() {
-                next.chunk += 1;
-                next.pos = 0;
-            } else {
-                return Some(next);
-            }
-        }
-    }
-
-    pub fn prev_index(&self, cur: Option<TrackSegmentIndex>) -> Option<TrackSegmentIndex> {
-        let mut prev = cur.unwrap_or(TrackSegmentIndex {
-            chunk: self.chunks.len(),
-            pos: 0,
-            flat: self.cumul_length.last().copied().unwrap_or_default(),
-        });
-        if prev.pos == 0 {
-            while prev.chunk > 0 {
-                prev.chunk -= 1;
-                if !self.chunks[prev.chunk].trkpt.is_empty() {
-                    prev.pos = self.chunks[prev.chunk].trkpt.len() - 1;
-                    prev.flat -= 1;
-                    return Some(prev);
-                }
-            }
-            None
-        } else {
-            prev.pos -= 1;
-            prev.flat -= 1;
-            Some(prev)
-        }
-    }
-
-    fn locate(&self, idx: usize) -> Option<TrackSegmentIndex> {
-        let chunk = self.cumul_length.partition_point(|l| idx >= *l);
-        if chunk >= self.chunks.len() {
-            return None;
-        }
-        let pos = if chunk > 0 {
-            idx - self.cumul_length[chunk - 1]
-        } else {
-            idx
-        };
-        if pos >= self.chunks[chunk].trkpt.len() {
-            None
-        } else {
-            Some(TrackSegmentIndex {
-                chunk,
-                pos,
-                flat: idx,
-            })
-        }
-    }
-}
-
-impl Index<TrackSegmentIndex> for TrackSegment {
-    type Output = Trackpoint;
-
-    fn index(&self, idx: TrackSegmentIndex) -> &Self::Output {
-        &self.chunks[idx.chunk].trkpt[idx.pos]
-    }
-}
-
-impl Index<usize> for TrackSegment {
-    type Output = Trackpoint;
-
-    fn index(&self, idx: usize) -> &Self::Output {
-        &self[self.locate(idx).unwrap()]
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, PartialOrd, Ord)]
-pub struct TrackSegmentIndex {
-    pub chunk: usize,
-    pub pos: usize,
-    pub flat: usize,
-}
-
-#[derive(Debug, Clone)]
-pub struct TrackSegmentIterator<'a> {
-    trkseg: &'a TrackSegment,
-    idx: Option<TrackSegmentIndex>,
-}
-
-impl<'a> TrackSegmentIterator<'a> {
-    pub fn new(trkseg: &'a TrackSegment) -> Self {
-        Self {
-            trkseg,
-            idx: Default::default(),
-        }
-    }
-}
-
-impl<'a> Iterator for TrackSegmentIterator<'a> {
-    type Item = &'a Trackpoint;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.idx = self.trkseg.next_index(self.idx);
-        self.idx.map(|idx| &self.trkseg[idx])
-    }
-
-    fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        let idx = self.idx.map_or_default(|idx| idx.flat) + n;
-        self.idx = self.trkseg.locate(idx);
-        self.idx.map(|idx| &self.trkseg[idx])
-    }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::rc::Rc;
+
     use super::*;
 
     fn create_track_segment(nb_chunks: usize) -> TrackSegment {
@@ -427,14 +215,14 @@ mod tests {
         let mut trkseg = create_track_segment(5);
         // the ends are anchors already, or their chunks would be copied
         trkseg.ensure_end_anchors();
-        let before = trkseg.chunks.clone();
+        let before = trkseg.chunks().to_vec();
         // inside the third chunk only
         trkseg.splice(4, 5, points(&[-1.0]));
-        assert!(Rc::ptr_eq(&trkseg.chunks[0], &before[0]));
-        assert!(Rc::ptr_eq(&trkseg.chunks[1], &before[1]));
-        assert!(Rc::ptr_eq(trkseg.chunks.last().unwrap(), &before[4]));
+        assert!(Rc::ptr_eq(&trkseg.chunks()[0], &before[0]));
+        assert!(Rc::ptr_eq(&trkseg.chunks()[1], &before[1]));
+        assert!(Rc::ptr_eq(trkseg.chunks().last().unwrap(), &before[4]));
         assert!(Rc::ptr_eq(
-            &trkseg.chunks[trkseg.chunks.len() - 2],
+            &trkseg.chunks()[trkseg.chunks().len() - 2],
             &before[3]
         ));
     }
@@ -447,10 +235,10 @@ mod tests {
             trkseg.splice(len, len, points(&[i as f64]));
         }
         assert_eq!(trkseg.len(), 10_000);
-        assert!(trkseg.chunks.len() <= 3);
-        assert!(trkseg.chunks.iter().all(|c| c.trkpt.len() <= 4096));
+        assert!(trkseg.chunks().len() <= 3);
+        assert!(trkseg.chunks().iter().all(|c| c.trkpt.len() <= 4096));
         assert_eq!(trkseg[9_999].ele, 9_999.0);
-        assert_eq!(*trkseg.cumul_length.last().unwrap(), 10_000);
+        assert_eq!(trkseg.len(), 10_000);
     }
 
     #[test]
@@ -496,7 +284,7 @@ mod tests {
         let nb_chunks = 10;
         let trkseg = create_track_segment(nb_chunks);
         let _ = trkseg[TrackSegmentIndex {
-            chunk: trkseg.chunks.len(),
+            chunk: trkseg.chunks().len(),
             pos: 0,
             flat: 0,
         }];

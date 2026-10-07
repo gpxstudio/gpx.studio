@@ -1,8 +1,6 @@
 use std::rc::Rc;
 
-use crate::{
-    File, FileId, Selection, StackEntry, State, Track, TrackSegment, Waypoint, edit_waypoint_chunks,
-};
+use crate::{File, FileId, Selection, StackEntry, State, Track, TrackSegment, Waypoint};
 
 /// What an [`Editor`] hook did to the element it was given.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -87,7 +85,7 @@ fn edit_waypoints<E: Editor + ?Sized>(
     filter: impl Fn(&Waypoint) -> bool,
     editor: &mut E,
 ) -> Edit {
-    let changed = edit_waypoint_chunks(file, &filter, |wpts| {
+    let changed = file.wpt.edit(&filter, |wpts| {
         edit_where(wpts, &filter, |wpt| editor.waypoint(wpt)) == Edit::Changed
     });
     if changed {
@@ -287,35 +285,34 @@ mod tests {
         let wpts: Vec<_> = (0..3).map(|_| Waypoint::default()).collect();
         let ids: Vec<_> = wpts.iter().map(|w| w.id).collect();
         let mut file = (*fx.files[&id]).clone();
-        file.wpt = vec![Rc::new(crate::WaypointChunk {
+        file.wpt = crate::Waypoints::new([crate::WaypointChunk {
             wpt: wpts,
             ..Default::default()
-        })];
+        }]);
         fx.files.insert(id, Rc::new(file));
-        let chunk_id = fx.files[&id].wpt[0].id;
+        let chunk_id = fx.files[&id].wpt.chunks()[0].id;
 
         // A file selection never touches waypoints.
         fx.selection = Selection::File {
             file_ids: HashSet::from([id]),
         };
         update_selected(&mut fx.state(), &mut Name);
-        assert!(fx.files[&id].wpt[0].wpt.iter().all(|w| w.name.is_none()));
+        assert!(fx.files[&id].wpt.iter().all(|w| w.name.is_none()));
 
         fx.selection = Selection::Waypoint {
             file_id: id,
             wpt_ids: HashSet::from([ids[1]]),
         };
-        let rev = fx.files[&id].wpt_rev_id;
+        let rev = fx.files[&id].wpt.rev_id;
         update_selected(&mut fx.state(), &mut Name);
-        assert_ne!(fx.files[&id].wpt_rev_id, rev);
-        let chunk = &fx.files[&id].wpt[0];
-        assert_ne!(chunk.id, chunk_id);
-        let named: Vec<_> = chunk.wpt.iter().map(|w| w.name.is_some()).collect();
+        assert_ne!(fx.files[&id].wpt.rev_id, rev);
+        assert_ne!(fx.files[&id].wpt.chunks()[0].id, chunk_id);
+        let named: Vec<_> = fx.files[&id].wpt.iter().map(|w| w.name.is_some()).collect();
         assert_eq!(named, [false, true, false]);
 
         fx.selection = Selection::Waypoints { file_id: id };
         update_selected(&mut fx.state(), &mut Name);
-        assert!(fx.files[&id].wpt[0].wpt.iter().all(|w| w.name.is_some()));
+        assert!(fx.files[&id].wpt.iter().all(|w| w.name.is_some()));
     }
 
     #[test]

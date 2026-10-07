@@ -1,8 +1,6 @@
 use std::rc::Rc;
 
-use crate::{
-    Apply, CommandError, FileId, Selection, StackEntry, State, Waypoint, edit_waypoint_chunks,
-};
+use crate::{Apply, CommandError, FileId, Selection, StackEntry, State, Waypoint};
 
 /// Deletes the selected elements. With `whole_files`, the files holding the selected elements
 /// are deleted instead, even if only a track or a waypoint is selected.
@@ -83,7 +81,7 @@ pub(crate) fn delete_waypoints(
 ) -> Result<Selection, CommandError> {
     let file = files.get(&file_id).ok_or(CommandError::NothingToDo)?;
     let mut file = (**file).clone();
-    let changed = edit_waypoint_chunks(&mut file, &filter, |wpts| {
+    let changed = file.wpt.edit(&filter, |wpts| {
         wpts.retain(|wpt| !filter(wpt));
         true
     });
@@ -191,10 +189,10 @@ mod tests {
         let wpts: Vec<_> = (0..n).map(|_| Waypoint::default()).collect();
         let ids = wpts.iter().map(|w| w.id).collect();
         let mut file = (*fx.files[&id]).clone();
-        file.wpt = vec![Rc::new(crate::WaypointChunk {
+        file.wpt = crate::Waypoints::new([crate::WaypointChunk {
             wpt: wpts,
             ..Default::default()
-        })];
+        }]);
         fx.files.insert(id, Rc::new(file));
         ids
     }
@@ -207,16 +205,12 @@ mod tests {
             file_id: id,
             wpt_ids: HashSet::from([ids[1]]),
         };
-        let rev = fx.files[&id].wpt_rev_id;
+        let rev = fx.files[&id].wpt.rev_id;
         Delete { whole_files: false }
             .apply(&mut fx.state())
             .unwrap();
-        assert_ne!(fx.files[&id].wpt_rev_id, rev);
-        let left: Vec<_> = fx.files[&id]
-            .wpt
-            .iter()
-            .flat_map(|c| c.wpt.iter().map(|w| w.id))
-            .collect();
+        assert_ne!(fx.files[&id].wpt.rev_id, rev);
+        let left: Vec<_> = fx.files[&id].wpt.iter().map(|w| w.id).collect();
         assert_eq!(left, vec![ids[0], ids[2]]);
         assert_eq!(fx.selected_files(), HashSet::from([id]));
     }

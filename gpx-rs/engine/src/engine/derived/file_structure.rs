@@ -76,21 +76,19 @@ impl FileStructure {
             waypoints: file
                 .wpt
                 .iter()
-                .flat_map(|chunk| &chunk.wpt)
                 .map(|wpt| WaypointNode {
                     id: wpt.id,
                     name: wpt.name.clone(),
                     sym: wpt.sym.clone(),
                 })
                 .collect(),
-            wpt_rev_id: file.wpt_rev_id,
+            wpt_rev_id: file.wpt.rev_id,
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::rc::Rc;
 
     use crate::{Apply, Load, Waypoint, WaypointChunk, engine::command::fixture::Fixture};
 
@@ -133,18 +131,17 @@ mod tests {
             name: Some(n.to_string()),
             ..Default::default()
         };
-        let before = file.wpt_rev_id;
-        file.wpt_rev_id = Default::default();
-        file.wpt = vec![
-            Rc::new(WaypointChunk {
+        let before = file.wpt.rev_id;
+        file.wpt = crate::Waypoints::new([
+            WaypointChunk {
                 wpt: vec![wpt("a"), wpt("b")],
                 ..Default::default()
-            }),
-            Rc::new(WaypointChunk {
+            },
+            WaypointChunk {
                 wpt: vec![wpt("c")],
                 ..Default::default()
-            }),
-        ];
+            },
+        ]);
         let node = FileStructure::new(&file);
         let names: Vec<_> = node
             .waypoints
@@ -153,6 +150,6 @@ mod tests {
             .collect();
         assert_eq!(names, ["a", "b", "c"]);
         assert_ne!(node.wpt_rev_id, before);
-        assert_eq!(node.wpt_rev_id, file.wpt_rev_id);
+        assert_eq!(node.wpt_rev_id, file.wpt.rev_id);
     }
 }

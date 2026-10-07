@@ -36,7 +36,7 @@ mod tests {
     fn fixture() -> (Fixture, crate::FileId, Vec<crate::WaypointId>) {
         let mut fx = Fixture::default();
         let mut file = File::default();
-        file.wpt.push(Rc::new(WaypointChunk {
+        file.wpt.push(WaypointChunk {
             wpt: (0..3)
                 .map(|i| Waypoint {
                     name: Some(format!("w{i}")),
@@ -44,7 +44,7 @@ mod tests {
                 })
                 .collect(),
             ..Default::default()
-        }));
+        });
         let id = file.id;
         let ids = waypoint_ids(&file).collect();
         fx.files.insert(id, Rc::new(file));
@@ -55,7 +55,7 @@ mod tests {
     #[test]
     fn test_only_the_given_waypoint_moves_whatever_is_selected() {
         let (mut fx, id, ids) = fixture();
-        let rev = fx.files[&id].wpt_rev_id;
+        let rev = fx.files[&id].wpt.rev_id;
 
         MoveWaypoint {
             file_id: id,
@@ -67,11 +67,7 @@ mod tests {
         .apply(&mut fx.state())
         .unwrap();
 
-        let wpts: Vec<_> = fx.files[&id]
-            .wpt
-            .iter()
-            .flat_map(|c| c.wpt.iter())
-            .collect();
+        let wpts: Vec<_> = fx.files[&id].wpt.iter().collect();
         assert_eq!(wpts.len(), 3);
         assert_eq!(
             (
@@ -87,7 +83,7 @@ mod tests {
         assert_eq!((wpts[0].coordinates.lng, wpts[0].ele), (0.0, 0.0));
         assert_eq!((wpts[2].coordinates.lat, wpts[2].ele), (0.0, 0.0));
         // the coordinates changed, which is noticed by what is derived from them
-        assert_ne!(fx.files[&id].wpt_rev_id, rev);
+        assert_ne!(fx.files[&id].wpt.rev_id, rev);
         assert_eq!(fx.selection, Selection::Empty);
     }
 

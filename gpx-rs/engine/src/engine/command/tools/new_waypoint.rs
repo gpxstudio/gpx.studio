@@ -1,9 +1,6 @@
 use std::rc::Rc;
 
-use crate::{
-    Apply, CommandError, File, FileId, Link, LngLat, Selection, State, Waypoint,
-    insert_waypoints_at,
-};
+use crate::{Apply, CommandError, File, FileId, Link, LngLat, Selection, State, Waypoint};
 
 /// Adds a waypoint at the end of the waypoints of each selected file (or of the file of the
 /// selected elements). The strings are empty when the waypoint does not have the field.
@@ -77,7 +74,7 @@ impl Apply for NewWaypoint<'_> {
                 self.link,
             );
             let file: &mut File = Rc::make_mut(state.files.get_mut(&id).unwrap());
-            insert_waypoints_at(file, usize::MAX, vec![waypoint]);
+            file.wpt.insert_at(usize::MAX, vec![waypoint]);
         }
         Ok(())
     }
@@ -104,11 +101,7 @@ mod tests {
     }
 
     fn waypoints(fx: &Fixture, id: FileId) -> Vec<Waypoint> {
-        fx.files[&id]
-            .wpt
-            .iter()
-            .flat_map(|chunk| chunk.wpt.iter().cloned())
-            .collect()
+        fx.files[&id].wpt.iter().cloned().collect()
     }
 
     #[test]
@@ -127,7 +120,7 @@ mod tests {
         .apply(&mut fx.state())
         .unwrap();
         let (a, b) = (fx.order.0[0], fx.order.0[1]);
-        let rev = fx.files[&b].wpt_rev_id;
+        let rev = fx.files[&b].wpt.rev_id;
 
         // b is selected
         new_waypoint("peak").apply(&mut fx.state()).unwrap();
@@ -147,7 +140,7 @@ mod tests {
             wpt.link.as_ref().map(|l| l.href.as_str()),
             Some("https://example.com")
         );
-        assert_ne!(fx.files[&b].wpt_rev_id, rev);
+        assert_ne!(fx.files[&b].wpt.rev_id, rev);
 
         // added after the others
         let mut second = new_waypoint("second");

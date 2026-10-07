@@ -120,20 +120,14 @@ impl Clipboard {
                         .collect(),
                 )
             }
-            Selection::Waypoints { file_id } => ClipboardContent::Waypoints(
-                files
-                    .get(file_id)?
-                    .wpt
-                    .iter()
-                    .flat_map(|chunk| chunk.wpt.iter().cloned())
-                    .collect(),
-            ),
+            Selection::Waypoints { file_id } => {
+                ClipboardContent::Waypoints(files.get(file_id)?.wpt.iter().cloned().collect())
+            }
             Selection::Waypoint { file_id, wpt_ids } => ClipboardContent::Waypoints(
                 files
                     .get(file_id)?
                     .wpt
                     .iter()
-                    .flat_map(|chunk| &chunk.wpt)
                     .filter(|wpt| wpt_ids.contains(&wpt.id))
                     .cloned()
                     .collect(),
@@ -233,14 +227,14 @@ mod tests {
                 ..Default::default()
             });
         }
-        file.wpt.push(Rc::new(WaypointChunk {
+        file.wpt.push(WaypointChunk {
             wpt: vec![Waypoint::default(), Waypoint::default()],
             ..Default::default()
-        }));
-        file.wpt.push(Rc::new(WaypointChunk {
+        });
+        file.wpt.push(WaypointChunk {
             wpt: vec![Waypoint::default()],
             ..Default::default()
-        }));
+        });
         file
     }
 
@@ -267,11 +261,7 @@ mod tests {
         let file = file("source");
         let (t0, t2) = (file.trk[0].id, file.trk[2].id);
         let (s0, s1) = (file.trk[1].trkseg[0].id, file.trk[1].trkseg[1].id);
-        let wpt: Vec<_> = file
-            .wpt
-            .iter()
-            .flat_map(|c| c.wpt.iter().map(|w| w.id))
-            .collect();
+        let wpt: Vec<_> = file.wpt.iter().map(|w| w.id).collect();
         let files = files_of(vec![file.clone()]);
 
         // tracks, in the order of the file, with the name of their file
@@ -447,7 +437,7 @@ mod tests {
         let waypoints = Selection::Waypoints { file_id: file.id };
         let waypoint = Selection::Waypoint {
             file_id: file.id,
-            wpt_ids: [file.wpt[0].wpt[0].id].into(),
+            wpt_ids: [file.wpt[0].id].into(),
         };
         let targets = [
             Selection::Empty,

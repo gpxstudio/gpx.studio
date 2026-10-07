@@ -7,7 +7,7 @@ use std::{collections::HashSet, rc::Rc};
 use crate::{
     ClipboardContent, ClipboardSegment, ClipboardTrack, CommandError, File, FileId, Selection,
     State, Track, TrackId, TrackSegment, TrackSegmentId, Waypoint, WaypointId, copy_file,
-    copy_segment, copy_track, copy_waypoint, edit_waypoint_chunks, insert_waypoints_at,
+    copy_segment, copy_track, copy_waypoint,
 };
 
 /// Where elements are put, among the others of the same list.
@@ -52,10 +52,7 @@ pub enum Destination {
 }
 
 pub fn waypoint_ids(file: &File) -> impl Iterator<Item = WaypointId> + '_ {
-    file.wpt
-        .iter()
-        .flat_map(|chunk| &chunk.wpt)
-        .map(|wpt| wpt.id)
+    file.wpt.iter().map(|wpt| wpt.id)
 }
 
 fn file_mut<'a>(state: &'a mut State, id: FileId) -> Result<&'a mut File, CommandError> {
@@ -119,8 +116,7 @@ pub fn remove_elements(state: &mut State, content: &ClipboardContent) {
             let ids: HashSet<WaypointId> = waypoints.iter().map(|wpt| wpt.id).collect();
             for file in state.files.values_mut() {
                 if waypoint_ids(file).any(|id| ids.contains(&id)) {
-                    edit_waypoint_chunks(
-                        Rc::make_mut(file),
+                    Rc::make_mut(file).wpt.edit(
                         |wpt| ids.contains(&wpt.id),
                         |wpts| {
                             wpts.retain(|wpt| !ids.contains(&wpt.id));
@@ -334,7 +330,7 @@ fn transfer_waypoints(
     let ids = waypoints.iter().map(|wpt| wpt.id).collect();
     let file = file_mut(state, file_id)?;
     let existing: Vec<WaypointId> = waypoint_ids(file).collect();
-    insert_waypoints_at(file, place.position(&existing), waypoints);
+    file.wpt.insert_at(place.position(&existing), waypoints);
     Ok(Selection::Waypoint {
         file_id,
         wpt_ids: ids,

@@ -496,7 +496,7 @@ mod tests {
         let lens: Vec<_> = file
             .trk
             .iter()
-            .flat_map(|trk| trk.trkseg.iter().map(TrackSegment::len))
+            .flat_map(|trk| trk.trkseg.iter().map(|segment| segment.len()))
             .collect();
         assert!(lens.len() >= 2);
 

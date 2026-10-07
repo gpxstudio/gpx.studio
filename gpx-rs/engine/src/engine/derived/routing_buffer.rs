@@ -66,7 +66,7 @@ impl RoutingBuffer {
 mod tests {
     use std::{collections::HashSet, rc::Rc};
 
-    use crate::{TrackSegment, parse};
+    use crate::parse;
 
     use super::*;
 
@@ -91,7 +91,7 @@ mod tests {
         let lengths: Vec<usize> = files[&id]
             .trk
             .iter()
-            .flat_map(|trk| trk.trkseg.iter().map(TrackSegment::len))
+            .flat_map(|trk| trk.trkseg.iter().map(|segment| segment.len()))
             .collect();
         let mut buffer = RoutingBuffer::default();
         buffer.update(Some(&files), &file_selection(id), &[id]);

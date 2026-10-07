@@ -37,7 +37,7 @@ mod tests {
     fn test_deletes_one_waypoint_without_touching_the_selection() {
         let mut fx = Fixture::default();
         let mut file = File::default();
-        file.wpt.push(Rc::new(WaypointChunk {
+        file.wpt.push(WaypointChunk {
             wpt: (0..3)
                 .map(|i| Waypoint {
                     name: Some(format!("w{i}")),
@@ -45,7 +45,7 @@ mod tests {
                 })
                 .collect(),
             ..Default::default()
-        }));
+        });
         let id = file.id;
         let ids: Vec<_> = waypoint_ids(&file).collect();
         fx.files.insert(id, Rc::new(file));
@@ -64,7 +64,6 @@ mod tests {
         let names: Vec<_> = fx.files[&id]
             .wpt
             .iter()
-            .flat_map(|chunk| &chunk.wpt)
             .map(|wpt| wpt.name.clone().unwrap())
             .collect();
         assert_eq!(names, ["w0", "w2"]);
@@ -80,10 +79,10 @@ mod tests {
     fn test_deleting_the_selected_waypoint_selects_its_file() {
         let mut fx = Fixture::default();
         let mut file = File::default();
-        file.wpt.push(Rc::new(WaypointChunk {
+        file.wpt.push(WaypointChunk {
             wpt: vec![Waypoint::default(), Waypoint::default()],
             ..Default::default()
-        }));
+        });
         let id = file.id;
         let ids: Vec<_> = waypoint_ids(&file).collect();
         fx.files.insert(id, Rc::new(file));
