@@ -163,7 +163,7 @@
                 "path": "Sendero",
                 "pedestrian": "Peatonal",
                 "cycleway": "Ciclovía",
-                "steps": "Escalones",
+                "steps": "Pasos",
                 "road": "Carretera",
                 "bridleway": "Ruta ecuestre",
                 "platform": "Plataforma",
@@ -230,7 +230,7 @@
         "extract": {
             "tooltip": "Extraer contenidos en elementos separados",
             "button": "Extraer",
-            "help": "Al extraer los contenidos de los elementos seleccionados creará un elemento separado para cada uno.",
+            "help": "La extracción del contenido de los elementos seleccionados creará un elemento separado para cada uno de sus contenidos.",
             "help_invalid_selection": "Su selección debe contener elementos con múltiples trazas para extraerlos."
         },
         "elevation": {
