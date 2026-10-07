@@ -269,6 +269,15 @@ mod tests {
 
     use super::*;
 
+    fn expand(intervals: &crate::Intervals, len: usize) -> Vec<u8> {
+        let mut values = Vec::new();
+        for (i, value) in intervals.values.iter().enumerate() {
+            let end = intervals.starts.get(i + 1).map_or(len, |end| *end as usize);
+            values.resize(end, *value);
+        }
+        values
+    }
+
     fn edit(engine: &mut Engine, command: Command) -> bool {
         engine.execute(Action::Edit(command))
     }
@@ -1250,14 +1259,14 @@ mod tests {
             ["residential", "track"]
         );
         // the trackpoints of the selection refer to them
-        assert_eq!(engine.statistics().surface, [1, 1, 0, 2, 2]);
-        assert_eq!(engine.statistics().highway, [1, 1, 0, 2, 0]);
+        assert_eq!(expand(&engine.statistics().surface, 5), [1, 1, 0, 2, 2]);
+        assert_eq!(expand(&engine.statistics().highway, 5), [1, 1, 0, 2, 0]);
         assert_eq!(
             engine.categories().sac_scale.names(),
             ["mountain_hiking", "hiking"]
         );
-        assert_eq!(engine.statistics().sac_scale, [0, 0, 0, 1, 2]);
-        assert_eq!(engine.statistics().mtb_scale, [0, 0, 0, 1, 1]);
+        assert_eq!(expand(&engine.statistics().sac_scale, 5), [0, 0, 0, 1, 2]);
+        assert_eq!(expand(&engine.statistics().mtb_scale, 5), [0, 0, 0, 1, 1]);
 
         // a second file goes on with the same table
         load(&mut engine, "data/with_surface.gpx");
@@ -1265,17 +1274,10 @@ mod tests {
             engine.categories().surface.names(),
             ["asphalt", "gravel", "cobblestone"]
         );
-        assert_eq!(engine.statistics().surface.len(), 80);
-        assert_eq!(engine.statistics().surface[0], 1);
-        assert_eq!(
-            engine
-                .statistics()
-                .surface
-                .iter()
-                .filter(|c| **c == 3)
-                .count(),
-            1
-        );
+        assert_eq!(engine.statistics().len(), 80);
+        let surface = expand(&engine.statistics().surface, 80);
+        assert_eq!(surface[0], 1);
+        assert_eq!(surface.iter().filter(|c| **c == 3).count(), 1);
 
         // undoing does not forget what was learned: the codes stay valid in every state
         assert!(engine.execute(Action::Undo));
@@ -1287,7 +1289,7 @@ mod tests {
         assert!(engine.execute(Action::Redo));
         let first = engine.order()[0];
         select_files(&mut engine, &[first]);
-        assert_eq!(engine.statistics().surface, [1, 1, 0, 2, 2]);
+        assert_eq!(expand(&engine.statistics().surface, 5), [1, 1, 0, 2, 2]);
     }
 
     #[test]

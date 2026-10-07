@@ -10,6 +10,9 @@ pub const NO_TIME: i64 = i64::MIN;
 /// trackpoints are the difference between its two ends: see [`StatisticsBuffer::slice`].
 /// Times are in milliseconds, distances in kilometers, speeds in km/h. Missing times are
 /// [`NO_TIME`], missing measures are NaN.
+///
+/// The optional values (`time`, `hr`, `cad`, `atemp`, `power`) are `None` when no trackpoint of the
+/// selection has one, and the OSM attributes are stored as [`Intervals`].
 #[derive(Debug, Default)]
 pub struct StatisticsBuffer {
     /// Statistics of the whole selection.
@@ -28,26 +31,68 @@ pub struct StatisticsBuffer {
     pub lat: Vec<f64>,
     pub ele: Vec<f64>,
     /// Timestamps, in milliseconds since the epoch.
-    pub time: Vec<i64>,
-    pub hr: Vec<f64>,
-    pub cad: Vec<f64>,
-    pub atemp: Vec<f64>,
-    pub power: Vec<f64>,
-    /// Surface of the trackpoints: 0 when unknown, else 1 + its code in the categories of the
-    /// engine (so that it is never 0 for a known surface).
-    pub surface: Vec<u8>,
+    pub time: Option<Vec<i64>>,
+    pub hr: Option<Vec<f64>>,
+    pub cad: Option<Vec<f64>>,
+    pub atemp: Option<Vec<f64>>,
+    pub power: Option<Vec<f64>>,
+    /// Surface of the trackpoints, see [`Intervals`].
+    pub surface: Intervals,
     /// Highway of the trackpoints, as the surface.
-    pub highway: Vec<u8>,
+    pub highway: Intervals,
     /// SAC hiking scale of the trackpoints, as the surface.
-    pub sac_scale: Vec<u8>,
+    pub sac_scale: Intervals,
     /// Mountain biking scale of the trackpoints, as the surface.
-    pub mtb_scale: Vec<u8>,
+    pub mtb_scale: Intervals,
+}
+
+/// A value per trackpoint that rarely changes from one trackpoint to the next, stored as the
+/// intervals of trackpoints that share it.
+///
+/// The values are 0 when unknown, else 1 + the code in the categories of the engine (so that it
+/// is never 0 for a known value). `starts[i]` is the index of the first trackpoint of the
+/// interval `i`, which ends where the next one starts, or at the last trackpoint for the last one.
+/// Both are empty when there are no trackpoints.
+#[derive(Debug, Default, PartialEq, Eq)]
+pub struct Intervals {
+    pub starts: Vec<u32>,
+    pub values: Vec<u8>,
+}
+
+impl Intervals {
+    fn clear(&mut self) {
+        self.starts.clear();
+        self.values.clear();
+    }
+
+    /// Adds the value of the trackpoint at `index`, the indices being pushed in order.
+    fn push(&mut self, index: usize, value: u8) {
+        if self.values.last() != Some(&value) {
+            self.starts.push(index as u32);
+            self.values.push(value);
+        }
+    }
 }
 
 /// 0 for an unknown value, else the code plus one. The categories hold at most 255 values, so it
 /// fits.
 fn unknown_or_next(code: Option<u8>) -> u8 {
     code.and_then(|code| code.checked_add(1)).unwrap_or(0)
+}
+
+/// Adds the value of the trackpoint at `index` to an optional column, the indices being pushed in
+/// order. The column is created at the first present value, the previous trackpoints getting
+/// `missing`.
+fn push_optional<T: Copy>(column: &mut Option<Vec<T>>, index: usize, value: Option<T>, missing: T) {
+    match (column.as_mut(), value) {
+        (Some(column), value) => column.push(value.unwrap_or(missing)),
+        (None, Some(value)) => {
+            let mut new_column = vec![missing; index];
+            new_column.push(value);
+            *column = Some(new_column);
+        }
+        (None, None) => {}
+    }
 }
 
 impl StatisticsBuffer {
@@ -75,20 +120,19 @@ impl StatisticsBuffer {
         self.lng.clear();
         self.lat.clear();
         self.ele.clear();
-        self.time.clear();
-        self.hr.clear();
-        self.cad.clear();
-        self.atemp.clear();
-        self.power.clear();
+        self.time = None;
+        self.hr = None;
+        self.cad = None;
+        self.atemp = None;
+        self.power = None;
         self.surface.clear();
         self.highway.clear();
         self.sac_scale.clear();
         self.mtb_scale.clear();
 
-        let optional = |value: Option<f64>| value.unwrap_or(f64::NAN);
-
         for (segment, stats) in selected {
             for (trkpt, trkpt_stats) in segment.iter().zip(stats.local.iter()) {
+                let index = self.total_distance.len();
                 let cumul_stats = &self.global;
                 self.total_distance
                     .push(cumul_stats.total_distance + trkpt_stats.total_distance);
@@ -116,15 +160,15 @@ impl StatisticsBuffer {
                 self.lng.push(trkpt.coordinates.lng);
                 self.lat.push(trkpt.coordinates.lat);
                 self.ele.push(trkpt.ele);
-                self.time.push(trkpt.time.unwrap_or(NO_TIME));
-                self.hr.push(optional(trkpt.hr.map(f64::from)));
-                self.cad.push(optional(trkpt.cad.map(f64::from)));
-                self.atemp.push(optional(trkpt.atemp.map(f64::from)));
-                self.power.push(optional(trkpt.power.map(f64::from)));
-                self.surface.push(unknown_or_next(trkpt.surface));
-                self.highway.push(unknown_or_next(trkpt.highway));
-                self.sac_scale.push(unknown_or_next(trkpt.sac_scale));
-                self.mtb_scale.push(unknown_or_next(trkpt.mtb_scale));
+                push_optional(&mut self.time, index, trkpt.time, NO_TIME);
+                push_optional(&mut self.hr, index, trkpt.hr.map(f64::from), f64::NAN);
+                push_optional(&mut self.cad, index, trkpt.cad.map(f64::from), f64::NAN);
+                push_optional(&mut self.atemp, index, trkpt.atemp.map(f64::from), f64::NAN);
+                push_optional(&mut self.power, index, trkpt.power.map(f64::from), f64::NAN);
+                self.surface.push(index, unknown_or_next(trkpt.surface));
+                self.highway.push(index, unknown_or_next(trkpt.highway));
+                self.sac_scale.push(index, unknown_or_next(trkpt.sac_scale));
+                self.mtb_scale.push(index, unknown_or_next(trkpt.mtb_scale));
             }
             self.global.merge(&stats.global);
         }
@@ -143,7 +187,10 @@ impl StatisticsBuffer {
 
         let delta = |values: &[f64]| values[end] - values[start];
         let delta_time = |values: &[i64]| values[end] - values[start];
-        let time = |i: usize| (self.time[i] != NO_TIME).then_some(self.time[i]);
+        let time = |i: usize| {
+            let time = self.time.as_ref()?[i];
+            (time != NO_TIME).then_some(time)
+        };
         Some(GlobalStatistics {
             total_distance: delta(&self.total_distance),
             moving_distance: self
@@ -182,6 +229,17 @@ mod tests {
         (segment, stats)
     }
 
+    /// The value of the trackpoint at `index`, 0 before the first interval.
+    fn value_at(intervals: &Intervals, index: usize) -> u8 {
+        match intervals
+            .starts
+            .partition_point(|start| *start as usize <= index)
+        {
+            0 => 0,
+            next => intervals.values[next - 1],
+        }
+    }
+
     fn all_lengths(buffer: &StatisticsBuffer) -> Vec<usize> {
         vec![
             buffer.total_distance.len(),
@@ -197,15 +255,6 @@ mod tests {
             buffer.lng.len(),
             buffer.lat.len(),
             buffer.ele.len(),
-            buffer.time.len(),
-            buffer.hr.len(),
-            buffer.cad.len(),
-            buffer.atemp.len(),
-            buffer.power.len(),
-            buffer.surface.len(),
-            buffer.highway.len(),
-            buffer.sac_scale.len(),
-            buffer.mtb_scale.len(),
         ]
     }
 
@@ -290,33 +339,121 @@ mod tests {
         assert_eq!(buffer.total_time[n], duration);
         assert_eq!(buffer.total_time[2 * n - 1], 2 * duration);
         assert!(buffer.total_time.windows(2).all(|w| w[0] <= w[1]));
-        assert!(buffer.time.iter().all(|t| *t != NO_TIME));
+        assert!(buffer.time.unwrap().iter().all(|t| *t != NO_TIME));
     }
 
     #[test]
-    fn test_missing_times_and_measures_are_nan() {
+    fn test_absent_optional_values_have_no_buffer() {
         let (segment, s) = computed("data/simple.gpx");
         assert!(segment.iter().all(|trkpt| trkpt.time.is_none()));
         let mut buffer = StatisticsBuffer::default();
         buffer.update(&[(&segment, &s)]);
-        assert!(buffer.time.iter().all(|t| *t == NO_TIME));
-        assert!(buffer.hr.iter().all(|v| v.is_nan()));
+        assert!(buffer.time.is_none());
+        assert!(buffer.hr.is_none());
+        assert!(buffer.cad.is_none());
+        assert!(buffer.atemp.is_none());
+        assert!(buffer.power.is_none());
         assert_eq!(buffer.global.hr.count, 0);
         assert_eq!(buffer.global.total_time, None);
+        assert_eq!(buffer.len(), s.local.len());
+        // the slices do not need them
+        let slice = buffer.slice(0, 2).unwrap();
+        assert_eq!((slice.start_time, slice.end_time), (None, None));
     }
 
     #[test]
-    fn test_surface_and_highway_codes() {
+    fn test_present_optional_values_have_one_entry_per_trackpoint() {
+        let (segment, s) = computed("data/with_time.gpx");
+        let mut buffer = StatisticsBuffer::default();
+        buffer.update(&[(&segment, &s)]);
+        assert_eq!(buffer.time.as_ref().unwrap().len(), buffer.len());
+        assert!(buffer.hr.is_none());
+
+        let data = std::fs::read("data/with_hr.gpx").unwrap();
+        let file = parse(&data, &mut Default::default()).unwrap();
+        let segment = file.trk[0].trkseg[0].clone();
+        let s = Statistics::compute(&segment);
+        buffer.update(&[(&segment, &s)]);
+        let hr = buffer.hr.as_ref().unwrap();
+        assert_eq!(hr.len(), buffer.len());
+        assert!(hr.iter().any(|v| !v.is_nan()));
+    }
+
+    #[test]
+    fn test_a_value_missing_for_some_trackpoints_is_a_sentinel() {
+        let (mut segment, _) = computed("data/with_time.gpx");
+        let n = segment.len();
+        let mut point = segment[1].clone();
+        point.time = None;
+        point.hr = Some(120);
+        segment.splice(1, 2, vec![point]);
+        let s = Statistics::compute(&segment);
+        let mut buffer = StatisticsBuffer::default();
+        buffer.update(&[(&segment, &s)]);
+        let time = buffer.time.as_ref().unwrap();
+        assert_eq!(time.len(), n);
+        assert_eq!(time[1], NO_TIME);
+        assert_ne!(time[0], NO_TIME);
+        // the first trackpoint has no heart rate: it is filled once the first one is found
+        let hr = buffer.hr.as_ref().unwrap();
+        assert_eq!(hr.len(), n);
+        assert_eq!(hr[1], 120.0);
+        assert!(hr[0].is_nan() && hr[2].is_nan());
+        assert!(buffer.cad.is_none());
+    }
+
+    #[test]
+    fn test_surface_and_highway_intervals() {
         let (segment, s) = computed("data/with_highway.gpx");
         let mut buffer = StatisticsBuffer::default();
         buffer.update(&[(&segment, &s)]);
 
         // 0 for the trackpoints that have none, else the code of the engine plus one
-        assert_eq!(buffer.surface, [1, 1, 0, 2, 2]);
-        assert_eq!(buffer.highway, [1, 1, 0, 2, 0]);
-        assert_eq!(buffer.sac_scale, [0, 0, 0, 1, 2]);
-        assert_eq!(buffer.mtb_scale, [0, 0, 0, 1, 1]);
+        let surface = &buffer.surface;
+        assert_eq!(surface.starts, [0, 2, 3]);
+        assert_eq!(surface.values, [1, 0, 2]);
+        let highway = &buffer.highway;
+        assert_eq!(
+            (&highway.starts[..], &highway.values[..]),
+            (&[0, 2, 3, 4][..], &[1, 0, 2, 0][..])
+        );
+        let sac_scale = &buffer.sac_scale;
+        assert_eq!(
+            (&sac_scale.starts[..], &sac_scale.values[..]),
+            (&[0, 3, 4][..], &[0, 1, 2][..])
+        );
+        let mtb_scale = &buffer.mtb_scale;
+        assert_eq!(
+            (&mtb_scale.starts[..], &mtb_scale.values[..]),
+            (&[0, 3][..], &[0, 1][..])
+        );
         assert!(all_lengths(&buffer).iter().all(|len| *len == 5));
+
+        // and they can be looked up
+        let values: Vec<u8> = (0..6).map(|i| value_at(&buffer.surface, i)).collect();
+        assert_eq!(values, [1, 1, 0, 2, 2, 2]);
+    }
+
+    #[test]
+    fn test_intervals_merge_equal_neighbours_across_segments() {
+        let (mut segment, _) = computed("data/simple.gpx");
+        let points: Vec<_> = segment
+            .iter()
+            .map(|trkpt| {
+                let mut trkpt = trkpt.clone();
+                trkpt.surface = Some(4);
+                trkpt
+            })
+            .collect();
+        segment.splice(0, points.len(), points);
+        let s = Statistics::compute(&segment);
+        let mut buffer = StatisticsBuffer::default();
+        buffer.update(&[(&segment, &s), (&segment, &s)]);
+        // one interval for the two segments
+        assert_eq!(buffer.surface.starts, [0]);
+        assert_eq!(buffer.surface.values, [5]);
+        // and a single one of unknown values when nothing is known
+        assert_eq!(buffer.highway.values, [0]);
     }
 
     #[test]
@@ -331,26 +468,37 @@ mod tests {
         let s = Statistics::compute(&segment);
         let mut buffer = StatisticsBuffer::default();
         buffer.update(&[(&segment, &s)]);
-        assert_eq!((buffer.surface[0], buffer.highway[0]), (8, 255));
-        assert_eq!((buffer.sac_scale[0], buffer.mtb_scale[0]), (1, 4));
-        assert_eq!((buffer.surface[1], buffer.highway[1]), (0, 0));
-        assert_eq!((buffer.sac_scale[1], buffer.mtb_scale[1]), (0, 0));
+        let at = |i: usize| {
+            (
+                value_at(&buffer.surface, i),
+                value_at(&buffer.highway, i),
+                value_at(&buffer.sac_scale, i),
+                value_at(&buffer.mtb_scale, i),
+            )
+        };
+        assert_eq!(at(0), (8, 255, 1, 4));
+        assert_eq!(at(1), (0, 0, 0, 0));
     }
 
     #[test]
-    fn test_no_codes_without_surface_and_highway() {
+    fn test_unknown_intervals_without_surface_and_highway() {
         let (segment, s) = computed("data/simple.gpx");
         let mut buffer = StatisticsBuffer::default();
         buffer.update(&[(&segment, &s)]);
-        assert_eq!(buffer.surface.len(), s.local.len());
-        assert!(buffer.surface.iter().all(|c| *c == 0));
-        assert!(buffer.highway.iter().all(|c| *c == 0));
-        assert!(buffer.sac_scale.iter().all(|c| *c == 0));
-        assert!(buffer.mtb_scale.iter().all(|c| *c == 0));
+        // a single interval of unknown values
+        assert_eq!(buffer.surface.starts, [0]);
+        assert_eq!(buffer.surface.values, [0]);
+        assert_eq!(buffer.highway.starts, [0]);
+        assert_eq!(buffer.highway.values, [0]);
+        assert_eq!(buffer.sac_scale.values, [0]);
+        assert_eq!(buffer.mtb_scale.values, [0]);
         // and they are reset by the next update
         buffer.update(&[]);
-        assert!(buffer.surface.is_empty() && buffer.highway.is_empty());
-        assert!(buffer.sac_scale.is_empty() && buffer.mtb_scale.is_empty());
+        assert_eq!(buffer.surface, Intervals::default());
+        assert_eq!(buffer.highway, Intervals::default());
+        assert_eq!(buffer.sac_scale, Intervals::default());
+        assert_eq!(buffer.mtb_scale, Intervals::default());
+        assert_eq!(value_at(&buffer.surface, 0), 0);
     }
 
     #[test]
@@ -405,8 +553,8 @@ mod tests {
             slice.moving_time,
             Some(buffer.moving_time[end] - buffer.moving_time[start])
         );
-        assert_eq!(slice.start_time, Some(buffer.time[start]));
-        assert_eq!(slice.end_time, Some(buffer.time[end]));
+        assert_eq!(slice.start_time, Some(buffer.time.as_ref().unwrap()[start]));
+        assert_eq!(slice.end_time, Some(buffer.time.as_ref().unwrap()[end]));
         assert!(slice.total_distance < buffer.global.total_distance);
         assert!(slice.total_speed().is_some());
 

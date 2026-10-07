@@ -2,6 +2,7 @@ import { browser } from '$app/environment';
 import { get, writable, type Readable, type Writable } from 'svelte/store';
 import { FileColorAllocator, normalizeColor } from '$lib/file-colors';
 import { setHidden, type Visibility } from '$lib/file-visibility';
+import type { CategoryIntervals } from '$lib/trackpoint-categories';
 import { selectedElementIds, type FileTreeNode } from '$lib/selection-helpers';
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
 import type {
@@ -107,55 +108,61 @@ const EMPTY_STATISTICS: GlobalStatistics = { totalDistance: 0, elevationGain: 0,
 export const NO_TIME = -(2n ** 63n);
 
 /**
+ * Statistics of the selection that are only read from the engine when something asks for them
+ * (see `Engine.requestStatistics`). A metric can bring several arrays.
+ */
+export type StatisticsMetric =
+    | 'speed'
+    | 'hr'
+    | 'cad'
+    | 'atemp'
+    | 'power'
+    /** `slopeSegmentSlope` and `slopeSegmentDistance`. */
+    | 'slopeSegment'
+    | 'surface'
+    /** `highway`, `sacScale` and `mtbScale`. */
+    | 'highway';
+
+/**
  * The statistics of the selection: its global statistics, and the values at each of its
  * trackpoints (all the selected segments, one after the other). The arrays are copies.
  *
- * Distances, times, moving values and elevation gain / loss are cumulative over the whole
- * selection. Distances are in km, speeds in km/h, times in ms (timestamps since the epoch, as
- * 64-bit integers), elevations in m and slopes in %. Missing timestamps are `NO_TIME`, missing
- * measures are NaN.
+ * Distances are cumulative over the whole selection. Distances are in km, speeds in km/h, times in
+ * ms (timestamps since the epoch, as 64-bit integers), elevations in m and slopes in %.
+ *
+ * The values of the trackpoints that the selection does not have at all (for example the heart
+ * rates, when no trackpoint has any) are `undefined`, and so are the ones that were not requested
+ * (see `StatisticsMetric`). Otherwise they have one entry per trackpoint: missing timestamps are
+ * `NO_TIME`, missing measures are NaN.
  */
 export type SelectionStatistics = {
     global: GlobalStatistics;
     /** Number of trackpoints. */
     length: number;
     totalDistance: Float64Array;
-    movingDistance: Float64Array;
-    /** Duration since the start of the selection, in ms. */
-    totalTime: BigInt64Array;
-    movingTime: BigInt64Array;
-    speed: Float64Array;
-    elevationGain: Float64Array;
-    elevationLoss: Float64Array;
     /** Slope at the trackpoint. */
     slope: Float64Array;
-    /** Slope and length (km) of the smoothed elevation segment the trackpoint belongs to. */
-    slopeSegmentSlope: Float64Array;
-    slopeSegmentDistance: Float64Array;
     lng: Float64Array;
     lat: Float64Array;
     ele: Float64Array;
-    timestamps: BigInt64Array;
-    hr: Float64Array;
-    cad: Float64Array;
-    atemp: Float64Array;
-    power: Float64Array;
-    /** Surface of the trackpoints: 0 when unknown, else 1 + the index in `surfaces`. */
-    surface: Uint8Array;
-    /** Names of the surfaces, by code: a name keeps its index. */
-    surfaces: string[];
-    /** Highway of the trackpoints: 0 when unknown, else 1 + the index in `highways`. */
-    highway: Uint8Array;
-    /** Names of the highways, by code. */
-    highways: string[];
-    /** SAC hiking scale of the trackpoints: 0 when unknown, else 1 + the index in `sacScales`. */
-    sacScale: Uint8Array;
-    /** Names of the SAC scales, by code. */
-    sacScales: string[];
-    /** Mountain biking scale of the trackpoints: 0 when unknown, else 1 + the index in `mtbScales`. */
-    mtbScale: Uint8Array;
-    /** Names of the mountain biking scales, by code. */
-    mtbScales: string[];
+    timestamps?: BigInt64Array;
+
+    // the following need to be requested
+    speed?: Float64Array;
+    hr?: Float64Array;
+    cad?: Float64Array;
+    atemp?: Float64Array;
+    power?: Float64Array;
+    /** Slope and length (km) of the smoothed elevation segment the trackpoint belongs to. */
+    slopeSegmentSlope?: Float64Array;
+    slopeSegmentDistance?: Float64Array;
+    surface?: CategoryIntervals;
+    highway?: CategoryIntervals;
+    /** SAC hiking scale. */
+    sacScale?: CategoryIntervals;
+    /** Mountain biking scale. */
+    mtbScale?: CategoryIntervals;
+
     /**
      * Global statistics of the trackpoints from `start` to `end` (both included), for example
      * the part of the elevation profile that was dragged over. `undefined` if the range is not
@@ -168,32 +175,19 @@ const EMPTY_SELECTION_STATISTICS: SelectionStatistics = {
     global: EMPTY_STATISTICS,
     length: 0,
     totalDistance: new Float64Array(),
-    movingDistance: new Float64Array(),
-    totalTime: new BigInt64Array(),
-    movingTime: new BigInt64Array(),
-    speed: new Float64Array(),
-    elevationGain: new Float64Array(),
-    elevationLoss: new Float64Array(),
     slope: new Float64Array(),
-    slopeSegmentSlope: new Float64Array(),
-    slopeSegmentDistance: new Float64Array(),
     lng: new Float64Array(),
     lat: new Float64Array(),
     ele: new Float64Array(),
-    timestamps: new BigInt64Array(),
-    hr: new Float64Array(),
-    cad: new Float64Array(),
-    atemp: new Float64Array(),
-    power: new Float64Array(),
-    surface: new Uint8Array(),
-    surfaces: [],
-    highway: new Uint8Array(),
-    highways: [],
-    sacScale: new Uint8Array(),
-    sacScales: [],
-    mtbScale: new Uint8Array(),
-    mtbScales: [],
     slice: () => undefined,
+};
+
+/** What a consumer of the statistics needs, see `Engine.requestStatistics`. */
+export type StatisticsRequest = {
+    /** Replaces the metrics needed by this consumer. */
+    set(metrics: Iterable<StatisticsMetric>): void;
+    /** The consumer does not need any metric anymore. */
+    release(): void;
 };
 
 function toPositions(flat: Float64Array): [number, number][] {
@@ -245,6 +239,10 @@ class Engine {
     private _statistics = writable<SelectionStatistics>(EMPTY_SELECTION_STATISTICS);
     /** Identifies the statistics currently in the engine's buffers. */
     private _statisticsVersion = 0;
+    /** What each consumer of the statistics asked for. */
+    private _statisticsRequests = new Set<Set<StatisticsMetric>>();
+    /** The metrics that were read for the current statistics. */
+    private _loadedMetrics = new Set<StatisticsMetric>();
 
     /** Ids of the files in display order. */
     readonly order: Readable<string[]> = { subscribe: this._order.subscribe };
@@ -641,42 +639,141 @@ class Engine {
         }
     }
 
-    /** Copies the statistics buffers of the engine (they are overwritten by the next action). */
+    /**
+     * Copies the statistics buffers of the engine (they are overwritten by the next action), but
+     * only the metrics that were requested.
+     */
     private readStatistics(wasm: Wasm): SelectionStatistics {
         const version = ++this._statisticsVersion;
+        this._loadedMetrics.clear();
         const totalDistance = wasm.total_distance().slice();
-        return {
+        const statistics: SelectionStatistics = {
             global: wasm.selection_statistics() ?? EMPTY_STATISTICS,
             length: totalDistance.length,
             totalDistance,
-            movingDistance: wasm.moving_distance().slice(),
-            totalTime: wasm.total_time().slice(),
-            movingTime: wasm.moving_time().slice(),
-            speed: wasm.speed().slice(),
-            elevationGain: wasm.elevation_gain().slice(),
-            elevationLoss: wasm.elevation_loss().slice(),
             slope: wasm.slope().slice(),
-            slopeSegmentSlope: wasm.slope_segment_slope().slice(),
-            slopeSegmentDistance: wasm.slope_segment_distance().slice(),
             lng: wasm.lng().slice(),
             lat: wasm.lat().slice(),
             ele: wasm.ele().slice(),
-            timestamps: wasm.timestamps().slice(),
-            hr: wasm.hr().slice(),
-            cad: wasm.cad().slice(),
-            atemp: wasm.atemp().slice(),
-            power: wasm.power().slice(),
-            surface: wasm.surface().slice(),
-            surfaces: wasm.surfaces(),
-            highway: wasm.highway().slice(),
-            highways: wasm.highways(),
-            sacScale: wasm.sac_scale().slice(),
-            sacScales: wasm.sac_scales(),
-            mtbScale: wasm.mtb_scale().slice(),
-            mtbScales: wasm.mtb_scales(),
+            timestamps: wasm.timestamps()?.slice(),
             slice: (start, end) =>
                 version === this._statisticsVersion ? wasm.slice_statistics(start, end) : undefined,
         };
+        this.readMetrics(wasm, statistics, this.requestedMetrics());
+        return statistics;
+    }
+
+    private requestedMetrics(): Set<StatisticsMetric> {
+        const metrics = new Set<StatisticsMetric>();
+        this._statisticsRequests.forEach((request) => request.forEach((m) => metrics.add(m)));
+        return metrics;
+    }
+
+    /** Reads the metrics that were not read yet into `statistics`, which is the current one. */
+    private readMetrics(
+        wasm: Wasm,
+        statistics: SelectionStatistics,
+        metrics: Set<StatisticsMetric>
+    ) {
+        const categories = (
+            starts: Uint32Array,
+            values: Uint8Array,
+            names: () => string[]
+        ): CategoryIntervals => ({
+            starts: starts.slice(),
+            values: values.slice(),
+            names: names(),
+        });
+
+        for (const metric of metrics) {
+            if (this._loadedMetrics.has(metric)) {
+                continue;
+            }
+            this._loadedMetrics.add(metric);
+            switch (metric) {
+                case 'speed':
+                    statistics.speed = wasm.speed().slice();
+                    break;
+                case 'hr':
+                    statistics.hr = wasm.hr()?.slice();
+                    break;
+                case 'cad':
+                    statistics.cad = wasm.cad()?.slice();
+                    break;
+                case 'atemp':
+                    statistics.atemp = wasm.atemp()?.slice();
+                    break;
+                case 'power':
+                    statistics.power = wasm.power()?.slice();
+                    break;
+                case 'slopeSegment':
+                    statistics.slopeSegmentSlope = wasm.slope_segment_slope().slice();
+                    statistics.slopeSegmentDistance = wasm.slope_segment_distance().slice();
+                    break;
+                case 'surface':
+                    statistics.surface = categories(
+                        wasm.surface_starts(),
+                        wasm.surface_values(),
+                        wasm.surfaces
+                    );
+                    break;
+                case 'highway':
+                    statistics.highway = categories(
+                        wasm.highway_starts(),
+                        wasm.highway_values(),
+                        wasm.highways
+                    );
+                    statistics.sacScale = categories(
+                        wasm.sac_scale_starts(),
+                        wasm.sac_scale_values(),
+                        wasm.sac_scales
+                    );
+                    statistics.mtbScale = categories(
+                        wasm.mtb_scale_starts(),
+                        wasm.mtb_scale_values(),
+                        wasm.mtb_scales
+                    );
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Registers a consumer of the statistics that needs some of the metrics that are not part of
+     * them by default (see `StatisticsMetric`). The metrics asked for by all the consumers are
+     * added to `statistics`: the ones that are missing are read right away, and then after each
+     * change of the selection or of the files, and the store is updated. Call `release` when the
+     * consumer goes away.
+     */
+    requestStatistics(): StatisticsRequest {
+        const wanted = new Set<StatisticsMetric>();
+        this._statisticsRequests.add(wanted);
+        return {
+            set: (metrics) => {
+                wanted.clear();
+                for (const metric of metrics) {
+                    wanted.add(metric);
+                }
+                this.loadMissingMetrics();
+            },
+            release: () => {
+                this._statisticsRequests.delete(wanted);
+            },
+        };
+    }
+
+    /** Reads the requested metrics that are not in the current statistics yet. */
+    private loadMissingMetrics() {
+        const wasm = this.wasm;
+        const metrics = this.requestedMetrics();
+        if (!wasm || [...metrics].every((metric) => this._loadedMetrics.has(metric))) {
+            return;
+        }
+        // the buffers of the engine still are the ones of the current statistics, as they are
+        // read after every action
+        const statistics = { ...get(this._statistics) };
+        this.readMetrics(wasm, statistics, metrics);
+        this._statistics.set(statistics);
     }
 
     /** Reads the state of a file, reusing from `previous` what did not change. */

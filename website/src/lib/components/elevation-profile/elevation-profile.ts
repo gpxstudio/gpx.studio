@@ -22,10 +22,16 @@ import Chart, {
 } from 'chart.js/auto';
 import { get, type Readable, type Writable } from 'svelte/store';
 import type { Coordinates } from 'gpx';
-import { NO_TIME, type SelectionStatistics } from '$lib/engine';
+import {
+    engine,
+    NO_TIME,
+    type SelectionStatistics,
+    type StatisticsMetric,
+    type StatisticsRequest,
+} from '$lib/engine';
 import type { SlicedStatistics } from '$lib/logic/selection-statistics';
 import { mode } from 'mode-watcher';
-import { categoryAt } from '$lib/trackpoint-categories';
+import { categoryValues } from '$lib/trackpoint-categories';
 import { getHighwayColor, getSlopeColor, getSurfaceColor } from '$lib/assets/colors';
 
 const { distanceUnits, velocityUnits, temperatureUnits } = settings;
@@ -62,6 +68,8 @@ export class ElevationProfile {
     private _hoveredPoint: Writable<Coordinates | null>;
     private _additionalDatasets: Readable<string[]>;
     private _elevationFill: Readable<'slope' | 'surface' | 'highway' | undefined>;
+    /** The statistics that are only read from the engine while the profile shows them. */
+    private _request: StatisticsRequest;
 
     constructor(
         statistics: Readable<SelectionStatistics>,
@@ -79,6 +87,8 @@ export class ElevationProfile {
         this._elevationFill = elevationFill;
         this._canvas = canvas;
         this._overlay = overlay;
+        this._request = engine.requestStatistics();
+        this.updateRequest();
 
         import('chartjs-plugin-zoom').then((module) => {
             Chart.register(module.default);
@@ -100,12 +110,32 @@ export class ElevationProfile {
                 this.updateData();
             });
             this._additionalDatasets.subscribe(() => {
+                // requesting a missing metric updates the data, and then the visibility
+                this.updateRequest();
                 this.updateDataVisibility();
             });
             this._elevationFill.subscribe(() => {
+                this.updateRequest();
                 this.updateFill();
             });
         });
+    }
+
+    /** Asks the engine for what the profile currently shows, and nothing more. */
+    updateRequest() {
+        const metrics = new Set<StatisticsMetric>();
+        for (const dataset of get(this._additionalDatasets)) {
+            if (['speed', 'hr', 'cad', 'atemp', 'power'].includes(dataset)) {
+                metrics.add(dataset as StatisticsMetric);
+            }
+        }
+        const elevationFill = get(this._elevationFill);
+        if (elevationFill === 'slope') {
+            metrics.add('slopeSegment');
+        } else if (elevationFill) {
+            metrics.add(elevationFill);
+        }
+        this._request.set(metrics);
     }
 
     initialize() {
@@ -400,47 +430,51 @@ export class ElevationProfile {
 
         const datasets: Array<Array<any>> = [[], [], [], [], [], []];
         const { global } = data;
+        const surfaces = categoryValues(data.surface, data.length);
+        const highways = categoryValues(data.highway, data.length);
+        const sacScales = categoryValues(data.sacScale, data.length);
+        const mtbScales = categoryValues(data.mtbScale, data.length);
         for (let index = 0; index < data.length; index++) {
             const x = getConvertedDistance(data.totalDistance[index], units.distance);
             const ele = data.ele[index];
-            const timestamp = data.timestamps[index];
+            const timestamp = data.timestamps?.[index] ?? NO_TIME;
             datasets[0].push({
                 x,
                 y: ele ? getConvertedElevation(ele, units.distance) : 0,
                 time: timestamp === NO_TIME ? undefined : new Date(Number(timestamp)),
                 slope: {
                     at: data.slope[index],
-                    segment: data.slopeSegmentSlope[index],
-                    length: data.slopeSegmentDistance[index],
+                    segment: data.slopeSegmentSlope?.[index] ?? NaN,
+                    length: data.slopeSegmentDistance?.[index] ?? NaN,
                 },
-                surface: categoryAt(data.surface, data.surfaces, index),
-                highway: categoryAt(data.highway, data.highways, index),
-                sacScale: categoryAt(data.sacScale, data.sacScales, index),
-                mtbScale: categoryAt(data.mtbScale, data.mtbScales, index),
+                surface: surfaces[index],
+                highway: highways[index],
+                sacScale: sacScales[index],
+                mtbScale: mtbScales[index],
                 coordinates: { lat: data.lat[index], lon: data.lng[index] },
                 index,
             });
-            if ((global.totalTime ?? 0) > 0) {
+            if (data.speed && (global.totalTime ?? 0) > 0) {
                 datasets[1].push({
                     x,
                     y: getConvertedVelocity(data.speed[index], units.velocity, units.distance),
                     index,
                 });
             }
-            if (global.hr) {
+            if (data.hr) {
                 datasets[2].push({ x, y: data.hr[index], index });
             }
-            if (global.cad) {
+            if (data.cad) {
                 datasets[3].push({ x, y: data.cad[index], index });
             }
-            if (global.atemp) {
+            if (data.atemp) {
                 datasets[4].push({
                     x,
                     y: getConvertedTemperature(data.atemp[index], units.temperature),
                     index,
                 });
             }
-            if (global.power) {
+            if (data.power) {
                 datasets[5].push({ x, y: data.power[index], index });
             }
         }
@@ -613,6 +647,7 @@ export class ElevationProfile {
     }
 
     destroy() {
+        this._request.release();
         if (this._chart) {
             this._chart.destroy();
             this._chart = null;

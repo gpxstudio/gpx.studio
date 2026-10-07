@@ -17,6 +17,7 @@
         ExternalLink,
     } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
+    import type { SelectionStatistics } from '$lib/engine';
     import { getURLForLanguage } from '$lib/utils';
     import { writable } from 'svelte/store';
     import Scissors from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
@@ -24,35 +25,14 @@
     import { onDestroy, onMount } from 'svelte';
 
     // TODO the example comes from the previous implementation
-    let statistics = writable({
+    let statistics = writable<SelectionStatistics>({
         global: { totalDistance: 0, elevationGain: 0, elevationLoss: 0 },
         length: 0,
         totalDistance: new Float64Array(),
-        movingDistance: new Float64Array(),
-        totalTime: new BigInt64Array(),
-        movingTime: new BigInt64Array(),
-        speed: new Float64Array(),
-        elevationGain: new Float64Array(),
-        elevationLoss: new Float64Array(),
         slope: new Float64Array(),
-        slopeSegmentSlope: new Float64Array(),
-        slopeSegmentDistance: new Float64Array(),
         lng: new Float64Array(),
         lat: new Float64Array(),
         ele: new Float64Array(),
-        timestamps: new BigInt64Array(),
-        hr: new Float64Array(),
-        cad: new Float64Array(),
-        atemp: new Float64Array(),
-        power: new Float64Array(),
-        surface: new Uint8Array(),
-        surfaces: [],
-        highway: new Uint8Array(),
-        highways: [],
-        sacScale: new Uint8Array(),
-        sacScales: [],
-        mtbScale: new Uint8Array(),
-        mtbScales: [],
         slice: () => undefined,
     });
     let slicedStatistics = writable(undefined);
