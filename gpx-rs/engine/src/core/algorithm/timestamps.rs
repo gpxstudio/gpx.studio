@@ -82,6 +82,38 @@ pub fn replace_trackpoints(
     trkpt.splice(start..end, points);
 }
 
+/// How long each interval between two consecutive trackpoints of a segment should last, relative
+/// to the others, for a made-up pace: the longer the interval, and the steeper it goes up, the
+/// longer. `slopes` has the slope (in %) at each trackpoint.
+pub fn artificial_weights(points: &[Trackpoint], slopes: &[f64]) -> Vec<f64> {
+    points
+        .windows(2)
+        .zip(slopes)
+        .map(|(pair, slope)| {
+            let km = distance(pair[0].coordinates, pair[1].coordinates);
+            km * (0.5 + 1.0 / (1.0 + (-0.2 * slope).exp()))
+        })
+        .collect()
+}
+
+/// `points` with made-up timestamps: the first one is at `start`, and each next one follows the
+/// previous one after `weights[i]` times `ms_per_weight` milliseconds (see [`artificial_weights`]).
+pub fn with_artificial_timestamps(
+    mut points: Vec<Trackpoint>,
+    weights: &[f64],
+    ms_per_weight: f64,
+    start: i64,
+) -> Vec<Trackpoint> {
+    let mut elapsed = 0.0;
+    for (i, point) in points.iter_mut().enumerate() {
+        if i > 0 {
+            elapsed += weights[i - 1] * ms_per_weight;
+        }
+        point.time = Some(start + elapsed as i64);
+    }
+    points
+}
+
 fn same_place(a: &Trackpoint, b: &Trackpoint) -> bool {
     a.coordinates.lng == b.coordinates.lng && a.coordinates.lat == b.coordinates.lat
 }
@@ -111,7 +143,7 @@ fn timestamp_after(a: &Trackpoint, b: &Trackpoint, speed: Option<f64>) -> Option
 ///
 /// Unlike the old code, a `last` without a time does not get `start_time` itself, only the copy
 /// used here.
-fn with_timestamps(
+pub fn with_timestamps(
     points: Vec<Trackpoint>,
     speed: Option<f64>,
     last: Option<&Trackpoint>,
@@ -141,7 +173,7 @@ fn with_timestamps(
 /// `points` with their timestamps moved so that the first one follows `last`, and their durations
 /// multiplied by `ratio`. The ones that have no timestamp follow the previous one, as in
 /// [`with_timestamps`]. Without a time for `last`, or for the first point, none is known.
-fn shifted_and_compressed(
+pub fn shifted_and_compressed(
     points: Vec<Trackpoint>,
     speed: Option<f64>,
     ratio: f64,

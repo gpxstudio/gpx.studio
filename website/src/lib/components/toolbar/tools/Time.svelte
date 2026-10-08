@@ -15,22 +15,18 @@
     import { CalendarClock, CirclePlay, CircleStop, CircleX, Timer, Zap } from '@lucide/svelte';
     import { untrack } from 'svelte';
     import { i18n } from '$lib/i18n.svelte';
-    import {
-        ListFileItem,
-        ListRootItem,
-        ListTrackItem,
-        ListTrackSegmentItem,
-    } from '$lib/components/file-list/file-list';
     import Help from '$lib/components/Help.svelte';
     import { getURLForLanguage } from '$lib/utils';
-    import { selection } from '$lib/logic/selection';
     import { settings } from '$lib/logic/settings';
-    import { fileActionManager } from '$lib/logic/file-action-manager';
-    import { gpxStatistics } from '$lib/logic/statistics';
+    import { engine } from '$lib/engine';
 
     let props: {
         class?: string;
     } = $props();
+
+    const selection = engine.selection;
+    const statistics = engine.statistics;
+    let global = $derived($statistics.global);
 
     let startDate: DateValue | undefined = $state(undefined);
     let startTime: string | undefined = $state(undefined);
@@ -59,26 +55,28 @@
     }
 
     function setGPXData() {
-        if ($gpxStatistics.global.time.start) {
-            startDate = toCalendarDate($gpxStatistics.global.time.start);
-            startTime = toTimeString($gpxStatistics.global.time.start);
+        if (global.startTime !== undefined) {
+            const start = new Date(global.startTime);
+            startDate = toCalendarDate(start);
+            startTime = toTimeString(start);
         } else {
             startDate = undefined;
             startTime = undefined;
         }
-        if ($gpxStatistics.global.time.end) {
-            endDate = toCalendarDate($gpxStatistics.global.time.end);
-            endTime = toTimeString($gpxStatistics.global.time.end);
+        if (global.endTime !== undefined) {
+            const end = new Date(global.endTime);
+            endDate = toCalendarDate(end);
+            endTime = toTimeString(end);
         } else {
             endDate = undefined;
             endTime = undefined;
         }
-        if ($gpxStatistics.global.time.moving && $gpxStatistics.global.speed.moving) {
-            movingTime = $gpxStatistics.global.time.moving;
-            setSpeed($gpxStatistics.global.speed.moving);
-        } else if ($gpxStatistics.global.time.total && $gpxStatistics.global.speed.total) {
-            movingTime = $gpxStatistics.global.time.total;
-            setSpeed($gpxStatistics.global.speed.total);
+        if (global.movingTime && global.movingSpeed) {
+            movingTime = global.movingTime;
+            setSpeed(global.movingSpeed);
+        } else if (global.totalTime && global.totalSpeed) {
+            movingTime = global.totalTime;
+            setSpeed(global.totalSpeed);
         } else {
             movingTime = undefined;
             speed = undefined;
@@ -86,7 +84,7 @@
     }
 
     $effect(() => {
-        if ($gpxStatistics && $velocityUnits && $distanceUnits) {
+        if ($statistics && $velocityUnits && $distanceUnits) {
             untrack(() => setGPXData());
         }
     });
@@ -102,16 +100,23 @@
         return new Date(date.year, date.month - 1, date.day, hours, minutes, seconds);
     }
 
+    /** Total time over moving time. */
+    function timeRatio() {
+        return global.movingTime && global.totalTime ? global.totalTime / global.movingTime : 1;
+    }
+
+    /** The distance to cover at the speed: the moving one if there is one. */
+    function distance() {
+        return global.movingDistance ? global.movingDistance : global.totalDistance;
+    }
+
     function updateEnd() {
         if (startDate && movingTime !== undefined) {
             if (startTime === undefined) {
                 startTime = '00:00:00';
             }
             let start = getDate(startDate, startTime);
-            let ratio =
-                $gpxStatistics.global.time.moving > 0
-                    ? $gpxStatistics.global.time.total / $gpxStatistics.global.time.moving
-                    : 1;
+            let ratio = timeRatio();
             let end = new Date(start.getTime() + ratio * movingTime * 1000);
             endDate = toCalendarDate(end);
             endTime = toTimeString(end);
@@ -124,10 +129,7 @@
                 endTime = '00:00:00';
             }
             let end = getDate(endDate, endTime);
-            let ratio =
-                $gpxStatistics.global.time.moving > 0
-                    ? $gpxStatistics.global.time.total / $gpxStatistics.global.time.moving
-                    : 1;
+            let ratio = timeRatio();
             let start = new Date(end.getTime() - ratio * movingTime * 1000);
             startDate = toCalendarDate(start);
             startTime = toTimeString(start);
@@ -157,11 +159,7 @@
             return;
         }
 
-        let distance =
-            $gpxStatistics.global.distance.moving > 0
-                ? $gpxStatistics.global.distance.moving
-                : $gpxStatistics.global.distance.total;
-        movingTime = (distance / speedValue) * 3600;
+        movingTime = (distance() / speedValue) * 3600;
 
         updateEnd();
     }
@@ -170,16 +168,15 @@
         if (movingTime === undefined) {
             return;
         }
-        let distance =
-            $gpxStatistics.global.distance.moving > 0
-                ? $gpxStatistics.global.distance.moving
-                : $gpxStatistics.global.distance.total;
-        setSpeed(distance / (movingTime / 3600));
+        setSpeed(distance() / (movingTime / 3600));
         updateEnd();
     }
 
+    // a single file, track or segment
     let canUpdate = $derived(
-        $selection.size === 1 && $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints'])
+        ($selection.type === 'file' && $selection.fileIds.length === 1) ||
+            ($selection.type === 'track' && $selection.trackIds.length === 1) ||
+            ($selection.type === 'segment' && $selection.segmentIds.length === 1)
     );
 </script>
 
@@ -309,7 +306,7 @@
                 />
             </div>
         </div>
-        {#if $gpxStatistics.global.time.moving === 0 || $gpxStatistics.global.time.moving === undefined}
+        {#if !global.movingTime}
             <div class="mt-0.5 flex flex-row gap-1 items-center">
                 <Checkbox id="artificial-time" bind:checked={artificial} disabled={!canUpdate} />
                 <Label for="artificial-time">
@@ -324,78 +321,33 @@
             disabled={!canUpdate}
             class="grow shrink whitespace-normal h-fit min-h-8 py-1"
             onclick={() => {
-                let effectiveSpeed = getSpeed();
+                const speedValue = getSpeed();
                 if (
                     startDate === undefined ||
                     startTime === undefined ||
-                    effectiveSpeed === undefined ||
+                    speedValue === undefined ||
                     movingTime === undefined
                 ) {
                     return;
                 }
 
-                if (Math.abs(effectiveSpeed - $gpxStatistics.global.speed.moving) < 0.01) {
-                    effectiveSpeed = $gpxStatistics.global.speed.moving;
+                let effectiveSpeed: number = speedValue;
+                const movingSpeed = global.movingSpeed ?? 0;
+                if (Math.abs(effectiveSpeed - movingSpeed) < 0.01) {
+                    effectiveSpeed = movingSpeed;
                 }
 
                 let ratio = 1;
-                if (
-                    $gpxStatistics.global.speed.moving > 0 &&
-                    $gpxStatistics.global.speed.moving !== effectiveSpeed
-                ) {
-                    ratio = $gpxStatistics.global.speed.moving / effectiveSpeed;
+                if (movingSpeed > 0 && movingSpeed !== effectiveSpeed) {
+                    ratio = movingSpeed / effectiveSpeed;
                 }
 
-                let item = $selection.getSelected()[0];
-                let fileId = item.getFileId();
-                fileActionManager.applyToFile(fileId, (file) => {
-                    if (item instanceof ListFileItem) {
-                        if (artificial && !$gpxStatistics.global.time.moving) {
-                            file.createArtificialTimestamps(
-                                getDate(startDate!, startTime!),
-                                movingTime!
-                            );
-                        } else {
-                            file.changeTimestamps(
-                                getDate(startDate!, startTime!),
-                                effectiveSpeed,
-                                ratio
-                            );
-                        }
-                    } else if (item instanceof ListTrackItem) {
-                        if (artificial && !$gpxStatistics.global.time.moving) {
-                            file.createArtificialTimestamps(
-                                getDate(startDate!, startTime!),
-                                movingTime!,
-                                item.getTrackIndex()
-                            );
-                        } else {
-                            file.changeTimestamps(
-                                getDate(startDate!, startTime!),
-                                effectiveSpeed,
-                                ratio,
-                                item.getTrackIndex()
-                            );
-                        }
-                    } else if (item instanceof ListTrackSegmentItem) {
-                        if (artificial && !$gpxStatistics.global.time.moving) {
-                            file.createArtificialTimestamps(
-                                getDate(startDate!, startTime!),
-                                movingTime!,
-                                item.getTrackIndex(),
-                                item.getSegmentIndex()
-                            );
-                        } else {
-                            file.changeTimestamps(
-                                getDate(startDate!, startTime!),
-                                effectiveSpeed,
-                                ratio,
-                                item.getTrackIndex(),
-                                item.getSegmentIndex()
-                            );
-                        }
-                    }
-                });
+                const start = getDate(startDate, startTime);
+                if (artificial && !global.movingTime) {
+                    engine.createArtificialTimestamps(start, movingTime);
+                } else {
+                    engine.changeTimestamps(start, effectiveSpeed, ratio);
+                }
             }}
         >
             <CalendarClock size="16" class="shrink-0" />

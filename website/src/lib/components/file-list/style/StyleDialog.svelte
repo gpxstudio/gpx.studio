@@ -33,7 +33,6 @@
     let opacityChanged = $state(false);
     let widthChanged = $state(false);
 
-    // TODO the inputs used to come from the last selected item, they now come from this node
     function setStyleInputs() {
         opacity = $defaultOpacity;
         width = $defaultWidth;

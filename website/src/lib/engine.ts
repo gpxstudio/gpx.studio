@@ -673,6 +673,24 @@ class Engine {
     }
 
     /**
+     * Sets the timestamps of the selection, which starts at `startTime`: the trackpoints that
+     * have some keep their durations multiplied by `ratio`, the others follow the previous one at
+     * `speed` (km/h). Resolves to `false` when there is nothing to set, or the values are invalid.
+     */
+    changeTimestamps(startTime: Date, speed: number, ratio: number) {
+        return this.run((w) => w.changeTimestamps(startTime.getTime(), speed, ratio));
+    }
+
+    /**
+     * Makes up timestamps for the selection, which starts at `startTime` and lasts `totalTime`
+     * seconds, longer and steeper intervals taking more time. Resolves to `false` when there is
+     * nothing to set.
+     */
+    createArtificialTimestamps(startTime: Date, totalTime: number) {
+        return this.run((w) => w.createArtificialTimestamps(startTime.getTime(), totalTime));
+    }
+
+    /**
      * Merges the selected files, tracks or segments into the first of them (see `MergeType`). With
      * `removeGaps`, the parts that are connected get closer in time if they have timestamps.
      * Resolves to `false` when there is nothing to merge.

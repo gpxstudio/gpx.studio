@@ -63,7 +63,6 @@
     import { engine } from '$lib/engine';
     import { allHidden } from '$lib/all-hidden';
     import { selectionSize } from '$lib/selection-helpers';
-    // TODO centering on the selection still works on the previous implementation
     import { boundsManager } from '$lib/logic/bounds';
     import { onMount } from 'svelte';
 

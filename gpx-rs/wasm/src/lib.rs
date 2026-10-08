@@ -613,9 +613,25 @@ pub fn split(revision: u32, at: u32, split_type: SplitType) -> bool {
         }))
 }
 
-#[wasm_bindgen]
-pub fn time() -> bool {
-    edit(Command::Time(engine::Time))
+/// Sets the timestamps of the selection, which starts at `start_time` (ms since the epoch): the
+/// trackpoints that have some keep their durations multiplied by `ratio`, the others follow the
+/// previous one at `speed` (km/h).
+#[wasm_bindgen(js_name = changeTimestamps)]
+pub fn change_timestamps(start_time: f64, speed: f64, ratio: f64) -> bool {
+    edit(Command::Time(engine::Time {
+        start_time: start_time as i64,
+        kind: engine::TimeKind::Change { speed, ratio },
+    }))
+}
+
+/// Makes up timestamps for the selection, which starts at `start_time` (ms since the epoch) and
+/// lasts `total_time` seconds.
+#[wasm_bindgen(js_name = createArtificialTimestamps)]
+pub fn create_artificial_timestamps(start_time: f64, total_time: f64) -> bool {
+    edit(Command::Time(engine::Time {
+        start_time: start_time as i64,
+        kind: engine::TimeKind::Artificial { total_time },
+    }))
 }
 
 /// Merges the selection into its first element (see `MergeType`). `remove_gaps` brings the parts
