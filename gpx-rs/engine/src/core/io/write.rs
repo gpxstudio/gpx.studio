@@ -165,13 +165,17 @@ fn time(w: &mut XmlWriter, millis: Option<i64>) -> io::Result<()> {
     Ok(())
 }
 
-fn link(w: &mut XmlWriter, link: &Option<Link>) -> io::Result<()> {
-    if let Some(link) = link.as_ref().filter(|link| !link.href.is_empty()) {
+fn link(w: &mut XmlWriter, link: &Link) -> io::Result<()> {
+    if !link.href.is_empty() {
         w.create_element("link")
             .with_attribute(("href", link.href.as_str()))
             .write_inner_content(|w| optional_text(w, "text", &link.text))?;
     }
     Ok(())
+}
+
+fn links(w: &mut XmlWriter, links: &[Link]) -> io::Result<()> {
+    links.iter().try_for_each(|l| link(w, l))
 }
 
 fn write_metadata(w: &mut XmlWriter, file: &File, options: ExportOptions) -> io::Result<()> {
@@ -180,7 +184,7 @@ fn write_metadata(w: &mut XmlWriter, file: &File, options: ExportOptions) -> io:
     if info.name.is_empty()
         && info.desc.is_none()
         && info.author.is_none()
-        && info.link.is_none()
+        && info.links.is_empty()
         && time.is_none()
     {
         return Ok(());
@@ -197,10 +201,10 @@ fn write_metadata(w: &mut XmlWriter, file: &File, options: ExportOptions) -> io:
                         .with_attributes([("id", id), ("domain", domain)])
                         .write_empty()?;
                 }
-                link(w, &author.link)
+                author.link.iter().try_for_each(|l| link(w, l))
             })?;
         }
-        link(w, &info.link)?;
+        links(w, &info.links)?;
         self::time(w, time)
     })?;
     Ok(())
@@ -226,7 +230,7 @@ fn write_waypoint(w: &mut XmlWriter, wpt: &Waypoint, options: ExportOptions) -> 
         optional_text(w, "name", &wpt.name)?;
         optional_text(w, "cmt", &wpt.cmt)?;
         optional_text(w, "desc", &wpt.desc)?;
-        link(w, &wpt.link)?;
+        links(w, &wpt.links)?;
         optional_text(w, "sym", &wpt.sym)?;
         optional_text(w, "type", &wpt.type_)
     })?;
@@ -246,7 +250,7 @@ fn write_track(
         optional_text(w, "cmt", &info.cmt)?;
         optional_text(w, "desc", &info.desc)?;
         optional_text(w, "src", &info.src)?;
-        link(w, &info.link)?;
+        links(w, &info.links)?;
         optional_text(w, "type", &info.type_)?;
         if info.color.is_some() || info.opacity.is_some() || info.width.is_some() {
             w.create_element("extensions").write_inner_content(|w| {
@@ -401,9 +405,36 @@ mod tests {
     }
 
     #[test]
+    fn test_links_and_the_email_are_written() {
+        let data = std::fs::read("data/with_links.gpx").unwrap();
+        let file = parse(&data, &mut Default::default()).unwrap();
+        let again = parse(
+            &write(&file, &Default::default(), ExportOptions::ALL),
+            &mut Default::default(),
+        )
+        .unwrap();
+
+        assert_eq!(again.info.links, file.info.links);
+        assert_eq!(again.info.links.len(), 2);
+        assert_eq!(again.info.author, file.info.author);
+        assert_eq!(
+            again.info.author.as_ref().unwrap().email.as_deref(),
+            Some("someone@example.com")
+        );
+        let waypoints = |file: &File| file.wpt.iter().map(|w| w.links.clone()).collect::<Vec<_>>();
+        assert_eq!(waypoints(&again), waypoints(&file));
+        assert_eq!(again.wpt.iter().next().unwrap().links.len(), 3);
+        for (a, b) in again.trk.iter().zip(&file.trk) {
+            assert_eq!(a.info.links, b.info.links);
+            assert_eq!(a.info.links.len(), 2);
+        }
+    }
+
+    #[test]
     fn test_files_survive_a_round_trip() {
         for name in [
             "simple",
+            "with_links",
             "with_time",
             "with_hr",
             "with_cad",

@@ -67,7 +67,7 @@
                 if (wpt.cmt !== undefined && wpt.cmt !== wpt.desc) {
                     description += '\n\n' + wpt.cmt;
                 }
-                link = wpt.link?.href ?? '';
+                link = wpt.links?.[0]?.href ?? '';
                 sym = wpt.sym ?? '';
                 longitude = parseFloat(wpt.lng.toFixed(6));
                 latitude = parseFloat(wpt.lat.toFixed(6));

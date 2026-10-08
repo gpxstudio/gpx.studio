@@ -46,9 +46,10 @@
 <Card.Root class="border-none shadow-md text-base p-2 max-w-[50dvw] gap-0">
     <Card.Header class="p-0 gap-0">
         <Card.Title class="text-md">
-            {#if waypoint.item.link?.href}
-                <a href={waypoint.item.link.href} target="_blank">
-                    {waypoint.item.name ?? waypoint.item.link.href}
+            {@const link = waypoint.item.links?.[0]}
+            {#if link?.href}
+                <a href={link.href} target="_blank">
+                    {waypoint.item.name ?? link.href}
                     <ExternalLink size="12" class="inline-block mb-1.5" />
                 </a>
             {:else}

@@ -52,7 +52,8 @@ export interface WaypointDetails {
     name?: string;
     desc?: string;
     cmt?: string;
-    link?: { href: string; text?: string };
+    /** The links of the waypoint, absent when it has none. */
+    links?: { href: string; text?: string }[];
     sym?: string;
 }
 /** The position, elevation and time of a trackpoint. */

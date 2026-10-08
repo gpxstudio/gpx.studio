@@ -46,7 +46,7 @@ pub struct FileInfo1 {
     name: String,
     desc: Option<String>,
     author: Option<Author1>,
-    link: Option<Link1>,
+    links: Vec<Link1>,
     time: Option<i64>,
 }
 
@@ -60,7 +60,7 @@ impl From<&FileInfo> for FileInfo1 {
                 email: author.email.clone(),
                 link: author.link.as_ref().map(Into::into),
             }),
-            link: info.link.as_ref().map(Into::into),
+            links: info.links.iter().map(Into::into).collect(),
             time: info.time,
         }
     }
@@ -76,7 +76,7 @@ impl From<FileInfo1> for FileInfo {
                 email: author.email,
                 link: author.link.map(Into::into),
             }),
-            link: info.link.map(Into::into),
+            links: info.links.into_iter().map(Into::into).collect(),
             time: info.time,
         }
     }
@@ -88,7 +88,7 @@ pub struct TrackInfo1 {
     cmt: Option<String>,
     desc: Option<String>,
     src: Option<String>,
-    link: Option<Link1>,
+    links: Vec<Link1>,
     type_: Option<String>,
     color: Option<String>,
     opacity: Option<f64>,
@@ -102,7 +102,7 @@ impl From<&TrackInfo> for TrackInfo1 {
             cmt: info.cmt.clone(),
             desc: info.desc.clone(),
             src: info.src.clone(),
-            link: info.link.as_ref().map(Into::into),
+            links: info.links.iter().map(Into::into).collect(),
             type_: info.type_.clone(),
             color: info.color.clone(),
             opacity: info.opacity,
@@ -118,7 +118,7 @@ impl From<TrackInfo1> for TrackInfo {
             cmt: info.cmt,
             desc: info.desc,
             src: info.src,
-            link: info.link.map(Into::into),
+            links: info.links.into_iter().map(Into::into).collect(),
             type_: info.type_,
             color: info.color,
             opacity: info.opacity,
@@ -242,7 +242,7 @@ pub struct Waypoint1 {
     name: Option<String>,
     cmt: Option<String>,
     desc: Option<String>,
-    link: Option<Link1>,
+    links: Vec<Link1>,
     sym: Option<String>,
     type_: Option<String>,
 }
@@ -258,7 +258,7 @@ impl From<&Waypoint> for Waypoint1 {
             name: waypoint.name.clone(),
             cmt: waypoint.cmt.clone(),
             desc: waypoint.desc.clone(),
-            link: waypoint.link.as_ref().map(Into::into),
+            links: waypoint.links.iter().map(Into::into).collect(),
             sym: waypoint.sym.clone(),
             type_: waypoint.type_.clone(),
         }
@@ -278,7 +278,7 @@ impl From<Waypoint1> for Waypoint {
             name: waypoint.name,
             cmt: waypoint.cmt,
             desc: waypoint.desc,
-            link: waypoint.link.map(Into::into),
+            links: waypoint.links.into_iter().map(Into::into).collect(),
             sym: waypoint.sym,
             type_: waypoint.type_,
         }

@@ -17,13 +17,15 @@ pub struct FileInfo {
     pub name: String,
     pub desc: Option<String>,
     pub author: Option<Author>,
-    pub link: Option<Link>,
+    pub links: Vec<Link>,
     pub time: Option<i64>,
 }
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Author {
     pub name: Option<String>,
+    /// `id@domain`, which the file gives as the two attributes of an `email` element.
     pub email: Option<String>,
+    /// The author has a single link, unlike the other elements.
     pub link: Option<Link>,
 }

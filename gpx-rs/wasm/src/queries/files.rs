@@ -143,13 +143,19 @@ pub fn waypoint(file_id: &str, waypoint_id: &str) -> WaypointDetails {
                                 set(&object, key, value.as_str());
                             }
                         }
-                        if let Some(link) = &wpt.link {
-                            let link_object = Object::new();
-                            set(&link_object, "href", link.href.as_str());
-                            if let Some(text) = &link.text {
-                                set(&link_object, "text", text.as_str());
-                            }
-                            set(&object, "link", link_object);
+                        if !wpt.links.is_empty() {
+                            set(
+                                &object,
+                                "links",
+                                array(&wpt.links, |link| {
+                                    let link_object = Object::new();
+                                    set(&link_object, "href", link.href.as_str());
+                                    if let Some(text) = &link.text {
+                                        set(&link_object, "text", text.as_str());
+                                    }
+                                    link_object.into()
+                                }),
+                            );
                         }
                         JsValue::from(object)
                     })

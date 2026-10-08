@@ -17,7 +17,7 @@ pub struct TrackInfo {
     pub cmt: Option<String>,
     pub desc: Option<String>,
     pub src: Option<String>,
-    pub link: Option<Link>,
+    pub links: Vec<Link>,
     pub type_: Option<String>,
     pub color: Option<String>,
     pub opacity: Option<f64>,

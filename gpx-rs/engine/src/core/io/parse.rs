@@ -259,6 +259,47 @@ fn apply_text(
     }
 }
 
+/// The email of the author, given as the `id` and `domain` attributes of the element.
+fn set_email(stack: &mut [GPXElement], attributes: Attributes<'_>) {
+    let Some(GPXElement::Author(author)) = stack.last_mut() else {
+        return;
+    };
+    let (mut id, mut domain) = (None, None);
+    for attr in attributes.flatten() {
+        match attr.key.as_ref() {
+            "id" => id = Some(attr.value.to_string()),
+            "domain" => domain = Some(attr.value.to_string()),
+            _ => (),
+        }
+    }
+    if let (Some(id), Some(domain)) = (id, domain) {
+        author.email = Some(format!("{id}@{domain}"));
+    }
+}
+
+/// The link with the given `href`, if it is an attribute of the element.
+fn parse_link(attributes: Attributes<'_>) -> Link {
+    let mut link = Link::default();
+    for attr in attributes.flatten() {
+        if attr.key.as_ref() == "href" {
+            link.href = attr.value.to_string();
+        }
+    }
+    link
+}
+
+/// Gives a link to what holds it, which is at the top of the stack.
+fn attach_link(stack: &mut [GPXElement], gpx: &mut File, link: Link) {
+    match stack.last_mut() {
+        // the author has a single link, the other elements have as many as they want
+        Some(GPXElement::Author(author)) => author.link = Some(link),
+        Some(GPXElement::Track(trk)) => trk.info.links.push(link),
+        Some(GPXElement::Waypoint(wpt)) => wpt.links.push(link),
+        Some(GPXElement::Metadata) => gpx.info.links.push(link),
+        _ => (),
+    }
+}
+
 /// Parses a GPX file. The surface, highway, SAC scale and MTB scale of the trackpoints are stored as codes of
 /// `categories`, which learns the values it does not know yet.
 pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File, Error> {
@@ -283,15 +324,8 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
                 "desc" => stack.push(GPXElement::Description),
                 "src" => stack.push(GPXElement::Source),
                 "author" => stack.push(GPXElement::Author(Author::default())),
-                "link" => {
-                    let mut link = Link::default();
-                    for attr in e.attributes().flatten() {
-                        if attr.key.as_ref() == "href" {
-                            link.href = attr.value.to_string();
-                        }
-                    }
-                    stack.push(GPXElement::Link(link));
-                }
+                "link" => stack.push(GPXElement::Link(parse_link(e.attributes()))),
+                "email" => set_email(&mut stack, e.attributes()),
                 "text" => stack.push(GPXElement::Text),
                 "trk" | "rte" => stack.push(GPXElement::Track(Track::default())),
                 "trkseg" => {
@@ -332,6 +366,8 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
             },
             // Self-closing points (`<trkpt lat=".." lon=".."/>`), which have no children
             Ok(Event::Empty(e)) => match e.name().as_ref() {
+                "link" => attach_link(&mut stack, &mut gpx, parse_link(e.attributes())),
+                "email" => set_email(&mut stack, e.attributes()),
                 "trkpt" => {
                     if let Some(GPXElement::Segment(trkseg)) = stack.last_mut() {
                         trkpt_chunk.trkpt.push(Trackpoint {
@@ -398,18 +434,7 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
                     }
                     "link" => {
                         if let Some(GPXElement::Link(link)) = stack.pop() {
-                            match stack.last_mut() {
-                                Some(GPXElement::Author(author)) => {
-                                    author.link = Some(link);
-                                }
-                                Some(GPXElement::Track(trk)) => {
-                                    trk.info.link = Some(link);
-                                }
-                                Some(GPXElement::Waypoint(wpt)) => {
-                                    wpt.link = Some(link);
-                                }
-                                _ => (),
-                            }
+                            attach_link(&mut stack, &mut gpx, link);
                         }
                     }
                     "trk" => {
@@ -594,8 +619,8 @@ mod tests {
                 .is_some_and(|d| d == "track description")
         );
         assert!(trk.info.src.as_ref().is_some_and(|s| s == "track source"));
-        assert!(trk.info.link.is_some());
-        let link = trk.info.link.as_ref().unwrap();
+        assert_eq!(trk.info.links.len(), 1);
+        let link = &trk.info.links[0];
         assert_eq!(link.href, "https://gpx.studio");
         assert!(link.text.as_ref().is_some_and(|t| t == "track link text"));
         assert!(trk.info.type_.as_ref().is_some_and(|c| c == "Cycling"));
@@ -686,6 +711,86 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_every_link_and_the_email() {
+        let gpx = parse_data("with_links");
+
+        // the file has as many links as it says, self-closing or not
+        let hrefs = |links: &[Link]| links.iter().map(|l| l.href.clone()).collect::<Vec<_>>();
+        assert_eq!(
+            hrefs(&gpx.info.links),
+            ["https://example.com/file-1", "https://example.com/file-2"]
+        );
+        assert_eq!(gpx.info.links[0].text.as_deref(), Some("first"));
+        assert_eq!(gpx.info.links[1].text, None);
+
+        // the author has one link and an email, which is given by two attributes
+        let author = gpx.info.author.as_ref().unwrap();
+        assert_eq!(author.name.as_deref(), Some("someone"));
+        assert_eq!(author.email.as_deref(), Some("someone@example.com"));
+        assert_eq!(
+            author.link.as_ref().unwrap().href,
+            "https://example.com/author"
+        );
+
+        let waypoints: Vec<_> = gpx.wpt.iter().collect();
+        assert_eq!(
+            hrefs(&waypoints[0].links),
+            [
+                "https://example.com/wpt-1",
+                "https://example.com/wpt-2",
+                "https://example.com/wpt-3"
+            ]
+        );
+        assert_eq!(waypoints[0].links[2].text.as_deref(), Some("three"));
+        assert!(waypoints[1].links.is_empty());
+
+        // tracks, and routes which are read as tracks
+        assert_eq!(gpx.trk.len(), 2);
+        assert_eq!(
+            hrefs(&gpx.trk[0].info.links),
+            ["https://example.com/trk-1", "https://example.com/trk-2"]
+        );
+        assert_eq!(
+            hrefs(&gpx.trk[1].info.links),
+            ["https://example.com/rte-1", "https://example.com/rte-2"]
+        );
+    }
+
+    #[test]
+    fn test_parse_email_variants() {
+        let author = |xml: &str| {
+            let data = format!("<gpx><metadata><author>{xml}</author></metadata></gpx>");
+            parse(data.as_bytes(), &mut Default::default())
+                .unwrap()
+                .info
+                .author
+                .unwrap()
+        };
+        assert_eq!(
+            author(r#"<email id="a" domain="b.c"></email>"#)
+                .email
+                .as_deref(),
+            Some("a@b.c")
+        );
+        assert_eq!(
+            author(r#"<name>n</name><email id="a" domain="b.c"/>"#)
+                .email
+                .as_deref(),
+            Some("a@b.c")
+        );
+        // an email that is not complete is not one
+        assert_eq!(author(r#"<email id="a"/>"#).email, None);
+        assert_eq!(author("<name>n</name>").email, None);
+        // outside of an author it means nothing
+        let gpx = parse(
+            br#"<gpx><metadata><name>n</name><email id="a" domain="b.c"/></metadata></gpx>"#,
+            &mut Default::default(),
+        )
+        .unwrap();
+        assert!(gpx.info.author.is_none());
+    }
+
+    #[test]
     fn test_parse_segments() {
         let gpx = parse_data("with_segments");
 
@@ -763,8 +868,8 @@ mod tests {
                 .as_ref()
                 .is_some_and(|d| d == "waypoint description")
         );
-        assert!(wpt.link.is_some());
-        let link = wpt.link.as_ref().unwrap();
+        assert_eq!(wpt.links.len(), 1);
+        let link = &wpt.links[0];
         assert_eq!(link.href, "https://gpx.studio");
         assert!(
             link.text

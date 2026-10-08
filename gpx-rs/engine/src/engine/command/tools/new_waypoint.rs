@@ -36,7 +36,15 @@ pub fn set_waypoint_fields(
     // the description is also the comment, as it is what the other applications show
     waypoint.cmt = non_empty(desc);
     waypoint.sym = non_empty(icon);
-    waypoint.link = non_empty(link).map(|href| Link { href, text: None });
+    // the form has a single link: it is the first one, the others are left as they are
+    match (non_empty(link), waypoint.links.first_mut()) {
+        (Some(href), Some(first)) if first.href != href => *first = Link { href, text: None },
+        (Some(href), None) => waypoint.links.push(Link { href, text: None }),
+        (None, Some(_)) => {
+            waypoint.links.remove(0);
+        }
+        _ => (),
+    }
 }
 
 impl Apply for NewWaypoint<'_> {
@@ -137,7 +145,7 @@ mod tests {
         assert_eq!(wpt.cmt.as_deref(), Some("a description"));
         assert_eq!(wpt.sym.as_deref(), Some("Summit"));
         assert_eq!(
-            wpt.link.as_ref().map(|l| l.href.as_str()),
+            wpt.links.first().map(|l| l.href.as_str()),
             Some("https://example.com")
         );
         assert_ne!(fx.files[&b].wpt.rev_id, rev);
@@ -178,7 +186,7 @@ mod tests {
         .unwrap();
         let wpt = &waypoints(&fx, a)[0];
         assert!(wpt.name.is_none() && wpt.desc.is_none() && wpt.cmt.is_none());
-        assert!(wpt.sym.is_none() && wpt.link.is_none());
+        assert!(wpt.sym.is_none() && wpt.links.is_empty());
     }
 
     #[test]

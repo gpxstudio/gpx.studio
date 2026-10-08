@@ -13,7 +13,7 @@ pub struct Waypoint {
     pub name: Option<String>,
     pub cmt: Option<String>,
     pub desc: Option<String>,
-    pub link: Option<Link>,
+    pub links: Vec<Link>,
     pub sym: Option<String>,
     pub type_: Option<String>,
 }
@@ -28,7 +28,7 @@ impl Waypoint {
             && self.name == other.name
             && self.cmt == other.cmt
             && self.desc == other.desc
-            && self.link == other.link
+            && self.links == other.links
             && self.sym == other.sym
             && self.type_ == other.type_
     }
