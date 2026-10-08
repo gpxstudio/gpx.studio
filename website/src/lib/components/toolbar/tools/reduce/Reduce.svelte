@@ -29,11 +29,14 @@
 
     let reducedLayer = new ReducedLayer();
 
+    // read again only when the selection or the files change, not with the tolerance
+    let distances = $derived.by(() => {
+        void $statistics;
+        return engine.reductionDistances();
+    });
+
     $effect(() => {
-        // recomputed when the selection or the files change
-        const stats = $statistics;
-        const distances = engine.reductionDistances();
-        reducedLayer.update(stats, distances, $tolerance);
+        reducedLayer.update($statistics, distances, $tolerance);
     });
 
     $effect(() => {
