@@ -125,6 +125,26 @@ export type RoutePoints = {
     mtbScale?: readonly (string | undefined)[];
 };
 
+/** Which data of the trackpoints a file is exported with (see `Engine.exportFile`). */
+export type ExportOptions = {
+    time: boolean;
+    hr: boolean;
+    cad: boolean;
+    atemp: boolean;
+    power: boolean;
+    /** The OpenStreetMap data: surface, highway, SAC scale and MTB scale. */
+    osm: boolean;
+};
+
+export const ALL_EXPORT_OPTIONS: ExportOptions = {
+    time: true,
+    hr: true,
+    cad: true,
+    atemp: true,
+    power: true,
+    osm: true,
+};
+
 /**
  * Timestamp of the trackpoints that have none, in `SelectionStatistics.timestamps` (the smallest
  * 64-bit integer, like `NO_TIME` in the engine).
@@ -688,6 +708,39 @@ class Engine {
      */
     createArtificialTimestamps(startTime: Date, totalTime: number) {
         return this.run((w) => w.createArtificialTimestamps(startTime.getTime(), totalTime));
+    }
+
+    /**
+     * A file as GPX (UTF-8 bytes), `undefined` if it does not exist. The options say which data of the
+     * trackpoints to keep.
+     */
+    exportFile(
+        fileId: string,
+        options: ExportOptions = ALL_EXPORT_OPTIONS
+    ): Uint8Array<ArrayBuffer> | undefined {
+        // a copy out of the memory of the engine, so a plain ArrayBuffer
+        return this.wasm?.export_file(
+            fileId,
+            options.time,
+            options.hr,
+            options.cad,
+            options.atemp,
+            options.power,
+            options.osm
+        ) as Uint8Array<ArrayBuffer> | undefined;
+    }
+
+    /** The data that some files have, which the options of `exportFile` can leave out. */
+    exportableData(fileIds: string[]): ExportOptions {
+        const bits = this.wasm?.exportable_data(idsToBytes(fileIds)) ?? 0;
+        return {
+            time: (bits & 1) !== 0,
+            hr: (bits & 2) !== 0,
+            cad: (bits & 4) !== 0,
+            atemp: (bits & 8) !== 0,
+            power: (bits & 16) !== 0,
+            osm: (bits & 32) !== 0,
+        };
     }
 
     /**

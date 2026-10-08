@@ -5,8 +5,10 @@
     import { Separator } from '$lib/components/ui/separator';
     import { Dialog } from 'bits-ui';
     import {
+        allFileIds,
         exportAllFiles,
         exportSelectedFiles,
+        selectedFileIds,
         ExportState,
         exportState,
     } from '$lib/components/export/utils.svelte';
@@ -21,55 +23,46 @@
         SquareActivity,
     } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
-    import { GPXGlobalStatistics } from 'gpx';
-    import { ListRootItem } from '$lib/components/file-list/file-list';
-    import { fileStateCollection } from '$lib/logic/file-state';
-    import { selection } from '$lib/logic/selection';
-    import { gpxStatistics } from '$lib/logic/statistics';
-    import { get } from 'svelte/store';
+    import { engine, type ExportOptions } from '$lib/engine';
+
+    const selection = engine.selection;
+    const order = engine.order;
+    const files = engine.files;
 
     let open = $derived(exportState.current !== ExportState.NONE);
-    let exportOptions: Record<string, boolean> = $state({
+    let exportOptions: ExportOptions = $state({
         time: true,
         hr: true,
         cad: true,
         atemp: true,
         power: true,
-        extensions: false,
+        osm: false,
     });
-    let hide: Record<string, boolean> = $derived.by(() => {
-        if (exportState.current === ExportState.NONE) {
-            return {
-                time: false,
-                hr: false,
-                cad: false,
-                atemp: false,
-                power: false,
-                extensions: false,
-            };
-        } else {
-            let statistics = $gpxStatistics.global;
-            if (exportState.current === ExportState.ALL) {
-                statistics = Array.from(get(fileStateCollection).values())
-                    .map((file) => file.statistics)
-                    .reduce((acc, cur) => {
-                        if (cur !== undefined) {
-                            acc.mergeWith(cur.getStatisticsFor(new ListRootItem()).global);
-                        }
-                        return acc;
-                    }, new GPXGlobalStatistics());
-            }
-            return {
-                time: statistics.time.total === 0,
-                hr: statistics.hr.count === 0,
-                cad: statistics.cad.count === 0,
-                atemp: statistics.atemp.count === 0,
-                power: statistics.power.count === 0,
-                extensions: Object.keys(statistics.extensions).length === 0,
-            };
+    // the files that are exported
+    let fileIds: string[] = $derived.by(() => {
+        // the selection and the order change with the files
+        void $selection;
+        void $order;
+        void $files;
+        if (exportState.current === ExportState.SELECTION) {
+            return selectedFileIds();
+        } else if (exportState.current === ExportState.ALL) {
+            return allFileIds();
         }
+        return [];
     });
-    let exclude = $derived(Object.keys(exportOptions).filter((key) => !exportOptions[key]));
+    // the data that none of them has is not offered
+    let hide: Record<keyof ExportOptions, boolean> = $derived.by(() => {
+        const available = engine.exportableData(fileIds);
+        return {
+            time: !available.time,
+            hr: !available.hr,
+            cad: !available.cad,
+            atemp: !available.atemp,
+            power: !available.power,
+            osm: !available.osm,
+        };
+    });
 
     $effect(() => {
         if (open) {
@@ -112,17 +105,26 @@
                     variant="outline"
                     class="grow"
                     onclick={() => {
+                        // what is not offered is left out
+                        const options = {
+                            time: exportOptions.time && !hide.time,
+                            hr: exportOptions.hr && !hide.hr,
+                            cad: exportOptions.cad && !hide.cad,
+                            atemp: exportOptions.atemp && !hide.atemp,
+                            power: exportOptions.power && !hide.power,
+                            osm: exportOptions.osm && !hide.osm,
+                        };
                         if (exportState.current === ExportState.SELECTION) {
-                            exportSelectedFiles(exclude);
+                            exportSelectedFiles(options);
                         } else if (exportState.current === ExportState.ALL) {
-                            exportAllFiles(exclude);
+                            exportAllFiles(options);
                         }
                         open = false;
                         exportState.current = ExportState.NONE;
                     }}
                 >
                     <Download size="16" />
-                    {#if $fileStateCollection.size === 1 || (exportState.current === ExportState.SELECTION && $selection.size === 1)}
+                    {#if fileIds.length === 1}
                         {i18n._('menu.download_file')}
                     {:else}
                         {i18n._('menu.download_files')}
@@ -184,10 +186,10 @@
                         </Label>
                     </div>
                     <div
-                        class="flex flex-row items-center gap-1.5 {hide.extensions ? 'hidden' : ''}"
+                        class="flex flex-row items-center gap-1.5 {hide.osm ? 'hidden' : ''}"
                     >
-                        <Checkbox id="export-extensions" bind:checked={exportOptions.extensions} />
-                        <Label for="export-extensions" class="flex flex-row items-center gap-1">
+                        <Checkbox id="export-osm" bind:checked={exportOptions.osm} />
+                        <Label for="export-osm" class="flex flex-row items-center gap-1">
                             <Earth size="16" />
                             {i18n._('quantities.osm_extensions')}
                         </Label>

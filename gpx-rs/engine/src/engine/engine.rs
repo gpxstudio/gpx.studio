@@ -1,10 +1,10 @@
 // TODO license in every file
 
 use crate::{
-    Action, Apply, Clipboard, Command, CoordinatesCache, Diff, FileId, FileOrder, FileStructure,
-    FileStructureCache, GlobalStatistics, RoutingBuffer, SelectMode, Selection, Stack, State,
-    StatisticsBuffer, StatisticsCache, TrackSegmentId, Trackpoint, TrackpointCategories, Waypoint,
-    WaypointId, reduction_distances,
+    Action, Apply, Clipboard, Command, CoordinatesCache, Diff, ExportOptions, FileId, FileOrder,
+    FileStructure, FileStructureCache, GlobalStatistics, RoutingBuffer, SelectMode, Selection,
+    Stack, State, StatisticsBuffer, StatisticsCache, TrackSegmentId, Trackpoint,
+    TrackpointCategories, Waypoint, WaypointId, reduction_distances, write,
 };
 
 #[derive(Debug, Default)]
@@ -116,6 +116,24 @@ impl Engine {
                 )
             })
             .collect()
+    }
+
+    /// A file as GPX (UTF-8), `None` if it does not exist.
+    pub fn export(&self, id: &FileId, options: ExportOptions) -> Option<Vec<u8>> {
+        let file = self.stack.current()?.get(id)?;
+        Some(write(file, &self.categories, options))
+    }
+
+    /// The data that the given files have, which the options of `export` can leave out.
+    pub fn exportable_data(&self, ids: &[FileId]) -> ExportOptions {
+        let Some(files) = self.stack.current() else {
+            return ExportOptions::NONE;
+        };
+        ids.iter()
+            .filter_map(|id| files.get(id))
+            .fold(ExportOptions::NONE, |data, file| {
+                data.union(file.exportable_data())
+            })
     }
 
     /// Whether there is something to undo.

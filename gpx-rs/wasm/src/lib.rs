@@ -1275,6 +1275,52 @@ pub fn selection_statistics() -> GlobalStatistics {
         .unwrap_or_else(|| JsValue::UNDEFINED.unchecked_into())
 }
 
+/// A file as GPX (UTF-8 bytes), `undefined` if it does not exist. The options say which data of the trackpoints
+/// to keep.
+#[wasm_bindgen]
+pub fn export_file(
+    file_id: &str,
+    time: bool,
+    hr: bool,
+    cad: bool,
+    atemp: bool,
+    power: bool,
+    osm: bool,
+) -> Option<Vec<u8>> {
+    let id = parse_file_id(file_id)?;
+    let options = engine::ExportOptions {
+        time,
+        hr,
+        cad,
+        atemp,
+        power,
+        osm,
+    };
+    with_engine(|e| e.export(&id, options)).flatten()
+}
+
+/// The data that some files have, so that the ones that none has are not offered when exporting
+/// them: a bit for the time (1), heart rate (2), cadence (4), temperature (8), power (16) and the
+/// OpenStreetMap data (32). `file_ids` are concatenated UUIDs.
+#[wasm_bindgen]
+pub fn exportable_data(file_ids: &[u8]) -> u8 {
+    let Some(ids) = self::file_ids(file_ids) else {
+        return 0;
+    };
+    let data = with_engine(|e| e.exportable_data(&ids)).unwrap_or(engine::ExportOptions::NONE);
+    [
+        data.time,
+        data.hr,
+        data.cad,
+        data.atemp,
+        data.power,
+        data.osm,
+    ]
+    .iter()
+    .enumerate()
+    .fold(0, |bits, (i, on)| bits | (u8::from(*on) << i))
+}
+
 /// Global statistics of the trackpoints from `start` to `end` (both included) of the selection,
 /// as indexed by the statistics buffers. `undefined` when the range is not in the selection.
 #[wasm_bindgen]
