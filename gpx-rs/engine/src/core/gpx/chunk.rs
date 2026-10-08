@@ -5,8 +5,8 @@ use crate::{Trackpoint, Waypoint};
 /// A run of items, shared between the successive versions of a [`crate::Chunked`] list: a chunk
 /// that is not touched by an edit is not copied.
 ///
-/// Chunks are equal when they have the same identity, which is cheap to compare and changes
-/// whenever the content does (a modified chunk is a new one).
+/// A chunk has an identity, which changes whenever the content does (a modified chunk is a new
+/// one): what is derived from a chunk, or kept of it, is up to date as long as the identity is.
 pub trait Chunk {
     type Item: Clone;
 
@@ -27,8 +27,8 @@ pub trait Chunk {
 
 const MAX_TRKPT_CHUNK_SIZE: usize = 4096;
 
-#[derive(Debug, PartialEq, Eq)]
-pub struct TrackpointChunkId(Uuid);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+pub struct TrackpointChunkId(pub Uuid);
 
 impl Default for TrackpointChunkId {
     fn default() -> Self {
@@ -40,12 +40,6 @@ impl Default for TrackpointChunkId {
 pub struct TrackpointChunk {
     pub id: TrackpointChunkId,
     pub trkpt: Vec<Trackpoint>,
-}
-
-impl PartialEq for TrackpointChunk {
-    fn eq(&self, other: &Self) -> bool {
-        self.id == other.id
-    }
 }
 
 impl Chunk for TrackpointChunk {
@@ -68,8 +62,8 @@ impl Chunk for TrackpointChunk {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct WaypointChunkId(Uuid);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+pub struct WaypointChunkId(pub Uuid);
 
 impl Default for WaypointChunkId {
     fn default() -> Self {
@@ -83,12 +77,6 @@ const MAX_WPT_CHUNK_SIZE: usize = 128;
 pub struct WaypointChunk {
     pub id: WaypointChunkId,
     pub wpt: Vec<Waypoint>,
-}
-
-impl PartialEq for WaypointChunk {
-    fn eq(&self, other: &Self) -> bool {
-        self.id == other.id
-    }
 }
 
 impl Chunk for WaypointChunk {
@@ -141,20 +129,8 @@ mod tests {
     fn test_new_chunks_have_their_own_identity() {
         let a = TrackpointChunk::new(vec![Trackpoint::default()]);
         let b = TrackpointChunk::new(vec![Trackpoint::default()]);
-        assert_ne!(a, b);
+        assert_ne!(a.id, b.id);
         assert_eq!(a.items().len(), 1);
-        assert_ne!(WaypointChunk::new(vec![]), WaypointChunk::new(vec![]));
-    }
-
-    #[test]
-    fn test_chunk_equality_is_by_id() {
-        let a = TrackpointChunk::default();
-        let b = TrackpointChunk::default();
-        assert_ne!(a, b);
-        let c = TrackpointChunk {
-            id: TrackpointChunkId(a.id.0),
-            trkpt: vec![Trackpoint::default()],
-        };
-        assert_eq!(a, c);
+        assert_ne!(WaypointChunk::new(vec![]).id, WaypointChunk::new(vec![]).id);
     }
 }

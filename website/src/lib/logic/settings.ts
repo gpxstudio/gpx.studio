@@ -1,5 +1,3 @@
-import { type Database } from '$lib/db';
-import { liveQuery } from 'dexie';
 import {
     basemaps,
     defaultBasemap,
@@ -15,11 +13,35 @@ import {
     type LayerTreeType,
 } from '$lib/assets/layers';
 import { browser } from '$app/environment';
+import { engine } from '$lib/engine';
 import { get, writable, type Writable } from 'svelte/store';
 
+/** What the settings were saved as, by key: JSON strings (see `Engine.openStorage`). */
+export type StoredSettings = Record<string, string>;
+
+/** Reads the saved value of a setting, `undefined` if there is none or if it cannot be read. */
+function storedValue(stored: StoredSettings, key: string): { value: any } | undefined {
+    if (!Object.hasOwn(stored, key)) {
+        return undefined;
+    }
+    try {
+        return { value: JSON.parse(stored[key]) };
+    } catch {
+        return undefined;
+    }
+}
+
+/** Keeps a value; `undefined` is not something JSON can hold, it means no value. */
+function save(key: string, value: unknown) {
+    const json = JSON.stringify(value);
+    if (json === undefined) {
+        engine.deleteSetting(key);
+    } else {
+        engine.setSetting(key, json);
+    }
+}
+
 export class Setting<V> {
-    private _db: Database | null = null;
-    private _subscription: { unsubscribe: () => void } | null = null;
     private _key: string;
     private _value: Writable<V>;
     private _validator?: (value: V) => V;
@@ -30,30 +52,12 @@ export class Setting<V> {
         this._validator = validator;
     }
 
-    connectToDatabase(db: Database) {
-        if (this._db) return;
-        this._db = db;
-
-        let first = true;
-        this._subscription = liveQuery(() => db.settings.get(this._key)).subscribe((value) => {
-            if (value === undefined) {
-                if (!first) {
-                    this._value.set(value);
-                }
-            } else {
-                if (this._validator) {
-                    value = this._validator(value);
-                }
-                this._value.set(value);
-            }
-            first = false;
-        });
-    }
-
-    disconnectFromDatabase() {
-        this._subscription?.unsubscribe();
-        this._subscription = null;
-        this._db = null;
+    /** Takes the saved value, if there is one. */
+    connect(stored: StoredSettings) {
+        const saved = storedValue(stored, this._key);
+        if (saved) {
+            this._value.set(this._validator ? this._validator(saved.value) : saved.value);
+        }
     }
 
     subscribe(run: (value: V) => void, invalidate?: (value?: V) => void) {
@@ -62,11 +66,8 @@ export class Setting<V> {
 
     set(value: V) {
         if (typeof value === 'object' || value !== get(this._value)) {
-            if (this._db) {
-                this._db.settings.put(value, this._key);
-            } else {
-                this._value.set(value);
-            }
+            this._value.set(value);
+            save(this._key, value);
         }
     }
 
@@ -75,9 +76,8 @@ export class Setting<V> {
     }
 }
 
+/** A setting that has no value until it is connected: then the saved one, or the initial one. */
 export class SettingInitOnFirstRead<V> {
-    private _db: Database | null = null;
-    private _subscription: { unsubscribe: () => void } | null = null;
     private _key: string;
     private _value: Writable<V | undefined>;
     private _initial: V;
@@ -90,36 +90,17 @@ export class SettingInitOnFirstRead<V> {
         this._validator = validator;
     }
 
-    connectToDatabase(db: Database) {
-        if (this._db) return;
-        this._db = db;
-
-        let first = true;
-        this._subscription = liveQuery(() => db.settings.get(this._key)).subscribe((value) => {
-            if (value === undefined) {
-                if (first) {
-                    this._value.set(this._initial);
-                } else {
-                    this._value.set(value);
-                }
-            } else {
-                if (this._validator) {
-                    value = this._validator(value);
-                }
-                this._value.set(value);
-            }
-            first = false;
-        });
+    connect(stored: StoredSettings) {
+        const saved = storedValue(stored, this._key);
+        if (saved) {
+            this._value.set(this._validator ? this._validator(saved.value) : saved.value);
+        } else {
+            this._value.set(this._initial);
+        }
     }
 
     initialize() {
         this.set(this._initial);
-    }
-
-    disconnectFromDatabase() {
-        this._subscription?.unsubscribe();
-        this._subscription = null;
-        this._db = null;
     }
 
     subscribe(run: (value: V | undefined) => void, invalidate?: (value?: V | undefined) => void) {
@@ -128,11 +109,8 @@ export class SettingInitOnFirstRead<V> {
 
     set(value: V) {
         if (typeof value === 'object' || value !== get(this._value)) {
-            if (this._db) {
-                this._db.settings.put(value, this._key);
-            } else {
-                this._value.set(value);
-            }
+            this._value.set(value);
+            save(this._key, value);
         }
     }
 
@@ -322,19 +300,12 @@ export const settings = {
     defaultWidth: new Setting('defaultWidth', browser && window.innerWidth < 600 ? 8 : 5),
     bottomPanelSize: new Setting('bottomPanelSize', 170),
     rightPanelSize: new Setting('rightPanelSize', 240),
-    connectToDatabase(db: Database) {
+    /** Takes the saved values (see `Engine.openStorage`). */
+    connect(stored: StoredSettings) {
         for (const key in settings) {
             const setting = (settings as any)[key];
             if (setting instanceof Setting || setting instanceof SettingInitOnFirstRead) {
-                setting.connectToDatabase(db);
-            }
-        }
-    },
-    disconnectFromDatabase() {
-        for (const key in settings) {
-            const setting = (settings as any)[key];
-            if (setting instanceof Setting || setting instanceof SettingInitOnFirstRead) {
-                setting.disconnectFromDatabase();
+                setting.connect(stored);
             }
         }
     },

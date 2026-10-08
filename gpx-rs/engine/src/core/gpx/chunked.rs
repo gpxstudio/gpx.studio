@@ -6,7 +6,7 @@ use crate::Chunk;
 /// copies the chunks around the change, so that a version costs little more than the change.
 ///
 /// There are no empty chunks.
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct Chunked<C: Chunk> {
     chunks: Vec<Rc<C>>,
     cumul_length: Vec<usize>,

@@ -1,4 +1,4 @@
-import { distance, type Coordinates } from 'gpx';
+import { distance, type Coordinates } from '$lib/geo';
 import { get, writable } from 'svelte/store';
 import maplibregl, {
     type MapMouseEvent,
@@ -50,15 +50,9 @@ type Anchor = {
 type AnchorProperties = { anchorIndex: number; minZoom: number };
 type AnchorFeature = GeoJSON.Feature<GeoJSON.Point, AnchorProperties>;
 
-type Position = { lng: number; lat: number };
-
 /** Whether the tool has to show controls for a selection: it covers segments, or can get some. */
 function isRoutable(selection: Selection) {
     return selection.type === 'file' || selection.type === 'track' || selection.type === 'segment';
-}
-
-function toCoordinates({ lng, lat }: Position): Coordinates {
-    return { lat, lon: lng };
 }
 
 /**
@@ -103,7 +97,7 @@ export class RoutingControls {
      * Where the pointer hovers a segment of the selection: an anchor that can be dragged or
      * clicked to be added.
      */
-    temporaryAnchor: (Position & { segment: number }) | null = null;
+    temporaryAnchor: (Coordinates & { segment: number }) | null = null;
     showTemporaryAnchorBinded: (e: MapLayerMouseEvent) => void =
         this.showTemporaryAnchor.bind(this);
     updateTemporaryAnchorBinded: (e: MapMouseEvent) => void = this.updateTemporaryAnchor.bind(this);
@@ -328,11 +322,11 @@ export class RoutingControls {
         this.popup.remove();
     }
 
-    position(index: number): Position {
+    position(index: number): Coordinates {
         return { lng: this.statistics!.lng[index], lat: this.statistics!.lat[index] };
     }
 
-    async moveAnchor(anchor: Anchor, coordinates: Position) {
+    async moveAnchor(anchor: Anchor, coordinates: Coordinates) {
         // Move the anchor and update the route from and to the neighbouring anchors
         const initialAnchor = anchor;
         const initialCoordinates = { lng: anchor.lng, lat: anchor.lat };
@@ -349,7 +343,7 @@ export class RoutingControls {
         const [previousAnchor, nextAnchor] = this.getNeighbouringAnchors(anchor);
 
         const chain: Anchor[] = [];
-        const targets: Position[] = [];
+        const targets: Coordinates[] = [];
         if (previousAnchor) {
             chain.push(previousAnchor);
             targets.push(this.position(previousAnchor.index));
@@ -457,7 +451,7 @@ export class RoutingControls {
         const first = this.position(start);
         const last = this.position(end - 1);
         // the end of the segment has to be close to its start, up to a kilometer
-        return distance(toCoordinates(first), toCoordinates(last)) <= 1000;
+        return distance(first, last) <= 1000;
     }
 
     async appendAnchor(e: maplibregl.MapMouseEvent) {
@@ -480,7 +474,7 @@ export class RoutingControls {
         this.appendAnchorWithCoordinates({ lng: e.lngLat.lng, lat: e.lngLat.lat });
     }
 
-    async appendAnchorWithCoordinates(coordinates: Position) {
+    async appendAnchorWithCoordinates(coordinates: Coordinates) {
         // Add a new anchor to the end of the last segment
         const statistics = this.statistics;
         const revision = this.anchorData?.revision;
@@ -546,7 +540,7 @@ export class RoutingControls {
      * single segment) or where they were moved to, and replaces what is between the first and
      * the last anchor by the route.
      */
-    async routeBetweenAnchors(anchors: Anchor[], targets: Position[]): Promise<boolean> {
+    async routeBetweenAnchors(anchors: Anchor[], targets: Coordinates[]): Promise<boolean> {
         const revision = this.anchorData?.revision;
         if (revision === undefined) {
             return false;
@@ -565,7 +559,7 @@ export class RoutingControls {
 
         let response;
         try {
-            response = await route(targets.map(toCoordinates));
+            response = await route(targets);
         } catch (e: any) {
             toast.error(i18n._(e.message, e.message));
             return false;
@@ -581,9 +575,9 @@ export class RoutingControls {
         const keepFirst =
             first.index !== segmentStart &&
             (first.index !== lastIndex ||
-                distance(toCoordinates(targets[0]), {
+                distance(targets[0], {
                     lat: response.lat[0],
-                    lon: response.lng[0],
+                    lng: response.lng[0],
                 }) > 1);
         const keepLast = last.index !== lastIndex;
 
@@ -843,7 +837,7 @@ export class RoutingControls {
         return false;
     }
 
-    moveAnchorFeature(anchor: Anchor, coordinates: Position) {
+    moveAnchorFeature(anchor: Anchor, coordinates: Coordinates) {
         const source = get(map)?.getSource(
             this.layers.get(anchor.id === this.anchors.length ? 0 : anchor.zoom)?.id ?? ''
         ) as GeoJSONSource | undefined;

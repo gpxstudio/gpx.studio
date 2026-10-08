@@ -245,7 +245,14 @@ mod tests {
         // the segments before are in the first track, the ones after in the second one
         assert_eq!(a.trkseg.len(), seg + 1);
         assert_eq!(b.trkseg.len(), before.trk[trk].trkseg.len() - seg);
-        assert_eq!(a.trkseg[..seg], before.trk[trk].trkseg[..seg]);
+        // the segments before are the same ones, with the same trackpoints
+        for (kept, original) in a.trkseg[..seg].iter().zip(&before.trk[trk].trkseg[..seg]) {
+            assert_eq!((kept.id, kept.rev_id), (original.id, original.rev_id));
+            let chunks = |segment: &TrackSegment| -> Vec<_> {
+                segment.chunks().iter().map(|chunk| chunk.id).collect()
+            };
+            assert_eq!(chunks(kept), chunks(original));
+        }
         // new ids for everything that moved, so that they are unique
         let ids: HashSet<TrackSegmentId> = after
             .trk

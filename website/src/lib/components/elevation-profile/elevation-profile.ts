@@ -21,7 +21,7 @@ import Chart, {
     type TooltipItem,
 } from 'chart.js/auto';
 import { get, type Readable, type Writable } from 'svelte/store';
-import type { Coordinates } from 'gpx';
+import type { Coordinates } from '$lib/geo';
 import {
     engine,
     NO_TIME,
@@ -456,7 +456,7 @@ export class ElevationProfile {
                 highway: highways[index],
                 sacScale: sacScales[index],
                 mtbScale: mtbScales[index],
-                coordinates: { lat: data.lat[index], lon: data.lng[index] },
+                coordinates: { lat: data.lat[index], lng: data.lng[index] },
                 index,
             });
             if (data.speed && (global.totalTime ?? 0) > 0) {

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3" version="1.1" creator="test">
+    <rte>
+        <name>with extensions</name>
+        <rtept lat="1" lon="1">
+            <ele>10</ele>
+            <extensions>
+                <gpxx:RoutePointExtension>
+                    <gpxx:rpt lat="1.1" lon="1.1"/>
+                    <gpxx:rpt lat="1.2" lon="1.2"></gpxx:rpt>
+                </gpxx:RoutePointExtension>
+            </extensions>
+        </rtept>
+        <rtept lat="2" lon="2">
+            <ele>20</ele>
+            <time>2024-01-01T00:00:00Z</time>
+        </rtept>
+        <rtept lat="3" lon="3"/>
+    </rte>
+    <rte>
+        <name>empty</name>
+    </rte>
+</gpx>

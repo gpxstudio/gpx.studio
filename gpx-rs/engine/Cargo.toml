@@ -5,5 +5,7 @@ edition = "2024"
 
 [dependencies]
 chrono = "0.4.45"
+postcard = { version = "1.1.3", features = ["use-std"] }
 quick-xml = "0.42.0"
-uuid = { version = "1.26.1", features = ["v4"] }
+serde = { version = "1.0.229", features = ["derive"] }
+uuid = { version = "1.26.1", features = ["serde", "v4"] }

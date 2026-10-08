@@ -63,10 +63,10 @@
     let manualCamera = $state(false);
     let zoom = $state('0');
     let lat = $state('0');
-    let lon = $state('0');
+    let lng = $state('0');
     let bearing = $state('0');
     let pitch = $state('0');
-    let hash = $derived(manualCamera ? `#${zoom}/${lat}/${lon}/${bearing}/${pitch}` : '');
+    let hash = $derived(manualCamera ? `#${zoom}/${lat}/${lng}/${bearing}/${pitch}` : '');
 
     $effect(() => {
         if (options.elevation.show || options.elevation.height) {
@@ -78,7 +78,7 @@
         if ($map) {
             let center = $map.getCenter();
             lat = center.lat.toFixed(4);
-            lon = center.lng.toFixed(4);
+            lng = center.lng.toFixed(4);
             zoom = $map.getZoom().toFixed(2);
             bearing = $map.getBearing().toFixed(1);
             pitch = $map.getPitch().toFixed(0);
@@ -293,7 +293,7 @@
                     </Label>
                     <Label class="flex flex-col gap-1">
                         <span>{i18n._('embedding.longitude')}</span>
-                        <span>{lon}</span>
+                        <span>{lng}</span>
                     </Label>
                     <Label class="flex flex-col gap-1">
                         <span>{i18n._('embedding.zoom')}</span>

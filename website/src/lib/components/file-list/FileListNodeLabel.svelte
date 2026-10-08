@@ -18,7 +18,6 @@
         Scissors,
         FileStack,
     } from '@lucide/svelte';
-    import { ListLevel } from './file-list';
     import { getContext } from 'svelte';
     import { i18n } from '$lib/i18n.svelte';
     import MetadataDialog from '$lib/components/file-list/metadata/MetadataDialog.svelte';
@@ -56,14 +55,7 @@
     let orientation = getContext<'vertical' | 'horizontal'>('orientation');
     let embedding = getContext<boolean>('embedding');
 
-    const levels = {
-        file: ListLevel.FILE,
-        track: ListLevel.TRACK,
-        segment: ListLevel.SEGMENT,
-        waypoints: ListLevel.WAYPOINTS,
-        waypoint: ListLevel.WAYPOINT,
-    };
-    let level = $derived(levels[node.type]);
+    let level = $derived(node.type);
 
     let singleSelection = $derived(selectionSize($selection) === 1);
 
@@ -128,7 +120,7 @@
                 <MetadataDialog bind:open={openEditMetadata} {fileState} {node} />
                 <StyleDialog bind:open={openEditStyle} {fileState} {node} />
             {/if}
-            {#if level === ListLevel.FILE || level === ListLevel.TRACK}
+            {#if level === 'file' || level === 'track'}
                 <div
                     class="absolute {orientation === 'vertical'
                         ? 'top-0 bottom-0 right-0 w-1'
@@ -178,9 +170,9 @@
                     }
                 }}
             >
-                {#if level === ListLevel.SEGMENT}
+                {#if level === 'segment'}
                     <Waypoints size="16" class="mx-1 shrink-0" />
-                {:else if level === ListLevel.WAYPOINT}
+                {:else if level === 'waypoint'}
                     {#if symbolKey && symbols[symbolKey].icon}
                         {@const SymbolIcon = symbols[symbolKey].icon}
                         <SymbolIcon size="16" class="mx-1 shrink-0" />
@@ -250,7 +242,7 @@
                 <ContextMenu.Separator />
             {/if}
         {/if}
-        {#if level !== ListLevel.WAYPOINTS}
+        {#if level !== 'waypoints'}
             <ContextMenu.Item onclick={() => engine.selectAll()}>
                 <FileStack size="16" />
                 {i18n._('menu.select_all')}

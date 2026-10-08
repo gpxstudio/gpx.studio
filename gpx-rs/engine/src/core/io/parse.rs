@@ -21,6 +21,7 @@ enum GPXElement {
     Track(Track),
     Segment(TrackSegment),
     Trackpoint(Trackpoint),
+    RoutePoint(LngLat),
     Waypoint(Waypoint),
     Elevation,
     Time,
@@ -49,6 +50,11 @@ fn parse_coordinates(attributes: Attributes<'_>) -> LngLat {
         }
     }
     coordinates
+}
+
+/// Whether the element is a point of the detailed path of a route point (`gpxx:rpt`).
+fn is_route_point_extension(name: &str) -> bool {
+    name == "rpt" || name.ends_with(":rpt")
 }
 
 /// Whether the element holds a value, which is its text.
@@ -262,6 +268,10 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
     let mut stack: Vec<GPXElement> = vec![];
     let mut trkpt_chunk = TrackpointChunk::default();
     let mut wpt_chunk = WaypointChunk::default();
+    // Routes are read as tracks of a single segment, which is what `rte_segment` collects the points of. A route
+    // point that comes with the detailed path of the route to the next one (`gpxx:rpt`) is replaced by it.
+    let mut rte_segment = TrackSegment::default();
+    let mut rpt_points: Vec<Trackpoint> = vec![];
     // the text of the element at the top of the stack, up to now
     let mut text = String::new();
     loop {
@@ -283,11 +293,11 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
                     stack.push(GPXElement::Link(link));
                 }
                 "text" => stack.push(GPXElement::Text),
-                "trk" => stack.push(GPXElement::Track(Track::default())),
+                "trk" | "rte" => stack.push(GPXElement::Track(Track::default())),
                 "trkseg" => {
                     stack.push(GPXElement::Segment(TrackSegment::default()));
                 }
-                "trkpt" => {
+                "trkpt" | "rtept" => {
                     stack.push(GPXElement::Trackpoint(Trackpoint {
                         coordinates: parse_coordinates(e.attributes()),
                         ..Default::default()
@@ -298,6 +308,9 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
                         coordinates: parse_coordinates(e.attributes()),
                         ..Default::default()
                     }));
+                }
+                name if is_route_point_extension(name) => {
+                    stack.push(GPXElement::RoutePoint(parse_coordinates(e.attributes())));
                 }
                 "ele" => stack.push(GPXElement::Elevation),
                 "time" => stack.push(GPXElement::Time),
@@ -328,6 +341,25 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
                         if trkpt_chunk.is_full() {
                             trkseg.push(std::mem::take(&mut trkpt_chunk));
                         }
+                    }
+                }
+                "rtept" => {
+                    if let Some(GPXElement::Track(_)) = stack.last() {
+                        trkpt_chunk.trkpt.push(Trackpoint {
+                            coordinates: parse_coordinates(e.attributes()),
+                            ..Default::default()
+                        });
+                        if trkpt_chunk.is_full() {
+                            rte_segment.push(std::mem::take(&mut trkpt_chunk));
+                        }
+                    }
+                }
+                name if is_route_point_extension(name) => {
+                    if let Some(GPXElement::Trackpoint(_)) = stack.last() {
+                        rpt_points.push(Trackpoint {
+                            coordinates: parse_coordinates(e.attributes()),
+                            ..Default::default()
+                        });
                     }
                 }
                 "wpt" => {
@@ -383,6 +415,42 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
                     "trk" => {
                         if let Some(GPXElement::Track(trk)) = stack.pop() {
                             gpx.trk.push(trk);
+                        }
+                    }
+                    "rte" => {
+                        if let Some(GPXElement::Track(mut trk)) = stack.pop() {
+                            rte_segment.push(std::mem::take(&mut trkpt_chunk));
+                            if !rte_segment.is_empty() {
+                                let mut trkseg = std::mem::take(&mut rte_segment);
+                                trkseg.compute_anchors();
+                                trk.trkseg.push(trkseg);
+                            }
+                            gpx.trk.push(trk);
+                        }
+                    }
+                    "rtept" => {
+                        if let Some(GPXElement::Trackpoint(rtept)) = stack.pop()
+                            && let Some(GPXElement::Track(_)) = stack.last()
+                        {
+                            let points = if rpt_points.is_empty() {
+                                vec![rtept]
+                            } else {
+                                std::mem::take(&mut rpt_points)
+                            };
+                            for point in points {
+                                trkpt_chunk.trkpt.push(point);
+                                if trkpt_chunk.is_full() {
+                                    rte_segment.push(std::mem::take(&mut trkpt_chunk));
+                                }
+                            }
+                        }
+                    }
+                    name if is_route_point_extension(name) => {
+                        if let Some(GPXElement::RoutePoint(coordinates)) = stack.pop() {
+                            rpt_points.push(Trackpoint {
+                                coordinates,
+                                ..Default::default()
+                            });
                         }
                     }
                     "trkseg" => {
@@ -569,6 +637,52 @@ mod tests {
         assert_eq!(trkpt.coordinates.lat, 50.782212);
         assert_eq!(trkpt.coordinates.lng, 4.406377);
         assert_eq!(trkpt.ele, 115.5);
+    }
+
+    #[test]
+    fn test_parse_routes_as_tracks() {
+        let gpx = parse_data("with_routes");
+
+        assert_eq!(gpx.trk.len(), 2);
+        let trk = &gpx.trk[0];
+        assert_eq!(trk.info.name.as_deref(), Some("route 1"));
+        assert_eq!(trk.info.type_.as_deref(), Some("Cycling"));
+        assert_eq!(trk.trkseg.len(), 1);
+        let trkseg = &trk.trkseg[0];
+        assert_eq!(trkseg.len(), 49);
+        let trkpt = &trkseg[0];
+        assert_eq!(trkpt.coordinates.lat, 50.790867);
+        assert_eq!(trkpt.coordinates.lng, 4.404968);
+        assert_eq!(trkpt.ele, 109.0);
+
+        let trk = &gpx.trk[1];
+        assert_eq!(trk.info.name.as_deref(), Some("route 2"));
+        assert_eq!(trk.trkseg[0].len(), 28);
+    }
+
+    #[test]
+    fn test_parse_route_point_extensions() {
+        let gpx = parse_data("with_route_extensions");
+
+        // a route without points has no segment
+        assert_eq!(gpx.trk.len(), 2);
+        assert!(gpx.trk[1].trkseg.is_empty());
+
+        let trk = &gpx.trk[0];
+        assert_eq!(trk.info.name.as_deref(), Some("with extensions"));
+        assert_eq!(trk.trkseg.len(), 1);
+        let points: Vec<_> = trk.trkseg[0].iter().collect();
+        // the detailed path replaces the route point it comes with
+        let coordinates: Vec<_> = points
+            .iter()
+            .map(|p| (p.coordinates.lat, p.coordinates.lng))
+            .collect();
+        assert_eq!(
+            coordinates,
+            [(1.1, 1.1), (1.2, 1.2), (2.0, 2.0), (3.0, 3.0)]
+        );
+        assert_eq!(points[2].ele, 20.0);
+        assert!(points[2].time.is_some());
     }
 
     #[test]

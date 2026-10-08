@@ -329,7 +329,8 @@ mod tests {
         let result =
             clean(bounds(-180.0, -90.0, 180.0, 90.0), CleanType::Outside).apply(&mut fx.state());
         assert!(matches!(result, Err(CommandError::NothingToDo)));
-        assert_eq!(fx.files[&id], before);
+        // the file was not even copied
+        assert!(std::rc::Rc::ptr_eq(&fx.files[&id], &before));
     }
 
     #[test]

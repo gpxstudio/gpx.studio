@@ -2,9 +2,10 @@
 
 use crate::{
     Action, Apply, Clipboard, Command, CoordinatesCache, Diff, ExportOptions, FileId, FileOrder,
-    FileStructure, FileStructureCache, GlobalStatistics, RoutingBuffer, SelectMode, Selection,
-    Stack, State, StatisticsBuffer, StatisticsCache, TrackSegmentId, Trackpoint,
-    TrackpointCategories, Waypoint, WaypointId, reduction_distances, write,
+    FileStructure, FileStructureCache, GlobalStatistics, Restored, RoutingBuffer, SelectMode,
+    Selection, Snapshot, Stack, StackEntry, State, StatisticsBuffer, StatisticsCache,
+    TrackSegmentId, Trackpoint, TrackpointCategories, Waypoint, WaypointId, reduction_distances,
+    write,
 };
 
 #[derive(Debug, Default)]
@@ -116,6 +117,40 @@ impl Engine {
                 )
             })
             .collect()
+    }
+
+    /// What there is to keep of the engine, see [`crate::Persister`].
+    pub fn snapshot(&self) -> Snapshot {
+        Snapshot {
+            files: self.stack.current().cloned().unwrap_or_default(),
+            order: self.order.0.clone(),
+            categories: self.categories.clone(),
+        }
+    }
+
+    /// Puts files in an engine that has none, typically the ones read from the storage. They are
+    /// the state to start from: they cannot be undone. The files that were added are reported as
+    /// the last diff, and the order as changed.
+    pub fn restore(&mut self, restored: Restored) {
+        let files: StackEntry = restored
+            .files
+            .into_iter()
+            .map(|file| (file.id, file))
+            .collect();
+        self.categories = restored.categories;
+        self.order = FileOrder(restored.order);
+        self.selection = Selection::Empty;
+        self.clipboard = None;
+        self.diff = Some(Diff {
+            added: files.keys().copied().collect(),
+            ..Default::default()
+        });
+        self.stack = Stack::restored(files);
+        self.refresh();
+        self.sort_diff();
+        self.order_changed = true;
+        self.selection_changed = true;
+        self.clipboard_changed = true;
     }
 
     /// A file as GPX (UTF-8), `None` if it does not exist.
@@ -243,6 +278,7 @@ impl Engine {
             || self.clipboard != clipboard_before;
         if changed {
             self.refresh();
+            self.sort_diff();
         }
         // after the refresh, which also syncs the order and selection with the files (undo, redo)
         self.order_changed = self.order.0 != order_before;
@@ -271,6 +307,16 @@ impl Engine {
             };
             command.apply(&mut state).map_err(|err| err.to_string())
         })
+    }
+
+    /// Puts the files of the last diff in the order of the files (the stack does not know it), so
+    /// that whatever is done with them one after the other, like giving them colors, follows it.
+    fn sort_diff(&mut self) {
+        let position = |id: &FileId| self.order.0.iter().position(|other| other == id);
+        if let Some(diff) = &mut self.diff {
+            diff.added.sort_by_key(position);
+            diff.modified.sort_by_key(position);
+        }
     }
 
     /// Brings everything derived from the files back in line with the current stack entry.
@@ -1164,6 +1210,33 @@ mod tests {
 
         assert!(engine.execute(Action::Undo));
         assert_eq!(track_ids(&engine, a), tracks);
+    }
+
+    #[test]
+    fn test_added_files_are_reported_in_the_order_of_the_files() {
+        use crate::LoadFiles;
+
+        let mut engine = Engine::default();
+        let datas: Vec<Vec<u8>> = (0..12)
+            .map(|i| {
+                format!(r#"<gpx version="1.1"><metadata><name>{i}</name></metadata></gpx>"#)
+                    .into_bytes()
+            })
+            .collect();
+        let loads = datas
+            .iter()
+            .map(|data| Load { data, name: "x" })
+            .collect::<Vec<_>>();
+        assert!(edit(
+            &mut engine,
+            Command::LoadFiles(LoadFiles { files: loads })
+        ));
+        assert_eq!(engine.last_diff().unwrap().added, engine.order());
+
+        // files that come back with an undo too
+        assert!(engine.execute(Action::Undo));
+        assert!(engine.execute(Action::Redo));
+        assert_eq!(engine.last_diff().unwrap().added, engine.order());
     }
 
     #[test]

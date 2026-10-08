@@ -1,57 +1,14 @@
-import { fileStateCollection } from '$lib/logic/file-state';
-import { fileActionManager } from '$lib/logic/file-action-manager';
-import { applyToOrderedItemsFromFile, copied, cut, selection } from '$lib/logic/selection';
 import { currentTool, Tool } from '$lib/components/toolbar/tools';
-import {
-    ListFileItem,
-    ListLevel,
-    ListRootItem,
-    ListTrackItem,
-    ListTrackSegmentItem,
-    ListWaypointItem,
-    type ListItem,
-} from '$lib/components/file-list/file-list';
 import { i18n } from '$lib/i18n.svelte';
-import { freeze } from 'immer';
-import {
-    GPXFile,
-    Track,
-    TrackPoint,
-    TrackSegment,
-    Waypoint,
-    type LineStyleExtension,
-    type WaypointType,
-} from 'gpx';
 import { get } from 'svelte/store';
-import { settings } from '$lib/logic/settings';
-import { getClosestTrackSegments, getElevation } from '$lib/utils';
-import { gpxStatistics } from '$lib/logic/statistics';
 import { boundsManager } from './bounds';
 import { engine } from '$lib/engine';
 import { defaultFileName } from '$lib/default-file-name';
-
-// Generate unique file ids, different from the ones in the database
-export function getFileIds(n: number) {
-    let ids = [];
-    for (let index = 0; ids.length < n; index++) {
-        let id = `gpx-${index}`;
-        if (!fileStateCollection.getFile(id)) {
-            ids.push(id);
-        }
-    }
-    return ids;
-}
 
 /** The name of a new file: the translated default name, numbered if other files have it. */
 export function newFileName() {
     const names = [...get(engine.files).values()].map((file) => get(file).structure.name);
     return defaultFileName(i18n._('menu.new_file'), names);
-}
-
-export function newGPXFile() {
-    let file = new GPXFile();
-    file.metadata.name = newFileName();
-    return file;
 }
 
 export function createFile() {

@@ -1,4 +1,5 @@
-import { fileStateCollection } from '$lib/logic/file-state';
+import { engine } from '$lib/engine';
+import { get } from 'svelte/store';
 import maplibregl from 'maplibre-gl';
 
 type MapLayerMouseEventListener = (e: maplibregl.MapLayerMouseEvent) => void;
@@ -246,17 +247,23 @@ export class MapLayerEventManager {
         layerIds: string[],
         bounds: maplibregl.LngLatBounds
     ): string[] {
+        const files = get(engine.files);
         let result = layerIds.filter((layerId) => {
             if (!this._map.getLayer(layerId)) return false;
             const fileId = layerId.replace('-waypoints', '');
             if (fileId === layerId) {
-                return fileStateCollection.getStatistics(fileId)?.intersectsBBox(bounds) ?? true;
-            } else {
-                return (
-                    fileStateCollection.getStatistics(fileId)?.intersectsWaypointBBox(bounds) ??
-                    true
-                );
+                // the tracks of a file are all within its bounds
+                const file = files.get(fileId);
+                const box = file && get(file).statistics.bounds;
+                return box
+                    ? bounds.getWest() <= box.east &&
+                          bounds.getEast() >= box.west &&
+                          bounds.getSouth() <= box.north &&
+                          bounds.getNorth() >= box.south
+                    : true;
             }
+            // the waypoints have no bounds of their own
+            return true;
         });
         return result;
     }

@@ -9,6 +9,8 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 console_error_panic_hook = "0.1.7"
 gpx-engine = { path = "../engine" }
+idb = "0.6.5"
 js-sys = "0.3.106"
 uuid = { version = "1.26.1", features = ["js"] }
 wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4.79"

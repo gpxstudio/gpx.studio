@@ -33,7 +33,7 @@
         const desc = Object.entries(tags)
             .map(([key, value]) => `${key}: ${value}`)
             .join('\n');
-        const [ele] = await getElevation([{ lat: poi.item.lat, lon: poi.item.lng }]);
+        const [ele] = await getElevation([{ lat: poi.item.lat, lng: poi.item.lng }]);
         await engine.newWaypoint({
             lng: poi.item.lng,
             lat: poi.item.lat,

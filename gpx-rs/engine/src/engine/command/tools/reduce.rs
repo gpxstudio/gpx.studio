@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{Apply, CommandError, File, State, Trackpoint, reduce_indices, reduction_distances};
+use crate::{Apply, CommandError, File, State, Trackpoint, reduce_indices};
 
 /// Removes the trackpoints of the selected segments that are less than `tolerance` meters away
 /// from the line of their neighbours (Ramer-Douglas-Peucker, see [`reduce_indices`]). The ends of the segments are
@@ -56,7 +56,7 @@ impl Apply for Reduce {
 mod tests {
     use std::collections::HashSet;
 
-    use crate::{FileId, Load, Selection, engine::command::fixture::Fixture};
+    use crate::{FileId, Load, Selection, engine::command::fixture::Fixture, reduction_distances};
 
     use super::*;
 

@@ -5,8 +5,5 @@ import tailwindcss from '@tailwindcss/vite';
 import wasm from 'vite-plugin-wasm';
 
 export default defineConfig({
-    ssr: {
-        noExternal: ['gpx'],
-    },
     plugins: [enhancedImages(), tailwindcss(), wasm(), sveltekit()],
 });

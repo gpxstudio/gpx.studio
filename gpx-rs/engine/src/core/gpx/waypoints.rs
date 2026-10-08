@@ -19,7 +19,7 @@ impl Default for FileWaypointsRevisionId {
 /// Everything that changes the waypoints changes the revision too, which is why there is no
 /// mutable access to the list itself: the revision tells what is derived from the waypoints
 /// (coordinates for the map...) that it is out of date.
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone)]
 pub struct Waypoints {
     chunks: Chunked<WaypointChunk>,
     /// Changes when the waypoints do.
@@ -47,6 +47,12 @@ impl Waypoints {
     /// Adds a chunk after the last waypoint.
     pub fn push(&mut self, chunk: WaypointChunk) {
         self.chunks.push(chunk);
+        self.rev_id = Default::default();
+    }
+
+    /// Adds a chunk that is shared with something else after the last waypoint.
+    pub fn push_shared(&mut self, chunk: std::rc::Rc<WaypointChunk>) {
+        self.chunks.push_shared(chunk);
         self.rev_id = Default::default();
     }
 

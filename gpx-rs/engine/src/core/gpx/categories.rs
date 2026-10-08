@@ -3,7 +3,7 @@
 ///
 /// The codes are the positions of the names in the order of first appearance. The table only
 /// grows: a code never changes meaning, so it stays valid in every state of the history.
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Categories(Vec<String>);
 
 impl Categories {
@@ -36,7 +36,7 @@ impl Categories {
 
 /// The categories of the data of the trackpoints. There is one table per engine, shared by all
 /// its files.
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct TrackpointCategories {
     pub surface: Categories,
     pub highway: Categories,

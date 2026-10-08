@@ -14,15 +14,11 @@
     import { i18n } from '$lib/i18n.svelte';
     import { settings } from '$lib/logic/settings';
     import { loadFiles } from '$lib/logic/file-actions';
-    import { onDestroy, onMount } from 'svelte';
+    import { onMount } from 'svelte';
     import { page } from '$app/state';
-    import { hoveredPoint } from '$lib/logic/statistics';
-    import { slicedStatistics } from '$lib/logic/selection-statistics';
+    import { hoveredPoint, slicedStatistics } from '$lib/logic/selection-statistics';
     import { engine } from '$lib/engine';
     import { getURLForGoogleDriveFile } from '$lib/components/embedding/embedding';
-    import { db } from '$lib/db';
-    import { fileStateCollection } from '$lib/logic/file-state';
-    import { browser } from '$app/environment';
 
     const {
         treeFileView,
@@ -39,32 +35,26 @@
     );
 
     onMount(async () => {
-        settings.connectToDatabase(db);
-        fileStateCollection.connectToDatabase(db).then(() => {
-            let files: string[] = JSON.parse(page.url.searchParams.get('files') || '[]');
-            let ids: string[] = JSON.parse(page.url.searchParams.get('ids') || '[]');
-            let urls: string[] = files.concat(ids.map(getURLForGoogleDriveFile));
+        settings.connect(await engine.openStorage());
 
-            if (urls.length > 0) {
-                let downloads: Promise<File | null>[] = [];
-                urls.forEach((url) => {
-                    downloads.push(
-                        fetch(url)
-                            .then((response) => response.blob())
-                            .then((blob) => new File([blob], url.split('/').pop() ?? ''))
-                    );
-                });
+        let files: string[] = JSON.parse(page.url.searchParams.get('files') || '[]');
+        let ids: string[] = JSON.parse(page.url.searchParams.get('ids') || '[]');
+        let urls: string[] = files.concat(ids.map(getURLForGoogleDriveFile));
 
-                Promise.all(downloads).then((files) => {
-                    loadFiles(files.filter((file) => file !== null));
-                });
-            }
-        });
-    });
+        if (urls.length > 0) {
+            let downloads: Promise<File | null>[] = [];
+            urls.forEach((url) => {
+                downloads.push(
+                    fetch(url)
+                        .then((response) => response.blob())
+                        .then((blob) => new File([blob], url.split('/').pop() ?? ''))
+                );
+            });
 
-    onDestroy(() => {
-        settings.disconnectFromDatabase();
-        fileStateCollection.disconnectFromDatabase();
+            Promise.all(downloads).then((files) => {
+                loadFiles(files.filter((file) => file !== null));
+            });
+        }
     });
 </script>
 

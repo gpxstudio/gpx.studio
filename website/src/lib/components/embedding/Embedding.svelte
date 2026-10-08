@@ -18,8 +18,7 @@
     import { untrack } from 'svelte';
     import { isSelected, toggle } from '$lib/components/map/layer-control/utils';
     import { engine } from '$lib/engine';
-    import { hoveredPoint } from '$lib/logic/statistics';
-    import { slicedStatistics } from '$lib/logic/selection-statistics';
+    import { hoveredPoint, slicedStatistics } from '$lib/logic/selection-statistics';
 
     let {
         useHash = true,
@@ -39,7 +38,6 @@
         distanceUnits,
         velocityUnits,
         temperatureUnits,
-        fileOrder,
         distanceMarkers,
         directionMarkers,
     } = settings;

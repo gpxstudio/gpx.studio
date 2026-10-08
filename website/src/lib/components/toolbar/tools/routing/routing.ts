@@ -1,4 +1,4 @@
-import { distance, type Coordinates } from 'gpx';
+import { distance, type Coordinates } from '$lib/geo';
 import { settings } from '$lib/logic/settings';
 import { getElevation } from '$lib/utils';
 import { get } from 'svelte/store';
@@ -143,7 +143,7 @@ async function getGraphHopperRoute(
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            points: points.map((point) => [point.lon, point.lat]),
+            points: points.map((point) => [point.lng, point.lat]),
             profile: graphHopperProfile,
             elevation: true,
             points_encoded: false,
@@ -209,7 +209,7 @@ async function getBRouterRoute(
     points: Coordinates[],
     brouterProfile: string
 ): Promise<RoutedPoints> {
-    let url = `https://brouter.de/brouter?lonlats=${points.map((point) => `${point.lon.toFixed(8)},${point.lat.toFixed(8)}`).join('|')}&profile=${brouterProfile}&format=geojson&alternativeidx=0`;
+    let url = `https://brouter.de/brouter?lonlats=${points.map((point) => `${point.lng.toFixed(8)},${point.lat.toFixed(8)}`).join('|')}&profile=${brouterProfile}&format=geojson&alternativeidx=0`;
 
     let response = await fetch(url);
 
@@ -283,15 +283,15 @@ function getIntermediatePoints(points: Coordinates[]): Promise<RoutedPoints> {
         const dist = distance(points[i], points[i + 1]) / 1000;
         for (let d = 0; d < dist; d += step) {
             const lat = points[i].lat + (d / dist) * (points[i + 1].lat - points[i].lat);
-            const lon = points[i].lon + (d / dist) * (points[i + 1].lon - points[i].lon);
-            addPoint(route, lon, lat, 0);
+            const lng = points[i].lng + (d / dist) * (points[i + 1].lng - points[i].lng);
+            addPoint(route, lng, lat, 0);
         }
     }
 
     const last = points[points.length - 1];
-    addPoint(route, last.lon, last.lat, 0);
+    addPoint(route, last.lng, last.lat, 0);
 
-    return getElevation(route.lng.map((lng, i) => ({ lon: lng, lat: route.lat[i] }))).then(
+    return getElevation(route.lng.map((lng, i) => ({ lng, lat: route.lat[i] }))).then(
         (elevations) => {
             route.ele = elevations;
             return route;

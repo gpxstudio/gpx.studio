@@ -5,7 +5,9 @@ import {
     isHidden,
     isSegmentHidden,
     isWaypointHidden,
+    parseVisibility,
     setHidden,
+    stringifyVisibility,
     waypointsKey,
     type Visibility,
     type VisibilityState,
@@ -140,5 +142,56 @@ describe('file visibility', () => {
         const before: Visibility = new Map([['S1', false]]);
         setHidden(structure, before, ['F'], true);
         assert.deepEqual([...before], [['S1', false]]);
+    });
+});
+
+describe('kept visibility', () => {
+    const visibility = (entries: [string, boolean][]): Visibility => new Map(entries);
+
+    it('comes back as it was kept', () => {
+        const files = new Map([
+            [
+                'F',
+                visibility([
+                    ['F', false],
+                    ['S1', true],
+                    [WPTS, false],
+                ]),
+            ],
+            ['G', visibility([['G', false]])],
+        ]);
+        const json = stringifyVisibility(files, () => true);
+        assert.deepEqual(parseVisibility(json), files);
+    });
+
+    it('leaves out the files that are gone and the ones with nothing set', () => {
+        const files = new Map([
+            ['F', visibility([['F', false]])],
+            ['G', visibility([['G', false]])],
+            ['H', visibility([])],
+        ]);
+        const json = stringifyVisibility(files, (fileId) => fileId !== 'G');
+        assert.deepEqual([...parseVisibility(json).keys()], ['F']);
+    });
+
+    it('is nothing when there is nothing to keep', () => {
+        assert.equal(
+            stringifyVisibility(new Map(), () => true),
+            undefined
+        );
+        assert.equal(
+            stringifyVisibility(new Map([['F', visibility([['F', false]])]]), () => false),
+            undefined
+        );
+        assert.equal(parseVisibility(undefined).size, 0);
+    });
+
+    it('ignores what is not visibility', () => {
+        assert.equal(parseVisibility('not json').size, 0);
+        assert.equal(parseVisibility('3').size, 0);
+        assert.equal(parseVisibility('null').size, 0);
+        const parsed = parseVisibility('{"F":{"F":false,"S1":"no"},"G":3,"H":{}}');
+        assert.deepEqual([...parsed.keys()], ['F']);
+        assert.deepEqual([...parsed.get('F')!], [['F', false]]);
     });
 });

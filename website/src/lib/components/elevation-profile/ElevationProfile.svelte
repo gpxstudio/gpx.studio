@@ -18,7 +18,7 @@
         Construction,
     } from '@lucide/svelte';
     import type { Readable, Writable } from 'svelte/store';
-    import type { Coordinates } from 'gpx';
+    import type { Coordinates } from '$lib/geo';
     import type { SelectionStatistics } from '$lib/engine';
     import type { SlicedStatistics } from '$lib/logic/selection-statistics';
     import { settings } from '$lib/logic/settings';

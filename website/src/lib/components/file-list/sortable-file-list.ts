@@ -1,18 +1,19 @@
 import { isMac } from '$lib/utils';
 import Sortable, { type Direction } from 'sortablejs/Sortable';
-import { ListLevel } from './file-list';
 import { get, writable } from 'svelte/store';
 import { tick } from 'svelte';
 import { engine, type MoveTarget, type Selection } from '$lib/engine';
 import { isSelected, type FileTreeNode } from '$lib/selection-helpers';
 
+/** What a list holds: the files, the tracks of a file, the segments of a track, or the waypoints. */
+export type ListLevel = 'file' | 'track' | 'segment' | 'waypoints' | 'waypoint';
+
 export const allowedMoves: Record<ListLevel, ListLevel[]> = {
-    [ListLevel.ROOT]: [],
-    [ListLevel.FILE]: [ListLevel.FILE],
-    [ListLevel.TRACK]: [ListLevel.FILE, ListLevel.TRACK],
-    [ListLevel.SEGMENT]: [ListLevel.FILE, ListLevel.TRACK, ListLevel.SEGMENT],
-    [ListLevel.WAYPOINTS]: [ListLevel.WAYPOINTS],
-    [ListLevel.WAYPOINT]: [ListLevel.WAYPOINTS, ListLevel.WAYPOINT],
+    file: ['file'],
+    track: ['file', 'track'],
+    segment: ['file', 'track', 'segment'],
+    waypoints: ['waypoints'],
+    waypoint: ['waypoints', 'waypoint'],
 };
 
 export const dragging = writable<ListLevel | null>(null);
@@ -84,11 +85,11 @@ export class SortableFileList {
     childNode(id: string): FileTreeNode | undefined {
         const parent = this._parent;
         switch (this._sortableLevel) {
-            case ListLevel.FILE:
+            case 'file':
                 return { type: 'file', fileId: id };
-            case ListLevel.TRACK:
+            case 'track':
                 return parent ? { type: 'track', fileId: parent.fileId, trackId: id } : undefined;
-            case ListLevel.SEGMENT:
+            case 'segment':
                 return parent?.type === 'track'
                     ? {
                           type: 'segment',
@@ -97,9 +98,9 @@ export class SortableFileList {
                           segmentId: id,
                       }
                     : undefined;
-            case ListLevel.WAYPOINTS:
+            case 'waypoints':
                 return parent ? { type: 'waypoints', fileId: parent.fileId } : undefined;
-            case ListLevel.WAYPOINT:
+            case 'waypoint':
                 return parent
                     ? { type: 'waypoint', fileId: parent.fileId, waypointId: id }
                     : undefined;
@@ -110,11 +111,11 @@ export class SortableFileList {
     private selectionOf(ids: string[]): Selection | undefined {
         const parent = this._parent;
         switch (this._sortableLevel) {
-            case ListLevel.FILE:
+            case 'file':
                 return { type: 'file', fileIds: ids };
-            case ListLevel.TRACK:
+            case 'track':
                 return parent ? { type: 'track', fileId: parent.fileId, trackIds: ids } : undefined;
-            case ListLevel.SEGMENT:
+            case 'segment':
                 return parent?.type === 'track'
                     ? {
                           type: 'segment',
@@ -123,9 +124,9 @@ export class SortableFileList {
                           segmentIds: ids,
                       }
                     : undefined;
-            case ListLevel.WAYPOINTS:
+            case 'waypoints':
                 return parent ? { type: 'waypoints', fileId: parent.fileId } : undefined;
-            case ListLevel.WAYPOINT:
+            case 'waypoint':
                 return parent
                     ? { type: 'waypoint', fileId: parent.fileId, waypointIds: ids }
                     : undefined;
@@ -136,20 +137,20 @@ export class SortableFileList {
     private targetAt(index: number): MoveTarget | undefined {
         const parent = this._parent;
         switch (this._sortableLevel) {
-            case ListLevel.FILE:
+            case 'file':
                 return { type: 'files', index };
-            case ListLevel.TRACK:
+            case 'track':
                 return parent ? { type: 'tracks', fileId: parent.fileId, index } : undefined;
-            case ListLevel.SEGMENT:
+            case 'segment':
                 return parent?.type === 'track'
                     ? { type: 'segments', fileId: parent.fileId, trackId: parent.trackId, index }
                     : undefined;
-            case ListLevel.WAYPOINTS:
+            case 'waypoints':
                 // the list holds the node standing for the waypoints: they go after the others
                 return parent
                     ? { type: 'waypoints', fileId: parent.fileId, index: Infinity }
                     : undefined;
-            case ListLevel.WAYPOINT:
+            case 'waypoint':
                 return parent ? { type: 'waypoints', fileId: parent.fileId, index } : undefined;
         }
     }
@@ -161,7 +162,7 @@ export class SortableFileList {
             return;
         }
 
-        if (from === to && this._sortableLevel === ListLevel.FILE) {
+        if (from === to && this._sortableLevel === 'file') {
             // the order of the files is the one of the list
             this.updateToFileOrder();
             return;
@@ -169,7 +170,7 @@ export class SortableFileList {
 
         // The event is triggered on the source and on the destination list: handle it once.
         // Nothing to move in the list of the single node of the waypoints.
-        if (to !== this || (from === to && this._sortableLevel === ListLevel.WAYPOINTS)) {
+        if (to !== this || (from === to && this._sortableLevel === 'waypoints')) {
             return;
         }
 
@@ -245,19 +246,19 @@ export class SortableFileList {
             engine.select([]);
         } else {
             switch (this._sortableLevel) {
-                case ListLevel.FILE:
+                case 'file':
                     engine.select(selected);
                     break;
-                case ListLevel.TRACK:
+                case 'track':
                     engine.selectTracks(parent!.fileId, selected);
                     break;
-                case ListLevel.SEGMENT:
+                case 'segment':
                     engine.selectSegments(parent!.fileId, (parent as any).trackId, selected);
                     break;
-                case ListLevel.WAYPOINTS:
+                case 'waypoints':
                     engine.selectWaypointGroup(parent!.fileId);
                     break;
-                case ListLevel.WAYPOINT:
+                case 'waypoint':
                     engine.selectWaypoints(parent!.fileId, selected);
                     break;
             }
@@ -266,7 +267,7 @@ export class SortableFileList {
     }
 
     updateFromFileOrder() {
-        if (!this._sortable || this._sortableLevel !== ListLevel.FILE) {
+        if (!this._sortable || this._sortableLevel !== 'file') {
             return;
         }
 
@@ -282,7 +283,7 @@ export class SortableFileList {
     }
 
     updateToFileOrder() {
-        if (!this._sortable || this._sortableLevel !== ListLevel.FILE) {
+        if (!this._sortable || this._sortableLevel !== 'file') {
             return;
         }
 
@@ -304,7 +305,7 @@ export class SortableFileList {
             if (element instanceof HTMLElement) {
                 let attr = element.getAttribute('data-id');
                 if (attr) {
-                    if (this._sortableLevel === ListLevel.FILE && !files.has(attr)) {
+                    if (this._sortableLevel === 'file' && !files.has(attr)) {
                         element.remove();
                     } else {
                         this._elements[attr] = element;

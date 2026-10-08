@@ -1,5 +1,4 @@
 import { get, type Readable } from 'svelte/store';
-import type { GPXFile } from 'gpx';
 import maplibregl, {
     type GeoJSONSource,
     type FilterSpecification,
@@ -13,7 +12,6 @@ import { getElevation, loadSVGIcon } from '$lib/utils';
 import { selectedWaypoint } from '$lib/components/toolbar/tools/waypoint/waypoint';
 import { MapPin, Square } from 'lucide-static';
 import { getSymbolKey, symbols } from '$lib/assets/symbols';
-import { fileStateCollection } from '$lib/logic/file-state';
 import { engine, type FileState, type Selection } from '$lib/engine';
 import { isCovered, hasSelectionWithin, type FileTreeNode } from '$lib/selection-helpers';
 import { isSegmentHidden, isWaypointHidden } from '$lib/file-visibility';
@@ -615,7 +613,7 @@ export class GPXLayer {
         getElevation([
             {
                 lat: e.lngLat.lat,
-                lon: e.lngLat.lng,
+                lng: e.lngLat.lng,
             },
         ]).then(async (ele) => {
             if (this.draggedWaypointIndex === null) {

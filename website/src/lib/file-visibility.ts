@@ -110,3 +110,55 @@ export function setHidden(
     });
     return next;
 }
+
+/** Name under which the visibility of the files is kept in the storage. */
+export const VISIBILITY_KEY = 'visibility';
+
+/**
+ * The visibility of the files as JSON, to keep it: the explicit visibility of each file by id,
+ * leaving out the files that `keep` refuses (the ones that are gone) and the ones that have none.
+ * `undefined` when there is nothing to keep.
+ */
+export function stringifyVisibility(
+    files: ReadonlyMap<string, Visibility>,
+    keep: (fileId: string) => boolean
+): string | undefined {
+    const data: Record<string, Record<string, boolean>> = {};
+    files.forEach((visibility, fileId) => {
+        if (visibility.size > 0 && keep(fileId)) {
+            data[fileId] = Object.fromEntries(visibility);
+        }
+    });
+    return Object.keys(data).length > 0 ? JSON.stringify(data) : undefined;
+}
+
+/** What `stringifyVisibility` gave back. What does not make sense is left out. */
+export function parseVisibility(json: string | undefined): Map<string, Visibility> {
+    const files = new Map<string, Visibility>();
+    if (json === undefined) {
+        return files;
+    }
+    try {
+        const data: unknown = JSON.parse(json);
+        if (typeof data !== 'object' || data === null) {
+            return files;
+        }
+        for (const [fileId, entries] of Object.entries(data)) {
+            if (typeof entries !== 'object' || entries === null) {
+                continue;
+            }
+            const visibility = new Map<string, boolean>();
+            for (const [id, shown] of Object.entries(entries)) {
+                if (typeof shown === 'boolean') {
+                    visibility.set(id, shown);
+                }
+            }
+            if (visibility.size > 0) {
+                files.set(fileId, visibility);
+            }
+        }
+    } catch {
+        // not something that was kept
+    }
+    return files;
+}

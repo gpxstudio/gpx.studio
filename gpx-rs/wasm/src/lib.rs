@@ -9,11 +9,17 @@
 //! - Ids read from the file tree are hyphenated UUID strings; the functions reading buffers take
 //!   them as such.
 //! - Every function returns `false` when its arguments are invalid or the command did nothing.
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
+use std::rc::Rc;
 
 use wasm_bindgen::prelude::*;
 
-use gpx_engine::{self as engine, Action, Command, Engine, FileId, LngLat, LngLatBounds};
+mod storage;
+use storage::IdbStorage;
+
+use gpx_engine::{
+    self as engine, Action, Command, Engine, FileId, LngLat, LngLatBounds, Persister, Storage,
+};
 use js_sys::{Array, BigInt64Array, Float64Array, Object, Reflect, Uint8Array, Uint32Array};
 
 #[wasm_bindgen]
@@ -92,12 +98,18 @@ thread_local! {
 }
 
 fn execute(action: Action) -> bool {
-    ENGINE.with(|engine| {
-        engine
-            .borrow_mut()
-            .as_mut()
-            .is_some_and(|engine| engine.execute(action))
-    })
+    let (changed, persist) = ENGINE.with(|engine| match engine.borrow_mut().as_mut() {
+        Some(engine) => {
+            let changed = engine.execute(action);
+            let persist = changed && (engine.last_diff().is_some() || engine.order_changed());
+            (changed, persist)
+        }
+        None => (false, false),
+    });
+    if persist {
+        schedule_save();
+    }
+    changed
 }
 
 fn edit(command: Command) -> bool {
@@ -129,6 +141,133 @@ pub fn start() {
     ENGINE.with(|engine| {
         *engine.borrow_mut() = Some(Engine::default());
     });
+}
+
+// Storage
+//
+// The files are saved in IndexedDB after each change that touches them, without making the change
+// wait: `schedule_save` starts a loop that writes what changed since the last write, until
+// nothing has. The settings are opaque to the engine, the frontend keeps its own copy of them.
+
+thread_local! {
+    static STORAGE: RefCell<Option<Rc<IdbStorage>>> = const { RefCell::new(None) };
+    static PERSISTER: RefCell<Option<Persister>> = const { RefCell::new(None) };
+    static SAVING: Cell<bool> = const { Cell::new(false) };
+    static DIRTY: Cell<bool> = const { Cell::new(false) };
+    /// Resolve functions of the promises of `flush_storage`.
+    static WAITERS: RefCell<Vec<js_sys::Function>> = const { RefCell::new(Vec::new()) };
+}
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console, js_name = error)]
+    fn console_error(message: &str);
+}
+
+fn storage() -> Option<Rc<IdbStorage>> {
+    STORAGE.with(|storage| storage.borrow().clone())
+}
+
+fn schedule_save() {
+    if storage().is_none() {
+        return;
+    }
+    DIRTY.set(true);
+    if SAVING.replace(true) {
+        // the running loop will go around again
+        return;
+    }
+    wasm_bindgen_futures::spawn_local(async {
+        while DIRTY.replace(false) {
+            let Some(storage) = storage() else { break };
+            let Some(snapshot) = with_engine(Engine::snapshot) else {
+                break;
+            };
+            let mut persister = PERSISTER
+                .with(|persister| persister.borrow_mut().take())
+                .unwrap_or_default();
+            let result = persister.save(&*storage, snapshot).await;
+            PERSISTER.with(|slot| *slot.borrow_mut() = Some(persister));
+            if let Err(error) = result {
+                // what failed is written with the next change
+                console_error(&error.to_string());
+            }
+        }
+        SAVING.set(false);
+        for resolve in WAITERS.with(|waiters| std::mem::take(&mut *waiters.borrow_mut())) {
+            let _ = resolve.call0(&JsValue::UNDEFINED);
+        }
+    });
+}
+
+/// Opens the database `name` (it is created if it does not exist), puts the files that it holds
+/// in the engine, which has to be empty, and returns the settings: an object of JSON strings by
+/// key. The changes of the files that follow are saved. Call `last_update` afterwards to learn
+/// about the files.
+#[wasm_bindgen]
+pub async fn open_storage(name: &str) -> Result<Object, JsValue> {
+    let empty = with_engine(|e| e.snapshot().files.is_empty()).unwrap_or(false);
+    if !empty {
+        return Err(JsValue::from_str("the engine already has files"));
+    }
+    let storage = IdbStorage::open(name).await.map_err(to_js_error)?;
+    let mut persister = Persister::default();
+    let restored = persister.restore(&storage).await.map_err(to_js_error)?;
+    let settings = storage.load_settings().await.map_err(to_js_error)?;
+
+    ENGINE.with(|engine| {
+        if let Some(engine) = engine.borrow_mut().as_mut() {
+            engine.restore(restored);
+        }
+    });
+    PERSISTER.with(|slot| *slot.borrow_mut() = Some(persister));
+    STORAGE.with(|slot| *slot.borrow_mut() = Some(Rc::new(storage)));
+
+    let object = Object::new();
+    for (key, value) in settings {
+        set(&object, &key, value);
+    }
+    Ok(object)
+}
+
+fn to_js_error(error: engine::StorageError) -> JsValue {
+    JsValue::from_str(&error.to_string())
+}
+
+/// Resolves when what was changed has been written to the storage.
+#[wasm_bindgen]
+pub async fn flush_storage() -> Result<(), JsValue> {
+    if !SAVING.get() {
+        return Ok(());
+    }
+    let promise = js_sys::Promise::new(&mut |resolve, _| {
+        WAITERS.with(|waiters| waiters.borrow_mut().push(resolve));
+    });
+    wasm_bindgen_futures::JsFuture::from(promise).await?;
+    Ok(())
+}
+
+/// Saves a setting, `value` being its JSON.
+#[wasm_bindgen]
+pub fn set_setting(key: String, value: String) {
+    if let Some(storage) = storage() {
+        wasm_bindgen_futures::spawn_local(async move {
+            if let Err(error) = storage.put_setting(&key, &value).await {
+                console_error(&error.to_string());
+            }
+        });
+    }
+}
+
+#[wasm_bindgen]
+pub fn delete_setting(key: String) {
+    if let Some(storage) = storage() {
+        wasm_bindgen_futures::spawn_local(async move {
+            if let Err(error) = storage.delete_setting(&key).await {
+                console_error(&error.to_string());
+            }
+        });
+    }
 }
 
 // Statistics buffers
@@ -1309,12 +1448,7 @@ pub fn exportable_data(file_ids: &[u8]) -> u8 {
     };
     let data = with_engine(|e| e.exportable_data(&ids)).unwrap_or(engine::ExportOptions::NONE);
     [
-        data.time,
-        data.hr,
-        data.cad,
-        data.atemp,
-        data.power,
-        data.osm,
+        data.time, data.hr, data.cad, data.atemp, data.power, data.osm,
     ]
     .iter()
     .enumerate()

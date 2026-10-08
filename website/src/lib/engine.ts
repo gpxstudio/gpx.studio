@@ -1,7 +1,14 @@
 import { browser } from '$app/environment';
+import { LEGACY_IMPORTED_KEY, readLegacyData } from '$lib/legacy-import';
 import { get, writable, type Readable, type Writable } from 'svelte/store';
 import { FileColorAllocator, normalizeColor } from '$lib/file-colors';
-import { setHidden, type Visibility } from '$lib/file-visibility';
+import {
+    parseVisibility,
+    setHidden,
+    stringifyVisibility,
+    VISIBILITY_KEY,
+    type Visibility,
+} from '$lib/file-visibility';
 import { categoryIntervals, type CategoryIntervals } from '$lib/trackpoint-categories';
 import { selectedElementIds, type FileTreeNode } from '$lib/selection-helpers';
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
@@ -31,6 +38,9 @@ export type {
 } from 'gpx-rs';
 
 type Wasm = typeof import('gpx-rs');
+
+/** Name of the IndexedDB database that keeps the files and the settings. */
+const STORAGE_NAME = 'gpx-studio';
 
 /**
  * How a merge puts the selected elements together: `connect` makes a single segment of their
@@ -343,6 +353,85 @@ class Engine {
                   this.wasm = wasm;
               })
             : new Promise(() => {});
+    }
+
+    // Storage
+
+    private _storage?: Promise<Record<string, string>>;
+
+    /**
+     * Opens the storage of the browser: the files that it holds are put in the engine, and the
+     * changes of the files are kept from then on. Resolves to the settings, as JSON strings by
+     * key. Only the app does it (the embedded map has no files of its own), once.
+     *
+     * The first time, what the previous versions of the app kept in the browser is imported.
+     */
+    openStorage(): Promise<Record<string, string>> {
+        this._storage ??= this.openStorageOnce();
+        return this._storage;
+    }
+
+    private async openStorageOnce(): Promise<Record<string, string>> {
+        await this.ready;
+        const wasm = this.wasm!;
+        let settings: Record<string, string>;
+        try {
+            settings = (await wasm.open_storage(STORAGE_NAME)) as Record<string, string>;
+        } catch (error) {
+            console.error('The files cannot be kept in this browser', error);
+            return {};
+        }
+        // what was hidden, which the files that were restored need when they are read
+        parseVisibility(settings[VISIBILITY_KEY]).forEach((visibility, fileId) =>
+            this._visibility.set(fileId, visibility)
+        );
+        this.sync(wasm);
+
+        if (settings[LEGACY_IMPORTED_KEY] === undefined && get(this._order).length === 0) {
+            settings = { ...settings, ...(await this.importLegacyData(wasm)) };
+            await wasm.flush_storage();
+        }
+        return settings;
+    }
+
+    /** Puts the files and the settings of the former database in the engine. */
+    private async importLegacyData(wasm: Wasm): Promise<Record<string, string>> {
+        const imported: Record<string, string> = {};
+        try {
+            const legacy = await readLegacyData();
+            if (legacy) {
+                const encoder = new TextEncoder();
+                if (legacy.files.length > 0) {
+                    await this.loadFiles(
+                        legacy.files.map((file) => ({
+                            data: encoder.encode(file.gpx),
+                            name: file.name,
+                        }))
+                    );
+                    await this.select([]);
+                }
+                for (const [key, value] of Object.entries(legacy.settings)) {
+                    wasm.set_setting(key, value);
+                    imported[key] = value;
+                }
+            }
+        } catch (error) {
+            // it is tried again next time
+            console.error('The files of the previous version could not be imported', error);
+            return imported;
+        }
+        wasm.set_setting(LEGACY_IMPORTED_KEY, 'true');
+        imported[LEGACY_IMPORTED_KEY] = 'true';
+        return imported;
+    }
+
+    /** Keeps a setting, `json` being its JSON. Nothing is kept before `openStorage` is done. */
+    setSetting(key: string, json: string) {
+        this.wasm?.set_setting(key, json);
+    }
+
+    deleteSetting(key: string) {
+        this.wasm?.delete_setting(key);
     }
 
     // Actions. Each one resolves to whether the engine changed something.
@@ -845,6 +934,18 @@ class Engine {
         );
         this._visibility.set(fileId, visibility);
         store.update((state) => ({ ...state, visibility }));
+        this.saveVisibility();
+    }
+
+    /** Keeps what is hidden, for the files that exist (the others are not coming back). */
+    private saveVisibility() {
+        const files = get(this._files);
+        const json = stringifyVisibility(this._visibility, (fileId) => files.has(fileId));
+        if (json === undefined) {
+            this.deleteSetting(VISIBILITY_KEY);
+        } else {
+            this.setSetting(VISIBILITY_KEY, json);
+        }
     }
 
     // Coordinates, as flat [lng, lat, ...] arrays. The getters copy them out of the WASM memory.

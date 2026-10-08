@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{ChunkIndex, Chunked, ChunkedIter, Trackpoint, TrackpointChunk, compute_anchors};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct TrackSegmentId(pub Uuid);
 
 impl Default for TrackSegmentId {
@@ -22,7 +22,7 @@ impl Default for TrackSegmentRevisionId {
     }
 }
 
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone)]
 pub struct TrackSegment {
     pub id: TrackSegmentId,
     pub rev_id: TrackSegmentRevisionId,

@@ -3,8 +3,7 @@
     import FileListNodeStore from './FileListNodeStore.svelte';
     import FileListNode from './FileListNode.svelte';
     import FileListNodeContent from './FileListNodeContent.svelte';
-    import { ListLevel } from './file-list';
-    import { allowedMoves, dragging, SortableFileList } from './sortable-file-list';
+    import { allowedMoves, dragging, SortableFileList, type ListLevel } from './sortable-file-list';
     import { engine, type FileState } from '$lib/engine';
     import type { FileTreeNode } from '$lib/selection-helpers';
 
@@ -26,14 +25,14 @@
     let container: HTMLElement;
     let sortableLevel: ListLevel =
         node === null
-            ? ListLevel.FILE
+            ? 'file'
             : node.type === 'file'
               ? waypointRoot
-                  ? ListLevel.WAYPOINTS
-                  : ListLevel.TRACK
+                  ? 'waypoints'
+                  : 'track'
               : node.type === 'waypoints'
-                ? ListLevel.WAYPOINT
-                : ListLevel.SEGMENT;
+                ? 'waypoint'
+                : 'segment';
     let orientation = getContext<'vertical' | 'horizontal'>('orientation');
 
     let canDrop = $derived($dragging !== null && allowedMoves[$dragging].includes(sortableLevel));

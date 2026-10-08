@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{Link, Track, Waypoints};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct FileId(pub Uuid);
 
 impl Default for FileId {
@@ -11,16 +11,15 @@ impl Default for FileId {
     }
 }
 
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone)]
 pub struct File {
     pub id: FileId,
     pub info: FileInfo,
     pub trk: Vec<Track>,
     pub wpt: Waypoints,
-    // TODO routes
 }
 
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct FileInfo {
     pub name: String,
     pub desc: Option<String>,
@@ -29,7 +28,7 @@ pub struct FileInfo {
     pub time: Option<i64>,
 }
 
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Author {
     pub name: Option<String>,
     pub email: Option<String>,

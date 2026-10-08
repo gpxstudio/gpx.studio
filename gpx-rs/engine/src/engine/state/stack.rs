@@ -9,9 +9,21 @@ use crate::{File, FileId};
 pub struct Stack {
     entries: Vec<StackEntry>,
     index: Option<usize>,
+    /// Whether the first entry is the state the stack started from (files restored from the
+    /// storage), which is not undone.
+    restored: bool,
 }
 
 impl Stack {
+    /// A stack whose first entry is `entry`, from which nothing can be undone.
+    pub fn restored(entry: StackEntry) -> Self {
+        Self {
+            entries: vec![entry],
+            index: Some(0),
+            restored: true,
+        }
+    }
+
     pub fn current(&self) -> Option<&StackEntry> {
         self.index.map_or_default(|i| self.get(i))
     }
@@ -32,7 +44,9 @@ impl Stack {
         self.record_diff(|stack| {
             if let Some(i) = stack.index {
                 if i == 0 {
-                    stack.index = None;
+                    if !stack.restored {
+                        stack.index = None;
+                    }
                 } else {
                     stack.index = Some(i - 1);
                 }
@@ -56,7 +70,7 @@ impl Stack {
     }
 
     pub fn can_undo(&self) -> bool {
-        self.index.is_some()
+        self.index.is_some_and(|i| i > 0 || !self.restored)
     }
 
     pub fn can_redo(&self) -> bool {
@@ -97,7 +111,7 @@ impl Stack {
         for id in prev_ids.intersection(&cur_ids) {
             let before = prev.map_or_default(|e| e.get(id));
             let after = cur.map_or_default(|e| e.get(id));
-            if !before.zip(after).is_some_and(|(b, a)| Rc::ptr_eq(b, a)) && before != after {
+            if !before.zip(after).is_some_and(|(b, a)| Rc::ptr_eq(b, a)) {
                 modified.push(*id);
             }
         }
@@ -232,6 +246,34 @@ mod tests {
     }
 
     #[test]
+    fn test_a_file_is_modified_when_it_is_not_the_same_one_anymore() {
+        let mut stack = Stack::default();
+        let id = add_file(&mut stack);
+
+        // a copy, even if it has the same content, is another file for the stack: files are
+        // told apart by their identity, comparing them would read all of them
+        let diff = stack
+            .create_and_push_next(|e| {
+                let copy = (**e.get(&id).unwrap()).clone();
+                e.insert(id, Rc::new(copy));
+                Ok(())
+            })
+            .unwrap();
+        assert_eq!(diff.modified, vec![id]);
+
+        // and the files that were not replaced are not
+        let other = add_file(&mut stack);
+        let diff = stack
+            .create_and_push_next(|e| {
+                let copy = (**e.get(&other).unwrap()).clone();
+                e.insert(other, Rc::new(copy));
+                Ok(())
+            })
+            .unwrap();
+        assert_eq!(diff.modified, vec![other]);
+    }
+
+    #[test]
     fn test_push_after_undo_drops_redo_branch() {
         let mut stack = Stack::default();
         let first = add_file(&mut stack);
@@ -248,5 +290,105 @@ mod tests {
         assert!(current.contains_key(&first));
         assert!(current.contains_key(&third));
         assert!(!current.contains_key(&second));
+    }
+
+    fn restored_entry() -> (StackEntry, FileId) {
+        let file = Rc::new(File::default());
+        let id = file.id;
+        (StackEntry::from([(id, file)]), id)
+    }
+
+    #[test]
+    fn test_restored_stack_starts_from_its_entry() {
+        let (entry, id) = restored_entry();
+        let mut stack = Stack::restored(entry);
+
+        assert!(stack.current().unwrap().contains_key(&id));
+        // there is nothing to go back to, nor forward to
+        assert!(!stack.can_undo());
+        assert!(!stack.can_redo());
+        assert!(stack.undo().is_none());
+        assert!(stack.redo().is_none());
+        assert!(stack.current().unwrap().contains_key(&id));
+    }
+
+    #[test]
+    fn test_restored_stack_cannot_undo_an_empty_entry_either() {
+        let mut stack = Stack::restored(StackEntry::new());
+
+        assert!(stack.current().is_some_and(|files| files.is_empty()));
+        assert!(!stack.can_undo());
+        assert!(stack.undo().is_none());
+        // the stack is not the one of an engine that has done nothing
+        assert!(stack.current().is_some());
+    }
+
+    #[test]
+    fn test_restored_stack_undoes_what_comes_after_it_and_no_further() {
+        let (entry, restored) = restored_entry();
+        let mut stack = Stack::restored(entry);
+
+        let added = add_file(&mut stack);
+        assert!(stack.can_undo());
+        assert!(!stack.can_redo());
+        assert_eq!(stack.current().unwrap().len(), 2);
+
+        // back to the restored files
+        let diff = stack.undo().unwrap();
+        assert_eq!(diff.removed, vec![added]);
+        assert!(diff.added.is_empty() && diff.modified.is_empty());
+        assert_eq!(stack.current().unwrap().len(), 1);
+        assert!(stack.current().unwrap().contains_key(&restored));
+        assert!(!stack.can_undo());
+        assert!(stack.can_redo());
+        assert!(stack.undo().is_none());
+        assert!(stack.current().unwrap().contains_key(&restored));
+
+        let diff = stack.redo().unwrap();
+        assert_eq!(diff.added, vec![added]);
+        assert!(stack.can_undo());
+        assert!(!stack.can_redo());
+
+        // and again
+        assert!(stack.undo().is_some());
+        assert!(stack.undo().is_none());
+        assert!(stack.current().unwrap().contains_key(&restored));
+    }
+
+    #[test]
+    fn test_restored_stack_removing_its_files_can_be_undone() {
+        let (entry, restored) = restored_entry();
+        let mut stack = Stack::restored(entry);
+
+        let diff = stack
+            .create_and_push_next(|e| {
+                e.remove(&restored);
+                Ok(())
+            })
+            .unwrap();
+        assert_eq!(diff.removed, vec![restored]);
+        assert!(stack.current().unwrap().is_empty());
+
+        let diff = stack.undo().unwrap();
+        assert_eq!(diff.added, vec![restored]);
+        assert!(stack.current().unwrap().contains_key(&restored));
+        assert!(!stack.can_undo());
+    }
+
+    #[test]
+    fn test_restored_stack_push_after_undo_drops_redo_branch() {
+        let (entry, restored) = restored_entry();
+        let mut stack = Stack::restored(entry);
+        add_file(&mut stack);
+        stack.undo().unwrap();
+        assert!(stack.can_redo());
+
+        let other = add_file(&mut stack);
+        assert!(!stack.can_redo());
+        assert!(stack.can_undo());
+        let diff = stack.undo().unwrap();
+        assert_eq!(diff.removed, vec![other]);
+        assert!(stack.current().unwrap().contains_key(&restored));
+        assert!(!stack.can_undo());
     }
 }

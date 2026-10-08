@@ -7,11 +7,11 @@ title: 檔案和統計
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
     import ElevationProfile from '$lib/components/elevation-profile/ElevationProfile.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
-    import { exampleGPXFile } from '$lib/assets/example';
+    import { exampleStatistics } from '$lib/assets/example';
     import { writable } from 'svelte/store';
 
-    let gpxStatistics = writable(exampleGPXFile.getStatistics());
-    let slicedGPXStatistics = writable(undefined);
+    let statistics = writable(exampleStatistics);
+    let slicedStatistics = writable(undefined);
     let hoveredPoint = writable(null);
     let additionalDatasets = writable(['speed', 'atemp']);
     let elevationFill = writable(undefined);
@@ -83,8 +83,8 @@ You can also use the mouse wheel to zoom in and out on the elevation profile, an
 
 <div class="h-48 w-full">
     <ElevationProfile
-        {gpxStatistics}
-        {slicedGPXStatistics}
+        {statistics}
+        {slicedStatistics}
         {hoveredPoint}
         {additionalDatasets}
         {elevationFill}
@@ -92,8 +92,8 @@ You can also use the mouse wheel to zoom in and out on the elevation profile, an
 </div>
 <div class="flex flex-col items-center w-full">
     <GPXStatistics
-        {gpxStatistics}
-        {slicedGPXStatistics}
+        {statistics}
+        {slicedStatistics}
         orientation={'horizontal'}
     />
 </div>

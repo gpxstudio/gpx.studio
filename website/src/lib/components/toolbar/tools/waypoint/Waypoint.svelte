@@ -88,7 +88,7 @@
         longitude = parseFloat(longitude.toFixed(6));
 
         const target = $selectedWaypoint;
-        const [ele] = await getElevation([{ lat: latitude, lon: longitude }]);
+        const [ele] = await getElevation([{ lat: latitude, lng: longitude }]);
         const waypoint = {
             lng: longitude,
             lat: latitude,

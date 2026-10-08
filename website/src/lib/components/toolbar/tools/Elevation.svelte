@@ -17,7 +17,7 @@
 
     async function addElevation() {
         const stats = get(statistics);
-        const points = Array.from(stats.lng, (lon, i) => ({ lon, lat: stats.lat[i] }));
+        const points = Array.from(stats.lng, (lng, i) => ({ lng, lat: stats.lat[i] }));
         const ele = await getElevation(points);
 
         // the selection or the files may have changed while the elevation was loading

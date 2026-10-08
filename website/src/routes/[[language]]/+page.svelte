@@ -17,24 +17,14 @@
         ExternalLink,
     } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
-    import type { SelectionStatistics } from '$lib/engine';
+    import { exampleStatistics } from '$lib/assets/example';
     import { getURLForLanguage } from '$lib/utils';
     import { writable } from 'svelte/store';
     import Scissors from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
     import { currentTool, Tool } from '$lib/components/toolbar/tools';
     import { onDestroy, onMount } from 'svelte';
 
-    // TODO the example comes from the previous implementation
-    let statistics = writable<SelectionStatistics>({
-        global: { totalDistance: 0, elevationGain: 0, elevationLoss: 0 },
-        length: 0,
-        totalDistance: new Float64Array(),
-        slope: new Float64Array(),
-        lng: new Float64Array(),
-        lat: new Float64Array(),
-        ele: new Float64Array(),
-        slice: () => undefined,
-    });
+    let statistics = writable(exampleStatistics);
     let slicedStatistics = writable(undefined);
     let hoveredPoint = writable(null);
     let additionalDatasets = writable(['speed', 'atemp']);
