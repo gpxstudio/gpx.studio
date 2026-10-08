@@ -283,13 +283,18 @@ pub struct GlobalStatistics {
 }
 
 impl GlobalStatistics {
+    /// Average speed over the total time, unknown if that is not a positive duration (for
+    /// example a range with a single timestamp, or timestamps going backwards).
     pub fn total_speed(&self) -> Option<f64> {
-        self.total_time.map(|t| speed(self.total_distance, t))
+        self.total_time
+            .filter(|t| *t > 0)
+            .map(|t| speed(self.total_distance, t))
     }
 
+    /// Average speed over the moving time, unknown if there is no moving time.
     pub fn moving_speed(&self) -> Option<f64> {
         self.moving_distance
-            .zip(self.moving_time)
+            .zip(self.moving_time.filter(|t| *t > 0))
             .map(|(d, t)| speed(d, t))
     }
 

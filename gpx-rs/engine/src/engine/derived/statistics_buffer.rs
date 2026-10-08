@@ -195,7 +195,8 @@ impl StatisticsBuffer {
         }
 
         let delta = |values: &[f64]| values[end] - values[start];
-        let delta_time = |values: &[i64]| values[end] - values[start];
+        // the total time is the span of the timestamps, which is negative where they go backwards
+        let delta_time = |values: &[i64]| (values[end] - values[start]).max(0);
         let time = |i: usize| {
             let time = self.time.as_ref()?[i];
             (time != NO_TIME).then_some(time)
@@ -557,6 +558,44 @@ mod tests {
         assert_eq!(slice.moving_time, global.moving_time);
         assert_eq!(slice.start_time, global.start_time);
         assert_eq!(slice.end_time, global.end_time);
+    }
+
+    #[test]
+    fn test_slices_of_corrupt_timestamps_are_never_negative_nor_infinite() {
+        let (mut segment, _) = computed("data/with_time.gpx");
+        let n = segment.len();
+        assert!(n > 40);
+        // timestamps that go back, then forward, and some that are missing
+        let times: Vec<_> = segment.iter().map(|p| p.time.unwrap()).collect();
+        segment.update_all(|i, pt| {
+            pt.time = match i {
+                10..=19 => Some(times[29 - i]),
+                20..=24 => None,
+                25..=29 => Some(times[0] - 1_000 * i as i64),
+                _ => pt.time,
+            };
+        });
+        let stats = Statistics::compute(&segment);
+        let mut buffer = StatisticsBuffer::default();
+        buffer.update(&[(&segment, &stats)]);
+
+        for start in 0..n {
+            for end in start..n {
+                let slice = buffer.slice(start, end).unwrap();
+                for time in [slice.total_time, slice.moving_time].into_iter().flatten() {
+                    assert!(time >= 0, "time of {start}..={end}");
+                }
+                for speed in [slice.total_speed(), slice.moving_speed()]
+                    .into_iter()
+                    .flatten()
+                {
+                    assert!(
+                        speed.is_finite() && speed >= 0.0,
+                        "speed of {start}..={end}"
+                    );
+                }
+            }
+        }
     }
 
     #[test]
