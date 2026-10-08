@@ -27,17 +27,16 @@ Any help is greatly appreciated!
 
 The code is split into two parts:
 
-- `gpx`: a Typescript library for parsing and manipulating GPX files,
+- `gpx-rs`: a Rust library, compiled to WebAssembly, for parsing and manipulating GPX files,
 - `website`: the website itself, which is a [SvelteKit](https://kit.svelte.dev/) application.
 
-You will need [Node.js](https://nodejs.org/) to build and run these two parts.
+You will need [Node.js](https://nodejs.org/), [Rust](https://rustup.rs/) and [wasm-pack](https://rustwasm.github.io/wasm-pack/) to build and run these two parts.
 
-### Building the `gpx` library
+### Building the `gpx-rs` library
 
 ```bash
-cd gpx
-npm install
-npm run build
+cd gpx-rs
+wasm-pack build wasm --target bundler --out-dir ../pkg
 ```
 
 ### Running the website
@@ -64,9 +63,6 @@ This project has been made possible thanks to the following open source projects
     - [tailwindcss](https://github.com/tailwindlabs/tailwindcss) — easy styling
     - [Chart.js](https://github.com/chartjs/Chart.js) — beautiful and fast charts
 - Logic:
-    - [immer](https://github.com/immerjs/immer) — complex state management
-    - [Dexie.js](https://github.com/dexie/Dexie.js) — IndexedDB wrapper
-    - [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser) — fast GPX file parsing
     - [SortableJS](https://github.com/SortableJS/Sortable) — creating a sortable file tree
 - Mapping:
     - [MapLibre GL JS](https://github.com/maplibre/maplibre-gl-js) — beautiful and fast interactive map rendering
