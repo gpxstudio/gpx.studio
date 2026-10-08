@@ -1,5 +1,3 @@
-// TODO license in every file
-
 use crate::{
     Action, Apply, Clipboard, Command, CoordinatesCache, Diff, ExportOptions, FileId, FileOrder,
     FileStructure, FileStructureCache, GlobalStatistics, Restored, RoutingBuffer, SelectMode,
