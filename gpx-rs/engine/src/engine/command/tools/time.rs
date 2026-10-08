@@ -1,8 +1,7 @@
-use std::rc::Rc;
-
 use crate::{
-    Apply, CommandError, File, SegmentLocation, State, Statistics, TrackSegment, Trackpoint,
-    artificial_weights, shifted_and_compressed, with_artificial_timestamps, with_timestamps,
+    Apply, CommandError, SegmentLocation, State, Statistics, TrackSegment, Trackpoint,
+    artificial_weights, shifted_and_compressed, update_segments, with_artificial_timestamps,
+    with_timestamps,
 };
 
 /// How the timestamps of the selection are set.
@@ -94,7 +93,7 @@ impl Apply for Time {
                     })
                     .collect();
                 let mut total: f64 = weights.iter().flatten().sum();
-                if !(total > 0.0) {
+                if total.is_nan() || total <= 0.0 {
                     // no distance to share the time by: every interval takes as long
                     for weights in &mut weights {
                         weights.iter_mut().for_each(|w| *w = 1.0);
@@ -122,19 +121,10 @@ impl Apply for Time {
             }
         }
 
-        // the segments of a file are consecutive
-        let mut times = times.into_iter();
-        for group in locations.chunk_by(|a, b| a.file_id == b.file_id) {
-            let file_id = group[0].file_id;
-            let mut file: File = (*state.files[&file_id]).clone();
-            for location in group {
-                let times = times.next().unwrap_or_default();
-                let segment = &mut file.trk[location.trk].trkseg[location.seg];
-                segment.update_all(|i, pt| pt.time = times.get(i).copied().flatten());
-                segment.rev_id = Default::default();
-            }
-            state.files.insert(file_id, Rc::new(file));
-        }
+        update_segments(state, &locations, |i, segment| {
+            let times = &times[i];
+            segment.update_all(|j, pt| pt.time = times.get(j).copied().flatten());
+        });
         Ok(())
     }
 }

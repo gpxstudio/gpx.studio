@@ -148,16 +148,19 @@ pub fn transfer(
             .is_some_and(|file| file.trk.iter().any(|trk| trk.id == trk_id)),
         Destination::Waypoints(file_id, _) => state.files.contains_key(&file_id),
     };
-    let valid = match (content, to) {
+    let valid = matches!(
+        (content, to),
         (ClipboardContent::Files(_), Destination::Files(_))
-        | (ClipboardContent::Tracks(_), Destination::Files(_) | Destination::Tracks(..))
-        | (
-            ClipboardContent::Segments(_),
-            Destination::Files(_) | Destination::Tracks(..) | Destination::Segments(..),
-        )
-        | (ClipboardContent::Waypoints(_), Destination::Waypoints(..)) => true,
-        _ => false,
-    };
+            | (
+                ClipboardContent::Tracks(_),
+                Destination::Files(_) | Destination::Tracks(..)
+            )
+            | (
+                ClipboardContent::Segments(_),
+                Destination::Files(_) | Destination::Tracks(..) | Destination::Segments(..),
+            )
+            | (ClipboardContent::Waypoints(_), Destination::Waypoints(..))
+    );
     let empty = match content {
         ClipboardContent::Files(files) => files.is_empty(),
         ClipboardContent::Tracks(tracks) => tracks.is_empty(),

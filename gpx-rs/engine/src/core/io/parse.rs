@@ -198,25 +198,25 @@ fn apply_text(
         Some(GPXElement::Surface) => {
             stack.pop();
             if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
-                trkpt.surface = categories.surface.code(&e);
+                trkpt.surface = categories.surface.code(e);
             }
         }
         Some(GPXElement::Highway) => {
             stack.pop();
             if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
-                trkpt.highway = categories.highway.code(&e);
+                trkpt.highway = categories.highway.code(e);
             }
         }
         Some(GPXElement::SacScale) => {
             stack.pop();
             if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
-                trkpt.sac_scale = categories.sac_scale.code(&e);
+                trkpt.sac_scale = categories.sac_scale.code(e);
             }
         }
         Some(GPXElement::MtbScale) => {
             stack.pop();
             if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
-                trkpt.mtb_scale = categories.mtb_scale.code(&e);
+                trkpt.mtb_scale = categories.mtb_scale.code(e);
             }
         }
         Some(GPXElement::Symbol) => {

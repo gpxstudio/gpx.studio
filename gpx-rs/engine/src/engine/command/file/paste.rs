@@ -719,8 +719,6 @@ mod tests {
         let a = add(&mut fx, file("a", &[(Some("t"), 2)], 2));
         let b = add(&mut fx, file("b", &[], 0));
         let t = track_ids(&fx, a);
-        let s = segment_ids(&fx, a, 0);
-        let w = wpt_ids(&fx, a);
 
         copy(&mut fx, tracks(a, &t), false);
         fx.selection = files(&[b]);
@@ -736,7 +734,7 @@ mod tests {
         let mut fx = Fixture::default();
         let a = add(&mut fx, file("a", &[(Some("t"), 2)], 2));
         let b = add(&mut fx, file("b", &[], 0));
-        let (t, s, w) = (track_ids(&fx, a), segment_ids(&fx, a, 0), wpt_ids(&fx, a));
+        let (t, s) = (track_ids(&fx, a), segment_ids(&fx, a, 0));
         copy(&mut fx, segments(a, t[0], &s), false);
         fx.selection = files(&[b]);
         delete_file(&mut fx, a);

@@ -244,13 +244,10 @@ impl Selection {
 }
 
 /// Position of the first and last of the `selected` ids among the `all` ids.
-fn selected_range<T: PartialEq>(
+fn selected_range<T: std::hash::Hash + Eq>(
     all: impl Iterator<Item = T>,
     selected: &HashSet<T>,
-) -> Option<(usize, usize)>
-where
-    T: std::hash::Hash + Eq,
-{
+) -> Option<(usize, usize)> {
     let mut range: Option<(usize, usize)> = None;
     for (i, id) in all.enumerate() {
         if selected.contains(&id) {
@@ -587,7 +584,7 @@ mod tests {
             wpt: vec![Waypoint::default()],
             ..Default::default()
         });
-        let tree = Tree {
+        Tree {
             file: file.id,
             tracks: file.trk.iter().map(|t| t.id).collect(),
             segments: file
@@ -598,8 +595,7 @@ mod tests {
             waypoints: file.wpt.iter().map(|w| w.id).collect(),
             order: vec![file.id],
             files: StackEntry::from([(file.id, Rc::new(file))]),
-        };
-        tree
+        }
     }
 
     #[test]

@@ -1,6 +1,4 @@
-use std::rc::Rc;
-
-use crate::{Apply, CommandError, File, State};
+use crate::{Apply, CommandError, State, update_segments};
 
 /// Sets the elevation of the trackpoints of the selected segments (the ones of the statistics of
 /// the selection, in the same order): `ele` has one elevation per trackpoint.
@@ -31,17 +29,9 @@ impl Apply for Elevation<'_> {
         }
 
         let mut ele = self.ele.iter().copied();
-        // the segments of a file are consecutive
-        for group in locations.chunk_by(|a, b| a.file_id == b.file_id) {
-            let file_id = group[0].file_id;
-            let mut file: File = (*state.files[&file_id]).clone();
-            for location in group {
-                let segment = &mut file.trk[location.trk].trkseg[location.seg];
-                segment.update_all(|_, pt| pt.ele = ele.next().unwrap_or(pt.ele));
-                segment.rev_id = Default::default();
-            }
-            state.files.insert(file_id, Rc::new(file));
-        }
+        update_segments(state, &locations, |_, segment| {
+            segment.update_all(|_, pt| pt.ele = ele.next().unwrap_or(pt.ele));
+        });
         Ok(())
     }
 }

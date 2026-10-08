@@ -1,6 +1,4 @@
-use std::{collections::HashMap, rc::Rc};
-
-use crate::{Apply, CommandError, File, FileId, State, round_trip};
+use crate::{Apply, CommandError, State, round_trip, update_segments};
 
 /// Makes each selected segment come back to where it started: the segments of the selected files
 /// and tracks, and the selected segments, get a reversed copy of themselves after their last
@@ -12,26 +10,16 @@ pub struct RoundTrip;
 
 impl Apply for RoundTrip {
     fn apply(self, state: &mut State) -> Result<(), CommandError> {
-        let mut files: HashMap<FileId, File> = HashMap::new();
-        for location in state
+        let locations: Vec<_> = state
             .selection
             .segment_locations(state.files, &state.order.0)
-        {
-            let (file_id, trk, seg) = (location.file_id, location.trk, location.seg);
-            if state.files[&file_id].trk[trk].trkseg[seg].len() < 2 {
-                continue;
-            }
-            let file = files
-                .entry(file_id)
-                .or_insert_with(|| (*state.files[&file_id]).clone());
-            round_trip(&mut file.trk[trk].trkseg[seg]);
-        }
-        if files.is_empty() {
+            .into_iter()
+            .filter(|l| state.files[&l.file_id].trk[l.trk].trkseg[l.seg].len() >= 2)
+            .collect();
+        if locations.is_empty() {
             return Err(CommandError::NothingToDo);
         }
-        for (file_id, file) in files {
-            state.files.insert(file_id, Rc::new(file));
-        }
+        update_segments(state, &locations, |_, segment| round_trip(segment));
         Ok(())
     }
 }
@@ -39,8 +27,11 @@ impl Apply for RoundTrip {
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
+    use std::rc::Rc;
 
-    use crate::{Load, Selection, TrackSegment, end_time, engine::command::fixture::Fixture};
+    use crate::{
+        FileId, Load, Selection, TrackSegment, end_time, engine::command::fixture::Fixture,
+    };
 
     use super::*;
 

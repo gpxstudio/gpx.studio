@@ -1,6 +1,4 @@
-use std::rc::Rc;
-
-use crate::{Apply, CommandError, File, State, Trackpoint, reduce_indices};
+use crate::{Apply, CommandError, State, reduce_indices, update_segments};
 
 /// Removes the trackpoints of the selected segments that are less than `tolerance` meters away
 /// from the line of their neighbours (Ramer-Douglas-Peucker, see [`reduce_indices`]). The ends of the segments are
@@ -22,32 +20,25 @@ impl Apply for Reduce {
         let locations = state
             .selection
             .segment_locations(state.files, &state.order.0);
-        let mut reduced = vec![];
+        let mut changed = vec![];
+        let mut kept_points = vec![];
         for location in &locations {
             let segment = &state.files[&location.file_id].trk[location.trk].trkseg[location.seg];
             let kept = reduce_indices(segment, self.tolerance);
             if kept.len() == segment.len() {
                 continue;
             }
-            let points: Vec<Trackpoint> = kept.iter().map(|&i| segment[i].clone()).collect();
-            reduced.push((*location, points));
+            changed.push(*location);
+            kept_points.push(kept.iter().map(|&i| segment[i].clone()).collect::<Vec<_>>());
         }
-        if reduced.is_empty() {
+        if changed.is_empty() {
             return Err(CommandError::NothingToDo);
         }
 
-        // the segments of a file are consecutive
-        for group in reduced.chunk_by(|a, b| a.0.file_id == b.0.file_id) {
-            let file_id = group[0].0.file_id;
-            let mut file: File = (*state.files[&file_id]).clone();
-            for (location, points) in group {
-                let segment = &mut file.trk[location.trk].trkseg[location.seg];
-                let len = segment.len();
-                segment.splice(0, len, points.clone());
-                segment.rev_id = Default::default();
-            }
-            state.files.insert(file_id, Rc::new(file));
-        }
+        update_segments(state, &changed, |i, segment| {
+            let len = segment.len();
+            segment.splice(0, len, std::mem::take(&mut kept_points[i]));
+        });
         Ok(())
     }
 }

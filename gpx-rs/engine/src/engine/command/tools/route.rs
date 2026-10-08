@@ -397,7 +397,7 @@ mod tests {
         }
     }
 
-    fn segment<'a>(fx: &'a Fixture, id: FileId, trk: usize, seg: usize) -> &'a TrackSegment {
+    fn segment(fx: &Fixture, id: FileId, trk: usize, seg: usize) -> &TrackSegment {
         &fx.files[&id].trk[trk].trkseg[seg]
     }
 

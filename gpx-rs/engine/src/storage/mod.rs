@@ -83,3 +83,47 @@ pub trait Storage {
 
     async fn delete_setting(&self, key: &str) -> Result<(), StorageError>;
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_batch_is_empty_until_it_holds_something() {
+        assert!(Batch::default().is_empty());
+        let holds = [
+            Batch {
+                put_files: vec![(FileId::default(), vec![])],
+                ..Default::default()
+            },
+            Batch {
+                delete_files: vec![FileId::default()],
+                ..Default::default()
+            },
+            Batch {
+                delete_trackpoint_chunks: vec![Uuid::new_v4()],
+                ..Default::default()
+            },
+            Batch {
+                delete_waypoint_chunks: vec![Uuid::new_v4()],
+                ..Default::default()
+            },
+            Batch {
+                order: Some(vec![]),
+                ..Default::default()
+            },
+            Batch {
+                categories: Some(vec![]),
+                ..Default::default()
+            },
+        ];
+        assert!(holds.iter().all(|batch| !batch.is_empty()));
+    }
+
+    #[test]
+    fn test_storage_error_is_readable() {
+        let error = StorageError("disk full".into());
+        assert_eq!(error.to_string(), "storage error: disk full");
+        let _: &dyn std::error::Error = &error;
+    }
+}

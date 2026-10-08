@@ -148,7 +148,10 @@ impl<C: Chunk> Chunked<C> {
     fn replace_chunk(&mut self, chunk: usize, f: impl FnOnce(&mut Vec<C::Item>)) {
         let len = self.chunks[chunk].items().len();
         match Rc::get_mut(&mut self.chunks[chunk]) {
-            Some(unique) => f(unique.items_mut()),
+            Some(unique) => {
+                f(unique.items_mut());
+                unique.renew();
+            }
             None => {
                 let mut items = self.chunks[chunk].items().clone();
                 f(&mut items);
@@ -291,7 +294,9 @@ impl<'a, C: Chunk> IntoIterator for &'a Chunked<C> {
 
 pub struct ChunkedIter<'a, C: Chunk> {
     chunked: &'a Chunked<C>,
+    /// The item returned last.
     idx: Option<ChunkIndex>,
+    exhausted: bool,
 }
 
 impl<C: Chunk> Clone for ChunkedIter<'_, C> {
@@ -299,6 +304,7 @@ impl<C: Chunk> Clone for ChunkedIter<'_, C> {
         Self {
             chunked: self.chunked,
             idx: self.idx,
+            exhausted: self.exhausted,
         }
     }
 }
@@ -307,8 +313,15 @@ impl<'a, C: Chunk> ChunkedIter<'a, C> {
     pub fn new(chunked: &'a Chunked<C>) -> Self {
         Self {
             chunked,
-            idx: Default::default(),
+            idx: None,
+            exhausted: false,
         }
+    }
+
+    fn move_to(&mut self, idx: Option<ChunkIndex>) -> Option<&'a C::Item> {
+        self.exhausted = idx.is_none();
+        self.idx = idx.or(self.idx);
+        idx.map(|idx| &self.chunked[idx])
     }
 }
 
@@ -316,13 +329,291 @@ impl<'a, C: Chunk> Iterator for ChunkedIter<'a, C> {
     type Item = &'a C::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.idx = self.chunked.next_index(self.idx);
-        self.idx.map(|idx| &self.chunked[idx])
+        if self.exhausted {
+            return None;
+        }
+        let next = self.chunked.next_index(self.idx);
+        self.move_to(next)
     }
 
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        let idx = self.idx.map_or_default(|idx| idx.flat) + n;
-        self.idx = self.chunked.locate(idx);
-        self.idx.map(|idx| &self.chunked[idx])
+        if self.exhausted {
+            return None;
+        }
+        let target = self.idx.map_or(0, |idx| idx.flat + 1).saturating_add(n);
+        let next = self.chunked.locate(target);
+        self.move_to(next)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Chunks of at most 3 numbers, with an identity like the real ones.
+    #[derive(Debug)]
+    struct Numbers {
+        id: usize,
+        items: Vec<u32>,
+    }
+
+    thread_local! {
+        static NEXT_ID: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+    }
+
+    fn next_id() -> usize {
+        NEXT_ID.with(|id| id.replace(id.get() + 1))
+    }
+
+    impl Chunk for Numbers {
+        type Item = u32;
+        const MAX_SIZE: usize = 3;
+
+        fn new(items: Vec<u32>) -> Self {
+            Self {
+                id: next_id(),
+                items,
+            }
+        }
+
+        fn renew(&mut self) {
+            self.id = next_id();
+        }
+
+        fn items(&self) -> &Vec<u32> {
+            &self.items
+        }
+
+        fn items_mut(&mut self) -> &mut Vec<u32> {
+            &mut self.items
+        }
+    }
+
+    /// The numbers `0..n` in chunks of 3.
+    fn numbers(n: u32) -> Chunked<Numbers> {
+        let mut chunked = Chunked::default();
+        for start in (0..n).step_by(3) {
+            chunked.push(Numbers::new((start..(start + 3).min(n)).collect()));
+        }
+        chunked
+    }
+
+    fn values(chunked: &Chunked<Numbers>) -> Vec<u32> {
+        chunked.iter().copied().collect()
+    }
+
+    fn ids(chunked: &Chunked<Numbers>) -> Vec<usize> {
+        chunked.chunks().iter().map(|chunk| chunk.id).collect()
+    }
+
+    fn assert_consistent(chunked: &Chunked<Numbers>) {
+        let sizes: Vec<usize> = chunked.chunks().iter().map(|c| c.items.len()).collect();
+        assert!(
+            sizes
+                .iter()
+                .all(|&size| 0 < size && size <= Numbers::MAX_SIZE)
+        );
+        assert_eq!(chunked.len(), sizes.iter().sum::<usize>());
+        for index in 0..chunked.len() {
+            assert_eq!(chunked.locate(index).unwrap().flat, index);
+        }
+        assert!(chunked.locate(chunked.len()).is_none());
+    }
+
+    #[test]
+    fn test_push_drops_empty_chunks() {
+        let mut chunked = numbers(4);
+        chunked.push(Numbers::new(vec![]));
+        assert_eq!(chunked.chunks().len(), 2);
+        assert_eq!(chunked.len(), 4);
+        assert!(Chunked::<Numbers>::default().is_empty());
+        assert!(!chunked.is_empty());
+    }
+
+    #[test]
+    fn test_locate_index_and_iterate() {
+        let chunked = numbers(7);
+        assert_eq!(
+            chunked.locate(4),
+            Some(ChunkIndex {
+                chunk: 1,
+                pos: 1,
+                flat: 4
+            })
+        );
+        assert_eq!(chunked[4], 4);
+        assert_eq!(chunked[chunked.locate(6).unwrap()], 6);
+        assert!(chunked.locate(7).is_none());
+        assert_eq!(values(&chunked), (0..7).collect::<Vec<_>>());
+        assert_eq!(chunked.iter().count(), 7);
+        assert_eq!((&chunked).into_iter().last(), Some(&6));
+        assert_eq!(values(&Chunked::default()), Vec::<u32>::new());
+    }
+
+    #[test]
+    fn test_first_last_next_and_previous_index() {
+        let chunked = numbers(7);
+        let first = chunked.first_index().unwrap();
+        let last = chunked.last_index().unwrap();
+        assert_eq!((first.flat, last.flat), (0, 6));
+        assert_eq!((last.chunk, last.pos), (2, 0));
+
+        let mut forward = vec![];
+        let mut cur = None;
+        while let Some(next) = chunked.next_index(cur) {
+            forward.push(chunked[next]);
+            cur = Some(next);
+        }
+        assert_eq!(forward, (0..7).collect::<Vec<_>>());
+
+        let mut backward = vec![];
+        let mut cur = None;
+        while let Some(prev) = chunked.prev_index(cur) {
+            backward.push(chunked[prev]);
+            cur = Some(prev);
+        }
+        assert_eq!(backward, (0..7).rev().collect::<Vec<_>>());
+
+        let empty = Chunked::<Numbers>::default();
+        assert!(empty.first_index().is_none() && empty.last_index().is_none());
+    }
+
+    #[test]
+    #[allow(clippy::iter_nth_zero)]
+    fn test_iterator_nth_goes_on_from_the_current_item() {
+        let chunked = numbers(10);
+        let mut iter = chunked.iter();
+        assert_eq!(iter.nth(1), Some(&1));
+        assert_eq!(iter.next(), Some(&2));
+        // skips 3 and 4
+        assert_eq!(iter.nth(2), Some(&5));
+        assert_eq!(iter.nth(0), Some(&6));
+        assert_eq!(iter.nth(2), Some(&9));
+        assert_eq!(iter.nth(0), None);
+        assert_eq!(iter.next(), None, "an exhausted iterator stays exhausted");
+
+        assert_eq!(values(&numbers(10)).iter().skip(4).count(), 6);
+        assert_eq!(
+            chunked.iter().skip(4).copied().collect::<Vec<_>>(),
+            (4..10).collect::<Vec<_>>()
+        );
+        assert_eq!(
+            chunked.iter().step_by(4).copied().collect::<Vec<_>>(),
+            vec![0, 4, 8]
+        );
+    }
+
+    #[test]
+    fn test_splice_replaces_inserts_deletes_and_appends() {
+        let mut chunked = numbers(10);
+        chunked.splice(2, 5, vec![100, 101]);
+        assert_eq!(values(&chunked), [0, 1, 100, 101, 5, 6, 7, 8, 9]);
+        assert_consistent(&chunked);
+
+        chunked.splice(0, 0, vec![50]);
+        assert_eq!(values(&chunked)[..3], [50, 0, 1]);
+        chunked.splice(chunked.len(), chunked.len(), vec![7, 7, 7, 7]);
+        assert_eq!(values(&chunked)[chunked.len() - 5..], [9, 7, 7, 7, 7]);
+        assert_consistent(&chunked);
+
+        let len = chunked.len();
+        chunked.splice(0, len, vec![]);
+        assert!(chunked.is_empty());
+        assert_eq!(chunked.len(), 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "splice range out of bounds")]
+    fn test_splice_out_of_bounds_panics() {
+        numbers(4).splice(2, 5, vec![]);
+    }
+
+    #[test]
+    fn test_splice_keeps_the_chunks_it_does_not_touch() {
+        let mut chunked = numbers(12);
+        let before = ids(&chunked);
+        // inside the second chunk
+        chunked.splice(4, 5, vec![40]);
+        let after = ids(&chunked);
+        assert_eq!(after.len(), before.len());
+        assert_eq!(
+            (after[0], after[2], after[3]),
+            (before[0], before[2], before[3])
+        );
+        assert_ne!(after[1], before[1]);
+    }
+
+    #[test]
+    fn test_edit_replaces_only_the_changed_chunks() {
+        let mut chunked = numbers(9);
+        let before = ids(&chunked);
+
+        // nothing is changed: nothing is replaced
+        assert!(!chunked.edit(|n| *n == 4, |_| false));
+        assert_eq!(ids(&chunked), before);
+
+        // the filter picks the chunk, the hook changes it
+        assert!(chunked.edit(
+            |n| *n == 4,
+            |items| {
+                items[1] = 400;
+                true
+            }
+        ));
+        let after = ids(&chunked);
+        assert_eq!((after[0], after[2]), (before[0], before[2]));
+        assert_ne!(after[1], before[1]);
+        assert_eq!(values(&chunked), [0, 1, 2, 3, 400, 5, 6, 7, 8]);
+
+        // a chunk left empty is dropped
+        assert!(chunked.edit(
+            |n| *n == 0,
+            |items| {
+                items.clear();
+                true
+            }
+        ));
+        assert_eq!(chunked.chunks().len(), 2);
+        assert_consistent(&chunked);
+    }
+
+    #[test]
+    fn test_update_copies_the_chunk_so_that_other_versions_do_not_change() {
+        let mut chunked = numbers(6);
+        let version = chunked.clone();
+        let before = ids(&chunked);
+        chunked.update(4, |n| *n = 40);
+        assert_eq!(values(&chunked), [0, 1, 2, 3, 40, 5]);
+        assert_eq!(values(&version), (0..6).collect::<Vec<_>>());
+        assert_eq!(ids(&version), before);
+        assert_eq!(ids(&chunked)[0], before[0]);
+        assert_ne!(ids(&chunked)[1], before[1]);
+    }
+
+    #[test]
+    fn test_updated_chunks_get_a_new_identity_even_when_nothing_shares_them() {
+        // what is derived from or kept of a chunk is keyed by its identity
+        let mut chunked = numbers(6);
+        let before = ids(&chunked);
+        chunked.update(1, |n| *n += 1);
+        assert_ne!(ids(&chunked)[0], before[0]);
+        assert_eq!(ids(&chunked)[1], before[1]);
+
+        let before = ids(&chunked);
+        chunked.update_all(|_, n| *n += 1);
+        let after = ids(&chunked);
+        assert!(before.iter().zip(&after).all(|(a, b)| a != b));
+    }
+
+    #[test]
+    fn test_update_all_gives_the_index_of_each_item() {
+        let mut chunked = numbers(8);
+        let mut seen = vec![];
+        chunked.update_all(|index, n| {
+            seen.push(index);
+            *n = 10 * index as u32;
+        });
+        assert_eq!(seen, (0..8).collect::<Vec<_>>());
+        assert_eq!(values(&chunked), [0, 10, 20, 30, 40, 50, 60, 70]);
     }
 }

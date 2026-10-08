@@ -1,15 +1,8 @@
-use uuid::Uuid;
-
 use crate::{Link, LngLat};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
-pub struct WaypointId(pub Uuid);
+use super::common::uuid_id;
 
-impl Default for WaypointId {
-    fn default() -> Self {
-        Self(Uuid::new_v4())
-    }
-}
+uuid_id!(WaypointId);
 
 #[derive(Debug, Default, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Waypoint {

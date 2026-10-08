@@ -418,11 +418,13 @@ mod tests {
         }
         fx.files.insert(b, Rc::new(file));
         let gap = |fx: &Fixture, remove_gaps: bool| {
-            let mut fx2 = Fixture::default();
-            fx2.files = fx.files.clone();
-            fx2.order = crate::FileOrder(fx.order.0.clone());
-            fx2.selection = Selection::File {
-                file_ids: [a, b].into(),
+            let mut fx2 = Fixture {
+                files: fx.files.clone(),
+                order: crate::FileOrder(fx.order.0.clone()),
+                selection: Selection::File {
+                    file_ids: [a, b].into(),
+                },
+                ..Default::default()
             };
             Merge {
                 type_: MergeType::Connect,

@@ -1,15 +1,8 @@
-use uuid::Uuid;
-
 use crate::{Link, TrackSegment};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
-pub struct TrackId(pub Uuid);
+use super::common::uuid_id;
 
-impl Default for TrackId {
-    fn default() -> Self {
-        Self(Uuid::new_v4())
-    }
-}
+uuid_id!(TrackId);
 
 #[derive(Debug, Default, Clone)]
 pub struct Track {

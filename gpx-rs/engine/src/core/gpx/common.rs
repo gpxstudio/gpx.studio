@@ -1,3 +1,20 @@
+/// Defines an identifier made of a UUID, which is a new one by default.
+macro_rules! uuid_id {
+    ($(#[$meta:meta])* $name:ident) => {
+        $(#[$meta])*
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+        pub struct $name(pub uuid::Uuid);
+
+        impl Default for $name {
+            fn default() -> Self {
+                Self(uuid::Uuid::new_v4())
+            }
+        }
+    };
+}
+
+pub(crate) use uuid_id;
+
 #[derive(Debug, Default, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Link {
     pub href: String,

@@ -248,9 +248,9 @@ mod tests {
         // 1 km in 10 s is 360 km/h
         let mut trkpt = timed(0..4, 0, 10_000);
         let km = distance(point(0, None).coordinates, point(1, None).coordinates);
-        let speed = Some(36.0 * km / 0.01); // the time of 1 point to the next is 100 s
-        replace_trackpoints(&mut trkpt, 2, 3, untimed(2..4), speed, None, false);
-        let expected = 10_000 + (3_600_000.0 * km / speed.unwrap()) as i64;
+        let speed = 36.0 * km / 0.01; // the time of 1 point to the next is 100 s
+        replace_trackpoints(&mut trkpt, 2, 3, untimed(2..4), Some(speed), None, false);
+        let expected = 10_000 + (3_600_000.0 * km / speed) as i64;
         assert_eq!(trkpt[2].time, Some(expected));
         assert!(trkpt[2].time > trkpt[1].time);
         // the points after follow the new ones, they were not too early

@@ -1,6 +1,6 @@
-use uuid::Uuid;
-
 use crate::{Trackpoint, Waypoint};
+
+use super::common::uuid_id;
 
 /// A run of items, shared between the successive versions of a [`crate::Chunked`] list: a chunk
 /// that is not touched by an edit is not copied.
@@ -16,6 +16,9 @@ pub trait Chunk {
     /// A chunk with a new identity, holding `items`.
     fn new(items: Vec<Self::Item>) -> Self;
 
+    /// Gives the chunk a new identity, after its items were changed in place.
+    fn renew(&mut self);
+
     fn items(&self) -> &Vec<Self::Item>;
 
     fn items_mut(&mut self) -> &mut Vec<Self::Item>;
@@ -27,14 +30,7 @@ pub trait Chunk {
 
 const MAX_TRKPT_CHUNK_SIZE: usize = 4096;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
-pub struct TrackpointChunkId(pub Uuid);
-
-impl Default for TrackpointChunkId {
-    fn default() -> Self {
-        Self(Uuid::new_v4())
-    }
-}
+uuid_id!(TrackpointChunkId);
 
 #[derive(Debug, Default)]
 pub struct TrackpointChunk {
@@ -53,6 +49,10 @@ impl Chunk for TrackpointChunk {
         }
     }
 
+    fn renew(&mut self) {
+        self.id = Default::default();
+    }
+
     fn items(&self) -> &Vec<Trackpoint> {
         &self.trkpt
     }
@@ -62,14 +62,7 @@ impl Chunk for TrackpointChunk {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
-pub struct WaypointChunkId(pub Uuid);
-
-impl Default for WaypointChunkId {
-    fn default() -> Self {
-        Self(Uuid::new_v4())
-    }
-}
+uuid_id!(WaypointChunkId);
 
 const MAX_WPT_CHUNK_SIZE: usize = 128;
 
@@ -88,6 +81,10 @@ impl Chunk for WaypointChunk {
             wpt,
             ..Default::default()
         }
+    }
+
+    fn renew(&mut self) {
+        self.id = Default::default();
     }
 
     fn items(&self) -> &Vec<Waypoint> {

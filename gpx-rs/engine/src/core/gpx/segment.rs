@@ -1,26 +1,13 @@
-use std::ops::{Deref, DerefMut};
-
-use uuid::Uuid;
+use std::ops::Deref;
+use std::rc::Rc;
 
 use crate::{ChunkIndex, Chunked, ChunkedIter, Trackpoint, TrackpointChunk, compute_anchors};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
-pub struct TrackSegmentId(pub Uuid);
+use super::common::uuid_id;
 
-impl Default for TrackSegmentId {
-    fn default() -> Self {
-        Self(Uuid::new_v4())
-    }
-}
+uuid_id!(TrackSegmentId);
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct TrackSegmentRevisionId(pub Uuid);
-
-impl Default for TrackSegmentRevisionId {
-    fn default() -> Self {
-        Self(Uuid::new_v4())
-    }
-}
+uuid_id!(TrackSegmentRevisionId);
 
 #[derive(Debug, Default, Clone)]
 pub struct TrackSegment {
@@ -42,17 +29,37 @@ impl Deref for TrackSegment {
     }
 }
 
-impl DerefMut for TrackSegment {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.points
-    }
-}
-
 impl TrackSegment {
+    /// Adds a chunk after the last trackpoint, which is dropped if it is empty.
+    pub fn push(&mut self, chunk: TrackpointChunk) {
+        self.points.push(chunk);
+        self.rev_id = Default::default();
+    }
+
+    /// Adds a chunk that is shared with something else after the last trackpoint.
+    pub fn push_shared(&mut self, chunk: Rc<TrackpointChunk>) {
+        self.points.push_shared(chunk);
+        self.rev_id = Default::default();
+    }
+
+    /// Applies `f` to the trackpoint at `index`, see [`Chunked::update`]. Panics if there is no
+    /// such trackpoint.
+    pub fn update(&mut self, index: usize, f: impl FnOnce(&mut Trackpoint)) {
+        self.points.update(index, f);
+        self.rev_id = Default::default();
+    }
+
+    /// Applies `f` to every trackpoint, with its index, see [`Chunked::update_all`].
+    pub fn update_all(&mut self, f: impl FnMut(usize, &mut Trackpoint)) {
+        self.points.update_all(f);
+        self.rev_id = Default::default();
+    }
+
     /// Replaces the points in `start..end` by `points`, see [`Chunked::splice`]. The first and
     /// last trackpoints are anchors afterwards.
     pub fn splice(&mut self, start: usize, end: usize, points: Vec<Trackpoint>) {
         self.points.splice(start, end, points);
+        self.rev_id = Default::default();
         self.ensure_end_anchors();
     }
 
@@ -74,7 +81,7 @@ impl TrackSegment {
     /// Makes the trackpoint at `index` an anchor shown from the map zoom level `zoom`. Panics if
     /// there is no such trackpoint.
     pub fn set_anchor(&mut self, index: usize, zoom: u8) {
-        self.points.update(index, |trkpt| trkpt.anchor = Some(zoom));
+        self.update(index, |trkpt| trkpt.anchor = Some(zoom));
     }
 
     /// Sets the anchors of the trackpoints from the details of the path of the segment (see
@@ -82,7 +89,7 @@ impl TrackSegment {
     pub fn compute_anchors(&mut self) {
         let anchors = compute_anchors(self);
         let mut anchors = anchors.into_iter().peekable();
-        self.points.update_all(|index, trkpt| {
+        self.update_all(|index, trkpt| {
             trkpt.anchor = match anchors.peek() {
                 Some(&(anchor, zoom)) if anchor == index => {
                     anchors.next();
@@ -97,6 +104,8 @@ impl TrackSegment {
 #[cfg(test)]
 mod tests {
     use std::rc::Rc;
+
+    use crate::Chunk;
 
     use super::*;
 
@@ -353,5 +362,50 @@ mod tests {
             }
             idx = next;
         }
+    }
+
+    fn points_of(n: usize) -> Vec<Trackpoint> {
+        (0..n).map(|_| Trackpoint::default()).collect()
+    }
+
+    #[test]
+    fn test_every_change_gives_a_new_revision() {
+        type Change = (&'static str, fn(&mut TrackSegment));
+        let changes: [Change; 7] = [
+            ("push", |s| s.push(TrackpointChunk::new(points_of(1)))),
+            ("push_shared", |s| {
+                s.push_shared(Rc::new(TrackpointChunk::new(points_of(1))))
+            }),
+            ("update", |s| s.update(0, |p| p.ele += 1.0)),
+            ("update_all", |s| s.update_all(|_, p| p.ele += 1.0)),
+            ("splice", |s| s.splice(1, 2, points_of(2))),
+            ("set_anchor", |s| s.set_anchor(1, 5)),
+            ("compute_anchors", |s| s.compute_anchors()),
+        ];
+        for (name, change) in changes {
+            let mut trkseg = create_track_segment(3);
+            let before = trkseg.rev_id;
+            change(&mut trkseg);
+            assert_ne!(trkseg.rev_id, before, "{name}");
+        }
+        // reading does not
+        let trkseg = create_track_segment(3);
+        let before = trkseg.rev_id;
+        let _ = trkseg.iter().count();
+        assert_eq!(trkseg.rev_id, before);
+    }
+
+    #[test]
+    fn test_ends_are_anchors_after_a_splice() {
+        let mut trkseg = create_track_segment(3);
+        trkseg.splice(0, 1, points_of(2));
+        let last = trkseg.len() - 1;
+        assert_eq!(trkseg[0].anchor, Some(0));
+        assert_eq!(trkseg[last].anchor, Some(0));
+
+        // nothing to anchor in an empty segment
+        let mut empty = TrackSegment::default();
+        empty.ensure_end_anchors();
+        assert!(empty.is_empty());
     }
 }

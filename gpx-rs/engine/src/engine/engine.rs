@@ -446,7 +446,7 @@ mod tests {
     }
 
     #[test]
-    fn test_not_implemented_command_is_rejected() {
+    fn test_command_with_nothing_to_do_is_rejected() {
         let mut engine = Engine::default();
         new(&mut engine, "file");
         assert!(!edit(&mut engine, Command::Reverse(crate::Reverse)));
@@ -754,7 +754,7 @@ mod tests {
         ));
         assert!(!select_elements(&mut engine, node.clone(), SelectMode::Add));
         assert_eq!(engine.selection(), &node);
-        assert!(engine.selection_changed() == false);
+        assert!(!engine.selection_changed());
 
         // unknown elements and files are ignored when adding
         let unknown = tracks(&[TrackId::default()]);
@@ -1428,5 +1428,130 @@ mod tests {
         );
         assert!(engine.trackpoint(&file, &seg_id, len).is_none());
         assert!(engine.trackpoint(&Default::default(), &seg_id, 0).is_none());
+    }
+
+    #[test]
+    fn test_export_writes_the_file_as_it_is() {
+        let mut engine = Engine::default();
+        assert!(
+            engine
+                .export(&FileId::default(), ExportOptions::ALL)
+                .is_none()
+        );
+
+        load(&mut engine, "data/with_time.gpx");
+        let id = engine.order()[0];
+        let bytes = engine.export(&id, ExportOptions::ALL).unwrap();
+        let again = crate::parse(&bytes, &mut engine.categories().clone()).unwrap();
+        let file = engine.stack.current().unwrap()[&id].clone();
+        assert_eq!(again.trk.len(), file.trk.len());
+        assert_eq!(again.trk[0].trkseg[0].len(), file.trk[0].trkseg[0].len());
+        assert!(again.trk[0].trkseg[0][0].time.is_some());
+
+        // the options leave data out
+        let bytes = engine.export(&id, ExportOptions::NONE).unwrap();
+        let again = crate::parse(&bytes, &mut engine.categories().clone()).unwrap();
+        assert!(again.trk[0].trkseg[0].iter().all(|p| p.time.is_none()));
+
+        // a file that is gone cannot be exported
+        engine.execute(Action::Edit(Command::DeleteAll(DeleteAll)));
+        assert!(engine.export(&id, ExportOptions::ALL).is_none());
+    }
+
+    #[test]
+    fn test_exportable_data_is_the_union_over_the_files() {
+        let mut engine = Engine::default();
+        assert_eq!(engine.exportable_data(&[]), ExportOptions::NONE);
+
+        load(&mut engine, "data/simple.gpx");
+        load(&mut engine, "data/with_time.gpx");
+        let (plain, timed) = (engine.order()[0], engine.order()[1]);
+        assert!(!engine.exportable_data(&[plain]).time);
+        assert!(engine.exportable_data(&[timed]).time);
+        assert!(engine.exportable_data(&[plain, timed]).time);
+        // unknown files have nothing
+        assert_eq!(
+            engine.exportable_data(&[FileId::default()]),
+            ExportOptions::NONE
+        );
+        assert!(!engine.exportable_data(&[plain, FileId::default()]).time);
+    }
+
+    #[test]
+    fn test_file_statistics_are_the_ones_of_the_whole_file() {
+        let mut engine = Engine::default();
+        assert!(engine.file_statistics(&FileId::default()).is_none());
+
+        load(&mut engine, "data/simple.gpx");
+        let id = engine.order()[0];
+        let stats = engine.file_statistics(&id).unwrap();
+        assert!(stats.total_distance > 0.0);
+        let last = engine.statistics().total_distance.last().copied().unwrap();
+        assert!((stats.total_distance - last).abs() < 1e-9);
+        assert!(engine.file_statistics(&FileId::default()).is_none());
+
+        // statistics of a file do not depend on the selection
+        engine.execute(Action::Select {
+            selection: Selection::Empty,
+            mode: SelectMode::Replace,
+        });
+        assert_eq!(
+            engine.file_statistics(&id).unwrap().total_distance,
+            stats.total_distance
+        );
+
+        engine.execute(Action::Undo);
+        assert!(engine.file_statistics(&id).is_none());
+    }
+
+    #[test]
+    fn test_reduction_distances_follow_the_selection() {
+        let mut engine = Engine::default();
+        assert!(engine.reduction_distances().is_empty());
+
+        load(&mut engine, "data/simple.gpx");
+        let n = engine.statistics().total_distance.len();
+        let distances = engine.reduction_distances();
+        assert_eq!(distances.len(), n);
+        assert!(distances.iter().all(|d| !d.is_nan()));
+
+        engine.execute(Action::Select {
+            selection: Selection::Empty,
+            mode: SelectMode::Replace,
+        });
+        assert!(engine.reduction_distances().is_empty());
+    }
+
+    #[test]
+    fn test_routing_describes_the_anchors_of_the_selection() {
+        let mut engine = Engine::default();
+        assert!(engine.routing().anchor_indices.is_empty());
+
+        load(&mut engine, "data/simple.gpx");
+        let n = engine.statistics().total_distance.len() as u32;
+        let routing = engine.routing();
+        assert_eq!(routing.segment_starts, vec![0]);
+        assert_eq!(routing.segment_ids.len(), 1);
+        // the ends of a segment are always anchors
+        assert_eq!(routing.anchor_indices.first(), Some(&0));
+        assert_eq!(routing.anchor_indices.last(), Some(&(n - 1)));
+        assert_eq!(routing.anchor_indices.len(), routing.anchor_zooms.len());
+        assert_eq!(routing.anchor_zooms[0], 0);
+
+        // the revision follows what the indices refer to
+        let revision = routing.revision;
+        engine.execute(Action::Select {
+            selection: Selection::Empty,
+            mode: SelectMode::Replace,
+        });
+        assert!(engine.routing().anchor_indices.is_empty());
+        assert_ne!(engine.routing().revision, revision);
+        // nothing changed for the routing: same revision
+        let revision = engine.routing().revision;
+        engine.execute(Action::Select {
+            selection: Selection::Empty,
+            mode: SelectMode::Replace,
+        });
+        assert_eq!(engine.routing().revision, revision);
     }
 }

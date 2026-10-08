@@ -12,8 +12,6 @@ pub trait Apply {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CommandError {
-    /// The command is not implemented yet.
-    NotImplemented(&'static str),
     /// The command would not change anything.
     NothingToDo,
     /// The input data could not be parsed.
@@ -23,7 +21,6 @@ pub enum CommandError {
 impl fmt::Display for CommandError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::NotImplemented(name) => write!(f, "{name} is not implemented yet"),
             Self::NothingToDo => write!(f, "nothing to do"),
             Self::InvalidData(err) => write!(f, "invalid data: {err}"),
         }

@@ -1,17 +1,10 @@
 use std::ops::Deref;
 
-use uuid::Uuid;
-
 use crate::{Chunked, Waypoint, WaypointChunk, WaypointId};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct FileWaypointsRevisionId(pub Uuid);
+use super::common::uuid_id;
 
-impl Default for FileWaypointsRevisionId {
-    fn default() -> Self {
-        Self(Uuid::new_v4())
-    }
-}
+uuid_id!(FileWaypointsRevisionId);
 
 /// The waypoints of a file, in chunks that are shared between the versions of the file (see
 /// [`Chunked`]).
