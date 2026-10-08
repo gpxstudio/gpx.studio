@@ -93,22 +93,47 @@ export class BoundsManager {
     }
 
     centerMapOnSelection() {
-        let stats = get(statistics);
+        const bounds = new maplibregl.LngLatBounds([180, 90, -180, -90]);
+        const stats = get(statistics);
         if (stats.global.bounds) {
-            // TODO take waypoints into account
-            let bounds = new maplibregl.LngLatBounds([
-                stats.global.bounds.west,
-                stats.global.bounds.south,
-                stats.global.bounds.east,
-                stats.global.bounds.north,
+            bounds.extend([
+                [stats.global.bounds.west, stats.global.bounds.south],
+                [stats.global.bounds.east, stats.global.bounds.north],
             ]);
-            if (!this.validBounds(bounds)) return;
-            get(map)?.fitBounds(bounds, {
-                padding: 80,
-                easing: () => 1,
-                maxZoom: 15,
-            });
         }
+
+        // the waypoints are not part of the statistics of the selection
+        const selection = get(engine.selection);
+        let waypointIds: Set<string> | undefined; // all the waypoints of the file if undefined
+        let fileIds: string[] = [];
+        switch (selection.type) {
+            case 'file':
+                fileIds = selection.fileIds;
+                break;
+            case 'waypoints':
+                fileIds = [selection.fileId];
+                break;
+            case 'waypoint':
+                fileIds = [selection.fileId];
+                waypointIds = new Set(selection.waypointIds);
+                break;
+        }
+        const files = get(engine.files);
+        for (const fileId of fileIds) {
+            const file = files.get(fileId);
+            if (!file) continue;
+            for (const feature of get(file).waypoints.features) {
+                if (waypointIds && !waypointIds.has(feature.properties.waypointId)) continue;
+                bounds.extend(feature.geometry.coordinates as [number, number]);
+            }
+        }
+
+        if (!this.validBounds(bounds)) return;
+        get(map)?.fitBounds(bounds, {
+            padding: 80,
+            easing: () => 1,
+            maxZoom: 15,
+        });
     }
 
     validBounds(bounds: maplibregl.LngLatBounds) {
