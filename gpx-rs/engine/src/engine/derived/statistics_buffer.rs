@@ -211,10 +211,6 @@ impl StatisticsBuffer {
             start_time: time(start),
             end_time: time(end),
             bounds: self.global.bounds,
-            hr: self.global.hr,
-            cad: self.global.cad,
-            atemp: self.global.atemp,
-            power: self.global.power,
         })
     }
 }
@@ -354,7 +350,6 @@ mod tests {
         assert!(buffer.cad.is_none());
         assert!(buffer.atemp.is_none());
         assert!(buffer.power.is_none());
-        assert_eq!(buffer.global.hr.count, 0);
         assert_eq!(buffer.global.total_time, None);
         assert_eq!(buffer.len(), s.local.len());
         // they need times
@@ -638,21 +633,16 @@ mod tests {
     }
 
     #[test]
-    fn test_slice_keeps_the_bounds_and_averages_of_the_selection() {
+    fn test_slice_keeps_the_bounds_of_the_selection() {
         let data = std::fs::read("data/with_hr.gpx").unwrap();
         let file = parse(&data, &mut Default::default()).unwrap();
         let segment = file.trk[0].trkseg[0].clone();
         let s = Statistics::compute(&segment);
         let mut buffer = StatisticsBuffer::default();
         buffer.update(&[(&segment, &s)]);
-        assert!(buffer.global.hr.count > 0);
 
         let slice = buffer.slice(1, 3).unwrap();
         let (global, bounds) = (&buffer.global, &slice.bounds);
-        assert_eq!(slice.hr, global.hr);
-        assert_eq!(slice.cad, global.cad);
-        assert_eq!(slice.atemp, global.atemp);
-        assert_eq!(slice.power, global.power);
         assert_eq!(
             (bounds.sw.lng, bounds.sw.lat),
             (global.bounds.sw.lng, global.bounds.sw.lat)

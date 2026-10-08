@@ -167,14 +167,6 @@ pub(crate) fn statistics_object(stats: &engine::GlobalStatistics) -> GlobalStati
         }
     };
     let seconds = |ms: Option<i64>| ms.map(|ms| ms as f64 / 1000.0);
-    let average = |key: &str, average: &engine::Average| {
-        if let Some(avg) = average.avg() {
-            let value = Object::new();
-            set(&value, "avg", avg);
-            set(&value, "count", f64::from(average.count));
-            set(&object, key, value);
-        }
-    };
     set(&object, "totalDistance", stats.total_distance);
     optional("movingDistance", stats.moving_distance);
     optional("totalTime", seconds(stats.total_time));
@@ -185,10 +177,6 @@ pub(crate) fn statistics_object(stats: &engine::GlobalStatistics) -> GlobalStati
     optional("endTime", stats.end_time.map(|t| t as f64));
     optional("totalSpeed", stats.total_speed());
     optional("movingSpeed", stats.moving_speed());
-    average("hr", &stats.hr);
-    average("cad", &stats.cad);
-    average("atemp", &stats.atemp);
-    average("power", &stats.power);
     let (sw, ne) = (&stats.bounds.sw, &stats.bounds.ne);
     if sw.lng <= ne.lng && sw.lat <= ne.lat {
         let bounds = Object::new();

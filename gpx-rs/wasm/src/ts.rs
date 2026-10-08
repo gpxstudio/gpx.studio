@@ -113,7 +113,7 @@ export interface FileStructure {
 }
 /**
  * Global statistics of a file, of the selection, or of a part of it. The optional fields are
- * absent when there is no data for them (no timestamps, no heart rate...).
+ * absent when there is no data for them (no timestamps...).
  */
 export interface GlobalStatistics {
     /** km */
@@ -130,11 +130,6 @@ export interface GlobalStatistics {
     /** km/h */
     totalSpeed?: number;
     movingSpeed?: number;
-    /** Average and number of trackpoints having the measure. */
-    hr?: { avg: number; count: number };
-    cad?: { avg: number; count: number };
-    atemp?: { avg: number; count: number };
-    power?: { avg: number; count: number };
     /** Absent when there are no trackpoints. */
     bounds?: { west: number; south: number; east: number; north: number };
 }

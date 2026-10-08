@@ -55,10 +55,6 @@ impl Statistics {
         self.accumulate_distance_and_time(prev, cur);
         self.update_time_bounds(cur.time);
         self.update_bounds(cur.coordinates);
-        self.global.hr.add(cur.hr.map(f64::from));
-        self.global.cad.add(cur.cad.map(f64::from));
-        self.global.atemp.add(cur.atemp.map(f64::from));
-        self.global.power.add(cur.power.map(f64::from));
         self.local
             .push(TrackpointStatistics::from_partial_stats(self));
     }
@@ -238,32 +234,6 @@ impl Statistics {
     }
 }
 
-/// Average of an optional measure (heart rate, cadence...) over the trackpoints that have it.
-/// Keeps the sum so that averages can be merged.
-#[derive(Default, Debug, Clone, Copy, PartialEq)]
-pub struct Average {
-    pub sum: f64,
-    pub count: u32,
-}
-
-impl Average {
-    pub fn add(&mut self, value: Option<f64>) {
-        if let Some(value) = value {
-            self.sum += value;
-            self.count += 1;
-        }
-    }
-
-    pub fn merge(&mut self, other: &Average) {
-        self.sum += other.sum;
-        self.count += other.count;
-    }
-
-    pub fn avg(&self) -> Option<f64> {
-        (self.count > 0).then(|| self.sum / self.count as f64)
-    }
-}
-
 #[derive(Default, Debug)]
 pub struct GlobalStatistics {
     pub total_distance: f64,
@@ -275,10 +245,6 @@ pub struct GlobalStatistics {
     pub start_time: Option<i64>,
     pub end_time: Option<i64>,
     pub bounds: LngLatBounds,
-    pub hr: Average,
-    pub cad: Average,
-    pub atemp: Average,
-    pub power: Average,
 }
 
 impl GlobalStatistics {
@@ -305,10 +271,6 @@ impl GlobalStatistics {
         self.start_time = min_options(self.start_time, other.start_time);
         self.end_time = max_options(self.end_time, other.end_time);
         self.bounds.merge(&other.bounds);
-        self.hr.merge(&other.hr);
-        self.cad.merge(&other.cad);
-        self.atemp.merge(&other.atemp);
-        self.power.merge(&other.power);
     }
 }
 
@@ -561,51 +523,5 @@ mod tests {
         assert_eq!(cumul.end_time, Some(12_000));
         assert_eq!(cumul.total_time, Some(7_000));
         assert_eq!((a.bounds.ne.lng, a.bounds.ne.lat), (2.0, 3.0));
-    }
-
-    #[test]
-    fn test_average() {
-        let mut average = Average::default();
-        assert_eq!(average.avg(), None);
-        average.add(None);
-        assert_eq!(average.avg(), None);
-        average.add(Some(100.0));
-        average.add(Some(110.0));
-        assert_eq!(average.avg(), Some(105.0));
-
-        let mut other = Average::default();
-        other.add(Some(130.0));
-        average.merge(&other);
-        assert_eq!(average.count, 3);
-        assert_eq!(average.avg(), Some(113.33333333333333));
-    }
-
-    #[test]
-    fn test_measures_of_the_trackpoints_are_averaged() {
-        for (path, measure) in [
-            ("data/with_hr.gpx", 0),
-            ("data/with_cad.gpx", 1),
-            ("data/with_temp.gpx", 2),
-            ("data/with_power_1.gpx", 3),
-        ] {
-            let data = std::fs::read(path).unwrap();
-            let gpx = parse(&data, &mut Default::default()).unwrap();
-            let trkseg = &gpx.trk[0].trkseg[0];
-            let global = Statistics::compute(trkseg).global;
-            let values: Vec<f64> = trkseg
-                .iter()
-                .filter_map(|trkpt| match measure {
-                    0 => trkpt.hr.map(f64::from),
-                    1 => trkpt.cad.map(f64::from),
-                    2 => trkpt.atemp.map(f64::from),
-                    _ => trkpt.power.map(f64::from),
-                })
-                .collect();
-            let average = [global.hr, global.cad, global.atemp, global.power][measure];
-            assert!(!values.is_empty(), "{path}");
-            assert_eq!(average.count as usize, values.len(), "{path}");
-            let expected = values.iter().sum::<f64>() / values.len() as f64;
-            assert!((average.avg().unwrap() - expected).abs() < 1e-9, "{path}");
-        }
     }
 }

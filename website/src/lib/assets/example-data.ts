@@ -11,7 +11,6 @@ export const exampleData = {
         endTime: 1672538633024,
         totalSpeed: 11.737617486742575,
         movingSpeed: 11.737617486742575,
-        atemp: { avg: 17.676470588235293, count: 102 },
         bounds: { west: -66.660451, south: 48.745764, east: -66.510044, north: 48.92168 },
     },
     totalDistance: [
