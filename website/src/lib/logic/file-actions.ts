@@ -96,38 +96,3 @@ export async function loadFiles(list: FileList | File[]): Promise<string[]> {
     }
     return ids;
 }
-
-// Helper functions for file operations
-export const fileActions = {
-    reduce: (itemsAndPoints: Map<ListItem, TrackPoint[]>) => {
-        if (itemsAndPoints.size === 0) {
-            return;
-        }
-        fileActionManager.applyGlobal((draft) => {
-            let allItems = Array.from(itemsAndPoints.keys());
-            applyToOrderedItemsFromFile(allItems, (fileId, level, items) => {
-                let file = draft.get(fileId);
-                if (file) {
-                    for (let item of items) {
-                        if (item instanceof ListTrackSegmentItem) {
-                            let trackIndex = item.getTrackIndex();
-                            let segmentIndex = item.getSegmentIndex();
-                            let points = itemsAndPoints.get(item);
-                            if (points) {
-                                file.replaceTrackPoints(
-                                    trackIndex,
-                                    segmentIndex,
-                                    0,
-                                    file.trk[trackIndex].trkseg[
-                                        segmentIndex
-                                    ].getNumberOfTrackPoints() - 1,
-                                    points
-                                );
-                            }
-                        }
-                    }
-                }
-            });
-        });
-    },
-};

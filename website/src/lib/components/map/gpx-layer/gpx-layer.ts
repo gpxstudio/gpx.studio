@@ -19,7 +19,6 @@ import { isCovered, hasSelectionWithin, type FileTreeNode } from '$lib/selection
 import { isSegmentHidden, isWaypointHidden } from '$lib/file-visibility';
 import { settings } from '$lib/logic/settings';
 import { currentTool, Tool } from '$lib/components/toolbar/tools';
-import { fileActions } from '$lib/logic/file-actions';
 import { splitAtPoint } from '$lib/components/toolbar/tools/scissors/scissors';
 import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';

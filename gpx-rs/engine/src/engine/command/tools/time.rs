@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
 use crate::{
-    Apply, CommandError, File, SegmentLocation, State, Statistics, TrackSegment, Trackpoint, artificial_weights,
-    shifted_and_compressed, with_artificial_timestamps, with_timestamps,
+    Apply, CommandError, File, SegmentLocation, State, Statistics, TrackSegment, Trackpoint,
+    artificial_weights, shifted_and_compressed, with_artificial_timestamps, with_timestamps,
 };
 
 /// How the timestamps of the selection are set.
@@ -50,7 +50,10 @@ impl Apply for Time {
         let segment_at = |location: &SegmentLocation| -> &TrackSegment {
             &state.files[&location.file_id].trk[location.trk].trkseg[location.seg]
         };
-        if locations.iter().all(|location| segment_at(location).is_empty()) {
+        if locations
+            .iter()
+            .all(|location| segment_at(location).is_empty())
+        {
             return Err(CommandError::NothingToDo);
         }
 
@@ -164,7 +167,11 @@ mod tests {
         fx.files[&id]
             .trk
             .iter()
-            .flat_map(|trk| trk.trkseg.iter().flat_map(|seg| seg.iter().map(|pt| pt.time)))
+            .flat_map(|trk| {
+                trk.trkseg
+                    .iter()
+                    .flat_map(|seg| seg.iter().map(|pt| pt.time))
+            })
             .collect()
     }
 

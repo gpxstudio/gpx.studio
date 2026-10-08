@@ -2,26 +2,39 @@
     import { Label } from '$lib/components/ui/label/index.js';
     import { Button } from '$lib/components/ui/button';
     import { Slider } from '$lib/components/ui/slider';
-    import { ListRootItem } from '$lib/components/file-list/file-list';
     import Help from '$lib/components/Help.svelte';
     import { Funnel } from '@lucide/svelte';
     import { i18n } from '$lib/i18n.svelte';
     import WithUnits from '$lib/components/WithUnits.svelte';
     import { onDestroy } from 'svelte';
     import { getURLForLanguage } from '$lib/utils';
-    import { selection } from '$lib/logic/selection';
-    import { minTolerance, ReducedGPXLayerCollection, tolerance } from './utils.svelte';
+    import { engine } from '$lib/engine';
+    import { minTolerance, ReducedLayer, tolerance } from './utils.svelte';
 
     let props: { class?: string } = $props();
 
     let sliderValue = $state(50);
     const maxTolerance = 10000;
 
+    const selection = engine.selection;
+    const statistics = engine.statistics;
+
+    // the preview needs the start of each segment
+    const request = engine.requestStatistics();
+    request.set(['anchors']);
+
     let validSelection = $derived(
-        $selection.hasAnyChildren(new ListRootItem(), true, ['waypoints'])
+        $selection.type === 'file' || $selection.type === 'track' || $selection.type === 'segment'
     );
 
-    let reducedLayers = new ReducedGPXLayerCollection();
+    let reducedLayer = new ReducedLayer();
+
+    $effect(() => {
+        // recomputed when the selection or the files change
+        const stats = $statistics;
+        const distances = engine.reductionDistances();
+        reducedLayer.update(stats, distances, $tolerance);
+    });
 
     $effect(() => {
         tolerance.set(
@@ -30,7 +43,8 @@
     });
 
     onDestroy(() => {
-        reducedLayers.destroy();
+        request.release();
+        reducedLayer.destroy();
     });
 </script>
 
@@ -44,9 +58,9 @@
     </Label>
     <Label class="flex flex-row justify-between">
         <span>{i18n._('toolbar.reduce.number_of_points')}</span>
-        <span class="font-normal">{reducedLayers.currentPoints}/{reducedLayers.maxPoints}</span>
+        <span class="font-normal">{reducedLayer.currentPoints}/{reducedLayer.maxPoints}</span>
     </Label>
-    <Button variant="outline" disabled={!validSelection} onclick={() => reducedLayers.reduce()}>
+    <Button variant="outline" disabled={!validSelection} onclick={() => engine.reduce($tolerance)}>
         <Funnel size="16" />
         {i18n._('toolbar.reduce.button')}
     </Button>

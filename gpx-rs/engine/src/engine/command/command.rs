@@ -2,7 +2,8 @@ use crate::{Apply, CommandError, State};
 use crate::{
     ChangeLoopStart, Clean, Crop, Delete, DeleteAll, DeleteWaypoint, Duplicate, EditWaypoint,
     Elevation, Extract, InsertAnchor, Load, LoadFiles, Merge, Metadata, Move, MoveWaypoint, New,
-    NewTrack, NewTrackSegment, NewWaypoint, Paste, Reverse, RoundTrip, Route, Split, Style, Time,
+    NewTrack, NewTrackSegment, NewWaypoint, Paste, Reduce, Reverse, RoundTrip, Route, Split, Style,
+    Time,
 };
 
 /// A user action that edits the files. Each variant wraps the command's own struct, whose
@@ -32,6 +33,7 @@ pub enum Command<'a> {
     EditWaypoint(EditWaypoint<'a>),
     MoveWaypoint(MoveWaypoint),
     Crop(Crop),
+    Reduce(Reduce),
     Split(Split),
     Time(Time),
     Merge(Merge),
@@ -65,6 +67,7 @@ impl Apply for Command<'_> {
             Command::EditWaypoint(c) => c.apply(state),
             Command::MoveWaypoint(c) => c.apply(state),
             Command::Crop(c) => c.apply(state),
+            Command::Reduce(c) => c.apply(state),
             Command::Split(c) => c.apply(state),
             Command::Time(c) => c.apply(state),
             Command::Merge(c) => c.apply(state),

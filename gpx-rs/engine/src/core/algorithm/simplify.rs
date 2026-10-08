@@ -1,6 +1,6 @@
 use crate::{
     core::gpx::{TrackSegment, TrackSegmentIndex},
-    core::utils::crossarc,
+    core::utils::{crossarc, crossarc_lnglat},
 };
 
 pub fn ramer_douglas_peucker<F>(
@@ -83,6 +83,85 @@ fn ramer_douglas_peucker_helper<M>(
         ramer_douglas_peucker_helper(trkseg, start, idx, measure, epsilon, kept);
         kept.push((idx, Some(max_dist)));
         ramer_douglas_peucker_helper(trkseg, idx, end, measure, epsilon, kept);
+    }
+}
+
+/// Lowest tolerance (in meters) of the reduction of a segment, see [`reduction_distances`].
+pub const MIN_REDUCE_TOLERANCE: f64 = 0.1;
+
+/// The distance (in meters) from a trackpoint to the line between two others of a segment.
+fn lnglat_measure(
+    trkseg: &TrackSegment,
+) -> impl Fn(TrackSegmentIndex, TrackSegmentIndex, TrackSegmentIndex) -> f64 + '_ {
+    move |start, end, idx| {
+        crossarc_lnglat(
+            trkseg[start].coordinates,
+            trkseg[end].coordinates,
+            trkseg[idx].coordinates,
+        )
+    }
+}
+
+/// The indices of the trackpoints of a segment that are kept when it is reduced with `tolerance`
+/// meters (Ramer-Douglas-Peucker), in order. The ends are always kept.
+pub fn reduce_indices(trkseg: &TrackSegment, tolerance: f64) -> Vec<usize> {
+    ramer_douglas_peucker_by(trkseg, &lnglat_measure(trkseg), tolerance)
+        .into_iter()
+        .map(|(idx, _)| idx.flat)
+        .collect()
+}
+
+/// For each trackpoint of a segment, the tolerance (in meters) up to which it is kept by
+/// [`reduce_indices`]: infinite for the ends, which are always kept, zero for the trackpoints that
+/// are not selected even at [`MIN_REDUCE_TOLERANCE`]. A trackpoint is kept with a tolerance if its
+/// value is greater than it.
+///
+/// A trackpoint is only selected if the ones that split the path before it are, so its value is
+/// the smallest distance at which it or one of them was selected.
+pub fn reduction_distances(trkseg: &TrackSegment) -> Vec<f64> {
+    let mut distances = vec![0.0; trkseg.len()];
+    let (Some(first), Some(last)) = (trkseg.first_index(), trkseg.last_index()) else {
+        return distances;
+    };
+    distances[first.flat] = f64::INFINITY;
+    distances[last.flat] = f64::INFINITY;
+    if trkseg.len() > 2 {
+        let measure = lnglat_measure(trkseg);
+        reduction_distances_helper(trkseg, first, last, &measure, f64::INFINITY, &mut distances);
+    }
+    distances
+}
+
+fn reduction_distances_helper<M>(
+    trkseg: &TrackSegment,
+    start: TrackSegmentIndex,
+    end: TrackSegmentIndex,
+    measure: &M,
+    bound: f64,
+    distances: &mut [f64],
+) where
+    M: Fn(TrackSegmentIndex, TrackSegmentIndex, TrackSegmentIndex) -> f64,
+{
+    let mut max_idx = None;
+    let mut max_dist = 0.0;
+    let mut cur = trkseg.next_index(Some(start));
+    while let Some(idx) = cur {
+        if idx == end {
+            break;
+        }
+        let dist = measure(start, end, idx);
+        if dist > max_dist {
+            max_idx = Some(idx);
+            max_dist = dist;
+        }
+        cur = trkseg.next_index(cur);
+    }
+
+    if let Some(idx) = max_idx.filter(|_| max_dist > MIN_REDUCE_TOLERANCE) {
+        let distance = max_dist.min(bound);
+        distances[idx.flat] = distance;
+        reduction_distances_helper(trkseg, start, idx, measure, distance, distances);
+        reduction_distances_helper(trkseg, idx, end, measure, distance, distances);
     }
 }
 

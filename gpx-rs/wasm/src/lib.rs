@@ -601,6 +601,21 @@ pub fn crop(start: u32, end: u32) -> bool {
     start <= end && edit(Command::Crop(engine::Crop { start, end }))
 }
 
+/// Removes the trackpoints of the selection that are less than `tolerance` meters away from the
+/// line of their neighbours, except the ends of the segments.
+#[wasm_bindgen]
+pub fn reduce(tolerance: f64) -> bool {
+    edit(Command::Reduce(engine::Reduce { tolerance }))
+}
+
+/// For each trackpoint of the selection (numbered as in the statistics), the highest tolerance
+/// (m) of `reduce` that keeps it: infinite for the ends of the segments.
+#[wasm_bindgen]
+pub fn reduction_distances() -> Float64Array {
+    with_engine(|e| Float64Array::from(&e.reduction_distances()[..]))
+        .unwrap_or_else(|| Float64Array::new_with_length(0))
+}
+
 /// Cuts the file, the track or the segment (see `SplitType`) of the trackpoint `at` of the
 /// selection in two, there: the trackpoint ends the first part and starts the second one. Does
 /// nothing, and returns false, if the revision of the routing buffers is not the given one.

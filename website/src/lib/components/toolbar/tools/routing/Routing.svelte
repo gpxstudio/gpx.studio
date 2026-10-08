@@ -30,7 +30,7 @@
     import { settings } from '$lib/logic/settings';
     import { map } from '$lib/components/map/map';
     import { engine } from '$lib/engine';
-    import { fileActions, newFileName } from '$lib/logic/file-actions';
+    import { newFileName } from '$lib/logic/file-actions';
     import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
     import { RoutingControls } from './routing-controls';
 

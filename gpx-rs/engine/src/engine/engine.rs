@@ -4,7 +4,7 @@ use crate::{
     Action, Apply, Clipboard, Command, CoordinatesCache, Diff, FileId, FileOrder, FileStructure,
     FileStructureCache, GlobalStatistics, RoutingBuffer, SelectMode, Selection, Stack, State,
     StatisticsBuffer, StatisticsCache, TrackSegmentId, Trackpoint, TrackpointCategories, Waypoint,
-    WaypointId,
+    WaypointId, reduction_distances,
 };
 
 #[derive(Debug, Default)]
@@ -99,6 +99,23 @@ impl Engine {
             .flat_map(|trk| &trk.trkseg)
             .find(|seg| seg.id == *segment_id)?;
         (index < segment.len()).then(|| &segment[index])
+    }
+
+    /// For each trackpoint of the selection (numbered as in the statistics), the tolerance up to
+    /// which `Reduce` keeps it, see [`reduction_distances`].
+    pub fn reduction_distances(&self) -> Vec<f64> {
+        let Some(files) = self.stack.current() else {
+            return vec![];
+        };
+        self.selection
+            .segment_locations(files, &self.order.0)
+            .iter()
+            .flat_map(|location| {
+                reduction_distances(
+                    &files[&location.file_id].trk[location.trk].trkseg[location.seg],
+                )
+            })
+            .collect()
     }
 
     /// Whether there is something to undo.

@@ -702,6 +702,24 @@ class Engine {
     }
 
     /**
+     * Removes the trackpoints of the selection that are less than `tolerance` meters away from the
+     * line of their neighbours, except the ends of the segments. Resolves to `false` when there
+     * is nothing to remove.
+     */
+    reduce(tolerance: number) {
+        return this.run((w) => w.reduce(tolerance));
+    }
+
+    /**
+     * For each trackpoint of the selection, in the order of the statistics, the highest tolerance
+     * (m) of `reduce` that keeps it: infinite for the ends of the segments. Not requested with
+     * the statistics: ask when they changed.
+     */
+    reductionDistances(): Float64Array {
+        return this.wasm?.reduction_distances() ?? new Float64Array();
+    }
+
+    /**
      * Cuts the file, the track or the segment (see `SplitType`) of the trackpoint `at` of the
      * selection in two, there: the trackpoint ends the first part and starts the second one. The
      * first part keeps the ids, the second one (and what follows) gets new ones. `revision` is the
