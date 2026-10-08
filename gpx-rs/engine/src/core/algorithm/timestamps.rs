@@ -1,4 +1,91 @@
-use crate::{Trackpoint, distance};
+use crate::{Statistics, TrackSegment, Trackpoint, distance};
+
+/// The new timestamps of the trackpoints of `segments`, one after the other: each segment goes on
+/// from the end of the previous one, the first one starts at `start_time` (in milliseconds).
+///
+/// A segment that has timestamps keeps its durations multiplied by `ratio`; one that has none
+/// (judged by its first trackpoint) follows the previous trackpoint at `speed` (km/h). See
+/// [`shifted_and_compressed`] and [`with_timestamps`].
+pub fn changed_segment_times(
+    segments: &[&TrackSegment],
+    start_time: i64,
+    speed: f64,
+    ratio: f64,
+) -> Vec<Vec<Option<i64>>> {
+    let mut last: Option<Trackpoint> = None;
+    segments
+        .iter()
+        .map(|segment| {
+            let points: Vec<Trackpoint> = segment.iter().cloned().collect();
+            let Some(first) = points.first() else {
+                return vec![];
+            };
+            let start = last.clone().unwrap_or_else(|| {
+                let mut start = first.clone();
+                start.time = Some(start_time);
+                start
+            });
+            let points = if first.time.is_none() {
+                with_timestamps(points, Some(speed), Some(&start), Some(start_time))
+            } else {
+                shifted_and_compressed(points, Some(speed), ratio, &start)
+            };
+            last = points.last().cloned();
+            points.iter().map(|point| point.time).collect()
+        })
+        .collect()
+}
+
+/// Makes up timestamps for the trackpoints of `segments`, one after the other: they start at
+/// `start_time` (in milliseconds) and last `total_time` seconds together, the longer and the
+/// steeper an interval the more of it. Each segment goes on from the end of the previous one.
+pub fn artificial_segment_times(
+    segments: &[&TrackSegment],
+    start_time: i64,
+    total_time: f64,
+) -> Vec<Vec<Option<i64>>> {
+    let mut weights: Vec<Vec<f64>> = segments
+        .iter()
+        .map(|segment| {
+            let points: Vec<Trackpoint> = segment.iter().cloned().collect();
+            let slopes: Vec<f64> = Statistics::compute(segment)
+                .local
+                .iter()
+                .map(|l| l.slope)
+                .collect();
+            artificial_weights(&points, &slopes)
+        })
+        .collect();
+    let mut total: f64 = weights.iter().flatten().sum();
+    if total.is_nan() || total <= 0.0 {
+        // no distance to share the time by: every interval takes as long
+        for weights in &mut weights {
+            weights.iter_mut().for_each(|w| *w = 1.0);
+        }
+        total = weights.iter().map(Vec::len).sum::<usize>() as f64;
+    }
+    let ms_per_weight = if total > 0.0 {
+        total_time * 1000.0 / total
+    } else {
+        0.0
+    };
+
+    let mut start = start_time;
+    segments
+        .iter()
+        .zip(&weights)
+        .map(|(segment, weights)| {
+            let points: Vec<Trackpoint> = segment.iter().cloned().collect();
+            if points.is_empty() {
+                return vec![];
+            }
+            let points = with_artificial_timestamps(points, weights, ms_per_weight, start);
+            // the next segment goes on from the end of this one
+            start = points.last().and_then(|point| point.time).unwrap_or(start);
+            points.iter().map(|point| point.time).collect()
+        })
+        .collect()
+}
 
 /// Replaces the trackpoints `start..end` of `trkpt` by `points`, keeping the timestamps of the
 /// whole path consistent. It is the work of the old `replaceTrackPoints` of the TS library.

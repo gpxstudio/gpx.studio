@@ -1,16 +1,17 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
 use uuid::Uuid;
 
 use super::codec::{
-    FileRecord, decode, decode_trackpoints, decode_waypoints, encode, encode_trackpoints,
+    DecodeError, decode_categories, decode_file, decode_order, decode_trackpoints,
+    decode_waypoints, encode_categories, encode_file, encode_order, encode_trackpoints,
     encode_waypoints,
 };
 use crate::{
-    Batch, File, FileId, StackEntry, Storage, StorageError, TrackpointCategories, TrackpointChunk,
-    WaypointChunk,
+    Batch, ChunkKey, File, FileId, StackEntry, Storage, StorageError, TrackpointCategories,
+    TrackpointChunk, WaypointChunk,
 };
 
 /// What there is to keep of the engine: the files of the current state, their order, and the
@@ -30,6 +31,10 @@ pub struct Restored {
     pub categories: TrackpointCategories,
     /// The files that could not be read: they are dropped at the next save.
     pub unreadable: usize,
+    /// Whether some of what is stored was written by a newer version, which this one cannot read.
+    /// Nothing is written then, so that the newer version finds its data again: the files that
+    /// could be read are only kept in memory, and the persister does not save.
+    pub read_only: bool,
 }
 
 /// Works out what to write to a [`Storage`] so that it holds a [`Snapshot`], knowing what it
@@ -44,18 +49,35 @@ pub struct Persister {
     files: HashMap<FileId, Rc<File>>,
     /// The files that have a record, including the ones that could not be read.
     stored_files: HashSet<FileId>,
-    trackpoint_chunks: HashSet<Uuid>,
-    waypoint_chunks: HashSet<Uuid>,
+    chunks: HashSet<ChunkKey>,
     order: Option<Vec<FileId>>,
     categories: Option<TrackpointCategories>,
+    /// Set by `restore`, see [`Restored::read_only`].
+    read_only: bool,
+}
+
+/// Remembers whether something that was read comes from a newer version.
+#[derive(Default)]
+struct Newer(Cell<bool>);
+
+impl Newer {
+    fn read<T>(&self, result: Result<T, DecodeError>) -> Option<T> {
+        match result {
+            Ok(value) => Some(value),
+            Err(error) => {
+                self.0
+                    .set(self.0.get() || matches!(error, DecodeError::UnknownVersion(_)));
+                None
+            }
+        }
+    }
 }
 
 /// What a save writes, and what is stored once it is written.
 struct Plan {
     batch: Batch,
     snapshot: Snapshot,
-    trackpoint_chunks: HashSet<Uuid>,
-    waypoint_chunks: HashSet<Uuid>,
+    chunks: HashSet<ChunkKey>,
 }
 
 impl Persister {
@@ -64,11 +86,18 @@ impl Persister {
         let data = storage.load().await?;
         *self = Self::default();
 
-        let categories: Option<TrackpointCategories> = data.categories.as_deref().and_then(decode);
-        let stored_order: Option<Vec<FileId>> = data.order.as_deref().and_then(decode);
+        // what comes from a newer version is not corrupt: it must not be overwritten
+        let newer = Newer::default();
+        let categories: Option<TrackpointCategories> = data
+            .categories
+            .as_deref()
+            .and_then(|bytes| newer.read(decode_categories(bytes)));
+        let stored_order: Option<Vec<FileId>> = data
+            .order
+            .as_deref()
+            .and_then(|bytes| newer.read(decode_order(bytes)));
 
-        let trackpoint_bytes: HashMap<Uuid, Vec<u8>> = data.trackpoint_chunks.into_iter().collect();
-        let waypoint_bytes: HashMap<Uuid, Vec<u8>> = data.waypoint_chunks.into_iter().collect();
+        let chunk_bytes: HashMap<ChunkKey, Vec<u8>> = data.chunks.into_iter().collect();
         // chunks are decoded once, whatever the number of files that use them
         let trackpoint_cache: RefCell<HashMap<Uuid, Option<Rc<TrackpointChunk>>>> =
             Default::default();
@@ -78,8 +107,8 @@ impl Persister {
                 .borrow_mut()
                 .entry(id.0)
                 .or_insert_with(|| {
-                    let bytes = trackpoint_bytes.get(&id.0)?;
-                    decode_trackpoints(id.0, bytes).map(Rc::new)
+                    let bytes = chunk_bytes.get(&ChunkKey::trackpoints(id.0))?;
+                    newer.read(decode_trackpoints(id.0, bytes)).map(Rc::new)
                 })
                 .clone()
         };
@@ -88,8 +117,8 @@ impl Persister {
                 .borrow_mut()
                 .entry(id.0)
                 .or_insert_with(|| {
-                    let bytes = waypoint_bytes.get(&id.0)?;
-                    decode_waypoints(id.0, bytes).map(Rc::new)
+                    let bytes = chunk_bytes.get(&ChunkKey::waypoints(id.0))?;
+                    newer.read(decode_waypoints(id.0, bytes)).map(Rc::new)
                 })
                 .clone()
         };
@@ -101,7 +130,8 @@ impl Persister {
         let mut files: HashMap<FileId, Rc<File>> = HashMap::new();
         for (id, bytes) in &data.files {
             self.stored_files.insert(*id);
-            let file = decode::<FileRecord>(bytes)
+            let file = newer
+                .read(decode_file(bytes))
                 .and_then(|record| record.build(*id, &trackpoint_chunk, &waypoint_chunk));
             match file {
                 Some(file) => {
@@ -124,10 +154,11 @@ impl Persister {
         restored.files = restored.order.iter().map(|id| files[id].clone()).collect();
 
         self.files = files;
-        self.trackpoint_chunks = trackpoint_bytes.into_keys().collect();
-        self.waypoint_chunks = waypoint_bytes.into_keys().collect();
+        self.chunks = chunk_bytes.into_keys().collect();
         self.order = stored_order;
         self.categories = categories;
+        self.read_only = newer.0.get();
+        restored.read_only = self.read_only;
         Ok(restored)
     }
 
@@ -137,6 +168,9 @@ impl Persister {
         storage: &S,
         snapshot: Snapshot,
     ) -> Result<(), StorageError> {
+        if self.read_only {
+            return Ok(());
+        }
         let plan = self.plan(snapshot);
         if plan.batch.is_empty() {
             self.files = plan.snapshot.files;
@@ -146,8 +180,7 @@ impl Persister {
 
         self.stored_files = plan.snapshot.files.keys().copied().collect();
         self.files = plan.snapshot.files;
-        self.trackpoint_chunks = plan.trackpoint_chunks;
-        self.waypoint_chunks = plan.waypoint_chunks;
+        self.chunks = plan.chunks;
         self.order = Some(plan.snapshot.order);
         self.categories = Some(plan.snapshot.categories);
         Ok(())
@@ -156,8 +189,7 @@ impl Persister {
     fn plan(&self, snapshot: Snapshot) -> Plan {
         let mut batch = Batch::default();
         // the chunks that the files use, which the storage has afterwards
-        let mut trackpoint_chunks = HashSet::new();
-        let mut waypoint_chunks = HashSet::new();
+        let mut chunks = HashSet::new();
 
         for (id, file) in &snapshot.files {
             let changed = self
@@ -166,23 +198,19 @@ impl Persister {
                 .is_none_or(|saved| !Rc::ptr_eq(saved, file));
             let segments = file.trk.iter().flat_map(|track| &track.trkseg);
             for chunk in segments.flat_map(|segment| segment.chunks()) {
-                let new = trackpoint_chunks.insert(chunk.id.0);
-                if changed && new && !self.trackpoint_chunks.contains(&chunk.id.0) {
-                    batch
-                        .put_trackpoint_chunks
-                        .push((chunk.id.0, encode_trackpoints(chunk)));
+                let key = ChunkKey::trackpoints(chunk.id.0);
+                if chunks.insert(key) && changed && !self.chunks.contains(&key) {
+                    batch.put_chunks.push((key, encode_trackpoints(chunk)));
                 }
             }
             for chunk in file.wpt.chunks() {
-                let new = waypoint_chunks.insert(chunk.id.0);
-                if changed && new && !self.waypoint_chunks.contains(&chunk.id.0) {
-                    batch
-                        .put_waypoint_chunks
-                        .push((chunk.id.0, encode_waypoints(chunk)));
+                let key = ChunkKey::waypoints(chunk.id.0);
+                if chunks.insert(key) && changed && !self.chunks.contains(&key) {
+                    batch.put_chunks.push((key, encode_waypoints(chunk)));
                 }
             }
             if changed || !self.stored_files.contains(id) {
-                batch.put_files.push((*id, encode(&FileRecord::new(file))));
+                batch.put_files.push((*id, encode_file(file)));
             }
         }
 
@@ -192,28 +220,18 @@ impl Persister {
             .filter(|id| !snapshot.files.contains_key(id))
             .copied()
             .collect();
-        batch.delete_trackpoint_chunks = self
-            .trackpoint_chunks
-            .difference(&trackpoint_chunks)
-            .copied()
-            .collect();
-        batch.delete_waypoint_chunks = self
-            .waypoint_chunks
-            .difference(&waypoint_chunks)
-            .copied()
-            .collect();
+        batch.delete_chunks = self.chunks.difference(&chunks).copied().collect();
         if self.order.as_ref() != Some(&snapshot.order) {
-            batch.order = Some(encode(&snapshot.order));
+            batch.order = Some(encode_order(&snapshot.order));
         }
         if self.categories.as_ref() != Some(&snapshot.categories) {
-            batch.categories = Some(encode(&snapshot.categories));
+            batch.categories = Some(encode_categories(&snapshot.categories));
         }
 
         Plan {
             batch,
             snapshot,
-            trackpoint_chunks,
-            waypoint_chunks,
+            chunks,
         }
     }
 }
@@ -225,7 +243,8 @@ mod tests {
     use std::task::{Context, Poll, Waker};
 
     use crate::{
-        Action, Command, Engine, ExportOptions, Load, MemoryStorage, StoredData, parse, write,
+        Action, ChunkKind, Command, Engine, ExportOptions, Load, MemoryStorage, StoredData, parse,
+        write,
     };
 
     use super::*;
@@ -354,9 +373,8 @@ mod tests {
             let batches = storage.batches.borrow();
             let batch = batches.last().unwrap();
             assert_eq!(batch.put_files.len(), 1);
-            assert!(batch.put_trackpoint_chunks.is_empty());
-            assert!(batch.put_waypoint_chunks.is_empty());
-            assert!(batch.delete_trackpoint_chunks.is_empty());
+            assert!(batch.put_chunks.is_empty());
+            assert!(batch.delete_chunks.is_empty());
             assert!(batch.order.is_none() && batch.categories.is_none());
         }
         assert_eq!(storage.inner.counts(), counts);
@@ -376,8 +394,9 @@ mod tests {
             let batches = storage.batches.borrow();
             let batch = batches.last().unwrap();
             assert_eq!(batch.put_files.len(), 1);
-            assert_eq!(batch.put_trackpoint_chunks.len(), 1);
-            assert_eq!(batch.delete_trackpoint_chunks.len(), 1);
+            assert_eq!(batch.puts(ChunkKind::Trackpoints), 1);
+            assert_eq!(batch.deletes(ChunkKind::Trackpoints), 1);
+            assert_eq!(batch.puts(ChunkKind::Waypoints), 0);
         }
         assert_eq!(storage.inner.counts(), counts);
         assert!(chunks_before >= 1);
@@ -386,9 +405,9 @@ mod tests {
         snapshot.files.remove(&id);
         snapshot.order.retain(|other| *other != id);
         block_on(persister.save(&storage, snapshot)).unwrap();
-        let (files, trackpoint_chunks, _) = storage.inner.counts();
-        assert_eq!(files, counts.0 - 1);
-        assert!(trackpoint_chunks < counts.1);
+        let after = storage.inner.counts();
+        assert_eq!(after.files, counts.files - 1);
+        assert!(after.trackpoint_chunks < counts.trackpoint_chunks);
     }
 
     #[test]
@@ -404,7 +423,7 @@ mod tests {
         let mut persister = Persister::default();
         block_on(persister.save(&storage, snapshot)).unwrap();
         let chunks = original.trk[0].trkseg[0].chunks().len();
-        assert_eq!(storage.inner.counts().1, chunks);
+        assert_eq!(storage.inner.counts().trackpoint_chunks, chunks);
 
         let restored = block_on(Persister::default().restore(&storage)).unwrap();
         assert_eq!(restored.files.len(), 2);
@@ -424,13 +443,14 @@ mod tests {
         // damage a record, and lose a chunk of another file
         let broken = snapshot.order[0];
         block_on(storage.inner.commit(&Batch {
-            put_files: vec![(broken, vec![99, 1, 2])],
+            put_files: vec![(broken, vec![super::super::codec::LATEST, 0xff, 0xff])],
             ..Default::default()
         }))
         .unwrap();
         let mut persister = Persister::default();
         let restored = block_on(persister.restore(&storage)).unwrap();
         assert_eq!(restored.unreadable, 1);
+        assert!(!restored.read_only);
         assert_eq!(restored.files.len(), FILES.len() - 1);
         assert!(restored.files.iter().all(|file| file.id != broken));
 
@@ -440,7 +460,77 @@ mod tests {
             categories: restored.categories,
         };
         block_on(persister.save(&storage, kept)).unwrap();
-        assert_eq!(storage.inner.counts().0, FILES.len() - 1);
+        assert_eq!(storage.inner.counts().files, FILES.len() - 1);
+    }
+
+    /// A storage holding the files, with one blob replaced by `damage`.
+    fn stored_with(damage: impl FnOnce(&Snapshot, &mut Batch)) -> (Recording, Snapshot) {
+        let storage = Recording::default();
+        let snapshot = snapshot_of(&FILES);
+        block_on(Persister::default().save(&storage, snapshot.clone())).unwrap();
+        let mut batch = Batch::default();
+        damage(&snapshot, &mut batch);
+        block_on(storage.inner.commit(&batch)).unwrap();
+        storage.batches.borrow_mut().clear();
+        (storage, snapshot)
+    }
+
+    fn from_the_future() -> Vec<u8> {
+        vec![super::super::codec::LATEST + 1, 1, 2, 3]
+    }
+
+    #[test]
+    fn test_what_a_newer_version_wrote_is_left_alone() {
+        type Damage = (&'static str, fn(&Snapshot, &mut Batch));
+        let damages: [Damage; 4] = [
+            ("a file", |snapshot, batch| {
+                batch.put_files.push((snapshot.order[0], from_the_future()));
+            }),
+            ("a chunk", |snapshot, batch| {
+                let file = &snapshot.files[&snapshot.order[0]];
+                let chunk = &file.trk[0].trkseg[0].chunks()[0];
+                batch
+                    .put_chunks
+                    .push((ChunkKey::trackpoints(chunk.id.0), from_the_future()));
+            }),
+            ("the order", |_, batch| {
+                batch.order = Some(from_the_future())
+            }),
+            ("the categories", |_, batch| {
+                batch.categories = Some(from_the_future())
+            }),
+        ];
+        for (what, damage) in damages {
+            let (storage, snapshot) = stored_with(damage);
+            let before = storage.inner.counts();
+            let mut persister = Persister::default();
+            let restored = block_on(persister.restore(&storage)).unwrap();
+            assert!(restored.read_only, "{what}");
+
+            // whatever is saved afterwards, nothing is written: the newer version needs its data
+            let mut changed = snapshot.clone();
+            changed.order.clear();
+            changed.files.clear();
+            block_on(persister.save(&storage, changed)).unwrap();
+            assert!(storage.batches.borrow().is_empty(), "{what}");
+            assert_eq!(storage.inner.counts(), before, "{what}");
+        }
+    }
+
+    #[test]
+    fn test_restoring_again_forgets_that_the_storage_was_newer() {
+        let (storage, _) = stored_with(|snapshot, batch| {
+            batch.put_files.push((snapshot.order[0], from_the_future()));
+        });
+        let mut persister = Persister::default();
+        assert!(block_on(persister.restore(&storage)).unwrap().read_only);
+
+        // the same persister, on a storage that is not newer
+        let clean = Recording::default();
+        let restored = block_on(persister.restore(&clean)).unwrap();
+        assert!(!restored.read_only);
+        block_on(persister.save(&clean, snapshot_of(&FILES))).unwrap();
+        assert_eq!(clean.inner.counts().files, FILES.len());
     }
 
     #[test]
@@ -449,7 +539,7 @@ mod tests {
         let mut engine = Engine::default();
         for path in FILES {
             let data = std::fs::read(path).unwrap();
-            assert!(engine.execute(Action::Edit(Command::Load(Load {
+            assert!(engine.run(Action::Edit(Command::Load(Load {
                 data: &data,
                 name: "file",
             }))));
@@ -471,14 +561,14 @@ mod tests {
 
         // the files that were restored are not undone
         assert!(!engine.can_undo());
-        assert!(!engine.execute(Action::Undo));
+        assert!(!engine.run(Action::Undo));
         let data = std::fs::read(FILES[0]).unwrap();
-        assert!(engine.execute(Action::Edit(Command::Load(Load {
+        assert!(engine.run(Action::Edit(Command::Load(Load {
             data: &data,
             name: "file",
         }))));
         assert!(engine.can_undo());
-        assert!(engine.execute(Action::Undo));
+        assert!(engine.run(Action::Undo));
         assert_eq!(engine.snapshot().files.len(), FILES.len());
         assert!(!engine.can_undo());
     }

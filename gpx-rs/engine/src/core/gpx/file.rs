@@ -12,7 +12,7 @@ pub struct File {
     pub wpt: Waypoints,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct FileInfo {
     pub name: String,
     pub desc: Option<String>,
@@ -21,7 +21,7 @@ pub struct FileInfo {
     pub time: Option<i64>,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Author {
     pub name: Option<String>,
     pub email: Option<String>,

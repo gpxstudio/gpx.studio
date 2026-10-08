@@ -22,9 +22,10 @@ pub fn time_diff(a: Option<i64>, b: Option<i64>) -> Option<i64> {
     Some(a? - b?)
 }
 
-/// Computes the speed for a given distance in kilometers and a time in milliseconds
-pub fn speed(distance: f64, time: i64) -> f64 {
-    distance / (time as f64 / 3_600_000.0)
+/// Computes the speed in km/h for a given distance in kilometers and a time in milliseconds.
+/// Unknown if the time is not a positive duration.
+pub fn speed(distance: f64, time: i64) -> Option<f64> {
+    (time > 0).then(|| distance / (time as f64 / 3_600_000.0))
 }
 
 pub fn slope(ele: f64, distance: f64) -> f64 {
@@ -125,7 +126,7 @@ mod tests {
         assert_eq!(time_diff(None, Some(1)), None);
         assert_eq!(time_diff(Some(1), None), None);
         // 1 km in one hour
-        assert!((speed(1.0, 3_600_000) - 1.0).abs() < 1e-12);
+        assert!((speed(1.0, 3_600_000).unwrap() - 1.0).abs() < 1e-12);
     }
 
     #[test]
@@ -154,9 +155,13 @@ mod tests {
     #[test]
     fn test_speed() {
         // 1 km in 1 h
-        assert!((speed(1.0, 3_600_000) - 1.0).abs() < 1e-12);
+        assert!((speed(1.0, 3_600_000).unwrap() - 1.0).abs() < 1e-12);
         // 10 km in 30 min
-        assert!((speed(10.0, 1_800_000) - 20.0).abs() < 1e-12);
+        assert!((speed(10.0, 1_800_000).unwrap() - 20.0).abs() < 1e-12);
+        // no duration, no speed
+        assert_eq!(speed(1.0, 0), None);
+        assert_eq!(speed(0.0, 0), None);
+        assert_eq!(speed(1.0, -1000), None);
     }
 
     #[test]

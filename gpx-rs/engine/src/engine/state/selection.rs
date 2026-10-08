@@ -49,6 +49,56 @@ pub struct SegmentLocation {
 }
 
 impl Selection {
+    /// Combines `selection` with this one according to `mode`, ignoring the elements of
+    /// `selection` that do not exist in `files`. Nothing to add or toggle leaves the selection
+    /// as it is, while replacing it with nothing deselects everything.
+    pub fn select(
+        &mut self,
+        files: Option<&StackEntry>,
+        mut selection: Selection,
+        mode: SelectMode,
+    ) {
+        match files {
+            Some(files) => selection.retain_existing(files),
+            None => selection = Selection::Empty,
+        }
+        match mode {
+            SelectMode::Replace => *self = selection,
+            _ if selection == Selection::Empty => {}
+            SelectMode::Add => self.extend(selection),
+            SelectMode::Toggle => self.toggle(selection),
+        }
+    }
+
+    /// Selects all the elements of the same kind as the selected ones, see
+    /// [`Selection::all_at_level`]. Does nothing when there is nothing more to select.
+    pub fn select_all(&mut self, files: &StackEntry, order: &[FileId]) {
+        if let Some(all) = self.all_at_level(files, order) {
+            *self = all;
+        }
+    }
+
+    /// Moves the selection to the next (`down`) or previous element, see
+    /// [`Selection::neighbour`]. With `add`, the element is added to the selection instead of
+    /// replacing it.
+    pub fn select_neighbour(
+        &mut self,
+        files: &StackEntry,
+        order: &[FileId],
+        down: bool,
+        add: bool,
+    ) {
+        if let Some(next) = self.neighbour(files, order, down) {
+            if add {
+                self.extend(next);
+            } else {
+                *self = next;
+            }
+        }
+    }
+}
+
+impl Selection {
     /// The track segments covered by the selection, in order: the segments of several selected
     /// files follow `order` (the files missing from it come last), then the tracks and segments
     /// follow the file. Waypoints are not segments: selecting only waypoints covers none.

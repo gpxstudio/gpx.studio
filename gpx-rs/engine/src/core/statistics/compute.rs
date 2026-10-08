@@ -69,18 +69,18 @@ impl Statistics {
 
         self.global.total_distance += dist;
 
-        if let Some(time) = time {
-            let speed = speed(dist, time);
-            if (0.5..=1500.0).contains(&speed) {
-                self.global.moving_distance = self
-                    .global
-                    .moving_distance
-                    .map_or(Some(dist), |d| Some(d + dist));
-                self.global.moving_time = self
-                    .global
-                    .moving_time
-                    .map_or(Some(time), |t| Some(t + time));
-            }
+        let moving = time
+            .zip(time.and_then(|time| speed(dist, time)))
+            .filter(|(_, speed)| (0.5..=1500.0).contains(speed));
+        if let Some((time, _)) = moving {
+            self.global.moving_distance = self
+                .global
+                .moving_distance
+                .map_or(Some(dist), |d| Some(d + dist));
+            self.global.moving_time = self
+                .global
+                .moving_time
+                .map_or(Some(time), |t| Some(t + time));
         }
     }
 
@@ -119,8 +119,7 @@ impl Statistics {
                     };
                     let (left, right) = (timed(left), timed(right));
                     self.local[i.flat].speed = time_diff(trkseg[right].time, trkseg[left].time)
-                        .filter(|time| *time > 0)
-                        .map(|time| {
+                        .and_then(|time| {
                             speed(
                                 self.local[right.flat].total_distance
                                     - self.local[left.flat].total_distance,
@@ -286,16 +285,14 @@ impl GlobalStatistics {
     /// Average speed over the total time, unknown if that is not a positive duration (for
     /// example a range with a single timestamp, or timestamps going backwards).
     pub fn total_speed(&self) -> Option<f64> {
-        self.total_time
-            .filter(|t| *t > 0)
-            .map(|t| speed(self.total_distance, t))
+        self.total_time.and_then(|t| speed(self.total_distance, t))
     }
 
     /// Average speed over the moving time, unknown if there is no moving time.
     pub fn moving_speed(&self) -> Option<f64> {
         self.moving_distance
-            .zip(self.moving_time.filter(|t| *t > 0))
-            .map(|(d, t)| speed(d, t))
+            .zip(self.moving_time)
+            .and_then(|(d, t)| speed(d, t))
     }
 
     pub fn merge(&mut self, other: &GlobalStatistics) {

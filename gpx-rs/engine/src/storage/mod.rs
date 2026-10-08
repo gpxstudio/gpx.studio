@@ -30,13 +30,42 @@ impl std::fmt::Display for StorageError {
 
 impl std::error::Error for StorageError {}
 
+/// What a chunk holds.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ChunkKind {
+    Trackpoints,
+    Waypoints,
+}
+
+/// Where a chunk is stored: chunks are told apart by their identity within their kind.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ChunkKey {
+    pub kind: ChunkKind,
+    pub id: Uuid,
+}
+
+impl ChunkKey {
+    pub fn trackpoints(id: Uuid) -> Self {
+        Self {
+            kind: ChunkKind::Trackpoints,
+            id,
+        }
+    }
+
+    pub fn waypoints(id: Uuid) -> Self {
+        Self {
+            kind: ChunkKind::Waypoints,
+            id,
+        }
+    }
+}
+
 /// Everything that is stored about the files, as opaque bytes (see the module documentation).
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct StoredData {
     /// The record of each file.
     pub files: Vec<(FileId, Vec<u8>)>,
-    pub trackpoint_chunks: Vec<(Uuid, Vec<u8>)>,
-    pub waypoint_chunks: Vec<(Uuid, Vec<u8>)>,
+    pub chunks: Vec<(ChunkKey, Vec<u8>)>,
     /// The order of the files.
     pub order: Option<Vec<u8>>,
     /// The categories of the trackpoints, which their chunks refer to.
@@ -49,10 +78,8 @@ pub struct StoredData {
 pub struct Batch {
     pub put_files: Vec<(FileId, Vec<u8>)>,
     pub delete_files: Vec<FileId>,
-    pub put_trackpoint_chunks: Vec<(Uuid, Vec<u8>)>,
-    pub delete_trackpoint_chunks: Vec<Uuid>,
-    pub put_waypoint_chunks: Vec<(Uuid, Vec<u8>)>,
-    pub delete_waypoint_chunks: Vec<Uuid>,
+    pub put_chunks: Vec<(ChunkKey, Vec<u8>)>,
+    pub delete_chunks: Vec<ChunkKey>,
     pub order: Option<Vec<u8>>,
     pub categories: Option<Vec<u8>>,
 }
@@ -60,6 +87,22 @@ pub struct Batch {
 impl Batch {
     pub fn is_empty(&self) -> bool {
         self == &Self::default()
+    }
+
+    /// How many chunks of the kind the batch writes.
+    pub fn puts(&self, kind: ChunkKind) -> usize {
+        self.put_chunks
+            .iter()
+            .filter(|(key, _)| key.kind == kind)
+            .count()
+    }
+
+    /// How many chunks of the kind the batch deletes.
+    pub fn deletes(&self, kind: ChunkKind) -> usize {
+        self.delete_chunks
+            .iter()
+            .filter(|key| key.kind == kind)
+            .count()
     }
 }
 
@@ -101,11 +144,11 @@ mod tests {
                 ..Default::default()
             },
             Batch {
-                delete_trackpoint_chunks: vec![Uuid::new_v4()],
+                put_chunks: vec![(ChunkKey::waypoints(Uuid::new_v4()), vec![])],
                 ..Default::default()
             },
             Batch {
-                delete_waypoint_chunks: vec![Uuid::new_v4()],
+                delete_chunks: vec![ChunkKey::trackpoints(Uuid::new_v4())],
                 ..Default::default()
             },
             Batch {

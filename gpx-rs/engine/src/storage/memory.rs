@@ -1,9 +1,7 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-use uuid::Uuid;
-
-use crate::{Batch, FileId, Storage, StorageError, StoredData};
+use crate::{Batch, ChunkKey, ChunkKind, FileId, Storage, StorageError, StoredData};
 
 /// A storage that lives as long as the session. It is what an engine without a host storage uses,
 /// and what the tests use.
@@ -15,22 +13,30 @@ pub struct MemoryStorage {
 #[derive(Debug, Default)]
 struct State {
     files: HashMap<FileId, Vec<u8>>,
-    trackpoint_chunks: HashMap<Uuid, Vec<u8>>,
-    waypoint_chunks: HashMap<Uuid, Vec<u8>>,
+    chunks: HashMap<ChunkKey, Vec<u8>>,
     order: Option<Vec<u8>>,
     categories: Option<Vec<u8>>,
     settings: HashMap<String, String>,
 }
 
+/// How much there is in a storage.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StorageCounts {
+    pub files: usize,
+    pub trackpoint_chunks: usize,
+    pub waypoint_chunks: usize,
+}
+
 impl MemoryStorage {
-    /// How many files and chunks (trackpoints, waypoints) are stored.
-    pub fn counts(&self) -> (usize, usize, usize) {
+    /// How many files and chunks are stored.
+    pub fn counts(&self) -> StorageCounts {
         let state = self.state.borrow();
-        (
-            state.files.len(),
-            state.trackpoint_chunks.len(),
-            state.waypoint_chunks.len(),
-        )
+        let chunks = |kind| state.chunks.keys().filter(|key| key.kind == kind).count();
+        StorageCounts {
+            files: state.files.len(),
+            trackpoint_chunks: chunks(ChunkKind::Trackpoints),
+            waypoint_chunks: chunks(ChunkKind::Waypoints),
+        }
     }
 }
 
@@ -39,16 +45,7 @@ impl Storage for MemoryStorage {
         let state = self.state.borrow();
         Ok(StoredData {
             files: state.files.iter().map(|(k, v)| (*k, v.clone())).collect(),
-            trackpoint_chunks: state
-                .trackpoint_chunks
-                .iter()
-                .map(|(k, v)| (*k, v.clone()))
-                .collect(),
-            waypoint_chunks: state
-                .waypoint_chunks
-                .iter()
-                .map(|(k, v)| (*k, v.clone()))
-                .collect(),
+            chunks: state.chunks.iter().map(|(k, v)| (*k, v.clone())).collect(),
             order: state.order.clone(),
             categories: state.categories.clone(),
         })
@@ -60,17 +57,9 @@ impl Storage for MemoryStorage {
         for id in &batch.delete_files {
             state.files.remove(id);
         }
-        state
-            .trackpoint_chunks
-            .extend(batch.put_trackpoint_chunks.iter().cloned());
-        for id in &batch.delete_trackpoint_chunks {
-            state.trackpoint_chunks.remove(id);
-        }
-        state
-            .waypoint_chunks
-            .extend(batch.put_waypoint_chunks.iter().cloned());
-        for id in &batch.delete_waypoint_chunks {
-            state.waypoint_chunks.remove(id);
+        state.chunks.extend(batch.put_chunks.iter().cloned());
+        for key in &batch.delete_chunks {
+            state.chunks.remove(key);
         }
         if let Some(order) = &batch.order {
             state.order = Some(order.clone());
@@ -109,6 +98,8 @@ mod tests {
     use std::future::Future;
     use std::task::{Context, Poll, Waker};
 
+    use uuid::Uuid;
+
     use super::*;
 
     fn block_on<F: Future>(future: F) -> F::Output {
@@ -120,12 +111,20 @@ mod tests {
         }
     }
 
+    fn counts(files: usize, trackpoint_chunks: usize, waypoint_chunks: usize) -> StorageCounts {
+        StorageCounts {
+            files,
+            trackpoint_chunks,
+            waypoint_chunks,
+        }
+    }
+
     #[test]
     fn test_empty_storage_has_nothing() {
         let storage = MemoryStorage::default();
         let data = block_on(storage.load()).unwrap();
         assert_eq!(data, StoredData::default());
-        assert_eq!(storage.counts(), (0, 0, 0));
+        assert_eq!(storage.counts(), counts(0, 0, 0));
         assert!(block_on(storage.load_settings()).unwrap().is_empty());
     }
 
@@ -136,20 +135,28 @@ mod tests {
         let (t, w) = (Uuid::new_v4(), Uuid::new_v4());
         block_on(storage.commit(&Batch {
             put_files: vec![(a, vec![1]), (b, vec![2])],
-            put_trackpoint_chunks: vec![(t, vec![3])],
-            put_waypoint_chunks: vec![(w, vec![4])],
+            put_chunks: vec![
+                (ChunkKey::trackpoints(t), vec![3]),
+                (ChunkKey::waypoints(w), vec![4]),
+            ],
             order: Some(vec![5]),
             categories: Some(vec![6]),
             ..Default::default()
         }))
         .unwrap();
-        assert_eq!(storage.counts(), (2, 1, 1));
+        assert_eq!(storage.counts(), counts(2, 1, 1));
 
         let mut data = block_on(storage.load()).unwrap();
         data.files.sort_by_key(|(_, bytes)| bytes.clone());
         assert_eq!(data.files, vec![(a, vec![1]), (b, vec![2])]);
-        assert_eq!(data.trackpoint_chunks, vec![(t, vec![3])]);
-        assert_eq!(data.waypoint_chunks, vec![(w, vec![4])]);
+        data.chunks.sort_by_key(|(_, bytes)| bytes.clone());
+        assert_eq!(
+            data.chunks,
+            vec![
+                (ChunkKey::trackpoints(t), vec![3]),
+                (ChunkKey::waypoints(w), vec![4])
+            ]
+        );
         assert_eq!(
             (data.order, data.categories),
             (Some(vec![5]), Some(vec![6]))
@@ -159,11 +166,11 @@ mod tests {
         block_on(storage.commit(&Batch {
             put_files: vec![(a, vec![10])],
             delete_files: vec![b],
-            delete_trackpoint_chunks: vec![t],
+            delete_chunks: vec![ChunkKey::trackpoints(t)],
             ..Default::default()
         }))
         .unwrap();
-        assert_eq!(storage.counts(), (1, 0, 1));
+        assert_eq!(storage.counts(), counts(1, 0, 1));
         let data = block_on(storage.load()).unwrap();
         assert_eq!(data.files, vec![(a, vec![10])]);
         assert_eq!(
@@ -172,12 +179,12 @@ mod tests {
         );
 
         block_on(storage.commit(&Batch {
-            delete_waypoint_chunks: vec![w],
+            delete_chunks: vec![ChunkKey::waypoints(w)],
             order: Some(vec![]),
             ..Default::default()
         }))
         .unwrap();
-        assert_eq!(storage.counts(), (1, 0, 0));
+        assert_eq!(storage.counts(), counts(1, 0, 0));
         assert_eq!(block_on(storage.load()).unwrap().order, Some(vec![]));
     }
 

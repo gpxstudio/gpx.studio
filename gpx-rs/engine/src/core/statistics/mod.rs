@@ -1,5 +1,5 @@
-mod statistics;
+mod compute;
 mod utils;
 
-pub use statistics::*;
+pub use compute::*;
 pub use utils::*;

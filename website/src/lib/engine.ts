@@ -21,6 +21,9 @@ import type {
     WaypointDetails,
     TrackpointDetails,
     RouteAttributes,
+    Outcome,
+    FilesUpdate,
+    StorageOpened,
 } from 'gpx-rs';
 
 export type {
@@ -31,6 +34,7 @@ export type {
     GlobalStatistics,
     FileStructure,
     FilesUpdate,
+    Outcome,
     Selection,
     TrackNode,
     SegmentNode,
@@ -314,6 +318,7 @@ class Engine {
     private _visibility = new Map<string, Visibility>();
     private _files = writable<Map<string, Writable<FileState>>>(new Map());
     private _selection = writable<Selection>({ type: 'empty' });
+    private _lastError = writable<string | undefined>(undefined);
     private _canUndo = writable(false);
     private _canRedo = writable(false);
     private _canPaste = writable(false);
@@ -332,6 +337,8 @@ class Engine {
     readonly statistics: Readable<SelectionStatistics> = { subscribe: this._statistics.subscribe };
     readonly canUndo: Readable<boolean> = { subscribe: this._canUndo.subscribe };
     readonly canRedo: Readable<boolean> = { subscribe: this._canRedo.subscribe };
+    /** Why the last call to the engine did nothing, `undefined` if it did something. */
+    readonly lastError: Readable<string | undefined> = { subscribe: this._lastError.subscribe };
     /** What was copied or cut, waiting to be pasted. */
     readonly clipboard: Readable<Clipboard | undefined> = { subscribe: this._clipboard.subscribe };
     /** Whether the clipboard can be pasted with the current selection. */
@@ -374,18 +381,27 @@ class Engine {
     private async openStorageOnce(): Promise<Record<string, string>> {
         await this.ready;
         const wasm = this.wasm!;
-        let settings: Record<string, string>;
+        let opened: StorageOpened;
         try {
-            settings = (await wasm.open_storage(STORAGE_NAME)) as Record<string, string>;
+            opened = await wasm.open_storage(STORAGE_NAME);
         } catch (error) {
             console.error('The files cannot be kept in this browser', error);
             return {};
         }
+        if (opened.readOnly) {
+            console.warn(
+                'The files were saved by a newer version of the app: they are not saved again by this one'
+            );
+        }
+        if (opened.unreadable > 0) {
+            console.warn(`${opened.unreadable} stored file(s) could not be read`);
+        }
+        let settings = opened.settings;
         // what was hidden, which the files that were restored need when they are read
         parseVisibility(settings[VISIBILITY_KEY]).forEach((visibility, fileId) =>
             this._visibility.set(fileId, visibility)
         );
-        this.sync(wasm);
+        this.sync(wasm, opened.outcome);
 
         if (settings[LEGACY_IMPORTED_KEY] === undefined && get(this._order).length === 0) {
             settings = { ...settings, ...(await this.importLegacyData(wasm)) };
@@ -959,17 +975,31 @@ class Engine {
         return this.wasm?.waypoint_coordinates(fileId) ?? new Float64Array();
     }
 
-    private async run(action: (wasm: Wasm) => boolean): Promise<boolean> {
+    /**
+     * Makes a call to the engine and applies its outcome to what is kept of the files. Resolves to
+     * whether anything changed. When nothing did, `lastError` tells why.
+     */
+    private async run(action: (wasm: Wasm) => Outcome): Promise<boolean> {
         await this.ready;
         const wasm = this.wasm!;
-        const changed = action(wasm);
-        this.sync(wasm);
-        return changed;
+        const outcome = action(wasm);
+        this.sync(wasm, outcome);
+        this.report(outcome);
+        return outcome.changed;
     }
 
-    /** Reads what the last action changed. */
-    private sync(wasm: Wasm) {
-        const update = wasm.last_update();
+    /** Logs why a call did nothing, and keeps it in `lastError`. */
+    private report(outcome: Outcome) {
+        this._lastError.set(outcome.error);
+        if (outcome.error === 'nothing to do') {
+            console.debug('engine:', outcome.error);
+        } else if (outcome.error !== undefined) {
+            console.warn('engine:', outcome.error);
+        }
+    }
+
+    /** Updates what is kept of the engine with what a call changed. */
+    private sync(wasm: Wasm, update: FilesUpdate) {
         this._canUndo.set(wasm.can_undo());
         this._canRedo.set(wasm.can_redo());
         this._canPaste.set(wasm.can_paste());

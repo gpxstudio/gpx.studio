@@ -4,7 +4,7 @@
 //! store per kind of data. A batch is a single transaction, so that the stored files always are
 //! ones that the engine had.
 
-use gpx_engine::{Batch, FileId, Storage, StorageError, StoredData};
+use gpx_engine::{Batch, ChunkKey, ChunkKind, FileId, Storage, StorageError, StoredData};
 use idb::TransactionMode;
 use idb::{Database, DatabaseEvent, Factory, ObjectStore, ObjectStoreParams, Query, Transaction};
 use js_sys::Uint8Array;
@@ -28,6 +28,14 @@ pub struct IdbStorage {
 
 fn error(error: impl std::fmt::Display) -> StorageError {
     StorageError(error.to_string())
+}
+
+/// The object store of a kind of chunks.
+fn chunk_store(kind: ChunkKind) -> &'static str {
+    match kind {
+        ChunkKind::Trackpoints => TRACKPOINT_CHUNKS,
+        ChunkKind::Waypoints => WAYPOINT_CHUNKS,
+    }
 }
 
 fn key(id: Uuid) -> JsValue {
@@ -82,20 +90,16 @@ impl IdbStorage {
 
     async fn write(&self, transaction: &Transaction, batch: &Batch) -> Result<(), StorageError> {
         let files = transaction.object_store(FILES).map_err(error)?;
-        let trackpoints = transaction.object_store(TRACKPOINT_CHUNKS).map_err(error)?;
-        let waypoints = transaction.object_store(WAYPOINT_CHUNKS).map_err(error)?;
         let meta = transaction.object_store(META).map_err(error)?;
 
         // the requests are all made before waiting for them
         let mut puts = vec![];
         let mut deletes = vec![];
-        for (store, chunks) in [
-            (&trackpoints, &batch.put_trackpoint_chunks),
-            (&waypoints, &batch.put_waypoint_chunks),
-        ] {
-            for (id, data) in chunks {
-                puts.push(store.put(&bytes(data), Some(&key(*id))).map_err(error)?);
-            }
+        for (ChunkKey { kind, id }, data) in &batch.put_chunks {
+            let store = transaction
+                .object_store(chunk_store(*kind))
+                .map_err(error)?;
+            puts.push(store.put(&bytes(data), Some(&key(*id))).map_err(error)?);
         }
         for (FileId(id), data) in &batch.put_files {
             puts.push(files.put(&bytes(data), Some(&key(*id))).map_err(error)?);
@@ -117,13 +121,11 @@ impl IdbStorage {
         for FileId(id) in &batch.delete_files {
             deletes.push(files.delete(Query::Key(key(*id))).map_err(error)?);
         }
-        for (store, ids) in [
-            (&trackpoints, &batch.delete_trackpoint_chunks),
-            (&waypoints, &batch.delete_waypoint_chunks),
-        ] {
-            for id in ids {
-                deletes.push(store.delete(Query::Key(key(*id))).map_err(error)?);
-            }
+        for ChunkKey { kind, id } in &batch.delete_chunks {
+            let store = transaction
+                .object_store(chunk_store(*kind))
+                .map_err(error)?;
+            deletes.push(store.delete(Query::Key(key(*id))).map_err(error)?);
         }
         for put in puts {
             put.await.map_err(error)?;
@@ -169,8 +171,15 @@ impl Storage for IdbStorage {
                 .into_iter()
                 .map(|(id, data)| (FileId(id), data))
                 .collect(),
-            trackpoint_chunks: ids(trackpoint_chunks)?,
-            waypoint_chunks: ids(waypoint_chunks)?,
+            chunks: ids(trackpoint_chunks)?
+                .into_iter()
+                .map(|(id, data)| (ChunkKey::trackpoints(id), data))
+                .chain(
+                    ids(waypoint_chunks)?
+                        .into_iter()
+                        .map(|(id, data)| (ChunkKey::waypoints(id), data)),
+                )
+                .collect(),
             order: order.as_ref().map(to_vec),
             categories: categories.as_ref().map(to_vec),
         })

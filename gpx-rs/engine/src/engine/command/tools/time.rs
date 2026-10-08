@@ -1,7 +1,6 @@
 use crate::{
-    Apply, CommandError, SegmentLocation, State, Statistics, TrackSegment, Trackpoint,
-    artificial_weights, shifted_and_compressed, update_segments, with_artificial_timestamps,
-    with_timestamps,
+    Apply, CommandError, State, TrackSegment, artificial_segment_times, changed_segment_times,
+    update_segments,
 };
 
 /// How the timestamps of the selection are set.
@@ -46,80 +45,22 @@ impl Apply for Time {
         let locations = state
             .selection
             .segment_locations(state.files, &state.order.0);
-        let segment_at = |location: &SegmentLocation| -> &TrackSegment {
-            &state.files[&location.file_id].trk[location.trk].trkseg[location.seg]
-        };
-        if locations
+        let segments: Vec<&TrackSegment> = locations
             .iter()
-            .all(|location| segment_at(location).is_empty())
-        {
+            .map(|l| &state.files[&l.file_id].trk[l.trk].trkseg[l.seg])
+            .collect();
+        if segments.iter().all(|segment| segment.is_empty()) {
             return Err(CommandError::NothingToDo);
         }
 
-        // the new timestamps of each segment
-        let mut times: Vec<Vec<Option<i64>>> = Vec::with_capacity(locations.len());
-        match self.kind {
+        let times = match self.kind {
             TimeKind::Change { speed, ratio } => {
-                let mut last: Option<Trackpoint> = None;
-                for location in &locations {
-                    let points: Vec<Trackpoint> = segment_at(location).iter().cloned().collect();
-                    let Some(first) = points.first() else {
-                        times.push(vec![]);
-                        continue;
-                    };
-                    let start = last.clone().unwrap_or_else(|| {
-                        let mut start = first.clone();
-                        start.time = Some(self.start_time);
-                        start
-                    });
-                    let points = if first.time.is_none() {
-                        with_timestamps(points, Some(speed), Some(&start), Some(self.start_time))
-                    } else {
-                        shifted_and_compressed(points, Some(speed), ratio, &start)
-                    };
-                    last = points.last().cloned();
-                    times.push(points.iter().map(|point| point.time).collect());
-                }
+                changed_segment_times(&segments, self.start_time, speed, ratio)
             }
             TimeKind::Artificial { total_time } => {
-                let mut weights: Vec<Vec<f64>> = locations
-                    .iter()
-                    .map(|location| {
-                        let segment = segment_at(location);
-                        let points: Vec<Trackpoint> = segment.iter().cloned().collect();
-                        let stats = Statistics::compute(segment);
-                        let slopes: Vec<f64> = stats.local.iter().map(|l| l.slope).collect();
-                        artificial_weights(&points, &slopes)
-                    })
-                    .collect();
-                let mut total: f64 = weights.iter().flatten().sum();
-                if total.is_nan() || total <= 0.0 {
-                    // no distance to share the time by: every interval takes as long
-                    for weights in &mut weights {
-                        weights.iter_mut().for_each(|w| *w = 1.0);
-                    }
-                    total = weights.iter().map(Vec::len).sum::<usize>() as f64;
-                }
-                let ms_per_weight = if total > 0.0 {
-                    total_time * 1000.0 / total
-                } else {
-                    0.0
-                };
-
-                let mut start = self.start_time;
-                for (location, weights) in locations.iter().zip(&weights) {
-                    let points: Vec<Trackpoint> = segment_at(location).iter().cloned().collect();
-                    if points.is_empty() {
-                        times.push(vec![]);
-                        continue;
-                    }
-                    let points = with_artificial_timestamps(points, weights, ms_per_weight, start);
-                    // the next segment goes on from the end of this one
-                    start = points.last().and_then(|point| point.time).unwrap_or(start);
-                    times.push(points.iter().map(|point| point.time).collect());
-                }
+                artificial_segment_times(&segments, self.start_time, total_time)
             }
-        }
+        };
 
         update_segments(state, &locations, |i, segment| {
             let times = &times[i];

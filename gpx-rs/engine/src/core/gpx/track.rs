@@ -11,7 +11,7 @@ pub struct Track {
     pub trkseg: Vec<TrackSegment>,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct TrackInfo {
     pub name: Option<String>,
     pub cmt: Option<String>,

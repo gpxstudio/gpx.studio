@@ -3,10 +3,17 @@
 ///
 /// The codes are the positions of the names in the order of first appearance. The table only
 /// grows: a code never changes meaning, so it stays valid in every state of the history.
-#[derive(Debug, Default, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Categories(Vec<String>);
 
 impl Categories {
+    /// A table with these names, in the order of their codes (at most [`Self::CAPACITY`] of them
+    /// are kept).
+    pub fn from_names(mut names: Vec<String>) -> Self {
+        names.truncate(Self::CAPACITY);
+        Self(names)
+    }
+
     /// Maximum number of distinct values.
     pub const CAPACITY: usize = u8::MAX as usize;
 
@@ -36,7 +43,7 @@ impl Categories {
 
 /// The categories of the data of the trackpoints. There is one table per engine, shared by all
 /// its files.
-#[derive(Debug, Default, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct TrackpointCategories {
     pub surface: Categories,
     pub highway: Categories,

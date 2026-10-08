@@ -1,6 +1,6 @@
 use crate::LngLat;
 
-#[derive(Debug, Default, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, Clone)]
 pub struct Trackpoint {
     pub coordinates: LngLat,
     pub ele: f64,

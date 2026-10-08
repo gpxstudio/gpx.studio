@@ -3,15 +3,15 @@ use std::{
     rc::Rc,
 };
 
-use crate::{File, FileId};
+use crate::{CommandError, File, FileId};
 
 #[derive(Debug, Default)]
 pub struct Stack {
     entries: Vec<StackEntry>,
     index: Option<usize>,
-    /// Whether the first entry is the state the stack started from (files restored from the
-    /// storage), which is not undone.
-    restored: bool,
+    /// Whether the first entry is the state the stack starts from, which is not undone: files
+    /// restored from the storage.
+    floor: bool,
 }
 
 impl Stack {
@@ -20,7 +20,7 @@ impl Stack {
         Self {
             entries: vec![entry],
             index: Some(0),
-            restored: true,
+            floor: true,
         }
     }
 
@@ -28,23 +28,40 @@ impl Stack {
         self.index.map_or_default(|i| self.get(i))
     }
 
-    pub fn create_and_push_next<F>(&mut self, f: F) -> Option<Diff>
+    /// Applies `f` to a copy of the current entry and makes the copy the new current entry.
+    ///
+    /// Nothing is pushed, and `None` is returned, if `f` fails (the error is returned) or if it
+    /// leaves every file as it was: a step that undoes nothing is not worth a place in the
+    /// history. Files are told apart by their identity, not their content.
+    pub fn create_and_push_next<F>(&mut self, f: F) -> Result<Option<Diff>, CommandError>
     where
-        F: FnOnce(&mut StackEntry) -> Result<(), String>,
+        F: FnOnce(&mut StackEntry) -> Result<(), CommandError>,
     {
-        self.record_diff(|stack| {
-            let mut next = stack.current().map_or_default(|c| c.clone());
-            if f(&mut next).is_ok() {
-                stack.push(next);
-            }
-        })
+        let mut next = self.current().map_or_default(|c| c.clone());
+        f(&mut next)?;
+        if self.is_current(&next) {
+            return Ok(None);
+        }
+        Ok(self.record_diff(|stack| stack.push(next)))
+    }
+
+    /// Whether `entry` holds exactly the files of the current entry.
+    fn is_current(&self, entry: &StackEntry) -> bool {
+        let current = self.current();
+        let len = current.map_or(0, |current| current.len());
+        entry.len() == len
+            && current.is_none_or(|current| {
+                entry
+                    .iter()
+                    .all(|(id, file)| current.get(id).is_some_and(|c| Rc::ptr_eq(c, file)))
+            })
     }
 
     pub fn undo(&mut self) -> Option<Diff> {
         self.record_diff(|stack| {
             if let Some(i) = stack.index {
                 if i == 0 {
-                    if !stack.restored {
+                    if !stack.floor {
                         stack.index = None;
                     }
                 } else {
@@ -70,7 +87,7 @@ impl Stack {
     }
 
     pub fn can_undo(&self) -> bool {
-        self.index.is_some_and(|i| i > 0 || !self.restored)
+        self.index.is_some_and(|i| i > 0 || !self.floor)
     }
 
     pub fn can_redo(&self) -> bool {
@@ -137,6 +154,16 @@ pub struct Diff {
 mod tests {
     use super::*;
 
+    impl Stack {
+        /// A step that is expected not to fail.
+        fn push_ok(
+            &mut self,
+            f: impl FnOnce(&mut StackEntry) -> Result<(), CommandError>,
+        ) -> Option<Diff> {
+            self.create_and_push_next(f).unwrap()
+        }
+    }
+
     #[test]
     fn test_new_file() {
         let mut stack = Stack::default();
@@ -145,7 +172,7 @@ mod tests {
         assert!(!stack.can_redo());
         assert!(stack.current().is_none());
 
-        let diff = stack.create_and_push_next(|e| {
+        let diff = stack.push_ok(|e| {
             let file = Rc::new(File::default());
             e.insert(file.id, file);
             Ok(())
@@ -167,7 +194,7 @@ mod tests {
         let file = Rc::new(File::default());
         let id = file.id;
         stack
-            .create_and_push_next(|e| {
+            .push_ok(|e| {
                 e.insert(id, file);
                 Ok(())
             })
@@ -180,9 +207,9 @@ mod tests {
         let mut stack = Stack::default();
         let diff = stack.create_and_push_next(|e| {
             e.insert(FileId::default(), Rc::new(File::default()));
-            Err("nope".to_string())
+            Err(CommandError::InvalidData("nope".to_string()))
         });
-        assert!(diff.is_none());
+        assert_eq!(diff, Err(CommandError::InvalidData("nope".to_string())));
         assert!(!stack.can_undo());
         assert!(stack.current().is_none());
     }
@@ -217,7 +244,7 @@ mod tests {
         let id = add_file(&mut stack);
 
         let diff = stack
-            .create_and_push_next(|e| {
+            .push_ok(|e| {
                 let mut file = (**e.get(&id).unwrap()).clone();
                 file.info.name = "renamed".to_string();
                 e.insert(id, Rc::new(file));
@@ -227,12 +254,20 @@ mod tests {
         assert_eq!(diff.modified, vec![id]);
         assert!(diff.added.is_empty() && diff.removed.is_empty());
 
-        // an unchanged file is not reported as modified
-        let diff = stack.create_and_push_next(|_| Ok(())).unwrap();
-        assert!(diff.modified.is_empty());
+        // a step that changes nothing is not a step
+        assert!(stack.push_ok(|_| Ok(())).is_none());
+        assert!(
+            stack
+                .push_ok(|e| {
+                    let file = e[&id].clone();
+                    e.insert(id, file);
+                    Ok(())
+                })
+                .is_none()
+        );
 
         let diff = stack
-            .create_and_push_next(|e| {
+            .push_ok(|e| {
                 e.remove(&id);
                 Ok(())
             })
@@ -253,7 +288,7 @@ mod tests {
         // a copy, even if it has the same content, is another file for the stack: files are
         // told apart by their identity, comparing them would read all of them
         let diff = stack
-            .create_and_push_next(|e| {
+            .push_ok(|e| {
                 let copy = (**e.get(&id).unwrap()).clone();
                 e.insert(id, Rc::new(copy));
                 Ok(())
@@ -264,7 +299,7 @@ mod tests {
         // and the files that were not replaced are not
         let other = add_file(&mut stack);
         let diff = stack
-            .create_and_push_next(|e| {
+            .push_ok(|e| {
                 let copy = (**e.get(&other).unwrap()).clone();
                 e.insert(other, Rc::new(copy));
                 Ok(())
@@ -361,7 +396,7 @@ mod tests {
         let mut stack = Stack::restored(entry);
 
         let diff = stack
-            .create_and_push_next(|e| {
+            .push_ok(|e| {
                 e.remove(&restored);
                 Ok(())
             })

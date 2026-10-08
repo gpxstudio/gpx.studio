@@ -4,7 +4,7 @@ use super::common::uuid_id;
 
 uuid_id!(WaypointId);
 
-#[derive(Debug, Default, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, Clone)]
 pub struct Waypoint {
     pub id: WaypointId,
     pub coordinates: LngLat,
