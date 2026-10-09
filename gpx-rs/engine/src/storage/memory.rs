@@ -15,7 +15,6 @@ struct State {
     files: HashMap<FileId, Vec<u8>>,
     chunks: HashMap<ChunkKey, Vec<u8>>,
     order: Option<Vec<u8>>,
-    categories: Option<Vec<u8>>,
     settings: HashMap<String, String>,
 }
 
@@ -47,7 +46,6 @@ impl Storage for MemoryStorage {
             files: state.files.iter().map(|(k, v)| (*k, v.clone())).collect(),
             chunks: state.chunks.iter().map(|(k, v)| (*k, v.clone())).collect(),
             order: state.order.clone(),
-            categories: state.categories.clone(),
         })
     }
 
@@ -63,9 +61,6 @@ impl Storage for MemoryStorage {
         }
         if let Some(order) = &batch.order {
             state.order = Some(order.clone());
-        }
-        if let Some(categories) = &batch.categories {
-            state.categories = Some(categories.clone());
         }
         Ok(())
     }
@@ -140,7 +135,6 @@ mod tests {
                 (ChunkKey::waypoints(w), vec![4]),
             ],
             order: Some(vec![5]),
-            categories: Some(vec![6]),
             ..Default::default()
         }))
         .unwrap();
@@ -157,10 +151,7 @@ mod tests {
                 (ChunkKey::waypoints(w), vec![4])
             ]
         );
-        assert_eq!(
-            (data.order, data.categories),
-            (Some(vec![5]), Some(vec![6]))
-        );
+        assert_eq!(data.order, Some(vec![5]));
 
         // a put replaces, a delete removes, what is not mentioned stays
         block_on(storage.commit(&Batch {
@@ -173,10 +164,7 @@ mod tests {
         assert_eq!(storage.counts(), counts(1, 0, 1));
         let data = block_on(storage.load()).unwrap();
         assert_eq!(data.files, vec![(a, vec![10])]);
-        assert_eq!(
-            (data.order, data.categories),
-            (Some(vec![5]), Some(vec![6]))
-        );
+        assert_eq!(data.order, Some(vec![5]));
 
         block_on(storage.commit(&Batch {
             delete_chunks: vec![ChunkKey::waypoints(w)],

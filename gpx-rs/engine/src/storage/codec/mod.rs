@@ -18,7 +18,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    File, FileId, FileInfo, Track, TrackId, TrackInfo, TrackSegment, TrackSegmentId, Trackpoint,
+    File, FileId, FileInfo, Track, TrackId, TrackInfo, TrackSegment, TrackSegmentId,
     TrackpointCategories, TrackpointChunk, TrackpointChunkId, Waypoint, WaypointChunk,
     WaypointChunkId, Waypoints,
 };
@@ -144,22 +144,21 @@ pub fn decode_file(bytes: &[u8]) -> Result<FileRecord, DecodeError> {
     }
 }
 
-pub fn encode_trackpoints(chunk: &TrackpointChunk) -> Vec<u8> {
-    encode(
-        &chunk
-            .trkpt
-            .iter()
-            .map(v1::Trackpoint1::from)
-            .collect::<Vec<_>>(),
-    )
+/// The bytes of a chunk of trackpoints. Its surfaces, highways and scales are written as names,
+/// the codes of `categories` being the ones of the engine that has the chunk.
+pub fn encode_trackpoints(chunk: &TrackpointChunk, categories: &TrackpointCategories) -> Vec<u8> {
+    encode(&v1::TrackpointChunk1::new(&chunk.trkpt, categories))
 }
 
-pub fn decode_trackpoints(id: Uuid, bytes: &[u8]) -> Result<TrackpointChunk, DecodeError> {
+/// A chunk of trackpoints from its bytes. The names it holds are added to `categories` if it does
+/// not know them yet, and the trackpoints refer to them by the codes of `categories`.
+pub fn decode_trackpoints(
+    id: Uuid,
+    bytes: &[u8],
+    categories: &mut TrackpointCategories,
+) -> Result<TrackpointChunk, DecodeError> {
     let trkpt = match split(bytes)? {
-        (1, data) => parse::<Vec<v1::Trackpoint1>>(data)?
-            .into_iter()
-            .map(Trackpoint::from)
-            .collect(),
+        (1, data) => parse::<v1::TrackpointChunk1>(data)?.into_points(categories),
         (version, _) => return Err(DecodeError::UnknownVersion(version)),
     };
     Ok(TrackpointChunk {
@@ -203,22 +202,11 @@ pub fn decode_order(bytes: &[u8]) -> Result<Vec<FileId>, DecodeError> {
     }
 }
 
-pub fn encode_categories(categories: &TrackpointCategories) -> Vec<u8> {
-    encode(&v1::Categories1::from(categories))
-}
-
-pub fn decode_categories(bytes: &[u8]) -> Result<TrackpointCategories, DecodeError> {
-    match split(bytes)? {
-        (1, data) => Ok(parse::<v1::Categories1>(data)?.into()),
-        (version, _) => Err(DecodeError::UnknownVersion(version)),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
 
-    use crate::{Author, Link, LngLat};
+    use crate::{Author, Chunk, Link, LngLat, Trackpoint};
 
     use super::*;
 
@@ -246,10 +234,11 @@ mod tests {
             hr: Some(140 + u16::from(n)),
             cad: Some(80),
             power: Some(250),
-            surface: Some(1),
-            highway: Some(2),
-            sac_scale: Some(3),
-            mtb_scale: Some(4),
+            // the first has the second name of the table, which comes first in the chunk
+            surface: Some(if n == 0 { 1 } else { 0 }),
+            highway: Some(0),
+            sac_scale: Some(0),
+            mtb_scale: Some(0),
             anchor: Some(n),
         }
     }
@@ -439,12 +428,34 @@ mod tests {
         assert!(built.trk.is_empty() && built.wpt.is_empty());
     }
 
+    /// The names of the categories of a trackpoint.
+    fn names(point: &Trackpoint, categories: &TrackpointCategories) -> [Option<String>; 4] {
+        let name = |table: &crate::Categories, code: Option<u8>| {
+            code.and_then(|code| table.name(code)).map(str::to_owned)
+        };
+        [
+            name(&categories.surface, point.surface),
+            name(&categories.highway, point.highway),
+            name(&categories.sac_scale, point.sac_scale),
+            name(&categories.mtb_scale, point.mtb_scale),
+        ]
+    }
+
     #[test]
     fn test_chunks_keep_their_identity_and_items() {
         let chunk = &sample().trk[0].trkseg[0].chunks()[0].clone();
-        let decoded = decode_trackpoints(chunk.id.0, &encode_trackpoints(chunk)).unwrap();
+        let categories = categories();
+        let mut reader = categories.clone();
+        let decoded = decode_trackpoints(
+            chunk.id.0,
+            &encode_trackpoints(chunk, &categories),
+            &mut reader,
+        )
+        .unwrap();
         assert_eq!(decoded.id, chunk.id);
         assert_eq!(decoded.trkpt.len(), 3);
+        // read by an engine that has the same table, the trackpoints are the same
+        assert_eq!(reader, categories);
         for (a, b) in decoded.trkpt.iter().zip(&chunk.trkpt) {
             assert_eq!(format!("{a:?}"), format!("{b:?}"));
         }
@@ -459,14 +470,99 @@ mod tests {
     }
 
     #[test]
-    fn test_order_and_categories_round_trip() {
+    fn test_a_chunk_means_the_same_to_an_engine_with_another_table() {
+        let chunk = &sample().trk[0].trkseg[0].chunks()[0].clone();
+        let writer = categories();
+        let bytes = encode_trackpoints(chunk, &writer);
+
+        // an engine that learned other names first, and the same ones in another order
+        let mut reader = TrackpointCategories::default();
+        reader.surface.code("sand");
+        reader.surface.code("gravel");
+        reader.surface.code("asphalt");
+        reader.highway.code("track");
+        let decoded = decode_trackpoints(chunk.id.0, &bytes, &mut reader).unwrap();
+
+        for (read, written) in decoded.trkpt.iter().zip(&chunk.trkpt) {
+            assert_eq!(names(read, &reader), names(written, &writer));
+        }
+        // the codes are the ones of the reader, which learned what it did not know
+        assert_eq!(decoded.trkpt[0].surface, Some(1));
+        assert_eq!(decoded.trkpt[1].surface, Some(2));
+        assert_eq!(reader.highway.names(), ["track", "path"]);
+        assert_eq!(decoded.trkpt[0].highway, Some(1));
+        assert_eq!(reader.sac_scale.names(), ["hiking"]);
+        // and an empty engine learns them in the order they come
+        let mut empty = TrackpointCategories::default();
+        decode_trackpoints(chunk.id.0, &bytes, &mut empty).unwrap();
+        assert_eq!(empty.surface.names(), ["gravel", "asphalt"]);
+    }
+
+    #[test]
+    fn test_a_chunk_only_carries_the_names_it_uses() {
+        let mut writer = TrackpointCategories::default();
+        for i in 0..10 {
+            writer.surface.code(&format!("surface-{i}"));
+        }
+        let mut chunk = sample().trk[0].trkseg[0].chunks()[0].trkpt.clone();
+        chunk.iter_mut().for_each(|p| p.surface = Some(7));
+        let chunk = TrackpointChunk::new(chunk);
+        let bytes = encode_trackpoints(&chunk, &writer);
+
+        let mut reader = TrackpointCategories::default();
+        let decoded = decode_trackpoints(chunk.id.0, &bytes, &mut reader).unwrap();
+        assert_eq!(reader.surface.names(), ["surface-7"]);
+        assert!(decoded.trkpt.iter().all(|p| p.surface == Some(0)));
+    }
+
+    #[test]
+    fn test_codes_without_a_name_are_not_stored_and_names_without_room_are_lost() {
+        let mut writer = categories();
+        let mut chunk = sample().trk[0].trkseg[0].chunks()[0].trkpt.clone();
+        // a code that the table does not know
+        chunk[1].surface = Some(200);
+        let chunk = TrackpointChunk::new(chunk);
+        let bytes = encode_trackpoints(&chunk, &writer);
+        let decoded =
+            decode_trackpoints(chunk.id.0, &bytes, &mut TrackpointCategories::default()).unwrap();
+        assert_eq!(decoded.trkpt[1].surface, None);
+        assert_eq!(decoded.trkpt[0].surface, Some(0));
+
+        // an engine whose table is full keeps the names it has and loses the other ones
+        let mut full = TrackpointCategories::default();
+        for i in 0..crate::Categories::CAPACITY {
+            full.surface.code(&format!("other-{i}"));
+        }
+        writer.surface.code("other-3");
+        let mut chunk = chunk.trkpt.clone();
+        chunk[0].surface = writer.surface.code("other-3");
+        chunk[1].surface = writer.surface.code("gravel");
+        let chunk = TrackpointChunk::new(chunk);
+        let decoded =
+            decode_trackpoints(chunk.id.0, &encode_trackpoints(&chunk, &writer), &mut full)
+                .unwrap();
+        assert_eq!(decoded.trkpt[0].surface, Some(3));
+        assert_eq!(decoded.trkpt[1].surface, None);
+    }
+
+    #[test]
+    fn test_chunks_read_one_after_the_other_share_the_table() {
+        let writer = categories();
+        let chunk = sample().trk[0].trkseg[0].chunks()[0].clone();
+        let bytes = encode_trackpoints(&chunk, &writer);
+        let mut reader = TrackpointCategories::default();
+        let a = decode_trackpoints(id(1), &bytes, &mut reader).unwrap();
+        let b = decode_trackpoints(id(2), &bytes, &mut reader).unwrap();
+        for (a, b) in a.trkpt.iter().zip(&b.trkpt) {
+            assert_eq!((a.surface, a.highway), (b.surface, b.highway));
+        }
+        assert_eq!(reader.surface.names().len(), 2);
+    }
+
+    #[test]
+    fn test_order_round_trips() {
         let order = vec![FileId(id(9)), FileId(id(8))];
         assert_eq!(decode_order(&encode_order(&order)).unwrap(), order);
-        let categories = categories();
-        assert_eq!(
-            decode_categories(&encode_categories(&categories)).unwrap(),
-            categories
-        );
     }
 
     #[test]
@@ -486,15 +582,11 @@ mod tests {
             Err(DecodeError::UnknownVersion(_))
         ));
         assert!(matches!(
-            decode_trackpoints(id(1), &bytes),
+            decode_trackpoints(id(1), &bytes, &mut Default::default()),
             Err(DecodeError::UnknownVersion(_))
         ));
         assert!(matches!(
             decode_waypoints(id(1), &bytes),
-            Err(DecodeError::UnknownVersion(_))
-        ));
-        assert!(matches!(
-            decode_categories(&bytes),
             Err(DecodeError::UnknownVersion(_))
         ));
 
@@ -505,10 +597,9 @@ mod tests {
             Some(DecodeError::Corrupt)
         );
         assert_eq!(
-            decode_trackpoints(id(1), &[LATEST, 9, 9, 9]).err(),
+            decode_trackpoints(id(1), &[LATEST, 9, 9, 9], &mut Default::default()).err(),
             Some(DecodeError::Corrupt)
         );
-        assert_eq!(decode_categories(&[LATEST]), Err(DecodeError::Corrupt));
     }
 
     // The stored forms of version 1, as they were written when the version was made. They must
@@ -529,10 +620,10 @@ mod tests {
         "000000000000000000000000000600011000000000000000000000000000000005",
     );
     const TRACKPOINTS_V1: &str = concat!(
-        "01030000000000001040000000000000494000000000002059400180a0abfef9620105018c01015001fa0101",
-        "0101020103010401000000000000001440000000000080494000000000006059400182a0abfef9620105018d",
-        "01015001fa010101010201030104010100000000000000000000000000000000000000000000000000000000",
-        "000000000000",
+        "01020667726176656c0761737068616c74010470617468010668696b696e6701046d74623003000000000000",
+        "1040000000000000494000000000002059400180a0abfef9620105018c01015001fa01010001000100010001",
+        "000000000000001440000000000080494000000000006059400182a0abfef9620105018d01015001fa010101",
+        "010001000100010100000000000000000000000000000000000000000000000000000000000000000000",
     );
     const WAYPOINTS_V1: &str = concat!(
         "0102100000000000000000000000000000000700000000000016400000000000c04940000000000010744001",
@@ -545,15 +636,16 @@ mod tests {
     );
     const ORDER_V1: &str =
         "010210000000000000000000000000000000091000000000000000000000000000000008";
-    const CATEGORIES_V1: &str =
-        "01020761737068616c740667726176656c010470617468010668696b696e6701046d746230";
 
     #[test]
     fn test_version_1_is_still_written_as_it_was() {
         let file = sample();
         assert_eq!(hex(&encode_file(&file)), FILE_V1);
         assert_eq!(
-            hex(&encode_trackpoints(&file.trk[0].trkseg[0].chunks()[0])),
+            hex(&encode_trackpoints(
+                &file.trk[0].trkseg[0].chunks()[0],
+                &categories()
+            )),
             TRACKPOINTS_V1
         );
         assert_eq!(hex(&encode_waypoints(&file.wpt.chunks()[0])), WAYPOINTS_V1);
@@ -561,7 +653,6 @@ mod tests {
             hex(&encode_order(&[FileId(id(9)), FileId(id(8))])),
             ORDER_V1
         );
-        assert_eq!(hex(&encode_categories(&categories())), CATEGORIES_V1);
     }
 
     #[test]
@@ -571,12 +662,15 @@ mod tests {
             &rebuilt(&file, decode_file(&unhex(FILE_V1)).unwrap()).unwrap(),
             &file,
         );
-        let chunk = decode_trackpoints(id(4), &unhex(TRACKPOINTS_V1)).unwrap();
+        let mut reader = TrackpointCategories::default();
+        let chunk = decode_trackpoints(id(4), &unhex(TRACKPOINTS_V1), &mut reader).unwrap();
         let expected = &file.trk[0].trkseg[0].chunks()[0];
-        assert_eq!(
-            format!("{:?}", chunk.trkpt),
-            format!("{:?}", expected.trkpt)
-        );
+        assert_eq!(chunk.trkpt.len(), expected.trkpt.len());
+        for (read, written) in chunk.trkpt.iter().zip(&expected.trkpt) {
+            assert_eq!(names(read, &reader), names(written, &categories()));
+            assert_eq!(read.hr, written.hr);
+            assert_eq!(read.anchor, written.anchor);
+        }
         let chunk = decode_waypoints(id(5), &unhex(WAYPOINTS_V1)).unwrap();
         assert_eq!(chunk.wpt.len(), 2);
         assert!(chunk.wpt[0].same_content(&waypoint()));
@@ -584,10 +678,6 @@ mod tests {
         assert_eq!(
             decode_order(&unhex(ORDER_V1)).unwrap(),
             vec![FileId(id(9)), FileId(id(8))]
-        );
-        assert_eq!(
-            decode_categories(&unhex(CATEGORIES_V1)).unwrap(),
-            categories()
         );
     }
 }

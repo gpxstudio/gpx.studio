@@ -7,13 +7,6 @@
 pub struct Categories(Vec<String>);
 
 impl Categories {
-    /// A table with these names, in the order of their codes (at most [`Self::CAPACITY`] of them
-    /// are kept).
-    pub fn from_names(mut names: Vec<String>) -> Self {
-        names.truncate(Self::CAPACITY);
-        Self(names)
-    }
-
     /// Maximum number of distinct values.
     pub const CAPACITY: usize = u8::MAX as usize;
 

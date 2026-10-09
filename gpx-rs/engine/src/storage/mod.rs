@@ -7,6 +7,11 @@
 //! [`crate::Chunked`]) that are written once, under their identity, and a file is a small record
 //! that lists the chunks it is made of. An edit only writes the new chunks and the records of the
 //! files that changed; the chunks that nothing refers to anymore are deleted at the same time.
+//!
+//! The surface, highway and scales of the trackpoints are stored as names, in the chunk that has
+//! them: the codes that the engine gives them (see [`crate::TrackpointCategories`]) depend on the
+//! order in which it learned the names, so they mean nothing outside of it. A storage that two
+//! engines (tabs, a server) write to therefore has nothing to agree on but the chunks.
 
 mod codec;
 mod memory;
@@ -68,8 +73,6 @@ pub struct StoredData {
     pub chunks: Vec<(ChunkKey, Vec<u8>)>,
     /// The order of the files.
     pub order: Option<Vec<u8>>,
-    /// The categories of the trackpoints, which their chunks refer to.
-    pub categories: Option<Vec<u8>>,
 }
 
 /// A change of the stored data, to be applied all at once: a stored state is always one that the
@@ -81,7 +84,6 @@ pub struct Batch {
     pub put_chunks: Vec<(ChunkKey, Vec<u8>)>,
     pub delete_chunks: Vec<ChunkKey>,
     pub order: Option<Vec<u8>>,
-    pub categories: Option<Vec<u8>>,
 }
 
 impl Batch {
@@ -153,10 +155,6 @@ mod tests {
             },
             Batch {
                 order: Some(vec![]),
-                ..Default::default()
-            },
-            Batch {
-                categories: Some(vec![]),
                 ..Default::default()
             },
         ];

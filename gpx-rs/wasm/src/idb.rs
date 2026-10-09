@@ -14,13 +14,12 @@ use wasm_bindgen::JsValue;
 const FILES: &str = "files";
 const TRACKPOINT_CHUNKS: &str = "trackpoint_chunks";
 const WAYPOINT_CHUNKS: &str = "waypoint_chunks";
-/// The order of the files and the categories of the trackpoints, under their own names.
+/// The order of the files, under its own name.
 const META: &str = "meta";
 const SETTINGS: &str = "settings";
 const STORES: [&str; 5] = [FILES, TRACKPOINT_CHUNKS, WAYPOINT_CHUNKS, META, SETTINGS];
 
 const ORDER_KEY: &str = "order";
-const CATEGORIES_KEY: &str = "categories";
 
 pub struct IdbStorage {
     database: Database,
@@ -111,13 +110,6 @@ impl IdbStorage {
                     .map_err(error)?,
             );
         }
-        if let Some(categories) = &batch.categories {
-            let value = bytes(categories);
-            puts.push(
-                meta.put(&value, Some(&JsValue::from_str(CATEGORIES_KEY)))
-                    .map_err(error)?,
-            );
-        }
         for FileId(id) in &batch.delete_files {
             deletes.push(files.delete(Query::Key(key(*id))).map_err(error)?);
         }
@@ -153,11 +145,6 @@ impl Storage for IdbStorage {
             .map_err(error)?
             .await
             .map_err(error)?;
-        let categories = meta
-            .get(JsValue::from_str(CATEGORIES_KEY))
-            .map_err(error)?
-            .await
-            .map_err(error)?;
         transaction.await.map_err(error)?;
 
         let ids = |records: Vec<(JsValue, Vec<u8>)>| -> Result<Vec<(Uuid, Vec<u8>)>, StorageError> {
@@ -181,7 +168,6 @@ impl Storage for IdbStorage {
                 )
                 .collect(),
             order: order.as_ref().map(to_vec),
-            categories: categories.as_ref().map(to_vec),
         })
     }
 

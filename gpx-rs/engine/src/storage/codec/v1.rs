@@ -2,6 +2,8 @@
 //! compares the bytes they give with the ones of a fixture). A change of the form is a new
 //! version, next to this one, that the decoders convert from.
 
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -183,6 +185,7 @@ pub struct Trackpoint1 {
     hr: Option<u16>,
     cad: Option<u16>,
     power: Option<u16>,
+    /// The position of the name in the list of the chunk (see [`TrackpointChunk1`]).
     surface: Option<u8>,
     highway: Option<u8>,
     sac_scale: Option<u8>,
@@ -285,34 +288,107 @@ impl From<Waypoint1> for Waypoint {
     }
 }
 
-/// The names of each table of categories, in the order of their codes.
+/// A chunk of trackpoints. It carries the names its categories refer to: the surface, highway,
+/// SAC scale and MTB scale of its trackpoints are the positions of the names in its own lists,
+/// which only hold the names it uses. So it means the same whatever the table of categories of
+/// the engine that reads it is, and it is not changed by what other chunks learn.
 #[derive(Serialize, Deserialize)]
-pub struct Categories1 {
+pub struct TrackpointChunk1 {
     surface: Vec<String>,
     highway: Vec<String>,
     sac_scale: Vec<String>,
     mtb_scale: Vec<String>,
+    points: Vec<Trackpoint1>,
 }
 
-impl From<&TrackpointCategories> for Categories1 {
-    fn from(categories: &TrackpointCategories) -> Self {
-        let names = |table: &Categories| table.names().to_vec();
+/// The names of a category used by a chunk, with their position in the list of the chunk.
+struct LocalNames<'a> {
+    table: &'a Categories,
+    names: Vec<String>,
+    local: HashMap<u8, u8>,
+}
+
+impl<'a> LocalNames<'a> {
+    fn new(table: &'a Categories) -> Self {
         Self {
-            surface: names(&categories.surface),
-            highway: names(&categories.highway),
-            sac_scale: names(&categories.sac_scale),
-            mtb_scale: names(&categories.mtb_scale),
+            table,
+            names: vec![],
+            local: HashMap::new(),
         }
+    }
+
+    /// The position in the list of the chunk of the name of a code of the table. A code that
+    /// has no name has no position.
+    fn position(&mut self, code: Option<u8>) -> Option<u8> {
+        let code = code?;
+        if let Some(position) = self.local.get(&code) {
+            return Some(*position);
+        }
+        let name = self.table.name(code)?;
+        let position = u8::try_from(self.names.len()).ok()?;
+        self.names.push(name.to_owned());
+        self.local.insert(code, position);
+        Some(position)
     }
 }
 
-impl From<Categories1> for TrackpointCategories {
-    fn from(categories: Categories1) -> Self {
+/// The codes of the table for the names of a chunk, which are added to it if it does not know
+/// them. A name that does not fit in a full table has no code.
+fn codes_of(names: &[String], table: &mut Categories) -> Vec<Option<u8>> {
+    names.iter().map(|name| table.code(name)).collect()
+}
+
+impl TrackpointChunk1 {
+    pub fn new(points: &[Trackpoint], categories: &TrackpointCategories) -> Self {
+        let mut surface = LocalNames::new(&categories.surface);
+        let mut highway = LocalNames::new(&categories.highway);
+        let mut sac_scale = LocalNames::new(&categories.sac_scale);
+        let mut mtb_scale = LocalNames::new(&categories.mtb_scale);
+        let points = points
+            .iter()
+            .map(|point| {
+                let mut stored = Trackpoint1::from(point);
+                stored.surface = surface.position(point.surface);
+                stored.highway = highway.position(point.highway);
+                stored.sac_scale = sac_scale.position(point.sac_scale);
+                stored.mtb_scale = mtb_scale.position(point.mtb_scale);
+                stored
+            })
+            .collect();
         Self {
-            surface: Categories::from_names(categories.surface),
-            highway: Categories::from_names(categories.highway),
-            sac_scale: Categories::from_names(categories.sac_scale),
-            mtb_scale: Categories::from_names(categories.mtb_scale),
+            surface: surface.names,
+            highway: highway.names,
+            sac_scale: sac_scale.names,
+            mtb_scale: mtb_scale.names,
+            points,
         }
+    }
+
+    /// The trackpoints, with the codes of `categories` for the names of the chunk.
+    pub fn into_points(self, categories: &mut TrackpointCategories) -> Vec<Trackpoint> {
+        let surface = codes_of(&self.surface, &mut categories.surface);
+        let highway = codes_of(&self.highway, &mut categories.highway);
+        let sac_scale = codes_of(&self.sac_scale, &mut categories.sac_scale);
+        let mtb_scale = codes_of(&self.mtb_scale, &mut categories.mtb_scale);
+        let global = |codes: &[Option<u8>], local: Option<u8>| {
+            local.and_then(|local| codes.get(usize::from(local)).copied().flatten())
+        };
+        self.points
+            .into_iter()
+            .map(|stored| {
+                let (s, h, sac, mtb) = (
+                    global(&surface, stored.surface),
+                    global(&highway, stored.highway),
+                    global(&sac_scale, stored.sac_scale),
+                    global(&mtb_scale, stored.mtb_scale),
+                );
+                let mut point = Trackpoint::from(stored);
+                point.surface = s;
+                point.highway = h;
+                point.sac_scale = sac;
+                point.mtb_scale = mtb;
+                point
+            })
+            .collect()
     }
 }
