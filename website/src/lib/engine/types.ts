@@ -117,6 +117,11 @@ export type ExportOptions = {
     power: boolean;
     /** The OpenStreetMap data: surface, highway, SAC scale and MTB scale. */
     osm: boolean;
+    /**
+     * Writes the segments as routes instead of tracks: the anchors are the route points, and the
+     * trackpoints between them the points of their path (which only keep their position).
+     */
+    asRoute: boolean;
 };
 
 export const ALL_EXPORT_OPTIONS: ExportOptions = {
@@ -126,6 +131,7 @@ export const ALL_EXPORT_OPTIONS: ExportOptions = {
     atemp: true,
     power: true,
     osm: true,
+    asRoute: false,
 };
 
 /**

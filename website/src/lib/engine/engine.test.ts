@@ -5,7 +5,14 @@ import { readFileSync } from 'node:fs';
 import { beforeEach, describe, it } from 'node:test';
 import { get } from 'svelte/store';
 import { isHidden } from '$lib/file-visibility';
-import { engine, FileStateCollectionObserver, NO_TIME, type FileState } from '$lib/engine';
+import {
+    ALL_EXPORT_OPTIONS,
+    engine,
+    FileStateCollectionObserver,
+    NO_TIME,
+    type ExportOptions,
+    type FileState,
+} from '$lib/engine';
 
 function fixture(name: string): Uint8Array {
     return new Uint8Array(
@@ -384,6 +391,49 @@ describe('observer of the files', () => {
         assert.deepEqual(new Set(removed), new Set([first, second]));
         observer.destroy();
         assert.equal(destroyed, 1);
+    });
+});
+
+describe('export', () => {
+    const text = (id: string, options: Partial<ExportOptions> = {}) =>
+        new TextDecoder().decode(engine.exportFile(id, { ...ALL_EXPORT_OPTIONS, ...options }));
+
+    it('writes tracks, or routes when asked to', async () => {
+        await load('with_tracks_and_segments');
+        const file = fileStates()[0];
+        const segments = file.structure.tracks.reduce(
+            (sum, track) => sum + track.segments.length,
+            0
+        );
+        const id = file.structure.id;
+
+        const tracks = text(id);
+        assert.ok(tracks.includes('<trk>') && !tracks.includes('<rte>'));
+        assert.equal(tracks.match(/<trkseg>/g)?.length, segments);
+
+        const routes = text(id, { asRoute: true });
+        assert.ok(routes.includes('<rte>') && !routes.includes('<trk>'));
+        assert.equal(routes.match(/<rte>/g)?.length, segments);
+        assert.ok(routes.includes('<rtept'));
+    });
+
+    it('does not count the way a file is written among its data', async () => {
+        await load('simple');
+        const data = engine.exportableData(get(engine.order));
+        assert.equal(data.asRoute, false);
+    });
+
+    it('can read back the routes it writes', async () => {
+        await load('with_tracks_and_segments');
+        const id = get(engine.order)[0];
+        const before = fileStates()[0].segments.features.length;
+        const routes = engine.exportFile(id, { ...ALL_EXPORT_OPTIONS, asRoute: true })!;
+        await engine.loadFiles([{ data: routes, name: 'routes' }]);
+        const [, loaded] = get(engine.order);
+        const state = get(get(engine.files).get(loaded)!);
+        // one route per segment, each read as a track of one segment
+        assert.equal(state.structure.tracks.length, before);
+        assert.equal(state.segments.features.length, before);
     });
 });
 

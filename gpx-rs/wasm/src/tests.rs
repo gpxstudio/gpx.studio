@@ -112,7 +112,10 @@ fn test_unknown_file_has_no_structure() {
     assert!(crate::queries::files::file_structure(&id).is_undefined());
     assert!(crate::queries::files::file_structure("not an id").is_undefined());
     assert!(crate::queries::files::file_statistics(&id).is_undefined());
-    assert!(crate::queries::files::export_file(&id, true, true, true, true, true, true).is_none());
+    assert!(
+        crate::queries::files::export_file(&id, true, true, true, true, true, true, false)
+            .is_none()
+    );
     assert_eq!(
         crate::queries::coordinates::segment_coordinates(&id).length(),
         0
@@ -265,7 +268,8 @@ fn test_export_and_exportable_data() {
     let ids = order();
 
     let bytes =
-        crate::queries::files::export_file(&ids[0], true, true, true, true, true, true).unwrap();
+        crate::queries::files::export_file(&ids[0], true, true, true, true, true, true, false)
+            .unwrap();
     assert!(String::from_utf8(bytes).unwrap().contains("<gpx"));
 
     // the time is the first bit
@@ -282,6 +286,23 @@ fn test_export_and_exportable_data() {
         1
     );
     assert_eq!(crate::queries::files::exportable_data(&[1, 2, 3]), 0);
+}
+
+#[wasm_bindgen_test]
+fn test_export_as_route() {
+    started_with(&[(SIMPLE, "plain")]);
+    let id = order().remove(0);
+    let text = |as_route| {
+        let bytes =
+            crate::queries::files::export_file(&id, true, true, true, true, true, true, as_route)
+                .unwrap();
+        String::from_utf8(bytes).unwrap()
+    };
+    let tracks = text(false);
+    assert!(tracks.contains("<trk>") && !tracks.contains("<rte>"));
+    let routes = text(true);
+    assert!(routes.contains("<rte>") && !routes.contains("<trk>"));
+    assert!(routes.contains("<rtept"));
 }
 
 #[wasm_bindgen_test]

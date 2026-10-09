@@ -509,7 +509,8 @@ class Engine {
             options.cad,
             options.atemp,
             options.power,
-            options.osm
+            options.osm,
+            options.asRoute
         ) as Uint8Array<ArrayBuffer> | undefined;
     }
 
@@ -523,6 +524,8 @@ class Engine {
             atemp: (bits & 8) !== 0,
             power: (bits & 16) !== 0,
             osm: (bits & 32) !== 0,
+            // not a data
+            asRoute: false,
         };
     }
 

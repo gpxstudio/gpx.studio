@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3" version="1.1" creator="test">
+    <rte>
+        <name>Lausanne</name>
+        <cmt>comment</cmt>
+        <desc>description</desc>
+        <type>Cycling</type>
+        <rtept lat="46.544628096744418" lon="6.658079791814089">
+            <ele>500</ele>
+            <extensions>
+                <gpxx:RoutePointExtension>
+                    <gpxx:rpt lat="46.544483928009868" lon="6.658018603920937"/>
+                    <gpxx:rpt lat="46.544415950775146" lon="6.658358573913574"/>
+                    <gpxx:rpt lat="46.544415950775146" lon="6.658358573913574"/>
+                </gpxx:RoutePointExtension>
+            </extensions>
+        </rtept>
+        <rtept lat="46.544100000000000" lon="6.659000000000000">
+            <ele>510</ele>
+            <extensions>
+                <gpxx:RoutePointExtension>
+                    <gpxx:rpt lat="46.543900000000000" lon="6.659500000000000"/>
+                </gpxx:RoutePointExtension>
+            </extensions>
+        </rtept>
+        <rtept lat="46.543000000000000" lon="6.660000000000000">
+            <ele>505</ele>
+        </rtept>
+    </rte>
+</gpx>

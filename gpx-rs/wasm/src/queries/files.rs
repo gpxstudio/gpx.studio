@@ -56,8 +56,10 @@ pub fn selection_statistics() -> GlobalStatistics {
 }
 
 /// A file as GPX (UTF-8 bytes), `undefined` if it does not exist. The options say which data of the trackpoints
-/// to keep.
+/// to keep, and with `as_route` that the segments are written as routes (`rte`) instead of tracks:
+/// the anchors are the route points, and the trackpoints between them the points of their path.
 #[wasm_bindgen]
+#[allow(clippy::too_many_arguments)]
 pub fn export_file(
     file_id: &str,
     time: bool,
@@ -66,6 +68,7 @@ pub fn export_file(
     atemp: bool,
     power: bool,
     osm: bool,
+    as_route: bool,
 ) -> Option<Vec<u8>> {
     let id = parse_file_id(file_id)?;
     let options = engine::ExportOptions {
@@ -75,6 +78,7 @@ pub fn export_file(
         atemp,
         power,
         osm,
+        as_route,
     };
     with_engine(|e| e.export(&id, options)).flatten()
 }

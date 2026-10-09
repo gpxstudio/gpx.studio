@@ -1,6 +1,6 @@
 use crate::{
     Author, Chunk, File, Link, LngLat, Track, TrackSegment, Trackpoint, TrackpointCategories,
-    TrackpointChunk, Waypoint, WaypointChunk,
+    TrackpointChunk, Waypoint, WaypointChunk, distance,
 };
 use chrono::DateTime;
 use quick_xml::Error;
@@ -300,6 +300,93 @@ fn attach_link(stack: &mut [GPXElement], gpx: &mut File, link: Link) {
     }
 }
 
+/// Builds the segment of a route.
+///
+/// The route points are the anchors of the segment, and are the only ones that the file gives
+/// (no anchor is computed). The points of the detailed path between a route point and the next one
+/// (`gpxx:rpt`, which only have a position) are regular trackpoints, with the elevation worked out
+/// from the one of the route points around them.
+#[derive(Default)]
+struct RouteReader {
+    segment: TrackSegment,
+    chunk: TrackpointChunk,
+    /// The intermediate points that follow the last route point, up to the next one.
+    pending: Vec<Trackpoint>,
+    /// Position and elevation of the last route point.
+    previous: Option<(LngLat, f64)>,
+}
+
+impl RouteReader {
+    fn push(&mut self, point: Trackpoint) {
+        self.chunk.trkpt.push(point);
+        if self.chunk.is_full() {
+            self.segment.push(std::mem::take(&mut self.chunk));
+        }
+    }
+
+    /// Adds a route point, after the intermediate points of the previous one. `following` are the
+    /// intermediate points that lead from it to the next one.
+    fn push_route_point(&mut self, mut rtept: Trackpoint, following: Vec<Trackpoint>) {
+        rtept.anchor = Some(0);
+        let here = (rtept.coordinates, rtept.ele);
+        self.flush(Some(here));
+        self.previous = Some(here);
+        self.push(rtept);
+        self.pending = following;
+    }
+
+    /// Adds the pending intermediate points, which lead to the route point `next` if there is one.
+    fn flush(&mut self, next: Option<(LngLat, f64)>) {
+        let mut pending = std::mem::take(&mut self.pending);
+        if let Some(previous) = self.previous {
+            interpolate_elevations(&mut pending, previous, next);
+        }
+        for point in pending {
+            self.push(point);
+        }
+    }
+
+    fn finish(mut self) -> TrackSegment {
+        self.flush(None);
+        self.segment.push(std::mem::take(&mut self.chunk));
+        self.segment.ensure_end_anchors();
+        self.segment
+    }
+}
+
+/// Gives the points of a path from `from` to `to` an elevation that goes from the one of the first
+/// to the one of the second, in proportion to the distance along the path. Without `to`, they have
+/// the elevation of `from`.
+fn interpolate_elevations(
+    points: &mut [Trackpoint],
+    from: (LngLat, f64),
+    to: Option<(LngLat, f64)>,
+) {
+    let Some((to_position, to_ele)) = to else {
+        points.iter_mut().for_each(|point| point.ele = from.1);
+        return;
+    };
+    let mut distances = Vec::with_capacity(points.len() + 1);
+    let mut total = 0.0;
+    let mut last = from.0;
+    for position in points
+        .iter()
+        .map(|point| point.coordinates)
+        .chain([to_position])
+    {
+        total += distance(last, position);
+        distances.push(total);
+        last = position;
+    }
+    for (point, along) in points.iter_mut().zip(distances) {
+        point.ele = if total > 0.0 {
+            from.1 + (to_ele - from.1) * along / total
+        } else {
+            from.1
+        };
+    }
+}
+
 /// Parses a GPX file. The surface, highway, SAC scale and MTB scale of the trackpoints are stored as codes of
 /// `categories`, which learns the values it does not know yet.
 pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File, Error> {
@@ -309,9 +396,9 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
     let mut stack: Vec<GPXElement> = vec![];
     let mut trkpt_chunk = TrackpointChunk::default();
     let mut wpt_chunk = WaypointChunk::default();
-    // Routes are read as tracks of a single segment, which is what `rte_segment` collects the points of. A route
-    // point that comes with the detailed path of the route to the next one (`gpxx:rpt`) is replaced by it.
-    let mut rte_segment = TrackSegment::default();
+    // Routes are read as tracks of a single segment, see `RouteReader`. The points of the detailed
+    // path that a route point comes with (`gpxx:rpt`) are collected until the route point is read.
+    let mut route = RouteReader::default();
     let mut rpt_points: Vec<Trackpoint> = vec![];
     // the text of the element at the top of the stack, up to now
     let mut text = String::new();
@@ -381,13 +468,13 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
                 }
                 "rtept" => {
                     if let Some(GPXElement::Track(_)) = stack.last() {
-                        trkpt_chunk.trkpt.push(Trackpoint {
-                            coordinates: parse_coordinates(e.attributes()),
-                            ..Default::default()
-                        });
-                        if trkpt_chunk.is_full() {
-                            rte_segment.push(std::mem::take(&mut trkpt_chunk));
-                        }
+                        route.push_route_point(
+                            Trackpoint {
+                                coordinates: parse_coordinates(e.attributes()),
+                                ..Default::default()
+                            },
+                            vec![],
+                        );
                     }
                 }
                 name if is_route_point_extension(name) => {
@@ -444,10 +531,8 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
                     }
                     "rte" => {
                         if let Some(GPXElement::Track(mut trk)) = stack.pop() {
-                            rte_segment.push(std::mem::take(&mut trkpt_chunk));
-                            if !rte_segment.is_empty() {
-                                let mut trkseg = std::mem::take(&mut rte_segment);
-                                trkseg.compute_anchors();
+                            let trkseg = std::mem::take(&mut route).finish();
+                            if !trkseg.is_empty() {
                                 trk.trkseg.push(trkseg);
                             }
                             gpx.trk.push(trk);
@@ -457,17 +542,7 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
                         if let Some(GPXElement::Trackpoint(rtept)) = stack.pop()
                             && let Some(GPXElement::Track(_)) = stack.last()
                         {
-                            let points = if rpt_points.is_empty() {
-                                vec![rtept]
-                            } else {
-                                std::mem::take(&mut rpt_points)
-                            };
-                            for point in points {
-                                trkpt_chunk.trkpt.push(point);
-                                if trkpt_chunk.is_full() {
-                                    rte_segment.push(std::mem::take(&mut trkpt_chunk));
-                                }
-                            }
+                            route.push_route_point(rtept, std::mem::take(&mut rpt_points));
                         }
                     }
                     name if is_route_point_extension(name) => {
@@ -697,17 +772,128 @@ mod tests {
         assert_eq!(trk.info.name.as_deref(), Some("with extensions"));
         assert_eq!(trk.trkseg.len(), 1);
         let points: Vec<_> = trk.trkseg[0].iter().collect();
-        // the detailed path replaces the route point it comes with
+        // the route points are kept, the points of the detailed path follow the one they come with
         let coordinates: Vec<_> = points
             .iter()
             .map(|p| (p.coordinates.lat, p.coordinates.lng))
             .collect();
         assert_eq!(
             coordinates,
-            [(1.1, 1.1), (1.2, 1.2), (2.0, 2.0), (3.0, 3.0)]
+            [(1.0, 1.0), (1.1, 1.1), (1.2, 1.2), (2.0, 2.0), (3.0, 3.0)]
         );
+        assert_eq!(points[3].ele, 20.0);
+        assert!(points[3].time.is_some());
+    }
+
+    #[test]
+    fn test_route_points_are_the_anchors_and_nothing_else_is() {
+        let gpx = parse_data("with_route_extensions");
+        let anchors: Vec<_> = gpx.trk[0].trkseg[0].iter().map(|p| p.anchor).collect();
+        assert_eq!(anchors, [Some(0), None, None, Some(0), Some(0)]);
+
+        // no anchor is computed for the points of a route that has none in between
+        let gpx = parse_data("with_routes");
+        for trk in &gpx.trk {
+            let segment = &trk.trkseg[0];
+            assert!(segment.iter().all(|p| p.anchor == Some(0)));
+        }
+        // while a track gets the anchors that its shape needs
+        let track = parse_data("with_tracks");
+        let segment = &track.trk[0].trkseg[0];
+        let anchors = segment.iter().filter(|p| p.anchor.is_some()).count();
+        assert!(anchors >= 2 && anchors < segment.len());
+    }
+
+    #[test]
+    fn test_parse_the_points_of_the_detailed_path_of_a_route() {
+        let gpx = parse_data("with_route_points");
+        assert_eq!(gpx.trk.len(), 1);
+        let trk = &gpx.trk[0];
+        assert_eq!(trk.info.name.as_deref(), Some("Lausanne"));
+        assert_eq!(trk.info.cmt.as_deref(), Some("comment"));
+        assert_eq!(trk.info.desc.as_deref(), Some("description"));
+        assert_eq!(trk.info.type_.as_deref(), Some("Cycling"));
+
+        let points: Vec<_> = trk.trkseg[0].iter().cloned().collect();
+        // 3 route points and 4 points between them, the repeated one being kept
+        assert_eq!(points.len(), 7);
+        let kinds: Vec<_> = points.iter().map(|p| p.anchor.is_some()).collect();
+        assert_eq!(kinds, [true, false, false, false, true, false, true]);
+        assert_eq!(points[0].coordinates.lat, 46.54462809674442);
+        assert_eq!(points[0].coordinates.lng, 6.658079791814089);
+        assert_eq!(points[1].coordinates.lat, 46.54448392800987);
+        assert_eq!(points[3].coordinates.lng, points[2].coordinates.lng);
+        assert_eq!(points[4].coordinates.lat, 46.5441);
+        assert_eq!(points[5].coordinates.lat, 46.5439);
+
+        // the points in between have no elevation of their own: it goes from one route point to
+        // the next
+        let ele: Vec<_> = points.iter().map(|p| p.ele).collect();
+        assert_eq!((ele[0], ele[4], ele[6]), (500.0, 510.0, 505.0));
+        assert!(ele[0] < ele[1] && ele[1] < ele[2] && ele[2] <= ele[3] && ele[3] < ele[4]);
+        assert!(ele[5] < 510.0 && ele[5] > 505.0);
+    }
+
+    #[test]
+    fn test_the_last_point_of_a_route_is_an_anchor_even_after_a_path() {
+        // the last route point comes with a path that leads nowhere
+        let data = r#"<gpx xmlns:gpxx="x"><rte>
+            <rtept lat="1" lon="1"><ele>10</ele></rtept>
+            <rtept lat="2" lon="2"><ele>20</ele>
+                <extensions><gpxx:RoutePointExtension>
+                    <gpxx:rpt lat="2.1" lon="2.1"/><gpxx:rpt lat="2.2" lon="2.2"/>
+                </gpxx:RoutePointExtension></extensions>
+            </rtept>
+        </rte></gpx>"#;
+        let gpx = parse(data.as_bytes(), &mut Default::default()).unwrap();
+        let points: Vec<_> = gpx.trk[0].trkseg[0].iter().cloned().collect();
+        let coordinates: Vec<_> = points.iter().map(|p| p.coordinates.lat).collect();
+        assert_eq!(coordinates, [1.0, 2.0, 2.1, 2.2]);
+        // the route point is an anchor, and so is the end of the path
+        let anchors: Vec<_> = points.iter().map(|p| p.anchor).collect();
+        assert_eq!(anchors, [Some(0), Some(0), None, Some(0)]);
+        // with the elevation of the last route point, as there is no next one
         assert_eq!(points[2].ele, 20.0);
-        assert!(points[2].time.is_some());
+        assert_eq!(points[3].ele, 20.0);
+
+        // a path after a single route point
+        let data = r#"<gpx xmlns:gpxx="x"><rte><rtept lat="1" lon="1"><extensions>
+            <gpxx:RoutePointExtension><gpxx:rpt lat="1.5" lon="1.5"/></gpxx:RoutePointExtension>
+            </extensions></rtept></rte></gpx>"#;
+        let gpx = parse(data.as_bytes(), &mut Default::default()).unwrap();
+        let anchors: Vec<_> = gpx.trk[0].trkseg[0].iter().map(|p| p.anchor).collect();
+        assert_eq!(anchors, [Some(0), Some(0)]);
+    }
+
+    #[test]
+    fn test_elevations_between_route_points() {
+        let here = |lng: f64| LngLat { lng, lat: 0.0 };
+        let point = |lng: f64| Trackpoint {
+            coordinates: here(lng),
+            ..Default::default()
+        };
+        // evenly spaced points go up evenly
+        let mut points = vec![point(1.0), point(2.0), point(3.0)];
+        interpolate_elevations(&mut points, (here(0.0), 100.0), Some((here(4.0), 200.0)));
+        let ele: Vec<_> = points.iter().map(|p| p.ele.round()).collect();
+        assert_eq!(ele, [125.0, 150.0, 175.0]);
+
+        // the distance counts, not the number of points
+        let mut points = vec![point(1.0)];
+        interpolate_elevations(&mut points, (here(0.0), 0.0), Some((here(4.0), 400.0)));
+        assert!((points[0].ele - 100.0).abs() < 1e-6);
+
+        // after the last route point, the elevation does not change
+        let mut points = vec![point(1.0), point(2.0)];
+        interpolate_elevations(&mut points, (here(0.0), 321.0), None);
+        assert!(points.iter().all(|p| p.ele == 321.0));
+
+        // route points at the same place
+        let mut points = vec![point(0.0)];
+        interpolate_elevations(&mut points, (here(0.0), 10.0), Some((here(0.0), 20.0)));
+        assert_eq!(points[0].ele, 10.0);
+        // nothing between them is fine
+        interpolate_elevations(&mut [], (here(0.0), 1.0), Some((here(1.0), 2.0)));
     }
 
     #[test]
