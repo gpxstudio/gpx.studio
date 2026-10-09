@@ -185,9 +185,7 @@
                             {i18n._('quantities.power')}
                         </Label>
                     </div>
-                    <div
-                        class="flex flex-row items-center gap-1.5 {hide.osm ? 'hidden' : ''}"
-                    >
+                    <div class="flex flex-row items-center gap-1.5 {hide.osm ? 'hidden' : ''}">
                         <Checkbox id="export-osm" bind:checked={exportOptions.osm} />
                         <Label for="export-osm" class="flex flex-row items-center gap-1">
                             <Earth size="16" />

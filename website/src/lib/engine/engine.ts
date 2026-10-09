@@ -1,300 +1,38 @@
 import { browser } from '$app/environment';
-import { LEGACY_IMPORTED_KEY, readLegacyData } from '$lib/legacy-import';
 import { get, writable, type Readable, type Writable } from 'svelte/store';
-import { FileColorAllocator, normalizeColor } from '$lib/file-colors';
+import { FileColorAllocator } from '$lib/file-colors';
 import {
-    parseVisibility,
     setHidden,
     stringifyVisibility,
     VISIBILITY_KEY,
     type Visibility,
 } from '$lib/file-visibility';
-import { categoryIntervals, type CategoryIntervals } from '$lib/trackpoint-categories';
+import { categoryIntervals } from '$lib/trackpoint-categories';
 import { selectedElementIds, type FileTreeNode } from '$lib/selection-helpers';
-import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
-import type {
-    Clipboard,
-    GlobalStatistics,
-    FileStructure,
-    MoveTarget,
-    Selection,
-    WaypointDetails,
-    TrackpointDetails,
-    RouteAttributes,
-    Outcome,
-    FilesUpdate,
-    StorageOpened,
-} from 'gpx-rs';
-
-export type {
-    Clipboard,
-    WaypointDetails,
-    TrackpointDetails,
-    MoveTarget,
-    GlobalStatistics,
-    FileStructure,
-    FilesUpdate,
-    Outcome,
-    Selection,
-    TrackNode,
-    SegmentNode,
-    WaypointNode,
-} from 'gpx-rs';
-
-type Wasm = typeof import('gpx-rs');
-
-/** Name of the IndexedDB database that keeps the files and the settings. */
-const STORAGE_NAME = 'gpx-studio';
-
-/**
- * How a merge puts the selected elements together: `connect` makes a single segment of their
- * trackpoints, `group` keeps them as they are, in the first one.
- */
-export type MergeType = 'connect' | 'group';
-
-/** What a split cuts in two: the file, the track or the segment of the trackpoint. */
-export type SplitType = 'files' | 'tracks' | 'segments';
-
-/**
- * How elements combine with the current selection: they `replace` it, are `add`ed to it, or are
- * `toggle`d (the ones already selected are removed). Adding and toggling only merge with elements
- * of the same kind in the same place (same file, same track for segments), otherwise the new
- * elements replace the selection.
- */
-export type SelectMode = 'replace' | 'add' | 'toggle';
-
-function selectMode(wasm: Wasm, mode: SelectMode) {
-    return {
-        replace: wasm.SelectMode.Replace,
-        add: wasm.SelectMode.Add,
-        toggle: wasm.SelectMode.Toggle,
-    }[mode];
-}
-
-export type SegmentProperties = {
-    fileId: string;
-    trackId: string;
-    segmentId: string;
-    trackIndex: number;
-    segmentIndex: number;
-    /** Changes when the trackpoints of the segment change. */
-    rev: string;
-    /** Color of the track, or else the base color of the file. */
-    color: string;
-    /** Only when the track defines it. */
-    opacity?: number;
-    width?: number;
-};
-
-export type WaypointProperties = {
-    fileId: string;
-    waypointId: string;
-    index: number;
-    name?: string;
-    sym?: string;
-};
-
-/** The data of a waypoint to create or to change. Empty strings are fields it does not have. */
-export type NewWaypoint = {
-    lng: number;
-    lat: number;
-    ele: number;
-    name: string;
-    desc: string;
-    icon: string;
-    link: string;
-};
-
-/** Everything the UI knows about one file. */
-export type FileState = {
-    structure: FileStructure;
-    /** Color of the file: the one defined by its tracks if any, otherwise one from the palette. */
-    color: string;
-    /** Global statistics of the file. */
-    statistics: GlobalStatistics;
-    /** One LineString feature per track segment, in file order. */
-    segments: FeatureCollection<LineString, SegmentProperties>;
-    /** One Point feature per waypoint, in file order. */
-    waypoints: FeatureCollection<Point, WaypointProperties>;
-    /**
-     * Visibility the user set explicitly (see `Visibility` and `isHidden`, `isSegmentHidden`,
-     * `isWaypointHidden` in `file-visibility`). Hidden elements are still part of the statistics.
-     */
-    visibility: Visibility;
-};
-
-const EMPTY_STATISTICS: GlobalStatistics = { totalDistance: 0, elevationGain: 0, elevationLoss: 0 };
-
-/**
- * New trackpoints for `Engine.route`, as arrays with an entry per trackpoint. The OSM attributes
- * are the names of the values (`undefined` when unknown), they are left unknown if missing.
- */
-export type RoutePoints = {
-    lng: ArrayLike<number>;
-    lat: ArrayLike<number>;
-    ele: ArrayLike<number>;
-    surface?: readonly (string | undefined)[];
-    highway?: readonly (string | undefined)[];
-    sacScale?: readonly (string | undefined)[];
-    mtbScale?: readonly (string | undefined)[];
-};
-
-/** Which data of the trackpoints a file is exported with (see `Engine.exportFile`). */
-export type ExportOptions = {
-    time: boolean;
-    hr: boolean;
-    cad: boolean;
-    atemp: boolean;
-    power: boolean;
-    /** The OpenStreetMap data: surface, highway, SAC scale and MTB scale. */
-    osm: boolean;
-};
-
-export const ALL_EXPORT_OPTIONS: ExportOptions = {
-    time: true,
-    hr: true,
-    cad: true,
-    atemp: true,
-    power: true,
-    osm: true,
-};
-
-/**
- * Timestamp of the trackpoints that have none, in `SelectionStatistics.timestamps` (the smallest
- * 64-bit integer, like `NO_TIME` in the engine).
- */
-export const NO_TIME = -(2n ** 63n);
-
-/**
- * Statistics of the selection that are only read from the engine when something asks for them
- * (see `Engine.requestStatistics`). A metric can bring several arrays.
- */
-export type StatisticsMetric =
-    | 'speed'
-    | 'hr'
-    | 'cad'
-    | 'atemp'
-    | 'power'
-    /** `slopeSegmentSlope` and `slopeSegmentDistance`. */
-    | 'slopeSegment'
-    | 'surface'
-    /** `highway`, `sacScale` and `mtbScale`. */
-    | 'highway'
-    /** `anchors`. */
-    | 'anchors';
-
-/**
- * The anchors of the routing tool among the trackpoints of the selection: the points that can be
- * dragged to reroute a segment, which are few of them. The arrays are as long as the number of
- * anchors, in the order of the trackpoints.
- */
-export type SelectionAnchors = {
-    /** Index of the anchor in the trackpoints of the selection. */
-    indices: Uint32Array;
-    /** Lowest map zoom level at which the anchor is shown (0 for the ends of the segments). */
-    zooms: Uint8Array;
-    /**
-     * Index of the first trackpoint of each segment of the selection that has some: anchors that
-     * are between two consecutive starts belong to the same segment.
-     */
-    segmentStarts: Uint32Array;
-    /** Id of each of these segments. */
-    segmentIds: string[];
-    /**
-     * Changes when the selected segments, or their trackpoints, change. The indices in the
-     * selection (of trackpoints, of anchors) only mean something for one revision, which commands
-     * that use them have to give.
-     */
-    revision: number;
-};
-
-/**
- * The statistics of the selection: its global statistics, and the values at each of its
- * trackpoints (all the selected segments, one after the other). The arrays are copies.
- *
- * Distances are cumulative over the whole selection. Distances are in km, speeds in km/h, times in
- * ms (timestamps since the epoch, as 64-bit integers), elevations in m and slopes in %.
- *
- * The values of the trackpoints that the selection does not have at all (for example the heart
- * rates, when no trackpoint has any) are `undefined`, and so are the ones that were not requested
- * (see `StatisticsMetric`). Otherwise they have one entry per trackpoint: missing timestamps are
- * `NO_TIME`, missing measures are NaN.
- */
-export type SelectionStatistics = {
-    global: GlobalStatistics;
-    /** Number of trackpoints. */
-    length: number;
-    totalDistance: Float64Array;
-    /** Slope at the trackpoint. */
-    slope: Float64Array;
-    lng: Float64Array;
-    lat: Float64Array;
-    ele: Float64Array;
-    timestamps?: BigInt64Array;
-
-    // the following need to be requested
-    speed?: Float64Array;
-    hr?: Float64Array;
-    cad?: Float64Array;
-    atemp?: Float64Array;
-    power?: Float64Array;
-    /** Slope and length (km) of the smoothed elevation segment the trackpoint belongs to. */
-    slopeSegmentSlope?: Float64Array;
-    slopeSegmentDistance?: Float64Array;
-    surface?: CategoryIntervals;
-    highway?: CategoryIntervals;
-    /** SAC hiking scale. */
-    sacScale?: CategoryIntervals;
-    /** Mountain biking scale. */
-    mtbScale?: CategoryIntervals;
-    anchors?: SelectionAnchors;
-
-    /**
-     * Global statistics of the trackpoints from `start` to `end` (both included), for example
-     * the part of the elevation profile that was dragged over. `undefined` if the range is not
-     * in the selection, or if the selection is not the current one anymore.
-     */
-    slice(start: number, end: number): GlobalStatistics | undefined;
-};
-
-const EMPTY_SELECTION_STATISTICS: SelectionStatistics = {
-    global: EMPTY_STATISTICS,
-    length: 0,
-    totalDistance: new Float64Array(),
-    slope: new Float64Array(),
-    lng: new Float64Array(),
-    lat: new Float64Array(),
-    ele: new Float64Array(),
-    slice: () => undefined,
-};
-
-/** What a consumer of the statistics needs, see `Engine.requestStatistics`. */
-export type StatisticsRequest = {
-    /** Replaces the metrics needed by this consumer. */
-    set(metrics: Iterable<StatisticsMetric>): void;
-    /** The consumer does not need any metric anymore. */
-    release(): void;
-};
-
-function toPositions(flat: Float64Array): [number, number][] {
-    const positions: [number, number][] = new Array(flat.length / 2);
-    for (let i = 0; i < positions.length; i++) {
-        positions[i] = [flat[2 * i], flat[2 * i + 1]];
-    }
-    return positions;
-}
-
-/** Hyphenated UUID strings (as found in the file structures) to the concatenated 16-byte form. */
-function idsToBytes(ids: string[]): Uint8Array {
-    const bytes = new Uint8Array(ids.length * 16);
-    ids.forEach((id, i) => {
-        const hex = id.replaceAll('-', '');
-        for (let j = 0; j < 16; j++) {
-            bytes[i * 16 + j] = parseInt(hex.slice(2 * j, 2 * j + 2), 16);
-        }
-    });
-    return bytes;
-}
+import type { RouteAttributes } from 'gpx-rs';
+import { idsToBytes, selectMode, type Wasm } from './convert';
+import { readFileState } from './file-state';
+import { StatisticsReader } from './statistics';
+import { openStoredFiles } from './storage';
+import {
+    ALL_EXPORT_OPTIONS,
+    type Clipboard,
+    type ExportOptions,
+    type FileState,
+    type FilesUpdate,
+    type MergeType,
+    type MoveTarget,
+    type NewWaypoint,
+    type Outcome,
+    type RoutePoints,
+    type Selection,
+    type SelectionStatistics,
+    type SelectMode,
+    type SplitType,
+    type StatisticsRequest,
+    type TrackpointDetails,
+    type WaypointDetails,
+} from './types';
 
 /**
  * Thin wrapper around the WASM engine.
@@ -323,18 +61,12 @@ class Engine {
     private _canRedo = writable(false);
     private _canPaste = writable(false);
     private _clipboard = writable<Clipboard | undefined>(undefined);
-    private _statistics = writable<SelectionStatistics>(EMPTY_SELECTION_STATISTICS);
-    /** Identifies the statistics currently in the engine's buffers. */
-    private _statisticsVersion = 0;
-    /** What each consumer of the statistics asked for. */
-    private _statisticsRequests = new Set<Set<StatisticsMetric>>();
-    /** The metrics that were read for the current statistics. */
-    private _loadedMetrics = new Set<StatisticsMetric>();
+    private _statistics = new StatisticsReader(() => this.wasm);
 
     /** Ids of the files in display order. */
     readonly order: Readable<string[]> = { subscribe: this._order.subscribe };
     /** Statistics of what is currently selected. */
-    readonly statistics: Readable<SelectionStatistics> = { subscribe: this._statistics.subscribe };
+    readonly statistics: Readable<SelectionStatistics> = this._statistics.store;
     readonly canUndo: Readable<boolean> = { subscribe: this._canUndo.subscribe };
     readonly canRedo: Readable<boolean> = { subscribe: this._canRedo.subscribe };
     /** Why the last call to the engine did nothing, `undefined` if it did something. */
@@ -374,71 +106,17 @@ class Engine {
      * The first time, what the previous versions of the app kept in the browser is imported.
      */
     openStorage(): Promise<Record<string, string>> {
-        this._storage ??= this.openStorageOnce();
-        return this._storage;
-    }
-
-    private async openStorageOnce(): Promise<Record<string, string>> {
-        await this.ready;
-        const wasm = this.wasm!;
-        let opened: StorageOpened;
-        try {
-            opened = await wasm.open_storage(STORAGE_NAME);
-        } catch (error) {
-            console.error('The files cannot be kept in this browser', error);
-            return {};
-        }
-        if (opened.readOnly) {
-            console.warn(
-                'The files were saved by a newer version of the app: they are not saved again by this one'
-            );
-        }
-        if (opened.unreadable > 0) {
-            console.warn(`${opened.unreadable} stored file(s) could not be read`);
-        }
-        let settings = opened.settings;
-        // what was hidden, which the files that were restored need when they are read
-        parseVisibility(settings[VISIBILITY_KEY]).forEach((visibility, fileId) =>
-            this._visibility.set(fileId, visibility)
+        this._storage ??= this.ready.then(() =>
+            openStoredFiles({
+                wasm: this.wasm!,
+                visibility: this._visibility,
+                sync: (update) => this.sync(this.wasm!, update),
+                hasFiles: () => get(this._order).length > 0,
+                loadFiles: (files) => this.loadFiles(files),
+                deselect: () => this.select([]),
+            })
         );
-        this.sync(wasm, opened.outcome);
-
-        if (settings[LEGACY_IMPORTED_KEY] === undefined && get(this._order).length === 0) {
-            settings = { ...settings, ...(await this.importLegacyData(wasm)) };
-            await wasm.flush_storage();
-        }
-        return settings;
-    }
-
-    /** Puts the files and the settings of the former database in the engine. */
-    private async importLegacyData(wasm: Wasm): Promise<Record<string, string>> {
-        const imported: Record<string, string> = {};
-        try {
-            const legacy = await readLegacyData();
-            if (legacy) {
-                const encoder = new TextEncoder();
-                if (legacy.files.length > 0) {
-                    await this.loadFiles(
-                        legacy.files.map((file) => ({
-                            data: encoder.encode(file.gpx),
-                            name: file.name,
-                        }))
-                    );
-                    await this.select([]);
-                }
-                for (const [key, value] of Object.entries(legacy.settings)) {
-                    wasm.set_setting(key, value);
-                    imported[key] = value;
-                }
-            }
-        } catch (error) {
-            // it is tried again next time
-            console.error('The files of the previous version could not be imported', error);
-            return imported;
-        }
-        wasm.set_setting(LEGACY_IMPORTED_KEY, 'true');
-        imported[LEGACY_IMPORTED_KEY] = 'true';
-        return imported;
+        return this._storage;
     }
 
     /** Keeps a setting, `json` being its JSON. Nothing is kept before `openStorage` is done. */
@@ -998,6 +676,17 @@ class Engine {
         }
     }
 
+    /**
+     * Registers a consumer of the statistics that needs some of the metrics that are not part of
+     * them by default (see `StatisticsMetric`). The metrics asked for by all the consumers are
+     * added to `statistics`: the ones that are missing are read right away, and then after each
+     * change of the selection or of the files, and the store is updated. Call `release` when the
+     * consumer goes away.
+     */
+    requestStatistics(): StatisticsRequest {
+        return this._statistics.request();
+    }
+
     /** Updates what is kept of the engine with what a call changed. */
     private sync(wasm: Wasm, update: FilesUpdate) {
         this._canUndo.set(wasm.can_undo());
@@ -1014,7 +703,7 @@ class Engine {
         }
         const added: [string, FileState][] = [];
         for (const id of update.added) {
-            const state = this.readFile(wasm, id);
+            const state = readFileState(wasm, id, this._colors, this._visibility);
             if (state) {
                 added.push([id, state]);
             }
@@ -1034,7 +723,8 @@ class Engine {
             const files = get(this._files);
             for (const id of update.modified) {
                 const store = files.get(id);
-                const state = store && this.readFile(wasm, id, get(store));
+                const state =
+                    store && readFileState(wasm, id, this._colors, this._visibility, get(store));
                 if (store && state) {
                     store.set(state);
                 }
@@ -1047,294 +737,9 @@ class Engine {
             update.orderChanged ||
             update.added.length + update.modified.length + update.removed.length > 0
         ) {
-            this._statistics.set(this.readStatistics(wasm));
+            this._statistics.refresh(wasm);
         }
-    }
-
-    /**
-     * Reads the statistics buffers of the engine (the getters copy them), but only the metrics
-     * that were requested.
-     */
-    private readStatistics(wasm: Wasm): SelectionStatistics {
-        const version = ++this._statisticsVersion;
-        this._loadedMetrics.clear();
-        const totalDistance = wasm.total_distance();
-        const statistics: SelectionStatistics = {
-            global: wasm.selection_statistics() ?? EMPTY_STATISTICS,
-            length: totalDistance.length,
-            totalDistance,
-            slope: wasm.slope(),
-            lng: wasm.lng(),
-            lat: wasm.lat(),
-            ele: wasm.ele(),
-            timestamps: wasm.timestamps(),
-            slice: (start, end) =>
-                version === this._statisticsVersion ? wasm.slice_statistics(start, end) : undefined,
-        };
-        this.readMetrics(wasm, statistics, this.requestedMetrics());
-        return statistics;
-    }
-
-    private requestedMetrics(): Set<StatisticsMetric> {
-        const metrics = new Set<StatisticsMetric>();
-        this._statisticsRequests.forEach((request) => request.forEach((m) => metrics.add(m)));
-        return metrics;
-    }
-
-    /** Reads the metrics that were not read yet into `statistics`, which is the current one. */
-    private readMetrics(
-        wasm: Wasm,
-        statistics: SelectionStatistics,
-        metrics: Set<StatisticsMetric>
-    ) {
-        const categories = (
-            starts: Uint32Array,
-            values: Uint8Array,
-            names: () => string[]
-        ): CategoryIntervals => ({
-            starts,
-            values,
-            names: names(),
-        });
-
-        for (const metric of metrics) {
-            if (this._loadedMetrics.has(metric)) {
-                continue;
-            }
-            this._loadedMetrics.add(metric);
-            switch (metric) {
-                case 'speed':
-                    statistics.speed = wasm.speed();
-                    break;
-                case 'hr':
-                    statistics.hr = wasm.hr();
-                    break;
-                case 'cad':
-                    statistics.cad = wasm.cad();
-                    break;
-                case 'atemp':
-                    statistics.atemp = wasm.atemp();
-                    break;
-                case 'power':
-                    statistics.power = wasm.power();
-                    break;
-                case 'slopeSegment':
-                    statistics.slopeSegmentSlope = wasm.slope_segment_slope();
-                    statistics.slopeSegmentDistance = wasm.slope_segment_distance();
-                    break;
-                case 'surface':
-                    statistics.surface = categories(
-                        wasm.surface_starts(),
-                        wasm.surface_values(),
-                        wasm.surfaces
-                    );
-                    break;
-                case 'anchors':
-                    statistics.anchors = {
-                        indices: wasm.anchor_indices(),
-                        zooms: wasm.anchor_zooms(),
-                        segmentStarts: wasm.segment_starts(),
-                        segmentIds: wasm.segment_ids(),
-                        revision: wasm.routing_revision(),
-                    };
-                    break;
-                case 'highway':
-                    statistics.highway = categories(
-                        wasm.highway_starts(),
-                        wasm.highway_values(),
-                        wasm.highways
-                    );
-                    statistics.sacScale = categories(
-                        wasm.sac_scale_starts(),
-                        wasm.sac_scale_values(),
-                        wasm.sac_scales
-                    );
-                    statistics.mtbScale = categories(
-                        wasm.mtb_scale_starts(),
-                        wasm.mtb_scale_values(),
-                        wasm.mtb_scales
-                    );
-                    break;
-            }
-        }
-    }
-
-    /**
-     * Registers a consumer of the statistics that needs some of the metrics that are not part of
-     * them by default (see `StatisticsMetric`). The metrics asked for by all the consumers are
-     * added to `statistics`: the ones that are missing are read right away, and then after each
-     * change of the selection or of the files, and the store is updated. Call `release` when the
-     * consumer goes away.
-     */
-    requestStatistics(): StatisticsRequest {
-        const wanted = new Set<StatisticsMetric>();
-        this._statisticsRequests.add(wanted);
-        return {
-            set: (metrics) => {
-                wanted.clear();
-                for (const metric of metrics) {
-                    wanted.add(metric);
-                }
-                this.loadMissingMetrics();
-            },
-            release: () => {
-                this._statisticsRequests.delete(wanted);
-            },
-        };
-    }
-
-    /** Reads the requested metrics that are not in the current statistics yet. */
-    private loadMissingMetrics() {
-        const wasm = this.wasm;
-        const metrics = this.requestedMetrics();
-        if (!wasm || [...metrics].every((metric) => this._loadedMetrics.has(metric))) {
-            return;
-        }
-        // the buffers of the engine still are the ones of the current statistics, as they are
-        // read after every action
-        const statistics = { ...get(this._statistics) };
-        this.readMetrics(wasm, statistics, metrics);
-        this._statistics.set(statistics);
-    }
-
-    /** Reads the state of a file, reusing from `previous` what did not change. */
-    private readFile(wasm: Wasm, id: string, previous?: FileState): FileState | null {
-        const structure = wasm.file_structure(id);
-        if (!structure) {
-            return null;
-        }
-
-        const color = this._colors.resolve(
-            id,
-            structure.tracks.map((track) => track.color)
-        );
-
-        const previousSegments = new Map(
-            previous?.segments.features.map((f) => [f.properties.segmentId, f]) ?? []
-        );
-        const segments: Feature<LineString, SegmentProperties>[] = [];
-        structure.tracks.forEach((track, trackIndex) => {
-            track.segments.forEach((segment, segmentIndex) => {
-                const properties: SegmentProperties = {
-                    fileId: id,
-                    trackId: track.id,
-                    segmentId: segment.id,
-                    trackIndex,
-                    segmentIndex,
-                    rev: segment.rev,
-                    color: track.color !== undefined ? normalizeColor(track.color) : color,
-                    opacity: track.opacity,
-                    width: track.width,
-                };
-                const old = previousSegments.get(segment.id);
-                const unchanged =
-                    old !== undefined &&
-                    (Object.keys(properties) as (keyof SegmentProperties)[]).every(
-                        (key) => old.properties[key] === properties[key]
-                    );
-                segments.push(
-                    unchanged
-                        ? old
-                        : {
-                              type: 'Feature',
-                              geometry: {
-                                  type: 'LineString',
-                                  coordinates: toPositions(wasm.segment_coordinates(segment.id)),
-                              },
-                              properties,
-                          }
-                );
-            });
-        });
-
-        const previousStructure = previous?.structure;
-        const waypointsUnchanged =
-            previousStructure !== undefined &&
-            previousStructure.waypointsRev === structure.waypointsRev &&
-            previousStructure.waypoints.length === structure.waypoints.length &&
-            previousStructure.waypoints.every(
-                (w, i) =>
-                    w.id === structure.waypoints[i].id &&
-                    w.name === structure.waypoints[i].name &&
-                    w.sym === structure.waypoints[i].sym
-            );
-        let waypoints = previous?.waypoints;
-        if (!waypoints || !waypointsUnchanged) {
-            const coordinates = toPositions(wasm.waypoint_coordinates(id));
-            waypoints = {
-                type: 'FeatureCollection',
-                features: structure.waypoints.map((waypoint, index) => ({
-                    type: 'Feature',
-                    geometry: { type: 'Point', coordinates: coordinates[index] },
-                    properties: {
-                        fileId: id,
-                        waypointId: waypoint.id,
-                        index,
-                        name: waypoint.name,
-                        sym: waypoint.sym,
-                    },
-                })),
-            };
-        }
-
-        return {
-            structure,
-            color,
-            statistics: wasm.file_statistics(id) ?? EMPTY_STATISTICS,
-            segments: { type: 'FeatureCollection', features: segments },
-            waypoints,
-            visibility: this._visibility.get(id) ?? new Map(),
-        };
     }
 }
 
 export const engine = new Engine();
-
-export type FileStatesCallback = (files: Map<string, Readable<FileState>>) => void;
-
-/**
- * Tells when file stores appear and disappear, so that their subscribers know when to
- * subscribe and unsubscribe. `onFilesAdded` is called with the stores of the new files only
- * (including the ones already present when the observer is created).
- */
-export class FileStateCollectionObserver {
-    private _fileIds = new Set<string>();
-    private _onFilesAdded: FileStatesCallback;
-    private _onFileRemoved: (fileId: string) => void;
-    private _onDestroy: () => void;
-    private _unsubscribe: () => void;
-
-    constructor(
-        onFilesAdded: FileStatesCallback,
-        onFileRemoved: (fileId: string) => void,
-        onDestroy: () => void
-    ) {
-        this._onFilesAdded = onFilesAdded;
-        this._onFileRemoved = onFileRemoved;
-        this._onDestroy = onDestroy;
-
-        this._unsubscribe = engine.files.subscribe((files) => {
-            this._fileIds.forEach((fileId) => {
-                if (!files.has(fileId)) {
-                    this._onFileRemoved(fileId);
-                    this._fileIds.delete(fileId);
-                }
-            });
-            const newFiles = new Map<string, Readable<FileState>>();
-            files.forEach((store, fileId) => {
-                if (!this._fileIds.has(fileId)) {
-                    newFiles.set(fileId, store);
-                    this._fileIds.add(fileId);
-                }
-            });
-            if (newFiles.size > 0) {
-                this._onFilesAdded(newFiles);
-            }
-        });
-    }
-
-    destroy() {
-        this._onDestroy();
-        this._unsubscribe();
-    }
-}

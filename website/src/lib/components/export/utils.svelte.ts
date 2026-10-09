@@ -2,6 +2,7 @@ import { engine, type ExportOptions } from '$lib/engine';
 import FileSaver from 'file-saver';
 import JSZip from 'jszip';
 import { get } from 'svelte/store';
+import { sanitizeFileName, uniqueFileNames } from './file-names';
 
 export enum ExportState {
     NONE,
@@ -38,16 +39,11 @@ async function exportFiles(fileIds: string[], options: ExportOptions) {
 
     if (files.length === 1) {
         const blob = new Blob([files[0].gpx], { type: 'application/gpx+xml' });
-        FileSaver.saveAs(blob, `${files[0].name}.gpx`);
+        FileSaver.saveAs(blob, `${sanitizeFileName(files[0].name)}.gpx`);
     } else if (files.length > 1) {
         const zip = new JSZip();
-        for (const { name, gpx } of files) {
-            let filename = name;
-            for (let i = 1; zip.files[filename + '.gpx']; i++) {
-                filename = name + `-${i}`;
-            }
-            zip.file(filename + '.gpx', gpx);
-        }
+        const names = uniqueFileNames(files.map((file) => file.name));
+        files.forEach(({ gpx }, i) => zip.file(`${names[i]}.gpx`, gpx));
         const blob = await zip.generateAsync({ type: 'blob' });
         FileSaver.saveAs(blob, 'gpx-files.zip');
     }

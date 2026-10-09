@@ -35,12 +35,12 @@ export type RoutedPoints = {
     mtbScale: (string | undefined)[];
 };
 
-function emptyRoute(): RoutedPoints {
+export function emptyRoute(): RoutedPoints {
     return { lng: [], lat: [], ele: [], surface: [], highway: [], sacScale: [], mtbScale: [] };
 }
 
 /** Adds a trackpoint, which has the elevation of the previous one if it has none. */
-function addPoint(route: RoutedPoints, lng: number, lat: number, ele: number | undefined) {
+export function addPoint(route: RoutedPoints, lng: number, lat: number, ele: number | undefined) {
     route.lng.push(lng);
     route.lat.push(lat);
     route.ele.push(ele ?? route.ele[route.ele.length - 1] ?? 0);
@@ -82,7 +82,7 @@ const mtbRatingToScale: { [key: string]: string } = {
     '7': '6',
 };
 
-const graphhopperBlockPrivateCustomModels: { [key: string]: any } = {
+export const graphhopperBlockPrivateCustomModels: { [key: string]: any } = {
     bike: {
         priority: [
             {
@@ -123,7 +123,7 @@ const graphhopperBlockPrivateCustomModels: { [key: string]: any } = {
             },
         ],
     },
-    motorcycle: {
+    motorbike: {
         priority: [
             {
                 if: 'road_access == PRIVATE',
@@ -155,26 +155,39 @@ async function getGraphHopperRoute(
     });
 
     if (!response.ok) {
-        const error = await response.json();
-        if (error.message.includes('Cannot find point 0')) {
-            throw new Error('toolbar.routing.error.from');
-        } else if (error.message.includes('Cannot find point 1')) {
-            if (points.length == 3) {
-                throw new Error('toolbar.routing.error.via');
-            } else {
-                throw new Error('toolbar.routing.error.to');
-            }
-        } else if (error.hints[0].details.includes('PointDistanceExceededException')) {
-            throw new Error('toolbar.routing.error.distance');
-        } else if (error.hints[0].details.includes('ConnectionNotFoundException')) {
-            throw new Error('toolbar.routing.error.connection');
-        } else {
-            throw new Error(error.message);
-        }
+        throw graphHopperError(await response.json(), points.length);
     }
 
-    let json = await response.json();
+    return parseGraphHopperRoute(await response.json());
+}
 
+/** The error to throw for the error response of GraphHopper. Its message is a translation key. */
+export function graphHopperError(
+    error: { message?: string; hints?: { details?: string }[] },
+    pointCount: number
+): Error {
+    const message = error.message ?? '';
+    const details = error.hints?.[0]?.details ?? '';
+    if (message.includes('Cannot find point 0')) {
+        return new Error('toolbar.routing.error.from');
+    } else if (message.includes('Cannot find point 1')) {
+        return new Error(
+            pointCount == 3 ? 'toolbar.routing.error.via' : 'toolbar.routing.error.to'
+        );
+    } else if (details.includes('PointDistanceExceededException')) {
+        return new Error('toolbar.routing.error.distance');
+    } else if (details.includes('ConnectionNotFoundException')) {
+        return new Error('toolbar.routing.error.connection');
+    }
+    return new Error(message);
+}
+
+/**
+ * The route of a response of GraphHopper. The details of the path (road class, surface...) are
+ * given as ranges of points: `[from, to, value]`, `to` excluded except for the last range, which
+ * includes the last point.
+ */
+export function parseGraphHopperRoute(json: any): RoutedPoints {
     const route = emptyRoute();
     const coordinates = json.paths[0].points.coordinates;
     const details = json.paths[0].details;
@@ -184,7 +197,7 @@ async function getGraphHopperRoute(
     }
 
     for (const key of graphhopperDetails) {
-        const detail = details[key];
+        const detail = details[key] ?? [];
         for (let i = 0; i < detail.length; i++) {
             for (let j = detail[i][0]; j < detail[i][1] + (i == detail.length - 1 ? 1 : 0); j++) {
                 if (detail[i][2] !== undefined && detail[i][2] !== 'missing') {
@@ -214,22 +227,32 @@ async function getBRouterRoute(
     let response = await fetch(url);
 
     if (!response.ok) {
-        const error = await response.text();
-        if (error.includes('from-position not mapped in existing datafile')) {
-            throw new Error('toolbar.routing.error.from');
-        } else if (error.includes('via1-position not mapped in existing datafile')) {
-            throw new Error('toolbar.routing.error.via');
-        } else if (error.includes('to-position not mapped in existing datafile')) {
-            throw new Error('toolbar.routing.error.to');
-        } else if (error.includes('Time-out')) {
-            throw new Error('toolbar.routing.error.timeout');
-        } else {
-            throw new Error(error);
-        }
+        throw brouterError(await response.text());
     }
 
-    let geojson = await response.json();
+    return parseBRouterRoute(await response.json());
+}
 
+/** The error to throw for the error response of BRouter. Its message is a translation key. */
+export function brouterError(error: string): Error {
+    if (error.includes('from-position not mapped in existing datafile')) {
+        return new Error('toolbar.routing.error.from');
+    } else if (error.includes('via1-position not mapped in existing datafile')) {
+        return new Error('toolbar.routing.error.via');
+    } else if (error.includes('to-position not mapped in existing datafile')) {
+        return new Error('toolbar.routing.error.to');
+    } else if (error.includes('Time-out')) {
+        return new Error('toolbar.routing.error.timeout');
+    }
+    return new Error(error);
+}
+
+/**
+ * The route of a response of BRouter (GeoJSON). The tags of the ways are in the `messages`, one
+ * per way: a way starts at the point whose position the message gives, and applies up to the
+ * next message.
+ */
+export function parseBRouterRoute(geojson: any): RoutedPoints {
     const route = emptyRoute();
     const coordinates = geojson.features[0].geometry.coordinates;
     const messages = geojson.features[0].properties.messages;
@@ -263,7 +286,8 @@ async function getBRouterRoute(
     return route;
 }
 
-function getTags(message: string): { [key: string]: string } {
+/** The tags of a way, `key=value` separated by spaces, with the `:` of the keys as `_`. */
+export function getTags(message: string): { [key: string]: string } {
     const fields = message.split(' ');
     let tags: { [key: string]: string } = {};
     for (let i = 0; i < fields.length; i++) {
@@ -274,7 +298,11 @@ function getTags(message: string): { [key: string]: string } {
     return tags;
 }
 
-function getIntermediatePoints(points: Coordinates[]): Promise<RoutedPoints> {
+/**
+ * The points of a straight route through `points`: one every 50 m, and the last one. The
+ * elevations are 0.
+ */
+export function interpolatePoints(points: Coordinates[]): RoutedPoints {
     const route = emptyRoute();
     const step = 0.05;
 
@@ -289,8 +317,14 @@ function getIntermediatePoints(points: Coordinates[]): Promise<RoutedPoints> {
     }
 
     const last = points[points.length - 1];
-    addPoint(route, last.lng, last.lat, 0);
+    if (last) {
+        addPoint(route, last.lng, last.lat, 0);
+    }
+    return route;
+}
 
+function getIntermediatePoints(points: Coordinates[]): Promise<RoutedPoints> {
+    const route = interpolatePoints(points);
     return getElevation(route.lng.map((lng, i) => ({ lng, lat: route.lat[i] }))).then(
         (elevations) => {
             route.ele = elevations;

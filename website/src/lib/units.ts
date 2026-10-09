@@ -1,50 +1,18 @@
 import { settings } from '$lib/logic/settings';
 import { i18n } from '$lib/i18n.svelte';
 import { get } from 'svelte/store';
+import {
+    convertDistance,
+    convertDistanceToKilometers,
+    convertElevation,
+    convertTemperature,
+    convertVelocity,
+    secondsToHHMMSS,
+} from '$lib/unit-conversions';
+
+export * from '$lib/unit-conversions';
 
 const { distanceUnits, velocityUnits, temperatureUnits } = settings;
-
-export function kilometersToMiles(value: number) {
-    return value * 0.621371;
-}
-
-export function milesToKilometers(value: number) {
-    return value * 1.60934;
-}
-
-export function metersToFeet(value: number) {
-    return value * 3.28084;
-}
-
-export function kilometersToNauticalMiles(value: number) {
-    return value * 0.539957;
-}
-
-export function nauticalMilesToKilometers(value: number) {
-    return value * 1.852;
-}
-
-export function celsiusToFahrenheit(value: number) {
-    return value * 1.8 + 32;
-}
-
-export function distancePerHourToSecondsPerDistance(value: number) {
-    if (value === 0) {
-        return 0;
-    }
-    return 3600 / value;
-}
-
-export function secondsToHHMMSS(value: number) {
-    var hours = Math.floor(value / 3600);
-    var minutes = Math.floor(value / 60) % 60;
-    var seconds = Math.min(59, Math.round(value % 60));
-
-    return [hours, minutes, seconds]
-        .map((v) => (v < 10 ? '0' + v : v))
-        .filter((v, i) => v !== '00' || i > 0)
-        .join(':');
-}
 
 // Get a string representation of the value with units
 export function getDistanceWithUnits(value: number, convert: boolean = true) {
@@ -166,41 +134,20 @@ export function getTemperatureUnits() {
         : i18n._('units.fahrenheit');
 }
 
-// Convert only the value
+// Convert only the value, to the units of the settings by default
 export function getConvertedDistance(value: number, targetDistanceUnits = get(distanceUnits)) {
-    switch (targetDistanceUnits) {
-        case 'metric':
-            return value;
-        case 'imperial':
-            return kilometersToMiles(value);
-        case 'nautical':
-            return kilometersToNauticalMiles(value);
-    }
+    return convertDistance(value, targetDistanceUnits);
 }
 
 export function getConvertedDistanceToKilometers(
     value: number,
     sourceDistanceUnits = get(distanceUnits)
 ) {
-    switch (sourceDistanceUnits) {
-        case 'metric':
-            return value;
-        case 'imperial':
-            return milesToKilometers(value);
-        case 'nautical':
-            return nauticalMilesToKilometers(value);
-    }
+    return convertDistanceToKilometers(value, sourceDistanceUnits);
 }
 
 export function getConvertedElevation(value: number, targetDistanceUnits = get(distanceUnits)) {
-    switch (targetDistanceUnits) {
-        case 'metric':
-            return value;
-        case 'imperial':
-            return metersToFeet(value);
-        case 'nautical':
-            return value;
-    }
+    return convertElevation(value, targetDistanceUnits);
 }
 
 export function getConvertedVelocity(
@@ -208,30 +155,12 @@ export function getConvertedVelocity(
     targetVelocityUnits = get(velocityUnits),
     targetDistanceUnits = get(distanceUnits)
 ) {
-    if (targetVelocityUnits === 'speed') {
-        switch (targetDistanceUnits) {
-            case 'metric':
-                return value;
-            case 'imperial':
-                return kilometersToMiles(value);
-            case 'nautical':
-                return kilometersToNauticalMiles(value);
-        }
-    } else {
-        switch (targetDistanceUnits) {
-            case 'metric':
-                return distancePerHourToSecondsPerDistance(value);
-            case 'imperial':
-                return distancePerHourToSecondsPerDistance(kilometersToMiles(value));
-            case 'nautical':
-                return distancePerHourToSecondsPerDistance(kilometersToNauticalMiles(value));
-        }
-    }
+    return convertVelocity(value, targetVelocityUnits, targetDistanceUnits);
 }
 
 export function getConvertedTemperature(
     value: number,
     targetTemperatureUnits = get(temperatureUnits)
 ) {
-    return targetTemperatureUnits === 'celsius' ? value : celsiusToFahrenheit(value);
+    return convertTemperature(value, targetTemperatureUnits);
 }

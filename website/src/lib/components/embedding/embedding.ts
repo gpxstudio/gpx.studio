@@ -115,11 +115,15 @@ export function convertOldEmbeddingOptions(options: URLSearchParams): any {
         ids: [],
     };
     if (options.has('state')) {
-        let state = JSON.parse(options.get('state')!);
-        if (state.ids) {
+        // the state comes from the url: it may be anything
+        let state: any = {};
+        try {
+            state = JSON.parse(options.get('state')!) ?? {};
+        } catch {}
+        if (Array.isArray(state.ids)) {
             newOptions.ids.push(...state.ids);
         }
-        if (state.urls) {
+        if (Array.isArray(state.urls)) {
             newOptions.files.push(...state.urls);
         }
     }
