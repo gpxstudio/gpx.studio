@@ -1,7 +1,9 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-use crate::{Batch, ChunkKey, ChunkKind, FileId, Storage, StorageError, StoredData};
+use crate::{
+    Batch, ChunkKey, ChunkKind, CommitError, FileId, Revision, Storage, StorageError, StoredData,
+};
 
 /// A storage that lives as long as the session. It is what an engine without a host storage uses,
 /// and what the tests use.
@@ -12,6 +14,7 @@ pub struct MemoryStorage {
 
 #[derive(Debug, Default)]
 struct State {
+    head: Revision,
     files: HashMap<FileId, Vec<u8>>,
     chunks: HashMap<ChunkKey, Vec<u8>>,
     order: Option<Vec<u8>>,
@@ -46,11 +49,19 @@ impl Storage for MemoryStorage {
             files: state.files.iter().map(|(k, v)| (*k, v.clone())).collect(),
             chunks: state.chunks.iter().map(|(k, v)| (*k, v.clone())).collect(),
             order: state.order.clone(),
+            head: state.head,
         })
     }
 
-    async fn commit(&self, batch: &Batch) -> Result<(), StorageError> {
+    async fn head(&self) -> Result<Revision, StorageError> {
+        Ok(self.state.borrow().head)
+    }
+
+    async fn commit(&self, batch: &Batch) -> Result<Revision, CommitError> {
         let mut state = self.state.borrow_mut();
+        if state.head != batch.expect_head {
+            return Err(CommitError::Stale { head: state.head });
+        }
         state.files.extend(batch.put_files.iter().cloned());
         for id in &batch.delete_files {
             state.files.remove(id);
@@ -62,7 +73,8 @@ impl Storage for MemoryStorage {
         if let Some(order) = &batch.order {
             state.order = Some(order.clone());
         }
-        Ok(())
+        state.head = state.head.next();
+        Ok(state.head)
     }
 
     async fn load_settings(&self) -> Result<Vec<(String, String)>, StorageError> {
@@ -135,6 +147,7 @@ mod tests {
                 (ChunkKey::waypoints(w), vec![4]),
             ],
             order: Some(vec![5]),
+            expect_head: Revision(0),
             ..Default::default()
         }))
         .unwrap();
@@ -158,6 +171,7 @@ mod tests {
             put_files: vec![(a, vec![10])],
             delete_files: vec![b],
             delete_chunks: vec![ChunkKey::trackpoints(t)],
+            expect_head: Revision(1),
             ..Default::default()
         }))
         .unwrap();
@@ -169,6 +183,7 @@ mod tests {
         block_on(storage.commit(&Batch {
             delete_chunks: vec![ChunkKey::waypoints(w)],
             order: Some(vec![]),
+            expect_head: Revision(2),
             ..Default::default()
         }))
         .unwrap();
@@ -203,5 +218,51 @@ mod tests {
         let storage = MemoryStorage::default();
         block_on(storage.put_setting("a", "1")).unwrap();
         assert_eq!(block_on(storage.load()).unwrap(), StoredData::default());
+    }
+
+    fn batch(expect_head: u64, entry: u8) -> Batch {
+        Batch {
+            put_files: vec![(FileId::default(), vec![entry])],
+            expect_head: Revision(expect_head),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn test_every_commit_advances_the_head() {
+        let storage = MemoryStorage::default();
+        assert_eq!(block_on(storage.head()).unwrap(), Revision(0));
+        assert_eq!(block_on(storage.load()).unwrap().head, Revision(0));
+        assert_eq!(block_on(storage.commit(&batch(0, 1))), Ok(Revision(1)));
+        assert_eq!(block_on(storage.commit(&batch(1, 2))), Ok(Revision(2)));
+        assert_eq!(block_on(storage.head()).unwrap(), Revision(2));
+        assert_eq!(block_on(storage.load()).unwrap().head, Revision(2));
+    }
+
+    #[test]
+    fn test_a_commit_based_on_another_head_changes_nothing() {
+        let storage = MemoryStorage::default();
+        block_on(storage.commit(&batch(0, 1))).unwrap();
+        block_on(storage.commit(&batch(1, 2))).unwrap();
+        let before = block_on(storage.load()).unwrap();
+
+        // behind, or ahead: the head is not the one it is based on
+        for expect in [0, 1, 3] {
+            let stale = Batch {
+                delete_files: vec![before.files[0].0],
+                order: Some(vec![9]),
+                ..batch(expect, 3)
+            };
+            assert_eq!(
+                block_on(storage.commit(&stale)),
+                Err(CommitError::Stale { head: Revision(2) })
+            );
+        }
+        let after = block_on(storage.load()).unwrap();
+        assert_eq!(after.head, Revision(2));
+        assert_eq!(after.files.len(), before.files.len());
+        assert_eq!(after.order, before.order);
+        // and it can be done again from the right head
+        assert_eq!(block_on(storage.commit(&batch(2, 3))), Ok(Revision(3)));
     }
 }

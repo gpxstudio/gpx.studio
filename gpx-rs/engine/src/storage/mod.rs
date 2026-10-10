@@ -8,6 +8,12 @@
 //! that lists the chunks it is made of. An edit only writes the new chunks and the records of the
 //! files that changed; the chunks that nothing refers to anymore are deleted at the same time.
 //!
+//! Several engines can write to a storage (tabs, a server). It has a head, a revision that each
+//! commit advances, and a commit only applies if it is based on the current head: an engine that
+//! is behind is refused, and has to read the storage again, which replaces what it holds, before
+//! it writes. So what an engine knows of the storage is exact whenever it writes, which is what
+//! lets it write only what changed and delete what it does not use anymore.
+//!
 //! The surface, highway and scales of the trackpoints are stored as names, in the chunk that has
 //! them: the codes that the engine gives them (see [`crate::TrackpointCategories`]) depend on the
 //! order in which it learned the names, so they mean nothing outside of it. A storage that two
@@ -34,6 +40,44 @@ impl std::fmt::Display for StorageError {
 }
 
 impl std::error::Error for StorageError {}
+
+/// A state of the storage: the head is the revision of the last commit, 0 for a storage that was
+/// never written to.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Revision(pub u64);
+
+impl Revision {
+    pub fn next(self) -> Self {
+        Self(self.0 + 1)
+    }
+}
+
+/// Why a commit did not happen.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum CommitError {
+    /// The head is not the one the commit is based on: another engine wrote since.
+    Stale {
+        head: Revision,
+    },
+    Failed(StorageError),
+}
+
+impl std::fmt::Display for CommitError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Stale { head } => write!(f, "the storage changed (now at revision {})", head.0),
+            Self::Failed(error) => error.fmt(f),
+        }
+    }
+}
+
+impl std::error::Error for CommitError {}
+
+impl From<StorageError> for CommitError {
+    fn from(error: StorageError) -> Self {
+        Self::Failed(error)
+    }
+}
 
 /// What a chunk holds.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -73,6 +117,8 @@ pub struct StoredData {
     pub chunks: Vec<(ChunkKey, Vec<u8>)>,
     /// The order of the files.
     pub order: Option<Vec<u8>>,
+    /// The revision of the storage that this is the state of.
+    pub head: Revision,
 }
 
 /// A change of the stored data, to be applied all at once: a stored state is always one that the
@@ -84,6 +130,8 @@ pub struct Batch {
     pub put_chunks: Vec<(ChunkKey, Vec<u8>)>,
     pub delete_chunks: Vec<ChunkKey>,
     pub order: Option<Vec<u8>>,
+    /// The head that the batch is based on: it is only applied if the head still is that one.
+    pub expect_head: Revision,
 }
 
 impl Batch {
@@ -118,8 +166,12 @@ pub trait Storage {
     /// Reads the files.
     async fn load(&self) -> Result<StoredData, StorageError>;
 
-    /// Applies a batch: either all of it is stored, or none.
-    async fn commit(&self, batch: &Batch) -> Result<(), StorageError>;
+    /// The head of the storage.
+    async fn head(&self) -> Result<Revision, StorageError>;
+
+    /// Applies a batch if the head is the one it is based on (`Stale` otherwise): either all of it
+    /// is stored, or none. The head advances. Gives the new head.
+    async fn commit(&self, batch: &Batch) -> Result<Revision, CommitError>;
 
     /// Reads the settings, as `(key, value)`. The engine does not look into them.
     async fn load_settings(&self) -> Result<Vec<(String, String)>, StorageError>;

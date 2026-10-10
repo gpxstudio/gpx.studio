@@ -120,8 +120,14 @@ impl Stack {
         if prev == cur {
             return None;
         }
-        let prev = prev.map_or_default(|i| self.get(i));
-        let cur = cur.map_or_default(|i| self.get(i));
+        Some(Self::diff_between(
+            prev.map_or_default(|i| self.get(i)),
+            cur.map_or_default(|i| self.get(i)),
+        ))
+    }
+
+    /// Which files differ between two states.
+    pub fn diff_between(prev: Option<&StackEntry>, cur: Option<&StackEntry>) -> Diff {
         let prev_ids: HashSet<FileId> = prev.map_or_default(|e| e.keys().copied().collect());
         let cur_ids: HashSet<FileId> = cur.map_or_default(|e| e.keys().copied().collect());
         let mut modified = vec![];
@@ -132,11 +138,11 @@ impl Stack {
                 modified.push(*id);
             }
         }
-        Some(Diff {
+        Diff {
             added: cur_ids.difference(&prev_ids).copied().collect(),
             removed: prev_ids.difference(&cur_ids).copied().collect(),
             modified,
-        })
+        }
     }
 }
 

@@ -6,6 +6,9 @@ import type { Wasm } from './convert';
 /** Name of the IndexedDB database that keeps the files and the settings. */
 const STORAGE_NAME = 'gpx-studio';
 
+/** Name of the channel that tells the tabs that the files were written. */
+const CHANNEL_NAME = 'gpx-studio-storage';
+
 /** What opening the storage needs of the engine facade. */
 export type StorageHost = {
     wasm: Wasm;
@@ -19,6 +22,35 @@ export type StorageHost = {
 };
 
 /**
+ * Keeps the files of the engine as the ones that another tab saved: when a tab writes, the others
+ * are told, and read the storage again if it has changed since they last did, which overwrites
+ * what they hold (see `sync_storage`). The same happens when a write of this tab is refused
+ * because of that, and when the tab is shown again (a hidden tab can miss messages).
+ */
+function followOtherTabs(host: StorageHost): { saved: () => void; behind: () => void } {
+    const { wasm } = host;
+    let reading = Promise.resolve();
+    const refresh = () => {
+        reading = reading
+            .then(async () => host.sync(await wasm.sync_storage()))
+            .catch((error) => console.error('The files could not be read again', error));
+    };
+    const channel =
+        typeof BroadcastChannel === 'undefined' ? undefined : new BroadcastChannel(CHANNEL_NAME);
+    if (channel) {
+        channel.onmessage = refresh;
+    }
+    if (typeof document !== 'undefined') {
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                refresh();
+            }
+        });
+    }
+    return { saved: () => channel?.postMessage('saved'), behind: refresh };
+}
+
+/**
  * Opens the storage of the browser: the files that it holds are put in the engine, and the
  * changes of the files are kept from then on. Resolves to the settings, as JSON strings by key.
  *
@@ -27,8 +59,9 @@ export type StorageHost = {
 export async function openStoredFiles(host: StorageHost): Promise<Record<string, string>> {
     const { wasm } = host;
     let opened: StorageOpened;
+    const tabs = followOtherTabs(host);
     try {
-        opened = await wasm.open_storage(STORAGE_NAME);
+        opened = await wasm.open_storage(STORAGE_NAME, tabs.saved, tabs.behind);
     } catch (error) {
         console.error('The files cannot be kept in this browser', error);
         return {};

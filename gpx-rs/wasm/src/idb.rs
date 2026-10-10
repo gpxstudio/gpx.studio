@@ -2,9 +2,13 @@
 //!
 //! Values are stored as `Uint8Array`s under string keys (the hyphenated UUIDs), in one object
 //! store per kind of data. A batch is a single transaction, so that the stored files always are
-//! ones that the engine had.
+//! ones that the engine had. The head is a number in the meta store, which the transaction of a
+//! batch checks before it writes anything (so that a tab that is behind cannot write over what
+//! another tab saved).
 
-use gpx_engine::{Batch, ChunkKey, ChunkKind, FileId, Storage, StorageError, StoredData};
+use gpx_engine::{
+    Batch, ChunkKey, ChunkKind, CommitError, FileId, Revision, Storage, StorageError, StoredData,
+};
 use idb::TransactionMode;
 use idb::{Database, DatabaseEvent, Factory, ObjectStore, ObjectStoreParams, Query, Transaction};
 use js_sys::Uint8Array;
@@ -14,12 +18,17 @@ use wasm_bindgen::JsValue;
 const FILES: &str = "files";
 const TRACKPOINT_CHUNKS: &str = "trackpoint_chunks";
 const WAYPOINT_CHUNKS: &str = "waypoint_chunks";
-/// The order of the files, under its own name.
+/// The order of the files and the head, under their own names.
 const META: &str = "meta";
 const SETTINGS: &str = "settings";
 const STORES: [&str; 5] = [FILES, TRACKPOINT_CHUNKS, WAYPOINT_CHUNKS, META, SETTINGS];
+/// The stores of the files, which a commit writes to together with the head.
+const COMMIT_STORES: [&str; 4] = [FILES, TRACKPOINT_CHUNKS, WAYPOINT_CHUNKS, META];
 
 const ORDER_KEY: &str = "order";
+const HEAD_KEY: &str = "head";
+/// Version of the database.
+const VERSION: u32 = 1;
 
 pub struct IdbStorage {
     database: Database,
@@ -59,7 +68,7 @@ impl IdbStorage {
     /// Opens the database, which is created if it does not exist.
     pub async fn open(name: &str) -> Result<Self, StorageError> {
         let factory = Factory::new().map_err(error)?;
-        let mut request = factory.open(name, Some(1)).map_err(error)?;
+        let mut request = factory.open(name, Some(VERSION)).map_err(error)?;
         request.on_upgrade_needed(|event| {
             if let Ok(database) = event.database() {
                 for store in STORES {
@@ -69,6 +78,18 @@ impl IdbStorage {
         });
         let database = request.await.map_err(error)?;
         Ok(Self { database })
+    }
+
+    /// The head, 0 for a database that was never written to.
+    async fn read_head(meta: &ObjectStore) -> Result<Revision, StorageError> {
+        let head = meta
+            .get(JsValue::from_str(HEAD_KEY))
+            .map_err(error)?
+            .await
+            .map_err(error)?;
+        Ok(Revision(
+            head.and_then(|head| head.as_f64()).unwrap_or_default() as u64,
+        ))
     }
 
     fn transaction(
@@ -87,9 +108,19 @@ impl IdbStorage {
         Ok(keys.into_iter().zip(values.iter().map(to_vec)).collect())
     }
 
-    async fn write(&self, transaction: &Transaction, batch: &Batch) -> Result<(), StorageError> {
-        let files = transaction.object_store(FILES).map_err(error)?;
+    /// Writes a batch in a transaction, if the head is the one it is based on. Gives the new head.
+    async fn write(
+        &self,
+        transaction: &Transaction,
+        batch: &Batch,
+    ) -> Result<Revision, CommitError> {
         let meta = transaction.object_store(META).map_err(error)?;
+        let head = Self::read_head(&meta).await?;
+        if head != batch.expect_head {
+            return Err(CommitError::Stale { head });
+        }
+        let new_head = head.next();
+        let files = transaction.object_store(FILES).map_err(error)?;
 
         // the requests are all made before waiting for them
         let mut puts = vec![];
@@ -110,6 +141,13 @@ impl IdbStorage {
                     .map_err(error)?,
             );
         }
+        puts.push(
+            meta.put(
+                &JsValue::from_f64(new_head.0 as f64),
+                Some(&JsValue::from_str(HEAD_KEY)),
+            )
+            .map_err(error)?,
+        );
         for FileId(id) in &batch.delete_files {
             deletes.push(files.delete(Query::Key(key(*id))).map_err(error)?);
         }
@@ -125,7 +163,7 @@ impl IdbStorage {
         for delete in deletes {
             delete.await.map_err(error)?;
         }
-        Ok(())
+        Ok(new_head)
     }
 }
 
@@ -145,6 +183,7 @@ impl Storage for IdbStorage {
             .map_err(error)?
             .await
             .map_err(error)?;
+        let head = Self::read_head(&meta).await?;
         transaction.await.map_err(error)?;
 
         let ids = |records: Vec<(JsValue, Vec<u8>)>| -> Result<Vec<(Uuid, Vec<u8>)>, StorageError> {
@@ -168,18 +207,24 @@ impl Storage for IdbStorage {
                 )
                 .collect(),
             order: order.as_ref().map(to_vec),
+            head,
         })
     }
 
-    async fn commit(&self, batch: &Batch) -> Result<(), StorageError> {
-        let transaction = self.transaction(
-            &[FILES, TRACKPOINT_CHUNKS, WAYPOINT_CHUNKS, META],
-            TransactionMode::ReadWrite,
-        )?;
+    async fn head(&self) -> Result<Revision, StorageError> {
+        let transaction = self.transaction(&[META], TransactionMode::ReadOnly)?;
+        let meta = transaction.object_store(META).map_err(error)?;
+        let head = Self::read_head(&meta).await?;
+        transaction.await.map_err(error)?;
+        Ok(head)
+    }
+
+    async fn commit(&self, batch: &Batch) -> Result<Revision, CommitError> {
+        let transaction = self.transaction(&COMMIT_STORES, TransactionMode::ReadWrite)?;
         match self.write(&transaction, batch).await {
-            Ok(()) => {
+            Ok(head) => {
                 transaction.commit().map_err(error)?.await.map_err(error)?;
-                Ok(())
+                Ok(head)
             }
             Err(err) => {
                 // nothing of the batch is kept

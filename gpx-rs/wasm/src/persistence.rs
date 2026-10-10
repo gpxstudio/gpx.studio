@@ -10,13 +10,15 @@ use wasm_bindgen::prelude::*;
 use crate::convert::{outcome_object, set};
 use crate::idb::IdbStorage;
 use crate::session::*;
-use crate::ts::StorageOpened;
+use crate::ts::{Outcome, StorageOpened};
 
 // Storage
 //
 // The files are saved in IndexedDB after each change that touches them, without making the change
 // wait: `schedule_save` starts a loop that writes what changed since the last write, until
-// nothing has. The settings are opaque to the engine, the frontend keeps its own copy of them.
+// nothing has. When another tab wrote in between, the write is refused (the storage has a newer
+// head than this tab last saw): the tab reads the storage again and overwrites what it holds, see
+// `sync_storage`. The settings are opaque to the engine, the frontend keeps its own copy of them.
 
 thread_local! {
     static STORAGE: RefCell<Option<Rc<IdbStorage>>> = const { RefCell::new(None) };
@@ -24,6 +26,9 @@ thread_local! {
     static SAVING: Cell<bool> = const { Cell::new(false) };
     static DIRTY: Cell<bool> = const { Cell::new(false) };
     /// Resolve functions of the promises of `flush_storage`.
+    /// Called after the files were written, and when a write was refused because they were
+    /// written by someone else since: see `open_storage`.
+    static LISTENERS: RefCell<Option<(js_sys::Function, js_sys::Function)>> = const { RefCell::new(None) };
     static WAITERS: RefCell<Vec<js_sys::Function>> = const { RefCell::new(Vec::new()) };
 }
 
@@ -47,6 +52,7 @@ pub(crate) fn schedule_save() {
         return;
     }
     wasm_bindgen_futures::spawn_local(async {
+        let (mut saved, mut behind) = (false, false);
         while DIRTY.replace(false) {
             let Some(storage) = storage() else { break };
             let Some(snapshot) = with_engine(Engine::snapshot) else {
@@ -57,16 +63,36 @@ pub(crate) fn schedule_save() {
                 .unwrap_or_default();
             let result = persister.save(&*storage, snapshot).await;
             PERSISTER.with(|slot| *slot.borrow_mut() = Some(persister));
-            if let Err(error) = result {
+            match result {
+                Ok(()) => saved = true,
+                // nothing was written, so that the files of the other tab are not damaged: this
+                // tab has to read them, which replaces what it did
+                Err(engine::CommitError::Stale { .. }) => {
+                    DIRTY.set(false);
+                    behind = true;
+                }
                 // what failed is written with the next change
-                console_error(&error.to_string());
+                Err(error) => console_error(&error.to_string()),
             }
         }
         SAVING.set(false);
+        if saved {
+            notify(|(saved, _)| saved);
+        }
+        if behind {
+            notify(|(_, behind)| behind);
+        }
         for resolve in WAITERS.with(|waiters| std::mem::take(&mut *waiters.borrow_mut())) {
             let _ = resolve.call0(&JsValue::UNDEFINED);
         }
     });
+}
+
+fn notify(pick: impl FnOnce(&(js_sys::Function, js_sys::Function)) -> &js_sys::Function) {
+    let callback = LISTENERS.with(|l| l.borrow().as_ref().map(|l| pick(l).clone()));
+    if let Some(callback) = callback {
+        let _ = callback.call0(&JsValue::UNDEFINED);
+    }
 }
 
 /// Opens the database `name` (it is created if it does not exist), puts the files that it holds
@@ -74,8 +100,15 @@ pub(crate) fn schedule_save() {
 /// outcome of putting the files in. The changes of the files that follow are saved, unless some of
 /// what is stored was written by a newer version of the app (`readOnly`): then nothing is, so that
 /// the newer version finds its data again.
+///
+/// `on_saved` is called after the files were written (to tell the other tabs), and `on_behind` when
+/// a write was refused because another tab wrote since (call `sync_storage` then).
 #[wasm_bindgen]
-pub async fn open_storage(name: &str) -> Result<StorageOpened, JsValue> {
+pub async fn open_storage(
+    name: &str,
+    on_saved: js_sys::Function,
+    on_behind: js_sys::Function,
+) -> Result<StorageOpened, JsValue> {
     let empty = with_engine(|e| e.snapshot().files.is_empty()).unwrap_or(false);
     if !empty {
         return Err(JsValue::from_str("the engine already has files"));
@@ -89,6 +122,7 @@ pub async fn open_storage(name: &str) -> Result<StorageOpened, JsValue> {
     let outcome = with_engine_mut(|engine| engine.restore(restored)).unwrap_or_default();
     PERSISTER.with(|slot| *slot.borrow_mut() = Some(persister));
     STORAGE.with(|slot| *slot.borrow_mut() = Some(Rc::new(storage)));
+    LISTENERS.with(|slot| *slot.borrow_mut() = Some((on_saved, on_behind)));
 
     let settings_object = Object::new();
     for (key, value) in settings {
@@ -117,6 +151,45 @@ pub async fn flush_storage() -> Result<(), JsValue> {
     });
     wasm_bindgen_futures::JsFuture::from(promise).await?;
     Ok(())
+}
+
+/// If another tab wrote the files since this one last did, reads them again and overwrites the
+/// files of the engine with them (what was changed here and not saved is lost, and the history
+/// starts over). Returns what that changed, to apply like the outcome of any other call.
+#[wasm_bindgen]
+pub async fn sync_storage() -> Result<Outcome, JsValue> {
+    // the writes are done first, and none starts before this is done
+    while SAVING.get() {
+        flush_storage().await?;
+    }
+    let (Some(storage), Some(mut persister)) = (
+        storage(),
+        PERSISTER.with(|persister| persister.borrow_mut().take()),
+    ) else {
+        return Ok(outcome_object(&engine::Outcome::default(), None));
+    };
+    SAVING.set(true);
+    let result = async {
+        if !persister.is_behind(&*storage).await? {
+            return Ok(engine::Outcome::default());
+        }
+        let restored = persister.restore(&*storage).await?;
+        DIRTY.set(false);
+        Ok(with_engine_mut(|engine| engine.restore(restored)).unwrap_or_default())
+    }
+    .await;
+    PERSISTER.with(|slot| *slot.borrow_mut() = Some(persister));
+    SAVING.set(false);
+    for resolve in WAITERS.with(|waiters| std::mem::take(&mut *waiters.borrow_mut())) {
+        let _ = resolve.call0(&JsValue::UNDEFINED);
+    }
+    if DIRTY.get() {
+        // edited while reading, and nothing was overwritten
+        schedule_save();
+    }
+    result
+        .map(|outcome| outcome_object(&outcome, None))
+        .map_err(to_js_error)
 }
 
 /// Saves a setting, `value` being its JSON.

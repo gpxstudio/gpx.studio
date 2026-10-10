@@ -129,32 +129,40 @@ impl Engine {
         }
     }
 
-    /// Puts files in an engine that has none, typically the ones read from the storage. They are
-    /// the state to start from: they cannot be undone. The files are reported as added, and the
-    /// order, the selection and the clipboard as changed.
+    /// Replaces what the engine holds by the files read from the storage: at the start, or when
+    /// another writer (a tab) committed since, which makes what was held here out of date. What
+    /// was here is gone, edits that were not saved included, and the files are the state to start
+    /// from: they cannot be undone, and nothing from before can be.
+    ///
+    /// The selection keeps what still exists, and so does the clipboard. The files that differ
+    /// from the ones that were here are reported as added, removed or modified (all the files
+    /// that were here, as they are not the same objects), and the order as changed if it is.
     pub fn restore(&mut self, restored: Restored) -> Outcome {
+        let selection_before = self.selection.clone();
+        let order_before = self.order.0.clone();
+        let before = self.stack.current().cloned();
         let files: StackEntry = restored
             .files
             .into_iter()
             .map(|file| (file.id, file))
             .collect();
+        let diff = Stack::diff_between(before.as_ref(), Some(&files));
+        let mut diff =
+            (!(diff.added.is_empty() && diff.removed.is_empty() && diff.modified.is_empty()))
+                .then_some(diff);
         self.categories = restored.categories;
         self.order = FileOrder(restored.order);
-        self.selection = Selection::Empty;
-        self.clipboard = None;
-        let mut diff = Some(Diff {
-            added: files.keys().copied().collect(),
-            ..Default::default()
-        });
         self.stack = Stack::restored(files);
         self.refresh(diff.as_ref());
         sort_diff(&mut diff, &self.order.0);
         let outcome = Outcome {
-            changed: true,
+            changed: diff.is_some()
+                || self.order.0 != order_before
+                || self.selection != selection_before,
             diff,
-            order_changed: true,
-            selection_changed: true,
-            clipboard_changed: true,
+            order_changed: self.order.0 != order_before,
+            selection_changed: self.selection != selection_before,
+            clipboard_changed: false,
             error: None,
         };
         #[cfg(test)]

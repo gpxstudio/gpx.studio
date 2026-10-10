@@ -1,7 +1,8 @@
 use std::collections::HashSet;
+use std::rc::Rc;
 
 use crate::{
-    ClipboardIds, Delete, DeleteAll, Load, Metadata, New, NewTrack, Paste, Style, TrackId,
+    ClipboardIds, Delete, DeleteAll, File, Load, Metadata, New, NewTrack, Paste, Style, TrackId,
     TrackSegmentId,
 };
 
@@ -1307,4 +1308,67 @@ fn test_execute_returns_what_the_action_did() {
     })));
     assert!(!outcome.changed);
     assert!(matches!(outcome.error, Some(CommandError::InvalidData(_))));
+}
+
+// What the engine does when it is overwritten with what is stored
+
+fn restored_from(engine: &Engine, keep: &[FileId], extra: Vec<Rc<File>>) -> crate::Restored {
+    let mut files: Vec<Rc<File>> = keep
+        .iter()
+        .map(|id| engine.snapshot().files[id].clone())
+        .collect();
+    files.extend(extra);
+    crate::Restored {
+        order: files.iter().map(|file| file.id).collect(),
+        files,
+        categories: engine.categories().clone(),
+        unreadable: 0,
+        read_only: false,
+    }
+}
+
+#[test]
+fn test_overwriting_reports_what_was_added_removed_and_modified() {
+    let mut engine = Engine::default();
+    new(&mut engine, "kept");
+    new(&mut engine, "modified");
+    new(&mut engine, "removed");
+    let [kept, modified, removed] = engine.order()[..] else {
+        panic!()
+    };
+    let mut changed = (*engine.snapshot().files[&modified]).clone();
+    changed.info.name = "other name".into();
+    let added = File::default();
+    let added_id = added.id;
+
+    let restored = restored_from(&engine, &[kept], vec![Rc::new(changed), Rc::new(added)]);
+    let outcome = engine.restore(restored);
+    assert!(outcome.changed);
+    let diff = outcome.diff.unwrap();
+    assert_eq!(diff.added, vec![added_id]);
+    assert_eq!(diff.removed, vec![removed]);
+    assert_eq!(diff.modified, vec![modified]);
+    assert!(outcome.order_changed);
+    assert_eq!(engine.order(), &[kept, modified, added_id]);
+}
+
+#[test]
+fn test_overwriting_with_the_same_files_changes_nothing() {
+    let mut engine = Engine::default();
+    new(&mut engine, "a");
+    let ids = engine.order().to_vec();
+    let outcome = engine.restore(restored_from(&engine, &ids, vec![]));
+    assert!(!outcome.changed);
+    assert!(outcome.diff.is_none());
+}
+
+#[test]
+fn test_overwriting_forgets_the_history() {
+    let mut engine = Engine::default();
+    new(&mut engine, "a");
+    new(&mut engine, "b");
+    assert!(engine.can_undo());
+    let ids = engine.order().to_vec();
+    engine.restore(restored_from(&engine, &ids, vec![]));
+    assert!(!engine.can_undo());
 }

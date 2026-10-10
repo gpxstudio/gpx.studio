@@ -9,8 +9,8 @@ use super::codec::{
     encode_order, encode_trackpoints, encode_waypoints,
 };
 use crate::{
-    Batch, ChunkKey, File, FileId, StackEntry, Storage, StorageError, TrackpointCategories,
-    TrackpointChunk, WaypointChunk,
+    Batch, ChunkKey, CommitError, File, FileId, Revision, StackEntry, Storage, StorageError,
+    TrackpointCategories, TrackpointChunk, WaypointChunk,
 };
 
 /// What there is to keep of the engine: the files of the current state, their order, and the
@@ -50,6 +50,8 @@ pub struct Persister {
     stored_files: HashSet<FileId>,
     chunks: HashSet<ChunkKey>,
     order: Option<Vec<FileId>>,
+    /// The head of the storage that all of this is the state of.
+    head: Revision,
     /// Set by `restore`, see [`Restored::read_only`].
     read_only: bool,
 }
@@ -156,32 +158,50 @@ impl Persister {
         self.chunks = chunk_bytes.into_keys().collect();
         self.order = stored_order;
         restored.categories = categories.into_inner();
+        self.head = data.head;
         self.read_only = newer.0.get();
         restored.read_only = self.read_only;
         Ok(restored)
     }
 
+    /// The revision of the storage that the persister knows.
+    pub fn head(&self) -> Revision {
+        self.head
+    }
+
     /// Writes what changed since the last save. Nothing is written if nothing changed.
+    ///
+    /// The write only happens if nothing else was committed since the persister read or wrote
+    /// last: otherwise it is refused (`Stale`), nothing is written, and the persister has to read
+    /// the storage again ([`Persister::restore`]) before it can write.
     pub async fn save<S: Storage>(
         &mut self,
         storage: &S,
         snapshot: Snapshot,
-    ) -> Result<(), StorageError> {
+    ) -> Result<(), CommitError> {
         if self.read_only {
             return Ok(());
         }
-        let plan = self.plan(snapshot);
+        let mut plan = self.plan(snapshot);
         if plan.batch.is_empty() {
             self.files = plan.snapshot.files;
             return Ok(());
         }
-        storage.commit(&plan.batch).await?;
+        plan.batch.expect_head = self.head;
+        self.head = storage.commit(&plan.batch).await?;
 
         self.stored_files = plan.snapshot.files.keys().copied().collect();
         self.files = plan.snapshot.files;
         self.chunks = plan.chunks;
         self.order = Some(plan.snapshot.order);
         Ok(())
+    }
+
+    /// Whether something else was committed to the storage since the persister read or wrote it
+    /// last: what it knows of the storage is out of date, and it cannot write until it reads
+    /// again ([`Persister::restore`]).
+    pub async fn is_behind<S: Storage>(&self, storage: &S) -> Result<bool, StorageError> {
+        Ok(storage.head().await? != self.head)
     }
 
     fn plan(&self, snapshot: Snapshot) -> Plan {
@@ -268,9 +288,14 @@ mod tests {
             self.inner.load().await
         }
 
-        async fn commit(&self, batch: &Batch) -> Result<(), StorageError> {
+        async fn head(&self) -> Result<Revision, StorageError> {
+            self.inner.head().await
+        }
+
+        async fn commit(&self, batch: &Batch) -> Result<Revision, CommitError> {
+            let revision = self.inner.commit(batch).await?;
             self.batches.borrow_mut().push(batch.clone());
-            self.inner.commit(batch).await
+            Ok(revision)
         }
 
         async fn load_settings(&self) -> Result<Vec<(String, String)>, StorageError> {
@@ -441,6 +466,7 @@ mod tests {
         let broken = snapshot.order[0];
         block_on(storage.inner.commit(&Batch {
             put_files: vec![(broken, vec![super::super::codec::LATEST, 0xff, 0xff])],
+            expect_head: persister.head(),
             ..Default::default()
         }))
         .unwrap();
@@ -467,6 +493,7 @@ mod tests {
         block_on(Persister::default().save(&storage, snapshot.clone())).unwrap();
         let mut batch = Batch::default();
         damage(&snapshot, &mut batch);
+        batch.expect_head = block_on(storage.inner.head()).unwrap();
         block_on(storage.inner.commit(&batch)).unwrap();
         storage.batches.borrow_mut().clear();
         (storage, snapshot)
@@ -527,33 +554,130 @@ mod tests {
         assert_eq!(clean.inner.counts().files, FILES.len());
     }
 
+    /// Opens a storage as a tab does: the persister, and the state of the engine it gives.
+    fn open(storage: &Recording) -> (Persister, Snapshot) {
+        let mut persister = Persister::default();
+        let restored = block_on(persister.restore(storage)).unwrap();
+        let snapshot = Snapshot {
+            files: restored.files.iter().map(|f| (f.id, f.clone())).collect(),
+            order: restored.order,
+            categories: restored.categories,
+        };
+        (persister, snapshot)
+    }
+
+    /// Adds a file that has just been read to the state of an engine.
+    fn add_file(snapshot: &mut Snapshot, path: &str) -> FileId {
+        let data = std::fs::read(path).unwrap();
+        let file = parse(&data, &mut snapshot.categories).unwrap();
+        let id = file.id;
+        snapshot.order.push(id);
+        snapshot.files.insert(id, Rc::new(file));
+        id
+    }
+
     #[test]
     fn test_files_saved_by_engines_with_other_categories_read_the_same() {
-        // two engines that share a storage (two tabs) learn the names in their own order
+        // a second engine opens the storage, so its categories come from what it read, in the
+        // order it read them; it adds a file that has names of its own
         let storage = Recording::default();
-        let mut first = snapshot_of(&["data/with_surface.gpx", "data/with_highway.gpx"]);
-        let mut second = snapshot_of(&["data/with_highway.gpx", "data/with_surface.gpx"]);
-        assert_ne!(first.categories, second.categories);
-        for snapshot in [&first, &second] {
-            block_on(Persister::default().save(&storage, snapshot.clone())).unwrap();
-        }
+        let first = snapshot_of(&["data/with_surface.gpx", "data/with_highway.gpx"]);
+        block_on(Persister::default().save(&storage, first.clone())).unwrap();
 
-        let mut persister = Persister::default();
-        let restored = block_on(persister.restore(&storage)).unwrap();
-        assert_eq!(restored.unreadable, 0);
-        assert_eq!(restored.files.len(), 4);
-        // every file means what it did for the engine that saved it
-        first.files.extend(second.files.drain());
-        for file in &restored.files {
-            let original = &first.files[&file.id];
-            let in_first = first.order.contains(&file.id);
-            let categories = if in_first {
-                &first.categories
-            } else {
-                &second.categories
+        let (mut persister, mut second) = open(&storage);
+        let added = add_file(&mut second, "data/with_surface.gpx");
+        block_on(persister.save(&storage, second.clone())).unwrap();
+
+        // the first engine reads it all again, and every file means what it did for its engine
+        let (_, reader) = open(&storage);
+        assert_eq!(reader.files.len(), 3);
+        for (id, file) in &reader.files {
+            let (original, categories) = match first.files.get(id) {
+                Some(original) => (original, &first.categories),
+                None => (&second.files[id], &second.categories),
             };
-            assert_eq!(gpx(file, &restored.categories), gpx(original, categories));
+            assert_eq!(gpx(file, &reader.categories), gpx(original, categories));
         }
+        assert!(reader.files.contains_key(&added));
+    }
+
+    #[test]
+    fn test_the_head_follows_the_commits_of_the_persister() {
+        let storage = Recording::default();
+        let mut persister = Persister::default();
+        assert_eq!(persister.head(), Revision(0));
+
+        let mut snapshot = snapshot_of(&FILES);
+        block_on(persister.save(&storage, snapshot.clone())).unwrap();
+        assert_eq!(persister.head(), Revision(1));
+        assert_eq!(block_on(storage.head()).unwrap(), Revision(1));
+
+        // nothing to write is no commit
+        block_on(persister.save(&storage, snapshot.clone())).unwrap();
+        assert_eq!(persister.head(), Revision(1));
+        assert_eq!(storage.batches.borrow().len(), 1);
+
+        let id = snapshot.order[0];
+        let mut file = (*snapshot.files[&id]).clone();
+        file.info.name = "renamed".into();
+        snapshot.files.insert(id, Rc::new(file));
+        block_on(persister.save(&storage, snapshot)).unwrap();
+        assert_eq!(persister.head(), Revision(2));
+        // a persister that opens the storage starts from its head
+        assert_eq!(open(&storage).0.head(), Revision(2));
+        assert_eq!(storage.batches.borrow()[1].expect_head, Revision(1));
+    }
+
+    #[test]
+    fn test_a_tab_that_is_behind_cannot_write() {
+        // two tabs open the same file; one edits a point, the other renames the file
+        let storage = Recording::default();
+        block_on(Persister::default().save(&storage, snapshot_of(&["data/simple.gpx"]))).unwrap();
+        let ((mut a, mut snap_a), (mut b, mut snap_b)) = (open(&storage), open(&storage));
+        let id = snap_a.order[0];
+
+        let mut file = (*snap_a.files[&id]).clone();
+        file.trk[0].trkseg[0].update(0, |p| p.ele += 100.0);
+        snap_a.files.insert(id, Rc::new(file));
+        block_on(a.save(&storage, snap_a.clone())).unwrap();
+        let stored = block_on(storage.load()).unwrap();
+
+        let mut file = (*snap_b.files[&id]).clone();
+        file.info.name = "renamed by B".into();
+        snap_b.files.insert(id, Rc::new(file));
+        assert_eq!(
+            block_on(b.save(&storage, snap_b)),
+            Err(CommitError::Stale { head: Revision(2) })
+        );
+        // nothing was written, the file is still readable, and the persister did not move
+        assert_eq!(block_on(storage.load()).unwrap(), stored);
+        assert_eq!(b.head(), Revision(1));
+        let (_, reader) = open(&storage);
+        assert_eq!(reader.files.len(), 1);
+        assert_eq!(reader.files[&id].info.name, snap_a.files[&id].info.name);
+    }
+
+    #[test]
+    fn test_a_tab_that_is_behind_reads_the_storage_again_and_writes_again() {
+        let storage = Recording::default();
+        block_on(Persister::default().save(&storage, snapshot_of(&["data/simple.gpx"]))).unwrap();
+        let ((mut a, mut snap_a), (mut b, snap_b)) = (open(&storage), open(&storage));
+        let id = snap_a.order[0];
+        assert!(!block_on(b.is_behind(&storage)).unwrap());
+
+        let mut file = (*snap_a.files[&id]).clone();
+        file.info.name = "renamed by A".into();
+        snap_a.files.insert(id, Rc::new(file));
+        block_on(a.save(&storage, snap_a)).unwrap();
+        assert!(block_on(b.is_behind(&storage)).unwrap());
+        assert!(!block_on(a.is_behind(&storage)).unwrap());
+
+        let restored = block_on(b.restore(&storage)).unwrap();
+        assert_eq!(restored.files[0].info.name, "renamed by A");
+        assert!(!block_on(b.is_behind(&storage)).unwrap());
+        let mut snapshot = snap_b;
+        snapshot.files.insert(id, restored.files[0].clone());
+        assert!(block_on(b.save(&storage, snapshot)).is_ok());
     }
 
     #[test]
