@@ -1,4 +1,4 @@
-import { settings } from '$lib/logic/settings';
+import { settings } from '$lib/state/settings';
 import { get, type Writable } from 'svelte/store';
 import {
     basemaps,
@@ -6,9 +6,9 @@ import {
     maptilerKeyPlaceHolder,
     overlays,
     terrainSources,
-} from '$lib/assets/layers';
+} from '$lib/data/layers';
 import { getLayers } from '$lib/components/map/layer-control/utils';
-import { i18n } from '$lib/i18n.svelte';
+import { i18n } from '$lib/i18n/i18n.svelte';
 
 const { currentBasemap, currentOverlays, customLayers, opacities, terrainSource, distanceUnits } =
     settings;

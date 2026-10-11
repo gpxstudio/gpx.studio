@@ -1,8 +1,8 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { base } from '$app/paths';
-import { languages } from '$lib/languages';
-import type { Coordinates } from '$lib/geo';
+import { languages } from '$lib/i18n/languages';
+import type { Coordinates } from '$lib/geo/coordinates';
 import maplibregl from 'maplibre-gl';
 import { pointToTile, pointToTileFraction } from '@mapbox/tilebelt';
 

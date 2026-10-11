@@ -2,7 +2,7 @@
     import { Button } from '$lib/components/ui/button';
     import Help from '$lib/components/Help.svelte';
     import { MountainSnow } from '@lucide/svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { getElevation, getURLForLanguage } from '$lib/utils';
     import { engine } from '$lib/engine';
     import { get } from 'svelte/store';

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import type { LayerTreeType } from '$lib/assets/layers';
+import type { LayerTreeType } from '$lib/data/layers';
 import { anySelectedLayer, getLayers, isSelected, remove, removeAll, toggle } from './utils';
 
 // roads: bike (selected), foot

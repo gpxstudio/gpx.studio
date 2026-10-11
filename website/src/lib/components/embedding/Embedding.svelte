@@ -13,12 +13,12 @@
         type EmbeddingOptions,
     } from './embedding';
     import { setMode } from 'mode-watcher';
-    import { settings } from '$lib/logic/settings';
-    import { loadFiles } from '$lib/logic/file-actions';
+    import { settings } from '$lib/state/settings';
+    import { loadFiles } from '$lib/actions/file-actions';
     import { untrack } from 'svelte';
     import { isSelected, toggle } from '$lib/components/map/layer-control/utils';
     import { engine } from '$lib/engine';
-    import { hoveredPoint, slicedStatistics } from '$lib/logic/selection-statistics';
+    import { hoveredPoint, slicedStatistics } from '$lib/state/selection-statistics';
 
     let {
         useHash = true,

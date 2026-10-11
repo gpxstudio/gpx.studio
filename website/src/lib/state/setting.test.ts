@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 import { get } from 'svelte/store';
-import type { LayerTreeType } from '$lib/assets/layers';
+import type { LayerTreeType } from '$lib/data/layers';
 import {
     filterLayerTree,
     getArrayValidator,
@@ -12,7 +12,7 @@ import {
     SettingInitOnFirstRead,
     storedValue,
     useSettingsStorage,
-} from './setting';
+} from '$lib/state/setting';
 
 /** What the settings were told to keep. */
 let saved: Record<string, string | undefined>;

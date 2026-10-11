@@ -1,5 +1,5 @@
-import { LEGACY_IMPORTED_KEY, readLegacyData } from '$lib/legacy-import';
-import { parseVisibility, VISIBILITY_KEY, type Visibility } from '$lib/file-visibility';
+import { LEGACY_IMPORTED_KEY, readLegacyData } from '$lib/storage/legacy-import';
+import { parseVisibility, VISIBILITY_KEY, type Visibility } from '$lib/engine/file-visibility';
 import type { Outcome, StorageOpened } from 'gpx-rs';
 import type { Wasm } from './convert';
 

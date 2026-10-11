@@ -17,11 +17,11 @@
         Map,
         Layers2,
     } from '@lucide/svelte';
-    import { i18n } from '$lib/i18n.svelte';
-    import { defaultBasemap, type CustomLayer } from '$lib/assets/layers';
+    import { i18n } from '$lib/i18n/i18n.svelte';
+    import { defaultBasemap, type CustomLayer } from '$lib/data/layers';
     import { onMount } from 'svelte';
     import { remove } from './utils';
-    import { settings } from '$lib/logic/settings';
+    import { settings } from '$lib/state/settings';
     import { dndzone } from 'svelte-dnd-action';
 
     const {

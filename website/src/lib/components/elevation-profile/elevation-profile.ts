@@ -1,5 +1,5 @@
-import { i18n } from '$lib/i18n.svelte';
-import { settings } from '$lib/logic/settings';
+import { i18n } from '$lib/i18n/i18n.svelte';
+import { settings } from '$lib/state/settings';
 import {
     getCadenceWithUnits,
     getConvertedDistance,
@@ -13,7 +13,7 @@ import {
     getPowerWithUnits,
     getTemperatureWithUnits,
     getVelocityWithUnits,
-} from '$lib/units';
+} from '$lib/units/units';
 import Chart, {
     type ChartEvent,
     type ChartOptions,
@@ -21,7 +21,7 @@ import Chart, {
     type TooltipItem,
 } from 'chart.js/auto';
 import { get, type Readable, type Writable } from 'svelte/store';
-import type { Coordinates } from '$lib/geo';
+import type { Coordinates } from '$lib/geo/coordinates';
 import {
     engine,
     NO_TIME,
@@ -29,10 +29,10 @@ import {
     type StatisticsMetric,
     type StatisticsRequest,
 } from '$lib/engine';
-import type { SlicedStatistics } from '$lib/logic/selection-statistics';
+import type { SlicedStatistics } from '$lib/state/selection-statistics';
 import { mode } from 'mode-watcher';
-import { categoryValues } from '$lib/trackpoint-categories';
-import { getHighwayColor, getSlopeColor, getSurfaceColor } from '$lib/assets/colors';
+import { categoryValues } from '$lib/engine/trackpoint-categories';
+import { getHighwayColor, getSlopeColor, getSurfaceColor } from '$lib/data/colors';
 
 const { distanceUnits, velocityUnits, temperatureUnits } = settings;
 

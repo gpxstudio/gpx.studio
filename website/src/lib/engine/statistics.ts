@@ -1,5 +1,5 @@
 import { get, writable, type Readable } from 'svelte/store';
-import { categoryIntervals, type CategoryIntervals } from '$lib/trackpoint-categories';
+import { categoryIntervals, type CategoryIntervals } from '$lib/engine/trackpoint-categories';
 import type { Wasm } from './convert';
 import {
     EMPTY_SELECTION_STATISTICS,

@@ -6,7 +6,7 @@ import {
     getSurfaceColor,
     highwayColors,
     surfaceColors,
-} from './colors';
+} from '$lib/data/colors';
 
 describe('colors of the OSM data', () => {
     it('has the color of a surface, or the one of the missing ones', () => {

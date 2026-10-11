@@ -1,6 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { categoryIntervals, categoryValues, type CategoryIntervals } from './trackpoint-categories';
+import {
+    categoryIntervals,
+    categoryValues,
+    type CategoryIntervals,
+} from '$lib/engine/trackpoint-categories';
 
 describe('categoryValues', () => {
     // asphalt, asphalt, unknown, gravel, gravel, gravel, unknown

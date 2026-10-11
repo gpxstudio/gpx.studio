@@ -1,5 +1,5 @@
-import { distance, type Coordinates } from '$lib/geo';
-import { settings } from '$lib/logic/settings';
+import { distance, type Coordinates } from '$lib/geo/coordinates';
+import { settings } from '$lib/state/settings';
 import { getElevation } from '$lib/utils';
 import { get } from 'svelte/store';
 

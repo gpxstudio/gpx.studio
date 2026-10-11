@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 import { get } from 'svelte/store';
 import { engine } from '$lib/engine';
-import { settings } from './settings';
+import { settings } from '$lib/state/settings';
 
 /** What the engine was told to keep. */
 let saved: Record<string, string | undefined>;

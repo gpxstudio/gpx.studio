@@ -5,7 +5,7 @@
  * they are (see `example-data.ts`) so that the example does not need the engine.
  */
 import type { GlobalStatistics, SelectionStatistics } from '$lib/engine';
-import { exampleData as data } from './example-data';
+import { exampleData as data } from '$lib/data/example/example-data';
 
 const length = data.lng.length;
 

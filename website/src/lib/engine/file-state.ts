@@ -1,6 +1,6 @@
 import type { Feature, LineString } from 'geojson';
-import { normalizeColor, type FileColorAllocator } from '$lib/file-colors';
-import type { Visibility } from '$lib/file-visibility';
+import { normalizeColor, type FileColorAllocator } from '$lib/engine/file-colors';
+import type { Visibility } from '$lib/engine/file-visibility';
 import { toPositions, type Wasm } from './convert';
 import { EMPTY_STATISTICS, type FileState, type SegmentProperties } from './types';
 

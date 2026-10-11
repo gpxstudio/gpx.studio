@@ -14,7 +14,7 @@ import {
     milesToKilometers,
     nauticalMilesToKilometers,
     secondsToHHMMSS,
-} from './unit-conversions';
+} from '$lib/units/conversions';
 
 const close = (actual: number, expected: number, epsilon = 1e-9) =>
     assert.ok(Math.abs(actual - expected) < epsilon, `${actual} is not ${expected}`);

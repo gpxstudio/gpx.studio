@@ -3,15 +3,15 @@
     import FileListNodeContent from './FileListNodeContent.svelte';
     import FileListNodeLabel from './FileListNodeLabel.svelte';
     import { getContext } from 'svelte';
-    import { i18n } from '$lib/i18n.svelte';
-    import { settings } from '$lib/logic/settings';
+    import { i18n } from '$lib/i18n/i18n.svelte';
+    import { settings } from '$lib/state/settings';
     import { engine, type FileState } from '$lib/engine';
     import {
         elementId,
         hasSelectionWithin,
         isSelected,
         type FileTreeNode,
-    } from '$lib/selection-helpers';
+    } from '$lib/engine/selection-helpers';
 
     let {
         fileState,

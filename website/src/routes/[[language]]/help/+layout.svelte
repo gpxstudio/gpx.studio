@@ -2,7 +2,7 @@
     import { Button } from '$lib/components/ui/button';
     import AlgoliaDocSearch from '$lib/components/AlgoliaDocSearch.svelte';
     import { getURLForLanguage } from '$lib/utils';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { page } from '$app/state';
     import { guides } from '$lib/components/docs/docs';
     import type { Snippet } from 'svelte';

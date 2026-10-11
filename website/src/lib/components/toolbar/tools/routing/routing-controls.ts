@@ -1,4 +1,4 @@
-import { distance, type Coordinates } from '$lib/geo';
+import { distance, type Coordinates } from '$lib/geo/coordinates';
 import { get, writable } from 'svelte/store';
 import maplibregl, {
     type MapMouseEvent,
@@ -9,14 +9,14 @@ import maplibregl, {
 import { route } from './routing';
 import { toast } from 'svelte-sonner';
 import { loadSVGIcon } from '$lib/utils';
-import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
 import { currentTool, Tool } from '$lib/components/toolbar/tools';
 import { streetViewEnabled } from '$lib/components/map/street-view-control/utils';
-import { i18n } from '$lib/i18n.svelte';
+import { i18n } from '$lib/i18n/i18n.svelte';
 import { map } from '$lib/components/map/map';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
-import { settings } from '$lib/logic/settings';
-import { closestPointIndexIn } from '$lib/closest-point';
+import { settings } from '$lib/state/settings';
+import { closestPointIndexIn } from '$lib/geo/closest-point';
 import {
     engine,
     type Selection,

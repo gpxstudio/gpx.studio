@@ -1,5 +1,5 @@
 import { base } from '$app/paths';
-import { languages } from '$lib/languages';
+import { languages } from '$lib/i18n/languages';
 import { getURLForLanguage } from '$lib/utils';
 
 export async function handle({ event, resolve }) {

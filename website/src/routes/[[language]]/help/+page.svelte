@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Button } from '$lib/components/ui/button';
     import { getURLForLanguage } from '$lib/utils';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { guides, guideIcons } from '$lib/components/docs/docs';
 
     let {

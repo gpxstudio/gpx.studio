@@ -14,12 +14,12 @@
         overlayTree,
         overpassTree,
         terrainSources,
-    } from '$lib/assets/layers';
+    } from '$lib/data/layers';
     import { getLayers, isSelected, toggle } from '$lib/components/map/layer-control/utils';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { map } from '$lib/components/map/map';
     import CustomLayers from './CustomLayers.svelte';
-    import { settings } from '$lib/logic/settings';
+    import { settings } from '$lib/state/settings';
     import { untrack } from 'svelte';
     import { extensionAPI } from '$lib/components/map/layer-control/extension-api';
 

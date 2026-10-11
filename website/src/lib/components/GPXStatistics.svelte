@@ -5,11 +5,11 @@
 
     import { MoveDownRight, MoveUpRight, Ruler, Timer, Zap } from '@lucide/svelte';
 
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import type { Readable } from 'svelte/store';
     import type { SelectionStatistics } from '$lib/engine';
-    import type { SlicedStatistics } from '$lib/logic/selection-statistics';
-    import { settings } from '$lib/logic/settings';
+    import type { SlicedStatistics } from '$lib/state/selection-statistics';
+    import { settings } from '$lib/state/settings';
 
     const { velocityUnits } = settings;
 

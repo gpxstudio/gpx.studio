@@ -2,9 +2,9 @@
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 import { get } from 'svelte/store';
-import { overlays, overlayTree, type LayerTreeType } from '$lib/assets/layers';
+import { overlays, overlayTree, type LayerTreeType } from '$lib/data/layers';
 import { engine } from '$lib/engine';
-import { settings } from '$lib/logic/settings';
+import { settings } from '$lib/state/settings';
 import { ExtensionAPI, type CustomOverlay } from './extension-api';
 import { isSelected } from './utils';
 

@@ -1,5 +1,5 @@
 import { PUBLIC_MAPTILER_KEY } from '$env/static/public';
-import { basemaps } from '$lib/assets/layers';
+import { basemaps } from '$lib/data/layers';
 
 export type EmbeddingOptions = {
     key: string;

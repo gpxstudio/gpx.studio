@@ -2,11 +2,11 @@
     import * as Card from '$lib/components/ui/card';
     import { Button } from '$lib/components/ui/button';
     import { PencilLine, MapPin } from '@lucide/svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
     import type { PopupItem } from '$lib/components/map/map-popup';
     import { engine } from '$lib/engine';
-    import { selectionSize } from '$lib/selection-helpers';
+    import { selectionSize } from '$lib/engine/selection-helpers';
     import { getElevation } from '$lib/utils';
 
     let {

@@ -3,7 +3,7 @@ import Sortable, { type Direction } from 'sortablejs/Sortable';
 import { get, writable } from 'svelte/store';
 import { tick } from 'svelte';
 import { engine, type MoveTarget, type Selection } from '$lib/engine';
-import { isSelected, type FileTreeNode } from '$lib/selection-helpers';
+import { isSelected, type FileTreeNode } from '$lib/engine/selection-helpers';
 
 /** What a list holds: the files, the tracks of a file, the segments of a track, or the waypoints. */
 export type ListLevel = 'file' | 'track' | 'segment' | 'waypoints' | 'waypoint';

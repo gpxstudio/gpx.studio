@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { FileColorAllocator, normalizeColor } from './file-colors';
+import { FileColorAllocator, normalizeColor } from '$lib/engine/file-colors';
 
 describe('normalizeColor', () => {
     it('adds the # of hex colors that have none', () => {

@@ -11,9 +11,9 @@ import {
     overpassTree,
     type CustomLayer,
     type LayerTreeType,
-} from '$lib/assets/layers';
+} from '$lib/data/layers';
 import { browser } from '$app/environment';
-import type { DistanceUnits, TemperatureUnits, VelocityUnits } from '$lib/unit-conversions';
+import type { DistanceUnits, TemperatureUnits, VelocityUnits } from '$lib/units/conversions';
 import { engine } from '$lib/engine';
 import {
     getArrayValidator,
@@ -24,7 +24,7 @@ import {
     SettingInitOnFirstRead,
     useSettingsStorage,
     type StoredSettings,
-} from './setting';
+} from '$lib/state/setting';
 
 export type { StoredSettings };
 

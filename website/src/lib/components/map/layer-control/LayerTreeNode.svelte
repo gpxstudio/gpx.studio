@@ -3,10 +3,10 @@
     import { Label } from '$lib/components/ui/label';
     import { Checkbox } from '$lib/components/ui/checkbox';
     import CollapsibleTreeNode from '$lib/components/collapsible-tree/CollapsibleTreeNode.svelte';
-    import { type LayerTreeType } from '$lib/assets/layers';
+    import { type LayerTreeType } from '$lib/data/layers';
     import { anySelectedLayer } from './utils';
-    import { i18n } from '$lib/i18n.svelte';
-    import { settings } from '$lib/logic/settings';
+    import { i18n } from '$lib/i18n/i18n.svelte';
+    import { settings } from '$lib/state/settings';
     import { extensionAPI } from '$lib/components/map/layer-control/extension-api';
 
     let {

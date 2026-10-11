@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { beforeEach, describe, it } from 'node:test';
 import { get } from 'svelte/store';
-import { isHidden } from '$lib/file-visibility';
+import { isHidden } from '$lib/engine/file-visibility';
 import {
     ALL_EXPORT_OPTIONS,
     engine,

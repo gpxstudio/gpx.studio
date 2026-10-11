@@ -1,14 +1,14 @@
 <script lang="ts">
     import '../app.css';
     import { ModeWatcher } from 'mode-watcher';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { page } from '$app/state';
     import Nav from '$lib/components/Nav.svelte';
     import Footer from '$lib/components/Footer.svelte';
     import { onMount, type Snippet } from 'svelte';
     import { convertOldEmbeddingOptions } from '$lib/components/embedding/embedding';
     import { base } from '$app/paths';
-    import { languages } from '$lib/languages';
+    import { languages } from '$lib/i18n/languages';
     import { browser } from '$app/environment';
     import { goto } from '$app/navigation';
     import { getURLForLanguage } from '$lib/utils';

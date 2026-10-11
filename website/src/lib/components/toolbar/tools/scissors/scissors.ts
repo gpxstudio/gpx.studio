@@ -1,6 +1,6 @@
 import { get, writable, type Writable } from 'svelte/store';
 import { engine, type SplitType as EngineSplitType } from '$lib/engine';
-import { closestPointIndexIn } from '$lib/closest-point';
+import { closestPointIndexIn } from '$lib/geo/closest-point';
 
 /** What a split cuts in two, the values being the ones of the engine. */
 export const SplitType = {

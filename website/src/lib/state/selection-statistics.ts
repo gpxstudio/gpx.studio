@@ -1,6 +1,6 @@
 import { writable, type Writable } from 'svelte/store';
 import { engine, type GlobalStatistics } from '$lib/engine';
-import type { Coordinates } from '$lib/geo';
+import type { Coordinates } from '$lib/geo/coordinates';
 
 /** The part of the selection that is highlighted in the elevation profile. */
 export type SlicedStatistics = {

@@ -4,18 +4,18 @@
     import { Label } from '$lib/components/ui/label/index.js';
     import { Button } from '$lib/components/ui/button';
     import * as Select from '$lib/components/ui/select';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import Help from '$lib/components/Help.svelte';
     import { onDestroy, onMount, untrack } from 'svelte';
     import { getURLForLanguage } from '$lib/utils';
     import { MapPin, CircleX, Save } from '@lucide/svelte';
-    import { getSymbolKey, symbols } from '$lib/assets/symbols';
+    import { getSymbolKey, symbols } from '$lib/data/symbols';
     import { engine } from '$lib/engine';
-    import { selectionSize } from '$lib/selection-helpers';
+    import { selectionSize } from '$lib/engine/selection-helpers';
     import { getElevation } from '$lib/utils';
     import { selectedWaypoint } from './waypoint';
     import { map } from '$lib/components/map/map';
-    import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+    import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
     import maplibregl from 'maplibre-gl';
     import { getSvgForSymbol } from '$lib/components/map/gpx-layer/gpx-layer';
 

@@ -1,4 +1,4 @@
-import { languages } from '$lib/languages';
+import { languages } from '$lib/i18n/languages';
 import { guides } from '$lib/components/docs/docs';
 import type { EntryGenerator } from './$types';
 

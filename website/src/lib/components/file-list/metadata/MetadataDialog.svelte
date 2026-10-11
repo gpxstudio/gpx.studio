@@ -5,10 +5,10 @@
     import { Label } from '$lib/components/ui/label/index.js';
     import * as Popover from '$lib/components/ui/popover';
     import { Save } from '@lucide/svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { editMetadata } from '$lib/components/file-list/metadata/utils.svelte';
     import { engine, type FileState } from '$lib/engine';
-    import type { FileTreeNode } from '$lib/selection-helpers';
+    import type { FileTreeNode } from '$lib/engine/selection-helpers';
 
     let {
         fileState,

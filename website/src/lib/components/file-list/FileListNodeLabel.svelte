@@ -19,16 +19,16 @@
         FileStack,
     } from '@lucide/svelte';
     import { getContext } from 'svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import MetadataDialog from '$lib/components/file-list/metadata/MetadataDialog.svelte';
     import { editMetadata } from '$lib/components/file-list/metadata/utils.svelte';
     import StyleDialog from '$lib/components/file-list/style/StyleDialog.svelte';
     import { editStyle } from '$lib/components/file-list/style/utils.svelte';
-    import { getSymbolKey, symbols } from '$lib/assets/symbols';
+    import { getSymbolKey, symbols } from '$lib/data/symbols';
     import { engine, type FileState } from '$lib/engine';
-    import { allHidden } from '$lib/all-hidden';
-    import { normalizeColor } from '$lib/file-colors';
-    import { isHidden } from '$lib/file-visibility';
+    import { allHidden } from '$lib/engine/all-hidden';
+    import { normalizeColor } from '$lib/engine/file-colors';
+    import { isHidden } from '$lib/engine/file-visibility';
     import {
         elementId,
         isInClipboard,
@@ -36,8 +36,8 @@
         selectedElementIds,
         selectionSize,
         type FileTreeNode,
-    } from '$lib/selection-helpers';
-    import { boundsManager } from '$lib/logic/bounds';
+    } from '$lib/engine/selection-helpers';
+    import { boundsManager } from '$lib/state/bounds';
     import { waypointPopup } from '$lib/components/map/gpx-layer/gpx-layer-popup';
 
     let {

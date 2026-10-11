@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultFileName } from './default-file-name';
+import { defaultFileName } from '$lib/actions/default-file-name';
 
 describe('default file name', () => {
     it('is the default name when there is no other file with it', () => {

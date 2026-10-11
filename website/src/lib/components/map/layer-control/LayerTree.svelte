@@ -1,6 +1,6 @@
 <script lang="ts">
     import LayerTreeNode from './LayerTreeNode.svelte';
-    import { type LayerTreeType } from '$lib/assets/layers';
+    import { type LayerTreeType } from '$lib/data/layers';
     import CollapsibleTree from '$lib/components/collapsible-tree/CollapsibleTree.svelte';
 
     let {

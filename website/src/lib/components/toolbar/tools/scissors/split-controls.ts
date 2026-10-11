@@ -2,7 +2,7 @@ import { currentTool, Tool } from '$lib/components/toolbar/tools';
 import { splitAs } from '$lib/components/toolbar/tools/scissors/scissors';
 import { Scissors } from 'lucide-static';
 import { get } from 'svelte/store';
-import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 import type { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';

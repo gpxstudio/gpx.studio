@@ -1,6 +1,6 @@
 import { get, writable } from 'svelte/store';
 import { engine, type WaypointDetails } from '$lib/engine';
-import { settings } from '$lib/logic/settings';
+import { settings } from '$lib/state/settings';
 
 export type SelectedWaypoint = {
     fileId: string;

@@ -1,5 +1,5 @@
 import type { Clipboard, Selection } from 'gpx-rs';
-import { isHidden, waypointsKey, type VisibilityState } from '$lib/file-visibility';
+import { isHidden, waypointsKey, type VisibilityState } from '$lib/engine/file-visibility';
 
 /**
  * An element of the file tree, to ask questions about the selection:

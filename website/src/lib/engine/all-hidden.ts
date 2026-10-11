@@ -1,6 +1,6 @@
 import { readable } from 'svelte/store';
 import { engine, FileStateCollectionObserver, type FileState, type Selection } from '$lib/engine';
-import { isSelectionHidden } from '$lib/selection-helpers';
+import { isSelectionHidden } from '$lib/engine/selection-helpers';
 
 /**
  * Whether all the selected elements are hidden. It follows the selection and, through the

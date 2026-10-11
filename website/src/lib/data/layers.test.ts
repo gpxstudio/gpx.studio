@@ -18,7 +18,7 @@ import {
     overpassTree,
     terrainSources,
     type LayerTreeType,
-} from './layers';
+} from '$lib/data/layers';
 import { getLayers } from '$lib/components/map/layer-control/utils';
 
 const leaves = (tree: LayerTreeType) => Object.keys(getLayers(tree));

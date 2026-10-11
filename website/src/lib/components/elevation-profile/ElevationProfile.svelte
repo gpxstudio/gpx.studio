@@ -18,11 +18,11 @@
         Construction,
     } from '@lucide/svelte';
     import type { Readable, Writable } from 'svelte/store';
-    import type { Coordinates } from '$lib/geo';
+    import type { Coordinates } from '$lib/geo/coordinates';
     import type { SelectionStatistics } from '$lib/engine';
-    import type { SlicedStatistics } from '$lib/logic/selection-statistics';
-    import { settings } from '$lib/logic/settings';
-    import { i18n } from '$lib/i18n.svelte';
+    import type { SlicedStatistics } from '$lib/state/selection-statistics';
+    import { settings } from '$lib/state/settings';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { ElevationProfile } from '$lib/components/elevation-profile/elevation-profile';
 
     const { velocityUnits } = settings;

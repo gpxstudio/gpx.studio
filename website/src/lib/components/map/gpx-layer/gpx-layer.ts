@@ -7,18 +7,18 @@ import maplibregl, {
 } from 'maplibre-gl';
 import { map } from '$lib/components/map/map';
 import { waypointPopup, trackpointPopup } from './gpx-layer-popup';
-import { closestPointIndex } from '$lib/closest-point';
+import { closestPointIndex } from '$lib/geo/closest-point';
 import { getElevation, loadSVGIcon } from '$lib/utils';
 import { selectedWaypoint } from '$lib/components/toolbar/tools/waypoint/waypoint';
 import { MapPin, Square } from 'lucide-static';
-import { getSymbolKey, symbols } from '$lib/assets/symbols';
+import { getSymbolKey, symbols } from '$lib/data/symbols';
 import { engine, type FileState, type Selection } from '$lib/engine';
-import { isCovered, hasSelectionWithin, type FileTreeNode } from '$lib/selection-helpers';
-import { isSegmentHidden, isWaypointHidden } from '$lib/file-visibility';
-import { settings } from '$lib/logic/settings';
+import { isCovered, hasSelectionWithin, type FileTreeNode } from '$lib/engine/selection-helpers';
+import { isSegmentHidden, isWaypointHidden } from '$lib/engine/file-visibility';
+import { settings } from '$lib/state/settings';
 import { currentTool, Tool } from '$lib/components/toolbar/tools';
 import { splitAtPoint } from '$lib/components/toolbar/tools/scissors/scissors';
-import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 
 export function getSvgForSymbol(symbol?: string | undefined, layerColor?: string | undefined) {

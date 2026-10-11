@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { distance } from '$lib/geo';
+import { distance } from '$lib/geo/coordinates';
 import {
     brouterError,
     getTags,

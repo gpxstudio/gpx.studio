@@ -23,10 +23,10 @@ import {
     Toilet,
 } from 'lucide-static';
 import { type RasterDEMSourceSpecification, type StyleSpecification } from 'maplibre-gl';
-import ignFrTopo from './custom/ign-fr-topo.json';
-import ignFrPlan from './custom/ign-fr-plan.json';
-import ignFrSatellite from './custom/ign-fr-satellite.json';
-import bikerouterGravel from './custom/bikerouter-gravel.json';
+import ignFrTopo from '$lib/data/custom/ign-fr-topo.json';
+import ignFrPlan from '$lib/data/custom/ign-fr-plan.json';
+import ignFrSatellite from '$lib/data/custom/ign-fr-satellite.json';
+import bikerouterGravel from '$lib/data/custom/bikerouter-gravel.json';
 
 export const maptilerKeyPlaceHolder = 'MAPTILER_KEY';
 

@@ -1,4 +1,4 @@
-import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
 
 export class GoogleRedirect {
     map: maplibregl.Map;

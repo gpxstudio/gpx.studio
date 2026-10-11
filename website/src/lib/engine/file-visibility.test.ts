@@ -11,7 +11,7 @@ import {
     waypointsKey,
     type Visibility,
     type VisibilityState,
-} from './file-visibility';
+} from '$lib/engine/file-visibility';
 
 const segment = (id: string) => ({ id, rev: `rev-${id}`, length: 2 });
 

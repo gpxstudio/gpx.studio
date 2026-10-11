@@ -1,5 +1,5 @@
-import { settings } from '$lib/logic/settings';
-import { i18n } from '$lib/i18n.svelte';
+import { settings } from '$lib/state/settings';
+import { i18n } from '$lib/i18n/i18n.svelte';
 import { get } from 'svelte/store';
 import {
     convertDistance,
@@ -8,9 +8,9 @@ import {
     convertTemperature,
     convertVelocity,
     secondsToHHMMSS,
-} from '$lib/unit-conversions';
+} from '$lib/units/conversions';
 
-export * from '$lib/unit-conversions';
+export * from '$lib/units/conversions';
 
 const { distanceUnits, velocityUnits, temperatureUnits } = settings;
 

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { describe, it } from 'node:test';
-import { languages } from '$lib/languages';
+import { languages } from '$lib/i18n/languages';
 import { getNextGuide, getPreviousGuide, guides } from './guides';
 
 /** Every page of the help in reading order, as the links at the bottom of the pages follow them. */

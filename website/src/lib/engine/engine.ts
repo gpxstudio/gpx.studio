@@ -1,14 +1,14 @@
 import { browser } from '$app/environment';
 import { get, writable, type Readable, type Writable } from 'svelte/store';
-import { FileColorAllocator } from '$lib/file-colors';
+import { FileColorAllocator } from '$lib/engine/file-colors';
 import {
     setHidden,
     stringifyVisibility,
     VISIBILITY_KEY,
     type Visibility,
-} from '$lib/file-visibility';
-import { categoryIntervals } from '$lib/trackpoint-categories';
-import { selectedElementIds, type FileTreeNode } from '$lib/selection-helpers';
+} from '$lib/engine/file-visibility';
+import { categoryIntervals } from '$lib/engine/trackpoint-categories';
+import { selectedElementIds, type FileTreeNode } from '$lib/engine/selection-helpers';
 import type { RouteAttributes } from 'gpx-rs';
 import { idsToBytes, selectMode, type Wasm } from './convert';
 import { readFileState } from './file-state';

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
-import { cachedFetch, pruneCache } from './cached-fetch';
+import { cachedFetch, pruneCache } from '$lib/storage/cached-fetch';
 
 const keyOf = (request: RequestInfo | URL) =>
     request instanceof Request ? request.url : String(request);

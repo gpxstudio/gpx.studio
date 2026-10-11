@@ -6,11 +6,11 @@
     import * as Popover from '$lib/components/ui/popover';
     import { Save } from '@lucide/svelte';
     import { editStyle } from '$lib/components/file-list/style/utils.svelte';
-    import { i18n } from '$lib/i18n.svelte';
-    import { settings } from '$lib/logic/settings';
+    import { i18n } from '$lib/i18n/i18n.svelte';
+    import { settings } from '$lib/state/settings';
     import { engine, type FileState } from '$lib/engine';
-    import { normalizeColor } from '$lib/file-colors';
-    import { selectedFileIds, type FileTreeNode } from '$lib/selection-helpers';
+    import { normalizeColor } from '$lib/engine/file-colors';
+    import { selectedFileIds, type FileTreeNode } from '$lib/engine/selection-helpers';
     import { untrack } from 'svelte';
 
     let {

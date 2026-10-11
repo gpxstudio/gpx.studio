@@ -2,7 +2,7 @@
     import { Button } from '$lib/components/ui/button';
     import { Ungroup } from '@lucide/svelte';
     import Help from '$lib/components/Help.svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { getURLForLanguage } from '$lib/utils';
     import { get } from 'svelte/store';
     import { engine } from '$lib/engine';

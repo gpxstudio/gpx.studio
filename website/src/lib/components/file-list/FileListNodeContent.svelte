@@ -5,7 +5,7 @@
     import FileListNodeContent from './FileListNodeContent.svelte';
     import { allowedMoves, dragging, SortableFileList, type ListLevel } from './sortable-file-list';
     import { engine, type FileState } from '$lib/engine';
-    import type { FileTreeNode } from '$lib/selection-helpers';
+    import type { FileTreeNode } from '$lib/engine/selection-helpers';
 
     let {
         fileState,

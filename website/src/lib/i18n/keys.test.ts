@@ -5,9 +5,9 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-import { languages } from './languages';
+import { languages } from '$lib/i18n/languages';
 
-const src = fileURLToPath(new URL('..', import.meta.url));
+const src = fileURLToPath(new URL('../..', import.meta.url));
 
 function sources(dir: string): string[] {
     return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {

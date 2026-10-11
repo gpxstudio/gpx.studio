@@ -11,14 +11,14 @@
     import * as RadioGroup from '$lib/components/ui/radio-group';
     import { Button } from '$lib/components/ui/button';
     import Help from '$lib/components/Help.svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { onDestroy, onMount } from 'svelte';
     import { getURLForLanguage } from '$lib/utils';
     import { Trash2 } from '@lucide/svelte';
     import { map } from '$lib/components/map/map';
     import type { GeoJSONSource } from 'maplibre-gl';
     import { engine } from '$lib/engine';
-    import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+    import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
     import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 
     let props: {

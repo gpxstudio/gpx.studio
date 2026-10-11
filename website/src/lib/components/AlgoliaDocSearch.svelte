@@ -2,7 +2,7 @@
     import docsearch from '@docsearch/js';
     import '@docsearch/css';
     import { onMount } from 'svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
 
     let props: {
         class?: string;

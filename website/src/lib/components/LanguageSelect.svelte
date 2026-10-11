@@ -1,10 +1,10 @@
 <script lang="ts">
     import { page } from '$app/state';
     import * as Select from '$lib/components/ui/select';
-    import { languages } from '$lib/languages';
+    import { languages } from '$lib/i18n/languages';
     import { getURLForLanguage } from '$lib/utils';
     import { Languages } from '@lucide/svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
 </script>
 
 <Select.Root type="single" value={i18n.lang}>

@@ -1,6 +1,6 @@
 /**
- * Computes the statistics of `assets/example.gpx` with the engine, and writes them to
- * `assets/example-data.ts`, where the pages that show an example (the home page, the
+ * Computes the statistics of `data/example/example.gpx` with the engine, and writes them to
+ * `data/example/example-data.ts`, where the pages that show an example (the home page, the
  * documentation) take them from. Run it when the example, or the way the engine computes the
  * statistics, changes:
  *
@@ -15,11 +15,11 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import prettier from 'prettier';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const assets = path.resolve(here, '../assets');
+const example = path.resolve(here, '../data/example');
 const packageDirectory = path.resolve(here, '../../../../gpx-rs/pkg');
 
-export const exampleGPX = path.join(assets, 'example.gpx');
-export const exampleData = path.join(assets, 'example-data.ts');
+export const exampleGPX = path.join(example, 'example.gpx');
+export const exampleData = path.join(example, 'example-data.ts');
 
 /** Whether the engine is built. */
 export function engineIsBuilt() {

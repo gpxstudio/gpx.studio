@@ -1,9 +1,9 @@
-import { settings } from '$lib/logic/settings';
+import { settings } from '$lib/state/settings';
 import { engine } from '$lib/engine';
-import { getConvertedDistanceToKilometers } from '$lib/units';
+import { getConvertedDistanceToKilometers } from '$lib/units/units';
 import { get } from 'svelte/store';
 import { map } from '$lib/components/map/map';
-import { allHidden } from '$lib/all-hidden';
+import { allHidden } from '$lib/engine/all-hidden';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 

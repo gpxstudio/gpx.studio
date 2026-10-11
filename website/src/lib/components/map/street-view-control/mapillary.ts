@@ -1,7 +1,7 @@
 import maplibregl, { type LayerSpecification, type VectorSourceSpecification } from 'maplibre-gl';
 import { Viewer, type ViewerBearingEvent } from 'mapillary-js/dist/mapillary.module';
 import 'mapillary-js/dist/mapillary.css';
-import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 import type { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
 

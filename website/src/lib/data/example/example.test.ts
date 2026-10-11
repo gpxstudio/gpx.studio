@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { computeExampleData, engineIsBuilt } from '../scripts/example-statistics';
-import { exampleData } from './example-data';
-import { exampleStatistics } from './example';
+import { computeExampleData, engineIsBuilt } from '$lib/scripts/example-statistics';
+import { exampleData } from '$lib/data/example/example-data';
+import { exampleStatistics } from '$lib/data/example';
 
 describe('exampleStatistics', () => {
     it('has the statistics of the whole example for the whole range', () => {

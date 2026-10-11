@@ -16,8 +16,8 @@
         Languages,
         ExternalLink,
     } from '@lucide/svelte';
-    import { i18n } from '$lib/i18n.svelte';
-    import { exampleStatistics } from '$lib/assets/example';
+    import { i18n } from '$lib/i18n/i18n.svelte';
+    import { exampleStatistics } from '$lib/data/example';
     import { getURLForLanguage } from '$lib/utils';
     import { writable } from 'svelte/store';
     import Scissors from '$lib/components/toolbar/tools/scissors/Scissors.svelte';

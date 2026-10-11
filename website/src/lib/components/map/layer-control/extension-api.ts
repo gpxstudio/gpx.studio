@@ -1,7 +1,7 @@
-import { settings } from '$lib/logic/settings';
+import { settings } from '$lib/state/settings';
 import { derived, get, writable, type Writable } from 'svelte/store';
 import { isSelected, remove, removeAll } from './utils';
-import { overlays, overlayTree } from '$lib/assets/layers';
+import { overlays, overlayTree } from '$lib/data/layers';
 import { browser } from '$app/environment';
 import { map } from '$lib/components/map/map';
 

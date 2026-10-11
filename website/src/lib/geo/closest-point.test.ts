@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { closestPointIndex, closestPointIndexIn } from './closest-point';
+import { closestPointIndex, closestPointIndexIn } from '$lib/geo/closest-point';
 
 describe('closestPointIndex', () => {
     const line = [0, 0, 1, 0, 2, 0, 2, 1];

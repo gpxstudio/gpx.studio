@@ -22,16 +22,16 @@
         SquareArrowOutDownRight,
     } from '@lucide/svelte';
     import { routingProfiles } from '$lib/components/toolbar/tools/routing/routing';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { slide } from 'svelte/transition';
     import { get } from 'svelte/store';
     import { getURLForLanguage } from '$lib/utils';
     import { onDestroy, onMount } from 'svelte';
-    import { settings } from '$lib/logic/settings';
+    import { settings } from '$lib/state/settings';
     import { map } from '$lib/components/map/map';
     import { engine } from '$lib/engine';
-    import { newFileName } from '$lib/logic/file-actions';
-    import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+    import { newFileName } from '$lib/actions/file-actions';
+    import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
     import { RoutingControls } from './routing-controls';
 
     let {

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { legacyFileToGPX, LEGACY_IMPORTED_KEY } from './legacy-import';
+import { legacyFileToGPX, LEGACY_IMPORTED_KEY } from '$lib/storage/legacy-import';
 
 // A file as the former `gpx` library kept it.
 const point = (lat: number, lon: number, extra: Record<string, unknown> = {}) => ({

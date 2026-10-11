@@ -15,7 +15,7 @@
         Milestone,
         Video,
     } from '@lucide/svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import {
         allowedEmbeddingBasemaps,
         defaultEmbeddingOptions,

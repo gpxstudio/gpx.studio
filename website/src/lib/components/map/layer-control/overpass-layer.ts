@@ -1,14 +1,14 @@
 import { SphericalMercator } from '@mapbox/sphericalmercator';
 import { getLayers } from './utils';
 import { get, writable } from 'svelte/store';
-import { overpassQueryData } from '$lib/assets/layers';
+import { overpassQueryData } from '$lib/data/layers';
 import { MapPopup } from '$lib/components/map/map-popup';
-import { settings } from '$lib/logic/settings';
+import { settings } from '$lib/state/settings';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 import type { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
 import { loadSVGIcon } from '$lib/utils';
-import { cachedFetch } from '$lib/cached-fetch';
+import { cachedFetch } from '$lib/storage/cached-fetch';
 
 const { currentOverpassQueries } = settings;
 

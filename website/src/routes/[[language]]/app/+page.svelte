@@ -12,12 +12,12 @@
     import Resizer from '$lib/components/Resizer.svelte';
     import { Toaster } from '$lib/components/ui/sonner';
     import * as AlertDialog from '$lib/components/ui/alert-dialog';
-    import { i18n } from '$lib/i18n.svelte';
-    import { settings } from '$lib/logic/settings';
-    import { loadFiles } from '$lib/logic/file-actions';
+    import { i18n } from '$lib/i18n/i18n.svelte';
+    import { settings } from '$lib/state/settings';
+    import { loadFiles } from '$lib/actions/file-actions';
     import { onMount } from 'svelte';
     import { page } from '$app/state';
-    import { hoveredPoint, slicedStatistics } from '$lib/logic/selection-statistics';
+    import { hoveredPoint, slicedStatistics } from '$lib/state/selection-statistics';
     import { engine } from '$lib/engine';
     import { getURLForGoogleDriveFile } from '$lib/components/embedding/embedding';
 

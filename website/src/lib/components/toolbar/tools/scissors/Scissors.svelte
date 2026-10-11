@@ -7,12 +7,12 @@
     import * as Select from '$lib/components/ui/select';
     import { Separator } from '$lib/components/ui/separator';
     import { map } from '$lib/components/map/map';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { onDestroy, onMount, untrack } from 'svelte';
     import { Crop } from '@lucide/svelte';
     import { SplitControls } from './split-controls';
     import { getURLForLanguage } from '$lib/utils';
-    import { slicedStatistics } from '$lib/logic/selection-statistics';
+    import { slicedStatistics } from '$lib/state/selection-statistics';
     import { engine } from '$lib/engine';
 
     let props: {

@@ -4,7 +4,7 @@
     import { Slider } from '$lib/components/ui/slider';
     import Help from '$lib/components/Help.svelte';
     import { Funnel } from '@lucide/svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import WithUnits from '$lib/components/WithUnits.svelte';
     import { onDestroy } from 'svelte';
     import { getURLForLanguage } from '$lib/utils';

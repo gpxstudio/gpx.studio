@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Clipboard, FileStructure, Selection } from 'gpx-rs';
-import type { VisibilityState } from './file-visibility';
+import type { VisibilityState } from '$lib/engine/file-visibility';
 import {
     elementId,
     hasSelectionWithin,
@@ -14,7 +14,7 @@ import {
     selectedFileIds,
     selectionSize,
     type FileTreeNode,
-} from './selection-helpers';
+} from '$lib/engine/selection-helpers';
 
 // Two files; F1 has the tracks T1 (segments S1, S2) and T2 (segment S3), and waypoints W1, W2.
 const nodes: Record<string, FileTreeNode> = {

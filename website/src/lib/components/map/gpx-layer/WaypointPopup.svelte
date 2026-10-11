@@ -6,13 +6,13 @@
     import WithUnits from '$lib/components/WithUnits.svelte';
     import { Dot, ExternalLink, Trash2 } from '@lucide/svelte';
     import { currentTool, Tool } from '$lib/components/toolbar/tools';
-    import { getSymbolKey, symbols } from '$lib/assets/symbols';
-    import { i18n } from '$lib/i18n.svelte';
+    import { getSymbolKey, symbols } from '$lib/data/symbols';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import sanitizeHtml from 'sanitize-html';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
     import type { PopupItem } from '$lib/components/map/map-popup';
     import { engine, type WaypointDetails } from '$lib/engine';
-    import { hasSelectionWithin } from '$lib/selection-helpers';
+    import { hasSelectionWithin } from '$lib/engine/selection-helpers';
 
     let {
         waypoint,

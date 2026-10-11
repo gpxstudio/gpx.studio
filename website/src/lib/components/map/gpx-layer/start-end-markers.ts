@@ -2,10 +2,10 @@ import { currentTool, Tool } from '$lib/components/toolbar/tools';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { get } from 'svelte/store';
 import { map } from '$lib/components/map/map';
-import { allHidden } from '$lib/all-hidden';
+import { allHidden } from '$lib/engine/all-hidden';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 import { loadSVGIcon } from '$lib/utils';
-import { hoveredPoint, slicedStatistics } from '$lib/logic/selection-statistics';
+import { hoveredPoint, slicedStatistics } from '$lib/state/selection-statistics';
 import { engine } from '$lib/engine';
 
 const startMarkerSVG = `<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">

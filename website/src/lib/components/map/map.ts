@@ -5,7 +5,7 @@ import MaplibreGeocoder, {
 } from '@maplibre/maplibre-gl-geocoder';
 import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
 import { get, writable, type Writable } from 'svelte/store';
-import { settings } from '$lib/logic/settings';
+import { settings } from '$lib/state/settings';
 import { tick } from 'svelte';
 import { ANCHOR_LAYER_KEY, StyleManager } from '$lib/components/map/style';
 import { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';

@@ -11,7 +11,7 @@
     import { Label } from '$lib/components/ui/label/index.js';
     import { Checkbox } from '$lib/components/ui/checkbox';
     import * as RadioGroup from '$lib/components/ui/radio-group';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { Group } from '@lucide/svelte';
     import { getURLForLanguage } from '$lib/utils';
     import Shortcut from '$lib/components/Shortcut.svelte';

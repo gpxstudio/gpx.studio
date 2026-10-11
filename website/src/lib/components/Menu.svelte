@@ -51,19 +51,19 @@
     import { editStyle } from '$lib/components/file-list/style/utils.svelte';
     import { exportState, ExportState } from '$lib/components/export/utils.svelte';
     import { anySelectedLayer } from '$lib/components/map/layer-control/utils';
-    import { defaultOverlays } from '$lib/assets/layers';
+    import { defaultOverlays } from '$lib/data/layers';
     import LayerControlSettings from '$lib/components/map/layer-control/LayerControlSettings.svelte';
     import Export from '$lib/components/export/Export.svelte';
     import { mode, setMode } from 'mode-watcher';
-    import { i18n } from '$lib/i18n.svelte';
-    import { languages } from '$lib/languages';
+    import { i18n } from '$lib/i18n/i18n.svelte';
+    import { languages } from '$lib/i18n/languages';
     import { getURLForLanguage } from '$lib/utils';
-    import { settings } from '$lib/logic/settings';
-    import { createFile, loadFiles, triggerFileInput } from '$lib/logic/file-actions';
+    import { settings } from '$lib/state/settings';
+    import { createFile, loadFiles, triggerFileInput } from '$lib/actions/file-actions';
     import { engine } from '$lib/engine';
-    import { allHidden } from '$lib/all-hidden';
-    import { selectionSize } from '$lib/selection-helpers';
-    import { boundsManager } from '$lib/logic/bounds';
+    import { allHidden } from '$lib/engine/all-hidden';
+    import { selectionSize } from '$lib/engine/selection-helpers';
+    import { boundsManager } from '$lib/state/bounds';
     import { onMount } from 'svelte';
 
     const {

@@ -1,9 +1,9 @@
 import { currentTool, Tool } from '$lib/components/toolbar/tools';
-import { i18n } from '$lib/i18n.svelte';
+import { i18n } from '$lib/i18n/i18n.svelte';
 import { get } from 'svelte/store';
-import { boundsManager } from './bounds';
+import { boundsManager } from '$lib/state/bounds';
 import { engine } from '$lib/engine';
-import { defaultFileName } from '$lib/default-file-name';
+import { defaultFileName } from '$lib/actions/default-file-name';
 
 /** The name of a new file: the translated default name, numbered if other files have it. */
 export function newFileName() {

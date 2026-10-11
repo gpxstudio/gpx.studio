@@ -4,12 +4,16 @@
     import * as Card from '$lib/components/ui/card';
     import WithUnits from '$lib/components/WithUnits.svelte';
     import { Compass, Earth, Mountain, Timer } from '@lucide/svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import type { PopupItem } from '$lib/components/map/map-popup';
     import type { TrackpointDetails } from '$lib/engine';
     import { map } from '$lib/components/map/map';
 
-    let { trackpoint }: { trackpoint: PopupItem<Pick<TrackpointDetails, 'lng' | 'lat'> & Partial<TrackpointDetails>> } = $props();
+    let {
+        trackpoint,
+    }: {
+        trackpoint: PopupItem<Pick<TrackpointDetails, 'lng' | 'lat'> & Partial<TrackpointDetails>>;
+    } = $props();
 </script>
 
 <Card.Root class="border-none shadow-md text-base p-2">

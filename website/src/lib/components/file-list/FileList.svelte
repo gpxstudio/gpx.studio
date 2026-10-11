@@ -5,10 +5,10 @@
     import { onMount, setContext } from 'svelte';
     import { ClipboardPaste, FileStack, Plus } from '@lucide/svelte';
     import Shortcut from '$lib/components/Shortcut.svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { engine } from '$lib/engine';
-    import { selectedFileIds } from '$lib/selection-helpers';
-    import { createFile } from '$lib/logic/file-actions';
+    import { selectedFileIds } from '$lib/engine/selection-helpers';
+    import { createFile } from '$lib/actions/file-actions';
 
     let {
         orientation,

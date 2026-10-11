@@ -1,5 +1,5 @@
 import { get, writable, type Writable } from 'svelte/store';
-import type { LayerTreeType } from '$lib/assets/layers';
+import type { LayerTreeType } from '$lib/data/layers';
 
 /** What the settings were saved as, by key: JSON strings (see `Engine.openStorage`). */
 export type StoredSettings = Record<string, string>;
