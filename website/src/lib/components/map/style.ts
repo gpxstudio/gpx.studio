@@ -177,6 +177,11 @@ export class StyleManager {
                                             layer.paint = {};
                                         }
                                         layer.paint['hillshade-exaggeration'] = opacity / 2;
+                                    } else if (layer.type === 'color-relief') {
+                                        if (!layer.paint) {
+                                            layer.paint = {};
+                                        }
+                                        layer.paint['color-relief-opacity'] = opacity;
                                     }
                                 }
                                 map_.addLayer(layer, ANCHOR_LAYER_KEY.overlays);

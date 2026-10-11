@@ -4,6 +4,7 @@ import { isSelected, remove, removeAll } from './utils';
 import { overlays, overlayTree } from '$lib/assets/layers';
 import { browser } from '$app/environment';
 import { map } from '$lib/components/map/map';
+import type { LayerSpecification, SourceSpecification } from 'maplibre-gl';
 
 const { currentOverlays, previousOverlays, selectedOverlayTree } = settings;
 
@@ -13,6 +14,11 @@ export type CustomOverlay = {
     name: string;
     tileUrls: string[];
     maxZoom?: number;
+    // Optional overrides of the default raster source and layer, e.g. to style
+    // the tiles with a 'raster-dem' source and a 'color-relief' layer.
+    // Ids and the source reference are assigned by gpx.studio.
+    source?: Partial<SourceSpecification>;
+    layers?: Partial<LayerSpecification>[];
 };
 
 export class ExtensionAPI {
@@ -65,6 +71,8 @@ export class ExtensionAPI {
             return $overlays;
         });
 
+        const layerIds = this.getLayerIds(overlay);
+
         overlays[overlay.id] = {
             version: 8,
             sources: {
@@ -73,15 +81,17 @@ export class ExtensionAPI {
                     tiles: overlay.tileUrls,
                     tileSize: overlay.tileUrls.some((url) => url.includes('512')) ? 512 : 256,
                     maxzoom: overlay.maxZoom ?? 22,
-                },
+                    ...overlay.source,
+                } as SourceSpecification,
             },
-            layers: [
-                {
-                    id: overlay.id,
-                    type: 'raster',
-                    source: overlay.id,
-                },
-            ],
+            layers: (overlay.layers ?? [{ type: 'raster' }]).map(
+                (layer, index) =>
+                    ({
+                        ...layer,
+                        id: layerIds[index],
+                        source: overlay.id,
+                    }) as LayerSpecification
+            ),
         };
 
         if (!overlayTree.overlays.hasOwnProperty(overlay.extensionName)) {
@@ -103,7 +113,7 @@ export class ExtensionAPI {
         if (current && isSelected(current, overlay.id)) {
             show = true;
             try {
-                get(map)?.removeLayer(overlay.id);
+                layerIds.forEach((id) => get(map)?.removeLayer(id));
             } catch (e) {
                 // No reliable way to check if the map is ready to remove sources and layers
             }
@@ -185,6 +195,12 @@ export class ExtensionAPI {
 
     private getOverlayId(id: string): string {
         return `extension-${id}`;
+    }
+
+    private getLayerIds(overlay: CustomOverlay): string[] {
+        return (overlay.layers ?? [{}]).map((_, index) =>
+            index === 0 ? overlay.id : `${overlay.id}-${index}`
+        );
     }
 
     private destroy() {
