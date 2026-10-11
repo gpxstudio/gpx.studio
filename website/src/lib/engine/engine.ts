@@ -133,61 +133,7 @@ class Engine {
         this.wasm?.delete_setting(key);
     }
 
-    // Actions. Each one resolves to whether the engine changed something.
-
-    /**
-     * Creates a file, which gets selected. With a `trackpoint`, the file starts with a track and a
-     * segment that hold it, in the same undo step.
-     */
-    newFile(name: string, trackpoint?: { lng: number; lat: number; ele?: number }) {
-        return this.run((w) => w.new_file(name, trackpoint?.lng, trackpoint?.lat, trackpoint?.ele));
-    }
-
-    /**
-     * Loads files as a single command (one undo step). `name` is the name of a file when its data
-     * has none (the name on disk, without extension). The files that cannot be read are skipped,
-     * the first one that was read is selected.
-     */
-    loadFiles(files: { data: Uint8Array; name: string }[]) {
-        const lengths = Uint32Array.from(files.map((file) => file.data.length));
-        const data = new Uint8Array(lengths.reduce((sum, length) => sum + length, 0));
-        let offset = 0;
-        for (const file of files) {
-            data.set(file.data, offset);
-            offset += file.data.length;
-        }
-        return this.run((w) =>
-            w.load_files(
-                data,
-                lengths,
-                files.map((file) => file.name)
-            )
-        );
-    }
-
-    duplicate() {
-        return this.run((w) => w.duplicate());
-    }
-
-    /**
-     * Deletes the selected elements. With `wholeFiles`, the files holding the selected elements
-     * are deleted instead, even if only a track or a waypoint is selected.
-     */
-    delete(wholeFiles = false) {
-        return this.run((w) => w._delete(wholeFiles));
-    }
-
-    deleteAll() {
-        return this.run((w) => w.delete_all());
-    }
-
-    undo() {
-        return this.run((w) => w.undo());
-    }
-
-    redo() {
-        return this.run((w) => w.redo());
-    }
+    // Selection. Like the edits, each action resolves to whether the engine changed something.
 
     /**
      * Selects files. Selecting nothing (or only unknown files) deselects everything. See
@@ -243,11 +189,6 @@ class Engine {
         );
     }
 
-    /** Moves the files, in the given order, to `index` among the other files. */
-    reorder(fileIds: string[], index: number) {
-        return this.run((w) => w.reorder(idsToBytes(fileIds), index));
-    }
-
     /** Selects a node of the file tree. */
     selectNode(node: FileTreeNode, mode: SelectMode = 'replace') {
         switch (node.type) {
@@ -264,6 +205,16 @@ class Engine {
         }
     }
 
+    // History
+
+    undo() {
+        return this.run((w) => w.undo());
+    }
+
+    redo() {
+        return this.run((w) => w.redo());
+    }
+
     // Clipboard
 
     /** Puts the selected elements in the clipboard. */
@@ -274,6 +225,59 @@ class Engine {
     /** Like `copy`, but the elements are moved when they are pasted. */
     cut() {
         return this.run((w) => w.cut());
+    }
+
+    // Edits of the files
+
+    /**
+     * Creates a file, which gets selected. With a `trackpoint`, the file starts with a track and a
+     * segment that hold it, in the same undo step.
+     */
+    newFile(name: string, trackpoint?: { lng: number; lat: number; ele?: number }) {
+        return this.run((w) => w.new_file(name, trackpoint?.lng, trackpoint?.lat, trackpoint?.ele));
+    }
+
+    /**
+     * Loads files as a single command (one undo step). `name` is the name of a file when its data
+     * has none (the name on disk, without extension). The files that cannot be read are skipped,
+     * the first one that was read is selected.
+     */
+    loadFiles(files: { data: Uint8Array; name: string }[]) {
+        const lengths = Uint32Array.from(files.map((file) => file.data.length));
+        const data = new Uint8Array(lengths.reduce((sum, length) => sum + length, 0));
+        let offset = 0;
+        for (const file of files) {
+            data.set(file.data, offset);
+            offset += file.data.length;
+        }
+        return this.run((w) =>
+            w.load_files(
+                data,
+                lengths,
+                files.map((file) => file.name)
+            )
+        );
+    }
+
+    duplicate() {
+        return this.run((w) => w.duplicate());
+    }
+
+    /**
+     * Deletes the selected elements. With `wholeFiles`, the files holding the selected elements
+     * are deleted instead, even if only a track or a waypoint is selected.
+     */
+    delete(wholeFiles = false) {
+        return this.run((w) => w._delete(wholeFiles));
+    }
+
+    deleteAll() {
+        return this.run((w) => w.delete_all());
+    }
+
+    /** Moves the files, in the given order, to `index` among the other files. */
+    reorder(fileIds: string[], index: number) {
+        return this.run((w) => w.reorder(idsToBytes(fileIds), index));
     }
 
     /**
@@ -304,12 +308,7 @@ class Engine {
         return this.run((w) => w.move_elements(what, to));
     }
 
-    // Waypoints
-
-    /** All the data of a waypoint, `undefined` if it does not exist (or before the engine is loaded). */
-    waypoint(fileId: string, waypointId: string): WaypointDetails | undefined {
-        return this.wasm?.waypoint(fileId, waypointId);
-    }
+    // Edits of the waypoints
 
     /**
      * Adds a waypoint to each selected file (or to the file of the selected elements). Empty
@@ -356,6 +355,61 @@ class Engine {
         return this.run((w) => w.delete_waypoint(fileId, waypointId));
     }
 
+    // Edits of the selection
+
+    newTrack() {
+        return this.run((w) => w.new_track());
+    }
+
+    newTrackSegment() {
+        return this.run((w) => w.new_track_segment());
+    }
+
+    /**
+     * Reverses the direction of the selection: the whole of each selected file or track, or each
+     * selected segment on its own. The timestamps are mirrored. Resolves to `false` when there is
+     * nothing to reverse (fewer than two trackpoints).
+     */
+    reverse() {
+        return this.run((w) => w.reverse());
+    }
+
+    /**
+     * Splits the selected files and tracks that have several segments into elements that have
+     * one each (one file per track or per segment, one track per segment), which get selected.
+     * Resolves to `false` when there is nothing to extract.
+     */
+    extract() {
+        return this.run((w) => w.extract());
+    }
+
+    /**
+     * Sets the elevation of the trackpoints of the selection, one elevation (m) per trackpoint, in
+     * the order of the statistics. Resolves to `false` when there is nothing to set, or when the
+     * number of elevations is not the number of trackpoints.
+     */
+    setElevation(ele: Float64Array) {
+        return this.run((w) => w.elevation(ele));
+    }
+
+    /**
+     * Sets the timestamps of the selection, which starts at `startTime`: the trackpoints that
+     * have some keep their durations multiplied by `ratio`, the others follow the previous one at
+     * `speed` (km/h). Resolves to `false` when there is nothing to set, or the values are invalid.
+     */
+    changeTimestamps(startTime: Date, speed: number, ratio: number) {
+        return this.run((w) => w.changeTimestamps(startTime.getTime(), speed, ratio));
+    }
+
+    /**
+     * Makes up timestamps for the selection, which starts at `startTime` and lasts `totalTime`
+     * seconds, longer and steeper intervals taking more time. Resolves to `false` when there is
+     * nothing to set.
+     */
+    createArtificialTimestamps(startTime: Date, totalTime: number) {
+        return this.run((w) => w.createArtificialTimestamps(startTime.getTime(), totalTime));
+    }
+
     /**
      * Removes the trackpoints and/or waypoints of the selection inside (or outside) a rectangle.
      * Resolves to `false` when nothing was removed.
@@ -378,6 +432,76 @@ class Engine {
             )
         );
     }
+
+    /**
+     * Merges the selected files, tracks or segments into the first of them (see `MergeType`). With
+     * `removeGaps`, the parts that are connected get closer in time if they have timestamps.
+     * Resolves to `false` when there is nothing to merge.
+     */
+    merge(type: MergeType, removeGaps = false) {
+        return this.run((w) =>
+            w.merge(type === 'connect' ? w.MergeType.Connect : w.MergeType.Group, removeGaps)
+        );
+    }
+
+    /**
+     * Removes the trackpoints of the selection that are less than `tolerance` meters away from the
+     * line of their neighbours, except the ends of the segments. Resolves to `false` when there
+     * is nothing to remove.
+     */
+    reduce(tolerance: number) {
+        return this.run((w) => w.reduce(tolerance));
+    }
+
+    /**
+     * Cuts the file, the track or the segment (see `SplitType`) of the trackpoint `at` of the
+     * selection in two, there: the trackpoint ends the first part and starts the second one. The
+     * first part keeps the ids, the second one (and what follows) gets new ones. `revision` is the
+     * one of `SelectionAnchors`, which `at` is an index of.
+     */
+    split(revision: number, at: number, splitType: SplitType) {
+        return this.run((w) =>
+            w.split(
+                revision,
+                at,
+                {
+                    files: w.SplitType.Files,
+                    tracks: w.SplitType.Tracks,
+                    segments: w.SplitType.Segments,
+                }[splitType]
+            )
+        );
+    }
+
+    /**
+     * Keeps the trackpoints `start` to `end` (both included) of the selection, counted over its
+     * segments one after the other, and removes the others, with the segments, tracks and files
+     * that are left empty (tracks and files only if they are selected). Resolves to `false` when
+     * the range covers the whole selection.
+     */
+    crop(start: number, end: number) {
+        return this.run((w) => w.crop(Math.max(start, 0), Math.max(end, 0)));
+    }
+
+    /**
+     * Makes each selected segment (or the segments of the selected files and tracks) come back to
+     * where it started: a reversed copy of it is added after its last trackpoint (which is not
+     * repeated), and goes on in time. Resolves to `false` when no segment has the two trackpoints that a way back needs.
+     */
+    roundTrip() {
+        return this.run((w) => w.round_trip());
+    }
+
+    metadata(name: string, desc: string) {
+        return this.run((w) => w.metadata(name, desc));
+    }
+
+    /** Only the given fields are changed. */
+    style(style: { color?: string; opacity?: number; width?: number }) {
+        return this.run((w) => w.style(style.color, style.opacity, style.width));
+    }
+
+    // Routing
 
     /**
      * Replaces the trackpoints `start` to `end` (excluded) of the selection by `points` (a pure
@@ -438,178 +562,7 @@ class Engine {
         return this.run((w) => w.change_loop_start(revision, index));
     }
 
-    /** A trackpoint of a segment, `undefined` if it does not exist. */
-    trackpoint(fileId: string, segmentId: string, index: number): TrackpointDetails | undefined {
-        return this.wasm?.trackpoint(fileId, segmentId, index);
-    }
-
-    // Edits of the selection
-
-    newTrack() {
-        return this.run((w) => w.new_track());
-    }
-
-    newTrackSegment() {
-        return this.run((w) => w.new_track_segment());
-    }
-
-    /**
-     * Reverses the direction of the selection: the whole of each selected file or track, or each
-     * selected segment on its own. The timestamps are mirrored. Resolves to `false` when there is
-     * nothing to reverse (fewer than two trackpoints).
-     */
-    reverse() {
-        return this.run((w) => w.reverse());
-    }
-
-    /**
-     * Splits the selected files and tracks that have several segments into elements that have
-     * one each (one file per track or per segment, one track per segment), which get selected.
-     * Resolves to `false` when there is nothing to extract.
-     */
-    extract() {
-        return this.run((w) => w.extract());
-    }
-
-    /**
-     * Sets the elevation of the trackpoints of the selection, one elevation (m) per trackpoint, in
-     * the order of the statistics. Resolves to `false` when there is nothing to set, or when the
-     * number of elevations is not the number of trackpoints.
-     */
-    setElevation(ele: Float64Array) {
-        return this.run((w) => w.elevation(ele));
-    }
-
-    /**
-     * Sets the timestamps of the selection, which starts at `startTime`: the trackpoints that
-     * have some keep their durations multiplied by `ratio`, the others follow the previous one at
-     * `speed` (km/h). Resolves to `false` when there is nothing to set, or the values are invalid.
-     */
-    changeTimestamps(startTime: Date, speed: number, ratio: number) {
-        return this.run((w) => w.changeTimestamps(startTime.getTime(), speed, ratio));
-    }
-
-    /**
-     * Makes up timestamps for the selection, which starts at `startTime` and lasts `totalTime`
-     * seconds, longer and steeper intervals taking more time. Resolves to `false` when there is
-     * nothing to set.
-     */
-    createArtificialTimestamps(startTime: Date, totalTime: number) {
-        return this.run((w) => w.createArtificialTimestamps(startTime.getTime(), totalTime));
-    }
-
-    /**
-     * A file as GPX (UTF-8 bytes), `undefined` if it does not exist. The options say which data of the
-     * trackpoints to keep.
-     */
-    exportFile(
-        fileId: string,
-        options: ExportOptions = ALL_EXPORT_OPTIONS
-    ): Uint8Array<ArrayBuffer> | undefined {
-        // a copy out of the memory of the engine, so a plain ArrayBuffer
-        return this.wasm?.export_file(
-            fileId,
-            options.time,
-            options.hr,
-            options.cad,
-            options.atemp,
-            options.power,
-            options.osm,
-            options.asRoute
-        ) as Uint8Array<ArrayBuffer> | undefined;
-    }
-
-    /** The data that some files have, which the options of `exportFile` can leave out. */
-    exportableData(fileIds: string[]): ExportOptions {
-        const bits = this.wasm?.exportable_data(idsToBytes(fileIds)) ?? 0;
-        return {
-            time: (bits & 1) !== 0,
-            hr: (bits & 2) !== 0,
-            cad: (bits & 4) !== 0,
-            atemp: (bits & 8) !== 0,
-            power: (bits & 16) !== 0,
-            osm: (bits & 32) !== 0,
-            // not a data
-            asRoute: false,
-        };
-    }
-
-    /**
-     * Merges the selected files, tracks or segments into the first of them (see `MergeType`). With
-     * `removeGaps`, the parts that are connected get closer in time if they have timestamps.
-     * Resolves to `false` when there is nothing to merge.
-     */
-    merge(type: MergeType, removeGaps = false) {
-        return this.run((w) =>
-            w.merge(type === 'connect' ? w.MergeType.Connect : w.MergeType.Group, removeGaps)
-        );
-    }
-
-    /**
-     * Removes the trackpoints of the selection that are less than `tolerance` meters away from the
-     * line of their neighbours, except the ends of the segments. Resolves to `false` when there
-     * is nothing to remove.
-     */
-    reduce(tolerance: number) {
-        return this.run((w) => w.reduce(tolerance));
-    }
-
-    /**
-     * For each trackpoint of the selection, in the order of the statistics, the highest tolerance
-     * (m) of `reduce` that keeps it: infinite for the ends of the segments. Not requested with
-     * the statistics: ask when they changed.
-     */
-    reductionDistances(): Float64Array {
-        return this.wasm?.reduction_distances() ?? new Float64Array();
-    }
-
-    /**
-     * Cuts the file, the track or the segment (see `SplitType`) of the trackpoint `at` of the
-     * selection in two, there: the trackpoint ends the first part and starts the second one. The
-     * first part keeps the ids, the second one (and what follows) gets new ones. `revision` is the
-     * one of `SelectionAnchors`, which `at` is an index of.
-     */
-    split(revision: number, at: number, splitType: SplitType) {
-        return this.run((w) =>
-            w.split(
-                revision,
-                at,
-                {
-                    files: w.SplitType.Files,
-                    tracks: w.SplitType.Tracks,
-                    segments: w.SplitType.Segments,
-                }[splitType]
-            )
-        );
-    }
-
-    /**
-     * Keeps the trackpoints `start` to `end` (both included) of the selection, counted over its
-     * segments one after the other, and removes the others, with the segments, tracks and files
-     * that are left empty (tracks and files only if they are selected). Resolves to `false` when
-     * the range covers the whole selection.
-     */
-    crop(start: number, end: number) {
-        return this.run((w) => w.crop(Math.max(start, 0), Math.max(end, 0)));
-    }
-
-    /**
-     * Makes each selected segment (or the segments of the selected files and tracks) come back to
-     * where it started: a reversed copy of it is added after its last trackpoint (which is not
-     * repeated), and goes on in time. Resolves to `false` when no segment has the two trackpoints that a way back needs.
-     */
-    roundTrip() {
-        return this.run((w) => w.round_trip());
-    }
-
-    metadata(name: string, desc: string) {
-        return this.run((w) => w.metadata(name, desc));
-    }
-
-    /** Only the given fields are changed. */
-    style(style: { color?: string; opacity?: number; width?: number }) {
-        return this.run((w) => w.style(style.color, style.opacity, style.width));
-    }
+    // Visibility, which is kept by the frontend and not by the engine
 
     /** Hides or shows the selected elements. */
     setSelectionHidden(hidden: boolean) {
@@ -650,6 +603,63 @@ class Engine {
         }
     }
 
+    // Requests, which do not change anything
+
+    /** All the data of a waypoint, `undefined` if it does not exist (or before the engine is loaded). */
+    waypoint(fileId: string, waypointId: string): WaypointDetails | undefined {
+        return this.wasm?.waypoint(fileId, waypointId);
+    }
+
+    /** A trackpoint of a segment, `undefined` if it does not exist. */
+    trackpoint(fileId: string, segmentId: string, index: number): TrackpointDetails | undefined {
+        return this.wasm?.trackpoint(fileId, segmentId, index);
+    }
+
+    /**
+     * A file as GPX (UTF-8 bytes), `undefined` if it does not exist. The options say which data of the
+     * trackpoints to keep.
+     */
+    exportFile(
+        fileId: string,
+        options: ExportOptions = ALL_EXPORT_OPTIONS
+    ): Uint8Array<ArrayBuffer> | undefined {
+        // a copy out of the memory of the engine, so a plain ArrayBuffer
+        return this.wasm?.export_file(
+            fileId,
+            options.time,
+            options.hr,
+            options.cad,
+            options.atemp,
+            options.power,
+            options.osm,
+            options.asRoute
+        ) as Uint8Array<ArrayBuffer> | undefined;
+    }
+
+    /** The data that some files have, which the options of `exportFile` can leave out. */
+    exportableData(fileIds: string[]): ExportOptions {
+        const bits = this.wasm?.exportable_data(idsToBytes(fileIds)) ?? 0;
+        return {
+            time: (bits & 1) !== 0,
+            hr: (bits & 2) !== 0,
+            cad: (bits & 4) !== 0,
+            atemp: (bits & 8) !== 0,
+            power: (bits & 16) !== 0,
+            osm: (bits & 32) !== 0,
+            // not a data
+            asRoute: false,
+        };
+    }
+
+    /**
+     * For each trackpoint of the selection, in the order of the statistics, the highest tolerance
+     * (m) of `reduce` that keeps it: infinite for the ends of the segments. Not requested with
+     * the statistics: ask when they changed.
+     */
+    reductionDistances(): Float64Array {
+        return this.wasm?.reduction_distances() ?? new Float64Array();
+    }
+
     // Coordinates, as flat [lng, lat, ...] arrays. The getters copy them out of the WASM memory.
     // Refetch them when the `rev` of the segment (or the `waypointsRev` of the file) changed.
 
@@ -660,6 +670,19 @@ class Engine {
     waypointCoordinates(fileId: string): Float64Array {
         return this.wasm?.waypoint_coordinates(fileId) ?? new Float64Array();
     }
+
+    /**
+     * Registers a consumer of the statistics that needs some of the metrics that are not part of
+     * them by default (see `StatisticsMetric`). The metrics asked for by all the consumers are
+     * added to `statistics`: the ones that are missing are read right away, and then after each
+     * change of the selection or of the files, and the store is updated. Call `release` when the
+     * consumer goes away.
+     */
+    requestStatistics(): StatisticsRequest {
+        return this._statistics.request();
+    }
+
+    // Plumbing
 
     /**
      * Makes a call to the engine and applies its outcome to what is kept of the files. Resolves to
@@ -682,17 +705,6 @@ class Engine {
         } else if (outcome.error !== undefined && outcome.error !== OUTDATED) {
             console.warn('engine:', outcome.error);
         }
-    }
-
-    /**
-     * Registers a consumer of the statistics that needs some of the metrics that are not part of
-     * them by default (see `StatisticsMetric`). The metrics asked for by all the consumers are
-     * added to `statistics`: the ones that are missing are read right away, and then after each
-     * change of the selection or of the files, and the store is updated. Call `release` when the
-     * consumer goes away.
-     */
-    requestStatistics(): StatisticsRequest {
-        return this._statistics.request();
     }
 
     /** Updates what is kept of the engine with what a call changed. */
