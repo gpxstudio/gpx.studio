@@ -35,7 +35,7 @@ pub struct IdbStorage {
 }
 
 fn error(error: impl std::fmt::Display) -> StorageError {
-    StorageError(error.to_string())
+    StorageError::Failed(error.to_string())
 }
 
 /// The object store of a kind of chunks.

@@ -11,6 +11,7 @@
     import CoordinatesPopup from '$lib/components/map/CoordinatesPopup.svelte';
     import Resizer from '$lib/components/Resizer.svelte';
     import { Toaster } from '$lib/components/ui/sonner';
+    import * as AlertDialog from '$lib/components/ui/alert-dialog';
     import { i18n } from '$lib/i18n.svelte';
     import { settings } from '$lib/logic/settings';
     import { loadFiles } from '$lib/logic/file-actions';
@@ -19,6 +20,8 @@
     import { hoveredPoint, slicedStatistics } from '$lib/logic/selection-statistics';
     import { engine } from '$lib/engine';
     import { getURLForGoogleDriveFile } from '$lib/components/embedding/embedding';
+
+    const outdated = engine.outdated;
 
     const {
         treeFileView,
@@ -152,6 +155,20 @@
         <FileList orientation="vertical" recursive={true} style="width: {$rightPanelSize}px" />
     {/if}
 </div>
+
+<AlertDialog.Root open={$outdated}>
+    <AlertDialog.Content escapeKeydownBehavior="ignore" interactOutsideBehavior="ignore">
+        <AlertDialog.Header>
+            <AlertDialog.Title>{i18n._('outdated.title')}</AlertDialog.Title>
+            <AlertDialog.Description>{i18n._('outdated.description')}</AlertDialog.Description>
+        </AlertDialog.Header>
+        <AlertDialog.Footer>
+            <AlertDialog.Action onclick={() => location.reload()}>
+                {i18n._('outdated.reload')}
+            </AlertDialog.Action>
+        </AlertDialog.Footer>
+    </AlertDialog.Content>
+</AlertDialog.Root>
 
 <style lang="postcss">
     @reference "tailwindcss";

@@ -97,10 +97,6 @@ export interface StorageOpened {
     settings: Record<string, string>;
     /** The files that were restored are the added ones. */
     outcome: Outcome;
-    /** Some of what is stored was written by a newer version: nothing is saved. */
-    readOnly: boolean;
-    /** How many stored files could not be read, and are dropped at the next save. */
-    unreadable: number;
 }
 export interface FileStructure {
     id: string;

@@ -27,9 +27,13 @@ pub struct Engine {
     routing_buffer: RoutingBuffer,
     categories: TrackpointCategories,
     clipboard: Option<Clipboard>,
+    /// Whether what is stored was written by a newer version (see [`Engine::mark_outdated`]).
+    outdated: bool,
     /// What the tests of the last action read, see `Engine::run`.
     #[cfg(test)]
     last: Outcome,
+    #[cfg(test)]
+    last_error: Option<CommandError>,
 }
 
 impl Engine {
@@ -138,6 +142,7 @@ impl Engine {
     /// from the ones that were here are reported as added, removed or modified (all the files
     /// that were here, as they are not the same objects), and the order as changed if it is.
     pub fn restore(&mut self, restored: Restored) -> Outcome {
+        self.outdated = false;
         let selection_before = self.selection.clone();
         let order_before = self.order.0.clone();
         let before = self.stack.current().cloned();
@@ -163,13 +168,21 @@ impl Engine {
             order_changed: self.order.0 != order_before,
             selection_changed: self.selection != selection_before,
             clipboard_changed: false,
-            error: None,
         };
         #[cfg(test)]
         {
             self.last = outcome.clone();
+            self.last_error = None;
         }
         outcome
+    }
+
+    /// Tells that what is stored was written by a newer version of the app, which cannot be read
+    /// (see [`crate::StorageError::Newer`]). The files are left as they are, but cannot be changed
+    /// from now on, as the changes could not be kept: [`Engine::execute`] refuses with
+    /// [`CommandError::Outdated`], until something that is not newer is restored.
+    pub fn mark_outdated(&mut self) {
+        self.outdated = true;
     }
 
     /// A file as GPX (UTF-8), `None` if it does not exist.
@@ -215,19 +228,30 @@ impl Engine {
         self.coordinates_cache.waypoints(id)
     }
 
-    /// Single entry point for every action coming from the frontend. Says what it changed.
-    pub fn execute(&mut self, action: Action) -> Outcome {
+    /// Single entry point for every action coming from the frontend. Says what it changed, or why
+    /// it did nothing: an edit that fails or has nothing to do, or any change of the files while
+    /// they are outdated (see [`Engine::is_outdated`]).
+    pub fn execute(&mut self, action: Action) -> Result<Outcome, CommandError> {
+        let result = self.apply(action);
+        #[cfg(test)]
+        {
+            self.last = result.clone().unwrap_or_default();
+            self.last_error = result.as_ref().err().cloned();
+        }
+        result
+    }
+
+    fn apply(&mut self, action: Action) -> Result<Outcome, CommandError> {
+        if self.outdated {
+            return Err(CommandError::Outdated);
+        }
         let selection_before = self.selection.clone();
         let order_before = self.order.0.clone();
         let clipboard_before = self.clipboard.clone();
         let is_edit = matches!(action, Action::Edit(_));
-        let mut error = None;
         // the files change iff there is a diff, but selection and order actions have none
         let mut diff = match action {
-            Action::Edit(command) => self.edit(command).unwrap_or_else(|err| {
-                error = Some(err);
-                None
-            }),
+            Action::Edit(command) => self.edit(command)?,
             Action::Undo => self.stack.undo(),
             Action::Redo => self.stack.redo(),
             Action::Select { selection, mode } => {
@@ -264,27 +288,21 @@ impl Engine {
             || self.selection != selection_before
             || self.order.0 != order_before
             || self.clipboard != clipboard_before;
-        if is_edit && !changed && error.is_none() {
-            error = Some(CommandError::NothingToDo);
+        if is_edit && !changed {
+            return Err(CommandError::NothingToDo);
         }
         if changed {
             self.refresh(diff.as_ref());
             sort_diff(&mut diff, &self.order.0);
         }
         // after the refresh, which also syncs the order and selection with the files (undo, redo)
-        let outcome = Outcome {
+        Ok(Outcome {
             changed,
             diff,
             order_changed: self.order.0 != order_before,
             selection_changed: self.selection != selection_before,
             clipboard_changed: self.clipboard != clipboard_before,
-            error,
-        };
-        #[cfg(test)]
-        {
-            self.last = outcome.clone();
-        }
-        outcome
+        })
     }
 
     /// Puts the selection in the clipboard, if there is one.
@@ -352,7 +370,7 @@ impl Engine {
     /// Executes an action and tells whether it changed anything. What it did is kept for the
     /// accessors below, which the tests read right after.
     pub(crate) fn run(&mut self, action: Action) -> bool {
-        self.execute(action).changed
+        self.execute(action).is_ok_and(|outcome| outcome.changed)
     }
 
     pub(crate) fn last_diff(&self) -> Option<&Diff> {
@@ -360,7 +378,7 @@ impl Engine {
     }
 
     pub(crate) fn last_error(&self) -> Option<&CommandError> {
-        self.last.error.as_ref()
+        self.last_error.as_ref()
     }
 
     pub(crate) fn order_changed(&self) -> bool {

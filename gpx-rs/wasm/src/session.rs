@@ -21,14 +21,15 @@ pub(crate) fn fail(message: impl AsRef<str>) -> Outcome {
 
 /// Runs an action and tells what it did, see `Outcome` in `ts`.
 pub(crate) fn execute(action: Action) -> Outcome {
-    let Some(outcome) = with_engine_mut(|engine| engine.execute(action)) else {
-        return fail("the engine is not started");
+    let outcome = match with_engine_mut(|engine| engine.execute(action)) {
+        Some(Ok(outcome)) => outcome,
+        Some(Err(error)) => return fail(error.to_string()),
+        None => return fail("the engine is not started"),
     };
     if outcome.changed && (outcome.diff.is_some() || outcome.order_changed) {
         schedule_save();
     }
-    let error = outcome.error.as_ref().map(ToString::to_string);
-    outcome_object(&outcome, error.as_deref())
+    outcome_object(&outcome, None)
 }
 
 pub(crate) fn edit(command: Command) -> Outcome {

@@ -19,7 +19,6 @@ import {
     type Clipboard,
     type ExportOptions,
     type FileState,
-    type FilesUpdate,
     type MergeType,
     type MoveTarget,
     type NewWaypoint,
@@ -33,6 +32,9 @@ import {
     type TrackpointDetails,
     type WaypointDetails,
 } from './types';
+
+/** The error of the outcomes while the stored files come from a newer version of the app. */
+const OUTDATED = 'saved by a newer version';
 
 /**
  * Thin wrapper around the WASM engine.
@@ -57,6 +59,7 @@ class Engine {
     private _files = writable<Map<string, Writable<FileState>>>(new Map());
     private _selection = writable<Selection>({ type: 'empty' });
     private _lastError = writable<string | undefined>(undefined);
+    private _outdated = writable(false);
     private _canUndo = writable(false);
     private _canRedo = writable(false);
     private _canPaste = writable(false);
@@ -67,6 +70,8 @@ class Engine {
     readonly order: Readable<string[]> = { subscribe: this._order.subscribe };
     /** Statistics of what is currently selected. */
     readonly statistics: Readable<SelectionStatistics> = this._statistics.store;
+    /** Whether the stored files are from a newer version of the app: they cannot be changed. */
+    readonly outdated: Readable<boolean> = { subscribe: this._outdated.subscribe };
     readonly canUndo: Readable<boolean> = { subscribe: this._canUndo.subscribe };
     readonly canRedo: Readable<boolean> = { subscribe: this._canRedo.subscribe };
     /** Why the last call to the engine did nothing, `undefined` if it did something. */
@@ -674,7 +679,7 @@ class Engine {
         this._lastError.set(outcome.error);
         if (outcome.error === 'nothing to do') {
             console.debug('engine:', outcome.error);
-        } else if (outcome.error !== undefined) {
+        } else if (outcome.error !== undefined && outcome.error !== OUTDATED) {
             console.warn('engine:', outcome.error);
         }
     }
@@ -691,7 +696,10 @@ class Engine {
     }
 
     /** Updates what is kept of the engine with what a call changed. */
-    private sync(wasm: Wasm, update: FilesUpdate) {
+    private sync(wasm: Wasm, update: Outcome) {
+        if (update.error === OUTDATED) {
+            this._outdated.set(true);
+        }
         this._canUndo.set(wasm.can_undo());
         this._canRedo.set(wasm.can_redo());
         this._canPaste.set(wasm.can_paste());

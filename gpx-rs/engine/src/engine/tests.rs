@@ -1268,46 +1268,49 @@ fn test_an_edit_that_changes_nothing_is_not_an_undo_step() {
 fn test_execute_returns_what_the_action_did() {
     let mut engine = Engine::default();
     let data = std::fs::read("data/simple.gpx").unwrap();
-    let outcome = engine.execute(Action::Edit(Command::Load(Load {
-        data: &data,
-        name: "file",
-    })));
-    assert!(outcome.changed && outcome.error.is_none());
+    let outcome = engine
+        .execute(Action::Edit(Command::Load(Load {
+            data: &data,
+            name: "file",
+        })))
+        .unwrap();
+    assert!(outcome.changed);
     assert_eq!(outcome.diff.as_ref().unwrap().added, engine.order());
     assert!(outcome.order_changed && outcome.selection_changed);
     assert!(!outcome.clipboard_changed);
 
     // the outcome of an action does not depend on what is done after it
     let kept = outcome.clone();
-    engine.execute(Action::Undo);
+    engine.execute(Action::Undo).unwrap();
     assert_eq!(outcome, kept);
 
     // a selection only changes the selection
-    engine.execute(Action::Redo);
-    let outcome = engine.execute(Action::Select {
-        selection: files(engine.order()),
-        mode: SelectMode::Replace,
-    });
+    engine.execute(Action::Redo).unwrap();
+    let outcome = engine
+        .execute(Action::Select {
+            selection: files(engine.order()),
+            mode: SelectMode::Replace,
+        })
+        .unwrap();
     assert!(outcome.changed && outcome.selection_changed);
     assert!(outcome.diff.is_none() && !outcome.order_changed);
 
     // an edit with nothing to do says why
-    engine.execute(Action::Select {
-        selection: Selection::Empty,
-        mode: SelectMode::Replace,
-    });
-    let outcome = engine.execute(Action::Edit(Command::Reverse(crate::Reverse)));
-    assert!(!outcome.changed);
-    assert_eq!(outcome.error, Some(CommandError::NothingToDo));
-    assert_eq!(outcome.diff, None);
+    engine
+        .execute(Action::Select {
+            selection: Selection::Empty,
+            mode: SelectMode::Replace,
+        })
+        .unwrap();
+    let result = engine.execute(Action::Edit(Command::Reverse(crate::Reverse)));
+    assert_eq!(result, Err(CommandError::NothingToDo));
 
     // a failing one too
-    let outcome = engine.execute(Action::Edit(Command::Load(Load {
+    let result = engine.execute(Action::Edit(Command::Load(Load {
         data: b"<gpx><trk></gpx>",
         name: "file",
     })));
-    assert!(!outcome.changed);
-    assert!(matches!(outcome.error, Some(CommandError::InvalidData(_))));
+    assert!(matches!(result, Err(CommandError::InvalidData(_))));
 }
 
 // What the engine does when it is overwritten with what is stored
@@ -1322,8 +1325,6 @@ fn restored_from(engine: &Engine, keep: &[FileId], extra: Vec<Rc<File>>) -> crat
         order: files.iter().map(|file| file.id).collect(),
         files,
         categories: engine.categories().clone(),
-        unreadable: 0,
-        read_only: false,
     }
 }
 
@@ -1371,4 +1372,39 @@ fn test_overwriting_forgets_the_history() {
     let ids = engine.order().to_vec();
     engine.restore(restored_from(&engine, &ids, vec![]));
     assert!(!engine.can_undo());
+}
+
+#[test]
+fn test_files_cannot_be_changed_when_what_is_stored_is_from_a_newer_version() {
+    let mut engine = Engine::default();
+    new(&mut engine, "file");
+    let id = engine.order()[0];
+
+    engine.mark_outdated();
+
+    for action in [
+        Action::Edit(Command::Reverse(crate::Reverse)),
+        Action::Undo,
+        Action::Redo,
+        Action::Reorder {
+            file_ids: vec![id],
+            index: 0,
+        },
+    ] {
+        assert_eq!(engine.execute(action), Err(CommandError::Outdated));
+    }
+    assert_eq!(engine.order(), [id]);
+
+    // looking at the files still works
+    let outcome = engine
+        .execute(Action::Select {
+            selection: Selection::Empty,
+            mode: SelectMode::Replace,
+        })
+        .unwrap();
+    assert!(outcome.selection_changed);
+
+    // reading a storage that is not newer lifts it
+    engine.restore(restored_from(&engine, &[id], vec![]));
+    assert_ne!(engine.execute(Action::Undo), Err(CommandError::Outdated));
 }

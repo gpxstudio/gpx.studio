@@ -28,12 +28,6 @@ pub struct Restored {
     pub files: Vec<Rc<File>>,
     pub order: Vec<FileId>,
     pub categories: TrackpointCategories,
-    /// The files that could not be read: they are dropped at the next save.
-    pub unreadable: usize,
-    /// Whether some of what is stored was written by a newer version, which this one cannot read.
-    /// Nothing is written then, so that the newer version finds its data again: the files that
-    /// could be read are only kept in memory, and the persister does not save.
-    pub read_only: bool,
 }
 
 /// Works out what to write to a [`Storage`] so that it holds a [`Snapshot`], knowing what it
@@ -82,6 +76,10 @@ struct Plan {
 
 impl Persister {
     /// Reads the files of the storage. The persister then knows that they are saved.
+    ///
+    /// If some of what is stored was written by a newer version, nothing is read (`Newer`), and the
+    /// persister does not save until it reads a storage that is not newer: the newer version
+    /// needs its data.
     pub async fn restore<S: Storage>(&mut self, storage: &S) -> Result<Restored, StorageError> {
         let data = storage.load().await?;
         *self = Self::default();
@@ -127,40 +125,42 @@ impl Persister {
                 .clone()
         };
 
-        let mut restored = Restored::default();
         let mut files: HashMap<FileId, Rc<File>> = HashMap::new();
         for (id, bytes) in &data.files {
             self.stored_files.insert(*id);
             let file = newer
                 .read(decode_file(bytes))
                 .and_then(|record| record.build(*id, &trackpoint_chunk, &waypoint_chunk));
-            match file {
-                Some(file) => {
-                    files.insert(*id, Rc::new(file));
-                }
-                None => restored.unreadable += 1,
+            // a file that cannot be read is left out, and dropped at the next save
+            if let Some(file) = file {
+                files.insert(*id, Rc::new(file));
             }
         }
+        if newer.0.get() {
+            // `*self` was reset: only what is needed to not write, and to know the storage
+            self.read_only = true;
+            self.head = data.head;
+            return Err(StorageError::Newer);
+        }
 
-        restored.order = stored_order
+        let mut order: Vec<FileId> = stored_order
             .iter()
             .flatten()
             .filter(|id| files.contains_key(id))
             .copied()
             .collect();
-        let ordered: HashSet<FileId> = restored.order.iter().copied().collect();
-        restored
-            .order
-            .extend(files.keys().filter(|id| !ordered.contains(id)).copied());
-        restored.files = restored.order.iter().map(|id| files[id].clone()).collect();
+        let ordered: HashSet<FileId> = order.iter().copied().collect();
+        order.extend(files.keys().filter(|id| !ordered.contains(id)).copied());
+        let restored = Restored {
+            files: order.iter().map(|id| files[id].clone()).collect(),
+            order,
+            categories: categories.into_inner(),
+        };
 
         self.files = files;
         self.chunks = chunk_bytes.into_keys().collect();
         self.order = stored_order;
-        restored.categories = categories.into_inner();
         self.head = data.head;
-        self.read_only = newer.0.get();
-        restored.read_only = self.read_only;
         Ok(restored)
     }
 
@@ -340,7 +340,6 @@ mod tests {
 
         let mut persister = Persister::default();
         let restored = block_on(persister.restore(&storage)).unwrap();
-        assert_eq!(restored.unreadable, 0);
         assert_eq!(restored.order, snapshot.order);
         assert_eq!(restored.categories, snapshot.categories);
         for file in &restored.files {
@@ -472,8 +471,6 @@ mod tests {
         .unwrap();
         let mut persister = Persister::default();
         let restored = block_on(persister.restore(&storage)).unwrap();
-        assert_eq!(restored.unreadable, 1);
-        assert!(!restored.read_only);
         assert_eq!(restored.files.len(), FILES.len() - 1);
         assert!(restored.files.iter().all(|file| file.id != broken));
 
@@ -525,8 +522,8 @@ mod tests {
             let (storage, snapshot) = stored_with(damage);
             let before = storage.inner.counts();
             let mut persister = Persister::default();
-            let restored = block_on(persister.restore(&storage)).unwrap();
-            assert!(restored.read_only, "{what}");
+            let result = block_on(persister.restore(&storage));
+            assert_eq!(result.unwrap_err(), StorageError::Newer, "{what}");
 
             // whatever is saved afterwards, nothing is written: the newer version needs its data
             let mut changed = snapshot.clone();
@@ -544,12 +541,11 @@ mod tests {
             batch.put_files.push((snapshot.order[0], from_the_future()));
         });
         let mut persister = Persister::default();
-        assert!(block_on(persister.restore(&storage)).unwrap().read_only);
+        assert!(block_on(persister.restore(&storage)).is_err());
 
         // the same persister, on a storage that is not newer
         let clean = Recording::default();
-        let restored = block_on(persister.restore(&clean)).unwrap();
-        assert!(!restored.read_only);
+        block_on(persister.restore(&clean)).unwrap();
         block_on(persister.save(&clean, snapshot_of(&FILES))).unwrap();
         assert_eq!(clean.inner.counts().files, FILES.len());
     }

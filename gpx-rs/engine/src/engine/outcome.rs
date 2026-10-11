@@ -1,6 +1,7 @@
-use crate::{CommandError, Diff};
+use crate::Diff;
 
-/// What an action did, returned by [`crate::Engine::execute`] and [`crate::Engine::restore`].
+/// What an action did, returned by [`crate::Engine::execute`] (unless it was refused) and
+/// [`crate::Engine::restore`].
 ///
 /// It describes that action only: it is not kept by the engine, so reading it never depends on
 /// what was done since.
@@ -15,7 +16,4 @@ pub struct Outcome {
     pub order_changed: bool,
     pub selection_changed: bool,
     pub clipboard_changed: bool,
-    /// Why an edit did nothing: the command failed, or it had nothing to change. `None` if it
-    /// succeeded, and for the actions that do not edit the files.
-    pub error: Option<CommandError>,
 }

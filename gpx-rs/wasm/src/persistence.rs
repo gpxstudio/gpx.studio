@@ -98,8 +98,9 @@ fn notify(pick: impl FnOnce(&(js_sys::Function, js_sys::Function)) -> &js_sys::F
 /// Opens the database `name` (it is created if it does not exist), puts the files that it holds
 /// in the engine, which has to be empty, and returns the settings (JSON strings by key) and the
 /// outcome of putting the files in. The changes of the files that follow are saved, unless some of
-/// what is stored was written by a newer version of the app (`readOnly`): then nothing is, so that
-/// the newer version finds its data again.
+/// what is stored was written by a newer version of the app: then nothing is read, and the files
+/// cannot be changed (the outcome has the `Outdated` error), so that the newer version finds its
+/// data again.
 ///
 /// `on_saved` is called after the files were written (to tell the other tabs), and `on_behind` when
 /// a write was refused because another tab wrote since (call `sync_storage` then).
@@ -115,11 +116,9 @@ pub async fn open_storage(
     }
     let storage = IdbStorage::open(name).await.map_err(to_js_error)?;
     let mut persister = Persister::default();
-    let restored = persister.restore(&storage).await.map_err(to_js_error)?;
-    let (read_only, unreadable) = (restored.read_only, restored.unreadable);
+    let outcome = restore_engine(persister.restore(&storage).await).map_err(to_js_error)?;
     let settings = storage.load_settings().await.map_err(to_js_error)?;
 
-    let outcome = with_engine_mut(|engine| engine.restore(restored)).unwrap_or_default();
     PERSISTER.with(|slot| *slot.borrow_mut() = Some(persister));
     STORAGE.with(|slot| *slot.borrow_mut() = Some(Rc::new(storage)));
     LISTENERS.with(|slot| *slot.borrow_mut() = Some((on_saved, on_behind)));
@@ -130,10 +129,27 @@ pub async fn open_storage(
     }
     let opened = Object::new();
     set(&opened, "settings", settings_object);
-    set(&opened, "outcome", outcome_object(&outcome, None));
-    set(&opened, "readOnly", read_only);
-    set(&opened, "unreadable", unreadable as f64);
+    set(&opened, "outcome", outcome);
     Ok(opened.unchecked_into())
+}
+
+/// Overwrites the files of the engine with what was read, and tells what that did. If what is
+/// stored comes from a newer version of the app, the files are left as they are and cannot be
+/// changed anymore: the error of the outcome says so, as for the edits that are refused afterwards.
+fn restore_engine(
+    read: Result<engine::Restored, engine::StorageError>,
+) -> Result<Outcome, engine::StorageError> {
+    match read {
+        Ok(restored) => Ok(match with_engine_mut(|engine| engine.restore(restored)) {
+            Some(outcome) => outcome_object(&outcome, None),
+            None => outcome_object(&engine::Outcome::default(), None),
+        }),
+        Err(engine::StorageError::Newer) => {
+            with_engine_mut(Engine::mark_outdated);
+            Ok(fail(engine::CommandError::Outdated.to_string()))
+        }
+        Err(error) => Err(error),
+    }
 }
 
 pub(crate) fn to_js_error(error: engine::StorageError) -> JsValue {
@@ -171,11 +187,11 @@ pub async fn sync_storage() -> Result<Outcome, JsValue> {
     SAVING.set(true);
     let result = async {
         if !persister.is_behind(&*storage).await? {
-            return Ok(engine::Outcome::default());
+            return Ok(outcome_object(&engine::Outcome::default(), None));
         }
-        let restored = persister.restore(&*storage).await?;
+        let outcome = restore_engine(persister.restore(&*storage).await)?;
         DIRTY.set(false);
-        Ok(with_engine_mut(|engine| engine.restore(restored)).unwrap_or_default())
+        Ok(outcome)
     }
     .await;
     PERSISTER.with(|slot| *slot.borrow_mut() = Some(persister));
@@ -187,9 +203,7 @@ pub async fn sync_storage() -> Result<Outcome, JsValue> {
         // edited while reading, and nothing was overwritten
         schedule_save();
     }
-    result
-        .map(|outcome| outcome_object(&outcome, None))
-        .map_err(to_js_error)
+    result.map_err(to_js_error)
 }
 
 /// Saves a setting, `value` being its JSON.

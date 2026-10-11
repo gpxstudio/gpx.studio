@@ -31,11 +31,20 @@ use uuid::Uuid;
 use crate::FileId;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct StorageError(pub String);
+pub enum StorageError {
+    /// The storage could not be read or written.
+    Failed(String),
+    /// Some of what is stored was written by a newer version of the app, which this one cannot
+    /// read. Nothing is written then, so that the newer version finds its data again.
+    Newer,
+}
 
 impl std::fmt::Display for StorageError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "storage error: {}", self.0)
+        match self {
+            Self::Failed(message) => write!(f, "storage error: {message}"),
+            Self::Newer => write!(f, "stored by a newer version"),
+        }
     }
 }
 
@@ -215,7 +224,7 @@ mod tests {
 
     #[test]
     fn test_storage_error_is_readable() {
-        let error = StorageError("disk full".into());
+        let error = StorageError::Failed("disk full".into());
         assert_eq!(error.to_string(), "storage error: disk full");
         let _: &dyn std::error::Error = &error;
     }

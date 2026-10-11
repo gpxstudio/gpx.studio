@@ -1,6 +1,6 @@
 import { LEGACY_IMPORTED_KEY, readLegacyData } from '$lib/legacy-import';
 import { parseVisibility, VISIBILITY_KEY, type Visibility } from '$lib/file-visibility';
-import type { FilesUpdate, StorageOpened } from 'gpx-rs';
+import type { Outcome, StorageOpened } from 'gpx-rs';
 import type { Wasm } from './convert';
 
 /** Name of the IndexedDB database that keeps the files and the settings. */
@@ -15,7 +15,7 @@ export type StorageHost = {
     /** The explicit visibility per file, to fill with the one that was saved. */
     visibility: Map<string, Visibility>;
     /** Applies what a call changed to what the facade keeps of the files. */
-    sync(update: FilesUpdate): void;
+    sync(update: Outcome): void;
     hasFiles(): boolean;
     loadFiles(files: { data: Uint8Array; name: string }[]): Promise<boolean>;
     deselect(): Promise<boolean>;
@@ -65,14 +65,6 @@ export async function openStoredFiles(host: StorageHost): Promise<Record<string,
     } catch (error) {
         console.error('The files cannot be kept in this browser', error);
         return {};
-    }
-    if (opened.readOnly) {
-        console.warn(
-            'The files were saved by a newer version of the app: they are not saved again by this one'
-        );
-    }
-    if (opened.unreadable > 0) {
-        console.warn(`${opened.unreadable} stored file(s) could not be read`);
     }
     let settings = opened.settings;
     // what was hidden, which the files that were restored need when they are read
