@@ -710,12 +710,18 @@ mod tests {
     fn test_an_engine_starts_from_what_is_restored() {
         let storage = Recording::default();
         let mut engine = Engine::default();
-        for path in FILES {
+        let load = |engine: &mut Engine, path: &str| {
             let data = std::fs::read(path).unwrap();
-            assert!(engine.run(Action::Edit(Command::Load(Load {
-                data: &data,
-                name: "file",
-            }))));
+            engine
+                .execute(Action::Edit(Command::Load(Load {
+                    data: &data,
+                    name: "file",
+                })))
+                .unwrap()
+                .changed
+        };
+        for path in FILES {
+            assert!(load(&mut engine, path));
         }
         let snapshot = engine.snapshot();
         assert_eq!(snapshot.files.len(), FILES.len());
@@ -723,25 +729,20 @@ mod tests {
 
         let restored = block_on(Persister::default().restore(&storage)).unwrap();
         let mut engine = Engine::default();
-        engine.restore(restored);
+        let outcome = engine.restore(restored);
         assert_eq!(engine.snapshot().order, snapshot.order);
-        let diff = engine.last_diff().unwrap();
-        assert_eq!(diff.added.len(), FILES.len());
-        assert!(engine.order_changed());
+        assert_eq!(outcome.diff.unwrap().added.len(), FILES.len());
+        assert!(outcome.order_changed);
         for id in &snapshot.order {
             assert!(engine.file_structure(id).is_some());
         }
 
         // the files that were restored are not undone
         assert!(!engine.can_undo());
-        assert!(!engine.run(Action::Undo));
-        let data = std::fs::read(FILES[0]).unwrap();
-        assert!(engine.run(Action::Edit(Command::Load(Load {
-            data: &data,
-            name: "file",
-        }))));
+        assert!(!engine.execute(Action::Undo).unwrap().changed);
+        assert!(load(&mut engine, FILES[0]));
         assert!(engine.can_undo());
-        assert!(engine.run(Action::Undo));
+        assert!(engine.execute(Action::Undo).unwrap().changed);
         assert_eq!(engine.snapshot().files.len(), FILES.len());
         assert!(!engine.can_undo());
     }

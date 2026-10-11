@@ -29,11 +29,6 @@ pub struct Engine {
     clipboard: Option<Clipboard>,
     /// Whether what is stored was written by a newer version (see [`Engine::mark_outdated`]).
     outdated: bool,
-    /// What the tests of the last action read, see `Engine::run`.
-    #[cfg(test)]
-    last: Outcome,
-    #[cfg(test)]
-    last_error: Option<CommandError>,
 }
 
 impl Engine {
@@ -160,7 +155,7 @@ impl Engine {
         self.stack = Stack::restored(files);
         self.refresh(diff.as_ref());
         sort_diff(&mut diff, &self.order.0);
-        let outcome = Outcome {
+        Outcome {
             changed: diff.is_some()
                 || self.order.0 != order_before
                 || self.selection != selection_before,
@@ -168,13 +163,7 @@ impl Engine {
             order_changed: self.order.0 != order_before,
             selection_changed: self.selection != selection_before,
             clipboard_changed: false,
-        };
-        #[cfg(test)]
-        {
-            self.last = outcome.clone();
-            self.last_error = None;
         }
-        outcome
     }
 
     /// Tells that what is stored was written by a newer version of the app, which cannot be read
@@ -232,16 +221,6 @@ impl Engine {
     /// it did nothing: an edit that fails or has nothing to do, or any change of the files while
     /// they are outdated (see [`Engine::is_outdated`]).
     pub fn execute(&mut self, action: Action) -> Result<Outcome, CommandError> {
-        let result = self.apply(action);
-        #[cfg(test)]
-        {
-            self.last = result.clone().unwrap_or_default();
-            self.last_error = result.as_ref().err().cloned();
-        }
-        result
-    }
-
-    fn apply(&mut self, action: Action) -> Result<Outcome, CommandError> {
         if self.outdated {
             return Err(CommandError::Outdated);
         }
@@ -362,35 +341,6 @@ fn sort_diff(diff: &mut Option<Diff>, order: &[FileId]) {
     if let Some(diff) = diff {
         diff.added.sort_by_key(position);
         diff.modified.sort_by_key(position);
-    }
-}
-
-#[cfg(test)]
-impl Engine {
-    /// Executes an action and tells whether it changed anything. What it did is kept for the
-    /// accessors below, which the tests read right after.
-    pub(crate) fn run(&mut self, action: Action) -> bool {
-        self.execute(action).is_ok_and(|outcome| outcome.changed)
-    }
-
-    pub(crate) fn last_diff(&self) -> Option<&Diff> {
-        self.last.diff.as_ref()
-    }
-
-    pub(crate) fn last_error(&self) -> Option<&CommandError> {
-        self.last_error.as_ref()
-    }
-
-    pub(crate) fn order_changed(&self) -> bool {
-        self.last.order_changed
-    }
-
-    pub(crate) fn selection_changed(&self) -> bool {
-        self.last.selection_changed
-    }
-
-    pub(crate) fn clipboard_changed(&self) -> bool {
-        self.last.clipboard_changed
     }
 }
 

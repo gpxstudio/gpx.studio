@@ -8,6 +8,66 @@ use crate::{
 
 use super::*;
 
+/// An engine that remembers what the last action it was given did, for the tests to read right
+/// after (see `run`).
+#[derive(Default)]
+struct TestEngine {
+    engine: Engine,
+    last: Outcome,
+    last_error: Option<CommandError>,
+}
+
+impl std::ops::Deref for TestEngine {
+    type Target = Engine;
+
+    fn deref(&self) -> &Engine {
+        &self.engine
+    }
+}
+
+impl std::ops::DerefMut for TestEngine {
+    fn deref_mut(&mut self) -> &mut Engine {
+        &mut self.engine
+    }
+}
+
+impl TestEngine {
+    /// Executes an action and tells whether it changed anything.
+    fn run(&mut self, action: Action) -> bool {
+        let result = self.engine.execute(action);
+        self.last = result.clone().unwrap_or_default();
+        self.last_error = result.as_ref().err().cloned();
+        result.is_ok_and(|outcome| outcome.changed)
+    }
+
+    fn restore(&mut self, restored: Restored) -> Outcome {
+        let outcome = self.engine.restore(restored);
+        self.last = outcome.clone();
+        self.last_error = None;
+        outcome
+    }
+
+    fn last_diff(&self) -> Option<&Diff> {
+        self.last.diff.as_ref()
+    }
+
+    fn last_error(&self) -> Option<&CommandError> {
+        self.last_error.as_ref()
+    }
+
+    fn order_changed(&self) -> bool {
+        self.last.order_changed
+    }
+
+    fn selection_changed(&self) -> bool {
+        self.last.selection_changed
+    }
+
+    fn clipboard_changed(&self) -> bool {
+        self.last.clipboard_changed
+    }
+}
+
 fn expand(intervals: &crate::Intervals, len: usize) -> Vec<u8> {
     let mut values = Vec::new();
     for (i, value) in intervals.values.iter().enumerate() {
@@ -17,11 +77,11 @@ fn expand(intervals: &crate::Intervals, len: usize) -> Vec<u8> {
     values
 }
 
-fn edit(engine: &mut Engine, command: Command) -> bool {
+fn edit(engine: &mut TestEngine, command: Command) -> bool {
     engine.run(Action::Edit(command))
 }
 
-fn new(engine: &mut Engine, name: &str) -> bool {
+fn new(engine: &mut TestEngine, name: &str) -> bool {
     edit(
         engine,
         Command::New(New {
@@ -31,7 +91,7 @@ fn new(engine: &mut Engine, name: &str) -> bool {
     )
 }
 
-fn load(engine: &mut Engine, path: &str) -> bool {
+fn load(engine: &mut TestEngine, path: &str) -> bool {
     let data = std::fs::read(path).unwrap();
     edit(
         engine,
@@ -51,14 +111,14 @@ fn selected(engine: &Engine) -> Vec<FileId> {
 
 #[test]
 fn test_load_file() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     assert!(load(&mut engine, "data/simple.gpx"));
     assert_eq!(engine.statistics_buffer.total_distance.len(), 80);
 }
 
 #[test]
 fn test_new_file_has_no_statistics() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     assert!(new(&mut engine, "empty"));
     assert_eq!(engine.stack.current().unwrap().len(), 1);
     assert_eq!(engine.order.0.len(), 1);
@@ -67,7 +127,7 @@ fn test_new_file_has_no_statistics() {
 
 #[test]
 fn test_statistics_follow_selection() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     assert!(load(&mut engine, "data/simple.gpx"));
     let n = engine.statistics().total_distance.len();
     assert!(n > 0);
@@ -84,7 +144,7 @@ fn test_statistics_follow_selection() {
 
 #[test]
 fn test_invalid_load_is_rejected() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     assert!(!edit(
         &mut engine,
         Command::Load(Load {
@@ -99,7 +159,7 @@ fn test_invalid_load_is_rejected() {
 
 #[test]
 fn test_command_with_nothing_to_do_is_rejected() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "file");
     assert!(!edit(&mut engine, Command::Reverse(crate::Reverse)));
     assert!(!engine.stack.can_redo());
@@ -108,7 +168,7 @@ fn test_command_with_nothing_to_do_is_rejected() {
 
 #[test]
 fn test_metadata_renames_selected_file() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "before");
     assert!(edit(
         &mut engine,
@@ -124,7 +184,7 @@ fn test_metadata_renames_selected_file() {
 
 #[test]
 fn test_metadata_without_selection_does_not_modify_files() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "file");
     engine.selection = Selection::Empty;
     edit(
@@ -140,7 +200,7 @@ fn test_metadata_without_selection_does_not_modify_files() {
 
 #[test]
 fn test_edit_changes_statistics_when_segments_change() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     load(&mut engine, "data/simple.gpx");
     let before = engine
         .statistics_cache
@@ -163,7 +223,7 @@ fn test_edit_changes_statistics_when_segments_change() {
 
 #[test]
 fn test_undo_redo_keep_selection_and_order_consistent() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "a");
     let a = selected(&engine)[0];
     new(&mut engine, "b");
@@ -186,7 +246,7 @@ fn test_undo_redo_keep_selection_and_order_consistent() {
 
 #[test]
 fn test_reorder_is_not_undoable_and_returning_files_go_last() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "a");
     let a = engine.order.0[0];
     new(&mut engine, "b");
@@ -214,7 +274,7 @@ fn test_reorder_is_not_undoable_and_returning_files_go_last() {
 
 #[test]
 fn test_structures_and_coordinates_follow_actions() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     assert!(engine.order().is_empty());
     load(&mut engine, "data/simple.gpx");
     let loaded_id = engine.order()[0];
@@ -267,7 +327,7 @@ fn test_structures_and_coordinates_follow_actions() {
 
 #[test]
 fn test_selection_changed_flag() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "a");
     let a = engine.order()[0];
     // a new file is selected by the edit
@@ -285,7 +345,7 @@ fn test_selection_changed_flag() {
 
 #[test]
 fn test_undo_updates_statistics() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     load(&mut engine, "data/simple.gpx");
     assert!(!engine.statistics().total_distance.is_empty());
     engine.run(Action::Undo);
@@ -297,7 +357,7 @@ fn test_undo_updates_statistics() {
 
 #[test]
 fn test_selection_actions() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "a");
     let a = selected(&engine)[0];
     new(&mut engine, "b");
@@ -317,14 +377,14 @@ fn test_selection_actions() {
 
 #[test]
 fn test_selection_does_not_create_undo_steps() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "a");
     select_all(&mut engine);
     engine.run(Action::Undo);
     assert!(engine.stack.current().is_none());
 }
 
-fn select_elements(engine: &mut Engine, selection: Selection, mode: SelectMode) -> bool {
+fn select_elements(engine: &mut TestEngine, selection: Selection, mode: SelectMode) -> bool {
     engine.run(Action::Select { selection, mode })
 }
 
@@ -334,18 +394,18 @@ fn files(ids: &[FileId]) -> Selection {
     }
 }
 
-fn select_files(engine: &mut Engine, ids: &[FileId]) -> bool {
+fn select_files(engine: &mut TestEngine, ids: &[FileId]) -> bool {
     select_elements(engine, files(ids), SelectMode::Replace)
 }
 
-fn select_all(engine: &mut Engine) -> bool {
+fn select_all(engine: &mut TestEngine) -> bool {
     let ids = engine.order().to_vec();
     select_files(engine, &ids)
 }
 
 #[test]
 fn test_select_elements() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     load(&mut engine, "data/with_tracks_and_segments.gpx");
     let file = engine
         .stack
@@ -444,7 +504,7 @@ fn test_select_elements() {
 
 #[test]
 fn test_toggle_elements() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     load(&mut engine, "data/with_tracks_and_segments.gpx");
     let file = engine
         .stack
@@ -459,7 +519,7 @@ fn test_toggle_elements() {
         file_id: file.id,
         trk_ids: ids.iter().copied().collect(),
     };
-    let toggle = |engine: &mut Engine, ids: &[TrackId]| {
+    let toggle = |engine: &mut TestEngine, ids: &[TrackId]| {
         select_elements(engine, tracks(ids), SelectMode::Toggle)
     };
 
@@ -478,7 +538,7 @@ fn test_toggle_elements() {
 
 #[test]
 fn test_selected_elements_are_dropped_when_they_disappear() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     load(&mut engine, "data/with_tracks_and_segments.gpx");
     let file = engine
         .stack
@@ -503,7 +563,7 @@ fn test_selected_elements_are_dropped_when_they_disappear() {
 
 #[test]
 fn test_can_undo_and_redo() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     assert!(!engine.can_undo() && !engine.can_redo());
     new(&mut engine, "a");
     assert!(engine.can_undo() && !engine.can_redo());
@@ -521,7 +581,7 @@ fn test_can_undo_and_redo() {
 
 #[test]
 fn test_select_all_follows_the_selected_level() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "a");
     new(&mut engine, "b");
     let order = engine.order().to_vec();
@@ -534,7 +594,7 @@ fn test_select_all_follows_the_selected_level() {
     assert!(!engine.run(Action::SelectAll));
 
     // the tracks of a file
-    let load = |engine: &mut Engine| load(engine, "data/with_tracks_and_segments.gpx");
+    let load = |engine: &mut TestEngine| load(engine, "data/with_tracks_and_segments.gpx");
     load(&mut engine);
     let file = engine
         .stack
@@ -582,7 +642,7 @@ fn test_select_all_follows_the_selected_level() {
 
 #[test]
 fn test_arrow_select() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "file");
     for _ in 0..3 {
         edit(&mut engine, Command::NewTrack(NewTrack));
@@ -601,7 +661,7 @@ fn test_arrow_select() {
         file_id: file.id,
         trk_ids: ids.iter().copied().collect(),
     };
-    let arrow = |engine: &mut Engine, down, add| engine.run(Action::ArrowSelect { down, add });
+    let arrow = |engine: &mut TestEngine, down, add| engine.run(Action::ArrowSelect { down, add });
 
     select_elements(&mut engine, tracks(&[ids[0]]), SelectMode::Replace);
     // without shift the next one replaces the selection
@@ -626,7 +686,7 @@ fn test_arrow_select() {
 
 #[test]
 fn test_arrow_select_does_not_create_undo_steps() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "a");
     new(&mut engine, "b");
     let a = engine.order()[0];
@@ -643,7 +703,7 @@ fn test_arrow_select_does_not_create_undo_steps() {
 }
 
 /// A file named `name` with `n` tracks, selected.
-fn file_with_tracks(engine: &mut Engine, name: &str, n: usize) -> FileId {
+fn file_with_tracks(engine: &mut TestEngine, name: &str, n: usize) -> FileId {
     new(engine, name);
     for _ in 0..n {
         edit(engine, Command::NewTrack(NewTrack));
@@ -661,13 +721,13 @@ fn track_ids(engine: &Engine, id: FileId) -> Vec<TrackId> {
         .collect()
 }
 
-fn paste(engine: &mut Engine) -> bool {
+fn paste(engine: &mut TestEngine) -> bool {
     edit(engine, Command::Paste(Paste))
 }
 
 #[test]
 fn test_copy_and_paste() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     let a = file_with_tracks(&mut engine, "a", 2);
     let b = file_with_tracks(&mut engine, "b", 0);
     assert!(engine.clipboard().is_none() && !engine.can_paste());
@@ -724,7 +784,7 @@ fn test_copy_and_paste() {
 
 #[test]
 fn test_cut_and_paste_moves_after_the_paste() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     let a = file_with_tracks(&mut engine, "a", 2);
     let b = file_with_tracks(&mut engine, "b", 0);
     let tracks = track_ids(&engine, a);
@@ -752,7 +812,7 @@ fn test_cut_and_paste_moves_after_the_paste() {
 
 #[test]
 fn test_clipboard_survives_what_happens_to_the_elements() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     let a = file_with_tracks(&mut engine, "a", 2);
     let tracks = track_ids(&engine, a);
     select_elements(
@@ -801,7 +861,7 @@ fn test_clipboard_survives_what_happens_to_the_elements() {
 
 #[test]
 fn test_copy_replaces_the_clipboard_and_does_not_change_the_history() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     let a = file_with_tracks(&mut engine, "a", 0);
     let b = file_with_tracks(&mut engine, "b", 0);
     select_files(&mut engine, &[a]);
@@ -825,7 +885,7 @@ fn test_copy_replaces_the_clipboard_and_does_not_change_the_history() {
 fn test_move_elements_is_an_edit_and_selects_what_moved() {
     use crate::{Move, MoveTarget};
 
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     let a = file_with_tracks(&mut engine, "a", 3);
     let tracks = track_ids(&engine, a);
     let moved = Selection::Track {
@@ -865,7 +925,7 @@ fn test_move_elements_is_an_edit_and_selects_what_moved() {
 fn test_added_files_are_reported_in_the_order_of_the_files() {
     use crate::LoadFiles;
 
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     let datas: Vec<Vec<u8>> = (0..12)
         .map(|i| {
             format!(r#"<gpx version="1.1"><metadata><name>{i}</name></metadata></gpx>"#)
@@ -892,7 +952,7 @@ fn test_added_files_are_reported_in_the_order_of_the_files() {
 fn test_load_several_files_is_one_edit() {
     use crate::LoadFiles;
 
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "before");
     let gpx = |name: &str| {
         format!(r#"<gpx version="1.1"><metadata><name>{name}</name></metadata></gpx>"#).into_bytes()
@@ -930,7 +990,7 @@ fn test_load_several_files_is_one_edit() {
 fn test_create_edit_and_move_a_waypoint() {
     use crate::{EditWaypoint, MoveWaypoint, NewWaypoint};
 
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "file");
     let file = engine.order()[0];
     assert!(edit(
@@ -1019,7 +1079,7 @@ fn test_create_edit_and_move_a_waypoint() {
 
 #[test]
 fn test_categories_are_shared_and_kept_by_the_history() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     assert!(engine.categories().surface.names().is_empty());
 
     load(&mut engine, "data/with_highway.gpx");
@@ -1064,7 +1124,7 @@ fn test_categories_are_shared_and_kept_by_the_history() {
 
 #[test]
 fn test_trackpoint() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     load(&mut engine, "data/simple.gpx");
     let file = engine.order()[0];
     let structure = engine.file_structure(&file).unwrap();
@@ -1082,7 +1142,7 @@ fn test_trackpoint() {
 
 #[test]
 fn test_export_writes_the_file_as_it_is() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     assert!(
         engine
             .export(&FileId::default(), ExportOptions::ALL)
@@ -1110,7 +1170,7 @@ fn test_export_writes_the_file_as_it_is() {
 
 #[test]
 fn test_exportable_data_is_the_union_over_the_files() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     assert_eq!(engine.exportable_data(&[]), ExportOptions::NONE);
 
     load(&mut engine, "data/simple.gpx");
@@ -1129,7 +1189,7 @@ fn test_exportable_data_is_the_union_over_the_files() {
 
 #[test]
 fn test_file_statistics_are_the_ones_of_the_whole_file() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     assert!(engine.file_statistics(&FileId::default()).is_none());
 
     load(&mut engine, "data/simple.gpx");
@@ -1156,7 +1216,7 @@ fn test_file_statistics_are_the_ones_of_the_whole_file() {
 
 #[test]
 fn test_reduction_distances_follow_the_selection() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     assert!(engine.reduction_distances().is_empty());
 
     load(&mut engine, "data/simple.gpx");
@@ -1174,7 +1234,7 @@ fn test_reduction_distances_follow_the_selection() {
 
 #[test]
 fn test_routing_describes_the_anchors_of_the_selection() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     assert!(engine.routing().anchor_indices.is_empty());
 
     load(&mut engine, "data/simple.gpx");
@@ -1207,7 +1267,7 @@ fn test_routing_describes_the_anchors_of_the_selection() {
 
 #[test]
 fn test_last_error_tells_why_an_edit_did_nothing() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     assert!(engine.last_error().is_none());
 
     // invalid data
@@ -1240,7 +1300,7 @@ fn test_last_error_tells_why_an_edit_did_nothing() {
 
 #[test]
 fn test_an_edit_that_changes_nothing_is_not_an_undo_step() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "file");
     // "file" is selected: naming it the same still builds a new file, but selecting nothing
     // leaves nothing to rename
@@ -1266,7 +1326,7 @@ fn test_an_edit_that_changes_nothing_is_not_an_undo_step() {
 
 #[test]
 fn test_execute_returns_what_the_action_did() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     let data = std::fs::read("data/simple.gpx").unwrap();
     let outcome = engine
         .execute(Action::Edit(Command::Load(Load {
@@ -1286,9 +1346,10 @@ fn test_execute_returns_what_the_action_did() {
 
     // a selection only changes the selection
     engine.execute(Action::Redo).unwrap();
+    let selection = files(engine.order());
     let outcome = engine
         .execute(Action::Select {
-            selection: files(engine.order()),
+            selection,
             mode: SelectMode::Replace,
         })
         .unwrap();
@@ -1330,7 +1391,7 @@ fn restored_from(engine: &Engine, keep: &[FileId], extra: Vec<Rc<File>>) -> crat
 
 #[test]
 fn test_overwriting_reports_what_was_added_removed_and_modified() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "kept");
     new(&mut engine, "modified");
     new(&mut engine, "removed");
@@ -1355,7 +1416,7 @@ fn test_overwriting_reports_what_was_added_removed_and_modified() {
 
 #[test]
 fn test_overwriting_with_the_same_files_changes_nothing() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "a");
     let ids = engine.order().to_vec();
     let outcome = engine.restore(restored_from(&engine, &ids, vec![]));
@@ -1365,7 +1426,7 @@ fn test_overwriting_with_the_same_files_changes_nothing() {
 
 #[test]
 fn test_overwriting_forgets_the_history() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "a");
     new(&mut engine, "b");
     assert!(engine.can_undo());
@@ -1376,7 +1437,7 @@ fn test_overwriting_forgets_the_history() {
 
 #[test]
 fn test_files_cannot_be_changed_when_what_is_stored_is_from_a_newer_version() {
-    let mut engine = Engine::default();
+    let mut engine = TestEngine::default();
     new(&mut engine, "file");
     let id = engine.order()[0];
 
@@ -1395,14 +1456,12 @@ fn test_files_cannot_be_changed_when_what_is_stored_is_from_a_newer_version() {
     }
     assert_eq!(engine.order(), [id]);
 
-    // looking at the files still works
-    let outcome = engine
-        .execute(Action::Select {
-            selection: Selection::Empty,
-            mode: SelectMode::Replace,
-        })
-        .unwrap();
-    assert!(outcome.selection_changed);
+    // so is anything else, the selection included
+    let result = engine.execute(Action::Select {
+        selection: Selection::Empty,
+        mode: SelectMode::Replace,
+    });
+    assert_eq!(result, Err(CommandError::Outdated));
 
     // reading a storage that is not newer lifts it
     engine.restore(restored_from(&engine, &[id], vec![]));
