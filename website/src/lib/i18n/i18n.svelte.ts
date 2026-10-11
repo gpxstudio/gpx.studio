@@ -36,7 +36,7 @@ class Locale {
             if (!this._isLoading) {
                 this._isLoading = true;
             }
-            import(`../locales/${this._lang}.json`).then((module) => {
+            import(`../../locales/${this._lang}.json`).then((module) => {
                 this.dictionary = module.default;
                 if (this._isLoadingInitial) {
                     this._isLoadingInitial = false;
