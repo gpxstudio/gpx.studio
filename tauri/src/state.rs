@@ -8,14 +8,10 @@ use std::sync::mpsc::{self, Sender};
 use std::sync::{Mutex, MutexGuard};
 use std::thread;
 
-use gpx_engine::{Action, Engine};
-
-use crate::dto::Outcome;
+use gpx_engine::Engine;
 
 type Job = Box<dyn FnOnce(&mut Engine) + Send>;
 
-/// What the commands talk to. The engine is the same as in the browser (`gpx-rs`); here it lives in
-/// the process of the app, and the frontend reaches it through the commands only.
 pub struct AppState {
     jobs: Mutex<Sender<Job>>,
     /// The settings of the frontend, as JSON strings by key.
@@ -65,43 +61,3 @@ impl AppState {
         self.settings.lock().unwrap()
     }
 }
-
-/// Executes an action and tells what it did, see `Outcome`.
-pub fn execute(engine: &mut Engine, action: Action) -> Outcome {
-    match engine.execute(action) {
-        Ok(outcome) => Outcome::new(&outcome, None),
-        Err(error) => Outcome::failed(error.to_string()),
-    }
-}
-
-/// Executes an action on the engine. The values the action uses are moved to the engine thread.
-macro_rules! act {
-    ($state:expr, $action:expr) => {
-        $state.run(move |engine| $crate::state::execute(engine, $action))
-    };
-}
-
-/// Executes a command (the command can borrow what it uses).
-macro_rules! edit {
-    ($state:expr, $command:expr) => {
-        act!($state, ::gpx_engine::Action::Edit($command))
-    };
-}
-
-/// Like `edit!`, but does nothing if the selection is not the one of `revision` anymore (the
-/// indices of the routing buffers only mean something for their revision).
-macro_rules! edit_at {
-    ($state:expr, $revision:expr, $command:expr) => {{
-        let revision = $revision;
-        $state.run(move |engine| {
-            if engine.routing().revision != revision {
-                return $crate::dto::Outcome::failed(
-                    "the selection changed since the routing buffers were read",
-                );
-            }
-            $crate::state::execute(engine, ::gpx_engine::Action::Edit($command))
-        })
-    }};
-}
-
-pub(crate) use {act, edit, edit_at};

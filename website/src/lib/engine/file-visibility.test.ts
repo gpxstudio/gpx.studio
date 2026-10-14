@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import type { FileStructure } from 'gpx-rs';
+import type { FileStructure } from 'gpx-wasm';
 import {
     isHidden,
     isSegmentHidden,

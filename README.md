@@ -25,18 +25,20 @@ Any help is greatly appreciated!
 
 ## Development
 
-The code is split into two parts:
+The code is split into four parts:
 
-- `gpx-rs`: a Rust library, compiled to WebAssembly, for parsing and manipulating GPX files,
-- `website`: the website itself, which is a [SvelteKit](https://kit.svelte.dev/) application.
+- `gpx-rs`: a Rust library for parsing and manipulating GPX files (the engine), and the interface to it that the next two share (`gpx_engine::api`),
+- `wasm`: the engine for the browser, compiled to WebAssembly,
+- `tauri`: the desktop app, which runs the engine natively,
+- `website`: the website itself, which is a [SvelteKit](https://kit.svelte.dev/) application. It also is the UI of the desktop app.
 
-You will need [Node.js](https://nodejs.org/), [Rust](https://rustup.rs/) and [wasm-pack](https://rustwasm.github.io/wasm-pack/) to build and run these two parts.
+You will need [Node.js](https://nodejs.org/), [Rust](https://rustup.rs/) and [wasm-pack](https://rustwasm.github.io/wasm-pack/) to build and run the website. See [`tauri`](tauri/README.md) for the desktop app.
 
-### Building the `gpx-rs` library
+### Building the WebAssembly engine
 
 ```bash
-cd gpx-rs
-wasm-pack build wasm --target bundler --out-dir ../pkg
+cd wasm
+wasm-pack build --target bundler
 ```
 
 ### Running the website

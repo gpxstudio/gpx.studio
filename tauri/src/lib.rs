@@ -1,8 +1,8 @@
 //! The desktop shell of gpx.studio. The engine of the files (`gpx-rs/engine`) runs in this
 //! process, and the frontend talks to it through the commands of `commands`.
 
+mod bytes;
 mod commands;
-mod dto;
 mod state;
 
 use commands::*;
@@ -59,10 +59,10 @@ fn with_engine<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::Builder<
             edit::extract,
             edit::elevation,
             edit::clean,
-            routing::route,
-            routing::insert_anchor,
-            routing::change_loop_start,
-            routing::split,
+            edit::route,
+            edit::insert_anchor,
+            edit::change_loop_start,
+            edit::split,
             // queries
             queries::file_order,
             queries::file_structure,

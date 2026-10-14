@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { RouteAttributes, StorageOpened } from 'gpx-rs';
+import type { RouteAttributes, StorageOpened } from 'gpx-wasm';
 import type { Backend } from './types';
 
 /** An array that a command returns as its bytes. */

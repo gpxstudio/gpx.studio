@@ -60,7 +60,7 @@ impl App {
         let mut data = vec![];
         let mut lengths = vec![];
         for name in names {
-            let file = std::fs::read(format!("../gpx-rs/engine/data/{name}.gpx")).unwrap();
+            let file = std::fs::read(format!("../gpx-rs/data/{name}.gpx")).unwrap();
             lengths.push(file.len());
             data.extend(file);
         }
@@ -77,8 +77,10 @@ impl App {
 
 fn f64s(bytes: &[u8]) -> Vec<f64> {
     bytes
-        .chunks_exact(8)
-        .map(|chunk| f64::from_le_bytes(chunk.try_into().unwrap()))
+        .as_chunks::<8>()
+        .0
+        .iter()
+        .map(|chunk| f64::from_le_bytes(*chunk))
         .collect()
 }
 

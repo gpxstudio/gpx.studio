@@ -1,22 +1,15 @@
 //! Editing the metadata, the style, the structure and the waypoints of the files, and the tools:
 //! reversing, cropping, reducing, timestamps, merging, cleaning...
 
-use gpx_engine::{self as engine, Command, LngLat, LngLatBounds};
+use gpx_engine::{api, CleanType, MergeType, SplitType};
 use tauri::State;
 use uuid::Uuid;
 
-use crate::dto::*;
-use crate::state::{act, edit, AppState};
+use crate::state::AppState;
 
 #[tauri::command(async)]
-pub fn metadata(state: State<AppState>, name: String, desc: String) -> Outcome {
-    edit!(
-        state,
-        Command::Metadata(engine::Metadata {
-            name: &name,
-            desc: &desc,
-        })
-    )
+pub fn metadata(state: State<AppState>, name: String, desc: String) -> api::Outcome {
+    state.run(move |e| api::metadata(e, &name, &desc))
 }
 
 #[tauri::command(async)]
@@ -25,25 +18,18 @@ pub fn style(
     color: Option<String>,
     opacity: Option<f64>,
     width: Option<f64>,
-) -> Outcome {
-    edit!(
-        state,
-        Command::Style(engine::Style {
-            color: color.as_deref(),
-            opacity,
-            width,
-        })
-    )
+) -> api::Outcome {
+    state.run(move |e| api::style(e, color.as_deref(), opacity, width))
 }
 
 #[tauri::command(async)]
-pub fn new_track(state: State<AppState>) -> Outcome {
-    edit!(state, Command::NewTrack(engine::NewTrack))
+pub fn new_track(state: State<AppState>) -> api::Outcome {
+    state.run(api::new_track)
 }
 
 #[tauri::command(async)]
-pub fn new_track_segment(state: State<AppState>) -> Outcome {
-    edit!(state, Command::NewTrackSegment(engine::NewTrackSegment))
+pub fn new_track_segment(state: State<AppState>) -> api::Outcome {
+    state.run(api::new_track_segment)
 }
 
 // Waypoints
@@ -59,19 +45,8 @@ pub fn new_waypoint(
     desc: String,
     icon: String,
     link: String,
-) -> Outcome {
-    edit!(
-        state,
-        Command::NewWaypoint(engine::NewWaypoint {
-            lng,
-            lat,
-            ele,
-            name: &name,
-            desc: &desc,
-            icon: &icon,
-            link: &link,
-        })
-    )
+) -> api::Outcome {
+    state.run(move |e| api::new_waypoint(e, lng, lat, ele, &name, &desc, &icon, &link))
 }
 
 #[tauri::command(async)]
@@ -82,28 +57,13 @@ pub fn move_waypoint(
     lng: f64,
     lat: f64,
     ele: f64,
-) -> Outcome {
-    edit!(
-        state,
-        Command::MoveWaypoint(engine::MoveWaypoint {
-            file_id: engine::FileId(file_id),
-            waypoint_id: engine::WaypointId(waypoint_id),
-            lng,
-            lat,
-            ele,
-        })
-    )
+) -> api::Outcome {
+    state.run(move |e| api::move_waypoint(e, file_id, waypoint_id, lng, lat, ele))
 }
 
 #[tauri::command(async)]
-pub fn delete_waypoint(state: State<AppState>, file_id: Uuid, waypoint_id: Uuid) -> Outcome {
-    edit!(
-        state,
-        Command::DeleteWaypoint(engine::DeleteWaypoint {
-            file_id: engine::FileId(file_id),
-            waypoint_id: engine::WaypointId(waypoint_id),
-        })
-    )
+pub fn delete_waypoint(state: State<AppState>, file_id: Uuid, waypoint_id: Uuid) -> api::Outcome {
+    state.run(move |e| api::delete_waypoint(e, file_id, waypoint_id))
 }
 
 #[tauri::command(async)]
@@ -119,46 +79,43 @@ pub fn update_waypoint(
     desc: String,
     icon: String,
     link: String,
-) -> Outcome {
-    edit!(
-        state,
-        Command::EditWaypoint(engine::EditWaypoint {
-            file_id: engine::FileId(file_id),
-            waypoint_id: engine::WaypointId(waypoint_id),
+) -> api::Outcome {
+    state.run(move |e| {
+        api::update_waypoint(
+            e,
+            file_id,
+            waypoint_id,
             lng,
             lat,
             ele,
-            name: &name,
-            desc: &desc,
-            icon: &icon,
-            link: &link,
-        })
-    )
+            &name,
+            &desc,
+            &icon,
+            &link,
+        )
+    })
 }
 
 // Tools
 
 #[tauri::command(async)]
-pub fn reverse(state: State<AppState>) -> Outcome {
-    edit!(state, Command::Reverse(engine::Reverse))
+pub fn reverse(state: State<AppState>) -> api::Outcome {
+    state.run(api::reverse)
 }
 
 #[tauri::command(async)]
-pub fn round_trip(state: State<AppState>) -> Outcome {
-    edit!(state, Command::RoundTrip(engine::RoundTrip))
+pub fn round_trip(state: State<AppState>) -> api::Outcome {
+    state.run(api::round_trip)
 }
 
 #[tauri::command(async)]
-pub fn crop(state: State<AppState>, start: u32, end: u32) -> Outcome {
-    if start > end {
-        return Outcome::failed(format!("the range {start}..{end} is reversed"));
-    }
-    edit!(state, Command::Crop(engine::Crop { start, end }))
+pub fn crop(state: State<AppState>, start: u32, end: u32) -> api::Outcome {
+    state.run(move |e| api::crop(e, start, end))
 }
 
 #[tauri::command(async)]
-pub fn reduce(state: State<AppState>, tolerance: f64) -> Outcome {
-    edit!(state, Command::Reduce(engine::Reduce { tolerance }))
+pub fn reduce(state: State<AppState>, tolerance: f64) -> api::Outcome {
+    state.run(move |e| api::reduce(e, tolerance))
 }
 
 #[tauri::command(async)]
@@ -167,14 +124,8 @@ pub fn change_timestamps(
     start_time: f64,
     speed: f64,
     ratio: f64,
-) -> Outcome {
-    edit!(
-        state,
-        Command::Time(engine::Time {
-            start_time: start_time as i64,
-            kind: engine::TimeKind::Change { speed, ratio },
-        })
-    )
+) -> api::Outcome {
+    state.run(move |e| api::change_timestamps(e, start_time, speed, ratio))
 }
 
 #[tauri::command(async)]
@@ -182,35 +133,23 @@ pub fn create_artificial_timestamps(
     state: State<AppState>,
     start_time: f64,
     total_time: f64,
-) -> Outcome {
-    edit!(
-        state,
-        Command::Time(engine::Time {
-            start_time: start_time as i64,
-            kind: engine::TimeKind::Artificial { total_time },
-        })
-    )
+) -> api::Outcome {
+    state.run(move |e| api::create_artificial_timestamps(e, start_time, total_time))
 }
 
 #[tauri::command(async)]
-pub fn merge(state: State<AppState>, merge_type: MergeType, remove_gaps: bool) -> Outcome {
-    edit!(
-        state,
-        Command::Merge(engine::Merge {
-            type_: merge_type.into(),
-            remove_gaps,
-        })
-    )
+pub fn merge(state: State<AppState>, merge_type: MergeType, remove_gaps: bool) -> api::Outcome {
+    state.run(move |e| api::merge(e, merge_type, remove_gaps))
 }
 
 #[tauri::command(async)]
-pub fn extract(state: State<AppState>) -> Outcome {
-    edit!(state, Command::Extract(engine::Extract))
+pub fn extract(state: State<AppState>) -> api::Outcome {
+    state.run(api::extract)
 }
 
 #[tauri::command(async)]
-pub fn elevation(state: State<AppState>, ele: Vec<f64>) -> Outcome {
-    edit!(state, Command::Elevation(engine::Elevation { ele: &ele }))
+pub fn elevation(state: State<AppState>, ele: Vec<f64>) -> api::Outcome {
+    state.run(move |e| api::elevation(e, &ele))
 }
 
 #[tauri::command(async)]
@@ -224,23 +163,56 @@ pub fn clean(
     clean_type: CleanType,
     trkpt: bool,
     wpt: bool,
-) -> Outcome {
-    edit!(
-        state,
-        Command::Clean(engine::Clean {
-            bounds: LngLatBounds {
-                sw: LngLat {
-                    lng: west,
-                    lat: south,
-                },
-                ne: LngLat {
-                    lng: east,
-                    lat: north,
-                },
-            },
-            type_: clean_type.into(),
-            trkpt,
-            wpt,
-        })
-    )
+) -> api::Outcome {
+    state.run(move |e| api::clean(e, west, south, east, north, clean_type, trkpt, wpt))
+}
+
+// Routing
+
+#[tauri::command(async)]
+#[allow(clippy::too_many_arguments)]
+pub fn route(
+    state: State<AppState>,
+    revision: u32,
+    start: u32,
+    end: u32,
+    lng: Vec<f64>,
+    lat: Vec<f64>,
+    ele: Vec<f64>,
+    attributes: api::RouteAttributes,
+    anchors: Vec<u32>,
+) -> api::Outcome {
+    state.run(move |e| {
+        api::route(
+            e,
+            revision,
+            start,
+            end,
+            &lng,
+            &lat,
+            &ele,
+            &attributes,
+            &anchors,
+        )
+    })
+}
+
+#[tauri::command(async)]
+pub fn insert_anchor(state: State<AppState>, revision: u32, lng: f64, lat: f64) -> api::Outcome {
+    state.run(move |e| api::insert_anchor(e, revision, lng, lat))
+}
+
+#[tauri::command(async)]
+pub fn change_loop_start(state: State<AppState>, revision: u32, index: u32) -> api::Outcome {
+    state.run(move |e| api::change_loop_start(e, revision, index))
+}
+
+#[tauri::command(async)]
+pub fn split(
+    state: State<AppState>,
+    revision: u32,
+    at: u32,
+    split_type: SplitType,
+) -> api::Outcome {
+    state.run(move |e| api::split(e, revision, at, split_type))
 }

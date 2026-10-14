@@ -6,8 +6,8 @@
 use serde::Serialize;
 use tauri::State;
 
-use crate::dto::Outcome;
 use crate::state::AppState;
+use gpx_engine::api::Outcome;
 
 /// What opening the storage found.
 #[derive(Serialize)]

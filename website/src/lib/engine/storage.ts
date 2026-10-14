@@ -1,6 +1,6 @@
 import { LEGACY_IMPORTED_KEY, readLegacyData } from '$lib/storage/legacy-import';
 import { parseVisibility, VISIBILITY_KEY, type Visibility } from '$lib/engine/file-visibility';
-import type { Outcome, StorageOpened } from 'gpx-rs';
+import type { Outcome, StorageOpened } from 'gpx-wasm';
 import type { Backend } from './backend';
 
 /** Name of the IndexedDB database that keeps the files and the settings. */

@@ -6,8 +6,8 @@
  *
  *     npm run generate:example
  *
- * The engine has to be built (`wasm-pack build wasm --target bundler --out-dir ../pkg`, in
- * `gpx-rs`).
+ * The engine has to be built (`wasm-pack build --target bundler`, in
+ * `wasm`).
  */
 import fs from 'fs';
 import path from 'path';
@@ -16,26 +16,26 @@ import prettier from 'prettier';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const example = path.resolve(here, '../data/example');
-const packageDirectory = path.resolve(here, '../../../../gpx-rs/pkg');
+const packageDirectory = path.resolve(here, '../../../../wasm/pkg');
 
 export const exampleGPX = path.join(example, 'example.gpx');
 export const exampleData = path.join(example, 'example-data.ts');
 
 /** Whether the engine is built. */
 export function engineIsBuilt() {
-    return fs.existsSync(path.join(packageDirectory, 'gpx_rs_bg.wasm'));
+    return fs.existsSync(path.join(packageDirectory, 'gpx_wasm_bg.wasm'));
 }
 
 /** Loads the engine in Node: the package is made for bundlers, which import the wasm file. */
 async function loadEngine() {
-    const glue = await import(pathToFileURL(path.join(packageDirectory, 'gpx_rs_bg.js')).href);
+    const glue = await import(pathToFileURL(path.join(packageDirectory, 'gpx_wasm_bg.js')).href);
     const { instance } = await WebAssembly.instantiate(
-        fs.readFileSync(path.join(packageDirectory, 'gpx_rs_bg.wasm')),
-        { './gpx_rs_bg.js': glue }
+        fs.readFileSync(path.join(packageDirectory, 'gpx_wasm_bg.wasm')),
+        { './gpx_wasm_bg.js': glue }
     );
     glue.__wbg_set_wasm(instance.exports);
     (instance.exports.__wbindgen_start as () => void)();
-    return glue as typeof import('gpx-rs');
+    return glue as typeof import('gpx-wasm');
 }
 
 type Values = Float64Array | BigInt64Array | undefined;

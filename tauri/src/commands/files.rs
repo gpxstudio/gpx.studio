@@ -1,12 +1,11 @@
 //! Creating, loading, deleting, moving, copying and pasting files and their elements, and undoing.
 
-use gpx_engine::{self as engine, Action, Command};
+use gpx_engine::api;
 use tauri::ipc::{InvokeBody, Request};
 use tauri::State;
 use uuid::Uuid;
 
-use crate::dto::*;
-use crate::state::{act, edit, AppState};
+use crate::state::AppState;
 
 #[tauri::command(async)]
 pub fn new_file(
@@ -15,73 +14,35 @@ pub fn new_file(
     lng: Option<f64>,
     lat: Option<f64>,
     ele: Option<f64>,
-) -> Outcome {
-    let trackpoint = lng.zip(lat).map(|(lng, lat)| engine::NewTrackpoint {
-        lng,
-        lat,
-        ele: ele.unwrap_or_default(),
-    });
-    edit!(
-        state,
-        Command::New(engine::New {
-            name: &name,
-            trackpoint,
-        })
-    )
+) -> api::Outcome {
+    state.run(move |e| api::new_file(e, &name, lng, lat, ele))
 }
 
-/// The files are in the body, one after the other, the headers `lengths` and `names` (JSON) telling
-/// the number of bytes and the name of each one.
+/// The files are in the body, one after the other, the headers `lengths` and `names` (JSON,
+/// percent-encoded) telling the number of bytes and the name of each one.
 #[tauri::command(async)]
-pub fn load_files(state: State<AppState>, request: Request<'_>) -> Outcome {
+pub fn load_files(state: State<AppState>, request: Request<'_>) -> api::Outcome {
     let InvokeBody::Raw(data) = request.body() else {
-        return Outcome::failed("the files are missing");
+        return api::Outcome::failed("the files are missing");
     };
     let header = |key: &str| {
         request
             .headers()
             .get(key)
             .and_then(|value| value.to_str().ok())
-            .and_then(urlencoding_decode)
+            .and_then(percent_decode)
     };
     let (Some(lengths), Some(names)) = (
         header("lengths").and_then(|json| serde_json::from_str::<Vec<usize>>(&json).ok()),
         header("names").and_then(|json| serde_json::from_str::<Vec<String>>(&json).ok()),
     ) else {
-        return Outcome::failed("the lengths or the names of the files are not valid");
+        return api::Outcome::failed("the lengths or the names of the files are not valid");
     };
-    if lengths.len() != names.len() {
-        return Outcome::failed(format!(
-            "{} lengths for {} names",
-            lengths.len(),
-            names.len()
-        ));
-    }
-    let (data, mut offset) = (data.clone(), 0);
-    let mut ranges = Vec::with_capacity(names.len());
-    for (length, name) in lengths.iter().zip(&names) {
-        let end = offset + length;
-        if end > data.len() {
-            return Outcome::failed(format!("the data of {name} is shorter than its length"));
-        }
-        ranges.push(offset..end);
-        offset = end;
-    }
-    edit!(state, {
-        let files = ranges
-            .into_iter()
-            .zip(&names)
-            .map(|(range, name)| engine::Load {
-                data: &data[range],
-                name,
-            })
-            .collect();
-        Command::LoadFiles(engine::LoadFiles { files })
-    })
+    let data = data.clone();
+    state.run(move |e| api::load_files(e, &data, &lengths, &names))
 }
 
-/// Headers are ASCII: the frontend percent-encodes the JSON.
-fn urlencoding_decode(value: &str) -> Option<String> {
+fn percent_decode(value: &str) -> Option<String> {
     let bytes = value.as_bytes();
     let mut decoded = Vec::with_capacity(bytes.len());
     let mut i = 0;
@@ -99,63 +60,55 @@ fn urlencoding_decode(value: &str) -> Option<String> {
 }
 
 #[tauri::command(async)]
-pub fn duplicate(state: State<AppState>) -> Outcome {
-    edit!(state, Command::Duplicate(engine::Duplicate))
+pub fn duplicate(state: State<AppState>) -> api::Outcome {
+    state.run(api::duplicate)
 }
 
 #[tauri::command(async)]
-pub fn delete(state: State<AppState>, whole_files: bool) -> Outcome {
-    edit!(state, Command::Delete(engine::Delete { whole_files }))
+pub fn delete(state: State<AppState>, whole_files: bool) -> api::Outcome {
+    state.run(move |e| api::delete(e, whole_files))
 }
 
 #[tauri::command(async)]
-pub fn delete_all(state: State<AppState>) -> Outcome {
-    edit!(state, Command::DeleteAll(engine::DeleteAll))
+pub fn delete_all(state: State<AppState>) -> api::Outcome {
+    state.run(api::delete_all)
 }
 
 #[tauri::command(async)]
-pub fn reorder(state: State<AppState>, file_ids: Vec<Uuid>, index: usize) -> Outcome {
-    act!(
-        state,
-        Action::Reorder {
-            file_ids: file_ids.into_iter().map(engine::FileId).collect(),
-            index,
-        }
-    )
+pub fn reorder(state: State<AppState>, file_ids: Vec<Uuid>, index: usize) -> api::Outcome {
+    state.run(move |e| api::reorder(e, &file_ids, index))
 }
 
 #[tauri::command(async)]
-pub fn copy(state: State<AppState>) -> Outcome {
-    act!(state, Action::Copy)
+pub fn copy(state: State<AppState>) -> api::Outcome {
+    state.run(api::copy)
 }
 
 #[tauri::command(async)]
-pub fn cut(state: State<AppState>) -> Outcome {
-    act!(state, Action::Cut)
+pub fn cut(state: State<AppState>) -> api::Outcome {
+    state.run(api::cut)
 }
 
 #[tauri::command(async)]
-pub fn paste(state: State<AppState>) -> Outcome {
-    edit!(state, Command::Paste(engine::Paste))
+pub fn paste(state: State<AppState>) -> api::Outcome {
+    state.run(api::paste)
 }
 
 #[tauri::command(async)]
-pub fn move_elements(state: State<AppState>, what: Selection, to: MoveTarget) -> Outcome {
-    edit!(
-        state,
-        Command::Move(engine::Move {
-            what: what.into(),
-            to: to.into(),
-        })
-    )
+pub fn move_elements(
+    state: State<AppState>,
+    what: api::Selection,
+    to: api::MoveTarget,
+) -> api::Outcome {
+    state.run(move |e| api::move_elements(e, what, to))
 }
 
 #[tauri::command(async)]
-pub fn undo(state: State<AppState>) -> Outcome {
-    act!(state, Action::Undo)
+pub fn undo(state: State<AppState>) -> api::Outcome {
+    state.run(api::undo)
 }
 
 #[tauri::command(async)]
-pub fn redo(state: State<AppState>) -> Outcome {
-    act!(state, Action::Redo)
+pub fn redo(state: State<AppState>) -> api::Outcome {
+    state.run(api::redo)
 }

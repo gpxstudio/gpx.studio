@@ -1,7 +1,7 @@
 import type { Backend } from './types';
 import type { MergeType, SelectMode, SplitType } from '../types';
 
-type Wasm = typeof import('gpx-rs');
+type Wasm = typeof import('gpx-wasm');
 
 /** A call of the module, which is synchronous, as an asynchronous one. */
 const lift =
@@ -21,9 +21,9 @@ function idsToBytes(ids: string[]): Uint8Array {
     return bytes;
 }
 
-/** The engine in the page, as the WebAssembly module of `gpx-rs`. */
+/** The engine in the page, as the WebAssembly module of `wasm`. */
 export async function createWasmBackend(): Promise<Backend> {
-    const w: Wasm = await import('gpx-rs');
+    const w: Wasm = await import('gpx-wasm');
     w.start();
 
     const mode = (m: SelectMode) =>

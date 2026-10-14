@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import type { Clipboard, FileStructure, Selection } from 'gpx-rs';
+import type { Clipboard, FileStructure, Selection } from 'gpx-wasm';
 import type { VisibilityState } from '$lib/engine/file-visibility';
 import {
     elementId,

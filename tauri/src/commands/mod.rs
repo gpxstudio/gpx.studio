@@ -8,7 +8,6 @@
 pub mod edit;
 pub mod files;
 pub mod queries;
-pub mod routing;
 pub mod selection;
 pub mod statistics;
 pub mod storage;

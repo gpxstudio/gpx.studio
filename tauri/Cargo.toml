@@ -19,6 +19,5 @@ tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 uuid = { version = "1", features = ["serde"] }
-gpx-engine = { path = "../gpx-rs/engine" }
+gpx-engine = { path = "../gpx-rs" }
 
-[workspace]

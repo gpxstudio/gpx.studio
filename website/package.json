@@ -74,7 +74,7 @@
         "chart.js": "^4.5.1",
         "chartjs-plugin-zoom": "^2.2.0",
         "file-saver": "^2.0.5",
-        "gpx-rs": "file:../gpx-rs/pkg",
+        "gpx-wasm": "file:../wasm/pkg",
         "jszip": "^3.10.1",
         "mapillary-js": "^4.1.2",
         "maplibre-gl": "^5.21.1",

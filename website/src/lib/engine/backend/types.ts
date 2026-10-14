@@ -9,13 +9,13 @@ import type {
     StorageOpened,
     TrackpointDetails,
     WaypointDetails,
-} from 'gpx-rs';
+} from 'gpx-wasm';
 import type { MergeType, SelectMode, SplitType } from '../types';
 
 /**
  * What the facade needs of the engine of the files, wherever it runs: the WASM module in the
  * browser (`wasm.ts`), or the Rust process of the desktop app, through its commands (`tauri.ts`).
- * Both give the same results: see `gpx-rs/wasm` for what each function does.
+ * Both give the same results: see `gpx-rs/src/api` for what each function does.
  *
  * Everything is asynchronous, because the desktop app is reached through messages. Ids are
  * hyphenated UUID strings, the arrays of numbers are typed arrays, and what the functions that

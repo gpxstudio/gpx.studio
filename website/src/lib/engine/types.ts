@@ -2,7 +2,7 @@ import type { Readable } from 'svelte/store';
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
 import type { Visibility } from '$lib/engine/file-visibility';
 import type { CategoryIntervals } from '$lib/engine/trackpoint-categories';
-import type { FileStructure, GlobalStatistics } from 'gpx-rs';
+import type { FileStructure, GlobalStatistics } from 'gpx-wasm';
 
 export type {
     Clipboard,
@@ -17,7 +17,7 @@ export type {
     TrackNode,
     SegmentNode,
     WaypointNode,
-} from 'gpx-rs';
+} from 'gpx-wasm';
 
 /**
  * How a merge puts the selected elements together: `connect` makes a single segment of their

@@ -1,4 +1,4 @@
-import type { Clipboard, Selection } from 'gpx-rs';
+import type { Clipboard, Selection } from 'gpx-wasm';
 import { isHidden, waypointsKey, type VisibilityState } from '$lib/engine/file-visibility';
 
 /**

@@ -1,4 +1,4 @@
-import type { FileStructure } from 'gpx-rs';
+import type { FileStructure } from 'gpx-wasm';
 
 /**
  * Visibility the user set explicitly, by element id (file, track, segment, waypoint, or the

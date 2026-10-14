@@ -1,0 +1,234 @@
+//! The functions that read the state of the engine.
+//!
+//! The files are described by one ordered list of ids and one structure per file, so that the UI
+//! can react to what changed only: after each command, its `Outcome` tells which structures to
+//! (re)read or drop and whether the order changed. The trackpoints of a segment and the waypoints
+//! of a file are in the same order as the coordinates of their buffers.
+
+use uuid::Uuid;
+
+use super::dto::*;
+use crate::{self as engine, Engine, FileId};
+
+/// Ids of the files in display order.
+pub fn file_order(engine: &Engine) -> Vec<String> {
+    ids(engine.order())
+}
+
+/// Structure of a file, `None` if the id is unknown.
+pub fn file_structure(engine: &Engine, file_id: Uuid) -> Option<FileStructure> {
+    engine
+        .file_structure(&FileId(file_id))
+        .map(FileStructure::new)
+}
+
+/// Global statistics of a file, `None` if the id is unknown.
+pub fn file_statistics(engine: &Engine, file_id: Uuid) -> Option<GlobalStatistics> {
+    engine
+        .file_statistics(&FileId(file_id))
+        .map(|stats| GlobalStatistics::new(&stats))
+}
+
+/// The current selection.
+pub fn selection(engine: &Engine) -> Selection {
+    engine.selection().into()
+}
+
+/// What was copied or cut and is waiting to be pasted.
+pub fn clipboard(engine: &Engine) -> Option<Clipboard> {
+    engine.clipboard().map(Clipboard::new)
+}
+
+pub fn can_undo(engine: &Engine) -> bool {
+    engine.can_undo()
+}
+
+pub fn can_redo(engine: &Engine) -> bool {
+    engine.can_redo()
+}
+
+/// Whether the clipboard can be pasted with the current selection.
+pub fn can_paste(engine: &Engine) -> bool {
+    engine.can_paste()
+}
+
+/// All the data of a waypoint of a file, `None` if it does not exist.
+pub fn waypoint(engine: &Engine, file_id: Uuid, waypoint_id: Uuid) -> Option<WaypointDetails> {
+    engine
+        .waypoint(&FileId(file_id), &engine::WaypointId(waypoint_id))
+        .map(WaypointDetails::new)
+}
+
+/// A trackpoint of a segment of a file, `None` if it does not exist.
+pub fn trackpoint(
+    engine: &Engine,
+    file_id: Uuid,
+    segment_id: Uuid,
+    index: usize,
+) -> Option<TrackpointDetails> {
+    engine
+        .trackpoint(&FileId(file_id), &engine::TrackSegmentId(segment_id), index)
+        .map(TrackpointDetails::new)
+}
+
+/// A file as GPX (UTF-8 bytes), `None` if it does not exist. The options say which data of the
+/// trackpoints to keep, and with `as_route` that the segments are written as routes (`rte`)
+/// instead of tracks: the anchors are the route points, and the trackpoints between them the
+/// points of their path.
+pub fn export_file(
+    engine: &Engine,
+    file_id: Uuid,
+    options: engine::ExportOptions,
+) -> Option<Vec<u8>> {
+    engine.export(&FileId(file_id), options)
+}
+
+/// The data that some files have, so that the ones that none has are not offered when exporting
+/// them: a bit for the time (1), heart rate (2), cadence (4), temperature (8), power (16) and the
+/// OpenStreetMap data (32).
+pub fn exportable_data(engine: &Engine, file_ids: &[Uuid]) -> u8 {
+    let ids: Vec<FileId> = file_ids.iter().copied().map(FileId).collect();
+    let data = engine.exportable_data(&ids);
+    [
+        data.time, data.hr, data.cad, data.atemp, data.power, data.osm,
+    ]
+    .iter()
+    .enumerate()
+    .fold(0, |bits, (i, on)| bits | (u8::from(*on) << i))
+}
+
+/// For each trackpoint of the selection (numbered as in the statistics), the highest tolerance
+/// (m) of `reduce` that keeps it: infinite for the ends of the segments.
+pub fn reduction_distances(engine: &Engine) -> Vec<f64> {
+    engine.reduction_distances()
+}
+
+// Coordinates, as flat `[lng, lat, ...]` slices. Compare `rev` / `waypointsRev` of the file
+// structures with the previous ones to know which ones actually changed.
+
+/// Coordinates of the trackpoints of a segment (empty if the id is unknown).
+pub fn segment_coordinates(engine: &Engine, segment_id: Uuid) -> &[f64] {
+    engine.segment_coordinates(&engine::TrackSegmentId(segment_id))
+}
+
+/// Coordinates of the waypoints of a file (empty if the id is unknown).
+pub fn waypoint_coordinates(engine: &Engine, file_id: Uuid) -> &[f64] {
+    engine.waypoint_coordinates(&FileId(file_id))
+}
+
+// Statistics of the selection
+
+/// Global statistics of the whole selection (the buffers below cover it).
+pub fn selection_statistics(engine: &Engine) -> GlobalStatistics {
+    GlobalStatistics::new(&engine.statistics().global)
+}
+
+/// Global statistics of the trackpoints from `start` to `end` (both included) of the selection,
+/// as indexed by the buffers. `None` when the range is not in the selection.
+pub fn slice_statistics(engine: &Engine, start: usize, end: usize) -> Option<GlobalStatistics> {
+    engine
+        .statistics()
+        .slice(start, end)
+        .map(|stats| GlobalStatistics::new(&stats))
+}
+
+macro_rules! buffers {
+    ($($name:ident),*) => {$(
+        pub fn $name(engine: &Engine) -> &[f64] {
+            &engine.statistics().$name
+        }
+    )*};
+}
+
+// One entry per trackpoint of the selection.
+buffers!(
+    total_distance,
+    elevation_gain,
+    elevation_loss,
+    slope,
+    slope_segment_slope,
+    slope_segment_distance,
+    lng,
+    lat,
+    ele
+);
+
+macro_rules! optional_buffers {
+    ($($name:ident: $type:ty),*) => {$(
+        /// `None` when no trackpoint of the selection has the value, else an entry per trackpoint,
+        /// the missing ones being NaN (`NO_TIME` for the timestamps, 0 before the first trackpoint
+        /// that has them for the cumulative distances and durations).
+        pub fn $name(engine: &Engine) -> Option<&[$type]> {
+            engine.statistics().$name.as_deref()
+        }
+    )*};
+}
+
+optional_buffers!(moving_distance: f64, speed: f64, hr: f64, cad: f64, atemp: f64, power: f64);
+optional_buffers!(total_time: i64, moving_time: i64);
+
+/// Timestamps in milliseconds since the epoch (`NO_TIME` when missing), see `optional_buffers`.
+pub fn timestamps(engine: &Engine) -> Option<&[i64]> {
+    engine.statistics().time.as_deref()
+}
+
+// Surface, highway, SAC scale and MTB scale of the trackpoints, as intervals of trackpoints that
+// have the same value: `<name>_starts` holds the index of the first trackpoint of each interval,
+// and `<name>_values` its value (0 when unknown, else 1 + the index in the names of the category).
+// A value that is unknown for every trackpoint is a single interval.
+macro_rules! categories {
+    ($starts:ident, $values:ident, $names:ident, $field:ident) => {
+        pub fn $starts(engine: &Engine) -> &[u32] {
+            &engine.statistics().$field.starts
+        }
+
+        pub fn $values(engine: &Engine) -> &[u8] {
+            &engine.statistics().$field.values
+        }
+
+        /// The names of the category, in the order of their codes. The list only grows: a name
+        /// keeps its index.
+        pub fn $names(engine: &Engine) -> &[String] {
+            engine.categories().$field.names()
+        }
+    };
+}
+
+categories!(surface_starts, surface_values, surfaces, surface);
+categories!(highway_starts, highway_values, highways, highway);
+categories!(sac_scale_starts, sac_scale_values, sac_scales, sac_scale);
+categories!(mtb_scale_starts, mtb_scale_values, mtb_scales, mtb_scale);
+
+// The anchors of the routing tool among the trackpoints of the selection (numbered as in the
+// statistics). The ends of the segments are always anchors.
+
+/// The index in the selection of each anchor.
+pub fn anchor_indices(engine: &Engine) -> &[u32] {
+    &engine.routing().anchor_indices
+}
+
+/// The lowest map zoom level at which each anchor is shown.
+pub fn anchor_zooms(engine: &Engine) -> &[u8] {
+    &engine.routing().anchor_zooms
+}
+
+/// Index in the selection of the first trackpoint of each selected segment that has some.
+pub fn segment_starts(engine: &Engine) -> &[u32] {
+    &engine.routing().segment_starts
+}
+
+/// The id of each selected segment that has trackpoints, as `segment_starts`.
+pub fn segment_ids(engine: &Engine) -> Vec<String> {
+    engine
+        .routing()
+        .segment_ids
+        .iter()
+        .map(|id| id.0.to_string())
+        .collect()
+}
+
+/// Changes when the selected segments or their trackpoints change: the indices in the selection
+/// are only valid while it stays the same.
+pub fn routing_revision(engine: &Engine) -> u32 {
+    engine.routing().revision
+}

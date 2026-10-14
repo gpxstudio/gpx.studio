@@ -9,7 +9,7 @@ import {
 } from '$lib/engine/file-visibility';
 import { categoryIntervals } from '$lib/engine/trackpoint-categories';
 import { selectedElementIds, type FileTreeNode } from '$lib/engine/selection-helpers';
-import type { RouteAttributes } from 'gpx-rs';
+import type { RouteAttributes } from 'gpx-wasm';
 import { loadBackend, type Backend } from './backend';
 import { readFileState } from './file-state';
 import { StatisticsReader } from './statistics';

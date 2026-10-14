@@ -2,16 +2,17 @@
 //! (one per call, copies of the buffers of the engine). Optional ones start with a byte telling
 //! whether they are there.
 
+use gpx_engine::api;
 use tauri::State;
 
-use crate::dto::*;
+use crate::bytes::*;
 use crate::state::AppState;
 
 macro_rules! f64_getters {
     ($($name:ident),*) => {$(
         #[tauri::command(async)]
         pub fn $name(state: State<AppState>) -> Bytes {
-            Bytes::new(state.read(|e| f64s(&e.statistics().$name)))
+            f64s(&state.read(|e| api::$name(e).to_vec()))
         }
     )*};
 }
@@ -30,7 +31,7 @@ macro_rules! optional_f64_getters {
     ($($name:ident),*) => {$(
         #[tauri::command(async)]
         pub fn $name(state: State<AppState>) -> Bytes {
-            optional(state.read(|e| e.statistics().$name.as_deref().map(f64s)))
+            optional(state.read(|e| api::$name(e).map(f64_bytes)))
         }
     )*};
 }
@@ -40,12 +41,12 @@ optional_f64_getters!(speed, hr, cad, atemp, power);
 /// Timestamps in milliseconds since the epoch (`NO_TIME` when missing), as `i64`.
 #[tauri::command(async)]
 pub fn timestamps(state: State<AppState>) -> Bytes {
-    optional(state.read(|e| e.statistics().time.as_deref().map(i64s)))
+    optional(state.read(|e| api::timestamps(e).map(i64_bytes)))
 }
 
 #[tauri::command(async)]
-pub fn selection_statistics(state: State<AppState>) -> GlobalStatistics {
-    state.read(|e| GlobalStatistics::new(&e.statistics().global))
+pub fn selection_statistics(state: State<AppState>) -> api::GlobalStatistics {
+    state.read(api::selection_statistics)
 }
 
 #[tauri::command(async)]
@@ -53,83 +54,55 @@ pub fn slice_statistics(
     state: State<AppState>,
     start: usize,
     end: usize,
-) -> Option<GlobalStatistics> {
-    state.read(move |e| {
-        e.statistics()
-            .slice(start, end)
-            .map(|s| GlobalStatistics::new(&s))
-    })
+) -> Option<api::GlobalStatistics> {
+    state.read(move |e| api::slice_statistics(e, start, end))
 }
 
-macro_rules! intervals_getters {
-    ($starts:ident, $values:ident, $field:ident) => {
+macro_rules! category_getters {
+    ($starts:ident, $values:ident, $names:ident) => {
         #[tauri::command(async)]
         pub fn $starts(state: State<AppState>) -> Bytes {
-            Bytes::new(state.read(|e| u32s(&e.statistics().$field.starts)))
+            u32s(&state.read(|e| api::$starts(e).to_vec()))
         }
 
         #[tauri::command(async)]
         pub fn $values(state: State<AppState>) -> Bytes {
-            Bytes::new(state.read(|e| e.statistics().$field.values.clone()))
+            u8s(&state.read(|e| api::$values(e).to_vec()))
+        }
+
+        #[tauri::command(async)]
+        pub fn $names(state: State<AppState>) -> Vec<String> {
+            state.read(|e| api::$names(e).to_vec())
         }
     };
 }
 
-intervals_getters!(surface_starts, surface_values, surface);
-intervals_getters!(highway_starts, highway_values, highway);
-intervals_getters!(sac_scale_starts, sac_scale_values, sac_scale);
-intervals_getters!(mtb_scale_starts, mtb_scale_values, mtb_scale);
-
-/// The names of the categories, in the order of their codes. The lists only grow.
-#[tauri::command(async)]
-pub fn surfaces(state: State<AppState>) -> Vec<String> {
-    state.read(|e| e.categories().surface.names().to_vec())
-}
-
-#[tauri::command(async)]
-pub fn highways(state: State<AppState>) -> Vec<String> {
-    state.read(|e| e.categories().highway.names().to_vec())
-}
-
-#[tauri::command(async)]
-pub fn sac_scales(state: State<AppState>) -> Vec<String> {
-    state.read(|e| e.categories().sac_scale.names().to_vec())
-}
-
-#[tauri::command(async)]
-pub fn mtb_scales(state: State<AppState>) -> Vec<String> {
-    state.read(|e| e.categories().mtb_scale.names().to_vec())
-}
-
-// Routing buffers
+category_getters!(surface_starts, surface_values, surfaces);
+category_getters!(highway_starts, highway_values, highways);
+category_getters!(sac_scale_starts, sac_scale_values, sac_scales);
+category_getters!(mtb_scale_starts, mtb_scale_values, mtb_scales);
 
 #[tauri::command(async)]
 pub fn anchor_indices(state: State<AppState>) -> Bytes {
-    Bytes::new(state.read(|e| u32s(&e.routing().anchor_indices)))
+    u32s(&state.read(|e| api::anchor_indices(e).to_vec()))
 }
 
 #[tauri::command(async)]
 pub fn anchor_zooms(state: State<AppState>) -> Bytes {
-    Bytes::new(state.read(|e| e.routing().anchor_zooms.clone()))
+    u8s(&state.read(|e| api::anchor_zooms(e).to_vec()))
 }
 
 #[tauri::command(async)]
 pub fn segment_starts(state: State<AppState>) -> Bytes {
-    Bytes::new(state.read(|e| u32s(&e.routing().segment_starts)))
+    u32s(&state.read(|e| api::segment_starts(e).to_vec()))
 }
 
 #[tauri::command(async)]
 pub fn segment_ids(state: State<AppState>) -> Vec<String> {
-    state.read(|e| {
-        e.routing()
-            .segment_ids
-            .iter()
-            .map(|id| id.0.to_string())
-            .collect()
-    })
+    state.read(api::segment_ids)
 }
 
 #[tauri::command(async)]
 pub fn routing_revision(state: State<AppState>) -> u32 {
-    state.read(|e| e.routing().revision)
+    state.read(api::routing_revision)
 }

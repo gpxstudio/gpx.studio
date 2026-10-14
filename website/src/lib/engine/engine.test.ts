@@ -1,5 +1,5 @@
-// The frontend side of the engine, against the real engine (the WASM module of `gpx-rs`, which has
-// to be built: `wasm-pack build wasm --target bundler --out-dir ../pkg` in `gpx-rs`).
+// The frontend side of the engine, against the real engine (the WASM module of `wasm`, which has
+// to be built: `wasm-pack build --target bundler` in `wasm`).
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { beforeEach, describe, it } from 'node:test';
@@ -16,7 +16,7 @@ import {
 
 function fixture(name: string): Uint8Array {
     return new Uint8Array(
-        readFileSync(new URL(`../../../../gpx-rs/engine/data/${name}.gpx`, import.meta.url))
+        readFileSync(new URL(`../../../../gpx-rs/data/${name}.gpx`, import.meta.url))
     );
 }
 
