@@ -1,7 +1,7 @@
 //! The files, their structure and statistics, the selection, the clipboard, and the coordinates of
 //! the trackpoints and waypoints (flat `[lng, lat, ...]` little-endian `f64` arrays).
 
-use gpx_engine::{api, ExportOptions};
+use gpx_engine::{ExportOptions, api};
 use tauri::State;
 use uuid::Uuid;
 

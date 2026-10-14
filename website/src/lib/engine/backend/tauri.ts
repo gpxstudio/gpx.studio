@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { RouteAttributes, StorageOpened } from 'gpx-wasm';
-import type { Backend } from './types';
+import { listen } from '@tauri-apps/api/event';
+import type { Outcome, RouteAttributes, StorageOpened } from 'gpx-wasm';
+import type { Backend, WorkspaceState } from './types';
 
 /** An array that a command returns as its bytes. */
 const array = async <T>(
@@ -206,6 +207,21 @@ export async function createTauriBackend(): Promise<Backend> {
         segment_starts: () => u32('segment_starts'),
         segment_ids: () => invoke('segment_ids'),
         routing_revision: () => invoke('routing_revision'),
+
+        desktop: {
+            workspace: () => invoke<WorkspaceState>('workspace_state'),
+            openFiles: () => invoke<Outcome>('open_files'),
+            openFolder: (unsaved) => invoke<Outcome>('open_folder', { unsaved }),
+            closeFolder: (unsaved) => invoke<Outcome>('close_folder', { unsaved }),
+            saveFiles: (fileIds) => invoke('save_files', { fileIds }),
+            listen: async (onEngineChanged, onWorkspaceChanged, onFilesOpened) => {
+                await listen<Outcome>('files-opened', (event) => onFilesOpened(event.payload));
+                await listen<Outcome>('engine-changed', (event) => onEngineChanged(event.payload));
+                await listen<WorkspaceState>('workspace-changed', (event) =>
+                    onWorkspaceChanged(event.payload)
+                );
+            },
+        },
 
         importsLegacyData: false,
         open_storage: () => invoke<StorageOpened>('open_storage'),

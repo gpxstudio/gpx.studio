@@ -29,6 +29,8 @@ import {
     type SelectMode,
     type SplitType,
     type StatisticsRequest,
+    type UnsavedChoice,
+    type WorkspaceState,
     type TrackpointDetails,
     type WaypointDetails,
 } from './types';
@@ -60,6 +62,7 @@ class Engine {
     private _selection = writable<Selection>({ type: 'empty' });
     private _lastError = writable<string | undefined>(undefined);
     private _outdated = writable(false);
+    private _workspace = writable<WorkspaceState | undefined>(undefined);
     private _canUndo = writable(false);
     private _canRedo = writable(false);
     private _canPaste = writable(false);
@@ -74,6 +77,13 @@ class Engine {
     readonly outdated: Readable<boolean> = { subscribe: this._outdated.subscribe };
     readonly canUndo: Readable<boolean> = { subscribe: this._canUndo.subscribe };
     readonly canRedo: Readable<boolean> = { subscribe: this._canRedo.subscribe };
+    /**
+     * Where the files are on the file system, and which ones have edits that are not saved there.
+     * `undefined` unless the files are linked to the file system (the desktop app).
+     */
+    readonly workspace: Readable<WorkspaceState | undefined> = {
+        subscribe: this._workspace.subscribe,
+    };
     /** Why the last call to the engine did nothing, `undefined` if it did something. */
     readonly lastError: Readable<string | undefined> = { subscribe: this._lastError.subscribe };
     /** What was copied or cut, waiting to be pasted. */
@@ -92,8 +102,9 @@ class Engine {
 
     constructor() {
         this.ready = browser
-            ? loadBackend().then((backend) => {
+            ? loadBackend().then(async (backend) => {
                   this.backend = backend;
+                  await this.followDisk(backend);
               })
             : new Promise(() => {});
     }
@@ -533,6 +544,106 @@ class Engine {
         return this.run((b) => b.change_loop_start(revision, index));
     }
 
+    // The file system (the desktop app)
+
+    /**
+     * Opens the files that the user picks on the file system, which get selected. Resolves to the
+     * ids of the files that were added.
+     */
+    async openFiles(): Promise<string[]> {
+        return this.addedBy((b) => b.desktop!.openFiles());
+    }
+
+    /**
+     * Opens the folder that the user picks (instead of the one that was open, which is closed like
+     * `closeFolder` does, `unsaved` being what to do with its unsaved files): its files are opened,
+     * and it is watched: the files that appear, change or disappear in it are brought in the engine.
+     * New files are saved in it. Resolves to the ids of the files that were added.
+     */
+    async openFolder(unsaved?: UnsavedChoice): Promise<string[]> {
+        return this.addedBy((b) => b.desktop!.openFolder(unsaved));
+    }
+
+    /**
+     * Closes the open folder: it is not watched anymore, and its files are closed. `unsaved` says
+     * what to do with the ones that have unsaved edits: they are saved first, or their edits are
+     * discarded (they stay open when it is not said).
+     */
+    async closeFolder(unsaved?: UnsavedChoice) {
+        await this.run((b) => b.desktop!.closeFolder(unsaved));
+        await this.enqueue(async () => this.refreshWorkspace(this.backend!));
+    }
+
+    /**
+     * Writes files to the file system, replacing what is there; they are not edited anymore from
+     * then on. The user is asked where to put the ones that are not on the file system yet.
+     */
+    async save(fileIds: string[]) {
+        await this.ready;
+        await this.enqueue(async () => {
+            const backend = this.backend!;
+            try {
+                await backend.desktop!.saveFiles(fileIds);
+            } catch (error) {
+                console.error('The files could not be saved', error);
+                this._lastError.set(String(error));
+            }
+            await this.refreshWorkspace(backend);
+        });
+    }
+
+    /** Runs a call that adds files, and resolves to the ids that it added. */
+    private async addedBy(action: (backend: Backend) => Promise<Outcome>): Promise<string[]> {
+        const before = new Set(get(this._order));
+        await this.run(action);
+        return get(this._order).filter((id) => !before.has(id));
+    }
+
+    private _opened: ((ids: string[]) => void)[] = [];
+
+    /**
+     * Calls `callback` with the ids of the files that were added when the system opens files with
+     * the app (open with..., double click), which is already running to receive them. Returns what
+     * stops it.
+     */
+    onFilesOpened(callback: (ids: string[]) => void): () => void {
+        this._opened.push(callback);
+        return () => {
+            this._opened = this._opened.filter((other) => other !== callback);
+        };
+    }
+
+    private async refreshWorkspace(backend: Backend) {
+        if (backend.desktop) {
+            this._workspace.set(await backend.desktop.workspace());
+        }
+    }
+
+    /**
+     * Follows what happens on the file system when it is not the user who does it: the files that
+     * changed on the disk are brought in the engine, which says so.
+     */
+    private async followDisk(backend: Backend) {
+        if (!backend.desktop) {
+            return;
+        }
+        this._workspace.set(await backend.desktop.workspace());
+        await backend.desktop.listen(
+            (outcome) =>
+                void this.enqueue(async () => {
+                    await this.sync(backend, outcome);
+                    this.report(outcome);
+                }),
+            (workspace) => this._workspace.set(workspace),
+            (outcome) =>
+                void this.enqueue(async () => {
+                    await this.sync(backend, outcome);
+                    this.report(outcome);
+                    this._opened.forEach((callback) => callback(outcome.added));
+                })
+        );
+    }
+
     // Visibility, which is kept by the frontend and not by the engine
 
     /** Hides or shows the selected elements. */
@@ -685,10 +796,17 @@ class Engine {
         await this.ready;
         return this.enqueue(async () => {
             const backend = this.backend!;
-            const outcome = await action(backend);
-            await this.sync(backend, outcome);
-            this.report(outcome);
-            return outcome.changed;
+            try {
+                const outcome = await action(backend);
+                await this.sync(backend, outcome);
+                this.report(outcome);
+                return outcome.changed;
+            } catch (error) {
+                // what the engine refuses to do, like closing a folder whose files cannot be saved
+                console.error('engine:', error);
+                this._lastError.set(String(error));
+                return false;
+            }
         });
     }
 
@@ -767,6 +885,10 @@ class Engine {
                 files.get(id)?.set(state);
             }
         });
+
+        if (update.added.length + update.modified.length + update.removed.length > 0) {
+            await this.refreshWorkspace(backend);
+        }
 
         // the statistics depend on the selection, on its order, and on the files
         if (

@@ -5,6 +5,7 @@
 //! The commands that edit the files or change the selection return an `Outcome`.
 //! They are `async` (so they run off the main thread), the frontend sends them one after the other.
 
+pub mod disk;
 pub mod edit;
 pub mod files;
 pub mod queries;

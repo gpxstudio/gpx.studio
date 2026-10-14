@@ -1,6 +1,6 @@
 //! Changing what is selected.
 
-use gpx_engine::{api, SelectMode};
+use gpx_engine::{SelectMode, api};
 use tauri::State;
 use uuid::Uuid;
 

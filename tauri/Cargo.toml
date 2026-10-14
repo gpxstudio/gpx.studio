@@ -2,7 +2,7 @@
 name = "gpx-studio-desktop"
 version = "0.1.0"
 description = "Desktop shell for gpx.studio"
-edition = "2021"
+edition = "2024"
 
 [lib]
 name = "gpx_studio_desktop_lib"
@@ -20,4 +20,9 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 uuid = { version = "1", features = ["serde"] }
 gpx-engine = { path = "../gpx-rs" }
+pollster = "1.0.1"
+notify = "8.2.0"
+notify-debouncer-mini = "0.7.0"
+tauri-plugin-dialog = "2.8.2"
+tauri-plugin-single-instance = "2.5.3"
 

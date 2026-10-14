@@ -19,6 +19,7 @@
     import { page } from '$app/state';
     import { hoveredPoint, slicedStatistics } from '$lib/state/selection-statistics';
     import { engine } from '$lib/engine';
+    import { boundsManager } from '$lib/state/bounds';
     import { getURLForGoogleDriveFile } from '$lib/components/embedding/embedding';
 
     const outdated = engine.outdated;
@@ -38,6 +39,8 @@
     );
 
     onMount(async () => {
+        // files that the system opens with the app while it runs
+        engine.onFilesOpened((ids) => boundsManager.fitBoundsOnLoad(ids));
         settings.connect(await engine.openStorage());
 
         let files: string[] = JSON.parse(page.url.searchParams.get('files') || '[]');

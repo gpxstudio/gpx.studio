@@ -17,7 +17,7 @@ pub fn ids(items: &[FileId]) -> Vec<String> {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Outcome {
-    changed: bool,
+    pub changed: bool,
     order_changed: bool,
     selection_changed: bool,
     clipboard_changed: bool,
@@ -47,9 +47,64 @@ impl Outcome {
         }
     }
 
+    /// The outcome of a frontend that knows nothing of the engine: all the files are added, and the
+    /// order, the selection and the clipboard are to be read.
+    pub fn everything(engine: &engine::Engine) -> Self {
+        Self {
+            changed: true,
+            order_changed: true,
+            selection_changed: true,
+            clipboard_changed: true,
+            added: ids(engine.order()),
+            modified: vec![],
+            removed: vec![],
+            error: None,
+            saves: false,
+        }
+    }
+
     /// The outcome of a call that did nothing and has nothing to say.
     pub fn failed_none() -> Self {
         Self::new(&engine::Outcome::default(), None)
+    }
+
+    /// Whether the call did nothing and says why.
+    pub fn has_error(&self) -> bool {
+        self.error.is_some()
+    }
+
+    /// What two calls that were made one after the other did together.
+    pub fn merge(mut self, other: Self) -> Self {
+        fn union(into: &mut Vec<String>, from: Vec<String>) {
+            for id in from {
+                if !into.contains(&id) {
+                    into.push(id);
+                }
+            }
+        }
+        self.changed |= other.changed;
+        self.order_changed |= other.order_changed;
+        self.selection_changed |= other.selection_changed;
+        self.clipboard_changed |= other.clipboard_changed;
+        self.saves |= other.saves;
+        // a file that was added and then modified is still an added one, and one that was added
+        // and then removed is not there at all
+        let added_before = self.added.clone();
+        union(&mut self.added, other.added);
+        for id in other.modified {
+            if !self.added.contains(&id) && !self.modified.contains(&id) {
+                self.modified.push(id);
+            }
+        }
+        for id in other.removed {
+            self.added.retain(|added| *added != id);
+            self.modified.retain(|modified| *modified != id);
+            if !added_before.contains(&id) && !self.removed.contains(&id) {
+                self.removed.push(id);
+            }
+        }
+        self.error = self.error.or(other.error);
+        self
     }
 
     /// What a call that does nothing returns.

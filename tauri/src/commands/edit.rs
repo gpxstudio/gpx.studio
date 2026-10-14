@@ -1,7 +1,7 @@
 //! Editing the metadata, the style, the structure and the waypoints of the files, and the tools:
 //! reversing, cropping, reducing, timestamps, merging, cleaning...
 
-use gpx_engine::{api, CleanType, MergeType, SplitType};
+use gpx_engine::{CleanType, MergeType, SplitType, api};
 use tauri::State;
 use uuid::Uuid;
 

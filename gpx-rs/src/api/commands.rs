@@ -178,6 +178,27 @@ pub fn load_files(
     edit(engine, Command::LoadFiles(engine::LoadFiles { files }))
 }
 
+/// Brings changes of the files from the outside in (see [`engine::SyncFiles`]): each file is
+/// `(id, data, name)`, and replaces the file of that id, or is added if there is none. The files to
+/// `remove` are deleted. The selection is left alone.
+pub fn sync_files(engine: &mut Engine, files: &[(Uuid, &[u8], &str)], remove: &[Uuid]) -> Outcome {
+    let files = files
+        .iter()
+        .map(|(id, data, name)| engine::ExternalFile {
+            id: engine::FileId(*id),
+            data,
+            name,
+        })
+        .collect();
+    edit(
+        engine,
+        Command::SyncFiles(engine::SyncFiles {
+            files,
+            remove: file_ids(remove),
+        }),
+    )
+}
+
 pub fn duplicate(engine: &mut Engine) -> Outcome {
     edit(engine, Command::Duplicate(engine::Duplicate))
 }

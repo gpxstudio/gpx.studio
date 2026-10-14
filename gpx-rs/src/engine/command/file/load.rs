@@ -9,7 +9,7 @@ pub struct Load<'a> {
 }
 
 impl Load<'_> {
-    fn parse(self, categories: &mut TrackpointCategories) -> Result<File, CommandError> {
+    pub(crate) fn parse(self, categories: &mut TrackpointCategories) -> Result<File, CommandError> {
         let mut file = parse(self.data, categories)
             .map_err(|err| CommandError::InvalidData(err.to_string()))?;
         if file.info.name.trim().is_empty() {

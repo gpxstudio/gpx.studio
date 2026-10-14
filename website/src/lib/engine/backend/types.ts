@@ -12,6 +12,61 @@ import type {
 } from 'gpx-wasm';
 import type { MergeType, SelectMode, SplitType } from '../types';
 
+/** What the desktop app knows of a file of the engine and the file system. */
+export type FileStatus = {
+    /** Where the file is on the disk, absent for a file that only is in the engine. */
+    path?: string;
+    /** The file has edits that the file on the disk does not have (or is not on the disk). */
+    dirty: boolean;
+    /** The file on the disk was changed by something else while this one had edits. */
+    conflict: boolean;
+};
+
+/** What to do with the files of a folder that have unsaved edits when it is closed. */
+export type UnsavedChoice = 'save' | 'discard';
+
+export type WorkspaceState = {
+    /** The folder that is open, and watched. */
+    folder?: string;
+    files: Record<string, FileStatus>;
+};
+
+/**
+ * What the desktop app adds: its files are linked to files of the file system. Only the backend of
+ * the desktop app has it.
+ */
+export interface DesktopFiles {
+    workspace(): Promise<WorkspaceState>;
+    /** Opens the files that the user picks, which get selected. */
+    openFiles(): Promise<Outcome>;
+    /**
+     * Opens the folder that the user picks: its files are opened, and it is watched. The folder
+     * that was open is closed (see `closeFolder` for `unsaved`).
+     */
+    openFolder(unsaved?: UnsavedChoice): Promise<Outcome>;
+    /**
+     * Closes the open folder: it is not watched anymore, and its files are closed. What to do with
+     * the ones that have unsaved edits: `save` them first, `discard` the edits, or keep them open
+     * when it is not said. Rejects, and closes nothing, if they could not be saved.
+     */
+    closeFolder(unsaved?: UnsavedChoice): Promise<Outcome>;
+    /**
+     * Writes files to the disk, replacing what is there (the user is asked where to put the ones
+     * that are not on the disk yet).
+     */
+    saveFiles(fileIds: string[]): Promise<void>;
+    /**
+     * Tells when the engine changed without being asked, because the files on the disk did (the
+     * outcome to apply), when the status of the files changed, and when files were opened with the
+     * app from the system (the outcome to apply, which selected them).
+     */
+    listen(
+        onEngineChanged: (outcome: Outcome) => void,
+        onWorkspaceChanged: (workspace: WorkspaceState) => void,
+        onFilesOpened: (outcome: Outcome) => void
+    ): Promise<void>;
+}
+
 /**
  * What the facade needs of the engine of the files, wherever it runs: the WASM module in the
  * browser (`wasm.ts`), or the Rust process of the desktop app, through its commands (`tauri.ts`).
@@ -183,6 +238,9 @@ export interface Backend {
     segment_starts(): Promise<Uint32Array>;
     segment_ids(): Promise<string[]>;
     routing_revision(): Promise<number>;
+
+    /** Present when the files are linked to the file system (the desktop app). */
+    readonly desktop?: DesktopFiles;
 
     // Storage
     /**

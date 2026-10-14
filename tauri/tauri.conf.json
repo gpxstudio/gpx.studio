@@ -5,7 +5,7 @@
     "identifier": "gpx.studio",
     "build": {
         "beforeDevCommand": "npm --prefix ../website run dev -- --port 4283",
-        "devUrl": "http://localhost:4283/app",
+        "devUrl": "http://localhost:4283",
         "beforeBuildCommand": "BASE_PATH='' npm --prefix ../website run build",
         "frontendDist": "../website/build"
     },
@@ -14,7 +14,7 @@
             {
                 "label": "main",
                 "title": "gpx.studio",
-                "url": "app.html",
+                "url": "app",
                 "width": 1400,
                 "height": 900,
                 "minWidth": 800,
@@ -26,6 +26,15 @@
     "bundle": {
         "active": true,
         "targets": "all",
+        "fileAssociations": [
+            {
+                "ext": ["gpx"],
+                "name": "GPX file",
+                "description": "GPS Exchange Format",
+                "mimeType": "application/gpx+xml",
+                "role": "Editor"
+            }
+        ],
         "icon": [
             "icons/32x32.png",
             "icons/128x128.png",

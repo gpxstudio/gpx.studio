@@ -6,6 +6,7 @@ mod load;
 mod move_elements;
 mod new;
 mod paste;
+mod sync;
 mod transfer;
 
 pub use delete::*;
@@ -16,4 +17,5 @@ pub use load::*;
 pub use move_elements::*;
 pub use new::*;
 pub use paste::*;
+pub use sync::*;
 pub use transfer::*;

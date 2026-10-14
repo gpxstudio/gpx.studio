@@ -1,18 +1,19 @@
 //! The commands, called the way the frontend calls them (through the IPC of Tauri), on the sample
 //! files of the engine.
 
-use serde_json::{json, Value};
-use tauri::test::{get_ipc_response, mock_builder, mock_context, noop_assets, INVOKE_KEY};
+use serde_json::{Value, json};
+use tauri::test::{INVOKE_KEY, get_ipc_response, mock_builder, mock_context, noop_assets};
 use tauri::webview::InvokeRequest;
-use tauri::{ipc::CallbackFn, ipc::InvokeBody, ipc::InvokeResponseBody, WebviewWindow};
+use tauri::{WebviewWindow, ipc::CallbackFn, ipc::InvokeBody, ipc::InvokeResponseBody};
 
 struct App(WebviewWindow<tauri::test::MockRuntime>);
 
 impl App {
     fn new() -> Self {
-        let app = crate::with_engine(mock_builder())
-            .build(mock_context(noop_assets()))
-            .unwrap();
+        let app =
+            crate::register_commands(mock_builder().manage(crate::state::AppState::temporary()))
+                .build(mock_context(noop_assets()))
+                .unwrap();
         let window = tauri::WebviewWindowBuilder::new(&app, "main", Default::default())
             .build()
             .unwrap();
@@ -242,9 +243,11 @@ fn waypoints_exports_and_routing_revisions() {
         json!({ "fileId": file, "time": true, "hr": true, "cad": true, "atemp": true, "power": true, "osm": true, "asRoute": false }),
     );
     assert_eq!(exported[0], 1);
-    assert!(String::from_utf8(exported[1..].to_vec())
-        .unwrap()
-        .contains("<wpt"));
+    assert!(
+        String::from_utf8(exported[1..].to_vec())
+            .unwrap()
+            .contains("<wpt")
+    );
     assert_eq!(app.call("exportable_data", json!({ "fileIds": [file] })), 0);
 
     let stale = app.call(
@@ -273,4 +276,85 @@ fn keeps_settings_for_the_session() {
     );
     app.call("delete_setting", json!({ "key": "units" }));
     assert_eq!(app.call("open_storage", json!({}))["settings"], json!({}));
+}
+
+#[test]
+fn the_files_are_still_there_in_the_next_session() {
+    use crate::state::AppState;
+    use gpx_engine::api;
+
+    let directory =
+        std::env::temp_dir().join(format!("gpx-studio-session-{}", uuid::Uuid::new_v4()));
+    let data = std::fs::read("../gpx-rs/data/simple.gpx").unwrap();
+    let first = AppState::open(&directory, std::sync::Arc::new(|_, _| {})).unwrap();
+    let lengths = [data.len()];
+    let names = ["simple".to_string()];
+    first.run(move |e| api::load_files(e, &data, &lengths, &names));
+    let order = first.read(api::file_order);
+
+    let second = AppState::open(&directory, std::sync::Arc::new(|_, _| {})).unwrap();
+    assert_eq!(second.read(api::file_order), order);
+    let outcome = second.read(api::Outcome::everything);
+    assert_eq!(
+        serde_json::to_value(&outcome).unwrap()["added"],
+        serde_json::json!(order)
+    );
+    std::fs::remove_dir_all(directory).unwrap();
+}
+
+#[test]
+fn only_gpx_files_that_exist_are_taken_from_what_the_system_gives() {
+    let directory = std::env::temp_dir().join(format!("gpx-studio-args-{}", uuid::Uuid::new_v4()));
+    std::fs::create_dir_all(&directory).unwrap();
+    let track = directory.join("track.GPX");
+    std::fs::copy("../gpx-rs/data/simple.gpx", &track).unwrap();
+    let text = directory.join("notes.txt");
+    std::fs::write(&text, "x").unwrap();
+    let arguments = [
+        "--flag".to_string(),
+        track.to_string_lossy().into_owned(),
+        text.to_string_lossy().into_owned(),
+        directory.join("missing.gpx").to_string_lossy().into_owned(),
+    ];
+    assert_eq!(crate::gpx_paths(arguments), [track]);
+    std::fs::remove_dir_all(directory).unwrap();
+}
+
+#[test]
+fn a_file_opened_with_the_app_is_opened_selected_and_announced() {
+    use crate::state::AppState;
+    use gpx_engine::api;
+    use std::sync::{Arc, Mutex};
+
+    let directory = std::env::temp_dir().join(format!("gpx-studio-open-{}", uuid::Uuid::new_v4()));
+    std::fs::create_dir_all(&directory).unwrap();
+    let track = directory.join("track.gpx");
+    std::fs::copy("../gpx-rs/data/simple.gpx", &track).unwrap();
+
+    let events = Arc::new(Mutex::new(vec![]));
+    let sink = events.clone();
+    let state = AppState::open(
+        directory.join("store"),
+        Arc::new(move |name, payload| sink.lock().unwrap().push((name.to_string(), payload))),
+    )
+    .unwrap();
+    state.open_external(vec![track.clone()]);
+    // opening it again is a selection, not another file
+    state.open_external(vec![track]);
+
+    assert_eq!(state.read(api::file_order).len(), 1);
+    assert!(matches!(
+        state.read(api::selection),
+        api::Selection::File { .. }
+    ));
+    let events = events.lock().unwrap();
+    let opened: Vec<_> = events
+        .iter()
+        .filter(|(name, _)| name == "files-opened")
+        .collect();
+    assert_eq!(opened.len(), 2);
+    assert_eq!(opened[0].1["added"].as_array().unwrap().len(), 1);
+    assert!(opened[1].1["added"].as_array().unwrap().is_empty());
+    assert!(events.iter().any(|(name, _)| name == "workspace-changed"));
+    std::fs::remove_dir_all(directory).unwrap();
 }
