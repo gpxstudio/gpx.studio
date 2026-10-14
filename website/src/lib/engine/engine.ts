@@ -702,49 +702,25 @@ class Engine {
         }
     }
 
-    /** Updates what is kept of the engine with what a call changed. */
+    /**
+     * Updates what is kept of the engine with what a call changed. Everything is read first, then
+     * the stores are updated together, in one go: the readers of the stores (the file list...)
+     * rely on the order, the files and the selection being consistent when they are notified.
+     */
     private async sync(backend: Backend, update: Outcome) {
-        const [canUndo, canRedo, canPaste] = await Promise.all([
-            backend.can_undo(),
-            backend.can_redo(),
-            backend.can_paste(),
+        const [[canUndo, canRedo, canPaste], clipboard, selection, order] = await Promise.all([
+            Promise.all([backend.can_undo(), backend.can_redo(), backend.can_paste()]),
+            update.clipboardChanged ? backend.clipboard() : undefined,
+            update.selectionChanged ? backend.selection() : undefined,
+            update.orderChanged ? backend.file_order() : undefined,
         ]);
-        this._canUndo.set(canUndo);
-        this._canRedo.set(canRedo);
-        this._canPaste.set(canPaste);
-        if (update.clipboardChanged) {
-            this._clipboard.set(await backend.clipboard());
-        }
-        if (update.selectionChanged) {
-            this._selection.set(await backend.selection());
-        }
-        if (update.orderChanged) {
-            this._order.set(await backend.file_order());
-        }
-        const added: [string, FileState][] = [];
-        const addedStates = await Promise.all(
-            update.added.map((id) => readFileState(backend, id, this._colors, this._visibility))
-        );
-        update.added.forEach((id, i) => {
-            const state = addedStates[i];
-            if (state) {
-                added.push([id, state]);
-            }
-        });
-        if (added.length > 0 || update.removed.length > 0) {
-            this._files.update((files) => {
-                const next = new Map(files);
-                update.removed.forEach((id) => {
-                    next.delete(id);
-                    this._colors.release(id);
-                });
-                added.forEach(([id, state]) => next.set(id, writable(state)));
-                return next;
-            });
-        }
-        if (update.modified.length > 0) {
-            const files = get(this._files);
-            const states = await Promise.all(
+
+        const files = get(this._files);
+        const [added, modified] = await Promise.all([
+            Promise.all(
+                update.added.map((id) => readFileState(backend, id, this._colors, this._visibility))
+            ),
+            Promise.all(
                 update.modified.map((id) => {
                     const store = files.get(id);
                     return (
@@ -752,15 +728,45 @@ class Engine {
                         readFileState(backend, id, this._colors, this._visibility, get(store))
                     );
                 })
-            );
-            update.modified.forEach((id, i) => {
-                const store = files.get(id);
-                const state = states[i];
-                if (store && state) {
-                    store.set(state);
-                }
+            ),
+        ]);
+
+        this._canUndo.set(canUndo);
+        this._canRedo.set(canRedo);
+        this._canPaste.set(canPaste);
+        if (update.clipboardChanged) {
+            this._clipboard.set(clipboard);
+        }
+        if (selection) {
+            this._selection.set(selection);
+        }
+        if (order) {
+            this._order.set(order);
+        }
+        const addedStates: [string, FileState][] = [];
+        update.added.forEach((id, i) => {
+            const state = added[i];
+            if (state) {
+                addedStates.push([id, state]);
+            }
+        });
+        if (addedStates.length > 0 || update.removed.length > 0) {
+            this._files.update((files) => {
+                const next = new Map(files);
+                update.removed.forEach((id) => {
+                    next.delete(id);
+                    this._colors.release(id);
+                });
+                addedStates.forEach(([id, state]) => next.set(id, writable(state)));
+                return next;
             });
         }
+        update.modified.forEach((id, i) => {
+            const state = modified[i];
+            if (state) {
+                files.get(id)?.set(state);
+            }
+        });
 
         // the statistics depend on the selection, on its order, and on the files
         if (
