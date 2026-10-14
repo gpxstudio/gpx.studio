@@ -1,6 +1,6 @@
 import { get, writable, type Readable } from 'svelte/store';
 import { categoryIntervals, type CategoryIntervals } from '$lib/engine/trackpoint-categories';
-import type { Wasm } from './convert';
+import type { Backend } from './backend';
 import {
     EMPTY_SELECTION_STATISTICS,
     EMPTY_STATISTICS,
@@ -23,35 +23,49 @@ export class StatisticsReader {
     /** The metrics that were read for the current statistics. */
     private _loaded = new Set<StatisticsMetric>();
 
-    /** @param wasm The engine, `null` before it is loaded. */
-    constructor(private wasm: () => Wasm | null) {}
+    /** The engine, as of the last time the statistics were read. */
+    private _backend: Backend | null = null;
+
+    /** @param enqueue Does a task after the calls to the engine that were made before it. */
+    constructor(private enqueue: <T>(task: () => Promise<T>) => Promise<T>) {}
 
     /** Reads the statistics of the selection again, after it or the files changed. */
-    refresh(wasm: Wasm) {
-        this._store.set(this.read(wasm));
+    async refresh(backend: Backend) {
+        this._backend = backend;
+        this._store.set(await this.read(backend));
     }
 
     /**
      * Reads the statistics buffers of the engine (the getters copy them), but only the metrics
      * that were requested.
      */
-    private read(wasm: Wasm): SelectionStatistics {
+    private async read(backend: Backend): Promise<SelectionStatistics> {
         const version = ++this._version;
         this._loaded.clear();
-        const totalDistance = wasm.total_distance();
+        const [global, totalDistance, slope, lng, lat, ele, timestamps] = await Promise.all([
+            backend.selection_statistics(),
+            backend.total_distance(),
+            backend.slope(),
+            backend.lng(),
+            backend.lat(),
+            backend.ele(),
+            backend.timestamps(),
+        ]);
         const statistics: SelectionStatistics = {
-            global: wasm.selection_statistics() ?? EMPTY_STATISTICS,
+            global: global ?? EMPTY_STATISTICS,
             length: totalDistance.length,
             totalDistance,
-            slope: wasm.slope(),
-            lng: wasm.lng(),
-            lat: wasm.lat(),
-            ele: wasm.ele(),
-            timestamps: wasm.timestamps(),
+            slope,
+            lng,
+            lat,
+            ele,
+            timestamps,
             slice: (start, end) =>
-                version === this._version ? wasm.slice_statistics(start, end) : undefined,
+                this.enqueue(async () =>
+                    version === this._version ? backend.slice_statistics(start, end) : undefined
+                ),
         };
-        this.readMetrics(wasm, statistics, this.requestedMetrics());
+        await this.readMetrics(backend, statistics, this.requestedMetrics());
         return statistics;
     }
 
@@ -62,81 +76,95 @@ export class StatisticsReader {
     }
 
     /** Reads the metrics that were not read yet into `statistics`, which is the current one. */
-    private readMetrics(
-        wasm: Wasm,
+    private async readMetrics(
+        backend: Backend,
         statistics: SelectionStatistics,
         metrics: Set<StatisticsMetric>
     ) {
-        const categories = (
-            starts: Uint32Array,
-            values: Uint8Array,
-            names: () => string[]
-        ): CategoryIntervals => ({
-            starts,
-            values,
-            names: names(),
-        });
+        const categories = async (
+            starts: Promise<Uint32Array>,
+            values: Promise<Uint8Array>,
+            names: Promise<string[]>
+        ): Promise<CategoryIntervals> => {
+            const [s, v, n] = await Promise.all([starts, values, names]);
+            return { starts: s, values: v, names: n };
+        };
 
-        for (const metric of metrics) {
-            if (this._loaded.has(metric)) {
-                continue;
-            }
-            this._loaded.add(metric);
-            switch (metric) {
-                case 'speed':
-                    statistics.speed = wasm.speed();
-                    break;
-                case 'hr':
-                    statistics.hr = wasm.hr();
-                    break;
-                case 'cad':
-                    statistics.cad = wasm.cad();
-                    break;
-                case 'atemp':
-                    statistics.atemp = wasm.atemp();
-                    break;
-                case 'power':
-                    statistics.power = wasm.power();
-                    break;
-                case 'slopeSegment':
-                    statistics.slopeSegmentSlope = wasm.slope_segment_slope();
-                    statistics.slopeSegmentDistance = wasm.slope_segment_distance();
-                    break;
-                case 'surface':
-                    statistics.surface = categories(
-                        wasm.surface_starts(),
-                        wasm.surface_values(),
-                        wasm.surfaces
-                    );
-                    break;
-                case 'anchors':
-                    statistics.anchors = {
-                        indices: wasm.anchor_indices(),
-                        zooms: wasm.anchor_zooms(),
-                        segmentStarts: wasm.segment_starts(),
-                        segmentIds: wasm.segment_ids(),
-                        revision: wasm.routing_revision(),
-                    };
-                    break;
-                case 'highway':
-                    statistics.highway = categories(
-                        wasm.highway_starts(),
-                        wasm.highway_values(),
-                        wasm.highways
-                    );
-                    statistics.sacScale = categories(
-                        wasm.sac_scale_starts(),
-                        wasm.sac_scale_values(),
-                        wasm.sac_scales
-                    );
-                    statistics.mtbScale = categories(
-                        wasm.mtb_scale_starts(),
-                        wasm.mtb_scale_values(),
-                        wasm.mtb_scales
-                    );
-                    break;
-            }
-        }
+        const missing = [...metrics].filter((metric) => !this._loaded.has(metric));
+        missing.forEach((metric) => this._loaded.add(metric));
+        await Promise.all(
+            missing.map(async (metric) => {
+                switch (metric) {
+                    case 'speed':
+                        statistics.speed = await backend.speed();
+                        break;
+                    case 'hr':
+                        statistics.hr = await backend.hr();
+                        break;
+                    case 'cad':
+                        statistics.cad = await backend.cad();
+                        break;
+                    case 'atemp':
+                        statistics.atemp = await backend.atemp();
+                        break;
+                    case 'power':
+                        statistics.power = await backend.power();
+                        break;
+                    case 'slopeSegment':
+                        [statistics.slopeSegmentSlope, statistics.slopeSegmentDistance] =
+                            await Promise.all([
+                                backend.slope_segment_slope(),
+                                backend.slope_segment_distance(),
+                            ]);
+                        break;
+                    case 'surface':
+                        statistics.surface = await categories(
+                            backend.surface_starts(),
+                            backend.surface_values(),
+                            backend.surfaces()
+                        );
+                        break;
+                    case 'anchors': {
+                        const [indices, zooms, segmentStarts, segmentIds, revision] =
+                            await Promise.all([
+                                backend.anchor_indices(),
+                                backend.anchor_zooms(),
+                                backend.segment_starts(),
+                                backend.segment_ids(),
+                                backend.routing_revision(),
+                            ]);
+                        statistics.anchors = {
+                            indices,
+                            zooms,
+                            segmentStarts,
+                            segmentIds,
+                            revision,
+                        };
+                        break;
+                    }
+                    case 'highway':
+                        [statistics.highway, statistics.sacScale, statistics.mtbScale] =
+                            await Promise.all([
+                                categories(
+                                    backend.highway_starts(),
+                                    backend.highway_values(),
+                                    backend.highways()
+                                ),
+                                categories(
+                                    backend.sac_scale_starts(),
+                                    backend.sac_scale_values(),
+                                    backend.sac_scales()
+                                ),
+                                categories(
+                                    backend.mtb_scale_starts(),
+                                    backend.mtb_scale_values(),
+                                    backend.mtb_scales()
+                                ),
+                            ]);
+                        break;
+                }
+            })
+        );
     }
 
     /**
@@ -155,7 +183,7 @@ export class StatisticsReader {
                 for (const metric of metrics) {
                     wanted.add(metric);
                 }
-                this.loadMissing();
+                return this.loadMissing();
             },
             release: () => {
                 this._requests.delete(wanted);
@@ -164,16 +192,22 @@ export class StatisticsReader {
     }
 
     /** Reads the requested metrics that are not in the current statistics yet. */
-    private loadMissing() {
-        const wasm = this.wasm();
+    private async loadMissing() {
         const metrics = this.requestedMetrics();
-        if (!wasm || [...metrics].every((metric) => this._loaded.has(metric))) {
+        if ([...metrics].every((metric) => this._loaded.has(metric))) {
             return;
         }
-        // the buffers of the engine still are the ones of the current statistics, as they are
-        // read after every action
-        const statistics = { ...get(this._store) };
-        this.readMetrics(wasm, statistics, metrics);
-        this._store.set(statistics);
+        // queued, so that the buffers of the engine still are the ones of the current statistics:
+        // they are read after every action
+        await this.enqueue(async () => {
+            const backend = this._backend;
+            const requested = this.requestedMetrics();
+            if (!backend || [...requested].every((metric) => this._loaded.has(metric))) {
+                return;
+            }
+            const statistics = { ...get(this._store) };
+            await this.readMetrics(backend, statistics, requested);
+            this._store.set(statistics);
+        });
     }
 }

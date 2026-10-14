@@ -61,8 +61,12 @@
     function updateSlicedStatistics([startStep, endStep]: number[]) {
         if (validSelection && (startStep !== 0 || endStep !== steps)) {
             const [start, end] = [toIndex(startStep), toIndex(endStep)];
-            const global = $statistics.slice(start, end);
-            slicedStatistics.set(global && { global, start, end });
+            $statistics.slice(start, end).then((global) => {
+                // the slider may have moved since
+                if (validSelection) {
+                    slicedStatistics.set(global && { global, start, end });
+                }
+            });
         } else {
             slicedStatistics.set(undefined);
         }

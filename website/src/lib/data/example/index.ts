@@ -20,7 +20,7 @@ const cumulative = {
 };
 
 /** The statistics of the trackpoints from `start` to `end` (both included), as the engine does. */
-function slice(start: number, end: number): GlobalStatistics | undefined {
+async function slice(start: number, end: number): Promise<GlobalStatistics | undefined> {
     if (!(start >= 0 && start <= end && end < length)) {
         return undefined;
     }

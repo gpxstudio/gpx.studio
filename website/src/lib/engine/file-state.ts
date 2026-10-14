@@ -1,18 +1,19 @@
 import type { Feature, LineString } from 'geojson';
 import { normalizeColor, type FileColorAllocator } from '$lib/engine/file-colors';
 import type { Visibility } from '$lib/engine/file-visibility';
-import { toPositions, type Wasm } from './convert';
+import type { Backend } from './backend';
+import { toPositions } from './convert';
 import { EMPTY_STATISTICS, type FileState, type SegmentProperties } from './types';
 
 /** Reads the state of a file, reusing from `previous` what did not change. */
-export function readFileState(
-    wasm: Wasm,
+export async function readFileState(
+    backend: Backend,
     id: string,
     colors: FileColorAllocator,
     visibility: ReadonlyMap<string, Visibility>,
     previous?: FileState
-): FileState | null {
-    const structure = wasm.file_structure(id);
+): Promise<FileState | null> {
+    const structure = await backend.file_structure(id);
     if (!structure) {
         return null;
     }
@@ -25,7 +26,11 @@ export function readFileState(
     const previousSegments = new Map(
         previous?.segments.features.map((f) => [f.properties.segmentId, f]) ?? []
     );
-    const segments: Feature<LineString, SegmentProperties>[] = [];
+    // the coordinates of the segments that changed, read together
+    const segments: (
+        | Feature<LineString, SegmentProperties>
+        | Promise<Feature<LineString, SegmentProperties>>
+    )[] = [];
     structure.tracks.forEach((track, trackIndex) => {
         track.segments.forEach((segment, segmentIndex) => {
             const properties: SegmentProperties = {
@@ -48,17 +53,18 @@ export function readFileState(
             segments.push(
                 unchanged
                     ? old
-                    : {
+                    : backend.segment_coordinates(segment.id).then((coordinates) => ({
                           type: 'Feature',
                           geometry: {
                               type: 'LineString',
-                              coordinates: toPositions(wasm.segment_coordinates(segment.id)),
+                              coordinates: toPositions(coordinates),
                           },
                           properties,
-                      }
+                      }))
             );
         });
     });
+    const segmentFeatures = await Promise.all(segments);
 
     const previousStructure = previous?.structure;
     const waypointsUnchanged =
@@ -73,7 +79,7 @@ export function readFileState(
         );
     let waypoints = previous?.waypoints;
     if (!waypoints || !waypointsUnchanged) {
-        const coordinates = toPositions(wasm.waypoint_coordinates(id));
+        const coordinates = toPositions(await backend.waypoint_coordinates(id));
         waypoints = {
             type: 'FeatureCollection',
             features: structure.waypoints.map((waypoint, index) => ({
@@ -93,8 +99,8 @@ export function readFileState(
     return {
         structure,
         color,
-        statistics: wasm.file_statistics(id) ?? EMPTY_STATISTICS,
-        segments: { type: 'FeatureCollection', features: segments },
+        statistics: (await backend.file_statistics(id)) ?? EMPTY_STATISTICS,
+        segments: { type: 'FeatureCollection', features: segmentFeatures },
         waypoints,
         visibility: visibility.get(id) ?? new Map(),
     };

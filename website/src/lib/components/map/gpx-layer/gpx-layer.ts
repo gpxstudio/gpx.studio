@@ -393,13 +393,15 @@ export class GPXLayer {
         mapCursor.notify(MapCursorState.LAYER_HOVER, false);
     }
 
-    layerOnMouseMove(e: any) {
+    async layerOnMouseMove(e: any) {
         if (e.originalEvent.shiftKey) {
             const { segmentId } = e.features[0].properties;
             const lngLat = { lng: e.lngLat.lng, lat: e.lngLat.lat };
-            const index = closestPointIndex(engine.segmentCoordinates(segmentId), lngLat);
+            const index = closestPointIndex(await engine.segmentCoordinates(segmentId), lngLat);
             const trackpoint =
-                index === undefined ? undefined : engine.trackpoint(this.fileId, segmentId, index);
+                index === undefined
+                    ? undefined
+                    : await engine.trackpoint(this.fileId, segmentId, index);
             if (trackpoint) {
                 trackpointPopup?.setItem({
                     item: trackpoint,
@@ -469,8 +471,8 @@ export class GPXLayer {
         mapCursor.notify(MapCursorState.WAYPOINT_HOVER, true);
     }
 
-    showWaypointPopup(waypointId: string) {
-        const waypoint = engine.waypoint(this.fileId, waypointId);
+    async showWaypointPopup(waypointId: string) {
+        const waypoint = await engine.waypoint(this.fileId, waypointId);
         if (waypoint) {
             waypointPopup?.setItem({ item: waypoint, kind: 'waypoint', fileId: this.fileId });
         }

@@ -54,18 +54,32 @@
         return [];
     });
     // the data that none of them has is not offered
-    let hide: Record<keyof ExportOptions, boolean> = $derived.by(() => {
-        const available = engine.exportableData(fileIds);
-        return {
-            time: !available.time,
-            hr: !available.hr,
-            cad: !available.cad,
-            atemp: !available.atemp,
-            power: !available.power,
-            osm: !available.osm,
-            // always possible
-            asRoute: false,
-        };
+    let hide: Record<keyof ExportOptions, boolean> = $state({
+        time: false,
+        hr: false,
+        cad: false,
+        atemp: false,
+        power: false,
+        osm: false,
+        asRoute: false,
+    });
+    $effect(() => {
+        const ids = fileIds;
+        engine.exportableData(ids).then((available) => {
+            // the files may have changed since
+            if (ids === fileIds) {
+                hide = {
+                    time: !available.time,
+                    hr: !available.hr,
+                    cad: !available.cad,
+                    atemp: !available.atemp,
+                    power: !available.power,
+                    osm: !available.osm,
+                    // always possible
+                    asRoute: false,
+                };
+            }
+        });
     });
 
     $effect(() => {

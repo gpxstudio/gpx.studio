@@ -5,8 +5,8 @@ import { exampleData } from '$lib/data/example/example-data';
 import { exampleStatistics } from '$lib/data/example';
 
 describe('exampleStatistics', () => {
-    it('has the statistics of the whole example for the whole range', () => {
-        const whole = exampleStatistics.slice(0, exampleStatistics.length - 1);
+    it('has the statistics of the whole example for the whole range', async () => {
+        const whole = await exampleStatistics.slice(0, exampleStatistics.length - 1);
         const global = exampleStatistics.global;
         assert.ok(whole);
         for (const key of [
@@ -25,17 +25,17 @@ describe('exampleStatistics', () => {
         }
     });
 
-    it('has no speed for a range that does not last', () => {
-        const point = exampleStatistics.slice(20, 20);
+    it('has no speed for a range that does not last', async () => {
+        const point = await exampleStatistics.slice(20, 20);
         assert.equal(point?.totalTime, 0);
         assert.equal(point?.totalSpeed, undefined);
         assert.equal(point?.movingSpeed, undefined);
     });
 
-    it('has nothing for ranges that are not in the example', () => {
-        assert.equal(exampleStatistics.slice(5, 500), undefined);
-        assert.equal(exampleStatistics.slice(-1, 3), undefined);
-        assert.equal(exampleStatistics.slice(10, 5), undefined);
+    it('has nothing for ranges that are not in the example', async () => {
+        assert.equal(await exampleStatistics.slice(5, 500), undefined);
+        assert.equal(await exampleStatistics.slice(-1, 3), undefined);
+        assert.equal(await exampleStatistics.slice(10, 5), undefined);
     });
 
     it(

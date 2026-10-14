@@ -1,7 +1,7 @@
 import { LEGACY_IMPORTED_KEY, readLegacyData } from '$lib/storage/legacy-import';
 import { parseVisibility, VISIBILITY_KEY, type Visibility } from '$lib/engine/file-visibility';
 import type { Outcome, StorageOpened } from 'gpx-rs';
-import type { Wasm } from './convert';
+import type { Backend } from './backend';
 
 /** Name of the IndexedDB database that keeps the files and the settings. */
 const STORAGE_NAME = 'gpx-studio';
@@ -11,7 +11,7 @@ const CHANNEL_NAME = 'gpx-studio-storage';
 
 /** What opening the storage needs of the engine facade. */
 export type StorageHost = {
-    wasm: Wasm;
+    backend: Backend;
     /** The explicit visibility per file, to fill with the one that was saved. */
     visibility: Map<string, Visibility>;
     /** Applies what a call changed to what the facade keeps of the files. */
@@ -34,11 +34,11 @@ function followOtherTabs(host: StorageHost): {
     behind: () => void;
     newer: () => void;
 } {
-    const { wasm } = host;
+    const { backend } = host;
     let reading = Promise.resolve();
     const refresh = () => {
         reading = reading
-            .then(async () => host.sync(await wasm.sync_storage()))
+            .then(async () => host.sync(await backend.sync_storage()))
             .catch((error) => console.error('The files could not be read again', error));
     };
     const channel =
@@ -61,17 +61,17 @@ function followOtherTabs(host: StorageHost): {
 }
 
 /**
- * Opens the storage of the browser: the files that it holds are put in the engine, and the
+ * Opens the storage: the files that it holds are put in the engine, and the
  * changes of the files are kept from then on. Resolves to the settings, as JSON strings by key.
  *
  * The first time, what the previous versions of the app kept in the browser is imported.
  */
 export async function openStoredFiles(host: StorageHost): Promise<Record<string, string>> {
-    const { wasm } = host;
+    const { backend } = host;
     let opened: StorageOpened;
     const tabs = followOtherTabs(host);
     try {
-        opened = await wasm.open_storage(STORAGE_NAME, tabs.saved, tabs.behind, tabs.newer);
+        opened = await backend.open_storage(STORAGE_NAME, tabs.saved, tabs.behind, tabs.newer);
     } catch (error) {
         console.error('The files cannot be kept in this browser', error);
         return {};
@@ -83,16 +83,20 @@ export async function openStoredFiles(host: StorageHost): Promise<Record<string,
     );
     host.sync(opened.outcome);
 
-    if (settings[LEGACY_IMPORTED_KEY] === undefined && !host.hasFiles()) {
+    if (
+        backend.importsLegacyData &&
+        settings[LEGACY_IMPORTED_KEY] === undefined &&
+        !host.hasFiles()
+    ) {
         settings = { ...settings, ...(await importLegacyData(host)) };
-        await wasm.flush_storage();
+        await backend.flush_storage();
     }
     return settings;
 }
 
 /** Puts the files and the settings of the former database in the engine. */
 async function importLegacyData(host: StorageHost): Promise<Record<string, string>> {
-    const { wasm } = host;
+    const { backend } = host;
     const imported: Record<string, string> = {};
     try {
         const legacy = await readLegacyData();
@@ -108,7 +112,7 @@ async function importLegacyData(host: StorageHost): Promise<Record<string, strin
                 await host.deselect();
             }
             for (const [key, value] of Object.entries(legacy.settings)) {
-                wasm.set_setting(key, value);
+                await backend.set_setting(key, value);
                 imported[key] = value;
             }
         }
@@ -117,7 +121,7 @@ async function importLegacyData(host: StorageHost): Promise<Record<string, strin
         console.error('The files of the previous version could not be imported', error);
         return imported;
     }
-    wasm.set_setting(LEGACY_IMPORTED_KEY, 'true');
+    await backend.set_setting(LEGACY_IMPORTED_KEY, 'true');
     imported[LEGACY_IMPORTED_KEY] = 'true';
     return imported;
 }

@@ -152,9 +152,9 @@
                         engine.selectNode(node, 'toggle');
                     }
                 }}
-                onmouseenter={() => {
+                onmouseenter={async () => {
                     if (node.type === 'waypoint' && !isHidden(fileState, node.waypointId)) {
-                        const waypoint = engine.waypoint(node.fileId, node.waypointId);
+                        const waypoint = await engine.waypoint(node.fileId, node.waypointId);
                         if (waypoint) {
                             waypointPopup?.setItem({
                                 item: waypoint,

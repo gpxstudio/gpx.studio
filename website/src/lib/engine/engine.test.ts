@@ -218,7 +218,7 @@ describe('statistics', () => {
         assert.equal(get(engine.statistics).hr, undefined);
 
         const request = engine.requestStatistics();
-        request.set(['hr', 'anchors']);
+        await request.set(['hr', 'anchors']);
         const statistics = get(engine.statistics);
         assert.equal(statistics.hr!.length, statistics.length);
         assert.ok(statistics.hr!.some((hr) => !Number.isNaN(hr)));
@@ -239,14 +239,14 @@ describe('statistics', () => {
     it('gives the statistics of a part of the selection', async () => {
         await load('simple');
         const statistics = get(engine.statistics);
-        const part = statistics.slice(2, 5)!;
+        const part = (await statistics.slice(2, 5))!;
         assert.ok(part.totalDistance > 0);
         assert.ok(part.totalDistance < statistics.global.totalDistance);
-        assert.equal(statistics.slice(0, statistics.length + 10), undefined);
+        assert.equal(await statistics.slice(0, statistics.length + 10), undefined);
 
         // a slice is only valid for the selection it was made on
         await engine.select([]);
-        assert.equal(statistics.slice(2, 5), undefined);
+        assert.equal(await statistics.slice(2, 5), undefined);
     });
 });
 
@@ -304,7 +304,7 @@ describe('file state', () => {
         const file = fileStates()[0];
         assert.ok(file.waypoints.features.length > 0);
         const feature = file.waypoints.features[0];
-        const details = engine.waypoint(file.structure.id, feature.properties.waypointId)!;
+        const details = (await engine.waypoint(file.structure.id, feature.properties.waypointId))!;
         assert.deepEqual(feature.geometry.coordinates, [details.lng, details.lat]);
         assert.equal(feature.properties.name, details.name);
         assert.equal(details.links?.[0].href, 'https://gpx.studio');
@@ -330,23 +330,23 @@ describe('waypoints', () => {
         const id = file.waypoints.features[0].properties.waypointId;
         const fileId = file.structure.id;
 
-        let details = engine.waypoint(fileId, id)!;
+        let details = (await engine.waypoint(fileId, id))!;
         assert.equal(details.name, 'summit');
         assert.equal(details.sym, 'Summit');
         assert.equal(details.links![0].href, 'https://example.com');
 
         await engine.updateWaypoint(fileId, id, { ...waypoint, name: 'peak', link: '' });
-        details = engine.waypoint(fileId, id)!;
+        details = (await engine.waypoint(fileId, id))!;
         assert.equal(details.name, 'peak');
         assert.equal(details.links, undefined);
 
         await engine.moveWaypoint(fileId, id, 5, 51, 200);
         assert.deepEqual(fileStates()[0].waypoints.features[0].geometry.coordinates, [5, 51]);
-        assert.equal(engine.waypoint(fileId, id)!.ele, 200);
+        assert.equal((await engine.waypoint(fileId, id))!.ele, 200);
 
         await engine.deleteWaypoint(fileId, id);
         assert.equal(fileStates()[0].waypoints.features.length, 0);
-        assert.equal(engine.waypoint(fileId, id), undefined);
+        assert.equal(await engine.waypoint(fileId, id), undefined);
         assert.equal(await engine.deleteWaypoint(fileId, id), false);
     });
 });
@@ -395,8 +395,10 @@ describe('observer of the files', () => {
 });
 
 describe('export', () => {
-    const text = (id: string, options: Partial<ExportOptions> = {}) =>
-        new TextDecoder().decode(engine.exportFile(id, { ...ALL_EXPORT_OPTIONS, ...options }));
+    const text = async (id: string, options: Partial<ExportOptions> = {}) =>
+        new TextDecoder().decode(
+            await engine.exportFile(id, { ...ALL_EXPORT_OPTIONS, ...options })
+        );
 
     it('writes tracks, or routes when asked to', async () => {
         await load('with_tracks_and_segments');
@@ -407,11 +409,11 @@ describe('export', () => {
         );
         const id = file.structure.id;
 
-        const tracks = text(id);
+        const tracks = await text(id);
         assert.ok(tracks.includes('<trk>') && !tracks.includes('<rte>'));
         assert.equal(tracks.match(/<trkseg>/g)?.length, segments);
 
-        const routes = text(id, { asRoute: true });
+        const routes = await text(id, { asRoute: true });
         assert.ok(routes.includes('<rte>') && !routes.includes('<trk>'));
         assert.equal(routes.match(/<rte>/g)?.length, segments);
         assert.ok(routes.includes('<rtept'));
@@ -419,7 +421,7 @@ describe('export', () => {
 
     it('does not count the way a file is written among its data', async () => {
         await load('simple');
-        const data = engine.exportableData(get(engine.order));
+        const data = await engine.exportableData(get(engine.order));
         assert.equal(data.asRoute, false);
     });
 
@@ -427,7 +429,7 @@ describe('export', () => {
         await load('with_tracks_and_segments');
         const id = get(engine.order)[0];
         const before = fileStates()[0].segments.features.length;
-        const routes = engine.exportFile(id, { ...ALL_EXPORT_OPTIONS, asRoute: true })!;
+        const routes = (await engine.exportFile(id, { ...ALL_EXPORT_OPTIONS, asRoute: true }))!;
         await engine.loadFiles([{ data: routes, name: 'routes' }]);
         const [, loaded] = get(engine.order);
         const state = get(get(engine.files).get(loaded)!);

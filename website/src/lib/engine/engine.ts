@@ -10,7 +10,7 @@ import {
 import { categoryIntervals } from '$lib/engine/trackpoint-categories';
 import { selectedElementIds, type FileTreeNode } from '$lib/engine/selection-helpers';
 import type { RouteAttributes } from 'gpx-rs';
-import { idsToBytes, selectMode, type Wasm } from './convert';
+import { loadBackend, type Backend } from './backend';
 import { readFileState } from './file-state';
 import { StatisticsReader } from './statistics';
 import { openStoredFiles } from './storage';
@@ -34,7 +34,8 @@ import {
 } from './types';
 
 /**
- * Thin wrapper around the WASM engine.
+ * Thin wrapper around the engine of the files (the WASM module in the browser, the Rust process
+ * in the desktop app: see `backend`).
  *
  * The engine owns the files; this class mirrors what the UI needs in stores. After each action,
  * only what the engine reports as changed is read again: the order of the files, and the state
@@ -42,7 +43,9 @@ import {
  * segments and waypoints that did not change are reused.
  */
 class Engine {
-    private wasm: Wasm | null = null;
+    private backend: Backend | null = null;
+    /** The calls to the engine, one after the other: each one is applied before the next starts. */
+    private _queue: Promise<unknown> = Promise.resolve();
     /** Resolves once the engine can be used (never on the server). */
     readonly ready: Promise<void>;
 
@@ -61,7 +64,7 @@ class Engine {
     private _canRedo = writable(false);
     private _canPaste = writable(false);
     private _clipboard = writable<Clipboard | undefined>(undefined);
-    private _statistics = new StatisticsReader(() => this.wasm);
+    private _statistics = new StatisticsReader((task) => this.enqueue(task));
 
     /** Ids of the files in display order. */
     readonly order: Readable<string[]> = { subscribe: this._order.subscribe };
@@ -89,9 +92,8 @@ class Engine {
 
     constructor() {
         this.ready = browser
-            ? import('gpx-rs').then((wasm) => {
-                  wasm.start();
-                  this.wasm = wasm;
+            ? loadBackend().then((backend) => {
+                  this.backend = backend;
               })
             : new Promise(() => {});
     }
@@ -110,9 +112,9 @@ class Engine {
     openStorage(): Promise<Record<string, string>> {
         this._storage ??= this.ready.then(() =>
             openStoredFiles({
-                wasm: this.wasm!,
+                backend: this.backend!,
                 visibility: this._visibility,
-                sync: (update) => this.sync(this.wasm!, update),
+                sync: (update) => this.enqueue(() => this.sync(this.backend!, update)),
                 outdated: () => this._outdated.set(true),
                 hasFiles: () => get(this._order).length > 0,
                 loadFiles: (files) => this.loadFiles(files),
@@ -124,11 +126,11 @@ class Engine {
 
     /** Keeps a setting, `json` being its JSON. Nothing is kept before `openStorage` is done. */
     setSetting(key: string, json: string) {
-        this.wasm?.set_setting(key, json);
+        void this.backend?.set_setting(key, json);
     }
 
     deleteSetting(key: string) {
-        this.wasm?.delete_setting(key);
+        void this.backend?.delete_setting(key);
     }
 
     // Selection. Like the edits, each action resolves to whether the engine changed something.
@@ -138,7 +140,7 @@ class Engine {
      * `SelectMode` for how the files combine with the selection.
      */
     select(fileIds: string[], mode: SelectMode = 'replace') {
-        return this.run((w) => w.select(idsToBytes(fileIds), selectMode(w, mode)));
+        return this.run((b) => b.select(fileIds, mode));
     }
 
     /**
@@ -147,7 +149,7 @@ class Engine {
      * the files when nothing is selected.
      */
     selectAll() {
-        return this.run((w) => w.select_all());
+        return this.run((b) => b.select_all());
     }
 
     /**
@@ -156,13 +158,13 @@ class Engine {
      * it replaces it.
      */
     arrowSelect(down: boolean, add: boolean) {
-        return this.run((w) => w.arrow_select(down, add));
+        return this.run((b) => b.arrow_select(down, add));
     }
 
     // Selecting elements inside a file. Ids that do not exist are ignored.
 
     selectTracks(fileId: string, trackIds: string[], mode: SelectMode = 'replace') {
-        return this.run((w) => w.select_tracks(fileId, idsToBytes(trackIds), selectMode(w, mode)));
+        return this.run((b) => b.select_tracks(fileId, trackIds, mode));
     }
 
     selectSegments(
@@ -171,20 +173,16 @@ class Engine {
         segmentIds: string[],
         mode: SelectMode = 'replace'
     ) {
-        return this.run((w) =>
-            w.select_segments(fileId, trackId, idsToBytes(segmentIds), selectMode(w, mode))
-        );
+        return this.run((b) => b.select_segments(fileId, trackId, segmentIds, mode));
     }
 
     /** Selects the node standing for all the waypoints of the file. */
     selectWaypointGroup(fileId: string, mode: SelectMode = 'replace') {
-        return this.run((w) => w.select_waypoint_group(fileId, selectMode(w, mode)));
+        return this.run((b) => b.select_waypoint_group(fileId, mode));
     }
 
     selectWaypoints(fileId: string, waypointIds: string[], mode: SelectMode = 'replace') {
-        return this.run((w) =>
-            w.select_waypoints(fileId, idsToBytes(waypointIds), selectMode(w, mode))
-        );
+        return this.run((b) => b.select_waypoints(fileId, waypointIds, mode));
     }
 
     /** Selects a node of the file tree. */
@@ -206,23 +204,23 @@ class Engine {
     // History
 
     undo() {
-        return this.run((w) => w.undo());
+        return this.run((b) => b.undo());
     }
 
     redo() {
-        return this.run((w) => w.redo());
+        return this.run((b) => b.redo());
     }
 
     // Clipboard
 
     /** Puts the selected elements in the clipboard. */
     copy() {
-        return this.run((w) => w.copy());
+        return this.run((b) => b.copy());
     }
 
     /** Like `copy`, but the elements are moved when they are pasted. */
     cut() {
-        return this.run((w) => w.cut());
+        return this.run((b) => b.cut());
     }
 
     // Edits of the files
@@ -232,7 +230,7 @@ class Engine {
      * segment that hold it, in the same undo step.
      */
     newFile(name: string, trackpoint?: { lng: number; lat: number; ele?: number }) {
-        return this.run((w) => w.new_file(name, trackpoint?.lng, trackpoint?.lat, trackpoint?.ele));
+        return this.run((b) => b.new_file(name, trackpoint?.lng, trackpoint?.lat, trackpoint?.ele));
     }
 
     /**
@@ -241,24 +239,11 @@ class Engine {
      * the first one that was read is selected.
      */
     loadFiles(files: { data: Uint8Array; name: string }[]) {
-        const lengths = Uint32Array.from(files.map((file) => file.data.length));
-        const data = new Uint8Array(lengths.reduce((sum, length) => sum + length, 0));
-        let offset = 0;
-        for (const file of files) {
-            data.set(file.data, offset);
-            offset += file.data.length;
-        }
-        return this.run((w) =>
-            w.load_files(
-                data,
-                lengths,
-                files.map((file) => file.name)
-            )
-        );
+        return this.run((b) => b.load_files(files));
     }
 
     duplicate() {
-        return this.run((w) => w.duplicate());
+        return this.run((b) => b.duplicate());
     }
 
     /**
@@ -266,16 +251,16 @@ class Engine {
      * are deleted instead, even if only a track or a waypoint is selected.
      */
     delete(wholeFiles = false) {
-        return this.run((w) => w._delete(wholeFiles));
+        return this.run((b) => b.delete(wholeFiles));
     }
 
     deleteAll() {
-        return this.run((w) => w.delete_all());
+        return this.run((b) => b.delete_all());
     }
 
     /** Moves the files, in the given order, to `index` among the other files. */
     reorder(fileIds: string[], index: number) {
-        return this.run((w) => w.reorder(idsToBytes(fileIds), index));
+        return this.run((b) => b.reorder(fileIds, index));
     }
 
     /**
@@ -289,7 +274,7 @@ class Engine {
      * copied again, what was cut is moved the first time and copied after that.
      */
     paste() {
-        return this.run((w) => w.paste());
+        return this.run((b) => b.paste());
     }
 
     /**
@@ -303,7 +288,7 @@ class Engine {
      * node), among the waypoints of a file.
      */
     move(what: Selection, to: MoveTarget) {
-        return this.run((w) => w.move_elements(what, to));
+        return this.run((b) => b.move_elements(what, to));
     }
 
     // Edits of the waypoints
@@ -313,8 +298,8 @@ class Engine {
      * strings are fields that the waypoint does not have.
      */
     newWaypoint(waypoint: NewWaypoint) {
-        return this.run((w) =>
-            w.new_waypoint(
+        return this.run((b) =>
+            b.new_waypoint(
                 waypoint.lng,
                 waypoint.lat,
                 waypoint.ele,
@@ -328,8 +313,8 @@ class Engine {
 
     /** Changes a waypoint, selected or not. Empty strings remove the field. */
     updateWaypoint(fileId: string, waypointId: string, waypoint: NewWaypoint) {
-        return this.run((w) =>
-            w.update_waypoint(
+        return this.run((b) =>
+            b.update_waypoint(
                 fileId,
                 waypointId,
                 waypoint.lng,
@@ -345,22 +330,22 @@ class Engine {
 
     /** Moves a waypoint, selected or not: only its position and elevation change. */
     moveWaypoint(fileId: string, waypointId: string, lng: number, lat: number, ele: number) {
-        return this.run((w) => w.move_waypoint(fileId, waypointId, lng, lat, ele));
+        return this.run((b) => b.move_waypoint(fileId, waypointId, lng, lat, ele));
     }
 
     /** Deletes a waypoint, selected or not. */
     deleteWaypoint(fileId: string, waypointId: string) {
-        return this.run((w) => w.delete_waypoint(fileId, waypointId));
+        return this.run((b) => b.delete_waypoint(fileId, waypointId));
     }
 
     // Edits of the selection
 
     newTrack() {
-        return this.run((w) => w.new_track());
+        return this.run((b) => b.new_track());
     }
 
     newTrackSegment() {
-        return this.run((w) => w.new_track_segment());
+        return this.run((b) => b.new_track_segment());
     }
 
     /**
@@ -369,7 +354,7 @@ class Engine {
      * nothing to reverse (fewer than two trackpoints).
      */
     reverse() {
-        return this.run((w) => w.reverse());
+        return this.run((b) => b.reverse());
     }
 
     /**
@@ -378,7 +363,7 @@ class Engine {
      * Resolves to `false` when there is nothing to extract.
      */
     extract() {
-        return this.run((w) => w.extract());
+        return this.run((b) => b.extract());
     }
 
     /**
@@ -387,7 +372,7 @@ class Engine {
      * number of elevations is not the number of trackpoints.
      */
     setElevation(ele: Float64Array) {
-        return this.run((w) => w.elevation(ele));
+        return this.run((b) => b.elevation(ele));
     }
 
     /**
@@ -396,7 +381,7 @@ class Engine {
      * `speed` (km/h). Resolves to `false` when there is nothing to set, or the values are invalid.
      */
     changeTimestamps(startTime: Date, speed: number, ratio: number) {
-        return this.run((w) => w.changeTimestamps(startTime.getTime(), speed, ratio));
+        return this.run((b) => b.change_timestamps(startTime.getTime(), speed, ratio));
     }
 
     /**
@@ -405,7 +390,7 @@ class Engine {
      * nothing to set.
      */
     createArtificialTimestamps(startTime: Date, totalTime: number) {
-        return this.run((w) => w.createArtificialTimestamps(startTime.getTime(), totalTime));
+        return this.run((b) => b.create_artificial_timestamps(startTime.getTime(), totalTime));
     }
 
     /**
@@ -418,13 +403,13 @@ class Engine {
         trackpoints: boolean,
         waypoints: boolean
     ) {
-        return this.run((w) =>
-            w.clean(
+        return this.run((b) =>
+            b.clean(
                 bounds.west,
                 bounds.south,
                 bounds.east,
                 bounds.north,
-                inside ? w.CleanType.Inside : w.CleanType.Outside,
+                inside,
                 trackpoints,
                 waypoints
             )
@@ -437,9 +422,7 @@ class Engine {
      * Resolves to `false` when there is nothing to merge.
      */
     merge(type: MergeType, removeGaps = false) {
-        return this.run((w) =>
-            w.merge(type === 'connect' ? w.MergeType.Connect : w.MergeType.Group, removeGaps)
-        );
+        return this.run((b) => b.merge(type, removeGaps));
     }
 
     /**
@@ -448,7 +431,7 @@ class Engine {
      * is nothing to remove.
      */
     reduce(tolerance: number) {
-        return this.run((w) => w.reduce(tolerance));
+        return this.run((b) => b.reduce(tolerance));
     }
 
     /**
@@ -458,17 +441,7 @@ class Engine {
      * one of `SelectionAnchors`, which `at` is an index of.
      */
     split(revision: number, at: number, splitType: SplitType) {
-        return this.run((w) =>
-            w.split(
-                revision,
-                at,
-                {
-                    files: w.SplitType.Files,
-                    tracks: w.SplitType.Tracks,
-                    segments: w.SplitType.Segments,
-                }[splitType]
-            )
-        );
+        return this.run((b) => b.split(revision, at, splitType));
     }
 
     /**
@@ -478,7 +451,7 @@ class Engine {
      * the range covers the whole selection.
      */
     crop(start: number, end: number) {
-        return this.run((w) => w.crop(Math.max(start, 0), Math.max(end, 0)));
+        return this.run((b) => b.crop(Math.max(start, 0), Math.max(end, 0)));
     }
 
     /**
@@ -487,16 +460,16 @@ class Engine {
      * repeated), and goes on in time. Resolves to `false` when no segment has the two trackpoints that a way back needs.
      */
     roundTrip() {
-        return this.run((w) => w.round_trip());
+        return this.run((b) => b.round_trip());
     }
 
     metadata(name: string, desc: string) {
-        return this.run((w) => w.metadata(name, desc));
+        return this.run((b) => b.metadata(name, desc));
     }
 
     /** Only the given fields are changed. */
     style(style: { color?: string; opacity?: number; width?: number }) {
-        return this.run((w) => w.style(style.color, style.opacity, style.width));
+        return this.run((b) => b.style(style.color, style.opacity, style.width));
     }
 
     // Routing
@@ -529,8 +502,8 @@ class Engine {
                 routeAttributes[key] = intervals;
             }
         }
-        return this.run((w) =>
-            w.route(
+        return this.run((b) =>
+            b.route(
                 revision,
                 start,
                 end,
@@ -549,7 +522,7 @@ class Engine {
      * one of `SelectionAnchors`.
      */
     insertAnchor(revision: number, lng: number, lat: number) {
-        return this.run((w) => w.insert_anchor(revision, lng, lat));
+        return this.run((b) => b.insert_anchor(revision, lng, lat));
     }
 
     /**
@@ -557,7 +530,7 @@ class Engine {
      * the trackpoints before it go to the end, and the loop closes on it. `revision` is the one of `SelectionAnchors`.
      */
     changeLoopStart(revision: number, index: number) {
-        return this.run((w) => w.change_loop_start(revision, index));
+        return this.run((b) => b.change_loop_start(revision, index));
     }
 
     // Visibility, which is kept by the frontend and not by the engine
@@ -601,16 +574,20 @@ class Engine {
         }
     }
 
-    // Requests, which do not change anything
+    // Requests, which do not change anything. They wait for the calls made before them.
 
     /** All the data of a waypoint, `undefined` if it does not exist (or before the engine is loaded). */
-    waypoint(fileId: string, waypointId: string): WaypointDetails | undefined {
-        return this.wasm?.waypoint(fileId, waypointId);
+    waypoint(fileId: string, waypointId: string): Promise<WaypointDetails | undefined> {
+        return this.read((b) => b.waypoint(fileId, waypointId), undefined);
     }
 
     /** A trackpoint of a segment, `undefined` if it does not exist. */
-    trackpoint(fileId: string, segmentId: string, index: number): TrackpointDetails | undefined {
-        return this.wasm?.trackpoint(fileId, segmentId, index);
+    trackpoint(
+        fileId: string,
+        segmentId: string,
+        index: number
+    ): Promise<TrackpointDetails | undefined> {
+        return this.read((b) => b.trackpoint(fileId, segmentId, index), undefined);
     }
 
     /**
@@ -620,23 +597,26 @@ class Engine {
     exportFile(
         fileId: string,
         options: ExportOptions = ALL_EXPORT_OPTIONS
-    ): Uint8Array<ArrayBuffer> | undefined {
-        // a copy out of the memory of the engine, so a plain ArrayBuffer
-        return this.wasm?.export_file(
-            fileId,
-            options.time,
-            options.hr,
-            options.cad,
-            options.atemp,
-            options.power,
-            options.osm,
-            options.asRoute
-        ) as Uint8Array<ArrayBuffer> | undefined;
+    ): Promise<Uint8Array<ArrayBuffer> | undefined> {
+        return this.read(
+            (b) =>
+                b.export_file(
+                    fileId,
+                    options.time,
+                    options.hr,
+                    options.cad,
+                    options.atemp,
+                    options.power,
+                    options.osm,
+                    options.asRoute
+                ),
+            undefined
+        );
     }
 
     /** The data that some files have, which the options of `exportFile` can leave out. */
-    exportableData(fileIds: string[]): ExportOptions {
-        const bits = this.wasm?.exportable_data(idsToBytes(fileIds)) ?? 0;
+    async exportableData(fileIds: string[]): Promise<ExportOptions> {
+        const bits = await this.read((b) => b.exportable_data(fileIds), 0);
         return {
             time: (bits & 1) !== 0,
             hr: (bits & 2) !== 0,
@@ -654,19 +634,19 @@ class Engine {
      * (m) of `reduce` that keeps it: infinite for the ends of the segments. Not requested with
      * the statistics: ask when they changed.
      */
-    reductionDistances(): Float64Array {
-        return this.wasm?.reduction_distances() ?? new Float64Array();
+    reductionDistances(): Promise<Float64Array> {
+        return this.read((b) => b.reduction_distances(), new Float64Array());
     }
 
-    // Coordinates, as flat [lng, lat, ...] arrays. The getters copy them out of the WASM memory.
+    // Coordinates, as flat [lng, lat, ...] arrays: copies.
     // Refetch them when the `rev` of the segment (or the `waypointsRev` of the file) changed.
 
-    segmentCoordinates(segmentId: string): Float64Array {
-        return this.wasm?.segment_coordinates(segmentId) ?? new Float64Array();
+    segmentCoordinates(segmentId: string): Promise<Float64Array> {
+        return this.read((b) => b.segment_coordinates(segmentId), new Float64Array());
     }
 
-    waypointCoordinates(fileId: string): Float64Array {
-        return this.wasm?.waypoint_coordinates(fileId) ?? new Float64Array();
+    waypointCoordinates(fileId: string): Promise<Float64Array> {
+        return this.read((b) => b.waypoint_coordinates(fileId), new Float64Array());
     }
 
     /**
@@ -682,17 +662,34 @@ class Engine {
 
     // Plumbing
 
+    /** Does `task` after the ones that were queued before it, whatever they do. */
+    private enqueue<T>(task: () => Promise<T>): Promise<T> {
+        const result = this._queue.then(task, task);
+        this._queue = result.catch(() => {});
+        return result;
+    }
+
+    /**
+     * Makes a request to the engine, once the calls made before it are done. Resolves to
+     * `fallback` when the engine is not loaded.
+     */
+    private read<T>(request: (backend: Backend) => Promise<T>, fallback: T): Promise<T> {
+        return this.enqueue(async () => (this.backend ? request(this.backend) : fallback));
+    }
+
     /**
      * Makes a call to the engine and applies its outcome to what is kept of the files. Resolves to
      * whether anything changed. When nothing did, `lastError` tells why.
      */
-    private async run(action: (wasm: Wasm) => Outcome): Promise<boolean> {
+    private async run(action: (backend: Backend) => Promise<Outcome>): Promise<boolean> {
         await this.ready;
-        const wasm = this.wasm!;
-        const outcome = action(wasm);
-        this.sync(wasm, outcome);
-        this.report(outcome);
-        return outcome.changed;
+        return this.enqueue(async () => {
+            const backend = this.backend!;
+            const outcome = await action(backend);
+            await this.sync(backend, outcome);
+            this.report(outcome);
+            return outcome.changed;
+        });
     }
 
     /** Logs why a call did nothing, and keeps it in `lastError`. */
@@ -706,26 +703,34 @@ class Engine {
     }
 
     /** Updates what is kept of the engine with what a call changed. */
-    private sync(wasm: Wasm, update: Outcome) {
-        this._canUndo.set(wasm.can_undo());
-        this._canRedo.set(wasm.can_redo());
-        this._canPaste.set(wasm.can_paste());
+    private async sync(backend: Backend, update: Outcome) {
+        const [canUndo, canRedo, canPaste] = await Promise.all([
+            backend.can_undo(),
+            backend.can_redo(),
+            backend.can_paste(),
+        ]);
+        this._canUndo.set(canUndo);
+        this._canRedo.set(canRedo);
+        this._canPaste.set(canPaste);
         if (update.clipboardChanged) {
-            this._clipboard.set(wasm.clipboard());
+            this._clipboard.set(await backend.clipboard());
         }
         if (update.selectionChanged) {
-            this._selection.set(wasm.selection());
+            this._selection.set(await backend.selection());
         }
         if (update.orderChanged) {
-            this._order.set(wasm.file_order());
+            this._order.set(await backend.file_order());
         }
         const added: [string, FileState][] = [];
-        for (const id of update.added) {
-            const state = readFileState(wasm, id, this._colors, this._visibility);
+        const addedStates = await Promise.all(
+            update.added.map((id) => readFileState(backend, id, this._colors, this._visibility))
+        );
+        update.added.forEach((id, i) => {
+            const state = addedStates[i];
             if (state) {
                 added.push([id, state]);
             }
-        }
+        });
         if (added.length > 0 || update.removed.length > 0) {
             this._files.update((files) => {
                 const next = new Map(files);
@@ -739,14 +744,22 @@ class Engine {
         }
         if (update.modified.length > 0) {
             const files = get(this._files);
-            for (const id of update.modified) {
+            const states = await Promise.all(
+                update.modified.map((id) => {
+                    const store = files.get(id);
+                    return (
+                        store &&
+                        readFileState(backend, id, this._colors, this._visibility, get(store))
+                    );
+                })
+            );
+            update.modified.forEach((id, i) => {
                 const store = files.get(id);
-                const state =
-                    store && readFileState(wasm, id, this._colors, this._visibility, get(store));
+                const state = states[i];
                 if (store && state) {
                     store.set(state);
                 }
-            }
+            });
         }
 
         // the statistics depend on the selection, on its order, and on the files
@@ -755,7 +768,7 @@ class Engine {
             update.orderChanged ||
             update.added.length + update.modified.length + update.removed.length > 0
         ) {
-            this._statistics.refresh(wasm);
+            await this._statistics.refresh(backend);
         }
     }
 }

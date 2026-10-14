@@ -30,9 +30,14 @@
     let reducedLayer = new ReducedLayer();
 
     // read again only when the selection or the files change, not with the tolerance
-    let distances = $derived.by(() => {
-        void $statistics;
-        return engine.reductionDistances();
+    let distances = $state<Float64Array>(new Float64Array());
+    $effect(() => {
+        const current = $statistics;
+        engine.reductionDistances().then((values) => {
+            if (current === $statistics) {
+                distances = values;
+            }
+        });
     });
 
     $effect(() => {

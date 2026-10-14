@@ -229,7 +229,7 @@ export type SelectionStatistics = {
      * the part of the elevation profile that was dragged over. `undefined` if the range is not
      * in the selection, or if the selection is not the current one anymore.
      */
-    slice(start: number, end: number): GlobalStatistics | undefined;
+    slice(start: number, end: number): Promise<GlobalStatistics | undefined>;
 };
 
 export const EMPTY_SELECTION_STATISTICS: SelectionStatistics = {
@@ -240,12 +240,12 @@ export const EMPTY_SELECTION_STATISTICS: SelectionStatistics = {
     lng: new Float64Array(),
     lat: new Float64Array(),
     ele: new Float64Array(),
-    slice: () => undefined,
+    slice: async () => undefined,
 };
 
 export type StatisticsRequest = {
-    /** Replaces the metrics needed by this consumer. */
-    set(metrics: Iterable<StatisticsMetric>): void;
+    /** Replaces the metrics needed by this consumer. Resolves when the missing ones are read. */
+    set(metrics: Iterable<StatisticsMetric>): Promise<void>;
     /** The consumer does not need any metric anymore. */
     release(): void;
 };

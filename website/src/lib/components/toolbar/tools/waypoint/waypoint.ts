@@ -92,8 +92,8 @@ export class WaypointSelection {
         }
 
         // read again each time the file changes
-        const read = () => {
-            const waypoint = engine.waypoint(target.fileId, target.id);
+        const read = async () => {
+            const waypoint = await engine.waypoint(target.fileId, target.id);
             this._selection.set(waypoint ? { ...target, waypoint } : undefined);
         };
         const file = get(engine.files).get(target.fileId);

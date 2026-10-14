@@ -400,10 +400,13 @@ export class ElevationProfile {
                     } else if (startIndex !== endIndex) {
                         const start = Math.min(startIndex, endIndex);
                         const end = Math.max(startIndex, endIndex);
-                        const global = get(this._statistics).slice(start, end);
-                        if (global) {
-                            this._slicedStatistics.set({ global, start, end });
-                        }
+                        get(this._statistics)
+                            .slice(start, end)
+                            .then((global) => {
+                                if (global) {
+                                    this._slicedStatistics.set({ global, start, end });
+                                }
+                            });
                     }
                 }
             }

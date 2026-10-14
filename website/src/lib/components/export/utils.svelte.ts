@@ -31,11 +31,15 @@ export function allFileIds(): string[] {
 }
 
 async function exportFiles(fileIds: string[], options: ExportOptions) {
-    const files = fileIds.flatMap((fileId) => {
-        const gpx = engine.exportFile(fileId, options);
-        const name = get(engine.files).get(fileId);
-        return gpx === undefined || !name ? [] : [{ name: get(name).structure.name, gpx }];
-    });
+    const files = (
+        await Promise.all(
+            fileIds.map(async (fileId) => {
+                const gpx = await engine.exportFile(fileId, options);
+                const name = get(engine.files).get(fileId);
+                return gpx === undefined || !name ? [] : [{ name: get(name).structure.name, gpx }];
+            })
+        )
+    ).flat();
 
     if (files.length === 1) {
         const blob = new Blob([files[0].gpx], { type: 'application/gpx+xml' });
