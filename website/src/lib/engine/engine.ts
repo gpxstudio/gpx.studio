@@ -33,9 +33,6 @@ import {
     type WaypointDetails,
 } from './types';
 
-/** The error of the outcomes while the stored files come from a newer version of the app. */
-const OUTDATED = 'saved by a newer version';
-
 /**
  * Thin wrapper around the WASM engine.
  *
@@ -70,7 +67,7 @@ class Engine {
     readonly order: Readable<string[]> = { subscribe: this._order.subscribe };
     /** Statistics of what is currently selected. */
     readonly statistics: Readable<SelectionStatistics> = this._statistics.store;
-    /** Whether the stored files are from a newer version of the app: they cannot be changed. */
+    /** Whether the stored files are from a newer version of the app: changes are not kept, the page has to be reloaded. */
     readonly outdated: Readable<boolean> = { subscribe: this._outdated.subscribe };
     readonly canUndo: Readable<boolean> = { subscribe: this._canUndo.subscribe };
     readonly canRedo: Readable<boolean> = { subscribe: this._canRedo.subscribe };
@@ -116,6 +113,7 @@ class Engine {
                 wasm: this.wasm!,
                 visibility: this._visibility,
                 sync: (update) => this.sync(this.wasm!, update),
+                outdated: () => this._outdated.set(true),
                 hasFiles: () => get(this._order).length > 0,
                 loadFiles: (files) => this.loadFiles(files),
                 deselect: () => this.select([]),
@@ -702,16 +700,13 @@ class Engine {
         this._lastError.set(outcome.error);
         if (outcome.error === 'nothing to do') {
             console.debug('engine:', outcome.error);
-        } else if (outcome.error !== undefined && outcome.error !== OUTDATED) {
+        } else if (outcome.error !== undefined) {
             console.warn('engine:', outcome.error);
         }
     }
 
     /** Updates what is kept of the engine with what a call changed. */
     private sync(wasm: Wasm, update: Outcome) {
-        if (update.error === OUTDATED) {
-            this._outdated.set(true);
-        }
         this._canUndo.set(wasm.can_undo());
         this._canRedo.set(wasm.can_redo());
         this._canPaste.set(wasm.can_paste());

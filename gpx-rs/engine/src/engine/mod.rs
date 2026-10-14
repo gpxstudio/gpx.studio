@@ -27,8 +27,6 @@ pub struct Engine {
     routing_buffer: RoutingBuffer,
     categories: TrackpointCategories,
     clipboard: Option<Clipboard>,
-    /// Whether what is stored was written by a newer version (see [`Engine::mark_outdated`]).
-    outdated: bool,
 }
 
 impl Engine {
@@ -137,7 +135,6 @@ impl Engine {
     /// from the ones that were here are reported as added, removed or modified (all the files
     /// that were here, as they are not the same objects), and the order as changed if it is.
     pub fn restore(&mut self, restored: Restored) -> Outcome {
-        self.outdated = false;
         let selection_before = self.selection.clone();
         let order_before = self.order.0.clone();
         let before = self.stack.current().cloned();
@@ -164,14 +161,6 @@ impl Engine {
             selection_changed: self.selection != selection_before,
             clipboard_changed: false,
         }
-    }
-
-    /// Tells that what is stored was written by a newer version of the app, which cannot be read
-    /// (see [`crate::StorageError::Newer`]). The files are left as they are, but cannot be changed
-    /// from now on, as the changes could not be kept: [`Engine::execute`] refuses with
-    /// [`CommandError::Outdated`], until something that is not newer is restored.
-    pub fn mark_outdated(&mut self) {
-        self.outdated = true;
     }
 
     /// A file as GPX (UTF-8), `None` if it does not exist.
@@ -218,12 +207,8 @@ impl Engine {
     }
 
     /// Single entry point for every action coming from the frontend. Says what it changed, or why
-    /// it did nothing: an edit that fails or has nothing to do, or any change of the files while
-    /// they are outdated (see [`Engine::is_outdated`]).
+    /// it did nothing: an edit that fails or has nothing to do.
     pub fn execute(&mut self, action: Action) -> Result<Outcome, CommandError> {
-        if self.outdated {
-            return Err(CommandError::Outdated);
-        }
         let selection_before = self.selection.clone();
         let order_before = self.order.0.clone();
         let clipboard_before = self.clipboard.clone();

@@ -16,8 +16,6 @@ pub enum CommandError {
     NothingToDo,
     /// The input data could not be parsed.
     InvalidData(String),
-    /// The engine is in the outdated state.
-    Outdated,
 }
 
 impl fmt::Display for CommandError {
@@ -25,7 +23,6 @@ impl fmt::Display for CommandError {
         match self {
             Self::NothingToDo => write!(f, "nothing to do"),
             Self::InvalidData(err) => write!(f, "invalid data: {err}"),
-            Self::Outdated => write!(f, "saved by a newer version"),
         }
     }
 }

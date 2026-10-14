@@ -16,6 +16,8 @@ export type StorageHost = {
     visibility: Map<string, Visibility>;
     /** Applies what a call changed to what the facade keeps of the files. */
     sync(update: Outcome): void;
+    /** Tells that what is stored comes from a newer version of the app: nothing can be saved. */
+    outdated(): void;
     hasFiles(): boolean;
     loadFiles(files: { data: Uint8Array; name: string }[]): Promise<boolean>;
     deselect(): Promise<boolean>;
@@ -27,7 +29,11 @@ export type StorageHost = {
  * what they hold (see `sync_storage`). The same happens when a write of this tab is refused
  * because of that, and when the tab is shown again (a hidden tab can miss messages).
  */
-function followOtherTabs(host: StorageHost): { saved: () => void; behind: () => void } {
+function followOtherTabs(host: StorageHost): {
+    saved: () => void;
+    behind: () => void;
+    newer: () => void;
+} {
     const { wasm } = host;
     let reading = Promise.resolve();
     const refresh = () => {
@@ -47,7 +53,11 @@ function followOtherTabs(host: StorageHost): { saved: () => void; behind: () => 
             }
         });
     }
-    return { saved: () => channel?.postMessage('saved'), behind: refresh };
+    return {
+        saved: () => channel?.postMessage('saved'),
+        behind: refresh,
+        newer: () => host.outdated(),
+    };
 }
 
 /**
@@ -61,7 +71,7 @@ export async function openStoredFiles(host: StorageHost): Promise<Record<string,
     let opened: StorageOpened;
     const tabs = followOtherTabs(host);
     try {
-        opened = await wasm.open_storage(STORAGE_NAME, tabs.saved, tabs.behind);
+        opened = await wasm.open_storage(STORAGE_NAME, tabs.saved, tabs.behind, tabs.newer);
     } catch (error) {
         console.error('The files cannot be kept in this browser', error);
         return {};

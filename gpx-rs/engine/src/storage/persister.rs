@@ -171,6 +171,9 @@ impl Persister {
 
     /// Writes what changed since the last save. Nothing is written if nothing changed.
     ///
+    /// Nothing is written while what is stored comes from a newer version (`Failed(Newer)`, see
+    /// [`Persister::restore`]).
+    ///
     /// The write only happens if nothing else was committed since the persister read or wrote
     /// last: otherwise it is refused (`Stale`), nothing is written, and the persister has to read
     /// the storage again ([`Persister::restore`]) before it can write.
@@ -180,7 +183,7 @@ impl Persister {
         snapshot: Snapshot,
     ) -> Result<(), CommitError> {
         if self.read_only {
-            return Ok(());
+            return Err(StorageError::Newer.into());
         }
         let mut plan = self.plan(snapshot);
         if plan.batch.is_empty() {
@@ -525,11 +528,12 @@ mod tests {
             let result = block_on(persister.restore(&storage));
             assert_eq!(result.unwrap_err(), StorageError::Newer, "{what}");
 
-            // whatever is saved afterwards, nothing is written: the newer version needs its data
+            // whatever is saved afterwards is refused: the newer version needs its data
             let mut changed = snapshot.clone();
             changed.order.clear();
             changed.files.clear();
-            block_on(persister.save(&storage, changed)).unwrap();
+            let result = block_on(persister.save(&storage, changed));
+            assert_eq!(result, Err(CommitError::Failed(StorageError::Newer)), "{what}");
             assert!(storage.batches.borrow().is_empty(), "{what}");
             assert_eq!(storage.inner.counts(), before, "{what}");
         }

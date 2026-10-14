@@ -18,7 +18,8 @@ use crate::ts::{Outcome, StorageOpened};
 // wait: `schedule_save` starts a loop that writes what changed since the last write, until
 // nothing has. When another tab wrote in between, the write is refused (the storage has a newer
 // head than this tab last saw): the tab reads the storage again and overwrites what it holds, see
-// `sync_storage`. The settings are opaque to the engine, the frontend keeps its own copy of them.
+// `sync_storage`. When what is stored was written by a newer version of the app, the write is
+// refused too, and the frontend is told, so that it makes the user reload the page. The settings are opaque to the engine, the frontend keeps its own copy of them.
 
 thread_local! {
     static STORAGE: RefCell<Option<Rc<IdbStorage>>> = const { RefCell::new(None) };
@@ -28,8 +29,16 @@ thread_local! {
     /// Resolve functions of the promises of `flush_storage`.
     /// Called after the files were written, and when a write was refused because they were
     /// written by someone else since: see `open_storage`.
-    static LISTENERS: RefCell<Option<(js_sys::Function, js_sys::Function)>> = const { RefCell::new(None) };
+    static LISTENERS: RefCell<Option<Listeners>> = const { RefCell::new(None) };
     static WAITERS: RefCell<Vec<js_sys::Function>> = const { RefCell::new(Vec::new()) };
+}
+
+/// What the frontend is told: the files were written, a write was refused because another tab
+/// wrote since, a write was refused because what is stored comes from a newer version.
+struct Listeners {
+    saved: js_sys::Function,
+    behind: js_sys::Function,
+    newer: js_sys::Function,
 }
 
 #[wasm_bindgen]
@@ -52,7 +61,7 @@ pub(crate) fn schedule_save() {
         return;
     }
     wasm_bindgen_futures::spawn_local(async {
-        let (mut saved, mut behind) = (false, false);
+        let (mut saved, mut behind, mut newer) = (false, false, false);
         while DIRTY.replace(false) {
             let Some(storage) = storage() else { break };
             let Some(snapshot) = with_engine(Engine::snapshot) else {
@@ -71,16 +80,24 @@ pub(crate) fn schedule_save() {
                     DIRTY.set(false);
                     behind = true;
                 }
+                // nothing is written, so that the newer version finds its data again
+                Err(engine::CommitError::Failed(engine::StorageError::Newer)) => {
+                    DIRTY.set(false);
+                    newer = true;
+                }
                 // what failed is written with the next change
                 Err(error) => console_error(&error.to_string()),
             }
         }
         SAVING.set(false);
         if saved {
-            notify(|(saved, _)| saved);
+            notify(|listeners| &listeners.saved);
         }
         if behind {
-            notify(|(_, behind)| behind);
+            notify(|listeners| &listeners.behind);
+        }
+        if newer {
+            notify(|listeners| &listeners.newer);
         }
         for resolve in WAITERS.with(|waiters| std::mem::take(&mut *waiters.borrow_mut())) {
             let _ = resolve.call0(&JsValue::UNDEFINED);
@@ -88,7 +105,7 @@ pub(crate) fn schedule_save() {
     });
 }
 
-fn notify(pick: impl FnOnce(&(js_sys::Function, js_sys::Function)) -> &js_sys::Function) {
+fn notify(pick: impl FnOnce(&Listeners) -> &js_sys::Function) {
     let callback = LISTENERS.with(|l| l.borrow().as_ref().map(|l| pick(l).clone()));
     if let Some(callback) = callback {
         let _ = callback.call0(&JsValue::UNDEFINED);
@@ -98,17 +115,19 @@ fn notify(pick: impl FnOnce(&(js_sys::Function, js_sys::Function)) -> &js_sys::F
 /// Opens the database `name` (it is created if it does not exist), puts the files that it holds
 /// in the engine, which has to be empty, and returns the settings (JSON strings by key) and the
 /// outcome of putting the files in. The changes of the files that follow are saved, unless some of
-/// what is stored was written by a newer version of the app: then nothing is read, and the files
-/// cannot be changed (the outcome has the `Outdated` error), so that the newer version finds its
-/// data again.
+/// what is stored was written by a newer version of the app: then nothing is read and nothing is
+/// ever written, so that the newer version finds its data again.
 ///
-/// `on_saved` is called after the files were written (to tell the other tabs), and `on_behind` when
-/// a write was refused because another tab wrote since (call `sync_storage` then).
+/// `on_saved` is called after the files were written (to tell the other tabs), `on_behind` when
+/// a write was refused because another tab wrote since (call `sync_storage` then), and `on_newer`
+/// when what is stored comes from a newer version (now, or when it is read again): the page has to
+/// be reloaded, the changes are not kept.
 #[wasm_bindgen]
 pub async fn open_storage(
     name: &str,
     on_saved: js_sys::Function,
     on_behind: js_sys::Function,
+    on_newer: js_sys::Function,
 ) -> Result<StorageOpened, JsValue> {
     let empty = with_engine(|e| e.snapshot().files.is_empty()).unwrap_or(false);
     if !empty {
@@ -117,11 +136,22 @@ pub async fn open_storage(
     let storage = IdbStorage::open(name).await.map_err(to_js_error)?;
     let mut persister = Persister::default();
     let outcome = restore_engine(persister.restore(&storage).await).map_err(to_js_error)?;
+    let newer = outcome.is_none();
+    let outcome = outcome.unwrap_or_else(|| outcome_object(&engine::Outcome::default(), None));
     let settings = storage.load_settings().await.map_err(to_js_error)?;
 
     PERSISTER.with(|slot| *slot.borrow_mut() = Some(persister));
     STORAGE.with(|slot| *slot.borrow_mut() = Some(Rc::new(storage)));
-    LISTENERS.with(|slot| *slot.borrow_mut() = Some((on_saved, on_behind)));
+    LISTENERS.with(|slot| {
+        *slot.borrow_mut() = Some(Listeners {
+            saved: on_saved,
+            behind: on_behind,
+            newer: on_newer,
+        })
+    });
+    if newer {
+        notify(|listeners| &listeners.newer);
+    }
 
     let settings_object = Object::new();
     for (key, value) in settings {
@@ -134,20 +164,19 @@ pub async fn open_storage(
 }
 
 /// Overwrites the files of the engine with what was read, and tells what that did. If what is
-/// stored comes from a newer version of the app, the files are left as they are and cannot be
-/// changed anymore: the error of the outcome says so, as for the edits that are refused afterwards.
+/// stored comes from a newer version of the app, the files are left as they are and `None` is
+/// returned: the persister does not write anymore (see `Persister::save`).
 fn restore_engine(
     read: Result<engine::Restored, engine::StorageError>,
-) -> Result<Outcome, engine::StorageError> {
+) -> Result<Option<Outcome>, engine::StorageError> {
     match read {
-        Ok(restored) => Ok(match with_engine_mut(|engine| engine.restore(restored)) {
-            Some(outcome) => outcome_object(&outcome, None),
-            None => outcome_object(&engine::Outcome::default(), None),
-        }),
-        Err(engine::StorageError::Newer) => {
-            with_engine_mut(Engine::mark_outdated);
-            Ok(fail(engine::CommandError::Outdated.to_string()))
-        }
+        Ok(restored) => Ok(Some(
+            match with_engine_mut(|engine| engine.restore(restored)) {
+                Some(outcome) => outcome_object(&outcome, None),
+                None => outcome_object(&engine::Outcome::default(), None),
+            },
+        )),
+        Err(engine::StorageError::Newer) => Ok(None),
         Err(error) => Err(error),
     }
 }
@@ -191,7 +220,10 @@ pub async fn sync_storage() -> Result<Outcome, JsValue> {
         }
         let outcome = restore_engine(persister.restore(&*storage).await)?;
         DIRTY.set(false);
-        Ok(outcome)
+        if outcome.is_none() {
+            notify(|listeners| &listeners.newer);
+        }
+        Ok(outcome.unwrap_or_else(|| outcome_object(&engine::Outcome::default(), None)))
     }
     .await;
     PERSISTER.with(|slot| *slot.borrow_mut() = Some(persister));

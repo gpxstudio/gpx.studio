@@ -1434,36 +1434,3 @@ fn test_overwriting_forgets_the_history() {
     engine.restore(restored_from(&engine, &ids, vec![]));
     assert!(!engine.can_undo());
 }
-
-#[test]
-fn test_files_cannot_be_changed_when_what_is_stored_is_from_a_newer_version() {
-    let mut engine = TestEngine::default();
-    new(&mut engine, "file");
-    let id = engine.order()[0];
-
-    engine.mark_outdated();
-
-    for action in [
-        Action::Edit(Command::Reverse(crate::Reverse)),
-        Action::Undo,
-        Action::Redo,
-        Action::Reorder {
-            file_ids: vec![id],
-            index: 0,
-        },
-    ] {
-        assert_eq!(engine.execute(action), Err(CommandError::Outdated));
-    }
-    assert_eq!(engine.order(), [id]);
-
-    // so is anything else, the selection included
-    let result = engine.execute(Action::Select {
-        selection: Selection::Empty,
-        mode: SelectMode::Replace,
-    });
-    assert_eq!(result, Err(CommandError::Outdated));
-
-    // reading a storage that is not newer lifts it
-    engine.restore(restored_from(&engine, &[id], vec![]));
-    assert_ne!(engine.execute(Action::Undo), Err(CommandError::Outdated));
-}
