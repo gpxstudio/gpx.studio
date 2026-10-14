@@ -1,8 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::{
-    FileId, FileWaypointsRevisionId, StackEntry as Files, TrackSegmentId, TrackSegmentRevisionId,
-};
+use crate::{FileId, FileWaypointsRevisionId, Files, TrackSegmentId, TrackSegmentRevisionId};
 
 /// Coordinates buffers, as flat `[lng, lat, lng, lat, ...]` arrays so that they can be handed
 /// to the UI without per-point calls: one per track segment (its trackpoints) and one per file

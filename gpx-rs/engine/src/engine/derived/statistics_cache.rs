@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet, hash_map::Entry};
 
 use crate::{
-    File, FileId, GlobalStatistics, Selection, StackEntry, Statistics, Track, TrackSegment,
+    File, FileId, Files, GlobalStatistics, Selection, Statistics, Track, TrackSegment,
     TrackSegmentRevisionId,
 };
 
@@ -14,7 +14,7 @@ pub struct StatisticsCache {
 }
 
 impl StatisticsCache {
-    pub fn update(&mut self, state: Option<&StackEntry>) {
+    pub fn update(&mut self, state: Option<&Files>) {
         let mut stale: HashSet<TrackSegmentRevisionId> = self.map.keys().copied().collect();
         if let Some(state) = state {
             for file in state.values() {
@@ -40,7 +40,7 @@ impl StatisticsCache {
     /// Statistics of the segments of the selection.
     pub fn get<'a>(
         &'a self,
-        state: Option<&'a StackEntry>,
+        state: Option<&'a Files>,
         selection: &Selection,
     ) -> Vec<&'a Statistics> {
         self.selected(state, selection, &[])
@@ -53,7 +53,7 @@ impl StatisticsCache {
     /// files follow `order` (the files missing from it come last).
     pub fn selected<'a>(
         &'a self,
-        state: Option<&'a StackEntry>,
+        state: Option<&'a Files>,
         selection: &Selection,
         order: &[FileId],
     ) -> Vec<SelectedSegment<'a>> {
@@ -159,10 +159,10 @@ mod tests {
 
     use super::*;
 
-    fn state(path: &str) -> (StackEntry, Rc<File>) {
+    fn state(path: &str) -> (Files, Rc<File>) {
         let data = std::fs::read(path).unwrap();
         let file = Rc::new(parse(&data, &mut Default::default()).unwrap());
-        let mut state = StackEntry::default();
+        let mut state = Files::default();
         state.insert(file.id, file.clone());
         (state, file)
     }
@@ -235,7 +235,7 @@ mod tests {
         let before: *const Statistics = cache.get(Some(&state), &file_selection(file.id))[0];
 
         // a new snapshot of the file that shares its segments (same revision ids)
-        let mut next = StackEntry::default();
+        let mut next = Files::default();
         let renamed = {
             let mut f = (*file).clone();
             f.info.name = "other".to_string();
@@ -258,7 +258,7 @@ mod tests {
         let mut f = (*file).clone();
         f.trk[0].trkseg[0].rev_id = Default::default();
         let new_rev = f.trk[0].trkseg[0].rev_id;
-        let mut next = StackEntry::default();
+        let mut next = Files::default();
         next.insert(f.id, Rc::new(f));
         cache.update(Some(&next));
         assert!(cache.map.contains_key(&new_rev));

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{File, FileId, Selection, StackEntry, State, Track, TrackSegment, Waypoint};
+use crate::{File, FileId, Files, Selection, State, Track, TrackSegment, Waypoint};
 
 /// What an [`Editor`] hook did to the element it was given.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -70,7 +70,7 @@ fn edit_where<T>(
 
 /// Edits a copy of the file (cheap, track points are shared chunks) and stores it back as a
 /// new snapshot only if something changed.
-fn update_file(files: &mut StackEntry, id: FileId, f: impl FnOnce(&mut File) -> Edit) {
+fn update_file(files: &mut Files, id: FileId, f: impl FnOnce(&mut File) -> Edit) {
     let Some(current) = files.get(&id) else {
         return;
     };

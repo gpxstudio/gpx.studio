@@ -1,7 +1,7 @@
 use std::{collections::HashSet, rc::Rc};
 
 use crate::{
-    Apply, CommandError, FileId, Selection, StackEntry, State, Waypoint, copy_file, copy_segment,
+    Apply, CommandError, FileId, Files, Selection, State, Waypoint, copy_file, copy_segment,
     copy_track, copy_waypoint,
 };
 
@@ -107,7 +107,7 @@ impl Apply for Duplicate {
 }
 
 fn duplicate_waypoints(
-    files: &mut StackEntry,
+    files: &mut Files,
     file_id: FileId,
     filter: impl Fn(&Waypoint) -> bool,
 ) -> Result<Selection, CommandError> {

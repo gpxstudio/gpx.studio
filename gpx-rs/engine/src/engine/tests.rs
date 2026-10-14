@@ -120,7 +120,7 @@ fn test_load_file() {
 fn test_new_file_has_no_statistics() {
     let mut engine = TestEngine::default();
     assert!(new(&mut engine, "empty"));
-    assert_eq!(engine.stack.current().unwrap().len(), 1);
+    assert_eq!(engine.history.current().unwrap().len(), 1);
     assert_eq!(engine.order.0.len(), 1);
     assert!(engine.statistics().total_distance.is_empty());
 }
@@ -135,7 +135,7 @@ fn test_statistics_follow_selection() {
     // a newly created (empty) file becomes the selection
     assert!(new(&mut engine, "empty"));
     assert!(engine.statistics().total_distance.is_empty());
-    assert_eq!(engine.stack.current().unwrap().len(), 2);
+    assert_eq!(engine.history.current().unwrap().len(), 2);
 
     // loading a file selects it again
     assert!(load(&mut engine, "data/simple.gpx"));
@@ -152,8 +152,8 @@ fn test_invalid_load_is_rejected() {
             name: "file",
         })
     ));
-    assert!(engine.stack.current().is_none());
-    assert!(!engine.stack.can_undo());
+    assert!(engine.history.current().is_none());
+    assert!(!engine.history.can_undo());
     assert!(engine.order.0.is_empty());
 }
 
@@ -162,8 +162,8 @@ fn test_command_with_nothing_to_do_is_rejected() {
     let mut engine = TestEngine::default();
     new(&mut engine, "file");
     assert!(!edit(&mut engine, Command::Reverse(crate::Reverse)));
-    assert!(!engine.stack.can_redo());
-    assert_eq!(engine.stack.current().unwrap().len(), 1);
+    assert!(!engine.history.can_redo());
+    assert_eq!(engine.history.current().unwrap().len(), 1);
 }
 
 #[test]
@@ -177,7 +177,7 @@ fn test_metadata_renames_selected_file() {
             desc: "about",
         })
     ));
-    let file = engine.stack.current().unwrap().values().next().unwrap();
+    let file = engine.history.current().unwrap().values().next().unwrap();
     assert_eq!(file.info.name, "after");
     assert_eq!(file.info.desc.as_deref(), Some("about"));
 }
@@ -194,7 +194,7 @@ fn test_metadata_without_selection_does_not_modify_files() {
             desc: "",
         }),
     );
-    let file = engine.stack.current().unwrap().values().next().unwrap();
+    let file = engine.history.current().unwrap().values().next().unwrap();
     assert_eq!(file.info.name, "file");
 }
 
@@ -204,7 +204,7 @@ fn test_edit_changes_statistics_when_segments_change() {
     load(&mut engine, "data/simple.gpx");
     let before = engine
         .statistics_cache
-        .get(engine.stack.current(), &engine.selection)[0] as *const _;
+        .get(engine.history.current(), &engine.selection)[0] as *const _;
     edit(&mut engine, Command::NewTrack(NewTrack));
     edit(
         &mut engine,
@@ -217,7 +217,7 @@ fn test_edit_changes_statistics_when_segments_change() {
     // styling does not touch the segments: their statistics are reused
     let after = engine
         .statistics_cache
-        .get(engine.stack.current(), &engine.selection)[0] as *const _;
+        .get(engine.history.current(), &engine.selection)[0] as *const _;
     assert!(std::ptr::eq(before, after));
 }
 
@@ -241,7 +241,7 @@ fn test_undo_redo_keep_selection_and_order_consistent() {
     assert!(engine.run(Action::Undo));
     assert!(engine.order.0.is_empty());
     assert!(!engine.run(Action::Undo));
-    assert!(engine.stack.current().is_none());
+    assert!(engine.history.current().is_none());
 }
 
 #[test]
@@ -381,7 +381,7 @@ fn test_selection_does_not_create_undo_steps() {
     new(&mut engine, "a");
     select_all(&mut engine);
     engine.run(Action::Undo);
-    assert!(engine.stack.current().is_none());
+    assert!(engine.history.current().is_none());
 }
 
 fn select_elements(engine: &mut TestEngine, selection: Selection, mode: SelectMode) -> bool {
@@ -408,7 +408,7 @@ fn test_select_elements() {
     let mut engine = TestEngine::default();
     load(&mut engine, "data/with_tracks_and_segments.gpx");
     let file = engine
-        .stack
+        .history
         .current()
         .unwrap()
         .values()
@@ -507,7 +507,7 @@ fn test_toggle_elements() {
     let mut engine = TestEngine::default();
     load(&mut engine, "data/with_tracks_and_segments.gpx");
     let file = engine
-        .stack
+        .history
         .current()
         .unwrap()
         .values()
@@ -541,7 +541,7 @@ fn test_selected_elements_are_dropped_when_they_disappear() {
     let mut engine = TestEngine::default();
     load(&mut engine, "data/with_tracks_and_segments.gpx");
     let file = engine
-        .stack
+        .history
         .current()
         .unwrap()
         .values()
@@ -597,7 +597,7 @@ fn test_select_all_follows_the_selected_level() {
     let load = |engine: &mut TestEngine| load(engine, "data/with_tracks_and_segments.gpx");
     load(&mut engine);
     let file = engine
-        .stack
+        .history
         .current()
         .unwrap()
         .values()
@@ -648,7 +648,7 @@ fn test_arrow_select() {
         edit(&mut engine, Command::NewTrack(NewTrack));
     }
     let file = engine
-        .stack
+        .history
         .current()
         .unwrap()
         .values()
@@ -1153,7 +1153,7 @@ fn test_export_writes_the_file_as_it_is() {
     let id = engine.order()[0];
     let bytes = engine.export(&id, ExportOptions::ALL).unwrap();
     let again = crate::parse(&bytes, &mut engine.categories().clone()).unwrap();
-    let file = engine.stack.current().unwrap()[&id].clone();
+    let file = engine.history.current().unwrap()[&id].clone();
     assert_eq!(again.trk.len(), file.trk.len());
     assert_eq!(again.trk[0].trkseg[0].len(), file.trk[0].trkseg[0].len());
     assert!(again.trk[0].trkseg[0][0].time.is_some());

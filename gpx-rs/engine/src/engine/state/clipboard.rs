@@ -3,7 +3,7 @@ use std::rc::Rc;
 use uuid::Uuid;
 
 use crate::{
-    File, FileId, Selection, StackEntry, Track, TrackId, TrackSegment, TrackSegmentId, Waypoint,
+    File, FileId, Files, Selection, Track, TrackId, TrackSegment, TrackSegmentId, Waypoint,
     WaypointId,
 };
 
@@ -71,7 +71,7 @@ impl Clipboard {
     /// selected does not exist).
     pub fn new(
         selection: &Selection,
-        files: &StackEntry,
+        files: &Files,
         order: &[FileId],
         cut: bool,
     ) -> Option<Clipboard> {
@@ -238,14 +238,14 @@ mod tests {
         file
     }
 
-    fn files_of(files: Vec<File>) -> StackEntry {
+    fn files_of(files: Vec<File>) -> Files {
         files
             .into_iter()
             .map(|file| (file.id, Rc::new(file)))
             .collect()
     }
 
-    fn order_of(files: &StackEntry) -> Vec<FileId> {
+    fn order_of(files: &Files) -> Vec<FileId> {
         files.keys().copied().collect()
     }
 

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{Diff, FileId, FileStructure, StackEntry as Files};
+use crate::{Diff, FileId, FileStructure, Files};
 
 /// The structure of each file, only recomputed for the files that changed according to the
 /// [`Diff`] of the stack.

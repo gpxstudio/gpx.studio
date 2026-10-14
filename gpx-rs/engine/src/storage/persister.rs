@@ -9,7 +9,7 @@ use super::codec::{
     encode_order, encode_trackpoints, encode_waypoints,
 };
 use crate::{
-    Batch, ChunkKey, CommitError, File, FileId, Revision, StackEntry, Storage, StorageError,
+    Batch, ChunkKey, CommitError, File, FileId, Files, Revision, Storage, StorageError,
     TrackpointCategories, TrackpointChunk, WaypointChunk,
 };
 
@@ -17,7 +17,7 @@ use crate::{
 /// categories their trackpoints refer to. See [`crate::Engine::snapshot`].
 #[derive(Debug, Default, Clone)]
 pub struct Snapshot {
-    pub files: StackEntry,
+    pub files: Files,
     pub order: Vec<FileId>,
     pub categories: TrackpointCategories,
 }
@@ -533,7 +533,11 @@ mod tests {
             changed.order.clear();
             changed.files.clear();
             let result = block_on(persister.save(&storage, changed));
-            assert_eq!(result, Err(CommitError::Failed(StorageError::Newer)), "{what}");
+            assert_eq!(
+                result,
+                Err(CommitError::Failed(StorageError::Newer)),
+                "{what}"
+            );
             assert!(storage.batches.borrow().is_empty(), "{what}");
             assert_eq!(storage.inner.counts(), before, "{what}");
         }

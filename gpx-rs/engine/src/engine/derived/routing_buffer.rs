@@ -1,4 +1,4 @@
-use crate::{FileId, Selection, StackEntry, TrackSegmentId, TrackSegmentRevisionId};
+use crate::{FileId, Files, Selection, TrackSegmentId, TrackSegmentRevisionId};
 
 /// What the routing tool needs about the selected segments (see
 /// [`Selection::segment_locations`]): where their anchors are among their trackpoints.
@@ -27,7 +27,7 @@ pub struct RoutingBuffer {
 }
 
 impl RoutingBuffer {
-    pub fn update(&mut self, files: Option<&StackEntry>, selection: &Selection, order: &[FileId]) {
+    pub fn update(&mut self, files: Option<&Files>, selection: &Selection, order: &[FileId]) {
         self.anchor_indices.clear();
         self.anchor_zooms.clear();
         self.segment_starts.clear();
@@ -70,11 +70,11 @@ mod tests {
 
     use super::*;
 
-    fn loaded() -> (StackEntry, FileId) {
+    fn loaded() -> (Files, FileId) {
         let data = std::fs::read("data/with_tracks_and_segments.gpx").unwrap();
         let file = parse(&data, &mut Default::default()).unwrap();
         let id = file.id;
-        let mut files = StackEntry::default();
+        let mut files = Files::default();
         files.insert(id, Rc::new(file));
         (files, id)
     }

@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::{FileId, StackEntry as Files};
+use crate::{FileId, Files};
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct FileOrder(pub Vec<FileId>);

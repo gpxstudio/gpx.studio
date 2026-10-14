@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::{FileId, StackEntry, TrackId, TrackSegmentId, WaypointId};
+use crate::{FileId, Files, TrackId, TrackSegmentId, WaypointId};
 
 /// How a new selection combines with the current one.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -52,12 +52,7 @@ impl Selection {
     /// Combines `selection` with this one according to `mode`, ignoring the elements of
     /// `selection` that do not exist in `files`. Nothing to add or toggle leaves the selection
     /// as it is, while replacing it with nothing deselects everything.
-    pub fn select(
-        &mut self,
-        files: Option<&StackEntry>,
-        mut selection: Selection,
-        mode: SelectMode,
-    ) {
+    pub fn select(&mut self, files: Option<&Files>, mut selection: Selection, mode: SelectMode) {
         match files {
             Some(files) => selection.retain_existing(files),
             None => selection = Selection::Empty,
@@ -72,7 +67,7 @@ impl Selection {
 
     /// Selects all the elements of the same kind as the selected ones, see
     /// [`Selection::all_at_level`]. Does nothing when there is nothing more to select.
-    pub fn select_all(&mut self, files: &StackEntry, order: &[FileId]) {
+    pub fn select_all(&mut self, files: &Files, order: &[FileId]) {
         if let Some(all) = self.all_at_level(files, order) {
             *self = all;
         }
@@ -81,13 +76,7 @@ impl Selection {
     /// Moves the selection to the next (`down`) or previous element, see
     /// [`Selection::neighbour`]. With `add`, the element is added to the selection instead of
     /// replacing it.
-    pub fn select_neighbour(
-        &mut self,
-        files: &StackEntry,
-        order: &[FileId],
-        down: bool,
-        add: bool,
-    ) {
+    pub fn select_neighbour(&mut self, files: &Files, order: &[FileId], down: bool, add: bool) {
         if let Some(next) = self.neighbour(files, order, down) {
             if add {
                 self.extend(next);
@@ -102,7 +91,7 @@ impl Selection {
     /// The track segments covered by the selection, in order: the segments of several selected
     /// files follow `order` (the files missing from it come last), then the tracks and segments
     /// follow the file. Waypoints are not segments: selecting only waypoints covers none.
-    pub fn segment_locations(&self, files: &StackEntry, order: &[FileId]) -> Vec<SegmentLocation> {
+    pub fn segment_locations(&self, files: &Files, order: &[FileId]) -> Vec<SegmentLocation> {
         let mut locations = vec![];
         let mut add = |file_id: FileId,
                        trk_filter: &dyn Fn(&crate::Track) -> bool,
@@ -145,7 +134,7 @@ impl Selection {
 
     /// Drops what does not exist anymore (e.g. after an undo): files, and the tracks, segments
     /// and waypoints of the files that remain. A selection left with nothing becomes empty.
-    pub fn retain_existing(&mut self, files: &StackEntry) {
+    pub fn retain_existing(&mut self, files: &Files) {
         let empty = match self {
             Selection::Empty => false,
             Selection::File { file_ids } => {
@@ -340,7 +329,7 @@ impl Selection {
     /// the files, all the tracks of the file, all the segments of the track, all the waypoints
     /// of the file. All the files when nothing is selected. `None` when there is nothing to
     /// select (the waypoints node, or a file that does not exist).
-    pub fn all_at_level(&self, files: &StackEntry, order: &[FileId]) -> Option<Selection> {
+    pub fn all_at_level(&self, files: &Files, order: &[FileId]) -> Option<Selection> {
         match self {
             Selection::Empty | Selection::File { .. } => Some(Selection::File {
                 file_ids: order.iter().copied().collect(),
@@ -375,7 +364,7 @@ impl Selection {
     /// (`down`) or the previous one among the elements of the same kind, in the same place.
     /// The tracks, segments and waypoints stop at their ends, the files wrap around and skip
     /// the ones that are already selected. `None` when there is no such element.
-    pub fn neighbour(&self, files: &StackEntry, order: &[FileId], down: bool) -> Option<Selection> {
+    pub fn neighbour(&self, files: &Files, order: &[FileId], down: bool) -> Option<Selection> {
         match self {
             Selection::Empty | Selection::Waypoints { .. } => None,
             Selection::File { file_ids } => {
@@ -443,7 +432,7 @@ mod tests {
     fn test_retain_existing() {
         let file = File::default();
         let (kept, gone) = (file.id, FileId::default());
-        let mut files = StackEntry::default();
+        let mut files = Files::default();
         files.insert(kept, Rc::new(file));
 
         let mut selection = Selection::File {
@@ -481,7 +470,7 @@ mod tests {
         });
         let (file_id, trk_id) = (file.id, file.trk[0].id);
         let (seg_id, wpt_id) = (file.trk[0].trkseg[0].id, file.wpt[0].id);
-        let mut files = StackEntry::default();
+        let mut files = Files::default();
         files.insert(file_id, Rc::new(file));
 
         let mut selection = Selection::Track {
@@ -610,7 +599,7 @@ mod tests {
 
     /// A file with 3 tracks of 2 segments each and 3 waypoints, with the ids of everything.
     struct Tree {
-        files: StackEntry,
+        files: Files,
         order: Vec<FileId>,
         file: FileId,
         tracks: Vec<TrackId>,
@@ -644,7 +633,7 @@ mod tests {
                 .collect(),
             waypoints: file.wpt.iter().map(|w| w.id).collect(),
             order: vec![file.id],
-            files: StackEntry::from([(file.id, Rc::new(file))]),
+            files: Files::from([(file.id, Rc::new(file))]),
         }
     }
 
@@ -772,7 +761,7 @@ mod tests {
 
     #[test]
     fn test_neighbour_of_files_wraps_around_and_skips_the_selected() {
-        let files = StackEntry::default();
+        let files = Files::default();
         let [a, b, c] = [FileId::default(), FileId::default(), FileId::default()];
         let order = [a, b, c];
         let select = |ids: &[FileId]| Selection::File {

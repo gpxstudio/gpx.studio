@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{Apply, CommandError, FileId, Selection, StackEntry, State, Waypoint};
+use crate::{Apply, CommandError, FileId, Files, Selection, State, Waypoint};
 
 /// Deletes the selected elements. With `whole_files`, the files holding the selected elements
 /// are deleted instead, even if only a track or a waypoint is selected.
@@ -75,7 +75,7 @@ impl Apply for Delete {
 }
 
 pub(crate) fn delete_waypoints(
-    files: &mut StackEntry,
+    files: &mut Files,
     file_id: FileId,
     filter: impl Fn(&Waypoint) -> bool,
 ) -> Result<Selection, CommandError> {

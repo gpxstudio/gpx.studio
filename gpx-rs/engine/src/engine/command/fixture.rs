@@ -2,11 +2,11 @@
 
 use std::collections::HashSet;
 
-use crate::{Clipboard, FileId, FileOrder, Selection, StackEntry, State, TrackpointCategories};
+use crate::{Clipboard, FileId, FileOrder, Files, Selection, State, TrackpointCategories};
 
 #[derive(Default)]
 pub struct Fixture {
-    pub files: StackEntry,
+    pub files: Files,
     pub selection: Selection,
     pub order: FileOrder,
     pub clipboard: Option<Clipboard>,
