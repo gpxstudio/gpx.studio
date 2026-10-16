@@ -5,7 +5,7 @@
 //! watcher of the open folder), and the commands send that thread jobs: they are done one after the
 //! other, in the order they were sent.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::mpsc::{self, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -32,6 +32,8 @@ pub struct Core {
     storage: Arc<FileStorage>,
     persister: Persister,
     watcher: Option<Debouncer<notify::RecommendedWatcher>>,
+    /// What the watcher watches, see `Workspace::watched`.
+    watching: Vec<(PathBuf, bool)>,
     jobs: Sender<Job>,
     emit: Emit,
 }
@@ -50,6 +52,7 @@ impl Core {
             persister: Persister::default(),
             storage,
             watcher: None,
+            watching: vec![],
             jobs,
             emit,
         };
@@ -93,8 +96,10 @@ impl Core {
         self.announce(None);
     }
 
-    pub fn keep_workspace(&self) {
+    /// Writes the workspace, and watches what it holds (a file may have been opened or closed).
+    pub fn keep_workspace(&mut self) {
         self.workspace.write(self.storage.root());
+        self.watch();
     }
 
     pub fn workspace_state(&self) -> WorkspaceState {
@@ -109,13 +114,16 @@ impl Core {
         (self.emit)("workspace-changed", to_json(&self.workspace_state()));
     }
 
-    /// Watches the open folder (and only it).
+    /// Watches the open folder, and the folders of the files that are linked outside of it. Does
+    /// nothing if that is what is watched already.
     pub fn watch(&mut self) {
-        self.watcher = None;
-        let Some(folder) = self.workspace.folder.clone() else {
+        let wanted = self.workspace.watched();
+        if wanted == self.watching && (self.watcher.is_some() || wanted.is_empty()) {
             return;
-        };
-        if !Path::new(&folder).is_dir() {
+        }
+        self.watcher = None;
+        self.watching = wanted.clone();
+        if wanted.is_empty() {
             return;
         }
         let jobs = self.jobs.clone();
@@ -131,22 +139,75 @@ impl Core {
         );
         match debouncer {
             Ok(mut debouncer) => {
-                match debouncer.watcher().watch(&folder, RecursiveMode::Recursive) {
-                    Ok(()) => self.watcher = Some(debouncer),
-                    Err(error) => eprintln!("the folder cannot be watched: {error}"),
+                for (path, recursive) in &wanted {
+                    let mode = if *recursive {
+                        RecursiveMode::Recursive
+                    } else {
+                        RecursiveMode::NonRecursive
+                    };
+                    if let Err(error) = debouncer.watcher().watch(path, mode) {
+                        eprintln!("{} cannot be watched: {error}", path.display());
+                    }
                 }
+                self.watcher = Some(debouncer);
             }
-            Err(error) => eprintln!("the folder cannot be watched: {error}"),
+            Err(error) => eprintln!("the files cannot be watched: {error}"),
         }
     }
 
     fn on_disk_changed(&mut self, paths: &[PathBuf]) {
-        let outcome = self.workspace.reconcile(&mut self.engine, Some(paths));
-        if let Some(outcome) = outcome {
-            self.workspace.write(self.storage.root());
+        // the tree of the folder shows the disk
+        let in_folder: Vec<&PathBuf> = paths
+            .iter()
+            .filter(|path| {
+                self.workspace
+                    .folder
+                    .as_ref()
+                    .is_some_and(|f| path.starts_with(f))
+            })
+            .collect();
+        if !in_folder.is_empty() {
+            (self.emit)("folder-changed", to_json(&in_folder));
+        }
+        if let Some(outcome) = self.workspace.reconcile(&mut self.engine, Some(paths)) {
+            self.keep_workspace();
             self.persist();
             self.announce(Some(&outcome));
         }
+    }
+
+    /// Runs `f`, which creates files (a new file, a copy, the result of a split...). Where they go
+    /// when they are saved is the folder of the files they come from (the selected ones, before
+    /// `f`), if it is in the open folder. `default_folder` says whether a file with nothing to
+    /// come from goes in the open folder: a new file does.
+    pub fn creating(
+        &mut self,
+        folder: Option<PathBuf>,
+        default_folder: bool,
+        f: impl FnOnce(&mut Engine) -> api::Outcome,
+    ) -> api::Outcome {
+        let selected: Vec<uuid::Uuid> = self
+            .engine
+            .selection()
+            .file_ids()
+            .into_iter()
+            .map(|gpx_engine::FileId(id)| id)
+            .collect();
+        let dir = folder
+            .map(|folder| crate::workspace::canonical(&folder))
+            .or_else(|| self.workspace.source_dir(&selected))
+            .or_else(|| {
+                default_folder
+                    .then(|| self.workspace.folder.clone())
+                    .flatten()
+            });
+        let outcome = f(&mut self.engine);
+        if let Some(dir) = dir {
+            self.workspace.inherit(outcome.added(), &dir);
+        }
+        self.keep_workspace();
+        self.persist();
+        outcome
     }
 }
 

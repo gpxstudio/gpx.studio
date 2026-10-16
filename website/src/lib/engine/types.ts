@@ -4,7 +4,7 @@ import type { Visibility } from '$lib/engine/file-visibility';
 import type { CategoryIntervals } from '$lib/engine/trackpoint-categories';
 import type { FileStructure, GlobalStatistics } from 'gpx-wasm';
 
-export type { FileStatus, UnsavedChoice, WorkspaceState } from './backend/types';
+export type { FileStatus, FolderEntry, UnsavedChoice, WorkspaceState } from './backend/types';
 
 export type {
     Clipboard,

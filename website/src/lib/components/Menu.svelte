@@ -40,6 +40,8 @@
         FolderOpen,
         FileStack,
         FileX,
+        Save,
+        SaveAll,
         BookOpenText,
         ChartArea,
         Maximize,
@@ -59,10 +61,22 @@
     import { languages } from '$lib/i18n/languages';
     import { getURLForLanguage } from '$lib/utils';
     import { settings } from '$lib/state/settings';
-    import { createFile, loadFiles, triggerFileInput } from '$lib/actions/file-actions';
+    import {
+        closeAll,
+        closeFiles,
+        closeFolder,
+        createFile,
+        loadFiles,
+        openFiles,
+        openFolder,
+        saveAll,
+        saveAs,
+        saveSelected,
+    } from '$lib/actions/file-actions';
+    import UnsavedDialog from '$lib/components/file-list/UnsavedDialog.svelte';
     import { engine } from '$lib/engine';
     import { allHidden } from '$lib/engine/all-hidden';
-    import { selectionSize } from '$lib/engine/selection-helpers';
+    import { selectedFileIds, selectionSize } from '$lib/engine/selection-helpers';
     import { boundsManager } from '$lib/state/bounds';
     import { onMount } from 'svelte';
 
@@ -82,10 +96,14 @@
         routing,
     } = settings;
 
-    const { files, selection, canUndo, canRedo, canPaste } = engine;
+    const { files, selection, canUndo, canRedo, canPaste, workspace } = engine;
 
     let selectionCount = $derived(selectionSize($selection));
     let noFiles = $derived($files.size === 0);
+    // the desktop app: the files are linked to the file system
+    let desktop = $derived($workspace !== undefined);
+    let selectedIds = $derived(selectedFileIds($selection));
+    let anyUnsaved = $derived(Object.values($workspace?.files ?? {}).some((file) => file.dirty));
     // metadata and style can be edited for files and tracks only
     let filesOrTracksSelected = $derived($selection.type === 'file' || $selection.type === 'track');
 
@@ -142,11 +160,18 @@
                         <Shortcut key="+" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Separator />
-                    <Menubar.Item onclick={triggerFileInput}>
+                    <Menubar.Item onclick={openFiles}>
                         <FolderOpen size="16" />
                         {i18n._('menu.open')}
                         <Shortcut key="O" ctrl={true} />
                     </Menubar.Item>
+                    {#if desktop}
+                        <Menubar.Item onclick={openFolder}>
+                            <FolderOpen size="16" />
+                            {i18n._('menu.open_folder')}
+                            <Shortcut key="O" ctrl={true} shift={true} />
+                        </Menubar.Item>
+                    {/if}
                     <Menubar.Separator />
                     <Menubar.Item onclick={() => engine.duplicate()} disabled={selectionCount == 0}>
                         <Copy size="16" />
@@ -154,19 +179,60 @@
                         <Shortcut key="D" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Separator />
-                    <Menubar.Item
-                        onclick={() => engine.delete(true)}
-                        disabled={selectionCount == 0}
-                    >
-                        <FileX size="16" />
-                        {i18n._('menu.delete')}
-                        <Shortcut key="⌫" ctrl={true} />
-                    </Menubar.Item>
-                    <Menubar.Item onclick={() => engine.deleteAll()} disabled={noFiles}>
-                        <FileX size="16" />
-                        {i18n._('menu.delete_all')}
-                        <Shortcut key="⌫" ctrl={true} shift={true} />
-                    </Menubar.Item>
+                    {#if desktop}
+                        <Menubar.Item
+                            onclick={() => saveSelected(selectedIds)}
+                            disabled={selectionCount == 0 && !anyUnsaved}
+                        >
+                            <Save size="16" />
+                            {i18n._('menu.save')}
+                            <Shortcut key="S" ctrl={true} />
+                        </Menubar.Item>
+                        <Menubar.Item onclick={saveAll} disabled={!anyUnsaved}>
+                            <Save size="16" />
+                            {i18n._('menu.save_all')}
+                            <Shortcut key="S" ctrl={true} shift={true} />
+                        </Menubar.Item>
+                        <Menubar.Item
+                            onclick={() => saveAs(selectedIds)}
+                            disabled={selectedIds.length !== 1}
+                        >
+                            <SaveAll size="16" />
+                            {i18n._('menu.save_as')}
+                        </Menubar.Item>
+                        <Menubar.Separator />
+                        <Menubar.Item
+                            onclick={() => closeFiles(selectedIds)}
+                            disabled={selectedIds.length === 0}
+                        >
+                            <FileX size="16" />
+                            {i18n._('menu.close')}
+                            <Shortcut key="W" ctrl={true} />
+                        </Menubar.Item>
+                        <Menubar.Item onclick={closeAll} disabled={noFiles}>
+                            <FileX size="16" />
+                            {i18n._('menu.close_all')}
+                            <Shortcut key="W" ctrl={true} shift={true} />
+                        </Menubar.Item>
+                        <Menubar.Item onclick={closeFolder} disabled={!$workspace?.folder}>
+                            <FileX size="16" />
+                            {i18n._('menu.close_folder')}
+                        </Menubar.Item>
+                    {:else}
+                        <Menubar.Item
+                            onclick={() => engine.delete(true)}
+                            disabled={selectionCount == 0}
+                        >
+                            <FileX size="16" />
+                            {i18n._('menu.delete')}
+                            <Shortcut key="⌫" ctrl={true} />
+                        </Menubar.Item>
+                        <Menubar.Item onclick={() => engine.deleteAll()} disabled={noFiles}>
+                            <FileX size="16" />
+                            {i18n._('menu.delete_all')}
+                            <Shortcut key="⌫" ctrl={true} shift={true} />
+                        </Menubar.Item>
+                    {/if}
                     <Menubar.Separator />
                     <Menubar.Item
                         onclick={() => (exportState.current = ExportState.SELECTION)}
@@ -174,7 +240,7 @@
                     >
                         <Download size="16" />
                         {i18n._('menu.export')}
-                        <Shortcut key="S" ctrl={true} />
+                        {#if !desktop}<Shortcut key="S" ctrl={true} />{/if}
                     </Menubar.Item>
                     <Menubar.Item
                         onclick={() => (exportState.current = ExportState.ALL)}
@@ -182,7 +248,7 @@
                     >
                         <Download size="16" />
                         {i18n._('menu.export_all')}
-                        <Shortcut key="S" ctrl={true} shift={true} />
+                        {#if !desktop}<Shortcut key="S" ctrl={true} shift={true} />{/if}
                     </Menubar.Item>
                 </Menubar.Content>
             </Menubar.Menu>
@@ -498,6 +564,7 @@
 </div>
 
 <Export />
+<UnsavedDialog />
 <LayerControlSettings bind:open={layerSettingsOpen} />
 
 <svelte:window
@@ -519,8 +586,26 @@
         if (e.key === '+' && (e.metaKey || e.ctrlKey)) {
             createFile();
             e.preventDefault();
-        } else if (e.key === 'o' && (e.metaKey || e.ctrlKey)) {
-            triggerFileInput();
+        } else if ((e.key === 'o' || e.key === 'O') && (e.metaKey || e.ctrlKey)) {
+            if (desktop && e.shiftKey) {
+                openFolder();
+            } else {
+                openFiles();
+            }
+            e.preventDefault();
+        } else if (desktop && (e.key === 'w' || e.key === 'W') && (e.metaKey || e.ctrlKey)) {
+            if (e.shiftKey) {
+                closeAll();
+            } else {
+                closeFiles(selectedIds);
+            }
+            e.preventDefault();
+        } else if (desktop && (e.key === 's' || e.key === 'S') && (e.metaKey || e.ctrlKey)) {
+            if (e.shiftKey) {
+                saveAll();
+            } else {
+                saveSelected(selectedIds);
+            }
             e.preventDefault();
         } else if (e.key === 'd' && (e.metaKey || e.ctrlKey)) {
             engine.duplicate();
@@ -557,7 +642,8 @@
             }
             e.preventDefault();
         } else if ((e.key === 'Backspace' || e.key === 'Delete') && (e.metaKey || e.ctrlKey)) {
-            if (!targetInput) {
+            // the desktop app closes files instead
+            if (!targetInput && !desktop) {
                 if (e.shiftKey) {
                     engine.deleteAll();
                 } else {

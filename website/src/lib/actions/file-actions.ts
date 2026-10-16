@@ -4,8 +4,7 @@ import { get } from 'svelte/store';
 import { boundsManager } from '$lib/state/bounds';
 import { engine } from '$lib/engine';
 import { defaultFileName } from '$lib/actions/default-file-name';
-import { askUnsaved } from '$lib/components/file-list/unsaved-prompt.svelte';
-import { subfolder } from '$lib/engine/workspace';
+import { askOverwrite, askUnsaved } from '$lib/components/file-list/unsaved-prompt.svelte';
 import type { UnsavedChoice } from '$lib/engine';
 
 /** The name of a new file: the translated default name, numbered if other files have it. */
@@ -32,71 +31,119 @@ export async function openFiles() {
     }
 }
 
-/**
- * What to do with the files of the open folder that have unsaved changes, which the user is asked
- * when there are some: `undefined` when there are none, `'cancel'` when they do not want to go on.
- */
-async function askAboutUnsavedFiles(): Promise<UnsavedChoice | undefined | 'cancel'> {
-    const workspace = get(engine.workspace);
-    if (!workspace?.folder) {
-        return undefined;
-    }
+/** The names of files, to show them to the user. */
+function namesOf(ids: string[]): string[] {
     const files = get(engine.files);
-    const names = Object.entries(workspace.files)
-        // the files in the folder, and the new ones, which are saved in it
-        .filter(
-            ([, file]) =>
-                file.dirty &&
-                (file.path === undefined || subfolder(workspace.folder, file.path) !== undefined)
-        )
-        .map(([id]) => {
-            const file = files.get(id);
-            return file ? get(file).structure.name : id;
-        });
-    return names.length > 0 ? askUnsaved(names) : undefined;
+    return ids.map((id) => {
+        const file = files.get(id);
+        return file ? get(file).structure.name : id;
+    });
+}
+
+/** The ids among `ids` of the files that have changes that are not saved. */
+function unsavedAmong(ids: string[]): string[] {
+    const workspace = get(engine.workspace);
+    return ids.filter((id) => workspace?.files[id]?.dirty);
 }
 
 /**
- * Opens a folder, which is watched (the desktop app). The folder that was open is closed: the user
- * is asked what to do with its unsaved files.
+ * What to do with the files among `ids` that have unsaved changes, which the user is asked when
+ * there are some: `undefined` when there are none, `'cancel'` when they do not want to go on.
+ */
+async function askAboutUnsavedFiles(ids: string[]): Promise<UnsavedChoice | undefined | 'cancel'> {
+    const unsaved = unsavedAmong(ids);
+    return unsaved.length > 0 ? askUnsaved(namesOf(unsaved)) : undefined;
+}
+
+/** All the open files. */
+function allFileIds(): string[] {
+    return get(engine.order);
+}
+
+/**
+ * Opens a folder, which is watched (the desktop app). Its files are not opened, they are in its
+ * tree. The folder that was open is closed with its files: the user is asked what to do with the
+ * unsaved ones.
  */
 export async function openFolder() {
-    const unsaved = await askAboutUnsavedFiles();
-    if (unsaved === 'cancel') {
-        return;
-    }
-    const ids = await engine.openFolder(unsaved);
-    if (ids.length > 0) {
-        boundsManager.fitBoundsOnLoad(ids);
+    const unsaved = await askAboutUnsavedFiles(allFileIds());
+    if (unsaved !== 'cancel') {
+        await engine.openFolder(unsaved);
     }
 }
 
-/** Closes the open folder and its files: the user is asked what to do with the unsaved ones. */
+/** Closes the open folder and all the files: the user is asked what to do with the unsaved ones. */
 export async function closeFolder() {
-    const unsaved = await askAboutUnsavedFiles();
+    const unsaved = await askAboutUnsavedFiles(allFileIds());
     if (unsaved !== 'cancel') {
         await engine.closeFolder(unsaved);
     }
 }
 
+/** Closes files: the user is asked what to do with the ones that have unsaved changes. */
+export async function closeFiles(ids: string[]) {
+    if (ids.length === 0) {
+        return;
+    }
+    const unsaved = await askAboutUnsavedFiles(ids);
+    if (unsaved !== 'cancel') {
+        await engine.closeFiles(ids, unsaved);
+    }
+}
+
+/** Closes all the files. */
+export function closeAll() {
+    return closeFiles(allFileIds());
+}
+
+/**
+ * Writes files to the file system. The user is asked first about the ones whose file was also
+ * changed on the disk, which saving overwrites: they can take the disk instead of their changes.
+ */
+async function saveFiles(ids: string[]) {
+    if (ids.length === 0) {
+        return;
+    }
+    const workspace = get(engine.workspace);
+    const replaced = ids.filter((id) => workspace?.files[id]?.replaced);
+    if (replaced.length > 0) {
+        const choice = await askOverwrite(namesOf(replaced));
+        if (choice === 'cancel') {
+            return;
+        }
+        if (choice === 'reload') {
+            // they are the files on the disk now, there is nothing to save
+            await engine.reload(replaced);
+            ids = ids.filter((id) => !replaced.includes(id));
+        }
+    }
+    if (ids.length > 0) {
+        await engine.save(ids);
+    }
+}
+
 /** Saves the selected files to the file system, all the ones that have unsaved edits if none is. */
 export function saveSelected(selectedFileIds: string[]) {
-    const workspace = get(engine.workspace);
-    const ids =
-        selectedFileIds.length > 0
-            ? selectedFileIds
-            : Object.keys(workspace?.files ?? {}).filter((id) => workspace?.files[id].dirty);
-    if (ids.length > 0) {
-        engine.save(ids);
-    }
+    return saveFiles(selectedFileIds.length > 0 ? selectedFileIds : unsavedAmong(allFileIds()));
 }
 
 /** Saves all the files that have unsaved edits to the file system. */
 export function saveAll() {
-    const workspace = get(engine.workspace);
-    const ids = Object.keys(workspace?.files ?? {}).filter((id) => workspace?.files[id].dirty);
+    return saveFiles(unsavedAmong(allFileIds()));
+}
+
+/** Saves a file where the user says, which is where it is from then on (not for several files). */
+export async function saveAs(selectedFileIds: string[]) {
+    if (selectedFileIds.length === 1) {
+        await engine.saveAs(selectedFileIds[0]);
+    }
+}
+
+/** Opens a file of the tree of the open folder. */
+export async function openPath(path: string) {
+    const ids = await engine.openPaths([path]);
     if (ids.length > 0) {
-        engine.save(ids);
+        boundsManager.fitBoundsOnLoad(ids);
     }
 }
 

@@ -68,6 +68,11 @@ impl Outcome {
         Self::new(&engine::Outcome::default(), None)
     }
 
+    /// The ids of the files that the call added.
+    pub fn added(&self) -> &[String] {
+        &self.added
+    }
+
     /// Whether the call did nothing and says why.
     pub fn has_error(&self) -> bool {
         self.error.is_some()

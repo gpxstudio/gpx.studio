@@ -11,6 +11,7 @@ import { categoryIntervals } from '$lib/engine/trackpoint-categories';
 import { selectedElementIds, type FileTreeNode } from '$lib/engine/selection-helpers';
 import type { RouteAttributes } from 'gpx-wasm';
 import { loadBackend, type Backend } from './backend';
+import type { DesktopFiles } from './backend/types';
 import { readFileState } from './file-state';
 import { StatisticsReader } from './statistics';
 import { openStoredFiles } from './storage';
@@ -29,6 +30,7 @@ import {
     type SelectMode,
     type SplitType,
     type StatisticsRequest,
+    type FolderEntry,
     type UnsavedChoice,
     type WorkspaceState,
     type TrackpointDetails,
@@ -554,41 +556,88 @@ class Engine {
         return this.addedBy((b) => b.desktop!.openFiles());
     }
 
-    /**
-     * Opens the folder that the user picks (instead of the one that was open, which is closed like
-     * `closeFolder` does, `unsaved` being what to do with its unsaved files): its files are opened,
-     * and it is watched: the files that appear, change or disappear in it are brought in the engine.
-     * New files are saved in it. Resolves to the ids of the files that were added.
-     */
-    async openFolder(unsaved?: UnsavedChoice): Promise<string[]> {
-        return this.addedBy((b) => b.desktop!.openFolder(unsaved));
+    /** Opens files of the file system by their path, which get selected. Resolves to the new ids. */
+    async openPaths(paths: string[]): Promise<string[]> {
+        return this.addedBy((b) => b.desktop!.openPaths(paths));
     }
 
     /**
-     * Closes the open folder: it is not watched anymore, and its files are closed. `unsaved` says
-     * what to do with the ones that have unsaved edits: they are saved first, or their edits are
-     * discarded (they stay open when it is not said).
+     * Opens the folder that the user picks (instead of the one that was open, which is closed with
+     * its files like `closeFiles` does, `unsaved` being what to do with the unsaved ones). The
+     * folder is watched, and its tree is read with `listFolder`: its files are not opened.
      */
+    async openFolder(unsaved?: UnsavedChoice) {
+        await this.run((b) => b.desktop!.openFolder(unsaved));
+        await this.enqueue(async () => this.refreshWorkspace(this.backend!));
+    }
+
+    /** Closes the open folder and all the files: see `closeFiles` for `unsaved`. */
     async closeFolder(unsaved?: UnsavedChoice) {
         await this.run((b) => b.desktop!.closeFolder(unsaved));
         await this.enqueue(async () => this.refreshWorkspace(this.backend!));
     }
 
     /**
-     * Writes files to the file system, replacing what is there; they are not edited anymore from
-     * then on. The user is asked where to put the ones that are not on the file system yet.
+     * Closes files. `unsaved` says what to do with the ones that have unsaved edits: they are saved
+     * first, or their edits are lost (they stay open when it is not said).
      */
-    async save(fileIds: string[]) {
+    async closeFiles(fileIds: string[], unsaved?: UnsavedChoice) {
+        await this.run((b) => b.desktop!.closeFiles(fileIds, unsaved));
+        await this.enqueue(async () => this.refreshWorkspace(this.backend!));
+    }
+
+    /**
+     * Writes files to the file system, replacing what is there; they are not edited anymore from
+     * then on. The user is asked where to put the ones that have no place yet. Resolves to false
+     * when the user cancelled or the files could not be saved.
+     */
+    async save(fileIds: string[]): Promise<boolean> {
+        return this.desktopCall((desktop) => desktop.saveFiles(fileIds));
+    }
+
+    /** Writes a file where the user says, which is where it is from then on. */
+    async saveAs(fileId: string): Promise<boolean> {
+        return this.desktopCall((desktop) => desktop.saveFileAs(fileId));
+    }
+
+    /** Writes copies of files where the user says. The files stay as they are. */
+    async exportFiles(fileIds: string[], options: ExportOptions): Promise<boolean> {
+        return this.desktopCall((desktop) => desktop.exportFiles(fileIds, options));
+    }
+
+    /** Reads files again from the file system: their edits are lost (one undo step). */
+    async reload(fileIds: string[]) {
+        await this.run((b) => b.desktop!.reloadFiles(fileIds));
+        await this.enqueue(async () => this.refreshWorkspace(this.backend!));
+    }
+
+    /** The folders and GPX files in a folder of the open folder (the open folder by default). */
+    async listFolder(path?: string): Promise<FolderEntry[]> {
         await this.ready;
-        await this.enqueue(async () => {
-            const backend = this.backend!;
+        return this.enqueue(async () => {
             try {
-                await backend.desktop!.saveFiles(fileIds);
+                return await this.backend!.desktop!.listFolder(path);
             } catch (error) {
-                console.error('The files could not be saved', error);
+                console.error('The folder could not be read', error);
+                return [];
+            }
+        });
+    }
+
+    /** Calls the file system of the desktop app, and keeps the status of the files up to date. */
+    private async desktopCall(call: (desktop: DesktopFiles) => Promise<boolean>): Promise<boolean> {
+        await this.ready;
+        return this.enqueue(async () => {
+            const backend = this.backend!;
+            let done = false;
+            try {
+                done = await call(backend.desktop!);
+            } catch (error) {
+                console.error('The files could not be written', error);
                 this._lastError.set(String(error));
             }
             await this.refreshWorkspace(backend);
+            return done;
         });
     }
 

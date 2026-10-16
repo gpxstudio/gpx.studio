@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import type { Outcome, RouteAttributes, StorageOpened } from 'gpx-wasm';
-import type { Backend, WorkspaceState } from './types';
+import type { Backend, FolderEntry, WorkspaceState } from './types';
 
 /** An array that a command returns as its bytes. */
 const array = async <T>(
@@ -211,9 +211,16 @@ export async function createTauriBackend(): Promise<Backend> {
         desktop: {
             workspace: () => invoke<WorkspaceState>('workspace_state'),
             openFiles: () => invoke<Outcome>('open_files'),
+            openPaths: (paths) => invoke<Outcome>('open_paths', { paths }),
             openFolder: (unsaved) => invoke<Outcome>('open_folder', { unsaved }),
             closeFolder: (unsaved) => invoke<Outcome>('close_folder', { unsaved }),
-            saveFiles: (fileIds) => invoke('save_files', { fileIds }),
+            closeFiles: (fileIds, unsaved) => invoke<Outcome>('close_files', { fileIds, unsaved }),
+            saveFiles: (fileIds) => invoke<boolean>('save_files', { fileIds }),
+            saveFileAs: (fileId) => invoke<boolean>('save_file_as', { fileId }),
+            reloadFiles: (fileIds) => invoke<Outcome>('reload_files', { fileIds }),
+            exportFiles: (fileIds, options) =>
+                invoke<boolean>('export_files', { fileIds, options }),
+            listFolder: (path) => invoke<FolderEntry[]>('list_folder', { path }),
             listen: async (onEngineChanged, onWorkspaceChanged, onFilesOpened) => {
                 await listen<Outcome>('files-opened', (event) => onFilesOpened(event.payload));
                 await listen<Outcome>('engine-changed', (event) => onEngineChanged(event.payload));

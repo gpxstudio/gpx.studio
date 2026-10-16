@@ -363,3 +363,95 @@ fn a_file_opened_with_the_app_is_opened_selected_and_announced() {
     assert!(events.iter().any(|(name, _)| name == "workspace-changed"));
     std::fs::remove_dir_all(directory).unwrap();
 }
+
+#[test]
+fn files_are_opened_closed_and_made_in_a_folder() {
+    let app = App::new();
+    let folder = std::env::temp_dir().join(format!("gpx-tests-{}", uuid::Uuid::new_v4()));
+    std::fs::create_dir_all(&folder).unwrap();
+    let path = folder.join("track.gpx");
+    std::fs::copy("../gpx-rs/data/simple.gpx", &path).unwrap();
+
+    // opened from the disk, clean
+    let outcome = app.call("open_paths", json!({ "paths": [path] }));
+    assert_eq!(outcome["added"].as_array().unwrap().len(), 1);
+    let id = outcome["added"][0].as_str().unwrap().to_string();
+    let state = app.call("workspace_state", json!({}));
+    assert_eq!(state["files"][&id]["dirty"], false);
+    assert!(state["files"][&id]["path"].is_string());
+
+    // a new file made in a folder is written there, and is not linked to a place yet
+    let created = app.call(
+        "new_file",
+        json!({ "name": "route", "lng": 4.4, "lat": 50.8, "folder": folder }),
+    );
+    let new_id = created["added"][0].as_str().unwrap().to_string();
+    let state = app.call("workspace_state", json!({}));
+    assert_eq!(state["files"][&new_id]["dirty"], true);
+    assert!(state["files"][&new_id]["folder"].is_string());
+    assert!(state["files"][&new_id].get("path").is_none());
+
+    // the tree needs an open folder
+    assert_eq!(app.call("list_folder", json!({})), json!([]));
+
+    // closing: what is saved goes, what has edits stays unless it is discarded
+    app.call("close_files", json!({ "fileIds": [id, new_id] }));
+    assert_eq!(app.call("file_order", json!({})), json!([new_id]));
+    app.call(
+        "close_files",
+        json!({ "fileIds": [new_id], "unsaved": "discard" }),
+    );
+    assert_eq!(app.call("file_order", json!({})), json!([]));
+    std::fs::remove_dir_all(folder).unwrap();
+}
+
+/// A file that is open from outside of any folder follows the disk too.
+#[test]
+fn a_file_outside_the_open_folder_is_read_again_when_the_disk_changes() {
+    use std::sync::mpsc;
+    use std::time::Duration;
+
+    let (events, received) = mpsc::channel();
+    let directory = std::env::temp_dir().join(format!("gpx-store-{}", uuid::Uuid::new_v4()));
+    let state = crate::state::AppState::open(
+        directory.clone(),
+        std::sync::Arc::new(move |name, _| {
+            let _ = events.send(name.to_string());
+        }),
+    )
+    .unwrap();
+
+    let folder = std::env::temp_dir().join(format!("gpx-tests-{}", uuid::Uuid::new_v4()));
+    std::fs::create_dir_all(&folder).unwrap();
+    let path = folder.join("track.gpx");
+    std::fs::copy("../gpx-rs/data/simple.gpx", &path).unwrap();
+    let opened = path.clone();
+    let id = state.core(move |core| {
+        let outcome = core.workspace.open_files(&mut core.engine, &[opened], true);
+        core.keep_workspace();
+        outcome.added()[0].clone()
+    });
+    let id = uuid::Uuid::parse_str(&id).unwrap();
+    let name = |state: &crate::state::AppState| {
+        state.core(move |core| {
+            core.engine
+                .file_structure(&gpx_engine::FileId(id))
+                .map(|structure| structure.name.clone())
+        })
+    };
+    let before = name(&state);
+
+    std::fs::copy("../gpx-rs/data/with_time.gpx", &path).unwrap();
+    // the debounced watcher tells the frontend that the engine changed
+    let mut changed = false;
+    while let Ok(event) = received.recv_timeout(Duration::from_secs(10)) {
+        if event == "engine-changed" {
+            changed = true;
+            break;
+        }
+    }
+    assert!(changed, "the file was not read again");
+    assert_ne!(name(&state), before);
+    std::fs::remove_dir_all(folder).unwrap();
+    std::fs::remove_dir_all(directory).unwrap();
+}

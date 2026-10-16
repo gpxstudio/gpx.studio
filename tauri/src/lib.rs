@@ -184,9 +184,15 @@ fn register_commands<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::Bu
         // the file system
         disk::workspace_state,
         disk::open_files,
+        disk::open_paths,
         disk::open_folder,
         disk::close_folder,
+        disk::close_files,
         disk::save_files,
+        disk::save_file_as,
+        disk::reload_files,
+        disk::export_files,
+        disk::list_folder,
     ])
 }
 

@@ -139,12 +139,12 @@ pub fn create_artificial_timestamps(
 
 #[tauri::command(async)]
 pub fn merge(state: State<AppState>, merge_type: MergeType, remove_gaps: bool) -> api::Outcome {
-    state.run(move |e| api::merge(e, merge_type, remove_gaps))
+    state.core(move |core| core.creating(None, false, |e| api::merge(e, merge_type, remove_gaps)))
 }
 
 #[tauri::command(async)]
 pub fn extract(state: State<AppState>) -> api::Outcome {
-    state.run(api::extract)
+    state.core(|core| core.creating(None, false, api::extract))
 }
 
 #[tauri::command(async)]
@@ -214,5 +214,5 @@ pub fn split(
     at: u32,
     split_type: SplitType,
 ) -> api::Outcome {
-    state.run(move |e| api::split(e, revision, at, split_type))
+    state.core(move |core| core.creating(None, false, |e| api::split(e, revision, at, split_type)))
 }

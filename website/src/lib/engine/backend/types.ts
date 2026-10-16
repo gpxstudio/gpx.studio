@@ -10,16 +10,33 @@ import type {
     TrackpointDetails,
     WaypointDetails,
 } from 'gpx-wasm';
-import type { MergeType, SelectMode, SplitType } from '../types';
+import type { ExportOptions, MergeType, SelectMode, SplitType } from '../types';
 
 /** What the desktop app knows of a file of the engine and the file system. */
 export type FileStatus = {
     /** Where the file is on the disk, absent for a file that only is in the engine. */
     path?: string;
-    /** The file has edits that the file on the disk does not have (or is not on the disk). */
+    /**
+     * The folder where the file is written the first time it is saved, for a file that is not on
+     * the disk and comes from (or was made in) the open folder.
+     */
+    folder?: string;
+    /**
+     * The file is not the one on the disk: it has edits, is not on the disk, or the file on the
+     * disk is not the one that was read (it was replaced, or is gone).
+     */
     dirty: boolean;
-    /** The file on the disk was changed by something else while this one had edits. */
-    conflict: boolean;
+    /** The file on the disk was replaced by something else: saving overwrites it. */
+    replaced: boolean;
+    /** The file on the disk is gone. */
+    missing: boolean;
+};
+
+/** An entry of the tree of the open folder: a folder, or a GPX file. */
+export type FolderEntry = {
+    name: string;
+    path: string;
+    isDir: boolean;
 };
 
 /** What to do with the files of a folder that have unsaved edits when it is closed. */
@@ -39,22 +56,39 @@ export interface DesktopFiles {
     workspace(): Promise<WorkspaceState>;
     /** Opens the files that the user picks, which get selected. */
     openFiles(): Promise<Outcome>;
+    /** Opens files of the file system by their path, like the ones of the tree of the folder. */
+    openPaths(paths: string[]): Promise<Outcome>;
     /**
-     * Opens the folder that the user picks: its files are opened, and it is watched. The folder
-     * that was open is closed (see `closeFolder` for `unsaved`).
+     * Opens the folder that the user picks, which is watched. Its files are not opened: they are
+     * in its tree (`listFolder`). The folder that was open is closed with its files (see
+     * `closeFiles` for `unsaved`).
      */
     openFolder(unsaved?: UnsavedChoice): Promise<Outcome>;
-    /**
-     * Closes the open folder: it is not watched anymore, and its files are closed. What to do with
-     * the ones that have unsaved edits: `save` them first, `discard` the edits, or keep them open
-     * when it is not said. Rejects, and closes nothing, if they could not be saved.
-     */
+    /** Closes the open folder: it is not watched anymore, and its files are closed. */
     closeFolder(unsaved?: UnsavedChoice): Promise<Outcome>;
     /**
-     * Writes files to the disk, replacing what is there (the user is asked where to put the ones
-     * that are not on the disk yet).
+     * Closes files. What to do with the ones that have unsaved edits: `save` them first (the user
+     * is asked where to put the ones that have no place), `discard` the edits, or keep them open
+     * when it is not said.
      */
-    saveFiles(fileIds: string[]): Promise<void>;
+    closeFiles(fileIds: string[], unsaved?: UnsavedChoice): Promise<Outcome>;
+    /**
+     * Writes files to the disk, replacing what is there (the user is asked where to put the ones
+     * that have no place: a file, or a folder for several of them). Resolves to false if the user
+     * cancelled.
+     */
+    saveFiles(fileIds: string[]): Promise<boolean>;
+    /** Writes a file where the user says, which is where it is from then on. False if cancelled. */
+    saveFileAs(fileId: string): Promise<boolean>;
+    /** Reads files again from the disk: their edits are lost (one undo step). */
+    reloadFiles(fileIds: string[]): Promise<Outcome>;
+    /**
+     * Writes copies of files where the user says (a file, or a folder for several). The files stay
+     * as they are. False if the user cancelled.
+     */
+    exportFiles(fileIds: string[], options: ExportOptions): Promise<boolean>;
+    /** The folders and GPX files in a folder of the open folder (the open folder by default). */
+    listFolder(path?: string): Promise<FolderEntry[]>;
     /**
      * Tells when the engine changed without being asked, because the files on the disk did (the
      * outcome to apply), when the status of the files changed, and when files were opened with the

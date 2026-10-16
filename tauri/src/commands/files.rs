@@ -1,5 +1,7 @@
 //! Creating, loading, deleting, moving, copying and pasting files and their elements, and undoing.
 
+use std::path::PathBuf;
+
 use gpx_engine::api;
 use tauri::State;
 use tauri::ipc::{InvokeBody, Request};
@@ -14,8 +16,10 @@ pub fn new_file(
     lng: Option<f64>,
     lat: Option<f64>,
     ele: Option<f64>,
+    folder: Option<PathBuf>,
 ) -> api::Outcome {
-    state.run(move |e| api::new_file(e, &name, lng, lat, ele))
+    // in `folder` if it is given, otherwise like the selected file, otherwise in the open folder
+    state.core(move |core| core.creating(folder, true, |e| api::new_file(e, &name, lng, lat, ele)))
 }
 
 /// The files are in the body, one after the other, the headers `lengths` and `names` (JSON,
@@ -61,7 +65,7 @@ fn percent_decode(value: &str) -> Option<String> {
 
 #[tauri::command(async)]
 pub fn duplicate(state: State<AppState>) -> api::Outcome {
-    state.run(api::duplicate)
+    state.core(|core| core.creating(None, false, api::duplicate))
 }
 
 #[tauri::command(async)]

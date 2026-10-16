@@ -31,6 +31,11 @@ export function allFileIds(): string[] {
 }
 
 async function exportFiles(fileIds: string[], options: ExportOptions) {
+    if (get(engine.workspace)) {
+        // the desktop app: the user chooses where the files go
+        await engine.exportFiles(fileIds, options);
+        return;
+    }
     const files = (
         await Promise.all(
             fileIds.map(async (fileId) => {

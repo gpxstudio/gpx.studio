@@ -1,18 +1,29 @@
 //! The files of the engine and the files of the file system.
 //!
-//! A file of the engine can be linked to a file on the disk (it was opened from it, or saved to
-//! it). The engine does not know about it: the links are kept here, with what the two looked like
-//! when they last were the same, which tells
+//! A file of the engine has a place, which is one of
 //!
-//! - whether the file was edited since it was saved (`dirty`), as its structure is not the one it
-//!   had then (the structure changes with every edit, and an undo brings it back);
-//! - whether the file on the disk changed since (its bytes are not the ones that were read or
-//!   written then), which is the case when something else wrote it.
+//! - a file on the disk it is linked to (`Link`): it was opened from it, or saved to it;
+//! - a folder (`Workspace::dirs`): it comes from a file of that folder (or was created in it) and
+//!   is written in it, under a name of its own, the first time it is saved;
+//! - nothing: it was created when no folder was open, and the user chooses where it goes when it is
+//!   first saved.
 //!
-//! At most one folder is open. It is watched, and the files that are saved without a place are put
-//! in it. When a folder is open it is watched: the files that appear, change or disappear on the disk are
-//! brought into the engine (see `reconcile`), unless the engine holds edits of that file, which
-//! are not overwritten (the file is then flagged as `conflict`).
+//! The engine does not know about it: the places are kept here. A link also has what the two files
+//! looked like when they last were the same, which tells
+//!
+//! - whether the file was edited since it was saved (its structure is not the one it had then: it
+//!   changes with every edit, and an undo brings it back);
+//! - whether the file on the disk changed since (`replaced`: its bytes are not the ones that were
+//!   read or written then), which is the case when something else wrote it, or is gone (`missing`).
+//!
+//! A file is shown `dirty` in all those cases, but only `replaced` asks the user before it is
+//! saved, as it would overwrite something that was not made here.
+//!
+//! At most one folder is open. It is watched, and the folder tree is read from the disk when the
+//! user opens branches of it (`list_folder`): its files are not opened. The files that are open and
+//! are linked are checked again when something changes on the disk (see `reconcile`): a file without
+//! edits is read again, a file with edits is flagged `replaced` and the user chooses when saving it
+//! whether to overwrite the disk or to read it again (`reload`).
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -44,7 +55,7 @@ pub fn signature(engine: &Engine, id: Uuid) -> Option<u64> {
     Some(hash(&serde_json::to_vec(&structure).ok()?))
 }
 
-/// What to do with the files of a folder that have unsaved edits when the folder is closed.
+/// What to do with the files that have unsaved edits when they are closed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum Unsaved {
@@ -66,9 +77,12 @@ pub struct Link {
     /// Zero when it is not known.
     #[serde(default)]
     pub export_hash: u64,
-    /// The file on the disk changed while the engine held edits of it.
+    /// The file on the disk is not the one that was read or written: something else replaced it.
+    #[serde(default, alias = "conflict")]
+    pub replaced: bool,
+    /// The file on the disk is gone.
     #[serde(default)]
-    pub conflict: bool,
+    pub missing: bool,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -76,19 +90,28 @@ pub struct Workspace {
     /// The folder that is open (and watched).
     pub folder: Option<PathBuf>,
     pub links: BTreeMap<Uuid, Link>,
+    /// The folder where the files that are not on the disk yet are written.
+    #[serde(default)]
+    pub dirs: BTreeMap<Uuid, PathBuf>,
 }
 
 /// What the frontend shows of a file.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FileStatus {
-    /// Where the file is on the disk, absent for a file that only is in the engine.
+    /// Where the file is on the disk, absent for a file that is not on the disk yet.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
-    /// The file has edits that are not in the file on the disk (or has no file on the disk).
+    /// The folder where the file will be written, for a file that is not on the disk yet.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub folder: Option<String>,
+    /// The file is not the one on the disk: it has edits, is not on the disk, or the file on the
+    /// disk is not what was read (or is gone).
     pub dirty: bool,
-    /// The file on the disk was changed by something else while this one had edits.
-    pub conflict: bool,
+    /// The file on the disk was replaced by something else: saving overwrites it.
+    pub replaced: bool,
+    /// The file on the disk is gone.
+    pub missing: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -99,13 +122,22 @@ pub struct WorkspaceState {
     pub files: BTreeMap<String, FileStatus>,
 }
 
+/// A folder or a GPX file of the open folder, see `Workspace::list_folder`.
+#[derive(Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Entry {
+    pub name: String,
+    pub path: String,
+    pub is_dir: bool,
+}
+
 fn is_gpx(path: &Path) -> bool {
     path.extension()
         .and_then(|extension| extension.to_str())
         .is_some_and(|extension| extension.eq_ignore_ascii_case("gpx"))
 }
 
-fn canonical(path: &Path) -> PathBuf {
+pub fn canonical(path: &Path) -> PathBuf {
     fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf())
 }
 
@@ -147,34 +179,18 @@ fn stem(path: &Path) -> String {
         .unwrap_or_default()
 }
 
-/// The GPX files of a folder and of the folders in it.
-pub fn scan(folder: &Path) -> Vec<PathBuf> {
-    const MAX_DEPTH: usize = 8;
-    const MAX_FILES: usize = 5000;
-    let mut found = vec![];
-    let mut pending = vec![(folder.to_path_buf(), 0)];
-    while let Some((directory, depth)) = pending.pop() {
-        let Ok(entries) = fs::read_dir(&directory) else {
-            continue;
-        };
-        for entry in entries.flatten() {
-            let path = entry.path();
-            let Ok(kind) = entry.file_type() else {
-                continue;
-            };
-            let hidden = entry.file_name().to_string_lossy().starts_with('.');
-            if hidden {
-                continue;
-            }
-            if kind.is_dir() && depth < MAX_DEPTH {
-                pending.push((path, depth + 1));
-            } else if kind.is_file() && is_gpx(&path) && found.len() < MAX_FILES {
-                found.push(path);
-            }
-        }
+/// Where to put a file named `name` in `folder`: not the place of something that is there, or that
+/// `taken` says is.
+pub fn free_path(folder: &Path, name: &str, taken: impl Fn(&Path) -> bool) -> PathBuf {
+    let name = file_name(name);
+    let taken = |path: &Path| path.exists() || taken(path);
+    let mut path = folder.join(format!("{name}.gpx"));
+    let mut number = 2;
+    while taken(&path) {
+        path = folder.join(format!("{name} ({number}).gpx"));
+        number += 1;
     }
-    found.sort();
-    found
+    path
 }
 
 impl Workspace {
@@ -203,21 +219,22 @@ impl Workspace {
             .find_map(|(id, link)| (link.path == path).then_some(*id))
     }
 
-    /// Whether the file has edits that the file on the disk does not have.
+    /// Whether the file is not the one on the disk: it has edits, or is not on the disk, or the
+    /// file on the disk is not the one that was read (or is gone).
     pub fn is_dirty(&self, engine: &Engine, id: Uuid) -> bool {
         match self.links.get(&id) {
-            Some(link) => signature(engine, id) != Some(link.signature),
+            Some(link) => {
+                link.replaced || link.missing || signature(engine, id) != Some(link.signature)
+            }
             None => true,
         }
     }
 
     /// The status of each file of the engine.
     pub fn state(&self, engine: &Engine) -> WorkspaceState {
+        let text = |path: &Path| path.to_string_lossy().into_owned();
         WorkspaceState {
-            folder: self
-                .folder
-                .as_ref()
-                .map(|folder| folder.to_string_lossy().into_owned()),
+            folder: self.folder.as_deref().map(text),
             files: engine
                 .order()
                 .iter()
@@ -226,9 +243,15 @@ impl Workspace {
                     (
                         id.to_string(),
                         FileStatus {
-                            path: link.map(|link| link.path.to_string_lossy().into_owned()),
+                            path: link.map(|link| text(&link.path)),
+                            folder: self
+                                .dirs
+                                .get(id)
+                                .filter(|_| link.is_none())
+                                .map(|dir| text(dir)),
                             dirty: self.is_dirty(engine, *id),
-                            conflict: link.is_some_and(|link| link.conflict),
+                            replaced: link.is_some_and(|link| link.replaced),
+                            missing: link.is_some_and(|link| link.missing),
                         },
                     )
                 })
@@ -259,10 +282,11 @@ impl Workspace {
         }
     }
 
-    /// Forgets the links of the files that are not in the engine anymore.
+    /// Forgets the places of the files that are not in the engine anymore.
     pub fn prune(&mut self, engine: &Engine) {
-        self.links
-            .retain(|id, _| engine.file_structure(&FileId(*id)).is_some());
+        let open = |id: &Uuid| engine.file_structure(&FileId(*id)).is_some();
+        self.links.retain(|id, _| open(id));
+        self.dirs.retain(|id, _| open(id));
     }
 
     /// Opens files from the disk: the ones that are not open yet are added, and `select` selects
@@ -296,17 +320,8 @@ impl Workspace {
                 .collect();
             outcome = api::sync_files(engine, &files, &[]);
             for (id, bytes, _, path) in &new {
-                if let Some(signature) = signature(engine, *id) {
-                    self.links.insert(
-                        *id,
-                        Link {
-                            path: path.clone(),
-                            signature,
-                            disk_hash: hash(bytes),
-                            export_hash: export_hash(engine, *id).unwrap_or_default(),
-                            conflict: false,
-                        },
-                    );
+                if let Some(link) = self.new_link(engine, *id, path.clone(), bytes) {
+                    self.links.insert(*id, link);
                     known.push(*id);
                 }
             }
@@ -324,282 +339,324 @@ impl Workspace {
         outcome
     }
 
-    /// Opens a folder: the GPX files in it are opened, and kept in line with it from then on (see
-    /// `reconcile`). The folder that was open is closed (see `close_folder`, which `unsaved` is
-    /// for), and nothing changes if that fails.
+    /// The link of a file that is the one on the disk, which has the given bytes. `None` if the
+    /// engine does not have the file.
+    fn new_link(&self, engine: &Engine, id: Uuid, path: PathBuf, bytes: &[u8]) -> Option<Link> {
+        Some(Link {
+            path,
+            signature: signature(engine, id)?,
+            disk_hash: hash(bytes),
+            export_hash: export_hash(engine, id).unwrap_or_default(),
+            replaced: false,
+            missing: false,
+        })
+    }
+
+    /// Opens a folder, which is watched. Its files are not opened: the user picks them in the tree
+    /// (`list_folder`). The folder that was open is closed with its files: see `close_folder`,
+    /// which `discard` is for.
     pub fn open_folder(
         &mut self,
         engine: &mut Engine,
         folder: &Path,
-        unsaved: Option<Unsaved>,
-    ) -> Result<api::Outcome, String> {
+        discard: bool,
+    ) -> api::Outcome {
         let folder = canonical(folder);
         let closed = if self.folder.as_ref().is_some_and(|open| *open != folder) {
-            self.close_folder(engine, unsaved)?
+            self.close_folder(engine, discard)
         } else {
             api::Outcome::failed_none()
         };
-        self.folder = Some(folder.clone());
-        Ok(closed.merge(self.open_files(engine, &scan(&folder), false)))
+        self.folder = Some(folder);
+        closed
     }
 
-    /// The files that belong to the open folder: the ones in it, and the new ones, which are
-    /// saved in it.
-    fn belonging_to_folder(&self, engine: &Engine) -> Vec<Uuid> {
-        let Some(folder) = &self.folder else {
-            return vec![];
-        };
-        engine
-            .order()
-            .iter()
-            .map(|FileId(id)| *id)
-            .filter(|id| match self.links.get(id) {
-                Some(link) => link.path.starts_with(folder),
-                None => true,
-            })
-            .collect()
+    /// What to watch on the disk: the open folder and the folders in it, and the folder of each
+    /// linked file that is outside of it (only that folder: the file is replaced when it is saved,
+    /// which a watch on the file itself would not follow). The `bool` says whether to go into the
+    /// folders. Only folders that exist.
+    pub fn watched(&self) -> Vec<(PathBuf, bool)> {
+        let mut watched: Vec<(PathBuf, bool)> = vec![];
+        if let Some(folder) = self.folder.as_ref().filter(|folder| folder.is_dir()) {
+            watched.push((folder.clone(), true));
+        }
+        let mut parents: Vec<PathBuf> = self
+            .links
+            .values()
+            .filter(|link| !self.in_folder(&link.path))
+            .filter_map(|link| link.path.parent().map(Path::to_path_buf))
+            .filter(|parent| parent.is_dir())
+            .collect();
+        parents.sort();
+        parents.dedup();
+        watched.extend(parents.into_iter().map(|parent| (parent, false)));
+        watched
     }
 
-    /// The files of the open folder that have unsaved edits, the new files included.
-    pub fn unsaved_in_folder(&self, engine: &Engine) -> Vec<Uuid> {
-        self.belonging_to_folder(engine)
-            .into_iter()
+    /// Whether the path is in the open folder (or is it).
+    fn in_folder(&self, path: &Path) -> bool {
+        self.folder
+            .as_ref()
+            .is_some_and(|folder| path.starts_with(folder))
+    }
+
+    /// The files among `ids` that are not the ones on the disk.
+    pub fn unsaved(&self, engine: &Engine, ids: &[Uuid]) -> Vec<Uuid> {
+        ids.iter()
+            .copied()
+            .filter(|id| engine.file_structure(&FileId(*id)).is_some())
             .filter(|id| self.is_dirty(engine, *id))
             .collect()
     }
 
-    /// Closes the open folder: its files are closed. The ones that have unsaved edits, and the new
-    /// files that were not saved (they are saved in the folder), are saved first or discarded, as
-    /// `unsaved` says; without it they stay open.
-    ///
-    /// Nothing is closed if saving fails.
-    pub fn close_folder(
+    /// Every file of the engine.
+    pub fn all(&self, engine: &Engine) -> Vec<Uuid> {
+        engine.order().iter().map(|FileId(id)| *id).collect()
+    }
+
+    /// Closes files, which are not in the engine anymore. The ones that are not the files on the
+    /// disk stay open, unless `discard` says their edits are lost.
+    pub fn close_files(
         &mut self,
         engine: &mut Engine,
-        unsaved: Option<Unsaved>,
-    ) -> Result<api::Outcome, String> {
-        if self.folder.is_none() {
-            return Ok(api::Outcome::failed_none());
-        }
-        let unsaved_ids = self.unsaved_in_folder(engine);
-        if unsaved == Some(Unsaved::Save) {
-            self.save(engine, &unsaved_ids, &BTreeMap::new())?;
-        }
-        let closing: Vec<Uuid> = self
-            .belonging_to_folder(engine)
-            .into_iter()
-            .filter(|id| unsaved.is_some() || !unsaved_ids.contains(id))
+        ids: &[Uuid],
+        discard: bool,
+    ) -> api::Outcome {
+        let closing: Vec<Uuid> = ids
+            .iter()
+            .copied()
+            .filter(|id| engine.file_structure(&FileId(*id)).is_some())
+            .filter(|id| discard || !self.is_dirty(engine, *id))
             .collect();
-        self.folder = None;
+        if closing.is_empty() {
+            return api::Outcome::failed_none();
+        }
         for id in &closing {
             self.links.remove(id);
+            self.dirs.remove(id);
         }
-        if closing.is_empty() {
-            return Ok(api::Outcome::failed_none());
-        }
-        Ok(api::sync_files(engine, &[], &closing))
+        api::sync_files(engine, &[], &closing)
     }
 
-    /// Where to put a file that is not on the disk, in the open folder: named like the file, and
-    /// not the name of a file that is there.
-    fn free_path(&self, folder: &Path, name: &str) -> PathBuf {
-        let name = file_name(name);
-        let taken =
-            |path: &Path| path.exists() || self.links.values().any(|link| link.path == path);
-        let mut path = folder.join(format!("{name}.gpx"));
-        let mut number = 2;
-        while taken(&path) {
-            path = folder.join(format!("{name} ({number}).gpx"));
-            number += 1;
-        }
-        path
+    /// Closes the open folder, and everything that is open with it: the workspace starts over.
+    /// What is not the file on the disk stays open unless `discard` says its edits are lost, and
+    /// the folder is closed anyway.
+    pub fn close_folder(&mut self, engine: &mut Engine, discard: bool) -> api::Outcome {
+        let ids = self.all(engine);
+        let outcome = self.close_files(engine, &ids, discard);
+        self.folder = None;
+        outcome
     }
 
-    /// Brings what changed on the disk into the engine: for the given paths (or everything that is
-    /// in the folder, and everything that is linked, when there are none).
+    /// Where a new file created from the given files goes: the folder of the first of them that
+    /// has a place in the open folder, `None` if there is none. A file that is not in the open folder
+    /// has nothing to hand down.
+    pub fn source_dir(&self, ids: &[Uuid]) -> Option<PathBuf> {
+        ids.iter().find_map(|id| {
+            let dir = match self.links.get(id) {
+                Some(link) => link.path.parent()?.to_path_buf(),
+                None => self.dirs.get(id)?.clone(),
+            };
+            self.in_folder(&dir).then_some(dir)
+        })
+    }
+
+    /// The new files among `ids` are written in `dir` when they are saved (unless they have a
+    /// place already).
+    pub fn inherit(&mut self, ids: &[String], dir: &Path) {
+        for id in ids.iter().filter_map(|id| Uuid::parse_str(id).ok()) {
+            if !self.links.contains_key(&id) {
+                self.dirs.insert(id, dir.to_path_buf());
+            }
+        }
+    }
+
+    /// Brings what changed on the disk into the open files, for the given paths (or for all of the
+    /// linked ones when there are none):
     ///
-    /// - A file that is not open is added.
-    /// - A file that changed is read again, unless it has edits that the file on the disk does not
-    ///   have: it is flagged as a conflict, and what is in the engine stays.
-    /// - A file that is gone is deleted, unless it has edits: it becomes a file that only is in
-    ///   the engine.
+    /// - a file that has no edits and is not what is on the disk anymore is read again, one undo
+    ///   step: it stays the same file;
+    /// - a file that has edits is `replaced`, nothing is read: saving it overwrites the file on the
+    ///   disk, which the user is asked first;
+    /// - a file that is gone is `missing`, it stays open;
+    /// - the flags are cleared when the file on the disk is the one that was read or written.
     ///
-    /// Gives what that changed in the engine, `None` when nothing.
+    /// Says what changed in the engine, `None` when nothing changed, not even a flag.
     pub fn reconcile(
         &mut self,
         engine: &mut Engine,
         changed: Option<&[PathBuf]>,
     ) -> Option<api::Outcome> {
-        let folder = self.folder.clone();
-        let candidates: Vec<PathBuf> = match changed {
-            None => {
-                let mut paths = folder.as_deref().map(scan).unwrap_or_default();
-                paths.extend(self.links.values().map(|link| link.path.clone()));
-                paths
-            }
-            Some(changed) => {
-                let mut paths: Vec<PathBuf> = changed
-                    .iter()
-                    .filter(|path| {
-                        folder
-                            .as_ref()
-                            .is_some_and(|folder| path.starts_with(folder))
-                    })
-                    .cloned()
-                    .collect();
-                // a folder that was removed or moved takes its files with it
-                paths.extend(
-                    self.links
-                        .values()
-                        .map(|link| link.path.clone())
-                        .filter(|path| changed.iter().any(|other| path.starts_with(other))),
-                );
-                paths
-            }
-        };
-        let mut candidates: Vec<PathBuf> = candidates
-            .into_iter()
-            .filter(|path| is_gpx(path) || self.id_of(path).is_some())
-            .collect();
-        candidates.sort();
-        candidates.dedup();
-
-        // the files to bring in, with what to record once they are
-        let mut files: Vec<(Uuid, Vec<u8>, String, PathBuf)> = vec![];
-        let mut remove = vec![];
         let mut flagged = false;
-        for path in candidates {
-            let id = self.id_of(&path);
-            match fs::read(&path) {
-                Ok(bytes) => {
-                    let disk_hash = hash(&bytes);
-                    match id {
-                        Some(id) => {
-                            let dirty = self.is_dirty(engine, id);
-                            let link = self.links.get_mut(&id).expect("the link exists");
-                            if disk_hash == link.disk_hash {
-                                continue;
-                            }
-                            if dirty {
-                                link.disk_hash = disk_hash;
-                                link.conflict = true;
-                                flagged = true;
-                            } else {
-                                files.push((id, bytes, stem(&path), path));
-                            }
-                        }
-                        None => files.push((Uuid::new_v4(), bytes, stem(&path), path)),
-                    }
-                }
-                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-                    if let Some(id) = id {
-                        if !self.is_dirty(engine, id) {
-                            remove.push(id);
-                        }
-                        self.links.remove(&id);
-                        flagged = true;
-                    }
-                }
+        let mut to_reload = vec![];
+        let ids: Vec<Uuid> = self.links.keys().copied().collect();
+        for id in ids {
+            let edited = signature(engine, id) != Some(self.links[&id].signature);
+            let link = self.links.get_mut(&id).expect("the link exists");
+            if let Some(changed) = changed
+                && !changed
+                    .iter()
+                    .any(|path| link.path.starts_with(path) || path.starts_with(&link.path))
+            {
+                continue;
+            }
+            let (differs, missing) = match fs::read(&link.path) {
+                Ok(bytes) => (hash(&bytes) != link.disk_hash, false),
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => (false, true),
                 // a folder, or a file that cannot be read now: it is looked at again when it changes
-                Err(_) => {}
+                Err(_) => continue,
+            };
+            if differs && !edited {
+                to_reload.push(id);
+                continue;
+            }
+            let replaced = differs;
+            if (replaced, missing) != (link.replaced, link.missing) {
+                link.replaced = replaced;
+                link.missing = missing;
+                flagged = true;
             }
         }
-
-        let outcome = if files.is_empty() && remove.is_empty() {
+        let reloaded = if to_reload.is_empty() {
             None
         } else {
-            let borrowed: Vec<(Uuid, &[u8], &str)> = files
-                .iter()
-                .map(|(id, bytes, name, _)| (*id, bytes.as_slice(), name.as_str()))
-                .collect();
-            let outcome = api::sync_files(engine, &borrowed, &remove);
-            for (id, bytes, _, path) in &files {
-                match signature(engine, *id) {
-                    Some(signature) => {
-                        self.links.insert(
-                            *id,
-                            Link {
-                                path: path.clone(),
-                                signature,
-                                disk_hash: hash(bytes),
-                                export_hash: export_hash(engine, *id).unwrap_or_default(),
-                                conflict: false,
-                            },
-                        );
-                    }
-                    // it could not be read: it is tried again when it changes
-                    None => {
-                        self.links.remove(id);
-                    }
-                }
-            }
-            for id in &remove {
-                self.links.remove(id);
-            }
-            Some(outcome)
+            self.reload(engine, &to_reload).ok()
         };
-        if outcome.is_some() || flagged {
-            self.prune(engine);
+        match reloaded {
+            Some(outcome) => Some(outcome),
+            None => flagged.then(api::Outcome::failed_none),
         }
-        outcome.or_else(|| flagged.then(api::Outcome::failed_none))
     }
 
-    /// The files among `ids` that are not on the disk, with the name to propose for them.
+    /// Reads files again from the disk: they become the files that are there (one undo step for
+    /// each), and are not dirty anymore. Stops at the first one that cannot be read.
+    pub fn reload(&mut self, engine: &mut Engine, ids: &[Uuid]) -> Result<api::Outcome, String> {
+        let mut files = vec![];
+        for id in ids {
+            let Some(link) = self.links.get(id) else {
+                continue;
+            };
+            let bytes = fs::read(&link.path)
+                .map_err(|error| format!("{}: {error}", link.path.display()))?;
+            files.push((*id, bytes, stem(&link.path)));
+        }
+        let borrowed: Vec<(Uuid, &[u8], &str)> = files
+            .iter()
+            .map(|(id, bytes, name)| (*id, bytes.as_slice(), name.as_str()))
+            .collect();
+        let outcome = api::sync_files(engine, &borrowed, &[]);
+        for (id, bytes, _) in &files {
+            let path = self.links[id].path.clone();
+            if let Some(link) = self.new_link(engine, *id, path, bytes) {
+                self.links.insert(*id, link);
+            }
+        }
+        Ok(outcome)
+    }
+
+    /// The files among `ids` that are written by the first save to a place the user chooses: the
+    /// ones that are not on the disk, and not linked to a folder either. With the name to propose.
     pub fn unlinked(&self, engine: &Engine, ids: &[Uuid]) -> Vec<(Uuid, String)> {
         ids.iter()
-            .filter(|id| !self.links.contains_key(id))
+            .filter(|id| !self.links.contains_key(id) && !self.dirs.contains_key(id))
             .filter_map(|id| Some((*id, engine.file_structure(&FileId(*id))?.name.clone())))
             .collect()
     }
 
+    fn is_taken(&self, path: &Path) -> bool {
+        self.links.values().any(|link| link.path == path)
+    }
+
     /// Writes files to the disk, replacing what is there: they are the same as their file from
-    /// then on. `paths` is where to write the ones that are not on the disk yet. Stops at the
-    /// first error, the files that were written stay written.
+    /// then on. A file that is not on the disk goes in its folder, or at its path in `paths`, or in
+    /// `folder`, under its name (changed if that is the one of something else). Stops at the first
+    /// error, the files that were written stay written.
     pub fn save(
         &mut self,
         engine: &Engine,
         ids: &[Uuid],
         paths: &BTreeMap<Uuid, PathBuf>,
+        folder: Option<&Path>,
     ) -> Result<(), String> {
-        let mut result = Ok(());
         for id in ids {
-            let path = match self.links.get(id) {
-                Some(link) => link.path.clone(),
-                None => match (paths.get(id), &self.folder) {
-                    (Some(path), _) => canonical(path),
-                    // a new file goes in the folder that is open
-                    (None, Some(folder)) => {
-                        let Some(structure) = engine.file_structure(&FileId(*id)) else {
-                            continue;
-                        };
-                        self.free_path(folder, &structure.name)
-                    }
-                    (None, None) => continue,
-                },
-            };
-            let Some(bytes) = api::export_file(engine, *id, ExportOptions::ALL) else {
+            let Some(structure) = engine.file_structure(&FileId(*id)) else {
                 continue;
             };
-            if let Err(error) = write_atomically(&path, &bytes) {
-                result = Err(format!("{}: {error}", path.display()));
-                break;
-            }
-            let Some(signature) = signature(engine, *id) else {
-                continue;
+            let in_folder = |dir: &Path| free_path(dir, &structure.name, |p| self.is_taken(p));
+            let path = match (self.links.get(id), paths.get(id), self.dirs.get(id), folder) {
+                (Some(link), ..) => link.path.clone(),
+                (None, Some(path), ..) => canonical(path),
+                (None, None, Some(dir), _) => in_folder(dir),
+                (None, None, None, Some(dir)) => in_folder(dir),
+                (None, None, None, None) => continue,
             };
-            // the folder, if there is one, may watch what was just written: the hash tells it is known
-            self.links.insert(
-                *id,
-                Link {
-                    path: canonical(&path),
-                    signature,
-                    disk_hash: hash(&bytes),
-                    export_hash: hash(&bytes),
-                    conflict: false,
-                },
-            );
+            self.write_file(engine, *id, &path)?;
         }
-        result
+        Ok(())
+    }
+
+    /// Writes a file to a path of the user's choice, which is the place of the file from then on.
+    pub fn save_as(&mut self, engine: &Engine, id: Uuid, path: &Path) -> Result<(), String> {
+        if let Some(other) = self.id_of(&canonical(path))
+            && other != id
+        {
+            return Err(format!("{} is open already", path.display()));
+        }
+        self.write_file(engine, id, path)
+    }
+
+    fn write_file(&mut self, engine: &Engine, id: Uuid, path: &Path) -> Result<(), String> {
+        let Some(bytes) = api::export_file(engine, id, ExportOptions::ALL) else {
+            return Ok(());
+        };
+        write_atomically(path, &bytes).map_err(|error| format!("{}: {error}", path.display()))?;
+        let Some(signature) = signature(engine, id) else {
+            return Ok(());
+        };
+        // the folder, if there is one, may watch what was just written: the hash tells it is known
+        self.links.insert(
+            id,
+            Link {
+                path: canonical(path),
+                signature,
+                disk_hash: hash(&bytes),
+                export_hash: hash(&bytes),
+                replaced: false,
+                missing: false,
+            },
+        );
+        self.dirs.remove(&id);
+        Ok(())
+    }
+
+    /// The folders and the GPX files that are in a folder of the open folder (or in it), the
+    /// folders first and then alphabetically. Hidden files are left out.
+    pub fn list_folder(&self, folder: &Path) -> Result<Vec<Entry>, String> {
+        let folder = canonical(folder);
+        if !self.in_folder(&folder) {
+            return Err(format!("{} is not in the open folder", folder.display()));
+        }
+        let mut entries: Vec<Entry> = fs::read_dir(&folder)
+            .map_err(|error| format!("{}: {error}", folder.display()))?
+            .flatten()
+            .filter_map(|entry| {
+                let name = entry.file_name().to_string_lossy().into_owned();
+                let path = entry.path();
+                let is_dir = fs::metadata(&path).ok()?.is_dir();
+                (!name.starts_with('.') && (is_dir || is_gpx(&path))).then(|| Entry {
+                    name,
+                    path: path.to_string_lossy().into_owned(),
+                    is_dir,
+                })
+            })
+            .collect();
+        entries.sort_by(|a, b| {
+            b.is_dir
+                .cmp(&a.is_dir)
+                .then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
+                .then_with(|| a.name.cmp(&b.name))
+        });
+        Ok(entries)
     }
 }
 
@@ -613,6 +670,21 @@ mod tests {
         format!(
             r#"<?xml version="1.0"?><gpx version="1.1" creator="test" xmlns="http://www.topografix.com/GPX/1/1"><metadata><name>{name}</name></metadata><trk><trkseg><trkpt lat="50.0" lon="4.0"><ele>10</ele></trkpt><trkpt lat="50.1" lon="4.1"><ele>20</ele></trkpt></trkseg></trk></gpx>"#
         )
+    }
+
+    /// The GPX files of a folder and of the folders in it.
+    pub(super) fn gpx_files(folder: &Path) -> Vec<PathBuf> {
+        let mut found = vec![];
+        for entry in fs::read_dir(folder).unwrap().flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                found.extend(gpx_files(&path));
+            } else if is_gpx(&path) {
+                found.push(path);
+            }
+        }
+        found.sort();
+        found
     }
 
     struct Fixture {
@@ -639,8 +711,33 @@ mod tests {
             path
         }
 
+        /// Opens the folder, and all the files that are in it.
+        fn open_folder(&mut self) {
+            let folder = self.folder.clone();
+            self.workspace.open_folder(&mut self.engine, &folder, false);
+            let files = gpx_files(&folder);
+            self.workspace.open_files(&mut self.engine, &files, false);
+        }
+
+        fn reconcile(&mut self, changed: Option<&[PathBuf]>) -> Option<api::Outcome> {
+            self.workspace.reconcile(&mut self.engine, changed)
+        }
+
+        fn save(&mut self, ids: &[Uuid]) {
+            self.workspace
+                .save(&self.engine, ids, &BTreeMap::new(), None)
+                .unwrap();
+        }
+
         fn ids(&self) -> Vec<Uuid> {
             self.engine.order().iter().map(|id| id.0).collect()
+        }
+
+        fn id_named(&self, name: &str) -> Uuid {
+            self.ids()
+                .into_iter()
+                .find(|id| self.name(*id) == name)
+                .unwrap()
         }
 
         fn name(&self, id: Uuid) -> String {
@@ -654,6 +751,14 @@ mod tests {
         fn rename(&mut self, id: Uuid, name: &str) {
             api::select(&mut self.engine, &[id], SelectMode::Replace);
             assert!(!api::metadata(&mut self.engine, name, "").has_error());
+        }
+
+        fn status(&self, id: Uuid) -> FileStatus {
+            self.workspace
+                .state(&self.engine)
+                .files
+                .remove(&id.to_string())
+                .unwrap()
         }
     }
 
@@ -671,25 +776,19 @@ mod tests {
             .open_files(&mut fx.engine, std::slice::from_ref(&path), true);
         let id = fx.ids()[0];
         assert!(!fx.workspace.is_dirty(&fx.engine, id));
-        assert_eq!(
-            fx.workspace.state(&fx.engine).files[&id.to_string()]
-                .path
-                .as_deref(),
-            path.to_str()
-        );
+        assert_eq!(fx.status(id).path.as_deref(), path.to_str());
 
         fx.rename(id, "renamed");
         assert!(fx.workspace.is_dirty(&fx.engine, id));
         // nothing is written before it is saved
         assert!(fs::read_to_string(&path).unwrap().contains(">a<"));
 
-        fx.workspace
-            .save(&fx.engine, &[id], &BTreeMap::new())
-            .unwrap();
+        fx.save(&[id]);
         assert!(!fx.workspace.is_dirty(&fx.engine, id));
         assert!(fs::read_to_string(&path).unwrap().contains(">renamed<"));
 
         // going back before the save is an edit again
+        api::select(&mut fx.engine, &[id], SelectMode::Replace);
         api::undo(&mut fx.engine);
         assert!(fx.workspace.is_dirty(&fx.engine, id));
         api::redo(&mut fx.engine);
@@ -706,332 +805,448 @@ mod tests {
             fx.workspace.unlinked(&fx.engine, &[id]),
             [(id, "fresh".to_string())]
         );
+        // nowhere to put it without being told
+        fx.save(&[id]);
+        assert!(fx.workspace.is_dirty(&fx.engine, id));
 
         let path = fx.folder.join("fresh.gpx");
         let paths = BTreeMap::from([(id, path.clone())]);
-        fx.workspace.save(&fx.engine, &[id], &paths).unwrap();
+        fx.workspace.save(&fx.engine, &[id], &paths, None).unwrap();
         assert!(path.exists());
         assert!(!fx.workspace.is_dirty(&fx.engine, id));
         assert!(fx.workspace.unlinked(&fx.engine, &[id]).is_empty());
     }
 
     #[test]
+    fn several_files_without_a_place_go_in_a_folder_with_names_that_are_free() {
+        let mut fx = Fixture::new();
+        fx.write("fresh.gpx", "already there");
+        api::new_file(&mut fx.engine, "fresh", None, None, None);
+        api::new_file(&mut fx.engine, "a/b: c", None, None, None);
+        api::new_file(&mut fx.engine, "fresh", None, None, None);
+        let ids = fx.ids();
+        let folder = fx.folder.clone();
+        fx.workspace
+            .save(&fx.engine, &ids, &BTreeMap::new(), Some(&folder))
+            .unwrap();
+        for name in ["fresh (2).gpx", "fresh (3).gpx", "a_b_ c.gpx"] {
+            assert!(fx.folder.join(name).exists(), "{name}");
+        }
+        assert!(ids.iter().all(|id| !fx.workspace.is_dirty(&fx.engine, *id)));
+    }
+
+    #[test]
     fn what_this_app_writes_is_not_a_change_of_the_disk() {
         let mut fx = Fixture::new();
         let path = fx.write("a.gpx", "a");
-        fx.workspace
-            .open_folder(&mut fx.engine, &fx.folder.clone(), None)
-            .unwrap();
+        fx.open_folder();
         let id = fx.ids()[0];
         fx.rename(id, "renamed");
-        fx.workspace
-            .save(&fx.engine, &[id], &BTreeMap::new())
-            .unwrap();
-        assert!(
-            fx.workspace
-                .reconcile(&mut fx.engine, Some(&[path]))
-                .is_none()
-        );
+        fx.save(&[id]);
+        assert!(fx.reconcile(Some(&[path])).is_none());
+        assert!(!fx.status(id).replaced);
         assert_eq!(fx.name(id), "renamed");
     }
 
     #[test]
-    fn opening_a_folder_opens_its_files_and_follows_what_happens_to_them() {
+    fn the_folders_of_the_files_outside_the_open_folder_are_watched_too() {
         let mut fx = Fixture::new();
-        let a = fx.write("a.gpx", "a");
-        fx.write("notes.txt", "not a track");
-        fs::create_dir(fx.folder.join("sub")).unwrap();
-        fx.write("sub/b.gpx", "b");
-        fx.workspace
-            .open_folder(&mut fx.engine, &fx.folder.clone(), None)
-            .unwrap();
-        assert_eq!(fx.ids().len(), 2);
+        let inside = fx.write("in.gpx", "in");
+        let elsewhere = canonical(&std::env::temp_dir()).join(format!("gpx-ws-{}", Uuid::new_v4()));
+        fs::create_dir_all(&elsewhere).unwrap();
+        let (one, two) = (elsewhere.join("one.gpx"), elsewhere.join("two.gpx"));
+        fs::write(&one, gpx("one")).unwrap();
+        fs::write(&two, gpx("two")).unwrap();
+        let folder = fx.folder.clone();
+
+        // no folder: only the folder of the files
+        fx.workspace.open_files(&mut fx.engine, &[one, two], false);
+        assert_eq!(fx.workspace.watched(), [(elsewhere.clone(), false)]);
+
+        // the open folder as a whole, and the file in it needs nothing more
+        fx.workspace.open_folder(&mut fx.engine, &folder, false);
+        fx.workspace.open_files(&mut fx.engine, &[inside], false);
+        assert_eq!(
+            fx.workspace.watched(),
+            [(folder, true), (elsewhere.clone(), false)]
+        );
+
+        // closing the files stops it
         let ids = fx.ids();
-        let a_id = ids.iter().copied().find(|id| fx.name(*id) == "a").unwrap();
-
-        // a new file
-        let c = fx.write("c.gpx", "c");
-        let outcome = fx
-            .workspace
-            .reconcile(&mut fx.engine, Some(std::slice::from_ref(&c)))
-            .unwrap();
-        assert!(outcome.changed);
-        assert_eq!(fx.ids().len(), 3);
-
-        // the same file again: nothing
-        assert!(fx.workspace.reconcile(&mut fx.engine, Some(&[c])).is_none());
-
-        // a file that changed is read again, and stays the same file
-        fx.write("a.gpx", "a, edited elsewhere");
-        fx.workspace
-            .reconcile(&mut fx.engine, Some(std::slice::from_ref(&a)))
-            .unwrap();
-        assert_eq!(fx.name(a_id), "a, edited elsewhere");
-        assert!(!fx.workspace.is_dirty(&fx.engine, a_id));
-        assert_eq!(fx.ids().len(), 3);
-
-        // a file that is gone
-        fs::remove_file(&a).unwrap();
-        fx.workspace.reconcile(&mut fx.engine, Some(&[a])).unwrap();
-        assert_eq!(fx.ids().len(), 2);
-        assert!(!fx.ids().contains(&a_id));
+        fx.workspace.close_files(&mut fx.engine, &ids, true);
+        assert_eq!(fx.workspace.watched(), [(fx.folder.clone(), true)]);
+        fs::remove_dir_all(elsewhere).unwrap();
     }
 
     #[test]
-    fn the_edits_of_a_file_are_not_overwritten_by_the_disk() {
+    fn opening_a_folder_does_not_open_its_files() {
+        let mut fx = Fixture::new();
+        fx.write("a.gpx", "a");
+        let folder = fx.folder.clone();
+        let outcome = fx.workspace.open_folder(&mut fx.engine, &folder, false);
+        assert!(!outcome.changed);
+        assert!(fx.ids().is_empty());
+        assert_eq!(fx.workspace.folder.as_deref(), Some(folder.as_path()));
+    }
+
+    #[test]
+    fn the_tree_of_the_folder_shows_folders_first_and_only_gpx_files() {
+        let mut fx = Fixture::new();
+        fx.write("b.gpx", "b");
+        fx.write("A.GPX", "a");
+        fx.write("notes.txt", "not a track");
+        fx.write(".hidden.gpx", "hidden");
+        fs::create_dir(fx.folder.join("zoo")).unwrap();
+        fs::create_dir(fx.folder.join("Alps")).unwrap();
+        fs::create_dir(fx.folder.join(".git")).unwrap();
+        fx.write("zoo/c.gpx", "c");
+        let folder = fx.folder.clone();
+        fx.workspace.open_folder(&mut fx.engine, &folder, false);
+
+        let names = |entries: Vec<Entry>| -> Vec<(String, bool)> {
+            entries.into_iter().map(|e| (e.name, e.is_dir)).collect()
+        };
+        assert_eq!(
+            names(fx.workspace.list_folder(&folder).unwrap()),
+            [
+                ("Alps".to_string(), true),
+                ("zoo".to_string(), true),
+                ("A.GPX".to_string(), false),
+                ("b.gpx".to_string(), false),
+            ]
+        );
+        assert_eq!(
+            names(fx.workspace.list_folder(&folder.join("zoo")).unwrap()),
+            [("c.gpx".to_string(), false)]
+        );
+        // only what is in the open folder can be listed
+        let elsewhere = canonical(&std::env::temp_dir());
+        assert!(fx.workspace.list_folder(&elsewhere).is_err());
+    }
+
+    #[test]
+    fn a_file_without_edits_is_read_again_when_the_disk_changes() {
         let mut fx = Fixture::new();
         let a = fx.write("a.gpx", "a");
-        fx.workspace
-            .open_folder(&mut fx.engine, &fx.folder.clone(), None)
-            .unwrap();
+        fx.open_folder();
+        let id = fx.ids()[0];
+
+        fx.write("a.gpx", "theirs");
+        let outcome = fx.reconcile(Some(std::slice::from_ref(&a))).unwrap();
+        assert!(outcome.changed);
+        // the same file, now the one on the disk
+        assert_eq!(fx.ids(), [id]);
+        assert_eq!(fx.name(id), "theirs");
+        let status = fx.status(id);
+        assert!(!status.dirty && !status.replaced);
+        // looking again changes nothing
+        assert!(fx.reconcile(Some(std::slice::from_ref(&a))).is_none());
+    }
+
+    #[test]
+    fn a_file_with_edits_is_flagged_when_the_disk_changes_and_not_read_again() {
+        let mut fx = Fixture::new();
+        let a = fx.write("a.gpx", "a");
+        fx.open_folder();
         let id = fx.ids()[0];
         fx.rename(id, "mine");
 
         fx.write("a.gpx", "theirs");
-        let outcome = fx
-            .workspace
-            .reconcile(&mut fx.engine, Some(std::slice::from_ref(&a)));
-        assert!(!outcome.is_some_and(|outcome| outcome.changed));
+        let outcome = fx.reconcile(Some(std::slice::from_ref(&a))).unwrap();
+        assert!(!outcome.changed);
         assert_eq!(fx.name(id), "mine");
-        assert!(fx.workspace.state(&fx.engine).files[&id.to_string()].conflict);
+        let status = fx.status(id);
+        assert!(status.dirty && status.replaced && !status.missing);
+        // looking again changes nothing
+        assert!(fx.reconcile(Some(std::slice::from_ref(&a))).is_none());
 
-        // gone from the disk: it stays, as a file that is only here
+        // the disk goes back to what was read: only the edits are left
+        fx.write("a.gpx", "a");
+        assert!(fx.reconcile(Some(std::slice::from_ref(&a))).is_some());
+        let status = fx.status(id);
+        assert!(status.dirty && !status.replaced);
+    }
+
+    #[test]
+    fn the_user_can_take_the_disk_instead_of_the_edits() {
+        let mut fx = Fixture::new();
+        fx.write("a.gpx", "a");
+        fx.open_folder();
+        let id = fx.ids()[0];
+        fx.rename(id, "mine");
+        fx.write("a.gpx", "theirs");
+        fx.reconcile(None);
+        assert!(fx.status(id).replaced);
+
+        fx.workspace.reload(&mut fx.engine, &[id]).unwrap();
+        assert_eq!(fx.name(id), "theirs");
+        let status = fx.status(id);
+        assert!(!status.dirty && !status.replaced);
+        // and it is one undo step
+        api::select(&mut fx.engine, &[id], SelectMode::Replace);
+        api::undo(&mut fx.engine);
+        assert_eq!(fx.name(id), "mine");
+    }
+
+    #[test]
+    fn saving_overwrites_what_replaced_the_file() {
+        let mut fx = Fixture::new();
+        let a = fx.write("a.gpx", "a");
+        fx.open_folder();
+        let id = fx.ids()[0];
+        fx.rename(id, "mine");
+        fx.write("a.gpx", "theirs");
+        fx.reconcile(None);
+        assert!(fx.status(id).replaced);
+
+        fx.save(&[id]);
+        assert!(fs::read_to_string(a).unwrap().contains(">mine<"));
+        assert!(!fx.status(id).replaced && !fx.status(id).dirty);
+    }
+
+    #[test]
+    fn a_file_that_is_gone_from_the_disk_stays_open_and_dirty_until_it_is_saved_again() {
+        let mut fx = Fixture::new();
+        let a = fx.write("a.gpx", "a");
+        fx.open_folder();
+        let id = fx.ids()[0];
+
         fs::remove_file(&a).unwrap();
-        fx.workspace.reconcile(&mut fx.engine, Some(&[a]));
+        assert!(fx.reconcile(Some(std::slice::from_ref(&a))).is_some());
         assert_eq!(fx.ids(), [id]);
-        let status = &fx.workspace.state(&fx.engine).files[&id.to_string()];
-        assert!(status.path.is_none() && status.dirty);
+        let status = fx.status(id);
+        assert!(status.dirty && status.missing && status.path.is_some());
 
-        // saving it again puts it back
-        let paths = BTreeMap::from([(id, fx.folder.join("a.gpx"))]);
-        fx.workspace.save(&fx.engine, &[id], &paths).unwrap();
-        assert!(!fx.workspace.state(&fx.engine).files[&id.to_string()].conflict);
+        // saving puts it back
+        fx.save(&[id]);
+        assert!(a.exists());
+        let status = fx.status(id);
+        assert!(!status.dirty && !status.missing);
+    }
+
+    #[test]
+    fn a_file_that_comes_back_different_is_read_again() {
+        let mut fx = Fixture::new();
+        let a = fx.write("a.gpx", "a");
+        fx.open_folder();
+        let id = fx.ids()[0];
+        fs::remove_file(&a).unwrap();
+        fx.reconcile(None);
+        assert!(fx.status(id).missing);
+
+        fx.write("a.gpx", "back");
+        fx.reconcile(None);
+        assert_eq!(fx.name(id), "back");
+        let status = fx.status(id);
+        assert!(!status.dirty && !status.missing);
     }
 
     #[test]
     fn what_changed_while_the_app_was_closed_is_found_when_it_starts() {
         let mut fx = Fixture::new();
         let a = fx.write("a.gpx", "a");
-        fx.workspace
-            .open_folder(&mut fx.engine, &fx.folder.clone(), None)
-            .unwrap();
+        fx.open_folder();
         let id = fx.ids()[0];
         fx.write("a.gpx", "changed");
-        fx.write("new.gpx", "new");
-        fx.workspace.reconcile(&mut fx.engine, None).unwrap();
+        assert!(fx.reconcile(None).is_some());
         assert_eq!(fx.name(id), "changed");
-        assert_eq!(fx.ids().len(), 2);
         fs::remove_file(a).unwrap();
-        fx.workspace.reconcile(&mut fx.engine, None).unwrap();
-        assert_eq!(fx.ids().len(), 1);
+        assert!(fx.reconcile(None).is_some());
+        assert!(fx.status(id).missing);
     }
 
     #[test]
-    fn a_new_file_is_saved_in_the_open_folder_without_a_place() {
+    fn new_files_made_from_a_file_of_the_folder_are_saved_next_to_it() {
         let mut fx = Fixture::new();
-        fx.write("fresh.gpx", "already there");
-        fx.workspace
-            .open_folder(&mut fx.engine, &fx.folder.clone(), None)
-            .unwrap();
-        api::new_file(&mut fx.engine, "fresh", None, None, None);
-        api::new_file(&mut fx.engine, "a/b: c", None, None, None);
-        let new: Vec<Uuid> = fx
+        fs::create_dir(fx.folder.join("sub")).unwrap();
+        fx.write("sub/b.gpx", "b");
+        fx.write("a.gpx", "a");
+        fx.open_folder();
+        let b = fx.id_named("b");
+        let sub = fx.folder.join("sub");
+        assert_eq!(fx.workspace.source_dir(&[b]), Some(canonical(&sub)));
+
+        let before = fx.ids();
+        api::select(&mut fx.engine, &[b], SelectMode::Replace);
+        let outcome = api::duplicate(&mut fx.engine);
+        let copy = fx
             .ids()
             .into_iter()
-            .filter(|id| fx.workspace.is_dirty(&fx.engine, *id))
-            .collect();
-        assert_eq!(new.len(), 2);
-
-        fx.workspace
-            .save(&fx.engine, &new, &BTreeMap::new())
+            .find(|id| !before.contains(id))
             .unwrap();
-        // named like the file, not over what is there, and with a name that is valid
-        assert!(fx.folder.join("fresh (2).gpx").exists());
-        assert!(fx.folder.join("a_b_ c.gpx").exists());
+        fx.workspace.inherit(outcome.added(), &canonical(&sub));
+        assert_eq!(fx.status(copy).folder.as_deref(), canonical(&sub).to_str());
+        assert!(fx.status(copy).path.is_none() && fx.status(copy).dirty);
+        // nobody needs to be asked where it goes
+        assert!(fx.workspace.unlinked(&fx.engine, &[copy]).is_empty());
+
+        fx.save(&[copy]);
+        assert!(sub.join("b (2).gpx").exists());
+        let status = fx.status(copy);
+        assert!(!status.dirty && status.folder.is_none());
         assert_eq!(
-            fx.workspace
-                .state(&fx.engine)
-                .files
-                .values()
-                .filter(|f| f.dirty)
-                .count(),
-            0
+            status.path.as_deref(),
+            canonical(&sub.join("b (2).gpx")).to_str()
         );
+        // the copy of the copy is next to it as well
+        assert_eq!(fx.workspace.source_dir(&[copy]), Some(canonical(&sub)));
     }
 
     #[test]
-    fn opening_another_folder_closes_the_first() {
+    fn a_file_outside_the_open_folder_hands_nothing_down() {
         let mut fx = Fixture::new();
-        fx.write("one.gpx", "one");
-        let other = fx.folder.join("other");
-        fs::create_dir(&other).unwrap();
-        fs::write(other.join("two.gpx"), gpx("two")).unwrap();
-        // the first folder is not the parent of the second
-        let first = fx.folder.join("first");
-        fs::create_dir(&first).unwrap();
-        fs::write(first.join("one.gpx"), gpx("one")).unwrap();
-        fx.workspace
-            .open_folder(&mut fx.engine, &first, None)
-            .unwrap();
-        let one = fx.ids()[0];
-        fx.workspace
-            .open_folder(&mut fx.engine, &other, None)
-            .unwrap();
-        assert_eq!(fx.ids().len(), 1);
-        assert!(!fx.ids().contains(&one));
-        assert_eq!(fx.name(fx.ids()[0]), "two");
-        assert_eq!(
-            fx.workspace.folder.as_deref(),
-            Some(canonical(&other).as_path())
-        );
-
-        // what has edits stays when the folder is closed, and can still be saved where it is
-        let two = fx.ids()[0];
-        fx.rename(two, "edited");
-        let outcome = fx.workspace.close_folder(&mut fx.engine, None).unwrap();
-        assert!(!outcome.changed);
-        assert_eq!(fx.ids(), [two]);
-        assert!(fx.workspace.folder.is_none());
-        fx.workspace
-            .save(&fx.engine, &[two], &BTreeMap::new())
-            .unwrap();
-        assert!(
-            fs::read_to_string(other.join("two.gpx"))
-                .unwrap()
-                .contains("edited")
-        );
-        let clean = fx.workspace.close_folder(&mut fx.engine, None).unwrap();
-        assert!(!clean.changed);
-    }
-
-    fn folder_with_an_edited_file() -> (Fixture, Uuid) {
-        let mut fx = Fixture::new();
-        fx.write("a.gpx", "a");
-        fx.write("b.gpx", "b");
-        fx.workspace
-            .open_folder(&mut fx.engine, &fx.folder.clone(), None)
-            .unwrap();
-        let id = fx.ids().into_iter().find(|id| fx.name(*id) == "a").unwrap();
-        fx.rename(id, "edited");
-        (fx, id)
-    }
-
-    #[test]
-    fn the_unsaved_files_of_a_folder_are_known() {
-        let (fx, id) = folder_with_an_edited_file();
-        assert_eq!(fx.workspace.unsaved_in_folder(&fx.engine), [id]);
-    }
-
-    #[test]
-    fn closing_a_folder_can_save_the_unsaved_files_first() {
-        let (mut fx, _) = folder_with_an_edited_file();
-        let outcome = fx
-            .workspace
-            .close_folder(&mut fx.engine, Some(Unsaved::Save))
-            .unwrap();
-        assert!(outcome.changed);
-        assert!(fx.ids().is_empty());
-        assert!(
-            fs::read_to_string(fx.folder.join("a.gpx"))
-                .unwrap()
-                .contains("edited")
-        );
-        assert!(fx.workspace.folder.is_none() && fx.workspace.links.is_empty());
-    }
-
-    #[test]
-    fn closing_a_folder_can_discard_the_unsaved_files() {
-        let (mut fx, _) = folder_with_an_edited_file();
-        fx.workspace
-            .close_folder(&mut fx.engine, Some(Unsaved::Discard))
-            .unwrap();
-        assert!(fx.ids().is_empty());
-        assert!(
-            fs::read_to_string(fx.folder.join("a.gpx"))
-                .unwrap()
-                .contains(">a<")
-        );
-    }
-
-    #[test]
-    fn nothing_is_closed_when_the_unsaved_files_cannot_be_saved() {
-        let (mut fx, id) = folder_with_an_edited_file();
-        // the file cannot be written: its place is taken by a folder
-        fs::remove_file(fx.folder.join("a.gpx")).unwrap();
-        fs::create_dir(fx.folder.join("a.gpx")).unwrap();
-        let result = fx
-            .workspace
-            .close_folder(&mut fx.engine, Some(Unsaved::Save));
-        assert!(result.is_err());
-        assert!(fx.workspace.folder.is_some());
-        assert!(fx.ids().contains(&id));
-    }
-
-    #[test]
-    fn opening_another_folder_applies_the_choice_to_the_first() {
-        let (mut fx, _) = folder_with_an_edited_file();
-        let other = fx.folder.join("other");
-        fs::create_dir(&other).unwrap();
-        fs::write(other.join("c.gpx"), gpx("c")).unwrap();
-        // the folder that is open contains the other one: use two separate ones instead
         let elsewhere = canonical(&std::env::temp_dir()).join(format!("gpx-ws-{}", Uuid::new_v4()));
         fs::create_dir_all(&elsewhere).unwrap();
-        fs::write(elsewhere.join("d.gpx"), gpx("d")).unwrap();
+        let outside = elsewhere.join("o.gpx");
+        fs::write(&outside, gpx("o")).unwrap();
+        let folder = fx.folder.clone();
+        fx.workspace.open_folder(&mut fx.engine, &folder, false);
         fx.workspace
-            .open_folder(&mut fx.engine, &elsewhere, Some(Unsaved::Discard))
-            .unwrap();
-        assert_eq!(fx.ids().len(), 1);
-        assert_eq!(fx.name(fx.ids()[0]), "d");
-        assert!(
-            fs::read_to_string(fx.folder.join("a.gpx"))
-                .unwrap()
-                .contains(">a<")
-        );
+            .open_files(&mut fx.engine, std::slice::from_ref(&outside), true);
+        let id = fx.ids()[0];
+        assert_eq!(fx.workspace.source_dir(&[id]), None);
+        // a new file with no source is not linked to a folder by `source_dir`: the caller falls back
         fs::remove_dir_all(elsewhere).unwrap();
     }
 
     #[test]
-    fn new_files_belong_to_the_open_folder_and_follow_its_unsaved_choice() {
-        let (mut fx, edited) = folder_with_an_edited_file();
-        api::new_file(&mut fx.engine, "fresh", None, None, None);
-        let fresh = *fx
-            .ids()
-            .iter()
-            .find(|id| **id != edited && fx.name(**id) == "fresh")
-            .unwrap();
-        let unsaved = fx.workspace.unsaved_in_folder(&fx.engine);
-        assert!(unsaved.contains(&edited) && unsaved.contains(&fresh));
+    fn closing_files_asks_what_to_do_with_the_unsaved_ones() {
+        let mut fx = Fixture::new();
+        fx.write("a.gpx", "a");
+        fx.write("b.gpx", "b");
+        fx.open_folder();
+        let (a, b) = (fx.id_named("a"), fx.id_named("b"));
+        fx.rename(a, "edited");
+        assert_eq!(fx.workspace.unsaved(&fx.engine, &[a, b]), [a]);
 
-        // saved in the folder when it is closed
-        fx.workspace
-            .close_folder(&mut fx.engine, Some(Unsaved::Save))
-            .unwrap();
+        // without a choice what has edits stays
+        let outcome = fx.workspace.close_files(&mut fx.engine, &[a, b], false);
+        assert!(outcome.changed);
+        assert_eq!(fx.ids(), [a]);
+
+        // saved first
+        fx.save(&[a]);
+        fx.workspace.close_files(&mut fx.engine, &[a], false);
         assert!(fx.ids().is_empty());
-        assert!(fx.folder.join("fresh.gpx").exists());
         assert!(
             fs::read_to_string(fx.folder.join("a.gpx"))
                 .unwrap()
                 .contains("edited")
         );
+        assert!(fx.workspace.links.is_empty());
     }
 
     #[test]
-    fn new_files_are_discarded_with_the_folder_or_stay_without_a_choice() {
-        let (mut fx, edited) = folder_with_an_edited_file();
+    fn closing_files_can_discard_their_edits() {
+        let mut fx = Fixture::new();
+        fx.write("a.gpx", "a");
+        fx.open_folder();
+        let a = fx.ids()[0];
+        fx.rename(a, "edited");
         api::new_file(&mut fx.engine, "fresh", None, None, None);
-        // without a choice the unsaved files stay, the new one as well
-        fx.workspace.close_folder(&mut fx.engine, None).unwrap();
-        assert!(fx.ids().contains(&edited));
-        assert!(fx.ids().iter().any(|id| fx.name(*id) == "fresh"));
+        let fresh = fx.id_named("fresh");
+        fx.workspace.close_files(&mut fx.engine, &[a, fresh], true);
+        assert!(fx.ids().is_empty());
+        assert!(
+            fs::read_to_string(fx.folder.join("a.gpx"))
+                .unwrap()
+                .contains(">a<")
+        );
+    }
+
+    #[test]
+    fn closing_the_folder_closes_every_file() {
+        let mut fx = Fixture::new();
+        fx.write("a.gpx", "a");
+        fx.open_folder();
+        api::new_file(&mut fx.engine, "fresh", None, None, None);
+        assert_eq!(fx.ids().len(), 2);
+
+        // the new file has nowhere to go: it has to be discarded
+        let outcome = fx.workspace.close_folder(&mut fx.engine, false);
+        assert!(outcome.changed);
+        assert_eq!(fx.ids().len(), 1);
         assert!(fx.workspace.folder.is_none());
 
-        let (mut fx, _) = folder_with_an_edited_file();
-        api::new_file(&mut fx.engine, "fresh", None, None, None);
-        fx.workspace
-            .close_folder(&mut fx.engine, Some(Unsaved::Discard))
-            .unwrap();
+        let outcome = fx.workspace.close_folder(&mut fx.engine, true);
+        assert!(outcome.changed);
         assert!(fx.ids().is_empty());
-        assert!(!fx.folder.join("fresh.gpx").exists());
+    }
+
+    #[test]
+    fn opening_another_folder_closes_the_first_with_all_its_files() {
+        let mut fx = Fixture::new();
+        fx.write("a.gpx", "a");
+        fx.open_folder();
+        let a = fx.ids()[0];
+        fx.rename(a, "edited");
+        let other = canonical(&std::env::temp_dir()).join(format!("gpx-ws-{}", Uuid::new_v4()));
+        fs::create_dir_all(&other).unwrap();
+
+        // the edits stay, nothing is lost without a choice
+        fx.workspace.open_folder(&mut fx.engine, &other, false);
+        assert_eq!(fx.ids(), [a]);
+        assert_eq!(fx.workspace.folder.as_deref(), Some(other.as_path()));
+
+        let first = fx.folder.clone();
+        fx.workspace.open_folder(&mut fx.engine, &first, true);
+        assert!(fx.ids().is_empty());
+        assert!(
+            fs::read_to_string(fx.folder.join("a.gpx"))
+                .unwrap()
+                .contains(">a<")
+        );
+        fs::remove_dir_all(other).unwrap();
+    }
+
+    #[test]
+    fn opening_the_same_folder_again_changes_nothing() {
+        let mut fx = Fixture::new();
+        fx.write("a.gpx", "a");
+        fx.open_folder();
+        let folder = fx.folder.clone();
+        let outcome = fx.workspace.open_folder(&mut fx.engine, &folder, true);
+        assert!(!outcome.changed);
+        assert_eq!(fx.ids().len(), 1);
+    }
+
+    #[test]
+    fn a_failed_save_stops_at_the_file_and_leaves_it_dirty() {
+        let mut fx = Fixture::new();
+        fx.write("a.gpx", "a");
+        fx.open_folder();
+        let id = fx.ids()[0];
+        fx.rename(id, "edited");
+        // the place of the file is taken by a folder
+        fs::remove_file(fx.folder.join("a.gpx")).unwrap();
+        fs::create_dir(fx.folder.join("a.gpx")).unwrap();
+        let result = fx.workspace.save(&fx.engine, &[id], &BTreeMap::new(), None);
+        assert!(result.is_err());
+        assert!(fx.workspace.is_dirty(&fx.engine, id));
+    }
+
+    #[test]
+    fn saving_as_gives_the_file_another_place() {
+        let mut fx = Fixture::new();
+        let a = fx.write("a.gpx", "a");
+        fx.write("b.gpx", "b");
+        fx.open_folder();
+        let id = fx.id_named("a");
+        let other = fx.id_named("b");
+        fx.rename(id, "edited");
+
+        let target = fx.folder.join("copy.gpx");
+        fx.workspace.save_as(&fx.engine, id, &target).unwrap();
+        assert!(fs::read_to_string(&target).unwrap().contains("edited"));
+        assert!(fs::read_to_string(a).unwrap().contains(">a<"));
+        let status = fx.status(id);
+        assert!(!status.dirty);
+        assert_eq!(status.path.as_deref(), canonical(&target).to_str());
+
+        // the place of another open file is not available
+        let taken = fx.folder.join("b.gpx");
+        assert!(fx.workspace.save_as(&fx.engine, id, &taken).is_err());
+        assert!(!fx.workspace.is_dirty(&fx.engine, other));
     }
 }
 
@@ -1066,7 +1281,8 @@ mod restart_tests {
         }
         let mut engine = Engine::default();
         let mut workspace = Workspace::default();
-        workspace.open_folder(&mut engine, &folder, None).unwrap();
+        workspace.open_folder(&mut engine, &folder, false);
+        workspace.open_files(&mut engine, &tests::gpx_files(&folder), false);
         let ids = engine.order().iter().map(|id| id.0).collect();
         (root, engine, workspace, ids)
     }
@@ -1116,6 +1332,24 @@ mod restart_tests {
                 .iter()
                 .all(|id| !workspace.is_dirty(&restarted, *id))
         );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn the_folders_of_new_files_and_the_old_flag_name_survive_a_restart() {
+        let (root, engine, mut workspace, ids) = setup();
+        let folder = workspace.folder.clone().unwrap();
+        let fresh = Uuid::new_v4();
+        workspace.inherit(&[fresh.to_string()], &folder);
+        workspace.links.get_mut(&ids[0]).unwrap().replaced = true;
+        let json = serde_json::to_string(&workspace).unwrap();
+        // links written by the previous version had `conflict`, which is the same thing
+        let json = json.replace("\"replaced\"", "\"conflict\"");
+        assert!(json.contains("\"conflict\":true"));
+        let read: Workspace = serde_json::from_str(&json).unwrap();
+        assert!(read.links[&ids[0]].replaced);
+        assert_eq!(read.dirs.get(&fresh), Some(&folder));
+        let _ = engine;
         fs::remove_dir_all(root).unwrap();
     }
 }
