@@ -124,9 +124,9 @@ impl Editor for Cleaner<'_> {
     }
 }
 
-/// Removes what the clean left empty: the emptied segments, the tracks that lost all their
-/// segments and the files that lost something and have nothing left. The selection falls back
-/// to the closest element still existing.
+/// Removes what the clean left empty: the emptied segments and the tracks that lost all their
+/// segments. A file is never removed, even if nothing is left in it: it stays, empty. The
+/// selection falls back to the closest element still existing.
 fn prune(state: &mut State, emptied: &HashSet<TrackSegmentId>, wpt_files: &HashSet<FileId>) {
     let ids: Vec<FileId> = state
         .files
@@ -142,18 +142,12 @@ fn prune(state: &mut State, emptied: &HashSet<TrackSegmentId>, wpt_files: &HashS
         .collect();
     for id in ids {
         let mut file = (*state.files[&id]).clone();
-        let lost_something = !emptied.is_empty() || wpt_files.contains(&id);
         file.trk.retain_mut(|trk| {
             let len = trk.trkseg.len();
             trk.trkseg.retain(|seg| !emptied.contains(&seg.id));
             trk.trkseg.len() == len || !trk.trkseg.is_empty()
         });
-        if lost_something && file.trk.is_empty() && file.wpt.is_empty() {
-            state.files.remove(&id);
-            state.order.0.retain(|f| *f != id);
-        } else {
-            state.files.insert(id, Rc::new(file));
-        }
+        state.files.insert(id, Rc::new(file));
     }
     *state.selection = fixed_selection(state);
 }
@@ -297,10 +291,16 @@ mod tests {
             .apply(&mut fx.state())
             .unwrap();
         assert_eq!(count(&fx, id), 0);
-        // nothing is left of the file
-        assert!(!fx.files.contains_key(&id));
-        assert!(fx.order.0.is_empty());
-        assert_eq!(fx.selection, Selection::Empty);
+        // nothing is left in the file, which stays and is still selected
+        let file = &fx.files[&id];
+        assert!(file.trk.is_empty() && file.wpt.is_empty());
+        assert_eq!(fx.order.0, [id]);
+        assert_eq!(
+            fx.selection,
+            Selection::File {
+                file_ids: HashSet::from([id])
+            }
+        );
     }
 
     #[test]
