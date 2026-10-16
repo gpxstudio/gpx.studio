@@ -16,8 +16,8 @@ use crate::{
 };
 
 #[derive(Debug, Default)]
-pub struct Engine {
-    history: History,
+pub struct Engine<H: History = GlobalHistory> {
+    history: H,
     selection: Selection,
     order: FileOrder,
     statistics_cache: StatisticsCache,
@@ -29,7 +29,7 @@ pub struct Engine {
     clipboard: Option<Clipboard>,
 }
 
-impl Engine {
+impl<H: History> Engine<H> {
     pub fn statistics(&self) -> &StatisticsBuffer {
         &self.statistics_buffer
     }
@@ -143,13 +143,13 @@ impl Engine {
             .into_iter()
             .map(|file| (file.id, file))
             .collect();
-        let diff = History::diff_between(before.as_ref(), Some(&files));
+        let diff = diff_between(before.as_ref(), Some(&files));
         let mut diff =
             (!(diff.added.is_empty() && diff.removed.is_empty() && diff.modified.is_empty()))
                 .then_some(diff);
         self.categories = restored.categories;
         self.order = FileOrder(restored.order);
-        self.history = History::restored(files);
+        self.history = H::restored(files);
         self.refresh(diff.as_ref());
         sort_diff(&mut diff, &self.order.0);
         Outcome {
@@ -181,14 +181,14 @@ impl Engine {
             })
     }
 
-    /// Whether there is something to undo.
+    /// Whether there is something to undo (for the selected files, with a per-file history).
     pub fn can_undo(&self) -> bool {
-        self.history.can_undo()
+        self.history.can_undo(&self.selection.file_ids())
     }
 
-    /// Whether there is something to redo.
+    /// Whether there is something to redo (for the selected files, with a per-file history).
     pub fn can_redo(&self) -> bool {
-        self.history.can_redo()
+        self.history.can_redo(&self.selection.file_ids())
     }
 
     /// Currently selected elements.
@@ -216,8 +216,8 @@ impl Engine {
         // the files change iff there is a diff, but selection and order actions have none
         let mut diff = match action {
             Action::Edit(command) => self.edit(command)?,
-            Action::Undo => self.history.undo(),
-            Action::Redo => self.history.redo(),
+            Action::Undo => self.history.undo(&self.selection.file_ids()),
+            Action::Redo => self.history.redo(&self.selection.file_ids()),
             Action::Select { selection, mode } => {
                 self.selection
                     .select(self.history.current(), selection, mode);

@@ -153,7 +153,7 @@ fn test_invalid_load_is_rejected() {
         })
     ));
     assert!(engine.history.current().is_none());
-    assert!(!engine.history.can_undo());
+    assert!(!engine.history.can_undo(&[]));
     assert!(engine.order.0.is_empty());
 }
 
@@ -162,7 +162,7 @@ fn test_command_with_nothing_to_do_is_rejected() {
     let mut engine = TestEngine::default();
     new(&mut engine, "file");
     assert!(!edit(&mut engine, Command::Reverse(crate::Reverse)));
-    assert!(!engine.history.can_redo());
+    assert!(!engine.history.can_redo(&[]));
     assert_eq!(engine.history.current().unwrap().len(), 1);
 }
 
@@ -1433,4 +1433,107 @@ fn test_overwriting_forgets_the_history() {
     let ids = engine.order().to_vec();
     engine.restore(restored_from(&engine, &ids, vec![]));
     assert!(!engine.can_undo());
+}
+
+mod per_file_history {
+    use super::*;
+
+    fn new_file(engine: &mut Engine<PerFileHistory>, name: &str) -> FileId {
+        engine
+            .execute(Action::Edit(Command::New(New {
+                name,
+                trackpoint: None,
+            })))
+            .unwrap();
+        *engine.order().last().unwrap()
+    }
+
+    fn select(engine: &mut Engine<PerFileHistory>, ids: &[FileId]) {
+        engine
+            .execute(Action::Select {
+                selection: Selection::File {
+                    file_ids: ids.iter().copied().collect(),
+                },
+                mode: SelectMode::Replace,
+            })
+            .unwrap();
+    }
+
+    fn rename(engine: &mut Engine<PerFileHistory>, name: &str) {
+        engine
+            .execute(Action::Edit(Command::Metadata(Metadata { name, desc: "" })))
+            .unwrap();
+    }
+
+    fn name_of(engine: &Engine<PerFileHistory>, id: FileId) -> String {
+        engine.file_structure(&id).unwrap().name.clone()
+    }
+
+    #[test]
+    fn test_creating_a_file_is_not_undoable() {
+        let mut engine = Engine::<PerFileHistory>::default();
+        let id = new_file(&mut engine, "file");
+        assert!(!engine.can_undo());
+        assert!(!engine.execute(Action::Undo).unwrap().changed);
+        assert_eq!(engine.order(), [id]);
+    }
+
+    #[test]
+    fn test_undo_follows_the_selected_files() {
+        let mut engine = Engine::<PerFileHistory>::default();
+        let a = new_file(&mut engine, "a");
+        let b = new_file(&mut engine, "b");
+
+        select(&mut engine, &[a]);
+        rename(&mut engine, "a2");
+        select(&mut engine, &[b]);
+        rename(&mut engine, "b2");
+
+        // b is selected: only its change is undone
+        assert!(engine.can_undo());
+        let outcome = engine.execute(Action::Undo).unwrap();
+        assert_eq!(outcome.diff.unwrap().modified, vec![b]);
+        assert_eq!(name_of(&engine, b), "b");
+        assert_eq!(name_of(&engine, a), "a2");
+        assert!(!engine.can_undo());
+        assert!(engine.can_redo());
+
+        select(&mut engine, &[a]);
+        assert!(engine.can_undo());
+        assert!(!engine.can_redo());
+        engine.execute(Action::Undo).unwrap();
+        assert_eq!(name_of(&engine, a), "a");
+
+        select(&mut engine, &[b]);
+        engine.execute(Action::Redo).unwrap();
+        assert_eq!(name_of(&engine, b), "b2");
+    }
+
+    #[test]
+    fn test_undo_without_selection_does_nothing() {
+        let mut engine = Engine::<PerFileHistory>::default();
+        new_file(&mut engine, "a");
+        rename(&mut engine, "a2");
+        engine
+            .execute(Action::Select {
+                selection: Selection::Empty,
+                mode: SelectMode::Replace,
+            })
+            .unwrap();
+        assert!(!engine.can_undo());
+        assert!(!engine.execute(Action::Undo).unwrap().changed);
+    }
+
+    #[test]
+    fn test_deleting_a_file_drops_its_history() {
+        let mut engine = Engine::<PerFileHistory>::default();
+        let id = new_file(&mut engine, "a");
+        rename(&mut engine, "a2");
+        engine
+            .execute(Action::Edit(Command::Delete(Delete { whole_files: false })))
+            .unwrap();
+        assert!(engine.order().is_empty());
+        assert!(!engine.execute(Action::Undo).unwrap().changed);
+        assert!(engine.file_structure(&id).is_none());
+    }
 }

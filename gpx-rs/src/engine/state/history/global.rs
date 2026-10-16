@@ -1,12 +1,11 @@
-use std::{
-    collections::{HashMap, HashSet},
-    rc::Rc,
-};
+use std::rc::Rc;
 
-use crate::{CommandError, File, FileId};
+use super::{Diff, Files, History, diff_between};
+use crate::{CommandError, FileId};
 
+/// One history for the whole workspace: each entry is a state of all the files.
 #[derive(Debug, Default)]
-pub struct History {
+pub struct GlobalHistory {
     entries: Vec<Files>,
     index: Option<usize>,
     /// Whether the first entry is the state the history starts from, which is not undone: files
@@ -14,37 +13,7 @@ pub struct History {
     floor: bool,
 }
 
-impl History {
-    /// A history whose first entry is `entry`, from which nothing can be undone.
-    pub fn restored(entry: Files) -> Self {
-        Self {
-            entries: vec![entry],
-            index: Some(0),
-            floor: true,
-        }
-    }
-
-    pub fn current(&self) -> Option<&Files> {
-        self.index.map_or_default(|i| self.get(i))
-    }
-
-    /// Applies `f` to a copy of the current entry and makes the copy the new current entry.
-    ///
-    /// Nothing is pushed, and `None` is returned, if `f` fails (the error is returned) or if it
-    /// leaves every file as it was: a step that undoes nothing is not worth a place in the
-    /// history. Files are told apart by their identity, not their content.
-    pub fn create_and_push_next<F>(&mut self, f: F) -> Result<Option<Diff>, CommandError>
-    where
-        F: FnOnce(&mut Files) -> Result<(), CommandError>,
-    {
-        let mut next = self.current().map_or_default(|c| c.clone());
-        f(&mut next)?;
-        if self.is_current(&next) {
-            return Ok(None);
-        }
-        Ok(self.record_diff(|history| history.push(next)))
-    }
-
+impl GlobalHistory {
     /// Whether `entry` holds exactly the files of the current entry.
     fn is_current(&self, entry: &Files) -> bool {
         let current = self.current();
@@ -55,46 +24,6 @@ impl History {
                     .iter()
                     .all(|(id, file)| current.get(id).is_some_and(|c| Rc::ptr_eq(c, file)))
             })
-    }
-
-    pub fn undo(&mut self) -> Option<Diff> {
-        self.record_diff(|history| {
-            if let Some(i) = history.index {
-                if i == 0 {
-                    if !history.floor {
-                        history.index = None;
-                    }
-                } else {
-                    history.index = Some(i - 1);
-                }
-            }
-        })
-    }
-
-    pub fn redo(&mut self) -> Option<Diff> {
-        self.record_diff(|history| match history.index {
-            Some(i) => {
-                if i + 1 < history.entries.len() {
-                    history.index = Some(i + 1);
-                }
-            }
-            None => {
-                if !history.entries.is_empty() {
-                    history.index = Some(0);
-                }
-            }
-        })
-    }
-
-    pub fn can_undo(&self) -> bool {
-        self.index.is_some_and(|i| i > 0 || !self.floor)
-    }
-
-    pub fn can_redo(&self) -> bool {
-        match self.index {
-            Some(i) => i + 1 < self.entries.len(),
-            None => !self.entries.is_empty(),
-        }
     }
 
     fn get(&self, index: usize) -> Option<&Files> {
@@ -120,47 +49,86 @@ impl History {
         if prev == cur {
             return None;
         }
-        Some(Self::diff_between(
+        Some(diff_between(
             prev.map_or_default(|i| self.get(i)),
             cur.map_or_default(|i| self.get(i)),
         ))
     }
-
-    /// Which files differ between two states.
-    pub fn diff_between(prev: Option<&Files>, cur: Option<&Files>) -> Diff {
-        let prev_ids: HashSet<FileId> = prev.map_or_default(|e| e.keys().copied().collect());
-        let cur_ids: HashSet<FileId> = cur.map_or_default(|e| e.keys().copied().collect());
-        let mut modified = vec![];
-        for id in prev_ids.intersection(&cur_ids) {
-            let before = prev.map_or_default(|e| e.get(id));
-            let after = cur.map_or_default(|e| e.get(id));
-            if !before.zip(after).is_some_and(|(b, a)| Rc::ptr_eq(b, a)) {
-                modified.push(*id);
-            }
-        }
-        Diff {
-            added: cur_ids.difference(&prev_ids).copied().collect(),
-            removed: prev_ids.difference(&cur_ids).copied().collect(),
-            modified,
-        }
-    }
 }
 
-pub type Files = HashMap<FileId, Rc<File>>;
+impl History for GlobalHistory {
+    fn restored(entry: Files) -> Self {
+        Self {
+            entries: vec![entry],
+            index: Some(0),
+            floor: true,
+        }
+    }
 
-/// Which files were added, removed or modified by a change of the current history entry.
-#[derive(Debug, Default, Clone, PartialEq, Eq)]
-pub struct Diff {
-    pub added: Vec<FileId>,
-    pub removed: Vec<FileId>,
-    pub modified: Vec<FileId>,
+    fn current(&self) -> Option<&Files> {
+        self.index.map_or_default(|i| self.get(i))
+    }
+
+    /// Files are told apart by their identity, not their content.
+    fn create_and_push_next<F>(&mut self, f: F) -> Result<Option<Diff>, CommandError>
+    where
+        F: FnOnce(&mut Files) -> Result<(), CommandError>,
+    {
+        let mut next = self.current().map_or_default(|c| c.clone());
+        f(&mut next)?;
+        if self.is_current(&next) {
+            return Ok(None);
+        }
+        Ok(self.record_diff(|history| history.push(next)))
+    }
+
+    fn undo(&mut self, _files: &[FileId]) -> Option<Diff> {
+        self.record_diff(|history| {
+            if let Some(i) = history.index {
+                if i == 0 {
+                    if !history.floor {
+                        history.index = None;
+                    }
+                } else {
+                    history.index = Some(i - 1);
+                }
+            }
+        })
+    }
+
+    fn redo(&mut self, _files: &[FileId]) -> Option<Diff> {
+        self.record_diff(|history| match history.index {
+            Some(i) => {
+                if i + 1 < history.entries.len() {
+                    history.index = Some(i + 1);
+                }
+            }
+            None => {
+                if !history.entries.is_empty() {
+                    history.index = Some(0);
+                }
+            }
+        })
+    }
+
+    fn can_undo(&self, _files: &[FileId]) -> bool {
+        self.index.is_some_and(|i| i > 0 || !self.floor)
+    }
+
+    fn can_redo(&self, _files: &[FileId]) -> bool {
+        match self.index {
+            Some(i) => i + 1 < self.entries.len(),
+            None => !self.entries.is_empty(),
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::File;
 
-    impl History {
+    impl GlobalHistory {
         /// A step that is expected not to fail.
         fn push_ok(
             &mut self,
@@ -172,10 +140,10 @@ mod tests {
 
     #[test]
     fn test_new_file() {
-        let mut history = History::default();
+        let mut history = GlobalHistory::default();
 
-        assert!(!history.can_undo());
-        assert!(!history.can_redo());
+        assert!(!history.can_undo(&[]));
+        assert!(!history.can_redo(&[]));
         assert!(history.current().is_none());
 
         let diff = history.push_ok(|e| {
@@ -184,8 +152,8 @@ mod tests {
             Ok(())
         });
 
-        assert!(history.can_undo());
-        assert!(!history.can_redo());
+        assert!(history.can_undo(&[]));
+        assert!(!history.can_redo(&[]));
         assert!(history.current().is_some());
 
         assert!(diff.is_some());
@@ -196,7 +164,7 @@ mod tests {
         assert!(diff.modified.is_empty());
     }
 
-    fn add_file(history: &mut History) -> FileId {
+    fn add_file(history: &mut GlobalHistory) -> FileId {
         let file = Rc::new(File::default());
         let id = file.id;
         history
@@ -210,43 +178,43 @@ mod tests {
 
     #[test]
     fn test_failed_command_pushes_nothing() {
-        let mut history = History::default();
+        let mut history = GlobalHistory::default();
         let diff = history.create_and_push_next(|e| {
             e.insert(FileId::default(), Rc::new(File::default()));
             Err(CommandError::InvalidData("nope".to_string()))
         });
         assert_eq!(diff, Err(CommandError::InvalidData("nope".to_string())));
-        assert!(!history.can_undo());
+        assert!(!history.can_undo(&[]));
         assert!(history.current().is_none());
     }
 
     #[test]
     fn test_undo_redo() {
-        let mut history = History::default();
-        assert!(history.undo().is_none());
-        assert!(history.redo().is_none());
+        let mut history = GlobalHistory::default();
+        assert!(history.undo(&[]).is_none());
+        assert!(history.redo(&[]).is_none());
 
         let id = add_file(&mut history);
 
-        let diff = history.undo().unwrap();
+        let diff = history.undo(&[]).unwrap();
         assert_eq!(diff.removed, vec![id]);
         assert!(diff.added.is_empty());
         assert!(history.current().is_none());
-        assert!(!history.can_undo());
-        assert!(history.can_redo());
-        assert!(history.undo().is_none());
+        assert!(!history.can_undo(&[]));
+        assert!(history.can_redo(&[]));
+        assert!(history.undo(&[]).is_none());
 
-        let diff = history.redo().unwrap();
+        let diff = history.redo(&[]).unwrap();
         assert_eq!(diff.added, vec![id]);
         assert!(history.current().unwrap().contains_key(&id));
-        assert!(history.can_undo());
-        assert!(!history.can_redo());
-        assert!(history.redo().is_none());
+        assert!(history.can_undo(&[]));
+        assert!(!history.can_redo(&[]));
+        assert!(history.redo(&[]).is_none());
     }
 
     #[test]
     fn test_modified_and_removed() {
-        let mut history = History::default();
+        let mut history = GlobalHistory::default();
         let id = add_file(&mut history);
 
         let diff = history
@@ -282,13 +250,13 @@ mod tests {
         assert!(history.current().unwrap().is_empty());
 
         // going back restores the renamed file
-        history.undo();
+        history.undo(&[]);
         assert_eq!(history.current().unwrap()[&id].info.name, "renamed");
     }
 
     #[test]
     fn test_a_file_is_modified_when_it_is_not_the_same_one_anymore() {
-        let mut history = History::default();
+        let mut history = GlobalHistory::default();
         let id = add_file(&mut history);
 
         // a copy, even if it has the same content, is another file for the history: files are
@@ -316,17 +284,17 @@ mod tests {
 
     #[test]
     fn test_push_after_undo_drops_redo_branch() {
-        let mut history = History::default();
+        let mut history = GlobalHistory::default();
         let first = add_file(&mut history);
         let second = add_file(&mut history);
 
-        history.undo();
-        assert!(history.can_redo());
+        history.undo(&[]);
+        assert!(history.can_redo(&[]));
         assert!(!history.current().unwrap().contains_key(&second));
 
         let third = add_file(&mut history);
-        assert!(!history.can_redo());
-        assert!(history.redo().is_none());
+        assert!(!history.can_redo(&[]));
+        assert!(history.redo(&[]).is_none());
         let current = history.current().unwrap();
         assert!(current.contains_key(&first));
         assert!(current.contains_key(&third));
@@ -342,24 +310,24 @@ mod tests {
     #[test]
     fn test_restored_history_starts_from_its_entry() {
         let (entry, id) = restored_entry();
-        let mut history = History::restored(entry);
+        let mut history = GlobalHistory::restored(entry);
 
         assert!(history.current().unwrap().contains_key(&id));
         // there is nothing to go back to, nor forward to
-        assert!(!history.can_undo());
-        assert!(!history.can_redo());
-        assert!(history.undo().is_none());
-        assert!(history.redo().is_none());
+        assert!(!history.can_undo(&[]));
+        assert!(!history.can_redo(&[]));
+        assert!(history.undo(&[]).is_none());
+        assert!(history.redo(&[]).is_none());
         assert!(history.current().unwrap().contains_key(&id));
     }
 
     #[test]
     fn test_restored_history_cannot_undo_an_empty_entry_either() {
-        let mut history = History::restored(Files::new());
+        let mut history = GlobalHistory::restored(Files::new());
 
         assert!(history.current().is_some_and(|files| files.is_empty()));
-        assert!(!history.can_undo());
-        assert!(history.undo().is_none());
+        assert!(!history.can_undo(&[]));
+        assert!(history.undo(&[]).is_none());
         // the history is not the one of an engine that has done nothing
         assert!(history.current().is_some());
     }
@@ -367,39 +335,39 @@ mod tests {
     #[test]
     fn test_restored_history_undoes_what_comes_after_it_and_no_further() {
         let (entry, restored) = restored_entry();
-        let mut history = History::restored(entry);
+        let mut history = GlobalHistory::restored(entry);
 
         let added = add_file(&mut history);
-        assert!(history.can_undo());
-        assert!(!history.can_redo());
+        assert!(history.can_undo(&[]));
+        assert!(!history.can_redo(&[]));
         assert_eq!(history.current().unwrap().len(), 2);
 
         // back to the restored files
-        let diff = history.undo().unwrap();
+        let diff = history.undo(&[]).unwrap();
         assert_eq!(diff.removed, vec![added]);
         assert!(diff.added.is_empty() && diff.modified.is_empty());
         assert_eq!(history.current().unwrap().len(), 1);
         assert!(history.current().unwrap().contains_key(&restored));
-        assert!(!history.can_undo());
-        assert!(history.can_redo());
-        assert!(history.undo().is_none());
+        assert!(!history.can_undo(&[]));
+        assert!(history.can_redo(&[]));
+        assert!(history.undo(&[]).is_none());
         assert!(history.current().unwrap().contains_key(&restored));
 
-        let diff = history.redo().unwrap();
+        let diff = history.redo(&[]).unwrap();
         assert_eq!(diff.added, vec![added]);
-        assert!(history.can_undo());
-        assert!(!history.can_redo());
+        assert!(history.can_undo(&[]));
+        assert!(!history.can_redo(&[]));
 
         // and again
-        assert!(history.undo().is_some());
-        assert!(history.undo().is_none());
+        assert!(history.undo(&[]).is_some());
+        assert!(history.undo(&[]).is_none());
         assert!(history.current().unwrap().contains_key(&restored));
     }
 
     #[test]
     fn test_restored_history_removing_its_files_can_be_undone() {
         let (entry, restored) = restored_entry();
-        let mut history = History::restored(entry);
+        let mut history = GlobalHistory::restored(entry);
 
         let diff = history
             .push_ok(|e| {
@@ -410,26 +378,26 @@ mod tests {
         assert_eq!(diff.removed, vec![restored]);
         assert!(history.current().unwrap().is_empty());
 
-        let diff = history.undo().unwrap();
+        let diff = history.undo(&[]).unwrap();
         assert_eq!(diff.added, vec![restored]);
         assert!(history.current().unwrap().contains_key(&restored));
-        assert!(!history.can_undo());
+        assert!(!history.can_undo(&[]));
     }
 
     #[test]
     fn test_restored_history_push_after_undo_drops_redo_branch() {
         let (entry, restored) = restored_entry();
-        let mut history = History::restored(entry);
+        let mut history = GlobalHistory::restored(entry);
         add_file(&mut history);
-        history.undo().unwrap();
-        assert!(history.can_redo());
+        history.undo(&[]).unwrap();
+        assert!(history.can_redo(&[]));
 
         let other = add_file(&mut history);
-        assert!(!history.can_redo());
-        assert!(history.can_undo());
-        let diff = history.undo().unwrap();
+        assert!(!history.can_redo(&[]));
+        assert!(history.can_undo(&[]));
+        let diff = history.undo(&[]).unwrap();
         assert_eq!(diff.removed, vec![other]);
         assert!(history.current().unwrap().contains_key(&restored));
-        assert!(!history.can_undo());
+        assert!(!history.can_undo(&[]));
     }
 }

@@ -312,6 +312,14 @@ fn neighbour<T: Copy + PartialEq + std::hash::Hash + Eq>(
 }
 
 impl Selection {
+    /// The ids of the files holding the selected elements.
+    pub fn file_ids(&self) -> Vec<FileId> {
+        match self.to_files() {
+            Selection::File { file_ids } => file_ids.into_iter().collect(),
+            _ => vec![],
+        }
+    }
+
     /// The files holding the selected elements, as a selection of files.
     pub fn to_files(&self) -> Selection {
         match self {
