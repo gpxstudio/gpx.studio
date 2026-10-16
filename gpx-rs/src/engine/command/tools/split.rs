@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
 use crate::{
-    Apply, CommandError, File, State, Track, TrackSegment, Waypoints, copy_segment, copy_track,
-    copy_waypoint,
+    Apply, CommandError, File, Selection, State, Track, TrackSegment, Waypoints, copy_file,
+    copy_segment, copy_track, copy_waypoint,
 };
 
 use super::route::find_target;
@@ -27,10 +27,15 @@ pub enum SplitType {
 /// come after the trackpoint (the following segments of the track, the following tracks of the
 /// file), which are moved to it. When the file is cut, the new file comes right after it. The
 /// selection does not change.
+///
+/// With `keep_originals`, a file that is cut (`SplitType::Files`) is left as it is: its two parts
+/// are two new files, with new ids, which come right after it and are selected. Cutting a track
+/// or a segment changes the file in place anyway, so the flag has no effect on them.
 #[derive(Debug)]
 pub struct Split {
     pub at: u32,
     pub split_type: SplitType,
+    pub keep_originals: bool,
 }
 
 impl Apply for Split {
@@ -74,6 +79,41 @@ impl Apply for Split {
             SplitType::Tracks => {
                 let (first_track, second_track) = split_track();
                 file.trk.splice(trk..=trk, [first_track, second_track]);
+            }
+            SplitType::Files if self.keep_originals => {
+                let (first_track, second_track) = split_track();
+                // the parts are new files: nothing is shared by id with the file, nor between them
+                let first_file = copy_file(&File {
+                    trk: file.trk[..trk]
+                        .iter()
+                        .cloned()
+                        .chain([first_track])
+                        .collect(),
+                    ..file.clone()
+                });
+                let mut second_file = File {
+                    id: Default::default(),
+                    trk: vec![second_track],
+                    wpt: Waypoints::default(),
+                    ..file.clone()
+                };
+                second_file
+                    .trk
+                    .extend(file.trk[trk + 1..].iter().map(copy_track));
+                second_file
+                    .wpt
+                    .insert_at(0, file.wpt.iter().map(copy_waypoint).collect());
+
+                let ids = [first_file.id, second_file.id];
+                let position = state.order.0.iter().position(|id| *id == file_id);
+                let at = position.map_or(state.order.0.len(), |p| p + 1);
+                state.order.0.splice(at..at, ids);
+                state.files.insert(first_file.id, Rc::new(first_file));
+                state.files.insert(second_file.id, Rc::new(second_file));
+                *state.selection = Selection::File {
+                    file_ids: ids.into(),
+                };
+                return Ok(());
             }
             SplitType::Files => {
                 let (first_track, second_track) = split_track();
@@ -147,7 +187,11 @@ mod tests {
     }
 
     fn split(at: u32, split_type: SplitType) -> Split {
-        Split { at, split_type }
+        Split {
+            at,
+            split_type,
+            keep_originals: false,
+        }
     }
 
     fn lngs(segment: &TrackSegment) -> Vec<f64> {
@@ -314,6 +358,66 @@ mod tests {
         assert!(ids(a).is_disjoint(&ids(b)));
         // the selection is the same
         assert!(matches!(&fx.selection, Selection::File { file_ids } if file_ids.contains(&id)));
+    }
+
+    #[test]
+    fn test_split_files_keeping_the_originals() {
+        let (mut fx, id) = loaded();
+        let before = fx.files[&id].clone();
+        let (trk, seg) = long_segment(&before);
+        let at = index(&before, trk, seg, 1);
+
+        Split {
+            at,
+            split_type: SplitType::Files,
+            keep_originals: true,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
+
+        // the file is untouched, the two parts come right after it
+        assert!(Rc::ptr_eq(&fx.files[&id], &before));
+        assert_eq!(fx.files.len(), 3);
+        assert_eq!(fx.order.0[0], id);
+        let (first_id, second_id) = (fx.order.0[1], fx.order.0[2]);
+        let (a, b) = (&fx.files[&first_id], &fx.files[&second_id]);
+        let all = path(&before);
+        assert_eq!(path(a), all[..=at as usize]);
+        assert_eq!(path(b), all[at as usize..]);
+        // nothing is shared by id with the file, nor between the parts
+        let ids = |f: &File| -> HashSet<_> {
+            f.trk
+                .iter()
+                .flat_map(|t| std::iter::once(t.id.0).chain(t.trkseg.iter().map(|s| s.id.0)))
+                .collect()
+        };
+        assert!(ids(a).is_disjoint(&ids(&before)));
+        assert!(ids(b).is_disjoint(&ids(&before)));
+        assert!(ids(a).is_disjoint(&ids(b)));
+        // the new files are selected
+        assert!(matches!(&fx.selection, Selection::File { file_ids }
+            if *file_ids == HashSet::from([first_id, second_id])));
+    }
+
+    #[test]
+    fn test_keeping_the_originals_does_not_matter_when_cutting_a_segment() {
+        let (mut fx, id) = loaded();
+        let before = fx.files[&id].clone();
+        let (trk, seg) = long_segment(&before);
+
+        Split {
+            at: index(&before, trk, seg, 2),
+            split_type: SplitType::Segments,
+            keep_originals: true,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
+
+        assert_eq!(fx.files.len(), 1);
+        assert_eq!(
+            fx.files[&id].trk[trk].trkseg.len(),
+            before.trk[trk].trkseg.len() + 1
+        );
     }
 
     #[test]

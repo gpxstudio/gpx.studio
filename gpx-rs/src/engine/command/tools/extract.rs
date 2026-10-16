@@ -2,7 +2,7 @@ use std::{collections::HashSet, rc::Rc};
 
 use crate::{
     Apply, CommandError, File, FileId, LngLat, LngLatBounds, Selection, State, Track, TrackId,
-    TrackSegment, Waypoint, Waypoints, copy_waypoint, crossarc_lnglat, distance,
+    TrackSegment, Waypoint, Waypoints, copy_file, copy_waypoint, crossarc_lnglat, distance,
 };
 
 /// Splits the selected elements that are made of several segments into elements that have one
@@ -17,28 +17,43 @@ use crate::{
 ///   are named after the track and numbered.
 ///
 /// What has a single segment is left as it is. There is nothing to do if nothing was changed.
+///
+/// With `keep_originals`, the files that are extracted stay where they are, and the new files come
+/// right after each of them, and only the new files are selected. Extracting
+/// tracks changes the file in place anyway, so the flag has no effect on it.
 #[derive(Debug)]
-pub struct Extract;
+pub struct Extract {
+    pub keep_originals: bool,
+}
 
 impl Apply for Extract {
     fn apply(self, state: &mut State) -> Result<(), CommandError> {
         let selection = state.selection.clone();
         match &selection {
-            Selection::File { file_ids } => extract_files(state, file_ids),
+            Selection::File { file_ids } => extract_files(state, file_ids, self.keep_originals),
             Selection::Track { file_id, trk_ids } => extract_tracks(state, *file_id, trk_ids),
             _ => Err(CommandError::NothingToDo),
         }
     }
 }
 
-fn extract_files(state: &mut State, file_ids: &HashSet<FileId>) -> Result<(), CommandError> {
+fn extract_files(
+    state: &mut State,
+    file_ids: &HashSet<FileId>,
+    keep_originals: bool,
+) -> Result<(), CommandError> {
     // the files that have something to extract, with the files that come out of them
     let mut extracted: Vec<(FileId, Vec<File>)> = vec![];
     for id in state.order.0.iter().filter(|id| file_ids.contains(id)) {
         let file = &state.files[id];
         let segments: usize = file.trk.iter().map(|track| track.trkseg.len()).sum();
         if segments > 1 {
-            extracted.push((*id, extract_file(file)));
+            let mut files = extract_file(file);
+            if keep_originals {
+                // the tracks and segments are the ones of the file, which stays: they need new ids
+                files = files.iter().map(copy_file).collect();
+            }
+            extracted.push((*id, files));
         }
     }
     if extracted.is_empty() {
@@ -48,13 +63,25 @@ fn extract_files(state: &mut State, file_ids: &HashSet<FileId>) -> Result<(), Co
     let mut order = vec![];
     for id in state.order.0.iter() {
         match extracted.iter().find(|(original, _)| original == id) {
-            Some((_, files)) => order.extend(files.iter().map(|file| file.id)),
+            Some((_, files)) => {
+                if keep_originals {
+                    order.push(*id);
+                }
+                order.extend(files.iter().map(|file| file.id));
+            }
             None => order.push(*id),
         }
     }
-    let mut selected: HashSet<FileId> = file_ids.clone();
+    // the files that are kept stay selected, unless the originals are kept: then only what is new is
+    let mut selected: HashSet<FileId> = if keep_originals {
+        HashSet::new()
+    } else {
+        file_ids.clone()
+    };
     for (original, files) in extracted {
-        state.files.remove(&original);
+        if !keep_originals {
+            state.files.remove(&original);
+        }
         selected.remove(&original);
         for file in files {
             selected.insert(file.id);
@@ -372,7 +399,11 @@ mod tests {
         fx.files.insert(other_id, Rc::new(other));
         fx.order.0.push(other_id);
 
-        Extract.apply(&mut fx.state()).unwrap();
+        Extract {
+            keep_originals: false,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
 
         // in the place of the file, in order, named after the track
         assert!(!fx.files.contains_key(&id));
@@ -403,6 +434,48 @@ mod tests {
     }
 
     #[test]
+    fn test_extracting_files_keeping_the_originals() {
+        let original = file(
+            "route",
+            vec![track(Some("climb"), &[0.0, 10.0, 20.0])],
+            vec![],
+        );
+        let segment_ids: Vec<_> = original.trk[0].trkseg.iter().map(|s| s.id).collect();
+        let (mut fx, id) = fixture(original);
+        let before = fx.files[&id].clone();
+        let single = file("single", vec![track(None, &[50.0])], vec![]);
+        let single_id = single.id;
+        fx.files.insert(single_id, Rc::new(single));
+        fx.order.0.push(single_id);
+        fx.selection = Selection::File {
+            file_ids: HashSet::from([id, single_id]),
+        };
+
+        Extract {
+            keep_originals: true,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
+
+        // the file stays, the new ones come right after it
+        assert!(Rc::ptr_eq(&fx.files[&id], &before));
+        assert_eq!(
+            names(&fx),
+            ["route", "climb (1)", "climb (2)", "climb (3)", "single"]
+        );
+        assert_eq!(fx.order.0[0], id);
+        assert_eq!(fx.order.0[4], single_id);
+        // the segments are copies, not the ones of the file
+        for new_id in &fx.order.0[1..4] {
+            let segment = fx.files[new_id].trk[0].trkseg[0].id;
+            assert!(!segment_ids.contains(&segment));
+        }
+        // only the new files are selected
+        assert!(matches!(&fx.selection, Selection::File { file_ids }
+            if *file_ids == fx.order.0[1..4].iter().copied().collect::<HashSet<_>>()));
+    }
+
+    #[test]
     fn test_a_file_with_several_tracks_becomes_one_file_per_track() {
         let original = file(
             "route",
@@ -415,7 +488,11 @@ mod tests {
         );
         let ids: Vec<_> = original.trk.iter().map(|t| t.id).collect();
         let (mut fx, _) = fixture(original);
-        Extract.apply(&mut fx.state()).unwrap();
+        Extract {
+            keep_originals: false,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
 
         // named after the track, or the file
         assert_eq!(names(&fx), ["first", "route (2)", "third"]);
@@ -451,7 +528,11 @@ mod tests {
             vec![shared, waypoint("lost", 100.0)],
         );
         let (mut fx, _) = fixture(original);
-        Extract.apply(&mut fx.state()).unwrap();
+        Extract {
+            keep_originals: false,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         let first = &fx.files[&fx.order.0[0]];
         let second = &fx.files[&fx.order.0[1]];
         // the tie goes to both, with different ids
@@ -480,7 +561,11 @@ mod tests {
             vec![waypoint("w", 1.0)],
         );
         let (mut fx, _) = fixture(original);
-        Extract.apply(&mut fx.state()).unwrap();
+        Extract {
+            keep_originals: false,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
         assert_eq!(fx.files[&fx.order.0[0]].wpt.len(), 1);
         assert_eq!(fx.files[&fx.order.0[1]].wpt.len(), 0);
     }
@@ -503,7 +588,11 @@ mod tests {
             trk_ids: [ids[1], ids[2]].into(),
         };
 
-        Extract.apply(&mut fx.state()).unwrap();
+        Extract {
+            keep_originals: false,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
 
         let file = &fx.files[&id];
         let names: Vec<_> = file.trk.iter().map(|t| t.info.name.clone()).collect();
@@ -539,7 +628,10 @@ mod tests {
         let (mut fx, id) = fixture(original);
         let before = fx.files[&id].clone();
         assert_eq!(
-            Extract.apply(&mut fx.state()),
+            Extract {
+                keep_originals: false,
+            }
+            .apply(&mut fx.state()),
             Err(CommandError::NothingToDo)
         );
         fx.selection = Selection::Track {
@@ -547,7 +639,10 @@ mod tests {
             trk_ids: [track_id].into(),
         };
         assert_eq!(
-            Extract.apply(&mut fx.state()),
+            Extract {
+                keep_originals: false,
+            }
+            .apply(&mut fx.state()),
             Err(CommandError::NothingToDo)
         );
         for selection in [
@@ -561,7 +656,10 @@ mod tests {
         ] {
             fx.selection = selection;
             assert_eq!(
-                Extract.apply(&mut fx.state()),
+                Extract {
+                    keep_originals: false,
+                }
+                .apply(&mut fx.state()),
                 Err(CommandError::NothingToDo)
             );
         }

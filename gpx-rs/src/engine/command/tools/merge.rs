@@ -2,7 +2,7 @@ use std::{collections::HashSet, rc::Rc};
 
 use crate::{
     Apply, CommandError, FileId, GlobalStatistics, Selection, State, Statistics, Track, TrackId,
-    TrackSegment, TrackSegmentId, Waypoint, Waypoints, replace_trackpoints,
+    TrackSegment, TrackSegmentId, Waypoint, Waypoints, copy_track, replace_trackpoints,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize)]
@@ -18,7 +18,9 @@ pub enum MergeType {
 ///
 /// - files: the other files are deleted. The tracks of all of them are in the first file, as
 ///   they are with `Group`, or all connected in the first track with `Connect`. The waypoints of
-///   all of them are in the first file too, except the ones that are the same.
+///   all of them are in the first file too, except the ones that are the same. With
+///   `keep_originals`, no file is deleted nor changed: the result is a new file (with the info of
+///   the first one and new ids), which comes right after the last of the files and is selected.
 /// - tracks of a file: the first track gets their segments, as they are with `Group`, or all
 ///   connected in one segment with `Connect`. The other tracks are removed.
 /// - segments of a track: they are all connected in a segment at the position of the first one
@@ -33,6 +35,8 @@ pub enum MergeType {
 pub struct Merge {
     pub type_: MergeType,
     pub remove_gaps: bool,
+    /// Only for files: tracks and segments are merged in place anyway.
+    pub keep_originals: bool,
 }
 
 impl Apply for Merge {
@@ -110,6 +114,23 @@ impl Merge {
         target.trk = tracks;
         target.wpt = Waypoints::default();
         target.wpt.insert_at(0, waypoints);
+        if self.keep_originals {
+            // a new file, whose tracks and segments do not share their ids with the originals
+            target.id = Default::default();
+            target.trk = target.trk.iter().map(copy_track).collect();
+            let at = state
+                .order
+                .0
+                .iter()
+                .rposition(|id| file_ids.contains(id))
+                .map_or(state.order.0.len(), |i| i + 1);
+            state.order.0.insert(at, target.id);
+            *state.selection = Selection::File {
+                file_ids: [target.id].into(),
+            };
+            state.files.insert(target.id, Rc::new(target));
+            return Ok(());
+        }
         for id in &ordered[1..] {
             state.files.remove(id);
         }
@@ -274,6 +295,7 @@ mod tests {
         Merge {
             type_,
             remove_gaps: false,
+            keep_originals: false,
         }
     }
 
@@ -339,6 +361,73 @@ mod tests {
             merge(MergeType::Group).apply(&mut fx.state()),
             Err(CommandError::NothingToDo)
         );
+    }
+
+    #[test]
+    fn test_merge_files_keeping_the_originals() {
+        for type_ in [MergeType::Group, MergeType::Connect] {
+            let mut fx = Fixture::default();
+            let a = load(&mut fx, "data/with_tracks_and_segments.gpx");
+            let b = load(&mut fx, "data/simple.gpx");
+            let c = load(&mut fx, "data/simple.gpx");
+            let (before_a, before_b) = (fx.files[&a].clone(), fx.files[&b].clone());
+            select_files(&mut fx, &[a, b]);
+
+            Merge {
+                type_,
+                remove_gaps: false,
+                keep_originals: true,
+            }
+            .apply(&mut fx.state())
+            .unwrap();
+
+            // the files are untouched, the new one comes right after the last of them
+            assert!(Rc::ptr_eq(&fx.files[&a], &before_a));
+            assert!(Rc::ptr_eq(&fx.files[&b], &before_b));
+            assert_eq!(fx.files.len(), 4);
+            assert_eq!(&fx.order.0[..2], [a, b]);
+            assert_eq!(fx.order.0[3], c);
+            let merged_id = fx.order.0[2];
+            let merged = &fx.files[&merged_id];
+            assert_eq!(points(merged), points(&before_a) + points(&before_b));
+            assert_eq!(merged.info, before_a.info);
+            // new ids for the tracks and segments
+            let ids = |f: &File| -> Vec<_> {
+                f.trk
+                    .iter()
+                    .flat_map(|t| std::iter::once(t.id.0).chain(t.trkseg.iter().map(|s| s.id.0)))
+                    .collect()
+            };
+            let originals: Vec<_> = ids(&before_a).into_iter().chain(ids(&before_b)).collect();
+            assert!(ids(merged).iter().all(|id| !originals.contains(id)));
+            // and it is the selection
+            assert!(matches!(&fx.selection, Selection::File { file_ids }
+                if *file_ids == HashSet::from([merged_id])));
+        }
+    }
+
+    #[test]
+    fn test_keeping_the_originals_does_not_matter_when_merging_tracks() {
+        let mut fx = Fixture::default();
+        let a = load(&mut fx, "data/with_tracks_and_segments.gpx");
+        let tracks: HashSet<_> = fx.files[&a].trk.iter().map(|t| t.id).collect();
+        let before = fx.files[&a].trk.len();
+        assert!(before > 1);
+        fx.selection = Selection::Track {
+            file_id: a,
+            trk_ids: tracks,
+        };
+
+        Merge {
+            type_: MergeType::Group,
+            remove_gaps: false,
+            keep_originals: true,
+        }
+        .apply(&mut fx.state())
+        .unwrap();
+
+        assert_eq!(fx.files.len(), 1);
+        assert_eq!(fx.files[&a].trk.len(), 1);
     }
 
     #[test]
@@ -430,6 +519,7 @@ mod tests {
             Merge {
                 type_: MergeType::Connect,
                 remove_gaps,
+                keep_originals: false,
             }
             .apply(&mut fx2.state())
             .unwrap();

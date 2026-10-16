@@ -55,12 +55,12 @@ pub fn create_artificial_timestamps(start_time: f64, total_time: f64) -> Outcome
 /// that are connected closer in time, if they have timestamps.
 #[wasm_bindgen]
 pub fn merge(type_: MergeType, remove_gaps: bool) -> Outcome {
-    run(|e| api::merge(e, type_.into(), remove_gaps))
+    run(|e| api::merge(e, type_.into(), remove_gaps, false))
 }
 
 #[wasm_bindgen]
 pub fn extract() -> Outcome {
-    run(api::extract)
+    run(|e| api::extract(e, false))
 }
 
 /// Sets the elevation of the trackpoints of the selection, one elevation per trackpoint.

@@ -436,13 +436,27 @@ pub fn create_artificial_timestamps(
 }
 
 /// Merges the selection into its first element. `remove_gaps` brings the parts that are connected
-/// closer in time, if they have timestamps.
-pub fn merge(engine: &mut Engine, type_: engine::MergeType, remove_gaps: bool) -> Outcome {
-    edit(engine, Command::Merge(engine::Merge { type_, remove_gaps }))
+/// closer in time, if they have timestamps. With `keep_originals`, merged files are left as they
+/// are and the result is a new file.
+pub fn merge(
+    engine: &mut Engine,
+    type_: engine::MergeType,
+    remove_gaps: bool,
+    keep_originals: bool,
+) -> Outcome {
+    edit(
+        engine,
+        Command::Merge(engine::Merge {
+            type_,
+            remove_gaps,
+            keep_originals,
+        }),
+    )
 }
 
-pub fn extract(engine: &mut Engine) -> Outcome {
-    edit(engine, Command::Extract(engine::Extract))
+/// With `keep_originals`, extracted files are left as they are and the result is new files.
+pub fn extract(engine: &mut Engine, keep_originals: bool) -> Outcome {
+    edit(engine, Command::Extract(engine::Extract { keep_originals }))
 }
 
 /// Sets the elevation of the trackpoints of the selection, one elevation per trackpoint.
@@ -562,14 +576,23 @@ pub fn change_loop_start(engine: &mut Engine, revision: u32, index: u32) -> Outc
 }
 
 /// Cuts the file, the track or the segment (see `SplitType`) of the trackpoint `at` of the
-/// selection in two, there: the trackpoint ends the first part and starts the second one.
+/// selection in two, there: the trackpoint ends the first part and starts the second one. With
+/// `keep_originals`, a file that is cut is left as it is and its two parts are new files.
 pub fn split(
     engine: &mut Engine,
     revision: u32,
     at: u32,
     split_type: engine::SplitType,
+    keep_originals: bool,
 ) -> Outcome {
     at_revision(engine, revision, |engine| {
-        edit(engine, Command::Split(engine::Split { at, split_type }))
+        edit(
+            engine,
+            Command::Split(engine::Split {
+                at,
+                split_type,
+                keep_originals,
+            }),
+        )
     })
 }

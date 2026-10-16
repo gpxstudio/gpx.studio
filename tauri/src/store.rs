@@ -255,7 +255,7 @@ mod tests {
         // another session
         let storage = FileStorage::open(&root).unwrap();
         let restored = pollster::block_on(Persister::default().restore(&storage)).unwrap();
-        let mut other = Engine::default();
+        let mut other: Engine = Engine::default();
         other.restore(restored);
         assert_eq!(other.order(), order);
         assert_eq!(
