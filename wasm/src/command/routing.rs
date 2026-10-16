@@ -62,5 +62,5 @@ pub fn change_loop_start(revision: u32, index: u32) -> Outcome {
 /// nothing, and returns false, if the revision of the routing buffers is not the given one.
 #[wasm_bindgen]
 pub fn split(revision: u32, at: u32, split_type: SplitType) -> Outcome {
-    run(|e| api::split(e, revision, at, split_type.into(), false))
+    run(|e| api::split(e, revision, at, split_type.into()))
 }

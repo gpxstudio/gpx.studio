@@ -26,6 +26,11 @@ pub type Files = HashMap<FileId, Rc<File>>;
 ///
 /// Files are told apart by their identity (`Rc::ptr_eq`), not their content.
 pub trait History: Default + Debug {
+    /// Whether the commands that replace files by others (split into files, extract, merge) must
+    /// keep the files they start from, and produce new ones. A history that forgets a file when it
+    /// goes could not undo the command, which a history of the whole workspace can.
+    const KEEPS_ORIGINALS: bool;
+
     /// A history that starts from `files`, which cannot be undone.
     fn restored(files: Files) -> Self;
 

@@ -10,6 +10,10 @@ mod workspace;
 use commands::*;
 use tauri::{Emitter, Manager};
 
+/// The engine of the app: each file has its own history, so that undoing only concerns the
+/// selected files, and opening or closing a file is not something to undo.
+pub(crate) type Engine = gpx_engine::Engine<gpx_engine::PerFileHistory>;
+
 /// The GPX files among what the system gave to the app (the arguments of the command line, when a
 /// file is opened with it).
 fn gpx_paths(arguments: impl IntoIterator<Item = String>) -> Vec<std::path::PathBuf> {

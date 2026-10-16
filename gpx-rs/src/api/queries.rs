@@ -8,60 +8,64 @@
 use uuid::Uuid;
 
 use super::dto::*;
-use crate::{self as engine, Engine, FileId};
+use crate::{self as engine, Engine, FileId, History};
 
 /// Ids of the files in display order.
-pub fn file_order(engine: &Engine) -> Vec<String> {
+pub fn file_order<H: History>(engine: &Engine<H>) -> Vec<String> {
     ids(engine.order())
 }
 
 /// Structure of a file, `None` if the id is unknown.
-pub fn file_structure(engine: &Engine, file_id: Uuid) -> Option<FileStructure> {
+pub fn file_structure<H: History>(engine: &Engine<H>, file_id: Uuid) -> Option<FileStructure> {
     engine
         .file_structure(&FileId(file_id))
         .map(FileStructure::new)
 }
 
 /// Global statistics of a file, `None` if the id is unknown.
-pub fn file_statistics(engine: &Engine, file_id: Uuid) -> Option<GlobalStatistics> {
+pub fn file_statistics<H: History>(engine: &Engine<H>, file_id: Uuid) -> Option<GlobalStatistics> {
     engine
         .file_statistics(&FileId(file_id))
         .map(|stats| GlobalStatistics::new(&stats))
 }
 
 /// The current selection.
-pub fn selection(engine: &Engine) -> Selection {
+pub fn selection<H: History>(engine: &Engine<H>) -> Selection {
     engine.selection().into()
 }
 
 /// What was copied or cut and is waiting to be pasted.
-pub fn clipboard(engine: &Engine) -> Option<Clipboard> {
+pub fn clipboard<H: History>(engine: &Engine<H>) -> Option<Clipboard> {
     engine.clipboard().map(Clipboard::new)
 }
 
-pub fn can_undo(engine: &Engine) -> bool {
+pub fn can_undo<H: History>(engine: &Engine<H>) -> bool {
     engine.can_undo()
 }
 
-pub fn can_redo(engine: &Engine) -> bool {
+pub fn can_redo<H: History>(engine: &Engine<H>) -> bool {
     engine.can_redo()
 }
 
 /// Whether the clipboard can be pasted with the current selection.
-pub fn can_paste(engine: &Engine) -> bool {
+pub fn can_paste<H: History>(engine: &Engine<H>) -> bool {
     engine.can_paste()
 }
 
 /// All the data of a waypoint of a file, `None` if it does not exist.
-pub fn waypoint(engine: &Engine, file_id: Uuid, waypoint_id: Uuid) -> Option<WaypointDetails> {
+pub fn waypoint<H: History>(
+    engine: &Engine<H>,
+    file_id: Uuid,
+    waypoint_id: Uuid,
+) -> Option<WaypointDetails> {
     engine
         .waypoint(&FileId(file_id), &engine::WaypointId(waypoint_id))
         .map(WaypointDetails::new)
 }
 
 /// A trackpoint of a segment of a file, `None` if it does not exist.
-pub fn trackpoint(
-    engine: &Engine,
+pub fn trackpoint<H: History>(
+    engine: &Engine<H>,
     file_id: Uuid,
     segment_id: Uuid,
     index: usize,
@@ -75,8 +79,8 @@ pub fn trackpoint(
 /// trackpoints to keep, and with `as_route` that the segments are written as routes (`rte`)
 /// instead of tracks: the anchors are the route points, and the trackpoints between them the
 /// points of their path.
-pub fn export_file(
-    engine: &Engine,
+pub fn export_file<H: History>(
+    engine: &Engine<H>,
     file_id: Uuid,
     options: engine::ExportOptions,
 ) -> Option<Vec<u8>> {
@@ -86,7 +90,7 @@ pub fn export_file(
 /// The data that some files have, so that the ones that none has are not offered when exporting
 /// them: a bit for the time (1), heart rate (2), cadence (4), temperature (8), power (16) and the
 /// OpenStreetMap data (32).
-pub fn exportable_data(engine: &Engine, file_ids: &[Uuid]) -> u8 {
+pub fn exportable_data<H: History>(engine: &Engine<H>, file_ids: &[Uuid]) -> u8 {
     let ids: Vec<FileId> = file_ids.iter().copied().map(FileId).collect();
     let data = engine.exportable_data(&ids);
     [
@@ -99,7 +103,7 @@ pub fn exportable_data(engine: &Engine, file_ids: &[Uuid]) -> u8 {
 
 /// For each trackpoint of the selection (numbered as in the statistics), the highest tolerance
 /// (m) of `reduce` that keeps it: infinite for the ends of the segments.
-pub fn reduction_distances(engine: &Engine) -> Vec<f64> {
+pub fn reduction_distances<H: History>(engine: &Engine<H>) -> Vec<f64> {
     engine.reduction_distances()
 }
 
@@ -107,25 +111,29 @@ pub fn reduction_distances(engine: &Engine) -> Vec<f64> {
 // structures with the previous ones to know which ones actually changed.
 
 /// Coordinates of the trackpoints of a segment (empty if the id is unknown).
-pub fn segment_coordinates(engine: &Engine, segment_id: Uuid) -> &[f64] {
+pub fn segment_coordinates<H: History>(engine: &Engine<H>, segment_id: Uuid) -> &[f64] {
     engine.segment_coordinates(&engine::TrackSegmentId(segment_id))
 }
 
 /// Coordinates of the waypoints of a file (empty if the id is unknown).
-pub fn waypoint_coordinates(engine: &Engine, file_id: Uuid) -> &[f64] {
+pub fn waypoint_coordinates<H: History>(engine: &Engine<H>, file_id: Uuid) -> &[f64] {
     engine.waypoint_coordinates(&FileId(file_id))
 }
 
 // Statistics of the selection
 
 /// Global statistics of the whole selection (the buffers below cover it).
-pub fn selection_statistics(engine: &Engine) -> GlobalStatistics {
+pub fn selection_statistics<H: History>(engine: &Engine<H>) -> GlobalStatistics {
     GlobalStatistics::new(&engine.statistics().global)
 }
 
 /// Global statistics of the trackpoints from `start` to `end` (both included) of the selection,
 /// as indexed by the buffers. `None` when the range is not in the selection.
-pub fn slice_statistics(engine: &Engine, start: usize, end: usize) -> Option<GlobalStatistics> {
+pub fn slice_statistics<H: History>(
+    engine: &Engine<H>,
+    start: usize,
+    end: usize,
+) -> Option<GlobalStatistics> {
     engine
         .statistics()
         .slice(start, end)
@@ -134,7 +142,7 @@ pub fn slice_statistics(engine: &Engine, start: usize, end: usize) -> Option<Glo
 
 macro_rules! buffers {
     ($($name:ident),*) => {$(
-        pub fn $name(engine: &Engine) -> &[f64] {
+        pub fn $name<H: History>(engine: &Engine<H>) -> &[f64] {
             &engine.statistics().$name
         }
     )*};
@@ -158,7 +166,7 @@ macro_rules! optional_buffers {
         /// `None` when no trackpoint of the selection has the value, else an entry per trackpoint,
         /// the missing ones being NaN (`NO_TIME` for the timestamps, 0 before the first trackpoint
         /// that has them for the cumulative distances and durations).
-        pub fn $name(engine: &Engine) -> Option<&[$type]> {
+        pub fn $name<H: History>(engine: &Engine<H>) -> Option<&[$type]> {
             engine.statistics().$name.as_deref()
         }
     )*};
@@ -168,7 +176,7 @@ optional_buffers!(moving_distance: f64, speed: f64, hr: f64, cad: f64, atemp: f6
 optional_buffers!(total_time: i64, moving_time: i64);
 
 /// Timestamps in milliseconds since the epoch (`NO_TIME` when missing), see `optional_buffers`.
-pub fn timestamps(engine: &Engine) -> Option<&[i64]> {
+pub fn timestamps<H: History>(engine: &Engine<H>) -> Option<&[i64]> {
     engine.statistics().time.as_deref()
 }
 
@@ -178,17 +186,17 @@ pub fn timestamps(engine: &Engine) -> Option<&[i64]> {
 // A value that is unknown for every trackpoint is a single interval.
 macro_rules! categories {
     ($starts:ident, $values:ident, $names:ident, $field:ident) => {
-        pub fn $starts(engine: &Engine) -> &[u32] {
+        pub fn $starts<H: History>(engine: &Engine<H>) -> &[u32] {
             &engine.statistics().$field.starts
         }
 
-        pub fn $values(engine: &Engine) -> &[u8] {
+        pub fn $values<H: History>(engine: &Engine<H>) -> &[u8] {
             &engine.statistics().$field.values
         }
 
         /// The names of the category, in the order of their codes. The list only grows: a name
         /// keeps its index.
-        pub fn $names(engine: &Engine) -> &[String] {
+        pub fn $names<H: History>(engine: &Engine<H>) -> &[String] {
             engine.categories().$field.names()
         }
     };
@@ -203,22 +211,22 @@ categories!(mtb_scale_starts, mtb_scale_values, mtb_scales, mtb_scale);
 // statistics). The ends of the segments are always anchors.
 
 /// The index in the selection of each anchor.
-pub fn anchor_indices(engine: &Engine) -> &[u32] {
+pub fn anchor_indices<H: History>(engine: &Engine<H>) -> &[u32] {
     &engine.routing().anchor_indices
 }
 
 /// The lowest map zoom level at which each anchor is shown.
-pub fn anchor_zooms(engine: &Engine) -> &[u8] {
+pub fn anchor_zooms<H: History>(engine: &Engine<H>) -> &[u8] {
     &engine.routing().anchor_zooms
 }
 
 /// Index in the selection of the first trackpoint of each selected segment that has some.
-pub fn segment_starts(engine: &Engine) -> &[u32] {
+pub fn segment_starts<H: History>(engine: &Engine<H>) -> &[u32] {
     &engine.routing().segment_starts
 }
 
 /// The id of each selected segment that has trackpoints, as `segment_starts`.
-pub fn segment_ids(engine: &Engine) -> Vec<String> {
+pub fn segment_ids<H: History>(engine: &Engine<H>) -> Vec<String> {
     engine
         .routing()
         .segment_ids
@@ -229,6 +237,6 @@ pub fn segment_ids(engine: &Engine) -> Vec<String> {
 
 /// Changes when the selected segments or their trackpoints change: the indices in the selection
 /// are only valid while it stays the same.
-pub fn routing_revision(engine: &Engine) -> u32 {
+pub fn routing_revision<H: History>(engine: &Engine<H>) -> u32 {
     engine.routing().revision
 }

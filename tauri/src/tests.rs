@@ -165,7 +165,8 @@ fn edits_undoes_and_selects() {
         json!({ "name": "route", "lng": 4.4, "lat": 50.8 }),
     );
     assert_eq!(outcome["changed"], true);
-    assert_eq!(app.call("can_undo", json!({})), true);
+    // each file has its own history, which starts when it appears
+    assert_eq!(app.call("can_undo", json!({})), false);
 
     let id = app.call("file_order", json!({}))[0].clone();
     let outcome = app.call("metadata", json!({ "name": "renamed", "desc": "" }));
@@ -179,6 +180,7 @@ fn edits_undoes_and_selects() {
     assert_eq!(outcome["selectionChanged"], true);
     assert_eq!(app.call("selection", json!({})), json!({ "type": "empty" }));
     app.call("select", json!({ "fileIds": [id], "mode": "toggle" }));
+    assert_eq!(app.call("can_undo", json!({})), true);
 
     app.call("undo", json!({}));
     assert_eq!(
@@ -186,8 +188,11 @@ fn edits_undoes_and_selects() {
         "route"
     );
     assert_eq!(app.call("can_redo", json!({})), true);
-    app.call("undo", json!({}));
-    assert_eq!(app.call("file_order", json!({})), json!([]));
+    // creating the file is not something to undo
+    assert_eq!(app.call("can_undo", json!({})), false);
+    let outcome = app.call("undo", json!({}));
+    assert_eq!(outcome["changed"], false);
+    assert_eq!(app.call("file_order", json!({})), json!([id]));
 
     // what cannot be done says why
     let outcome = app.call("reverse", json!({}));

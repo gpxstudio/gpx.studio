@@ -82,6 +82,8 @@ impl PerFileHistory {
 }
 
 impl History for PerFileHistory {
+    const KEEPS_ORIGINALS: bool = true;
+
     fn restored(files: Files) -> Self {
         let stacks = files
             .iter()

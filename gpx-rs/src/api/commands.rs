@@ -3,17 +3,17 @@
 use uuid::Uuid;
 
 use super::dto::*;
-use crate::{self as engine, Action, Command, Engine, LngLat, LngLatBounds};
+use crate::{self as engine, Action, Command, Engine, History, LngLat, LngLatBounds};
 
 /// Executes an action and tells what it did.
-pub fn execute(engine: &mut Engine, action: Action) -> Outcome {
+pub fn execute<H: History>(engine: &mut Engine<H>, action: Action) -> Outcome {
     match engine.execute(action) {
         Ok(outcome) => Outcome::new(&outcome, None),
         Err(error) => Outcome::failed(error.to_string()),
     }
 }
 
-pub fn edit(engine: &mut Engine, command: Command) -> Outcome {
+pub fn edit<H: History>(engine: &mut Engine<H>, command: Command) -> Outcome {
     execute(engine, Action::Edit(command))
 }
 
@@ -24,7 +24,11 @@ fn file_ids(ids: &[Uuid]) -> Vec<engine::FileId> {
 // Selection
 
 /// Selects files. Unknown files are ignored, and selecting nothing deselects everything.
-pub fn select(engine: &mut Engine, file_ids_: &[Uuid], mode: engine::SelectMode) -> Outcome {
+pub fn select<H: History>(
+    engine: &mut Engine<H>,
+    file_ids_: &[Uuid],
+    mode: engine::SelectMode,
+) -> Outcome {
     select_elements(
         engine,
         engine::Selection::File {
@@ -36,8 +40,8 @@ pub fn select(engine: &mut Engine, file_ids_: &[Uuid], mode: engine::SelectMode)
 
 /// Selects elements: they are merged with the selection when it holds elements of the same kind in
 /// the same place (same file, same track for segments), otherwise they replace it.
-pub fn select_elements(
-    engine: &mut Engine,
+pub fn select_elements<H: History>(
+    engine: &mut Engine<H>,
     selection: engine::Selection,
     mode: engine::SelectMode,
 ) -> Outcome {
@@ -47,19 +51,19 @@ pub fn select_elements(
 /// Selects all the elements of the same kind as the selected ones, in the same place: all the
 /// files, the tracks of the file, the segments of the track, the waypoints of the file. All the
 /// files when nothing is selected.
-pub fn select_all(engine: &mut Engine) -> Outcome {
+pub fn select_all<H: History>(engine: &mut Engine<H>) -> Outcome {
     execute(engine, Action::SelectAll)
 }
 
 /// Moves the selection to the next (`down`) or previous element of the same kind, like the arrow
 /// keys do in the file list. With `add` (shift + arrow), the element is added to the selection,
 /// otherwise it replaces it.
-pub fn arrow_select(engine: &mut Engine, down: bool, add: bool) -> Outcome {
+pub fn arrow_select<H: History>(engine: &mut Engine<H>, down: bool, add: bool) -> Outcome {
     execute(engine, Action::ArrowSelect { down, add })
 }
 
-pub fn select_tracks(
-    engine: &mut Engine,
+pub fn select_tracks<H: History>(
+    engine: &mut Engine<H>,
     file_id: Uuid,
     track_ids: &[Uuid],
     mode: engine::SelectMode,
@@ -71,8 +75,8 @@ pub fn select_tracks(
     select_elements(engine, selection, mode)
 }
 
-pub fn select_segments(
-    engine: &mut Engine,
+pub fn select_segments<H: History>(
+    engine: &mut Engine<H>,
     file_id: Uuid,
     track_id: Uuid,
     segment_ids: &[Uuid],
@@ -91,8 +95,8 @@ pub fn select_segments(
 }
 
 /// Selects the node standing for all the waypoints of a file.
-pub fn select_waypoint_group(
-    engine: &mut Engine,
+pub fn select_waypoint_group<H: History>(
+    engine: &mut Engine<H>,
     file_id: Uuid,
     mode: engine::SelectMode,
 ) -> Outcome {
@@ -102,8 +106,8 @@ pub fn select_waypoint_group(
     select_elements(engine, selection, mode)
 }
 
-pub fn select_waypoints(
-    engine: &mut Engine,
+pub fn select_waypoints<H: History>(
+    engine: &mut Engine<H>,
     file_id: Uuid,
     waypoint_ids: &[Uuid],
     mode: engine::SelectMode,
@@ -121,11 +125,11 @@ pub fn select_waypoints(
 
 // History
 
-pub fn undo(engine: &mut Engine) -> Outcome {
+pub fn undo<H: History>(engine: &mut Engine<H>) -> Outcome {
     execute(engine, Action::Undo)
 }
 
-pub fn redo(engine: &mut Engine) -> Outcome {
+pub fn redo<H: History>(engine: &mut Engine<H>) -> Outcome {
     execute(engine, Action::Redo)
 }
 
@@ -133,8 +137,8 @@ pub fn redo(engine: &mut Engine) -> Outcome {
 
 /// Creates a file and selects it. With `lng` and `lat`, it starts with a track and a segment that
 /// hold that trackpoint (at `ele`, 0 by default).
-pub fn new_file(
-    engine: &mut Engine,
+pub fn new_file<H: History>(
+    engine: &mut Engine<H>,
     name: &str,
     lng: Option<f64>,
     lat: Option<f64>,
@@ -152,8 +156,8 @@ pub fn new_file(
 /// `lengths` being the number of bytes of each one. `names`: the name of each file when its data
 /// has none (the name on disk, without extension). The files that cannot be read are skipped, the
 /// first one that was read is selected.
-pub fn load_files(
-    engine: &mut Engine,
+pub fn load_files<H: History>(
+    engine: &mut Engine<H>,
     data: &[u8],
     lengths: &[usize],
     names: &[String],
@@ -181,7 +185,11 @@ pub fn load_files(
 /// Brings changes of the files from the outside in (see [`engine::SyncFiles`]): each file is
 /// `(id, data, name)`, and replaces the file of that id, or is added if there is none. The files to
 /// `remove` are deleted. The selection is left alone.
-pub fn sync_files(engine: &mut Engine, files: &[(Uuid, &[u8], &str)], remove: &[Uuid]) -> Outcome {
+pub fn sync_files<H: History>(
+    engine: &mut Engine<H>,
+    files: &[(Uuid, &[u8], &str)],
+    remove: &[Uuid],
+) -> Outcome {
     let files = files
         .iter()
         .map(|(id, data, name)| engine::ExternalFile {
@@ -199,22 +207,22 @@ pub fn sync_files(engine: &mut Engine, files: &[(Uuid, &[u8], &str)], remove: &[
     )
 }
 
-pub fn duplicate(engine: &mut Engine) -> Outcome {
+pub fn duplicate<H: History>(engine: &mut Engine<H>) -> Outcome {
     edit(engine, Command::Duplicate(engine::Duplicate))
 }
 
 /// Deletes the selected elements. With `whole_files`, the files holding the selected elements are
 /// deleted instead, even if only a track or a waypoint is selected.
-pub fn delete(engine: &mut Engine, whole_files: bool) -> Outcome {
+pub fn delete<H: History>(engine: &mut Engine<H>, whole_files: bool) -> Outcome {
     edit(engine, Command::Delete(engine::Delete { whole_files }))
 }
 
-pub fn delete_all(engine: &mut Engine) -> Outcome {
+pub fn delete_all<H: History>(engine: &mut Engine<H>) -> Outcome {
     edit(engine, Command::DeleteAll(engine::DeleteAll))
 }
 
 /// Moves the files to `index` among the other files, in the given order (not undoable).
-pub fn reorder(engine: &mut Engine, file_ids_: &[Uuid], index: usize) -> Outcome {
+pub fn reorder<H: History>(engine: &mut Engine<H>, file_ids_: &[Uuid], index: usize) -> Outcome {
     execute(
         engine,
         Action::Reorder {
@@ -225,12 +233,12 @@ pub fn reorder(engine: &mut Engine, file_ids_: &[Uuid], index: usize) -> Outcome
 }
 
 /// Puts the selected elements in the clipboard. Nothing happens when nothing is selected.
-pub fn copy(engine: &mut Engine) -> Outcome {
+pub fn copy<H: History>(engine: &mut Engine<H>) -> Outcome {
     execute(engine, Action::Copy)
 }
 
 /// Like `copy`, but the elements are moved when they are pasted.
-pub fn cut(engine: &mut Engine) -> Outcome {
+pub fn cut<H: History>(engine: &mut Engine<H>) -> Outcome {
     execute(engine, Action::Cut)
 }
 
@@ -238,7 +246,7 @@ pub fn cut(engine: &mut Engine) -> Outcome {
 /// elements as they were when they were copied or cut, even if they were changed or deleted since.
 /// It can be pasted several times: what was copied is copied again, what was cut is moved the first
 /// time (and the clipboard is not cut after that), then it is copied.
-pub fn paste(engine: &mut Engine) -> Outcome {
+pub fn paste<H: History>(engine: &mut Engine<H>) -> Outcome {
     edit(engine, Command::Paste(engine::Paste))
 }
 
@@ -249,7 +257,11 @@ pub fn paste(engine: &mut Engine) -> Outcome {
 /// of a file; segments among the files (each becomes a file), the tracks of a file (each becomes
 /// a track) or the segments of a track; waypoints, or all the waypoints of a file, among the
 /// waypoints of a file.
-pub fn move_elements(engine: &mut Engine, what: Selection, to: MoveTarget) -> Outcome {
+pub fn move_elements<H: History>(
+    engine: &mut Engine<H>,
+    what: Selection,
+    to: MoveTarget,
+) -> Outcome {
     edit(
         engine,
         Command::Move(engine::Move {
@@ -259,13 +271,13 @@ pub fn move_elements(engine: &mut Engine, what: Selection, to: MoveTarget) -> Ou
     )
 }
 
-pub fn metadata(engine: &mut Engine, name: &str, desc: &str) -> Outcome {
+pub fn metadata<H: History>(engine: &mut Engine<H>, name: &str, desc: &str) -> Outcome {
     edit(engine, Command::Metadata(engine::Metadata { name, desc }))
 }
 
 /// Only the given fields are changed.
-pub fn style(
-    engine: &mut Engine,
+pub fn style<H: History>(
+    engine: &mut Engine<H>,
     color: Option<&str>,
     opacity: Option<f64>,
     width: Option<f64>,
@@ -280,11 +292,11 @@ pub fn style(
     )
 }
 
-pub fn new_track(engine: &mut Engine) -> Outcome {
+pub fn new_track<H: History>(engine: &mut Engine<H>) -> Outcome {
     edit(engine, Command::NewTrack(engine::NewTrack))
 }
 
-pub fn new_track_segment(engine: &mut Engine) -> Outcome {
+pub fn new_track_segment<H: History>(engine: &mut Engine<H>) -> Outcome {
     edit(engine, Command::NewTrackSegment(engine::NewTrackSegment))
 }
 
@@ -292,8 +304,8 @@ pub fn new_track_segment(engine: &mut Engine) -> Outcome {
 
 /// Adds a waypoint to each selected file (or to the file of the selected elements).
 #[allow(clippy::too_many_arguments)]
-pub fn new_waypoint(
-    engine: &mut Engine,
+pub fn new_waypoint<H: History>(
+    engine: &mut Engine<H>,
     lng: f64,
     lat: f64,
     ele: f64,
@@ -317,8 +329,8 @@ pub fn new_waypoint(
 }
 
 /// Moves a waypoint of a file, whatever is selected.
-pub fn move_waypoint(
-    engine: &mut Engine,
+pub fn move_waypoint<H: History>(
+    engine: &mut Engine<H>,
     file_id: Uuid,
     waypoint_id: Uuid,
     lng: f64,
@@ -338,7 +350,11 @@ pub fn move_waypoint(
 }
 
 /// Deletes a waypoint of a file, whatever is selected.
-pub fn delete_waypoint(engine: &mut Engine, file_id: Uuid, waypoint_id: Uuid) -> Outcome {
+pub fn delete_waypoint<H: History>(
+    engine: &mut Engine<H>,
+    file_id: Uuid,
+    waypoint_id: Uuid,
+) -> Outcome {
     edit(
         engine,
         Command::DeleteWaypoint(engine::DeleteWaypoint {
@@ -351,8 +367,8 @@ pub fn delete_waypoint(engine: &mut Engine, file_id: Uuid, waypoint_id: Uuid) ->
 /// Changes a waypoint of a file, whatever is selected: its name, description, icon, link,
 /// position and elevation.
 #[allow(clippy::too_many_arguments)]
-pub fn update_waypoint(
-    engine: &mut Engine,
+pub fn update_waypoint<H: History>(
+    engine: &mut Engine<H>,
     file_id: Uuid,
     waypoint_id: Uuid,
     lng: f64,
@@ -381,19 +397,19 @@ pub fn update_waypoint(
 
 // Tools
 
-pub fn reverse(engine: &mut Engine) -> Outcome {
+pub fn reverse<H: History>(engine: &mut Engine<H>) -> Outcome {
     edit(engine, Command::Reverse(engine::Reverse))
 }
 
 /// Adds to each selected segment a reversed copy of itself (without repeating its last point), so
 /// that it goes back to where it started.
-pub fn round_trip(engine: &mut Engine) -> Outcome {
+pub fn round_trip<H: History>(engine: &mut Engine<H>) -> Outcome {
     edit(engine, Command::RoundTrip(engine::RoundTrip))
 }
 
 /// Keeps the trackpoints `start` to `end` (both included) of the selection, counted over its
 /// segments one after the other, and removes the others (and what is left empty).
-pub fn crop(engine: &mut Engine, start: u32, end: u32) -> Outcome {
+pub fn crop<H: History>(engine: &mut Engine<H>, start: u32, end: u32) -> Outcome {
     if start > end {
         return Outcome::failed(format!("the range {start}..{end} is reversed"));
     }
@@ -402,14 +418,19 @@ pub fn crop(engine: &mut Engine, start: u32, end: u32) -> Outcome {
 
 /// Removes the trackpoints of the selection that are less than `tolerance` meters away from the
 /// line of their neighbours, except the ends of the segments.
-pub fn reduce(engine: &mut Engine, tolerance: f64) -> Outcome {
+pub fn reduce<H: History>(engine: &mut Engine<H>, tolerance: f64) -> Outcome {
     edit(engine, Command::Reduce(engine::Reduce { tolerance }))
 }
 
 /// Sets the timestamps of the selection, which starts at `start_time` (ms since the epoch): the
 /// trackpoints that have some keep their durations multiplied by `ratio`, the others follow the
 /// previous one at `speed` (km/h).
-pub fn change_timestamps(engine: &mut Engine, start_time: f64, speed: f64, ratio: f64) -> Outcome {
+pub fn change_timestamps<H: History>(
+    engine: &mut Engine<H>,
+    start_time: f64,
+    speed: f64,
+    ratio: f64,
+) -> Outcome {
     edit(
         engine,
         Command::Time(engine::Time {
@@ -421,8 +442,8 @@ pub fn change_timestamps(engine: &mut Engine, start_time: f64, speed: f64, ratio
 
 /// Makes up timestamps for the selection, which starts at `start_time` (ms since the epoch) and
 /// lasts `total_time` seconds.
-pub fn create_artificial_timestamps(
-    engine: &mut Engine,
+pub fn create_artificial_timestamps<H: History>(
+    engine: &mut Engine<H>,
     start_time: f64,
     total_time: f64,
 ) -> Outcome {
@@ -436,38 +457,43 @@ pub fn create_artificial_timestamps(
 }
 
 /// Merges the selection into its first element. `remove_gaps` brings the parts that are connected
-/// closer in time, if they have timestamps. With `keep_originals`, merged files are left as they
-/// are and the result is a new file.
-pub fn merge(
-    engine: &mut Engine,
+/// closer in time, if they have timestamps. Merged files are kept (and the result is a new file) if
+/// the history needs it, see [`History::KEEPS_ORIGINALS`].
+pub fn merge<H: History>(
+    engine: &mut Engine<H>,
     type_: engine::MergeType,
     remove_gaps: bool,
-    keep_originals: bool,
 ) -> Outcome {
     edit(
         engine,
         Command::Merge(engine::Merge {
             type_,
             remove_gaps,
-            keep_originals,
+            keep_originals: H::KEEPS_ORIGINALS,
         }),
     )
 }
 
-/// With `keep_originals`, extracted files are left as they are and the result is new files.
-pub fn extract(engine: &mut Engine, keep_originals: bool) -> Outcome {
-    edit(engine, Command::Extract(engine::Extract { keep_originals }))
+/// Extracted files are kept (and the result is new files) if the history needs it, see
+/// [`History::KEEPS_ORIGINALS`].
+pub fn extract<H: History>(engine: &mut Engine<H>) -> Outcome {
+    edit(
+        engine,
+        Command::Extract(engine::Extract {
+            keep_originals: H::KEEPS_ORIGINALS,
+        }),
+    )
 }
 
 /// Sets the elevation of the trackpoints of the selection, one elevation per trackpoint.
-pub fn elevation(engine: &mut Engine, ele: &[f64]) -> Outcome {
+pub fn elevation<H: History>(engine: &mut Engine<H>, ele: &[f64]) -> Outcome {
     edit(engine, Command::Elevation(engine::Elevation { ele }))
 }
 
 /// Removes the trackpoints and/or waypoints of the selection inside (or outside) a rectangle.
 #[allow(clippy::too_many_arguments)]
-pub fn clean(
-    engine: &mut Engine,
+pub fn clean<H: History>(
+    engine: &mut Engine<H>,
     west: f64,
     south: f64,
     east: f64,
@@ -503,10 +529,10 @@ pub fn clean(
 // that use them do nothing if the selection is not the one of that revision anymore.
 
 /// Makes the call `f`, unless the selection is not the one of the revision anymore.
-fn at_revision(
-    engine: &mut Engine,
+fn at_revision<H: History>(
+    engine: &mut Engine<H>,
     revision: u32,
-    f: impl FnOnce(&mut Engine) -> Outcome,
+    f: impl FnOnce(&mut Engine<H>) -> Outcome,
 ) -> Outcome {
     if engine.routing().revision == revision {
         f(engine)
@@ -520,8 +546,8 @@ fn at_revision(
 /// surface, highway, SAC scale and MTB scale of the new points, as intervals, and `anchors` the
 /// indices among the new points of the ones that become anchors.
 #[allow(clippy::too_many_arguments)]
-pub fn route(
-    engine: &mut Engine,
+pub fn route<H: History>(
+    engine: &mut Engine<H>,
     revision: u32,
     start: u32,
     end: u32,
@@ -555,7 +581,12 @@ pub fn route(
 
 /// Makes an anchor of the point of the selected segments that is the closest to the coordinates,
 /// inserting a trackpoint on the path if none is there.
-pub fn insert_anchor(engine: &mut Engine, revision: u32, lng: f64, lat: f64) -> Outcome {
+pub fn insert_anchor<H: History>(
+    engine: &mut Engine<H>,
+    revision: u32,
+    lng: f64,
+    lat: f64,
+) -> Outcome {
     at_revision(engine, revision, |engine| {
         edit(
             engine,
@@ -566,7 +597,7 @@ pub fn insert_anchor(engine: &mut Engine, revision: u32, lng: f64, lat: f64) -> 
 
 /// Makes the trackpoint `index` of the selection the start of its segment, which is a loop (the
 /// trackpoints before it go to the end, and the loop closes on it).
-pub fn change_loop_start(engine: &mut Engine, revision: u32, index: u32) -> Outcome {
+pub fn change_loop_start<H: History>(engine: &mut Engine<H>, revision: u32, index: u32) -> Outcome {
     at_revision(engine, revision, |engine| {
         edit(
             engine,
@@ -576,14 +607,14 @@ pub fn change_loop_start(engine: &mut Engine, revision: u32, index: u32) -> Outc
 }
 
 /// Cuts the file, the track or the segment (see `SplitType`) of the trackpoint `at` of the
-/// selection in two, there: the trackpoint ends the first part and starts the second one. With
-/// `keep_originals`, a file that is cut is left as it is and its two parts are new files.
-pub fn split(
-    engine: &mut Engine,
+/// selection in two, there: the trackpoint ends the first part and starts the second one. A file that
+/// is cut is kept (and its two parts are new files) if the history needs it, see
+/// [`History::KEEPS_ORIGINALS`].
+pub fn split<H: History>(
+    engine: &mut Engine<H>,
     revision: u32,
     at: u32,
     split_type: engine::SplitType,
-    keep_originals: bool,
 ) -> Outcome {
     at_revision(engine, revision, |engine| {
         edit(
@@ -591,7 +622,7 @@ pub fn split(
             Command::Split(engine::Split {
                 at,
                 split_type,
-                keep_originals,
+                keep_originals: H::KEEPS_ORIGINALS,
             }),
         )
     })

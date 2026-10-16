@@ -57,6 +57,8 @@ impl GlobalHistory {
 }
 
 impl History for GlobalHistory {
+    const KEEPS_ORIGINALS: bool = false;
+
     fn restored(entry: Files) -> Self {
         Self {
             entries: vec![entry],

@@ -3,7 +3,7 @@
 //! are numbers (ms since the epoch), absent fields are skipped.
 
 use crate as engine;
-use engine::FileId;
+use engine::{FileId, History};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -49,7 +49,7 @@ impl Outcome {
 
     /// The outcome of a frontend that knows nothing of the engine: all the files are added, and the
     /// order, the selection and the clipboard are to be read.
-    pub fn everything(engine: &engine::Engine) -> Self {
+    pub fn everything<H: History>(engine: &engine::Engine<H>) -> Self {
         Self {
             changed: true,
             order_changed: true,

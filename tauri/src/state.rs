@@ -11,7 +11,8 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-use gpx_engine::{Engine, Persister, Storage, api};
+use crate::Engine;
+use gpx_engine::{Persister, Storage, api};
 use notify::RecursiveMode;
 use notify_debouncer_mini::{DebounceEventResult, Debouncer, new_debouncer};
 use serde::Serialize;

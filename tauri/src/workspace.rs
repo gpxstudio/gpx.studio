@@ -18,7 +18,8 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use gpx_engine::{Engine, ExportOptions, FileId, api};
+use crate::Engine;
+use gpx_engine::{ExportOptions, FileId, api};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 

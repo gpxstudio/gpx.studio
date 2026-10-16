@@ -220,7 +220,8 @@ impl Storage for FileStorage {
 
 #[cfg(test)]
 mod tests {
-    use gpx_engine::{Action, Command, Engine, Load, LoadFiles, Persister};
+    use crate::Engine;
+    use gpx_engine::{Action, Command, Load, LoadFiles, Persister};
 
     use super::*;
 
@@ -255,7 +256,7 @@ mod tests {
         // another session
         let storage = FileStorage::open(&root).unwrap();
         let restored = pollster::block_on(Persister::default().restore(&storage)).unwrap();
-        let mut other: Engine = Engine::default();
+        let mut other = Engine::default();
         other.restore(restored);
         assert_eq!(other.order(), order);
         assert_eq!(
