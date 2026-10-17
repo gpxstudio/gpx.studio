@@ -15,6 +15,7 @@ import {
 import { browser } from '$app/environment';
 import type { DistanceUnits, TemperatureUnits, VelocityUnits } from '$lib/units/conversions';
 import { engine } from '$lib/engine';
+import { languages } from '$lib/i18n/languages';
 import {
     getArrayValidator,
     getLayerTreeValidator,
@@ -157,6 +158,12 @@ export const settings = {
     bottomPanelSize: new Setting('bottomPanelSize', 170),
     rightPanelSize: new Setting('rightPanelSize', 240),
     explorerPanelSize: new Setting('explorerPanelSize', 0),
+    /** The language chosen last, for the desktop app, which always opens the same page. */
+    language: new Setting<string | undefined>(
+        'language',
+        undefined,
+        getValueValidator<string | undefined>(Object.keys(languages), undefined)
+    ),
     /** Takes the saved values (see `Engine.openStorage`). */
     connect(stored: StoredSettings) {
         for (const key in settings) {

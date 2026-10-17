@@ -3,7 +3,7 @@ import type { Backend } from './types';
 export type { Backend } from './types';
 
 /** Whether the page runs in the desktop app, which has the engine in its own process. */
-function inDesktopApp() {
+export function inDesktopApp() {
     return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 }
 

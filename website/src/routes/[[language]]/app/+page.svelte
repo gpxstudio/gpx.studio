@@ -18,6 +18,10 @@
     import { loadFiles } from '$lib/actions/file-actions';
     import { onMount } from 'svelte';
     import { page } from '$app/state';
+    import { goto } from '$app/navigation';
+    import { get } from 'svelte/store';
+    import { getURLForLanguage } from '$lib/utils';
+    import { inDesktopApp } from '$lib/engine/backend';
     import { hoveredPoint, slicedStatistics } from '$lib/state/selection-statistics';
     import { engine } from '$lib/engine';
     import { boundsManager } from '$lib/state/bounds';
@@ -51,10 +55,34 @@
         bottomPanelWidth && bottomPanelWidth >= 540 && $elevationProfile ? 'horizontal' : 'vertical'
     );
 
+    // the language of the page, which is in its address (none for English)
+    let language = $derived(page.params.language ?? 'en');
+    // whether the language that was chosen last was gone back to (the desktop app)
+    let languageRestored = $state(false);
+
+    $effect(() => {
+        if (languageRestored) {
+            settings.language.set(language);
+        }
+    });
+
     onMount(async () => {
         // files that the system opens with the app while it runs
         engine.onFilesOpened((ids) => boundsManager.fitBoundsOnLoad(ids));
         settings.connect(await engine.openStorage());
+
+        if (inDesktopApp()) {
+            // the window of the desktop app always opens the same page, in English: it goes to the
+            // language that was chosen last
+            const saved = get(settings.language);
+            if (saved !== undefined && saved !== language) {
+                await goto(
+                    `${getURLForLanguage(saved, page.url.pathname)}${page.url.search}${page.url.hash}`,
+                    { replaceState: true }
+                );
+            }
+            languageRestored = true;
+        }
 
         let files: string[] = JSON.parse(page.url.searchParams.get('files') || '[]');
         let ids: string[] = JSON.parse(page.url.searchParams.get('ids') || '[]');
