@@ -130,7 +130,7 @@
             <CoordinatesPopup />
             <Toaster richColors />
             {#if !$treeFileView}
-                <div class="h-10 -translate-y-10 w-full pointer-events-none absolute z-30">
+                <div class="h-10 w-full pointer-events-none absolute bottom-0 left-0 z-30">
                     <FileList orientation="horizontal" />
                 </div>
             {/if}
