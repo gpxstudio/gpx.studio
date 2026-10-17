@@ -57,6 +57,41 @@ pub trait History: Default + Debug {
 
     /// Whether [`History::redo`] would do something for these `files`.
     fn can_redo(&self, files: &[FileId]) -> bool;
+
+    /// Names a file `name` in all its states, as if it had always been called so: there is nothing
+    /// to undo. Says that the file changed, `None` if there is no such file or it is called so.
+    fn rename(&mut self, id: FileId, name: &str) -> Option<Diff>;
+}
+
+/// Names the states of a file: the ones that were shared stay shared (a state that several
+/// entries have is renamed once), and the ones that are called so already are kept.
+pub(super) struct Renamer<'a> {
+    name: &'a str,
+    renamed: HashMap<*const File, Rc<File>>,
+}
+
+impl<'a> Renamer<'a> {
+    pub(super) fn new(name: &'a str) -> Self {
+        Self {
+            name,
+            renamed: HashMap::new(),
+        }
+    }
+
+    pub(super) fn rename(&mut self, file: &Rc<File>) -> Rc<File> {
+        if file.info.name == self.name {
+            return file.clone();
+        }
+        let name = self.name;
+        self.renamed
+            .entry(Rc::as_ptr(file))
+            .or_insert_with(|| {
+                let mut renamed = (**file).clone();
+                renamed.info.name = name.to_owned();
+                Rc::new(renamed)
+            })
+            .clone()
+    }
 }
 
 /// Which files were added, removed or modified by a change of the current files.

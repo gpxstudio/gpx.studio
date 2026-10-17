@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use super::{Diff, Files, History, diff_between};
+use super::{Diff, Files, History, Renamer, diff_between};
 use crate::{CommandError, File, FileId};
 
 use std::collections::HashMap;
@@ -137,6 +137,20 @@ impl History for PerFileHistory {
 
     fn can_undo(&self, files: &[FileId]) -> bool {
         self.any(files, FileHistory::can_undo)
+    }
+
+    fn rename(&mut self, id: FileId, name: &str) -> Option<Diff> {
+        let history = self.stacks.get_mut(&id)?;
+        let mut renamer = Renamer::new(name);
+        for entry in history.entries.iter_mut() {
+            *entry = renamer.rename(entry);
+        }
+        let current = history.current().clone();
+        let before = self.current.insert(id, current.clone());
+        (!before.is_some_and(|before| Rc::ptr_eq(&before, &current))).then(|| Diff {
+            modified: vec![id],
+            ..Default::default()
+        })
     }
 
     fn can_redo(&self, files: &[FileId]) -> bool {

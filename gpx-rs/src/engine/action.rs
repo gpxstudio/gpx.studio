@@ -36,4 +36,11 @@ pub enum Action<'a> {
         file_ids: Vec<FileId>,
         index: usize,
     },
+    /// Names a file in all the states of the history, as if it had always been called so (see
+    /// [`crate::History::rename`]). Not undoable: for a file that is given a name from the outside,
+    /// like the name of the file it is written to.
+    Rename {
+        file_id: FileId,
+        name: String,
+    },
 }

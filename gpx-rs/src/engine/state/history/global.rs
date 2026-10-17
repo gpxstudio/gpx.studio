@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use super::{Diff, Files, History, diff_between};
+use super::{Diff, Files, History, Renamer, diff_between};
 use crate::{CommandError, FileId};
 
 /// One history for the whole workspace: each entry is a state of all the files.
@@ -122,6 +122,22 @@ impl History for GlobalHistory {
             Some(i) => i + 1 < self.entries.len(),
             None => !self.entries.is_empty(),
         }
+    }
+
+    fn rename(&mut self, id: FileId, name: &str) -> Option<Diff> {
+        let before = self.current()?.get(&id)?.clone();
+        let mut renamer = Renamer::new(name);
+        for entry in self.entries.iter_mut() {
+            if let Some(file) = entry.get(&id) {
+                let renamed = renamer.rename(file);
+                entry.insert(id, renamed);
+            }
+        }
+        let after = self.current()?.get(&id)?;
+        (!Rc::ptr_eq(&before, after)).then(|| Diff {
+            modified: vec![id],
+            ..Default::default()
+        })
     }
 }
 

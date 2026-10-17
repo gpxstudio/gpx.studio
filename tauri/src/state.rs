@@ -96,6 +96,48 @@ impl Core {
         self.announce(None);
     }
 
+    /// Runs `f` on the engine, which can change: what changed is kept, and the files on the disk are
+    /// renamed like the files of the engine were (an edit of the name, or its undo). Gives what
+    /// could not be renamed.
+    fn editing<T>(&mut self, f: impl FnOnce(&mut Engine) -> T) -> (T, Vec<String>) {
+        let names = self.workspace.names(&self.engine);
+        let result = f(&mut self.engine);
+        let (renamed, errors) = self.workspace.follow_names(&mut self.engine, &names);
+        if renamed {
+            self.keep_workspace();
+            self.announce(None);
+        }
+        self.persist();
+        (result, errors)
+    }
+
+    /// Like `editing`, for an edit that can rename files: the outcome tells the first thing that
+    /// could not be renamed (a key of the dictionaries of the frontend, which shows it).
+    pub fn edit(&mut self, f: impl FnOnce(&mut Engine) -> api::Outcome) -> api::Outcome {
+        let (outcome, errors) = self.editing(f);
+        match errors.first() {
+            Some(error) if !outcome.has_error() => {
+                outcome.merge(api::Outcome::failed(error.clone()))
+            }
+            _ => outcome,
+        }
+    }
+
+    /// After files were written (`result`): what changed in the engine (the files are called like
+    /// the files they were written to) is kept and told, with where the files are. Says whether
+    /// they were written.
+    pub fn wrote(&mut self, result: Result<api::Outcome, String>) -> Result<bool, String> {
+        self.keep_workspace();
+        match &result {
+            Ok(outcome) if outcome.changed => {
+                self.persist();
+                self.announce(Some(outcome));
+            }
+            _ => self.announce(None),
+        }
+        result.map(|_| true)
+    }
+
     /// Writes the workspace, and watches what it holds (a file may have been opened or closed).
     pub fn keep_workspace(&mut self) {
         self.workspace.write(self.storage.root());
@@ -228,10 +270,12 @@ impl Core {
                     Some((id, source.map(|(_, display)| display.clone())))
                 })
                 .collect();
-            if let Err(error) = self.workspace.save_new(&self.engine, &made)
-                && !outcome.has_error()
-            {
-                outcome = outcome.merge(api::Outcome::failed(error));
+            match self.workspace.save_new(&mut self.engine, &made) {
+                Ok(renamed) => outcome = outcome.merge(renamed),
+                Err(error) if !outcome.has_error() => {
+                    outcome = outcome.merge(api::Outcome::failed(error));
+                }
+                Err(_) => {}
             }
         }
         self.keep_workspace();
@@ -291,13 +335,23 @@ impl AppState {
         result.recv().expect("the engine thread stopped")
     }
 
-    /// Runs `f` on the engine, which can change: what changed is kept.
+    /// Runs `f` on the engine, which can change: what changed is kept (see `Core::editing`).
     pub fn run<T: Send + 'static>(&self, f: impl FnOnce(&mut Engine) -> T + Send + 'static) -> T {
         self.core(move |core| {
-            let result = f(&mut core.engine);
-            core.persist();
+            let (result, errors) = core.editing(f);
+            for error in errors {
+                eprintln!("{error}");
+            }
             result
         })
+    }
+
+    /// Like `run`, for an edit that can rename files: the outcome tells what could not be renamed.
+    pub fn edit(
+        &self,
+        f: impl FnOnce(&mut Engine) -> api::Outcome + Send + 'static,
+    ) -> api::Outcome {
+        self.core(move |core| core.edit(f))
     }
 
     /// Reads from the engine.

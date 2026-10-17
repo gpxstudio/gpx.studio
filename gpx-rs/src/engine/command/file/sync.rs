@@ -7,7 +7,8 @@ use crate::{Apply, CommandError, FileId, Load, State};
 pub struct ExternalFile<'a> {
     pub id: FileId,
     pub data: &'a [u8],
-    /// Name of the file when the data has none (see [`Load`]).
+    /// Name of the file outside (the name of the file on the disk, without its extension), which
+    /// is its name here whatever the data says: a file has a single name.
     pub name: &'a str,
 }
 
@@ -15,7 +16,8 @@ pub struct ExternalFile<'a> {
 /// that are given replace the ones of the same id (which stay where they are in the order, and keep
 /// their id), or are added at the end if there are none; the ones to `remove` are deleted.
 ///
-/// Unlike [`crate::LoadFiles`], the selection is left alone (what it holds of a file that was
+/// Unlike [`crate::LoadFiles`], the files are named as they are outside (see [`ExternalFile`]), and
+/// the selection is left alone (what it holds of a file that was
 /// replaced or deleted is dropped by the engine afterwards, as with any edit).
 ///
 /// The files that cannot be read are skipped, and the files that are here stay as they are. It is an
@@ -38,6 +40,9 @@ impl Apply for SyncFiles<'_> {
             match load.parse(state.categories) {
                 Ok(mut file) => {
                     file.id = external.id;
+                    if !external.name.trim().is_empty() {
+                        file.info.name = external.name.to_owned();
+                    }
                     if state.files.insert(external.id, Rc::new(file)).is_none() {
                         state.order.0.push(external.id);
                     }
@@ -101,7 +106,8 @@ mod tests {
         .apply(&mut fx.state())
         .unwrap();
         assert_eq!(fx.order.0, [first, second]);
-        assert_eq!(fx.files[&first].info.name, "from disk");
+        // named as it is outside, not as the data says
+        assert_eq!(fx.files[&first].info.name, "name");
         assert_eq!(fx.files[&first].id, first);
         // the selection is not changed
         assert_eq!(fx.selected_files(), [second].into());

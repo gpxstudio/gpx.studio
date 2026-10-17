@@ -183,8 +183,8 @@ pub fn load_files<H: History>(
 }
 
 /// Brings changes of the files from the outside in (see [`engine::SyncFiles`]): each file is
-/// `(id, data, name)`, and replaces the file of that id, or is added if there is none. The files to
-/// `remove` are deleted. The selection is left alone.
+/// `(id, data, name)`, and replaces the file of that id, or is added if there is none; it is called
+/// `name`, whatever its data says. The files to `remove` are deleted. The selection is left alone.
 pub fn sync_files<H: History>(
     engine: &mut Engine<H>,
     files: &[(Uuid, &[u8], &str)],
@@ -228,6 +228,18 @@ pub fn reorder<H: History>(engine: &mut Engine<H>, file_ids_: &[Uuid], index: us
         Action::Reorder {
             file_ids: file_ids(file_ids_),
             index,
+        },
+    )
+}
+
+/// Names a file in all its states, as if it had always been called so (not undoable): for a file
+/// that is written to a file of another name, whose name it takes.
+pub fn rename_file<H: History>(engine: &mut Engine<H>, file_id: Uuid, name: &str) -> Outcome {
+    execute(
+        engine,
+        Action::Rename {
+            file_id: engine::FileId(file_id),
+            name: name.to_owned(),
         },
     )
 }

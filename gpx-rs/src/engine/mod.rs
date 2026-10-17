@@ -248,6 +248,7 @@ impl<H: History> Engine<H> {
                 self.order.move_files(&file_ids, index);
                 None
             }
+            Action::Rename { file_id, name } => self.history.rename(file_id, &name),
         };
         let changed = diff.is_some()
             || self.selection != selection_before

@@ -113,10 +113,8 @@ fn write_unsaved<R: Runtime>(
     state.core(move |core| {
         let result = core
             .workspace
-            .save(&core.engine, &ids, &chosen, folder.as_deref());
-        core.keep_workspace();
-        core.announce(None);
-        result.map(|()| true)
+            .save(&mut core.engine, &ids, &chosen, folder.as_deref());
+        core.wrote(result)
     })
 }
 
@@ -180,10 +178,8 @@ pub fn save_file_as<R: Runtime>(
         return Ok(false);
     };
     state.core(move |core| {
-        let result = core.workspace.save_as(&core.engine, file_id, &path);
-        core.keep_workspace();
-        core.announce(None);
-        result.map(|()| true)
+        let result = core.workspace.save_as(&mut core.engine, file_id, &path);
+        core.wrote(result)
     })
 }
 

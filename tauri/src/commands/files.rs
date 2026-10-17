@@ -109,10 +109,10 @@ pub fn move_elements(
 
 #[tauri::command(async)]
 pub fn undo(state: State<AppState>) -> api::Outcome {
-    state.run(api::undo)
+    state.edit(api::undo)
 }
 
 #[tauri::command(async)]
 pub fn redo(state: State<AppState>) -> api::Outcome {
-    state.run(api::redo)
+    state.edit(api::redo)
 }

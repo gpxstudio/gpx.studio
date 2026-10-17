@@ -58,6 +58,12 @@ pub fn signature(engine: &Engine, id: Uuid) -> Option<u64> {
     Some(hash(&serde_json::to_vec(&structure).ok()?))
 }
 
+/// A file cannot be renamed: another one has the name. The errors that the frontend shows are keys
+/// of its dictionaries (`website/src/locales`).
+pub const NAME_TAKEN: &str = "menu.metadata.name_taken";
+/// A file cannot be renamed on the disk.
+pub const RENAME_FAILED: &str = "menu.metadata.rename_failed";
+
 /// What to do with the files that have unsaved edits when they are closed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -208,6 +214,23 @@ fn file_name(name: &str) -> String {
         "track".to_owned()
     } else {
         name
+    }
+}
+
+/// Whether two paths are the same file (two cases of a name, on a disk that does not tell them
+/// apart).
+fn same_file(a: &Path, b: &Path) -> bool {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        matches!(
+            (fs::metadata(a), fs::metadata(b)),
+            (Ok(a), Ok(b)) if (a.dev(), a.ino()) == (b.dev(), b.ino())
+        )
+    }
+    #[cfg(not(unix))]
+    {
+        matches!((fs::canonicalize(a), fs::canonicalize(b)), (Ok(a), Ok(b)) if a == b)
     }
 }
 
@@ -617,15 +640,16 @@ impl Workspace {
 
     /// Writes files to the disk, replacing what is there: they are the same as their file from
     /// then on. A file that is not on the disk goes in its folder, or at its path in `paths`, or in
-    /// `folder`, under its name (changed if that is the one of something else). Stops at the first
-    /// error, the files that were written stay written.
+    /// `folder`, under its name (changed if that is the one of something else), which the file then
+    /// has (see `write_file`). Stops at the first error, the files that were written stay written.
     pub fn save(
         &mut self,
-        engine: &Engine,
+        engine: &mut Engine,
         ids: &[Uuid],
         paths: &BTreeMap<Uuid, PathBuf>,
         folder: Option<&Path>,
-    ) -> Result<(), String> {
+    ) -> Result<api::Outcome, String> {
+        let mut outcome = api::Outcome::failed_none();
         for id in ids {
             let Some(structure) = engine.file_structure(&FileId(*id)) else {
                 continue;
@@ -638,20 +662,20 @@ impl Workspace {
                 (None, None, None, Some(dir)) => in_folder(dir),
                 (None, None, None, None) => continue,
             };
-            self.write_file(engine, *id, &path)?;
+            outcome = outcome.merge(self.write_file(engine, *id, &path)?);
         }
-        Ok(())
+        Ok(outcome)
     }
 
     /// Writes the new files among `files` in their folder, each under the name that is given (the
     /// name in the file when there is none). A name that is the one of something else is changed
     /// (`name (2)`). Files that would be called the same, like the parts of a split, are numbered
-    /// from 1 (`name (1)`, `name (2)`).
+    /// from 1 (`name (1)`, `name (2)`). The files are called like the file they are written to.
     pub fn save_new(
         &mut self,
-        engine: &Engine,
+        engine: &mut Engine,
         files: &[(Uuid, Option<String>)],
-    ) -> Result<(), String> {
+    ) -> Result<api::Outcome, String> {
         let names: Vec<Option<(Uuid, PathBuf, String)>> = files
             .iter()
             .map(|(id, name)| {
@@ -664,6 +688,7 @@ impl Workspace {
                 ))
             })
             .collect();
+        let mut outcome = api::Outcome::failed_none();
         for entry in &names {
             let Some((id, dir, name)) = entry else {
                 continue;
@@ -681,9 +706,106 @@ impl Workspace {
             } else {
                 free_path(dir, name, |p| self.is_taken(p))
             };
-            self.write_file(engine, *id, &path)?;
+            outcome = outcome.merge(self.write_file(engine, *id, &path)?);
         }
-        Ok(())
+        Ok(outcome)
+    }
+
+    /// The names of the files that are on the disk, and whether they are the files on the disk, to
+    /// tell which ones were renamed by an edit (see `follow_names`).
+    pub fn names(&self, engine: &Engine) -> BTreeMap<Uuid, (String, bool)> {
+        self.links
+            .keys()
+            .filter_map(|id| {
+                let name = engine.file_structure(&FileId(*id))?.name.clone();
+                Some((*id, (name, !self.is_dirty(engine, *id))))
+            })
+            .collect()
+    }
+
+    /// The name that a file on the disk can have: the name of a file, without its extension (see
+    /// `file_name`). Others are given to the files that are not on the disk yet when they are
+    /// written.
+    pub fn valid_name(&self, id: Uuid, name: &str) -> String {
+        if self.links.contains_key(&id) {
+            file_name(name)
+        } else {
+            name.to_owned()
+        }
+    }
+
+    /// Where a file on the disk goes when it is called `name`: next to where it is, with the same
+    /// extension. `None` if it is there already, an error if something else is.
+    pub fn renamed_path(&self, id: Uuid, name: &str) -> Result<Option<PathBuf>, String> {
+        let Some(link) = self.links.get(&id) else {
+            return Ok(None);
+        };
+        let extension = link
+            .path
+            .extension()
+            .map(|extension| extension.to_string_lossy().into_owned())
+            .unwrap_or_else(|| "gpx".to_owned());
+        let path = link
+            .path
+            .with_file_name(format!("{}.{extension}", file_name(name)));
+        if path == link.path {
+            return Ok(None);
+        }
+        // the same file under another case, on a disk that does not tell them apart, is not another
+        let other = self
+            .links
+            .iter()
+            .any(|(other, l)| *other != id && l.path == path)
+            || (path.exists() && !same_file(&path, &link.path));
+        if other {
+            return Err(NAME_TAKEN.to_owned());
+        }
+        Ok(Some(path))
+    }
+
+    /// Renames the files on the disk whose name changed in the engine since it had `before` (see
+    /// `names`): an edit of the name, or its undo, renames the file. A file that was the one on the
+    /// disk is written too, so that it still is: the rename is not something to save. A file with
+    /// edits is not, its edits are not saved for it. A file that cannot be renamed keeps its place,
+    /// with the reason in the errors. Says whether a file was renamed.
+    pub fn follow_names(
+        &mut self,
+        engine: &mut Engine,
+        before: &BTreeMap<Uuid, (String, bool)>,
+    ) -> (bool, Vec<String>) {
+        let mut renamed = false;
+        let mut errors = vec![];
+        for (id, (old, clean)) in before {
+            let Some(structure) = engine.file_structure(&FileId(*id)) else {
+                continue;
+            };
+            if structure.name == *old {
+                continue;
+            }
+            let path = match self.renamed_path(*id, &structure.name) {
+                Ok(Some(path)) => path,
+                Ok(None) => continue,
+                Err(error) => {
+                    errors.push(error);
+                    continue;
+                }
+            };
+            let link = self.links.get_mut(id).expect("the file is on the disk");
+            // a file that is gone is written at its new place when it is saved
+            if !link.missing
+                && let Err(error) = fs::rename(&link.path, &path)
+            {
+                eprintln!("{} cannot be renamed: {error}", link.path.display());
+                errors.push(RENAME_FAILED.to_owned());
+                continue;
+            }
+            link.path = path.clone();
+            renamed = true;
+            if *clean && let Err(error) = self.write_file(engine, *id, &path) {
+                errors.push(error);
+            }
+        }
+        (renamed, errors)
     }
 
     /// The name of a file as the user knows it: the name of the file on the disk, without its
@@ -696,7 +818,12 @@ impl Workspace {
     }
 
     /// Writes a file to a path of the user's choice, which is the place of the file from then on.
-    pub fn save_as(&mut self, engine: &Engine, id: Uuid, path: &Path) -> Result<(), String> {
+    pub fn save_as(
+        &mut self,
+        engine: &mut Engine,
+        id: Uuid,
+        path: &Path,
+    ) -> Result<api::Outcome, String> {
         if let Some(other) = self.id_of(&canonical(path))
             && other != id
         {
@@ -705,13 +832,30 @@ impl Workspace {
         self.write_file(engine, id, path)
     }
 
-    fn write_file(&mut self, engine: &Engine, id: Uuid, path: &Path) -> Result<(), String> {
+    /// Writes a file to `path`, which it is linked to from then on. It is called like the file it is
+    /// written to (a file has a single name), as if it always had been: that is not an edit to
+    /// undo. Says what changed in the engine.
+    fn write_file(
+        &mut self,
+        engine: &mut Engine,
+        id: Uuid,
+        path: &Path,
+    ) -> Result<api::Outcome, String> {
+        let Some(structure) = engine.file_structure(&FileId(id)) else {
+            return Ok(api::Outcome::failed_none());
+        };
+        let name = stem(path);
+        let renamed = if structure.name != name {
+            api::rename_file(engine, id, &name)
+        } else {
+            api::Outcome::failed_none()
+        };
         let Some(bytes) = api::export_file(engine, id, ExportOptions::ALL) else {
-            return Ok(());
+            return Ok(renamed);
         };
         write_atomically(path, &bytes).map_err(|error| format!("{}: {error}", path.display()))?;
         let Some(signature) = signature(engine, id) else {
-            return Ok(());
+            return Ok(renamed);
         };
         // the folder, if there is one, may watch what was just written: the hash tells it is known
         self.links.insert(
@@ -726,7 +870,7 @@ impl Workspace {
             },
         );
         self.dirs.remove(&id);
-        Ok(())
+        Ok(renamed)
     }
 
     /// The folders and the GPX files that are in a folder of the open folder (or in it), the
@@ -776,7 +920,7 @@ mod tests {
 
     fn gpx(name: &str) -> String {
         format!(
-            r#"<?xml version="1.0"?><gpx version="1.1" creator="test" xmlns="http://www.topografix.com/GPX/1/1"><metadata><name>{name}</name></metadata><trk><trkseg><trkpt lat="50.0" lon="4.0"><ele>10</ele></trkpt><trkpt lat="50.1" lon="4.1"><ele>20</ele></trkpt></trkseg></trk></gpx>"#
+            r#"<?xml version="1.0"?><gpx version="1.1" creator="test" xmlns="http://www.topografix.com/GPX/1/1"><metadata><name>{name}</name></metadata><trk><name>{name}</name><trkseg><trkpt lat="50.0" lon="4.0"><ele>10</ele></trkpt><trkpt lat="50.1" lon="4.1"><ele>20</ele></trkpt></trkseg></trk></gpx>"#
         )
     }
 
@@ -833,7 +977,7 @@ mod tests {
 
         fn save(&mut self, ids: &[Uuid]) {
             self.workspace
-                .save(&self.engine, ids, &BTreeMap::new(), None)
+                .save(&mut self.engine, ids, &BTreeMap::new(), None)
                 .unwrap();
         }
 
@@ -854,6 +998,14 @@ mod tests {
                 .unwrap()
                 .name
                 .clone()
+        }
+
+        /// What the file holds: the name of its track (its own name is the one of the file).
+        fn content(&self, id: Uuid) -> String {
+            self.engine.file_structure(&FileId(id)).unwrap().tracks[0]
+                .name
+                .clone()
+                .unwrap_or_default()
         }
 
         fn rename(&mut self, id: Uuid, name: &str) {
@@ -919,7 +1071,9 @@ mod tests {
 
         let path = fx.folder.join("fresh.gpx");
         let paths = BTreeMap::from([(id, path.clone())]);
-        fx.workspace.save(&fx.engine, &[id], &paths, None).unwrap();
+        fx.workspace
+            .save(&mut fx.engine, &[id], &paths, None)
+            .unwrap();
         assert!(path.exists());
         assert!(!fx.workspace.is_dirty(&fx.engine, id));
         assert!(fx.workspace.unlinked(&fx.engine, &[id]).is_empty());
@@ -935,7 +1089,7 @@ mod tests {
         let ids = fx.ids();
         let folder = fx.folder.clone();
         fx.workspace
-            .save(&fx.engine, &ids, &BTreeMap::new(), Some(&folder))
+            .save(&mut fx.engine, &ids, &BTreeMap::new(), Some(&folder))
             .unwrap();
         for name in ["fresh (2).gpx", "fresh (3).gpx", "a_b_ c.gpx"] {
             assert!(fx.folder.join(name).exists(), "{name}");
@@ -949,11 +1103,11 @@ mod tests {
         let path = fx.write("a.gpx", "a");
         fx.open_folder();
         let id = fx.ids()[0];
-        fx.rename(id, "renamed");
+        api::select(&mut fx.engine, &[id], SelectMode::Replace);
+        assert!(!api::style(&mut fx.engine, Some("#ff0000"), None, None).has_error());
         fx.save(&[id]);
         assert!(fx.reconcile(Some(&[path])).is_none());
-        assert!(!fx.status(id).replaced);
-        assert_eq!(fx.name(id), "renamed");
+        assert!(!fx.status(id).replaced && !fx.status(id).dirty);
     }
 
     #[test]
@@ -1076,7 +1230,7 @@ mod tests {
         assert!(outcome.changed);
         // the same file, now the one on the disk
         assert_eq!(fx.ids(), [id]);
-        assert_eq!(fx.name(id), "theirs");
+        assert_eq!(fx.content(id), "theirs");
         let status = fx.status(id);
         assert!(!status.dirty && !status.replaced);
         // looking again changes nothing
@@ -1119,13 +1273,13 @@ mod tests {
         assert!(fx.status(id).replaced);
 
         fx.workspace.reload(&mut fx.engine, &[id]).unwrap();
-        assert_eq!(fx.name(id), "theirs");
+        assert_eq!(fx.content(id), "theirs");
         let status = fx.status(id);
         assert!(!status.dirty && !status.replaced);
         // and it is one undo step
         api::select(&mut fx.engine, &[id], SelectMode::Replace);
         api::undo(&mut fx.engine);
-        assert_eq!(fx.name(id), "mine");
+        assert_eq!(fx.content(id), "mine");
     }
 
     #[test]
@@ -1176,7 +1330,7 @@ mod tests {
 
         fx.write("a.gpx", "back");
         fx.reconcile(None);
-        assert_eq!(fx.name(id), "back");
+        assert_eq!(fx.content(id), "back");
         let status = fx.status(id);
         assert!(!status.dirty && !status.missing);
     }
@@ -1189,7 +1343,7 @@ mod tests {
         let id = fx.ids()[0];
         fx.write("a.gpx", "changed");
         assert!(fx.reconcile(None).is_some());
-        assert_eq!(fx.name(id), "changed");
+        assert_eq!(fx.content(id), "changed");
         fs::remove_file(a).unwrap();
         assert!(fx.reconcile(None).is_some());
         assert!(fx.status(id).missing);
@@ -1360,7 +1514,9 @@ mod tests {
         // the place of the file is taken by a folder
         fs::remove_file(fx.folder.join("a.gpx")).unwrap();
         fs::create_dir(fx.folder.join("a.gpx")).unwrap();
-        let result = fx.workspace.save(&fx.engine, &[id], &BTreeMap::new(), None);
+        let result = fx
+            .workspace
+            .save(&mut fx.engine, &[id], &BTreeMap::new(), None);
         assert!(result.is_err());
         assert!(fx.workspace.is_dirty(&fx.engine, id));
     }
@@ -1376,7 +1532,7 @@ mod tests {
         fx.rename(id, "edited");
 
         let target = fx.folder.join("copy.gpx");
-        fx.workspace.save_as(&fx.engine, id, &target).unwrap();
+        fx.workspace.save_as(&mut fx.engine, id, &target).unwrap();
         assert!(fs::read_to_string(&target).unwrap().contains("edited"));
         assert!(fs::read_to_string(a).unwrap().contains(">a<"));
         let status = fx.status(id);
@@ -1385,7 +1541,7 @@ mod tests {
 
         // the place of another open file is not available
         let taken = fx.folder.join("b.gpx");
-        assert!(fx.workspace.save_as(&fx.engine, id, &taken).is_err());
+        assert!(fx.workspace.save_as(&mut fx.engine, id, &taken).is_err());
         assert!(!fx.workspace.is_dirty(&fx.engine, other));
     }
 }

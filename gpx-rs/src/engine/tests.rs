@@ -183,6 +183,52 @@ fn test_metadata_renames_selected_file() {
 }
 
 #[test]
+fn test_rename_names_every_state_of_the_file_and_is_not_undoable() {
+    let mut engine = TestEngine::default();
+    new(&mut engine, "first");
+    new(&mut engine, "other");
+    let id = engine.order()[0];
+    let other = engine.order()[1];
+    let other_file = engine.history.current().unwrap()[&other].clone();
+    engine.run(Action::Select {
+        selection: Selection::File {
+            file_ids: [id].into(),
+        },
+        mode: SelectMode::Replace,
+    });
+    assert!(edit(
+        &mut engine,
+        Command::Metadata(Metadata {
+            name: "edited",
+            desc: "",
+        })
+    ));
+    assert!(engine.run(Action::Rename {
+        file_id: id,
+        name: "written".to_owned(),
+    }));
+    assert_eq!(engine.last_diff().unwrap().modified, vec![id]);
+    assert_eq!(engine.file_structure(&id).unwrap().name, "written");
+    // nothing to undo for it: the edits before are undone, and the file keeps its name
+    engine.run(Action::Undo);
+    engine.run(Action::Undo);
+    assert_eq!(engine.file_structure(&id).unwrap().name, "written");
+    engine.run(Action::Redo);
+    engine.run(Action::Redo);
+    assert_eq!(engine.file_structure(&id).unwrap().name, "written");
+    // the other file is still the same object, in every state
+    assert!(Rc::ptr_eq(
+        &engine.history.current().unwrap()[&other],
+        &other_file
+    ));
+    // naming it as it is already called changes nothing
+    assert!(!engine.run(Action::Rename {
+        file_id: id,
+        name: "written".to_owned(),
+    }));
+}
+
+#[test]
 fn test_metadata_without_selection_does_not_modify_files() {
     let mut engine = TestEngine::default();
     new(&mut engine, "file");
@@ -1467,6 +1513,31 @@ mod per_file_history {
 
     fn name_of(engine: &Engine<PerFileHistory>, id: FileId) -> String {
         engine.file_structure(&id).unwrap().name.clone()
+    }
+
+    #[test]
+    fn test_rename_names_every_state_of_the_file() {
+        let mut engine = Engine::<PerFileHistory>::default();
+        let id = new_file(&mut engine, "a");
+        select(&mut engine, &[id]);
+        rename(&mut engine, "b");
+        rename(&mut engine, "c");
+        let outcome = engine
+            .execute(Action::Rename {
+                file_id: id,
+                name: "written".to_owned(),
+            })
+            .unwrap();
+        assert_eq!(outcome.diff.unwrap().modified, vec![id]);
+        assert_eq!(name_of(&engine, id), "written");
+        // the edits are still there to undo, the name stays
+        engine.execute(Action::Undo).unwrap();
+        assert!(engine.can_undo());
+        engine.execute(Action::Undo).unwrap();
+        assert!(!engine.can_undo());
+        assert_eq!(name_of(&engine, id), "written");
+        engine.execute(Action::Redo).unwrap();
+        assert_eq!(name_of(&engine, id), "written");
     }
 
     #[test]

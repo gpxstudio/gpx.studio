@@ -396,7 +396,7 @@ fn files_are_opened_closed_and_made_in_a_folder() {
 
     // closing: what is saved goes, what has edits stays unless it is discarded
     app.call("select", json!({ "fileIds": [new_id], "mode": "replace" }));
-    app.call("metadata", json!({ "name": "edited", "desc": "" }));
+    app.call("style", json!({ "color": "#ff0000" }));
     app.call("close_files", json!({ "fileIds": [id, new_id] }));
     assert_eq!(app.call("file_order", json!({})), json!([new_id]));
     app.call(
@@ -549,4 +549,124 @@ fn files_can_be_reordered() {
         app.call("file_order", json!({})),
         json!([ids[2], ids[0], ids[1]])
     );
+}
+
+/// A folder of its own, with GPX files whose name inside is not the name of the file.
+fn folder_with(files: &[&str]) -> std::path::PathBuf {
+    let folder = std::env::temp_dir().join(format!("gpx-names-{}", uuid::Uuid::new_v4()));
+    std::fs::create_dir_all(&folder).unwrap();
+    for name in files {
+        std::fs::write(
+            folder.join(format!("{name}.gpx")),
+            r#"<?xml version="1.0"?><gpx version="1.1" creator="test"><metadata><name>Inside</name></metadata><trk><trkseg><trkpt lat="50.0" lon="4.0"></trkpt><trkpt lat="50.1" lon="4.1"></trkpt></trkseg></trk></gpx>"#,
+        )
+        .unwrap();
+    }
+    folder
+}
+
+fn name_of(app: &App, id: &str) -> String {
+    app.call("file_structure", json!({ "fileId": id }))["name"]
+        .as_str()
+        .unwrap()
+        .to_string()
+}
+
+#[test]
+fn a_file_is_called_like_its_file_and_renaming_it_renames_the_file() {
+    let app = App::new();
+    let folder = folder_with(&["outside", "taken"]);
+    let outcome = app.call(
+        "open_paths",
+        json!({ "paths": [folder.join("outside.gpx")] }),
+    );
+    let id = outcome["added"][0].as_str().unwrap().to_string();
+
+    // the name in the file is not the name of the file: the file wins, and nothing is unsaved
+    assert_eq!(name_of(&app, &id), "outside");
+    assert_eq!(
+        app.call("workspace_state", json!({}))["files"][&id]["dirty"],
+        false
+    );
+
+    // renaming renames the file on the disk
+    app.call("select", json!({ "fileIds": [id], "mode": "replace" }));
+    let outcome = app.call("metadata", json!({ "name": "renamed", "desc": "" }));
+    assert!(outcome.get("error").is_none());
+    assert!(folder.join("renamed.gpx").exists());
+    assert!(!folder.join("outside.gpx").exists());
+    let path = app.call("workspace_state", json!({}))["files"][&id]["path"].clone();
+    assert!(path.as_str().unwrap().ends_with("renamed.gpx"));
+    // the file had nothing unsaved: it is written with its new name, and still has nothing unsaved
+    let dirty = |app: &App| app.call("workspace_state", json!({}))["files"][&id]["dirty"].clone();
+    let inside = |name: &str| std::fs::read_to_string(folder.join(format!("{name}.gpx"))).unwrap();
+    assert_eq!(dirty(&app), false);
+    assert!(inside("renamed").contains("<name>renamed</name>"));
+
+    // undone and redone, on the disk too, still with nothing unsaved
+    app.call("undo", json!({}));
+    assert_eq!(name_of(&app, &id), "outside");
+    assert!(folder.join("outside.gpx").exists() && !folder.join("renamed.gpx").exists());
+    assert_eq!(dirty(&app), false);
+    assert!(inside("outside").contains("<name>outside</name>"));
+    app.call("redo", json!({}));
+    assert_eq!(name_of(&app, &id), "renamed");
+    assert!(folder.join("renamed.gpx").exists() && !folder.join("outside.gpx").exists());
+    assert_eq!(dirty(&app), false);
+
+    // the name of another file is not taken, nothing changes
+    let outcome = app.call("metadata", json!({ "name": "taken", "desc": "" }));
+    assert_eq!(outcome["error"], crate::workspace::NAME_TAKEN);
+    assert_eq!(name_of(&app, &id), "renamed");
+    assert!(folder.join("renamed.gpx").exists());
+
+    // a name is one that a file can have
+    app.call("metadata", json!({ "name": "a/b", "desc": "" }));
+    assert_eq!(name_of(&app, &id), "a_b");
+    assert!(folder.join("a_b.gpx").exists());
+
+    // a file with edits is renamed, but not written: its edits are not saved for it
+    app.call("style", json!({ "color": "#ff0000" }));
+    assert_eq!(dirty(&app), true);
+    app.call("metadata", json!({ "name": "edited", "desc": "" }));
+    assert!(folder.join("edited.gpx").exists());
+    assert_eq!(dirty(&app), true);
+    assert!(!inside("edited").contains("ff0000"));
+    app.call("undo", json!({}));
+    app.call("undo", json!({}));
+    assert_eq!(name_of(&app, &id), "a_b");
+    assert_eq!(dirty(&app), false);
+
+    // only the case changes: the same file
+    app.call("metadata", json!({ "name": "A_B", "desc": "" }));
+    assert_eq!(name_of(&app, &id), "A_B");
+    let names: Vec<String> = std::fs::read_dir(&folder)
+        .unwrap()
+        .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+        .collect();
+    assert!(names.contains(&"A_B.gpx".to_string()));
+    assert_eq!(names.len(), 2);
+    std::fs::remove_dir_all(folder).unwrap();
+}
+
+#[test]
+fn a_new_file_written_under_another_name_takes_it() {
+    let app = App::new();
+    let folder = folder_with(&["route"]);
+    // a new file made in the folder is written there at once: route.gpx is taken
+    let created = app.call(
+        "new_file",
+        json!({ "name": "route", "lng": 4.4, "lat": 50.8, "folder": folder }),
+    );
+    let id = created["added"][0].as_str().unwrap().to_string();
+    assert!(folder.join("route (2).gpx").exists());
+    assert_eq!(name_of(&app, &id), "route (2)");
+    assert_eq!(
+        app.call("workspace_state", json!({}))["files"][&id]["dirty"],
+        false
+    );
+    // which is not an edit to undo
+    app.call("select", json!({ "fileIds": [id], "mode": "replace" }));
+    assert_eq!(app.call("can_undo", json!({})), false);
+    std::fs::remove_dir_all(folder).unwrap();
 }
