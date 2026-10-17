@@ -25,9 +25,12 @@
 //! edits is read again, a file with edits is flagged `replaced` and the user chooses when saving it
 //! whether to overwrite the disk or to read it again (`reload`).
 
+use std::cmp::Ordering;
 use std::collections::BTreeMap;
 use std::fs;
+use std::iter::Peekable;
 use std::path::{Path, PathBuf};
+use std::str::Chars;
 
 use crate::Engine;
 use gpx_engine::{ExportOptions, FileId, api};
@@ -135,6 +138,41 @@ fn is_gpx(path: &Path) -> bool {
     path.extension()
         .and_then(|extension| extension.to_str())
         .is_some_and(|extension| extension.eq_ignore_ascii_case("gpx"))
+}
+
+/// Compares names the way people read them: the numbers in them by their value ("track 2" before
+/// "track 10"), the rest regardless of case.
+fn natural_cmp(a: &str, b: &str) -> Ordering {
+    let (mut a, mut b) = (a.chars().peekable(), b.chars().peekable());
+    loop {
+        let order = match (a.peek().copied(), b.peek().copied()) {
+            (None, None) => return Ordering::Equal,
+            (None, Some(_)) => return Ordering::Less,
+            (Some(_), None) => return Ordering::Greater,
+            (Some(x), Some(y)) if x.is_ascii_digit() && y.is_ascii_digit() => {
+                let (x, y) = (digits(&mut a), digits(&mut b));
+                let (x, y) = (x.trim_start_matches('0'), y.trim_start_matches('0'));
+                x.len().cmp(&y.len()).then_with(|| x.cmp(y))
+            }
+            (Some(x), Some(y)) => {
+                a.next();
+                b.next();
+                x.to_lowercase().cmp(y.to_lowercase())
+            }
+        };
+        if order != Ordering::Equal {
+            return order;
+        }
+    }
+}
+
+/// The digits at the beginning of `chars`, which are taken.
+fn digits(chars: &mut Peekable<Chars>) -> String {
+    let mut digits = String::new();
+    while let Some(digit) = chars.next_if(char::is_ascii_digit) {
+        digits.push(digit);
+    }
+    digits
 }
 
 pub fn canonical(path: &Path) -> PathBuf {
@@ -712,10 +750,18 @@ impl Workspace {
                 })
             })
             .collect();
+        // the files without their extension, so that a name that begins another comes first
+        let sorted_name = |entry: &Entry| {
+            if entry.is_dir {
+                entry.name.clone()
+            } else {
+                stem(Path::new(&entry.name))
+            }
+        };
         entries.sort_by(|a, b| {
             b.is_dir
                 .cmp(&a.is_dir)
-                .then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
+                .then_with(|| natural_cmp(&sorted_name(a), &sorted_name(b)))
                 .then_with(|| a.name.cmp(&b.name))
         });
         Ok(entries)
@@ -956,6 +1002,8 @@ mod tests {
         let mut fx = Fixture::new();
         fx.write("b.gpx", "b");
         fx.write("A.GPX", "a");
+        fx.write("b 10.gpx", "b 10");
+        fx.write("b 2.gpx", "b 2");
         fx.write("notes.txt", "not a track");
         fx.write(".hidden.gpx", "hidden");
         fs::create_dir(fx.folder.join("zoo")).unwrap();
@@ -975,6 +1023,8 @@ mod tests {
                 ("zoo".to_string(), true),
                 ("A.GPX".to_string(), false),
                 ("b.gpx".to_string(), false),
+                ("b 2.gpx".to_string(), false),
+                ("b 10.gpx".to_string(), false),
             ]
         );
         assert_eq!(
@@ -984,6 +1034,34 @@ mod tests {
         // only what is in the open folder can be listed
         let elsewhere = canonical(&std::env::temp_dir());
         assert!(fx.workspace.list_folder(&elsewhere).is_err());
+    }
+
+    #[test]
+    fn names_are_sorted_by_the_numbers_they_hold() {
+        let mut names = vec![
+            "track 10",
+            "track 2",
+            "Track 1",
+            "track",
+            "track 02b",
+            "track 2a",
+            "b",
+            "A",
+        ];
+        names.sort_by(|a, b| natural_cmp(a, b).then_with(|| a.cmp(b)));
+        assert_eq!(
+            names,
+            [
+                "A",
+                "b",
+                "track",
+                "Track 1",
+                "track 2",
+                "track 2a",
+                "track 02b",
+                "track 10",
+            ]
+        );
     }
 
     #[test]
