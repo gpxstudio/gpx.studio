@@ -201,9 +201,38 @@ impl Core {
                     .then(|| self.workspace.folder.clone())
                     .flatten()
             });
-        let outcome = f(&mut self.engine);
+        // what the files it comes from are called, by the name in them (the copies have the same one)
+        let sources: Vec<(String, String)> = selected
+            .iter()
+            .filter_map(|id| {
+                let structure = self.engine.file_structure(&gpx_engine::FileId(*id))?;
+                Some((
+                    structure.name.clone(),
+                    self.workspace.display_name(&self.engine, *id)?,
+                ))
+            })
+            .collect();
+        let mut outcome = f(&mut self.engine);
         if let Some(dir) = dir {
             self.workspace.inherit(outcome.added(), &dir);
+            // what is made in a folder is written there at once, so that the tree shows it. A copy
+            // is named like the file it is a copy of
+            let made: Vec<(uuid::Uuid, Option<String>)> = outcome
+                .added()
+                .iter()
+                .filter_map(|id| uuid::Uuid::parse_str(id).ok())
+                .filter(|id| self.workspace.dirs.contains_key(id))
+                .filter_map(|id| {
+                    let name = &self.engine.file_structure(&gpx_engine::FileId(id))?.name;
+                    let source = sources.iter().find(|(source, _)| source == name);
+                    Some((id, source.map(|(_, display)| display.clone())))
+                })
+                .collect();
+            if let Err(error) = self.workspace.save_new(&self.engine, &made)
+                && !outcome.has_error()
+            {
+                outcome = outcome.merge(api::Outcome::failed(error));
+            }
         }
         self.keep_workspace();
         self.persist();

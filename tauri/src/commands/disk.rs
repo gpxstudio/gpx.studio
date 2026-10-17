@@ -348,15 +348,12 @@ pub fn export_files<R: Runtime>(
     options: ExportArguments,
 ) -> Result<bool, String> {
     let options = ExportOptions::from(options);
-    let files: Vec<(String, Vec<u8>)> = state.read(move |engine| {
+    let files: Vec<(String, Vec<u8>)> = state.core(move |core| {
         file_ids
             .iter()
             .filter_map(|id| {
-                let name = engine
-                    .file_structure(&gpx_engine::FileId(*id))?
-                    .name
-                    .clone();
-                Some((name, api::export_file(engine, *id, options)?))
+                let name = core.workspace.display_name(&core.engine, *id)?;
+                Some((name, api::export_file(&core.engine, *id, options)?))
             })
             .collect()
     });

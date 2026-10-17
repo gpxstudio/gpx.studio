@@ -193,6 +193,16 @@ pub fn free_path(folder: &Path, name: &str, taken: impl Fn(&Path) -> bool) -> Pa
     path
 }
 
+/// Where to put one of several files that are called the same in `folder`: `name (1)`, or else the
+/// first number that is free.
+pub fn numbered_path(folder: &Path, name: &str, taken: impl Fn(&Path) -> bool) -> PathBuf {
+    let name = file_name(name);
+    (1..)
+        .map(|number| folder.join(format!("{name} ({number}).gpx")))
+        .find(|path| !path.exists() && !taken(path))
+        .expect("there are enough numbers")
+}
+
 impl Workspace {
     pub fn path() -> &'static str {
         "workspace.json"
@@ -593,6 +603,58 @@ impl Workspace {
             self.write_file(engine, *id, &path)?;
         }
         Ok(())
+    }
+
+    /// Writes the new files among `files` in their folder, each under the name that is given (the
+    /// name in the file when there is none). A name that is the one of something else is changed
+    /// (`name (2)`). Files that would be called the same, like the parts of a split, are numbered
+    /// from 1 (`name (1)`, `name (2)`).
+    pub fn save_new(
+        &mut self,
+        engine: &Engine,
+        files: &[(Uuid, Option<String>)],
+    ) -> Result<(), String> {
+        let names: Vec<Option<(Uuid, PathBuf, String)>> = files
+            .iter()
+            .map(|(id, name)| {
+                let dir = self.dirs.get(id)?.clone();
+                let structure = engine.file_structure(&FileId(*id))?;
+                Some((
+                    *id,
+                    dir,
+                    name.clone().unwrap_or_else(|| structure.name.clone()),
+                ))
+            })
+            .collect();
+        for entry in &names {
+            let Some((id, dir, name)) = entry else {
+                continue;
+            };
+            let together = names
+                .iter()
+                .flatten()
+                .filter(|(_, other_dir, other)| {
+                    other_dir == dir && file_name(other) == file_name(name)
+                })
+                .count()
+                > 1;
+            let path = if together {
+                numbered_path(dir, name, |p| self.is_taken(p))
+            } else {
+                free_path(dir, name, |p| self.is_taken(p))
+            };
+            self.write_file(engine, *id, &path)?;
+        }
+        Ok(())
+    }
+
+    /// The name of a file as the user knows it: the name of the file on the disk, without its
+    /// extension, or else the name in the file.
+    pub fn display_name(&self, engine: &Engine, id: Uuid) -> Option<String> {
+        match self.links.get(&id) {
+            Some(link) => Some(stem(&link.path)),
+            None => Some(engine.file_structure(&FileId(id))?.name.clone()),
+        }
     }
 
     /// Writes a file to a path of the user's choice, which is the place of the file from then on.

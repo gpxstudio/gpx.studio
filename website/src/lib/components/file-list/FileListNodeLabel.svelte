@@ -50,7 +50,7 @@
         label: string | undefined;
     } = $props();
 
-    const { selection, clipboard, canPaste } = engine;
+    const { selection, clipboard, canPaste, workspace } = engine;
 
     let orientation = getContext<'vertical' | 'horizontal'>('orientation');
     let embedding = getContext<boolean>('embedding');
@@ -92,6 +92,8 @@
             selectedElementIds($selection)[0]?.ids[0] === elementId(node)
     );
 
+    // the file is not the one on the disk (the desktop app)
+    let unsaved = $derived(node.type === 'file' && $workspace?.files[node.fileId]?.dirty === true);
     let hidden = $derived(isHidden(fileState, elementId(node)));
     // cut elements are greyed until they are pasted
     let isCut = $derived($clipboard?.cut === true && isInClipboard($clipboard, node));
@@ -187,6 +189,14 @@
                 >
                     {label}
                 </span>
+                {#if unsaved}
+                    <span
+                        class="size-1.5 shrink-0 rounded-full bg-foreground ml-1 {orientation ===
+                        'vertical'
+                            ? 'mr-3'
+                            : ''}"
+                    ></span>
+                {/if}
                 {#if hidden}
                     <EyeOff
                         size="10"

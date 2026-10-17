@@ -380,21 +380,23 @@ fn files_are_opened_closed_and_made_in_a_folder() {
     assert_eq!(state["files"][&id]["dirty"], false);
     assert!(state["files"][&id]["path"].is_string());
 
-    // a new file made in a folder is written there, and is not linked to a place yet
+    // a new file made in a folder is written there at once, so that the tree shows it
     let created = app.call(
         "new_file",
         json!({ "name": "route", "lng": 4.4, "lat": 50.8, "folder": folder }),
     );
     let new_id = created["added"][0].as_str().unwrap().to_string();
     let state = app.call("workspace_state", json!({}));
-    assert_eq!(state["files"][&new_id]["dirty"], true);
-    assert!(state["files"][&new_id]["folder"].is_string());
-    assert!(state["files"][&new_id].get("path").is_none());
+    assert_eq!(state["files"][&new_id]["dirty"], false);
+    assert!(state["files"][&new_id]["path"].is_string());
+    assert!(folder.join("route.gpx").exists());
 
     // the tree needs an open folder
     assert_eq!(app.call("list_folder", json!({})), json!([]));
 
     // closing: what is saved goes, what has edits stays unless it is discarded
+    app.call("select", json!({ "fileIds": [new_id], "mode": "replace" }));
+    app.call("metadata", json!({ "name": "edited", "desc": "" }));
     app.call("close_files", json!({ "fileIds": [id, new_id] }));
     assert_eq!(app.call("file_order", json!({})), json!([new_id]));
     app.call(
@@ -454,4 +456,78 @@ fn a_file_outside_the_open_folder_is_read_again_when_the_disk_changes() {
     assert_ne!(name(&state), before);
     std::fs::remove_dir_all(folder).unwrap();
     std::fs::remove_dir_all(directory).unwrap();
+}
+
+#[test]
+fn files_made_from_a_file_of_the_open_folder_are_written_next_to_it_at_once() {
+    let state = crate::state::AppState::temporary();
+    let folder = std::env::temp_dir().join(format!("gpx-tests-{}", uuid::Uuid::new_v4()));
+    std::fs::create_dir_all(folder.join("sub")).unwrap();
+    std::fs::copy("../gpx-rs/data/simple.gpx", folder.join("sub/track.gpx")).unwrap();
+    let sub = folder.join("sub");
+    let (copied, new_file) = state.core(move |core| {
+        core.workspace.open_folder(&mut core.engine, &folder, false);
+        let opened = core
+            .workspace
+            .open_files(&mut core.engine, &[sub.join("track.gpx")], true);
+        core.keep_workspace();
+        assert_eq!(opened.added().len(), 1);
+        let copy = core.creating(None, false, gpx_engine::api::duplicate);
+        let fresh = core.creating(None, true, |e| {
+            gpx_engine::api::new_file(e, "fresh", None, None, None)
+        });
+        // a copy of the file goes next to it, a new file with nothing selected in the selection
+        // of the file that was just made
+        (copy, fresh)
+    });
+    let sub = std::env::temp_dir();
+    let _ = sub;
+    assert_eq!(copied.added().len(), 1);
+    assert_eq!(new_file.added().len(), 1);
+    let status = state.core(|core| core.workspace_state());
+    assert!(status.files.values().all(|file| !file.dirty));
+    let paths: Vec<String> = status
+        .files
+        .values()
+        .map(|file| file.path.clone().unwrap())
+        .collect();
+    // the copy is in the subfolder, named after the file
+    assert!(
+        paths.iter().any(|path| path.ends_with("sub/track (2).gpx")),
+        "{paths:?}"
+    );
+    // the new file went where the selected file is
+    assert!(
+        paths.iter().any(|path| path.ends_with("sub/fresh.gpx")),
+        "{paths:?}"
+    );
+}
+
+#[test]
+fn the_parts_of_a_split_are_numbered_from_one() {
+    let state = crate::state::AppState::temporary();
+    let folder = std::env::temp_dir().join(format!("gpx-tests-{}", uuid::Uuid::new_v4()));
+    std::fs::create_dir_all(&folder).unwrap();
+    std::fs::copy("../gpx-rs/data/simple.gpx", folder.join("track.gpx")).unwrap();
+    let root = folder.clone();
+    let outcome = state.core(move |core| {
+        core.workspace.open_folder(&mut core.engine, &root, false);
+        core.workspace
+            .open_files(&mut core.engine, &[root.join("track.gpx")], true);
+        core.keep_workspace();
+        let revision = core.engine.routing().revision;
+        core.creating(None, false, |e| {
+            gpx_engine::api::split(e, revision, 2, gpx_engine::SplitType::Files)
+        })
+    });
+    assert_eq!(outcome.added().len(), 2, "{:?}", outcome.added());
+    let mut names: Vec<String> = std::fs::read_dir(&folder)
+        .unwrap()
+        .flatten()
+        .map(|entry| entry.file_name().to_string_lossy().into_owned())
+        .collect();
+    names.sort();
+    // the file stays, its two parts are numbered from 1
+    assert_eq!(names, ["track (1).gpx", "track (2).gpx", "track.gpx"]);
+    std::fs::remove_dir_all(folder).unwrap();
 }

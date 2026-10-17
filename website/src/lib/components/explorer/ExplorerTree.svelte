@@ -61,7 +61,6 @@
     {:else}
         {@const id = fileIdAt($workspace, entry.path)}
         {@const selected = id !== undefined && selectedFileIds($selection).includes(id)}
-        {@const dirty = id !== undefined && $workspace?.files[id]?.dirty === true}
         <Button
             variant="ghost"
             class="w-full h-7 px-1 justify-start gap-1.5 border-none font-normal {selected
@@ -72,9 +71,6 @@
         >
             <FileText size="16" class="shrink-0" />
             <span class="grow truncate text-left">{entry.name}</span>
-            {#if dirty}
-                <span class="size-1.5 shrink-0 rounded-full bg-foreground"></span>
-            {/if}
         </Button>
     {/if}
 {/each}
