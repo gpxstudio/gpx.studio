@@ -2,6 +2,7 @@
     import { CollapsibleTree, CollapsibleTreeNode } from '$lib/components/collapsible-tree/index';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index';
     import ExplorerTree from './ExplorerTree.svelte';
+    import { stickyRowStyle } from './sticky';
     import { i18n } from '$lib/i18n/i18n.svelte';
     import { engine } from '$lib/engine';
     import { folderName } from '$lib/engine/workspace';
@@ -24,7 +25,11 @@
                 {#key folder}
                     <!-- the folder itself, which is open at first -->
                     <CollapsibleTree side="left" defaultState="open">
-                        <CollapsibleTreeNode id="folder">
+                        <CollapsibleTreeNode
+                            id="folder"
+                            triggerClass="sticky flex items-center bg-background"
+                            triggerStyle={stickyRowStyle(0)}
+                        >
                             {#snippet trigger()}
                                 <span class="grow truncate text-left" title={folder}>
                                     {folderName(folder)}

@@ -10,6 +10,9 @@
         id: string | number;
         class?: ClassValue;
         trigger: Snippet;
+        /** Classes and style of the trigger row (when the trigger holds the content), to make it stick. */
+        triggerClass?: ClassValue;
+        triggerStyle?: string;
         /** Gets whether the node is open, for contents that are only worth building then. */
         content: Snippet<[boolean]>;
     } = $props();
@@ -32,7 +35,7 @@
 
 <Collapsible.Root bind:open={open.current} class={props.class}>
     {#if slotInsideTrigger}
-        <Collapsible.Trigger class="w-full">
+        <Collapsible.Trigger class={['w-full', props.triggerClass]} style={props.triggerStyle}>
             <Button
                 variant="ghost"
                 size="icon"
