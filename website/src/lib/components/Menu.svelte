@@ -354,12 +354,17 @@
                             <Shortcut key="V" ctrl={true} />
                         </Menubar.Item>
                     {/if}
-                    <Menubar.Separator />
-                    <Menubar.Item onclick={() => engine.delete()} disabled={selectionCount == 0}>
-                        <Trash2 size="16" />
-                        {i18n._('menu.delete')}
-                        <Shortcut key="⌫" ctrl={true} />
-                    </Menubar.Item>
+                    {#if !desktop}
+                        <Menubar.Separator />
+                        <Menubar.Item
+                            onclick={() => engine.delete()}
+                            disabled={selectionCount == 0}
+                        >
+                            <Trash2 size="16" />
+                            {i18n._('menu.delete')}
+                            <Shortcut key="⌫" ctrl={true} />
+                        </Menubar.Item>
+                    {/if}
                 </Menubar.Content>
             </Menubar.Menu>
             <Menubar.Menu>

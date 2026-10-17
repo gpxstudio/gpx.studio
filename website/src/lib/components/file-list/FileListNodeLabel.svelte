@@ -17,6 +17,7 @@
         Maximize,
         Scissors,
         FileStack,
+        FileX,
     } from '@lucide/svelte';
     import { getContext } from 'svelte';
     import { i18n } from '$lib/i18n/i18n.svelte';
@@ -34,10 +35,12 @@
         isInClipboard,
         isSelected,
         selectedElementIds,
+        selectedFileIds,
         selectionSize,
         type FileTreeNode,
     } from '$lib/engine/selection-helpers';
     import { boundsManager } from '$lib/state/bounds';
+    import { closeFiles } from '$lib/actions/file-actions';
     import { waypointPopup } from '$lib/components/map/gpx-layer/gpx-layer-popup';
 
     let {
@@ -91,6 +94,9 @@
             selected &&
             selectedElementIds($selection)[0]?.ids[0] === elementId(node)
     );
+
+    // the desktop app: the files are linked to the file system, they are closed rather than deleted
+    let desktop = $derived($workspace !== undefined);
 
     // the file is not the one on the disk (the desktop app)
     let unsaved = $derived(node.type === 'file' && $workspace?.files[node.fileId]?.dirty === true);
@@ -296,10 +302,18 @@
             </ContextMenu.Item>
         {/if}
         <ContextMenu.Separator />
-        <ContextMenu.Item onclick={() => engine.delete()}>
-            <Trash2 size="16" />
-            {i18n._('menu.delete')}
-            <Shortcut key="⌫" ctrl={true} />
-        </ContextMenu.Item>
+        {#if desktop && node.type === 'file'}
+            <ContextMenu.Item onclick={() => closeFiles(selectedFileIds($selection))}>
+                <FileX size="16" />
+                {i18n._('menu.close')}
+                <Shortcut key="W" ctrl={true} />
+            </ContextMenu.Item>
+        {:else}
+            <ContextMenu.Item onclick={() => engine.delete()}>
+                <Trash2 size="16" />
+                {i18n._('menu.delete')}
+                <Shortcut key="⌫" ctrl={true} />
+            </ContextMenu.Item>
+        {/if}
     </ContextMenu.Content>
 </ContextMenu.Root>
