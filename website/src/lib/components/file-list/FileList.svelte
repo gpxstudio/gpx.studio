@@ -43,7 +43,7 @@
 >
     <div
         class="flex {orientation === 'vertical'
-            ? 'flex-col py-1 pl-1 pr-2 min-h-screen'
+            ? 'flex-col py-1 pl-1 pr-2 min-h-full'
             : 'flex-row'} {className ?? ''}"
         {style}
     >
