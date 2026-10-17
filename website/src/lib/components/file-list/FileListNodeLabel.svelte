@@ -110,13 +110,16 @@
         }
     }}
 >
-    <ContextMenu.Trigger class="grow truncate">
+    <!-- A tab of the horizontal list is as wide as its content, said explicitly: a width that is a
+         percentage of a parent that is as wide as its content is not updated by WebKit when the
+         content changes (the indicators come and go) -->
+    <ContextMenu.Trigger class={orientation === 'vertical' ? 'grow truncate' : ''}>
         <Button
             variant="ghost"
-            class="relative w-full p-0 overflow-hidden border-none focus-visible:ring-0 focus-visible:ring-offset-0 flex flex-row {orientation ===
+            class="relative p-0 overflow-hidden border-none focus-visible:ring-0 focus-visible:ring-offset-0 flex flex-row {orientation ===
             'vertical'
-                ? 'h-7'
-                : 'h-9 px-1.5'} pointer-events-auto"
+                ? 'w-full h-7'
+                : 'w-max h-9 px-1.5'} pointer-events-auto"
         >
             {#if node.type === 'file' || node.type === 'track'}
                 <MetadataDialog bind:open={openEditMetadata} {fileState} {node} />
@@ -138,9 +141,11 @@
                 ></div>
             {/if}
             <span
-                class="grow text-left truncate ml-1 flex flex-row items-center {hidden
+                class="grow text-left ml-1 flex flex-row items-center {orientation === 'vertical'
+                    ? 'truncate'
+                    : 'whitespace-nowrap'} {hidden ? 'text-muted-foreground' : ''} {isCut
                     ? 'text-muted-foreground'
-                    : ''} {isCut ? 'text-muted-foreground' : ''}"
+                    : ''}"
                 oncontextmenu={(e) => {
                     if (embedding) {
                         e.preventDefault();
@@ -182,28 +187,31 @@
                         <MapPin size="16" class="mx-1 shrink-0" />
                     {/if}
                 {/if}
+                <!-- a tab of the horizontal list is as wide as its content: the name is not cut -->
                 <span
-                    class="grow select-none truncate {orientation === 'vertical'
-                        ? 'last:mr-2'
-                        : ''}"
+                    class="grow select-none {orientation === 'vertical'
+                        ? 'truncate last:mr-2'
+                        : 'shrink-0'}"
                 >
                     {label}
                 </span>
-                {#if unsaved}
+                {#if unsaved || hidden}
                     <span
-                        class="size-1.5 shrink-0 rounded-full bg-foreground ml-1 {orientation ===
+                        class="flex flex-row items-center gap-1 shrink-0 pl-1 {orientation ===
                         'vertical'
                             ? 'mr-3'
                             : ''}"
-                    ></span>
-                {/if}
-                {#if hidden}
-                    <EyeOff
-                        size="10"
-                        class="shrink-0 size-3.5 ml-1 {orientation === 'vertical'
-                            ? 'mr-3'
-                            : 'mt-0.5'}"
-                    />
+                    >
+                        {#if unsaved}
+                            <span class="size-1.5 rounded-full bg-foreground"></span>
+                        {/if}
+                        {#if hidden}
+                            <EyeOff
+                                size="10"
+                                class="size-3.5 {orientation === 'vertical' ? '' : 'mt-0.5'}"
+                            />
+                        {/if}
+                    </span>
                 {/if}
             </span>
         </Button>
