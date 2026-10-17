@@ -23,6 +23,7 @@
         editableName,
         explorerSelection,
         isWithin,
+        parentOf,
         renaming,
     } from './state.svelte';
 
@@ -206,28 +207,34 @@
         dragging.target = undefined;
     }
 
+    /** The folder where what is dropped on the row goes: the folder of a file, among its files. */
+    let dropFolder = $derived(kind === 'file' ? parentOf(path) : path);
+
     function ondragover(event: DragEvent) {
-        if (kind === 'file' || dragging.paths.length === 0) return;
-        // not into itself
-        if (dragging.paths.some((dragged) => isWithin(path, dragged))) return;
+        if (dragging.paths.length === 0) return;
+        // not into itself, nor where it is already
+        if (dragging.paths.some((dragged) => isWithin(dropFolder, dragged))) return;
+        if (dragging.paths.every((dragged) => parentOf(dragged) === dropFolder)) return;
         event.preventDefault();
         if (event.dataTransfer) {
             event.dataTransfer.dropEffect = 'move';
         }
-        dragging.target = path;
+        // the row of the folder shows it
+        dragging.target = dropFolder;
     }
 
     function ondragleave(event: DragEvent) {
-        if (dragging.target === path && !row?.contains(event.relatedTarget as Node | null)) {
-            dragging.target = undefined;
-        }
+        // to another row, which tells where it would go (it was entered first)
+        const to = event.relatedTarget as Element | null;
+        if (to?.closest?.('[data-explorer-path]')) return;
+        dragging.target = undefined;
     }
 
     async function ondrop(event: DragEvent) {
         event.preventDefault();
         const paths = dragging.paths;
         ondragend();
-        if (paths.length > 0 && !(await engine.movePaths(paths, path))) {
+        if (paths.length > 0 && !(await engine.movePaths(paths, dropFolder))) {
             showError();
         }
     }
