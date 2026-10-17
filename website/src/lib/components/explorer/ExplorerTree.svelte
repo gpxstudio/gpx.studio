@@ -3,7 +3,6 @@
     import { Button } from '$lib/components/ui/button';
     import { FileText } from '@lucide/svelte';
     import ExplorerTree from './ExplorerTree.svelte';
-    import { stickyRowStyle } from './sticky';
     import { openPath } from '$lib/actions/file-actions';
     import { engine, type FolderEntry } from '$lib/engine';
     import { selectedFileIds } from '$lib/engine/selection-helpers';
@@ -11,12 +10,9 @@
 
     let {
         path,
-        depth = 1,
     }: {
         /** The folder whose content is listed, the open folder if it is not given. */
         path?: string;
-        /** How many folders deep the folders listed are (the open folder is 0). */
-        depth?: number;
     } = $props();
 
     const { workspace, selection, folderVersion } = engine;
@@ -49,11 +45,7 @@
 
 {#each entries as entry (entry.path)}
     {#if entry.isDir}
-        <CollapsibleTreeNode
-            id={entry.name}
-            triggerClass="sticky flex items-center bg-background"
-            triggerStyle={stickyRowStyle(depth)}
-        >
+        <CollapsibleTreeNode id={entry.name}>
             {#snippet trigger()}
                 <span class="grow truncate text-left">{entry.name}</span>
             {/snippet}
@@ -61,7 +53,7 @@
                 <!-- the content of a folder is only read when it is opened -->
                 {#if opened}
                     <div class="ml-4">
-                        <ExplorerTree path={entry.path} depth={depth + 1} />
+                        <ExplorerTree path={entry.path} />
                     </div>
                 {/if}
             {/snippet}
