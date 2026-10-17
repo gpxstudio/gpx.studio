@@ -233,7 +233,7 @@
         }
     }}
 >
-    <ContextMenu.Trigger class="grow min-w-0 pointer-events-auto">
+    <ContextMenu.Trigger class="grow min-w-0 pointer-events-auto outline-none">
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <div
             bind:this={row}
@@ -246,7 +246,7 @@
             title={path}
             draggable={kind !== 'root' && !editing}
             data-drop-target={target || undefined}
-            class="flex flex-row items-center gap-1.5 min-w-0 rounded-md {className}"
+            class="flex flex-row items-center gap-1.5 min-w-0 rounded-md outline-none {className}"
             {style}
             {onclick}
             {ondblclick}

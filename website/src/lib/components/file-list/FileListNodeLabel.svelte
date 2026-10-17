@@ -123,7 +123,9 @@
     <!-- A tab of the horizontal list is as wide as its content, said explicitly: a width that is a
          percentage of a parent that is as wide as its content is not updated by WebKit when the
          content changes (the indicators come and go) -->
-    <ContextMenu.Trigger class={orientation === 'vertical' ? 'grow truncate' : ''}>
+    <!-- it only catches right-clicks: no focus ring when it has the focus (WebKit gives it on a
+         click), the selection shows where the arrow keys are -->
+    <ContextMenu.Trigger class="outline-none {orientation === 'vertical' ? 'grow truncate' : ''}">
         <Button
             variant="ghost"
             class="relative p-0 overflow-hidden border-none focus-visible:ring-0 focus-visible:ring-offset-0 flex flex-row {orientation ===

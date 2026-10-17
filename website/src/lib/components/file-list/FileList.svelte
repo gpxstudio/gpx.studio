@@ -50,7 +50,7 @@
         <FileListNodeContent node={null} />
         {#if orientation === 'vertical'}
             <ContextMenu.Root>
-                <ContextMenu.Trigger class="grow" />
+                <ContextMenu.Trigger class="grow outline-none" />
                 <ContextMenu.Content>
                     <ContextMenu.Item onclick={createFile}>
                         <Plus size="16" />
