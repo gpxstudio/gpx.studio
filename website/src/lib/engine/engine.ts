@@ -65,6 +65,7 @@ class Engine {
     private _lastError = writable<string | undefined>(undefined);
     private _outdated = writable(false);
     private _workspace = writable<WorkspaceState | undefined>(undefined);
+    private _folderVersion = writable(0);
     private _canUndo = writable(false);
     private _canRedo = writable(false);
     private _canPaste = writable(false);
@@ -86,6 +87,11 @@ class Engine {
     readonly workspace: Readable<WorkspaceState | undefined> = {
         subscribe: this._workspace.subscribe,
     };
+    /**
+     * A number that changes when something changed in the open folder on the file system, to read
+     * its tree again.
+     */
+    readonly folderVersion: Readable<number> = { subscribe: this._folderVersion.subscribe };
     /** Why the last call to the engine did nothing, `undefined` if it did something. */
     readonly lastError: Readable<string | undefined> = { subscribe: this._lastError.subscribe };
     /** What was copied or cut, waiting to be pasted. */
@@ -689,7 +695,8 @@ class Engine {
                     await this.sync(backend, outcome);
                     this.report(outcome);
                     this._opened.forEach((callback) => callback(outcome.added));
-                })
+                }),
+            () => this._folderVersion.update((version) => version + 1)
         );
     }
 

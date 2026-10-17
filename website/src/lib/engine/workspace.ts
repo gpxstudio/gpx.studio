@@ -26,3 +26,11 @@ export function subfolder(
     }
     return file.slice(root.length, -1).join('/');
 }
+
+/** The id of the open file that is linked to the file at `path`, `undefined` if there is none. */
+export function fileIdAt(
+    workspace: { files: Record<string, { path?: string }> } | undefined,
+    path: string
+): string | undefined {
+    return Object.entries(workspace?.files ?? {}).find(([, file]) => file.path === path)?.[0];
+}

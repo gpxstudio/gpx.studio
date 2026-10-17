@@ -2,6 +2,7 @@
     import GPXLayers from '$lib/components/map/gpx-layer/GPXLayers.svelte';
     import ElevationProfile from '$lib/components/elevation-profile/ElevationProfile.svelte';
     import FileList from '$lib/components/file-list/FileList.svelte';
+    import Explorer from '$lib/components/explorer/Explorer.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
     import Map from '$lib/components/map/Map.svelte';
     import Menu from '$lib/components/Menu.svelte';
@@ -23,17 +24,29 @@
     import { getURLForGoogleDriveFile } from '$lib/components/embedding/embedding';
 
     const outdated = engine.outdated;
+    const workspace = engine.workspace;
 
     const {
         treeFileView,
         elevationProfile,
         bottomPanelSize,
         rightPanelSize,
+        explorerPanelSize,
         additionalDatasets,
         elevationFill,
     } = settings;
 
     let bottomPanelWidth: number | undefined = $state();
+    // the file list and the explorer share the right panel, half of it each until it is resized
+    let rightPanelHeight = $state(0);
+    let explorerHeight = $derived(
+        $treeFileView
+            ? Math.min(
+                  Math.max($explorerPanelSize > 0 ? $explorerPanelSize : rightPanelHeight / 2, 60),
+                  Math.max(rightPanelHeight - 80, 60)
+              )
+            : rightPanelHeight
+    );
     let bottomPanelOrientation = $derived(
         bottomPanelWidth && bottomPanelWidth >= 540 && $elevationProfile ? 'horizontal' : 'vertical'
     );
@@ -153,9 +166,43 @@
             {/if}
         </div>
     </div>
-    {#if $treeFileView}
+    {#if $treeFileView || $workspace?.folder}
         <Resizer orientation="col" bind:after={$rightPanelSize} minAfter={100} maxAfter={400} />
-        <FileList orientation="vertical" recursive={true} style="width: {$rightPanelSize}px" />
+        <div
+            bind:clientHeight={rightPanelHeight}
+            class="flex flex-col h-full min-h-0 shrink-0"
+            style="width: {$rightPanelSize}px"
+        >
+            {#if $treeFileView}
+                {#if $workspace}
+                    <div class="px-2 py-1 text-sm font-semibold shrink-0">
+                        {i18n._('menu.workspace')}
+                    </div>
+                {/if}
+                <!-- a row, as the file list was: its scroll area is as high as this, whatever its content -->
+                <div class="grow min-h-0 flex flex-row">
+                    <FileList
+                        orientation="vertical"
+                        recursive={true}
+                        style="width: {$rightPanelSize}px"
+                    />
+                </div>
+            {/if}
+            <!-- the open folder (the desktop app) under the files that are open -->
+            {#if $workspace?.folder}
+                {#if $treeFileView}
+                    <Resizer
+                        orientation="row"
+                        bind:after={() => explorerHeight, (height) => ($explorerPanelSize = height)}
+                        minAfter={60}
+                        maxAfter={Math.max(rightPanelHeight - 80, 60)}
+                    />
+                {/if}
+                <div class="flex flex-col min-h-0 shrink-0" style="height: {explorerHeight}px">
+                    <Explorer />
+                </div>
+            {/if}
+        </div>
     {/if}
 </div>
 

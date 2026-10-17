@@ -32,6 +32,14 @@ export class SortableFileList {
     private _sortable: Sortable | null = null;
     private _elements: { [id: string]: HTMLElement } = {};
     private _updatingSelection: boolean = false;
+    /**
+     * Whether a change of the selection that this list made is being applied by the engine. A click
+     * makes several events, handled after one another, and the engine can answer after them (in
+     * the desktop app, it is in another process): until it has, the list holds the selection, and
+     * the engine and the list disagree because the engine is behind, not because the user did
+     * something else.
+     */
+    private _applying: boolean = false;
     /** The elements of the list when a drag from it started, to put them back when it ends. */
     private _snapshot: ChildNode[] = [];
     private _unsubscribes: (() => void)[] = [];
@@ -196,6 +204,9 @@ export class SortableFileList {
     }
 
     updateFromSelection() {
+        if (this._applying) {
+            return;
+        }
         const changed = this.getChangedIds();
         if (changed.length === 0) {
             return;
@@ -220,7 +231,7 @@ export class SortableFileList {
 
     updateToSelection(e: Sortable.SortableEvent) {
         if (!this._sortable) return;
-        if (this._updatingSelection) return;
+        if (this._updatingSelection || this._applying) return;
         this._updatingSelection = true;
         const changed = this.getChangedIds();
         if (changed.length == 0) {
@@ -242,28 +253,41 @@ export class SortableFileList {
         }
 
         const parent = this._parent;
+        let request: Promise<boolean>;
         if (selected.length === 0 || !this.childNode(selected[0])) {
-            engine.select([]);
+            request = engine.select([]);
         } else {
             switch (this._sortableLevel) {
                 case 'file':
-                    engine.select(selected);
+                    request = engine.select(selected);
                     break;
                 case 'track':
-                    engine.selectTracks(parent!.fileId, selected);
+                    request = engine.selectTracks(parent!.fileId, selected);
                     break;
                 case 'segment':
-                    engine.selectSegments(parent!.fileId, (parent as any).trackId, selected);
+                    request = engine.selectSegments(
+                        parent!.fileId,
+                        (parent as any).trackId,
+                        selected
+                    );
                     break;
                 case 'waypoints':
-                    engine.selectWaypointGroup(parent!.fileId);
+                    request = engine.selectWaypointGroup(parent!.fileId);
                     break;
                 case 'waypoint':
-                    engine.selectWaypoints(parent!.fileId, selected);
+                    request = engine.selectWaypoints(parent!.fileId, selected);
                     break;
             }
         }
         this._updatingSelection = false;
+
+        // the events of the same click that come before the engine answers are not new choices
+        this._applying = true;
+        request.finally(() => {
+            this._applying = false;
+            // the list shows what the engine selected
+            this.updateFromSelection();
+        });
     }
 
     updateFromFileOrder() {

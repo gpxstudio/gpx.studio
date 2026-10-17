@@ -156,6 +156,7 @@ export const settings = {
     defaultWidth: new Setting('defaultWidth', browser && window.innerWidth < 600 ? 8 : 5),
     bottomPanelSize: new Setting('bottomPanelSize', 170),
     rightPanelSize: new Setting('rightPanelSize', 240),
+    explorerPanelSize: new Setting('explorerPanelSize', 0),
     /** Takes the saved values (see `Engine.openStorage`). */
     connect(stored: StoredSettings) {
         for (const key in settings) {

@@ -10,7 +10,8 @@
         id: string | number;
         class?: ClassValue;
         trigger: Snippet;
-        content: Snippet;
+        /** Gets whether the node is open, for contents that are only worth building then. */
+        content: Snippet<[boolean]>;
     } = $props();
 
     let state = getContext<CollapsibleTreeState>('collapsible-tree-state');
@@ -88,6 +89,6 @@
         </Button>
     {/if}
     <Collapsible.Content>
-        {@render props.content()}
+        {@render props.content(open.current)}
     </Collapsible.Content>
 </Collapsible.Root>

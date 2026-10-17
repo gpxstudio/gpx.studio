@@ -91,13 +91,15 @@ export interface DesktopFiles {
     listFolder(path?: string): Promise<FolderEntry[]>;
     /**
      * Tells when the engine changed without being asked, because the files on the disk did (the
-     * outcome to apply), when the status of the files changed, and when files were opened with the
-     * app from the system (the outcome to apply, which selected them).
+     * outcome to apply), when the status of the files changed, when files were opened with the
+     * app from the system (the outcome to apply, which selected them), and when something changed
+     * in the open folder (the tree of its files is to be read again).
      */
     listen(
         onEngineChanged: (outcome: Outcome) => void,
         onWorkspaceChanged: (workspace: WorkspaceState) => void,
-        onFilesOpened: (outcome: Outcome) => void
+        onFilesOpened: (outcome: Outcome) => void,
+        onFolderChanged: () => void
     ): Promise<void>;
 }
 

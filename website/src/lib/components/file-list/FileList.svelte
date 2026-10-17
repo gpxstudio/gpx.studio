@@ -36,14 +36,14 @@
 </script>
 
 <ScrollArea
-    class="shrink-0 {orientation === 'vertical' ? 'p-0 pr-3' : 'h-10 px-1'}"
+    class="shrink-0 {orientation === 'vertical' ? 'p-0' : 'h-10 px-1'}"
     {orientation}
     scrollbarXClasses={orientation === 'vertical' ? '' : 'hidden'}
     scrollbarYClasses={orientation === 'vertical' ? '' : ''}
 >
     <div
         class="flex {orientation === 'vertical'
-            ? 'flex-col py-1 pl-1 min-h-screen'
+            ? 'flex-col py-1 pl-1 pr-2 min-h-screen'
             : 'flex-row'} {className ?? ''}"
         {style}
     >

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { folderName, subfolder } from '$lib/engine/workspace';
+import { fileIdAt, folderName, subfolder } from '$lib/engine/workspace';
 
 describe('subfolder', () => {
     it('is where a file is in the folder', () => {
@@ -25,5 +25,25 @@ describe('folderName', () => {
         assert.equal(folderName('/home/me/tracks'), 'tracks');
         assert.equal(folderName('/home/me/tracks/'), 'tracks');
         assert.equal(folderName('C:\\Users\\me\\tracks'), 'tracks');
+    });
+});
+
+describe('fileIdAt', () => {
+    const workspace = {
+        files: {
+            a: { path: '/tracks/a.gpx' },
+            b: { path: '/tracks/sub/b.gpx' },
+            c: {},
+        },
+    };
+
+    it('is the open file that is linked to the path', () => {
+        assert.equal(fileIdAt(workspace, '/tracks/a.gpx'), 'a');
+        assert.equal(fileIdAt(workspace, '/tracks/sub/b.gpx'), 'b');
+    });
+
+    it('is nothing for a file that is not open', () => {
+        assert.equal(fileIdAt(workspace, '/tracks/other.gpx'), undefined);
+        assert.equal(fileIdAt(undefined, '/tracks/a.gpx'), undefined);
     });
 });
