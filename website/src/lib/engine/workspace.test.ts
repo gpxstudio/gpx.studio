@@ -6,6 +6,7 @@ import {
     folderName,
     isWithin,
     parentOf,
+    relocated,
     subfolder,
 } from '$lib/engine/workspace';
 
@@ -59,6 +60,14 @@ describe('parentOf', () => {
     it('is the folder that holds the path', () => {
         assert.equal(parentOf('/home/me/tracks/a.gpx'), '/home/me/tracks');
         assert.equal(parentOf('C:\\Users\\me\\a.gpx'), 'C:\\Users\\me');
+    });
+});
+
+describe('relocated', () => {
+    it('is where a path is once moved or renamed', () => {
+        assert.equal(relocated('/me/tracks/a.gpx', '/me/trips'), '/me/trips/a.gpx');
+        assert.equal(relocated('/me/tracks', '/me', 'rides'), '/me/rides');
+        assert.equal(relocated('C:\\me\\tracks', 'C:\\me', 'rides'), 'C:\\me\\rides');
     });
 });
 

@@ -1,16 +1,23 @@
 <script lang="ts">
-    import { untrack } from 'svelte';
+    import { setContext, untrack } from 'svelte';
     import { CollapsibleTree, CollapsibleTreeNode } from '$lib/components/collapsible-tree/index';
     import { CollapsibleTreeState } from '$lib/components/collapsible-tree/utils.svelte';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index';
     import ExplorerTree from './ExplorerTree.svelte';
     import ExplorerRow from './ExplorerRow.svelte';
-    import { clickedInExplorer, explorerSelection, renaming, treeRows } from './state.svelte';
+    import {
+        clickedInExplorer,
+        explorerFoldersKey,
+        explorerSelection,
+        renaming,
+        treeRows,
+        type ExplorerFolders,
+    } from './state.svelte';
     import { openPaths } from '$lib/actions/file-actions';
     import { i18n } from '$lib/i18n/i18n.svelte';
     import { engine } from '$lib/engine';
     import { selectedFileIds } from '$lib/engine/selection-helpers';
-    import { folderName, subfolder } from '$lib/engine/workspace';
+    import { folderName, parentOf, subfolder } from '$lib/engine/workspace';
 
     const { workspace, selection } = engine;
 
@@ -57,15 +64,7 @@
      * row may not be there yet, because the content of a folder is read when it is opened.
      */
     function reveal(folder: string, path: string) {
-        if (!trees) {
-            return;
-        }
-        trees.root.get('root.folder').current = true;
-        let id = 'root';
-        for (const name of subfolder(folder, path)?.split('/').filter(Boolean) ?? []) {
-            id += `.${name}`;
-            trees.folders.get(id).current = true;
-        }
+        openFolder(parentOf(path));
         let frame = 0;
         let attempts = 0;
         const scroll = () => {
@@ -79,6 +78,38 @@
         frame = requestAnimationFrame(scroll);
         return () => cancelAnimationFrame(frame);
     }
+
+    /**
+     * The id of the node of a folder of the tree in `trees.folders`: the names of the folders it is
+     * in, and its own (see `CollapsibleTreeNode`). `undefined` for the open folder itself, which is
+     * in `trees.root`, and for what is not in it.
+     */
+    function nodeId(path: string): string | undefined {
+        const names = subfolder(folder, `${path}/_`)?.split('/').filter(Boolean);
+        return names && names.length > 0 ? ['root', ...names].join('.') : undefined;
+    }
+
+    /** Opens a folder of the tree, and the folders it is in. */
+    function openFolder(path: string) {
+        if (!trees) return;
+        trees.root.get('root.folder').current = true;
+        const id = nodeId(path);
+        if (id === undefined) return;
+        const names = id.split('.');
+        names.forEach((_, i) => {
+            if (i > 0) trees!.folders.get(names.slice(0, i + 1).join('.')).current = true;
+        });
+    }
+
+    setContext<ExplorerFolders>(explorerFoldersKey, {
+        open: openFolder,
+        moved(from, to) {
+            const [fromId, toId] = [nodeId(from), nodeId(to)];
+            if (trees && fromId !== undefined && toId !== undefined) {
+                trees.folders.move(fromId, toId);
+            }
+        },
+    });
 
     /** Enter opens the selected files for good. */
     function onkeydown(event: KeyboardEvent) {
@@ -121,8 +152,6 @@
                                     name={folderName(folder)}
                                     kind="root"
                                     class="h-7"
-                                    onOpenFolder={() =>
-                                        trees && (trees.root.get('root.folder').current = true)}
                                 />
                             {/snippet}
                             {#snippet content(opened)}

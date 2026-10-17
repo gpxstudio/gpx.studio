@@ -41,6 +41,12 @@ export function parentOf(path: string): string {
     return index > 0 ? path.slice(0, index) : path;
 }
 
+/** Where `path` is once moved into `folder`, renamed `name` if it is given. */
+export function relocated(path: string, folder: string, name?: string): string {
+    const parent = parentOf(path);
+    return `${folder}${path[parent.length]}${name ?? path.slice(parent.length + 1)}`;
+}
+
 /** Whether `path` is `folder` or something in it. */
 export function isWithin(path: string, folder: string): boolean {
     return path === folder || (path.startsWith(folder) && /[\\/]/.test(path[folder.length]));

@@ -9,10 +9,10 @@
         Plus,
         Trash2,
     } from '@lucide/svelte';
-    import type { Snippet } from 'svelte';
+    import { getContext, type Snippet } from 'svelte';
     import { i18n } from '$lib/i18n/i18n.svelte';
     import { engine } from '$lib/engine';
-    import { editableName, fileIdAt, isWithin, parentOf } from '$lib/engine/workspace';
+    import { editableName, fileIdAt, isWithin, parentOf, relocated } from '$lib/engine/workspace';
     import { closeFiles, closeFolder, openPaths, showEngineError } from '$lib/actions/file-actions';
     import { isMac } from '$lib/utils';
     import NameInput from './NameInput.svelte';
@@ -20,16 +20,17 @@
         clickedInExplorer,
         creating,
         dragging,
+        explorerFoldersKey,
         explorerSelection,
         renaming,
         treeRows,
+        type ExplorerFolders,
     } from './state.svelte';
 
     let {
         path,
         name,
         kind,
-        onOpenFolder,
         icon,
         class: className = '',
         style = '',
@@ -39,14 +40,13 @@
         name: string;
         /** The open folder itself, a folder in it, or a GPX file. */
         kind: 'root' | 'folder' | 'file';
-        /** Opens the folder of the row, to show what was made in it. */
-        onOpenFolder?: () => void;
         icon?: Snippet;
         class?: string;
         style?: string;
     } = $props();
 
     const { workspace } = engine;
+    const folders = getContext<ExplorerFolders>(explorerFoldersKey);
 
     let row: HTMLElement | undefined = $state();
 
@@ -119,7 +119,8 @@
     /** Asks for the name of a file or a folder to make in the folder of the row (see `creating`). */
     function create(what: 'file' | 'folder') {
         if (folder === undefined) return;
-        onOpenFolder?.();
+        // where what is being named is shown
+        folders.open(folder);
         creating.kind = what;
         creating.parent = folder;
     }
@@ -155,7 +156,11 @@
         renaming.path = undefined;
         const name_ = value.trim();
         if (name_ === '' || name_ === editableName(name, kind !== 'file')) return;
+        // the folder stays open or closed (before its new row is read, back if it is not renamed)
+        const to = relocated(path, parentOf(path), name_);
+        folders.moved(path, to);
         if (!(await engine.renamePath(path, name_))) {
+            folders.moved(to, path);
             showEngineError();
         }
     }
@@ -207,7 +212,15 @@
         event.preventDefault();
         const paths = dragging.paths;
         ondragend();
-        if (paths.length > 0 && !(await engine.movePaths(paths, dropFolder))) {
+        if (paths.length === 0) return;
+        // the folders stay open or closed (before their new rows are read, back if they are not moved)
+        const moves = paths.map((dragged) => [dragged, relocated(dragged, dropFolder)]);
+        moves.forEach(([from, to]) => folders.moved(from, to));
+        if (await engine.movePaths(paths, dropFolder)) {
+            // where they went is shown
+            folders.open(dropFolder);
+        } else {
+            moves.forEach(([from, to]) => folders.moved(to, from));
             showEngineError();
         }
     }

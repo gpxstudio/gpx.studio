@@ -31,8 +31,12 @@
     {value}
     {placeholder}
     {@attach (input) => {
-        input.focus();
-        input.select();
+        // once it is shown: it can be in a folder that is opening
+        const frame = requestAnimationFrame(() => {
+            input.focus();
+            input.select();
+        });
+        return () => cancelAnimationFrame(frame);
     }}
     {onkeydown}
     onkeyup={(event) => event.stopPropagation()}

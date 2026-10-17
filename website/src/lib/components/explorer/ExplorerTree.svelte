@@ -27,16 +27,15 @@
     const level = getContext<StickyLevel>(stickyKey);
 
     let entries: FolderEntry[] = $state([]);
-    // the nodes of the folders, to open them when something is made in them
-    let nodes: Record<string, CollapsibleTreeNode | undefined> = $state({});
 
     // the folder of the list, where what is being made goes
     let folder = $derived(path ?? $workspace?.folder);
     let pending = $derived(
         creating.parent !== undefined && creating.parent === folder ? creating.kind : undefined
     );
-    // the files come after the folders
-    let firstFile = $derived(entries.find((entry) => !entry.isDir));
+    // the folders come first, then the files (and what is being made goes at the top of its kind)
+    let folders = $derived(entries.filter((entry) => entry.isDir));
+    let files = $derived(entries.filter((entry) => !entry.isDir));
 
     /**
      * Makes the file or folder that was asked for, called `value`: nothing is made without a name,
@@ -113,48 +112,38 @@
 {#if pending === 'folder'}
     {@render named('folder')}
 {/if}
-{#each entries as entry (entry.path)}
-    {#if pending === 'file' && entry === firstFile}
-        {@render named('file')}
-    {/if}
-    {#if entry.isDir}
-        <CollapsibleTreeNode id={entry.name} bind:this={nodes[entry.path]}>
-            {#snippet trigger()}
-                <ExplorerRow
-                    path={entry.path}
-                    name={entry.name}
-                    kind="folder"
-                    class="h-7"
-                    onOpenFolder={() => nodes[entry.path]?.openNode()}
-                />
-            {/snippet}
-            {#snippet content(opened)}
-                <!-- the content of a folder is only read when it is opened -->
-                {#if opened}
-                    <div class="ml-4">
-                        <ExplorerTree path={entry.path} />
-                    </div>
-                {/if}
-            {/snippet}
-        </CollapsibleTreeNode>
-    {:else}
-        <!-- the files that are not open are greyed -->
-        <ExplorerRow
-            path={entry.path}
-            name={entry.name}
-            kind="file"
-            class="w-full h-7 px-1 text-sm hover:bg-muted {fileIdAt($workspace, entry.path) ===
-            undefined
-                ? 'text-muted-foreground'
-                : ''}"
-            style="scroll-margin-top: {level.top}px"
-        >
-            {#snippet icon()}
-                <FileText size="16" class="shrink-0" />
-            {/snippet}
-        </ExplorerRow>
-    {/if}
+{#each folders as entry (entry.path)}
+    <CollapsibleTreeNode id={entry.name}>
+        {#snippet trigger()}
+            <ExplorerRow path={entry.path} name={entry.name} kind="folder" class="h-7" />
+        {/snippet}
+        {#snippet content(opened)}
+            <!-- the content of a folder is only read when it is opened -->
+            {#if opened}
+                <div class="ml-4">
+                    <ExplorerTree path={entry.path} />
+                </div>
+            {/if}
+        {/snippet}
+    </CollapsibleTreeNode>
 {/each}
-{#if pending === 'file' && firstFile === undefined}
+{#if pending === 'file'}
     {@render named('file')}
 {/if}
+{#each files as entry (entry.path)}
+    <!-- the files that are not open are greyed -->
+    <ExplorerRow
+        path={entry.path}
+        name={entry.name}
+        kind="file"
+        class="w-full h-7 px-1 text-sm hover:bg-muted {fileIdAt($workspace, entry.path) ===
+        undefined
+            ? 'text-muted-foreground'
+            : ''}"
+        style="scroll-margin-top: {level.top}px"
+    >
+        {#snippet icon()}
+            <FileText size="16" class="shrink-0" />
+        {/snippet}
+    </ExplorerRow>
+{/each}

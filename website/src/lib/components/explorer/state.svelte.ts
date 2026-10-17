@@ -28,6 +28,15 @@ export const dragging: { paths: string[]; target: string | undefined } = $state(
     target: undefined,
 });
 
+/** What the rows of the explorer can do to the folders of its tree (see `Explorer`). */
+export type ExplorerFolders = {
+    /** Opens a folder of the tree, and the folders it is in. */
+    open(path: string): void;
+    /** A folder was renamed or moved: it stays open or closed, and so does what is in it. */
+    moved(from: string, to: string): void;
+};
+export const explorerFoldersKey = 'explorer-folders';
+
 /** The rows of the explorer that `element` is in, as they are shown: their path and kind. */
 export function treeRows(element: Element | null | undefined): { path: string; kind: string }[] {
     const tree = element?.closest('[data-explorer]');
