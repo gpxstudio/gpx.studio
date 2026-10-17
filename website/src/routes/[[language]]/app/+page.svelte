@@ -22,6 +22,7 @@
     import { get } from 'svelte/store';
     import { getURLForLanguage } from '$lib/utils';
     import { inDesktopApp } from '$lib/engine/backend';
+    import { openLinksInBrowser } from '$lib/desktop/links';
     import { hoveredPoint, slicedStatistics } from '$lib/state/selection-statistics';
     import { engine } from '$lib/engine';
     import { boundsManager } from '$lib/state/bounds';
@@ -72,6 +73,7 @@
         settings.connect(await engine.openStorage());
 
         if (inDesktopApp()) {
+            openLinksInBrowser();
             // the window of the desktop app always opens the same page, in English: it goes to the
             // language that was chosen last
             const saved = get(settings.language);

@@ -50,6 +50,7 @@ pub fn run() {
     ));
     register_commands(builder)
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let handle = app.handle().clone();
             let emit: state::Emit = std::sync::Arc::new(move |event, payload| {
@@ -193,6 +194,8 @@ fn register_commands<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::Bu
         disk::reload_files,
         disk::export_files,
         disk::list_folder,
+        // the system
+        system::open_url,
     ])
 }
 

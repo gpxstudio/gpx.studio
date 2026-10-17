@@ -89,6 +89,8 @@ export interface DesktopFiles {
     exportFiles(fileIds: string[], options: ExportOptions): Promise<boolean>;
     /** The folders and GPX files in a folder of the open folder (the open folder by default). */
     listFolder(path?: string): Promise<FolderEntry[]>;
+    /** Opens a web page (or an email to write) in the app of the system for it. */
+    openUrl(url: string): Promise<void>;
     /**
      * Tells when the engine changed without being asked, because the files on the disk did (the
      * outcome to apply), when the status of the files changed, when files were opened with the

@@ -221,6 +221,7 @@ export async function createTauriBackend(): Promise<Backend> {
             exportFiles: (fileIds, options) =>
                 invoke<boolean>('export_files', { fileIds, options }),
             listFolder: (path) => invoke<FolderEntry[]>('list_folder', { path }),
+            openUrl: (url) => invoke('open_url', { url }),
             listen: async (onEngineChanged, onWorkspaceChanged, onFilesOpened, onFolderChanged) => {
                 await listen<Outcome>('files-opened', (event) => onFilesOpened(event.payload));
                 await listen<Outcome>('engine-changed', (event) => onEngineChanged(event.payload));

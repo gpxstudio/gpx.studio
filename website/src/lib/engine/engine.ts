@@ -617,6 +617,16 @@ class Engine {
         await this.enqueue(async () => this.refreshWorkspace(this.backend!));
     }
 
+    /** Opens a web page in the browser of the system (the desktop app). */
+    async openUrl(url: string) {
+        await this.ready;
+        try {
+            await this.backend!.desktop?.openUrl(url);
+        } catch (error) {
+            console.error('The page could not be opened', error);
+        }
+    }
+
     /** The folders and GPX files in a folder of the open folder (the open folder by default). */
     async listFolder(path?: string): Promise<FolderEntry[]> {
         await this.ready;
