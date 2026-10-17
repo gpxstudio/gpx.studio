@@ -252,9 +252,8 @@
             data-kind={kind}
             title={path}
             draggable={kind !== 'root' && !editing}
-            class="flex flex-row items-center gap-1.5 min-w-0 rounded-md {selected
-                ? 'bg-accent'
-                : ''} {target ? 'ring-1 ring-primary bg-accent/60' : ''} {className}"
+            data-drop-target={target || undefined}
+            class="flex flex-row items-center gap-1.5 min-w-0 rounded-md {className}"
             {style}
             {onclick}
             {ondblclick}

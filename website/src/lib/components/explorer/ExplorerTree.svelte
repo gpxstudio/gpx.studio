@@ -136,6 +136,7 @@
                     path={entry.path}
                     name={entry.name}
                     kind="folder"
+                    class="h-7"
                     onOpenFolder={() => nodes[entry.path]?.openNode()}
                 />
             {/snippet}

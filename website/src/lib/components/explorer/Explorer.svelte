@@ -124,6 +124,7 @@
                                     path={folder}
                                     name={folderName(folder)}
                                     kind="root"
+                                    class="h-7"
                                     onOpenFolder={() =>
                                         trees && (trees.root.get('root.folder').current = true)}
                                 />
@@ -145,3 +146,18 @@
         </ScrollArea>
     </div>
 {/if}
+
+<style lang="postcss">
+    @reference "../../../app.css";
+
+    /* a selected file, and a selected folder with its chevron: the whole row of its node */
+    [data-explorer] :global([data-kind='file'][aria-selected='true']),
+    [data-explorer] :global([data-slot='button']:has([aria-selected='true'])) {
+        @apply bg-accent;
+    }
+
+    /* the folder where what is dragged would go */
+    [data-explorer] :global([data-slot='button']:has([data-drop-target])) {
+        @apply ring-1 ring-primary bg-accent/60;
+    }
+</style>
