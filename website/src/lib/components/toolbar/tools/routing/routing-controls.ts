@@ -463,12 +463,21 @@ export class RoutingControls {
             // Exit if anchor is being dragged
             return;
         }
+        const controlLayerIds = [...this.layers.values()].map((l) => l.id);
+        const segmentIds = this.anchorData?.segmentIds ?? [];
         if (
-            e.target.queryRenderedFeatures(e.point, {
-                layers: [...this.listenedFileIds, ...[...this.layers.values()].map((l) => l.id)],
-            }).length
+            e.target
+                .queryRenderedFeatures(e.point, {
+                    layers: [...this.listenedFileIds, ...controlLayerIds],
+                })
+                .some(
+                    (feature) =>
+                        controlLayerIds.includes(feature.layer.id) ||
+                        segmentIds.includes(feature.properties?.segmentId)
+                )
         ) {
-            // Clicked on routing control or layer, ignoring
+            // Clicked on a routing control, or on a segment being routed (an anchor is inserted
+            // there instead): the other files do not stop the route
             return;
         }
         this.appendAnchorWithCoordinates({ lng: e.lngLat.lng, lat: e.lngLat.lat });
