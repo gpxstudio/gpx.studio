@@ -82,11 +82,6 @@ export class SortableFileList {
         this._unsubscribes.push(
             engine.selection.subscribe(() => tick().then(() => this.updateFromSelection()))
         );
-        // after the elements are rendered: sorting a list that does not have the new files yet
-        // would put them at the beginning
-        this._unsubscribes.push(
-            engine.order.subscribe(() => tick().then(() => this.updateFromFileOrder()))
-        );
     }
 
     /** The node of a child of the list. */
@@ -171,8 +166,14 @@ export class SortableFileList {
         }
 
         if (from === to && this._sortableLevel === 'file') {
-            // the order of the files is the one of the list
-            this.updateToFileOrder();
+            // the order of the files is the one of the list, which is put back where it was like
+            // below: Svelte moves the elements when the order changes, it has to find them where
+            // it left them (or removing a file later removes the elements of other files)
+            const order = this._sortable?.toArray();
+            this._snapshot.forEach((node) => e.from.appendChild(node));
+            if (order) {
+                this.updateToFileOrder(order);
+            }
             return;
         }
 
@@ -290,29 +291,13 @@ export class SortableFileList {
         });
     }
 
-    updateFromFileOrder() {
+    /** Makes `sortableOrder` (the ids of the elements, as Sortable left them) the order of the files. */
+    updateToFileOrder(sortableOrder: string[]) {
         if (!this._sortable || this._sortableLevel !== 'file') {
             return;
         }
 
         const fileOrder_ = get(engine.order);
-        const sortableOrder = this._sortable.toArray();
-
-        if (
-            fileOrder_.length !== sortableOrder.length ||
-            fileOrder_.some((value, index) => value !== sortableOrder[index])
-        ) {
-            this._sortable.sort(fileOrder_);
-        }
-    }
-
-    updateToFileOrder() {
-        if (!this._sortable || this._sortableLevel !== 'file') {
-            return;
-        }
-
-        const fileOrder_ = get(engine.order);
-        const sortableOrder = this._sortable.toArray();
 
         if (
             fileOrder_.length !== sortableOrder.length ||
@@ -323,6 +308,7 @@ export class SortableFileList {
     }
 
     updateElements() {
+        const previous = this._elements;
         this._elements = {};
         const files = get(engine.files);
         this._container.childNodes.forEach((element) => {
@@ -330,6 +316,7 @@ export class SortableFileList {
                 let attr = element.getAttribute('data-id');
                 if (attr) {
                     if (this._sortableLevel === 'file' && !files.has(attr)) {
+                        this.forget(element);
                         element.remove();
                     } else {
                         this._elements[attr] = element;
@@ -337,9 +324,37 @@ export class SortableFileList {
                 }
             }
         });
+        // the elements of what is not there anymore (a closed file, a deleted track...)
+        Object.values(previous).forEach((element) => {
+            if (element.parentNode !== this._container) {
+                this.forget(element);
+            }
+        });
+    }
+
+    /**
+     * Takes an element that left the list out of the selection of Sortable. Sortable keeps the
+     * selected elements, and puts them all in the list when one of them is dragged: one that Svelte
+     * removed would come back, as a file that is not there.
+     */
+    private forget(element: HTMLElement) {
+        if (!element.classList.contains('sortable-selected')) {
+            return;
+        }
+        // Sortable finds the list of an element from its parent
+        const detached = element.parentNode === null;
+        if (detached) {
+            this._container.appendChild(element);
+        }
+        Sortable.utils.deselect(element);
+        if (detached) {
+            element.remove();
+        }
     }
 
     destroy() {
+        Object.values(this._elements).forEach((element) => this.forget(element));
+        this._sortable?.destroy();
         this._sortable = null;
         this._unsubscribes.forEach((unsubscribe) => unsubscribe());
         this._unsubscribes = [];
