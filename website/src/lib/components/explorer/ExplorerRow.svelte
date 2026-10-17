@@ -12,19 +12,17 @@
     import type { Snippet } from 'svelte';
     import { i18n } from '$lib/i18n/i18n.svelte';
     import { engine } from '$lib/engine';
-    import { fileIdAt } from '$lib/engine/workspace';
-    import { closeFiles, closeFolder } from '$lib/actions/file-actions';
+    import { editableName, fileIdAt, isWithin, parentOf } from '$lib/engine/workspace';
+    import { closeFiles, closeFolder, openPaths, showEngineError } from '$lib/actions/file-actions';
     import { isMac } from '$lib/utils';
-    import { openFiles, showError } from './actions';
+    import NameInput from './NameInput.svelte';
     import {
         clickedInExplorer,
         creating,
         dragging,
-        editableName,
         explorerSelection,
-        isWithin,
-        parentOf,
         renaming,
+        treeRows,
     } from './state.svelte';
 
     let {
@@ -58,17 +56,6 @@
     let editing = $derived(renaming.path === path);
     let target = $derived(dragging.target === path);
 
-    /** The rows of the tree, as they are shown. */
-    function rows(): HTMLElement[] {
-        const tree = row?.closest('[data-explorer]');
-        return tree ? [...tree.querySelectorAll<HTMLElement>('[data-explorer-path]')] : [];
-    }
-
-    /** Whether a path of the tree is a GPX file, a folder, or the open folder. */
-    function kindOf(other: string): string | undefined {
-        return rows().find((r) => r.dataset.explorerPath === other)?.dataset.kind;
-    }
-
     /** What the menu and dragging act on: the selection, if the row is in it. */
     function targets(): string[] {
         return selected ? explorerSelection.paths : [path];
@@ -94,9 +81,9 @@
             event.stopPropagation();
         } else if (event.shiftKey && explorerSelection.anchor !== undefined) {
             // everything shown between the row where the selection began and this one
-            const paths = rows()
-                .filter((r) => r.dataset.kind !== 'root')
-                .map((r) => r.dataset.explorerPath!);
+            const paths = treeRows(row)
+                .filter((other) => other.kind !== 'root')
+                .map((other) => other.path);
             const [from, to] = [paths.indexOf(explorerSelection.anchor), paths.indexOf(path)];
             if (from >= 0 && to >= 0) {
                 explorerSelection.paths = paths.slice(Math.min(from, to), Math.max(from, to) + 1);
@@ -111,7 +98,7 @@
                 if (fileId !== undefined) {
                     engine.select([fileId]);
                 } else {
-                    openFiles([path], true);
+                    openPaths([path], true);
                 }
             }
         }
@@ -120,7 +107,7 @@
     function ondblclick() {
         if (kind === 'file' && !editing) {
             clickedInExplorer.path = path;
-            openFiles([path], false);
+            openPaths([path], false);
         }
     }
 
@@ -138,9 +125,11 @@
     }
 
     function openSelected() {
-        const files = targets().filter((other) => kindOf(other) === 'file');
+        const files = treeRows(row)
+            .filter((other) => other.kind === 'file' && targets().includes(other.path))
+            .map((other) => other.path);
         if (files.length > 0) {
-            openFiles(files, false);
+            openPaths(files);
         }
     }
 
@@ -155,7 +144,7 @@
         const paths = targets();
         explorerSelection.paths = [];
         if (!(await engine.deletePaths(paths))) {
-            showError();
+            showEngineError();
         }
     }
 
@@ -167,24 +156,8 @@
         const name_ = value.trim();
         if (name_ === '' || name_ === editableName(name, kind !== 'file')) return;
         if (!(await engine.renamePath(path, name_))) {
-            showError();
+            showEngineError();
         }
-    }
-
-    function onkeydown(event: KeyboardEvent) {
-        // not for the folder row it is in, which would open or close
-        event.stopPropagation();
-        const input = event.currentTarget as HTMLInputElement;
-        if (event.key === 'Enter') {
-            commit(input.value);
-        } else if (event.key === 'Escape') {
-            renaming.path = undefined;
-        }
-    }
-
-    function focus(input: HTMLInputElement) {
-        input.focus();
-        input.select();
     }
 
     // dragging into folders
@@ -235,7 +208,7 @@
         const paths = dragging.paths;
         ondragend();
         if (paths.length > 0 && !(await engine.movePaths(paths, dropFolder))) {
-            showError();
+            showEngineError();
         }
     }
 </script>
@@ -273,14 +246,10 @@
         >
             {@render icon?.()}
             {#if editing}
-                <input
-                    class="h-6 grow min-w-0 px-1 text-sm font-normal not-italic bg-background border rounded outline-none"
+                <NameInput
                     value={editableName(name, kind !== 'file')}
-                    {@attach focus}
-                    {onkeydown}
-                    onkeyup={(event) => event.stopPropagation()}
-                    onclick={(event) => event.stopPropagation()}
-                    onblur={(event) => commit(event.currentTarget.value)}
+                    oncommit={commit}
+                    oncancel={() => (renaming.path = undefined)}
                 />
             {:else}
                 <span class="grow truncate text-left">{name}</span>

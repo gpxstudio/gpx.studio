@@ -18,7 +18,7 @@ use notify_debouncer_mini::{DebounceEventResult, Debouncer, new_debouncer};
 use serde::Serialize;
 
 use crate::store::FileStorage;
-use crate::workspace::{Workspace, WorkspaceState};
+use crate::workspace::{Workspace, WorkspaceState, signature};
 
 /// Tells the frontend that something happened that it did not ask for: a name and a JSON value.
 pub type Emit = Arc<dyn Fn(&str, serde_json::Value) + Send + Sync>;
@@ -89,13 +89,9 @@ impl Core {
         if paths.is_empty() {
             return;
         }
-        let outcome = self.workspace.open_files(&mut self.engine, paths, true);
-        let ids = self.workspace.ids_at(paths);
-        self.workspace.keep(&ids);
-        self.keep_workspace();
-        self.persist();
+        let outcome = self.workspace.open(&mut self.engine, paths, false);
         (self.emit)("files-opened", to_json(&outcome));
-        self.announce(None);
+        self.commit(None);
     }
 
     /// Runs `f` on the engine, which can change: what changed is kept, and the files on the disk are
@@ -104,22 +100,19 @@ impl Core {
     fn editing<T>(&mut self, f: impl FnOnce(&mut Engine) -> T) -> (T, Vec<String>) {
         let names = self.workspace.names(&self.engine);
         let preview = self.workspace.preview;
-        let preview_before = preview.and_then(|id| crate::workspace::signature(&self.engine, id));
+        let preview_before = preview.and_then(|id| signature(&self.engine, id));
         let result = f(&mut self.engine);
         // the preview is open for good once something is done to it
-        if let Some(id) = preview
-            && crate::workspace::signature(&self.engine, id) != preview_before
-        {
+        let kept = preview.is_some_and(|id| signature(&self.engine, id) != preview_before);
+        if let Some(id) = preview.filter(|_| kept) {
             self.workspace.keep(&[id]);
-            self.keep_workspace();
-            self.announce(None);
         }
         let (renamed, errors) = self.workspace.follow_names(&mut self.engine, &names);
-        if renamed {
-            self.keep_workspace();
-            self.announce(None);
+        if kept || renamed {
+            self.commit(None);
+        } else {
+            self.persist();
         }
-        self.persist();
         (result, errors)
     }
 
@@ -139,15 +132,16 @@ impl Core {
     /// the files they were written to) is kept and told, with where the files are. Says whether
     /// they were written.
     pub fn wrote(&mut self, result: Result<api::Outcome, String>) -> Result<bool, String> {
-        self.keep_workspace();
-        match &result {
-            Ok(outcome) if outcome.changed => {
-                self.persist();
-                self.announce(Some(outcome));
-            }
-            _ => self.announce(None),
-        }
+        self.commit(result.as_ref().ok().filter(|outcome| outcome.changed));
         result.map(|_| true)
+    }
+
+    /// After a change of the files or of where they are: the workspace and the engine are kept, and
+    /// the frontend is told (`outcome` is what changed in the engine, if it did not ask for it).
+    pub fn commit(&mut self, outcome: Option<&api::Outcome>) {
+        self.keep_workspace();
+        self.persist();
+        self.announce(outcome);
     }
 
     /// Writes the workspace, and watches what it holds (a file may have been opened or closed).
@@ -224,9 +218,7 @@ impl Core {
             (self.emit)("folder-changed", to_json(&in_folder));
         }
         if let Some(outcome) = self.workspace.reconcile(&mut self.engine, Some(paths)) {
-            self.keep_workspace();
-            self.persist();
-            self.announce(Some(&outcome));
+            self.commit(Some(&outcome));
         }
     }
 
@@ -255,32 +247,15 @@ impl Core {
                     .then(|| self.workspace.folder.clone())
                     .flatten()
             });
-        // what the files it comes from are called, by the name in them (the copies have the same one)
-        let sources: Vec<(String, String)> = selected
-            .iter()
-            .filter_map(|id| {
-                let structure = self.engine.file_structure(&gpx_engine::FileId(*id))?;
-                Some((
-                    structure.name.clone(),
-                    self.workspace.display_name(&self.engine, *id)?,
-                ))
-            })
-            .collect();
         let mut outcome = f(&mut self.engine);
         if let Some(dir) = dir {
             self.workspace.inherit(outcome.added(), &dir);
-            // what is made in a folder is written there at once, so that the tree shows it. A copy
-            // is named like the file it is a copy of
-            let made: Vec<(uuid::Uuid, Option<String>)> = outcome
+            // what is made in a folder is written there at once, so that the tree shows it
+            let made: Vec<uuid::Uuid> = outcome
                 .added()
                 .iter()
                 .filter_map(|id| uuid::Uuid::parse_str(id).ok())
                 .filter(|id| self.workspace.dirs.contains_key(id))
-                .filter_map(|id| {
-                    let name = &self.engine.file_structure(&gpx_engine::FileId(id))?.name;
-                    let source = sources.iter().find(|(source, _)| source == name);
-                    Some((id, source.map(|(_, display)| display.clone())))
-                })
                 .collect();
             match self.workspace.save_new(&mut self.engine, &made) {
                 Ok(renamed) => outcome = outcome.merge(renamed),
@@ -290,8 +265,7 @@ impl Core {
                 Err(_) => {}
             }
         }
-        self.keep_workspace();
-        self.persist();
+        self.commit(None);
         outcome
     }
 }

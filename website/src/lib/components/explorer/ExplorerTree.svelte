@@ -8,11 +8,12 @@
     import ExplorerTree from './ExplorerTree.svelte';
     import ExplorerRow from './ExplorerRow.svelte';
     import { engine, type FolderEntry } from '$lib/engine';
-    import { fileIdAt } from '$lib/engine/workspace';
+    import { editableName, fileIdAt } from '$lib/engine/workspace';
     import { i18n } from '$lib/i18n/i18n.svelte';
     import { currentTool, Tool } from '$lib/components/toolbar/tools';
-    import { showError } from './actions';
-    import { creating, editableName, explorerSelection } from './state.svelte';
+    import { showEngineError } from '$lib/actions/file-actions';
+    import NameInput from './NameInput.svelte';
+    import { creating, explorerSelection } from './state.svelte';
 
     let {
         path,
@@ -69,22 +70,11 @@
             created = await engine.createFolder(parent, name);
         }
         if (created === undefined) {
-            showError();
+            showEngineError();
             return;
         }
         explorerSelection.paths = [created];
         explorerSelection.anchor = created;
-    }
-
-    function onkeydown(event: KeyboardEvent) {
-        // not for the explorer, which opens the selected files with Enter
-        event.stopPropagation();
-        const input = event.currentTarget as HTMLInputElement;
-        if (event.key === 'Enter') {
-            create(input.value, true);
-        } else if (event.key === 'Escape') {
-            creating.parent = undefined;
-        }
     }
 
     $effect(() => {
@@ -110,14 +100,12 @@
         {:else}
             <Folder size="16" class="shrink-0" />
         {/if}
-        <input
-            class="h-6 grow min-w-0 px-1 text-sm bg-background border rounded outline-none"
+        <NameInput
             placeholder={i18n._(
                 kind === 'file' ? 'menu.explorer_menu.new_file' : 'menu.explorer_menu.new_folder'
             )}
-            {@attach (input) => input.focus()}
-            {onkeydown}
-            onblur={(event) => create(event.currentTarget.value, false)}
+            oncommit={create}
+            oncancel={() => (creating.parent = undefined)}
         />
     </div>
 {/snippet}

@@ -420,10 +420,23 @@ impl Workspace {
         outcome
     }
 
+    /// Opens files from the disk, the first of which is selected. With `preview`, a single file is
+    /// open as a preview (see `open_preview`); otherwise they are open for good, the preview too if
+    /// it is among them.
+    pub fn open(&mut self, engine: &mut Engine, paths: &[PathBuf], preview: bool) -> api::Outcome {
+        if let ([path], true) = (paths, preview) {
+            return self.open_preview(engine, path);
+        }
+        let outcome = self.open_files(engine, paths, true);
+        let ids: Vec<Uuid> = paths.iter().filter_map(|path| self.linked(path)).collect();
+        self.keep(&ids);
+        outcome
+    }
+
     /// Opens a file as a preview, which is selected: it replaces the file that was the preview,
     /// which is closed (it has no edits, it would not be the preview anymore). It is the preview
     /// until it is edited or opened for good (`keep`). A file that is open already is selected.
-    pub fn open_preview(&mut self, engine: &mut Engine, path: &Path) -> api::Outcome {
+    fn open_preview(&mut self, engine: &mut Engine, path: &Path) -> api::Outcome {
         let path = canonical(path);
         if self.id_of(&path).is_some() {
             return self.open_files(engine, &[path], true);
@@ -442,11 +455,6 @@ impl Workspace {
         if self.preview.is_some_and(|preview| ids.contains(&preview)) {
             self.preview = None;
         }
-    }
-
-    /// The open files that are linked to these paths.
-    pub fn ids_at(&self, paths: &[PathBuf]) -> Vec<Uuid> {
-        paths.iter().filter_map(|path| self.linked(path)).collect()
     }
 
     /// The link of a file that is the one on the disk, which has the given bytes. `None` if the
@@ -674,10 +682,6 @@ impl Workspace {
             .collect()
     }
 
-    fn is_taken(&self, path: &Path) -> bool {
-        self.links.values().any(|link| link.path == path)
-    }
-
     /// Writes files to the disk, replacing what is there: they are the same as their file from
     /// then on. A file that is not on the disk goes in its folder, or at its path in `paths`, or in
     /// `folder`, under its name (changed if that is the one of something else), which the file then
@@ -694,7 +698,8 @@ impl Workspace {
             let Some(structure) = engine.file_structure(&FileId(*id)) else {
                 continue;
             };
-            let in_folder = |dir: &Path| free_path(dir, &structure.name, |p| self.is_taken(p));
+            let in_folder =
+                |dir: &Path| free_path(dir, &structure.name, |p| self.id_of(p).is_some());
             let path = match (self.links.get(id), paths.get(id), self.dirs.get(id), folder) {
                 (Some(link), ..) => link.path.clone(),
                 (None, Some(path), ..) => canonical(path),
@@ -707,25 +712,17 @@ impl Workspace {
         Ok(outcome)
     }
 
-    /// Writes the new files among `files` in their folder, each under the name that is given (the
-    /// name in the file when there is none). A name that is the one of something else is changed
-    /// (`name (2)`). Files that would be called the same, like the parts of a split, are numbered
-    /// from 1 (`name (1)`, `name (2)`). The files are called like the file they are written to.
-    pub fn save_new(
-        &mut self,
-        engine: &mut Engine,
-        files: &[(Uuid, Option<String>)],
-    ) -> Result<api::Outcome, String> {
-        let names: Vec<Option<(Uuid, PathBuf, String)>> = files
+    /// Writes the new files among `ids` in their folder, under their name. A name that is the one of
+    /// something else is changed (`name (2)`). Files that would be called the same, like the parts
+    /// of a split, are numbered from 1 (`name (1)`, `name (2)`). The files are called like the file
+    /// they are written to.
+    pub fn save_new(&mut self, engine: &mut Engine, ids: &[Uuid]) -> Result<api::Outcome, String> {
+        let names: Vec<Option<(Uuid, PathBuf, String)>> = ids
             .iter()
-            .map(|(id, name)| {
+            .map(|id| {
                 let dir = self.dirs.get(id)?.clone();
-                let structure = engine.file_structure(&FileId(*id))?;
-                Some((
-                    *id,
-                    dir,
-                    name.clone().unwrap_or_else(|| structure.name.clone()),
-                ))
+                let name = engine.file_structure(&FileId(*id))?.name.clone();
+                Some((*id, dir, name))
             })
             .collect();
         let mut outcome = api::Outcome::failed_none();
@@ -741,10 +738,11 @@ impl Workspace {
                 })
                 .count()
                 > 1;
+            let taken = |p: &Path| self.id_of(p).is_some();
             let path = if together {
-                numbered_path(dir, name, |p| self.is_taken(p))
+                numbered_path(dir, name, taken)
             } else {
-                free_path(dir, name, |p| self.is_taken(p))
+                free_path(dir, name, taken)
             };
             outcome = outcome.merge(self.write_file(engine, *id, &path)?);
         }
@@ -763,20 +761,21 @@ impl Workspace {
             .collect()
     }
 
-    /// The name that a file on the disk can have: the name of a file, without its extension (see
-    /// `file_name`). Others are given to the files that are not on the disk yet when they are
-    /// written.
-    pub fn valid_name(&self, id: Uuid, name: &str) -> String {
-        if self.links.contains_key(&id) {
-            file_name(name)
-        } else {
-            name.to_owned()
+    /// The name that a file can be given. A file on the disk is called like its file: the name is
+    /// one that a file can have (see `file_name`), and not the one of another file next to it
+    /// (`NAME_TAKEN`). The other files get theirs when they are written.
+    pub fn name_for(&self, id: Uuid, name: &str) -> Result<String, String> {
+        if !self.links.contains_key(&id) {
+            return Ok(name.to_owned());
         }
+        let name = file_name(name);
+        self.renamed_path(id, &name)?;
+        Ok(name)
     }
 
     /// Where a file on the disk goes when it is called `name`: next to where it is, with the same
     /// extension. `None` if it is there already, an error if something else is.
-    pub fn renamed_path(&self, id: Uuid, name: &str) -> Result<Option<PathBuf>, String> {
+    fn renamed_path(&self, id: Uuid, name: &str) -> Result<Option<PathBuf>, String> {
         let Some(link) = self.links.get(&id) else {
             return Ok(None);
         };
@@ -846,15 +845,6 @@ impl Workspace {
             }
         }
         (renamed, errors)
-    }
-
-    /// The name of a file as the user knows it: the name of the file on the disk, without its
-    /// extension, or else the name in the file.
-    pub fn display_name(&self, engine: &Engine, id: Uuid) -> Option<String> {
-        match self.links.get(&id) {
-            Some(link) => Some(stem(&link.path)),
-            None => Some(engine.file_structure(&FileId(id))?.name.clone()),
-        }
     }
 
     /// Writes a file to a path of the user's choice, which is the place of the file from then on.

@@ -19,9 +19,9 @@ pub fn rename_selection(core: &mut Core, name: String, desc: String) -> api::Out
     let mut name = name;
     if let Selection::File { file_ids } = core.engine.selection() {
         for FileId(id) in file_ids.clone() {
-            name = core.workspace.valid_name(id, &name);
-            if let Err(error) = core.workspace.renamed_path(id, &name) {
-                return api::Outcome::failed(error);
+            match core.workspace.name_for(id, &name) {
+                Ok(valid) => name = valid,
+                Err(error) => return api::Outcome::failed(error),
             }
         }
     }

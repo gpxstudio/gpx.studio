@@ -5,6 +5,7 @@ import { boundsManager } from '$lib/state/bounds';
 import { engine } from '$lib/engine';
 import { defaultFileName } from '$lib/actions/default-file-name';
 import { askOverwrite, askUnsaved } from '$lib/components/file-list/unsaved-prompt.svelte';
+import { toast } from 'svelte-sonner';
 import type { UnsavedChoice } from '$lib/engine';
 
 /** The name of a new file: the translated default name, numbered if other files have it. */
@@ -139,11 +140,23 @@ export async function saveAs(selectedFileIds: string[]) {
     }
 }
 
-/** Opens a file of the tree of the open folder. */
-export async function openPath(path: string) {
-    const ids = await engine.openPaths([path]);
+/**
+ * Opens files of the file system, like the ones of the tree of the open folder: as a preview
+ * (`preview`, a single click), which the next preview replaces, or for good. The map fits the files
+ * that were opened.
+ */
+export async function openPaths(paths: string[], preview = false) {
+    const ids = await engine.openPaths(paths, preview);
     if (ids.length > 0) {
         boundsManager.fitBoundsOnLoad(ids);
+    }
+}
+
+/** Tells the user why the engine did not do what was asked (a key of the dictionaries, or text). */
+export function showEngineError() {
+    const error = get(engine.lastError);
+    if (error !== undefined && error !== 'nothing to do') {
+        toast.error(i18n._(error, error));
     }
 }
 

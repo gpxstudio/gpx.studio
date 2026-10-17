@@ -567,10 +567,7 @@ class Engine {
      * `preview`, see `DesktopFiles.openPaths`. Resolves to the new ids.
      */
     async openPaths(paths: string[], preview = false): Promise<string[]> {
-        const added = await this.addedBy((b) => b.desktop!.openPaths(paths, preview));
-        // which file is the preview may have changed, without a file changing
-        await this.enqueue(async () => this.refreshWorkspace(this.backend!));
-        return added;
+        return this.addedBy((b) => b.desktop!.openPaths(paths, preview));
     }
 
     // What the explorer does to the tree of the open folder (the desktop app). When it fails,
@@ -581,35 +578,29 @@ class Engine {
      * Resolves to its id.
      */
     async newFileIn(name: string, folder: string): Promise<string | undefined> {
-        const [id] = await this.addedBy((b) => b.desktop!.newFile(name, folder));
-        this._folderVersion.update((version) => version + 1);
+        const [id] = await this.addedBy((b) => b.desktop!.newFile(name, folder), true);
         return id;
     }
 
     /** Makes a folder in a folder of the open folder: resolves to its path. */
     async createFolder(parent: string, name: string): Promise<string | undefined> {
-        return (await this.treeOperation((desktop) => desktop.createFolder(parent, name))).value;
+        return (await this.desktopCall((desktop) => desktop.createFolder(parent, name), true))
+            .value;
     }
 
     /** Renames a file or a folder of the open folder. Resolves to whether it was done. */
     async renamePath(path: string, name: string): Promise<boolean> {
-        const changed = await this.run((b) => b.desktop!.renamePath(path, name));
-        const failed = get(this._lastError) !== undefined;
-        await this.treeOperation(async () => {});
-        return changed || !failed;
+        return this.desktopRun((b) => b.desktop!.renamePath(path, name), true);
     }
 
     /** Moves files and folders of the open folder into a folder of it. */
     async movePaths(paths: string[], folder: string): Promise<boolean> {
-        return (await this.treeOperation((desktop) => desktop.movePaths(paths, folder))).done;
+        return (await this.desktopCall((desktop) => desktop.movePaths(paths, folder), true)).done;
     }
 
     /** Moves files and folders of the open folder to the trash. */
     async deletePaths(paths: string[]): Promise<boolean> {
-        const changed = await this.run((b) => b.desktop!.deletePaths(paths));
-        const failed = get(this._lastError) !== undefined;
-        await this.treeOperation(async () => {});
-        return changed || !failed;
+        return this.desktopRun((b) => b.desktop!.deletePaths(paths), true);
     }
 
     /** Shows a file or a folder in the file manager of the system. */
@@ -623,42 +614,17 @@ class Engine {
     }
 
     /**
-     * Does something to the file system, then reads where the files are and the tree again
-     * (without waiting for the watcher). Resolves to whether it was done, with what it gives.
-     */
-    private async treeOperation<T>(
-        action: (desktop: DesktopFiles) => Promise<T>
-    ): Promise<{ done: boolean; value?: T }> {
-        await this.ready;
-        return this.enqueue(async () => {
-            const backend = this.backend!;
-            let result: { done: boolean; value?: T } = { done: false };
-            try {
-                result = { done: true, value: await action(backend.desktop!) };
-            } catch (error) {
-                console.error('engine:', error);
-                this._lastError.set(String(error));
-            }
-            await this.refreshWorkspace(backend);
-            this._folderVersion.update((version) => version + 1);
-            return result;
-        });
-    }
-
-    /**
      * Opens the folder that the user picks (instead of the one that was open, which is closed with
      * its files like `closeFiles` does, `unsaved` being what to do with the unsaved ones). The
      * folder is watched, and its tree is read with `listFolder`: its files are not opened.
      */
     async openFolder(unsaved?: UnsavedChoice) {
-        await this.run((b) => b.desktop!.openFolder(unsaved));
-        await this.enqueue(async () => this.refreshWorkspace(this.backend!));
+        await this.desktopRun((b) => b.desktop!.openFolder(unsaved));
     }
 
     /** Closes the open folder and all the files: see `closeFiles` for `unsaved`. */
     async closeFolder(unsaved?: UnsavedChoice) {
-        await this.run((b) => b.desktop!.closeFolder(unsaved));
-        await this.enqueue(async () => this.refreshWorkspace(this.backend!));
+        await this.desktopRun((b) => b.desktop!.closeFolder(unsaved));
     }
 
     /**
@@ -666,8 +632,7 @@ class Engine {
      * first, or their edits are lost (they stay open when it is not said).
      */
     async closeFiles(fileIds: string[], unsaved?: UnsavedChoice) {
-        await this.run((b) => b.desktop!.closeFiles(fileIds, unsaved));
-        await this.enqueue(async () => this.refreshWorkspace(this.backend!));
+        await this.desktopRun((b) => b.desktop!.closeFiles(fileIds, unsaved));
     }
 
     /**
@@ -676,23 +641,23 @@ class Engine {
      * when the user cancelled or the files could not be saved.
      */
     async save(fileIds: string[]): Promise<boolean> {
-        return this.desktopCall((desktop) => desktop.saveFiles(fileIds));
+        return (await this.desktopCall((desktop) => desktop.saveFiles(fileIds))).value === true;
     }
 
     /** Writes a file where the user says, which is where it is from then on. */
     async saveAs(fileId: string): Promise<boolean> {
-        return this.desktopCall((desktop) => desktop.saveFileAs(fileId));
+        return (await this.desktopCall((desktop) => desktop.saveFileAs(fileId))).value === true;
     }
 
     /** Writes copies of files where the user says. The files stay as they are. */
     async exportFiles(fileIds: string[], options: ExportOptions): Promise<boolean> {
-        return this.desktopCall((desktop) => desktop.exportFiles(fileIds, options));
+        const exported = await this.desktopCall((desktop) => desktop.exportFiles(fileIds, options));
+        return exported.value === true;
     }
 
     /** Reads files again from the file system: their edits are lost (one undo step). */
     async reload(fileIds: string[]) {
-        await this.run((b) => b.desktop!.reloadFiles(fileIds));
-        await this.enqueue(async () => this.refreshWorkspace(this.backend!));
+        await this.desktopRun((b) => b.desktop!.reloadFiles(fileIds));
     }
 
     /** Opens a web page in the browser of the system (the desktop app). */
@@ -718,27 +683,51 @@ class Engine {
         });
     }
 
-    /** Calls the file system of the desktop app, and keeps the status of the files up to date. */
-    private async desktopCall(call: (desktop: DesktopFiles) => Promise<boolean>): Promise<boolean> {
+    /**
+     * Calls the file system of the desktop app, then reads where the files are again (without
+     * waiting for the app to tell), and the tree of the open folder with `tree`. Resolves to whether
+     * it was done, with what it gives; when it was not, `lastError` tells why.
+     */
+    private async desktopCall<T>(
+        call: (desktop: DesktopFiles) => Promise<T>,
+        tree = false
+    ): Promise<{ done: boolean; value?: T }> {
         await this.ready;
         return this.enqueue(async () => {
             const backend = this.backend!;
-            let done = false;
+            let result: { done: boolean; value?: T } = { done: false };
             try {
-                done = await call(backend.desktop!);
+                result = { done: true, value: await call(backend.desktop!) };
             } catch (error) {
-                console.error('The files could not be written', error);
+                console.error('engine:', error);
                 this._lastError.set(String(error));
             }
-            await this.refreshWorkspace(backend);
-            return done;
+            await this.refreshWorkspace(backend, tree);
+            return result;
         });
     }
 
-    /** Runs a call that adds files, and resolves to the ids that it added. */
-    private async addedBy(action: (backend: Backend) => Promise<Outcome>): Promise<string[]> {
+    /**
+     * Like `run`, for a call of the desktop app that can change where the files are (and the tree
+     * of the open folder with `tree`), which are read again. Resolves to whether it was done.
+     */
+    private async desktopRun(
+        action: (backend: Backend) => Promise<Outcome>,
+        tree = false
+    ): Promise<boolean> {
+        const changed = await this.run(action);
+        const failed = get(this._lastError) !== undefined;
+        await this.enqueue(() => this.refreshWorkspace(this.backend!, tree));
+        return changed || !failed;
+    }
+
+    /** Runs a call of the desktop app that adds files (see `desktopRun`): resolves to their ids. */
+    private async addedBy(
+        action: (backend: Backend) => Promise<Outcome>,
+        tree = false
+    ): Promise<string[]> {
         const before = new Set(get(this._order));
-        await this.run(action);
+        await this.desktopRun(action, tree);
         return get(this._order).filter((id) => !before.has(id));
     }
 
@@ -756,9 +745,13 @@ class Engine {
         };
     }
 
-    private async refreshWorkspace(backend: Backend) {
+    /** Reads where the files are again, and the tree of the open folder with `tree`. */
+    private async refreshWorkspace(backend: Backend, tree = false) {
         if (backend.desktop) {
             this._workspace.set(await backend.desktop.workspace());
+        }
+        if (tree) {
+            this._folderVersion.update((version) => version + 1);
         }
     }
 

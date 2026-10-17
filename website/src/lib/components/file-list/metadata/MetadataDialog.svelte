@@ -9,8 +9,7 @@
     import { editMetadata } from '$lib/components/file-list/metadata/utils.svelte';
     import { engine, type FileState } from '$lib/engine';
     import type { FileTreeNode } from '$lib/engine/selection-helpers';
-    import { toast } from 'svelte-sonner';
-    import { get } from 'svelte/store';
+    import { showEngineError } from '$lib/actions/file-actions';
 
     let {
         fileState,
@@ -58,10 +57,8 @@
                 // the metadata of the selected elements are changed. In the desktop app, a file on
                 // the disk is renamed with it, which is refused if the name is the one of another
                 engine.metadata(name, description).then((changed) => {
-                    const error = get(engine.lastError);
-                    if (!changed && error !== undefined && error !== 'nothing to do') {
-                        // a key of the dictionaries, when it comes from the desktop app
-                        toast.error(i18n._(error, error));
+                    if (!changed) {
+                        showEngineError();
                     }
                 });
             }}

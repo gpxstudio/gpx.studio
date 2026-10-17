@@ -28,24 +28,11 @@ export const dragging: { paths: string[]; target: string | undefined } = $state(
     target: undefined,
 });
 
-/** `\` and `/` alike. */
-function isSeparator(char: string | undefined) {
-    return char === '/' || char === '\\';
-}
-
-/** The folder that holds `path`. */
-export function parentOf(path: string): string {
-    const index = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
-    return index > 0 ? path.slice(0, index) : path;
-}
-
-/** Whether `path` is `folder` or something in it. */
-export function isWithin(path: string, folder: string): boolean {
-    return path === folder || (path.startsWith(folder) && isSeparator(path[folder.length]));
-}
-
-/** The name of a file without its extension, or the name of a folder. */
-export function editableName(name: string, isDir: boolean): string {
-    const dot = name.lastIndexOf('.');
-    return isDir || dot <= 0 ? name : name.slice(0, dot);
+/** The rows of the explorer that `element` is in, as they are shown: their path and kind. */
+export function treeRows(element: Element | null | undefined): { path: string; kind: string }[] {
+    const tree = element?.closest('[data-explorer]');
+    return [...(tree?.querySelectorAll<HTMLElement>('[data-explorer-path]') ?? [])].map((row) => ({
+        path: row.dataset.explorerPath!,
+        kind: row.dataset.kind!,
+    }));
 }

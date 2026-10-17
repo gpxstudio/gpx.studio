@@ -34,3 +34,20 @@ export function fileIdAt(
 ): string | undefined {
     return Object.entries(workspace?.files ?? {}).find(([, file]) => file.path === path)?.[0];
 }
+
+/** The folder that holds `path`. */
+export function parentOf(path: string): string {
+    const index = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+    return index > 0 ? path.slice(0, index) : path;
+}
+
+/** Whether `path` is `folder` or something in it. */
+export function isWithin(path: string, folder: string): boolean {
+    return path === folder || (path.startsWith(folder) && /[\\/]/.test(path[folder.length]));
+}
+
+/** The name of a file without its extension, or the name of a folder (`isDir`). */
+export function editableName(name: string, isDir: boolean): string {
+    const dot = name.lastIndexOf('.');
+    return isDir || dot <= 0 ? name : name.slice(0, dot);
+}

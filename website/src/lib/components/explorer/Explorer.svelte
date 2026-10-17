@@ -5,8 +5,8 @@
     import { ScrollArea } from '$lib/components/ui/scroll-area/index';
     import ExplorerTree from './ExplorerTree.svelte';
     import ExplorerRow from './ExplorerRow.svelte';
-    import { openFiles } from './actions';
-    import { clickedInExplorer, explorerSelection, renaming } from './state.svelte';
+    import { clickedInExplorer, explorerSelection, renaming, treeRows } from './state.svelte';
+    import { openPaths } from '$lib/actions/file-actions';
     import { i18n } from '$lib/i18n/i18n.svelte';
     import { engine } from '$lib/engine';
     import { selectedFileIds } from '$lib/engine/selection-helpers';
@@ -52,22 +52,6 @@
         }
     });
 
-    /** Enter opens the selected files for good. */
-    function onkeydown(event: KeyboardEvent) {
-        if (renaming.path !== undefined || !container || event.key !== 'Enter') return;
-        const kinds = new Map(
-            [...container.querySelectorAll<HTMLElement>('[data-explorer-path]')].map((row) => [
-                row.dataset.explorerPath!,
-                row.dataset.kind,
-            ])
-        );
-        const files = explorerSelection.paths.filter((path) => kinds.get(path) === 'file');
-        if (files.length > 0) {
-            openFiles(files, false);
-            event.preventDefault();
-        }
-    }
-
     /**
      * Opens the folders that hold a file and scrolls to the file, if it is not in view already. Its
      * row may not be there yet, because the content of a folder is read when it is opened.
@@ -94,6 +78,18 @@
         };
         frame = requestAnimationFrame(scroll);
         return () => cancelAnimationFrame(frame);
+    }
+
+    /** Enter opens the selected files for good. */
+    function onkeydown(event: KeyboardEvent) {
+        if (renaming.path !== undefined || event.key !== 'Enter') return;
+        const files = treeRows(container)
+            .filter((row) => row.kind === 'file' && explorerSelection.paths.includes(row.path))
+            .map((row) => row.path);
+        if (files.length > 0) {
+            openPaths(files);
+            event.preventDefault();
+        }
     }
 </script>
 

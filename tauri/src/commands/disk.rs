@@ -6,9 +6,9 @@
 //! open if it does not say.
 
 use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
-use gpx_engine::{ExportOptions, api};
+use gpx_engine::{ExportOptions, FileId, api};
 use serde::Deserialize;
 use tauri::{AppHandle, Runtime, State};
 use tauri_plugin_dialog::{DialogExt, FilePath};
@@ -23,6 +23,32 @@ fn paths(picked: Vec<FilePath>) -> Vec<PathBuf> {
         .into_iter()
         .filter_map(|path| path.into_path().ok())
         .collect()
+}
+
+/// Asks where to write a GPX file, proposing `file_name` in `folder`. `None` if the user cancelled.
+fn ask_save_path<R: Runtime>(
+    app: &AppHandle<R>,
+    file_name: &str,
+    folder: Option<&Path>,
+) -> Option<PathBuf> {
+    let mut dialog = app
+        .dialog()
+        .file()
+        .add_filter("GPX", &["gpx"])
+        .set_file_name(file_name);
+    if let Some(folder) = folder {
+        dialog = dialog.set_directory(folder);
+    }
+    dialog.blocking_save_file()?.into_path().ok()
+}
+
+/// Asks for a folder, starting in `folder`. `None` if the user cancelled.
+fn ask_folder<R: Runtime>(app: &AppHandle<R>, folder: Option<&Path>) -> Option<PathBuf> {
+    let mut dialog = app.dialog().file();
+    if let Some(folder) = folder {
+        dialog = dialog.set_directory(folder);
+    }
+    dialog.blocking_pick_folder()?.into_path().ok()
 }
 
 #[tauri::command(async)]
@@ -46,7 +72,7 @@ pub fn open_files<R: Runtime>(app: AppHandle<R>, state: State<AppState>) -> api:
 
 /// Opens files that are on the disk, like the ones of the tree of the open folder. They get selected.
 /// With `preview`, a single file is open as a preview (a single click in the tree, see
-/// `Workspace::open_preview`); otherwise they are open for good, even the preview.
+/// `Workspace::open`); otherwise they are open for good, even the preview.
 #[tauri::command(async)]
 pub fn open_paths(
     state: State<AppState>,
@@ -54,18 +80,10 @@ pub fn open_paths(
     preview: Option<bool>,
 ) -> api::Outcome {
     state.core(move |core| {
-        let outcome = match paths.as_slice() {
-            [path] if preview == Some(true) => core.workspace.open_preview(&mut core.engine, path),
-            _ => {
-                let outcome = core.workspace.open_files(&mut core.engine, &paths, true);
-                let ids = core.workspace.ids_at(&paths);
-                core.workspace.keep(&ids);
-                outcome
-            }
-        };
-        core.keep_workspace();
-        core.persist();
-        core.announce(None);
+        let outcome = core
+            .workspace
+            .open(&mut core.engine, &paths, preview.unwrap_or_default());
+        core.commit(None);
         outcome
     })
 }
@@ -93,38 +111,16 @@ fn write_unsaved<R: Runtime>(
     let mut folder = None;
     match unlinked.as_slice() {
         [] => {}
-        [(id, name)] => {
-            let mut dialog = app
-                .dialog()
-                .file()
-                .add_filter("GPX", &["gpx"])
-                .set_file_name(format!("{name}.gpx"));
-            if let Some(start) = &start {
-                dialog = dialog.set_directory(start);
+        [(id, name)] => match ask_save_path(app, &format!("{name}.gpx"), start.as_deref()) {
+            Some(path) => {
+                chosen.insert(*id, path);
             }
-            match dialog
-                .blocking_save_file()
-                .and_then(|path| path.into_path().ok())
-            {
-                Some(path) => {
-                    chosen.insert(*id, path);
-                }
-                None => return Ok(false),
-            }
-        }
-        _ => {
-            let mut dialog = app.dialog().file();
-            if let Some(start) = &start {
-                dialog = dialog.set_directory(start);
-            }
-            match dialog
-                .blocking_pick_folder()
-                .and_then(|path| path.into_path().ok())
-            {
-                Some(path) => folder = Some(path),
-                None => return Ok(false),
-            }
-        }
+            None => return Ok(false),
+        },
+        _ => match ask_folder(app, start.as_deref()) {
+            Some(path) => folder = Some(path),
+            None => return Ok(false),
+        },
     }
     state.core(move |core| {
         let result = core
@@ -157,7 +153,7 @@ pub fn save_file_as<R: Runtime>(
     let (name, current, folder) = state.core(move |core| {
         let name = core
             .engine
-            .file_structure(&gpx_engine::FileId(file_id))
+            .file_structure(&FileId(file_id))
             .map(|structure| structure.name.clone());
         let status = core.workspace_state();
         let file = status.files.get(&file_id.to_string());
@@ -170,27 +166,12 @@ pub fn save_file_as<R: Runtime>(
     let Some(name) = name else {
         return Ok(false);
     };
-    let mut dialog = app.dialog().file().add_filter("GPX", &["gpx"]);
-    match &current {
-        Some(path) => {
-            if let Some(file_name) = path.file_name() {
-                dialog = dialog.set_file_name(file_name.to_string_lossy());
-            }
-            if let Some(parent) = path.parent() {
-                dialog = dialog.set_directory(parent);
-            }
-        }
-        None => {
-            dialog = dialog.set_file_name(format!("{name}.gpx"));
-            if let Some(folder) = &folder {
-                dialog = dialog.set_directory(folder);
-            }
-        }
-    }
-    let Some(path) = dialog
-        .blocking_save_file()
-        .and_then(|path| path.into_path().ok())
-    else {
+    // where the file is, or else where it would be written
+    let folder = current
+        .as_ref()
+        .and_then(|path| path.parent().map(Path::to_path_buf))
+        .or(folder);
+    let Some(path) = ask_save_path(&app, &format!("{name}.gpx"), folder.as_deref()) else {
         return Ok(false);
     };
     state.core(move |core| {
@@ -204,9 +185,7 @@ pub fn save_file_as<R: Runtime>(
 pub fn reload_files(state: State<AppState>, file_ids: Vec<Uuid>) -> Result<api::Outcome, String> {
     state.core(move |core| {
         let outcome = core.workspace.reload(&mut core.engine, &file_ids);
-        core.keep_workspace();
-        core.persist();
-        core.announce(None);
+        core.commit(None);
         outcome
     })
 }
@@ -255,10 +234,7 @@ pub fn open_folder<R: Runtime>(
         let outcome = core
             .workspace
             .open_folder(&mut core.engine, &folder, discard);
-        core.keep_workspace();
-        core.persist();
-        core.watch();
-        core.announce(None);
+        core.commit(None);
         Ok(outcome)
     })
 }
@@ -279,10 +255,7 @@ pub fn close_folder<R: Runtime>(
         let outcome = core
             .workspace
             .close_folder(&mut core.engine, unsaved.is_some());
-        core.keep_workspace();
-        core.persist();
-        core.watch();
-        core.announce(None);
+        core.commit(None);
         Ok(outcome)
     })
 }
@@ -303,9 +276,7 @@ pub fn close_files<R: Runtime>(
         let outcome = core
             .workspace
             .close_files(&mut core.engine, &file_ids, unsaved.is_some());
-        core.keep_workspace();
-        core.persist();
-        core.announce(None);
+        core.commit(None);
         Ok(outcome)
     })
 }
@@ -364,7 +335,7 @@ pub fn export_files<R: Runtime>(
         file_ids
             .iter()
             .filter_map(|id| {
-                let name = core.workspace.display_name(&core.engine, *id)?;
+                let name = core.engine.file_structure(&FileId(*id))?.name.clone();
                 Some((name, api::export_file(&core.engine, *id, options)?))
             })
             .collect()
@@ -376,25 +347,13 @@ pub fn export_files<R: Runtime>(
     match files.as_slice() {
         [] => Ok(false),
         [(name, bytes)] => {
-            let Some(path) = app
-                .dialog()
-                .file()
-                .add_filter("GPX", &["gpx"])
-                .set_file_name(format!("{name}.gpx"))
-                .blocking_save_file()
-                .and_then(|path| path.into_path().ok())
-            else {
+            let Some(path) = ask_save_path(&app, &format!("{name}.gpx"), None) else {
                 return Ok(false);
             };
             write(path, bytes).map(|()| true)
         }
         _ => {
-            let Some(folder) = app
-                .dialog()
-                .file()
-                .blocking_pick_folder()
-                .and_then(|path| path.into_path().ok())
-            else {
+            let Some(folder) = ask_folder(&app, None) else {
                 return Ok(false);
             };
             let mut written: Vec<PathBuf> = vec![];
@@ -433,14 +392,13 @@ pub fn rename_path(
             let selected = api::select(&mut core.engine, &[id], gpx_engine::SelectMode::Replace);
             let desc = core
                 .engine
-                .file_structure(&gpx_engine::FileId(id))
+                .file_structure(&FileId(id))
                 .and_then(|structure| structure.desc.clone())
                 .unwrap_or_default();
             return Ok(selected.merge(edit::rename_selection(core, name, desc)));
         }
         core.workspace.rename_path(&path, &name)?;
-        core.keep_workspace();
-        core.announce(None);
+        core.commit(None);
         Ok(api::Outcome::failed_none())
     })
 }
@@ -454,8 +412,7 @@ pub fn move_paths(
 ) -> Result<(), String> {
     state.core(move |core| {
         let result = core.workspace.move_paths(&paths, &folder);
-        core.keep_workspace();
-        core.announce(None);
+        core.commit(None);
         result
     })
 }
@@ -468,9 +425,7 @@ pub fn delete_paths(state: State<AppState>, paths: Vec<PathBuf>) -> Result<api::
         let outcome = core
             .workspace
             .delete_paths(&mut core.engine, &paths, to_trash)?;
-        core.keep_workspace();
-        core.persist();
-        core.announce(None);
+        core.commit(None);
         Ok(outcome)
     })
 }
