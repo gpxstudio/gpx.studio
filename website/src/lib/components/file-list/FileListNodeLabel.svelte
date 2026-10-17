@@ -100,6 +100,10 @@
 
     // the file is not the one on the disk (the desktop app)
     let unsaved = $derived(node.type === 'file' && $workspace?.files[node.fileId]?.dirty === true);
+    // the file is open as a preview, which the next one replaces (the desktop app)
+    let preview = $derived(
+        node.type === 'file' && $workspace?.files[node.fileId]?.preview === true
+    );
     let hidden = $derived(isHidden(fileState, elementId(node)));
     // cut elements are greyed until they are pasted
     let isCut = $derived($clipboard?.cut === true && isInClipboard($clipboard, node));
@@ -195,6 +199,7 @@
                 {/if}
                 <!-- a tab of the horizontal list is as wide as its content: the name is not cut -->
                 <span
+                    class:italic={preview}
                     class="grow select-none {orientation === 'vertical'
                         ? 'truncate last:mr-2'
                         : 'shrink-0'}"

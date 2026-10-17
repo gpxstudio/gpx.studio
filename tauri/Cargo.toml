@@ -26,4 +26,5 @@ notify-debouncer-mini = "0.7.0"
 tauri-plugin-dialog = "2.8.2"
 tauri-plugin-single-instance = "2.5.3"
 tauri-plugin-opener = "2"
+trash = "5"
 

@@ -14,6 +14,7 @@ use tauri::{AppHandle, Runtime, State};
 use tauri_plugin_dialog::{DialogExt, FilePath};
 use uuid::Uuid;
 
+use crate::commands::edit;
 use crate::state::AppState;
 use crate::workspace::{Entry, Unsaved, WorkspaceState, free_path};
 
@@ -40,16 +41,31 @@ pub fn open_files<R: Runtime>(app: AppHandle<R>, state: State<AppState>) -> api:
     let Some(picked) = picked else {
         return api::Outcome::failed_none();
     };
-    open_paths(state, paths(picked))
+    open_paths(state, paths(picked), None)
 }
 
 /// Opens files that are on the disk, like the ones of the tree of the open folder. They get selected.
+/// With `preview`, a single file is open as a preview (a single click in the tree, see
+/// `Workspace::open_preview`); otherwise they are open for good, even the preview.
 #[tauri::command(async)]
-pub fn open_paths(state: State<AppState>, paths: Vec<PathBuf>) -> api::Outcome {
+pub fn open_paths(
+    state: State<AppState>,
+    paths: Vec<PathBuf>,
+    preview: Option<bool>,
+) -> api::Outcome {
     state.core(move |core| {
-        let outcome = core.workspace.open_files(&mut core.engine, &paths, true);
+        let outcome = match paths.as_slice() {
+            [path] if preview == Some(true) => core.workspace.open_preview(&mut core.engine, path),
+            _ => {
+                let outcome = core.workspace.open_files(&mut core.engine, &paths, true);
+                let ids = core.workspace.ids_at(&paths);
+                core.workspace.keep(&ids);
+                outcome
+            }
+        };
         core.keep_workspace();
         core.persist();
+        core.announce(None);
         outcome
     })
 }
@@ -390,4 +406,87 @@ pub fn export_files<R: Runtime>(
             Ok(true)
         }
     }
+}
+
+/// Makes a folder in a folder of the open folder, called `name` (numbered if that is taken). Gives
+/// its path.
+#[tauri::command(async)]
+pub fn create_folder(
+    state: State<AppState>,
+    parent: PathBuf,
+    name: String,
+) -> Result<PathBuf, String> {
+    state.core(move |core| core.workspace.create_folder(&parent, &name))
+}
+
+/// Renames a file or a folder of the open folder. An open file is renamed like in its info (it is
+/// selected), which can be undone; the rest is renamed on the disk, and the open files that are in
+/// a folder that is renamed follow.
+#[tauri::command(async)]
+pub fn rename_path(
+    state: State<AppState>,
+    path: PathBuf,
+    name: String,
+) -> Result<api::Outcome, String> {
+    state.core(move |core| {
+        if let Some(id) = core.workspace.linked(&path) {
+            let selected = api::select(&mut core.engine, &[id], gpx_engine::SelectMode::Replace);
+            let desc = core
+                .engine
+                .file_structure(&gpx_engine::FileId(id))
+                .and_then(|structure| structure.desc.clone())
+                .unwrap_or_default();
+            return Ok(selected.merge(edit::rename_selection(core, name, desc)));
+        }
+        core.workspace.rename_path(&path, &name)?;
+        core.keep_workspace();
+        core.announce(None);
+        Ok(api::Outcome::failed_none())
+    })
+}
+
+/// Moves files and folders of the open folder into a folder of it. The open files follow.
+#[tauri::command(async)]
+pub fn move_paths(
+    state: State<AppState>,
+    paths: Vec<PathBuf>,
+    folder: PathBuf,
+) -> Result<(), String> {
+    state.core(move |core| {
+        let result = core.workspace.move_paths(&paths, &folder);
+        core.keep_workspace();
+        core.announce(None);
+        result
+    })
+}
+
+/// Moves files and folders of the open folder to the trash. The open files that were among them
+/// are closed, unless they have edits: they stay open, as gone from the disk.
+#[tauri::command(async)]
+pub fn delete_paths(state: State<AppState>, paths: Vec<PathBuf>) -> Result<api::Outcome, String> {
+    state.core(move |core| {
+        let outcome = core
+            .workspace
+            .delete_paths(&mut core.engine, &paths, to_trash)?;
+        core.keep_workspace();
+        core.persist();
+        core.announce(None);
+        Ok(outcome)
+    })
+}
+
+/// Moves files and folders to the trash of the system.
+fn to_trash(paths: &[PathBuf]) -> Result<(), String> {
+    #[allow(unused_mut)]
+    let mut trash = trash::TrashContext::default();
+    // without asking the Finder, which needs a permission
+    #[cfg(target_os = "macos")]
+    {
+        use trash::macos::{DeleteMethod, TrashContextExtMacos};
+        trash.set_delete_method(DeleteMethod::NsFileManager);
+    }
+    trash.delete_all(paths).map_err(|error| {
+        eprintln!("the files cannot be deleted: {error}");
+        crate::workspace::DELETE_FAILED.to_owned()
+    })
 }

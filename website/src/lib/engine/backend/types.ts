@@ -30,6 +30,8 @@ export type FileStatus = {
     replaced: boolean;
     /** The file on the disk is gone. */
     missing: boolean;
+    /** The file is open as a preview (a single click in the tree), which the next one replaces. */
+    preview: boolean;
 };
 
 /** An entry of the tree of the open folder: a folder, or a GPX file. */
@@ -56,8 +58,12 @@ export interface DesktopFiles {
     workspace(): Promise<WorkspaceState>;
     /** Opens the files that the user picks, which get selected. */
     openFiles(): Promise<Outcome>;
-    /** Opens files of the file system by their path, like the ones of the tree of the folder. */
-    openPaths(paths: string[]): Promise<Outcome>;
+    /**
+     * Opens files of the file system by their path, like the ones of the tree of the folder. With
+     * `preview`, a single file is open as a preview: the next preview replaces it, until it is
+     * edited or opened for good. Otherwise they are open for good.
+     */
+    openPaths(paths: string[], preview?: boolean): Promise<Outcome>;
     /**
      * Opens the folder that the user picks, which is watched. Its files are not opened: they are
      * in its tree (`listFolder`). The folder that was open is closed with its files (see
@@ -91,6 +97,24 @@ export interface DesktopFiles {
     listFolder(path?: string): Promise<FolderEntry[]>;
     /** Opens a web page (or an email to write) in the app of the system for it. */
     openUrl(url: string): Promise<void>;
+    /** Makes a new file, written at once in `folder` (a folder of the open folder), and selects it. */
+    newFile(name: string, folder: string): Promise<Outcome>;
+    /** Makes a folder in a folder of the open folder (numbered if the name is taken): its path. */
+    createFolder(parent: string, name: string): Promise<string>;
+    /**
+     * Renames a file or a folder of the open folder. An open file is renamed like in its info (it
+     * is selected), which can be undone.
+     */
+    renamePath(path: string, name: string): Promise<Outcome>;
+    /** Moves files and folders of the open folder into a folder of it. */
+    movePaths(paths: string[], folder: string): Promise<void>;
+    /**
+     * Moves files and folders of the open folder to the trash. The open files among them are
+     * closed, unless they have edits.
+     */
+    deletePaths(paths: string[]): Promise<Outcome>;
+    /** Shows a file or a folder in the file manager of the system. */
+    revealPath(path: string): Promise<void>;
     /**
      * Tells when the engine changed without being asked, because the files on the disk did (the
      * outcome to apply), when the status of the files changed, when files were opened with the

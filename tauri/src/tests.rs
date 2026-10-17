@@ -670,3 +670,58 @@ fn a_new_file_written_under_another_name_takes_it() {
     assert_eq!(app.call("can_undo", json!({})), false);
     std::fs::remove_dir_all(folder).unwrap();
 }
+
+#[test]
+fn a_file_open_as_a_preview_is_replaced_until_it_is_kept_or_edited() {
+    let app = App::new();
+    let folder = folder_with(&["a", "b", "c", "d"]);
+    let path = |name: &str| folder.join(format!("{name}.gpx"));
+    let open = |name: &str, preview: bool| {
+        app.call(
+            "open_paths",
+            json!({ "paths": [path(name)], "preview": preview }),
+        )
+    };
+    let state = |app: &App| app.call("workspace_state", json!({}))["files"].clone();
+    let names = |app: &App| -> Vec<String> {
+        let order = app.call("file_order", json!({}));
+        order
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|id| name_of(app, id.as_str().unwrap()))
+            .collect()
+    };
+
+    let a = open("a", true)["added"][0].as_str().unwrap().to_string();
+    assert_eq!(state(&app)[&a]["preview"], true);
+    // the next preview replaces it
+    let b = open("b", true)["added"][0].as_str().unwrap().to_string();
+    assert_eq!(names(&app), ["b"]);
+    assert_eq!(state(&app)[&b]["preview"], true);
+    // opened for good (a double click), it stays when another one is previewed
+    open("b", false);
+    assert_eq!(state(&app)[&b]["preview"], false);
+    let c = open("c", true)["added"][0].as_str().unwrap().to_string();
+    assert_eq!(names(&app), ["b", "c"]);
+    // something done to the preview keeps it too
+    app.call("style", json!({ "color": "#ff0000" }));
+    assert_eq!(state(&app)[&c]["preview"], false);
+    open("d", true);
+    assert_eq!(names(&app), ["b", "c", "d"]);
+    // several files at once are open for good
+    app.call(
+        "open_paths",
+        json!({ "paths": [path("a"), path("d")], "preview": true }),
+    );
+    assert_eq!(names(&app), ["b", "c", "d", "a"]);
+    let files = state(&app);
+    assert!(
+        files
+            .as_object()
+            .unwrap()
+            .values()
+            .all(|file| file["preview"] == false)
+    );
+    std::fs::remove_dir_all(folder).unwrap();
+}

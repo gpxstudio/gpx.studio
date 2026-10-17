@@ -211,7 +211,7 @@ export async function createTauriBackend(): Promise<Backend> {
         desktop: {
             workspace: () => invoke<WorkspaceState>('workspace_state'),
             openFiles: () => invoke<Outcome>('open_files'),
-            openPaths: (paths) => invoke<Outcome>('open_paths', { paths }),
+            openPaths: (paths, preview) => invoke<Outcome>('open_paths', { paths, preview }),
             openFolder: (unsaved) => invoke<Outcome>('open_folder', { unsaved }),
             closeFolder: (unsaved) => invoke<Outcome>('close_folder', { unsaved }),
             closeFiles: (fileIds, unsaved) => invoke<Outcome>('close_files', { fileIds, unsaved }),
@@ -222,6 +222,12 @@ export async function createTauriBackend(): Promise<Backend> {
                 invoke<boolean>('export_files', { fileIds, options }),
             listFolder: (path) => invoke<FolderEntry[]>('list_folder', { path }),
             openUrl: (url) => invoke('open_url', { url }),
+            newFile: (name, folder) => invoke<Outcome>('new_file', { name, folder }),
+            createFolder: (parent, name) => invoke<string>('create_folder', { parent, name }),
+            renamePath: (path, name) => invoke<Outcome>('rename_path', { path, name }),
+            movePaths: (paths, folder) => invoke('move_paths', { paths, folder }),
+            deletePaths: (paths) => invoke<Outcome>('delete_paths', { paths }),
+            revealPath: (path) => invoke('reveal_path', { path }),
             listen: async (onEngineChanged, onWorkspaceChanged, onFilesOpened, onFolderChanged) => {
                 await listen<Outcome>('files-opened', (event) => onFilesOpened(event.payload));
                 await listen<Outcome>('engine-changed', (event) => onEngineChanged(event.payload));

@@ -90,6 +90,8 @@ impl Core {
             return;
         }
         let outcome = self.workspace.open_files(&mut self.engine, paths, true);
+        let ids = self.workspace.ids_at(paths);
+        self.workspace.keep(&ids);
         self.keep_workspace();
         self.persist();
         (self.emit)("files-opened", to_json(&outcome));
@@ -101,7 +103,17 @@ impl Core {
     /// could not be renamed.
     fn editing<T>(&mut self, f: impl FnOnce(&mut Engine) -> T) -> (T, Vec<String>) {
         let names = self.workspace.names(&self.engine);
+        let preview = self.workspace.preview;
+        let preview_before = preview.and_then(|id| crate::workspace::signature(&self.engine, id));
         let result = f(&mut self.engine);
+        // the preview is open for good once something is done to it
+        if let Some(id) = preview
+            && crate::workspace::signature(&self.engine, id) != preview_before
+        {
+            self.workspace.keep(&[id]);
+            self.keep_workspace();
+            self.announce(None);
+        }
         let (renamed, errors) = self.workspace.follow_names(&mut self.engine, &names);
         if renamed {
             self.keep_workspace();

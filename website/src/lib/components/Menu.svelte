@@ -47,6 +47,7 @@
         Maximize,
         Maximize2,
         Minimize2,
+        FolderX,
     } from '@lucide/svelte';
     import { map } from '$lib/components/map/map';
     import { editMetadata } from '$lib/components/file-list/metadata/utils.svelte';
@@ -215,7 +216,7 @@
                             <Shortcut key="W" ctrl={true} shift={true} />
                         </Menubar.Item>
                         <Menubar.Item onclick={closeFolder} disabled={!$workspace?.folder}>
-                            <FileX size="16" />
+                            <FolderX size="16" />
                             {i18n._('menu.close_folder')}
                         </Menubar.Item>
                     {:else}

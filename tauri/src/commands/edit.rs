@@ -5,24 +5,27 @@ use gpx_engine::{CleanType, FileId, MergeType, Selection, SplitType, api};
 use tauri::State;
 use uuid::Uuid;
 
-use crate::state::AppState;
+use crate::state::{AppState, Core};
 
 /// Names and describes the selected files or tracks. A file on the disk is renamed with it (and back
 /// when it is undone): its name is one that a file can have, and not the one of another file.
 #[tauri::command(async)]
 pub fn metadata(state: State<AppState>, name: String, desc: String) -> api::Outcome {
-    state.core(move |core| {
-        let mut name = name;
-        if let Selection::File { file_ids } = core.engine.selection() {
-            for FileId(id) in file_ids.clone() {
-                name = core.workspace.valid_name(id, &name);
-                if let Err(error) = core.workspace.renamed_path(id, &name) {
-                    return api::Outcome::failed(error);
-                }
+    state.core(move |core| rename_selection(core, name, desc))
+}
+
+/// See `metadata`.
+pub fn rename_selection(core: &mut Core, name: String, desc: String) -> api::Outcome {
+    let mut name = name;
+    if let Selection::File { file_ids } = core.engine.selection() {
+        for FileId(id) in file_ids.clone() {
+            name = core.workspace.valid_name(id, &name);
+            if let Err(error) = core.workspace.renamed_path(id, &name) {
+                return api::Outcome::failed(error);
             }
         }
-        core.edit(move |e| api::metadata(e, &name, &desc))
-    })
+    }
+    core.edit(move |e| api::metadata(e, &name, &desc))
 }
 
 #[tauri::command(async)]

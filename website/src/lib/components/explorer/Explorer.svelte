@@ -4,7 +4,9 @@
     import { CollapsibleTreeState } from '$lib/components/collapsible-tree/utils.svelte';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index';
     import ExplorerTree from './ExplorerTree.svelte';
-    import { clickedInExplorer } from './state.svelte';
+    import ExplorerRow from './ExplorerRow.svelte';
+    import { openFiles } from './actions';
+    import { clickedInExplorer, explorerSelection, renaming } from './state.svelte';
     import { i18n } from '$lib/i18n/i18n.svelte';
     import { engine } from '$lib/engine';
     import { selectedFileIds } from '$lib/engine/selection-helpers';
@@ -27,12 +29,13 @@
 
     let container: HTMLElement | undefined = $state();
 
-    // the file that is selected, if it is in the folder
-    let selectedPath = $derived.by(() => {
-        const id = selectedFileIds($selection)[0];
-        const path = id === undefined ? undefined : $workspace?.files[id]?.path;
-        return subfolder(folder, path) === undefined ? undefined : path;
-    });
+    // the files that are selected, if they are in the folder
+    let selectedPaths = $derived(
+        selectedFileIds($selection)
+            .map((id) => $workspace?.files[id]?.path)
+            .filter((path): path is string => subfolder(folder, path) !== undefined)
+    );
+    let selectedPath = $derived(selectedPaths[0]);
 
     $effect(() => {
         // not what the click that was just made depends on, only the selection and the folder
@@ -41,10 +44,29 @@
             return;
         }
         clickedInExplorer.path = undefined;
+        // what is selected elsewhere (the file list, the map) is selected here
+        explorerSelection.paths = untrack(() => selectedPaths);
+        explorerSelection.anchor = selectedPath;
         if (folder && selectedPath !== undefined) {
             return reveal(folder, selectedPath);
         }
     });
+
+    /** Enter opens the selected files for good. */
+    function onkeydown(event: KeyboardEvent) {
+        if (renaming.path !== undefined || !container || event.key !== 'Enter') return;
+        const kinds = new Map(
+            [...container.querySelectorAll<HTMLElement>('[data-explorer-path]')].map((row) => [
+                row.dataset.explorerPath!,
+                row.dataset.kind,
+            ])
+        );
+        const files = explorerSelection.paths.filter((path) => kinds.get(path) === 'file');
+        if (files.length > 0) {
+            openFiles(files, false);
+            event.preventDefault();
+        }
+    }
 
     /**
      * Opens the folders that hold a file and scrolls to the file, if it is not in view already. Its
@@ -83,16 +105,28 @@
     <div class="flex flex-col h-full">
         <div class="px-2 py-1 text-sm font-semibold shrink-0">{i18n._('menu.explorer')}</div>
         <ScrollArea class="grow min-h-0">
-            <div bind:this={container} class="flex flex-col pl-1 pr-3 pb-1">
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+            <div
+                bind:this={container}
+                data-explorer
+                role="tree"
+                tabindex="0"
+                class="flex flex-col pl-1 pr-3 pb-1 outline-none"
+                {onkeydown}
+            >
                 <!-- starts over when another folder is opened -->
                 {#key folder}
                     <!-- the folder itself -->
                     <CollapsibleTree side="left" treeState={trees.root} sticky>
                         <CollapsibleTreeNode id="folder">
                             {#snippet trigger()}
-                                <span class="grow truncate text-left" title={folder}>
-                                    {folderName(folder)}
-                                </span>
+                                <ExplorerRow
+                                    path={folder}
+                                    name={folderName(folder)}
+                                    kind="root"
+                                    onOpenFolder={() =>
+                                        trees && (trees.root.get('root.folder').current = true)}
+                                />
                             {/snippet}
                             {#snippet content(opened)}
                                 <!-- what is in it is only read when it is open -->

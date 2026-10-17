@@ -562,9 +562,87 @@ class Engine {
         return this.addedBy((b) => b.desktop!.openFiles());
     }
 
-    /** Opens files of the file system by their path, which get selected. Resolves to the new ids. */
-    async openPaths(paths: string[]): Promise<string[]> {
-        return this.addedBy((b) => b.desktop!.openPaths(paths));
+    /**
+     * Opens files of the file system by their path, which get selected: as a preview with
+     * `preview`, see `DesktopFiles.openPaths`. Resolves to the new ids.
+     */
+    async openPaths(paths: string[], preview = false): Promise<string[]> {
+        const added = await this.addedBy((b) => b.desktop!.openPaths(paths, preview));
+        // which file is the preview may have changed, without a file changing
+        await this.enqueue(async () => this.refreshWorkspace(this.backend!));
+        return added;
+    }
+
+    // What the explorer does to the tree of the open folder (the desktop app). When it fails,
+    // `lastError` tells why (a key of the dictionaries, or a message).
+
+    /**
+     * Makes a new file in a folder of the open folder, which is written there at once and selected.
+     * Resolves to its id.
+     */
+    async newFileIn(name: string, folder: string): Promise<string | undefined> {
+        const [id] = await this.addedBy((b) => b.desktop!.newFile(name, folder));
+        this._folderVersion.update((version) => version + 1);
+        return id;
+    }
+
+    /** Makes a folder in a folder of the open folder: resolves to its path. */
+    async createFolder(parent: string, name: string): Promise<string | undefined> {
+        return (await this.treeOperation((desktop) => desktop.createFolder(parent, name))).value;
+    }
+
+    /** Renames a file or a folder of the open folder. Resolves to whether it was done. */
+    async renamePath(path: string, name: string): Promise<boolean> {
+        const changed = await this.run((b) => b.desktop!.renamePath(path, name));
+        const failed = get(this._lastError) !== undefined;
+        await this.treeOperation(async () => {});
+        return changed || !failed;
+    }
+
+    /** Moves files and folders of the open folder into a folder of it. */
+    async movePaths(paths: string[], folder: string): Promise<boolean> {
+        return (await this.treeOperation((desktop) => desktop.movePaths(paths, folder))).done;
+    }
+
+    /** Moves files and folders of the open folder to the trash. */
+    async deletePaths(paths: string[]): Promise<boolean> {
+        const changed = await this.run((b) => b.desktop!.deletePaths(paths));
+        const failed = get(this._lastError) !== undefined;
+        await this.treeOperation(async () => {});
+        return changed || !failed;
+    }
+
+    /** Shows a file or a folder in the file manager of the system. */
+    async revealPath(path: string) {
+        await this.ready;
+        try {
+            await this.backend!.desktop?.revealPath(path);
+        } catch (error) {
+            console.error('engine:', error);
+        }
+    }
+
+    /**
+     * Does something to the file system, then reads where the files are and the tree again
+     * (without waiting for the watcher). Resolves to whether it was done, with what it gives.
+     */
+    private async treeOperation<T>(
+        action: (desktop: DesktopFiles) => Promise<T>
+    ): Promise<{ done: boolean; value?: T }> {
+        await this.ready;
+        return this.enqueue(async () => {
+            const backend = this.backend!;
+            let result: { done: boolean; value?: T } = { done: false };
+            try {
+                result = { done: true, value: await action(backend.desktop!) };
+            } catch (error) {
+                console.error('engine:', error);
+                this._lastError.set(String(error));
+            }
+            await this.refreshWorkspace(backend);
+            this._folderVersion.update((version) => version + 1);
+            return result;
+        });
     }
 
     /**

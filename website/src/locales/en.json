@@ -15,6 +15,15 @@
         "open": "Open...",
         "open_folder": "Open folder...",
         "explorer": "Explorer",
+        "explorer_menu": {
+            "open": "Open",
+            "new_file": "New file...",
+            "new_folder": "New folder...",
+            "rename": "Rename...",
+            "reveal_finder": "Reveal in Finder",
+            "reveal": "Reveal in file explorer",
+            "delete_failed": "The files could not be moved to the trash."
+        },
         "workspace": "Workspace",
         "save": "Save",
         "save_all": "Save all",

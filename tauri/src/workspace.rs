@@ -63,6 +63,8 @@ pub fn signature(engine: &Engine, id: Uuid) -> Option<u64> {
 pub const NAME_TAKEN: &str = "menu.metadata.name_taken";
 /// A file cannot be renamed on the disk.
 pub const RENAME_FAILED: &str = "menu.metadata.rename_failed";
+/// Files cannot be moved to the trash.
+pub const DELETE_FAILED: &str = "menu.explorer_menu.delete_failed";
 
 /// What to do with the files that have unsaved edits when they are closed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
@@ -102,6 +104,10 @@ pub struct Workspace {
     /// The folder where the files that are not on the disk yet are written.
     #[serde(default)]
     pub dirs: BTreeMap<Uuid, PathBuf>,
+    /// The file that is open as a preview (a single click in the tree): the next one replaces it,
+    /// until it is edited or opened for good (see `open_preview`).
+    #[serde(default)]
+    pub preview: Option<Uuid>,
 }
 
 /// What the frontend shows of a file.
@@ -121,6 +127,8 @@ pub struct FileStatus {
     pub replaced: bool,
     /// The file on the disk is gone.
     pub missing: bool,
+    /// The file is open as a preview, which the next one replaces.
+    pub preview: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -323,6 +331,7 @@ impl Workspace {
                             dirty: self.is_dirty(engine, *id),
                             replaced: link.is_some_and(|link| link.replaced),
                             missing: link.is_some_and(|link| link.missing),
+                            preview: self.preview == Some(*id),
                         },
                     )
                 })
@@ -358,6 +367,7 @@ impl Workspace {
         let open = |id: &Uuid| engine.file_structure(&FileId(*id)).is_some();
         self.links.retain(|id, _| open(id));
         self.dirs.retain(|id, _| open(id));
+        self.preview = self.preview.filter(open);
     }
 
     /// Opens files from the disk: the ones that are not open yet are added, and `select` selects
@@ -408,6 +418,35 @@ impl Workspace {
             outcome = outcome.merge(api::Outcome::failed(unreadable.join("; ")));
         }
         outcome
+    }
+
+    /// Opens a file as a preview, which is selected: it replaces the file that was the preview,
+    /// which is closed (it has no edits, it would not be the preview anymore). It is the preview
+    /// until it is edited or opened for good (`keep`). A file that is open already is selected.
+    pub fn open_preview(&mut self, engine: &mut Engine, path: &Path) -> api::Outcome {
+        let path = canonical(path);
+        if self.id_of(&path).is_some() {
+            return self.open_files(engine, &[path], true);
+        }
+        let closed = match self.preview.take() {
+            Some(previous) => self.close_files(engine, &[previous], false),
+            None => api::Outcome::failed_none(),
+        };
+        let opened = self.open_files(engine, std::slice::from_ref(&path), true);
+        self.preview = self.id_of(&path);
+        closed.merge(opened)
+    }
+
+    /// The files are open for good: none of them is the preview anymore.
+    pub fn keep(&mut self, ids: &[Uuid]) {
+        if self.preview.is_some_and(|preview| ids.contains(&preview)) {
+            self.preview = None;
+        }
+    }
+
+    /// The open files that are linked to these paths.
+    pub fn ids_at(&self, paths: &[PathBuf]) -> Vec<Uuid> {
+        paths.iter().filter_map(|path| self.linked(path)).collect()
     }
 
     /// The link of a file that is the one on the disk, which has the given bytes. `None` if the
@@ -506,6 +545,7 @@ impl Workspace {
             self.links.remove(id);
             self.dirs.remove(id);
         }
+        self.keep(&closing);
         api::sync_files(engine, &[], &closing)
     }
 
@@ -910,6 +950,153 @@ impl Workspace {
         });
         Ok(entries)
     }
+
+    // What the explorer does to the tree of the open folder. The paths are in the open folder, and
+    // the open files follow what happens to their file. None of it is undone.
+
+    /// A folder of the tree: the open folder or a folder in it.
+    fn tree_folder(&self, path: &Path) -> Result<PathBuf, String> {
+        let path = canonical(path);
+        if !self.in_folder(&path) || !path.is_dir() {
+            return Err(format!(
+                "{} is not a folder of the open folder",
+                path.display()
+            ));
+        }
+        Ok(path)
+    }
+
+    /// Something in the tree, which can be renamed, moved or deleted: not the open folder itself.
+    fn tree_item(&self, path: &Path) -> Result<PathBuf, String> {
+        let path = canonical(path);
+        if !self.in_folder(&path) || self.folder.as_ref() == Some(&path) || !path.exists() {
+            return Err(format!("{} is not in the open folder", path.display()));
+        }
+        Ok(path)
+    }
+
+    /// Whether `to` can be the new place of `from`: nothing else is there (the same file under
+    /// another case is not something else).
+    fn free_for(from: &Path, to: &Path) -> Result<(), String> {
+        if to.exists() && !same_file(to, from) {
+            return Err(NAME_TAKEN.to_owned());
+        }
+        Ok(())
+    }
+
+    /// The open file whose file is at `path`.
+    pub fn linked(&self, path: &Path) -> Option<Uuid> {
+        self.id_of(&canonical(path))
+    }
+
+    /// The places of the files follow what was at `from`, which is now at `to` (a file, or a
+    /// folder with what is in it).
+    fn moved(&mut self, from: &Path, to: &Path) {
+        let follow = |path: &mut PathBuf| {
+            if let Ok(rest) = path.strip_prefix(from) {
+                *path = if rest.as_os_str().is_empty() {
+                    to.to_path_buf()
+                } else {
+                    to.join(rest)
+                };
+            }
+        };
+        for link in self.links.values_mut() {
+            follow(&mut link.path);
+        }
+        for dir in self.dirs.values_mut() {
+            follow(dir);
+        }
+    }
+
+    /// Makes a folder in a folder of the tree, called `name` (with a number if that is taken: `name
+    /// 2`). Gives its path.
+    pub fn create_folder(&self, parent: &Path, name: &str) -> Result<PathBuf, String> {
+        let parent = self.tree_folder(parent)?;
+        let name = file_name(name);
+        let path = (1..)
+            .map(|number| match number {
+                1 => parent.join(&name),
+                _ => parent.join(format!("{name} {number}")),
+            })
+            .find(|path| !path.exists())
+            .expect("there are enough numbers");
+        fs::create_dir(&path).map_err(|error| format!("{}: {error}", path.display()))?;
+        Ok(path)
+    }
+
+    /// Renames a file or a folder of the tree that is not an open file (which is renamed in the
+    /// engine, see `follow_names`). A file keeps its extension. Gives the new path.
+    pub fn rename_path(&mut self, path: &Path, name: &str) -> Result<PathBuf, String> {
+        let path = self.tree_item(path)?;
+        let name = file_name(name);
+        let new_name = match path.extension().filter(|_| path.is_file()) {
+            Some(extension) => format!("{name}.{}", extension.to_string_lossy()),
+            None => name,
+        };
+        let to = path.with_file_name(new_name);
+        if to == path {
+            return Ok(path);
+        }
+        Self::free_for(&path, &to)?;
+        fs::rename(&path, &to).map_err(|error| {
+            eprintln!("{} cannot be renamed: {error}", path.display());
+            RENAME_FAILED.to_owned()
+        })?;
+        self.moved(&path, &to);
+        Ok(to)
+    }
+
+    /// Moves files and folders of the tree into a folder of it. What is there already stays where
+    /// it is; stops at the first that cannot be moved.
+    pub fn move_paths(&mut self, paths: &[PathBuf], folder: &Path) -> Result<(), String> {
+        let folder = self.tree_folder(folder)?;
+        for path in paths {
+            let path = self.tree_item(path)?;
+            if path.parent() == Some(folder.as_path()) {
+                continue;
+            }
+            if folder.starts_with(&path) {
+                return Err(format!("{} cannot go into itself", path.display()));
+            }
+            let to = folder.join(path.file_name().unwrap_or_default());
+            Self::free_for(&path, &to)?;
+            fs::rename(&path, &to).map_err(|error| {
+                eprintln!("{} cannot be moved: {error}", path.display());
+                RENAME_FAILED.to_owned()
+            })?;
+            self.moved(&path, &to);
+        }
+        Ok(())
+    }
+
+    /// Deletes files and folders of the tree with `delete` (to the trash). The open files that
+    /// were among them are closed if they have no edits, the others stay open, as gone from the
+    /// disk. Says what changed in the engine.
+    pub fn delete_paths(
+        &mut self,
+        engine: &mut Engine,
+        paths: &[PathBuf],
+        delete: impl FnOnce(&[PathBuf]) -> Result<(), String>,
+    ) -> Result<api::Outcome, String> {
+        let paths = paths
+            .iter()
+            .map(|path| self.tree_item(path))
+            .collect::<Result<Vec<_>, _>>()?;
+        delete(&paths)?;
+        let gone: Vec<Uuid> = self
+            .links
+            .iter()
+            .filter(|(_, link)| paths.iter().any(|path| link.path.starts_with(path)))
+            .map(|(id, _)| *id)
+            .collect();
+        let closed = self.close_files(engine, &gone, false);
+        let flagged = self.reconcile(engine, Some(&paths));
+        Ok(match flagged {
+            Some(outcome) => closed.merge(outcome),
+            None => closed,
+        })
+    }
 }
 
 #[cfg(test)]
@@ -1149,6 +1336,77 @@ mod tests {
         assert!(!outcome.changed);
         assert!(fx.ids().is_empty());
         assert_eq!(fx.workspace.folder.as_deref(), Some(folder.as_path()));
+    }
+
+    #[test]
+    fn folders_are_made_renamed_and_moved_and_the_open_files_follow() {
+        let mut fx = Fixture::new();
+        let a = fx.write("a.gpx", "a");
+        fx.open_folder();
+        let id = fx.ids()[0];
+        let root = fx.folder.clone();
+        let path_of = |fx: &Fixture| PathBuf::from(fx.status(id).path.unwrap());
+
+        let first = fx.workspace.create_folder(&root, "New folder").unwrap();
+        let second = fx.workspace.create_folder(&root, "New folder").unwrap();
+        assert_eq!(first, root.join("New folder"));
+        assert_eq!(second, root.join("New folder 2"));
+
+        fx.workspace.move_paths(&[a], &first).unwrap();
+        assert_eq!(path_of(&fx), first.join("a.gpx"));
+        assert!(first.join("a.gpx").exists() && !fx.status(id).dirty);
+
+        let trips = fx.workspace.rename_path(&first, "Trips").unwrap();
+        assert_eq!(path_of(&fx), root.join("Trips/a.gpx"));
+        // a folder does not go into itself, nor onto something else
+        assert!(
+            fx.workspace
+                .move_paths(std::slice::from_ref(&trips), &trips)
+                .is_err()
+        );
+        assert_eq!(
+            fx.workspace.rename_path(&trips, "New folder 2"),
+            Err(NAME_TAKEN.to_owned())
+        );
+        fx.workspace.move_paths(&[trips], &second).unwrap();
+        assert_eq!(path_of(&fx), second.join("Trips/a.gpx"));
+
+        // a file keeps its extension
+        let closed = fx.write("c.gpx", "c");
+        assert_eq!(
+            fx.workspace.rename_path(&closed, "d").unwrap(),
+            root.join("d.gpx")
+        );
+        // the open folder and what is not in it are left alone
+        assert!(fx.workspace.rename_path(&root, "x").is_err());
+        let elsewhere = canonical(&std::env::temp_dir());
+        assert!(fx.workspace.rename_path(&elsewhere, "x").is_err());
+        assert!(fx.workspace.create_folder(&elsewhere, "x").is_err());
+    }
+
+    #[test]
+    fn deleted_files_are_closed_unless_they_have_edits() {
+        let mut fx = Fixture::new();
+        let a = fx.write("a.gpx", "a");
+        let b = fx.write("b.gpx", "b");
+        fx.open_folder();
+        let (id_a, id_b) = (fx.id_named("a"), fx.id_named("b"));
+        api::select(&mut fx.engine, &[id_b], SelectMode::Replace);
+        assert!(!api::style(&mut fx.engine, Some("#ff0000"), None, None).has_error());
+
+        let outcome = fx
+            .workspace
+            .delete_paths(&mut fx.engine, &[a.clone(), b.clone()], |paths| {
+                paths.iter().for_each(|path| fs::remove_file(path).unwrap());
+                Ok(())
+            })
+            .unwrap();
+        assert!(outcome.changed);
+        assert_eq!(fx.ids(), [id_b]);
+        assert!(!fx.ids().contains(&id_a));
+        let status = fx.status(id_b);
+        assert!(status.dirty && status.missing);
+        assert!(!a.exists() && !b.exists());
     }
 
     #[test]
