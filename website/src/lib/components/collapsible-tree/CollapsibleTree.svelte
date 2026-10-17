@@ -9,6 +9,7 @@
         nohover = false,
         slotInsideTrigger = true,
         sticky = false,
+        treeState,
         children,
     }: {
         defaultState?: 'open' | 'closed';
@@ -21,10 +22,12 @@
          * like its node.
          */
         sticky?: boolean;
+        /** Which nodes are open, to keep it or to open nodes from the outside. */
+        treeState?: CollapsibleTreeState;
         children: Snippet;
     } = $props();
 
-    let open = $state(new CollapsibleTreeState(defaultState));
+    let open = $state(treeState ?? new CollapsibleTreeState(defaultState));
 
     setContext('collapsible-tree-state', open);
     setContext('collapsible-tree-side', side);

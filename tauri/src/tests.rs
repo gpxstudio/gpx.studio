@@ -531,3 +531,22 @@ fn the_parts_of_a_split_are_numbered_from_one() {
     assert_eq!(names, ["track (1).gpx", "track (2).gpx", "track.gpx"]);
     std::fs::remove_dir_all(folder).unwrap();
 }
+
+#[test]
+fn files_can_be_reordered() {
+    let app = App::new();
+    let mut ids = vec![];
+    for name in ["a", "b", "c"] {
+        let outcome = app.call("new_file", json!({ "name": name }));
+        ids.push(outcome["added"][0].as_str().unwrap().to_string());
+    }
+    assert_eq!(app.call("file_order", json!({})), json!(ids));
+
+    let outcome = app.call("reorder", json!({ "fileIds": [ids[2]], "index": 0 }));
+    assert_eq!(outcome["changed"], true);
+    assert_eq!(outcome["orderChanged"], true);
+    assert_eq!(
+        app.call("file_order", json!({})),
+        json!([ids[2], ids[0], ids[1]])
+    );
+}

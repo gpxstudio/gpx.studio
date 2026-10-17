@@ -2,6 +2,9 @@
     import { CollapsibleTreeNode } from '$lib/components/collapsible-tree/index';
     import { Button } from '$lib/components/ui/button';
     import { FileText } from '@lucide/svelte';
+    import { getContext } from 'svelte';
+    import { clickedInExplorer } from './state.svelte';
+    import { stickyKey, type StickyLevel } from '$lib/components/collapsible-tree/sticky';
     import ExplorerTree from './ExplorerTree.svelte';
     import { openPath } from '$lib/actions/file-actions';
     import { engine, type FolderEntry } from '$lib/engine';
@@ -16,6 +19,8 @@
     } = $props();
 
     const { workspace, selection, folderVersion } = engine;
+    // the rows of the folders that stick above the files of this one
+    const level = getContext<StickyLevel>(stickyKey);
 
     let entries: FolderEntry[] = $state([]);
 
@@ -35,6 +40,9 @@
 
     /** Opens the file, or selects it if it is open already. */
     function open(entry: FolderEntry, id: string | undefined) {
+        // it is in view, the explorer does not have to scroll to it (which would move the rows
+        // under the pointer, and leave the one it was on highlighted)
+        clickedInExplorer.path = entry.path;
         if (id !== undefined) {
             engine.select([id]);
         } else {
@@ -67,6 +75,8 @@
                 ? 'bg-accent'
                 : ''} {id === undefined ? 'text-muted-foreground' : ''}"
             title={entry.path}
+            data-path={entry.path}
+            style="scroll-margin-top: {level.top}px"
             onclick={() => open(entry, id)}
         >
             <FileText size="16" class="shrink-0" />
