@@ -1,11 +1,11 @@
 <script lang="ts">
     import * as ContextMenu from '$lib/components/ui/context-menu';
     import {
-        ExternalLink,
+        ArrowUpRight,
         FileX,
         FolderOpen,
         FolderX,
-        PencilLine,
+        PenLine,
         Plus,
         Trash2,
     } from '@lucide/svelte';
@@ -296,37 +296,38 @@
                 <FolderOpen size="16" />
                 {i18n._('menu.explorer_menu.open')}
             </ContextMenu.Item>
-            {#if openIds().length > 0}
-                <ContextMenu.Item onclick={() => closeFiles(openIds())}>
-                    <FileX size="16" />
-                    {i18n._('menu.close')}
-                </ContextMenu.Item>
-            {/if}
-            <ContextMenu.Separator />
         {/if}
+        <ContextMenu.Item onclick={() => engine.revealPath(path)}>
+            <ArrowUpRight size="16" />
+            {i18n._(isMac() ? 'menu.explorer_menu.reveal_finder' : 'menu.explorer_menu.reveal')}
+        </ContextMenu.Item>
+        <ContextMenu.Separator />
         {#if kind !== 'root'}
             <ContextMenu.Item
                 disabled={targets().length !== 1}
                 onclick={() => (renaming.path = path)}
             >
-                <PencilLine size="16" />
+                <PenLine size="16" />
                 {i18n._('menu.explorer_menu.rename')}
-            </ContextMenu.Item>
-            <ContextMenu.Item onclick={remove}>
-                <Trash2 size="16" />
-                {i18n._('menu.delete')}
             </ContextMenu.Item>
             <ContextMenu.Separator />
         {/if}
-        <ContextMenu.Item onclick={() => engine.revealPath(path)}>
-            <ExternalLink size="16" />
-            {i18n._(isMac() ? 'menu.explorer_menu.reveal_finder' : 'menu.explorer_menu.reveal')}
-        </ContextMenu.Item>
         {#if kind === 'root'}
-            <ContextMenu.Separator />
             <ContextMenu.Item onclick={closeFolder}>
                 <FolderX size="16" />
                 {i18n._('menu.close_folder')}
+            </ContextMenu.Item>
+        {:else}
+            {#if kind === 'file' && openIds().length > 0}
+                <ContextMenu.Item onclick={() => closeFiles(openIds())}>
+                    <FileX size="16" />
+                    {i18n._('menu.close')}
+                </ContextMenu.Item>
+                <ContextMenu.Separator />
+            {/if}
+            <ContextMenu.Item onclick={remove}>
+                <Trash2 size="16" />
+                {i18n._('menu.delete')}
             </ContextMenu.Item>
         {/if}
     </ContextMenu.Content>
