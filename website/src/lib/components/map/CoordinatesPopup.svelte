@@ -8,7 +8,7 @@
                 map_.queryRenderedFeatures(e.point, {
                     layers: map_
                         .getLayersOrder()
-                        .filter((layerId) => layerId.startsWith('routing-controls')),
+                        .filter((layerId) => layerId == 'routing-controls'),
                 }).length
             ) {
                 // Clicked on routing control, ignoring

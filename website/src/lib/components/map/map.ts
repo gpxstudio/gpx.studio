@@ -41,6 +41,16 @@ export class MapLibreGLMap {
     ) {
         this._maptilerKey = maptilerKey;
         this._styleManager = new StyleManager(this._mapStore, this._maptilerKey);
+        // MapLibre gives Safari more workers, but only recognizes it by its user agent: not
+        // WebKit in the desktop app, where the data of the sources was then processed one source
+        // after the other, and the map drew the files a frame before the anchors of the routing
+        // tool. Before the first map, which starts the workers.
+        const userAgent = navigator.userAgent;
+        if (userAgent.includes('AppleWebKit') && !userAgent.includes('Chrome')) {
+            maplibregl.setWorkerCount(
+                Math.max(Math.min(Math.floor(navigator.hardwareConcurrency / 2), 3), 1)
+            );
+        }
         const map = new maplibregl.Map({
             container: 'map',
             style: {

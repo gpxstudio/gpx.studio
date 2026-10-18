@@ -8,7 +8,6 @@ import maplibregl, {
 } from 'maplibre-gl';
 import { route } from './routing';
 import { toast } from 'svelte-sonner';
-import { loadSVGIcon } from '$lib/utils';
 import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
 import { currentTool, Tool } from '$lib/components/toolbar/tools';
 import { streetViewEnabled } from '$lib/components/map/street-view-control/utils';
@@ -30,8 +29,8 @@ const { streetViewSource } = settings;
 /** Whether the popup of an anchor can offer to start the loop there. */
 export const canChangeStart = writable(false);
 
-const MIN_ANCHOR_ZOOM = 0;
-const MAX_ANCHOR_ZOOM = 22;
+/** The source and layer of the anchors. */
+const LAYER_ID = 'routing-controls';
 
 /** An anchor of a segment of the selection, a trackpoint that can be dragged to reroute it. */
 type Anchor = {
@@ -63,7 +62,6 @@ function isRoutable(selection: Selection) {
  */
 export class RoutingControls {
     active = false;
-    layers: Map<number, { id: string; features: AnchorFeature[] }> = new Map();
     anchors: Anchor[] = [];
     statistics: SelectionStatistics | undefined = undefined;
     /** What the tool needs from the engine, while it shows the anchors. */
@@ -103,9 +101,6 @@ export class RoutingControls {
     updateTemporaryAnchorBinded: (e: MapMouseEvent) => void = this.updateTemporaryAnchor.bind(this);
 
     constructor(popup: maplibregl.Popup, popupElement: HTMLElement) {
-        for (let zoom = MIN_ANCHOR_ZOOM; zoom <= MAX_ANCHOR_ZOOM; zoom++) {
-            this.layers.set(zoom, { id: `routing-controls-${zoom}`, features: [] });
-        }
         this.popup = popup;
         this.popupElement = popupElement;
 
@@ -152,8 +147,6 @@ export class RoutingControls {
         }
 
         this.active = true;
-
-        this.loadIcons();
 
         map_.on('style.load', this.updateBinded);
         map_.on('click', this.appendAnchorBinded);
@@ -229,60 +222,54 @@ export class RoutingControls {
             return;
         }
 
-        this.layers.forEach((layer) => (layer.features = []));
         this.anchors = this.readAnchors();
-        for (const anchor of this.anchors) {
-            this.layers.get(anchor.zoom)?.features.push({
-                type: 'Feature',
-                geometry: { type: 'Point', coordinates: [anchor.lng, anchor.lat] },
-                properties: { anchorIndex: anchor.id, minZoom: anchor.zoom },
-            });
-        }
+        const features: AnchorFeature[] = this.anchors.map((anchor) => ({
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [anchor.lng, anchor.lat] },
+            properties: { anchorIndex: anchor.id, minZoom: anchor.zoom },
+        }));
         // the anchors have changed, so has what is hovered
         this.temporaryAnchor = null;
 
-        this.layers.forEach((layer, zoom) => {
-            try {
-                const source = map_.getSource(layer.id) as maplibregl.GeoJSONSource | undefined;
-                const data: GeoJSON.FeatureCollection = {
-                    type: 'FeatureCollection',
-                    features: layer.features,
-                };
-                if (source) {
-                    source.setData(data);
-                } else {
-                    map_.addSource(layer.id, { type: 'geojson', data, promoteId: 'anchorIndex' });
-                }
-
-                if (!map_.getLayer(layer.id)) {
-                    map_.addLayer(
-                        {
-                            id: layer.id,
-                            type: 'symbol',
-                            source: layer.id,
-                            layout: {
-                                'icon-image': 'routing-control',
-                                'icon-size': 0.25,
-                                'icon-padding': 0,
-                                'icon-allow-overlap': true,
-                            },
-                            minzoom: zoom,
-                        },
-                        ANCHOR_LAYER_KEY.routingControls
-                    );
-
-                    layerEventManager.on('mouseenter', layer.id, this.onMouseEnterBinded);
-                    layerEventManager.on('mouseleave', layer.id, this.onMouseLeaveBinded);
-                    layerEventManager.on('click', layer.id, this.onClickBinded);
-                    layerEventManager.on('contextmenu', layer.id, this.onClickBinded);
-                    layerEventManager.on('mousedown', layer.id, this.onMouseDownBinded);
-                    layerEventManager.on('touchstart', layer.id, this.onTouchStartBinded);
-                }
-            } catch (e) {
-                // No reliable way to check if the map is ready to add sources and layers
-                return;
+        // a single source for all the anchors, filtered by zoom: one update for the map to process
+        try {
+            const source = map_.getSource(LAYER_ID) as maplibregl.GeoJSONSource | undefined;
+            const data: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features };
+            if (source) {
+                source.setData(data);
+            } else {
+                map_.addSource(LAYER_ID, { type: 'geojson', data, promoteId: 'anchorIndex' });
             }
-        });
+
+            if (!map_.getLayer(LAYER_ID)) {
+                // bigger on small screens, to be touched
+                const scale = map_.getCanvasContainer().offsetWidth > 1000 ? 0.7 : 1;
+                map_.addLayer(
+                    {
+                        id: LAYER_ID,
+                        type: 'circle',
+                        source: LAYER_ID,
+                        paint: {
+                            'circle-radius': 7 * scale,
+                            'circle-color': 'white',
+                            'circle-stroke-width': 2 * scale,
+                            'circle-stroke-color': 'black',
+                        },
+                        filter: ['>=', ['zoom'], ['get', 'minZoom']],
+                    },
+                    ANCHOR_LAYER_KEY.routingControls
+                );
+
+                layerEventManager.on('mouseenter', LAYER_ID, this.onMouseEnterBinded);
+                layerEventManager.on('mouseleave', LAYER_ID, this.onMouseLeaveBinded);
+                layerEventManager.on('click', LAYER_ID, this.onClickBinded);
+                layerEventManager.on('contextmenu', LAYER_ID, this.onClickBinded);
+                layerEventManager.on('mousedown', LAYER_ID, this.onMouseDownBinded);
+                layerEventManager.on('touchstart', LAYER_ID, this.onTouchStartBinded);
+            }
+        } catch (e) {
+            // No reliable way to check if the map is ready to add sources and layers
+        }
     }
 
     remove() {
@@ -298,26 +285,24 @@ export class RoutingControls {
         map_?.off('mousemove', this.updateTemporaryAnchorBinded);
         this.updateFileListeners();
 
-        this.layers.forEach((layer) => {
-            try {
-                layerEventManager?.off('mouseenter', layer.id, this.onMouseEnterBinded);
-                layerEventManager?.off('mouseleave', layer.id, this.onMouseLeaveBinded);
-                layerEventManager?.off('click', layer.id, this.onClickBinded);
-                layerEventManager?.off('contextmenu', layer.id, this.onClickBinded);
-                layerEventManager?.off('mousedown', layer.id, this.onMouseDownBinded);
-                layerEventManager?.off('touchstart', layer.id, this.onTouchStartBinded);
+        try {
+            layerEventManager?.off('mouseenter', LAYER_ID, this.onMouseEnterBinded);
+            layerEventManager?.off('mouseleave', LAYER_ID, this.onMouseLeaveBinded);
+            layerEventManager?.off('click', LAYER_ID, this.onClickBinded);
+            layerEventManager?.off('contextmenu', LAYER_ID, this.onClickBinded);
+            layerEventManager?.off('mousedown', LAYER_ID, this.onMouseDownBinded);
+            layerEventManager?.off('touchstart', LAYER_ID, this.onTouchStartBinded);
 
-                if (map_?.getLayer(layer.id)) {
-                    map_?.removeLayer(layer.id);
-                }
-
-                if (map_?.getSource(layer.id)) {
-                    map_?.removeSource(layer.id);
-                }
-            } catch (e) {
-                // No reliable way to check if the map is ready to remove sources and layers
+            if (map_?.getLayer(LAYER_ID)) {
+                map_?.removeLayer(LAYER_ID);
             }
-        });
+
+            if (map_?.getSource(LAYER_ID)) {
+                map_?.removeSource(LAYER_ID);
+            }
+        } catch (e) {
+            // No reliable way to check if the map is ready to remove sources and layers
+        }
 
         this.popup.remove();
     }
@@ -463,16 +448,15 @@ export class RoutingControls {
             // Exit if anchor is being dragged
             return;
         }
-        const controlLayerIds = [...this.layers.values()].map((l) => l.id);
         const segmentIds = this.anchorData?.segmentIds ?? [];
         if (
             e.target
                 .queryRenderedFeatures(e.point, {
-                    layers: [...this.listenedFileIds, ...controlLayerIds],
+                    layers: [...this.listenedFileIds, LAYER_ID],
                 })
                 .some(
                     (feature) =>
-                        controlLayerIds.includes(feature.layer.id) ||
+                        feature.layer.id === LAYER_ID ||
                         segmentIds.includes(feature.properties?.segmentId)
                 )
         ) {
@@ -622,22 +606,6 @@ export class RoutingControls {
         this.remove();
         this.request.release();
         this.unsubscribes.forEach((unsubscribe) => unsubscribe());
-    }
-
-    loadIcons() {
-        const _map = get(map);
-        if (!_map) {
-            return;
-        }
-
-        loadSVGIcon(
-            _map,
-            'routing-control',
-            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                <circle cx="10" cy="10" r="8" fill="white" stroke="black" stroke-width="2" />
-            </svg>`,
-            _map.getCanvasContainer().offsetWidth > 1000 ? 56 : 80
-        );
     }
 
     onMouseEnter() {
@@ -847,9 +815,7 @@ export class RoutingControls {
     }
 
     moveAnchorFeature(anchor: Anchor, coordinates: Coordinates) {
-        const source = get(map)?.getSource(
-            this.layers.get(anchor.id === this.anchors.length ? 0 : anchor.zoom)?.id ?? ''
-        ) as GeoJSONSource | undefined;
+        const source = get(map)?.getSource(LAYER_ID) as GeoJSONSource | undefined;
         if (source) {
             source.updateData({
                 update: [
@@ -869,7 +835,7 @@ export class RoutingControls {
         if (!this.temporaryAnchor) {
             return;
         }
-        const source = get(map)?.getSource(this.layers.get(0)!.id) as GeoJSONSource | undefined;
+        const source = get(map)?.getSource(LAYER_ID) as GeoJSONSource | undefined;
         source?.updateData({
             add: [
                 {
@@ -890,7 +856,7 @@ export class RoutingControls {
             return;
         }
         const map_ = get(map);
-        const source = map_?.getSource(this.layers.get(0)!.id) as GeoJSONSource | undefined;
+        const source = map_?.getSource(LAYER_ID) as GeoJSONSource | undefined;
         source?.updateData({ remove: [this.anchors.length] });
         map_?.off('mousemove', this.updateTemporaryAnchorBinded);
         mapCursor.notify(MapCursorState.ANCHOR_HOVER, false);

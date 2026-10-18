@@ -976,15 +976,30 @@ class Engine {
      * rely on the order, the files and the selection being consistent when they are notified.
      */
     private async sync(backend: Backend, update: Outcome) {
-        const [[canUndo, canRedo, canPaste], clipboard, selection, order] = await Promise.all([
+        const filesChanged =
+            update.added.length + update.modified.length + update.removed.length > 0;
+        // the statistics depend on the selection, on its order, and on the files
+        const statisticsChanged = update.selectionChanged || update.orderChanged || filesChanged;
+
+        // read in parallel: with the engine in another process (desktop app), each read is a
+        // round trip
+        const files = get(this._files);
+        const [
+            [canUndo, canRedo, canPaste],
+            clipboard,
+            selection,
+            order,
+            workspace,
+            setStatistics,
+            added,
+            modified,
+        ] = await Promise.all([
             Promise.all([backend.can_undo(), backend.can_redo(), backend.can_paste()]),
             update.clipboardChanged ? backend.clipboard() : undefined,
             update.selectionChanged ? backend.selection() : undefined,
             update.orderChanged ? backend.file_order() : undefined,
-        ]);
-
-        const files = get(this._files);
-        const [added, modified] = await Promise.all([
+            filesChanged ? backend.desktop?.workspace() : undefined,
+            statisticsChanged ? this._statistics.refresh(backend) : undefined,
             Promise.all(
                 update.added.map((id) => readFileState(backend, id, this._colors, this._visibility))
             ),
@@ -1036,18 +1051,10 @@ class Engine {
             }
         });
 
-        if (update.added.length + update.modified.length + update.removed.length > 0) {
-            await this.refreshWorkspace(backend);
+        if (workspace) {
+            this._workspace.set(workspace);
         }
-
-        // the statistics depend on the selection, on its order, and on the files
-        if (
-            update.selectionChanged ||
-            update.orderChanged ||
-            update.added.length + update.modified.length + update.removed.length > 0
-        ) {
-            await this._statistics.refresh(backend);
-        }
+        setStatistics?.();
     }
 }
 

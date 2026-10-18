@@ -29,10 +29,14 @@ export class StatisticsReader {
     /** @param enqueue Does a task after the calls to the engine that were made before it. */
     constructor(private enqueue: <T>(task: () => Promise<T>) => Promise<T>) {}
 
-    /** Reads the statistics of the selection again, after it or the files changed. */
-    async refresh(backend: Backend) {
+    /**
+     * Reads the statistics of the selection again, after it or the files changed. Resolves to what
+     * puts them in the store, for the caller to do it together with its other updates.
+     */
+    async refresh(backend: Backend): Promise<() => void> {
         this._backend = backend;
-        this._store.set(await this.read(backend));
+        const statistics = await this.read(backend);
+        return () => this._store.set(statistics);
     }
 
     /**
