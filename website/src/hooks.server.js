@@ -46,8 +46,13 @@ export async function handle({ event, resolve }) {
     <meta name="twitter:url" content="https://gpx.studio/" />
     <meta name="twitter:site" content="@gpxstudio" />
     <meta name="twitter:creator" content="@gpxstudio" />
-    <link rel="alternate" hreflang="x-default" href="https://gpx.studio${getURLForLanguage('en', path)}" />
+    <link rel="alternate" hreflang="x-default" href="https://gpx.studio${getURLForLanguage('en', path)}" />`;
+
+    // the manifests are made for the website, not for the desktop app (`npm run build:desktop`)
+    if (process.env.BUILD_TARGET !== 'desktop') {
+        headTag += `
     <link rel="manifest" href="/${language}.manifest.webmanifest" />`;
+    }
 
     if (page !== '404') {
         for (let lang of Object.keys(languages)) {

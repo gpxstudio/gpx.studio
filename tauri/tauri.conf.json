@@ -6,7 +6,7 @@
     "build": {
         "beforeDevCommand": "npm --prefix ../website run dev -- --port 4283",
         "devUrl": "http://localhost:4283",
-        "beforeBuildCommand": "BASE_PATH='' npm --prefix ../website run build",
+        "beforeBuildCommand": "npm --prefix ../website run build:desktop",
         "frontendDist": "../website/build"
     },
     "app": {

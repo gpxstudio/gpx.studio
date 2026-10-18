@@ -5,6 +5,7 @@
     "scripts": {
         "dev": "vite dev",
         "build": "vite build",
+        "build:desktop": "BUILD_TARGET=desktop BASE_PATH='' vite build",
         "prebuild": "npx tsx src/lib/scripts/pwa-manifest.ts",
         "postbuild": "npx tsx src/lib/scripts/sitemap.ts",
         "preview": "vite preview",
