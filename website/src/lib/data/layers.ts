@@ -23,9 +23,6 @@ import {
     Toilet,
 } from 'lucide-static';
 import { type RasterDEMSourceSpecification, type StyleSpecification } from 'maplibre-gl';
-import ignFrTopo from '$lib/data/custom/ign-fr-topo.json';
-import ignFrPlan from '$lib/data/custom/ign-fr-plan.json';
-import ignFrSatellite from '$lib/data/custom/ign-fr-satellite.json';
 import bikerouterGravel from '$lib/data/custom/bikerouter-gravel.json';
 
 export const maptilerKeyPlaceHolder = 'MAPTILER_KEY';
@@ -213,8 +210,9 @@ export const basemaps: { [key: string]: string | StyleSpecification } = {
             },
         ],
     },
-    ignFrPlan: ignFrPlan as StyleSpecification,
-    ignFrTopo: ignFrTopo as StyleSpecification,
+    ignFrPlan: 'https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/standard.json',
+    ignFrTopo:
+        'https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/classique.json',
     ignFrScan25: {
         version: 8,
         sources: {
@@ -236,7 +234,8 @@ export const basemaps: { [key: string]: string | StyleSpecification } = {
             },
         ],
     },
-    ignFrSatellite: ignFrSatellite as StyleSpecification,
+    ignFrSatellite:
+        'https://raw.githubusercontent.com/fab-geocommuns/carte-facile/refs/heads/main/src/maps/aerial.json',
     ignEs: {
         version: 8,
         sources: {
