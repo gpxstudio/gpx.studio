@@ -446,14 +446,11 @@ fn a_file_outside_the_open_folder_is_read_again_when_the_disk_changes() {
         outcome.added()[0].clone()
     });
     let id = uuid::Uuid::parse_str(&id).unwrap();
-    let name = |state: &crate::state::AppState| {
-        state.core(move |core| {
-            core.engine
-                .file_structure(&gpx_engine::FileId(id))
-                .map(|structure| structure.name.clone())
-        })
+    // the name comes from the path, which does not change: the content does
+    let signature = |state: &crate::state::AppState| {
+        state.core(move |core| crate::workspace::signature(&core.engine, id))
     };
-    let before = name(&state);
+    let before = signature(&state);
 
     std::fs::copy("../gpx-rs/data/with_time.gpx", &path).unwrap();
     // the debounced watcher tells the frontend that the engine changed
@@ -465,7 +462,7 @@ fn a_file_outside_the_open_folder_is_read_again_when_the_disk_changes() {
         }
     }
     assert!(changed, "the file was not read again");
-    assert_ne!(name(&state), before);
+    assert_ne!(signature(&state), before);
     std::fs::remove_dir_all(folder).unwrap();
     std::fs::remove_dir_all(directory).unwrap();
 }
