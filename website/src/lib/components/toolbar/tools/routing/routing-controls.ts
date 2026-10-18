@@ -243,7 +243,7 @@ export class RoutingControls {
 
             if (!map_.getLayer(LAYER_ID)) {
                 // bigger on small screens, to be touched
-                const scale = map_.getCanvasContainer().offsetWidth > 1000 ? 0.7 : 1;
+                const scale = window.innerWidth > 1000 ? 0.7 : 1;
                 map_.addLayer(
                     {
                         id: LAYER_ID,
