@@ -1,4 +1,4 @@
-use crate::{GlobalStatistics, Statistics, TrackSegment, sum_options};
+use crate::{GlobalStatistics, SlopeSegment, Statistics, TrackSegment, sum_options};
 
 /// Value of the timestamps of the trackpoints that have none.
 pub const NO_TIME: i64 = i64::MIN;
@@ -27,8 +27,8 @@ pub struct StatisticsBuffer {
     pub elevation_gain: Vec<f64>,
     pub elevation_loss: Vec<f64>,
     pub slope: Vec<f64>,
-    pub slope_segment_slope: Vec<f64>,
-    pub slope_segment_distance: Vec<f64>,
+    /// The smoothed elevation segments that the trackpoints belong to, see [`SlopeSegments`].
+    pub slope_segments: SlopeSegments,
     pub lng: Vec<f64>,
     pub lat: Vec<f64>,
     pub ele: Vec<f64>,
@@ -62,6 +62,18 @@ pub struct Intervals {
 }
 
 impl Intervals {
+    /// The value of the trackpoint at `index` (the one of the last interval past the trackpoints),
+    /// 0 (unknown) when there are no trackpoints.
+    pub fn value_at(&self, index: usize) -> u8 {
+        match self
+            .starts
+            .partition_point(|start| *start as usize <= index)
+        {
+            0 => 0,
+            next => self.values[next - 1],
+        }
+    }
+
     fn clear(&mut self) {
         self.starts.clear();
         self.values.clear();
@@ -72,6 +84,50 @@ impl Intervals {
         if self.values.last() != Some(&value) {
             self.starts.push(index as u32);
             self.values.push(value);
+        }
+    }
+}
+
+/// The smoothed elevation segments of the selection, over which the slope is averaged, as the
+/// intervals of trackpoints that belong to the same one: segment `i` starts at the trackpoint
+/// `starts[i]` and ends where the next one starts, or at the last trackpoint. It has a `slope` (%)
+/// and a length (`distance`, km). A segment never spans two segments of the selection. All are
+/// empty when there are no trackpoints.
+#[derive(Debug, Default, PartialEq)]
+pub struct SlopeSegments {
+    pub starts: Vec<u32>,
+    pub slopes: Vec<f64>,
+    pub distances: Vec<f64>,
+}
+
+impl SlopeSegments {
+    /// The index of the segment of the trackpoint at `index` (the last one past the trackpoints),
+    /// `None` when there are no trackpoints.
+    pub fn at(&self, index: usize) -> Option<usize> {
+        let next = self
+            .starts
+            .partition_point(|start| *start as usize <= index);
+        next.checked_sub(1)
+    }
+
+    fn clear(&mut self) {
+        self.starts.clear();
+        self.slopes.clear();
+        self.distances.clear();
+    }
+
+    /// Adds the trackpoint at `index`, the indices being pushed in order: it starts a segment if
+    /// it is the first of a segment of the selection (`first`), or if its segment is not the one
+    /// of the previous trackpoint.
+    fn push(&mut self, index: usize, segment: &SlopeSegment, first: bool) {
+        // compared as bits, so that a NaN slope (no distance) is the same as the previous one
+        let same = |values: &[f64], value: f64| {
+            values.last().map(|last| last.to_bits()) == Some(value.to_bits())
+        };
+        if first || !same(&self.slopes, segment.slope) || !same(&self.distances, segment.distance) {
+            self.starts.push(index as u32);
+            self.slopes.push(segment.slope);
+            self.distances.push(segment.distance);
         }
     }
 }
@@ -117,8 +173,7 @@ impl StatisticsBuffer {
         self.elevation_gain.clear();
         self.elevation_loss.clear();
         self.slope.clear();
-        self.slope_segment_slope.clear();
-        self.slope_segment_distance.clear();
+        self.slope_segments.clear();
         self.lng.clear();
         self.lat.clear();
         self.ele.clear();
@@ -133,6 +188,7 @@ impl StatisticsBuffer {
         self.mtb_scale.clear();
 
         for (segment, stats) in selected {
+            let segment_start = self.total_distance.len();
             for (trkpt, trkpt_stats) in segment.iter().zip(stats.local.iter()) {
                 let index = self.total_distance.len();
                 let cumul_stats = &self.global;
@@ -162,10 +218,8 @@ impl StatisticsBuffer {
                 self.elevation_loss
                     .push(cumul_stats.elevation_loss + trkpt_stats.elevation_loss);
                 self.slope.push(trkpt_stats.slope);
-                self.slope_segment_slope
-                    .push(trkpt_stats.slope_segment.slope);
-                self.slope_segment_distance
-                    .push(trkpt_stats.slope_segment.distance);
+                self.slope_segments
+                    .push(index, &trkpt_stats.slope_segment, index == segment_start);
                 self.lng.push(trkpt.coordinates.lng);
                 self.lat.push(trkpt.coordinates.lat);
                 self.ele.push(trkpt.ele);
@@ -229,25 +283,12 @@ mod tests {
         (segment, stats)
     }
 
-    /// The value of the trackpoint at `index`, 0 before the first interval.
-    fn value_at(intervals: &Intervals, index: usize) -> u8 {
-        match intervals
-            .starts
-            .partition_point(|start| *start as usize <= index)
-        {
-            0 => 0,
-            next => intervals.values[next - 1],
-        }
-    }
-
     fn all_lengths(buffer: &StatisticsBuffer) -> Vec<usize> {
         vec![
             buffer.total_distance.len(),
             buffer.elevation_gain.len(),
             buffer.elevation_loss.len(),
             buffer.slope.len(),
-            buffer.slope_segment_slope.len(),
-            buffer.slope_segment_distance.len(),
             buffer.lng.len(),
             buffer.lat.len(),
             buffer.ele.len(),
@@ -276,7 +317,19 @@ mod tests {
         for (i, local) in s.local.iter().enumerate() {
             assert_eq!(buffer.total_distance[i], local.total_distance);
             assert_eq!(buffer.slope[i], local.slope);
+            let segment = buffer.slope_segments.at(i).unwrap();
+            assert_eq!(
+                buffer.slope_segments.slopes[segment].to_bits(),
+                local.slope_segment.slope.to_bits()
+            );
+            assert_eq!(
+                buffer.slope_segments.distances[segment],
+                local.slope_segment.distance
+            );
         }
+        // a segment per smoothed elevation segment, not per trackpoint
+        assert!(buffer.slope_segments.starts.len() < n);
+        assert_eq!(buffer.slope_segments.starts[0], 0);
         // the trackpoints
         for (i, trkpt) in segment.iter().enumerate() {
             assert_eq!(buffer.lng[i], trkpt.coordinates.lng);
@@ -454,7 +507,7 @@ mod tests {
         assert!(all_lengths(&buffer).iter().all(|len| *len == 5));
 
         // and they can be looked up
-        let values: Vec<u8> = (0..6).map(|i| value_at(&buffer.surface, i)).collect();
+        let values: Vec<u8> = (0..6).map(|i| buffer.surface.value_at(i)).collect();
         assert_eq!(values, [1, 1, 0, 2, 2, 2]);
     }
 
@@ -494,10 +547,10 @@ mod tests {
         buffer.update(&[(&segment, &s)]);
         let at = |i: usize| {
             (
-                value_at(&buffer.surface, i),
-                value_at(&buffer.highway, i),
-                value_at(&buffer.sac_scale, i),
-                value_at(&buffer.mtb_scale, i),
+                buffer.surface.value_at(i),
+                buffer.highway.value_at(i),
+                buffer.sac_scale.value_at(i),
+                buffer.mtb_scale.value_at(i),
             )
         };
         assert_eq!(at(0), (8, 255, 1, 4));
@@ -522,7 +575,7 @@ mod tests {
         assert_eq!(buffer.highway, Intervals::default());
         assert_eq!(buffer.sac_scale, Intervals::default());
         assert_eq!(buffer.mtb_scale, Intervals::default());
-        assert_eq!(value_at(&buffer.surface, 0), 0);
+        assert_eq!(buffer.surface.value_at(0), 0);
     }
 
     #[test]

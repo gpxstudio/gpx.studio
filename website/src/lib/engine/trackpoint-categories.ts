@@ -36,6 +36,34 @@ export function categoryValues(
     return result;
 }
 
+/** The index of the interval of `starts` (sorted) that the trackpoint `index` is in, -1 if none. */
+export function intervalAt(starts: Uint32Array, index: number): number {
+    let low = 0;
+    let high = starts.length;
+    // the first interval that starts after the trackpoint
+    while (low < high) {
+        const middle = (low + high) >>> 1;
+        if (starts[middle] <= index) {
+            low = middle + 1;
+        } else {
+            high = middle;
+        }
+    }
+    return low - 1;
+}
+
+/** The value of the trackpoint `index` for a category, `undefined` when it is unknown. */
+export function categoryValue(
+    intervals: CategoryIntervals | undefined,
+    index: number
+): string | undefined {
+    if (!intervals) {
+        return undefined;
+    }
+    const value = intervals.values[intervalAt(intervals.starts, index)];
+    return value ? intervals.names[value - 1] : undefined;
+}
+
 /**
  * The intervals of the trackpoints that share a value, for a value per trackpoint (`undefined`
  * when unknown): the inverse of `categoryValues`. The names are in the order of their first

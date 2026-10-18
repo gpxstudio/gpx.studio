@@ -154,8 +154,6 @@ buffers!(
     elevation_gain,
     elevation_loss,
     slope,
-    slope_segment_slope,
-    slope_segment_distance,
     lng,
     lat,
     ele
@@ -175,9 +173,48 @@ macro_rules! optional_buffers {
 optional_buffers!(moving_distance: f64, speed: f64, hr: f64, cad: f64, atemp: f64, power: f64);
 optional_buffers!(total_time: i64, moving_time: i64);
 
-/// Timestamps in milliseconds since the epoch (`NO_TIME` when missing), see `optional_buffers`.
-pub fn timestamps<H: History>(engine: &Engine<H>) -> Option<&[i64]> {
-    engine.statistics().time.as_deref()
+// The smoothed elevation segments of the selection, over which the slope is averaged, as
+// intervals of trackpoints: `slope_segment_starts` holds the index of the first trackpoint of each
+// segment, and `slope_segment_slopes` its slope (%). Their length is in `selection_point`.
+
+pub fn slope_segment_starts<H: History>(engine: &Engine<H>) -> &[u32] {
+    &engine.statistics().slope_segments.starts
+}
+
+pub fn slope_segment_slopes<H: History>(engine: &Engine<H>) -> &[f64] {
+    &engine.statistics().slope_segments.slopes
+}
+
+/// What the buffers do not hold for each trackpoint of the selection, for the one at `index`
+/// (numbered as in the buffers), `None` if there is none: for example the one that is hovered on
+/// the elevation profile.
+pub fn selection_point<H: History>(engine: &Engine<H>, index: usize) -> Option<SelectionPoint> {
+    let stats = engine.statistics();
+    if index >= stats.len() {
+        return None;
+    }
+    let categories = engine.categories();
+    let name = |intervals: &engine::Intervals, categories: &engine::Categories| {
+        let value = intervals.value_at(index);
+        let code = value.checked_sub(1)?;
+        categories.name(code).map(str::to_owned)
+    };
+    let segment = stats.slope_segments.at(index);
+    let finite = |value: f64| value.is_finite().then_some(value);
+    Some(SelectionPoint {
+        time: stats
+            .time
+            .as_ref()
+            .map(|time| time[index])
+            .filter(|time| *time != engine::NO_TIME)
+            .map(|time| time as f64),
+        slope_segment_slope: segment.and_then(|i| finite(stats.slope_segments.slopes[i])),
+        slope_segment_distance: segment.and_then(|i| finite(stats.slope_segments.distances[i])),
+        surface: name(&stats.surface, &categories.surface),
+        highway: name(&stats.highway, &categories.highway),
+        sac_scale: name(&stats.sac_scale, &categories.sac_scale),
+        mtb_scale: name(&stats.mtb_scale, &categories.mtb_scale),
+    })
 }
 
 // Surface, highway, SAC scale and MTB scale of the trackpoints, as intervals of trackpoints that

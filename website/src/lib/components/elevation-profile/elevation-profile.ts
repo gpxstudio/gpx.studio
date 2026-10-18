@@ -24,14 +24,15 @@ import { get, type Readable, type Writable } from 'svelte/store';
 import type { Coordinates } from '$lib/geo/coordinates';
 import {
     engine,
-    NO_TIME,
+    EMPTY_SELECTION_STATISTICS,
+    type SelectionPoint,
     type SelectionStatistics,
     type StatisticsMetric,
     type StatisticsRequest,
 } from '$lib/engine';
 import type { SlicedStatistics } from '$lib/state/selection-statistics';
 import { mode } from 'mode-watcher';
-import { categoryValues } from '$lib/engine/trackpoint-categories';
+import { categoryValue, intervalAt } from '$lib/engine/trackpoint-categories';
 import { getHighwayColor, getSlopeColor, getSurfaceColor } from '$lib/data/colors';
 
 const { distanceUnits, velocityUnits, temperatureUnits } = settings;
@@ -44,20 +45,13 @@ function optional(value: number, convert: (value: number) => number = (v) => v) 
     return Number.isNaN(value) ? undefined : convert(value);
 }
 
+/**
+ * A point of the chart. The rest of the data of the trackpoint is only read when it is hovered
+ * (see `SelectionStatistics.point`), and the categories of the fill from their intervals.
+ */
 interface ElevationProfilePoint {
     x: number;
     y: number;
-    time?: Date;
-    slope: {
-        at: number;
-        segment: number;
-        length: number;
-    };
-    surface?: string;
-    highway?: string;
-    sacScale?: string;
-    mtbScale?: string;
-    coordinates: Coordinates;
     index: number;
 }
 
@@ -69,6 +63,14 @@ export class ElevationProfile {
     private _panning = false;
 
     private _statistics: Readable<SelectionStatistics>;
+    /** The statistics that the chart shows, which the fills read for each of its segments. */
+    private _data: SelectionStatistics = EMPTY_SELECTION_STATISTICS;
+    /**
+     * The hovered trackpoint, and its data once it is read from the engine (`undefined` if the
+     * statistics changed in the meantime).
+     */
+    private _hovered: { index: number; loaded: boolean; point?: SelectionPoint } | null = null;
+    private _loadingHovered = false;
     private _slicedStatistics: Writable<SlicedStatistics | undefined>;
     private _hoveredPoint: Writable<Coordinates | null>;
     private _additionalDatasets: Readable<string[]>;
@@ -200,7 +202,7 @@ export class ElevationProfile {
                                 if (this._dragging) {
                                     this._hoveredPoint.set(null);
                                 } else {
-                                    this._hoveredPoint.set(point.coordinates);
+                                    this.hover(point.index);
                                 }
                                 return `${i18n._('quantities.elevation')}: ${getElevationWithUnits(point.y, false)}`;
                             } else if (context.datasetIndex === 1) {
@@ -219,28 +221,40 @@ export class ElevationProfile {
                             let context = contexts.filter((context) => context.datasetIndex === 0);
                             if (context.length === 0) return;
                             let point = context[0].raw as ElevationProfilePoint;
-                            let slope = {
-                                at: point.slope.at.toFixed(1),
-                                segment: point.slope.segment.toFixed(1),
-                                length: getDistanceWithUnits(point.slope.length),
-                            };
-                            let surface = point.surface ?? 'unknown';
-                            let highway = point.highway ?? 'unknown';
-                            let sacScale = point.sacScale;
-                            let mtbScale = point.mtbScale;
+                            // the rest of the data is there once it is read (see `hover`)
+                            const hovered = this._hovered;
+                            const details =
+                                hovered?.index === point.index ? hovered.point : undefined;
+                            const elevationFill = get(this._elevationFill);
+                            let slope = `${this._data.slope[point.index]?.toFixed(1)} %`;
+                            if (
+                                elevationFill === 'slope' &&
+                                details?.slopeSegmentSlope !== undefined &&
+                                details.slopeSegmentDistance !== undefined
+                            ) {
+                                slope += ` (${getDistanceWithUnits(details.slopeSegmentDistance)} @${details.slopeSegmentSlope.toFixed(1)} %)`;
+                            }
 
                             let labels = [
                                 `    ${i18n._('quantities.distance')}: ${getDistanceWithUnits(point.x, false)}`,
-                                `    ${i18n._('quantities.slope')}: ${slope.at} %${get(this._elevationFill) === 'slope' ? ` (${slope.length} @${slope.segment} %)` : ''}`,
+                                `    ${i18n._('quantities.slope')}: ${slope}`,
                             ];
 
-                            if (get(this._elevationFill) === 'surface') {
+                            if (!details) {
+                                return labels;
+                            }
+                            let surface = details.surface ?? 'unknown';
+                            let highway = details.highway ?? 'unknown';
+                            let sacScale = details.sacScale;
+                            let mtbScale = details.mtbScale;
+
+                            if (elevationFill === 'surface') {
                                 labels.push(
                                     `    ${i18n._('quantities.surface')}: ${i18n._(`toolbar.routing.surface.${surface}`)}`
                                 );
                             }
 
-                            if (get(this._elevationFill) === 'highway') {
+                            if (elevationFill === 'highway') {
                                 labels.push(
                                     `    ${i18n._('quantities.highway')}: ${i18n._(`toolbar.routing.highway.${highway}`)}${
                                         sacScale
@@ -255,9 +269,9 @@ export class ElevationProfile {
                                 }
                             }
 
-                            if (point.time) {
+                            if (details.time !== undefined) {
                                 labels.push(
-                                    `    ${i18n._('quantities.time')}: ${i18n.df.format(point.time)}`
+                                    `    ${i18n._('quantities.time')}: ${i18n.df.format(new Date(details.time))}`
                                 );
                             }
 
@@ -339,6 +353,7 @@ export class ElevationProfile {
                     events: ['mouseout'],
                     afterEvent: (chart: Chart, args: { event: ChartEvent }) => {
                         if (args.event.type === 'mouseout') {
+                            this._hovered = null;
                             this._hoveredPoint.set(null);
                         }
                     },
@@ -430,6 +445,9 @@ export class ElevationProfile {
             return;
         }
         const data = get(this._statistics);
+        this._data = data;
+        // the indices of the trackpoints are the ones of other statistics
+        this._hovered = null;
         const units = {
             distance: get(distanceUnits),
             velocity: get(velocityUnits),
@@ -438,28 +456,11 @@ export class ElevationProfile {
 
         const datasets: Array<Array<any>> = [[], [], [], [], [], []];
         const { global } = data;
-        const surfaces = categoryValues(data.surface, data.length);
-        const highways = categoryValues(data.highway, data.length);
-        const sacScales = categoryValues(data.sacScale, data.length);
-        const mtbScales = categoryValues(data.mtbScale, data.length);
         for (let index = 0; index < data.length; index++) {
             const x = getConvertedDistance(data.totalDistance[index], units.distance);
-            const ele = data.ele[index];
-            const timestamp = data.timestamps?.[index] ?? NO_TIME;
             datasets[0].push({
                 x,
-                y: getConvertedElevation(ele, units.distance),
-                time: timestamp === NO_TIME ? undefined : new Date(Number(timestamp)),
-                slope: {
-                    at: data.slope[index],
-                    segment: data.slopeSegmentSlope?.[index] ?? NaN,
-                    length: data.slopeSegmentDistance?.[index] ?? NaN,
-                },
-                surface: surfaces[index],
-                highway: highways[index],
-                sacScale: sacScales[index],
-                mtbScale: mtbScales[index],
-                coordinates: { lat: data.lat[index], lng: data.lng[index] },
+                y: getConvertedElevation(data.ele[index], units.distance),
                 index,
             });
             if (data.speed && (global.totalTime ?? 0) > 0) {
@@ -643,20 +644,70 @@ export class ElevationProfile {
         }
     }
 
-    slopeFillCallback(context: ScriptableLineSegmentContext & { p0: { raw: any } }) {
-        const point = context.p0.raw as ElevationProfilePoint;
-        return getSlopeColor(point.slope.segment);
+    /**
+     * Shows the hovered trackpoint on the map, and reads the rest of its data from the engine for
+     * the tooltip. One trackpoint is read at a time, the last one hovered.
+     */
+    hover(index: number) {
+        this._hoveredPoint.set({ lat: this._data.lat[index], lng: this._data.lng[index] });
+        if (this._hovered?.index === index) {
+            return;
+        }
+        this._hovered = { index, loaded: false };
+        this.loadHovered();
     }
 
-    surfaceFillCallback(context: ScriptableLineSegmentContext & { p0: { raw: any } }) {
-        const point = context.p0.raw as ElevationProfilePoint;
-        return getSurfaceColor(point.surface ?? '');
+    private async loadHovered() {
+        if (this._loadingHovered) {
+            return; // the one being read is followed by the last one hovered
+        }
+        this._loadingHovered = true;
+        try {
+            while (this._hovered && !this._hovered.loaded) {
+                const hovered = this._hovered;
+                const point = await this._data.point(hovered.index);
+                if (this._hovered !== hovered) {
+                    continue; // another trackpoint is hovered, or none
+                }
+                hovered.loaded = true;
+                hovered.point = point;
+                const chart = this._chart;
+                if (chart?.tooltip && chart.tooltip.getActiveElements().length > 0) {
+                    // the tooltip asks its callbacks again (the method is not in the types)
+                    (chart.tooltip as unknown as { update(changed: boolean): void }).update(true);
+                    chart.draw();
+                }
+            }
+        } finally {
+            this._loadingHovered = false;
+        }
     }
 
-    highwayFillCallback(context: ScriptableLineSegmentContext & { p0: { raw: any } }) {
-        const point = context.p0.raw as ElevationProfilePoint;
-        return getHighwayColor(point.highway ?? '', point.sacScale, point.mtbScale);
+    /** The trackpoint that a segment of the chart starts at. */
+    private static segmentStart(context: ScriptableLineSegmentContext & { p0: { raw: any } }) {
+        return (context.p0.raw as ElevationProfilePoint).index;
     }
+
+    slopeFillCallback = (context: ScriptableLineSegmentContext & { p0: { raw: any } }) => {
+        const segments = this._data.slopeSegments;
+        const index = ElevationProfile.segmentStart(context);
+        const segment = segments ? intervalAt(segments.starts, index) : -1;
+        return getSlopeColor(segment >= 0 ? segments!.slopes[segment] : NaN);
+    };
+
+    surfaceFillCallback = (context: ScriptableLineSegmentContext & { p0: { raw: any } }) => {
+        const index = ElevationProfile.segmentStart(context);
+        return getSurfaceColor(categoryValue(this._data.surface, index) ?? '');
+    };
+
+    highwayFillCallback = (context: ScriptableLineSegmentContext & { p0: { raw: any } }) => {
+        const index = ElevationProfile.segmentStart(context);
+        return getHighwayColor(
+            categoryValue(this._data.highway, index) ?? '',
+            categoryValue(this._data.sacScale, index),
+            categoryValue(this._data.mtbScale, index)
+        );
+    };
 
     destroy() {
         this._request.release();

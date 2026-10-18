@@ -17,15 +17,7 @@ macro_rules! f64_getters {
     )*};
 }
 
-f64_getters!(
-    total_distance,
-    slope,
-    slope_segment_slope,
-    slope_segment_distance,
-    lng,
-    lat,
-    ele
-);
+f64_getters!(total_distance, slope, slope_segment_slopes, lng, lat, ele);
 
 macro_rules! optional_f64_getters {
     ($($name:ident),*) => {$(
@@ -38,10 +30,16 @@ macro_rules! optional_f64_getters {
 
 optional_f64_getters!(speed, hr, cad, atemp, power);
 
-/// Timestamps in milliseconds since the epoch (`NO_TIME` when missing), as `i64`.
+/// The index of the first trackpoint of each smoothed elevation segment of the selection.
 #[tauri::command(async)]
-pub fn timestamps(state: State<AppState>) -> Bytes {
-    optional(state.read(|e| api::timestamps(e).map(i64_bytes)))
+pub fn slope_segment_starts(state: State<AppState>) -> Bytes {
+    u32s(&state.read(|e| api::slope_segment_starts(e).to_vec()))
+}
+
+/// What the buffers do not hold for each trackpoint of the selection, for the one at `index`.
+#[tauri::command(async)]
+pub fn selection_point(state: State<AppState>, index: usize) -> Option<api::SelectionPoint> {
+    state.read(move |e| api::selection_point(e, index))
 }
 
 #[tauri::command(async)]

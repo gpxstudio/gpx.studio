@@ -34,7 +34,3 @@ pub fn optional(array: Option<Vec<u8>>) -> Bytes {
 pub fn f64_bytes(values: &[f64]) -> Vec<u8> {
     values.iter().flat_map(|v| v.to_le_bytes()).collect()
 }
-
-pub fn i64_bytes(values: &[i64]) -> Vec<u8> {
-    values.iter().flat_map(|v| v.to_le_bytes()).collect()
-}

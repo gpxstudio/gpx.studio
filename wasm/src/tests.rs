@@ -4,7 +4,7 @@
 
 #![allow(clippy::needless_borrows_for_generic_args)]
 
-use js_sys::{Array, BigInt64Array, Float64Array, Object, Reflect};
+use js_sys::{Array, Float64Array, Object, Reflect};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
@@ -144,7 +144,10 @@ fn test_loaded_file_has_statistics_and_coordinates() {
     assert_eq!(crate::queries::statistics::lng().length(), n);
     assert_eq!(crate::queries::statistics::ele().length(), n);
     // no timestamps in this file
-    assert!(crate::queries::statistics::timestamps().is_none());
+    let point = crate::queries::statistics::selection_point(0);
+    assert!(get(&point, "slopeSegmentDistance").as_f64().is_some());
+    assert!(get(&point, "time").is_undefined());
+    assert!(crate::queries::statistics::selection_point(n as usize).is_undefined());
 
     let structure = crate::queries::files::file_structure(&id);
     let segment = get(
@@ -165,8 +168,8 @@ fn test_loaded_file_has_statistics_and_coordinates() {
 #[wasm_bindgen_test]
 fn test_timestamps_and_categories() {
     started_with(&[(WITH_TIME, "time")]);
-    let times: BigInt64Array = crate::queries::statistics::timestamps().unwrap();
-    assert!(times.length() > 0);
+    let point = crate::queries::statistics::selection_point(0);
+    assert!(get(&point, "time").as_f64().unwrap() > 0.0);
     assert!(crate::queries::statistics::total_time().is_some());
 
     started_with(&[(WITH_SURFACE, "surface")]);
@@ -178,6 +181,14 @@ fn test_timestamps_and_categories() {
     assert_eq!(
         crate::queries::statistics::surface_starts().length(),
         values.len() as u32
+    );
+    // the name of the surface of a trackpoint that has one
+    let starts = crate::queries::statistics::surface_starts().to_vec();
+    let known = values.iter().position(|v| *v > 0).unwrap();
+    let point = crate::queries::statistics::selection_point(starts[known] as usize);
+    assert_eq!(
+        get(&point, "surface").as_string(),
+        Some(surfaces[values[known] as usize - 1].clone())
     );
 }
 

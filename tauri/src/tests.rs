@@ -142,6 +142,18 @@ fn reads_the_statistics_of_the_selection() {
     // optional arrays start with a byte telling whether they are there
     let hr = app.bytes("hr", json!({}));
     assert_eq!(hr[0], 0);
+    // the slope segments are intervals of trackpoints
+    let starts = app.bytes("slope_segment_starts", json!({}));
+    let slopes = f64s(&app.bytes("slope_segment_slopes", json!({})));
+    assert_eq!(starts.len() / 4, slopes.len());
+    assert!(!slopes.is_empty() && slopes.len() < distance.len());
+    let point = app.call("selection_point", json!({ "index": 1 }));
+    assert!(point["slopeSegmentDistance"].is_number());
+    assert!(point.get("time").is_none());
+    assert_eq!(
+        app.call("selection_point", json!({ "index": distance.len() })),
+        Value::Null
+    );
     assert!(
         app.call("slice_statistics", json!({ "start": 1, "end": 3 }))["totalDistance"].is_number()
     );

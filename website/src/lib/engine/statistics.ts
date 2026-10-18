@@ -46,15 +46,16 @@ export class StatisticsReader {
     private async read(backend: Backend): Promise<SelectionStatistics> {
         const version = ++this._version;
         this._loaded.clear();
-        const [global, totalDistance, slope, lng, lat, ele, timestamps] = await Promise.all([
+        const [global, totalDistance, slope, lng, lat, ele] = await Promise.all([
             backend.selection_statistics(),
             backend.total_distance(),
             backend.slope(),
             backend.lng(),
             backend.lat(),
             backend.ele(),
-            backend.timestamps(),
         ]);
+        const current = <T>(read: () => Promise<T | undefined>) =>
+            this.enqueue(async () => (version === this._version ? read() : undefined));
         const statistics: SelectionStatistics = {
             global: global ?? EMPTY_STATISTICS,
             length: totalDistance.length,
@@ -63,11 +64,8 @@ export class StatisticsReader {
             lng,
             lat,
             ele,
-            timestamps,
-            slice: (start, end) =>
-                this.enqueue(async () =>
-                    version === this._version ? backend.slice_statistics(start, end) : undefined
-                ),
+            slice: (start, end) => current(() => backend.slice_statistics(start, end)),
+            point: (index) => current(() => backend.selection_point(index)),
         };
         await this.readMetrics(backend, statistics, this.requestedMetrics());
         return statistics;
@@ -114,13 +112,14 @@ export class StatisticsReader {
                     case 'power':
                         statistics.power = await backend.power();
                         break;
-                    case 'slopeSegment':
-                        [statistics.slopeSegmentSlope, statistics.slopeSegmentDistance] =
-                            await Promise.all([
-                                backend.slope_segment_slope(),
-                                backend.slope_segment_distance(),
-                            ]);
+                    case 'slopeSegment': {
+                        const [starts, slopes] = await Promise.all([
+                            backend.slope_segment_starts(),
+                            backend.slope_segment_slopes(),
+                        ]);
+                        statistics.slopeSegments = { starts, slopes };
                         break;
+                    }
                     case 'surface':
                         statistics.surface = await categories(
                             backend.surface_starts(),

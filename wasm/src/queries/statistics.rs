@@ -26,8 +26,6 @@ stats_getter!(total_distance, Float64Array);
 stats_getter!(elevation_gain, Float64Array);
 stats_getter!(elevation_loss, Float64Array);
 stats_getter!(slope, Float64Array);
-stats_getter!(slope_segment_slope, Float64Array);
-stats_getter!(slope_segment_distance, Float64Array);
 stats_getter!(lng, Float64Array);
 stats_getter!(lat, Float64Array);
 stats_getter!(ele, Float64Array);
@@ -49,14 +47,6 @@ optional_stats_getter!(moving_distance, Float64Array);
 optional_stats_getter!(total_time, BigInt64Array);
 optional_stats_getter!(moving_time, BigInt64Array);
 optional_stats_getter!(speed, Float64Array);
-// Timestamps in milliseconds since the epoch (`NO_TIME`, the smallest i64, when missing).
-optional_stats_getter!(timestamps, BigInt64Array);
-
-/// Value of the timestamps of the trackpoints that have none.
-#[wasm_bindgen]
-pub fn no_time() -> i64 {
-    gpx_engine::NO_TIME
-}
 
 optional_stats_getter!(hr, Float64Array);
 optional_stats_getter!(cad, Float64Array);
@@ -95,6 +85,19 @@ categories_getters!(surface_starts, surface_values, surfaces);
 categories_getters!(highway_starts, highway_values, highways);
 categories_getters!(sac_scale_starts, sac_scale_values, sac_scales);
 categories_getters!(mtb_scale_starts, mtb_scale_values, mtb_scales);
+
+// The smoothed elevation segments of the selection, over which the slope is averaged, as
+// intervals of trackpoints: `slope_segment_starts` holds the index of the first trackpoint of each
+// segment, and `slope_segment_slopes` its slope (%). Their length is in `selection_point`.
+stats_getter!(slope_segment_starts, Uint32Array);
+stats_getter!(slope_segment_slopes, Float64Array);
+
+/// What the buffers do not hold for each trackpoint of the selection, for the one at `index`
+/// (numbered as in the buffers), `undefined` if there is none.
+#[wasm_bindgen]
+pub fn selection_point(index: usize) -> SelectionPoint {
+    optional_js(with_engine(|e| api::selection_point(e, index)).flatten()).unchecked_into()
+}
 
 /// For each trackpoint of the selection (numbered as in the statistics), the highest tolerance
 /// (m) of `reduce` that keeps it: infinite for the ends of the segments.

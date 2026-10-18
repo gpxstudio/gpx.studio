@@ -522,6 +522,29 @@ impl TrackpointDetails {
     }
 }
 
+/// A trackpoint of the selection: what the statistics buffers do not hold for each trackpoint.
+/// Absent fields are unknown.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SelectionPoint {
+    /// ms since the epoch.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub time: Option<f64>,
+    /// Slope (%) and length (km) of the smoothed elevation segment of the trackpoint.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub slope_segment_slope: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub slope_segment_distance: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub surface: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub highway: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sac_scale: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mtb_scale: Option<String>,
+}
+
 // Routing
 
 /// A category of the trackpoints of a route, as in `RouteCategory` of the engine.

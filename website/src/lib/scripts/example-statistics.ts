@@ -48,8 +48,11 @@ export async function computeExampleData() {
     engine.load_files(new Uint8Array(data), Uint32Array.from([data.length]), ['example']);
 
     // numbers are enough for the times, which are milliseconds
-    const numbers = (values: Values) =>
+    const numbers = (values: Values | Uint32Array) =>
         values && Array.from(values as ArrayLike<number | bigint>, (value) => Number(value));
+    const length = engine.total_distance().length;
+    const points = Array.from({ length }, (_, index) => engine.selection_point(index)!);
+    const slopeSegmentStarts = Array.from(engine.slope_segment_starts());
     return {
         global: engine.selection_statistics(),
         totalDistance: numbers(engine.total_distance()),
@@ -59,12 +62,16 @@ export async function computeExampleData() {
         elevationGain: numbers(engine.elevation_gain()),
         elevationLoss: numbers(engine.elevation_loss()),
         slope: numbers(engine.slope()),
-        slopeSegmentSlope: numbers(engine.slope_segment_slope()),
-        slopeSegmentDistance: numbers(engine.slope_segment_distance()),
+        slopeSegmentStarts,
+        slopeSegmentSlopes: numbers(engine.slope_segment_slopes()),
+        // the length of each segment, which is the one of its trackpoints
+        slopeSegmentDistances: slopeSegmentStarts.map(
+            (start) => points[start].slopeSegmentDistance!
+        ),
         lng: numbers(engine.lng()),
         lat: numbers(engine.lat()),
         ele: numbers(engine.ele()),
-        timestamps: numbers(engine.timestamps()),
+        timestamps: points.map((point) => point.time!),
         speed: numbers(engine.speed()),
         atemp: numbers(engine.atemp()),
     };

@@ -2,7 +2,7 @@ import type { Readable } from 'svelte/store';
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
 import type { Visibility } from '$lib/engine/file-visibility';
 import type { CategoryIntervals } from '$lib/engine/trackpoint-categories';
-import type { FileStructure, GlobalStatistics } from 'gpx-wasm';
+import type { FileStructure, GlobalStatistics, SelectionPoint } from 'gpx-wasm';
 
 export type { FileStatus, FolderEntry, UnsavedChoice, WorkspaceState } from './backend/types';
 
@@ -12,6 +12,7 @@ export type {
     TrackpointDetails,
     MoveTarget,
     GlobalStatistics,
+    SelectionPoint,
     FileStructure,
     FilesUpdate,
     Outcome,
@@ -137,12 +138,6 @@ export const ALL_EXPORT_OPTIONS: ExportOptions = {
 };
 
 /**
- * Timestamp of the trackpoints that have none, in `SelectionStatistics.timestamps` (the smallest
- * 64-bit integer, like `NO_TIME` in the engine).
- */
-export const NO_TIME = -(2n ** 63n);
-
-/**
  * Statistics of the selection that are only read from the engine when something asks for them
  * (see `Engine.requestStatistics`). A metric can bring several arrays.
  */
@@ -152,7 +147,7 @@ export type StatisticsMetric =
     | 'cad'
     | 'atemp'
     | 'power'
-    /** `slopeSegmentSlope` and `slopeSegmentDistance`. */
+    /** `slopeSegments`. */
     | 'slopeSegment'
     | 'surface'
     /** `highway`, `sacScale` and `mtbScale`. */
@@ -186,16 +181,28 @@ export type SelectionAnchors = {
 };
 
 /**
+ * The smoothed elevation segments of the selection, over which the slope is averaged, as the
+ * intervals of trackpoints that belong to the same one: segment `i` starts at the trackpoint
+ * `starts[i]` and lasts until the next start (or the last trackpoint), with a slope of
+ * `slopes[i]` (%). Their length is in `SelectionStatistics.point`.
+ */
+export type SlopeSegments = {
+    starts: Uint32Array;
+    slopes: Float64Array;
+};
+
+/**
  * The statistics of the selection: its global statistics, and the values at each of its
- * trackpoints (all the selected segments, one after the other). The arrays are copies.
+ * trackpoints (all the selected segments, one after the other). The arrays are copies. What is
+ * only needed for one trackpoint at a time (its time, its OSM data...) is read with `point`.
  *
  * Distances are cumulative over the whole selection. Distances are in km, speeds in km/h, times in
  * ms (timestamps since the epoch, as 64-bit integers), elevations in m and slopes in %.
  *
  * The values of the trackpoints that the selection does not have at all (for example the heart
  * rates, when no trackpoint has any) are `undefined`, and so are the ones that were not requested
- * (see `StatisticsMetric`). Otherwise they have one entry per trackpoint: missing timestamps are
- * `NO_TIME`, missing measures are NaN.
+ * (see `StatisticsMetric`). Otherwise they have one entry per trackpoint, missing measures are
+ * NaN.
  */
 export type SelectionStatistics = {
     global: GlobalStatistics;
@@ -207,7 +214,6 @@ export type SelectionStatistics = {
     lng: Float64Array;
     lat: Float64Array;
     ele: Float64Array;
-    timestamps?: BigInt64Array;
 
     // the following need to be requested
     speed?: Float64Array;
@@ -215,9 +221,7 @@ export type SelectionStatistics = {
     cad?: Float64Array;
     atemp?: Float64Array;
     power?: Float64Array;
-    /** Slope and length (km) of the smoothed elevation segment the trackpoint belongs to. */
-    slopeSegmentSlope?: Float64Array;
-    slopeSegmentDistance?: Float64Array;
+    slopeSegments?: SlopeSegments;
     surface?: CategoryIntervals;
     highway?: CategoryIntervals;
     /** SAC hiking scale. */
@@ -232,6 +236,12 @@ export type SelectionStatistics = {
      * in the selection, or if the selection is not the current one anymore.
      */
     slice(start: number, end: number): Promise<GlobalStatistics | undefined>;
+    /**
+     * All the data of the trackpoint at `index`, for example the one hovered on the elevation
+     * profile. `undefined` if it is not in the selection, or if the selection is not the current
+     * one anymore.
+     */
+    point(index: number): Promise<SelectionPoint | undefined>;
 };
 
 export const EMPTY_SELECTION_STATISTICS: SelectionStatistics = {
@@ -243,6 +253,7 @@ export const EMPTY_SELECTION_STATISTICS: SelectionStatistics = {
     lat: new Float64Array(),
     ele: new Float64Array(),
     slice: async () => undefined,
+    point: async () => undefined,
 };
 
 export type StatisticsRequest = {

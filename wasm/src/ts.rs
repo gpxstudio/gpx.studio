@@ -64,6 +64,21 @@ export interface TrackpointDetails {
     /** ms since epoch */
     time?: number;
 }
+/**
+ * A trackpoint of the selection: what the statistics buffers do not hold for each trackpoint.
+ * Absent fields are unknown.
+ */
+export interface SelectionPoint {
+    /** ms since epoch */
+    time?: number;
+    /** Slope (%) and length (km) of the smoothed elevation segment of the trackpoint. */
+    slopeSegmentSlope?: number;
+    slopeSegmentDistance?: number;
+    surface?: string;
+    highway?: string;
+    sacScale?: string;
+    mtbScale?: string;
+}
 /** What was copied or cut, to be pasted: the kind of the elements and their ids. */
 export interface Clipboard {
     type: 'files' | 'tracks' | 'segments' | 'waypoints';
@@ -161,6 +176,8 @@ extern "C" {
     pub type WaypointDetails;
     #[wasm_bindgen(typescript_type = "TrackpointDetails | undefined")]
     pub type TrackpointDetails;
+    #[wasm_bindgen(typescript_type = "SelectionPoint | undefined")]
+    pub type SelectionPoint;
     #[wasm_bindgen(typescript_type = "MoveTarget")]
     pub type MoveTarget;
 

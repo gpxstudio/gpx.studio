@@ -6,6 +6,7 @@ import type {
     Outcome,
     RouteAttributes,
     Selection,
+    SelectionPoint,
     StorageOpened,
     TrackpointDetails,
     WaypointDetails,
@@ -277,14 +278,14 @@ export interface Backend {
     lng(): Promise<Float64Array>;
     lat(): Promise<Float64Array>;
     ele(): Promise<Float64Array>;
-    timestamps(): Promise<BigInt64Array | undefined>;
     speed(): Promise<Float64Array | undefined>;
     hr(): Promise<Float64Array | undefined>;
     cad(): Promise<Float64Array | undefined>;
     atemp(): Promise<Float64Array | undefined>;
     power(): Promise<Float64Array | undefined>;
-    slope_segment_slope(): Promise<Float64Array>;
-    slope_segment_distance(): Promise<Float64Array>;
+    slope_segment_starts(): Promise<Uint32Array>;
+    slope_segment_slopes(): Promise<Float64Array>;
+    selection_point(index: number): Promise<SelectionPoint | undefined>;
     surface_starts(): Promise<Uint32Array>;
     surface_values(): Promise<Uint8Array>;
     surfaces(): Promise<string[]>;

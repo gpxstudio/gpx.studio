@@ -9,7 +9,6 @@ import {
     ALL_EXPORT_OPTIONS,
     engine,
     FileStateCollectionObserver,
-    NO_TIME,
     type ExportOptions,
     type FileState,
 } from '$lib/engine';
@@ -195,7 +194,7 @@ describe('statistics', () => {
         assert.equal(statistics.totalDistance[0], 0);
         assert.ok(statistics.global.totalDistance > 0);
         assert.equal(statistics.global.totalDistance, file.statistics.totalDistance);
-        assert.equal(statistics.timestamps, undefined);
+        assert.equal((await statistics.point(0))!.time, undefined);
         assert.ok(statistics.global.bounds!.west <= statistics.global.bounds!.east);
 
         await engine.select([]);
@@ -206,9 +205,7 @@ describe('statistics', () => {
     it('has timestamps when the file has some', async () => {
         await load('with_time');
         const statistics = get(engine.statistics);
-        assert.ok(statistics.timestamps);
-        assert.equal(statistics.timestamps!.length, statistics.length);
-        assert.ok(statistics.timestamps!.some((t) => t !== NO_TIME));
+        assert.ok((await statistics.point(0))!.time! > 0);
         assert.ok(statistics.global.totalTime! > 0);
         assert.ok(statistics.global.movingSpeed === undefined || statistics.global.movingSpeed > 0);
     });
@@ -218,8 +215,13 @@ describe('statistics', () => {
         assert.equal(get(engine.statistics).hr, undefined);
 
         const request = engine.requestStatistics();
-        await request.set(['hr', 'anchors']);
+        await request.set(['hr', 'anchors', 'slopeSegment']);
         const statistics = get(engine.statistics);
+        assert.equal(statistics.slopeSegments!.starts[0], 0);
+        assert.equal(
+            statistics.slopeSegments!.starts.length,
+            statistics.slopeSegments!.slopes.length
+        );
         assert.equal(statistics.hr!.length, statistics.length);
         assert.ok(statistics.hr!.some((hr) => !Number.isNaN(hr)));
         assert.equal(statistics.cad, undefined);
@@ -247,6 +249,18 @@ describe('statistics', () => {
         // a slice is only valid for the selection it was made on
         await engine.select([]);
         assert.equal(await statistics.slice(2, 5), undefined);
+    });
+
+    it('gives the data of a trackpoint of the selection', async () => {
+        await load('simple');
+        const statistics = get(engine.statistics);
+        const point = (await statistics.point(3))!;
+        assert.ok(point.slopeSegmentDistance! > 0);
+        assert.equal(await statistics.point(statistics.length), undefined);
+
+        // only for the selection it was read for
+        await engine.select([]);
+        assert.equal(await statistics.point(3), undefined);
     });
 });
 
