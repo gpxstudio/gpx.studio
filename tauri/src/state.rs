@@ -108,8 +108,10 @@ impl Core {
             self.workspace.keep(&[id]);
         }
         let (renamed, errors) = self.workspace.follow_names(&mut self.engine, &names);
-        if kept || renamed {
-            self.commit(None);
+        // and it goes when something else is selected
+        let dropped = self.workspace.drop_preview(&mut self.engine);
+        if kept || renamed || dropped.is_some() {
+            self.commit(dropped.as_ref());
         } else {
             self.persist();
         }

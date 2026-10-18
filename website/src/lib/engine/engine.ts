@@ -570,6 +570,18 @@ class Engine {
         return this.addedBy((b) => b.desktop!.openPaths(paths, preview));
     }
 
+    /**
+     * The files are open for good (the desktop app): the preview among them stays when another file
+     * is opened or selected. The user did something to it, which the engine does not see (opening
+     * its menu or its info, hiding it, dragging it). Nothing is done for the other files.
+     */
+    async keepPreview(fileIds: string[]) {
+        const workspace = get(this._workspace);
+        if (fileIds.some((id) => workspace?.files[id]?.preview)) {
+            await this.desktopCall((desktop) => desktop.keepFiles(fileIds));
+        }
+    }
+
     // What the explorer does to the tree of the open folder (the desktop app). When it fails,
     // `lastError` tells why (a key of the dictionaries, or a message).
 
@@ -800,6 +812,7 @@ class Engine {
         if (!store) {
             return;
         }
+        void this.keepPreview([fileId]);
         const visibility = setHidden(
             get(store).structure,
             this._visibility.get(fileId) ?? new Map(),

@@ -19,7 +19,7 @@
         FileStack,
         FileX,
     } from '@lucide/svelte';
-    import { getContext } from 'svelte';
+    import { getContext, untrack } from 'svelte';
     import { i18n } from '$lib/i18n/i18n.svelte';
     import MetadataDialog from '$lib/components/file-list/metadata/MetadataDialog.svelte';
     import { editMetadata } from '$lib/components/file-list/metadata/utils.svelte';
@@ -94,6 +94,12 @@
             selected &&
             selectedElementIds($selection)[0]?.ids[0] === elementId(node)
     );
+    $effect(() => {
+        // the file is open for good once its info or its appearance is (the desktop app)
+        if (openEditMetadata || openEditStyle) {
+            untrack(() => engine.keepPreview([node.fileId]));
+        }
+    });
 
     // the desktop app: the files are linked to the file system, they are closed rather than deleted
     let desktop = $derived($workspace !== undefined);
@@ -114,6 +120,8 @@
 <ContextMenu.Root
     onOpenChange={(open) => {
         if (open) {
+            // the file is open for good once its menu is (the desktop app)
+            engine.keepPreview([node.fileId]);
             if (!selected) {
                 engine.selectNode(node);
             }

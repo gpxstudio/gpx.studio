@@ -88,6 +88,16 @@ pub fn open_paths(
     })
 }
 
+/// The files are open for good: the preview among them is not a preview anymore (the user did
+/// something to it that the engine does not see, like hiding it).
+#[tauri::command(async)]
+pub fn keep_files(state: State<AppState>, file_ids: Vec<Uuid>) {
+    state.core(move |core| {
+        core.workspace.keep(&file_ids);
+        core.commit(None);
+    })
+}
+
 /// Writes the files among `ids` that are not the ones on the disk, asking where to put the ones
 /// that have no place: the file dialog for a single one, a folder for several of them. Says whether
 /// they were written, which is not the case if the user cancelled.

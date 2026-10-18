@@ -64,6 +64,8 @@ export interface DesktopFiles {
      * edited or opened for good. Otherwise they are open for good.
      */
     openPaths(paths: string[], preview?: boolean): Promise<Outcome>;
+    /** The files are open for good: the preview among them is not a preview anymore. */
+    keepFiles(fileIds: string[]): Promise<void>;
     /**
      * Opens the folder that the user picks, which is watched. Its files are not opened: they are
      * in its tree (`listFolder`). The folder that was open is closed with its files (see

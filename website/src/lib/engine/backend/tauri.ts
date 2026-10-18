@@ -212,6 +212,7 @@ export async function createTauriBackend(): Promise<Backend> {
             workspace: () => invoke<WorkspaceState>('workspace_state'),
             openFiles: () => invoke<Outcome>('open_files'),
             openPaths: (paths, preview) => invoke<Outcome>('open_paths', { paths, preview }),
+            keepFiles: (fileIds) => invoke('keep_files', { fileIds }),
             openFolder: (unsaved) => invoke<Outcome>('open_folder', { unsaved }),
             closeFolder: (unsaved) => invoke<Outcome>('close_folder', { unsaved }),
             closeFiles: (fileIds, unsaved) => invoke<Outcome>('close_files', { fileIds, unsaved }),

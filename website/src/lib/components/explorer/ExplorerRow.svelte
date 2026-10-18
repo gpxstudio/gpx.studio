@@ -228,6 +228,10 @@
 
 <ContextMenu.Root
     onOpenChange={(open) => {
+        if (open && fileId !== undefined) {
+            // the file is open for good once its menu is
+            engine.keepPreview([fileId]);
+        }
         if (open && !selected && kind !== 'root') {
             select([path]);
         }

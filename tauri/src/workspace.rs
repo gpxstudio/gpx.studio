@@ -450,6 +450,17 @@ impl Workspace {
         closed.merge(opened)
     }
 
+    /// Closes the preview when something else is selected (not nothing, nor something in it): it was
+    /// only looked at. Says what changed in the engine, `None` if it stays.
+    pub fn drop_preview(&mut self, engine: &mut Engine) -> Option<api::Outcome> {
+        let id = self.preview?;
+        let selected = engine.selection().file_ids();
+        if selected.is_empty() || selected.contains(&FileId(id)) {
+            return None;
+        }
+        Some(self.close_files(engine, &[id], false))
+    }
+
     /// The files are open for good: none of them is the preview anymore.
     pub fn keep(&mut self, ids: &[Uuid]) {
         if self.preview.is_some_and(|preview| ids.contains(&preview)) {

@@ -69,10 +69,12 @@ export class SortableFileList {
                 setTimeout(() => this.updateToSelection(e), 50),
             onDeselect: (e: Sortable.SortableEvent) =>
                 setTimeout(() => this.updateToSelection(e), 50),
-            onStart: () => {
+            onStart: (e: Sortable.SortableEvent) => {
                 // all the nodes, not only the elements: the comments are the anchors of the Svelte blocks
                 this._snapshot = Array.from(container.childNodes);
                 dragging.set(sortableLevel);
+                // the files that are dragged (or whose elements are) are open for good
+                engine.keepPreview(this.draggedFiles(e));
             },
             onEnd: () => dragging.set(null),
             onSort: (e: Sortable.SortableEvent) => this.onSort(e),
@@ -82,6 +84,17 @@ export class SortableFileList {
         this._unsubscribes.push(
             engine.selection.subscribe(() => tick().then(() => this.updateFromSelection()))
         );
+    }
+
+    /** The files of what is dragged: the dragged files, or the file of the dragged elements. */
+    private draggedFiles(e: Sortable.SortableEvent): string[] {
+        if (this._parent) {
+            return [this._parent.fileId];
+        }
+        const elements: HTMLElement[] = e.items.length > 0 ? e.items : [e.item];
+        return elements
+            .map((element) => element.getAttribute('data-id'))
+            .filter((id): id is string => id !== null);
     }
 
     /** The node of a child of the list. */

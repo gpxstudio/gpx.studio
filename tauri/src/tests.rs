@@ -725,3 +725,43 @@ fn a_file_open_as_a_preview_is_replaced_until_it_is_kept_or_edited() {
     );
     std::fs::remove_dir_all(folder).unwrap();
 }
+
+#[test]
+fn the_preview_goes_when_something_else_is_selected_unless_it_was_kept() {
+    let app = App::new();
+    let folder = folder_with(&["a", "b", "c"]);
+    let open = |name: &str, preview: bool| {
+        app.call(
+            "open_paths",
+            json!({ "paths": [folder.join(format!("{name}.gpx"))], "preview": preview }),
+        )["added"][0]
+            .as_str()
+            .map(str::to_string)
+    };
+    let order = |app: &App| app.call("file_order", json!({})).as_array().unwrap().len();
+    let a = open("a", false).unwrap();
+
+    // looked at, then something else is selected: it goes
+    let b = open("b", true).unwrap();
+    assert_eq!(order(&app), 2);
+    app.call("select", json!({ "fileIds": [a], "mode": "replace" }));
+    assert_eq!(order(&app), 1);
+
+    // nothing selected: it stays
+    open("b", true);
+    app.call("select", json!({ "fileIds": [], "mode": "replace" }));
+    assert_eq!(order(&app), 2);
+
+    // kept (hidden, its menu opened...): it stays when something else is selected
+    let c = open("c", true).unwrap();
+    assert_eq!(order(&app), 2, "c replaces b");
+    app.call("keep_files", json!({ "fileIds": [c] }));
+    assert_eq!(
+        app.call("workspace_state", json!({}))["files"][&c]["preview"],
+        false
+    );
+    app.call("select", json!({ "fileIds": [a], "mode": "replace" }));
+    assert_eq!(order(&app), 2);
+    let _ = b;
+    std::fs::remove_dir_all(folder).unwrap();
+}
