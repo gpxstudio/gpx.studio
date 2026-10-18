@@ -56,6 +56,7 @@ async function point(index: number): Promise<SelectionPoint | undefined> {
     }
     const segment = intervalAt(slopeSegmentStarts, index);
     return {
+        slope: data.slope[index],
         time: data.timestamps[index],
         slopeSegmentSlope: data.slopeSegmentSlopes[segment],
         slopeSegmentDistance: data.slopeSegmentDistances[segment],
@@ -66,7 +67,6 @@ export const exampleStatistics: SelectionStatistics = {
     global: data.global,
     length,
     totalDistance: Float64Array.from(data.totalDistance),
-    slope: Float64Array.from(data.slope),
     lng: Float64Array.from(data.lng),
     lat: Float64Array.from(data.lat),
     ele: Float64Array.from(data.ele),

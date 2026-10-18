@@ -209,8 +209,6 @@ export type SelectionStatistics = {
     /** Number of trackpoints. */
     length: number;
     totalDistance: Float64Array;
-    /** Slope at the trackpoint. */
-    slope: Float64Array;
     lng: Float64Array;
     lat: Float64Array;
     ele: Float64Array;
@@ -248,7 +246,6 @@ export const EMPTY_SELECTION_STATISTICS: SelectionStatistics = {
     global: EMPTY_STATISTICS,
     length: 0,
     totalDistance: new Float64Array(),
-    slope: new Float64Array(),
     lng: new Float64Array(),
     lat: new Float64Array(),
     ele: new Float64Array(),

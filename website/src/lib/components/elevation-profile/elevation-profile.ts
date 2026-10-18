@@ -226,22 +226,24 @@ export class ElevationProfile {
                             const details =
                                 hovered?.index === point.index ? hovered.point : undefined;
                             const elevationFill = get(this._elevationFill);
-                            let slope = `${this._data.slope[point.index]?.toFixed(1)} %`;
-                            if (
-                                elevationFill === 'slope' &&
-                                details?.slopeSegmentSlope !== undefined &&
-                                details.slopeSegmentDistance !== undefined
-                            ) {
-                                slope += ` (${getDistanceWithUnits(details.slopeSegmentDistance)} @${details.slopeSegmentSlope.toFixed(1)} %)`;
-                            }
 
                             let labels = [
                                 `    ${i18n._('quantities.distance')}: ${getDistanceWithUnits(point.x, false)}`,
-                                `    ${i18n._('quantities.slope')}: ${slope}`,
                             ];
 
                             if (!details) {
                                 return labels;
+                            }
+                            if (details.slope !== undefined) {
+                                let slope = `${details.slope.toFixed(1)} %`;
+                                if (
+                                    elevationFill === 'slope' &&
+                                    details.slopeSegmentSlope !== undefined &&
+                                    details.slopeSegmentDistance !== undefined
+                                ) {
+                                    slope += ` (${getDistanceWithUnits(details.slopeSegmentDistance)} @${details.slopeSegmentSlope.toFixed(1)} %)`;
+                                }
+                                labels.push(`    ${i18n._('quantities.slope')}: ${slope}`);
                             }
                             let surface = details.surface ?? 'unknown';
                             let highway = details.highway ?? 'unknown';

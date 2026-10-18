@@ -61,7 +61,7 @@ export async function computeExampleData() {
         movingTime: numbers(engine.moving_time()),
         elevationGain: numbers(engine.elevation_gain()),
         elevationLoss: numbers(engine.elevation_loss()),
-        slope: numbers(engine.slope()),
+        slope: points.map((point) => point.slope!),
         slopeSegmentStarts,
         slopeSegmentSlopes: numbers(engine.slope_segment_slopes()),
         // the length of each segment, which is the one of its trackpoints

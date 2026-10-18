@@ -153,7 +153,6 @@ buffers!(
     total_distance,
     elevation_gain,
     elevation_loss,
-    slope,
     lng,
     lat,
     ele
@@ -202,6 +201,7 @@ pub fn selection_point<H: History>(engine: &Engine<H>, index: usize) -> Option<S
     let segment = stats.slope_segments.at(index);
     let finite = |value: f64| value.is_finite().then_some(value);
     Some(SelectionPoint {
+        slope: finite(stats.slope[index]),
         time: stats
             .time
             .as_ref()

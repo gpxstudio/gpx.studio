@@ -274,7 +274,6 @@ export interface Backend {
     selection_statistics(): Promise<GlobalStatistics | undefined>;
     slice_statistics(start: number, end: number): Promise<GlobalStatistics | undefined>;
     total_distance(): Promise<Float64Array>;
-    slope(): Promise<Float64Array>;
     lng(): Promise<Float64Array>;
     lat(): Promise<Float64Array>;
     ele(): Promise<Float64Array>;

@@ -527,6 +527,9 @@ impl TrackpointDetails {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SelectionPoint {
+    /// Slope (%) at the trackpoint.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub slope: Option<f64>,
     /// ms since the epoch.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub time: Option<f64>,

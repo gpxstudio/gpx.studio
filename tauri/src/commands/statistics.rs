@@ -17,7 +17,7 @@ macro_rules! f64_getters {
     )*};
 }
 
-f64_getters!(total_distance, slope, slope_segment_slopes, lng, lat, ele);
+f64_getters!(total_distance, slope_segment_slopes, lng, lat, ele);
 
 macro_rules! optional_f64_getters {
     ($($name:ident),*) => {$(

@@ -178,7 +178,6 @@ export async function createTauriBackend(): Promise<Backend> {
         slice_statistics: async (start, end) =>
             (await invoke('slice_statistics', { start, end })) ?? undefined,
         total_distance: () => f64('total_distance'),
-        slope: () => f64('slope'),
         lng: () => f64('lng'),
         lat: () => f64('lat'),
         ele: () => f64('ele'),

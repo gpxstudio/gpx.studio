@@ -69,6 +69,8 @@ export interface TrackpointDetails {
  * Absent fields are unknown.
  */
 export interface SelectionPoint {
+    /** Slope (%) at the trackpoint. */
+    slope?: number;
     /** ms since epoch */
     time?: number;
     /** Slope (%) and length (km) of the smoothed elevation segment of the trackpoint. */

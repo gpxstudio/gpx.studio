@@ -131,7 +131,6 @@ export async function createWasmBackend(): Promise<Backend> {
         selection_statistics: lift(w.selection_statistics),
         slice_statistics: lift(w.slice_statistics),
         total_distance: lift(w.total_distance),
-        slope: lift(w.slope),
         lng: lift(w.lng),
         lat: lift(w.lat),
         ele: lift(w.ele),

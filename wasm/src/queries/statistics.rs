@@ -25,7 +25,6 @@ macro_rules! stats_getter {
 stats_getter!(total_distance, Float64Array);
 stats_getter!(elevation_gain, Float64Array);
 stats_getter!(elevation_loss, Float64Array);
-stats_getter!(slope, Float64Array);
 stats_getter!(lng, Float64Array);
 stats_getter!(lat, Float64Array);
 stats_getter!(ele, Float64Array);

@@ -145,7 +145,6 @@ fn register_commands<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::Bu
         queries::waypoint_coordinates,
         // statistics
         statistics::total_distance,
-        statistics::slope,
         statistics::slope_segment_starts,
         statistics::slope_segment_slopes,
         statistics::lng,

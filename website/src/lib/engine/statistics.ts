@@ -46,10 +46,9 @@ export class StatisticsReader {
     private async read(backend: Backend): Promise<SelectionStatistics> {
         const version = ++this._version;
         this._loaded.clear();
-        const [global, totalDistance, slope, lng, lat, ele] = await Promise.all([
+        const [global, totalDistance, lng, lat, ele] = await Promise.all([
             backend.selection_statistics(),
             backend.total_distance(),
-            backend.slope(),
             backend.lng(),
             backend.lat(),
             backend.ele(),
@@ -60,7 +59,6 @@ export class StatisticsReader {
             global: global ?? EMPTY_STATISTICS,
             length: totalDistance.length,
             totalDistance,
-            slope,
             lng,
             lat,
             ele,

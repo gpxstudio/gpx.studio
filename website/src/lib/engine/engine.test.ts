@@ -256,6 +256,7 @@ describe('statistics', () => {
         const statistics = get(engine.statistics);
         const point = (await statistics.point(3))!;
         assert.ok(point.slopeSegmentDistance! > 0);
+        assert.equal(typeof point.slope, 'number');
         assert.equal(await statistics.point(statistics.length), undefined);
 
         // only for the selection it was read for
