@@ -103,11 +103,11 @@ export const basemaps: { [key: string]: string | StyleSpecification } = {
         sources: {
             openHikingMap: {
                 type: 'raster',
-                tiles: ['https://maps.refuges.info/hiking/{z}/{x}/{y}.png'],
+                tiles: ['https://tile.openmaps.fr/openhikingmap/{z}/{x}/{y}.png'],
                 tileSize: 256,
                 maxzoom: 18,
                 attribution:
-                    '&copy; <a href="https://wiki.openstreetmap.org/wiki/Hiking/mri" target="_blank">sly</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+                    '<a href="https://wiki.openstreetmap.org/wiki/OpenHikingMap" target="_blank">&copy; OpenHikingMap</a> <a href="http://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap</a>',
             },
         },
         layers: [
