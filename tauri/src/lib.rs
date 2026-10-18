@@ -48,6 +48,9 @@ pub fn run() {
             }
         },
     ));
+    // on macOS, the app has a menu bar of its own (Windows and Linux have none by default)
+    #[cfg(target_os = "macos")]
+    let builder = builder.menu(menu);
     register_commands(builder)
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
@@ -78,6 +81,30 @@ pub fn run() {
                 ));
             }
         });
+}
+
+#[cfg(target_os = "macos")]
+fn menu<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<tauri::menu::Menu<R>> {
+    use tauri::menu::{AboutMetadata, Menu, PredefinedMenuItem, Submenu};
+    // the name of the product, as macOS would otherwise name the items after the binary
+    let name = app.package_info().name.clone();
+    let about = AboutMetadata {
+        name: Some(name.clone()),
+        ..Default::default()
+    };
+    Menu::with_items(
+        app,
+        &[&Submenu::with_items(
+            app,
+            &name,
+            true,
+            &[
+                &PredefinedMenuItem::about(app, Some(&format!("About {name}")), Some(about))?,
+                &PredefinedMenuItem::separator(app)?,
+                &PredefinedMenuItem::quit(app, Some(&format!("Quit {name}")))?,
+            ],
+        )?],
+    )
 }
 
 /// Gives the builder the commands that reach the engine (which it has to be given as `AppState`).
