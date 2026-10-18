@@ -47,7 +47,7 @@
     $effect(() => {
         // not what the click that was just made depends on, only the selection and the folder
         const clicked = untrack(() => clickedInExplorer.path);
-        if (selectedPath === clicked) {
+        if (clicked !== undefined && selectedPath === clicked) {
             return;
         }
         clickedInExplorer.path = undefined;
