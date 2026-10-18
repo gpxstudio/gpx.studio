@@ -71,6 +71,8 @@ export class ElevationProfile {
      */
     private _hovered: { index: number; loaded: boolean; point?: SelectionPoint } | null = null;
     private _loadingHovered = false;
+    /** The last move over the chart, held until the data of its trackpoint is read. */
+    private _heldMove: MouseEvent | null = null;
     private _slicedStatistics: Writable<SlicedStatistics | undefined>;
     private _hoveredPoint: Writable<Coordinates | null>;
     private _additionalDatasets: Readable<string[]>;
@@ -199,11 +201,14 @@ export class ElevationProfile {
                         label: (context: TooltipItem<'line'>) => {
                             let point = context.raw as ElevationProfilePoint;
                             if (context.datasetIndex === 0) {
-                                if (this._dragging) {
-                                    this._hoveredPoint.set(null);
-                                } else {
-                                    this.hover(point.index);
-                                }
+                                this._hoveredPoint.set(
+                                    this._dragging
+                                        ? null
+                                        : {
+                                              lat: this._data.lat[point.index],
+                                              lng: this._data.lng[point.index],
+                                          }
+                                );
                                 return `${i18n._('quantities.elevation')}: ${getElevationWithUnits(point.y, false)}`;
                             } else if (context.datasetIndex === 1) {
                                 return `${get(velocityUnits) === 'speed' ? i18n._('quantities.speed') : i18n._('quantities.pace')}: ${getVelocityWithUnits(point.y, false)}`;
@@ -356,8 +361,29 @@ export class ElevationProfile {
                     afterEvent: (chart: Chart, args: { event: ChartEvent }) => {
                         if (args.event.type === 'mouseout') {
                             this._hovered = null;
+                            this._heldMove = null;
                             this._hoveredPoint.set(null);
                         }
+                    },
+                },
+                {
+                    // The tooltip only shows a trackpoint once all its data is read: a move to
+                    // another one is held until then, and replayed (see `loadHovered`).
+                    id: 'waitForTrackpoint',
+                    events: ['mousemove'],
+                    beforeEvent: (chart: Chart, args: { event: ChartEvent }) => {
+                        const index = this.indexAt(args.event);
+                        if (index === undefined) {
+                            return;
+                        }
+                        const hovered = this._hovered;
+                        if (hovered?.index === index && hovered.loaded) {
+                            this._heldMove = null;
+                            return;
+                        }
+                        this._heldMove = args.event.native as MouseEvent;
+                        this.hover(index);
+                        return false;
                     },
                 },
             ],
@@ -646,12 +672,25 @@ export class ElevationProfile {
         }
     }
 
+    /** The trackpoint that the tooltip shows for an event, `undefined` outside of the chart. */
+    private indexAt(event: ChartEvent): number | undefined {
+        const elements = this._chart?.getElementsAtEventForMode(
+            event as unknown as Event,
+            'nearest',
+            { axis: 'x', intersect: false },
+            false
+        );
+        const element = elements?.find((element) => element.datasetIndex === 0);
+        // the data of the chart can be decimated: its points are the ones of the elements
+        const point = element && this._chart?.data.datasets[0].data[element.index];
+        return (point as ElevationProfilePoint | undefined)?.index;
+    }
+
     /**
-     * Shows the hovered trackpoint on the map, and reads the rest of its data from the engine for
-     * the tooltip. One trackpoint is read at a time, the last one hovered.
+     * Reads the data of the hovered trackpoint from the engine, for the tooltip. One trackpoint is
+     * read at a time, the last one hovered.
      */
     hover(index: number) {
-        this._hoveredPoint.set({ lat: this._data.lat[index], lng: this._data.lng[index] });
         if (this._hovered?.index === index) {
             return;
         }
@@ -673,11 +712,11 @@ export class ElevationProfile {
                 }
                 hovered.loaded = true;
                 hovered.point = point;
-                const chart = this._chart;
-                if (chart?.tooltip && chart.tooltip.getActiveElements().length > 0) {
-                    // the tooltip asks its callbacks again (the method is not in the types)
-                    (chart.tooltip as unknown as { update(changed: boolean): void }).update(true);
-                    chart.draw();
+                // the move that was held can now show the tooltip
+                const move = this._heldMove;
+                this._heldMove = null;
+                if (move) {
+                    this._canvas.dispatchEvent(new MouseEvent(move.type, move));
                 }
             }
         } finally {
