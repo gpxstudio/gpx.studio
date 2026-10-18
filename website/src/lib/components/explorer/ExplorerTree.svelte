@@ -136,8 +136,7 @@
         path={entry.path}
         name={entry.name}
         kind="file"
-        class="w-full h-7 px-1 text-sm hover:bg-muted {fileIdAt($workspace, entry.path) ===
-        undefined
+        class="w-full h-7 px-1 text-sm {fileIdAt($workspace, entry.path) === undefined
             ? 'text-muted-foreground'
             : ''}"
         style="scroll-margin-top: {level.top}px"

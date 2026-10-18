@@ -175,14 +175,17 @@
 <style lang="postcss">
     @reference "../../../app.css";
 
-    /* a selected file, and a selected folder with its chevron: the whole row of its node */
+    /* the color of the file list: a file and a folder (the whole row of its node, with its
+       chevron) under the pointer, or selected */
+    [data-explorer] :global([data-kind='file']:hover),
+    [data-explorer] :global([data-slot='button']:hover),
     [data-explorer] :global([data-kind='file'][aria-selected='true']),
     [data-explorer] :global([data-slot='button']:has([aria-selected='true'])) {
-        @apply bg-accent;
+        @apply bg-[var(--selection)];
     }
 
     /* the folder where what is dragged would go */
     [data-explorer] :global([data-slot='button']:has([data-drop-target])) {
-        @apply ring-1 ring-primary bg-accent/60;
+        @apply ring-1 ring-primary bg-[var(--selection)];
     }
 </style>
