@@ -3,7 +3,7 @@ import { splitAs } from '$lib/components/toolbar/tools/scissors/scissors';
 import { Scissors } from 'lucide-static';
 import { get } from 'svelte/store';
 import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
-import type { GeoJSONSource } from 'maplibre-gl';
+import type { GeoJSONSource, Map, MapLayerMouseEvent } from 'maplibre-gl';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 import type { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
 import { loadSVGIcon } from '$lib/utils';
@@ -20,7 +20,7 @@ import {
  * selection.
  */
 export class SplitControls {
-    map: maplibregl.Map;
+    map: Map;
     layerEventManager: MapLayerEventManager;
     unsubscribes: Function[] = [];
     /** What the tool needs from the engine, while it shows the anchors. */
@@ -32,7 +32,7 @@ export class SplitControls {
     layerOnMouseLeaveBinded: () => void = this.layerOnMouseLeave.bind(this);
     layerOnClickBinded: (e: any) => void = this.layerOnClick.bind(this);
 
-    constructor(map: maplibregl.Map, layerEventManager: MapLayerEventManager) {
+    constructor(map: Map, layerEventManager: MapLayerEventManager) {
         this.map = map;
         this.layerEventManager = layerEventManager;
         loadSVGIcon(
@@ -184,7 +184,7 @@ export class SplitControls {
         mapCursor.notify(MapCursorState.SPLIT_CONTROL, false);
     }
 
-    layerOnClick(e: maplibregl.MapLayerMouseEvent) {
+    layerOnClick(e: MapLayerMouseEvent) {
         const revision = this.statistics?.anchors?.revision;
         if (revision !== undefined) {
             engine.split(revision, e.features![0].properties!.index, get(splitAs));

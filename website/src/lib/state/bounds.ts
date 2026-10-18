@@ -1,5 +1,5 @@
 import { get } from 'svelte/store';
-import maplibregl from 'maplibre-gl';
+import { LngLatBounds } from 'maplibre-gl';
 import { map } from '$lib/components/map/map';
 import { page } from '$app/state';
 import { engine, FileStateCollectionObserver, type FileState } from '$lib/engine';
@@ -7,7 +7,7 @@ import { engine, FileStateCollectionObserver, type FileState } from '$lib/engine
 const { statistics } = engine;
 
 export class BoundsManager {
-    private _bounds: maplibregl.LngLatBounds = new maplibregl.LngLatBounds();
+    private _bounds: LngLatBounds = new LngLatBounds();
     private _files: Set<string> = new Set();
     private _fileStateCollectionObserver: FileStateCollectionObserver | null = null;
     private _unsubscribes: (() => void)[] = [];
@@ -51,7 +51,7 @@ export class BoundsManager {
         this._files.delete(fileId);
 
         if (file.statistics.bounds) {
-            let bounds = new maplibregl.LngLatBounds([
+            let bounds = new LngLatBounds([
                 file.statistics.bounds.west,
                 file.statistics.bounds.south,
                 file.statistics.bounds.east,
@@ -89,11 +89,11 @@ export class BoundsManager {
         }
         this._unsubscribes.forEach((unsubscribe) => unsubscribe());
         this._unsubscribes = [];
-        this._bounds = new maplibregl.LngLatBounds([180, 90, -180, -90]);
+        this._bounds = new LngLatBounds([180, 90, -180, -90]);
     }
 
     centerMapOnSelection() {
-        const bounds = new maplibregl.LngLatBounds([180, 90, -180, -90]);
+        const bounds = new LngLatBounds([180, 90, -180, -90]);
         const stats = get(statistics);
         if (stats.global.bounds) {
             bounds.extend([
@@ -136,7 +136,7 @@ export class BoundsManager {
         });
     }
 
-    validBounds(bounds: maplibregl.LngLatBounds) {
+    validBounds(bounds: LngLatBounds) {
         return (
             bounds.getSouthWest().lat !== 90 ||
             bounds.getSouthWest().lng !== 180 ||

@@ -1,4 +1,4 @@
-import maplibregl from 'maplibre-gl';
+import { LngLat } from 'maplibre-gl';
 
 export type Coordinates = {
     lat: number;
@@ -7,5 +7,5 @@ export type Coordinates = {
 
 /** The distance in meters between two coordinates (haversine formula). */
 export function distance(a: Coordinates, b: Coordinates): number {
-    return new maplibregl.LngLat(a.lng, a.lat).distanceTo(new maplibregl.LngLat(b.lng, b.lat));
+    return new LngLat(a.lng, a.lat).distanceTo(new LngLat(b.lng, b.lat));
 }

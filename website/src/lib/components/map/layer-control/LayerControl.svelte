@@ -7,6 +7,7 @@
     import { Layers } from '@lucide/svelte';
     import { settings } from '$lib/state/settings';
     import { map } from '$lib/components/map/map';
+    import type { Map } from 'maplibre-gl';
 
     let container: HTMLDivElement;
     let overpassLayer: OverpassLayer;
@@ -21,7 +22,7 @@
         selectedOverpassTree,
     } = settings;
 
-    map.onLoad((_map: maplibregl.Map) => {
+    map.onLoad((_map: Map) => {
         if (overpassLayer) {
             overpassLayer.remove();
         }

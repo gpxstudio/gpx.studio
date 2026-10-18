@@ -1,5 +1,5 @@
 ---
-title: Route planning and editing
+title: Планування та редагування маршруту
 ---
 
 <script>
@@ -11,74 +11,74 @@ title: Route planning and editing
 
 # <Pencil size="24" class="inline-block" style="margin-bottom: 5px" /> { title }
 
-The route planning and editing tool allows you to create and edit routes by placing or moving anchor points on the map.
+Інструмент планування та редагування маршруту дає змогу створювати й редагувати маршрути, розміщуючи або переміщуючи точки на карті.
 
-## Settings
+## Налаштування
 
-As shown below, the tool dialog contains a few settings to control the routing behavior.
-You can minimize the dialog to save space by clicking on <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
+Як показано нижче, діалогове вікно інструмент містить кілька параметрів, які можна контролювати поведінку побудови маршруту.
+Щоб звільнити місце, діалогове вікно можна згорнути, натиснувши <button><SquareArrowUpLeft size="16" class="inline-block" style="margin-bottom: 2px" /></button>.
 
 <div class="flex flex-row justify-center">
     <Routing minimizable={false} class="text-foreground p-3 border rounded-md shadow-lg" />
 </div>
 
-### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routing
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Побудова маршруту
 
-When routing is enabled, anchor points placed or moved on the map will be connected by a route calculated on the <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> road network.
-Disable routing to connect anchor points with straight lines.
-This setting can also be toggled by pressing <kbd>F5</kbd>.
+Якщо побудову маршруту ввімкнено, точки, які ви розміщуєте або переміщуєте на карті, з’єднуються маршрутом, розрахованим за дорожньою мережею <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a>.
+Вимкніть побудову маршруту, щоб з’єднувати точки прямими лініями.
+Це налаштування також можна перемкнути, натиснувши <kbd>F5</kbd>.
 
-### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Activity
+### <Bike size="16" class="inline-block" style="margin-bottom: 2px" /> Активність
 
-Select the activity type to tailor the routes for.
+Виберіть тип активності, для якої прокладати маршрути.
 
-### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Allow private roads
+### <TriangleAlert size="16" class="inline-block" style="margin-bottom: 2px" /> Дозволити приватні дороги
 
-When enabled, the routing engine will consider private roads when computing routes.
+Якщо цей параметр увімкнено, приватні дороги враховуватимуться під час побудови маршрутів.
 
 <DocsNote type="warning">
 
-Only use this option if you have local knowledge of the area and have permission to use the roads in question.
+Використовуйте цей параметр лише тоді, коли добре знаєте місцевість і маєте дозвіл користуватися відповідними дорогами.
 
 </DocsNote>
 
-## Plotting and editing routes
+## Прокладання та редагування маршрутів
 
-Creating a route or extending an existing one is as simple as clicking on the map to place a new anchor point.
+Щоб створити маршрут або продовжити наявний, достатньо клацнути на карті й додати нову точку.
 
-You can also drag an existing anchor point to reroute the segment connecting it with the previous and next anchor point.
+Наявну точку також можна перетягнути, щоб перебудувати сегмент між нею та попередньою і наступною точками.
 
-Furthermore, new anchor points can be inserted between existing ones by hovering over the segment connecting them and dragging the anchor point that appears to the desired location.
-On touch devices, you can tap on the segment to insert a new anchor point.
+Нові точки також можна додавати між наявними: наведіть курсор на сегмент, який їх з’єднує, і перетягніть точку, що з’явиться, у потрібне місце.
+На пристроях із сенсорним екраном торкніться сегмента, щоб вставити нову точку.
 
 <DocsNote>
 
-When editing imported GPX files, an initial set of anchor points is created automatically.
-To ease the editing process, the more the map is zoomed in, the more anchor points are displayed.
-This allows the route to be edited at different levels of detail.
+Під час редагування імпортованих GPX-файлів початковий набір точок створюється автоматично.
+Щоб полегшити редагування, що більше наближено карту, то більше точок відображається.
+Завдяки цьому маршрут можна редагувати з різною деталізацією.
 
 </DocsNote>
 
-Finally, you can delete anchor points by clicking on them and selecting <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Delete</button> from the context menu.
+Нарешті, щоб видалити точку, клацніть на неї та виберіть <button><Trash2 size="16" class="inline-block" style="margin-bottom: 4px" /> Видалити</button> у контекстному меню.
 
-<DocsImage src="tools/routing" alt="Anchor points allow you to easily edit a route." />
+<DocsImage src="tools/routing" alt="Опорні точки спрощують редагування маршруту." />
 
-## Additional tools
+## Додаткові інструменти
 
-The following tools automate some common route modification operations.
+Інструменти нижче автоматизують деякі типові дії з редагування маршруту.
 
-### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Reverse
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Розвернути
 
-Reverse the direction of the route.
+Змінити напрямок маршруту.
 
-### <House size="16" class="inline-block" style="margin-bottom: 2px" /> Back to start
+### <House size="16" class="inline-block" style="margin-bottom: 2px" /> До початку маршруту
 
-Connect the last point of the route with the starting point, using the chosen routing settings.
+Замкнути маршрут до початкової точки з урахуванням вибраних налаштувань побудови маршруту.
 
-### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Round trip
+### <Repeat size="16" class="inline-block" style="margin-bottom: 2px" /> Маршрут туди й назад
 
-Return to the starting point by the same route.
+Повернутися до старту тим самим маршрутом.
 
-### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Change the start of the loop
+### <CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Змінити початкову точку кільцевого маршруту
 
-When the end point of the route is close enough to the start, you can change the start of the loop by clicking on any anchor point and selecting <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Start loop here</button> from the context menu.
+Коли кінцева точка маршруту достатньо близько до початкової, можна змінити початок кільцевого маршруту: клацніть будь-яку точку й виберіть <button><CirclePlay size="16" class="inline-block" style="margin-bottom: 2px" /> Почати кільцевий маршрут тут</button> у контекстному меню.

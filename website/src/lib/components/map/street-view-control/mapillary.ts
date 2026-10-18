@@ -1,4 +1,10 @@
-import maplibregl, { type LayerSpecification, type VectorSourceSpecification } from 'maplibre-gl';
+import {
+    Map,
+    Marker,
+    type LayerSpecification,
+    type MapLayerMouseEvent,
+    type VectorSourceSpecification,
+} from 'maplibre-gl';
 import { Viewer, type ViewerBearingEvent } from 'mapillary-js/dist/mapillary.module';
 import 'mapillary-js/dist/mapillary.css';
 import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
@@ -43,9 +49,9 @@ const mapillaryImageLayer: LayerSpecification = {
 };
 
 export class MapillaryLayer {
-    map: maplibregl.Map;
+    map: Map;
     layerEventManager: MapLayerEventManager;
-    marker: maplibregl.Marker;
+    marker: Marker;
     viewer: Viewer;
 
     active = false;
@@ -56,7 +62,7 @@ export class MapillaryLayer {
     onMouseLeaveBinded = this.onMouseLeave.bind(this);
 
     constructor(
-        map: maplibregl.Map,
+        map: Map,
         layerEventManager: MapLayerEventManager,
         container: HTMLElement,
         popupOpen: { value: boolean }
@@ -75,7 +81,7 @@ export class MapillaryLayer {
         dot.className = 'maplibregl-user-location-dot';
         element.appendChild(dot);
 
-        this.marker = new maplibregl.Marker({
+        this.marker = new Marker({
             rotationAlignment: 'map',
             element,
         });
@@ -140,7 +146,7 @@ export class MapillaryLayer {
         this.popupOpen.value = false;
     }
 
-    onMouseEnter(e: maplibregl.MapLayerMouseEvent) {
+    onMouseEnter(e: MapLayerMouseEvent) {
         if (
             e.features &&
             e.features.length > 0 &&

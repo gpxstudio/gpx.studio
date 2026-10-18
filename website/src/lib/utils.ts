@@ -3,7 +3,7 @@ import { twMerge } from 'tailwind-merge';
 import { base } from '$app/paths';
 import { languages } from '$lib/i18n/languages';
 import type { Coordinates } from '$lib/geo/coordinates';
-import maplibregl from 'maplibre-gl';
+import { LngLatBounds, type Map as MapLibreMap } from 'maplibre-gl';
 import { pointToTile, pointToTileFraction } from '@mapbox/tilebelt';
 
 export function cn(...inputs: ClassValue[]) {
@@ -23,7 +23,7 @@ export function getElevation(
     tileSize = 512
 ): Promise<number[]> {
     let coordinates = points;
-    let bbox = new maplibregl.LngLatBounds();
+    let bbox = new LngLatBounds();
     coordinates.forEach((coord) => bbox.extend(coord));
 
     let tiles = coordinates.map((coord) => pointToTile(coord.lng, coord.lat, ELEVATION_ZOOM));
@@ -110,7 +110,7 @@ export function getElevation(
     );
 }
 
-export function loadSVGIcon(map: maplibregl.Map, id: string, svg: string, size: number = 100) {
+export function loadSVGIcon(map: MapLibreMap, id: string, svg: string, size: number = 100) {
     if (!map.hasImage(id)) {
         let icon = new Image(size, size);
         icon.onload = () => {

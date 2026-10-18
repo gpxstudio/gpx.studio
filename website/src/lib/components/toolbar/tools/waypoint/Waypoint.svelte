@@ -16,7 +16,7 @@
     import { selectedWaypoint } from './waypoint';
     import { map } from '$lib/components/map/map';
     import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
-    import maplibregl from 'maplibre-gl';
+    import { Marker } from 'maplibre-gl';
     import { getSvgForSymbol } from '$lib/components/map/gpx-layer/gpx-layer';
 
     let props: {
@@ -43,7 +43,7 @@
         })
     );
 
-    let marker: maplibregl.Marker | null = null;
+    let marker: Marker | null = null;
 
     function reset() {
         if ($selectedWaypoint) {
@@ -136,7 +136,7 @@
                     let element = document.createElement('div');
                     element.classList.add('w-8', 'h-8');
                     element.innerHTML = getSvgForSymbol(symbolKey);
-                    marker = new maplibregl.Marker({
+                    marker = new Marker({
                         element,
                         anchor: 'bottom',
                     })

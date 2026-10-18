@@ -4,7 +4,7 @@ import { get, writable } from 'svelte/store';
 import { overpassQueryData } from '$lib/data/layers';
 import { MapPopup } from '$lib/components/map/map-popup';
 import { settings } from '$lib/state/settings';
-import type { GeoJSONSource } from 'maplibre-gl';
+import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 import type { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
 import { loadSVGIcon } from '$lib/utils';
@@ -23,7 +23,7 @@ export class OverpassLayer {
     overpassUrl = 'https://overpass.gpx.studio/api/interpreter';
     minZoom = 12;
     queryZoom = 12;
-    map: maplibregl.Map;
+    map: MapLibreMap;
     layerEventManager: MapLayerEventManager;
     popup: MapPopup;
 
@@ -39,7 +39,7 @@ export class OverpassLayer {
     updateBinded = this.update.bind(this);
     onHoverBinded = this.onHover.bind(this);
 
-    constructor(map: maplibregl.Map, layerEventManager: MapLayerEventManager) {
+    constructor(map: MapLibreMap, layerEventManager: MapLayerEventManager) {
         this.map = map;
         this.layerEventManager = layerEventManager;
         this.popup = new MapPopup(map, {

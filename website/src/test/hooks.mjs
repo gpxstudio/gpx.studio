@@ -23,5 +23,9 @@ export async function load(url, context, nextLoad) {
     if (url.endsWith('.css')) {
         return { format: 'module', source: '', shortCircuit: true };
     }
+    // The URL of a file given by Vite (`?url`, `?worker&url`), which the tests do not load.
+    if (new URL(url).searchParams.has('url')) {
+        return { format: 'module', source: "export default '';", shortCircuit: true };
+    }
     return nextLoad(url, context);
 }

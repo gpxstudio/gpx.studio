@@ -1167,7 +1167,7 @@ export type CustomLayer = {
     maxZoom: number;
     layerType: 'basemap' | 'overlay';
     resourceType: 'raster' | 'vector';
-    value: string | maplibregl.StyleSpecification;
+    value: string | StyleSpecification;
 };
 
 type OverpassQueryData = {

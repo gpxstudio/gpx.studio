@@ -1,4 +1,4 @@
-import maplibregl from 'maplibre-gl';
+import { LngLat, type Map, type MapMouseEvent, Popup, type PopupOptions } from 'maplibre-gl';
 import { mount, tick, unmount } from 'svelte';
 import { get, writable, type Writable } from 'svelte/store';
 import MapPopupComponent from '$lib/components/map/MapPopup.svelte';
@@ -13,15 +13,15 @@ export type PopupItem<T = any> = {
 };
 
 export class MapPopup {
-    map: maplibregl.Map;
-    popup: maplibregl.Popup;
+    map: Map;
+    popup: Popup;
     item: Writable<PopupItem | null> = writable(null);
     component: ReturnType<typeof mount>;
     maybeHideBinded = this.maybeHide.bind(this);
 
-    constructor(map: maplibregl.Map, options?: maplibregl.PopupOptions) {
+    constructor(map: Map, options?: PopupOptions) {
         this.map = map;
-        this.popup = new maplibregl.Popup(options);
+        this.popup = new Popup(options);
         this.component = mount(MapPopupComponent, {
             target: document.body,
             props: {
@@ -53,7 +53,7 @@ export class MapPopup {
         this.map.on('mousemove', this.maybeHideBinded);
     }
 
-    maybeHide(e: maplibregl.MapMouseEvent) {
+    maybeHide(e: MapMouseEvent) {
         const item = get(this.item);
         if (item === null) {
             this.hide();
@@ -77,8 +77,8 @@ export class MapPopup {
     getCoordinates() {
         const item = get(this.item);
         if (item === null) {
-            return new maplibregl.LngLat(0, 0);
+            return new LngLat(0, 0);
         }
-        return new maplibregl.LngLat(item.item.lng, item.item.lat);
+        return new LngLat(item.item.lng, item.item.lat);
     }
 }

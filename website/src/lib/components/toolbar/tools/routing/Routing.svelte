@@ -1,4 +1,5 @@
 <script lang="ts">
+    import type { Popup } from 'maplibre-gl';
     import * as Select from '$lib/components/ui/select';
     import { Switch } from '$lib/components/ui/switch';
     import { Label } from '$lib/components/ui/label/index.js';
@@ -43,7 +44,7 @@
     }: {
         minimized?: boolean;
         minimizable?: boolean;
-        popup?: maplibregl.Popup;
+        popup?: Popup;
         popupElement?: HTMLDivElement;
         class?: string;
     } = $props();

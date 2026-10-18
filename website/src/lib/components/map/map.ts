@@ -1,5 +1,6 @@
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import MaplibreGeocoder, {
     type MaplibreGeocoderFeatureResults,
 } from '@maplibre/maplibre-gl-geocoder';
@@ -39,6 +40,7 @@ export class MapLibreGLMap {
         geocoder: boolean,
         geolocate: boolean
     ) {
+        maplibregl.setWorkerUrl(workerUrl);
         this._maptilerKey = maptilerKey;
         this._styleManager = new StyleManager(this._mapStore, this._maptilerKey);
         // MapLibre gives Safari more workers, but only recognizes it by its user agent: not

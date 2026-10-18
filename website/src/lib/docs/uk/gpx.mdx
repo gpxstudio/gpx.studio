@@ -1,5 +1,5 @@
 ---
-title: GPX file format
+title: Формат GPX-файлу
 ---
 
 <script>
@@ -8,27 +8,27 @@ title: GPX file format
 
 # { title }
 
-The <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX file format</a> is an open standard for exchanging GPS data between applications and GPS devices.
-It essentially consists of a series of GPS points encoding one or multiple GPS traces, and, optionally, some points of interest.
+<a href="https://www.topografix.com/gpx.asp" target="_blank">Формат GPX-файлу</a> це відкритий стандарт для обміну GPS-даними між застосунками та GPS-пристроями.
+По суті, він складається з набору GPS-точок, які описують один або кілька GPS-треків, а також, за бажанням, точки інтересу.
 
-GPX files may also contain metadata, of which the **name** and **description** fields are the most useful for users.
+GPX-файли також можуть містити метадані, серед яких для користувачів найкорисніші поля **назва** та **опис**.
 
-### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Tracks, segments, and GPS points
+### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Треки, сегменти та GPS-точки
 
-As mentioned above, a GPX file can contain multiple GPS traces.
-These are organized in a hierarchical structure, with tracks at the top level.
+Як згадано вище, GPX-файл може містити кілька GPS-треків.
+Вони організовані в ієрархічну структуру, де треки розташовані на верхньому рівні.
 
-- A **track** is made of a sequence of disconnected segments.
-  Furthermore, it can contain metadata such as a **name**, a **description**, and **appearance properties**.
-- A **segment** is a sequence of GPS points that form a continuous path.
-- A **GPS point** is a location with a latitude, a longitude, and optionally a timestamp and an altitude.
-  Some devices also store additional information such as heart rate, cadence, temperature, and power.
+- **Трек** складається з послідовності окремих сегментів.
+  Крім того, він може містити метадані, такі як **назва**, **опис** і **властивості вигляду**.
+- **Сегмент** — це послідовність GPS-точок, які утворюють безперервний шлях.
+- **GPS-точка** — це місце з широтою, довготою, також додатково часовою міткою й висотою.
+  Деякі пристрої також зберігають додаткову інформацію, такі як пульс, каденс, температуру та потужність.
 
-In most cases, GPX files contain a single track with a single segment.
-However, the hierarchy described above allows for more advanced use cases, such as planning multi-day trips with several variants for each day.
+У більшості випадків GPX-файли містять один трек з одним сегментом.
+Однак описана вище ієрархія дає змогу використовувати складніші сценарії, наприклад планувати багатоденні подорожі з кількома варіантами маршруту на кожен день.
 
-### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Points of interest
+### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Точки інтересу
 
-**Points of interest** (technically called _waypoints_) represent locations of interest to show either on a GPS device or on a digital map.
+**Точки інтересу** (технічно вони називаються **waypoints**) позначають цікаві місця, які можна показувати на GPS-пристрої або цифровій карті.
 
-In addition to its coordinates, a point of interest can have a **name** and a **description**.
+Окрім координат, точка інтересу може мати **назву** та **опис**.

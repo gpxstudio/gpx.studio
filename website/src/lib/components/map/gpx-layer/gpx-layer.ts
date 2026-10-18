@@ -1,9 +1,10 @@
 import { get, type Readable } from 'svelte/store';
-import maplibregl, {
+import {
     type GeoJSONSource,
     type FilterSpecification,
     type MapLayerMouseEvent,
     type MapLayerTouchEvent,
+    Point,
 } from 'maplibre-gl';
 import { map } from '$lib/components/map/map';
 import { waypointPopup, trackpointPopup } from './gpx-layer-popup';
@@ -61,7 +62,7 @@ export class GPXLayer {
     selected: boolean = false;
     currentWaypointData: GeoJSON.FeatureCollection | null = null;
     draggedWaypointIndex: number | null = null;
-    draggingStartingPosition: maplibregl.Point = new maplibregl.Point(0, 0);
+    draggingStartingPosition: Point = new Point(0, 0);
     unsubscribe: Function[] = [];
 
     updateBinded: () => void = this.update.bind(this);

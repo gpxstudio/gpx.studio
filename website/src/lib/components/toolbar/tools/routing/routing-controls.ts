@@ -1,10 +1,12 @@
 import { distance, type Coordinates } from '$lib/geo/coordinates';
 import { get, writable } from 'svelte/store';
-import maplibregl, {
-    type MapMouseEvent,
+import {
     type GeoJSONSource,
     type MapLayerMouseEvent,
     type MapLayerTouchEvent,
+    type MapMouseEvent,
+    Point,
+    type Popup,
 } from 'maplibre-gl';
 import { route } from './routing';
 import { toast } from 'svelte-sonner';
@@ -69,7 +71,7 @@ export class RoutingControls {
     selection: Selection = { type: 'empty' };
     /** Ids of the files whose line layer is listened to. */
     listenedFileIds: string[] = [];
-    popup: maplibregl.Popup;
+    popup: Popup;
     popupElement: HTMLElement;
     unsubscribes: Function[] = [];
 
@@ -80,7 +82,7 @@ export class RoutingControls {
     /** Id of the anchor that is dragged: `anchors.length` for the temporary anchor. */
     draggedAnchorId: number | null = null;
     lastDraggedAnchorEventTime = 0;
-    draggingStartingPosition: maplibregl.Point = new maplibregl.Point(0, 0);
+    draggingStartingPosition: Point = new Point(0, 0);
     onMouseEnterBinded: () => void = this.onMouseEnter.bind(this);
     onMouseLeaveBinded: () => void = this.onMouseLeave.bind(this);
     onClickBinded: (e: MapLayerMouseEvent) => void = this.onClick.bind(this);
@@ -100,7 +102,7 @@ export class RoutingControls {
         this.showTemporaryAnchor.bind(this);
     updateTemporaryAnchorBinded: (e: MapMouseEvent) => void = this.updateTemporaryAnchor.bind(this);
 
-    constructor(popup: maplibregl.Popup, popupElement: HTMLElement) {
+    constructor(popup: Popup, popupElement: HTMLElement) {
         this.popup = popup;
         this.popupElement = popupElement;
 
@@ -233,7 +235,7 @@ export class RoutingControls {
 
         // a single source for all the anchors, filtered by zoom: one update for the map to process
         try {
-            const source = map_.getSource(LAYER_ID) as maplibregl.GeoJSONSource | undefined;
+            const source = map_.getSource(LAYER_ID) as GeoJSONSource | undefined;
             const data: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features };
             if (source) {
                 source.setData(data);
@@ -439,7 +441,7 @@ export class RoutingControls {
         return distance(first, last) <= 1000;
     }
 
-    async appendAnchor(e: maplibregl.MapMouseEvent) {
+    async appendAnchor(e: MapMouseEvent) {
         // Add a new anchor to the end of the last segment
         if (get(streetViewEnabled) && get(streetViewSource) === 'google') {
             return;
@@ -496,7 +498,7 @@ export class RoutingControls {
         );
     }
 
-    addIntermediateAnchor(e: maplibregl.MapMouseEvent) {
+    addIntermediateAnchor(e: MapMouseEvent) {
         e.preventDefault();
 
         if (this.temporaryAnchor !== null) {

@@ -15,7 +15,9 @@
         poi: PopupItem<any>;
     } = $props();
 
-    let tags: Record<string, string> = $derived(poi ? JSON.parse(poi.item.tags) : {});
+    let tags: Record<string, string> = $derived(
+        poi ? (typeof poi.item.tags == 'object' ? poi.item.tags : JSON.parse(poi.item.tags)) : {}
+    );
     let name = $derived.by(() => {
         if (poi) {
             if (tags.name !== undefined && tags.name !== '') {
