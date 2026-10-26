@@ -70,6 +70,10 @@ impl File {
     }
 }
 
+/// The highest zoom level from which an anchor is shown that makes it a route point, see [`write`]:
+/// the anchors that only appear when zooming in further are details of the path.
+pub const ROUTE_POINT_MAX_ZOOM: u8 = 12;
+
 const SCHEMA_LOCATION: &str = "http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd http://www.garmin.com/xmlschemas/PowerExtension/v1 http://www.garmin.com/xmlschemas/PowerExtensionv1.xsd http://www.topografix.com/GPX/gpx_style/0/2 http://www.topografix.com/GPX/gpx_style/0/2/gpx_style.xsd";
 
 type XmlWriter = Writer<Vec<u8>>;
@@ -77,9 +81,10 @@ type XmlWriter = Writer<Vec<u8>>;
 /// Writes a file as GPX 1.1, in UTF-8. The surface, highway, SAC scale and MTB scale of the trackpoints are
 /// the names of their codes in `categories`.
 ///
-/// The routes are written as routes (`rte`): the anchors of their segment are the `rtept` and the
-/// trackpoints between two anchors are the `gpxx:rpt` of the `rtept` before them (which only have
-/// a position, unlike the `rtept`). The first and last trackpoints always are `rtept`.
+/// The routes are written as routes (`rte`): the anchors of their segment that are shown from the
+/// zoom level [`ROUTE_POINT_MAX_ZOOM`] or a lower one are the `rtept`, and the trackpoints between
+/// two of them are the `gpxx:rpt` of the `rtept` before them (which only have a position, unlike
+/// the `rtept`). The first and last trackpoints always are `rtept`.
 pub fn write(file: &File, categories: &TrackpointCategories, options: ExportOptions) -> Vec<u8> {
     let mut writer = Writer::new_with_indent(Vec::new(), b' ', 4);
     // writing to memory does not fail
@@ -306,12 +311,18 @@ fn write_route(
         write_track_info(w, name, info)?;
         let points: Vec<&Trackpoint> = segment.iter().collect();
         let last = points.len().saturating_sub(1);
-        let is_anchor = |i: usize| i == 0 || i == last || points[i].anchor.is_some();
+        let is_route_point = |i: usize| {
+            i == 0
+                || i == last
+                || points[i]
+                    .anchor
+                    .is_some_and(|zoom| zoom <= ROUTE_POINT_MAX_ZOOM)
+        };
         let mut i = 0;
         while i < points.len() {
-            // the trackpoints up to the next anchor
+            // the trackpoints up to the next route point
             let mut next = i + 1;
-            while next < points.len() && !is_anchor(next) {
+            while next < points.len() && !is_route_point(next) {
                 next += 1;
             }
             write_point(
@@ -649,25 +660,44 @@ mod tests {
     }
 
     #[test]
-    fn test_the_anchors_of_a_route_are_its_route_points() {
+    fn test_the_anchors_shown_up_to_zoom_12_are_the_route_points() {
         let (file, mut categories) = read("with_tracks_and_segments");
         let file = as_routes(file);
         assert!(file.rte.len() > 2);
         let written = write(&file, &categories, ExportOptions::ALL);
         let again = parse(&written, &mut categories).unwrap();
         assert_eq!(again.rte.len(), file.rte.len());
-        let anchors = |s: &crate::TrackSegment| {
+        let anchors = |s: &crate::TrackSegment, max_zoom: u8| {
             s.iter()
                 .enumerate()
-                .filter(|(_, p)| p.anchor.is_some())
+                .filter(|(_, p)| p.anchor.is_some_and(|zoom| zoom <= max_zoom))
                 .map(|(i, _)| i)
                 .collect::<Vec<_>>()
         };
         for (a, b) in file.rte.iter().zip(&again.rte) {
             assert_eq!(a.info.name, b.info.name);
             assert_eq!(a.seg.len(), b.seg.len());
-            assert_eq!(anchors(&a.seg), anchors(&b.seg));
+            // the route points come back as anchors, the other anchors as points of the path
+            assert_eq!(
+                anchors(&a.seg, ROUTE_POINT_MAX_ZOOM),
+                anchors(&b.seg, u8::MAX)
+            );
         }
+    }
+
+    #[test]
+    fn test_anchors_shown_from_a_higher_zoom_are_points_of_the_path() {
+        let (file, categories) = read("simple");
+        let mut file = as_routes(file);
+        let segment = &mut file.rte[0].seg;
+        segment.update_all(|_, point| point.anchor = None);
+        let len = segment.len();
+        segment.set_anchor(5, ROUTE_POINT_MAX_ZOOM);
+        segment.set_anchor(10, ROUTE_POINT_MAX_ZOOM + 1);
+        let text = written_text(&file, &categories, ExportOptions::ALL);
+        // the ends, and the anchor shown from zoom 12
+        assert_eq!(count(&text, "<rtept"), 3);
+        assert_eq!(count(&text, "<gpxx:rpt"), len - 3);
     }
 
     #[test]
