@@ -10,11 +10,18 @@ use crate::ts::*;
 
 // File commands
 
-/// Creates a file and selects it. With `lng` and `lat`, it starts with a track and a segment that
-/// hold that trackpoint (at `ele`, 0 by default).
+/// Creates a file and selects it. With `route`, it starts with a route. With `lng` and `lat`, it
+/// starts with a segment that holds that trackpoint (at `ele`, 0 by default): the one of its route
+/// with `route`, of a track otherwise.
 #[wasm_bindgen]
-pub fn new_file(name: &str, lng: Option<f64>, lat: Option<f64>, ele: Option<f64>) -> Outcome {
-    run(|e| api::new_file(e, name, lng, lat, ele))
+pub fn new_file(
+    name: &str,
+    lng: Option<f64>,
+    lat: Option<f64>,
+    ele: Option<f64>,
+    route: bool,
+) -> Outcome {
+    run(|e| api::new_file(e, name, lng, lat, ele, route))
 }
 
 /// Loads files as a single command (one undo step). The files are in `data`, one after the

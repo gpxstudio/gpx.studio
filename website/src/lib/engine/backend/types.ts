@@ -100,8 +100,11 @@ export interface DesktopFiles {
     listFolder(path?: string): Promise<FolderEntry[]>;
     /** Opens a web page (or an email to write) in the app of the system for it. */
     openUrl(url: string): Promise<void>;
-    /** Makes a new file, written at once in `folder` (a folder of the open folder), and selects it. */
-    newFile(name: string, folder: string): Promise<Outcome>;
+    /**
+     * Makes a new file, written at once in `folder` (a folder of the open folder), and selects it.
+     * With `route`, it starts with an empty route.
+     */
+    newFile(name: string, folder: string, route: boolean): Promise<Outcome>;
     /** Makes a folder in a folder of the open folder (numbered if the name is taken): its path. */
     createFolder(parent: string, name: string): Promise<string>;
     /**
@@ -165,7 +168,13 @@ export interface Backend {
     paste(): Promise<Outcome>;
 
     // Files
-    new_file(name: string, lng?: number, lat?: number, ele?: number): Promise<Outcome>;
+    new_file(
+        name: string,
+        lng: number | undefined,
+        lat: number | undefined,
+        ele: number | undefined,
+        route: boolean
+    ): Promise<Outcome>;
     load_files(files: { data: Uint8Array; name: string }[]): Promise<Outcome>;
     duplicate(): Promise<Outcome>;
     delete(wholeFiles: boolean): Promise<Outcome>;

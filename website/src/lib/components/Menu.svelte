@@ -68,6 +68,7 @@
         closeFiles,
         closeFolder,
         createFile,
+        createRouteFile,
         loadFiles,
         openFiles,
         openFolder,
@@ -160,8 +161,12 @@
                 <Menubar.Content class="border-none">
                     <Menubar.Item onclick={createFile}>
                         <Plus size="16" />
-                        {i18n._('menu.new')}
+                        {i18n._('menu.new_file')}
                         <Shortcut key="+" ctrl={true} />
+                    </Menubar.Item>
+                    <Menubar.Item onclick={createRouteFile}>
+                        <Plus size="16" />
+                        {i18n._('menu.new_route_file')}
                     </Menubar.Item>
                     <Menubar.Separator />
                     <Menubar.Item onclick={openFiles}>

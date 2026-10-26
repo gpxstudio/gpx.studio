@@ -148,21 +148,30 @@ pub fn redo<H: History>(engine: &mut Engine<H>) -> Outcome {
 
 // Files
 
-/// Creates a file and selects it. With `lng` and `lat`, it starts with a track and a segment that
-/// hold that trackpoint (at `ele`, 0 by default).
+/// Creates a file and selects it. With `route`, it starts with a route. With `lng` and `lat`, it
+/// starts with a segment that holds that trackpoint (at `ele`, 0 by default): the one of its route
+/// with `route`, of a track otherwise.
 pub fn new_file<H: History>(
     engine: &mut Engine<H>,
     name: &str,
     lng: Option<f64>,
     lat: Option<f64>,
     ele: Option<f64>,
+    route: bool,
 ) -> Outcome {
     let trackpoint = lng.zip(lat).map(|(lng, lat)| engine::NewTrackpoint {
         lng,
         lat,
         ele: ele.unwrap_or_default(),
     });
-    edit(engine, Command::New(engine::New { name, trackpoint }))
+    edit(
+        engine,
+        Command::New(engine::New {
+            name,
+            trackpoint,
+            route,
+        }),
+    )
 }
 
 /// Loads files as a single command (one undo step). The files are in `data`, one after the other,

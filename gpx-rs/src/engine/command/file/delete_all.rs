@@ -31,12 +31,14 @@ mod tests {
         crate::New {
             name: "a",
             trackpoint: None,
+            route: false,
         }
         .apply(&mut fx.state())
         .unwrap();
         crate::New {
             name: "b",
             trackpoint: None,
+            route: false,
         }
         .apply(&mut fx.state())
         .unwrap();

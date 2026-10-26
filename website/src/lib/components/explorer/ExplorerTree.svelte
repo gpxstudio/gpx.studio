@@ -1,6 +1,6 @@
 <script lang="ts">
     import { CollapsibleTreeNode } from '$lib/components/collapsible-tree/index';
-    import { FileText, Folder } from '@lucide/svelte';
+    import { FileText, Folder, Route } from '@lucide/svelte';
     import { getContext } from 'svelte';
     import { get } from 'svelte/store';
     import { toast } from 'svelte-sonner';
@@ -45,6 +45,7 @@
     async function create(value: string, retry: boolean) {
         const kind = pending;
         const parent = folder;
+        const route = creating.route;
         if (kind === undefined || parent === undefined) return;
         const name = value.trim();
         const taken = entries.some(
@@ -60,7 +61,7 @@
         if (name === '' || taken) return;
         let created: string | undefined;
         if (kind === 'file') {
-            const id = await engine.newFileIn(name, parent);
+            const id = await engine.newFileIn(name, parent, route);
             created = id === undefined ? undefined : get(workspace)?.files[id]?.path;
             if (created !== undefined) {
                 currentTool.set(Tool.ROUTING);
@@ -94,14 +95,20 @@
 <!-- the name of what is being made, which it is made with -->
 {#snippet named(kind: 'file' | 'folder')}
     <div class="flex flex-row items-center h-7 pl-1 pr-1 {kind === 'file' ? 'gap-1.5' : 'gap-1'}">
-        {#if kind === 'file'}
+        {#if kind === 'file' && creating.route}
+            <Route size="16" class="shrink-0" />
+        {:else if kind === 'file'}
             <FileText size="16" class="shrink-0" />
         {:else}
             <Folder size="16" class="shrink-0" />
         {/if}
         <NameInput
             placeholder={i18n._(
-                kind === 'file' ? 'menu.explorer_menu.new_file' : 'menu.explorer_menu.new_folder'
+                kind === 'folder'
+                    ? 'menu.explorer_menu.new_folder'
+                    : creating.route
+                      ? 'menu.explorer_menu.new_route_file'
+                      : 'menu.explorer_menu.new_file'
             )}
             oncommit={create}
             oncancel={() => (creating.parent = undefined)}

@@ -217,6 +217,7 @@ mod tests {
             crate::New {
                 name,
                 trackpoint: None,
+                route: false,
             }
             .apply(&mut fx.state())
             .unwrap();

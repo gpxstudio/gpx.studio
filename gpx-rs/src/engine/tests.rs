@@ -87,6 +87,7 @@ fn new(engine: &mut TestEngine, name: &str) -> bool {
         Command::New(New {
             name,
             trackpoint: None,
+            route: false,
         }),
     )
 }
@@ -1489,6 +1490,7 @@ mod per_file_history {
             .execute(Action::Edit(Command::New(New {
                 name,
                 trackpoint: None,
+                route: false,
             })))
             .unwrap();
         *engine.order().last().unwrap()

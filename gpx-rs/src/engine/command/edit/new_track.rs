@@ -61,6 +61,7 @@ mod tests {
         New {
             name: "file",
             trackpoint: None,
+            route: false,
         }
         .apply(&mut fx.state())
         .unwrap();
@@ -77,6 +78,7 @@ mod tests {
         New {
             name: "file",
             trackpoint: None,
+            route: false,
         }
         .apply(&mut fx.state())
         .unwrap();

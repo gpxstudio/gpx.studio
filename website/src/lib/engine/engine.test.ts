@@ -204,6 +204,15 @@ describe('selection', () => {
         assert.equal(fileStates()[0].structure.routes.length, 3);
     });
 
+    it('creates a file that starts with an empty route', async () => {
+        assert.equal(await engine.newFile('routes', undefined, true), true);
+        const [state] = fileStates();
+        assert.equal(state.structure.routes.length, 1);
+        assert.equal(state.structure.routes[0].segment.length, 0);
+        assert.equal(state.structure.tracks.length, 0);
+        assert.deepEqual(get(engine.selection), { type: 'file', fileIds: [state.structure.id] });
+    });
+
     it('ignores what does not exist', async () => {
         await load('simple');
         const before = get(engine.selection);

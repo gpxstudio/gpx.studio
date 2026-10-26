@@ -16,10 +16,16 @@ pub fn new_file(
     lng: Option<f64>,
     lat: Option<f64>,
     ele: Option<f64>,
+    route: Option<bool>,
     folder: Option<PathBuf>,
 ) -> api::Outcome {
+    let route = route.unwrap_or_default();
     // in `folder` if it is given, otherwise like the selected file, otherwise in the open folder
-    state.core(move |core| core.creating(folder, true, |e| api::new_file(e, &name, lng, lat, ele)))
+    state.core(move |core| {
+        core.creating(folder, true, |e| {
+            api::new_file(e, &name, lng, lat, ele, route)
+        })
+    })
 }
 
 /// The files are in the body, one after the other, the headers `lengths` and `names` (JSON,

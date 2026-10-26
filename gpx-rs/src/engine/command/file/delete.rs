@@ -146,6 +146,7 @@ mod tests {
         crate::New {
             name: "keep",
             trackpoint: None,
+            route: false,
         }
         .apply(&mut fx.state())
         .unwrap();
@@ -280,6 +281,7 @@ mod tests {
             crate::New {
                 name: "keep",
                 trackpoint: None,
+                route: false,
             }
             .apply(&mut fx.state())
             .unwrap();

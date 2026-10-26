@@ -116,12 +116,16 @@
     /** The folder where what is made from the menu goes: the folder of the row. */
     let folder = $derived(kind === 'file' ? undefined : path);
 
-    /** Asks for the name of a file or a folder to make in the folder of the row (see `creating`). */
-    function create(what: 'file' | 'folder') {
+    /**
+     * Asks for the name of a file or a folder to make in the folder of the row (see `creating`).
+     * With `route`, the file starts with an empty route.
+     */
+    function create(what: 'file' | 'folder', route = false) {
         if (folder === undefined) return;
         // where what is being named is shown
         folders.open(folder);
         creating.kind = what;
+        creating.route = route;
         creating.parent = folder;
     }
 
@@ -285,6 +289,10 @@
             <ContextMenu.Item onclick={() => create('file')}>
                 <Plus size="16" />
                 {i18n._('menu.explorer_menu.new_file')}
+            </ContextMenu.Item>
+            <ContextMenu.Item onclick={() => create('file', true)}>
+                <Plus size="16" />
+                {i18n._('menu.explorer_menu.new_route_file')}
             </ContextMenu.Item>
             <ContextMenu.Item onclick={() => create('folder')}>
                 <Plus size="16" />

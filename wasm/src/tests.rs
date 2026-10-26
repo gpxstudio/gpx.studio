@@ -84,7 +84,7 @@ fn uuid_bytes(ids: &[String]) -> Vec<u8> {
 fn test_new_file_is_listed_and_selected() {
     start();
     assert!(run(crate::command::files::new_file(
-        "route", None, None, None
+        "route", None, None, None, false
     )));
     assert_eq!(last_error(), None);
 
@@ -198,7 +198,9 @@ fn test_the_reason_of_a_failure_can_be_read() {
     assert!(!run(crate::command::tools::reverse()));
     assert_eq!(last_error().as_deref(), Some("nothing to do"));
     // the next call starts afresh
-    assert!(run(crate::command::files::new_file("a", None, None, None)));
+    assert!(run(crate::command::files::new_file(
+        "a", None, None, None, false
+    )));
     assert_eq!(last_error(), None);
 
     // invalid data
@@ -251,7 +253,9 @@ fn test_the_reason_of_a_failure_can_be_read() {
     assert!(last_error().is_some());
 
     // answers are not failures
-    assert!(run(crate::command::files::new_file("b", None, None, None)));
+    assert!(run(crate::command::files::new_file(
+        "b", None, None, None, false
+    )));
     assert!(!crate::command::files::can_paste());
     assert_eq!(last_error(), None);
 }
@@ -260,7 +264,9 @@ fn test_the_reason_of_a_failure_can_be_read() {
 fn test_undo_and_redo() {
     started_with(&[]);
     assert!(!can_undo() && !can_redo());
-    assert!(run(crate::command::files::new_file("a", None, None, None)));
+    assert!(run(crate::command::files::new_file(
+        "a", None, None, None, false
+    )));
     assert!(can_undo() && !can_redo());
     assert!(run(undo()));
     assert!(order().is_empty());
@@ -386,7 +392,7 @@ fn test_move_elements_takes_js_objects() {
 fn test_waypoints() {
     started_with(&[]);
     assert!(run(crate::command::files::new_file(
-        "file", None, None, None
+        "file", None, None, None, false
     )));
     let file = order().remove(0);
     assert!(run(crate::command::waypoints::new_waypoint(
@@ -490,7 +496,9 @@ fn test_editing_tools_change_the_statistics() {
 #[wasm_bindgen_test]
 fn test_last_update_describes_the_last_call_only() {
     started_with(&[]);
-    assert!(run(crate::command::files::new_file("a", None, None, None)));
+    assert!(run(crate::command::files::new_file(
+        "a", None, None, None, false
+    )));
     let update = last_outcome();
     assert_eq!(array(get(&update, "added")).length(), 1);
     assert_eq!(get(&update, "orderChanged").as_bool(), Some(true));
@@ -502,7 +510,9 @@ fn test_last_update_describes_the_last_call_only() {
     assert_eq!(get(&update, "orderChanged").as_bool(), Some(false));
     assert_eq!(get(&update, "selectionChanged").as_bool(), Some(false));
 
-    assert!(run(crate::command::files::new_file("b", None, None, None)));
+    assert!(run(crate::command::files::new_file(
+        "b", None, None, None, false
+    )));
     assert!(!run(crate::command::tools::crop(3, 1)));
     let update = last_outcome();
     assert_eq!(array(get(&update, "added")).length(), 0);

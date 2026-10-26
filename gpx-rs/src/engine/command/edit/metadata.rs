@@ -59,12 +59,14 @@ mod tests {
         New {
             name: "first",
             trackpoint: None,
+            route: false,
         }
         .apply(&mut fx.state())
         .unwrap();
         New {
             name: "second",
             trackpoint: None,
+            route: false,
         }
         .apply(&mut fx.state())
         .unwrap(); // now selected
@@ -122,6 +124,7 @@ mod tests {
         New {
             name: "file",
             trackpoint: None,
+            route: false,
         }
         .apply(&mut fx.state())
         .unwrap();

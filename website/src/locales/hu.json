@@ -8,7 +8,6 @@
         "description": "GPX fájlok online szerkesztése és létrehozása fejlett útvonal tervezési képességekkel és fájlfeldolgozó eszközökkel, gyönyörű térképekkel és részletekkel."
     },
     "menu": {
-        "new": "Új.",
         "new_file": "Új fájl ",
         "new_track": "Új útvonal",
         "new_segment": "Új szakasz",

@@ -20,6 +20,12 @@ export function createFile() {
     currentTool.set(Tool.ROUTING);
 }
 
+/** Creates a file that starts with an empty route, which the routing tool then draws. */
+export function createRouteFile() {
+    engine.newFile(newFileName(), undefined, true);
+    currentTool.set(Tool.ROUTING);
+}
+
 /** Asks for the files to open: with the file picker of the system in the desktop app. */
 export async function openFiles() {
     if (get(engine.workspace)) {

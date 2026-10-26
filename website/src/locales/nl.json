@@ -8,7 +8,6 @@
         "description": "Bekijk, bewerk en maak GPX-bestanden met geavanceerde mogelijkheden voor route planning en nabewerkingsmogelijkheden, prachtige kaarten en gedetailleerde visualisaties."
     },
     "menu": {
-        "new": "Nieuw",
         "new_file": "Nieuw bestand",
         "new_track": "Nieuwe route",
         "new_segment": "Nieuw segment",

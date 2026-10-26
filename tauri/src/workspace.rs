@@ -1247,7 +1247,7 @@ mod tests {
     #[test]
     fn a_file_that_is_not_on_the_disk_is_unsaved_until_it_is_given_a_place() {
         let mut fx = Fixture::new();
-        api::new_file(&mut fx.engine, "fresh", None, None, None);
+        api::new_file(&mut fx.engine, "fresh", None, None, None, false);
         let id = fx.ids()[0];
         assert!(fx.workspace.is_dirty(&fx.engine, id));
         assert_eq!(
@@ -1272,9 +1272,9 @@ mod tests {
     fn several_files_without_a_place_go_in_a_folder_with_names_that_are_free() {
         let mut fx = Fixture::new();
         fx.write("fresh.gpx", "already there");
-        api::new_file(&mut fx.engine, "fresh", None, None, None);
-        api::new_file(&mut fx.engine, "a/b: c", None, None, None);
-        api::new_file(&mut fx.engine, "fresh", None, None, None);
+        api::new_file(&mut fx.engine, "fresh", None, None, None, false);
+        api::new_file(&mut fx.engine, "a/b: c", None, None, None, false);
+        api::new_file(&mut fx.engine, "fresh", None, None, None, false);
         let ids = fx.ids();
         let folder = fx.folder.clone();
         fx.workspace
@@ -1697,7 +1697,7 @@ mod tests {
         fx.open_folder();
         let a = fx.ids()[0];
         fx.rename(a, "edited");
-        api::new_file(&mut fx.engine, "fresh", None, None, None);
+        api::new_file(&mut fx.engine, "fresh", None, None, None, false);
         let fresh = fx.id_named("fresh");
         fx.workspace.close_files(&mut fx.engine, &[a, fresh], true);
         assert!(fx.ids().is_empty());
@@ -1713,7 +1713,7 @@ mod tests {
         let mut fx = Fixture::new();
         fx.write("a.gpx", "a");
         fx.open_folder();
-        api::new_file(&mut fx.engine, "fresh", None, None, None);
+        api::new_file(&mut fx.engine, "fresh", None, None, None, false);
         assert_eq!(fx.ids().len(), 2);
 
         // the new file has nowhere to go: it has to be discarded

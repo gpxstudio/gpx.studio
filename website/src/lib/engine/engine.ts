@@ -251,11 +251,18 @@ class Engine {
     // Edits of the files
 
     /**
-     * Creates a file, which gets selected. With a `trackpoint`, the file starts with a track and a
-     * segment that hold it, in the same undo step.
+     * Creates a file, which gets selected. With `route`, the file starts with a route. With a
+     * `trackpoint`, the file starts with a segment that holds it, the one of its route with `route`
+     * or of a track otherwise, in the same undo step.
      */
-    newFile(name: string, trackpoint?: { lng: number; lat: number; ele?: number }) {
-        return this.run((b) => b.new_file(name, trackpoint?.lng, trackpoint?.lat, trackpoint?.ele));
+    newFile(
+        name: string,
+        trackpoint?: { lng: number; lat: number; ele?: number },
+        route: boolean = false
+    ) {
+        return this.run((b) =>
+            b.new_file(name, trackpoint?.lng, trackpoint?.lat, trackpoint?.ele, route)
+        );
     }
 
     /**
@@ -606,10 +613,10 @@ class Engine {
 
     /**
      * Makes a new file in a folder of the open folder, which is written there at once and selected.
-     * Resolves to its id.
+     * With `route`, it starts with an empty route. Resolves to its id.
      */
-    async newFileIn(name: string, folder: string): Promise<string | undefined> {
-        const [id] = await this.addedBy((b) => b.desktop!.newFile(name, folder), true);
+    async newFileIn(name: string, folder: string, route = false): Promise<string | undefined> {
+        const [id] = await this.addedBy((b) => b.desktop!.newFile(name, folder, route), true);
         return id;
     }
 

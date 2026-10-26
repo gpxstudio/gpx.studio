@@ -54,7 +54,8 @@ export async function createTauriBackend(): Promise<Backend> {
         cut: () => invoke('cut'),
         paste: () => invoke('paste'),
 
-        new_file: (name, lng, lat, ele) => invoke('new_file', { name, lng, lat, ele }),
+        new_file: (name, lng, lat, ele, route) =>
+            invoke('new_file', { name, lng, lat, ele, route }),
         load_files: (files) => {
             const data = new Uint8Array(files.reduce((sum, file) => sum + file.data.length, 0));
             let offset = 0;
@@ -225,7 +226,7 @@ export async function createTauriBackend(): Promise<Backend> {
                 invoke<boolean>('export_files', { fileIds, options }),
             listFolder: (path) => invoke<FolderEntry[]>('list_folder', { path }),
             openUrl: (url) => invoke('open_url', { url }),
-            newFile: (name, folder) => invoke<Outcome>('new_file', { name, folder }),
+            newFile: (name, folder, route) => invoke<Outcome>('new_file', { name, folder, route }),
             createFolder: (parent, name) => invoke<string>('create_folder', { parent, name }),
             renamePath: (path, name) => invoke<Outcome>('rename_path', { path, name }),
             movePaths: (paths, folder) => invoke('move_paths', { paths, folder }),

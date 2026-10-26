@@ -483,7 +483,7 @@ fn files_made_from_a_file_of_the_open_folder_are_written_next_to_it_at_once() {
         assert_eq!(opened.added().len(), 1);
         let copy = core.creating(None, false, gpx_engine::api::duplicate);
         let fresh = core.creating(None, true, |e| {
-            gpx_engine::api::new_file(e, "fresh", None, None, None)
+            gpx_engine::api::new_file(e, "fresh", None, None, None, false)
         });
         // a copy of the file goes next to it, a new file with nothing selected in the selection
         // of the file that was just made

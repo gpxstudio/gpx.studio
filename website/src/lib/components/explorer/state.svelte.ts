@@ -15,12 +15,14 @@ export const renaming: { path: string | undefined } = $state({ path: undefined }
 
 /**
  * The file or folder that is being made in a folder (`parent`) of the explorer: it is only made once
- * the user gave it a name.
+ * the user gave it a name. With `route`, the file starts with an empty route.
  */
-export const creating: { parent: string | undefined; kind: 'file' | 'folder' } = $state({
-    parent: undefined,
-    kind: 'file',
-});
+export const creating: { parent: string | undefined; kind: 'file' | 'folder'; route: boolean } =
+    $state({
+        parent: undefined,
+        kind: 'file',
+        route: false,
+    });
 
 /** What is dragged in the explorer, and the folder it would be dropped in. */
 export const dragging: { paths: string[]; target: string | undefined } = $state({

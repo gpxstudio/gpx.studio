@@ -119,12 +119,14 @@ mod tests {
         New {
             name: "a",
             trackpoint: None,
+            route: false,
         }
         .apply(&mut fx.state())
         .unwrap();
         New {
             name: "b",
             trackpoint: None,
+            route: false,
         }
         .apply(&mut fx.state())
         .unwrap();
@@ -170,6 +172,7 @@ mod tests {
         New {
             name: "a",
             trackpoint: None,
+            route: false,
         }
         .apply(&mut fx.state())
         .unwrap();
@@ -197,6 +200,7 @@ mod tests {
             New {
                 name,
                 trackpoint: None,
+                route: false,
             }
             .apply(&mut fx.state())
             .unwrap();
@@ -235,6 +239,7 @@ mod tests {
             New {
                 name: "a",
                 trackpoint: None,
+                route: false,
             }
             .apply(&mut fx.state())
             .unwrap();
@@ -251,6 +256,7 @@ mod tests {
         New {
             name: "a",
             trackpoint: None,
+            route: false,
         }
         .apply(&mut fx.state())
         .unwrap();
