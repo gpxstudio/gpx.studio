@@ -18,6 +18,12 @@ pub fn style(color: Option<String>, opacity: Option<f64>, width: Option<f64>) ->
     run(|e| api::style(e, color.as_deref(), opacity, width))
 }
 
+/// Converts the selected routes to tracks, or the selected tracks or segments to routes.
+#[wasm_bindgen]
+pub fn convert() -> Outcome {
+    run(api::convert)
+}
+
 #[wasm_bindgen]
 pub fn new_route() -> Outcome {
     run(api::new_route)

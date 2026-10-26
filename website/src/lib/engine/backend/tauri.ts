@@ -83,6 +83,7 @@ export async function createTauriBackend(): Promise<Backend> {
             }),
         metadata: (name, desc) => invoke('metadata', { name, desc }),
         style: (color, opacity, width) => invoke('style', { color, opacity, width }),
+        convert: () => invoke('convert'),
         new_route: () => invoke('new_route'),
         new_track: () => invoke('new_track'),
         new_track_segment: () => invoke('new_track_segment'),

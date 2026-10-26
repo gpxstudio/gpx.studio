@@ -3,9 +3,9 @@
 use std::rc::Rc;
 
 use crate::{
-    Apply, Clean, CleanType, Clipboard, ClipboardContent, CommandError, Crop, Delete, Duplicate,
-    Extract, File, FileId, LngLat, LngLatBounds, Merge, MergeType, Metadata, Move, MoveTarget,
-    Paste, Reverse, RouteId, SegmentIndex, Selection, Split, SplitType, Style,
+    Apply, Clean, CleanType, Clipboard, ClipboardContent, CommandError, Convert, Crop, Delete,
+    Duplicate, Extract, File, FileId, LngLat, LngLatBounds, Merge, MergeType, Metadata, Move,
+    MoveTarget, Paste, Reverse, RouteId, SegmentIndex, Selection, Split, SplitType, Style,
     engine::command::fixture::Fixture, parse,
 };
 
@@ -601,4 +601,84 @@ fn test_reverse_a_route_and_the_routes_of_a_file() {
     // the routes are in the opposite order, and still before the tracks
     assert_eq!(file.rte[0].id, before.rte[1].id);
     assert_eq!(file.trk[0].id, before.trk[1].id);
+}
+
+#[test]
+fn test_convert_routes_to_tracks_and_back() {
+    let (mut fx, id) = fixture();
+    let before = file(&fx, id).clone();
+
+    // a route becomes a track, first among the tracks, with its segment and its information
+    fx.selection = routes(&fx, id, &[1]);
+    Convert.apply(&mut fx.state()).unwrap();
+    let converted = file(&fx, id);
+    assert_eq!((converted.rte.len(), converted.trk.len()), (1, 3));
+    assert_eq!(converted.trk[0].info, before.rte[1].info);
+    assert_eq!(converted.trk[0].trkseg.len(), 1);
+    assert_eq!(converted.trk[0].trkseg[0].id, before.rte[1].seg.id);
+    assert_eq!(
+        fx.selection,
+        Selection::Track {
+            file_id: id,
+            trk_ids: [converted.trk[0].id].into()
+        }
+    );
+
+    // and back: a route again, after the other routes
+    Convert.apply(&mut fx.state()).unwrap();
+    let back = file(&fx, id);
+    assert_eq!((back.rte.len(), back.trk.len()), (2, 2));
+    assert_eq!(back.rte[1].seg.id, before.rte[1].seg.id);
+    assert_eq!(back.rte[1].info, before.rte[1].info);
+    assert!(
+        matches!(&fx.selection, Selection::Route { rte_ids, .. } if rte_ids.contains(&back.rte[1].id))
+    );
+}
+
+#[test]
+fn test_convert_a_track_to_one_route_per_segment() {
+    let (mut fx, id) = fixture();
+    let track = file(&fx, id).trk[0].clone();
+    assert_eq!(track.trkseg.len(), 2);
+    fx.selection = Selection::Track {
+        file_id: id,
+        trk_ids: [track.id].into(),
+    };
+    Convert.apply(&mut fx.state()).unwrap();
+    let converted = file(&fx, id);
+    assert_eq!((converted.rte.len(), converted.trk.len()), (4, 1));
+    for (route, segment) in converted.rte[2..].iter().zip(&track.trkseg) {
+        assert_eq!(route.seg.id, segment.id);
+        assert_eq!(route.info, track.info);
+    }
+    assert!(matches!(&fx.selection, Selection::Route { rte_ids, .. } if rte_ids.len() == 2));
+}
+
+#[test]
+fn test_convert_segments_to_routes_keeps_their_track() {
+    let (mut fx, id) = fixture();
+    let track = file(&fx, id).trk[1].clone();
+    fx.selection = Selection::TrackSegment {
+        file_id: id,
+        trk_id: track.id,
+        trkseg_ids: [track.trkseg[0].id, track.trkseg[1].id].into(),
+    };
+    Convert.apply(&mut fx.state()).unwrap();
+    let converted = file(&fx, id);
+    assert_eq!((converted.rte.len(), converted.trk.len()), (4, 2));
+    assert!(converted.trk[1].trkseg.is_empty());
+    assert_eq!(converted.rte[2].seg.id, track.trkseg[0].id);
+
+    // nothing to convert otherwise
+    for selection in [
+        whole(id),
+        Selection::Empty,
+        Selection::Waypoints { file_id: id },
+    ] {
+        fx.selection = selection;
+        assert_eq!(
+            Convert.apply(&mut fx.state()),
+            Err(CommandError::NothingToDo)
+        );
+    }
 }

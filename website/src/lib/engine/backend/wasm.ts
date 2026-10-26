@@ -79,6 +79,7 @@ export async function createWasmBackend(): Promise<Backend> {
         move_elements: lift(w.move_elements),
         metadata: lift(w.metadata),
         style: lift(w.style),
+        convert: lift(w.convert),
         new_route: lift(w.new_route),
         new_track: lift(w.new_track),
         new_track_segment: lift(w.new_track_segment),

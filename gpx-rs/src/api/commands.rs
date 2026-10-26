@@ -317,6 +317,11 @@ pub fn style<H: History>(
     )
 }
 
+/// Converts the selected routes to tracks, or the selected tracks or segments to routes.
+pub fn convert<H: History>(engine: &mut Engine<H>) -> Outcome {
+    edit(engine, Command::Convert(engine::Convert))
+}
+
 pub fn new_route<H: History>(engine: &mut Engine<H>) -> Outcome {
     edit(engine, Command::NewRoute(engine::NewRoute))
 }

@@ -48,6 +48,7 @@
         Maximize2,
         Minimize2,
         FolderX,
+        ArrowRightLeft,
     } from '@lucide/svelte';
     import { map } from '$lib/components/map/map';
     import { editMetadata } from '$lib/components/file-list/metadata/utils.svelte';
@@ -325,6 +326,19 @@
                             >
                                 <Plus size="16" />
                                 {i18n._('menu.new_segment')}
+                            </Menubar.Item>
+                        {/if}
+                        {#if $selection.type === 'route' || $selection.type === 'track' || $selection.type === 'segment'}
+                            {#if $selection.type !== 'track'}
+                                <Menubar.Separator />
+                            {/if}
+                            <Menubar.Item onclick={() => engine.convert()}>
+                                <ArrowRightLeft size="16" />
+                                {i18n._(
+                                    $selection.type === 'route'
+                                        ? 'menu.convert_to_track'
+                                        : 'menu.convert_to_route'
+                                )}
                             </Menubar.Item>
                         {/if}
                     {/if}

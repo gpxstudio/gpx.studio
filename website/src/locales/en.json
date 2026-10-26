@@ -12,6 +12,8 @@
         "new_file": "New file",
         "new_track": "New track",
         "new_route": "New route",
+        "convert_to_route": "Convert to route",
+        "convert_to_track": "Convert to track",
         "new_segment": "New segment",
         "open": "Open...",
         "open_folder": "Open folder...",

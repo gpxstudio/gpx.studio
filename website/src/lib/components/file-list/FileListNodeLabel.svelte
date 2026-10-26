@@ -19,6 +19,7 @@
         FileStack,
         FileX,
         Route,
+        ArrowRightLeft,
     } from '@lucide/svelte';
     import { getContext, untrack } from 'svelte';
     import { i18n } from '$lib/i18n/i18n.svelte';
@@ -288,6 +289,14 @@
                 >
                     <Plus size="16" />
                     {i18n._('menu.new_segment')}
+                </ContextMenu.Item>
+            {/if}
+            {#if isPath || node.type === 'segment'}
+                <ContextMenu.Item onclick={() => engine.convert()}>
+                    <ArrowRightLeft size="16" />
+                    {i18n._(
+                        node.type === 'route' ? 'menu.convert_to_track' : 'menu.convert_to_route'
+                    )}
                 </ContextMenu.Item>
                 <ContextMenu.Separator />
             {/if}

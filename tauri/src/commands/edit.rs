@@ -39,6 +39,11 @@ pub fn style(
 }
 
 #[tauri::command(async)]
+pub fn convert(state: State<AppState>) -> api::Outcome {
+    state.run(api::convert)
+}
+
+#[tauri::command(async)]
 pub fn new_route(state: State<AppState>) -> api::Outcome {
     state.run(api::new_route)
 }

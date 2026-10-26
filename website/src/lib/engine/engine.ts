@@ -365,6 +365,14 @@ class Engine {
 
     // Edits of the selection
 
+    /**
+     * Converts the selected routes to tracks, or the selected tracks or segments to routes (one
+     * per segment), which are selected. Resolves to `false` when there is nothing to convert.
+     */
+    convert() {
+        return this.run((b) => b.convert());
+    }
+
     /** Adds an empty route to the selected files. */
     newRoute() {
         return this.run((b) => b.new_route());

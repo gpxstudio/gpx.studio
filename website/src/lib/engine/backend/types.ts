@@ -174,6 +174,7 @@ export interface Backend {
     move_elements(what: Selection, to: MoveTarget): Promise<Outcome>;
     metadata(name: string, desc: string): Promise<Outcome>;
     style(color?: string, opacity?: number, width?: number): Promise<Outcome>;
+    convert(): Promise<Outcome>;
     new_route(): Promise<Outcome>;
     new_track(): Promise<Outcome>;
     new_track_segment(): Promise<Outcome>;

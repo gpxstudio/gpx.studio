@@ -135,6 +135,7 @@ fn register_commands<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::Bu
         // edits and tools
         edit::metadata,
         edit::style,
+        edit::convert,
         edit::new_route,
         edit::new_track,
         edit::new_track_segment,
