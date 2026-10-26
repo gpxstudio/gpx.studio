@@ -182,6 +182,10 @@ class Engine {
 
     // Selecting elements inside a file. Ids that do not exist are ignored.
 
+    selectRoutes(fileId: string, routeIds: string[], mode: SelectMode = 'replace') {
+        return this.run((b) => b.select_routes(fileId, routeIds, mode));
+    }
+
     selectTracks(fileId: string, trackIds: string[], mode: SelectMode = 'replace') {
         return this.run((b) => b.select_tracks(fileId, trackIds, mode));
     }
@@ -209,6 +213,8 @@ class Engine {
         switch (node.type) {
             case 'file':
                 return this.select([node.fileId], mode);
+            case 'route':
+                return this.selectRoutes(node.fileId, [node.routeId], mode);
             case 'track':
                 return this.selectTracks(node.fileId, [node.trackId], mode);
             case 'segment':
@@ -358,6 +364,11 @@ class Engine {
     }
 
     // Edits of the selection
+
+    /** Adds an empty route to the selected files. */
+    newRoute() {
+        return this.run((b) => b.new_route());
+    }
 
     newTrack() {
         return this.run((b) => b.new_track());
@@ -868,8 +879,7 @@ class Engine {
                     options.cad,
                     options.atemp,
                     options.power,
-                    options.osm,
-                    options.asRoute
+                    options.osm
                 ),
             undefined
         );
@@ -885,8 +895,6 @@ class Engine {
             atemp: (bits & 8) !== 0,
             power: (bits & 16) !== 0,
             osm: (bits & 32) !== 0,
-            // not a data
-            asRoute: false,
         };
     }
 

@@ -313,7 +313,6 @@ pub struct ExportArguments {
     atemp: bool,
     power: bool,
     osm: bool,
-    as_route: bool,
 }
 
 impl From<ExportArguments> for ExportOptions {
@@ -325,7 +324,6 @@ impl From<ExportArguments> for ExportOptions {
             atemp: arguments.atemp,
             power: arguments.power,
             osm: arguments.osm,
-            as_route: arguments.as_route,
         }
     }
 }

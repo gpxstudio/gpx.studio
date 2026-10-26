@@ -131,6 +131,10 @@ pub enum Selection {
     File {
         file_ids: Vec<Uuid>,
     },
+    Route {
+        file_id: Uuid,
+        route_ids: Vec<Uuid>,
+    },
     Track {
         file_id: Uuid,
         track_ids: Vec<Uuid>,
@@ -156,6 +160,10 @@ impl From<&engine::Selection> for Selection {
             S::Empty => Self::Empty,
             S::File { file_ids } => Self::File {
                 file_ids: file_ids.iter().map(|id| id.0).collect(),
+            },
+            S::Route { file_id, rte_ids } => Self::Route {
+                file_id: file_id.0,
+                route_ids: rte_ids.iter().map(|id| id.0).collect(),
             },
             S::Track { file_id, trk_ids } => Self::Track {
                 file_id: file_id.0,
@@ -186,6 +194,10 @@ impl From<Selection> for engine::Selection {
             Selection::Empty => S::Empty,
             Selection::File { file_ids } => S::File {
                 file_ids: file_ids.into_iter().map(FileId).collect(),
+            },
+            Selection::Route { file_id, route_ids } => S::Route {
+                file_id: FileId(file_id),
+                rte_ids: route_ids.into_iter().map(engine::RouteId).collect(),
             },
             Selection::Track { file_id, track_ids } => S::Track {
                 file_id: FileId(file_id),
@@ -229,6 +241,10 @@ pub enum MoveTarget {
     Files {
         index: f64,
     },
+    Routes {
+        file_id: Uuid,
+        index: f64,
+    },
     Tracks {
         file_id: Uuid,
         index: f64,
@@ -250,6 +266,10 @@ impl From<MoveTarget> for engine::MoveTarget {
         let index = |index: f64| index.max(0.0) as usize;
         match target {
             MoveTarget::Files { index: i } => T::Files { index: index(i) },
+            MoveTarget::Routes { file_id, index: i } => T::Routes {
+                file_id: FileId(file_id),
+                index: index(i),
+            },
             MoveTarget::Tracks { file_id, index: i } => T::Tracks {
                 file_id: FileId(file_id),
                 index: index(i),
@@ -286,6 +306,9 @@ impl Clipboard {
             engine::ClipboardIds::Files(ids) => {
                 ("files", strings(ids.into_iter().map(|id| id.0).collect()))
             }
+            engine::ClipboardIds::Routes(ids) => {
+                ("routes", strings(ids.into_iter().map(|id| id.0).collect()))
+            }
             engine::ClipboardIds::Tracks(ids) => {
                 ("tracks", strings(ids.into_iter().map(|id| id.0).collect()))
             }
@@ -315,14 +338,15 @@ pub struct FileStructure {
     name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     desc: Option<String>,
+    routes: Vec<RouteNode>,
     tracks: Vec<TrackNode>,
     waypoints: Vec<WaypointNode>,
     waypoints_rev: String,
 }
 
+/// The name, description and style of a route or a track.
 #[derive(Serialize)]
-struct TrackNode {
-    id: String,
+struct PathInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -333,6 +357,33 @@ struct TrackNode {
     opacity: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     width: Option<f64>,
+}
+
+impl From<&engine::PathInfo> for PathInfo {
+    fn from(info: &engine::PathInfo) -> Self {
+        Self {
+            name: info.name.clone(),
+            desc: info.desc.clone(),
+            color: info.color.clone(),
+            opacity: info.opacity,
+            width: info.width,
+        }
+    }
+}
+
+#[derive(Serialize)]
+struct RouteNode {
+    id: String,
+    #[serde(flatten)]
+    info: PathInfo,
+    segment: SegmentNode,
+}
+
+#[derive(Serialize)]
+struct TrackNode {
+    id: String,
+    #[serde(flatten)]
+    info: PathInfo,
     segments: Vec<SegmentNode>,
 }
 
@@ -341,6 +392,16 @@ struct SegmentNode {
     id: String,
     rev: String,
     length: f64,
+}
+
+impl From<&engine::SegmentNode> for SegmentNode {
+    fn from(seg: &engine::SegmentNode) -> Self {
+        Self {
+            id: seg.id.0.to_string(),
+            rev: seg.rev_id.0.to_string(),
+            length: seg.len as f64,
+        }
+    }
 }
 
 #[derive(Serialize)]
@@ -358,25 +419,22 @@ impl FileStructure {
             id: file.id.0.to_string(),
             name: file.name.clone(),
             desc: file.desc.clone(),
+            routes: file
+                .routes
+                .iter()
+                .map(|rte| RouteNode {
+                    id: rte.id.0.to_string(),
+                    info: (&rte.info).into(),
+                    segment: (&rte.segment).into(),
+                })
+                .collect(),
             tracks: file
                 .tracks
                 .iter()
                 .map(|trk| TrackNode {
                     id: trk.id.0.to_string(),
-                    name: trk.name.clone(),
-                    desc: trk.desc.clone(),
-                    color: trk.color.clone(),
-                    opacity: trk.opacity,
-                    width: trk.width,
-                    segments: trk
-                        .segments
-                        .iter()
-                        .map(|seg| SegmentNode {
-                            id: seg.id.0.to_string(),
-                            rev: seg.rev_id.0.to_string(),
-                            length: seg.len as f64,
-                        })
-                        .collect(),
+                    info: (&trk.info).into(),
+                    segments: trk.segments.iter().map(Into::into).collect(),
                 })
                 .collect(),
             waypoints: file

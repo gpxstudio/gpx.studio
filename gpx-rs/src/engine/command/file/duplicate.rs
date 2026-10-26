@@ -1,8 +1,8 @@
 use std::{collections::HashSet, rc::Rc};
 
 use crate::{
-    Apply, CommandError, FileId, Files, Selection, State, Waypoint, copy_file, copy_segment,
-    copy_track, copy_waypoint,
+    Apply, CommandError, FileId, Files, Selection, State, Waypoint, copy_file, copy_route,
+    copy_segment, copy_track, copy_waypoint,
 };
 
 #[derive(Debug)]
@@ -34,6 +34,30 @@ impl Apply for Duplicate {
                     .map_or(state.order.0.len(), |i| i + 1);
                 state.order.0.splice(at..at, order);
                 Selection::File { file_ids: copies }
+            }
+            Selection::Route { file_id, rte_ids } => {
+                let file = state
+                    .files
+                    .get_mut(file_id)
+                    .ok_or(CommandError::NothingToDo)?;
+                let file = Rc::make_mut(file);
+                let mut copies = HashSet::new();
+                append_copies(
+                    &mut file.rte,
+                    |rte| rte_ids.contains(&rte.id),
+                    |rte| {
+                        let copy = copy_route(rte);
+                        copies.insert(copy.id);
+                        copy
+                    },
+                );
+                if copies.is_empty() {
+                    return Err(CommandError::NothingToDo);
+                }
+                Selection::Route {
+                    file_id: *file_id,
+                    rte_ids: copies,
+                }
             }
             Selection::Track { file_id, trk_ids } => {
                 let file = state

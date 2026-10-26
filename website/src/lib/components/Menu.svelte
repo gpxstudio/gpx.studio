@@ -105,8 +105,10 @@
     let desktop = $derived($workspace !== undefined);
     let selectedIds = $derived(selectedFileIds($selection));
     let anyUnsaved = $derived(Object.values($workspace?.files ?? {}).some((file) => file.dirty));
-    // metadata and style can be edited for files and tracks only
-    let filesOrTracksSelected = $derived($selection.type === 'file' || $selection.type === 'track');
+    // metadata and style can be edited for files, routes and tracks only
+    let filesOrTracksSelected = $derived(
+        $selection.type === 'file' || $selection.type === 'route' || $selection.type === 'track'
+    );
 
     function switchBasemaps() {
         [$currentBasemap, $previousBasemap] = [$previousBasemap, $currentBasemap];
@@ -307,6 +309,13 @@
                             >
                                 <Plus size="16" />
                                 {i18n._('menu.new_track')}
+                            </Menubar.Item>
+                            <Menubar.Item
+                                onclick={() => engine.newRoute()}
+                                disabled={selectionCount !== 1}
+                            >
+                                <Plus size="16" />
+                                {i18n._('menu.new_route')}
                             </Menubar.Item>
                         {:else if $selection.type === 'track'}
                             <Menubar.Separator />

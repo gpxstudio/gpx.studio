@@ -18,9 +18,9 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    File, FileId, FileInfo, Track, TrackId, TrackInfo, TrackSegment, TrackSegmentId,
-    TrackpointCategories, TrackpointChunk, TrackpointChunkId, Waypoint, WaypointChunk,
-    WaypointChunkId, Waypoints,
+    File, FileId, FileInfo, Route, RouteId, Track, TrackId, TrackInfo, TrackSegment,
+    TrackSegmentId, TrackpointCategories, TrackpointChunk, TrackpointChunkId, Waypoint,
+    WaypointChunk, WaypointChunkId, Waypoints,
 };
 
 /// The version that is written.
@@ -54,8 +54,15 @@ fn parse<'a, T: Deserialize<'a>>(data: &'a [u8]) -> Result<T, DecodeError> {
 /// A file without its trackpoints and waypoints, which are in chunks.
 pub struct FileRecord {
     info: FileInfo,
+    routes: Vec<RouteRecord>,
     tracks: Vec<TrackRecord>,
     waypoints: Vec<WaypointChunkId>,
+}
+
+struct RouteRecord {
+    id: RouteId,
+    info: TrackInfo,
+    segment: SegmentRecord,
 }
 
 struct TrackRecord {
@@ -69,24 +76,35 @@ struct SegmentRecord {
     chunks: Vec<TrackpointChunkId>,
 }
 
+impl From<v1::SegmentRecord1> for SegmentRecord {
+    fn from(segment: v1::SegmentRecord1) -> Self {
+        Self {
+            id: TrackSegmentId(segment.id),
+            chunks: segment.chunks.into_iter().map(TrackpointChunkId).collect(),
+        }
+    }
+}
+
 impl From<v1::FileRecord1> for FileRecord {
     fn from(record: v1::FileRecord1) -> Self {
         Self {
             info: record.info.into(),
+            routes: record
+                .routes
+                .into_iter()
+                .map(|route| RouteRecord {
+                    id: RouteId(route.id),
+                    info: route.info.into(),
+                    segment: route.segment.into(),
+                })
+                .collect(),
             tracks: record
                 .tracks
                 .into_iter()
                 .map(|track| TrackRecord {
                     id: TrackId(track.id),
                     info: track.info.into(),
-                    segments: track
-                        .segments
-                        .into_iter()
-                        .map(|segment| SegmentRecord {
-                            id: TrackSegmentId(segment.id),
-                            chunks: segment.chunks.into_iter().map(TrackpointChunkId).collect(),
-                        })
-                        .collect(),
+                    segments: track.segments.into_iter().map(Into::into).collect(),
                 })
                 .collect(),
             waypoints: record.waypoints.into_iter().map(WaypointChunkId).collect(),
@@ -108,16 +126,27 @@ impl FileRecord {
             info: self.info,
             ..Default::default()
         };
-        for track in self.tracks {
-            let mut trkseg = Vec::with_capacity(track.segments.len());
-            for segment in track.segments {
-                let mut built = TrackSegment::default();
-                built.id = segment.id;
-                for chunk in &segment.chunks {
-                    built.push_shared(trackpoint_chunks(chunk)?);
-                }
-                trkseg.push(built);
+        let segment = |record: SegmentRecord| {
+            let mut built = TrackSegment::default();
+            built.id = record.id;
+            for chunk in &record.chunks {
+                built.push_shared(trackpoint_chunks(chunk)?);
             }
+            Some(built)
+        };
+        for route in self.routes {
+            file.rte.push(Route {
+                id: route.id,
+                info: route.info,
+                seg: segment(route.segment)?,
+            });
+        }
+        for track in self.tracks {
+            let trkseg = track
+                .segments
+                .into_iter()
+                .map(segment)
+                .collect::<Option<Vec<_>>>()?;
             file.trk.push(Track {
                 id: track.id,
                 info: track.info,
@@ -292,6 +321,20 @@ mod tests {
         });
         let mut empty = TrackSegment::default();
         empty.id = TrackSegmentId(id(6));
+        // a route, whose segment shares the chunk of the track
+        let mut route_segment = TrackSegment::default();
+        route_segment.id = TrackSegmentId(id(10));
+        route_segment.push_shared(segment.chunks()[0].clone());
+        file.rte.push(Route {
+            id: RouteId(id(9)),
+            info: TrackInfo {
+                name: Some("route".into()),
+                type_: Some("Hiking".into()),
+                color: Some("00ff00".into()),
+                ..Default::default()
+            },
+            seg: route_segment,
+        });
         file.trk.push(Track {
             id: TrackId(id(2)),
             info: TrackInfo {
@@ -352,9 +395,7 @@ mod tests {
         HashMap<WaypointChunkId, Rc<WaypointChunk>>,
     ) {
         let trackpoints = file
-            .trk
-            .iter()
-            .flat_map(|track| &track.trkseg)
+            .segments()
             .flat_map(|segment| segment.chunks().iter().map(|c| (c.id, c.clone())))
             .collect();
         let waypoints = file
@@ -373,19 +414,28 @@ mod tests {
         })
     }
 
+    fn assert_same_segment(a: &TrackSegment, b: &TrackSegment) {
+        assert_eq!(a.id, b.id);
+        assert_eq!(a.len(), b.len());
+        for (a, b) in a.chunks().iter().zip(b.chunks()) {
+            assert!(Rc::ptr_eq(a, b), "the chunks are the ones that were given");
+        }
+    }
+
     fn assert_same_file(a: &File, b: &File) {
         assert_eq!(a.id, b.id);
         assert_eq!(a.info, b.info);
+        assert_eq!(a.rte.len(), b.rte.len());
+        for (a, b) in a.rte.iter().zip(&b.rte) {
+            assert_eq!((a.id, &a.info), (b.id, &b.info));
+            assert_same_segment(&a.seg, &b.seg);
+        }
         assert_eq!(a.trk.len(), b.trk.len());
         for (a, b) in a.trk.iter().zip(&b.trk) {
             assert_eq!((a.id, &a.info), (b.id, &b.info));
             assert_eq!(a.trkseg.len(), b.trkseg.len());
             for (a, b) in a.trkseg.iter().zip(&b.trkseg) {
-                assert_eq!(a.id, b.id);
-                assert_eq!(a.len(), b.len());
-                for (a, b) in a.chunks().iter().zip(b.chunks()) {
-                    assert!(Rc::ptr_eq(a, b), "the chunks are the ones that were given");
-                }
+                assert_same_segment(a, b);
             }
         }
         assert_eq!(a.wpt.len(), b.wpt.len());
@@ -425,7 +475,7 @@ mod tests {
             .unwrap()
             .build(file.id, &|_| None, &|_| None)
             .unwrap();
-        assert!(built.trk.is_empty() && built.wpt.is_empty());
+        assert!(built.rte.is_empty() && built.trk.is_empty() && built.wpt.is_empty());
     }
 
     /// The names of the categories of a trackpoint.
@@ -611,13 +661,15 @@ mod tests {
         "70733a2f2f6578616d706c652e636f6d2f736f6d656f6e65021868747470733a2f2f6578616d706c652e636f",
         "6d2f66696c65012074657874206f662068747470733a2f2f6578616d706c652e636f6d2f66696c651a687474",
         "70733a2f2f6578616d706c652e636f6d2f66696c652d32012274657874206f662068747470733a2f2f657861",
-        "6d706c652e636f6d2f66696c652d320180a0abfef96201100000000000000000000000000000000201057472",
-        "61636b0103636d740104646573630103737263021968747470733a2f2f6578616d706c652e636f6d2f747261",
-        "636b012174657874206f662068747470733a2f2f6578616d706c652e636f6d2f747261636b1b68747470733a",
-        "2f2f6578616d706c652e636f6d2f747261636b2d32012374657874206f662068747470733a2f2f6578616d70",
-        "6c652e636f6d2f747261636b2d3201074379636c696e67010666663030303001000000000000e03f01000000",
-        "0000001840021000000000000000000000000000000003011000000000000000000000000000000004100000",
-        "000000000000000000000000000600011000000000000000000000000000000005",
+        "6d706c652e636f6d2f66696c652d320180a0abfef9620110000000000000000000000000000000090105726f",
+        "75746500000000010648696b696e6701063030666630300000100000000000000000000000000000000a0110",
+        "000000000000000000000000000000040110000000000000000000000000000000020105747261636b010363",
+        "6d740104646573630103737263021968747470733a2f2f6578616d706c652e636f6d2f747261636b01217465",
+        "7874206f662068747470733a2f2f6578616d706c652e636f6d2f747261636b1b68747470733a2f2f6578616d",
+        "706c652e636f6d2f747261636b2d32012374657874206f662068747470733a2f2f6578616d706c652e636f6d",
+        "2f747261636b2d3201074379636c696e67010666663030303001000000000000e03f01000000000000184002",
+        "1000000000000000000000000000000003011000000000000000000000000000000004100000000000000000",
+        "000000000000000600011000000000000000000000000000000005",
     );
     const TRACKPOINTS_V1: &str = concat!(
         "01020667726176656c0761737068616c74010470617468010668696b696e6701046d74623003000000000000",

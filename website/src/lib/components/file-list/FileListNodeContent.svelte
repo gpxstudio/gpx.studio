@@ -10,15 +10,20 @@
     let {
         fileState,
         node,
-        waypointRoot = false,
+        part = 'tracks',
     }: {
         /** State of the file of the node (not needed for the root). */
         fileState?: FileState;
         /** The node whose children are listed, `null` for the list of the files. */
         node: FileTreeNode | null;
-        /** List the node standing for the waypoints of the file, instead of its tracks. */
-        waypointRoot?: boolean;
+        /**
+         * For a file, which of its lists this is: its routes, its tracks, or the node standing for
+         * its waypoints. Each one is followed by the next ones.
+         */
+        part?: 'routes' | 'tracks' | 'waypoints';
     } = $props();
+
+    let waypointRoot = part === 'waypoints';
 
     const { files, order } = engine;
 
@@ -27,9 +32,11 @@
         node === null
             ? 'file'
             : node.type === 'file'
-              ? waypointRoot
+              ? part === 'waypoints'
                   ? 'waypoints'
-                  : 'track'
+                  : part === 'routes'
+                    ? 'route'
+                    : 'track'
               : node.type === 'waypoints'
                 ? 'waypoint'
                 : 'segment';
@@ -74,7 +81,7 @@
         {/each}
     {:else if fileState}
         {#if node.type === 'file'}
-            {#if waypointRoot}
+            {#if part === 'waypoints'}
                 {#if fileState.structure.waypoints.length > 0}
                     <div data-id="waypoints">
                         <FileListNode
@@ -83,6 +90,15 @@
                         />
                     </div>
                 {/if}
+            {:else if part === 'routes'}
+                {#each fileState.structure.routes as route (route.id)}
+                    <div data-id={route.id}>
+                        <FileListNode
+                            {fileState}
+                            node={{ type: 'route', fileId: node.fileId, routeId: route.id }}
+                        />
+                    </div>
+                {/each}
             {:else}
                 {#each fileState.structure.tracks as track (track.id)}
                     <div data-id={track.id}>
@@ -120,8 +136,10 @@
     {/if}
 </div>
 
-{#if fileState && node?.type === 'file' && !waypointRoot}
-    <FileListNodeContent {fileState} {node} waypointRoot={true} />
+{#if fileState && node?.type === 'file' && part === 'routes'}
+    <FileListNodeContent {fileState} {node} part="tracks" />
+{:else if fileState && node?.type === 'file' && part === 'tracks'}
+    <FileListNodeContent {fileState} {node} part="waypoints" />
 {/if}
 
 <style lang="postcss">

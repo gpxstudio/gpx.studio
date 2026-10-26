@@ -42,6 +42,14 @@ pub fn arrow_select(down: bool, add: bool) -> Outcome {
 // track for segments), otherwise they replace it.
 
 #[wasm_bindgen]
+pub fn select_routes(file_id: &str, route_ids_bytes: &[u8], mode: SelectMode) -> Outcome {
+    match parse_uuid(file_id).zip(uuid_list(route_ids_bytes)) {
+        Some((file_id, ids)) => run(|e| api::select_routes(e, file_id, &ids, mode.into())),
+        None => fail("the ids are not UUIDs"),
+    }
+}
+
+#[wasm_bindgen]
 pub fn select_tracks(file_id: &str, track_ids_bytes: &[u8], mode: SelectMode) -> Outcome {
     match parse_uuid(file_id).zip(uuid_list(track_ids_bytes)) {
         Some((file_id, ids)) => run(|e| api::select_tracks(e, file_id, &ids, mode.into())),

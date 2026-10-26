@@ -49,7 +49,7 @@ pub fn select_elements<H: History>(
 }
 
 /// Selects all the elements of the same kind as the selected ones, in the same place: all the
-/// files, the tracks of the file, the segments of the track, the waypoints of the file. All the
+/// files, the routes or the tracks of the file, the segments of the track, the waypoints of the file. All the
 /// files when nothing is selected.
 pub fn select_all<H: History>(engine: &mut Engine<H>) -> Outcome {
     execute(engine, Action::SelectAll)
@@ -60,6 +60,19 @@ pub fn select_all<H: History>(engine: &mut Engine<H>) -> Outcome {
 /// otherwise it replaces it.
 pub fn arrow_select<H: History>(engine: &mut Engine<H>, down: bool, add: bool) -> Outcome {
     execute(engine, Action::ArrowSelect { down, add })
+}
+
+pub fn select_routes<H: History>(
+    engine: &mut Engine<H>,
+    file_id: Uuid,
+    route_ids: &[Uuid],
+    mode: engine::SelectMode,
+) -> Outcome {
+    let selection = engine::Selection::Route {
+        file_id: engine::FileId(file_id),
+        rte_ids: route_ids.iter().copied().map(engine::RouteId).collect(),
+    };
+    select_elements(engine, selection, mode)
 }
 
 pub fn select_tracks<H: History>(
@@ -302,6 +315,10 @@ pub fn style<H: History>(
             width,
         }),
     )
+}
+
+pub fn new_route<H: History>(engine: &mut Engine<H>) -> Outcome {
+    edit(engine, Command::NewRoute(engine::NewRoute))
 }
 
 pub fn new_track<H: History>(engine: &mut Engine<H>) -> Outcome {
@@ -575,7 +592,7 @@ pub fn route<H: History>(
     at_revision(engine, revision, |engine| {
         edit(
             engine,
-            Command::Route(engine::Route {
+            Command::Reroute(engine::Reroute {
                 start,
                 end,
                 lng,
@@ -618,7 +635,7 @@ pub fn change_loop_start<H: History>(engine: &mut Engine<H>, revision: u32, inde
     })
 }
 
-/// Cuts the file, the track or the segment (see `SplitType`) of the trackpoint `at` of the
+/// Cuts the file, the route, the track or the segment (see `SplitType`) of the trackpoint `at` of the
 /// selection in two, there: the trackpoint ends the first part and starts the second one. A file that
 /// is cut is kept (and its two parts are new files) if the history needs it, see
 /// [`History::KEEPS_ORIGINALS`].

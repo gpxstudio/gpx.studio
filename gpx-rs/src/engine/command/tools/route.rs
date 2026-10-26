@@ -1,11 +1,11 @@
 use std::rc::Rc;
 
 use crate::{
-    Apply, Categories, CommandError, FileId, SegmentLocation, Selection, State, Statistics, Track,
-    TrackSegment, Trackpoint, distance, replace_trackpoints,
+    Apply, Categories, CommandError, FileId, SegmentIndex, SegmentLocation, Selection, State,
+    Statistics, Track, TrackSegment, Trackpoint, distance, replace_trackpoints,
 };
 
-/// The values of an OSM attribute (surface, highway...) of the new trackpoints of a [`Route`], as
+/// The values of an OSM attribute (surface, highway...) of the new trackpoints of a [`Reroute`], as
 /// the intervals of consecutive trackpoints that share one: `starts[i]` is the index of the first
 /// trackpoint of the interval `i`, and `values[i]` its value, 0 when unknown, else 1 + the index
 /// of its name in `names`. No intervals means that the attribute is unknown everywhere.
@@ -64,7 +64,7 @@ impl RouteCategory<'_> {
 /// anchors anyway. The ones right before and after the range, between which the route goes, become
 /// shown at every zoom level as well.
 #[derive(Debug)]
-pub struct Route<'a> {
+pub struct Reroute<'a> {
     pub start: u32,
     pub end: u32,
     pub lng: &'a [f64],
@@ -89,7 +89,7 @@ pub(super) struct Target {
     pub end: usize,
 }
 
-impl Apply for Route<'_> {
+impl Apply for Reroute<'_> {
     fn apply(self, state: &mut State) -> Result<(), CommandError> {
         let (start, end) = (self.start as usize, self.end as usize);
         let len = self.lng.len();
@@ -152,14 +152,17 @@ impl Apply for Route<'_> {
                 }
                 let seg = file.trk[trk].trkseg.len() - 1;
                 Target {
-                    location: SegmentLocation { file_id, trk, seg },
+                    location: SegmentLocation {
+                        file_id,
+                        index: SegmentIndex::Track { trk, seg },
+                    },
                     start: 0,
                     end: 0,
                 }
             }
         };
 
-        let segment = &mut file.trk[target.location.trk].trkseg[target.location.seg];
+        let segment = file.segment_mut(target.location.index);
         let new_len = points.len();
         let (speed, start_time) = speed_and_start_time(segment, &target, &points);
         let has_times = !segment.is_empty() && segment[0].time.is_some();
@@ -208,7 +211,7 @@ pub(super) fn find_target(
     let segments: Vec<(SegmentLocation, usize)> = locations
         .into_iter()
         .map(|location| {
-            let segment = &state.files[&location.file_id].trk[location.trk].trkseg[location.seg];
+            let segment = location.segment(state.files);
             (location, segment.len())
         })
         .collect();
@@ -382,8 +385,8 @@ mod tests {
         lng: &'a [f64],
         lat: &'a [f64],
         ele: &'a [f64],
-    ) -> Route<'a> {
-        Route {
+    ) -> Reroute<'a> {
+        Reroute {
             start,
             end,
             lng,
@@ -459,7 +462,7 @@ mod tests {
             route(0, 0, &[1.0], &[], &[]).apply(&mut fx.state()),
             route(0, len + 1, &[], &[], &[]).apply(&mut fx.state()),
             route(len + 1, len + 1, &[1.0], &[1.0], &[1.0]).apply(&mut fx.state()),
-            Route {
+            Reroute {
                 anchors: &[1],
                 ..route(0, 0, &[1.0], &[1.0], &[1.0])
             }
@@ -589,7 +592,7 @@ mod tests {
 
         // 5 new points replacing the 2 in the middle, two of them are anchors
         let (lng, lat, ele) = ([1.0; 5], [2.0; 5], [3.0; 5]);
-        Route {
+        Reroute {
             anchors: &[1, 3],
             ..route(1, 3, &lng, &lat, &ele)
         }
@@ -639,7 +642,7 @@ mod tests {
         let names = ["asphalt".to_string(), "gravel".to_string()];
         let (lng, lat, ele) = ([1.0; 4], [2.0; 4], [3.0; 4]);
         // asphalt, asphalt, unknown, gravel
-        Route {
+        Reroute {
             surface: RouteCategory {
                 starts: &[0, 2, 3],
                 values: &[1, 0, 2],
@@ -683,7 +686,7 @@ mod tests {
             },
         ];
         for surface in broken {
-            let result = Route {
+            let result = Reroute {
                 surface,
                 ..route(0, 0, &lng, &lat, &ele)
             }

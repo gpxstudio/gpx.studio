@@ -172,9 +172,10 @@
         updateEnd();
     }
 
-    // a single file, track or segment
+    // a single file, route, track or segment
     let canUpdate = $derived(
         ($selection.type === 'file' && $selection.fileIds.length === 1) ||
+            ($selection.type === 'route' && $selection.routeIds.length === 1) ||
             ($selection.type === 'track' && $selection.trackIds.length === 1) ||
             ($selection.type === 'segment' && $selection.segmentIds.length === 1)
     );

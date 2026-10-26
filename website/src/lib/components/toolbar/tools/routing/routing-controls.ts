@@ -18,6 +18,7 @@ import { map } from '$lib/components/map/map';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 import { settings } from '$lib/state/settings';
 import { closestPointIndexIn } from '$lib/geo/closest-point';
+import { coversSegments } from '$lib/engine/selection-helpers';
 import {
     engine,
     type Selection,
@@ -53,7 +54,7 @@ type AnchorFeature = GeoJSON.Feature<GeoJSON.Point, AnchorProperties>;
 
 /** Whether the tool has to show controls for a selection: it covers segments, or can get some. */
 function isRoutable(selection: Selection) {
-    return selection.type === 'file' || selection.type === 'track' || selection.type === 'segment';
+    return coversSegments(selection);
 }
 
 /**

@@ -24,6 +24,7 @@ const structure: FileStructure = {
     name: 'file',
     waypointsRev: 'wpt-rev',
     waypoints: [{ id: 'W1' }, { id: 'W2' }],
+    routes: [],
     tracks: [
         { id: 'T1', segments: [segment('S1'), segment('S2')] },
         { id: 'T2', segments: [segment('S3')] },
@@ -132,6 +133,29 @@ describe('file visibility', () => {
                 assert.equal(isWaypointHidden(state, id), isHidden(state, id));
             }
         }
+    });
+
+    it('hides a route, which is a leaf like a waypoint', () => {
+        const withRoute: FileStructure = {
+            ...structure,
+            routes: [{ id: 'R', segment: segment('RS') }],
+        };
+        const state = (...actions: [ids: string[], hidden: boolean][]): VisibilityState => {
+            let visibility: Visibility = new Map();
+            for (const [ids, hidden] of actions) {
+                visibility = setHidden(withRoute, visibility, ids, hidden);
+            }
+            return { structure: withRoute, visibility };
+        };
+        assert.equal(isHidden(state([['R'], true]), 'R'), true);
+        assert.equal(isHidden(state([['R'], true]), 'F'), false);
+        assert.equal(isSegmentHidden(state([['R'], true]), 'R', 'RS'), true);
+        // with its file, and shown on its own below it
+        assert.equal(isHidden(state([['F'], true]), 'R'), true);
+        const shown = state([['F'], true], [['R'], false]);
+        assert.equal(isHidden(shown, 'R'), false);
+        assert.equal(isHidden(shown, 'F'), false);
+        assert.equal(isHidden(shown, 'T1'), true);
     });
 
     it('does not consider unknown ids hidden', () => {

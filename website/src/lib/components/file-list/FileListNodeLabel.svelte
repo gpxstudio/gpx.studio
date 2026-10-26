@@ -18,6 +18,7 @@
         Scissors,
         FileStack,
         FileX,
+        Route,
     } from '@lucide/svelte';
     import { getContext, untrack } from 'svelte';
     import { i18n } from '$lib/i18n/i18n.svelte';
@@ -34,6 +35,7 @@
         elementId,
         isInClipboard,
         isSelected,
+        pathInfo,
         selectedElementIds,
         selectedFileIds,
         selectionSize,
@@ -62,20 +64,23 @@
 
     let singleSelection = $derived(selectionSize($selection) === 1);
 
+    // a route or a track: it has a name, a description and a style, like a file
+    let isPath = $derived(node.type === 'route' || node.type === 'track');
+
     let nodeColors: string[] = $derived.by(() => {
-        const { tracks } = fileState.structure;
+        const { routes, tracks } = fileState.structure;
         if (node.type === 'file') {
-            // the colors defined by the tracks, or else the one of the file
+            // the colors defined by the routes and tracks, or else the one of the file
             const colors = [
                 ...new Set(
-                    tracks.flatMap((track) =>
-                        track.color !== undefined ? [normalizeColor(track.color)] : []
+                    [...routes, ...tracks].flatMap((path) =>
+                        path.color !== undefined ? [normalizeColor(path.color)] : []
                     )
                 ),
             ];
             return colors.length > 0 ? colors : [fileState.color];
-        } else if (node.type === 'track') {
-            const color = tracks.find((track) => track.id === node.trackId)?.color;
+        } else if (isPath) {
+            const color = pathInfo(fileState.structure, node)?.color;
             return [color !== undefined ? normalizeColor(color) : fileState.color];
         }
         return [];
@@ -141,11 +146,11 @@
                 ? 'w-full h-7'
                 : 'w-max h-9 px-1.5'} pointer-events-auto"
         >
-            {#if node.type === 'file' || node.type === 'track'}
+            {#if node.type === 'file' || isPath}
                 <MetadataDialog bind:open={openEditMetadata} {fileState} {node} />
                 <StyleDialog bind:open={openEditStyle} {fileState} {node} />
             {/if}
-            {#if level === 'file' || level === 'track'}
+            {#if level === 'file' || isPath}
                 <div
                     class="absolute {orientation === 'vertical'
                         ? 'top-0 bottom-0 right-0 w-1'
@@ -197,7 +202,9 @@
                     }
                 }}
             >
-                {#if level === 'segment'}
+                {#if level === 'route'}
+                    <Route size="16" class="mx-1 shrink-0" />
+                {:else if level === 'segment'}
                     <Waypoints size="16" class="mx-1 shrink-0" />
                 {:else if level === 'waypoint'}
                     {#if symbolKey && symbols[symbolKey].icon}
@@ -238,7 +245,7 @@
         </Button>
     </ContextMenu.Trigger>
     <ContextMenu.Content>
-        {#if node.type === 'file' || node.type === 'track'}
+        {#if node.type === 'file' || isPath}
             <ContextMenu.Item
                 disabled={!singleSelection}
                 onclick={() => (editMetadata.current = true)}
@@ -268,6 +275,10 @@
                 <ContextMenu.Item disabled={!singleSelection} onclick={() => engine.newTrack()}>
                     <Plus size="16" />
                     {i18n._('menu.new_track')}
+                </ContextMenu.Item>
+                <ContextMenu.Item disabled={!singleSelection} onclick={() => engine.newRoute()}>
+                    <Plus size="16" />
+                    {i18n._('menu.new_route')}
                 </ContextMenu.Item>
                 <ContextMenu.Separator />
             {:else if node.type === 'track'}

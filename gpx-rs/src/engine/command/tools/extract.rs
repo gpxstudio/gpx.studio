@@ -1,22 +1,23 @@
 use std::{collections::HashSet, rc::Rc};
 
 use crate::{
-    Apply, CommandError, File, FileId, LngLat, LngLatBounds, Selection, State, Track, TrackId,
-    TrackSegment, Waypoint, Waypoints, copy_file, copy_waypoint, crossarc_lnglat, distance,
+    Apply, CommandError, File, FileId, LngLat, LngLatBounds, Route, Selection, State, Track,
+    TrackId, TrackSegment, Waypoint, Waypoints, copy_file, copy_waypoint, crossarc_lnglat,
+    distance,
 };
 
 /// Splits the selected elements that are made of several segments into elements that have one
 /// each:
 ///
-/// - files: a file with several tracks becomes one file per track, in which the track is split
-///   into one track per segment. A file with a single track becomes one file per segment. The new
-///   files are in the place of the file, which goes, and are selected. They are named after the
-///   track, or the file, and numbered. The waypoints go to the files that have the segments
+/// - files: a file with several routes and tracks becomes one file per route and per track, in
+///   which the track is split into one track per segment. A file with a single track becomes one
+///   file per segment. The new files are in the place of the file, which goes, and are selected.
+///   They are named after the route or track, or the file, and numbered. The waypoints go to the files that have the segments
 ///   closest to them (to the first file if the file has no trackpoint).
 /// - tracks: each selected track is replaced by one track per segment, which are selected. They
 ///   are named after the track and numbered.
 ///
-/// What has a single segment is left as it is. There is nothing to do if nothing was changed.
+/// What has a single segment is left as it is, which routes always are. There is nothing to do if nothing was changed.
 ///
 /// With `keep_originals`, the files that are extracted stay where they are, and the new files come
 /// right after each of them, and only the new files are selected. Extracting
@@ -46,8 +47,7 @@ fn extract_files(
     let mut extracted: Vec<(FileId, Vec<File>)> = vec![];
     for id in state.order.0.iter().filter(|id| file_ids.contains(id)) {
         let file = &state.files[id];
-        let segments: usize = file.trk.iter().map(|track| track.trkseg.len()).sum();
-        if segments > 1 {
+        if file.segments().count() > 1 {
             let mut files = extract_file(file);
             if keep_originals {
                 // the tracks and segments are the ones of the file, which stays: they need new ids
@@ -95,60 +95,65 @@ fn extract_files(
 
 /// The files that a file with several segments becomes.
 fn extract_file(file: &File) -> Vec<File> {
-    // for each new file: its tracks and its name, and the segments that go with it
+    // for each new file: its routes, its tracks and its name, and the segments that go with it
     struct Part {
+        routes: Vec<Route>,
         tracks: Vec<Track>,
         name: String,
     }
-    let (parts, owner): (Vec<Part>, Vec<usize>) = if file.trk.len() > 1 {
-        // one file per track, the segments of a track follow it
-        let parts = file
-            .trk
-            .iter()
-            .enumerate()
-            .map(|(i, track)| Part {
-                tracks: split_track(track),
-                name: track
-                    .info
-                    .name
-                    .clone()
-                    .unwrap_or_else(|| format!("{} ({})", file.info.name, i + 1)),
-            })
-            .collect();
-        let owner = file
-            .trk
-            .iter()
-            .enumerate()
-            .flat_map(|(i, track)| track.trkseg.iter().map(move |_| i))
-            .collect();
-        (parts, owner)
-    } else {
-        // one file per segment
-        let track = &file.trk[0];
-        let base = track
-            .info
-            .name
-            .clone()
-            .unwrap_or_else(|| file.info.name.clone());
-        let parts = track
-            .trkseg
-            .iter()
-            .enumerate()
-            .map(|(i, segment)| Part {
-                tracks: vec![Track {
-                    id: if i == 0 { track.id } else { Default::default() },
-                    trkseg: vec![segment.clone()],
-                    ..track.clone()
-                }],
-                name: format!("{base} ({})", i + 1),
-            })
-            .collect();
-        let owner = (0..track.trkseg.len()).collect();
-        (parts, owner)
+    let name = |name: &Option<String>, i: usize| {
+        name.clone()
+            .unwrap_or_else(|| format!("{} ({})", file.info.name, i + 1))
     };
+    let (parts, owner): (Vec<Part>, Vec<usize>) =
+        if file.rte.len() + file.trk.len() > 1 {
+            // one file per route and per track, the segments of a track follow it
+            let routes = file.rte.iter().enumerate().map(|(i, route)| Part {
+                routes: vec![route.clone()],
+                tracks: vec![],
+                name: name(&route.info.name, i),
+            });
+            let tracks = file.trk.iter().enumerate().map(|(i, track)| Part {
+                routes: vec![],
+                tracks: split_track(track),
+                name: name(&track.info.name, file.rte.len() + i),
+            });
+            let parts = routes.chain(tracks).collect();
+            let owner =
+                (0..file.rte.len())
+                    .chain(file.trk.iter().enumerate().flat_map(|(i, track)| {
+                        track.trkseg.iter().map(move |_| file.rte.len() + i)
+                    }))
+                    .collect();
+            (parts, owner)
+        } else {
+            // one file per segment
+            let track = &file.trk[0];
+            let base = track
+                .info
+                .name
+                .clone()
+                .unwrap_or_else(|| file.info.name.clone());
+            let parts = track
+                .trkseg
+                .iter()
+                .enumerate()
+                .map(|(i, segment)| Part {
+                    routes: vec![],
+                    tracks: vec![Track {
+                        id: if i == 0 { track.id } else { Default::default() },
+                        trkseg: vec![segment.clone()],
+                        ..track.clone()
+                    }],
+                    name: format!("{base} ({})", i + 1),
+                })
+                .collect();
+            let owner = (0..track.trkseg.len()).collect();
+            (parts, owner)
+        };
 
     // the waypoints go with the segments that are the closest to them
-    let segments: Vec<&TrackSegment> = file.trk.iter().flat_map(|track| &track.trkseg).collect();
+    let segments: Vec<&TrackSegment> = file.segments().collect();
     let mut waypoints: Vec<Vec<Waypoint>> = vec![vec![]; parts.len()];
     for waypoint in file.wpt.iter() {
         let mut owners: Vec<usize> = closest_segments(&segments, waypoint.coordinates)
@@ -176,6 +181,7 @@ fn extract_file(file: &File) -> Vec<File> {
         .map(|(part, waypoints)| {
             let mut extracted = File {
                 id: Default::default(),
+                rte: part.routes,
                 trk: part.tracks,
                 wpt: Waypoints::default(),
                 ..file.clone()

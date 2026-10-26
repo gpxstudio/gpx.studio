@@ -175,6 +175,35 @@ describe('selection', () => {
         assert.ok(get(engine.statistics).length > trackLength);
     });
 
+    it('selects routes, whose segments are on the map', async () => {
+        await load('with_routes');
+        const file = fileStates()[0];
+        const { id, routes, tracks } = file.structure;
+        assert.equal(routes.length, 2);
+        assert.equal(tracks.length, 0);
+        // the segments of the map are the ones of the routes
+        assert.deepEqual(
+            file.segments.features.map((f) => f.properties.routeId),
+            routes.map((route) => route.id)
+        );
+        assert.deepEqual(
+            file.segments.features.map((f) => f.properties.segmentId),
+            routes.map((route) => route.segment.id)
+        );
+
+        await engine.selectRoutes(id, [routes[1].id]);
+        assert.deepEqual(get(engine.selection), {
+            type: 'route',
+            fileId: id,
+            routeIds: [routes[1].id],
+        });
+        assert.equal(get(engine.statistics).length, routes[1].segment.length);
+
+        await engine.select([id]);
+        assert.equal(await engine.newRoute(), true);
+        assert.equal(fileStates()[0].structure.routes.length, 3);
+    });
+
     it('ignores what does not exist', async () => {
         await load('simple');
         const before = get(engine.selection);
@@ -415,42 +444,32 @@ describe('export', () => {
             await engine.exportFile(id, { ...ALL_EXPORT_OPTIONS, ...options })
         );
 
-    it('writes tracks, or routes when asked to', async () => {
+    it('writes tracks as tracks', async () => {
         await load('with_tracks_and_segments');
         const file = fileStates()[0];
         const segments = file.structure.tracks.reduce(
             (sum, track) => sum + track.segments.length,
             0
         );
-        const id = file.structure.id;
-
-        const tracks = await text(id);
+        const tracks = await text(file.structure.id);
         assert.ok(tracks.includes('<trk>') && !tracks.includes('<rte>'));
         assert.equal(tracks.match(/<trkseg>/g)?.length, segments);
-
-        const routes = await text(id, { asRoute: true });
-        assert.ok(routes.includes('<rte>') && !routes.includes('<trk>'));
-        assert.equal(routes.match(/<rte>/g)?.length, segments);
-        assert.ok(routes.includes('<rtept'));
-    });
-
-    it('does not count the way a file is written among its data', async () => {
-        await load('simple');
-        const data = await engine.exportableData(get(engine.order));
-        assert.equal(data.asRoute, false);
     });
 
     it('can read back the routes it writes', async () => {
-        await load('with_tracks_and_segments');
-        const id = get(engine.order)[0];
-        const before = fileStates()[0].segments.features.length;
-        const routes = (await engine.exportFile(id, { ...ALL_EXPORT_OPTIONS, asRoute: true }))!;
+        await load('with_routes');
+        const [id] = get(engine.order);
+        const before = fileStates()[0].structure.routes.length;
+        const routes = (await engine.exportFile(id))!;
+        const written = new TextDecoder().decode(routes);
+        assert.equal(written.match(/<rte>/g)?.length, before);
+        assert.ok(!written.includes('<trk>') && written.includes('<rtept'));
+
         await engine.loadFiles([{ data: routes, name: 'routes' }]);
         const [, loaded] = get(engine.order);
         const state = get(get(engine.files).get(loaded)!);
-        // one route per segment, each read as a track of one segment
-        assert.equal(state.structure.tracks.length, before);
-        assert.equal(state.segments.features.length, before);
+        assert.equal(state.structure.routes.length, before);
+        assert.equal(state.structure.tracks.length, 0);
     });
 });
 

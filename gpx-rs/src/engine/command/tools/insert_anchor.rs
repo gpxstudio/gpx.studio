@@ -39,7 +39,7 @@ impl Apply for InsertAnchor {
             .selection
             .segment_locations(state.files, &state.order.0)
         {
-            let segment = &state.files[&location.file_id].trk[location.trk].trkseg[location.seg];
+            let segment = location.segment(state.files);
             let mut points = segment.iter();
             let Some(mut previous) = points.next() else {
                 continue;
@@ -81,7 +81,7 @@ impl Apply for InsertAnchor {
         let closest = closest.ok_or(CommandError::NothingToDo)?;
 
         let mut file = (*state.files[&closest.location.file_id]).clone();
-        let segment = &mut file.trk[closest.location.trk].trkseg[closest.location.seg];
+        let segment = file.segment_mut(closest.location.index);
         let before = closest.before;
         // on a trackpoint already, if it is closer than `SNAP_DISTANCE`
         let snapped = if segment.len() == 1 {

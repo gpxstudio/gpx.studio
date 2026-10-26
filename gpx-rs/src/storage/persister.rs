@@ -217,8 +217,7 @@ impl Persister {
                 .files
                 .get(id)
                 .is_none_or(|saved| !Rc::ptr_eq(saved, file));
-            let segments = file.trk.iter().flat_map(|track| &track.trkseg);
-            for chunk in segments.flat_map(|segment| segment.chunks()) {
+            for chunk in file.segments().flat_map(|segment| segment.chunks()) {
                 let key = ChunkKey::trackpoints(chunk.id.0);
                 if chunks.insert(key) && changed && !self.chunks.contains(&key) {
                     batch

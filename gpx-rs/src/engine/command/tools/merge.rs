@@ -1,8 +1,9 @@
 use std::{collections::HashSet, rc::Rc};
 
 use crate::{
-    Apply, CommandError, FileId, GlobalStatistics, Selection, State, Statistics, Track, TrackId,
-    TrackSegment, TrackSegmentId, Waypoint, Waypoints, copy_track, replace_trackpoints,
+    Apply, CommandError, FileId, GlobalStatistics, Route, RouteId, Selection, State, Statistics,
+    Track, TrackId, TrackSegment, TrackSegmentId, Waypoint, Waypoints, copy_route, copy_track,
+    replace_trackpoints,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize)]
@@ -16,13 +17,16 @@ pub enum MergeType {
 
 /// Merges the selected elements into the first of them:
 ///
-/// - files: the other files are deleted. The tracks of all of them are in the first file, as
-///   they are with `Group`, or all connected in the first track with `Connect`. The waypoints of
+/// - files: the other files are deleted. The routes and tracks of all of them are in the first
+///   file, as they are with `Group`, or all connected in the first of them (a route or a track,
+///   the routes of a file coming before its tracks) with `Connect`. The waypoints of
 ///   all of them are in the first file too, except the ones that are the same. With
 ///   `keep_originals`, no file is deleted nor changed: the result is a new file (with the info of
 ///   the first one and new ids), which comes right after the last of the files and is selected.
 /// - tracks of a file: the first track gets their segments, as they are with `Group`, or all
 ///   connected in one segment with `Connect`. The other tracks are removed.
+/// - routes of a file: the first route gets their trackpoints, all connected with `Connect`, and
+///   the other routes are removed. A route has a single segment, so there is nothing to `Group`.
 /// - segments of a track: they are all connected in a segment at the position of the first one
 ///   with `Connect`. With `Group` they are put one after the other, at that position.
 ///
@@ -44,6 +48,7 @@ impl Apply for Merge {
         let selection = state.selection.clone();
         match &selection {
             Selection::File { file_ids } => self.merge_files(state, file_ids),
+            Selection::Route { file_id, rte_ids } => self.merge_routes(state, *file_id, rte_ids),
             Selection::Track { file_id, trk_ids } => self.merge_tracks(state, *file_id, trk_ids),
             Selection::TrackSegment {
                 file_id,
@@ -77,21 +82,26 @@ impl Merge {
             return Err(CommandError::NothingToDo);
         };
 
+        let mut routes: Vec<Route> = vec![];
         let mut tracks: Vec<Track> = vec![];
+        let mut segments: Vec<TrackSegment> = vec![];
         let mut waypoints: Vec<Waypoint> = vec![];
         for id in &ordered {
             let file = &state.files[id];
+            routes.extend(file.rte.iter().cloned());
             tracks.extend(file.trk.iter().cloned());
+            segments.extend(file.segments().cloned());
             for waypoint in file.wpt.iter() {
                 if !waypoints.iter().any(|kept| kept.same_content(waypoint)) {
                     waypoints.push(waypoint.clone());
                 }
             }
         }
-        let segments: Vec<TrackSegment> = tracks
-            .iter()
-            .flat_map(|track| track.trkseg.iter().cloned())
-            .collect();
+        // the first route or track, which holds the connected segment
+        let first_is_route = ordered.iter().find_map(|id| {
+            let file = &state.files[id];
+            (!file.has_no_path()).then(|| !file.rte.is_empty())
+        });
 
         match self.type_ {
             MergeType::Group if ordered.len() == 1 => return Err(CommandError::NothingToDo),
@@ -99,24 +109,35 @@ impl Merge {
                 return Err(CommandError::NothingToDo);
             }
             MergeType::Connect if !segments.is_empty() => {
-                // a single track, which is the first one, with the connected segment
+                // a single route or track, which is the first one, with the connected segment
                 let merged = connect(&segments, segments[0].id, self.remove_gaps);
-                let first = Track {
-                    trkseg: vec![merged],
-                    ..tracks[0].clone()
-                };
-                tracks = vec![first];
+                if first_is_route == Some(true) {
+                    let first = Route {
+                        seg: merged,
+                        ..routes[0].clone()
+                    };
+                    (routes, tracks) = (vec![first], vec![]);
+                } else {
+                    let first = Track {
+                        trkseg: vec![merged],
+                        ..tracks[0].clone()
+                    };
+                    (routes, tracks) = (vec![], vec![first]);
+                }
             }
             _ => {}
         }
 
         let mut target = (*state.files[&target_id]).clone();
+        target.rte = routes;
         target.trk = tracks;
         target.wpt = Waypoints::default();
         target.wpt.insert_at(0, waypoints);
         if self.keep_originals {
-            // a new file, whose tracks and segments do not share their ids with the originals
+            // a new file, whose routes, tracks and segments do not share their ids with the
+            // originals
             target.id = Default::default();
+            target.rte = target.rte.iter().map(copy_route).collect();
             target.trk = target.trk.iter().map(copy_track).collect();
             let at = state
                 .order
@@ -136,6 +157,33 @@ impl Merge {
         }
         state.order.0.retain(|id| !ordered[1..].contains(id));
         state.files.insert(target_id, Rc::new(target));
+        Ok(())
+    }
+
+    fn merge_routes(
+        &self,
+        state: &mut State,
+        file_id: FileId,
+        rte_ids: &HashSet<RouteId>,
+    ) -> Result<(), CommandError> {
+        let file = state.files.get(&file_id).ok_or(CommandError::NothingToDo)?;
+        let selected: Vec<usize> = (0..file.rte.len())
+            .filter(|i| rte_ids.contains(&file.rte[*i].id))
+            .collect();
+        if selected.len() < 2 || self.type_ == MergeType::Group {
+            return Err(CommandError::NothingToDo);
+        }
+        let first = selected[0];
+        let segments: Vec<TrackSegment> =
+            selected.iter().map(|i| file.rte[*i].seg.clone()).collect();
+        let mut file = (**file).clone();
+        file.rte[first].seg = connect(&segments, segments[0].id, self.remove_gaps);
+        let mut index = 0;
+        file.rte.retain(|_| {
+            index += 1;
+            !selected[1..].contains(&(index - 1))
+        });
+        state.files.insert(file_id, Rc::new(file));
         Ok(())
     }
 

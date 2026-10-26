@@ -1,14 +1,15 @@
 use std::rc::Rc;
 
 use crate::{
-    Apply, CommandError, File, FileId, Selection, State, TrackId, TrackSegmentId, end_time,
-    reverse_segment, reverse_segments, reverse_tracks, start_time, track_end_time,
-    track_start_time,
+    Apply, CommandError, File, FileId, RouteId, Selection, State, TrackId, TrackSegmentId,
+    end_time, reverse_routes, reverse_segment, reverse_segments, reverse_tracks, start_time,
+    track_end_time, track_start_time,
 };
 
-/// Reverses the direction of the selected elements: the whole of each selected file (its tracks,
-/// the segments of its tracks and their trackpoints are in the opposite order), of each selected
-/// track (its segments and their trackpoints), or each selected segment on its own (its
+/// Reverses the direction of the selected elements: the whole of each selected file (its routes,
+/// its tracks, the segments of its tracks and their trackpoints are in the opposite order; the
+/// routes and the tracks are two wholes, as the routes stay before the tracks), of each selected
+/// track (its segments and their trackpoints), or each selected route or segment on its own (its
 /// trackpoints). The timestamps are mirrored, see [`reverse_segment`].
 #[derive(Debug)]
 pub struct Reverse;
@@ -20,9 +21,7 @@ impl Apply for Reverse {
             .segment_locations(state.files, &state.order.0);
         let points: usize = locations
             .iter()
-            .map(|location| {
-                state.files[&location.file_id].trk[location.trk].trkseg[location.seg].len()
-            })
+            .map(|location| location.segment(state.files).len())
             .sum();
         if points <= 1 {
             return Err(CommandError::NothingToDo);
@@ -40,12 +39,18 @@ impl Apply for Reverse {
             Selection::File { file_ids } => {
                 for file_id in file_ids {
                     edit(file_id, &|file| {
+                        let end = file.rte.last().and_then(|rte| end_time(&rte.seg));
+                        let start = file.rte.first().and_then(|rte| start_time(&rte.seg));
+                        reverse_routes(&mut file.rte, end, start);
                         let end = file.trk.last().and_then(track_end_time);
                         let start = file.trk.first().and_then(track_start_time);
                         reverse_tracks(&mut file.trk, end, start);
                     });
                 }
             }
+            Selection::Route { file_id, rte_ids } => edit(file_id, &|file| {
+                reverse_selected_routes(file, rte_ids);
+            }),
             Selection::Track { file_id, trk_ids } => edit(file_id, &|file| {
                 reverse_selected_tracks(file, trk_ids);
             }),
@@ -63,6 +68,13 @@ impl Apply for Reverse {
             state.files.insert(file_id, Rc::new(file));
         }
         Ok(())
+    }
+}
+
+fn reverse_selected_routes(file: &mut File, ids: &std::collections::HashSet<RouteId>) {
+    for route in file.rte.iter_mut().filter(|route| ids.contains(&route.id)) {
+        let (end, start) = (end_time(&route.seg), start_time(&route.seg));
+        reverse_segment(&mut route.seg, end, start);
     }
 }
 

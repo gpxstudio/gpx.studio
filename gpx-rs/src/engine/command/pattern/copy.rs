@@ -1,4 +1,4 @@
-use crate::{File, Track, TrackSegment, Waypoint};
+use crate::{File, Route, Track, TrackSegment, Waypoint};
 
 // The trackpoints of a segment are shared chunks, so copying elements is cheap.
 
@@ -18,10 +18,20 @@ pub fn copy_track(track: &Track) -> Track {
     }
 }
 
-/// A copy of the file and of its tracks and segments, with new ids.
+/// A copy of the route and of its segment, with new ids.
+pub fn copy_route(route: &Route) -> Route {
+    Route {
+        id: Default::default(),
+        seg: copy_segment(&route.seg),
+        ..route.clone()
+    }
+}
+
+/// A copy of the file and of its routes, tracks and segments, with new ids.
 pub fn copy_file(file: &File) -> File {
     File {
         id: Default::default(),
+        rte: file.rte.iter().map(copy_route).collect(),
         trk: file.trk.iter().map(copy_track).collect(),
         ..file.clone()
     }

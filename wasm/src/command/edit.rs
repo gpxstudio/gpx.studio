@@ -19,6 +19,11 @@ pub fn style(color: Option<String>, opacity: Option<f64>, width: Option<f64>) ->
 }
 
 #[wasm_bindgen]
+pub fn new_route() -> Outcome {
+    run(api::new_route)
+}
+
+#[wasm_bindgen]
 pub fn new_track() -> Outcome {
     run(api::new_track)
 }

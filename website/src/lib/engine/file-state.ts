@@ -3,7 +3,13 @@ import { normalizeColor, type FileColorAllocator } from '$lib/engine/file-colors
 import type { Visibility } from '$lib/engine/file-visibility';
 import type { Backend } from './backend';
 import { toPositions } from './convert';
-import { EMPTY_STATISTICS, type FileState, type SegmentProperties } from './types';
+import {
+    EMPTY_STATISTICS,
+    type FileState,
+    type PathInfo,
+    type SegmentNode,
+    type SegmentProperties,
+} from './types';
 
 /** Reads the state of a file, reusing from `previous` what did not change. */
 export async function readFileState(
@@ -18,9 +24,10 @@ export async function readFileState(
         return null;
     }
 
+    const paths: PathInfo[] = [...structure.routes, ...structure.tracks];
     const color = colors.resolve(
         id,
-        structure.tracks.map((track) => track.color)
+        paths.map((path) => path.color)
     );
 
     const previousSegments = new Map(
@@ -31,38 +38,42 @@ export async function readFileState(
         | Feature<LineString, SegmentProperties>
         | Promise<Feature<LineString, SegmentProperties>>
     )[] = [];
-    structure.tracks.forEach((track, trackIndex) => {
-        track.segments.forEach((segment, segmentIndex) => {
-            const properties: SegmentProperties = {
-                fileId: id,
-                trackId: track.id,
-                segmentId: segment.id,
-                trackIndex,
-                segmentIndex,
-                rev: segment.rev,
-                color: track.color !== undefined ? normalizeColor(track.color) : color,
-                opacity: track.opacity,
-                width: track.width,
-            };
-            const old = previousSegments.get(segment.id);
-            const unchanged =
-                old !== undefined &&
-                (Object.keys(properties) as (keyof SegmentProperties)[]).every(
-                    (key) => old.properties[key] === properties[key]
-                );
-            segments.push(
-                unchanged
-                    ? old
-                    : backend.segment_coordinates(segment.id).then((coordinates) => ({
-                          type: 'Feature',
-                          geometry: {
-                              type: 'LineString',
-                              coordinates: toPositions(coordinates),
-                          },
-                          properties,
-                      }))
+    const addSegment = (
+        segment: SegmentNode,
+        path: PathInfo,
+        parent: Pick<SegmentProperties, 'routeId' | 'trackId'>
+    ) => {
+        const properties: SegmentProperties = {
+            fileId: id,
+            ...parent,
+            segmentId: segment.id,
+            rev: segment.rev,
+            color: path.color !== undefined ? normalizeColor(path.color) : color,
+            opacity: path.opacity,
+            width: path.width,
+        };
+        const old = previousSegments.get(segment.id);
+        const unchanged =
+            old !== undefined &&
+            (Object.keys(properties) as (keyof SegmentProperties)[]).every(
+                (key) => old.properties[key] === properties[key]
             );
-        });
+        segments.push(
+            unchanged
+                ? old
+                : backend.segment_coordinates(segment.id).then((coordinates) => ({
+                      type: 'Feature',
+                      geometry: {
+                          type: 'LineString',
+                          coordinates: toPositions(coordinates),
+                      },
+                      properties,
+                  }))
+        );
+    };
+    structure.routes.forEach((route) => addSegment(route.segment, route, { routeId: route.id }));
+    structure.tracks.forEach((track) => {
+        track.segments.forEach((segment) => addSegment(segment, track, { trackId: track.id }));
     });
     const segmentFeatures = await Promise.all(segments);
 

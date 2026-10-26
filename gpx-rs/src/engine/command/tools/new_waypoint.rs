@@ -58,7 +58,8 @@ impl Apply for NewWaypoint<'_> {
                 .filter(|id| file_ids.contains(id))
                 .copied()
                 .collect(),
-            Selection::Track { file_id, .. }
+            Selection::Route { file_id, .. }
+            | Selection::Track { file_id, .. }
             | Selection::TrackSegment { file_id, .. }
             | Selection::Waypoints { file_id }
             | Selection::Waypoint { file_id, .. } => vec![*file_id],

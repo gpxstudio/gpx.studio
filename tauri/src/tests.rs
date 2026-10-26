@@ -257,7 +257,7 @@ fn waypoints_exports_and_routing_revisions() {
 
     let exported = app.bytes(
         "export_file",
-        json!({ "fileId": file, "time": true, "hr": true, "cad": true, "atemp": true, "power": true, "osm": true, "asRoute": false }),
+        json!({ "fileId": file, "time": true, "hr": true, "cad": true, "atemp": true, "power": true, "osm": true }),
     );
     assert_eq!(exported[0], 1);
     assert!(

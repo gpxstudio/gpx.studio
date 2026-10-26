@@ -28,16 +28,19 @@ const FILE_STRUCTURE_TS: &str = r#"
 export type Selection =
     | { type: 'empty' }
     | { type: 'file'; fileIds: string[] }
+    | { type: 'route'; fileId: string; routeIds: string[] }
     | { type: 'track'; fileId: string; trackIds: string[] }
     | { type: 'segment'; fileId: string; trackId: string; segmentIds: string[] }
     | { type: 'waypoints'; fileId: string }
     | { type: 'waypoint'; fileId: string; waypointIds: string[] };
 /**
  * Where moved elements go: a list of the file tree and the position in it, counted among the
- * elements of the list that are not moved.
+ * elements of the list that are not moved. Routes and tracks keep their kind: moved among the
+ * other kind, routes go after the routes, tracks before the tracks.
  */
 export type MoveTarget =
     | { type: 'files'; index: number }
+    | { type: 'routes'; fileId: string; index: number }
     | { type: 'tracks'; fileId: string; index: number }
     | { type: 'segments'; fileId: string; trackId: string; index: number }
     | { type: 'waypoints'; fileId: string; index: number };
@@ -83,7 +86,7 @@ export interface SelectionPoint {
 }
 /** What was copied or cut, to be pasted: the kind of the elements and their ids. */
 export interface Clipboard {
-    type: 'files' | 'tracks' | 'segments' | 'waypoints';
+    type: 'files' | 'routes' | 'tracks' | 'segments' | 'waypoints';
     ids: string[];
     cut: boolean;
 }
@@ -119,6 +122,8 @@ export interface FileStructure {
     id: string;
     name: string;
     desc?: string;
+    /** The routes come before the tracks, in the file and in the statistics. */
+    routes: RouteNode[];
     tracks: TrackNode[];
     waypoints: WaypointNode[];
     /** Changes when the waypoints of the file change: refetch their coordinates. */
@@ -146,14 +151,22 @@ export interface GlobalStatistics {
     /** Absent when there are no trackpoints. */
     bounds?: { west: number; south: number; east: number; north: number };
 }
-export interface TrackNode {
-    id: string;
+/** The name, description and style of a route or a track. */
+export interface PathInfo {
     name?: string;
     desc?: string;
-    /** Style of the track, only present when the file defines it. */
+    /** Style, only present when the file defines it. */
     color?: string;
     opacity?: number;
     width?: number;
+}
+/** A route: like a track, with a single segment. */
+export interface RouteNode extends PathInfo {
+    id: string;
+    segment: SegmentNode;
+}
+export interface TrackNode extends PathInfo {
+    id: string;
     segments: SegmentNode[];
 }
 export interface SegmentNode {

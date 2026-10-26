@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import type { Clipboard, FileStructure, Selection } from 'gpx-wasm';
 import type { VisibilityState } from '$lib/engine/file-visibility';
 import {
+    coversSegments,
     elementId,
     hasSelectionWithin,
     isCovered,
@@ -16,10 +17,12 @@ import {
     type FileTreeNode,
 } from '$lib/engine/selection-helpers';
 
-// Two files; F1 has the tracks T1 (segments S1, S2) and T2 (segment S3), and waypoints W1, W2.
+// Two files; F1 has the route R1, the tracks T1 (segments S1, S2) and T2 (segment S3), and
+// waypoints W1, W2.
 const nodes: Record<string, FileTreeNode> = {
     F1: { type: 'file', fileId: 'F1' },
     F2: { type: 'file', fileId: 'F2' },
+    R1: { type: 'route', fileId: 'F1', routeId: 'R1' },
     T1: { type: 'track', fileId: 'F1', trackId: 'T1' },
     T2: { type: 'track', fileId: 'F1', trackId: 'T2' },
     S1: { type: 'segment', fileId: 'F1', trackId: 'T1', segmentId: 'S1' },
@@ -34,6 +37,7 @@ const nodes: Record<string, FileTreeNode> = {
 
 const empty: Selection = { type: 'empty' };
 const files = (...fileIds: string[]): Selection => ({ type: 'file', fileIds });
+const routes = (...routeIds: string[]): Selection => ({ type: 'route', fileId: 'F1', routeIds });
 const tracks = (...trackIds: string[]): Selection => ({ type: 'track', fileId: 'F1', trackIds });
 const segments = (trackId: string, ...segmentIds: string[]): Selection => ({
     type: 'segment',
@@ -54,6 +58,15 @@ function matching(selection: Selection, predicate: typeof isSelected): string[] 
 }
 
 describe('selection helpers', () => {
+    it('tells whether the selection is made of segments', () => {
+        for (const selection of [files('F1'), routes('R1'), tracks('T1'), segments('T1', 'S1')]) {
+            assert.equal(coversSegments(selection), true);
+        }
+        for (const selection of [empty, waypoints, waypoint('W1')]) {
+            assert.equal(coversSegments(selection), false);
+        }
+    });
+
     it('tells whether the selection is empty', () => {
         assert.equal(isEmpty(empty), true);
         assert.equal(isEmpty(files('F1')), false);
@@ -72,7 +85,20 @@ describe('selection helpers', () => {
     it('gives the id of the element of a node', () => {
         assert.deepEqual(
             Object.keys(nodes).map((name) => elementId(nodes[name])),
-            ['F1', 'F2', 'T1', 'T2', 'S1', 'S2', 'S3', 'F1:waypoints', 'W1', 'W2', 'F2:waypoints']
+            [
+                'F1',
+                'F2',
+                'R1',
+                'T1',
+                'T2',
+                'S1',
+                'S2',
+                'S3',
+                'F1:waypoints',
+                'W1',
+                'W2',
+                'F2:waypoints',
+            ]
         );
     });
 
@@ -90,6 +116,7 @@ describe('selection helpers', () => {
             Object.keys(nodes).filter((name) => isInClipboard(c, nodes[name]));
         assert.deepEqual(inClipboard(clipboard('files', ['F2'])), ['F2']);
         assert.deepEqual(inClipboard(clipboard('tracks', ['T2', 'S1'])), ['T2']);
+        assert.deepEqual(inClipboard(clipboard('routes', ['R1', 'T1'])), ['R1']);
         assert.deepEqual(inClipboard(clipboard('segments', ['S1', 'S3'])), ['S1', 'S3']);
         assert.deepEqual(inClipboard(clipboard('waypoints', ['W2'])), ['W2']);
         // not mixed up with the other kinds of elements
@@ -99,6 +126,7 @@ describe('selection helpers', () => {
     it('counts the selected elements', () => {
         assert.equal(selectionSize(empty), 0);
         assert.equal(selectionSize(files('F1', 'F2')), 2);
+        assert.equal(selectionSize(routes('R1')), 1);
         assert.equal(selectionSize(tracks('T1')), 1);
         assert.equal(selectionSize(segments('T1', 'S1', 'S2')), 2);
         assert.equal(selectionSize(waypoints), 1);
@@ -111,6 +139,7 @@ describe('selection helpers', () => {
             { fileId: 'F1', ids: ['F1'] },
             { fileId: 'F2', ids: ['F2'] },
         ]);
+        assert.deepEqual(selectedElementIds(routes('R1')), [{ fileId: 'F1', ids: ['R1'] }]);
         assert.deepEqual(selectedElementIds(tracks('T1', 'T2')), [
             { fileId: 'F1', ids: ['T1', 'T2'] },
         ]);
@@ -123,6 +152,7 @@ describe('selection helpers', () => {
         it('matches the selected nodes only', () => {
             assert.deepEqual(matching(empty, isSelected), []);
             assert.deepEqual(matching(files('F1', 'F2'), isSelected), ['F1', 'F2']);
+            assert.deepEqual(matching(routes('R1'), isSelected), ['R1']);
             assert.deepEqual(matching(tracks('T1', 'T2'), isSelected), ['T1', 'T2']);
             assert.deepEqual(matching(segments('T1', 'S1'), isSelected), ['S1']);
             assert.deepEqual(matching(waypoints, isSelected), ['WPTS']);
@@ -146,6 +176,7 @@ describe('selection helpers', () => {
 
         it('covers the segments of a selected track, not its siblings', () => {
             assert.deepEqual(matching(tracks('T1'), isCovered), ['T1', 'S1', 'S2']);
+            assert.deepEqual(matching(routes('R1'), isCovered), ['R1']);
         });
 
         it('covers the waypoints below the waypoints node', () => {
@@ -163,6 +194,7 @@ describe('selection helpers', () => {
         it('looks at the descendants of a file, whatever their kind', () => {
             for (const selection of [
                 files('F1'),
+                routes('R1'),
                 tracks('T1'),
                 segments('T1', 'S1'),
                 waypoints,
@@ -172,6 +204,10 @@ describe('selection helpers', () => {
                 assert.equal(hasSelectionWithin(selection, nodes.F2), false);
             }
             assert.equal(hasSelectionWithin(empty, nodes.F1), false);
+        });
+
+        it('looks at a route, which has no node below it', () => {
+            assert.deepEqual(matching(routes('R1'), hasSelectionWithin), ['F1', 'R1']);
         });
 
         it('looks at the segments of a track', () => {
@@ -201,6 +237,7 @@ describe('selection helpers', () => {
             name: 'file',
             waypointsRev: 'rev',
             waypoints: [{ id: 'W1' }, { id: 'W2' }],
+            routes: [],
             tracks: [
                 { id: 'T1', segments: [segment('S1'), segment('S2')] },
                 { id: 'T2', segments: [segment('S3')] },

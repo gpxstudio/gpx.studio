@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { splitAs, SplitType } from '$lib/components/toolbar/tools/scissors/scissors';
+    import { availableSplitTypes, splitAs } from '$lib/components/toolbar/tools/scissors/scissors';
     import Help from '$lib/components/Help.svelte';
     import { Label } from '$lib/components/ui/label/index.js';
     import { Button } from '$lib/components/ui/button';
@@ -14,6 +14,7 @@
     import { getURLForLanguage } from '$lib/utils';
     import { slicedStatistics } from '$lib/state/selection-statistics';
     import { engine } from '$lib/engine';
+    import { coversSegments } from '$lib/engine/selection-helpers';
 
     let props: {
         class?: string;
@@ -24,13 +25,20 @@
     const selection = engine.selection;
     const statistics = engine.statistics;
 
-    // the tool works on files, tracks and segments, not on waypoints
-    let validSelection = $derived(
-        ($selection.type === 'file' ||
-            $selection.type === 'track' ||
-            $selection.type === 'segment') &&
-            $statistics.length > 0
-    );
+    // the ways the selection can be split, which follow its content
+    let splitTypes = $derived.by(() => {
+        // what is selected can change without the selection: the files are edited
+        void $statistics;
+        return availableSplitTypes($selection);
+    });
+    $effect(() => {
+        if (!splitTypes.includes($splitAs)) {
+            $splitAs = splitTypes[0];
+        }
+    });
+
+    // the tool works on files, routes, tracks and segments, not on waypoints
+    let validSelection = $derived(coversSegments($selection) && $statistics.length > 0);
     // The slider does work for each of its steps every time it changes, which is too slow with
     // the thousands of trackpoints of a long track: it has a limited number of steps, which are
     // spread over the trackpoints.
@@ -123,7 +131,7 @@
                 {i18n._('gpx.' + $splitAs)}
             </Select.Trigger>
             <Select.Content>
-                {#each Object.values(SplitType) as splitType}
+                {#each splitTypes as splitType}
                     <Select.Item value={splitType}>{i18n._('gpx.' + splitType)}</Select.Item>
                 {/each}
             </Select.Content>

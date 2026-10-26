@@ -82,7 +82,7 @@ impl<H: History> Engine<H> {
             .find(|wpt| wpt.id == *id)
     }
 
-    /// A trackpoint of a segment of a file. `None` if it does not exist.
+    /// A trackpoint of a segment (of a route or a track) of a file. `None` if it does not exist.
     pub fn trackpoint(
         &self,
         file_id: &FileId,
@@ -93,9 +93,7 @@ impl<H: History> Engine<H> {
             .history
             .current()?
             .get(file_id)?
-            .trk
-            .iter()
-            .flat_map(|trk| &trk.trkseg)
+            .segments()
             .find(|seg| seg.id == *segment_id)?;
         (index < segment.len()).then(|| &segment[index])
     }
@@ -109,11 +107,7 @@ impl<H: History> Engine<H> {
         self.selection
             .segment_locations(files, &self.order.0)
             .iter()
-            .flat_map(|location| {
-                reduction_distances(
-                    &files[&location.file_id].trk[location.trk].trkseg[location.seg],
-                )
-            })
+            .flat_map(|location| reduction_distances(location.segment(files)))
             .collect()
     }
 

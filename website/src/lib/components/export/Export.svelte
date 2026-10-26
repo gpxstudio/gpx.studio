@@ -21,7 +21,6 @@
         Orbit,
         Thermometer,
         SquareActivity,
-        Route,
     } from '@lucide/svelte';
     import { i18n } from '$lib/i18n/i18n.svelte';
     import { engine, type ExportOptions } from '$lib/engine';
@@ -38,7 +37,6 @@
         atemp: true,
         power: true,
         osm: false,
-        asRoute: false,
     });
     // the files that are exported
     let fileIds: string[] = $derived.by(() => {
@@ -61,7 +59,6 @@
         atemp: false,
         power: false,
         osm: false,
-        asRoute: false,
     });
     $effect(() => {
         const ids = fileIds;
@@ -75,8 +72,6 @@
                     atemp: !available.atemp,
                     power: !available.power,
                     osm: !available.osm,
-                    // always possible
-                    asRoute: false,
                 };
             }
         });
@@ -131,7 +126,6 @@
                             atemp: exportOptions.atemp && !hide.atemp,
                             power: exportOptions.power && !hide.power,
                             osm: exportOptions.osm && !hide.osm,
-                            asRoute: exportOptions.asRoute,
                         };
                         if (exportState.current === ExportState.SELECTION) {
                             exportSelectedFiles(options);
@@ -209,13 +203,6 @@
                         <Label for="export-osm" class="flex flex-row items-center gap-1">
                             <Earth size="16" />
                             {i18n._('quantities.osm_extensions')}
-                        </Label>
-                    </div>
-                    <div class="flex flex-row items-center gap-1.5">
-                        <Checkbox id="export-as-route" bind:checked={exportOptions.asRoute} />
-                        <Label for="export-as-route" class="flex flex-row items-center gap-1">
-                            <Route size="16" />
-                            {i18n._('menu.export_as_route', 'Export as route')}
                         </Label>
                     </div>
                 </div>

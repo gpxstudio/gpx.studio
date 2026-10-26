@@ -9,6 +9,7 @@
     import { onDestroy } from 'svelte';
     import { getURLForLanguage } from '$lib/utils';
     import { engine } from '$lib/engine';
+    import { coversSegments } from '$lib/engine/selection-helpers';
     import { minTolerance, ReducedLayer, tolerance } from './utils.svelte';
 
     let props: { class?: string } = $props();
@@ -23,9 +24,7 @@
     const request = engine.requestStatistics();
     request.set(['anchors']);
 
-    let validSelection = $derived(
-        $selection.type === 'file' || $selection.type === 'track' || $selection.type === 'segment'
-    );
+    let validSelection = $derived(coversSegments($selection));
 
     let reducedLayer = new ReducedLayer();
 

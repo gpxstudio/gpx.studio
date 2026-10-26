@@ -79,7 +79,6 @@ pub fn export_file(
     atemp: bool,
     power: bool,
     osm: bool,
-    as_route: bool,
 ) -> Bytes {
     let options = ExportOptions {
         time,
@@ -88,7 +87,6 @@ pub fn export_file(
         atemp,
         power,
         osm,
-        as_route,
     };
     optional(state.read(move |e| api::export_file(e, file_id, options)))
 }

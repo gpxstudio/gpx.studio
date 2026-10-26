@@ -6,7 +6,7 @@
 //! between them are kept: every part comes after the previous one in the new order, as late as the
 //! original one came after the part that followed it.
 
-use crate::{Track, TrackSegment, Trackpoint};
+use crate::{Route, Track, TrackSegment, Trackpoint};
 
 /// The time of the first trackpoint of a segment.
 pub fn start_time(segment: &TrackSegment) -> Option<i64> {
@@ -91,6 +91,19 @@ pub fn reverse_segments(
         reverse_segment(segment, next, previous);
         next = original_start;
         previous = end_time(segment);
+    }
+}
+
+/// Reverses the routes of a file, and their trackpoints, like the segments of a track (see
+/// [`reverse_segments`]).
+pub fn reverse_routes(routes: &mut [Route], original_next: Option<i64>, new_previous: Option<i64>) {
+    routes.reverse();
+    let (mut next, mut previous) = (original_next, new_previous);
+    for route in routes.iter_mut() {
+        let original_start = start_time(&route.seg);
+        reverse_segment(&mut route.seg, next, previous);
+        next = original_start;
+        previous = end_time(&route.seg);
     }
 }
 

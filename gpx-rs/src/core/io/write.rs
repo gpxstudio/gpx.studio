@@ -8,9 +8,6 @@ use crate::{File, Link, Track, Trackpoint, TrackpointCategories, Waypoint};
 
 /// What the written file contains: the data of the trackpoints that are `false` are left out.
 /// The same type tells which data a file has, see [`File::exportable_data`].
-///
-/// With `as_route`, the file is written with routes instead of tracks, see [`write`]. It is not
-/// data: it is off in `ALL` and `NONE`, and in what [`File::exportable_data`] gives.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ExportOptions {
     pub time: bool,
@@ -20,8 +17,6 @@ pub struct ExportOptions {
     pub power: bool,
     /// The OpenStreetMap data: surface, highway, SAC scale and MTB scale.
     pub osm: bool,
-    /// Writes every segment as a route (`rte`) instead of a track.
-    pub as_route: bool,
 }
 
 impl ExportOptions {
@@ -36,7 +31,6 @@ impl ExportOptions {
             atemp: value,
             power: value,
             osm: value,
-            as_route: false,
         }
     }
 
@@ -49,7 +43,6 @@ impl ExportOptions {
             atemp: self.atemp || other.atemp,
             power: self.power || other.power,
             osm: self.osm || other.osm,
-            as_route: self.as_route || other.as_route,
         }
     }
 }
@@ -59,12 +52,7 @@ impl File {
     /// options of [`write`] can leave out.
     pub fn exportable_data(&self) -> ExportOptions {
         let mut data = ExportOptions::NONE;
-        for point in self
-            .trk
-            .iter()
-            .flat_map(|trk| &trk.trkseg)
-            .flat_map(|seg| seg.iter())
-        {
+        for point in self.segments().flat_map(|seg| seg.iter()) {
             data.time |= point.time.is_some();
             data.hr |= point.hr.is_some();
             data.cad |= point.cad.is_some();
@@ -89,10 +77,9 @@ type XmlWriter = Writer<Vec<u8>>;
 /// Writes a file as GPX 1.1, in UTF-8. The surface, highway, SAC scale and MTB scale of the trackpoints are
 /// the names of their codes in `categories`.
 ///
-/// The segments are written as tracks, or with `options.as_route` as routes: a segment becomes a
-/// `rte` that has the information of its track, its anchors are the `rtept` and the trackpoints
-/// between two anchors are the `gpxx:rpt` of the `rtept` before them (which only have a
-/// position, unlike the `rtept`). The first and last trackpoints always are `rtept`.
+/// The routes are written as routes (`rte`): the anchors of their segment are the `rtept` and the
+/// trackpoints between two anchors are the `gpxx:rpt` of the `rtept` before them (which only have
+/// a position, unlike the `rtept`). The first and last trackpoints always are `rtept`.
 pub fn write(file: &File, categories: &TrackpointCategories, options: ExportOptions) -> Vec<u8> {
     let mut writer = Writer::new_with_indent(Vec::new(), b' ', 4);
     // writing to memory does not fail
@@ -100,9 +87,9 @@ pub fn write(file: &File, categories: &TrackpointCategories, options: ExportOpti
     writer.into_inner()
 }
 
-fn write_file(
+fn write_file<'a>(
     w: &mut XmlWriter,
-    file: &File,
+    file: &'a File,
     categories: &TrackpointCategories,
     options: ExportOptions,
 ) -> io::Result<()> {
@@ -136,20 +123,18 @@ fn write_file(
             for wpt in file.wpt.iter() {
                 write_waypoint(w, wpt, options)?;
             }
+            // a single unnamed route or track is named like the file
+            let alone = file.rte.len() + file.trk.len() == 1;
+            let name = |info: &'a crate::TrackInfo| match &info.name {
+                Some(name) if !name.is_empty() => Some(name.as_str()),
+                _ if alone => Some(file.info.name.as_str()),
+                _ => None,
+            };
+            for rte in &file.rte {
+                write_route(w, &rte.info, &rte.seg, name(&rte.info), categories, options)?;
+            }
             for trk in &file.trk {
-                // a single unnamed track is named like the file
-                let name = match (&trk.info.name, file.trk.len()) {
-                    (Some(name), _) if !name.is_empty() => Some(name.as_str()),
-                    (_, 1) => Some(file.info.name.as_str()),
-                    _ => None,
-                };
-                if options.as_route {
-                    for segment in trk.trkseg.iter().filter(|segment| !segment.is_empty()) {
-                        write_route(w, trk, segment, name, categories, options)?;
-                    }
-                } else {
-                    write_track(w, trk, name, categories, options)?;
-                }
+                write_track(w, trk, name(&trk.info), categories, options)?;
             }
             Ok(())
         })?;
@@ -311,16 +296,16 @@ fn write_track(
 
 fn write_route(
     w: &mut XmlWriter,
-    trk: &Track,
+    info: &crate::TrackInfo,
     segment: &crate::TrackSegment,
     name: Option<&str>,
     categories: &TrackpointCategories,
     options: ExportOptions,
 ) -> io::Result<()> {
     w.create_element("rte").write_inner_content(|w| {
-        write_track_info(w, name, &trk.info)?;
+        write_track_info(w, name, info)?;
         let points: Vec<&Trackpoint> = segment.iter().collect();
-        let last = points.len() - 1;
+        let last = points.len().saturating_sub(1);
         let is_anchor = |i: usize| i == 0 || i == last || points[i].anchor.is_some();
         let mut i = 0;
         while i < points.len() {
@@ -455,9 +440,7 @@ mod tests {
     }
 
     fn points(file: &File) -> Vec<Trackpoint> {
-        file.trk
-            .iter()
-            .flat_map(|trk| &trk.trkseg)
+        file.segments()
             .flat_map(|seg| seg.iter().cloned())
             .collect()
     }
@@ -595,11 +578,20 @@ mod tests {
         assert!(file.exportable_data().power);
     }
 
-    fn as_route() -> ExportOptions {
-        ExportOptions {
-            as_route: true,
-            ..ExportOptions::ALL
-        }
+    /// The file with each segment of its tracks as a route, which has the information of its
+    /// track.
+    fn as_routes(mut file: File) -> File {
+        file.rte = std::mem::take(&mut file.trk)
+            .into_iter()
+            .flat_map(|trk| {
+                trk.trkseg.into_iter().map(move |seg| crate::Route {
+                    info: trk.info.clone(),
+                    seg,
+                    ..Default::default()
+                })
+            })
+            .collect();
+        file
     }
 
     fn count(text: &str, pattern: &str) -> usize {
@@ -607,19 +599,17 @@ mod tests {
     }
 
     #[test]
-    fn test_export_as_route_writes_routes_instead_of_tracks() {
+    fn test_routes_are_written_with_their_route_points_and_their_path() {
         let (file, categories) = read("with_route_points");
-        let text = written_text(&file, &categories, as_route());
+        let text = written_text(&file, &categories, ExportOptions::ALL);
 
         assert_eq!(count(&text, "<rte>"), 1);
         assert_eq!(count(&text, "<trk>"), 0);
-        assert_eq!(count(&text, "<trkseg>"), 0);
         assert_eq!(count(&text, "<trkpt"), 0);
         // the anchors are the route points, the trackpoints between them the points of their path
         assert_eq!(count(&text, "<rtept"), 3);
         assert_eq!(count(&text, "<gpxx:rpt"), 4);
         assert_eq!(count(&text, "<gpxx:RoutePointExtension>"), 2);
-        // a route has the information of its track
         assert!(text.contains("<name>Lausanne</name>"));
         assert!(text.contains("<cmt>comment</cmt>"));
         assert!(text.contains("<desc>description</desc>"));
@@ -634,14 +624,14 @@ mod tests {
     }
 
     #[test]
-    fn test_a_route_survives_being_exported_as_a_route() {
+    fn test_a_route_survives_being_written() {
         let (file, mut categories) = read("with_route_points");
-        let written = write(&file, &categories, as_route());
+        let written = write(&file, &categories, ExportOptions::ALL);
         let again = parse(&written, &mut categories).unwrap();
 
-        assert_eq!(again.trk.len(), 1);
-        assert_eq!(again.trk[0].info, file.trk[0].info);
-        let (a, b) = (&file.trk[0].trkseg[0], &again.trk[0].trkseg[0]);
+        assert_eq!(again.rte.len(), 1);
+        assert_eq!(again.rte[0].info, file.rte[0].info);
+        let (a, b) = (&file.rte[0].seg, &again.rte[0].seg);
         assert_eq!(a.len(), b.len());
         for (a, b) in a.iter().zip(b.iter()) {
             assert_eq!(a.coordinates.lat, b.coordinates.lat);
@@ -659,85 +649,102 @@ mod tests {
     }
 
     #[test]
-    fn test_tracks_become_one_route_per_segment_with_the_information_of_the_track() {
+    fn test_the_anchors_of_a_route_are_its_route_points() {
         let (file, mut categories) = read("with_tracks_and_segments");
-        let segments: usize = file.trk.iter().map(|t| t.trkseg.len()).sum();
-        assert!(segments > 2);
-        let written = write(&file, &categories, as_route());
-        let text = String::from_utf8(written.clone()).unwrap();
-        assert_eq!(count(&text, "<rte>"), segments);
-        assert_eq!(count(&text, "<trk>"), 0);
-        // every route starts and ends with a route point
-        assert_eq!(count(&text, "</rte>"), segments);
-
+        let file = as_routes(file);
+        assert!(file.rte.len() > 2);
+        let written = write(&file, &categories, ExportOptions::ALL);
         let again = parse(&written, &mut categories).unwrap();
-        assert_eq!(again.trk.len(), segments);
-        let mut routes = again.trk.iter();
-        for track in &file.trk {
-            for segment in &track.trkseg {
-                let route = routes.next().unwrap();
-                // the information of the track, repeated for each of its segments
-                assert_eq!(route.info.name, track.info.name);
-                assert_eq!(route.info.type_, track.info.type_);
-                let (a, b) = (segment, &route.trkseg[0]);
-                assert_eq!(a.len(), b.len());
-                for (a, b) in a.iter().zip(b.iter()) {
-                    assert_eq!(
-                        (a.coordinates.lat, a.coordinates.lng),
-                        (b.coordinates.lat, b.coordinates.lng)
-                    );
-                }
-                // the anchors of the segment are the ones of its route
-                let anchors = |s: &crate::TrackSegment| {
-                    s.iter()
-                        .enumerate()
-                        .filter(|(_, p)| p.anchor.is_some())
-                        .map(|(i, _)| i)
-                        .collect::<Vec<_>>()
-                };
-                assert_eq!(anchors(a), anchors(b));
-            }
+        assert_eq!(again.rte.len(), file.rte.len());
+        let anchors = |s: &crate::TrackSegment| {
+            s.iter()
+                .enumerate()
+                .filter(|(_, p)| p.anchor.is_some())
+                .map(|(i, _)| i)
+                .collect::<Vec<_>>()
+        };
+        for (a, b) in file.rte.iter().zip(&again.rte) {
+            assert_eq!(a.info.name, b.info.name);
+            assert_eq!(a.seg.len(), b.seg.len());
+            assert_eq!(anchors(&a.seg), anchors(&b.seg));
         }
     }
 
     #[test]
     fn test_the_ends_of_a_route_are_route_points_even_without_anchors() {
-        let (mut file, categories) = read("simple");
-        file.trk[0].trkseg[0].update_all(|_, point| point.anchor = None);
-        let len = file.trk[0].trkseg[0].len();
-        let text = written_text(&file, &categories, as_route());
+        let (file, categories) = read("simple");
+        let mut file = as_routes(file);
+        file.rte[0].seg.update_all(|_, point| point.anchor = None);
+        let len = file.rte[0].seg.len();
+        let text = written_text(&file, &categories, ExportOptions::ALL);
         assert_eq!(count(&text, "<rtept"), 2);
         assert_eq!(count(&text, "<gpxx:rpt"), len - 2);
         // and a single trackpoint is a route of one point
-        file.trk[0].trkseg[0].splice(1, len, vec![]);
-        let text = written_text(&file, &categories, as_route());
+        file.rte[0].seg.splice(1, len, vec![]);
+        let text = written_text(&file, &categories, ExportOptions::ALL);
         assert_eq!(count(&text, "<rtept"), 1);
         assert_eq!(count(&text, "<gpxx:rpt"), 0);
     }
 
     #[test]
-    fn test_empty_segments_are_not_routes() {
-        let (mut file, categories) = read("simple");
-        file.trk[0].trkseg.push(crate::TrackSegment::default());
-        let text = written_text(&file, &categories, as_route());
-        assert_eq!(count(&text, "<rte>"), 1);
-    }
-
-    #[test]
-    fn test_routes_have_the_style_of_their_track() {
+    fn test_routes_keep_their_style() {
         let (file, categories) = read("with_style");
-        let text = written_text(&file, &categories, as_route());
+        let file = as_routes(file);
+        let text = written_text(&file, &categories, ExportOptions::ALL);
         assert!(count(&text, "<gpx_style:line>") >= 1);
         assert_eq!(count(&text, "<gpx_style:line>"), count(&text, "<rte>"));
         let again = parse(text.as_bytes(), &mut Default::default()).unwrap();
-        assert_eq!(again.trk[0].info.color, file.trk[0].info.color);
-        assert_eq!(again.trk[0].info.width, file.trk[0].info.width);
+        assert_eq!(again.rte[0].info.color, file.rte[0].info.color);
+        assert_eq!(again.rte[0].info.width, file.rte[0].info.width);
+    }
+
+    #[test]
+    fn test_routes_are_written_as_routes_before_the_tracks() {
+        let (mut file, categories) = read("with_tracks");
+        let (routes, _) = read("with_routes");
+        file.rte = routes.rte.clone();
+        let text = written_text(&file, &categories, ExportOptions::ALL);
+        assert_eq!(count(&text, "<rte>"), routes.rte.len());
+        assert_eq!(count(&text, "<trk>"), file.trk.len());
+        assert!(text.rfind("</rte>").unwrap() < text.find("<trk>").unwrap());
+
+        let again = parse(text.as_bytes(), &mut categories.clone()).unwrap();
+        assert_eq!(again.rte.len(), file.rte.len());
+        assert_eq!(again.trk.len(), file.trk.len());
+        for (a, b) in file.rte.iter().zip(&again.rte) {
+            assert_eq!(a.info, b.info);
+            same_points(
+                &a.seg.iter().cloned().collect::<Vec<_>>(),
+                &b.seg.iter().cloned().collect::<Vec<_>>(),
+            );
+        }
+        same_points(&points(&file), &points(&again));
+    }
+
+    #[test]
+    fn test_an_empty_route_is_written_and_a_single_route_is_named_like_the_file() {
+        let mut file = File::default();
+        file.info.name = "file".into();
+        file.rte.push(crate::Route::default());
+        let text = written_text(&file, &Default::default(), ExportOptions::ALL);
+        assert_eq!(count(&text, "<rte>"), 1);
+        assert_eq!(count(&text, "<rtept"), 0);
+        let again = parse(text.as_bytes(), &mut Default::default()).unwrap();
+        assert_eq!(again.rte.len(), 1);
+        assert_eq!(again.rte[0].info.name.as_deref(), Some("file"));
+
+        // not when there are others
+        file.trk.push(Track::default());
+        let text = written_text(&file, &Default::default(), ExportOptions::ALL);
+        // the metadata only
+        assert_eq!(count(&text, "<name>file</name>"), 1);
     }
 
     #[test]
     fn test_route_points_keep_their_data_and_the_options_apply_to_them() {
         let (file, categories) = read("with_hr");
-        let with_all = written_text(&file, &categories, as_route());
+        let file = as_routes(file);
+        let with_all = written_text(&file, &categories, ExportOptions::ALL);
         assert!(with_all.contains("<gpxtpx:hr>"));
         let without = written_text(
             &file,
@@ -745,22 +752,10 @@ mod tests {
             ExportOptions {
                 hr: false,
                 time: false,
-                as_route: true,
                 ..ExportOptions::ALL
             },
         );
         assert!(!without.contains("<gpxtpx:hr>"));
         assert!(!without.contains("<time>"));
-    }
-
-    #[test]
-    fn test_the_route_option_is_not_data() {
-        let (file, _) = read("with_route_points");
-        assert!(!file.exportable_data().as_route);
-        // it is a way to write the data, never part of them
-        let all = std::hint::black_box(ExportOptions::ALL);
-        assert!(!all.as_route && !ExportOptions::NONE.as_route);
-        assert!(as_route().union(ExportOptions::NONE).as_route);
-        assert!(!ExportOptions::ALL.union(ExportOptions::NONE).as_route);
     }
 }

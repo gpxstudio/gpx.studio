@@ -13,8 +13,8 @@ pub enum CleanType {
 }
 
 /// Removes the trackpoints and/or waypoints of the selection lying inside (or outside) a
-/// rectangle. A selected file cleans its tracks and its waypoints, a selected track or segment
-/// only trackpoints, selected waypoints only waypoints.
+/// rectangle. A selected file cleans its routes, its tracks and its waypoints, a selected route,
+/// track or segment only trackpoints, selected waypoints only waypoints.
 #[derive(Debug)]
 pub struct Clean {
     pub bounds: LngLatBounds,
@@ -85,6 +85,11 @@ struct Cleaner<'a> {
 impl Editor for Cleaner<'_> {
     fn file(&mut self, file: &mut File) -> Edit {
         let mut edit = Edit::Unchanged;
+        for rte in &mut file.rte {
+            if self.route(rte) == Edit::Changed {
+                edit = Edit::Changed;
+            }
+        }
         for trk in &mut file.trk {
             if self.track(trk) == Edit::Changed {
                 edit = Edit::Changed;
@@ -124,24 +129,21 @@ impl Editor for Cleaner<'_> {
     }
 }
 
-/// Removes what the clean left empty: the emptied segments and the tracks that lost all their
-/// segments. A file is never removed, even if nothing is left in it: it stays, empty. The
+/// Removes what the clean left empty: the emptied segments, the routes of these segments and the
+/// tracks that lost all their segments. A file is never removed, even if nothing is left in it: it stays, empty. The
 /// selection falls back to the closest element still existing.
 fn prune(state: &mut State, emptied: &HashSet<TrackSegmentId>, wpt_files: &HashSet<FileId>) {
     let ids: Vec<FileId> = state
         .files
         .iter()
         .filter(|(id, file)| {
-            wpt_files.contains(id)
-                || file
-                    .trk
-                    .iter()
-                    .any(|trk| trk.trkseg.iter().any(|seg| emptied.contains(&seg.id)))
+            wpt_files.contains(id) || file.segments().any(|seg| emptied.contains(&seg.id))
         })
         .map(|(id, _)| *id)
         .collect();
     for id in ids {
         let mut file = (*state.files[&id]).clone();
+        file.rte.retain(|rte| !emptied.contains(&rte.seg.id));
         file.trk.retain_mut(|trk| {
             let len = trk.trkseg.len();
             trk.trkseg.retain(|seg| !emptied.contains(&seg.id));
@@ -165,6 +167,27 @@ fn fixed_selection(state: &State) -> Selection {
                 Selection::Empty
             } else {
                 Selection::File { file_ids }
+            }
+        }
+        Selection::Route { file_id, rte_ids } => {
+            let Some(file) = files.get(file_id) else {
+                return Selection::Empty;
+            };
+            let rte_ids: HashSet<_> = file
+                .rte
+                .iter()
+                .map(|rte| rte.id)
+                .filter(|id| rte_ids.contains(id))
+                .collect();
+            if rte_ids.is_empty() {
+                Selection::File {
+                    file_ids: [*file_id].into(),
+                }
+            } else {
+                Selection::Route {
+                    file_id: *file_id,
+                    rte_ids,
+                }
             }
         }
         Selection::Track { file_id, trk_ids } => {

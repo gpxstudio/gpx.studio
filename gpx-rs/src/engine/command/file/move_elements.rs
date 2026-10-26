@@ -9,6 +9,8 @@ use crate::{
 pub enum MoveTarget {
     /// The list of files.
     Files { index: usize },
+    /// The routes of a file.
+    Routes { file_id: FileId, index: usize },
     /// The tracks of a file.
     Tracks { file_id: FileId, index: usize },
     /// The segments of a track.
@@ -26,9 +28,10 @@ pub enum MoveTarget {
 ///
 /// What can go where:
 /// - files: among the files;
-/// - tracks: among the files (each track becomes a file), or among the tracks of a file;
-/// - segments: among the files (each segment becomes a file), among the tracks of a file (each
-///   segment becomes a track), or among the segments of a track;
+/// - routes and tracks: among the files (each one becomes a file), or among the routes or the
+///   tracks of a file, where they keep their kind (see [`Destination`]);
+/// - segments: among the files (each segment becomes a file), among the routes or the tracks of a
+///   file (each segment becomes a route or a track), or among the segments of a track;
 /// - waypoints, or all the waypoints of a file (the waypoints node): among the waypoints of a
 ///   file.
 #[derive(Debug)]
@@ -41,6 +44,9 @@ impl From<MoveTarget> for Destination {
     fn from(target: MoveTarget) -> Self {
         match target {
             MoveTarget::Files { index } => Destination::Files(Place::Index(index)),
+            MoveTarget::Routes { file_id, index } => {
+                Destination::Routes(file_id, Place::Index(index))
+            }
             MoveTarget::Tracks { file_id, index } => {
                 Destination::Tracks(file_id, Place::Index(index))
             }

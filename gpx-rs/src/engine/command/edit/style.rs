@@ -1,4 +1,4 @@
-use crate::{Apply, CommandError, Edit, Editor, State, Track, update_selected};
+use crate::{Apply, CommandError, Edit, Editor, Route, State, Track, TrackInfo, update_selected};
 
 #[derive(Debug)]
 pub struct Style<'a> {
@@ -14,18 +14,28 @@ impl Apply for Style<'_> {
     }
 }
 
-impl Editor for Style<'_> {
-    fn track(&mut self, track: &mut Track) -> Edit {
+impl Style<'_> {
+    fn set(&self, info: &mut TrackInfo) -> Edit {
         if let Some(color) = self.color {
-            track.info.color = Some(color.to_owned());
+            info.color = Some(color.to_owned());
         }
         if self.opacity.is_some() {
-            track.info.opacity = self.opacity;
+            info.opacity = self.opacity;
         }
         if self.width.is_some() {
-            track.info.width = self.width;
+            info.width = self.width;
         }
         Edit::Changed
+    }
+}
+
+impl Editor for Style<'_> {
+    fn route(&mut self, route: &mut Route) -> Edit {
+        self.set(&mut route.info)
+    }
+
+    fn track(&mut self, track: &mut Track) -> Edit {
+        self.set(&mut track.info)
     }
 }
 

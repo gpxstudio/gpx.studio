@@ -1,4 +1,4 @@
-use crate::{Apply, CommandError, Edit, Editor, File, State, Track, update_selected};
+use crate::{Apply, CommandError, Edit, Editor, File, State, Track, TrackInfo, update_selected};
 
 #[derive(Debug)]
 pub struct NewTrack;
@@ -12,20 +12,41 @@ impl Apply for NewTrack {
 
 impl Editor for NewTrack {
     fn file(&mut self, file: &mut File) -> Edit {
-        let mut track = Track::default();
-        track.info.color = common(file, |t| &t.info.color);
-        track.info.opacity = common(file, |t| &t.info.opacity);
-        track.info.width = common(file, |t| &t.info.width);
-        file.trk.push(track);
+        file.trk.push(Track {
+            info: common_style(file),
+            ..Default::default()
+        });
         Edit::Changed
     }
 }
 
-/// Returns the value of a style attribute if all existing tracks agree on it.
-fn common<T: Clone + PartialEq>(file: &File, get: impl Fn(&Track) -> &Option<T>) -> Option<T> {
-    let mut tracks = file.trk.iter();
-    let first = get(tracks.next()?);
-    tracks.all(|t| get(t) == first).then(|| first.clone())?
+/// The style that all the routes and tracks of the file agree on: each attribute is set if they
+/// all have the same value for it.
+pub(super) fn common_style(file: &File) -> TrackInfo {
+    let infos: Vec<&TrackInfo> = file
+        .rte
+        .iter()
+        .map(|rte| &rte.info)
+        .chain(file.trk.iter().map(|trk| &trk.info))
+        .collect();
+    TrackInfo {
+        color: common(&infos, |info| &info.color),
+        opacity: common(&infos, |info| &info.opacity),
+        width: common(&infos, |info| &info.width),
+        ..Default::default()
+    }
+}
+
+/// Returns the value of a style attribute if all the infos agree on it.
+fn common<T: Clone + PartialEq>(
+    infos: &[&TrackInfo],
+    get: impl Fn(&TrackInfo) -> &Option<T>,
+) -> Option<T> {
+    let mut infos = infos.iter();
+    let first = get(infos.next()?);
+    infos
+        .all(|info| get(info) == first)
+        .then(|| first.clone())?
 }
 
 #[cfg(test)]

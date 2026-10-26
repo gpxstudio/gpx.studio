@@ -23,7 +23,7 @@ impl Apply for Reduce {
         let mut changed = vec![];
         let mut kept_points = vec![];
         for location in &locations {
-            let segment = &state.files[&location.file_id].trk[location.trk].trkseg[location.seg];
+            let segment = location.segment(state.files);
             let kept = reduce_indices(segment, self.tolerance);
             if kept.len() == segment.len() {
                 continue;

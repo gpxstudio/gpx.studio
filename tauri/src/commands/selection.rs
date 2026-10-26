@@ -22,6 +22,16 @@ pub fn arrow_select(state: State<AppState>, down: bool, add: bool) -> api::Outco
 }
 
 #[tauri::command(async)]
+pub fn select_routes(
+    state: State<AppState>,
+    file_id: Uuid,
+    route_ids: Vec<Uuid>,
+    mode: SelectMode,
+) -> api::Outcome {
+    state.run(move |e| api::select_routes(e, file_id, &route_ids, mode))
+}
+
+#[tauri::command(async)]
 pub fn select_tracks(
     state: State<AppState>,
     file_id: Uuid,

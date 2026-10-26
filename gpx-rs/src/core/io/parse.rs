@@ -1,6 +1,6 @@
 use crate::{
-    Author, Chunk, File, Link, LngLat, Track, TrackSegment, Trackpoint, TrackpointCategories,
-    TrackpointChunk, Waypoint, WaypointChunk, distance,
+    Author, Chunk, File, Link, LngLat, Route, Track, TrackSegment, Trackpoint,
+    TrackpointCategories, TrackpointChunk, Waypoint, WaypointChunk, distance,
 };
 use chrono::DateTime;
 use quick_xml::Error;
@@ -18,6 +18,7 @@ enum GPXElement {
     Author(Author),
     Link(Link),
     Text,
+    /// A track, or a route, whose information is read the same way.
     Track(Track),
     Segment(TrackSegment),
     Trackpoint(Trackpoint),
@@ -396,7 +397,7 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
     let mut stack: Vec<GPXElement> = vec![];
     let mut trkpt_chunk = TrackpointChunk::default();
     let mut wpt_chunk = WaypointChunk::default();
-    // Routes are read as tracks of a single segment, see `RouteReader`. The points of the detailed
+    // The segment of a route is read by `RouteReader`. The points of the detailed
     // path that a route point comes with (`gpxx:rpt`) are collected until the route point is read.
     let mut route = RouteReader::default();
     let mut rpt_points: Vec<Trackpoint> = vec![];
@@ -530,12 +531,12 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
                         }
                     }
                     "rte" => {
-                        if let Some(GPXElement::Track(mut trk)) = stack.pop() {
-                            let trkseg = std::mem::take(&mut route).finish();
-                            if !trkseg.is_empty() {
-                                trk.trkseg.push(trkseg);
-                            }
-                            gpx.trk.push(trk);
+                        if let Some(GPXElement::Track(trk)) = stack.pop() {
+                            gpx.rte.push(Route {
+                                info: trk.info,
+                                seg: std::mem::take(&mut route).finish(),
+                                ..Default::default()
+                            });
                         }
                     }
                     "rtept" => {
@@ -740,38 +741,37 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_routes_as_tracks() {
+    fn test_parse_routes() {
         let gpx = parse_data("with_routes");
 
-        assert_eq!(gpx.trk.len(), 2);
-        let trk = &gpx.trk[0];
-        assert_eq!(trk.info.name.as_deref(), Some("route 1"));
-        assert_eq!(trk.info.type_.as_deref(), Some("Cycling"));
-        assert_eq!(trk.trkseg.len(), 1);
-        let trkseg = &trk.trkseg[0];
-        assert_eq!(trkseg.len(), 49);
-        let trkpt = &trkseg[0];
+        assert!(gpx.trk.is_empty());
+        assert_eq!(gpx.rte.len(), 2);
+        let rte = &gpx.rte[0];
+        assert_eq!(rte.info.name.as_deref(), Some("route 1"));
+        assert_eq!(rte.info.type_.as_deref(), Some("Cycling"));
+        assert_eq!(rte.seg.len(), 49);
+        let trkpt = &rte.seg[0];
         assert_eq!(trkpt.coordinates.lat, 50.790867);
         assert_eq!(trkpt.coordinates.lng, 4.404968);
         assert_eq!(trkpt.ele, 109.0);
 
-        let trk = &gpx.trk[1];
-        assert_eq!(trk.info.name.as_deref(), Some("route 2"));
-        assert_eq!(trk.trkseg[0].len(), 28);
+        let rte = &gpx.rte[1];
+        assert_eq!(rte.info.name.as_deref(), Some("route 2"));
+        assert_eq!(rte.seg.len(), 28);
+        assert_ne!(gpx.rte[0].id, rte.id);
     }
 
     #[test]
     fn test_parse_route_point_extensions() {
         let gpx = parse_data("with_route_extensions");
 
-        // a route without points has no segment
-        assert_eq!(gpx.trk.len(), 2);
-        assert!(gpx.trk[1].trkseg.is_empty());
+        // a route without points has an empty segment
+        assert_eq!(gpx.rte.len(), 2);
+        assert!(gpx.rte[1].seg.is_empty());
 
-        let trk = &gpx.trk[0];
-        assert_eq!(trk.info.name.as_deref(), Some("with extensions"));
-        assert_eq!(trk.trkseg.len(), 1);
-        let points: Vec<_> = trk.trkseg[0].iter().collect();
+        let rte = &gpx.rte[0];
+        assert_eq!(rte.info.name.as_deref(), Some("with extensions"));
+        let points: Vec<_> = rte.seg.iter().collect();
         // the route points are kept, the points of the detailed path follow the one they come with
         let coordinates: Vec<_> = points
             .iter()
@@ -788,14 +788,13 @@ mod tests {
     #[test]
     fn test_route_points_are_the_anchors_and_nothing_else_is() {
         let gpx = parse_data("with_route_extensions");
-        let anchors: Vec<_> = gpx.trk[0].trkseg[0].iter().map(|p| p.anchor).collect();
+        let anchors: Vec<_> = gpx.rte[0].seg.iter().map(|p| p.anchor).collect();
         assert_eq!(anchors, [Some(0), None, None, Some(0), Some(0)]);
 
         // no anchor is computed for the points of a route that has none in between
         let gpx = parse_data("with_routes");
-        for trk in &gpx.trk {
-            let segment = &trk.trkseg[0];
-            assert!(segment.iter().all(|p| p.anchor == Some(0)));
+        for rte in &gpx.rte {
+            assert!(rte.seg.iter().all(|p| p.anchor == Some(0)));
         }
         // while a track gets the anchors that its shape needs
         let track = parse_data("with_tracks");
@@ -807,14 +806,14 @@ mod tests {
     #[test]
     fn test_parse_the_points_of_the_detailed_path_of_a_route() {
         let gpx = parse_data("with_route_points");
-        assert_eq!(gpx.trk.len(), 1);
-        let trk = &gpx.trk[0];
-        assert_eq!(trk.info.name.as_deref(), Some("Lausanne"));
-        assert_eq!(trk.info.cmt.as_deref(), Some("comment"));
-        assert_eq!(trk.info.desc.as_deref(), Some("description"));
-        assert_eq!(trk.info.type_.as_deref(), Some("Cycling"));
+        assert_eq!(gpx.rte.len(), 1);
+        let rte = &gpx.rte[0];
+        assert_eq!(rte.info.name.as_deref(), Some("Lausanne"));
+        assert_eq!(rte.info.cmt.as_deref(), Some("comment"));
+        assert_eq!(rte.info.desc.as_deref(), Some("description"));
+        assert_eq!(rte.info.type_.as_deref(), Some("Cycling"));
 
-        let points: Vec<_> = trk.trkseg[0].iter().cloned().collect();
+        let points: Vec<_> = rte.seg.iter().cloned().collect();
         // 3 route points and 4 points between them, the repeated one being kept
         assert_eq!(points.len(), 7);
         let kinds: Vec<_> = points.iter().map(|p| p.anchor.is_some()).collect();
@@ -846,7 +845,7 @@ mod tests {
             </rtept>
         </rte></gpx>"#;
         let gpx = parse(data.as_bytes(), &mut Default::default()).unwrap();
-        let points: Vec<_> = gpx.trk[0].trkseg[0].iter().cloned().collect();
+        let points: Vec<_> = gpx.rte[0].seg.iter().cloned().collect();
         let coordinates: Vec<_> = points.iter().map(|p| p.coordinates.lat).collect();
         assert_eq!(coordinates, [1.0, 2.0, 2.1, 2.2]);
         // the route point is an anchor, and so is the end of the path
@@ -861,7 +860,7 @@ mod tests {
             <gpxx:RoutePointExtension><gpxx:rpt lat="1.5" lon="1.5"/></gpxx:RoutePointExtension>
             </extensions></rtept></rte></gpx>"#;
         let gpx = parse(data.as_bytes(), &mut Default::default()).unwrap();
-        let anchors: Vec<_> = gpx.trk[0].trkseg[0].iter().map(|p| p.anchor).collect();
+        let anchors: Vec<_> = gpx.rte[0].seg.iter().map(|p| p.anchor).collect();
         assert_eq!(anchors, [Some(0), Some(0)]);
     }
 
@@ -930,14 +929,14 @@ mod tests {
         assert_eq!(waypoints[0].links[2].text.as_deref(), Some("three"));
         assert!(waypoints[1].links.is_empty());
 
-        // tracks, and routes which are read as tracks
-        assert_eq!(gpx.trk.len(), 2);
+        // tracks, and routes
+        assert_eq!((gpx.trk.len(), gpx.rte.len()), (1, 1));
         assert_eq!(
             hrefs(&gpx.trk[0].info.links),
             ["https://example.com/trk-1", "https://example.com/trk-2"]
         );
         assert_eq!(
-            hrefs(&gpx.trk[1].info.links),
+            hrefs(&gpx.rte[0].info.links),
             ["https://example.com/rte-1", "https://example.com/rte-2"]
         );
     }

@@ -24,7 +24,7 @@ impl Apply for ChangeLoopStart {
         let index = self.index as usize;
         let target = find_target(state, index, index)?.ok_or(CommandError::NothingToDo)?;
         let mut file = (*state.files[&target.location.file_id]).clone();
-        let segment = &mut file.trk[target.location.trk].trkseg[target.location.seg];
+        let segment = file.segment_mut(target.location.index);
         let (start, len) = (target.start, segment.len());
         if start == 0 || start >= len {
             // it already is the start, or it is not a trackpoint

@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use crate::{FileId, FileWaypointsRevisionId, Files, TrackSegmentId, TrackSegmentRevisionId};
 
 /// Coordinates buffers, as flat `[lng, lat, lng, lat, ...]` arrays so that they can be handed
-/// to the UI without per-point calls: one per track segment (its trackpoints) and one per file
+/// to the UI without per-point calls: one per segment of a route or track (its trackpoints) and one per file
 /// (its waypoints). A buffer is only rebuilt when the revision of its segment (or the waypoints
 /// of its file) changes, so editing a segment does not touch the buffers of the others.
 #[derive(Debug, Default)]
@@ -30,7 +30,7 @@ impl CoordinatesCache {
                 self.waypoints
                     .insert(file.id, (file.wpt.rev_id, coordinates));
             }
-            for seg in file.trk.iter().flat_map(|trk| &trk.trkseg) {
+            for seg in file.segments() {
                 segments.insert(seg.id);
                 if self
                     .segments

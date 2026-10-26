@@ -38,6 +38,8 @@ export async function createTauriBackend(): Promise<Backend> {
         select: (fileIds, mode) => invoke('select', { fileIds, mode }),
         select_all: () => invoke('select_all'),
         arrow_select: (down, add) => invoke('arrow_select', { down, add }),
+        select_routes: (fileId, routeIds, mode) =>
+            invoke('select_routes', { fileId, routeIds, mode }),
         select_tracks: (fileId, trackIds, mode) =>
             invoke('select_tracks', { fileId, trackIds, mode }),
         select_segments: (fileId, trackId, segmentIds, mode) =>
@@ -81,6 +83,7 @@ export async function createTauriBackend(): Promise<Backend> {
             }),
         metadata: (name, desc) => invoke('metadata', { name, desc }),
         style: (color, opacity, width) => invoke('style', { color, opacity, width }),
+        new_route: () => invoke('new_route'),
         new_track: () => invoke('new_track'),
         new_track_segment: () => invoke('new_track_segment'),
 
@@ -156,7 +159,7 @@ export async function createTauriBackend(): Promise<Backend> {
             (await invoke('waypoint', { fileId, waypointId })) ?? undefined,
         trackpoint: async (fileId, segmentId, index) =>
             (await invoke('trackpoint', { fileId, segmentId, index })) ?? undefined,
-        export_file: async (fileId, time, hr, cad, atemp, power, osm, asRoute) => {
+        export_file: async (fileId, time, hr, cad, atemp, power, osm) => {
             const file = await optionalArray('export_file', Uint8Array, {
                 fileId,
                 time,
@@ -165,7 +168,6 @@ export async function createTauriBackend(): Promise<Backend> {
                 atemp,
                 power,
                 osm,
-                asRoute,
             });
             return file as Uint8Array<ArrayBuffer> | undefined;
         },

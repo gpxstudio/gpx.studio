@@ -5,9 +5,9 @@
 use std::{collections::HashSet, rc::Rc};
 
 use crate::{
-    ClipboardContent, ClipboardSegment, ClipboardTrack, CommandError, File, FileId, Selection,
-    State, Track, TrackId, TrackSegment, TrackSegmentId, Waypoint, WaypointId, copy_file,
-    copy_segment, copy_track, copy_waypoint,
+    ClipboardContent, ClipboardRoute, ClipboardSegment, ClipboardTrack, CommandError, File, FileId,
+    Route, RouteId, Selection, State, Track, TrackId, TrackSegment, TrackSegmentId, Waypoint,
+    WaypointId, copy_file, copy_route, copy_segment, copy_track, copy_waypoint,
 };
 
 /// Where elements are put, among the others of the same list.
@@ -37,15 +37,20 @@ impl<T: Copy + PartialEq> Place<T> {
 
 /// Where elements go. What can go where:
 /// - files: among the files;
+/// - routes: among the files (each route becomes a file, named like the route, or like the file
+///   it comes from), or among the routes of a file. Among the tracks of a file, they stay routes,
+///   which come before the tracks: they go after the other routes;
 /// - tracks: among the files (each track becomes a file, named like the track, or like the file
-///   it comes from), or among the tracks of a file;
+///   it comes from), or among the tracks of a file. Among the routes of a file, they stay tracks,
+///   which come after the routes: they go before the other tracks;
 /// - segments: among the files (each segment becomes a file with a track, named like its track,
-///   or like its file), among the tracks of a file (each segment becomes a track), or among the
-///   segments of a track;
+///   or like its file), among the routes or the tracks of a file (each segment becomes a route or
+///   a track), or among the segments of a track;
 /// - waypoints: among the waypoints of a file.
 #[derive(Debug, Clone, Copy)]
 pub enum Destination {
     Files(Place<FileId>),
+    Routes(FileId, Place<RouteId>),
     Tracks(FileId, Place<TrackId>),
     Segments(FileId, TrackId, Place<TrackSegmentId>),
     Waypoints(FileId, Place<WaypointId>),
@@ -92,6 +97,14 @@ pub fn remove_elements(state: &mut State, content: &ClipboardContent) {
             let ids: HashSet<FileId> = files.iter().map(|file| file.id).collect();
             state.files.retain(|id, _| !ids.contains(id));
             state.order.0.retain(|id| !ids.contains(id));
+        }
+        ClipboardContent::Routes(routes) => {
+            let ids: HashSet<RouteId> = routes.iter().map(|rte| rte.route.id).collect();
+            for file in state.files.values_mut() {
+                if file.rte.iter().any(|rte| ids.contains(&rte.id)) {
+                    Rc::make_mut(file).rte.retain(|rte| !ids.contains(&rte.id));
+                }
+            }
         }
         ClipboardContent::Tracks(tracks) => {
             let ids: HashSet<TrackId> = tracks.iter().map(|trk| trk.track.id).collect();
@@ -141,7 +154,9 @@ pub fn transfer(
     // the destination has to be there, before anything is changed
     let exists = match to {
         Destination::Files(_) => true,
-        Destination::Tracks(file_id, _) => state.files.contains_key(&file_id),
+        Destination::Routes(file_id, _) | Destination::Tracks(file_id, _) => {
+            state.files.contains_key(&file_id)
+        }
         Destination::Segments(file_id, trk_id, _) => state
             .files
             .get(&file_id)
@@ -152,17 +167,21 @@ pub fn transfer(
         (content, to),
         (ClipboardContent::Files(_), Destination::Files(_))
             | (
-                ClipboardContent::Tracks(_),
-                Destination::Files(_) | Destination::Tracks(..)
+                ClipboardContent::Routes(_) | ClipboardContent::Tracks(_),
+                Destination::Files(_) | Destination::Routes(..) | Destination::Tracks(..)
             )
             | (
                 ClipboardContent::Segments(_),
-                Destination::Files(_) | Destination::Tracks(..) | Destination::Segments(..),
+                Destination::Files(_)
+                    | Destination::Routes(..)
+                    | Destination::Tracks(..)
+                    | Destination::Segments(..),
             )
             | (ClipboardContent::Waypoints(_), Destination::Waypoints(..))
     );
     let empty = match content {
         ClipboardContent::Files(files) => files.is_empty(),
+        ClipboardContent::Routes(routes) => routes.is_empty(),
         ClipboardContent::Tracks(tracks) => tracks.is_empty(),
         ClipboardContent::Segments(segments) => segments.is_empty(),
         ClipboardContent::Waypoints(waypoints) => waypoints.is_empty(),
@@ -189,6 +208,7 @@ pub fn transfer(
                 .collect();
             Ok(add_files(state, files, place))
         }
+        (ClipboardContent::Routes(routes), to) => transfer_routes(state, routes, copy, to),
         (ClipboardContent::Tracks(tracks), to) => transfer_tracks(state, tracks, copy, to),
         (ClipboardContent::Segments(segments), to) => transfer_segments(state, segments, copy, to),
         (ClipboardContent::Waypoints(waypoints), Destination::Waypoints(file_id, place)) => {
@@ -196,6 +216,89 @@ pub fn transfer(
         }
         _ => Err(CommandError::NothingToDo),
     }
+}
+
+/// Puts the routes among the routes of a file, at `place`, and gives the selection of them.
+fn insert_routes(
+    state: &mut State,
+    file_id: FileId,
+    place: Place<RouteId>,
+    routes: Vec<Route>,
+) -> Result<Selection, CommandError> {
+    let ids: HashSet<RouteId> = routes.iter().map(|rte| rte.id).collect();
+    let file = file_mut(state, file_id)?;
+    let existing: Vec<RouteId> = file.rte.iter().map(|rte| rte.id).collect();
+    let at = place.position(&existing);
+    file.rte.splice(at..at, routes);
+    Ok(Selection::Route {
+        file_id,
+        rte_ids: ids,
+    })
+}
+
+fn transfer_routes(
+    state: &mut State,
+    routes: &[ClipboardRoute],
+    copy: bool,
+    to: Destination,
+) -> Result<Selection, CommandError> {
+    let routes: Vec<(Route, &str)> = routes
+        .iter()
+        .map(|clip| {
+            let route = if copy {
+                copy_route(&clip.route)
+            } else {
+                clip.route.clone()
+            };
+            (route, clip.file_name.as_str())
+        })
+        .collect();
+    match to {
+        Destination::Files(place) => {
+            let files = routes
+                .into_iter()
+                .map(|(route, file_name)| {
+                    let name = route
+                        .info
+                        .name
+                        .clone()
+                        .unwrap_or_else(|| file_name.to_owned());
+                    Rc::new(File {
+                        rte: vec![route],
+                        ..new_file(&name, vec![])
+                    })
+                })
+                .collect();
+            Ok(add_files(state, files, place))
+        }
+        Destination::Routes(file_id, place) => {
+            let routes = routes.into_iter().map(|(route, _)| route).collect();
+            insert_routes(state, file_id, place, routes)
+        }
+        Destination::Tracks(file_id, _) => {
+            let routes = routes.into_iter().map(|(route, _)| route).collect();
+            insert_routes(state, file_id, Place::End, routes)
+        }
+        _ => Err(CommandError::NothingToDo),
+    }
+}
+
+/// Puts the tracks among the tracks of a file, at `place`, and gives the selection of them.
+fn insert_tracks(
+    state: &mut State,
+    file_id: FileId,
+    place: Place<TrackId>,
+    tracks: Vec<Track>,
+) -> Result<Selection, CommandError> {
+    let ids: HashSet<TrackId> = tracks.iter().map(|trk| trk.id).collect();
+    let file = file_mut(state, file_id)?;
+    let existing: Vec<TrackId> = file.trk.iter().map(|trk| trk.id).collect();
+    let at = place.position(&existing);
+    file.trk.splice(at..at, tracks);
+    Ok(Selection::Track {
+        file_id,
+        trk_ids: ids,
+    })
 }
 
 fn transfer_tracks(
@@ -231,16 +334,12 @@ fn transfer_tracks(
             Ok(add_files(state, files, place))
         }
         Destination::Tracks(file_id, place) => {
-            let tracks: Vec<Track> = tracks.into_iter().map(|(track, _)| track).collect();
-            let ids: HashSet<TrackId> = tracks.iter().map(|trk| trk.id).collect();
-            let file = file_mut(state, file_id)?;
-            let existing: Vec<TrackId> = file.trk.iter().map(|trk| trk.id).collect();
-            let at = place.position(&existing);
-            file.trk.splice(at..at, tracks);
-            Ok(Selection::Track {
-                file_id,
-                trk_ids: ids,
-            })
+            let tracks = tracks.into_iter().map(|(track, _)| track).collect();
+            insert_tracks(state, file_id, place, tracks)
+        }
+        Destination::Routes(file_id, _) => {
+            let tracks = tracks.into_iter().map(|(track, _)| track).collect();
+            insert_tracks(state, file_id, Place::Index(0), tracks)
         }
         _ => Err(CommandError::NothingToDo),
     }
@@ -276,20 +375,22 @@ fn transfer_segments(
                 .collect();
             Ok(add_files(state, files, place))
         }
+        Destination::Routes(file_id, place) => {
+            let routes = segments
+                .into_iter()
+                .map(|(seg, _)| Route {
+                    seg,
+                    ..Default::default()
+                })
+                .collect();
+            insert_routes(state, file_id, place, routes)
+        }
         Destination::Tracks(file_id, place) => {
-            let tracks: Vec<Track> = segments
+            let tracks = segments
                 .into_iter()
                 .map(|(segment, _)| own_track(segment))
                 .collect();
-            let ids = tracks.iter().map(|trk| trk.id).collect();
-            let file = file_mut(state, file_id)?;
-            let existing: Vec<TrackId> = file.trk.iter().map(|trk| trk.id).collect();
-            let at = place.position(&existing);
-            file.trk.splice(at..at, tracks);
-            Ok(Selection::Track {
-                file_id,
-                trk_ids: ids,
-            })
+            insert_tracks(state, file_id, place, tracks)
         }
         Destination::Segments(file_id, trk_id, place) => {
             let segments: Vec<TrackSegment> =

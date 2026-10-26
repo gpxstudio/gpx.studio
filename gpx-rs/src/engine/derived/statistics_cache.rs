@@ -18,15 +18,13 @@ impl StatisticsCache {
         let mut stale: HashSet<TrackSegmentRevisionId> = self.map.keys().copied().collect();
         if let Some(state) = state {
             for file in state.values() {
-                for trk in file.trk.iter() {
-                    for trkseg in trk.trkseg.iter() {
-                        match self.map.entry(trkseg.rev_id) {
-                            Entry::Occupied(_) => {
-                                stale.remove(&trkseg.rev_id);
-                            }
-                            Entry::Vacant(e) => {
-                                e.insert(Statistics::compute(trkseg));
-                            }
+                for trkseg in file.segments() {
+                    match self.map.entry(trkseg.rev_id) {
+                        Entry::Occupied(_) => {
+                            stale.remove(&trkseg.rev_id);
+                        }
+                        Entry::Vacant(e) => {
+                            e.insert(Statistics::compute(trkseg));
                         }
                     }
                 }
@@ -69,6 +67,15 @@ impl StatisticsCache {
                     for id in ordered {
                         if let Some(file) = state.get(id) {
                             self.add_file_stats(file, &mut selected);
+                        }
+                    }
+                }
+                Selection::Route { file_id, rte_ids } => {
+                    if let Some(file) = state.get(file_id) {
+                        for rte in file.rte.iter() {
+                            if rte_ids.contains(&rte.id) {
+                                self.add_segment_stats(&rte.seg, &mut selected);
+                            }
                         }
                     }
                 }
@@ -129,8 +136,8 @@ impl StatisticsCache {
     }
 
     fn add_file_stats<'a>(&'a self, file: &'a File, selected: &mut Vec<SelectedSegment<'a>>) {
-        for trk in file.trk.iter() {
-            self.add_track_stats(trk, selected);
+        for trkseg in file.segments() {
+            self.add_segment_stats(trkseg, selected);
         }
     }
 

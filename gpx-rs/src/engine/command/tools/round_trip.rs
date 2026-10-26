@@ -14,7 +14,7 @@ impl Apply for RoundTrip {
             .selection
             .segment_locations(state.files, &state.order.0)
             .into_iter()
-            .filter(|l| state.files[&l.file_id].trk[l.trk].trkseg[l.seg].len() >= 2)
+            .filter(|l| l.segment(state.files).len() >= 2)
             .collect();
         if locations.is_empty() {
             return Err(CommandError::NothingToDo);

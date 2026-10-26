@@ -1,5 +1,5 @@
 import { currentTool, Tool } from '$lib/components/toolbar/tools';
-import { splitAs } from '$lib/components/toolbar/tools/scissors/scissors';
+import { cuts, routeSegmentIds, splitAs } from '$lib/components/toolbar/tools/scissors/scissors';
 import { Scissors } from 'lucide-static';
 import { get } from 'svelte/store';
 import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
@@ -7,6 +7,7 @@ import type { GeoJSONSource, Map, MapLayerMouseEvent } from 'maplibre-gl';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 import type { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
 import { loadSVGIcon } from '$lib/utils';
+import { coversSegments } from '$lib/engine/selection-helpers';
 import {
     engine,
     type Selection,
@@ -15,9 +16,9 @@ import {
 } from '$lib/engine';
 
 /**
- * The anchors inside the segments of the selection, where a click splits the file, the track or
- * the segment: a command of the engine, which finds them by the index of their trackpoint in the
- * selection.
+ * The anchors inside the segments of the selection, where a click splits the file, the route, the
+ * track or the segment: a command of the engine, which finds them by the index of their trackpoint
+ * in the selection. Only the segments that can be split as `splitAs` says have them.
  */
 export class SplitControls {
     map: Map;
@@ -53,6 +54,7 @@ export class SplitControls {
             })
         );
         this.unsubscribes.push(currentTool.subscribe(this.addIfNeeded.bind(this)));
+        this.unsubscribes.push(splitAs.subscribe(this.addIfNeeded.bind(this)));
         this.unsubscribes.push(
             engine.selection.subscribe((selection) => {
                 this.selection = selection;
@@ -62,12 +64,8 @@ export class SplitControls {
     }
 
     addIfNeeded() {
-        // the tool works on files, tracks and segments, not on waypoints
-        const scissors =
-            get(currentTool) === Tool.SCISSORS &&
-            (this.selection.type === 'file' ||
-                this.selection.type === 'track' ||
-                this.selection.type === 'segment');
+        // the tool works on files, routes, tracks and segments, not on waypoints
+        const scissors = get(currentTool) === Tool.SCISSORS && coversSegments(this.selection);
         this.request.set(scissors ? ['anchors'] : []);
         if (!scissors) {
             this.remove();
@@ -85,6 +83,8 @@ export class SplitControls {
             return [];
         }
         const starts = anchors.segmentStarts;
+        const routeSegments = routeSegmentIds(this.selection);
+        const type = get(splitAs);
         const features: GeoJSON.Feature[] = [];
         let segment = 0;
         for (let i = 0; i < anchors.indices.length; i++) {
@@ -94,7 +94,8 @@ export class SplitControls {
                 segment++;
             }
             const end = segment + 1 < starts.length ? starts[segment + 1] : statistics.length;
-            if (index > starts[segment] && index < end - 1) {
+            const inRoute = routeSegments.has(anchors.segmentIds[segment]);
+            if (index > starts[segment] && index < end - 1 && cuts(type, inRoute)) {
                 features.push({
                     type: 'Feature',
                     geometry: {

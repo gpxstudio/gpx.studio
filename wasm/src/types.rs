@@ -15,6 +15,7 @@ pub enum MergeType {
 #[derive(Clone, Copy)]
 pub enum SplitType {
     Files,
+    Routes,
     Tracks,
     Segments,
 }
@@ -23,6 +24,7 @@ impl From<SplitType> for engine::SplitType {
     fn from(t: SplitType) -> Self {
         match t {
             SplitType::Files => Self::Files,
+            SplitType::Routes => Self::Routes,
             SplitType::Tracks => Self::Tracks,
             SplitType::Segments => Self::Segments,
         }

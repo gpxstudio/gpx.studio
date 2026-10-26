@@ -3,7 +3,7 @@ use std::rc::Rc;
 use crate::{Apply, CommandError, FileId, Files, Selection, State, Waypoint};
 
 /// Deletes the selected elements. With `whole_files`, the files holding the selected elements
-/// are deleted instead, even if only a track or a waypoint is selected.
+/// are deleted instead, even if only a route, a track or a waypoint is selected.
 #[derive(Debug)]
 pub struct Delete {
     pub whole_files: bool,
@@ -22,6 +22,21 @@ impl Apply for Delete {
                 state.files.retain(|id, _| !file_ids.contains(id));
                 state.order.0.retain(|id| !file_ids.contains(id));
                 Selection::Empty
+            }
+            Selection::Route { file_id, rte_ids } => {
+                let file = state
+                    .files
+                    .get_mut(file_id)
+                    .ok_or(CommandError::NothingToDo)?;
+                let file = Rc::make_mut(file);
+                let len = file.rte.len();
+                file.rte.retain(|rte| !rte_ids.contains(&rte.id));
+                if file.rte.len() == len {
+                    return Err(CommandError::NothingToDo);
+                }
+                Selection::File {
+                    file_ids: [*file_id].into(),
+                }
             }
             Selection::Track { file_id, trk_ids } => {
                 let file = state

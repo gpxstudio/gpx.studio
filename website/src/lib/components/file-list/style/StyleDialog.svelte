@@ -10,7 +10,7 @@
     import { settings } from '$lib/state/settings';
     import { engine, type FileState } from '$lib/engine';
     import { normalizeColor } from '$lib/engine/file-colors';
-    import { selectedFileIds, type FileTreeNode } from '$lib/engine/selection-helpers';
+    import { pathInfo, selectedFileIds, type FileTreeNode } from '$lib/engine/selection-helpers';
     import { untrack } from 'svelte';
 
     let {
@@ -38,17 +38,15 @@
         width = $defaultWidth;
         color = fileState.color;
 
-        const { tracks } = fileState.structure;
+        const paths = [...fileState.structure.routes, ...fileState.structure.tracks];
+        const path = pathInfo(fileState.structure, node);
         if (node.type === 'file') {
-            opacity = tracks.find((track) => track.opacity !== undefined)?.opacity ?? opacity;
-            width = tracks.find((track) => track.width !== undefined)?.width ?? width;
-        } else if (node.type === 'track') {
-            const track = tracks.find((track) => track.id === node.trackId);
-            if (track) {
-                color = track.color !== undefined ? normalizeColor(track.color) : color;
-                opacity = track.opacity ?? opacity;
-                width = track.width ?? width;
-            }
+            opacity = paths.find((path) => path.opacity !== undefined)?.opacity ?? opacity;
+            width = paths.find((path) => path.width !== undefined)?.width ?? width;
+        } else if (path) {
+            color = path.color !== undefined ? normalizeColor(path.color) : color;
+            opacity = path.opacity ?? opacity;
+            width = path.width ?? width;
         }
 
         colorChanged = false;

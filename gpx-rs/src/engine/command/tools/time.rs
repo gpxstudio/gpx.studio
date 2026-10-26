@@ -45,10 +45,8 @@ impl Apply for Time {
         let locations = state
             .selection
             .segment_locations(state.files, &state.order.0);
-        let segments: Vec<&TrackSegment> = locations
-            .iter()
-            .map(|l| &state.files[&l.file_id].trk[l.trk].trkseg[l.seg])
-            .collect();
+        let segments: Vec<&TrackSegment> =
+            locations.iter().map(|l| l.segment(state.files)).collect();
         if segments.iter().all(|segment| segment.is_empty()) {
             return Err(CommandError::NothingToDo);
         }

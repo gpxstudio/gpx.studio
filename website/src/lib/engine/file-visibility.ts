@@ -1,7 +1,7 @@
 import type { FileStructure } from 'gpx-wasm';
 
 /**
- * Visibility the user set explicitly, by element id (file, track, segment, waypoint, or the
+ * Visibility the user set explicitly, by element id (file, route, track, segment, waypoint, or the
  * waypoints of the file as a whole, see `waypointsKey`): `false` hides, `true` shows. An element
  * without entry follows its parent, and everything is shown by default.
  */
@@ -15,7 +15,10 @@ export function waypointsKey(fileId: string): string {
     return `${fileId}:waypoints`;
 }
 
-/** Ids from the file down to `id` in the file tree (file, tracks, segments / waypoints group). */
+/**
+ * Ids from the file down to `id` in the file tree (file, routes, tracks, segments / waypoints
+ * group).
+ */
 function pathTo(structure: FileStructure, id: string): string[] {
     const fileId = structure.id;
     if (id === fileId) {
@@ -26,6 +29,9 @@ function pathTo(structure: FileStructure, id: string): string[] {
     }
     if (structure.waypoints.some((waypoint) => waypoint.id === id)) {
         return [fileId, waypointsKey(fileId), id];
+    }
+    if (structure.routes.some((route) => route.id === id)) {
+        return [fileId, id];
     }
     for (const track of structure.tracks) {
         if (track.id === id) {
@@ -40,7 +46,11 @@ function pathTo(structure: FileStructure, id: string): string[] {
 
 function children(structure: FileStructure, id: string): string[] {
     if (id === structure.id) {
-        return [waypointsKey(id), ...structure.tracks.map((track) => track.id)];
+        return [
+            waypointsKey(id),
+            ...structure.routes.map((route) => route.id),
+            ...structure.tracks.map((track) => track.id),
+        ];
     }
     if (id === waypointsKey(structure.id)) {
         return structure.waypoints.map((waypoint) => waypoint.id);
@@ -77,12 +87,13 @@ export function isHidden({ structure, visibility }: VisibilityState, id: string)
 
 // Leaf elements have no descendants: no need to look at the structure.
 
+/** Whether a segment is hidden: `parentId` is its route (which is a leaf), or its track. */
 export function isSegmentHidden(
     { structure, visibility }: VisibilityState,
-    trackId: string,
+    parentId: string,
     segmentId: string
 ): boolean {
-    return followsHidden(visibility, [structure.id, trackId, segmentId]);
+    return followsHidden(visibility, [structure.id, parentId, segmentId]);
 }
 
 export function isWaypointHidden(

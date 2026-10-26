@@ -118,7 +118,11 @@ export class GPXLayer {
         return { type: 'file', fileId: this.fileId };
     }
 
+    /** The node of a segment of the map: its route, which has no other, or the segment itself. */
     segmentNode(properties: GeoJSON.GeoJsonProperties): FileTreeNode {
+        if (properties!.routeId !== undefined) {
+            return { type: 'route', fileId: this.fileId, routeId: properties!.routeId };
+        }
         return {
             type: 'segment',
             fileId: this.fileId,
@@ -181,7 +185,11 @@ export class GPXLayer {
             const visibleSegmentIds = state.segments.features
                 .filter(
                     ({ properties }) =>
-                        !isSegmentHidden(state, properties.trackId, properties.segmentId)
+                        !isSegmentHidden(
+                            state,
+                            properties.routeId ?? properties.trackId!,
+                            properties.segmentId
+                        )
                 )
                 .map(({ properties }) => properties.segmentId);
             const segmentFilter: FilterSpecification = [
@@ -415,7 +423,7 @@ export class GPXLayer {
 
     layerOnClick(e: MapLayerMouseEvent) {
         const properties = e.features![0].properties!;
-        const { trackId, segmentId } = properties;
+        const { routeId, trackId, segmentId } = properties;
         const selectionType = this.selectionState.type;
 
         if (
@@ -441,10 +449,15 @@ export class GPXLayer {
         }
 
         const mode = e.originalEvent.ctrlKey || e.originalEvent.metaKey ? 'add' : 'replace';
-        const { tracks } = get(this.file).structure;
-        const segmentCount = tracks.reduce((count, track) => count + track.segments.length, 0);
+        const { routes, tracks } = get(this.file).structure;
+        const segmentCount =
+            routes.length + tracks.reduce((count, track) => count + track.segments.length, 0);
         if (get(treeFileView) && segmentCount > 1) {
             // Select inner item
+            if (routeId !== undefined) {
+                engine.selectRoutes(this.fileId, [routeId], mode);
+                return;
+            }
             const track = tracks.find((track) => track.id === trackId);
             if (track && track.segments.length > 1) {
                 engine.selectSegments(this.fileId, trackId, [segmentId], mode);

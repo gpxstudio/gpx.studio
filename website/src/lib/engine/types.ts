@@ -17,6 +17,8 @@ export type {
     FilesUpdate,
     Outcome,
     Selection,
+    PathInfo,
+    RouteNode,
     TrackNode,
     SegmentNode,
     WaypointNode,
@@ -28,8 +30,11 @@ export type {
  */
 export type MergeType = 'connect' | 'group';
 
-/** What a split cuts in two: the file, the track or the segment of the trackpoint. */
-export type SplitType = 'files' | 'tracks' | 'segments';
+/**
+ * What a split cuts in two: the file, the route, the track or the segment of the trackpoint. Only
+ * a trackpoint of a route cuts a route, and only one of a track cuts a track or a segment.
+ */
+export type SplitType = 'files' | 'routes' | 'tracks' | 'segments';
 
 /**
  * How elements combine with the current selection: they `replace` it, are `add`ed to it, or are
@@ -39,17 +44,17 @@ export type SplitType = 'files' | 'tracks' | 'segments';
  */
 export type SelectMode = 'replace' | 'add' | 'toggle';
 
+/** A segment of the map: the one of a route (`routeId`), or one of a track (`trackId`). */
 export type SegmentProperties = {
     fileId: string;
-    trackId: string;
+    routeId?: string;
+    trackId?: string;
     segmentId: string;
-    trackIndex: number;
-    segmentIndex: number;
     /** Changes when the trackpoints of the segment change. */
     rev: string;
-    /** Color of the track, or else the base color of the file. */
+    /** Color of the route or track, or else the base color of the file. */
     color: string;
-    /** Only when the track defines it. */
+    /** Only when the route or track defines it. */
     opacity?: number;
     width?: number;
 };
@@ -76,11 +81,14 @@ export type NewWaypoint = {
 /** Everything the UI knows about one file. */
 export type FileState = {
     structure: FileStructure;
-    /** Color of the file: the one defined by its tracks if any, otherwise one from the palette. */
+    /**
+     * Color of the file: the one defined by its routes and tracks if any, otherwise one from the
+     * palette.
+     */
     color: string;
     /** Global statistics of the file. */
     statistics: GlobalStatistics;
-    /** One LineString feature per track segment, in file order. */
+    /** One LineString feature per segment (of the routes, then of the tracks), in file order. */
     segments: FeatureCollection<LineString, SegmentProperties>;
     /** One Point feature per waypoint, in file order. */
     waypoints: FeatureCollection<Point, WaypointProperties>;
@@ -120,11 +128,6 @@ export type ExportOptions = {
     power: boolean;
     /** The OpenStreetMap data: surface, highway, SAC scale and MTB scale. */
     osm: boolean;
-    /**
-     * Writes the segments as routes instead of tracks: the anchors are the route points, and the
-     * trackpoints between them the points of their path (which only keep their position).
-     */
-    asRoute: boolean;
 };
 
 export const ALL_EXPORT_OPTIONS: ExportOptions = {
@@ -134,7 +137,6 @@ export const ALL_EXPORT_OPTIONS: ExportOptions = {
     atemp: true,
     power: true,
     osm: true,
-    asRoute: false,
 };
 
 /**

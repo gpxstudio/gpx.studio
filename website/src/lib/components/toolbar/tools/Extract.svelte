@@ -15,13 +15,14 @@
     const files = engine.files;
     const statistics = engine.statistics;
 
-    /** The number of segments of a file or of one of its tracks. */
+    /** The number of segments of a file (its routes have one each) or of one of its tracks. */
     function segmentCount(fileId: string, trackId?: string) {
         const file = $files.get(fileId);
-        const tracks = file ? get(file).structure.tracks : [];
-        return tracks
+        const structure = file ? get(file).structure : undefined;
+        const routes = trackId === undefined ? (structure?.routes.length ?? 0) : 0;
+        return (structure?.tracks ?? [])
             .filter((track) => trackId === undefined || track.id === trackId)
-            .reduce((count, track) => count + track.segments.length, 0);
+            .reduce((count, track) => count + track.segments.length, routes);
     }
 
     // files or tracks, which all have several segments

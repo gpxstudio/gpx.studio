@@ -1191,6 +1191,7 @@ mod tests {
         /// What the file holds: the name of its track (its own name is the one of the file).
         fn content(&self, id: Uuid) -> String {
             self.engine.file_structure(&FileId(id)).unwrap().tracks[0]
+                .info
                 .name
                 .clone()
                 .unwrap_or_default()

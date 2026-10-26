@@ -1,18 +1,21 @@
 use std::{collections::HashSet, hash::Hash};
 
 use crate::{
-    Apply, ClipboardContent, CommandError, Destination, FileId, Place, Selection, State, TrackId,
-    TrackSegmentId, WaypointId, transfer, waypoint_ids,
+    Apply, ClipboardContent, CommandError, Destination, FileId, Place, RouteId, Selection, State,
+    TrackId, TrackSegmentId, WaypointId, transfer, waypoint_ids,
 };
 
 /// Pastes what was copied or cut (see [`crate::Clipboard`]).
 ///
 /// Where it goes depends on the selection, see [`crate::Clipboard::can_paste`]:
-/// - nothing selected: the files are copied, and tracks and segments become new files (named
-///   like their track, or like the file they come from);
-/// - a file: the tracks are added to it, segments become new tracks in it, and the waypoints are
-///   added to its own;
-/// - a track: the segments are added to it, tracks go after it in its file;
+/// - nothing selected: the files are copied, and routes, tracks and segments become new files
+///   (named like their route or track, or like the file they come from);
+/// - a file: the routes and tracks are added to it, segments become new tracks in it, and the
+///   waypoints are added to its own;
+/// - a route: routes, and segments as new routes, go after it in its file, tracks go before the
+///   other tracks (right after the routes);
+/// - a track: the segments are added to it, tracks go after it in its file, and routes after the
+///   other routes;
 /// - a segment: the segments go after it in its track;
 /// - the waypoints or a waypoint: the waypoints are added to their file, after the waypoint.
 ///
@@ -44,6 +47,14 @@ impl Apply for Paste {
         *state.selection = next;
         Ok(())
     }
+}
+
+fn route_ids_of(state: &State, file_id: FileId) -> Vec<RouteId> {
+    state
+        .files
+        .get(&file_id)
+        .map(|file| file.rte.iter().map(|rte| rte.id).collect())
+        .unwrap_or_default()
 }
 
 fn track_ids_of(state: &State, file_id: FileId) -> Vec<TrackId> {
@@ -79,14 +90,34 @@ fn destination(state: &State, content: &ClipboardContent) -> Result<Destination,
     };
     Ok(match (content, &*state.selection) {
         (ClipboardContent::Files(_), _) => Destination::Files(Place::End),
-        (ClipboardContent::Tracks(_) | ClipboardContent::Segments(_), Selection::Empty) => {
-            Destination::Files(Place::End)
+        (
+            ClipboardContent::Routes(_)
+            | ClipboardContent::Tracks(_)
+            | ClipboardContent::Segments(_),
+            Selection::Empty,
+        ) => Destination::Files(Place::End),
+        (ClipboardContent::Routes(_), Selection::File { file_ids }) => {
+            Destination::Routes(last_file(file_ids)?, Place::End)
+        }
+        // routes and tracks keep their kind (see `Destination`)
+        (
+            ClipboardContent::Routes(_)
+            | ClipboardContent::Tracks(_)
+            | ClipboardContent::Segments(_),
+            Selection::Route { file_id, rte_ids },
+        ) => {
+            let last =
+                last_selected(route_ids_of(state, *file_id).into_iter(), rte_ids).ok_or(nothing)?;
+            Destination::Routes(*file_id, Place::After(last))
         }
         (
             ClipboardContent::Tracks(_) | ClipboardContent::Segments(_),
             Selection::File { file_ids },
         ) => Destination::Tracks(last_file(file_ids)?, Place::End),
-        (ClipboardContent::Tracks(_), Selection::Track { file_id, trk_ids }) => {
+        (
+            ClipboardContent::Routes(_) | ClipboardContent::Tracks(_),
+            Selection::Track { file_id, trk_ids },
+        ) => {
             let last =
                 last_selected(track_ids_of(state, *file_id).into_iter(), trk_ids).ok_or(nothing)?;
             Destination::Tracks(*file_id, Place::After(last))

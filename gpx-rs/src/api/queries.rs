@@ -76,9 +76,7 @@ pub fn trackpoint<H: History>(
 }
 
 /// A file as GPX (UTF-8 bytes), `None` if it does not exist. The options say which data of the
-/// trackpoints to keep, and with `as_route` that the segments are written as routes (`rte`)
-/// instead of tracks: the anchors are the route points, and the trackpoints between them the
-/// points of their path.
+/// trackpoints to keep.
 pub fn export_file<H: History>(
     engine: &Engine<H>,
     file_id: Uuid,

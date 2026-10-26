@@ -14,9 +14,7 @@ impl Apply for Elevation<'_> {
             .segment_locations(state.files, &state.order.0);
         let count: usize = locations
             .iter()
-            .map(|location| {
-                state.files[&location.file_id].trk[location.trk].trkseg[location.seg].len()
-            })
+            .map(|location| location.segment(state.files).len())
             .sum();
         if count == 0 {
             return Err(CommandError::NothingToDo);

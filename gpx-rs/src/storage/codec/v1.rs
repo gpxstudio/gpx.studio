@@ -8,8 +8,8 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    Author, Categories, File, FileInfo, Link, LngLat, TrackInfo, Trackpoint, TrackpointCategories,
-    Waypoint, WaypointId,
+    Author, Categories, File, FileInfo, Link, LngLat, TrackInfo, TrackSegment, Trackpoint,
+    TrackpointCategories, Waypoint, WaypointId,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -133,8 +133,16 @@ impl From<TrackInfo1> for TrackInfo {
 #[derive(Serialize, Deserialize)]
 pub struct FileRecord1 {
     pub info: FileInfo1,
+    pub routes: Vec<RouteRecord1>,
     pub tracks: Vec<TrackRecord1>,
     pub waypoints: Vec<Uuid>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct RouteRecord1 {
+    pub id: Uuid,
+    pub info: TrackInfo1,
+    pub segment: SegmentRecord1,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -150,24 +158,35 @@ pub struct SegmentRecord1 {
     pub chunks: Vec<Uuid>,
 }
 
+impl SegmentRecord1 {
+    fn new(segment: &TrackSegment) -> Self {
+        Self {
+            id: segment.id.0,
+            chunks: segment.chunks().iter().map(|chunk| chunk.id.0).collect(),
+        }
+    }
+}
+
 impl FileRecord1 {
     pub fn new(file: &File) -> Self {
         Self {
             info: (&file.info).into(),
+            routes: file
+                .rte
+                .iter()
+                .map(|route| RouteRecord1 {
+                    id: route.id.0,
+                    info: (&route.info).into(),
+                    segment: SegmentRecord1::new(&route.seg),
+                })
+                .collect(),
             tracks: file
                 .trk
                 .iter()
                 .map(|track| TrackRecord1 {
                     id: track.id.0,
                     info: (&track.info).into(),
-                    segments: track
-                        .trkseg
-                        .iter()
-                        .map(|segment| SegmentRecord1 {
-                            id: segment.id.0,
-                            chunks: segment.chunks().iter().map(|chunk| chunk.id.0).collect(),
-                        })
-                        .collect(),
+                    segments: track.trkseg.iter().map(SegmentRecord1::new).collect(),
                 })
                 .collect(),
             waypoints: file.wpt.chunks().iter().map(|chunk| chunk.id.0).collect(),

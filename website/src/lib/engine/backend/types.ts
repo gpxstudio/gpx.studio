@@ -146,6 +146,7 @@ export interface Backend {
     select(fileIds: string[], mode: SelectMode): Promise<Outcome>;
     select_all(): Promise<Outcome>;
     arrow_select(down: boolean, add: boolean): Promise<Outcome>;
+    select_routes(fileId: string, routeIds: string[], mode: SelectMode): Promise<Outcome>;
     select_tracks(fileId: string, trackIds: string[], mode: SelectMode): Promise<Outcome>;
     select_segments(
         fileId: string,
@@ -173,6 +174,7 @@ export interface Backend {
     move_elements(what: Selection, to: MoveTarget): Promise<Outcome>;
     metadata(name: string, desc: string): Promise<Outcome>;
     style(color?: string, opacity?: number, width?: number): Promise<Outcome>;
+    new_route(): Promise<Outcome>;
     new_track(): Promise<Outcome>;
     new_track_segment(): Promise<Outcome>;
 
@@ -262,8 +264,7 @@ export interface Backend {
         cad: boolean,
         atemp: boolean,
         power: boolean,
-        osm: boolean,
-        asRoute: boolean
+        osm: boolean
     ): Promise<Uint8Array<ArrayBuffer> | undefined>;
     exportable_data(fileIds: string[]): Promise<number>;
     reduction_distances(): Promise<Float64Array>;

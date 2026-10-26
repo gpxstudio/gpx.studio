@@ -39,7 +39,7 @@ impl RoutingBuffer {
             .map(|files| selection.segment_locations(files, order))
             .unwrap_or_default()
         {
-            let segment = &files.unwrap()[&location.file_id].trk[location.trk].trkseg[location.seg];
+            let segment = location.segment(files.unwrap());
             signature.push((segment.id, segment.rev_id));
             if segment.is_empty() {
                 continue;

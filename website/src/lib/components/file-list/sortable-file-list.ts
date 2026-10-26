@@ -5,13 +5,22 @@ import { tick } from 'svelte';
 import { engine, type MoveTarget, type Selection } from '$lib/engine';
 import { isSelected, type FileTreeNode } from '$lib/engine/selection-helpers';
 
-/** What a list holds: the files, the tracks of a file, the segments of a track, or the waypoints. */
-export type ListLevel = 'file' | 'track' | 'segment' | 'waypoints' | 'waypoint';
+/**
+ * What a list holds: the files, the routes or the tracks of a file, the segments of a track, or the
+ * waypoints.
+ */
+export type ListLevel = 'file' | 'route' | 'track' | 'segment' | 'waypoints' | 'waypoint';
 
+/**
+ * Where the elements of a list can be moved to (a segment on its own can become a route). Routes
+ * and tracks can be dropped among each other, but keep their kind: the engine puts them with the
+ * others of their kind, the routes coming first.
+ */
 export const allowedMoves: Record<ListLevel, ListLevel[]> = {
     file: ['file'],
-    track: ['file', 'track'],
-    segment: ['file', 'track', 'segment'],
+    route: ['file', 'route', 'track'],
+    track: ['file', 'route', 'track'],
+    segment: ['file', 'route', 'track', 'segment'],
     waypoints: ['waypoints'],
     waypoint: ['waypoints', 'waypoint'],
 };
@@ -103,6 +112,8 @@ export class SortableFileList {
         switch (this._sortableLevel) {
             case 'file':
                 return { type: 'file', fileId: id };
+            case 'route':
+                return parent ? { type: 'route', fileId: parent.fileId, routeId: id } : undefined;
             case 'track':
                 return parent ? { type: 'track', fileId: parent.fileId, trackId: id } : undefined;
             case 'segment':
@@ -129,6 +140,8 @@ export class SortableFileList {
         switch (this._sortableLevel) {
             case 'file':
                 return { type: 'file', fileIds: ids };
+            case 'route':
+                return parent ? { type: 'route', fileId: parent.fileId, routeIds: ids } : undefined;
             case 'track':
                 return parent ? { type: 'track', fileId: parent.fileId, trackIds: ids } : undefined;
             case 'segment':
@@ -155,6 +168,8 @@ export class SortableFileList {
         switch (this._sortableLevel) {
             case 'file':
                 return { type: 'files', index };
+            case 'route':
+                return parent ? { type: 'routes', fileId: parent.fileId, index } : undefined;
             case 'track':
                 return parent ? { type: 'tracks', fileId: parent.fileId, index } : undefined;
             case 'segment':
@@ -274,6 +289,9 @@ export class SortableFileList {
             switch (this._sortableLevel) {
                 case 'file':
                     request = engine.select(selected);
+                    break;
+                case 'route':
+                    request = engine.selectRoutes(parent!.fileId, selected);
                     break;
                 case 'track':
                     request = engine.selectTracks(parent!.fileId, selected);

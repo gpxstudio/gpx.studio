@@ -39,6 +39,11 @@ pub fn style(
 }
 
 #[tauri::command(async)]
+pub fn new_route(state: State<AppState>) -> api::Outcome {
+    state.run(api::new_route)
+}
+
+#[tauri::command(async)]
 pub fn new_track(state: State<AppState>) -> api::Outcome {
     state.run(api::new_track)
 }

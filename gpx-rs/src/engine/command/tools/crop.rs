@@ -11,9 +11,9 @@ use crate::{
 /// Keeps the trackpoints `start` to `end` (both included) of the selection, which are counted
 /// over its segments one after the other (as in the `RoutingBuffer`), and removes the others.
 ///
-/// The segments that have no trackpoint left are removed. So are the tracks that have no segment
-/// left, if tracks or files are selected (not if only segments are), and the files that have no
-/// trackpoint left, if files are selected. A range that goes past the last trackpoint stops at it.
+/// The segments that have no trackpoint left are removed, and so are the routes of these segments.
+/// So are the tracks that have no segment left, if tracks or files are selected (not if only
+/// segments are), and the files that have no trackpoint left, if files are selected. A range that goes past the last trackpoint stops at it.
 #[derive(Debug)]
 pub struct Crop {
     pub start: u32,
@@ -43,8 +43,7 @@ impl Apply for Crop {
             .segment_locations(state.files, &state.order.0)
             .into_iter()
             .map(|location| {
-                let len =
-                    state.files[&location.file_id].trk[location.trk].trkseg[location.seg].len();
+                let len = location.segment(state.files).len();
                 let keep = (len > 0 && start < offset + len && end >= offset)
                     .then(|| (start.saturating_sub(offset), (end - offset).min(len - 1)));
                 offset += len;
@@ -73,14 +72,14 @@ impl Apply for Crop {
         let mut removed: HashSet<TrackSegmentId> = HashSet::new();
         let mut had_points: HashSet<FileId> = HashSet::new();
         for plan in &plans {
-            let SegmentLocation { file_id, trk, seg } = plan.location;
+            let SegmentLocation { file_id, index } = plan.location;
             let file = files
                 .entry(file_id)
                 .or_insert_with(|| (*state.files[&file_id]).clone());
             if plan.len > 0 {
                 had_points.insert(file_id);
             }
-            let segment = &mut file.trk[trk].trkseg[seg];
+            let segment = file.segment_mut(index);
             match plan.keep {
                 None => {
                     removed.insert(segment.id);
@@ -91,6 +90,8 @@ impl Apply for Crop {
 
         let mut gone: Vec<FileId> = vec![];
         for (file_id, file) in files.iter_mut() {
+            // a route has its segment, or is not there
+            file.rte.retain(|route| !removed.contains(&route.seg.id));
             // the tracks that lost segments
             let touched: Vec<bool> = file
                 .trk
@@ -108,7 +109,7 @@ impl Apply for Crop {
                 file.trk
                     .retain(|track| !(touched.next().unwrap() && track.trkseg.is_empty()));
             }
-            if prune_files && file.trk.is_empty() && had_points.contains(file_id) {
+            if prune_files && file.has_no_path() && had_points.contains(file_id) {
                 gone.push(*file_id);
             }
         }

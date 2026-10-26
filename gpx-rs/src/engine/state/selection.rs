@@ -1,6 +1,8 @@
 use std::collections::HashSet;
 
-use crate::{FileId, Files, TrackId, TrackSegmentId, WaypointId};
+use crate::{
+    File, FileId, Files, RouteId, SegmentIndex, TrackId, TrackSegment, TrackSegmentId, WaypointId,
+};
 
 /// How a new selection combines with the current one.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize)]
@@ -23,6 +25,10 @@ pub enum Selection {
     File {
         file_ids: HashSet<FileId>,
     },
+    Route {
+        file_id: FileId,
+        rte_ids: HashSet<RouteId>,
+    },
     Track {
         file_id: FileId,
         trk_ids: HashSet<TrackId>,
@@ -41,12 +47,19 @@ pub enum Selection {
     },
 }
 
-/// Where a track segment is: its file, then its track and its own position in it.
+/// Where a segment is: its file, then its place in it (its route, or its track and its own
+/// position in it).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SegmentLocation {
     pub file_id: FileId,
-    pub trk: usize,
-    pub seg: usize,
+    pub index: SegmentIndex,
+}
+
+impl SegmentLocation {
+    /// The segment, in `files`. Panics if it is not there.
+    pub fn segment<'a>(&self, files: &'a Files) -> &'a TrackSegment {
+        files[&self.file_id].segment(self.index)
+    }
 }
 
 impl Selection {
@@ -89,23 +102,18 @@ impl Selection {
 }
 
 impl Selection {
-    /// The track segments covered by the selection, in order: the segments of several selected
-    /// files follow `order` (the files missing from it come last), then the tracks and segments
-    /// follow the file. Waypoints are not segments: selecting only waypoints covers none.
+    /// The segments covered by the selection, in order: the segments of several selected files
+    /// follow `order` (the files missing from it come last), then the routes, tracks and segments
+    /// follow the file (see [`File::segments`]). Waypoints are not segments: selecting only
+    /// waypoints covers none.
     pub fn segment_locations(&self, files: &Files, order: &[FileId]) -> Vec<SegmentLocation> {
         let mut locations = vec![];
-        let mut add = |file_id: FileId,
-                       trk_filter: &dyn Fn(&crate::Track) -> bool,
-                       seg_filter: &dyn Fn(&crate::TrackSegment) -> bool| {
+        let mut add = |file_id: FileId, filter: &dyn Fn(&File, SegmentIndex) -> bool| {
             let Some(file) = files.get(&file_id) else {
                 return;
             };
-            for (trk, track) in file.trk.iter().enumerate().filter(|(_, t)| trk_filter(t)) {
-                for (seg, segment) in track.trkseg.iter().enumerate() {
-                    if seg_filter(segment) {
-                        locations.push(SegmentLocation { file_id, trk, seg });
-                    }
-                }
+            for index in file.segment_indices().filter(|index| filter(file, *index)) {
+                locations.push(SegmentLocation { file_id, index });
             }
         };
         match self {
@@ -116,25 +124,35 @@ impl Selection {
                     .filter(|id| file_ids.contains(id))
                     .chain(file_ids.iter().filter(|id| !order.contains(id)));
                 for id in ordered {
-                    add(*id, &|_| true, &|_| true);
+                    add(*id, &|_, _| true);
                 }
             }
-            Selection::Track { file_id, trk_ids } => {
-                add(*file_id, &|trk| trk_ids.contains(&trk.id), &|_| true)
-            }
+            Selection::Route { file_id, rte_ids } => add(*file_id, &|file, index| match index {
+                SegmentIndex::Route(rte) => rte_ids.contains(&file.rte[rte].id),
+                SegmentIndex::Track { .. } => false,
+            }),
+            Selection::Track { file_id, trk_ids } => add(*file_id, &|file, index| match index {
+                SegmentIndex::Track { trk, .. } => trk_ids.contains(&file.trk[trk].id),
+                SegmentIndex::Route(_) => false,
+            }),
             Selection::TrackSegment {
                 file_id,
                 trk_id,
                 trkseg_ids,
-            } => add(*file_id, &|trk| trk.id == *trk_id, &|seg| {
-                trkseg_ids.contains(&seg.id)
+            } => add(*file_id, &|file, index| match index {
+                SegmentIndex::Track { trk, seg } => {
+                    let track = &file.trk[trk];
+                    track.id == *trk_id && trkseg_ids.contains(&track.trkseg[seg].id)
+                }
+                SegmentIndex::Route(_) => false,
             }),
         }
         locations
     }
 
-    /// Drops what does not exist anymore (e.g. after an undo): files, and the tracks, segments
-    /// and waypoints of the files that remain. A selection left with nothing becomes empty.
+    /// Drops what does not exist anymore (e.g. after an undo): files, and the routes, tracks,
+    /// segments and waypoints of the files that remain. A selection left with nothing becomes
+    /// empty.
     pub fn retain_existing(&mut self, files: &Files) {
         let empty = match self {
             Selection::Empty => false,
@@ -142,6 +160,13 @@ impl Selection {
                 file_ids.retain(|id| files.contains_key(id));
                 file_ids.is_empty()
             }
+            Selection::Route { file_id, rte_ids } => match files.get(file_id) {
+                Some(file) => {
+                    rte_ids.retain(|id| file.rte.iter().any(|rte| rte.id == *id));
+                    rte_ids.is_empty()
+                }
+                None => true,
+            },
             Selection::Track { file_id, trk_ids } => match files.get(file_id) {
                 Some(file) => {
                     trk_ids.retain(|id| file.trk.iter().any(|trk| trk.id == *id));
@@ -185,6 +210,13 @@ impl Selection {
             (Selection::File { file_ids }, Selection::File { file_ids: other }) => {
                 file_ids.extend(other)
             }
+            (
+                Selection::Route { file_id, rte_ids },
+                Selection::Route {
+                    file_id: other_file,
+                    rte_ids: other,
+                },
+            ) if *file_id == other_file => rte_ids.extend(other),
             (
                 Selection::Track { file_id, trk_ids },
                 Selection::Track {
@@ -231,6 +263,16 @@ impl Selection {
             (Selection::File { file_ids }, Selection::File { file_ids: other }) => {
                 toggle_ids(file_ids, other);
                 file_ids.is_empty()
+            }
+            (
+                Selection::Route { file_id, rte_ids },
+                Selection::Route {
+                    file_id: other_file,
+                    rte_ids: other,
+                },
+            ) if *file_id == other_file => {
+                toggle_ids(rte_ids, other);
+                rte_ids.is_empty()
             }
             (
                 Selection::Track { file_id, trk_ids },
@@ -325,7 +367,8 @@ impl Selection {
         match self {
             Selection::Empty => Selection::Empty,
             Selection::File { .. } => self.clone(),
-            Selection::Track { file_id, .. }
+            Selection::Route { file_id, .. }
+            | Selection::Track { file_id, .. }
             | Selection::TrackSegment { file_id, .. }
             | Selection::Waypoints { file_id }
             | Selection::Waypoint { file_id, .. } => Selection::File {
@@ -335,13 +378,17 @@ impl Selection {
     }
 
     /// Selects all the elements of the same kind as the selected ones, in the same place: all
-    /// the files, all the tracks of the file, all the segments of the track, all the waypoints
+    /// the files, all the routes (or tracks) of the file, all the segments of the track, all the waypoints
     /// of the file. All the files when nothing is selected. `None` when there is nothing to
     /// select (the waypoints node, or a file that does not exist).
     pub fn all_at_level(&self, files: &Files, order: &[FileId]) -> Option<Selection> {
         match self {
             Selection::Empty | Selection::File { .. } => Some(Selection::File {
                 file_ids: order.iter().copied().collect(),
+            }),
+            Selection::Route { file_id, .. } => Some(Selection::Route {
+                file_id: *file_id,
+                rte_ids: files.get(file_id)?.rte.iter().map(|rte| rte.id).collect(),
             }),
             Selection::Track { file_id, .. } => Some(Selection::Track {
                 file_id: *file_id,
@@ -371,7 +418,7 @@ impl Selection {
 
     /// The element next to the selected ones, as a selection of that one element: the next one
     /// (`down`) or the previous one among the elements of the same kind, in the same place.
-    /// The tracks, segments and waypoints stop at their ends, the files wrap around and skip
+    /// The routes, tracks, segments and waypoints stop at their ends, the files wrap around and skip
     /// the ones that are already selected. `None` when there is no such element.
     pub fn neighbour(&self, files: &Files, order: &[FileId], down: bool) -> Option<Selection> {
         match self {
@@ -392,6 +439,13 @@ impl Selection {
                         });
                     }
                 }
+            }
+            Selection::Route { file_id, rte_ids } => {
+                let ids: Vec<RouteId> = files.get(file_id)?.rte.iter().map(|r| r.id).collect();
+                Some(Selection::Route {
+                    file_id: *file_id,
+                    rte_ids: [neighbour(&ids, rte_ids, down)?].into(),
+                })
             }
             Selection::Track { file_id, trk_ids } => {
                 let ids: Vec<TrackId> = files.get(file_id)?.trk.iter().map(|t| t.id).collect();

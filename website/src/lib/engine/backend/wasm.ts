@@ -29,15 +29,19 @@ export async function createWasmBackend(): Promise<Backend> {
     const mode = (m: SelectMode) =>
         ({ replace: w.SelectMode.Replace, add: w.SelectMode.Add, toggle: w.SelectMode.Toggle })[m];
     const splitType = (t: SplitType) =>
-        ({ files: w.SplitType.Files, tracks: w.SplitType.Tracks, segments: w.SplitType.Segments })[
-            t
-        ];
+        ({
+            files: w.SplitType.Files,
+            routes: w.SplitType.Routes,
+            tracks: w.SplitType.Tracks,
+            segments: w.SplitType.Segments,
+        })[t];
     const mergeType = (t: MergeType) => (t === 'connect' ? w.MergeType.Connect : w.MergeType.Group);
 
     return {
         select: lift((ids, m) => w.select(idsToBytes(ids), mode(m))),
         select_all: lift(w.select_all),
         arrow_select: lift(w.arrow_select),
+        select_routes: lift((file, ids, m) => w.select_routes(file, idsToBytes(ids), mode(m))),
         select_tracks: lift((file, ids, m) => w.select_tracks(file, idsToBytes(ids), mode(m))),
         select_segments: lift((file, track, ids, m) =>
             w.select_segments(file, track, idsToBytes(ids), mode(m))
@@ -75,6 +79,7 @@ export async function createWasmBackend(): Promise<Backend> {
         move_elements: lift(w.move_elements),
         metadata: lift(w.metadata),
         style: lift(w.style),
+        new_route: lift(w.new_route),
         new_track: lift(w.new_track),
         new_track_segment: lift(w.new_track_segment),
 

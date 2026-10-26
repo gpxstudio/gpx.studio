@@ -31,6 +31,7 @@
     import { settings } from '$lib/state/settings';
     import { map } from '$lib/components/map/map';
     import { engine } from '$lib/engine';
+    import { coversSegments } from '$lib/engine/selection-helpers';
     import { newFileName } from '$lib/actions/file-actions';
     import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
     import { RoutingControls } from './routing-controls';
@@ -54,10 +55,8 @@
     const selection = engine.selection;
     let routingControls: RoutingControls | undefined = undefined;
 
-    // the tool works on files, tracks and segments, not on waypoints
-    let validSelection = $derived(
-        $selection.type === 'file' || $selection.type === 'track' || $selection.type === 'segment'
-    );
+    // the tool works on files, routes, tracks and segments, not on waypoints
+    let validSelection = $derived(coversSegments($selection));
 
     function createFileWithPoint(e: any) {
         if ($selection.type === 'empty') {

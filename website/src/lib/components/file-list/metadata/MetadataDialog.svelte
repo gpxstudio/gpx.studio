@@ -8,7 +8,7 @@
     import { i18n } from '$lib/i18n/i18n.svelte';
     import { editMetadata } from '$lib/components/file-list/metadata/utils.svelte';
     import { engine, type FileState } from '$lib/engine';
-    import type { FileTreeNode } from '$lib/engine/selection-helpers';
+    import { pathInfo, type FileTreeNode } from '$lib/engine/selection-helpers';
     import { showEngineError } from '$lib/actions/file-actions';
 
     let {
@@ -21,16 +21,13 @@
         open: boolean;
     } = $props();
 
-    let track = $derived(
-        node.type === 'track'
-            ? fileState.structure.tracks.find((track) => track.id === node.trackId)
-            : undefined
-    );
+    // the route or the track
+    let path = $derived(pathInfo(fileState.structure, node));
     let name: string = $derived(
-        node.type === 'file' ? fileState.structure.name : (track?.name ?? '')
+        node.type === 'file' ? fileState.structure.name : (path?.name ?? '')
     );
     let description: string = $derived(
-        node.type === 'file' ? (fileState.structure.desc ?? '') : (track?.desc ?? '')
+        node.type === 'file' ? (fileState.structure.desc ?? '') : (path?.desc ?? '')
     );
 
     $effect(() => {

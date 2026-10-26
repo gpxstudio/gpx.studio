@@ -30,6 +30,12 @@
         switch (node.type) {
             case 'file':
                 return structure.name;
+            case 'route': {
+                const routeIndex = structure.routes.findIndex((r) => r.id === node.routeId);
+                return (
+                    structure.routes[routeIndex]?.name ?? `${i18n._('gpx.route')} ${routeIndex + 1}`
+                );
+            }
             case 'track': {
                 const trackIndex = structure.tracks.findIndex((t) => t.id === node.trackId);
                 return (
@@ -75,7 +81,7 @@
     });
 </script>
 
-{#if node.type === 'segment' || node.type === 'waypoint'}
+{#if node.type === 'route' || node.type === 'segment' || node.type === 'waypoint'}
     <FileListNodeLabel {fileState} {node} {label} />
 {:else if recursive}
     <CollapsibleTreeNode {id} bind:this={collapsible}>
@@ -84,7 +90,11 @@
         {/snippet}
         {#snippet content()}
             <div class="ml-4">
-                <FileListNodeContent {fileState} {node} />
+                {#if node.type === 'file' && fileState.structure.routes.length > 0}
+                    <FileListNodeContent {fileState} {node} part="routes" />
+                {:else}
+                    <FileListNodeContent {fileState} {node} />
+                {/if}
             </div>
         {/snippet}
     </CollapsibleTreeNode>

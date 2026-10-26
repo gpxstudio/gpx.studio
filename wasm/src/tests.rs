@@ -16,6 +16,7 @@ use crate::types::*;
 const SIMPLE: &[u8] = include_bytes!("../../gpx-rs/data/simple.gpx");
 const WITH_TIME: &[u8] = include_bytes!("../../gpx-rs/data/with_time.gpx");
 const WITH_SURFACE: &[u8] = include_bytes!("../../gpx-rs/data/with_surface.gpx");
+const WITH_ROUTES: &[u8] = include_bytes!("../../gpx-rs/data/with_routes.gpx");
 
 thread_local! {
     static LAST: std::cell::RefCell<JsValue> = const { std::cell::RefCell::new(JsValue::UNDEFINED) };
@@ -112,10 +113,7 @@ fn test_unknown_file_has_no_structure() {
     assert!(crate::queries::files::file_structure(&id).is_undefined());
     assert!(crate::queries::files::file_structure("not an id").is_undefined());
     assert!(crate::queries::files::file_statistics(&id).is_undefined());
-    assert!(
-        crate::queries::files::export_file(&id, true, true, true, true, true, true, false)
-            .is_none()
-    );
+    assert!(crate::queries::files::export_file(&id, true, true, true, true, true, true).is_none());
     assert_eq!(
         crate::queries::coordinates::segment_coordinates(&id).length(),
         0
@@ -279,8 +277,7 @@ fn test_export_and_exportable_data() {
     let ids = order();
 
     let bytes =
-        crate::queries::files::export_file(&ids[0], true, true, true, true, true, true, false)
-            .unwrap();
+        crate::queries::files::export_file(&ids[0], true, true, true, true, true, true).unwrap();
     assert!(String::from_utf8(bytes).unwrap().contains("<gpx"));
 
     // the time is the first bit
@@ -300,18 +297,17 @@ fn test_export_and_exportable_data() {
 }
 
 #[wasm_bindgen_test]
-fn test_export_as_route() {
-    started_with(&[(SIMPLE, "plain")]);
-    let id = order().remove(0);
-    let text = |as_route| {
+fn test_export_tracks_and_routes() {
+    started_with(&[(SIMPLE, "track"), (WITH_ROUTES, "routes")]);
+    let text = |id: &str| {
         let bytes =
-            crate::queries::files::export_file(&id, true, true, true, true, true, true, as_route)
-                .unwrap();
+            crate::queries::files::export_file(id, true, true, true, true, true, true).unwrap();
         String::from_utf8(bytes).unwrap()
     };
-    let tracks = text(false);
+    let ids = order();
+    let tracks = text(&ids[0]);
     assert!(tracks.contains("<trk>") && !tracks.contains("<rte>"));
-    let routes = text(true);
+    let routes = text(&ids[1]);
     assert!(routes.contains("<rte>") && !routes.contains("<trk>"));
     assert!(routes.contains("<rtept"));
 }

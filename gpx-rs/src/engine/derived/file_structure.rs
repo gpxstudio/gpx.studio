@@ -1,9 +1,10 @@
 use crate::{
-    File, FileId, FileWaypointsRevisionId, TrackId, TrackSegmentId, TrackSegmentRevisionId,
-    WaypointId,
+    File, FileId, FileWaypointsRevisionId, RouteId, TrackId, TrackInfo, TrackSegment,
+    TrackSegmentId, TrackSegmentRevisionId, WaypointId,
 };
 
-/// What the UI needs to display a file: its name and the structure of its tracks and waypoints,
+/// What the UI needs to display a file: its name and the structure of its routes, tracks and
+/// waypoints,
 /// with the ids that reference every element. Coordinates are not part of it, they are read
 /// from the buffers of the [`CoordinatesCache`](crate::CoordinatesCache) (the `i`-th waypoint
 /// of a file is the `i`-th coordinates pair of its waypoint buffer, same for the trackpoints of
@@ -13,21 +14,47 @@ pub struct FileStructure {
     pub id: FileId,
     pub name: String,
     pub desc: Option<String>,
+    pub routes: Vec<RouteNode>,
     pub tracks: Vec<TrackNode>,
     pub waypoints: Vec<WaypointNode>,
     /// Changes whenever the waypoints of the file (hence their buffer) change.
     pub wpt_rev_id: FileWaypointsRevisionId,
 }
 
+/// The name, description and style of a route or a track (the style only when the file defines
+/// it).
 #[derive(Debug, Clone, PartialEq)]
-pub struct TrackNode {
-    pub id: TrackId,
+pub struct PathInfo {
     pub name: Option<String>,
     pub desc: Option<String>,
-    /// Style of the track, only when the file defines it.
     pub color: Option<String>,
     pub opacity: Option<f64>,
     pub width: Option<f64>,
+}
+
+impl From<&TrackInfo> for PathInfo {
+    fn from(info: &TrackInfo) -> Self {
+        Self {
+            name: info.name.clone(),
+            desc: info.desc.clone(),
+            color: info.color.clone(),
+            opacity: info.opacity,
+            width: info.width,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct RouteNode {
+    pub id: RouteId,
+    pub info: PathInfo,
+    pub segment: SegmentNode,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct TrackNode {
+    pub id: TrackId,
+    pub info: PathInfo,
     pub segments: Vec<SegmentNode>,
 }
 
@@ -46,31 +73,38 @@ pub struct WaypointNode {
     pub sym: Option<String>,
 }
 
+impl From<&TrackSegment> for SegmentNode {
+    fn from(seg: &TrackSegment) -> Self {
+        Self {
+            id: seg.id,
+            rev_id: seg.rev_id,
+            len: seg.len(),
+        }
+    }
+}
+
 impl FileStructure {
     pub fn new(file: &File) -> Self {
         Self {
             id: file.id,
             name: file.info.name.clone(),
             desc: file.info.desc.clone(),
+            routes: file
+                .rte
+                .iter()
+                .map(|rte| RouteNode {
+                    id: rte.id,
+                    info: (&rte.info).into(),
+                    segment: (&rte.seg).into(),
+                })
+                .collect(),
             tracks: file
                 .trk
                 .iter()
                 .map(|trk| TrackNode {
                     id: trk.id,
-                    name: trk.info.name.clone(),
-                    desc: trk.info.desc.clone(),
-                    color: trk.info.color.clone(),
-                    opacity: trk.info.opacity,
-                    width: trk.info.width,
-                    segments: trk
-                        .trkseg
-                        .iter()
-                        .map(|seg| SegmentNode {
-                            id: seg.id,
-                            rev_id: seg.rev_id,
-                            len: seg.len(),
-                        })
-                        .collect(),
+                    info: (&trk.info).into(),
+                    segments: trk.trkseg.iter().map(Into::into).collect(),
                 })
                 .collect(),
             waypoints: file
@@ -112,11 +146,8 @@ mod tests {
         );
         assert_eq!(node.tracks.len(), file.trk.len());
         for (n, t) in node.tracks.iter().zip(&file.trk) {
-            assert_eq!((n.id, &n.name, &n.desc), (t.id, &t.info.name, &t.info.desc));
-            assert_eq!(
-                (&n.color, n.opacity, n.width),
-                (&t.info.color, t.info.opacity, t.info.width)
-            );
+            assert_eq!(n.id, t.id);
+            assert_eq!(n.info, PathInfo::from(&t.info));
             assert_eq!(n.segments.len(), t.trkseg.len());
             for (n, s) in n.segments.iter().zip(&t.trkseg) {
                 assert_eq!((n.id, n.rev_id, n.len), (s.id, s.rev_id, s.len()));

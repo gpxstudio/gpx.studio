@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{File, FileId, Files, Selection, State, Track, TrackSegment, Waypoint};
+use crate::{File, FileId, Files, Route, Selection, State, Track, TrackSegment, Waypoint};
 
 /// What an [`Editor`] hook did to the element it was given.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -21,13 +21,19 @@ impl Edit {
 
 /// Independent edit of each selected element, without needing the rest of the state.
 ///
-/// A selected file, track or segment is passed to the hook of its own level. By default a
-/// file is forwarded to its tracks and a track to its segments, so an editor only overrides
-/// the level(s) it cares about (metadata: file and track, style: track, reverse: segment).
-/// Waypoints are only edited when selected, never through their file.
+/// A selected file, route, track or segment is passed to the hook of its own level. By default
+/// a file is forwarded to its routes and tracks, and a route or a track to its segments, so an
+/// editor only overrides the level(s) it cares about (metadata: file, route and track, style:
+/// route and track, reverse: segment). Waypoints are only edited when selected, never through
+/// their file.
 pub trait Editor {
     fn file(&mut self, file: &mut File) -> Edit {
-        edit_each(&mut file.trk, |trk| self.track(trk))
+        let routes = edit_each(&mut file.rte, |rte| self.route(rte));
+        routes.merge(edit_each(&mut file.trk, |trk| self.track(trk)))
+    }
+
+    fn route(&mut self, route: &mut Route) -> Edit {
+        edit_segment(self, &mut route.seg)
     }
 
     fn track(&mut self, track: &mut Track) -> Edit {
@@ -95,13 +101,22 @@ fn edit_waypoints<E: Editor + ?Sized>(
     }
 }
 
-/// Applies the editor to every selected file, track or segment.
+/// Applies the editor to every selected file, route, track or segment.
 pub fn update_selected<E: Editor>(state: &mut State, editor: &mut E) {
     match &*state.selection {
         Selection::File { file_ids } => {
             for id in file_ids {
                 update_file(state.files, *id, |file| editor.file(file));
             }
+        }
+        Selection::Route { file_id, rte_ids } => {
+            update_file(state.files, *file_id, |file| {
+                edit_where(
+                    &mut file.rte,
+                    |rte| rte_ids.contains(&rte.id),
+                    |rte| editor.route(rte),
+                )
+            });
         }
         Selection::Track { file_id, trk_ids } => {
             update_file(state.files, *file_id, |file| {

@@ -1,16 +1,19 @@
-import type { Clipboard, Selection } from 'gpx-wasm';
+import type { Clipboard, FileStructure, PathInfo, Selection } from 'gpx-wasm';
 import { isHidden, waypointsKey, type VisibilityState } from '$lib/engine/file-visibility';
 
 /**
  * An element of the file tree, to ask questions about the selection:
  *
- *     file ─┬─ track ─── segment
+ *     file ─┬─ route
+ *           ├─ track ─── segment
  *           └─ waypoints ─── waypoint
  *
- * `waypoints` is the node standing for all the waypoints of a file.
+ * A route is like a track of a single segment, which is not a node of its own. `waypoints` is the
+ * node standing for all the waypoints of a file.
  */
 export type FileTreeNode =
     | { type: 'file'; fileId: string }
+    | { type: 'route'; fileId: string; routeId: string }
     | { type: 'track'; fileId: string; trackId: string }
     | { type: 'segment'; fileId: string; trackId: string; segmentId: string }
     | { type: 'waypoints'; fileId: string }
@@ -24,6 +27,8 @@ export function elementId(node: FileTreeNode): string {
     switch (node.type) {
         case 'file':
             return node.fileId;
+        case 'route':
+            return node.routeId;
         case 'track':
             return node.trackId;
         case 'segment':
@@ -33,6 +38,31 @@ export function elementId(node: FileTreeNode): string {
         case 'waypoint':
             return node.waypointId;
     }
+}
+
+/** The name, description and style of a route or track node, `undefined` for the other nodes. */
+export function pathInfo(structure: FileStructure, node: FileTreeNode): PathInfo | undefined {
+    switch (node.type) {
+        case 'route':
+            return structure.routes.find((route) => route.id === node.routeId);
+        case 'track':
+            return structure.tracks.find((track) => track.id === node.trackId);
+        default:
+            return undefined;
+    }
+}
+
+/**
+ * Whether the selection is made of segments: files, routes, tracks or segments, not waypoints (the
+ * selection the tools that work on trackpoints work on).
+ */
+export function coversSegments(selection: Selection): boolean {
+    return (
+        selection.type === 'file' ||
+        selection.type === 'route' ||
+        selection.type === 'track' ||
+        selection.type === 'segment'
+    );
 }
 
 export function isEmpty(selection: Selection): boolean {
@@ -59,6 +89,8 @@ export function isInClipboard(clipboard: Clipboard | undefined, node: FileTreeNo
     switch (node.type) {
         case 'file':
             return clipboard.type === 'files' && clipboard.ids.includes(node.fileId);
+        case 'route':
+            return clipboard.type === 'routes' && clipboard.ids.includes(node.routeId);
         case 'track':
             return clipboard.type === 'tracks' && clipboard.ids.includes(node.trackId);
         case 'segment':
@@ -77,6 +109,8 @@ export function selectionSize(selection: Selection): number {
             return 0;
         case 'file':
             return selection.fileIds.length;
+        case 'route':
+            return selection.routeIds.length;
         case 'track':
             return selection.trackIds.length;
         case 'segment':
@@ -89,8 +123,8 @@ export function selectionSize(selection: Selection): number {
 }
 
 /**
- * The ids of the selected elements, by file, as used by the visibility (a file, its tracks, its
- * segments, its waypoints, or `waypointsKey` for the waypoints node).
+ * The ids of the selected elements, by file, as used by the visibility (a file, its routes, its
+ * tracks, its segments, its waypoints, or `waypointsKey` for the waypoints node).
  */
 export function selectedElementIds(selection: Selection): { fileId: string; ids: string[] }[] {
     switch (selection.type) {
@@ -98,6 +132,8 @@ export function selectedElementIds(selection: Selection): { fileId: string; ids:
             return [];
         case 'file':
             return selection.fileIds.map((fileId) => ({ fileId, ids: [fileId] }));
+        case 'route':
+            return [{ fileId: selection.fileId, ids: selection.routeIds }];
         case 'track':
             return [{ fileId: selection.fileId, ids: selection.trackIds }];
         case 'segment':
@@ -114,6 +150,12 @@ export function isSelected(selection: Selection, node: FileTreeNode): boolean {
     switch (node.type) {
         case 'file':
             return selection.type === 'file' && selection.fileIds.includes(node.fileId);
+        case 'route':
+            return (
+                selection.type === 'route' &&
+                selection.fileId === node.fileId &&
+                selection.routeIds.includes(node.routeId)
+            );
         case 'track':
             return (
                 selection.type === 'track' &&
@@ -143,6 +185,7 @@ function parent(node: FileTreeNode): FileTreeNode | undefined {
     switch (node.type) {
         case 'file':
             return undefined;
+        case 'route':
         case 'track':
         case 'waypoints':
             return { type: 'file', fileId: node.fileId };
@@ -180,6 +223,7 @@ export function hasSelectionWithin(selection: Selection, node: FileTreeNode): bo
                 isSelected(selection, node) ||
                 (selection.type === 'waypoint' && selection.fileId === node.fileId)
             );
+        case 'route':
         case 'segment':
         case 'waypoint':
             return isSelected(selection, node);

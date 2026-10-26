@@ -3,9 +3,17 @@ use std::rc::Rc;
 use uuid::Uuid;
 
 use crate::{
-    File, FileId, Files, Selection, Track, TrackId, TrackSegment, TrackSegmentId, Waypoint,
-    WaypointId,
+    File, FileId, Files, Route, RouteId, Selection, Track, TrackId, TrackSegment, TrackSegmentId,
+    Waypoint, WaypointId,
 };
+
+/// A route in the clipboard, with the name of the file it comes from (the name of the new file
+/// when it is pasted on its own).
+#[derive(Debug, Clone)]
+pub struct ClipboardRoute {
+    pub route: Route,
+    pub file_name: String,
+}
 
 /// A track in the clipboard, with the name of the file it comes from (the name of the new file
 /// when it is pasted on its own).
@@ -31,6 +39,7 @@ pub struct ClipboardSegment {
 #[derive(Debug, Clone)]
 pub enum ClipboardContent {
     Files(Vec<Rc<File>>),
+    Routes(Vec<ClipboardRoute>),
     Tracks(Vec<ClipboardTrack>),
     Segments(Vec<ClipboardSegment>),
     Waypoints(Vec<Waypoint>),
@@ -84,6 +93,19 @@ impl Clipboard {
                     .filter_map(|id| files.get(id).cloned())
                     .collect(),
             ),
+            Selection::Route { file_id, rte_ids } => {
+                let file = files.get(file_id)?;
+                ClipboardContent::Routes(
+                    file.rte
+                        .iter()
+                        .filter(|rte| rte_ids.contains(&rte.id))
+                        .map(|rte| ClipboardRoute {
+                            route: rte.clone(),
+                            file_name: file.info.name.clone(),
+                        })
+                        .collect(),
+                )
+            }
             Selection::Track { file_id, trk_ids } => {
                 let file = files.get(file_id)?;
                 ClipboardContent::Tracks(
@@ -144,32 +166,37 @@ impl Clipboard {
     pub fn is_empty(&self) -> bool {
         match &self.content {
             ClipboardContent::Files(files) => files.is_empty(),
+            ClipboardContent::Routes(routes) => routes.is_empty(),
             ClipboardContent::Tracks(tracks) => tracks.is_empty(),
             ClipboardContent::Segments(segments) => segments.is_empty(),
             ClipboardContent::Waypoints(waypoints) => waypoints.is_empty(),
         }
     }
 
-    /// Whether the content can be pasted when `target` is selected: files and tracks can be
-    /// pasted anywhere above them in the file tree, and nothing selected stands for the list of
-    /// files.
+    /// Whether the content can be pasted when `target` is selected: files, routes and tracks can
+    /// be pasted anywhere above them in the file tree (routes and tracks are at the same level),
+    /// and nothing selected stands for the list of files.
     ///
-    /// | copied    | pasted when selected                     |
-    /// |-----------|------------------------------------------|
-    /// | files     | nothing, a file                          |
-    /// | tracks    | nothing, a file, a track                 |
-    /// | segments  | nothing, a file, a track, a segment      |
-    /// | waypoints | a file, the waypoints, a waypoint        |
+    /// | copied    | pasted when selected                          |
+    /// |-----------|-----------------------------------------------|
+    /// | files     | nothing, a file                               |
+    /// | routes    | nothing, a file, a route, a track             |
+    /// | tracks    | nothing, a file, a route, a track             |
+    /// | segments  | nothing, a file, a route, a track, a segment  |
+    /// | waypoints | a file, the waypoints, a waypoint             |
     pub fn can_paste(&self, target: &Selection) -> bool {
         use ClipboardContent as C;
         use Selection::*;
         matches!(
             (&self.content, target),
             (C::Files(_), Empty | File { .. })
-                | (C::Tracks(_), Empty | File { .. } | Track { .. })
+                | (
+                    C::Routes(_) | C::Tracks(_),
+                    Empty | File { .. } | Route { .. } | Track { .. }
+                )
                 | (
                     C::Segments(_),
-                    Empty | File { .. } | Track { .. } | TrackSegment { .. }
+                    Empty | File { .. } | Route { .. } | Track { .. } | TrackSegment { .. }
                 )
                 | (
                     C::Waypoints(_),
@@ -183,6 +210,7 @@ impl Clipboard {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ClipboardIds {
     Files(Vec<FileId>),
+    Routes(Vec<RouteId>),
     Tracks(Vec<TrackId>),
     Segments(Vec<TrackSegmentId>),
     Waypoints(Vec<WaypointId>),
@@ -193,6 +221,9 @@ impl ClipboardContent {
         match self {
             ClipboardContent::Files(files) => {
                 ClipboardIds::Files(files.iter().map(|file| file.id).collect())
+            }
+            ClipboardContent::Routes(routes) => {
+                ClipboardIds::Routes(routes.iter().map(|rte| rte.route.id).collect())
             }
             ClipboardContent::Tracks(tracks) => {
                 ClipboardIds::Tracks(tracks.iter().map(|trk| trk.track.id).collect())

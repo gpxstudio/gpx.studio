@@ -4,6 +4,8 @@ mod file;
 #[cfg(test)]
 pub(crate) mod fixture;
 mod pattern;
+#[cfg(test)]
+mod routes_tests;
 mod tools;
 
 pub use apply::*;
@@ -33,11 +35,12 @@ pub enum Command<'a> {
     DeleteWaypoint(DeleteWaypoint),
     Metadata(Metadata<'a>),
     Style(Style<'a>),
+    NewRoute(NewRoute),
     NewTrack(NewTrack),
     NewTrackSegment(NewTrackSegment),
     Reverse(Reverse),
     RoundTrip(RoundTrip),
-    Route(Route<'a>),
+    Reroute(Reroute<'a>),
     NewWaypoint(NewWaypoint<'a>),
     EditWaypoint(EditWaypoint<'a>),
     MoveWaypoint(MoveWaypoint),
@@ -68,11 +71,12 @@ impl Apply for Command<'_> {
             Command::DeleteWaypoint(c) => c.apply(state),
             Command::Metadata(c) => c.apply(state),
             Command::Style(c) => c.apply(state),
+            Command::NewRoute(c) => c.apply(state),
             Command::NewTrack(c) => c.apply(state),
             Command::NewTrackSegment(c) => c.apply(state),
             Command::Reverse(c) => c.apply(state),
             Command::RoundTrip(c) => c.apply(state),
-            Command::Route(c) => c.apply(state),
+            Command::Reroute(c) => c.apply(state),
             Command::NewWaypoint(c) => c.apply(state),
             Command::EditWaypoint(c) => c.apply(state),
             Command::MoveWaypoint(c) => c.apply(state),

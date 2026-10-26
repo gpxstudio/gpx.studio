@@ -18,7 +18,7 @@ pub fn update_segments(
         let file = files
             .entry(location.file_id)
             .or_insert_with(|| (*state.files[&location.file_id]).clone());
-        f(i, &mut file.trk[location.trk].trkseg[location.seg]);
+        f(i, file.segment_mut(location.index));
     }
     for (file_id, file) in files {
         state.files.insert(file_id, Rc::new(file));
@@ -30,6 +30,8 @@ mod tests {
     use std::rc::Rc;
 
     use crate::engine::command::fixture::Fixture;
+
+    use crate::SegmentIndex;
 
     use super::*;
 
@@ -49,13 +51,11 @@ mod tests {
         let locations = [
             SegmentLocation {
                 file_id: id,
-                trk: 1,
-                seg: 0,
+                index: SegmentIndex::Track { trk: 1, seg: 0 },
             },
             SegmentLocation {
                 file_id: id,
-                trk: 0,
-                seg: 0,
+                index: SegmentIndex::Track { trk: 0, seg: 0 },
             },
         ];
         let mut calls = vec![];

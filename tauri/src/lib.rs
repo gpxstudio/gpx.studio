@@ -114,6 +114,7 @@ fn register_commands<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::Bu
         selection::select,
         selection::select_all,
         selection::arrow_select,
+        selection::select_routes,
         selection::select_tracks,
         selection::select_segments,
         selection::select_waypoint_group,
@@ -134,6 +135,7 @@ fn register_commands<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::Bu
         // edits and tools
         edit::metadata,
         edit::style,
+        edit::new_route,
         edit::new_track,
         edit::new_track_segment,
         edit::new_waypoint,

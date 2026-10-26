@@ -31,11 +31,13 @@
     onDestroy(() => request.release());
     let segmentCount = $derived($statistics.anchors?.segmentStarts.length ?? 0);
 
-    // several files, tracks or segments, or a single file or track with several segments
+    // several files, routes, tracks or segments, or a single file or track with several segments
     let canMergeTraces = $derived.by(() => {
         switch ($selection.type) {
             case 'file':
                 return $selection.fileIds.length > 1 || segmentCount > 1;
+            case 'route':
+                return $selection.routeIds.length > 1;
             case 'track':
                 return $selection.trackIds.length > 1 || segmentCount > 1;
             case 'segment':
@@ -45,7 +47,8 @@
         }
     });
 
-    // several files or tracks, that can be put together
+    // several files or tracks, that can be put together (a route has a single segment: routes
+    // cannot)
     let canMergeContents = $derived(
         ($selection.type === 'file' && $selection.fileIds.length > 1) ||
             ($selection.type === 'track' && $selection.trackIds.length > 1)

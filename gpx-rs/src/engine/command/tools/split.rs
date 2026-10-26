@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
 use crate::{
-    Apply, CommandError, File, Selection, State, Track, TrackSegment, Waypoints, copy_file,
-    copy_segment, copy_track, copy_waypoint,
+    Apply, CommandError, File, Route, SegmentIndex, Selection, State, Track, TrackSegment,
+    Waypoints, copy_file, copy_route, copy_segment, copy_track, copy_waypoint,
 };
 
 use super::route::find_target;
@@ -13,24 +13,27 @@ use super::route::find_target;
 pub enum SplitType {
     /// The file becomes two files, which both have the waypoints (copies, in the second one).
     Files,
+    /// The route becomes two routes.
+    Routes,
     /// The track becomes two tracks.
     Tracks,
-    /// The segment becomes two segments.
+    /// The segment of a track becomes two segments.
     Segments,
 }
 
-/// Cuts the file, the track or the segment of the trackpoint `at` of the selection (see
+/// Cuts the file, the route, the track or the segment of the trackpoint `at` of the selection (see
 /// `RoutingBuffer`) in two, there: the trackpoint is the last one of the first part and the first
-/// one of the second part.
+/// one of the second part. Cutting a route needs the trackpoint to be in a route, and cutting a
+/// track or a segment needs it to be in a track: there is nothing to do otherwise.
 ///
 /// The first part keeps the ids of what is cut, the second one has new ids, as the elements that
-/// come after the trackpoint (the following segments of the track, the following tracks of the
-/// file), which are moved to it. When the file is cut, the new file comes right after it. The
-/// selection does not change.
+/// come after the trackpoint (the following segments of the track, the following routes and
+/// tracks of the file, the routes coming before the tracks), which are moved to it. When the file
+/// is cut, the new file comes right after it. The selection does not change.
 ///
 /// With `keep_originals`, a file that is cut (`SplitType::Files`) is left as it is: its two parts
-/// are two new files, with new ids, which come right after it and are selected. Cutting a track
-/// or a segment changes the file in place anyway, so the flag has no effect on them.
+/// are two new files, with new ids, which come right after it and are selected. Cutting a route, a
+/// track or a segment changes the file in place anyway, so the flag has no effect on them.
 #[derive(Debug)]
 pub struct Split {
     pub at: u32,
@@ -43,104 +46,115 @@ impl Apply for Split {
         let at = self.at as usize;
         let target = find_target(state, at, at)?.ok_or(CommandError::NothingToDo)?;
         let location = target.location;
-        let (file_id, trk, seg, index) =
-            (location.file_id, location.trk, location.seg, target.start);
+        let (file_id, index) = (location.file_id, target.start);
+        let in_route = matches!(location.index, SegmentIndex::Route(_));
+        let fits = match self.split_type {
+            SplitType::Files => true,
+            SplitType::Routes => in_route,
+            SplitType::Tracks | SplitType::Segments => !in_route,
+        };
+        if !fits {
+            return Err(CommandError::NothingToDo);
+        }
         let mut file = (*state.files[&file_id]).clone();
-        if index >= file.trk[trk].trkseg[seg].len() {
+        if index >= file.segment(location.index).len() {
             return Err(CommandError::InvalidData(
                 "trackpoint out of the segment".into(),
             ));
         }
 
-        let track = file.trk[trk].clone();
-        let segment = &track.trkseg[seg];
-        let (first, second) = (keep_up_to(segment, index), keep_from(segment, index));
-        // the track is cut: what is before the segment, and its first part, then the second part
-        // and what is after it
-        let split_track = || {
-            let mut first_track = track.clone();
-            first_track.trkseg.truncate(seg);
-            first_track.trkseg.push(first.clone());
-            let mut second_track = Track {
-                id: Default::default(),
-                trkseg: vec![second.clone()],
-                ..track.clone()
-            };
-            second_track
-                .trkseg
-                .extend(track.trkseg[seg + 1..].iter().map(copy_segment));
-            (first_track, second_track)
+        // with `SplitType::Files`, what goes to the second file: what comes after the trackpoint
+        let mut second_file = File {
+            id: Default::default(),
+            rte: vec![],
+            trk: vec![],
+            wpt: Waypoints::default(),
+            ..file.clone()
         };
-
-        match self.split_type {
-            SplitType::Segments => {
-                file.trk[trk].trkseg.splice(seg..=seg, [first, second]);
-            }
-            SplitType::Tracks => {
-                let (first_track, second_track) = split_track();
-                file.trk.splice(trk..=trk, [first_track, second_track]);
-            }
-            SplitType::Files if self.keep_originals => {
-                let (first_track, second_track) = split_track();
-                // the parts are new files: nothing is shared by id with the file, nor between them
-                let first_file = copy_file(&File {
-                    trk: file.trk[..trk]
-                        .iter()
-                        .cloned()
-                        .chain([first_track])
-                        .collect(),
-                    ..file.clone()
-                });
-                let mut second_file = File {
+        match location.index {
+            SegmentIndex::Route(rte) => {
+                let route = file.rte[rte].clone();
+                let first = Route {
+                    seg: keep_up_to(&route.seg, index),
+                    ..route.clone()
+                };
+                let second = Route {
                     id: Default::default(),
-                    trk: vec![second_track],
-                    wpt: Waypoints::default(),
-                    ..file.clone()
+                    seg: keep_from(&route.seg, index),
+                    ..route.clone()
                 };
-                second_file
-                    .trk
-                    .extend(file.trk[trk + 1..].iter().map(copy_track));
-                second_file
-                    .wpt
-                    .insert_at(0, file.wpt.iter().map(copy_waypoint).collect());
-
-                let ids = [first_file.id, second_file.id];
-                let position = state.order.0.iter().position(|id| *id == file_id);
-                let at = position.map_or(state.order.0.len(), |p| p + 1);
-                state.order.0.splice(at..at, ids);
-                state.files.insert(first_file.id, Rc::new(first_file));
-                state.files.insert(second_file.id, Rc::new(second_file));
-                *state.selection = Selection::File {
-                    file_ids: ids.into(),
-                };
-                return Ok(());
+                if self.split_type == SplitType::Routes {
+                    file.rte.splice(rte..=rte, [first, second]);
+                    state.files.insert(file_id, Rc::new(file));
+                    return Ok(());
+                }
+                // the following routes, and the tracks, which come after the routes
+                second_file.rte = [second]
+                    .into_iter()
+                    .chain(file.rte[rte + 1..].iter().map(copy_route))
+                    .collect();
+                second_file.trk = file.trk.iter().map(copy_track).collect();
+                file.rte.truncate(rte);
+                file.rte.push(first);
+                file.trk.clear();
             }
-            SplitType::Files => {
-                let (first_track, second_track) = split_track();
-                let mut second_file = File {
+            SegmentIndex::Track { trk, seg } => {
+                let track = file.trk[trk].clone();
+                let segment = &track.trkseg[seg];
+                let (first, second) = (keep_up_to(segment, index), keep_from(segment, index));
+                if self.split_type == SplitType::Segments {
+                    file.trk[trk].trkseg.splice(seg..=seg, [first, second]);
+                    state.files.insert(file_id, Rc::new(file));
+                    return Ok(());
+                }
+                // the track is cut: what is before the segment, and its first part, then the
+                // second part and what is after it
+                let mut first_track = track.clone();
+                first_track.trkseg.truncate(seg);
+                first_track.trkseg.push(first);
+                let mut second_track = Track {
                     id: Default::default(),
-                    trk: vec![second_track],
-                    wpt: Waypoints::default(),
-                    ..file.clone()
+                    trkseg: vec![second],
+                    ..track.clone()
                 };
-                second_file
-                    .trk
-                    .extend(file.trk[trk + 1..].iter().map(copy_track));
-                second_file
-                    .wpt
-                    .insert_at(0, file.wpt.iter().map(copy_waypoint).collect());
-
+                second_track
+                    .trkseg
+                    .extend(track.trkseg[seg + 1..].iter().map(copy_segment));
+                if self.split_type == SplitType::Tracks {
+                    file.trk.splice(trk..=trk, [first_track, second_track]);
+                    state.files.insert(file_id, Rc::new(file));
+                    return Ok(());
+                }
+                second_file.trk = [second_track]
+                    .into_iter()
+                    .chain(file.trk[trk + 1..].iter().map(copy_track))
+                    .collect();
                 file.trk.truncate(trk);
                 file.trk.push(first_track);
-                let position = state.order.0.iter().position(|id| *id == file_id);
-                state.order.0.insert(
-                    position.map_or(state.order.0.len(), |p| p + 1),
-                    second_file.id,
-                );
-                state.files.insert(second_file.id, Rc::new(second_file));
             }
         }
-        state.files.insert(file_id, Rc::new(file));
+
+        // the file is cut: both parts have the waypoints
+        second_file
+            .wpt
+            .insert_at(0, file.wpt.iter().map(copy_waypoint).collect());
+        let position = state.order.0.iter().position(|id| *id == file_id);
+        let at = position.map_or(state.order.0.len(), |p| p + 1);
+        if self.keep_originals {
+            // the parts are new files: nothing is shared by id with the file, nor between them
+            let first_file = copy_file(&file);
+            let ids = [first_file.id, second_file.id];
+            state.order.0.splice(at..at, ids);
+            state.files.insert(first_file.id, Rc::new(first_file));
+            state.files.insert(second_file.id, Rc::new(second_file));
+            *state.selection = Selection::File {
+                file_ids: ids.into(),
+            };
+        } else {
+            state.order.0.insert(at, second_file.id);
+            state.files.insert(second_file.id, Rc::new(second_file));
+            state.files.insert(file_id, Rc::new(file));
+        }
         Ok(())
     }
 }

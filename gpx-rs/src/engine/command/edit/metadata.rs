@@ -1,4 +1,6 @@
-use crate::{Apply, CommandError, Edit, Editor, File, State, Track, update_selected};
+use crate::{
+    Apply, CommandError, Edit, Editor, File, Route, State, Track, TrackInfo, update_selected,
+};
 
 #[derive(Debug)]
 pub struct Metadata<'a> {
@@ -13,21 +15,33 @@ impl Apply for Metadata<'_> {
     }
 }
 
+impl Metadata<'_> {
+    fn set(&self, info: &mut TrackInfo) -> Edit {
+        info.name = Some(self.name.to_owned());
+        info.desc = Some(self.desc.to_owned());
+        Edit::Changed
+    }
+}
+
 impl Editor for Metadata<'_> {
     fn file(&mut self, file: &mut File) -> Edit {
         file.info.name = self.name.to_owned();
         file.info.desc = Some(self.desc.to_owned());
-        // a single track is named like the file
-        if let [track] = file.trk.as_mut_slice() {
-            track.info.name = Some(self.name.to_owned());
+        // a single route or track is named like the file
+        match (file.rte.as_mut_slice(), file.trk.as_mut_slice()) {
+            ([route], []) => route.info.name = Some(self.name.to_owned()),
+            ([], [track]) => track.info.name = Some(self.name.to_owned()),
+            _ => {}
         }
         Edit::Changed
     }
 
+    fn route(&mut self, route: &mut Route) -> Edit {
+        self.set(&mut route.info)
+    }
+
     fn track(&mut self, track: &mut Track) -> Edit {
-        track.info.name = Some(self.name.to_owned());
-        track.info.desc = Some(self.desc.to_owned());
-        Edit::Changed
+        self.set(&mut track.info)
     }
 }
 
