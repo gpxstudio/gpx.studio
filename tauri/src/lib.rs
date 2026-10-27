@@ -226,6 +226,7 @@ fn register_commands<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::Bu
         disk::list_folder,
         disk::create_folder,
         disk::rename_path,
+        disk::rename_file,
         disk::move_paths,
         disk::delete_paths,
         // the system

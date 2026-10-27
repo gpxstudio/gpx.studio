@@ -50,6 +50,20 @@ impl App {
         }
     }
 
+    /// The error of a command that fails.
+    fn error(&self, cmd: &str, args: Value) -> Value {
+        let request = InvokeRequest {
+            cmd: cmd.into(),
+            callback: CallbackFn(0),
+            error: CallbackFn(1),
+            url: "tauri://localhost".parse().unwrap(),
+            body: InvokeBody::Json(args),
+            headers: Default::default(),
+            invoke_key: INVOKE_KEY.to_string(),
+        };
+        get_ipc_response(&self.0, request).expect_err(&format!("{cmd} did not fail"))
+    }
+
     fn bytes(&self, cmd: &str, args: Value) -> Vec<u8> {
         match self.request(cmd, InvokeBody::Json(args), Default::default()) {
             InvokeResponseBody::Raw(bytes) => bytes,
@@ -500,9 +514,9 @@ fn files_made_from_a_file_of_the_open_folder_are_written_next_to_it_at_once() {
         .values()
         .map(|file| file.path.clone().unwrap())
         .collect();
-    // the copy is in the subfolder, named after the file
+    // the copy is in the subfolder, named after its name (the one in the file, not of the file)
     assert!(
-        paths.iter().any(|path| path.ends_with("sub/track (2).gpx")),
+        paths.iter().any(|path| path.ends_with("sub/simple.gpx")),
         "{paths:?}"
     );
     // the new file went where the selected file is
@@ -536,8 +550,8 @@ fn the_parts_of_a_split_are_numbered_from_one() {
         .map(|entry| entry.file_name().to_string_lossy().into_owned())
         .collect();
     names.sort();
-    // the file stays, its two parts are numbered from 1
-    assert_eq!(names, ["track (1).gpx", "track (2).gpx", "track.gpx"]);
+    // the file stays, its two parts are numbered from 1, under their name (the one in the file)
+    assert_eq!(names, ["simple (1).gpx", "simple (2).gpx", "track.gpx"]);
     std::fs::remove_dir_all(folder).unwrap();
 }
 
@@ -581,8 +595,18 @@ fn name_of(app: &App, id: &str) -> String {
         .to_string()
 }
 
+/// The name of the file on the disk of an open file, without its extension.
+fn file_stem_of(app: &App, id: &str) -> String {
+    let path = app.call("workspace_state", json!({}))["files"][id]["path"].clone();
+    std::path::Path::new(path.as_str().unwrap())
+        .file_stem()
+        .unwrap()
+        .to_string_lossy()
+        .into_owned()
+}
+
 #[test]
-fn a_file_is_called_like_its_file_and_renaming_it_renames_the_file() {
+fn a_file_keeps_its_name_and_its_file_is_renamed_apart() {
     let app = App::new();
     let folder = folder_with(&["outside", "taken"]);
     let outcome = app.call(
@@ -590,76 +614,62 @@ fn a_file_is_called_like_its_file_and_renaming_it_renames_the_file() {
         json!({ "paths": [folder.join("outside.gpx")] }),
     );
     let id = outcome["added"][0].as_str().unwrap().to_string();
+    let dirty = |app: &App| app.call("workspace_state", json!({}))["files"][&id]["dirty"].clone();
+    let inside = |name: &str| std::fs::read_to_string(folder.join(format!("{name}.gpx"))).unwrap();
 
-    // the name in the file is not the name of the file: the file wins, and nothing is unsaved
-    assert_eq!(name_of(&app, &id), "outside");
-    assert_eq!(
-        app.call("workspace_state", json!({}))["files"][&id]["dirty"],
-        false
-    );
+    // the name in the file is its name, not the one of the file
+    assert_eq!(name_of(&app, &id), "Inside");
+    assert_eq!(file_stem_of(&app, &id), "outside");
+    assert_eq!(dirty(&app), false);
 
-    // renaming renames the file on the disk
+    // renaming it is an edit of the file only, which is undone
     app.call("select", json!({ "fileIds": [id], "mode": "replace" }));
     let outcome = app.call("metadata", json!({ "name": "renamed", "desc": "" }));
     assert!(outcome.get("error").is_none());
-    assert!(folder.join("renamed.gpx").exists());
-    assert!(!folder.join("outside.gpx").exists());
-    let path = app.call("workspace_state", json!({}))["files"][&id]["path"].clone();
-    assert!(path.as_str().unwrap().ends_with("renamed.gpx"));
-    // the file had nothing unsaved: it is written with its new name, and still has nothing unsaved
-    let dirty = |app: &App| app.call("workspace_state", json!({}))["files"][&id]["dirty"].clone();
-    let inside = |name: &str| std::fs::read_to_string(folder.join(format!("{name}.gpx"))).unwrap();
-    assert_eq!(dirty(&app), false);
-    assert!(inside("renamed").contains("<name>renamed</name>"));
-
-    // undone and redone, on the disk too, still with nothing unsaved
+    assert_eq!(name_of(&app, &id), "renamed");
+    assert_eq!(file_stem_of(&app, &id), "outside");
+    assert_eq!(dirty(&app), true);
     app.call("undo", json!({}));
-    assert_eq!(name_of(&app, &id), "outside");
-    assert!(folder.join("outside.gpx").exists() && !folder.join("renamed.gpx").exists());
-    assert_eq!(dirty(&app), false);
-    assert!(inside("outside").contains("<name>outside</name>"));
-    app.call("redo", json!({}));
-    assert_eq!(name_of(&app, &id), "renamed");
-    assert!(folder.join("renamed.gpx").exists() && !folder.join("outside.gpx").exists());
+    assert_eq!(name_of(&app, &id), "Inside");
     assert_eq!(dirty(&app), false);
 
-    // the name of another file is not taken, nothing changes
-    let outcome = app.call("metadata", json!({ "name": "taken", "desc": "" }));
-    assert_eq!(outcome["error"], crate::workspace::NAME_TAKEN);
-    assert_eq!(name_of(&app, &id), "renamed");
-    assert!(folder.join("renamed.gpx").exists());
+    // the file on the disk is renamed apart: not an edit, the file is as saved as it was
+    let renamed = app.call("rename_file", json!({ "fileId": id, "name": "moved" }));
+    assert_eq!(renamed, true);
+    assert!(folder.join("moved.gpx").exists() && !folder.join("outside.gpx").exists());
+    assert_eq!(file_stem_of(&app, &id), "moved");
+    assert_eq!(name_of(&app, &id), "Inside");
+    assert_eq!(dirty(&app), false);
+    assert_eq!(app.call("can_undo", json!({})), false);
+    // saving writes to the new place, under the name of the file
+    app.call("metadata", json!({ "name": "saved", "desc": "" }));
+    app.call("save_files", json!({ "fileIds": [id] }));
+    assert!(inside("moved").contains("<name>saved</name>"));
+    assert_eq!(name_of(&app, &id), "saved");
+
+    // the name of another file is not taken
+    let error = app.error("rename_file", json!({ "fileId": id, "name": "taken" }));
+    assert_eq!(error, crate::workspace::NAME_TAKEN);
+    assert!(folder.join("moved.gpx").exists());
 
     // a name is one that a file can have
-    app.call("metadata", json!({ "name": "a/b", "desc": "" }));
-    assert_eq!(name_of(&app, &id), "a_b");
+    app.call("rename_file", json!({ "fileId": id, "name": "a/b" }));
     assert!(folder.join("a_b.gpx").exists());
 
-    // a file with edits is renamed, but not written: its edits are not saved for it
-    app.call("style", json!({ "color": "#ff0000" }));
-    assert_eq!(dirty(&app), true);
-    app.call("metadata", json!({ "name": "edited", "desc": "" }));
-    assert!(folder.join("edited.gpx").exists());
-    assert_eq!(dirty(&app), true);
-    assert!(!inside("edited").contains("ff0000"));
-    app.call("undo", json!({}));
-    app.call("undo", json!({}));
-    assert_eq!(name_of(&app, &id), "a_b");
-    assert_eq!(dirty(&app), false);
-
     // only the case changes: the same file
-    app.call("metadata", json!({ "name": "A_B", "desc": "" }));
-    assert_eq!(name_of(&app, &id), "A_B");
+    app.call("rename_file", json!({ "fileId": id, "name": "A_B" }));
     let names: Vec<String> = std::fs::read_dir(&folder)
         .unwrap()
         .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
         .collect();
     assert!(names.contains(&"A_B.gpx".to_string()));
     assert_eq!(names.len(), 2);
+    assert_eq!(name_of(&app, &id), "saved");
     std::fs::remove_dir_all(folder).unwrap();
 }
 
 #[test]
-fn a_new_file_written_under_another_name_takes_it() {
+fn a_new_file_written_under_another_name_keeps_its_own() {
     let app = App::new();
     let folder = folder_with(&["route"]);
     // a new file made in the folder is written there at once: route.gpx is taken
@@ -669,7 +679,8 @@ fn a_new_file_written_under_another_name_takes_it() {
     );
     let id = created["added"][0].as_str().unwrap().to_string();
     assert!(folder.join("route (2).gpx").exists());
-    assert_eq!(name_of(&app, &id), "route (2)");
+    // the file keeps its name, whatever the name of the file it was written to
+    assert_eq!(name_of(&app, &id), "route");
     assert_eq!(
         app.call("workspace_state", json!({}))["files"][&id]["dirty"],
         false
@@ -698,7 +709,7 @@ fn a_file_open_as_a_preview_is_replaced_until_it_is_kept_or_edited() {
             .as_array()
             .unwrap()
             .iter()
-            .map(|id| name_of(app, id.as_str().unwrap()))
+            .map(|id| file_stem_of(app, id.as_str().unwrap()))
             .collect()
     };
 

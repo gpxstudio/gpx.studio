@@ -626,9 +626,21 @@ class Engine {
             .value;
     }
 
-    /** Renames a file or a folder of the open folder. Resolves to whether it was done. */
+    /**
+     * Renames a file or a folder of the open folder, on the disk only: an open file keeps its name.
+     * Resolves to whether it was done.
+     */
     async renamePath(path: string, name: string): Promise<boolean> {
-        return this.desktopRun((b) => b.desktop!.renamePath(path, name), true);
+        return (await this.desktopCall((desktop) => desktop.renamePath(path, name), true)).done;
+    }
+
+    /**
+     * Renames the file on the disk of an open file (the desktop app), which is not undoable: its
+     * name in the engine stays (see `metadata`). Resolves to whether it was done; nothing is done
+     * for a file that is not on the disk.
+     */
+    async renameFile(fileId: string, name: string): Promise<boolean> {
+        return (await this.desktopCall((desktop) => desktop.renameFile(fileId, name), true)).done;
     }
 
     /** Moves files and folders of the open folder into a folder of it. */

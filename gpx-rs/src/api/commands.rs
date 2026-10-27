@@ -205,8 +205,8 @@ pub fn load_files<H: History>(
 }
 
 /// Brings changes of the files from the outside in (see [`engine::SyncFiles`]): each file is
-/// `(id, data, name)`, and replaces the file of that id, or is added if there is none; it is called
-/// `name`, whatever its data says. The files to `remove` are deleted. The selection is left alone.
+/// `(id, data, name)`, and replaces the file of that id, or is added if there is none; `name` is
+/// its name when its data has none. The files to `remove` are deleted. The selection is left alone.
 pub fn sync_files<H: History>(
     engine: &mut Engine<H>,
     files: &[(Uuid, &[u8], &str)],

@@ -695,8 +695,8 @@ impl Workspace {
 
     /// Writes files to the disk, replacing what is there: they are the same as their file from
     /// then on. A file that is not on the disk goes in its folder, or at its path in `paths`, or in
-    /// `folder`, under its name (changed if that is the one of something else), which the file then
-    /// has (see `write_file`). Stops at the first error, the files that were written stay written.
+    /// `folder`, under its name (changed if that is the one of something else). Stops at the first
+    /// error, the files that were written stay written.
     pub fn save(
         &mut self,
         engine: &mut Engine,
@@ -725,8 +725,7 @@ impl Workspace {
 
     /// Writes the new files among `ids` in their folder, under their name. A name that is the one of
     /// something else is changed (`name (2)`). Files that would be called the same, like the parts
-    /// of a split, are numbered from 1 (`name (1)`, `name (2)`). The files are called like the file
-    /// they are written to.
+    /// of a split, are numbered from 1 (`name (1)`, `name (2)`). The files keep their name.
     pub fn save_new(&mut self, engine: &mut Engine, ids: &[Uuid]) -> Result<api::Outcome, String> {
         let names: Vec<Option<(Uuid, PathBuf, String)>> = ids
             .iter()
@@ -760,30 +759,6 @@ impl Workspace {
         Ok(outcome)
     }
 
-    /// The names of the files that are on the disk, and whether they are the files on the disk, to
-    /// tell which ones were renamed by an edit (see `follow_names`).
-    pub fn names(&self, engine: &Engine) -> BTreeMap<Uuid, (String, bool)> {
-        self.links
-            .keys()
-            .filter_map(|id| {
-                let name = engine.file_structure(&FileId(*id))?.name.clone();
-                Some((*id, (name, !self.is_dirty(engine, *id))))
-            })
-            .collect()
-    }
-
-    /// The name that a file can be given. A file on the disk is called like its file: the name is
-    /// one that a file can have (see `file_name`), and not the one of another file next to it
-    /// (`NAME_TAKEN`). The other files get theirs when they are written.
-    pub fn name_for(&self, id: Uuid, name: &str) -> Result<String, String> {
-        if !self.links.contains_key(&id) {
-            return Ok(name.to_owned());
-        }
-        let name = file_name(name);
-        self.renamed_path(id, &name)?;
-        Ok(name)
-    }
-
     /// Where a file on the disk goes when it is called `name`: next to where it is, with the same
     /// extension. `None` if it is there already, an error if something else is.
     fn renamed_path(&self, id: Uuid, name: &str) -> Result<Option<PathBuf>, String> {
@@ -813,49 +788,24 @@ impl Workspace {
         Ok(Some(path))
     }
 
-    /// Renames the files on the disk whose name changed in the engine since it had `before` (see
-    /// `names`): an edit of the name, or its undo, renames the file. A file that was the one on the
-    /// disk is written too, so that it still is: the rename is not something to save. A file with
-    /// edits is not, its edits are not saved for it. A file that cannot be renamed keeps its place,
-    /// with the reason in the errors. Says whether a file was renamed.
-    pub fn follow_names(
-        &mut self,
-        engine: &mut Engine,
-        before: &BTreeMap<Uuid, (String, bool)>,
-    ) -> (bool, Vec<String>) {
-        let mut renamed = false;
-        let mut errors = vec![];
-        for (id, (old, clean)) in before {
-            let Some(structure) = engine.file_structure(&FileId(*id)) else {
-                continue;
-            };
-            if structure.name == *old {
-                continue;
-            }
-            let path = match self.renamed_path(*id, &structure.name) {
-                Ok(Some(path)) => path,
-                Ok(None) => continue,
-                Err(error) => {
-                    errors.push(error);
-                    continue;
-                }
-            };
-            let link = self.links.get_mut(id).expect("the file is on the disk");
-            // a file that is gone is written at its new place when it is saved
-            if !link.missing
-                && let Err(error) = fs::rename(&link.path, &path)
-            {
+    /// Renames the file on the disk of an open file, next to where it is: the name is one that a
+    /// file can have (see `file_name`), and not the one of another file (`NAME_TAKEN`). It is not
+    /// an edit, nothing is undone; the file has the same content, so it is as saved as it was.
+    /// Nothing happens to a file that is not on the disk. Says whether it was renamed.
+    pub fn rename_file(&mut self, id: Uuid, name: &str) -> Result<bool, String> {
+        let Some(path) = self.renamed_path(id, name)? else {
+            return Ok(false);
+        };
+        let link = self.links.get_mut(&id).expect("the file is on the disk");
+        // a file that is gone is written at its new place when it is saved
+        if !link.missing {
+            fs::rename(&link.path, &path).map_err(|error| {
                 eprintln!("{} cannot be renamed: {error}", link.path.display());
-                errors.push(RENAME_FAILED.to_owned());
-                continue;
-            }
-            link.path = path.clone();
-            renamed = true;
-            if *clean && let Err(error) = self.write_file(engine, *id, &path) {
-                errors.push(error);
-            }
+                RENAME_FAILED.to_owned()
+            })?;
         }
-        (renamed, errors)
+        link.path = path;
+        Ok(true)
     }
 
     /// Writes a file to a path of the user's choice, which is the place of the file from then on.
@@ -873,30 +823,21 @@ impl Workspace {
         self.write_file(engine, id, path)
     }
 
-    /// Writes a file to `path`, which it is linked to from then on. It is called like the file it is
-    /// written to (a file has a single name), as if it always had been: that is not an edit to
-    /// undo. Says what changed in the engine.
+    /// Writes a file to `path`, which it is linked to from then on. Says what changed in the engine
+    /// (nothing: its name is its own, whatever the name of the file it is written to).
     fn write_file(
         &mut self,
         engine: &mut Engine,
         id: Uuid,
         path: &Path,
     ) -> Result<api::Outcome, String> {
-        let Some(structure) = engine.file_structure(&FileId(id)) else {
-            return Ok(api::Outcome::failed_none());
-        };
-        let name = stem(path);
-        let renamed = if structure.name != name {
-            api::rename_file(engine, id, &name)
-        } else {
-            api::Outcome::failed_none()
-        };
+        let unchanged = api::Outcome::failed_none();
         let Some(bytes) = api::export_file(engine, id, ExportOptions::ALL) else {
-            return Ok(renamed);
+            return Ok(unchanged);
         };
         write_atomically(path, &bytes).map_err(|error| format!("{}: {error}", path.display()))?;
         let Some(signature) = signature(engine, id) else {
-            return Ok(renamed);
+            return Ok(unchanged);
         };
         // the folder, if there is one, may watch what was just written: the hash tells it is known
         self.links.insert(
@@ -911,7 +852,7 @@ impl Workspace {
             },
         );
         self.dirs.remove(&id);
-        Ok(renamed)
+        Ok(unchanged)
     }
 
     /// The folders and the GPX files that are in a folder of the open folder (or in it), the
@@ -1026,8 +967,8 @@ impl Workspace {
         Ok(path)
     }
 
-    /// Renames a file or a folder of the tree that is not an open file (which is renamed in the
-    /// engine, see `follow_names`). A file keeps its extension. Gives the new path.
+    /// Renames a file or a folder of the tree. A file keeps its extension, and an open file keeps its
+    /// name (see `rename_file`). Gives the new path.
     pub fn rename_path(&mut self, path: &Path, name: &str) -> Result<PathBuf, String> {
         let path = self.tree_item(path)?;
         let name = file_name(name);

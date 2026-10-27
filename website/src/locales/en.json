@@ -100,6 +100,7 @@
             "name": "Name",
             "description": "Description",
             "save": "Save",
+            "rename_file": "Rename the file on disk",
             "name_taken": "A file with this name already exists in the folder.",
             "rename_failed": "The file could not be renamed."
         },

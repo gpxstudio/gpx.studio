@@ -14,7 +14,6 @@ use tauri::{AppHandle, Runtime, State};
 use tauri_plugin_dialog::{DialogExt, FilePath};
 use uuid::Uuid;
 
-use crate::commands::edit;
 use crate::state::AppState;
 use crate::workspace::{Entry, Unsaved, WorkspaceState, free_path};
 
@@ -386,28 +385,28 @@ pub fn create_folder(
     state.core(move |core| core.workspace.create_folder(&parent, &name))
 }
 
-/// Renames a file or a folder of the open folder. An open file is renamed like in its info (it is
-/// selected), which can be undone; the rest is renamed on the disk, and the open files that are in
-/// a folder that is renamed follow.
+/// Renames a file or a folder of the open folder, on the disk only: an open file keeps its name,
+/// and follows. Not undoable.
 #[tauri::command(async)]
-pub fn rename_path(
-    state: State<AppState>,
-    path: PathBuf,
-    name: String,
-) -> Result<api::Outcome, String> {
+pub fn rename_path(state: State<AppState>, path: PathBuf, name: String) -> Result<(), String> {
     state.core(move |core| {
-        if let Some(id) = core.workspace.linked(&path) {
-            let selected = api::select(&mut core.engine, &[id], gpx_engine::SelectMode::Replace);
-            let desc = core
-                .engine
-                .file_structure(&FileId(id))
-                .and_then(|structure| structure.desc.clone())
-                .unwrap_or_default();
-            return Ok(selected.merge(edit::rename_selection(core, name, desc)));
-        }
         core.workspace.rename_path(&path, &name)?;
         core.commit(None);
-        Ok(api::Outcome::failed_none())
+        Ok(())
+    })
+}
+
+/// Renames the file on the disk of an open file, next to where it is (see `Workspace::rename_file`).
+/// Not undoable, the name of the file in the engine is not changed. Says whether it was renamed:
+/// not for a file that is not on the disk.
+#[tauri::command(async)]
+pub fn rename_file(state: State<AppState>, file_id: Uuid, name: String) -> Result<bool, String> {
+    state.core(move |core| {
+        let renamed = core.workspace.rename_file(file_id, &name)?;
+        if renamed {
+            core.commit(None);
+        }
+        Ok(renamed)
     })
 }
 

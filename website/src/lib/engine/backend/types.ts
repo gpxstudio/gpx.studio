@@ -108,10 +108,15 @@ export interface DesktopFiles {
     /** Makes a folder in a folder of the open folder (numbered if the name is taken): its path. */
     createFolder(parent: string, name: string): Promise<string>;
     /**
-     * Renames a file or a folder of the open folder. An open file is renamed like in its info (it
-     * is selected), which can be undone.
+     * Renames a file or a folder of the open folder, on the disk only (an open file keeps its name).
+     * Not undoable.
      */
-    renamePath(path: string, name: string): Promise<Outcome>;
+    renamePath(path: string, name: string): Promise<void>;
+    /**
+     * Renames the file on the disk of an open file, next to where it is; its name in the engine
+     * stays. Not undoable. False for a file that is not on the disk.
+     */
+    renameFile(fileId: string, name: string): Promise<boolean>;
     /** Moves files and folders of the open folder into a folder of it. */
     movePaths(paths: string[], folder: string): Promise<void>;
     /**

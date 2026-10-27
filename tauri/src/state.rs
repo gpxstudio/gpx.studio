@@ -94,11 +94,8 @@ impl Core {
         self.commit(None);
     }
 
-    /// Runs `f` on the engine, which can change: what changed is kept, and the files on the disk are
-    /// renamed like the files of the engine were (an edit of the name, or its undo). Gives what
-    /// could not be renamed.
-    fn editing<T>(&mut self, f: impl FnOnce(&mut Engine) -> T) -> (T, Vec<String>) {
-        let names = self.workspace.names(&self.engine);
+    /// Runs `f` on the engine, which can change: what changed is kept.
+    fn editing<T>(&mut self, f: impl FnOnce(&mut Engine) -> T) -> T {
         let preview = self.workspace.preview;
         let preview_before = preview.and_then(|id| signature(&self.engine, id));
         let result = f(&mut self.engine);
@@ -107,32 +104,18 @@ impl Core {
         if let Some(id) = preview.filter(|_| kept) {
             self.workspace.keep(&[id]);
         }
-        let (renamed, errors) = self.workspace.follow_names(&mut self.engine, &names);
         // and it goes when something else is selected
         let dropped = self.workspace.drop_preview(&mut self.engine);
-        if kept || renamed || dropped.is_some() {
+        if kept || dropped.is_some() {
             self.commit(dropped.as_ref());
         } else {
             self.persist();
         }
-        (result, errors)
+        result
     }
 
-    /// Like `editing`, for an edit that can rename files: the outcome tells the first thing that
-    /// could not be renamed (a key of the dictionaries of the frontend, which shows it).
-    pub fn edit(&mut self, f: impl FnOnce(&mut Engine) -> api::Outcome) -> api::Outcome {
-        let (outcome, errors) = self.editing(f);
-        match errors.first() {
-            Some(error) if !outcome.has_error() => {
-                outcome.merge(api::Outcome::failed(error.clone()))
-            }
-            _ => outcome,
-        }
-    }
-
-    /// After files were written (`result`): what changed in the engine (the files are called like
-    /// the files they were written to) is kept and told, with where the files are. Says whether
-    /// they were written.
+    /// After files were written (`result`): what changed in the engine is kept and told, with where
+    /// the files are. Says whether they were written.
     pub fn wrote(&mut self, result: Result<api::Outcome, String>) -> Result<bool, String> {
         self.commit(result.as_ref().ok().filter(|outcome| outcome.changed));
         result.map(|_| true)
@@ -325,21 +308,7 @@ impl AppState {
 
     /// Runs `f` on the engine, which can change: what changed is kept (see `Core::editing`).
     pub fn run<T: Send + 'static>(&self, f: impl FnOnce(&mut Engine) -> T + Send + 'static) -> T {
-        self.core(move |core| {
-            let (result, errors) = core.editing(f);
-            for error in errors {
-                eprintln!("{error}");
-            }
-            result
-        })
-    }
-
-    /// Like `run`, for an edit that can rename files: the outcome tells what could not be renamed.
-    pub fn edit(
-        &self,
-        f: impl FnOnce(&mut Engine) -> api::Outcome + Send + 'static,
-    ) -> api::Outcome {
-        self.core(move |core| core.edit(f))
+        self.core(move |core| core.editing(f))
     }
 
     /// Reads from the engine.
