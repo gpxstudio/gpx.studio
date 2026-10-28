@@ -178,6 +178,7 @@ export class ElevationProfile {
                     tension: 0.4,
                     borderWidth: 2,
                     cubicInterpolationMode: 'monotone',
+                    spanGaps: true,
                 },
             },
             interaction: {
