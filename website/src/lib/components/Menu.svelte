@@ -293,19 +293,6 @@
                         <PaintBucket size="16" />
                         {i18n._('menu.style.button')}
                     </Menubar.Item>
-                    <Menubar.Item
-                        onclick={() => engine.setSelectionHidden(!$allHidden)}
-                        disabled={selectionCount == 0}
-                    >
-                        {#if $allHidden}
-                            <Eye size="16" />
-                            {i18n._('menu.unhide')}
-                        {:else}
-                            <EyeOff size="16" />
-                            {i18n._('menu.hide')}
-                        {/if}
-                        <Shortcut key="H" ctrl={true} />
-                    </Menubar.Item>
                     {#if $treeFileView}
                         {#if $selection.type === 'file'}
                             <Menubar.Separator />
@@ -352,18 +339,6 @@
                         <FileStack size="16" />
                         {i18n._('menu.select_all')}
                         <Shortcut key="A" ctrl={true} />
-                    </Menubar.Item>
-                    <Menubar.Item
-                        onclick={() => {
-                            if (selectionCount > 0) {
-                                boundsManager.centerMapOnSelection();
-                            }
-                        }}
-                        disabled={selectionCount == 0}
-                    >
-                        <Maximize size="16" />
-                        {i18n._('menu.center')}
-                        <Shortcut key="⏎" ctrl={true} />
                     </Menubar.Item>
                     {#if $treeFileView}
                         <Menubar.Separator />
@@ -428,6 +403,34 @@
                             key="F4"
                         />
                     </Menubar.CheckboxItem>
+                    <Menubar.Separator />
+                    <Menubar.Item
+                        inset
+                        onclick={() => engine.setSelectionHidden(!$allHidden)}
+                        disabled={selectionCount == 0}
+                    >
+                        {#if $allHidden}
+                            <Eye size="16" />
+                            {i18n._('menu.unhide')}
+                        {:else}
+                            <EyeOff size="16" />
+                            {i18n._('menu.hide')}
+                        {/if}
+                        <Shortcut key="H" ctrl={true} />
+                    </Menubar.Item>
+                    <Menubar.Item
+                        inset
+                        onclick={() => {
+                            if (selectionCount > 0) {
+                                boundsManager.centerMapOnSelection();
+                            }
+                        }}
+                        disabled={selectionCount == 0}
+                    >
+                        <Maximize size="16" />
+                        {i18n._('menu.center')}
+                        <Shortcut key="⏎" ctrl={true} />
+                    </Menubar.Item>
                     <Menubar.Separator />
                     <Menubar.Item inset onclick={() => map.toggle3D()}>
                         <Box size="16" />

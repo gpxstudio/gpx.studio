@@ -3,7 +3,7 @@ title: Edit actions
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from '@lucide/svelte';
+    import { Undo2, Redo2, Info, PaintBucket, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Plus } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -26,10 +26,6 @@ Open the information dialog of the currently selected file item, where you can s
 ### <PaintBucket size="16" class="inline-block" style="margin-bottom: 2px" /> Appearance...
 
 Open the appearance dialog, where you can change the color, opacity, and width of the selected file items on the map.
-
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
-
-Toggle the visibility of the selected file items on the map.
 
 ### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New track
 
@@ -56,10 +52,6 @@ Additionally, the selection must be a single track.
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Select all
 
 Add all file items in the current hierarchy level to the selection.
-
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
-
-Center the map on the selected file items.
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copy
 

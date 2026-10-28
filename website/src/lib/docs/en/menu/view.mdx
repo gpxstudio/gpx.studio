@@ -3,7 +3,7 @@ title: View options
 ---
 
 <script lang="ts">
-    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, Box, Maximize2 } from '@lucide/svelte';
+    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, EyeOff, Maximize, Box, Maximize2 } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -37,6 +37,14 @@ They are displayed for the current selection, like the [elevation profile](../fi
 ### <Milestone size="16" class="inline-block" style="margin-bottom: 2px" /> Direction arrows
 
 Toggle the visibility of direction arrows on the map.
+
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
+
+Toggle the visibility of the selected file items on the map.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+
+Center the map on the selected file items.
 
 ### <Box size="16" class="inline-block" style="margin-bottom: 2px" /> Toggle 3D
 

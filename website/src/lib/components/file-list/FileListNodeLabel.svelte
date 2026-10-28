@@ -259,18 +259,8 @@
                 <PaintBucket size="16" />
                 {i18n._('menu.style.button')}
             </ContextMenu.Item>
+            <ContextMenu.Separator />
         {/if}
-        <ContextMenu.Item onclick={() => engine.setSelectionHidden(!$allHidden)}>
-            {#if $allHidden}
-                <Eye size="16" />
-                {i18n._('menu.unhide')}
-            {:else}
-                <EyeOff size="16" />
-                {i18n._('menu.hide')}
-            {/if}
-            <Shortcut key="H" ctrl={true} />
-        </ContextMenu.Item>
-        <ContextMenu.Separator />
         {#if orientation === 'vertical'}
             {#if node.type === 'file'}
                 <ContextMenu.Item disabled={!singleSelection} onclick={() => engine.newTrack()}>
@@ -301,18 +291,29 @@
                 <ContextMenu.Separator />
             {/if}
         {/if}
+        <ContextMenu.Item onclick={() => engine.setSelectionHidden(!$allHidden)}>
+            {#if $allHidden}
+                <Eye size="16" />
+                {i18n._('menu.unhide')}
+            {:else}
+                <EyeOff size="16" />
+                {i18n._('menu.hide')}
+            {/if}
+            <Shortcut key="H" ctrl={true} />
+        </ContextMenu.Item>
+        <ContextMenu.Item onclick={() => boundsManager.centerMapOnSelection()}>
+            <Maximize size="16" />
+            {i18n._('menu.center')}
+            <Shortcut key="⏎" ctrl={true} />
+        </ContextMenu.Item>
         {#if level !== 'waypoints'}
+            <ContextMenu.Separator />
             <ContextMenu.Item onclick={() => engine.selectAll()}>
                 <FileStack size="16" />
                 {i18n._('menu.select_all')}
                 <Shortcut key="A" ctrl={true} />
             </ContextMenu.Item>
         {/if}
-        <ContextMenu.Item onclick={() => boundsManager.centerMapOnSelection()}>
-            <Maximize size="16" />
-            {i18n._('menu.center')}
-            <Shortcut key="⏎" ctrl={true} />
-        </ContextMenu.Item>
         <ContextMenu.Separator />
         <ContextMenu.Item onclick={() => engine.duplicate()}>
             <Copy size="16" />
