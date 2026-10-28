@@ -402,9 +402,10 @@ fn write_point(
                         Ok(())
                     })?;
             }
+            // `PowerInWatts` is itself the root element of Garmin's power extension, without a
+            // wrapper
             if let Some(power) = power {
-                w.create_element("gpxpx:PowerExtension")
-                    .write_inner_content(|w| number(w, "gpxpx:PowerInWatts", power))?;
+                number(w, "gpxpx:PowerInWatts", power)?;
             }
             if !path.is_empty() {
                 w.create_element("gpxx:RoutePointExtension")
@@ -511,6 +512,7 @@ mod tests {
             "with_temp",
             "with_power_1",
             "with_power_2",
+            "with_power_3",
             "with_surface",
             "with_highway",
             "with_style",
@@ -576,6 +578,16 @@ mod tests {
         let again = parse(&written, &mut categories).unwrap();
         assert_eq!(again.info.name, "a <b> & c");
         assert_eq!(again.trk[0].info.name.as_deref(), Some("a <b> & c"));
+    }
+
+    #[test]
+    fn test_power_is_written_without_a_wrapper() {
+        let (file, categories) = read("with_power_2");
+        let text: String = written_text(&file, &categories, ExportOptions::ALL)
+            .split_whitespace()
+            .collect();
+        assert!(text.contains("<extensions><gpxpx:PowerInWatts>200</gpxpx:PowerInWatts>"));
+        assert!(!text.contains("<gpxpx:PowerExtension>"));
     }
 
     #[test]

@@ -1223,6 +1223,19 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_trackpoint_power_3() {
+        let gpx = parse_data("with_power_3");
+
+        assert_eq!(gpx.trk.len(), 1);
+        let trk = &gpx.trk[0];
+        assert_eq!(trk.trkseg.len(), 1);
+        let trkseg = &trk.trkseg[0];
+        assert!(!trkseg.is_empty());
+        let trkpt = &trkseg[0];
+        assert!(trkpt.power.is_some_and(|p| p == 200));
+    }
+
+    #[test]
     fn test_parse_trackpoint_atemp() {
         let gpx = parse_data("with_temp");
 
