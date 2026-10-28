@@ -23,7 +23,7 @@ import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 
 export function getSvgForSymbol(symbol?: string | undefined, layerColor?: string | undefined) {
-    let symbolSvg = symbol ? symbols[symbol]?.iconSvg : undefined;
+    const symbolSvg = symbol ? symbols[symbol]?.iconSvg : undefined;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
     ${
         layerColor
@@ -63,7 +63,7 @@ export class GPXLayer {
     currentWaypointData: GeoJSON.FeatureCollection | null = null;
     draggedWaypointIndex: number | null = null;
     draggingStartingPosition: Point = new Point(0, 0);
-    unsubscribe: Function[] = [];
+    unsubscribe: (() => void)[] = [];
 
     updateBinded: () => void = this.update.bind(this);
     layerOnMouseEnterBinded: (e: any) => void = this.layerOnMouseEnter.bind(this);
@@ -101,7 +101,7 @@ export class GPXLayer {
         this.unsubscribe.push(
             engine.selection.subscribe(($selection) => {
                 this.selectionState = $selection;
-                let newSelected = hasSelectionWithin($selection, this.fileNode());
+                const newSelected = hasSelectionWithin($selection, this.fileNode());
                 if (this.selected || newSelected) {
                     this.selected = newSelected;
                     this.update();
@@ -146,7 +146,7 @@ export class GPXLayer {
         this.loadIcons();
 
         try {
-            let source = _map.getSource(this.fileId) as GeoJSONSource | undefined;
+            const source = _map.getSource(this.fileId) as GeoJSONSource | undefined;
             if (source) {
                 source.setData(this.getGeoJSON());
             } else {
@@ -234,7 +234,7 @@ export class GPXLayer {
                 }
             }
 
-            let waypointSource = _map.getSource(this.fileId + '-waypoints') as
+            const waypointSource = _map.getSource(this.fileId + '-waypoints') as
                 | GeoJSONSource
                 | undefined;
             this.currentWaypointData = this.getWaypointsGeoJSON();
@@ -301,7 +301,7 @@ export class GPXLayer {
                 ['in', ['get', 'waypointIndex'], ['literal', visibleWaypoints]],
                 { validate: false }
             );
-        } catch (e) {
+        } catch {
             // No reliable way to check if the map is ready to add sources and layers
             return;
         }
@@ -584,7 +584,7 @@ export class GPXLayer {
             this.currentWaypointData!.features[this.draggedWaypointIndex].geometry as GeoJSON.Point
         ).coordinates = [e.lngLat.lng, e.lngLat.lat];
 
-        let waypointSource = get(map)?.getSource(this.fileId + '-waypoints') as
+        const waypointSource = get(map)?.getSource(this.fileId + '-waypoints') as
             | GeoJSONSource
             | undefined;
         if (waypointSource) {
@@ -698,7 +698,7 @@ export class GPXLayer {
             return;
         }
 
-        let symbols = new Set<string | undefined>();
+        const symbols = new Set<string | undefined>();
         get(this.file).waypoints.features.forEach((feature) => {
             symbols.add(getSymbolKey(feature.properties.sym));
         });

@@ -77,9 +77,11 @@
         </div>
         <ScrollArea class="flex flex-col max-h-[30dvh]">
             {#if waypoint.item.desc}
+                <!-- eslint-disable-next-line svelte/no-at-html-tags -- sanitized -->
                 <span class="whitespace-pre-wrap">{@html sanitize(waypoint.item.desc)}</span>
             {/if}
             {#if waypoint.item.cmt && waypoint.item.cmt !== waypoint.item.desc}
+                <!-- eslint-disable-next-line svelte/no-at-html-tags -- sanitized -->
                 <span class="whitespace-pre-wrap">{@html sanitize(waypoint.item.cmt)}</span>
             {/if}
         </ScrollArea>

@@ -36,10 +36,10 @@ export class MapCursor {
     constructor() {
         this._states = writable(new Set());
         this._states.subscribe((states) => {
-            let state = Array.from(states.values()).reduce((max, value) => {
+            const state = Array.from(states.values()).reduce((max, value) => {
                 return value > max ? value : max;
             }, MapCursorState.DEFAULT);
-            let canvas = get(map)?.getCanvas();
+            const canvas = get(map)?.getCanvas();
             if (canvas) {
                 canvas.style.cursor = cursorStyles[state];
             }

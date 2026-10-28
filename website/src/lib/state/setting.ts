@@ -126,7 +126,7 @@ export function getArrayValidator<V>(allowed: V[]) {
 
 export function getLayerValidator(allowed: Record<string, any>, fallback: string) {
     return (layer: string) =>
-        allowed.hasOwnProperty(layer) ||
+        Object.hasOwn(allowed, layer) ||
         layer.startsWith('custom-') ||
         layer.startsWith('extension-')
             ? layer

@@ -96,10 +96,10 @@ function createPattern(
     size: number = 16,
     lineWidth: number = 4
 ) {
-    let canvas = document.createElement('canvas');
+    const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
-    let ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d');
     if (ctx) {
         ctx.fillStyle = backgroundColor;
         ctx.fillRect(0, 0, size, size);
@@ -139,11 +139,11 @@ export function getHighwayColor(
     sacScale: string | undefined,
     mtbScale: string | undefined
 ) {
-    let backgroundColor = highwayColors[highway] ? highwayColors[highway] : highwayColors.missing;
-    let sacScaleColor = sacScale ? sacScaleColors[sacScale] : undefined;
-    let mtbScaleColor = mtbScale ? mtbScaleColors[mtbScale] : undefined;
+    const backgroundColor = highwayColors[highway] ? highwayColors[highway] : highwayColors.missing;
+    const sacScaleColor = sacScale ? sacScaleColors[sacScale] : undefined;
+    const mtbScaleColor = mtbScale ? mtbScaleColors[mtbScale] : undefined;
     if (sacScale || mtbScale) {
-        let patternId = `${backgroundColor}-${[sacScale, mtbScale].filter((x) => x).join('-')}`;
+        const patternId = `${backgroundColor}-${[sacScale, mtbScale].filter((x) => x).join('-')}`;
         if (!patterns[patternId]) {
             patterns[patternId] = createPattern(backgroundColor, sacScaleColor, mtbScaleColor);
         }
@@ -164,8 +164,8 @@ export function getSlopeColor(slope: number): string {
     v = 1 / (1 + Math.exp(-6 * v));
     v = v - 0.5;
 
-    let hue = ((0.5 - v) * 120).toString(10);
-    let lightness = 90 - Math.abs(v) * 70;
+    const hue = ((0.5 - v) * 120).toString(10);
+    const lightness = 90 - Math.abs(v) * 70;
 
     return `hsl(${hue},70%,${lightness}%)`;
 }

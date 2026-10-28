@@ -100,7 +100,7 @@ export class StartEndMarkers {
                 });
             }
 
-            let source = map_.getSource('start-end-markers') as GeoJSONSource | undefined;
+            const source = map_.getSource('start-end-markers') as GeoJSONSource | undefined;
             if (source) {
                 source.setData(data);
             } else {

@@ -148,7 +148,7 @@ export class ElevationProfile {
     }
 
     initialize() {
-        let options: ChartOptions<'line'> = {
+        const options: ChartOptions<'line'> = {
             animation: false,
             parsing: false,
             maintainAspectRatio: false,
@@ -199,7 +199,7 @@ export class ElevationProfile {
                             return '';
                         },
                         label: (context: TooltipItem<'line'>) => {
-                            let point = context.raw as ElevationProfilePoint;
+                            const point = context.raw as ElevationProfilePoint;
                             if (context.datasetIndex === 0) {
                                 this._hoveredPoint.set(
                                     this._dragging
@@ -223,16 +223,18 @@ export class ElevationProfile {
                             }
                         },
                         afterBody: (contexts: TooltipItem<'line'>[]) => {
-                            let context = contexts.filter((context) => context.datasetIndex === 0);
+                            const context = contexts.filter(
+                                (context) => context.datasetIndex === 0
+                            );
                             if (context.length === 0) return;
-                            let point = context[0].raw as ElevationProfilePoint;
+                            const point = context[0].raw as ElevationProfilePoint;
                             // the rest of the data is there once it is read (see `hover`)
                             const hovered = this._hovered;
                             const details =
                                 hovered?.index === point.index ? hovered.point : undefined;
                             const elevationFill = get(this._elevationFill);
 
-                            let labels = [
+                            const labels = [
                                 `    ${i18n._('quantities.distance')}: ${getDistanceWithUnits(point.x, false)}`,
                             ];
 
@@ -250,10 +252,10 @@ export class ElevationProfile {
                                 }
                                 labels.push(`    ${i18n._('quantities.slope')}: ${slope}`);
                             }
-                            let surface = details.surface ?? 'unknown';
-                            let highway = details.highway ?? 'unknown';
-                            let sacScale = details.sacScale;
-                            let mtbScale = details.mtbScale;
+                            const surface = details.surface ?? 'unknown';
+                            const highway = details.highway ?? 'unknown';
+                            const sacScale = details.sacScale;
+                            const mtbScale = details.mtbScale;
 
                             if (elevationFill === 'surface') {
                                 labels.push(
@@ -305,7 +307,7 @@ export class ElevationProfile {
                             enabled: true,
                         },
                         mode: 'x',
-                        onZoomStart: ({ chart, event }: { chart: Chart; event: any }) => {
+                        onZoomStart: ({ event }: { event: any }) => {
                             if (!this._chart) {
                                 return false;
                             }
@@ -335,7 +337,7 @@ export class ElevationProfile {
             },
         };
 
-        let datasets: string[] = ['speed', 'hr', 'cad', 'atemp', 'power'];
+        const datasets: string[] = ['speed', 'hr', 'cad', 'atemp', 'power'];
         datasets.forEach((id) => {
             options.scales![`y${id}`] = {
                 type: 'linear',
@@ -580,11 +582,11 @@ export class ElevationProfile {
         }
 
         const additionalDatasets = get(this._additionalDatasets);
-        let includeSpeed = additionalDatasets.includes('speed');
-        let includeHeartRate = additionalDatasets.includes('hr');
-        let includeCadence = additionalDatasets.includes('cad');
-        let includeTemperature = additionalDatasets.includes('atemp');
-        let includePower = additionalDatasets.includes('power');
+        const includeSpeed = additionalDatasets.includes('speed');
+        const includeHeartRate = additionalDatasets.includes('hr');
+        const includeCadence = additionalDatasets.includes('cad');
+        const includeTemperature = additionalDatasets.includes('atemp');
+        const includePower = additionalDatasets.includes('power');
         if (this._chart.data.datasets.length == 6) {
             this._chart.data.datasets[1].hidden = !includeSpeed;
             this._chart.data.datasets[2].hidden = !includeHeartRate;
@@ -639,21 +641,21 @@ export class ElevationProfile {
 
         const slicedStatistics = get(this._slicedStatistics);
         if (slicedStatistics) {
-            let startIndex = slicedStatistics.start;
-            let endIndex = slicedStatistics.end;
+            const startIndex = slicedStatistics.start;
+            const endIndex = slicedStatistics.end;
 
             // Draw selection rectangle
-            let selectionContext = this._overlay.getContext('2d');
+            const selectionContext = this._overlay.getContext('2d');
             if (selectionContext) {
                 selectionContext.fillStyle = mode.current === 'dark' ? 'white' : 'black';
                 selectionContext.globalAlpha = mode.current === 'dark' ? 0.2 : 0.1;
                 selectionContext.clearRect(0, 0, this._overlay.width, this._overlay.height);
 
                 const statistics = get(this._statistics);
-                let startPixel = this._chart.scales.x.getPixelForValue(
+                const startPixel = this._chart.scales.x.getPixelForValue(
                     getConvertedDistance(statistics.totalDistance[startIndex] ?? 0)
                 );
-                let endPixel = this._chart.scales.x.getPixelForValue(
+                const endPixel = this._chart.scales.x.getPixelForValue(
                     getConvertedDistance(statistics.totalDistance[endIndex] ?? 0)
                 );
 
@@ -665,7 +667,7 @@ export class ElevationProfile {
                 );
             }
         } else if (this._overlay) {
-            let selectionContext = this._overlay.getContext('2d');
+            const selectionContext = this._overlay.getContext('2d');
             if (selectionContext) {
                 selectionContext.clearRect(0, 0, this._overlay.width, this._overlay.height);
             }

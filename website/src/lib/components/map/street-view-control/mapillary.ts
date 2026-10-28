@@ -89,7 +89,7 @@ export class MapillaryLayer {
         this.viewer.on('position', async () => {
             if (this.active) {
                 popupOpen.value = true;
-                let latLng = await this.viewer.getPosition();
+                const latLng = await this.viewer.getPosition();
                 this.marker.setLngLat(latLng).addTo(this.map);
                 if (!this.map.getBounds()?.contains(latLng)) {
                     this.map.panTo(latLng);

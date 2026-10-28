@@ -132,7 +132,6 @@
     <div class="flex flex-col h-full">
         <div class="px-2 py-1 text-sm font-semibold shrink-0">{i18n._('menu.explorer')}</div>
         <ScrollArea class="grow min-h-0">
-            <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
             <div
                 bind:this={container}
                 data-explorer

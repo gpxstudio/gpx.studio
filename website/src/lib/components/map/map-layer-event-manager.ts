@@ -235,7 +235,7 @@ export class MapLayerEventManager {
 
     private _filterLayersIntersectingBounds(layerIds: string[], bounds: LngLatBounds): string[] {
         const files = get(engine.files);
-        let result = layerIds.filter((layerId) => {
+        const result = layerIds.filter((layerId) => {
             if (!this._map.getLayer(layerId)) return false;
             const fileId = layerId.replace('-waypoints', '');
             if (fileId === layerId) {

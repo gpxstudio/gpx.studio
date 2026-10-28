@@ -137,7 +137,7 @@ async function getGraphHopperRoute(
     graphHopperProfile: string,
     privateRoads: boolean
 ): Promise<RoutedPoints> {
-    let response = await fetch('https://graphhopper.gpx.studio/route', {
+    const response = await fetch('https://graphhopper.gpx.studio/route', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -222,9 +222,9 @@ async function getBRouterRoute(
     points: Coordinates[],
     brouterProfile: string
 ): Promise<RoutedPoints> {
-    let url = `https://brouter.de/brouter?lonlats=${points.map((point) => `${point.lng.toFixed(8)},${point.lat.toFixed(8)}`).join('|')}&profile=${brouterProfile}&format=geojson&alternativeidx=0`;
+    const url = `https://brouter.de/brouter?lonlats=${points.map((point) => `${point.lng.toFixed(8)},${point.lat.toFixed(8)}`).join('|')}&profile=${brouterProfile}&format=geojson&alternativeidx=0`;
 
-    let response = await fetch(url);
+    const response = await fetch(url);
 
     if (!response.ok) {
         throw brouterError(await response.text());
@@ -289,11 +289,10 @@ export function parseBRouterRoute(geojson: any): RoutedPoints {
 /** The tags of a way, `key=value` separated by spaces, with the `:` of the keys as `_`. */
 export function getTags(message: string): { [key: string]: string } {
     const fields = message.split(' ');
-    let tags: { [key: string]: string } = {};
+    const tags: { [key: string]: string } = {};
     for (let i = 0; i < fields.length; i++) {
-        let [key, value] = fields[i].split('=');
-        key = key.replace(/:/g, '_');
-        tags[key] = value;
+        const [key, value] = fields[i].split('=');
+        tags[key.replace(/:/g, '_')] = value;
     }
     return tags;
 }

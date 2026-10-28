@@ -10,7 +10,6 @@ import {
     defaultTerrainSource,
     overpassTree,
     type CustomLayer,
-    type LayerTreeType,
 } from '$lib/data/layers';
 import { browser } from '$app/environment';
 import type { DistanceUnits, TemperatureUnits, VelocityUnits } from '$lib/units/conversions';

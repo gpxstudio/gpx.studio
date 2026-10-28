@@ -45,7 +45,7 @@
 
     function setOpacityFromSelection() {
         if (selectedOverlay) {
-            if ($opacities.hasOwnProperty(selectedOverlay)) {
+            if (Object.hasOwn($opacities, selectedOverlay)) {
                 overlayOpacity = $opacities[selectedOverlay];
             } else {
                 overlayOpacity = 1;
@@ -169,7 +169,7 @@
                                             {#if isSelected($selectedOverlayTree, selectedOverlay)}
                                                 {#if $isLayerFromExtension(selectedOverlay)}
                                                     {$getLayerName(selectedOverlay)}
-                                                {:else if $customLayers.hasOwnProperty(selectedOverlay)}
+                                                {:else if Object.hasOwn($customLayers, selectedOverlay)}
                                                     {$customLayers[selectedOverlay].name}
                                                 {:else}
                                                     {i18n._(`layers.label.${selectedOverlay}`)}
@@ -218,7 +218,7 @@
                                                         if ($map.getLayer(selectedOverlay)) {
                                                             $map.removeLayer(selectedOverlay);
                                                         }
-                                                    } catch (e) {
+                                                    } catch {
                                                         // No reliable way to check if the map is ready to remove sources and layers
                                                     }
                                                 }

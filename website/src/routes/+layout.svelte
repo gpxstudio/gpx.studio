@@ -40,7 +40,7 @@
             if (page.params.language) {
                 let lang = page.params.language.replace('/', '');
                 if (i18n.lang !== lang) {
-                    if (languages.hasOwnProperty(lang)) {
+                    if (Object.hasOwn(languages, lang)) {
                         i18n.lang = lang;
                     } else if (browser) {
                         goto(`${base}/404`);

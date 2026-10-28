@@ -136,7 +136,7 @@
 
     function getLayerId() {
         for (let id = 0; ; id++) {
-            if (!$customLayers.hasOwnProperty(`custom-${id}`)) {
+            if (!Object.hasOwn($customLayers, `custom-${id}`)) {
                 return `custom-${id}`;
             }
         }
@@ -145,7 +145,7 @@
     function addLayer(layerId: string) {
         if (layerType === 'basemap') {
             selectedBasemapTree.update(($tree) => {
-                if (!$tree.basemaps.hasOwnProperty('custom')) {
+                if (!Object.hasOwn($tree.basemaps, 'custom')) {
                     $tree.basemaps['custom'] = {};
                 }
                 $tree.basemaps['custom'][layerId] = true;
@@ -161,7 +161,7 @@
             }
         } else {
             selectedOverlayTree.update(($tree) => {
-                if (!$tree.overlays.hasOwnProperty('custom')) {
+                if (!Object.hasOwn($tree.overlays, 'custom')) {
                     $tree.overlays['custom'] = {};
                 }
                 $tree.overlays['custom'][layerId] = true;
@@ -169,7 +169,7 @@
             });
 
             currentOverlays.update(($overlays) => {
-                if (!$overlays.overlays.hasOwnProperty('custom')) {
+                if (!Object.hasOwn($overlays.overlays, 'custom')) {
                     $overlays.overlays['custom'] = {};
                 }
                 $overlays.overlays['custom'][layerId] = true;
@@ -183,7 +183,7 @@
     }
 
     function tryDeleteLayer(node: any, id: string): any {
-        if (node.hasOwnProperty(id)) {
+        if (Object.hasOwn(node, id)) {
             delete node[id];
         }
         return node;
@@ -365,7 +365,7 @@
                 <Label for="name">{i18n._('menu.metadata.name')}</Label>
                 <Input bind:value={name} id="name" class="h-8" />
                 <Label for="url">{i18n._('layers.custom_layers.urls')}</Label>
-                {#each tileUrls as url, i}
+                {#each tileUrls as _, i}
                     <div class="flex flex-row gap-2">
                         <Input
                             bind:value={tileUrls[i]}

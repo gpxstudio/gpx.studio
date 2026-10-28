@@ -3,14 +3,14 @@ import { guides } from '$lib/components/docs/docs';
 import type { EntryGenerator } from './$types';
 
 export const entries: EntryGenerator = () => {
-    let entries = [];
-    for (let lang of Object.keys(languages)) {
-        for (let guide of Object.keys(guides)) {
+    const entries = [];
+    for (const lang of Object.keys(languages)) {
+        for (const guide of Object.keys(guides)) {
             entries.push({
                 language: lang == 'en' ? '' : lang,
                 guide,
             });
-            for (let subguide of guides[guide]) {
+            for (const subguide of guides[guide]) {
                 entries.push({
                     language: lang == 'en' ? '' : lang,
                     guide: `${guide}/${subguide}`,

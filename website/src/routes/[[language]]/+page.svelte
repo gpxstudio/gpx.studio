@@ -145,7 +145,7 @@
                             {elevationFill}
                         />
                     </div>
-                    <GPXStatistics {statistics} {slicedStatistics} orientation={'horizontal'} />
+                    <GPXStatistics {statistics} {slicedStatistics} orientation="horizontal" />
                 </div>
             </div>
             <div class="grid md:grid-rows-subgrid md:row-start-3 md:row-end-5 gap-4">

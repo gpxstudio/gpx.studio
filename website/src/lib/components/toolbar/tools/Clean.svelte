@@ -92,7 +92,7 @@
         }
     }
 
-    function onMouseUp(e: any) {
+    function onMouseUp() {
         mousedown = false;
     }
 

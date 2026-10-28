@@ -107,9 +107,9 @@ impl Apply for Convert {
                     Err(CommandError::NothingToDo)
                 };
             }
-            Selection::Empty
-            | Selection::Waypoints { .. }
-            | Selection::Waypoint { .. } => return Err(CommandError::NothingToDo),
+            Selection::Empty | Selection::Waypoints { .. } | Selection::Waypoint { .. } => {
+                return Err(CommandError::NothingToDo);
+            }
         };
         let empty = match &next {
             Selection::Route { rte_ids, .. } => rte_ids.is_empty(),

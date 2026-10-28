@@ -19,7 +19,7 @@ export class BoundsManager {
                     this.fitBoundsOnLoad(Array.from(newFiles.keys()));
                 }
             },
-            (fileId) => {},
+            () => {},
             () => {}
         );
     }
@@ -40,7 +40,7 @@ export class BoundsManager {
                     }
                 });
             },
-            (fileId) => {},
+            () => {},
             () => {}
         );
     }
@@ -51,7 +51,7 @@ export class BoundsManager {
         this._files.delete(fileId);
 
         if (file.statistics.bounds) {
-            let bounds = new LngLatBounds([
+            const bounds = new LngLatBounds([
                 file.statistics.bounds.west,
                 file.statistics.bounds.south,
                 file.statistics.bounds.east,

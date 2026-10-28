@@ -86,7 +86,7 @@ export class OverpassLayer {
         };
 
         try {
-            let source = this.map.getSource('overpass') as GeoJSONSource | undefined;
+            const source = this.map.getSource('overpass') as GeoJSONSource | undefined;
             if (source) {
                 source.setData(d);
             } else {
@@ -115,7 +115,7 @@ export class OverpassLayer {
                 this.layerEventManager.on('mouseenter', 'overpass', this.onHoverBinded);
                 this.layerEventManager.on('click', 'overpass', this.onHoverBinded);
             }
-        } catch (e) {
+        } catch {
             // No reliable way to check if the map is ready to add sources and layers
         }
     }
@@ -135,7 +135,7 @@ export class OverpassLayer {
             if (this.map.getSource('overpass')) {
                 this.map.removeSource('overpass');
             }
-        } catch (e) {
+        } catch {
             // No reliable way to check if the map is ready to remove sources and layers
         }
     }
@@ -151,12 +151,12 @@ export class OverpassLayer {
     }
 
     query(bbox: [number, number, number, number]) {
-        let queries = getCurrentQueries();
+        const queries = getCurrentQueries();
         if (queries.length === 0) {
             return;
         }
 
-        let tileLimits = mercator.xyz(bbox, this.queryZoom);
+        const tileLimits = mercator.xyz(bbox, this.queryZoom);
 
         for (let x = tileLimits.minX; x <= tileLimits.maxX; x++) {
             for (let y = tileLimits.minY; y <= tileLimits.maxY; y++) {
@@ -189,8 +189,8 @@ export class OverpassLayer {
         }
 
         this.data.update((updatedData) => {
-            for (let element of data.elements) {
-                for (let query of queries) {
+            for (const element of data.elements) {
+                for (const query of queries) {
                     if (belongsToQuery(element, query)) {
                         updatedData.features.push({
                             type: 'Feature',
@@ -224,7 +224,7 @@ export class OverpassLayer {
     }
 
     loadIcons() {
-        let currentQueries = getCurrentQueries();
+        const currentQueries = getCurrentQueries();
         currentQueries.forEach((query) => {
             loadSVGIcon(
                 this.map,
@@ -257,7 +257,7 @@ function getQuery(query: string) {
 }
 
 function getQueryItem(tags: Record<string, string | string[]>) {
-    let arrayEntry = Object.entries(tags).find((entry): entry is [string, string[]] =>
+    const arrayEntry = Object.entries(tags).find((entry): entry is [string, string[]] =>
         Array.isArray(entry[1])
     );
     if (arrayEntry !== undefined) {
@@ -291,12 +291,12 @@ function belongsToQueryItem(element: any, tags: Record<string, string | string[]
 }
 
 function getCurrentQueries() {
-    let currentQueries = get(currentOverpassQueries);
+    const currentQueries = get(currentOverpassQueries);
     if (currentQueries === undefined) {
         return [];
     }
 
     return Object.entries(getLayers(currentQueries))
-        .filter(([_, selected]) => selected)
-        .map(([query, _]) => query);
+        .filter(([, selected]) => selected)
+        .map(([query]) => query);
 }

@@ -39,7 +39,7 @@ export function getPreviousGuide(currentGuide: string): string | undefined {
             return `${previousGuide}/${guides[previousGuide][guides[previousGuide].length - 1]}`;
         }
     } else {
-        if (guides.hasOwnProperty(subguides[0])) {
+        if (Object.hasOwn(guides, subguides[0])) {
             const subguideIndex = guides[subguides[0]].indexOf(subguides[1]);
             if (subguideIndex > 0) {
                 return `${subguides[0]}/${guides[subguides[0]][subguideIndex - 1]}`;
@@ -56,7 +56,7 @@ export function getNextGuide(currentGuide: string): string | undefined {
     const subguides = currentGuide.split('/');
 
     if (subguides.length === 1) {
-        if (guides.hasOwnProperty(currentGuide)) {
+        if (Object.hasOwn(guides, currentGuide)) {
             if (guides[currentGuide].length === 0) {
                 const keys = Object.keys(guides);
                 const index = keys.indexOf(currentGuide);
@@ -68,7 +68,7 @@ export function getNextGuide(currentGuide: string): string | undefined {
             return undefined;
         }
     } else {
-        if (guides.hasOwnProperty(subguides[0])) {
+        if (Object.hasOwn(guides, subguides[0])) {
             const subguideIndex = guides[subguides[0]].indexOf(subguides[1]);
             if (subguideIndex < guides[subguides[0]].length - 1) {
                 return `${subguides[0]}/${guides[subguides[0]][subguideIndex + 1]}`;

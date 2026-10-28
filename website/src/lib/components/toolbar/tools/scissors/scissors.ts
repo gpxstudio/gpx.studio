@@ -12,7 +12,7 @@ export const SplitType = {
 } as const satisfies Record<string, EngineSplitType>;
 export type SplitType = (typeof SplitType)[keyof typeof SplitType];
 
-export let splitAs: Writable<SplitType> = writable(SplitType.FILES);
+export const splitAs: Writable<SplitType> = writable(SplitType.FILES);
 
 /** The ids of the segments of the routes of the files of the selection. */
 export function routeSegmentIds(selection: Selection): Set<string> {

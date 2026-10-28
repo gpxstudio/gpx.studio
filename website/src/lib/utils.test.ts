@@ -40,7 +40,11 @@ describe('getURLForLanguage', () => {
 describe('cn', () => {
     it('merges class names, the last tailwind class winning', () => {
         assert.equal(cn('p-2', 'p-4'), 'p-4');
-        assert.equal(cn('text-sm', false && 'hidden', undefined, 'font-bold'), 'text-sm font-bold');
+        const hidden: boolean = false;
+        assert.equal(
+            cn('text-sm', hidden && 'hidden', undefined, 'font-bold'),
+            'text-sm font-bold'
+        );
         assert.equal(cn(['a', { b: true, c: false }]), 'a b');
     });
 });

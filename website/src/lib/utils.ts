@@ -22,22 +22,22 @@ export function getElevation(
     ELEVATION_ZOOM: number = 12,
     tileSize = 512
 ): Promise<number[]> {
-    let coordinates = points;
-    let bbox = new LngLatBounds();
+    const coordinates = points;
+    const bbox = new LngLatBounds();
     coordinates.forEach((coord) => bbox.extend(coord));
 
-    let tiles = coordinates.map((coord) => pointToTile(coord.lng, coord.lat, ELEVATION_ZOOM));
-    let uniqueTiles = Array.from(new Set(tiles.map((tile) => tile.join(',')))).map((tile) =>
+    const tiles = coordinates.map((coord) => pointToTile(coord.lng, coord.lat, ELEVATION_ZOOM));
+    const uniqueTiles = Array.from(new Set(tiles.map((tile) => tile.join(',')))).map((tile) =>
         tile.split(',').map((x) => parseInt(x))
     );
-    let images = new Map<string, ImageData>();
+    const images = new Map<string, ImageData>();
 
     const getPixelFromImageData = (imageData: ImageData, x: number, y: number): number[] => {
         const index = (y * imageData.width + x) * 4;
         return [imageData.data[index], imageData.data[index + 1], imageData.data[index + 2]];
     };
 
-    let promises = uniqueTiles.map((tile) =>
+    const promises = uniqueTiles.map((tile) =>
         fetch(`https://tiles.gpx.studio/mapterhorn/${ELEVATION_ZOOM}/${tile[0]}/${tile[1]}.webp`, {
             cache: 'force-cache',
         })
@@ -71,20 +71,20 @@ export function getElevation(
 
     return Promise.all(promises).then(() =>
         coordinates.map((coord, index) => {
-            let tile = tiles[index];
-            let imageData = images.get(tile.join(','));
+            const tile = tiles[index];
+            const imageData = images.get(tile.join(','));
 
             if (!imageData) {
                 return 0;
             }
 
-            let tf = pointToTileFraction(coord.lng, coord.lat, ELEVATION_ZOOM);
-            let x = tileSize * (tf[0] - tile[0]);
-            let y = tileSize * (tf[1] - tile[1]);
-            let _x = Math.floor(x);
-            let _y = Math.floor(y);
-            let dx = x - _x;
-            let dy = y - _y;
+            const tf = pointToTileFraction(coord.lng, coord.lat, ELEVATION_ZOOM);
+            const x = tileSize * (tf[0] - tile[0]);
+            const y = tileSize * (tf[1] - tile[1]);
+            const _x = Math.floor(x);
+            const _y = Math.floor(y);
+            const dx = x - _x;
+            const dy = y - _y;
 
             const p00 = getPixelFromImageData(imageData, _x, _y);
             const p01 = getPixelFromImageData(imageData, _x, _y + (_y + 1 == tileSize ? 0 : 1));
@@ -95,10 +95,10 @@ export function getElevation(
                 _y + (_y + 1 == tileSize ? 0 : 1)
             );
 
-            let ele00 = -32768 + p00[0] * 256 + p00[1] + p00[2] / 256;
-            let ele01 = -32768 + p01[0] * 256 + p01[1] + p01[2] / 256;
-            let ele10 = -32768 + p10[0] * 256 + p10[1] + p10[2] / 256;
-            let ele11 = -32768 + p11[0] * 256 + p11[1] + p11[2] / 256;
+            const ele00 = -32768 + p00[0] * 256 + p00[1] + p00[2] / 256;
+            const ele01 = -32768 + p01[0] * 256 + p01[1] + p01[2] / 256;
+            const ele10 = -32768 + p10[0] * 256 + p10[1] + p10[2] / 256;
+            const ele11 = -32768 + p11[0] * 256 + p11[1] + p11[2] / 256;
 
             return (
                 ele00 * (1 - dx) * (1 - dy) +
@@ -112,7 +112,7 @@ export function getElevation(
 
 export function loadSVGIcon(map: MapLibreMap, id: string, svg: string, size: number = 100) {
     if (!map.hasImage(id)) {
-        let icon = new Image(size, size);
+        const icon = new Image(size, size);
         icon.onload = () => {
             if (!map.hasImage(id)) {
                 map.addImage(id, icon);
@@ -134,7 +134,7 @@ export function getURLForLanguage(lang: string, path: string): string {
     let newPath = path.replace(base, '');
 
     let languageInPath = newPath.split('/')[1];
-    if (!languages.hasOwnProperty(languageInPath)) {
+    if (!Object.hasOwn(languages, languageInPath)) {
         languageInPath = 'en';
     }
 

@@ -241,9 +241,9 @@ export class SortableFileList {
             return;
         }
         const selection_ = get(engine.selection);
-        for (let id of changed) {
-            let element = this._elements[id];
-            let node = this.childNode(id);
+        for (const id of changed) {
+            const element = this._elements[id];
+            const node = this.childNode(id);
             if (element && node) {
                 if (isSelected(selection_, node)) {
                     Sortable.utils.select(element);
@@ -344,7 +344,7 @@ export class SortableFileList {
         const files = get(engine.files);
         this._container.childNodes.forEach((element) => {
             if (element instanceof HTMLElement) {
-                let attr = element.getAttribute('data-id');
+                const attr = element.getAttribute('data-id');
                 if (attr) {
                     if (this._sortableLevel === 'file' && !files.has(attr)) {
                         this.forget(element);
@@ -392,12 +392,12 @@ export class SortableFileList {
     }
 
     getChangedIds() {
-        let changed: string[] = [];
+        const changed: string[] = [];
         const selection_ = get(engine.selection);
         Object.entries(this._elements).forEach(([id, element]) => {
             const node = this.childNode(id);
-            let inSelection = node !== undefined && isSelected(selection_, node);
-            let isSelectedInList = element.classList.contains('sortable-selected');
+            const inSelection = node !== undefined && isSelected(selection_, node);
+            const isSelectedInList = element.classList.contains('sortable-selected');
             if (inSelection !== isSelectedInList) {
                 changed.push(id);
             }

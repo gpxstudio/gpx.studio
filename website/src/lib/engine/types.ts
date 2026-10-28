@@ -1,5 +1,5 @@
 import type { Readable } from 'svelte/store';
-import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
+import type { FeatureCollection, LineString, Point } from 'geojson';
 import type { Visibility } from '$lib/engine/file-visibility';
 import type { CategoryIntervals } from '$lib/engine/trackpoint-categories';
 import type { FileStructure, GlobalStatistics, SelectionPoint } from 'gpx-wasm';

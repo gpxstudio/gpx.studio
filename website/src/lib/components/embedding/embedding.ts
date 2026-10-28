@@ -109,7 +109,7 @@ export function getURLForGoogleDriveFile(fileId: string): string {
 }
 
 export function convertOldEmbeddingOptions(options: URLSearchParams): any {
-    let newOptions: any = {
+    const newOptions: any = {
         key: PUBLIC_MAPTILER_KEY,
         files: [],
         ids: [],
@@ -128,7 +128,7 @@ export function convertOldEmbeddingOptions(options: URLSearchParams): any {
         }
     }
     if (options.has('source')) {
-        let basemap = options.get('source')!;
+        const basemap = options.get('source')!;
         if (basemap === 'satellite') {
             newOptions.basemap = 'libertySatellite';
         } else if (basemap === 'otm') {

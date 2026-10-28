@@ -23,7 +23,7 @@ import {
 export class SplitControls {
     map: Map;
     layerEventManager: MapLayerEventManager;
-    unsubscribes: Function[] = [];
+    unsubscribes: (() => void)[] = [];
     /** What the tool needs from the engine, while it shows the anchors. */
     request: StatisticsRequest = engine.requestStatistics();
     selection: Selection = { type: 'empty' };
@@ -116,7 +116,7 @@ export class SplitControls {
         };
 
         try {
-            let source = this.map.getSource('split-controls') as GeoJSONSource | undefined;
+            const source = this.map.getSource('split-controls') as GeoJSONSource | undefined;
             if (source) {
                 source.setData(data);
             } else {
@@ -154,7 +154,7 @@ export class SplitControls {
                 );
                 this.layerEventManager.on('click', 'split-controls', this.layerOnClickBinded);
             }
-        } catch (e) {
+        } catch {
             // No reliable way to check if the map is ready to add sources and layers
         }
     }
@@ -172,12 +172,12 @@ export class SplitControls {
             if (this.map.getSource('split-controls')) {
                 this.map.removeSource('split-controls');
             }
-        } catch (e) {
+        } catch {
             // No reliable way to check if the map is ready to remove sources and layers
         }
     }
 
-    layerOnMouseEnter(e: any) {
+    layerOnMouseEnter() {
         mapCursor.notify(MapCursorState.SPLIT_CONTROL, true);
     }
 

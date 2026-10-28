@@ -31,7 +31,7 @@
     $effect.pre(() => {
         if (checked !== undefined) {
             Object.keys(node).forEach((id) => {
-                if (!checked.hasOwnProperty(id)) {
+                if (!Object.hasOwn(checked, id)) {
                     if (typeof node[id] == 'boolean') {
                         checked[id] = false;
                     } else {
@@ -72,7 +72,7 @@
                         />
                     {/if}
                     <Label for="{name}-{id}" class="flex flex-row items-center gap-1">
-                        {#if $customLayers.hasOwnProperty(id)}
+                        {#if Object.hasOwn($customLayers, id)}
                             {$customLayers[id].name}
                         {:else if $isLayerFromExtension(id)}
                             {$getLayerName(id)}

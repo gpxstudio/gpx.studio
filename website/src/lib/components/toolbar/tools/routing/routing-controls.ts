@@ -74,7 +74,7 @@ export class RoutingControls {
     listenedFileIds: string[] = [];
     popup: Popup;
     popupElement: HTMLElement;
-    unsubscribes: Function[] = [];
+    unsubscribes: (() => void)[] = [];
 
     updateBinded: () => void = this.update.bind(this);
     appendAnchorBinded: (e: MapMouseEvent) => void = this.appendAnchor.bind(this);
@@ -270,7 +270,7 @@ export class RoutingControls {
                 layerEventManager.on('mousedown', LAYER_ID, this.onMouseDownBinded);
                 layerEventManager.on('touchstart', LAYER_ID, this.onTouchStartBinded);
             }
-        } catch (e) {
+        } catch {
             // No reliable way to check if the map is ready to add sources and layers
         }
     }
@@ -303,7 +303,7 @@ export class RoutingControls {
             if (map_?.getSource(LAYER_ID)) {
                 map_?.removeSource(LAYER_ID);
             }
-        } catch (e) {
+        } catch {
             // No reliable way to check if the map is ready to remove sources and layers
         }
 
