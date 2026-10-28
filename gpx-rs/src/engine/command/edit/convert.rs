@@ -9,10 +9,12 @@ use crate::{Apply, CommandError, FileId, Route, Selection, State, Track};
 ///   after the routes;
 /// - a track becomes one route per segment, as a route has a single segment, and goes away. A
 ///   selected segment becomes a route and leaves its track, which stays even if it has no segment
-///   left. The routes have the information of their track, and go after the other routes.
+///   left. The routes have the information of their track, and go after the other routes;
+/// - a file with routes only has all of them converted to tracks, and a file with tracks only
+///   has all of them converted to routes. The files with both, or neither, stay as they are.
 ///
-/// The segments keep their ids, the new routes and tracks are selected. There is nothing to do
-/// for the other selections, or for tracks without segments.
+/// The segments keep their ids, the new routes and tracks are selected (the files stay selected).
+/// There is nothing to do for the other selections, or for tracks without segments.
 #[derive(Debug)]
 pub struct Convert;
 
@@ -31,14 +33,7 @@ impl Apply for Convert {
                     .into_iter()
                     .partition::<Vec<_>, _>(|rte| rte_ids.contains(&rte.id));
                 file.rte = kept;
-                let tracks: Vec<Track> = converted
-                    .into_iter()
-                    .map(|rte| Track {
-                        id: Default::default(),
-                        info: rte.info,
-                        trkseg: vec![rte.seg],
-                    })
-                    .collect();
+                let tracks = to_tracks(converted);
                 let trk_ids: HashSet<_> = tracks.iter().map(|trk| trk.id).collect();
                 file.trk.splice(0..0, tracks);
                 Selection::Track {
@@ -57,14 +52,7 @@ impl Apply for Convert {
                     .into_iter()
                     .partition::<Vec<_>, _>(|trk| trk_ids.contains(&trk.id));
                 file.trk = kept;
-                let routes = converted.into_iter().flat_map(|trk| {
-                    trk.trkseg.into_iter().map(move |seg| Route {
-                        id: Default::default(),
-                        info: trk.info.clone(),
-                        seg,
-                    })
-                });
-                add_routes(&mut file.rte, *file_id, routes)
+                add_routes(&mut file.rte, *file_id, to_routes(converted))
             }
             Selection::TrackSegment {
                 file_id,
@@ -94,8 +82,32 @@ impl Apply for Convert {
                 });
                 add_routes(&mut file.rte, *file_id, routes)
             }
+            Selection::File { file_ids } => {
+                let mut converted = false;
+                for file_id in file_ids {
+                    let Some(file) = state.files.get_mut(file_id) else {
+                        continue;
+                    };
+                    if !file.rte.is_empty() && file.trk.is_empty() {
+                        let file = Rc::make_mut(file);
+                        file.trk = to_tracks(std::mem::take(&mut file.rte));
+                    } else if file.rte.is_empty()
+                        && file.trk.iter().any(|trk| !trk.trkseg.is_empty())
+                    {
+                        let file = Rc::make_mut(file);
+                        file.rte = to_routes(std::mem::take(&mut file.trk)).collect();
+                    } else {
+                        continue;
+                    }
+                    converted = true;
+                }
+                return if converted {
+                    Ok(())
+                } else {
+                    Err(CommandError::NothingToDo)
+                };
+            }
             Selection::Empty
-            | Selection::File { .. }
             | Selection::Waypoints { .. }
             | Selection::Waypoint { .. } => return Err(CommandError::NothingToDo),
         };
@@ -111,6 +123,29 @@ impl Apply for Convert {
         *state.selection = next;
         Ok(())
     }
+}
+
+/// The tracks of the routes, each with the segment of its route.
+fn to_tracks(routes: Vec<Route>) -> Vec<Track> {
+    routes
+        .into_iter()
+        .map(|rte| Track {
+            id: Default::default(),
+            info: rte.info,
+            trkseg: vec![rte.seg],
+        })
+        .collect()
+}
+
+/// The routes of the tracks, one per segment, each with the information of its track.
+fn to_routes(tracks: Vec<Track>) -> impl Iterator<Item = Route> {
+    tracks.into_iter().flat_map(|trk| {
+        trk.trkseg.into_iter().map(move |seg| Route {
+            id: Default::default(),
+            info: trk.info.clone(),
+            seg,
+        })
+    })
 }
 
 /// Adds the routes after the other routes, and gives the selection of them.

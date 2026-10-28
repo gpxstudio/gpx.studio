@@ -2,7 +2,7 @@ import { currentTool, Tool } from '$lib/components/toolbar/tools';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { get } from 'svelte/store';
 import { map } from '$lib/components/map/map';
-import { allHidden } from '$lib/engine/all-hidden';
+import { allHidden } from '$lib/engine/selection-stores';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 import { loadSVGIcon } from '$lib/utils';
 import { hoveredPoint, slicedStatistics } from '$lib/state/selection-statistics';

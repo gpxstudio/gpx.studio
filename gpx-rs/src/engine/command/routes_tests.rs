@@ -682,3 +682,43 @@ fn test_convert_segments_to_routes_keeps_their_track() {
         );
     }
 }
+
+#[test]
+fn test_convert_a_file_with_routes_or_tracks_only() {
+    let (mut fx, id) = fixture();
+    let before = file(&fx, id).clone();
+    let only_tracks = File {
+        trk: before.trk.clone(),
+        ..File::default()
+    };
+    let only_tracks_id = only_tracks.id;
+    fx.files.insert(only_tracks_id, Rc::new(only_tracks));
+    fx.order.0.push(only_tracks_id);
+
+    // the file with both stays as it is, the other gets one route per segment
+    fx.selection = Selection::File {
+        file_ids: [id, only_tracks_id].into(),
+    };
+    Convert.apply(&mut fx.state()).unwrap();
+    assert_eq!(lengths(file(&fx, id)), lengths(&before));
+    let routes = file(&fx, only_tracks_id);
+    assert_eq!((routes.rte.len(), routes.trk.len()), (4, 0));
+    assert_eq!(routes.rte[0].seg.id, before.trk[0].trkseg[0].id);
+    assert_eq!(routes.rte[0].info, before.trk[0].info);
+
+    // and back: one track per route
+    fx.selection = Selection::File {
+        file_ids: [only_tracks_id].into(),
+    };
+    Convert.apply(&mut fx.state()).unwrap();
+    let tracks = file(&fx, only_tracks_id);
+    assert_eq!((tracks.rte.len(), tracks.trk.len()), (0, 4));
+    assert_eq!(tracks.trk[0].trkseg[0].id, before.trk[0].trkseg[0].id);
+
+    // nothing to do for a file with both
+    fx.selection = whole(id);
+    assert_eq!(
+        Convert.apply(&mut fx.state()),
+        Err(CommandError::NothingToDo)
+    );
+}

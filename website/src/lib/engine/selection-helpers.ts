@@ -247,3 +247,34 @@ export function isSelectionHidden(
         })
     );
 }
+
+/**
+ * What the selected files convert to: `'route'` when they all have tracks only (with segments),
+ * `'track'` when they all have routes only, `undefined` otherwise (other selections, files with
+ * both or neither, or a mix of the two). `states` holds the files by id.
+ */
+export function fileConversion(
+    selection: Selection,
+    states: ReadonlyMap<string, { structure: FileStructure }>
+): 'route' | 'track' | undefined {
+    if (selection.type !== 'file' || selection.fileIds.length === 0) {
+        return undefined;
+    }
+    const targets = new Set(
+        selection.fileIds.map((fileId) => {
+            const structure = states.get(fileId)?.structure;
+            if (structure === undefined) {
+                return undefined;
+            } else if (structure.routes.length > 0 && structure.tracks.length === 0) {
+                return 'track' as const;
+            } else if (
+                structure.routes.length === 0 &&
+                structure.tracks.some((track) => track.segments.length > 0)
+            ) {
+                return 'route' as const;
+            }
+            return undefined;
+        })
+    );
+    return targets.size === 1 ? targets.values().next().value : undefined;
+}

@@ -29,7 +29,7 @@
     import { editStyle } from '$lib/components/file-list/style/utils.svelte';
     import { getSymbolKey, symbols } from '$lib/data/symbols';
     import { engine, type FileState } from '$lib/engine';
-    import { allHidden } from '$lib/engine/all-hidden';
+    import { allHidden, selectedFilesConversion } from '$lib/engine/selection-stores';
     import { normalizeColor } from '$lib/engine/file-colors';
     import { isHidden } from '$lib/engine/file-visibility';
     import {
@@ -271,7 +271,6 @@
                     <Plus size="16" />
                     {i18n._('menu.new_route')}
                 </ContextMenu.Item>
-                <ContextMenu.Separator />
             {:else if node.type === 'track'}
                 <ContextMenu.Item
                     disabled={!singleSelection}
@@ -288,6 +287,21 @@
                         node.type === 'route' ? 'menu.convert_to_track' : 'menu.convert_to_route'
                     )}
                 </ContextMenu.Item>
+                <ContextMenu.Separator />
+            {/if}
+        {/if}
+        {#if node.type === 'file'}
+            {#if $selectedFilesConversion}
+                <ContextMenu.Item onclick={() => engine.convert()}>
+                    <ArrowRightLeft size="16" />
+                    {i18n._(
+                        $selectedFilesConversion === 'route'
+                            ? 'menu.convert_to_routes'
+                            : 'menu.convert_to_tracks'
+                    )}
+                </ContextMenu.Item>
+            {/if}
+            {#if orientation === 'vertical' || $selectedFilesConversion}
                 <ContextMenu.Separator />
             {/if}
         {/if}

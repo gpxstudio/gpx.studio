@@ -5,6 +5,7 @@ import type { VisibilityState } from '$lib/engine/file-visibility';
 import {
     coversSegments,
     elementId,
+    fileConversion,
     hasSelectionWithin,
     isCovered,
     isInClipboard,
@@ -272,6 +273,43 @@ describe('selection helpers', () => {
 
         it('is false for files that are not known', () => {
             assert.equal(isSelectionHidden(files('F1', 'F2'), states('F1')), false);
+        });
+    });
+
+    describe('fileConversion', () => {
+        const segment = (id: string) => ({ id, rev: id, length: 2 });
+        const structure = (routes: string[], tracks: string[]): { structure: FileStructure } => ({
+            structure: {
+                id: 'F',
+                name: 'file',
+                waypointsRev: 'rev',
+                waypoints: [],
+                routes: routes.map((id) => ({ id, segment: segment(`${id}-S`) })),
+                tracks: tracks.map((id) => ({ id, segments: [segment(`${id}-S`)] })),
+            },
+        });
+        const states = new Map([
+            ['routes', structure(['R1', 'R2'], [])],
+            ['tracks', structure([], ['T1'])],
+            ['both', structure(['R1'], ['T1'])],
+            ['none', structure([], [])],
+        ]);
+
+        it('converts files with tracks only to routes, and routes only to tracks', () => {
+            assert.equal(fileConversion(files('tracks'), states), 'route');
+            assert.equal(fileConversion(files('routes'), states), 'track');
+        });
+
+        it('does not convert files with both, neither, or a mix of the two', () => {
+            assert.equal(fileConversion(files('both'), states), undefined);
+            assert.equal(fileConversion(files('none'), states), undefined);
+            assert.equal(fileConversion(files('routes', 'tracks'), states), undefined);
+            assert.equal(fileConversion(files('unknown'), states), undefined);
+        });
+
+        it('only converts files', () => {
+            assert.equal(fileConversion(empty, states), undefined);
+            assert.equal(fileConversion(tracks('T1'), states), undefined);
         });
     });
 });

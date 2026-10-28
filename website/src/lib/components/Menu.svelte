@@ -78,7 +78,7 @@
     } from '$lib/actions/file-actions';
     import UnsavedDialog from '$lib/components/file-list/UnsavedDialog.svelte';
     import { engine } from '$lib/engine';
-    import { allHidden } from '$lib/engine/all-hidden';
+    import { allHidden, selectedFilesConversion } from '$lib/engine/selection-stores';
     import { selectedFileIds, selectionSize } from '$lib/engine/selection-helpers';
     import { boundsManager } from '$lib/state/bounds';
     import { onMount } from 'svelte';
@@ -333,6 +333,19 @@
                                 )}
                             </Menubar.Item>
                         {/if}
+                    {/if}
+                    {#if $selectedFilesConversion}
+                        {#if !$treeFileView}
+                            <Menubar.Separator />
+                        {/if}
+                        <Menubar.Item onclick={() => engine.convert()}>
+                            <ArrowRightLeft size="16" />
+                            {i18n._(
+                                $selectedFilesConversion === 'route'
+                                    ? 'menu.convert_to_routes'
+                                    : 'menu.convert_to_tracks'
+                            )}
+                        </Menubar.Item>
                     {/if}
                     <Menubar.Separator />
                     <Menubar.Item onclick={() => engine.selectAll()} disabled={noFiles}>

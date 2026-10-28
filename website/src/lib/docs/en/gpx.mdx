@@ -3,13 +3,14 @@ title: GPX file format
 ---
 
 <script>
-    import { Waypoints, MapPin } from '@lucide/svelte';
+    import { Waypoints, Route, MapPin } from '@lucide/svelte';
 </script>
 
 # { title }
 
 The <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX file format</a> is an open standard for exchanging GPS data between applications and GPS devices.
 It essentially consists of a series of GPS points encoding one or multiple GPS traces, and, optionally, some points of interest.
+These traces can be stored either as tracks or as routes.
 
 GPX files may also contain metadata, of which the **name** and **description** fields are the most useful for users.
 
@@ -26,6 +27,11 @@ Some devices also store additional information such as heart rate, cadence, temp
 
 In most cases, GPX files contain a single track with a single segment.
 However, the hierarchy described above allows for more advanced use cases, such as planning multi-day trips with several variants for each day.
+
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routes
+
+A **route** is a single continuous path described by a sequence of **route points**, which are the places to go through, like the anchor points of the [routing tool](./toolbar/routing).
+Like a track, it can have a **name**, a **description**, and **appearance properties**.
 
 ### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Points of interest
 

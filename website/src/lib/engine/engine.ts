@@ -374,7 +374,8 @@ class Engine {
 
     /**
      * Converts the selected routes to tracks, or the selected tracks or segments to routes (one
-     * per segment), which are selected. Resolves to `false` when there is nothing to convert.
+     * per segment), which are selected. Selected files with routes only (or tracks only) have all
+     * of them converted. Resolves to `false` when there is nothing to convert.
      */
     convert() {
         return this.run((b) => b.convert());
