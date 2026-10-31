@@ -20,7 +20,7 @@ export function useSettingsStorage(newStorage: SettingsStorage | undefined) {
 }
 
 /** Reads the saved value of a setting, `undefined` if there is none or if it cannot be read. */
-export function storedValue(stored: StoredSettings, key: string): { value: any } | undefined {
+export function storedValue(stored: StoredSettings, key: string): { value: unknown } | undefined {
     if (!Object.hasOwn(stored, key)) {
         return undefined;
     }
@@ -42,15 +42,35 @@ function save(key: string, value: unknown) {
 }
 
 /**
+ * Makes a saved value one that the setting can hold: what was saved can be anything (an old
+ * format, a value that is not allowed anymore), the validator checks it.
+ */
+export type Validator<V> = (value: unknown) => V;
+
+/**
+ * The validator of a setting: a boolean or a number can do without one, its saved value is then
+ * checked against the type of its initial value. The other settings say what they can hold: a
+ * string is often one of a few, an object has a shape.
+ */
+type ValidatorArgument<V> = [V] extends [boolean] | [number]
+    ? [validator?: Validator<V>]
+    : [validator: Validator<V>];
+
+/** Keeps a saved value that has the type of the initial one (a boolean or a number). */
+function sameTypeAs<V>(initial: V): Validator<V> {
+    return (value) => (typeof value === typeof initial ? (value as V) : initial);
+}
+
+/**
  * A setting: a store whose value is kept when it changes. `S` is what the store holds, which is
  * `V` or, for a setting that has no value until it is read, `V | undefined`.
  */
 abstract class SettingBase<V, S extends V | undefined> {
     protected _key: string;
     protected _value: Writable<S>;
-    protected _validator?: (value: V) => V;
+    protected _validator: Validator<V>;
 
-    protected constructor(key: string, initial: S, validator?: (value: V) => V) {
+    protected constructor(key: string, initial: S, validator: Validator<V>) {
         this._key = key;
         this._value = writable(initial);
         this._validator = validator;
@@ -59,7 +79,7 @@ abstract class SettingBase<V, S extends V | undefined> {
     /** The saved value, validated, `undefined` if there is none. */
     protected saved(stored: StoredSettings): { value: V } | undefined {
         const saved = storedValue(stored, this._key);
-        return saved && { value: this._validator ? this._validator(saved.value) : saved.value };
+        return saved && { value: this._validator(saved.value) };
     }
 
     /** Takes the saved value, if there is one. */
@@ -83,8 +103,8 @@ abstract class SettingBase<V, S extends V | undefined> {
 }
 
 export class Setting<V> extends SettingBase<V, V> {
-    constructor(key: string, initial: V, validator?: (value: V) => V) {
-        super(key, initial, validator);
+    constructor(key: string, initial: V, ...[validator]: ValidatorArgument<V>) {
+        super(key, initial, validator ?? sameTypeAs(initial));
     }
 
     connect(stored: StoredSettings) {
@@ -99,8 +119,8 @@ export class Setting<V> extends SettingBase<V, V> {
 export class SettingInitOnFirstRead<V> extends SettingBase<V, V | undefined> {
     private _initial: V;
 
-    constructor(key: string, initial: V, validator?: (value: V) => V) {
-        super(key, undefined, validator);
+    constructor(key: string, initial: V, ...[validator]: ValidatorArgument<V>) {
+        super(key, undefined, validator ?? sameTypeAs(initial));
         this._initial = initial;
     }
 
@@ -114,53 +134,90 @@ export class SettingInitOnFirstRead<V> extends SettingBase<V, V | undefined> {
     }
 }
 
-export function getValueValidator<V>(allowed: V[], fallback: V) {
-    const dict = new Set<V>(allowed);
-    return (value: V) => (dict.has(value) ? value : fallback);
+/** Whether a value is one of the allowed ones. */
+function oneOf<V>(allowed: V[]) {
+    const dict = new Set<unknown>(allowed);
+    return (value: unknown): value is V => dict.has(value);
 }
 
-export function getArrayValidator<V>(allowed: V[]) {
-    const dict = new Set<V>(allowed);
-    return (value: V[]) => value.filter((v) => dict.has(v));
+export function getValueValidator<V>(allowed: V[], fallback: V): Validator<V> {
+    const isAllowed = oneOf(allowed);
+    return (value) => (isAllowed(value) ? value : fallback);
 }
 
-export function getLayerValidator(allowed: Record<string, any>, fallback: string) {
-    return (layer: string) =>
-        Object.hasOwn(allowed, layer) ||
-        layer.startsWith('custom-') ||
-        layer.startsWith('extension-')
+export function isString(value: unknown): value is string {
+    return typeof value === 'string';
+}
+
+export function isNumber(value: unknown): value is number {
+    return typeof value === 'number';
+}
+
+/** Keeps the items of a saved list that are what it holds, in their order; nothing if it is not a list. */
+export function getListValidator<V>(isItem: (value: unknown) => value is V): Validator<V[]> {
+    return (value) => (Array.isArray(value) ? value.filter(isItem) : []);
+}
+
+/** Keeps the allowed values of a list, in their order; nothing if what was saved is not a list. */
+export function getArrayValidator<V>(allowed: V[]): Validator<V[]> {
+    return getListValidator(oneOf(allowed));
+}
+
+/** Keeps the entries of a saved record that are what it holds; `fallback` if it is not a record. */
+export function getRecordValidator<V>(
+    isEntry: (value: unknown) => value is V,
+    fallback: Record<string, V>
+): Validator<Record<string, V>> {
+    return (value) =>
+        isRecord(value)
+            ? Object.fromEntries(
+                  Object.entries(value).filter((entry): entry is [string, V] => isEntry(entry[1]))
+              )
+            : fallback;
+}
+
+export function getLayerValidator(
+    allowed: Record<string, unknown>,
+    fallback: string
+): Validator<string> {
+    return (layer) =>
+        typeof layer === 'string' &&
+        (Object.hasOwn(allowed, layer) ||
+            layer.startsWith('custom-') ||
+            layer.startsWith('extension-'))
             ? layer
             : fallback;
 }
 
-export function filterLayerTree(
-    t: LayerTreeType,
-    allowed: LayerTreeType | undefined
-): LayerTreeType {
+/** Whether a value is a record, which can hold the layers of a tree: an object, not null or a list. */
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * The saved tree `t`, with the layers of `allowed`: the choices saved for them are kept, the new
+ * ones have their default, and of the others only the custom and extension layers are kept.
+ */
+export function filterLayerTree(t: unknown, allowed: LayerTreeType | undefined): LayerTreeType {
+    const tree = isRecord(t) ? t : {};
     const filtered: LayerTreeType = {};
     if (allowed) {
         Object.entries(allowed).forEach(([key, value]) => {
-            if (Object.hasOwn(t, key)) {
-                if (typeof value === 'boolean') {
-                    filtered[key] = t[key];
-                } else if (typeof value === 'object') {
-                    filtered[key] = filterLayerTree(
-                        typeof t[key] === 'object' ? t[key] : {},
-                        value
-                    );
-                }
+            const saved = Object.hasOwn(tree, key) ? tree[key] : undefined;
+            if (typeof value === 'boolean') {
+                filtered[key] = typeof saved === 'boolean' ? saved : value;
             } else {
-                filtered[key] = value;
+                filtered[key] = filterLayerTree(saved, value);
             }
         });
     }
-    Object.entries(t).forEach(([key, value]) => {
+    Object.entries(tree).forEach(([key, value]) => {
         if (!Object.hasOwn(filtered, key)) {
             if (typeof value === 'boolean') {
                 if (key.startsWith('custom-') || key.startsWith('extension-')) {
                     filtered[key] = value;
                 }
-            } else if (typeof value === 'object') {
+            } else if (isRecord(value)) {
                 filtered[key] = filterLayerTree(value, undefined);
             }
         }
@@ -168,6 +225,6 @@ export function filterLayerTree(
     return filtered;
 }
 
-export function getLayerTreeValidator(allowed: LayerTreeType) {
-    return (value: LayerTreeType) => filterLayerTree(value, allowed);
+export function getLayerTreeValidator(allowed: LayerTreeType): Validator<LayerTreeType> {
+    return (value) => filterLayerTree(value, allowed);
 }

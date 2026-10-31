@@ -143,19 +143,25 @@ describe('errors', () => {
 });
 
 describe('selection', () => {
+    /** The selected files, when files are selected. */
+    const selectedFiles = () => {
+        const selection = get(engine.selection);
+        return selection.type === 'file' ? selection.fileIds : [];
+    };
+
     it('adds and toggles files', async () => {
         await load('simple', 'with_tracks', 'with_waypoint');
         const [a, b, c] = get(engine.order);
         await engine.select([a]);
         await engine.select([b], 'add');
-        assert.deepEqual(new Set((get(engine.selection) as any).fileIds), new Set([a, b]));
+        assert.deepEqual(new Set(selectedFiles()), new Set([a, b]));
         await engine.select([a], 'toggle');
-        assert.deepEqual((get(engine.selection) as any).fileIds, [b]);
+        assert.deepEqual(selectedFiles(), [b]);
         await engine.select([]);
         assert.deepEqual(get(engine.selection), { type: 'empty' });
 
         assert.equal(await engine.selectAll(), true);
-        assert.deepEqual(new Set((get(engine.selection) as any).fileIds), new Set([a, b, c]));
+        assert.deepEqual(new Set(selectedFiles()), new Set([a, b, c]));
     });
 
     it('selects tracks and segments of a file', async () => {

@@ -85,15 +85,23 @@ export class MapLibreGLMap {
                         try {
                             const request = `https://nominatim.openstreetmap.org/search?format=json&q=${config.query}&limit=5&accept-language=${language}`;
                             const response = await fetch(request);
-                            const geojson = await response.json();
-                            results.features = geojson.map((result: any) => {
+                            const places: {
+                                lat: string;
+                                lon: string;
+                                type: string;
+                                display_name: string;
+                            }[] = await response.json();
+                            results.features = places.map((result) => {
                                 return {
                                     type: 'Feature',
                                     geometry: {
                                         type: 'Point',
-                                        coordinates: [result.lon, result.lat],
+                                        coordinates: [Number(result.lon), Number(result.lat)],
                                     },
+                                    properties: {},
+                                    text: result.display_name,
                                     place_name: result.display_name,
+                                    place_type: [result.type],
                                 };
                             });
                         } catch {}

@@ -9,6 +9,15 @@ import { ExtensionAPI, type CustomOverlay } from './extension-api';
 import { isSelected } from './utils';
 
 const original = { set: engine.setSetting, delete: engine.deleteSetting };
+
+/** The raster source that an overlay added by an extension uses. */
+function rasterSource(id: string) {
+    const style = overlays[id];
+    assert.ok(typeof style === 'object');
+    const source = style.sources[id];
+    assert.ok(source?.type === 'raster');
+    return source;
+}
 const overlayTreeBefore = JSON.stringify(overlayTree);
 const overlayIdsBefore = Object.keys(overlays).sort();
 
@@ -45,10 +54,7 @@ describe('ExtensionAPI', () => {
     it('adds an overlay as a layer, in the tree of its extension', () => {
         api.addOrUpdateOverlay(overlay('one'));
 
-        const layer = overlays['extension-one'];
-        assert.ok(layer && typeof layer === 'object');
-        const source = (layer as any).sources['extension-one'];
-        assert.equal(source.type, 'raster');
+        const source = rasterSource('extension-one');
         assert.deepEqual(source.tiles, ['https://tiles.example.com/one/{z}/{x}/{y}.png']);
         assert.equal(source.tileSize, 256);
         assert.equal(source.maxzoom, 22);
@@ -69,7 +75,7 @@ describe('ExtensionAPI', () => {
             tileUrls: ['https://tiles.example.com/512/{z}/{x}/{y}.png'],
             maxZoom: 15,
         });
-        const source = (overlays['extension-big'] as any).sources['extension-big'];
+        const source = rasterSource('extension-big');
         assert.equal(source.tileSize, 512);
         assert.equal(source.maxzoom, 15);
     });
@@ -100,9 +106,7 @@ describe('ExtensionAPI', () => {
             tileUrls: ['https://other/{z}'],
         });
         assert.equal(get(api.getLayerName)('extension-one'), 'Renamed');
-        assert.deepEqual((overlays['extension-one'] as any).sources['extension-one'].tiles, [
-            'https://other/{z}',
-        ]);
+        assert.deepEqual(rasterSource('extension-one').tiles, ['https://other/{z}']);
         assert.equal(isSelected(get(settings.currentOverlays)!, 'extension-one'), true);
     });
 

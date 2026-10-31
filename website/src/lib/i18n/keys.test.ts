@@ -19,18 +19,23 @@ function sources(dir: string): string[] {
     });
 }
 
-function has(dictionary: any, key: string): boolean {
-    let value = dictionary;
+/** The value at a key (`a.b.c`) of a dictionary, `undefined` if there is none. */
+function valueAt(dictionary: object, key: string): unknown {
+    let value: unknown = dictionary;
     for (const part of key.split('.')) {
         if (value === null || typeof value !== 'object' || !(part in value)) {
-            return false;
+            return undefined;
         }
-        value = value[part];
+        value = (value as Record<string, unknown>)[part];
     }
-    return typeof value === 'string';
+    return value;
 }
 
-function keysOf(dictionary: any, prefix = ''): string[] {
+function has(dictionary: object, key: string): boolean {
+    return typeof valueAt(dictionary, key) === 'string';
+}
+
+function keysOf(dictionary: object, prefix = ''): string[] {
     return Object.entries(dictionary).flatMap(([key, value]) =>
         typeof value === 'object' && value !== null
             ? keysOf(value, `${prefix}${key}.`)
@@ -60,7 +65,7 @@ describe('translations', () => {
 
     it('have no empty text in english', () => {
         const empty = keysOf(english).filter((key) => {
-            const value = key.split('.').reduce((v: any, part) => v[part], english);
+            const value = valueAt(english, key);
             return typeof value === 'string' && value.trim() === '';
         });
         assert.deepEqual(empty, []);

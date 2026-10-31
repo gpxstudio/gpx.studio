@@ -8,8 +8,8 @@ import {
     defaultOverpassQueries,
     defaultOverpassTree,
     defaultTerrainSource,
+    isCustomLayer,
     overpassTree,
-    type CustomLayer,
 } from '$lib/data/layers';
 import { browser } from '$app/environment';
 import type { DistanceUnits, TemperatureUnits, VelocityUnits } from '$lib/units/conversions';
@@ -19,7 +19,11 @@ import {
     getArrayValidator,
     getLayerTreeValidator,
     getLayerValidator,
+    getListValidator,
+    getRecordValidator,
     getValueValidator,
+    isNumber,
+    isString,
     Setting,
     SettingInitOnFirstRead,
     useSettingsStorage,
@@ -136,10 +140,14 @@ export const settings = {
         defaultOverpassTree,
         getLayerTreeValidator(overpassTree)
     ),
-    opacities: new Setting('opacities', defaultOpacities),
-    customLayers: new Setting<Record<string, CustomLayer>>('customLayers', {}),
-    customBasemapOrder: new Setting<string[]>('customBasemapOrder', []),
-    customOverlayOrder: new Setting<string[]>('customOverlayOrder', []),
+    opacities: new Setting(
+        'opacities',
+        defaultOpacities,
+        getRecordValidator(isNumber, defaultOpacities)
+    ),
+    customLayers: new Setting('customLayers', {}, getRecordValidator(isCustomLayer, {})),
+    customBasemapOrder: new Setting('customBasemapOrder', [], getListValidator(isString)),
+    customOverlayOrder: new Setting('customOverlayOrder', [], getListValidator(isString)),
     terrainSource: new Setting<TerrainSource>(
         'terrainSource',
         defaultTerrainSource,

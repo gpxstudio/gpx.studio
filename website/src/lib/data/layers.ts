@@ -1178,6 +1178,25 @@ export type CustomLayer = {
     value: string | StyleSpecification;
 };
 
+/** Whether a saved value is a custom layer, with all that the layers have had from the start. */
+export function isCustomLayer(value: unknown): value is CustomLayer {
+    if (typeof value !== 'object' || value === null) {
+        return false;
+    }
+    const layer: Partial<Record<keyof CustomLayer, unknown>> = value;
+    return (
+        typeof layer.id === 'string' &&
+        typeof layer.name === 'string' &&
+        Array.isArray(layer.tileUrls) &&
+        layer.tileUrls.every((url) => typeof url === 'string') &&
+        typeof layer.maxZoom === 'number' &&
+        (layer.layerType === 'basemap' || layer.layerType === 'overlay') &&
+        (layer.resourceType === 'raster' || layer.resourceType === 'vector') &&
+        (typeof layer.value === 'string' ||
+            (typeof layer.value === 'object' && layer.value !== null))
+    );
+}
+
 type OverpassQueryData = {
     icon: {
         svg: string;
