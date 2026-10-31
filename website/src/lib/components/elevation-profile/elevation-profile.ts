@@ -346,7 +346,8 @@ export class ElevationProfile {
                 grid: {
                     display: false,
                 },
-                reverse: () => id === 'speed' && get(velocityUnits) === 'pace',
+                // the pace axis is reversed: set with the data, which the units change
+                reverse: false,
                 display: false,
             };
         });
@@ -562,6 +563,8 @@ export class ElevationProfile {
             global.totalDistance,
             units.distance
         );
+        // a faster pace is a lower value, it goes up like a higher speed
+        this._chart.options.scales!.yspeed!.reverse = units.velocity === 'pace';
 
         this.setVisibility();
         this.setFill();
