@@ -33,7 +33,7 @@
         "@types/mapbox__tilebelt": "^1.0.4",
         "@types/node": "^22.15.30",
         "@types/sanitize-html": "^2.16.0",
-        "@types/sortablejs": "^1.15.8",
+        "@types/sortablejs": "^1.15.9",
         "@typescript-eslint/eslint-plugin": "^8.33.1",
         "@typescript-eslint/parser": "^8.33.1",
         "bits-ui": "^2.17.2",
@@ -80,6 +80,6 @@
         "mapillary-js": "^4.1.2",
         "maplibre-gl": "^6.15.0",
         "sanitize-html": "^2.17.0",
-        "sortablejs": "^1.15.6"
+        "sortablejs": "^1.15.7"
     }
 }

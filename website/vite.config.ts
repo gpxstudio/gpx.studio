@@ -47,4 +47,8 @@ export default defineConfig({
         wasm(),
         sveltekit(),
     ],
+    ssr: {
+        // their main entry is UMD, which has no named exports in Node: bundle their ESM build instead
+        noExternal: ['mapillary-js', 'sortablejs'],
+    },
 });

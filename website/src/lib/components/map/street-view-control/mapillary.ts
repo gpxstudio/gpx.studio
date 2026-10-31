@@ -5,7 +5,7 @@ import {
     type MapLayerMouseEvent,
     type VectorSourceSpecification,
 } from 'maplibre-gl';
-import { Viewer, type ViewerBearingEvent } from 'mapillary-js/dist/mapillary.module';
+import { Viewer, type ViewerBearingEvent } from 'mapillary-js';
 import 'mapillary-js/dist/mapillary.css';
 import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';

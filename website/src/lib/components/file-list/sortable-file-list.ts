@@ -1,5 +1,6 @@
 import { isMac } from '$lib/utils';
-import Sortable, { type Direction } from 'sortablejs/Sortable';
+import Sortable from './sortable';
+import type { Direction } from 'sortablejs';
 import { get, writable } from 'svelte/store';
 import { tick } from 'svelte';
 import { engine, type MoveTarget, type Selection } from '$lib/engine';
@@ -258,7 +259,7 @@ export class SortableFileList {
         }
     }
 
-    updateToSelection(e: Sortable.SortableEvent) {
+    updateToSelection(e: Sortable.SortableEvent & { originalEvent?: MouseEvent }) {
         if (!this._sortable) return;
         if (this._updatingSelection || this._applying) return;
         this._updatingSelection = true;
