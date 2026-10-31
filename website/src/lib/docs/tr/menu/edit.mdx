@@ -3,14 +3,14 @@ title: Düzenleme işlemleri
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from '@lucide/svelte';
+    import { Undo2, Redo2, Info, PaintBucket, ArrowRightLeft, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Plus } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # { title }
 
 Dosya işlemlerinin aksine, düzenleme işlemleri mevcut seçili dosyaların içeriklerini potansiyel olarak değiştirebilir.
-Ayrıca, dosya listesinin ağaç düzeni etkinleştirildiğinde (bkz. [Dosyalar ve istatistikler](../files-and-stats)), bunlar [izler, segmentler ve ilgi noktaları](../gpx)'na da uygulanabilirler.
+Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, routes, and points of interest](../gpx).
 Bu nedenle, bu işlemlerle değiştirilebilen elemanları _file items_ olarak anacağız.
 Unutulmamalıdır ki, geri alma ve yineleme işlemleri hariç, düzenleme işlemlerine dosya öğelerinin içerik menüsü (sağ tıklama) aracılığıyla da erişilebilir.
 
@@ -27,13 +27,20 @@ Mevcut seçili öğeyi görebileceğiniz, ismini ve açıklamasını değiştire
 
 Seçili harita öğesinin rengini, saydamlığını ve genişliğini değiştirebileceğiniz görünüm penceresini açın.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Sakla/göster
-
-Seçili harita öğesinin görünürlülüğünü değiştir.
-
 ### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Yeni iz
 
 Seçili dosyada yeni iz oluştur.
+
+<DocsNote>
+
+Bu işleme sadece dosya listesi ağaç görünümü aktif ise erişilebilir.
+Ayrıca, seçim tek bir dosya olmalıdır.
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New route
+
+Create a new route in the selected file.
 
 <DocsNote>
 
@@ -53,13 +60,22 @@ Ayrıca, seçim tek bir seçim olmalı.
 
 </DocsNote>
 
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Convert to route/track
+
+Convert the selected routes to tracks, or the selected tracks or segments to routes.
+Since a route has a single segment, a track with multiple segments is converted into one route per segment.
+
+When the selected files contain only routes, or only tracks, you can also convert all of them at once.
+
+<DocsNote>
+
+Except for whole files, this action is only available when the tree layout of the files list is enabled.
+
+</DocsNote>
+
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Hepsini seç
 
 Mevcut hiyerarşi düzeyindeki tüm dosya öğelerini seçime ekleyin.
-
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Ortala
-
-Seçili dosya öğelerini haritada ortala.
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Kopyala
 
