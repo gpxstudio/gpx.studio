@@ -8,11 +8,43 @@
         "description": "GPX fájlok online megtekintése, szerkesztése és létrehozása fejlett útvonal tervezési képességekkel és fájlfeldolgozó eszközökkel, gyönyörű térképekkel és részletes adatmegjelenítésekkel."
     },
     "menu": {
-        "new": "Új",
         "new_file": "Új fájl",
+        "new_route_file": "New route file",
         "new_track": "Új útvonal",
+        "new_route": "New route",
+        "convert_to_route": "Convert to route",
+        "convert_to_track": "Convert to track",
+        "convert_to_routes": "Convert to route file",
+        "convert_to_tracks": "Convert to track file",
         "new_segment": "Új szakasz",
         "open": "Megnyitás...",
+        "open_folder": "Open folder...",
+        "explorer": "Explorer",
+        "explorer_menu": {
+            "open": "Open",
+            "new_file": "New file...",
+            "new_route_file": "New route file...",
+            "new_folder": "New folder...",
+            "rename": "Rename...",
+            "reveal_finder": "Reveal in Finder",
+            "reveal": "Reveal in file explorer",
+            "delete_failed": "The files could not be moved to the trash."
+        },
+        "workspace": "Workspace",
+        "save": "Save",
+        "save_all": "Save all",
+        "save_as": "Save as...",
+        "close": "Bezár ",
+        "close_all": "Mindent bezár",
+        "close_folder": "Close folder",
+        "reload": "Reload from disk",
+        "discard": "Discard",
+        "cancel": "Cancel",
+        "overwrite": "Overwrite",
+        "unsaved_title": "Unsaved changes",
+        "unsaved_description": "These files have changes that are not saved:",
+        "overwrite_title": "Overwrite changes made elsewhere?",
+        "overwrite_description": "These files have changes, and were also changed on the disk. Overwrite what is on the disk, or reload it and lose your changes?",
         "duplicate": "Duplikálás",
         "copy": "Másolás",
         "paste": "Beillesztés",
@@ -69,7 +101,10 @@
             "button": "Infó...",
             "name": "Név",
             "description": "Leírás",
-            "save": "Mentés"
+            "save": "Mentés",
+            "rename_file": "Rename the file on disk",
+            "name_taken": "A file with this name already exists in the folder.",
+            "rename_failed": "The file could not be renamed."
         },
         "style": {
             "button": "Megjelenés...",
@@ -433,6 +468,8 @@
     "gpx": {
         "file": "Fájl",
         "files": "Fájlok",
+        "route": "Route",
+        "routes": "Routes",
         "track": "Útvonal",
         "tracks": "Útvonalak",
         "segment": "Szegmens",
@@ -556,5 +593,10 @@
     },
     "webgl2_required": "A térkép megjelenítéséhez WebGL 2 szükséges. ",
     "enable_webgl2": "Ismerje meg, hogyan engedélyezheti a WebGL 2-t böngészőjében",
-    "page_not_found": "az oldal nem található"
+    "page_not_found": "az oldal nem található",
+    "outdated": {
+        "title": "This page is out of date",
+        "description": "Your files were saved by a newer version of gpx.studio, which this page cannot read. Reload the page to get the latest version.",
+        "reload": "Reload"
+    }
 }
