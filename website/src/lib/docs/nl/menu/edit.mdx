@@ -3,14 +3,14 @@ title: Bewerkingen
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from '@lucide/svelte';
+    import { Undo2, Redo2, Info, PaintBucket, ArrowRightLeft, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Plus } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # { title }
 
 In tegenstelling tot de bestandsacties, kunnen de bewerkingsacties mogelijk de inhoud van de huidige geselecteerde bestanden wijzigen.
-Bovendien, wanneer de verticale indeling van de bestandenlijst is ingeschakeld (zie [Bestanden en statistieken](../files-and-stats)), kunnen deze ook worden toegepast op [routes, segmenten en interessante punten](../gpx).
+Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, routes, and points of interest](../gpx).
 Daarom zullen we verwijzen naar de elementen die door deze acties kunnen worden gewijzigd als _bestanden_.
 Merk op dat behalve het ongedaan maken en opnieuw doen de acties ook toegankelijk zijn via het contextmenu (rechtermuisklik) van de bestandsitems.
 
@@ -27,13 +27,20 @@ Open het informatievenster van het huidig geselecteerde bestandsitem, waar je de
 
 Open het uiterlijk-dialoogvenster, waar je de kleur, doorzichtigheid en breedte van de geselecteerde items op de kaart kunt wijzigen.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Verberg/Toon
-
-De zichtbaarheid van de geselecteerde bestandsitems op de kaart in-/uitschakelen.
-
 ### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Nieuwe route
 
 Maak een nieuwe route aan in het geselecteerde bestand.
+
+<DocsNote>
+
+Deze actie is alleen beschikbaar wanneer de verticale indeling van de bestandslijst is ingeschakeld.
+Bovendien moet de selectie een enkel bestand zijn.
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New route
+
+Create a new route in the selected file.
 
 <DocsNote>
 
@@ -53,13 +60,22 @@ Bovendien moet de selectie een enkele route zijn.
 
 </DocsNote>
 
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Convert to route/track
+
+Convert the selected routes to tracks, or the selected tracks or segments to routes.
+Since a route has a single segment, a track with multiple segments is converted into one route per segment.
+
+When the selected files contain only routes, or only tracks, you can also convert all of them at once.
+
+<DocsNote>
+
+Except for whole files, this action is only available when the tree layout of the files list is enabled.
+
+</DocsNote>
+
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Selecteer alles
 
 Alle bestanden in het huidige hiërarchie niveau aan de selectie toevoegen.
-
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Midden
-
-Centreer de kaart op de geselecteerde bestandsitems.
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Kopie
 
