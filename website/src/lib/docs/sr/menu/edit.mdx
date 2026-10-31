@@ -3,14 +3,14 @@ title: Akcije uređivanja
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from '@lucide/svelte';
+    import { Undo2, Redo2, Info, PaintBucket, ArrowRightLeft, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Plus } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # { title }
 
 Za razliku od radnji sa datotekama, radnje uređivanja mogu potencijalno izmeniti sadržaj trenutno izabranih datoteka.
-Štaviše, kada je omogućen raspored stabla liste datoteka (pogledajte [Datoteke i statistika](../files-and-stats)), one se takođe mogu primeniti na [trase, segmente i tačke interesa](../gpx).
+Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, routes, and points of interest](../gpx).
 Stoga ćemo elemente koji se mogu izmeniti ovim radnjama nazivati _stavkama datoteke_.
 Imajte na umu da su, osim radnji poništavanja i ponavljanja, radnje uređivanja takođe dostupne preko kontekstnog menija (desni klik) na stavke datoteke.
 
@@ -27,13 +27,20 @@ Otvorite dijalog sa informacijama o trenutno izabranoj datoteci, gde možete vid
 
 Otvorite dijalog izgleda, gde možete promeniti boju, neprozirnost i širinu izabranih stavki datoteke na mapi.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Sakrij/prikaži
-
-Promeni vidljivost izabranih stavki datoteke na mapi.
-
 ### <Plus size="16" klas="inline-blok" stil="margin-bottom: 2pk" /> Nova traka
 
 Napravite novi segment u izabranoj numeri.
+
+<DocsNote>
+
+Ova radnja je dostupna samo kada je omogućen raspored stabla liste datoteka.
+Pored toga, izbor mora biti jedna datoteka.
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New route
+
+Create a new route in the selected file.
 
 <DocsNote>
 
@@ -53,13 +60,22 @@ Pored toga, izbor mora biti jedna datoteka.
 
 </DocsNote>
 
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Convert to route/track
+
+Convert the selected routes to tracks, or the selected tracks or segments to routes.
+Since a route has a single segment, a track with multiple segments is converted into one route per segment.
+
+When the selected files contain only routes, or only tracks, you can also convert all of them at once.
+
+<DocsNote>
+
+Except for whole files, this action is only available when the tree layout of the files list is enabled.
+
+</DocsNote>
+
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Izaberi sve
 
 Dodaj sve stavke datoteke na trenutnom nivou hijerarhije u selekciju.
-
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Centar
-
-Centrirajte mapu na izabrane stavke datoteke.
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Kopiraj
 
