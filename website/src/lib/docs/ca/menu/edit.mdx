@@ -3,14 +3,14 @@ title: Accions d'edició
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from '@lucide/svelte';
+    import { Undo2, Redo2, Info, PaintBucket, ArrowRightLeft, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Plus } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # { title }
 
 A diferència de les accions de l'arxiu, les accions d'edició poden potencialment modificar el contingut dels arxius seleccionats actualment.
-A més a més, quan està habilitada la disposició de l'arbre de la llista d'arxius (veure [Arxius i estadístiques](../files-and-stats)), també es poden aplicar a [tracs, segments i punts d'interès](../gpx).
+Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, routes, and points of interest](../gpx).
 Per tant, ens referirem als elements que poden ser modificats per aquestes accions com a _elements d'arxiu_.
 Tingui en compte que excepte per a les accions de desfer i refer, les accions d'edició també són accessibles a través del menú contextual (clic dret) dels elements de l'arxiu.
 
@@ -27,13 +27,20 @@ Obre el quadre de diàleg d'informació de l'element de l'arxiu seleccionat, on 
 
 Obre el diàleg d'aparença, on pots canviar el color, l'opacitat i l'amplada del mapa dels elements de l'arxiu seleccionat.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Amaga/mostra
-
-Alterna la visibilitat dels elements de l'arxiu seleccionat en el mapa.
-
 ### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Nou trac
 
 Crear nova ruta en l'arxiu seleccionat.
+
+<DocsNote>
+
+Aquesta acció només està disponible quan està habilitada la disposició de l'arbre de la llista d'arxius.
+A més, la selecció ha de ser un únic arxiu.
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New route
+
+Create a new route in the selected file.
 
 <DocsNote>
 
@@ -53,13 +60,22 @@ A més, la selecció ha de ser un trac únic.
 
 </DocsNote>
 
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Convert to route/track
+
+Convert the selected routes to tracks, or the selected tracks or segments to routes.
+Since a route has a single segment, a track with multiple segments is converted into one route per segment.
+
+When the selected files contain only routes, or only tracks, you can also convert all of them at once.
+
+<DocsNote>
+
+Except for whole files, this action is only available when the tree layout of the files list is enabled.
+
+</DocsNote>
+
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Selecciona tot
 
 Afegeix a la selecció tots els elements de l'arxiu en el nivell de jerarquia actual.
-
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Centrar
-
-Centrar el mapa en els elements de l'arxiu seleccionat.
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copia
 
