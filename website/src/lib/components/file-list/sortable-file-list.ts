@@ -79,9 +79,13 @@ export class SortableFileList {
                 setTimeout(() => this.updateToSelection(e), 50),
             onDeselect: (e: Sortable.SortableEvent) =>
                 setTimeout(() => this.updateToSelection(e), 50),
-            onStart: (e: Sortable.SortableEvent) => {
-                // all the nodes, not only the elements: the comments are the anchors of the Svelte blocks
+            onChoose: () => {
+                // all the nodes, not only the elements: the comments are the anchors of the Svelte
+                // blocks. Taken before the drag starts, when MultiDrag removes the other selected
+                // elements from the list.
                 this._snapshot = Array.from(container.childNodes);
+            },
+            onStart: (e: Sortable.SortableEvent) => {
                 dragging.set(sortableLevel);
                 // the files that are dragged (or whose elements are) are open for good
                 engine.keepPreview(this.draggedFiles(e));
