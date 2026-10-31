@@ -165,16 +165,14 @@ export const settings = {
     ),
     /** Takes the saved values (see `Engine.openStorage`). */
     connect(stored: StoredSettings) {
-        for (const key in settings) {
-            const setting = (settings as any)[key];
+        for (const setting of Object.values(settings)) {
             if (setting instanceof Setting || setting instanceof SettingInitOnFirstRead) {
                 setting.connect(stored);
             }
         }
     },
     initialize() {
-        for (const key in settings) {
-            const setting = (settings as any)[key];
+        for (const setting of Object.values(settings)) {
             if (setting instanceof SettingInitOnFirstRead) {
                 setting.initialize();
             }

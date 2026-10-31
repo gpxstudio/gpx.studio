@@ -66,9 +66,9 @@ export class GPXLayer {
     unsubscribe: (() => void)[] = [];
 
     updateBinded: () => void = this.update.bind(this);
-    layerOnMouseEnterBinded: (e: any) => void = this.layerOnMouseEnter.bind(this);
+    layerOnMouseEnterBinded: (e: MapLayerMouseEvent) => void = this.layerOnMouseEnter.bind(this);
     layerOnMouseLeaveBinded: () => void = this.layerOnMouseLeave.bind(this);
-    layerOnMouseMoveBinded: (e: any) => void = this.layerOnMouseMove.bind(this);
+    layerOnMouseMoveBinded: (e: MapLayerMouseEvent) => void = this.layerOnMouseMove.bind(this);
     layerOnClickBinded: (e: MapLayerMouseEvent) => void = this.layerOnClick.bind(this);
     layerOnContextMenuBinded: (e: MapLayerMouseEvent) => void = this.layerOnContextMenu.bind(this);
     waypointLayerOnMouseEnterBinded: (e: MapLayerMouseEvent) => void =
@@ -386,10 +386,10 @@ export class GPXLayer {
         }
     }
 
-    layerOnMouseEnter(e: any) {
+    layerOnMouseEnter(e: MapLayerMouseEvent) {
         if (
             get(currentTool) === Tool.SCISSORS &&
-            isCovered(this.selectionState, this.segmentNode(e.features[0].properties))
+            isCovered(this.selectionState, this.segmentNode(e.features![0].properties))
         ) {
             mapCursor.notify(MapCursorState.SCISSORS, true);
         } else {
@@ -402,9 +402,9 @@ export class GPXLayer {
         mapCursor.notify(MapCursorState.LAYER_HOVER, false);
     }
 
-    async layerOnMouseMove(e: any) {
+    async layerOnMouseMove(e: MapLayerMouseEvent) {
         if (e.originalEvent.shiftKey) {
-            const { segmentId } = e.features[0].properties;
+            const { segmentId } = e.features![0].properties;
             const lngLat = { lng: e.lngLat.lng, lat: e.lngLat.lat };
             const index = closestPointIndex(await engine.segmentCoordinates(segmentId), lngLat);
             const trackpoint =
@@ -469,7 +469,7 @@ export class GPXLayer {
         }
     }
 
-    layerOnContextMenu(e: any) {
+    layerOnContextMenu(e: MapLayerMouseEvent) {
         if (e.originalEvent.ctrlKey) {
             this.layerOnClick(e);
         }

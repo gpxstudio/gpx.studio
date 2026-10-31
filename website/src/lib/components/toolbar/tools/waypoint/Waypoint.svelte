@@ -16,7 +16,7 @@
     import { selectedWaypoint } from './waypoint';
     import { map } from '$lib/components/map/map';
     import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
-    import { Marker } from 'maplibre-gl';
+    import { Marker, type MapMouseEvent } from 'maplibre-gl';
     import { getSvgForSymbol } from '$lib/components/map/gpx-layer/gpx-layer';
 
     let props: {
@@ -108,7 +108,7 @@
         reset();
     }
 
-    function setCoordinates(e: any) {
+    function setCoordinates(e: MapMouseEvent) {
         if (
             $map?.queryRenderedFeatures(e.point, {
                 layers: $map.getLayersOrder().filter((layerId) => layerId.endsWith('-waypoints')),
@@ -117,8 +117,8 @@
             // Clicked on a waypoint, ignoring
             return;
         }
-        latitude = e.lngLat.lat.toFixed(6);
-        longitude = e.lngLat.lng.toFixed(6);
+        latitude = parseFloat(e.lngLat.lat.toFixed(6));
+        longitude = parseFloat(e.lngLat.lng.toFixed(6));
     }
 
     $effect(() => {

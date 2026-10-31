@@ -29,9 +29,9 @@ export class SplitControls {
     selection: Selection = { type: 'empty' };
     statistics: SelectionStatistics | undefined = undefined;
 
-    layerOnMouseEnterBinded: (e: any) => void = this.layerOnMouseEnter.bind(this);
+    layerOnMouseEnterBinded: () => void = this.layerOnMouseEnter.bind(this);
     layerOnMouseLeaveBinded: () => void = this.layerOnMouseLeave.bind(this);
-    layerOnClickBinded: (e: any) => void = this.layerOnClick.bind(this);
+    layerOnClickBinded: (e: MapLayerMouseEvent) => void = this.layerOnClick.bind(this);
 
     constructor(map: Map, layerEventManager: MapLayerEventManager) {
         this.map = map;

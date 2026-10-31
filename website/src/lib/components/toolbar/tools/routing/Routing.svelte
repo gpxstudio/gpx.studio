@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Popup } from 'maplibre-gl';
+    import type { MapMouseEvent, Popup } from 'maplibre-gl';
     import * as Select from '$lib/components/ui/select';
     import { Switch } from '$lib/components/ui/switch';
     import { Label } from '$lib/components/ui/label/index.js';
@@ -58,7 +58,7 @@
     // the tool works on files, routes, tracks and segments, not on waypoints
     let validSelection = $derived(coversSegments($selection));
 
-    function createFileWithPoint(e: any) {
+    function createFileWithPoint(e: MapMouseEvent) {
         if ($selection.type === 'empty') {
             // the engine selects the new file, which starts with the trackpoint: one undo step
             engine.newFile(newFileName(), { lng: e.lngLat.lng, lat: e.lngLat.lat });

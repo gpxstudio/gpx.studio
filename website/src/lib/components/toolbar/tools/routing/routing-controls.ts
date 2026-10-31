@@ -556,8 +556,9 @@ export class RoutingControls {
         let response;
         try {
             response = await route(targets);
-        } catch (e: any) {
-            toast.error(i18n._(e.message, e.message));
+        } catch (e) {
+            const message = e instanceof Error ? e.message : String(e);
+            toast.error(i18n._(message, message));
             return false;
         }
 
@@ -802,7 +803,7 @@ export class RoutingControls {
         this.moveAnchorFeature(this.anchorWithId(this.anchors.length)!, position);
     }
 
-    temporaryAnchorCloseToOtherAnchor(e: any) {
+    temporaryAnchorCloseToOtherAnchor(e: MapMouseEvent) {
         const map_ = get(map);
         if (!map_) {
             return false;

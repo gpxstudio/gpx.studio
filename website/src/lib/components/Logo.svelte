@@ -9,7 +9,7 @@
     }: {
         iconOnly?: boolean;
         company?: 'gpx.studio' | 'github' | 'crowdin' | 'facebook' | 'reddit';
-        [key: string]: any;
+        [key: string]: unknown;
     } = $props();
 </script>
 

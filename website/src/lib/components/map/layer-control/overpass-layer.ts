@@ -4,7 +4,7 @@ import { get, writable } from 'svelte/store';
 import { overpassQueryData } from '$lib/data/layers';
 import { MapPopup } from '$lib/components/map/map-popup';
 import { settings } from '$lib/state/settings';
-import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl';
+import type { GeoJSONSource, MapLayerMouseEvent, Map as MapLibreMap } from 'maplibre-gl';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 import type { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
 import { loadSVGIcon } from '$lib/utils';
@@ -140,12 +140,12 @@ export class OverpassLayer {
         }
     }
 
-    onHover(e: any) {
+    onHover(e: MapLayerMouseEvent) {
         this.popup.setItem({
             kind: 'overpass',
             item: {
-                ...e.features[0].properties,
-                sym: overpassQueryData[e.features[0].properties.query].symbol ?? '',
+                ...e.features![0].properties,
+                sym: overpassQueryData[e.features![0].properties.query].symbol ?? '',
             },
         });
     }

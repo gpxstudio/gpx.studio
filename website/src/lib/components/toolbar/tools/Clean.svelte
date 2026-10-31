@@ -16,7 +16,7 @@
     import { getURLForLanguage } from '$lib/utils';
     import { Trash2 } from '@lucide/svelte';
     import { map } from '$lib/components/map/map';
-    import type { GeoJSONSource, LngLat } from 'maplibre-gl';
+    import type { GeoJSONSource, LngLat, MapMouseEvent, MapTouchEvent } from 'maplibre-gl';
     import { engine } from '$lib/engine';
     import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
     import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
@@ -81,12 +81,12 @@
     });
 
     let mousedown = false;
-    function onMouseDown(e: any) {
+    function onMouseDown(e: MapMouseEvent | MapTouchEvent) {
         mousedown = true;
         rectangleCoordinates = [e.lngLat, e.lngLat];
     }
 
-    function onMouseMove(e: any) {
+    function onMouseMove(e: MapMouseEvent | MapTouchEvent) {
         if (mousedown) {
             rectangleCoordinates[1] = e.lngLat;
         }
