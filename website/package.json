@@ -10,6 +10,7 @@
         "postbuild": "npx tsx src/lib/scripts/sitemap.ts",
         "preview": "vite preview",
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+        "pretest": "svelte-kit sync",
         "test": "node --import tsx --import ./src/test/register.mjs --experimental-wasm-modules --disable-warning=ExperimentalWarning --test \"src/**/*.test.ts\"",
         "generate:example": "node --import tsx src/lib/scripts/example-statistics.ts",
         "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
