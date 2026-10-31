@@ -212,7 +212,7 @@
                     </span>
                 </Select.Trigger>
                 <Select.Content class="max-h-60">
-                    {#each sortedSymbols as [key, symbol]}
+                    {#each sortedSymbols as [key, symbol] (key)}
                         <Select.Item value={symbol.value}>
                             <span>
                                 {#if symbol.icon}

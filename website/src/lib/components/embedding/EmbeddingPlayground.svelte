@@ -115,7 +115,7 @@
                     {i18n._(`layers.label.${options.basemap}`)}
                 </Select.Trigger>
                 <Select.Content class="max-h-60 overflow-y-scroll">
-                    {#each allowedEmbeddingBasemaps as basemap}
+                    {#each allowedEmbeddingBasemaps as basemap (basemap)}
                         <Select.Item value={basemap}
                             >{i18n._(`layers.label.${basemap}`)}</Select.Item
                         >

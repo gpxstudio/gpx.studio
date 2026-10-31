@@ -44,7 +44,7 @@
 </script>
 
 <div class="flex flex-col gap-[3px]">
-    {#each Object.keys(node) as id}
+    {#each Object.keys(node) as id (id)}
         {#if typeof node[id] == 'boolean'}
             {#if node[id]}
                 <div class="flex flex-row items-center gap-2 first:mt-0.5 h-4">

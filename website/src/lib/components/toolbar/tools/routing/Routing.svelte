@@ -130,7 +130,7 @@
                                 {i18n._(`toolbar.routing.activities.${$routingProfile}`)}
                             </Select.Trigger>
                             <Select.Content>
-                                {#each Object.keys(routingProfiles) as profile}
+                                {#each Object.keys(routingProfiles) as profile (profile)}
                                     <Select.Item value={profile}
                                         >{i18n._(
                                             `toolbar.routing.activities.${profile}`

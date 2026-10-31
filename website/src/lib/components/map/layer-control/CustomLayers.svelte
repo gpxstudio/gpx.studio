@@ -364,7 +364,7 @@
                 <Label for="name">{i18n._('menu.metadata.name')}</Label>
                 <Input bind:value={name} id="name" class="h-8" />
                 <Label for="url">{i18n._('layers.custom_layers.urls')}</Label>
-                {#each tileUrls as _, i}
+                {#each tileUrls as _, i (i)}
                     <div class="flex flex-row gap-2">
                         <Input
                             bind:value={tileUrls[i]}

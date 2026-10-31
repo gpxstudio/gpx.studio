@@ -43,7 +43,7 @@
                 </AlertDialog.Description>
             </AlertDialog.Header>
             <ul class="list-disc pl-6 text-sm max-h-40 overflow-y-auto">
-                {#each prompt.names as name}
+                {#each prompt.names as name, i (i)}
                     <li>{name}</li>
                 {/each}
             </ul>

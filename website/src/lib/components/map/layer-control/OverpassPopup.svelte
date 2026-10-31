@@ -79,7 +79,7 @@
                 </div>
             {/if}
             <div class="grid grid-cols-[auto_auto] gap-x-3">
-                {#each Object.entries(tags) as [key, value]}
+                {#each Object.entries(tags) as [key, value] (key)}
                     {#if key !== 'name' && !key.includes('image')}
                         <span class="font-mono">{key}</span>
                         {#if key === 'website' || key.startsWith('website:') || key.endsWith(':website') || key === 'contact:facebook' || key === 'contact:instagram' || key === 'contact:twitter'}

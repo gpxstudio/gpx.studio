@@ -16,7 +16,7 @@
         </span>
     </Select.Trigger>
     <Select.Content>
-        {#each Object.entries(languages) as [lang, label]}
+        {#each Object.entries(languages) as [lang, label] (lang)}
             {#if page.url.pathname.includes('404')}
                 <a href={resolve(getURLForLanguage(lang, '/'))}>
                     <Select.Item value={lang}>{label}</Select.Item>

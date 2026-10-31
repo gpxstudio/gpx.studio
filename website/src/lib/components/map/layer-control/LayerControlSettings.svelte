@@ -178,7 +178,7 @@
                                         {/if}
                                     </Select.Trigger>
                                     <Select.Content class="h-fit max-h-[40dvh] overflow-y-auto">
-                                        {#each Object.keys(overlays) as id}
+                                        {#each Object.keys(overlays) as id (id)}
                                             {#if isSelected($selectedOverlayTree, id)}
                                                 <Select.Item value={id}>
                                                     {#if $isLayerFromExtension(id)}
@@ -189,7 +189,7 @@
                                                 </Select.Item>
                                             {/if}
                                         {/each}
-                                        {#each Object.entries($customLayers) as [id, layer]}
+                                        {#each Object.entries($customLayers) as [id, layer] (id)}
                                             {#if layer.layerType === 'overlay'}
                                                 <Select.Item value={id}>{layer.name}</Select.Item>
                                             {/if}
@@ -247,7 +247,7 @@
                                     {i18n._(`layers.label.${$terrainSource}`)}
                                 </Select.Trigger>
                                 <Select.Content class="h-fit max-h-[40dvh] overflow-y-auto">
-                                    {#each Object.keys(terrainSources) as id}
+                                    {#each Object.keys(terrainSources) as id (id)}
                                         <Select.Item value={id}>
                                             {i18n._(`layers.label.${id}`)}
                                         </Select.Item>
