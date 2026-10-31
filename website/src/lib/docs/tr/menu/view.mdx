@@ -3,7 +3,7 @@ title: Görünüm seçenekleri
 ---
 
 <script lang="ts">
-    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, Box, Maximize2 } from '@lucide/svelte';
+    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, EyeOff, Maximize, Box, Maximize2 } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -19,7 +19,7 @@ Haritaya yer açmak için yükselti profilini gizleyin veya mevcut seçimi incel
 
 [Dosya listesi](../files-and-stats) için ağaç düzenini açın/kapatın.
 Bu seçenek çok fazla sayıda açık dosyayı yönetmek için idealdir, haritanın sağında dikey bir şekilde dosyaları gösterir.
-Ek olarak, dosya ağacı görünümü, dosyaların içinde bulunan [izler, segmentler ve ilgi noktaları'nı](../gpx) katlanabilir bölümler aracılığıyla incelemenizi sağlar.
+In addition, the file tree view enables you to inspect the [tracks, segments, routes, and points of interest](../gpx) contained inside the files through collapsible sections.
 
 ### <Map size="16" class="inline-block" style="margin-bottom: 2px" /> Önceki temel haritaya geç
 
@@ -37,6 +37,14 @@ Mesafe işaretlerinin haritada görünürlülüğünü değiştir.
 ### <Milestone size="16" class="inline-block" style="margin-bottom: 2px" /> Yön işaretleri
 
 Yön işaretlerinin haritada görünürlülüğünü değiştir.
+
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
+
+Toggle the visibility of the selected file items on the map.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+
+Center the map on the selected file items.
 
 ### <Box size="16" class="inline-block" style="margin-bottom: 2px" /> 3D aç/kapa
 

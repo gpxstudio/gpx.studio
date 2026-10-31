@@ -3,14 +3,14 @@ title: Bearbeite Aktionen
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from '@lucide/svelte';
+    import { Undo2, Redo2, Info, PaintBucket, ArrowRightLeft, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Plus } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # { title }
 
 Im Gegensatz zu den Datei-Aktionen können die Bearbeitungs-Aktionen möglicherweise den Inhalt der aktuell ausgewählten Dateien verändern.
-Wenn das vertikale Layout der Dateiliste aktiviert ist (siehe [Dateien und Statistik](.. /files-and-stats)), können dieses auch auf [Tracks, Segmente und Points-of-Interest](../gpx) angewendet werden.
+Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, routes, and points of interest](../gpx).
 Daher bezeichnen wir die Elemente, die durch diese Aktionen geändert werden können, als _file items_.
 Beachte, dass die Bearbeitungsaktionen auch über das Kontextmenü (Rechtsklick) der Dateielemente zugänglich sind, ausgenommen von "rückgängig" und "wiederholen".
 
@@ -27,13 +27,20 @@ Dies gilt für alle Aktionen der Bedienoberfläche, aber nicht für Optionen, An
 
 Öffnen Sie das Dialogfeld Darstellung, in der Sie die Farbe, Deckkraft und Breite der ausgewählten Dateielemente auf der Karte ändern können.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Einblenden/Ausblenden
-
-Konfigurieren Sie die Sichtbarkeit der ausgewählten Dateielemente auf der Karte.
-
 ### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Neuer Track
 
 Erstelle ein neues Segment im ausgewählten Track.
+
+<DocsNote>
+
+Diese Aktion ist nur verfügbar, wenn das vertikale Layout der Dateiliste aktiviert ist.
+Außerdem muss die Auswahl aus einem einzelnen Track bestehen.
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New route
+
+Create a new route in the selected file.
 
 <DocsNote>
 
@@ -53,13 +60,22 @@ Außerdem muss die Auswahl aus einem einzelnen Track bestehen.
 
 </DocsNote>
 
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Convert to route/track
+
+Convert the selected routes to tracks, or the selected tracks or segments to routes.
+Since a route has a single segment, a track with multiple segments is converted into one route per segment.
+
+When the selected files contain only routes, or only tracks, you can also convert all of them at once.
+
+<DocsNote>
+
+Except for whole files, this action is only available when the tree layout of the files list is enabled.
+
+</DocsNote>
+
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Alle auswählen
 
 Alle Dateielemente in der aktuellen Hierarchieebene zur Auswahl hinzufügen.
-
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Zentrieren
-
-Zentrieren der Karte auf den ausgewählten Dateielementen.
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Kopieren
 

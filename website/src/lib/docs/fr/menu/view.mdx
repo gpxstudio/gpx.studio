@@ -3,7 +3,7 @@ title: Options d'affichage
 ---
 
 <script lang="ts">
-    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, Box, Maximize2 } from '@lucide/svelte';
+    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, EyeOff, Maximize, Box, Maximize2 } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -19,7 +19,7 @@ Masquer le profil altimétrique pour faire de la place pour la carte, ou l'affic
 
 Activer/désactiver la présentation en arborescence pour la [liste de fichiers](../files-and-stats).
 Cette disposition est idéale pour gérer un grand nombre de fichiers ouverts, car elle les organise en une liste verticale à droite de la carte.
-De plus, la vue en arborescence des fichiers vous permet d'inspecter les [traces, segments, et points d'intérêt](../gpx) contenus dans les fichiers grâce à des sections pliables.
+In addition, the file tree view enables you to inspect the [tracks, segments, routes, and points of interest](../gpx) contained inside the files through collapsible sections.
 
 ### <Map size="16" class="inline-block" style="margin-bottom: 2px" /> Basculer au fond de carte précédent
 
@@ -37,6 +37,14 @@ Ceux-ci sont affichés pour la sélection courante, comme le [profil altimétriq
 ### <Milestone size="16" class="inline-block" style="margin-bottom: 2px" /> Flèches de direction
 
 Activer/désactiver la visibilité des flèches de direction sur la carte.
+
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
+
+Toggle the visibility of the selected file items on the map.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+
+Center the map on the selected file items.
 
 ### <Box size="16" class="inline-block" style="margin-bottom: 2px" /> Activer/désactiver la 3D
 

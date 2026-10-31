@@ -3,7 +3,7 @@ title: Ver opções
 ---
 
 <script lang="ts">
-    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, Box, Maximize2 } from '@lucide/svelte';
+    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, EyeOff, Maximize, Box, Maximize2 } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -19,7 +19,7 @@ Oculte o perfil de elevação para liberar espaço para o mapa, ou mostre-o para
 
 Toggle the tree layout for the [file list](../files-and-stats).
 This layout is ideal for managing a large number of open files, as it organizes them into a vertical list on the right side of the map.
-In addition, the file tree view enables you to inspect the [tracks, segments, and points of interest](../gpx) contained inside the files through collapsible sections.
+In addition, the file tree view enables you to inspect the [tracks, segments, routes, and points of interest](../gpx) contained inside the files through collapsible sections.
 
 ### <Map size="16" class="inline-block" style="margin-bottom: 2px" /> Mudar para mapa base anterior
 
@@ -37,6 +37,14 @@ Eles são exibidos para a seleção atual, como o [perfil de elevação](../file
 ### <Milestone size="16" class="inline-block" style="margin-bottom: 2px" /> Setas de direção
 
 Alterna a visibilidade das setas de direção no mapa.
+
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
+
+Toggle the visibility of the selected file items on the map.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+
+Center the map on the selected file items.
 
 ### <Box size="16" class="inline-block" style="margin-bottom: 2px" /> Alternar 3D
 

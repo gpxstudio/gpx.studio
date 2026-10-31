@@ -3,14 +3,14 @@ title: Acciones de edición
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from '@lucide/svelte';
+    import { Undo2, Redo2, Info, PaintBucket, ArrowRightLeft, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Plus } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # { title }
 
 A diferencia de las acciones de archivo, las acciones de edición pueden potencialmente modificar el contenido de los archivos seleccionados actualmente.
-Además, cuando está habilitada la disposición del árbol de la lista de archivos (ver [Archivos y estadísticas](../files-and-stats)), se pueden aplicar a [pistas, segmentos y puntos de interés](../gpx).
+Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, routes, and points of interest](../gpx).
 Por lo tanto, nos referiremos a los elementos que pueden ser modificados por estas acciones como _elementos de archivo_.
 Tenga en cuenta que, excepto para las acciones de deshacer y rehacer, las acciones de edición también son accesibles a través del menú contextual (clic derecho) de los elementos del archivo.
 
@@ -27,13 +27,20 @@ Abre el cuadro de diálogo de información del elemento del archivo seleccionado
 
 Abre el diálogo de apariencia, donde puede cambiar el color, la opacidad y el ancho en el mapa de los elementos de archivo seleccionados.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Ocultar/mostrar
-
-Alterna la visibilidad de los elementos del archivo seleccionado en el mapa.
-
 ### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Nueva pista
 
 Crear una nueva pista en el archivo seleccionado.
+
+<DocsNote>
+
+Esta acción sólo está disponible cuando está habilitada la disposición del árbol de la lista de archivos.
+Además, la selección debe ser un solo archivo.
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New route
+
+Create a new route in the selected file.
 
 <DocsNote>
 
@@ -53,13 +60,22 @@ Además, la selección debe ser una sola pista.
 
 </DocsNote>
 
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Convert to route/track
+
+Convert the selected routes to tracks, or the selected tracks or segments to routes.
+Since a route has a single segment, a track with multiple segments is converted into one route per segment.
+
+When the selected files contain only routes, or only tracks, you can also convert all of them at once.
+
+<DocsNote>
+
+Except for whole files, this action is only available when the tree layout of the files list is enabled.
+
+</DocsNote>
+
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Seleccionar todo
 
 Añade todos los elementos del archivo en el nivel de jerarquía actual a la selección.
-
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Centrar
-
-Centrar el mapa en los elementos de archivo seleccionados.
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copiar
 

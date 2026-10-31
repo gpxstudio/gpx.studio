@@ -3,13 +3,15 @@ title: GPX bestandsindeling
 ---
 
 <script>
-    import { Waypoints, MapPin } from '@lucide/svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import { Waypoints, Route, MapPin } from '@lucide/svelte';
 </script>
 
 # { title }
 
 De <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX bestandsindeling</a> is open voor het uitwisselen van GPS-gegevens tussen applicaties en GPS-apparaten.
 Het bestaat in wezen uit een reeks GPS-punten die één of meerdere GPS-sporen coderen, en eventueel enkele aandachtspunten.
+These traces can be stored either as tracks or as routes.
 
 GPX-bestanden kunnen ook metagegevens bevatten, waarvan de **naam** en **omschrijving** velden het nuttigst zijn voor gebruikers.
 
@@ -26,6 +28,20 @@ Deze zijn georganiseerd in een hiërarchische structuur, met routes op het hoogs
 
 In de meeste gevallen bevatten GPX-bestanden een enkele route met een enkel segment.
 De hierboven beschreven hiërarchie maakt echter meer geavanceerd gebruik mogelijk, zoals het plannen van meerdaagse reizen met meerdere varianten per dag.
+
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routes
+
+A **route** is a single continuous path made of a sequence of **route points**.
+These are mandatory checkpoints, which correspond to the anchor points of the [routing tool](./toolbar/routing).
+The points in between are only a suggested path connecting the route points.
+Like a track, a route can have a **name**, a **description**, and **appearance properties**.
+
+<DocsNote>
+
+Nowadays, most apps and GPS devices work perfectly well with tracks, even for navigation.
+However, some of them only work with routes: in that case, you can [convert](./menu/edit) your tracks to routes, or [create](./menu/file) a route file from the start.
+
+</DocsNote>
 
 ### POI's (Interessante plekken)
 

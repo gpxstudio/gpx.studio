@@ -3,7 +3,7 @@ title: Opcije prikaza
 ---
 
 <script lang="ts">
-    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, Box, Maximize2 } from '@lucide/svelte';
+    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, EyeOff, Maximize, Box, Maximize2 } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -19,7 +19,7 @@ Sakrijte profil nadmorske visine da biste napravili mesta za mapu ili ga prikaž
 
 Uključi/isključi raspored stabla za [listu datoteka](../files-and-stats).
 Ovaj raspored je idealan za upravljanje velikim brojem otvorenih datoteka, jer ih organizuje u vertikalnu listu na desnoj strani mape.
-Pored toga, prikaz stabla datoteka vam omogućava da pregledate [trase, segmente i tačke interesovanja](../gpx) sadržane unutar datoteka putem sklopivih odeljaka.
+In addition, the file tree view enables you to inspect the [tracks, segments, routes, and points of interest](../gpx) contained inside the files through collapsible sections.
 
 ### <Map size="16" class="inline-block" style="margin-bottom: 2px" /> Vrati prethodnu osnovnu mapu
 
@@ -37,6 +37,14 @@ Prikazuju se za trenutni izbor, kao što je [profil nadmorske visine](../datotek
 ### <Milestone size="16" class="inline-block" style="margin-bottom: 2px" /> Strelice za smer
 
 Uključite/isključite vidljivost strelica za smer na mapi.
+
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
+
+Toggle the visibility of the selected file items on the map.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+
+Center the map on the selected file items.
 
 ### <Box size="16" class="inline-block" style="margin-bottom: 2px" /> Uključi/isključi 3D
 
