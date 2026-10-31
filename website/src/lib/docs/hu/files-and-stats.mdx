@@ -7,11 +7,11 @@ title: Fájlok és statisztikák
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
     import ElevationProfile from '$lib/components/elevation-profile/ElevationProfile.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
-    import { exampleGPXFile } from '$lib/assets/example';
+    import { exampleStatistics } from '$lib/data/example';
     import { writable } from 'svelte/store';
 
-    let gpxStatistics = writable(exampleGPXFile.getStatistics());
-    let slicedGPXStatistics = writable(undefined);
+    let statistics = writable(exampleStatistics);
+    let slicedStatistics = writable(undefined);
     let hoveredPoint = writable(null);
     let additionalDatasets = writable(['speed', 'atemp']);
     let elevationFill = writable(undefined);
@@ -51,7 +51,7 @@ A jobb gombbal egy fájl fülre kattintva ugyanazokat a műveleteket érheti el,
 
 Ahogy a [nézetbeállítások](./menu/view) részben említettük, a fájllista fa nézetére is válthat.
 Ez az elrendezés ideális nagyszámú megnyitott fájl kezeléséhez, mivel függőleges listába rendezi őket a térkép jobb oldalán.
-Ezenkívül a fájlok fa nézete lehetővé teszi a fájlokban található [nyomvonalak, szegmensek, és érdekes helyek](./gpx) megtekintését összecsukható szekciókban.
+In addition, the file tree view enables you to inspect the [tracks, segments, routes, and points of interest](./gpx) contained inside the files through collapsible sections.
 
 A belső fájlelemekre [szerkesztési műveleteket] (./menu/edit) és [eszközöket] (./toolbar) is alkalmazhat.
 Ezenkívül a belső elemek áthúzásával átrendezheti őket, vagy áthelyezheti őket a hierarchiába vagy akár egy másik fájlba.
@@ -83,8 +83,8 @@ Az egérgörgővel is méretezheti a magassági profilt. Balra és jobbra mozogh
 
 <div class="h-48 w-full">
     <ElevationProfile
-        {gpxStatistics}
-        {slicedGPXStatistics}
+        {statistics}
+        {slicedStatistics}
         {hoveredPoint}
         {additionalDatasets}
         {elevationFill}
@@ -92,8 +92,8 @@ Az egérgörgővel is méretezheti a magassági profilt. Balra és jobbra mozogh
 </div>
 <div class="flex flex-col items-center w-full">
     <GPXStatistics
-        {gpxStatistics}
-        {slicedGPXStatistics}
+        {statistics}
+        {slicedStatistics}
         orientation={'horizontal'}
     />
 </div>
