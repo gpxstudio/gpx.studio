@@ -7,11 +7,11 @@ title: Bestanden en statistieken
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
     import ElevationProfile from '$lib/components/elevation-profile/ElevationProfile.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
-    import { exampleGPXFile } from '$lib/assets/example';
+    import { exampleStatistics } from '$lib/data/example';
     import { writable } from 'svelte/store';
 
-    let gpxStatistics = writable(exampleGPXFile.getStatistics());
-    let slicedGPXStatistics = writable(undefined);
+    let statistics = writable(exampleStatistics);
+    let slicedStatistics = writable(undefined);
     let hoveredPoint = writable(null);
     let additionalDatasets = writable(['speed', 'atemp']);
     let elevationFill = writable(undefined);
@@ -51,7 +51,7 @@ Door met de rechtermuisknop te klikken op een tabblad bestanden, kun je dezelfde
 
 Zoals vermeld in de [opties bekijken](./menu/view), kun je schakelen tussen een horizontale en een verticale indeling voor de bestandslijst.
 Deze indeling is ideaal voor het beheren van een groot aantal open bestanden, omdat deze geordend worden in een verticale lijst op de rechterkant van de kaart.
-Daarnaast kun je met de boomweergave de [routes, segmenten, en interessante punten](./gpx) in de bestanden bekijken door middel van inklapbare secties.
+In addition, the file tree view enables you to inspect the [tracks, segments, routes, and points of interest](./gpx) contained inside the files through collapsible sections.
 
 Je kunt ook [bewerk acties](./menu/edit) en [tools](./toolbar) toepassen op interne bestands items.
 Bovendien kun je de interne onderdelen slepen en neerzetten om ze te rangschikken, of ze in de hiërarchie of zelfs naar een ander bestand verplaatsen.
@@ -83,8 +83,8 @@ Je kunt het muiswiel ook gebruiken om in en uit te zoomen op het hoogte profiel,
 
 <div class="h-48 w-full">
     <ElevationProfile
-        {gpxStatistics}
-        {slicedGPXStatistics}
+        {statistics}
+        {slicedStatistics}
         {hoveredPoint}
         {additionalDatasets}
         {elevationFill}
@@ -92,8 +92,8 @@ Je kunt het muiswiel ook gebruiken om in en uit te zoomen op het hoogte profiel,
 </div>
 <div class="flex flex-col items-center w-full">
     <GPXStatistics
-        {gpxStatistics}
-        {slicedGPXStatistics}
+        {statistics}
+        {slicedStatistics}
         orientation={'horizontal'}
     />
 </div>
