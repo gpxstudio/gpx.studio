@@ -3,13 +3,15 @@ title: GPX fájlformátum
 ---
 
 <script>
-    import { Waypoints, MapPin } from '@lucide/svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import { Waypoints, Route, MapPin } from '@lucide/svelte';
 </script>
 
 # { title }
 
 A <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX-fájlformátum</a> egy nyílt szabvány GPS-adatok alkalmazások és GPS-eszközök közötti cseréjére.
 Lényegében GPS-pontok sorozatából áll, amelyek egy vagy több GPS-nyomvonalat kódolnak, és opcionálisan néhány érdekes helyszínt is tartalmazhat.
+These traces can be stored either as tracks or as routes.
 
 A GPX-fájlok metaadatokat is tartalmazhatnak, amelyek közül a **név** és a **leírás** a leghasznosabb a felhasználók számára.
 
@@ -26,6 +28,20 @@ Ezek hierarchikus struktúrába vannak rendezve, amelynek legfelső szintjén a 
 
 A legtöbb esetben a GPX-fájlok egyetlen nyomvonalat tartalmaznak, egyetlen szakasszal.
 A fent ismertetett hierarchia azonban fejlettebb felhasználási lehetőségeket is biztosít, például többnapos utak megtervezését, amelyekhez minden napra több változat is tartozhat.
+
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routes
+
+A **route** is a single continuous path made of a sequence of **route points**.
+These are mandatory checkpoints, which correspond to the anchor points of the [routing tool](./toolbar/routing).
+The points in between are only a suggested path connecting the route points.
+Like a track, a route can have a **name**, a **description**, and **appearance properties**.
+
+<DocsNote>
+
+Nowadays, most apps and GPS devices work perfectly well with tracks, even for navigation.
+However, some of them only work with routes: in that case, you can [convert](./menu/edit) your tracks to routes, or [create](./menu/file) a route file from the start.
+
+</DocsNote>
 
 ### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Érdekes hely
 
