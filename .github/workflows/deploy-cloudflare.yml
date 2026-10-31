@@ -1,0 +1,67 @@
+name: Deploy to Cloudflare Pages
+on:
+    push:
+        branches: 'dev'
+    workflow_dispatch:
+
+concurrency:
+    group: cloudflare-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        permissions:
+            contents: read
+            deployments: write
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
+
+            - name: Install Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: npm
+                  cache-dependency-path: website/package-lock.json
+
+            - name: Install Rust
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: wasm32-unknown-unknown
+
+            - name: Install wasm-pack
+              uses: taiki-e/install-action@v2
+              with:
+                  tool: wasm-pack
+
+            - name: Test gpx-rs
+              run: cargo test
+
+            - name: Build wasm
+              run: wasm-pack build --target bundler
+              working-directory: wasm
+
+            - name: Install dependencies for website
+              run: npm install --prefix website
+
+            - name: Test website
+              run: npm test --prefix website
+
+            - name: Create env file
+              run: echo PUBLIC_MAPTILER_KEY=${{ secrets.PUBLIC_MAPTILER_KEY }} >> website/.env
+
+            - name: Build website
+              env:
+                  BASE_PATH: ''
+              run: npm run build --prefix website
+
+            - name: Deploy to Cloudflare Pages
+              uses: cloudflare/wrangler-action@v3
+              with:
+                  apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                  accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+                  command: pages deploy website/build --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME || 'gpxstudio' }} --branch=${{ github.ref_name }}
+                  gitHubToken: ${{ secrets.GITHUB_TOKEN }}
