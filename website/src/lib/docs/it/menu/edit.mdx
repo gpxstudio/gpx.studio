@@ -3,14 +3,14 @@ title: Azioni di modifica
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from '@lucide/svelte';
+    import { Undo2, Redo2, Info, PaintBucket, ArrowRightLeft, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Plus } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # { title }
 
 A differenza delle azioni del menu file, le azioni del menu modifica potrebbero modificare il contenuto dei file attualmente selezionati.
-Inoltre, quando il layout verticale dell'elenco dei file è abilitato (vedi [File e statistiche](../files-and-stats)), possono anche essere applicati a [tracce, segmenti e punti di interesse](../gpx).
+Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, routes, and points of interest](../gpx).
 Pertanto, ci riferiremo agli elementi che possono essere modificati da queste azioni come _elementi_.
 Si noti che, a eccezione delle azioni annulla e ripeti, le azioni del menu modifica sono accessibili anche attraverso il menu contestuale (click destro) degli elementi del file.
 
@@ -27,13 +27,20 @@ Apre la finestra informativa del file attualmente selezionato, dove è possibile
 
 Apre la finestra dell'aspetto, dove è possibile cambiare il colore, l'opacità e lo spessore della traccia selezionata sulla mappa.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Nascondi/visualizza
-
-Attiva o disattiva la visibilità dell'elemento selezionato sulla mappa.
-
 ### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Nuova traccia
 
 Crea una nuova traccia nel file selezionato.
+
+<DocsNote>
+
+Questa azione è disponibile solo quando il layout verticale dell'elenco dei file è abilitato.
+Inoltre, la selezione deve essere un singolo file.
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New route
+
+Create a new route in the selected file.
 
 <DocsNote>
 
@@ -53,13 +60,22 @@ Inoltre, la selezione deve essere una singola traccia.
 
 </DocsNote>
 
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Convert to route/track
+
+Convert the selected routes to tracks, or the selected tracks or segments to routes.
+Since a route has a single segment, a track with multiple segments is converted into one route per segment.
+
+When the selected files contain only routes, or only tracks, you can also convert all of them at once.
+
+<DocsNote>
+
+Except for whole files, this action is only available when the tree layout of the files list is enabled.
+
+</DocsNote>
+
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Seleziona tutto
 
 Aggiunge tutti i file nel corrente livello gerarchico alla selezione.
-
-### Aggiunge tutti i file nel corrente livello gerarchico alla selezione
-
-Centra la mappa sugli elementi di file selezionati.
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copia
 
