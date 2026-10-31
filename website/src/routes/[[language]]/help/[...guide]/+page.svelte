@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { resolve } from '$app/paths';
     import { page } from '$app/state';
     import { getNextGuide, getPreviousGuide } from '$lib/components/docs/docs';
     import DocsContainer from '$lib/components/docs/DocsContainer.svelte';
@@ -22,7 +23,7 @@
         <Button
             variant="outline"
             class="mr-auto"
-            href={getURLForLanguage(i18n.lang, `/help/${previousGuide}`)}
+            href={resolve(getURLForLanguage(i18n.lang, `/help/${previousGuide}`))}
         >
             <ChevronLeft size="14" class="mt-0.5" />
             {data.guideTitles[previousGuide]}
@@ -32,7 +33,7 @@
         <Button
             variant="outline"
             class="ml-auto"
-            href={getURLForLanguage(i18n.lang, `/help/${nextGuide}`)}
+            href={resolve(getURLForLanguage(i18n.lang, `/help/${nextGuide}`))}
         >
             {data.guideTitles[nextGuide]}
             <ChevronRight size="14" class="mt-0.5" />

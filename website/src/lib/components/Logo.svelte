@@ -1,6 +1,6 @@
 <script lang="ts">
     import { mode } from 'mode-watcher';
-    import { base } from '$app/paths';
+    import { asset } from '$app/paths';
 
     let {
         iconOnly = false,
@@ -15,7 +15,7 @@
 
 {#if company === 'gpx.studio'}
     <img
-        src="{base}/{iconOnly ? 'icon' : 'logo'}{mode.current === 'dark' ? '-dark' : ''}.svg"
+        src={asset(`/${iconOnly ? 'icon' : 'logo'}${mode.current === 'dark' ? '-dark' : ''}.svg`)}
         alt="Logo of gpx.studio."
         {...others}
     />

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { resolve } from '$app/paths';
     import { Button } from '$lib/components/ui/button';
     import Logo from '$lib/components/Logo.svelte';
     import { getURLForLanguage } from '$lib/utils';
@@ -12,7 +13,7 @@
     <Logo class="h-40 my-3 animate-spin" style="animation-duration: 20000ms" iconOnly={true} />
     <div class="w-full flex flex-row flex-wrap gap-3 justify-center">
         <Button
-            href={getURLForLanguage(i18n.lang, '/')}
+            href={resolve(getURLForLanguage(i18n.lang, '/'))}
             class="text-base w-1/4 min-w-fit rounded-full"
         >
             <House size="18" />
@@ -20,14 +21,14 @@
         </Button>
         <Button
             data-sveltekit-reload
-            href={getURLForLanguage(i18n.lang, '/app')}
+            href={resolve(getURLForLanguage(i18n.lang, '/app'))}
             class="text-base w-1/4 min-w-fit rounded-full"
         >
             <Map size="18" />
             {i18n._('homepage.app')}
         </Button>
         <Button
-            href={getURLForLanguage(i18n.lang, '/help')}
+            href={resolve(getURLForLanguage(i18n.lang, '/help'))}
             class="text-base w-1/4 min-w-fit rounded-full"
         >
             <BookOpenText size="18" />

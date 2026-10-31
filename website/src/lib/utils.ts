@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { base } from '$app/paths';
+import { resolve } from '$app/paths';
 import { languages } from '$lib/i18n/languages';
 import type { Coordinates } from '$lib/geo/coordinates';
 import { LngLatBounds, type Map as MapLibreMap } from 'maplibre-gl';
@@ -130,8 +130,16 @@ export function isSafari() {
     return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 }
 
+/**
+ * The path of a page in another language, without the base path (pass it to `resolve`). `path` is
+ * the path of the page, with or without the base path.
+ */
 export function getURLForLanguage(lang: string, path: string): string {
-    let newPath = path.replace(base, '');
+    const base = resolve('/').slice(0, -1);
+    let newPath =
+        base && (path === base || path.startsWith(`${base}/`))
+            ? path.slice(base.length) || '/'
+            : path;
 
     let languageInPath = newPath.split('/')[1];
     if (!Object.hasOwn(languages, languageInPath)) {
@@ -144,17 +152,16 @@ export function getURLForLanguage(lang: string, path: string): string {
 
     if (languageInPath === 'en') {
         if (lang === 'en') {
-            return `${base}${newPath}`;
+            return newPath;
         } else {
-            return `${base}/${lang}${newPath}`;
+            return `/${lang}${newPath}`;
         }
     } else {
         if (lang === 'en') {
             newPath = newPath.replace(`/${languageInPath}`, '');
-            return newPath === '' ? `${base}/` : `${base}${newPath}`;
+            return newPath === '' ? '/' : newPath;
         } else {
-            newPath = newPath.replace(`/${languageInPath}`, `/${lang}`);
-            return `${base}${newPath}`;
+            return newPath.replace(`/${languageInPath}`, `/${lang}`);
         }
     }
 }

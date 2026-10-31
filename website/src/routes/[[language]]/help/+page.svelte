@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { resolve } from '$app/paths';
     import { Button } from '$lib/components/ui/button';
     import { getURLForLanguage } from '$lib/utils';
     import { i18n } from '$lib/i18n/i18n.svelte';
@@ -17,7 +18,7 @@
     {#each Object.keys(guides) as guide}
         <Button
             variant="outline"
-            href={getURLForLanguage(i18n.lang, `/help/${guide}`)}
+            href={resolve(getURLForLanguage(i18n.lang, `/help/${guide}`))}
             class="min-h-36 h-full pt-6 pb-3 px-0"
         >
             <div class="flex flex-col w-full">
@@ -31,7 +32,9 @@
                     {#each guides[guide] as subGuide}
                         <Button
                             variant="link"
-                            href={getURLForLanguage(i18n.lang, `/help/${guide}/${subGuide}`)}
+                            href={resolve(
+                                getURLForLanguage(i18n.lang, `/help/${guide}/${subGuide}`)
+                            )}
                             class="min-h-8 h-fit min-w-24 px-0 py-1 text-muted-foreground text-base text-center whitespace-normal"
                         >
                             {#if typeof guideIcons[subGuide] === 'string'}

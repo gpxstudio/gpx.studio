@@ -83,7 +83,12 @@
                     {#if key !== 'name' && !key.includes('image')}
                         <span class="font-mono">{key}</span>
                         {#if key === 'website' || key.startsWith('website:') || key.endsWith(':website') || key === 'contact:facebook' || key === 'contact:instagram' || key === 'contact:twitter'}
-                            <a href={value} target="_blank" class="text-link underline">{value}</a>
+                            <a
+                                href={value}
+                                target="_blank"
+                                rel="external"
+                                class="text-link underline">{value}</a
+                            >
                         {:else if key === 'wikipedia' || key.startsWith('wikipedia:') || key.endsWith(':wikipedia')}
                             <a
                                 href="https://wikipedia.org/wiki/{value}"

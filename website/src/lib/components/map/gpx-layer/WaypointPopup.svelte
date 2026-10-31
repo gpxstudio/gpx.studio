@@ -48,7 +48,7 @@
         <Card.Title class="text-md">
             {@const link = waypoint.item.links?.[0]}
             {#if link?.href}
-                <a href={link.href} target="_blank">
+                <a href={link.href} target="_blank" rel="external">
                     {waypoint.item.name ?? link.href}
                     <ExternalLink size="12" class="inline-block mb-1.5" />
                 </a>

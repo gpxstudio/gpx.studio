@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { resolve } from '$app/paths';
     import GPXLayers from '$lib/components/map/gpx-layer/GPXLayers.svelte';
     import ElevationProfile from '$lib/components/elevation-profile/ElevationProfile.svelte';
     import FileList from '$lib/components/file-list/FileList.svelte';
@@ -79,7 +80,9 @@
             const saved = get(settings.language);
             if (saved !== undefined && saved !== language) {
                 await goto(
-                    `${getURLForLanguage(saved, page.url.pathname)}${page.url.search}${page.url.hash}`,
+                    resolve(
+                        `${getURLForLanguage(saved, page.url.pathname)}${page.url.search}${page.url.hash}`
+                    ),
                     { replaceState: true }
                 );
             }

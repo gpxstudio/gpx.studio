@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { resolve } from '$app/paths';
     import * as Menubar from '$lib/components/ui/menubar/index.js';
     import { Button } from '$lib/components/ui/button';
     import Logo from '$lib/components/Logo.svelte';
@@ -148,7 +149,7 @@
     <div
         class="w-fit flex flex-row items-center justify-center p-1 bg-background rounded-b-md md:rounded-md pointer-events-auto shadow-md"
     >
-        <a href={getURLForLanguage(i18n.lang, '/')} target="_blank" class="shrink-0">
+        <a href={resolve(getURLForLanguage(i18n.lang, '/'))} target="_blank" class="shrink-0">
             <Logo class="h-5 mt-0.5 mx-2 md:hidden" iconOnly={true} width="16" />
             <Logo class="h-5 mt-0.5 mx-2 hidden md:block" width="96" />
         </a>
@@ -527,7 +528,7 @@
                         <Menubar.SubContent>
                             <Menubar.RadioGroup value={i18n.lang}>
                                 {#each Object.entries(languages) as [lang, label]}
-                                    <a href={getURLForLanguage(lang, '/app')}>
+                                    <a href={resolve(getURLForLanguage(lang, '/app'))}>
                                         <Menubar.RadioItem value={lang}>{label}</Menubar.RadioItem>
                                     </a>
                                 {/each}

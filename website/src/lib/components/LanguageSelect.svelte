@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { resolve } from '$app/paths';
     import { page } from '$app/state';
     import * as Select from '$lib/components/ui/select';
     import { languages } from '$lib/i18n/languages';
@@ -17,11 +18,11 @@
     <Select.Content>
         {#each Object.entries(languages) as [lang, label]}
             {#if page.url.pathname.includes('404')}
-                <a href={getURLForLanguage(lang, '/')}>
+                <a href={resolve(getURLForLanguage(lang, '/'))}>
                     <Select.Item value={lang}>{label}</Select.Item>
                 </a>
             {:else}
-                <a href={getURLForLanguage(lang, page.url.pathname)}>
+                <a href={resolve(getURLForLanguage(lang, page.url.pathname))}>
                     <Select.Item value={lang}>{label}</Select.Item>
                 </a>
             {/if}

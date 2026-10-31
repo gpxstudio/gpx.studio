@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { resolve } from '$app/paths';
     import { Button } from '$lib/components/ui/button';
     import ElevationProfile from '$lib/components/elevation-profile/ElevationProfile.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
@@ -58,7 +59,7 @@
                 <div class="w-full flex flex-row xs:justify-center gap-3">
                     <Button
                         data-sveltekit-reload
-                        href={getURLForLanguage(i18n.lang, '/app')}
+                        href={resolve(getURLForLanguage(i18n.lang, '/app'))}
                         class="w-1/3 min-w-fit"
                     >
                         <Map size="18" />
@@ -66,7 +67,7 @@
                     </Button>
                     <Button
                         variant="secondary"
-                        href={getURLForLanguage(i18n.lang, '/help')}
+                        href={resolve(getURLForLanguage(i18n.lang, '/help'))}
                         class="w-1/3 min-w-fit"
                     >
                         <BookOpenText size="18" />
@@ -74,7 +75,10 @@
                     </Button>
                 </div>
             </div>
-            <a href={getURLForLanguage(i18n.lang, '/app')} aria-label="Link to the web app.">
+            <a
+                href={resolve(getURLForLanguage(i18n.lang, '/app'))}
+                aria-label="Link to the web app."
+            >
                 <enhanced:img
                     src="/src/lib/assets/img/docs/getting-started/interface.webp"
                     alt="The gpx.studio interface."

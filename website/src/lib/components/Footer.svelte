@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { resolve } from '$app/paths';
     import { Button } from '$lib/components/ui/button';
     import LanguageSelect from '$lib/components/LanguageSelect.svelte';
     import ModeSwitch from '$lib/components/ModeSwitch.svelte';
@@ -31,7 +32,7 @@
                 <Button
                     variant="link"
                     class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
-                    href={getURLForLanguage(i18n.lang, '/')}
+                    href={resolve(getURLForLanguage(i18n.lang, '/'))}
                 >
                     <House size="16" />
                     {i18n._('homepage.home')}
@@ -40,7 +41,7 @@
                     data-sveltekit-reload
                     variant="link"
                     class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
-                    href={getURLForLanguage(i18n.lang, '/app')}
+                    href={resolve(getURLForLanguage(i18n.lang, '/app'))}
                 >
                     <Map size="16" />
                     {i18n._('homepage.app')}
@@ -48,7 +49,7 @@
                 <Button
                     variant="link"
                     class="h-6 px-0 has-[>svg]:px-0 text-muted-foreground"
-                    href={getURLForLanguage(i18n.lang, '/help')}
+                    href={resolve(getURLForLanguage(i18n.lang, '/help'))}
                 >
                     <BookOpenText size="16" />
                     {i18n._('menu.help')}
