@@ -3,14 +3,14 @@ title: Edit actions
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from '@lucide/svelte';
+    import { Undo2, Redo2, Info, PaintBucket, ArrowRightLeft, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Plus } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # { title }
 
 Unlike the file actions, the edit actions can potentially modify the content of the currently selected files.
-Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, and points of interest](../gpx).
+Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, routes, and points of interest](../gpx).
 Therefore, we will refer to the elements that can be modified by these actions as _file items_.
 Note that except for the undo and redo actions, the edit actions are also accessible through the context menu (right-click) of the file items.
 
@@ -27,13 +27,20 @@ Open the information dialog of the currently selected file item, where you can s
 
 Open the appearance dialog, where you can change the color, opacity, and width of the selected file items on the map.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
-
-Toggle the visibility of the selected file items on the map.
-
 ### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New track
 
 Create a new track in the selected file.
+
+<DocsNote>
+
+This action is only available when the tree layout of the files list is enabled.
+Additionally, the selection must be a single file.
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New route
+
+Create a new route in the selected file.
 
 <DocsNote>
 
@@ -53,13 +60,22 @@ Additionally, the selection must be a single track.
 
 </DocsNote>
 
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Convert to route/track
+
+Convert the selected routes to tracks, or the selected tracks or segments to routes.
+Since a route has a single segment, a track with multiple segments is converted into one route per segment.
+
+When the selected files contain only routes, or only tracks, you can also convert all of them at once.
+
+<DocsNote>
+
+Except for whole files, this action is only available when the tree layout of the files list is enabled.
+
+</DocsNote>
+
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Select all
 
 Add all file items in the current hierarchy level to the selection.
-
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
-
-Center the map on the selected file items.
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Kopier
 
