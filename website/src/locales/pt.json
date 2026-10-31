@@ -8,6 +8,7 @@
         "description": "Visualizar, editar, e criar arquivos GPX \"online\" com capacidades avançadas de planeamento de rotas"
     },
     "menu": {
+        "new": "Novo",
         "new_file": "Novo arquivo",
         "new_track": "Novo percurso",
         "new_segment": "Novo segmento",
