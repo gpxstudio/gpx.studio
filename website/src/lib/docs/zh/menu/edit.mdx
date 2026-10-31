@@ -3,13 +3,15 @@ title: 编辑
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from '@lucide/svelte';
+    import { Undo2, Redo2, Info, PaintBucket, ArrowRightLeft, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Plus } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # { title }
 
-与文件操作不同，编辑操作可能会修改当前所选文件的内容。若启用文件 [树形布局](../files-and-stats)，操作也可作用于相关 [轨迹、路段和兴趣点](../gpx)。在文档中，所有可通过以上操作修改的元素被称为 _文件项_。注意，除撤消和重做外，其余操作也可通过右键单击文件项来唤出操作菜单。
+与文件操作不同，编辑操作可能会修改当前所选文件的内容。
+Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, routes, and points of interest](../gpx).
+在文档中，所有可通过以上操作修改的元素被称为 _文件项_。注意，除撤消和重做外，其余操作也可通过右键单击文件项来唤出操作菜单。
 
 ### <Undo2 size="16" class="inline-block" style="margin-bottom: 2px" /><Redo2 size="16" class="inline-block" style="margin-bottom: 2px" /> 撤销和重做
 
@@ -23,13 +25,19 @@ title: 编辑
 
 用于调整所选文件项在地图上显示的轨迹颜色、不透明度和线宽。
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> 隐藏/显示
-
-切换所选文件项在地图上的可见性。
-
 ### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> 新建轨迹
 
 在所选文件项中创建一条新轨迹。
+
+<DocsNote>
+
+此操作仅在启用树形布局时可用，且所选内容必须是单个文件。
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New route
+
+Create a new route in the selected file.
 
 <DocsNote>
 
@@ -47,13 +55,22 @@ title: 编辑
 
 </DocsNote>
 
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Convert to route/track
+
+Convert the selected routes to tracks, or the selected tracks or segments to routes.
+Since a route has a single segment, a track with multiple segments is converted into one route per segment.
+
+When the selected files contain only routes, or only tracks, you can also convert all of them at once.
+
+<DocsNote>
+
+Except for whole files, this action is only available when the tree layout of the files list is enabled.
+
+</DocsNote>
+
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> 全选
 
 选中当前文件层级中所有内容。
-
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> 居中
-
-根据所选文件项调整地图显示中心。
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> 复制
 
