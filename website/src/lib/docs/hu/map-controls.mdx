@@ -10,63 +10,63 @@ title: Térkép vezérlők
 
 # { title }
 
-The map controls are located on the right side of the interface.
+A térképi vezérlők a felület jobb oldalán találhatók.
 Ezekkel a vezérlőkkel navigálhat a térképen, nagyíthat és kicsinyíthet, valamint válthat a különböző térképstílusok között.
 
-### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Map navigation
+### <Diff size="16" class="inline-block" style="margin-bottom: 2px" /> Térkép navigáció
 
-The controls at the top allow you to zoom in <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> and out <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, and to change the orientation and tilt of the map <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
-
-<DocsNote>
-
-To control the orientation and tilt of the map, you can also drag the map while holding <kbd>Ctrl</kbd>.
-
-</DocsNote>
-
-### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Search bar
-
-You can use the search bar to look for an address and navigate to it on the map.
-
-### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Locate button
-
-The locate button centers the map on your current location.
+A felül található vezérlőkkel nagyíthat <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> és kicsinyíthet <Minus size="16" class="inline-block" style="margin-bottom: 2px" />, valamint módosíthatja a térkép tájolását és dőlését <Compass size="16" class="inline-block" style="margin-bottom: 2px" />.
 
 <DocsNote>
 
-This only works if you have allowed your browser and <b>gpx.studio</b> to access your location.
+A térkép tájolásának és dőlésének beállításához a <kbd>Ctrl</kbd> billentyűt lenyomva is húzhatja a térképet.
 
 </DocsNote>
 
-### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Street view
+### <Search size="16" class="inline-block" style="margin-bottom: 2px" /> Kereső sáv
 
-This button can be used to enable street view mode on the map.
-Depending on the street view source chosen in the [settings](./menu/settings), street view imagery can be accessed differently.
+A keresősáv segítségével rákereshet egy címre, és a térképen megjelenítheti azt.
 
-- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: the street view coverage will appear as green lines on the map. When zoomed in enough, green dots will show the exact locations where street view imagery is available. Hovering over a green dot will show the street view image at that location.
-- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: click on the map to open a new tab with the street view imagery at that location.
+### <LocateFixed size="16" class="inline-block" style="margin-bottom: 2px" /> Helymeghatározó gomb
 
-### <Layers size="16" class="inline-block" style="margin-bottom: 2px" /> Map layers
+A helymeghatározó gomb a térképet az aktuális tartózkodási helyére középre igazítja.
 
-The map layers button allows you to switch between different basemaps, and toggle map overlays and categories of points of interest.
+<DocsNote>
 
-- **Basemaps** are background maps that present the main geographic features of the world.
-  Depending on their purpose, basemaps have different styles and levels of detail.
-  Only one basemap can be displayed at a time.
-- **Overlays** are additional layers that can be displayed on top of the basemap to provide complementary information.
-- **Points of interest** can be added to the map to show different categories of places, such as shops, restaurants, or accommodations.
+Ez csak akkor működik, ha engedélyezte a böngésző és a <b>gpx.studio</b> számára a tartózkodási helyéhez való hozzáférést.
+
+</DocsNote>
+
+### <PersonStanding size="16" class="inline-block" style="margin-bottom: 2px" /> Utcanézet
+
+Ezzel a gombbal bekapcsolhatja az utcanézet módot a térképen.
+A [beállításokban](./menu/settings) kiválasztott utcanézeti forrástól függően az utcanézeti képek különböző módokon érhetők el.
+
+- <a href="https://www.mapillary.com/" target="_blank">Mapillary</a>: az utcanézeti lefedettséget zöld vonalak jelzik a térképen. Megfelelő nagyítási szintnél zöld pontok jelzik azokat a pontos helyeket, ahol elérhető utcanézeti kép. Ha az egérmutatót egy zöld pont fölé viszi, megjelenik az adott helyhez tartozó utcanézeti kép.
+- <a href="https://www.google.com/streetview/" target="_blank">Google Street View</a>: kattintson a térképre, hogy új lapon megnyíljon az adott helyhez tartozó utcanézeti kép.
+
+### <Layers size="16" class="inline-block" style="margin-bottom: 2px" /> Térkép rétegek
+
+A térképrétegek gombbal válthat a különböző alaptérképek között, valamint be- és kikapcsolhatja a térképi fedvényeket és a látnivalók kategóriáit.
+
+- Az **alaptérképek** olyan háttértérképek, amelyek a világ főbb földrajzi jellemzőit ábrázolják.
+  Az alaptérképek céljuktól függően eltérő stílusúak és részletességűek lehetnek.
+  Egyszerre csak egy alaptérkép jeleníthető meg.
+- A **fedvények** olyan további rétegek, amelyek az alaptérképre ráhelyezve kiegészítő információkat jelenítenek meg.
+- Az **érdekes helyek** a térképen különböző helyek kategóriáinak, például üzleteknek, éttermeknek vagy szálláshelyeknek a megjelenítésére használhatók.
 
 <div class="flex flex-col items-center">
 <DocsLayers />
 <span class="text-sm text-center mt-2">
 
-Hover over the map to show the <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails hiking</a> overlay on top of the topographic basemap.
+Vigye az egérmutatóját a térkép fölé, hogy a topográfiai alaptérképen megjelenjen a <a href="https://hiking.waymarkedtrails.org" target="_blank">Waymarked Trails túraútvonalak</a> fedvénye.
 
 </span>
 </div>
 
-A large collection of global and local basemaps and overlays is available in **gpx.studio**, as well as a selection of point-of-interest categories.
-They can be enabled in the [map layer settings dialog](./menu/settings).
+A **gpx.studio** számos globális és helyi alaptérképet és fedvényt, valamint különböző érdekes hely kategóriákat kínál.
+Ezek a [térképréteg-beállítások](./menu/settings) párbeszédablakban kapcsolhatók be.
 
-In these settings, you can also manage the opacity of the overlays.
+Ezekben a beállításokban a fedvények átlátszóságát is beállíthatja.
 
-For advanced users, it is possible to add custom basemaps and overlays by providing <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a>, or <a href="https://maplibre.org/maplibre-style-spec/" target="_blank">MapLibre style JSON</a> URLs.
+Haladó felhasználók egyéni alaptérképeket és fedvényeket is hozzáadhatnak <a href="https://en.wikipedia.org/wiki/Web_Map_Tile_Service" target="_blank">WMTS</a>, <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="_blank">WMS</a> vagy <a href="https://maplibre.org/maplibre-style-spec/" target="_blank">MapLibre stílusú JSON</a> URL-ek megadásával.

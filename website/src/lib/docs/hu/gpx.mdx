@@ -8,27 +8,27 @@ title: GPX fájlformátum
 
 # { title }
 
-The <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX file format</a> is an open standard for exchanging GPS data between applications and GPS devices.
-It essentially consists of a series of GPS points encoding one or multiple GPS traces, and, optionally, some points of interest.
+A <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX-fájlformátum</a> egy nyílt szabvány GPS-adatok alkalmazások és GPS-eszközök közötti cseréjére.
+Lényegében GPS-pontok sorozatából áll, amelyek egy vagy több GPS-nyomvonalat kódolnak, és opcionálisan néhány érdekes helyszínt is tartalmazhat.
 
-GPX files may also contain metadata, of which the **name** and **description** fields are the most useful for users.
+A GPX-fájlok metaadatokat is tartalmazhatnak, amelyek közül a **név** és a **leírás** a leghasznosabb a felhasználók számára.
 
-### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Tracks, segments, and GPS points
+### <Waypoints size="16" class="inline-block" style="margin-bottom: 2px" /> Nyomvonalak, szegmensek, és GPS pontok
 
-As mentioned above, a GPX file can contain multiple GPS traces.
-These are organized in a hierarchical structure, with tracks at the top level.
+Ahogy fentebb említettük, egy GPX-fájl több GPS-nyomvonalat is tartalmazhat.
+Ezek hierarchikus struktúrába vannak rendezve, amelynek legfelső szintjén a nyomvonalak találhatók.
 
-- A **track** is made of a sequence of disconnected segments.
-  Furthermore, it can contain metadata such as a **name**, a **description**, and **appearance properties**.
-- A **segment** is a sequence of GPS points that form a continuous path.
-- A **GPS point** is a location with a latitude, a longitude, and optionally a timestamp and an altitude.
-  Some devices also store additional information such as heart rate, cadence, temperature, and power.
+- Egy **nyomvonal** egymástól független szakaszok sorozatából áll.
+  Ezenkívül olyan metaadatokat is tartalmazhat, mint a **név**, a **leírás** és a **megjelenési beállítások**.
+- Egy **szegmens** olyan GPS-pontok sorozata, amelyek összefüggő útvonalat alkotnak.
+- Egy **GPS-pont** egy hely, amelyhez tartozik egy szélességi és egy hosszúsági koordináta, valamint opcionálisan egy időbélyeg és egy tengerszint feletti magasság.
+  Egyes eszközök további adatokat is tárolnak, például a pulzusszámot, a pedálfordulatszámot, a hőmérsékletet és a teljesítményt.
 
-In most cases, GPX files contain a single track with a single segment.
-However, the hierarchy described above allows for more advanced use cases, such as planning multi-day trips with several variants for each day.
+A legtöbb esetben a GPX-fájlok egyetlen nyomvonalat tartalmaznak, egyetlen szakasszal.
+A fent ismertetett hierarchia azonban fejlettebb felhasználási lehetőségeket is biztosít, például többnapos utak megtervezését, amelyekhez minden napra több változat is tartozhat.
 
-### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Points of interest
+### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Érdekes hely
 
-**Points of interest** (technically called _waypoints_) represent locations of interest to show either on a GPS device or on a digital map.
+**Érdekes helyek** (technikai néven POI) érdekes helyszíneket jelölnek, amelyeket GPS-eszközön vagy digitális térképen lehet megjeleníteni.
 
-In addition to its coordinates, a point of interest can have a **name** and a **description**.
+A koordinátáin kívül egy érdekes helyszínnek lehet **neve** és **leírása** is.
