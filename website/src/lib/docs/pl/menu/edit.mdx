@@ -3,14 +3,14 @@ title: Akcje menu edycji
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from '@lucide/svelte';
+    import { Undo2, Redo2, Info, PaintBucket, ArrowRightLeft, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Plus } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # { title }
 
 W przeciwieństwie do pliku, edycja może potencjalnie modyfikować zawartość aktualnie wybranych plików.
-Ponadto, gdy lista plików jest włączona (patrz [Pliki i statystyki](../files-and-stats)), może być również zastosowane do [ścieżek, segmentów i punktów zainteresowania](../gpx).
+Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, routes, and points of interest](../gpx).
 Dlatego będziemy odnosić się do elementów, które mogą być modyfikowane przez te działania jako _elementy pliku_.
 Zauważ, że z wyjątkiem akcji cofania i powtarzania, akcje edycji są również dostępne w menu kontekstowym (prawy przycisk myszy) elementów pliku.
 
@@ -27,13 +27,20 @@ Otwórz okno dialogowe aktualnie wybranego pliku, gdzie możesz zobaczyć i edyt
 
 Otwórz okno dialogowe wyglądu, aby zmienić kolor, przezroczystość i szerokość zaznaczonych elementów pliku na mapie.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Ukryj/pokaż
-
-Przełącz widoczność zaznaczonego pliku na mapie.
-
 ### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Nowy ślad
 
 Utwórz nowy ślad w wybranym pliku.
+
+<DocsNote>
+
+Ta akcja jest dostępna tylko wtedy, gdy lista plików jest włączona.
+Dodatkowo wybór musi być pojedynczym plikiem.
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New route
+
+Create a new route in the selected file.
 
 <DocsNote>
 
@@ -53,13 +60,22 @@ Dodatkowo wybór musi być jedną ścieżką.
 
 </DocsNote>
 
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Convert to route/track
+
+Convert the selected routes to tracks, or the selected tracks or segments to routes.
+Since a route has a single segment, a track with multiple segments is converted into one route per segment.
+
+When the selected files contain only routes, or only tracks, you can also convert all of them at once.
+
+<DocsNote>
+
+Except for whole files, this action is only available when the tree layout of the files list is enabled.
+
+</DocsNote>
+
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Zaznacz wszystko
 
 Dodaj do zaznaczenia wszystkie pliki na bieżącym poziomie hierarchii.
-
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Wycentruj
-
-Wyśrodkuj mapę na elementach wybranego pliku.
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Kopiuj
 
