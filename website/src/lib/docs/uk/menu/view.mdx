@@ -3,7 +3,7 @@ title: Параметри виду
 ---
 
 <script lang="ts">
-    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, Box, Maximize2 } from '@lucide/svelte';
+    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, EyeOff, Maximize, Box, Maximize2 } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -19,7 +19,7 @@ title: Параметри виду
 
 Показати або сховати [дерево файлів](../files-and-stats).
 Ця схема ідеально підходить для роботи з великою кількістю відкритих файлів, оскільки вони розміщуються у вигляді вертикального списку в правій частині екрана.
-Також дерево файлів дає змогу переглядати [треки, сегменти та точки інтересу](../gpx), що містяться всередині файлів, у згортних розділах.
+In addition, the file tree view enables you to inspect the [tracks, segments, routes, and points of interest](../gpx) contained inside the files through collapsible sections.
 
 ### <Map size="16" class="inline-block" style="margin-bottom: 2px" /> Перемкнутися на попередню базову карту
 
@@ -37,6 +37,14 @@ title: Параметри виду
 ### <Milestone size="16" class="inline-block" style="margin-bottom: 2px" /> Стрілки напрямку
 
 Перемкнути видимість стрілок напрямку.
+
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
+
+Toggle the visibility of the selected file items on the map.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+
+Center the map on the selected file items.
 
 ### <Box size="16" class="inline-block" style="margin-bottom: 2px" /> Перемкнути 3D
 
