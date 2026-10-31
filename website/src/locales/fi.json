@@ -8,6 +8,7 @@
         "description": "Katsele, muokkaa ja luo GPX-tiedostoja verkossa edistyneitä reittisuunnittelutyökaluja, näyttäviä karttoja ja yksityiskohtaisia esityksiä hyödyntäen."
     },
     "menu": {
+        "new": "Uusi",
         "new_file": "Uusi tiedosto",
         "new_track": "Uusi reitti",
         "new_segment": "Uusi osio",
