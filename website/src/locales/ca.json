@@ -8,6 +8,7 @@
         "description": "Visualitza, edita i crea fitxers GPX en línia amb capacitats avançades de planificació de rutes i eines de processament de fitxers, mapes bonics i visualitzacions de dades detallades."
     },
     "menu": {
+        "new": "Nou",
         "new_file": "Nou fitxer",
         "new_track": "Nou trac",
         "new_segment": "Nou segment",

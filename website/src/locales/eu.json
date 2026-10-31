@@ -8,6 +8,7 @@
         "description": "Ikusi, editatu eta sortu GPX fitxategiak bideak bilatzeko aukera aurreratuarekin eta fitxategiak prozesatzeko tresnekin, mapa ederrekin eta datuak ikusteko xehetasun handiarekin."
     },
     "menu": {
+        "new": "Berria",
         "new_file": "Fitxategi berria",
         "new_track": "Arrasto berria",
         "new_segment": "Segmentu berria",

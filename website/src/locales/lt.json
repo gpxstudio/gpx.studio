@@ -8,6 +8,7 @@
         "description": "Peržiūrėkite, redaguokite ir kurkite GPX failus internete naudodami išplėstines maršruto planavimo galimybes ir failų apdorojimo įrankius, gražius žemėlapius ir išsamias duomenų vizualizacijas."
     },
     "menu": {
+        "new": "Naujas",
         "new_file": "Naujas failas",
         "new_track": "Nauja trasa",
         "new_segment": "Naujas segmentas",
