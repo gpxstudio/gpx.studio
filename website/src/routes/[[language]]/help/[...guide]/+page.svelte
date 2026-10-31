@@ -10,8 +10,8 @@
 
     let { data }: { data: { guideModule: any; guideTitles: Record<string, string> } } = $props();
 
-    let previousGuide = $derived(getPreviousGuide(page.params.guide));
-    let nextGuide = $derived(getNextGuide(page.params.guide));
+    let previousGuide = $derived(getPreviousGuide(page.params.guide ?? ''));
+    let nextGuide = $derived(getNextGuide(page.params.guide ?? ''));
 </script>
 
 <div class="markdown flex flex-col gap-3">
