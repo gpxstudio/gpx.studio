@@ -1,7 +1,7 @@
 <script lang="ts">
     import { isMac, isSafari } from '$lib/utils';
     import { onMount } from 'svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import * as Kbd from '$lib/components/ui/kbd/index.js';
 
     let {

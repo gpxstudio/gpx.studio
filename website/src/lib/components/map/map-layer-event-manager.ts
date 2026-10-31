@@ -1,10 +1,20 @@
-import { fileStateCollection } from '$lib/logic/file-state';
-import maplibregl from 'maplibre-gl';
+import { engine } from '$lib/engine';
+import { get } from 'svelte/store';
+import {
+    LngLatBounds,
+    type Map,
+    type MapGeoJSONFeature,
+    type MapLayerMouseEvent,
+    type MapLayerTouchEvent,
+    MapMouseEvent,
+    MapTouchEvent,
+    type Point,
+} from 'maplibre-gl';
 
-type MapLayerMouseEventListener = (e: maplibregl.MapLayerMouseEvent) => void;
-type MapLayerTouchEventListener = (e: maplibregl.MapLayerTouchEvent) => void;
+type MapLayerMouseEventListener = (e: MapLayerMouseEvent) => void;
+type MapLayerTouchEventListener = (e: MapLayerTouchEvent) => void;
 type MapLayerListener = {
-    features: maplibregl.MapGeoJSONFeature[];
+    features: MapGeoJSONFeature[];
     mousemoves: MapLayerMouseEventListener[];
     mouseenters: MapLayerMouseEventListener[];
     mouseleaves: MapLayerMouseEventListener[];
@@ -15,10 +25,10 @@ type MapLayerListener = {
 };
 
 export class MapLayerEventManager {
-    private _map: maplibregl.Map;
+    private _map: Map;
     private _listeners: Record<string, MapLayerListener> = {};
 
-    constructor(map: maplibregl.Map) {
+    constructor(map: Map) {
         this._map = map;
         this._map.on('mousemove', this._handleMouseMove.bind(this));
         this._map.on('click', this._handleMouseClick.bind(this, 'click'));
@@ -141,7 +151,7 @@ export class MapLayerEventManager {
         }
     }
 
-    private _handleMouseMove(e: maplibregl.MapMouseEvent) {
+    private _handleMouseMove(e: MapMouseEvent) {
         if (e.originalEvent.buttons > 0) return;
         const featuresByLayer = this._getRenderedFeaturesByLayer(e);
         Object.keys(this._listeners).forEach((layerId) => {
@@ -150,29 +160,20 @@ export class MapLayerEventManager {
             if ((features.length == 0) != (listener.features.length == 0)) {
                 if (features.length > 0) {
                     if (listener.mouseenters.length > 0) {
-                        const event = new maplibregl.MapMouseEvent(
-                            'mouseenter',
-                            e.target,
-                            e.originalEvent,
-                            {
-                                features: featuresByLayer[layerId]!,
-                            }
-                        );
+                        const event = new MapMouseEvent('mouseenter', e.target, e.originalEvent, {
+                            features: featuresByLayer[layerId]!,
+                        });
                         listener.mouseenters.forEach((l) => l(event));
                     }
                 } else {
                     if (listener.mouseleaves.length > 0) {
-                        const event = new maplibregl.MapMouseEvent(
-                            'mouseleave',
-                            e.target,
-                            e.originalEvent
-                        );
+                        const event = new MapMouseEvent('mouseleave', e.target, e.originalEvent);
                         listener.mouseleaves.forEach((l) => l(event));
                     }
                 }
             }
             if (features.length > 0 && listener.mousemoves.length > 0) {
-                const event = new maplibregl.MapMouseEvent('mousemove', e.target, e.originalEvent, {
+                const event = new MapMouseEvent('mousemove', e.target, e.originalEvent, {
                     features: featuresByLayer[layerId]!,
                 });
                 listener.mousemoves.forEach((l) => l(event));
@@ -181,49 +182,39 @@ export class MapLayerEventManager {
         });
     }
 
-    private _handleMouseClick(type: string, e: maplibregl.MapMouseEvent) {
+    private _handleMouseClick(type: string, e: MapMouseEvent) {
         const featuresByLayer = this._getRenderedFeaturesByLayer(e);
         Object.keys(this._listeners).forEach((layerId) => {
             const features = featuresByLayer[layerId] || [];
             const listener = this._listeners[layerId];
             if (features.length > 0) {
                 if (type === 'click' && listener.clicks.length > 0) {
-                    const event = new maplibregl.MapMouseEvent('click', e.target, e.originalEvent, {
+                    const event = new MapMouseEvent('click', e.target, e.originalEvent, {
                         features: features,
                     });
                     listener.clicks.forEach((l) => l(event));
                 } else if (type === 'contextmenu' && listener.contextmenus.length > 0) {
-                    const event = new maplibregl.MapMouseEvent(
-                        'contextmenu',
-                        e.target,
-                        e.originalEvent,
-                        {
-                            features: features,
-                        }
-                    );
+                    const event = new MapMouseEvent('contextmenu', e.target, e.originalEvent, {
+                        features: features,
+                    });
                     listener.contextmenus.forEach((l) => l(event));
                 } else if (type === 'mousedown' && listener.mousedowns.length > 0) {
-                    const event = new maplibregl.MapMouseEvent(
-                        'mousedown',
-                        e.target,
-                        e.originalEvent,
-                        {
-                            features: features,
-                        }
-                    );
+                    const event = new MapMouseEvent('mousedown', e.target, e.originalEvent, {
+                        features: features,
+                    });
                     listener.mousedowns.forEach((l) => l(event));
                 }
             }
         });
     }
 
-    private _handleTouchStart(e: maplibregl.MapTouchEvent) {
+    private _handleTouchStart(e: MapTouchEvent) {
         const featuresByLayer = this._getRenderedFeaturesByLayer(e);
         Object.keys(this._listeners).forEach((layerId) => {
             const features = featuresByLayer[layerId] || [];
             const listener = this._listeners[layerId];
             if (features.length > 0) {
-                const event: maplibregl.MapLayerTouchEvent = new maplibregl.MapTouchEvent(
+                const event: MapLayerTouchEvent = new MapTouchEvent(
                     'touchstart',
                     e.target,
                     e.originalEvent
@@ -234,34 +225,37 @@ export class MapLayerEventManager {
         });
     }
 
-    private _getBounds(point: maplibregl.Point) {
+    private _getBounds(point: Point) {
         const delta = 30;
-        return new maplibregl.LngLatBounds(
+        return new LngLatBounds(
             this._map.unproject([point.x - delta, point.y + delta]),
             this._map.unproject([point.x + delta, point.y - delta])
         );
     }
 
-    private _filterLayersIntersectingBounds(
-        layerIds: string[],
-        bounds: maplibregl.LngLatBounds
-    ): string[] {
-        let result = layerIds.filter((layerId) => {
+    private _filterLayersIntersectingBounds(layerIds: string[], bounds: LngLatBounds): string[] {
+        const files = get(engine.files);
+        const result = layerIds.filter((layerId) => {
             if (!this._map.getLayer(layerId)) return false;
             const fileId = layerId.replace('-waypoints', '');
             if (fileId === layerId) {
-                return fileStateCollection.getStatistics(fileId)?.intersectsBBox(bounds) ?? true;
-            } else {
-                return (
-                    fileStateCollection.getStatistics(fileId)?.intersectsWaypointBBox(bounds) ??
-                    true
-                );
+                // the tracks of a file are all within its bounds
+                const file = files.get(fileId);
+                const box = file && get(file).statistics.bounds;
+                return box
+                    ? bounds.getWest() <= box.east &&
+                          bounds.getEast() >= box.west &&
+                          bounds.getSouth() <= box.north &&
+                          bounds.getNorth() >= box.south
+                    : true;
             }
+            // the waypoints have no bounds of their own
+            return true;
         });
         return result;
     }
 
-    private _getRenderedFeaturesByLayer(e: maplibregl.MapMouseEvent | maplibregl.MapTouchEvent) {
+    private _getRenderedFeaturesByLayer(e: MapMouseEvent | MapTouchEvent) {
         const layerIds = this._filterLayersIntersectingBounds(
             Object.keys(this._listeners),
             this._getBounds(e.point)
@@ -270,7 +264,7 @@ export class MapLayerEventManager {
             layerIds.length > 0
                 ? this._map.queryRenderedFeatures(e.point, { layers: layerIds })
                 : [];
-        const featuresByLayer: Record<string, maplibregl.MapGeoJSONFeature[]> = {};
+        const featuresByLayer: Record<string, MapGeoJSONFeature[]> = {};
         features.forEach((f) => {
             if (!featuresByLayer[f.layer.id]) {
                 featuresByLayer[f.layer.id] = [];

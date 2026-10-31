@@ -8,7 +8,6 @@
         "description": "Gelişmiş rota planlama özellikleri ve dosya işleme araçları, harika haritalar ve ayrıntılı veri görselleştirmeleri ile GPX dosyalarını çevrimiçi görüntüleyin, düzenleyin ve oluşturun."
     },
     "menu": {
-        "new": "Yeni",
         "new_file": "Yeni dosya",
         "new_track": "Yeni yol",
         "new_segment": "Yeni kısım",

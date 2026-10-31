@@ -11,8 +11,8 @@
     import Clean from '$lib/components/toolbar/tools/Clean.svelte';
     import Reduce from '$lib/components/toolbar/tools/reduce/Reduce.svelte';
     import RoutingControlPopup from '$lib/components/toolbar/tools/routing/RoutingControlPopup.svelte';
-    import maplibregl from 'maplibre-gl';
-    import { settings } from '$lib/logic/settings';
+    import { Popup } from 'maplibre-gl';
+    import { settings } from '$lib/state/settings';
 
     let {
         class: className = '',
@@ -23,11 +23,11 @@
     const { minimizeRoutingMenu } = settings;
 
     let popupElement: HTMLDivElement | undefined = $state(undefined);
-    let popup: maplibregl.Popup | undefined = $derived.by(() => {
+    let popup: Popup | undefined = $derived.by(() => {
         if (!popupElement) {
             return undefined;
         }
-        let popup = new maplibregl.Popup({
+        let popup = new Popup({
             closeButton: false,
             maxWidth: undefined,
         });

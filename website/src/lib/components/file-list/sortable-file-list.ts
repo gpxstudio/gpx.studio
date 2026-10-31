@@ -1,64 +1,67 @@
 import { isMac } from '$lib/utils';
-import Sortable, { type Direction } from 'sortablejs/Sortable';
-import { ListItem, ListLevel, ListRootItem } from './file-list';
-import { selection } from '$lib/logic/selection';
-import { getFileIds, moveItems } from '$lib/logic/file-actions';
-import { get, writable, type Readable } from 'svelte/store';
-import { settings } from '$lib/logic/settings';
-import type { GPXFileWithStatistics } from '$lib/logic/statistics-tree';
-import type { AnyGPXTreeElement, GPXTreeElement, Waypoint } from 'gpx';
+import Sortable from './sortable';
+import type { Direction } from 'sortablejs';
+import { get, writable } from 'svelte/store';
 import { tick } from 'svelte';
+import { engine, type MoveTarget, type Selection } from '$lib/engine';
+import { isSelected, type FileTreeNode } from '$lib/engine/selection-helpers';
 
-const { fileOrder } = settings;
+/**
+ * What a list holds: the files, the routes or the tracks of a file, the segments of a track, or the
+ * waypoints.
+ */
+export type ListLevel = 'file' | 'route' | 'track' | 'segment' | 'waypoints' | 'waypoint';
 
+/**
+ * Where the elements of a list can be moved to (a segment on its own can become a route). Routes
+ * and tracks can be dropped among each other, but keep their kind: the engine puts them with the
+ * others of their kind, the routes coming first.
+ */
 export const allowedMoves: Record<ListLevel, ListLevel[]> = {
-    [ListLevel.ROOT]: [],
-    [ListLevel.FILE]: [ListLevel.FILE],
-    [ListLevel.TRACK]: [ListLevel.FILE, ListLevel.TRACK],
-    [ListLevel.SEGMENT]: [ListLevel.FILE, ListLevel.TRACK, ListLevel.SEGMENT],
-    [ListLevel.WAYPOINTS]: [ListLevel.WAYPOINTS],
-    [ListLevel.WAYPOINT]: [ListLevel.WAYPOINTS, ListLevel.WAYPOINT],
-};
-
-export const allowedPastes: Record<ListLevel, ListLevel[]> = {
-    [ListLevel.ROOT]: [],
-    [ListLevel.FILE]: [ListLevel.ROOT, ListLevel.FILE],
-    [ListLevel.TRACK]: [ListLevel.ROOT, ListLevel.FILE, ListLevel.TRACK],
-    [ListLevel.SEGMENT]: [ListLevel.ROOT, ListLevel.FILE, ListLevel.TRACK, ListLevel.SEGMENT],
-    [ListLevel.WAYPOINTS]: [ListLevel.FILE, ListLevel.WAYPOINTS, ListLevel.WAYPOINT],
-    [ListLevel.WAYPOINT]: [ListLevel.FILE, ListLevel.WAYPOINTS, ListLevel.WAYPOINT],
+    file: ['file'],
+    route: ['file', 'route', 'track'],
+    track: ['file', 'route', 'track'],
+    segment: ['file', 'route', 'track', 'segment'],
+    waypoints: ['waypoints'],
+    waypoint: ['waypoints', 'waypoint'],
 };
 
 export const dragging = writable<ListLevel | null>(null);
 
+/** The list of each container, to find the lists a drop is about from its event. */
+const lists = new WeakMap<HTMLElement, SortableFileList>();
+
+/**
+ * Makes a list of the file tree sortable and selectable. The elements of the list are the
+ * children of `parent` (the files when `parent` is null), their ids are in their `data-id`.
+ */
 export class SortableFileList {
-    private _node:
-        | Map<string, Readable<GPXFileWithStatistics | undefined>>
-        | GPXTreeElement<AnyGPXTreeElement>
-        | Waypoint[]
-        | Waypoint;
-    private _item: ListItem;
+    private _parent: FileTreeNode | null;
     private _sortableLevel: ListLevel;
     private _container: HTMLElement;
     private _sortable: Sortable | null = null;
     private _elements: { [id: string]: HTMLElement } = {};
     private _updatingSelection: boolean = false;
+    /**
+     * Whether a change of the selection that this list made is being applied by the engine. A click
+     * makes several events, handled after one another, and the engine can answer after them (in
+     * the desktop app, it is in another process): until it has, the list holds the selection, and
+     * the engine and the list disagree because the engine is behind, not because the user did
+     * something else.
+     */
+    private _applying: boolean = false;
+    /** The elements of the list when a drag from it started, to put them back when it ends. */
+    private _snapshot: ChildNode[] = [];
     private _unsubscribes: (() => void)[] = [];
 
     constructor(
         container: HTMLElement,
-        node:
-            | Map<string, Readable<GPXFileWithStatistics | undefined>>
-            | GPXTreeElement<AnyGPXTreeElement>
-            | Waypoint[]
-            | Waypoint,
-        item: ListItem,
+        parent: FileTreeNode | null,
         waypointRoot: boolean,
         sortableLevel: ListLevel,
         orientation: Direction
     ) {
-        this._node = node;
-        this._item = item;
+        this._parent = parent;
         this._sortableLevel = sortableLevel;
         this._container = container;
         this._sortable = Sortable.create(container, {
@@ -76,92 +79,178 @@ export class SortableFileList {
                 setTimeout(() => this.updateToSelection(e), 50),
             onDeselect: (e: Sortable.SortableEvent) =>
                 setTimeout(() => this.updateToSelection(e), 50),
-            onStart: () => dragging.set(sortableLevel),
+            onChoose: () => {
+                // all the nodes, not only the elements: the comments are the anchors of the Svelte
+                // blocks. Taken before the drag starts, when MultiDrag removes the other selected
+                // elements from the list.
+                this._snapshot = Array.from(container.childNodes);
+            },
+            onStart: (e: Sortable.SortableEvent) => {
+                dragging.set(sortableLevel);
+                // the files that are dragged (or whose elements are) are open for good
+                engine.keepPreview(this.draggedFiles(e));
+            },
             onEnd: () => dragging.set(null),
             onSort: (e: Sortable.SortableEvent) => this.onSort(e),
         });
-        Object.defineProperty(this._sortable, '_item', {
-            value: item,
-            writable: true,
-        });
-
-        Object.defineProperty(this._sortable, '_waypointRoot', {
-            value: waypointRoot,
-            writable: true,
-        });
+        lists.set(container, this);
 
         this._unsubscribes.push(
-            selection.subscribe(() => tick().then(() => this.updateFromSelection()))
+            engine.selection.subscribe(() => tick().then(() => this.updateFromSelection()))
         );
-        this._unsubscribes.push(fileOrder.subscribe(() => this.updateFromFileOrder()));
+    }
+
+    /** The files of what is dragged: the dragged files, or the file of the dragged elements. */
+    private draggedFiles(e: Sortable.SortableEvent): string[] {
+        if (this._parent) {
+            return [this._parent.fileId];
+        }
+        const elements: HTMLElement[] = e.items.length > 0 ? e.items : [e.item];
+        return elements
+            .map((element) => element.getAttribute('data-id'))
+            .filter((id): id is string => id !== null);
+    }
+
+    /** The node of a child of the list. */
+    childNode(id: string): FileTreeNode | undefined {
+        const parent = this._parent;
+        switch (this._sortableLevel) {
+            case 'file':
+                return { type: 'file', fileId: id };
+            case 'route':
+                return parent ? { type: 'route', fileId: parent.fileId, routeId: id } : undefined;
+            case 'track':
+                return parent ? { type: 'track', fileId: parent.fileId, trackId: id } : undefined;
+            case 'segment':
+                return parent?.type === 'track'
+                    ? {
+                          type: 'segment',
+                          fileId: parent.fileId,
+                          trackId: parent.trackId,
+                          segmentId: id,
+                      }
+                    : undefined;
+            case 'waypoints':
+                return parent ? { type: 'waypoints', fileId: parent.fileId } : undefined;
+            case 'waypoint':
+                return parent
+                    ? { type: 'waypoint', fileId: parent.fileId, waypointId: id }
+                    : undefined;
+        }
+    }
+
+    /** The elements of the list in the selection form. */
+    private selectionOf(ids: string[]): Selection | undefined {
+        const parent = this._parent;
+        switch (this._sortableLevel) {
+            case 'file':
+                return { type: 'file', fileIds: ids };
+            case 'route':
+                return parent ? { type: 'route', fileId: parent.fileId, routeIds: ids } : undefined;
+            case 'track':
+                return parent ? { type: 'track', fileId: parent.fileId, trackIds: ids } : undefined;
+            case 'segment':
+                return parent?.type === 'track'
+                    ? {
+                          type: 'segment',
+                          fileId: parent.fileId,
+                          trackId: parent.trackId,
+                          segmentIds: ids,
+                      }
+                    : undefined;
+            case 'waypoints':
+                return parent ? { type: 'waypoints', fileId: parent.fileId } : undefined;
+            case 'waypoint':
+                return parent
+                    ? { type: 'waypoint', fileId: parent.fileId, waypointIds: ids }
+                    : undefined;
+        }
+    }
+
+    /** A position in the list, as a place to move elements to. */
+    private targetAt(index: number): MoveTarget | undefined {
+        const parent = this._parent;
+        switch (this._sortableLevel) {
+            case 'file':
+                return { type: 'files', index };
+            case 'route':
+                return parent ? { type: 'routes', fileId: parent.fileId, index } : undefined;
+            case 'track':
+                return parent ? { type: 'tracks', fileId: parent.fileId, index } : undefined;
+            case 'segment':
+                return parent?.type === 'track'
+                    ? { type: 'segments', fileId: parent.fileId, trackId: parent.trackId, index }
+                    : undefined;
+            case 'waypoints':
+                // the list holds the node standing for the waypoints: they go after the others
+                return parent
+                    ? { type: 'waypoints', fileId: parent.fileId, index: Infinity }
+                    : undefined;
+            case 'waypoint':
+                return parent ? { type: 'waypoints', fileId: parent.fileId, index } : undefined;
+        }
     }
 
     onSort(e: Sortable.SortableEvent) {
-        this.updateToFileOrder();
-
-        const from = Sortable.get(e.from);
-        const to = Sortable.get(e.to);
-
+        const from = lists.get(e.from);
+        const to = lists.get(e.to);
         if (!from || !to) {
             return;
         }
 
-        let fromItem = from._item;
-        let toItem = to._item;
-
-        if (this._item === toItem && !(fromItem instanceof ListRootItem)) {
-            // Event is triggered on source and destination list, only handle it once
-            let fromItems = [];
-            let toItems = [];
-
-            if (from._waypointRoot) {
-                fromItems = [fromItem.extend('waypoints')];
-            } else {
-                let oldIndices: number[] =
-                    e.oldIndicies.length > 0 ? e.oldIndicies.map((i) => i.index) : [e.oldIndex];
-                oldIndices = oldIndices.filter((i) => i >= 0);
-                oldIndices.sort((a, b) => a - b);
-
-                fromItems = oldIndices.map((i) => fromItem.extend(i));
+        if (from === to && this._sortableLevel === 'file') {
+            // the order of the files is the one of the list, which is put back where it was like
+            // below: Svelte moves the elements when the order changes, it has to find them where
+            // it left them (or removing a file later removes the elements of other files)
+            const order = this._sortable?.toArray();
+            this._snapshot.forEach((node) => e.from.appendChild(node));
+            if (order) {
+                this.updateToFileOrder(order);
             }
+            return;
+        }
 
-            if (from._waypointRoot && to._waypointRoot) {
-                toItems = [toItem.extend('waypoints')];
-            } else {
-                if (to._waypointRoot) {
-                    toItem = toItem.extend('waypoints');
-                }
+        // The event is triggered on the source and on the destination list: handle it once.
+        // Nothing to move in the list of the single node of the waypoints.
+        if (to !== this || (from === to && this._sortableLevel === 'waypoints')) {
+            return;
+        }
 
-                let newIndices: number[] =
-                    e.newIndicies.length > 0 ? e.newIndicies.map((i) => i.index) : [e.newIndex];
-                newIndices = newIndices.filter((i) => i >= 0);
-                newIndices.sort((a, b) => a - b);
+        const elements: HTMLElement[] = e.items.length > 0 ? e.items : [e.item];
+        const ids = elements
+            .map((element) => element.getAttribute('data-id'))
+            .filter((id): id is string => id !== null);
+        const newIndices = (
+            e.newIndicies.length > 0
+                ? e.newIndicies.map((i: { index: number }) => i.index)
+                : [e.newIndex]
+        ).filter((index: number | undefined): index is number => index !== undefined && index >= 0);
+        const what = from.selectionOf(ids);
+        const target = to.targetAt(newIndices.length > 0 ? Math.min(...newIndices) : Infinity);
 
-                if (toItem instanceof ListRootItem) {
-                    let newFileIds = getFileIds(newIndices.length);
-                    toItems = newIndices.map((i, index) => {
-                        get(fileOrder).splice(i, 0, newFileIds[index]);
-                        return this._item.extend(newFileIds[index]);
-                    });
-                } else {
-                    toItems = newIndices.map((i) => toItem.extend(i));
-                }
-            }
+        // The list is rendered from the state of the engine: put the elements back where they
+        // were, the engine moves them for real.
+        from._snapshot.forEach((node) => e.from.appendChild(node));
 
-            moveItems(fromItem, toItem, fromItems, toItems);
+        if (what && target) {
+            engine.move(what, target);
         }
     }
 
     updateFromSelection() {
+        if (this._applying) {
+            return;
+        }
         const changed = this.getChangedIds();
         if (changed.length === 0) {
             return;
         }
-        const selection_ = get(selection);
-        for (let id of changed) {
-            let element = this._elements[id];
-            if (element) {
-                if (selection_.has(this._item.extend(id))) {
+        const selection_ = get(engine.selection);
+        for (const id of changed) {
+            const element = this._elements[id];
+            const node = this.childNode(id);
+            if (element && node) {
+                if (isSelected(selection_, node)) {
                     Sortable.utils.select(element);
                     element.scrollIntoView({
                         behavior: 'smooth',
@@ -174,78 +263,96 @@ export class SortableFileList {
         }
     }
 
-    updateToSelection(e: Sortable.SortableEvent) {
+    updateToSelection(e: Sortable.SortableEvent & { originalEvent?: MouseEvent }) {
         if (!this._sortable) return;
-        if (this._updatingSelection) return;
+        if (this._updatingSelection || this._applying) return;
         this._updatingSelection = true;
         const changed = this.getChangedIds();
         if (changed.length == 0) {
             this._updatingSelection = false;
             return;
         }
-        selection.update(($selection) => {
-            $selection.clear();
-            Object.entries(this._elements).forEach(([id, element]) => {
-                $selection.set(
-                    this._item.extend(this.getRealId(id)),
-                    element.classList.contains('sortable-selected')
-                );
-            });
 
-            if (
-                e.originalEvent &&
-                !(e.originalEvent.ctrlKey || e.originalEvent.metaKey || e.originalEvent.shiftKey) &&
-                ($selection.size > 1 ||
-                    !$selection.has(this._item.extend(this.getRealId(changed[0]))))
-            ) {
-                // Fix bug that sometimes causes a single select to be treated as a multi-select
-                $selection.clear();
-                $selection.set(this._item.extend(this.getRealId(changed[0])), true);
+        let selected = Object.entries(this._elements)
+            .filter(([, element]) => element.classList.contains('sortable-selected'))
+            .map(([id]) => id);
+
+        if (
+            e.originalEvent &&
+            !(e.originalEvent.ctrlKey || e.originalEvent.metaKey || e.originalEvent.shiftKey) &&
+            (selected.length > 1 || !selected.includes(changed[0]))
+        ) {
+            // Fix bug that sometimes causes a single select to be treated as a multi-select
+            selected = [changed[0]];
+        }
+
+        const parent = this._parent;
+        let request: Promise<boolean>;
+        if (selected.length === 0 || !this.childNode(selected[0])) {
+            request = engine.select([]);
+        } else {
+            switch (this._sortableLevel) {
+                case 'file':
+                    request = engine.select(selected);
+                    break;
+                case 'route':
+                    request = engine.selectRoutes(parent!.fileId, selected);
+                    break;
+                case 'track':
+                    request = engine.selectTracks(parent!.fileId, selected);
+                    break;
+                case 'segment':
+                    request = engine.selectSegments(
+                        parent!.fileId,
+                        (parent as any).trackId,
+                        selected
+                    );
+                    break;
+                case 'waypoints':
+                    request = engine.selectWaypointGroup(parent!.fileId);
+                    break;
+                case 'waypoint':
+                    request = engine.selectWaypoints(parent!.fileId, selected);
+                    break;
             }
-            return $selection;
-        });
+        }
         this._updatingSelection = false;
+
+        // the events of the same click that come before the engine answers are not new choices
+        this._applying = true;
+        request.finally(() => {
+            this._applying = false;
+            // the list shows what the engine selected
+            this.updateFromSelection();
+        });
     }
 
-    updateFromFileOrder() {
-        if (!this._sortable || this._sortableLevel !== ListLevel.FILE) {
+    /** Makes `sortableOrder` (the ids of the elements, as Sortable left them) the order of the files. */
+    updateToFileOrder(sortableOrder: string[]) {
+        if (!this._sortable || this._sortableLevel !== 'file') {
             return;
         }
 
-        const fileOrder_ = get(fileOrder);
-        const sortableOrder = this._sortable.toArray();
+        const fileOrder_ = get(engine.order);
 
         if (
             fileOrder_.length !== sortableOrder.length ||
             fileOrder_.some((value, index) => value !== sortableOrder[index])
         ) {
-            this._sortable.sort(fileOrder_);
-        }
-    }
-
-    updateToFileOrder() {
-        if (!this._sortable || this._sortableLevel !== ListLevel.FILE) {
-            return;
-        }
-
-        const fileOrder_ = get(fileOrder);
-        const sortableOrder = this._sortable.toArray();
-
-        if (
-            fileOrder_.length !== sortableOrder.length ||
-            fileOrder_.some((value, index) => value !== sortableOrder[index])
-        ) {
-            fileOrder.set(sortableOrder);
+            engine.reorder(sortableOrder, 0);
         }
     }
 
     updateElements() {
+        const previous = this._elements;
         this._elements = {};
+        const files = get(engine.files);
         this._container.childNodes.forEach((element) => {
             if (element instanceof HTMLElement) {
-                let attr = element.getAttribute('data-id');
+                const attr = element.getAttribute('data-id');
                 if (attr) {
-                    if (this._node instanceof Map && !this._node.has(attr)) {
+                    if (this._sortableLevel === 'file' && !files.has(attr)) {
+                        this.forget(element);
                         element.remove();
                     } else {
                         this._elements[attr] = element;
@@ -253,32 +360,53 @@ export class SortableFileList {
                 }
             }
         });
+        // the elements of what is not there anymore (a closed file, a deleted track...)
+        Object.values(previous).forEach((element) => {
+            if (element.parentNode !== this._container) {
+                this.forget(element);
+            }
+        });
+    }
+
+    /**
+     * Takes an element that left the list out of the selection of Sortable. Sortable keeps the
+     * selected elements, and puts them all in the list when one of them is dragged: one that Svelte
+     * removed would come back, as a file that is not there.
+     */
+    private forget(element: HTMLElement) {
+        if (!element.classList.contains('sortable-selected')) {
+            return;
+        }
+        // Sortable finds the list of an element from its parent
+        const detached = element.parentNode === null;
+        if (detached) {
+            this._container.appendChild(element);
+        }
+        Sortable.utils.deselect(element);
+        if (detached) {
+            element.remove();
+        }
     }
 
     destroy() {
+        Object.values(this._elements).forEach((element) => this.forget(element));
+        this._sortable?.destroy();
         this._sortable = null;
         this._unsubscribes.forEach((unsubscribe) => unsubscribe());
         this._unsubscribes = [];
     }
 
     getChangedIds() {
-        let changed: (string | number)[] = [];
-        const selection_ = get(selection);
+        const changed: string[] = [];
+        const selection_ = get(engine.selection);
         Object.entries(this._elements).forEach(([id, element]) => {
-            let realId = this.getRealId(id);
-            let realItem = this._item.extend(realId);
-            let inSelection = selection_.has(realItem);
-            let isSelected = element.classList.contains('sortable-selected');
-            if (inSelection !== isSelected) {
-                changed.push(realId);
+            const node = this.childNode(id);
+            const inSelection = node !== undefined && isSelected(selection_, node);
+            const isSelectedInList = element.classList.contains('sortable-selected');
+            if (inSelection !== isSelectedInList) {
+                changed.push(id);
             }
         });
         return changed;
-    }
-
-    getRealId(id: string | number) {
-        return this._sortableLevel === ListLevel.FILE || this._sortableLevel === ListLevel.WAYPOINTS
-            ? id
-            : parseInt(id as string);
     }
 }

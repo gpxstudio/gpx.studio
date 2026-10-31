@@ -1,4 +1,11 @@
-import { settings } from '$lib/logic/settings';
+import type {
+    GeoJSONSourceSpecification,
+    LayerSpecification,
+    Map,
+    SkySpecification,
+    StyleSpecification,
+} from 'maplibre-gl';
+import { settings } from '$lib/state/settings';
 import { get, type Writable } from 'svelte/store';
 import {
     basemaps,
@@ -6,20 +13,30 @@ import {
     maptilerKeyPlaceHolder,
     overlays,
     terrainSources,
-} from '$lib/assets/layers';
+} from '$lib/data/layers';
 import { getLayers } from '$lib/components/map/layer-control/utils';
-import { i18n } from '$lib/i18n.svelte';
+import { i18n } from '$lib/i18n/i18n.svelte';
 
 const { currentBasemap, currentOverlays, customLayers, opacities, terrainSource, distanceUnits } =
     settings;
 
-const emptySource: maplibregl.GeoJSONSourceSpecification = {
+const emptySource: GeoJSONSourceSpecification = {
     type: 'geojson',
     data: {
         type: 'FeatureCollection',
         features: [],
     },
 };
+/**
+ * The sky above the horizon when the map is tilted, without the atmosphere around the globe.
+ */
+const sky: SkySpecification = {
+    'sky-color': '#88C6FC',
+    'horizon-color': '#ffffff',
+    'sky-horizon-blend': 0.8,
+    'atmosphere-blend': 0,
+};
+
 export const ANCHOR_LAYER_KEY = {
     overlays: 'overlays-end',
     mapillary: 'mapillary-end',
@@ -32,18 +49,18 @@ export const ANCHOR_LAYER_KEY = {
     waypoints: 'waypoints-end',
     routingControls: 'routing-controls-end',
 };
-const anchorLayers: maplibregl.LayerSpecification[] = Object.values(ANCHOR_LAYER_KEY).map((id) => ({
+const anchorLayers: LayerSpecification[] = Object.values(ANCHOR_LAYER_KEY).map((id) => ({
     id: id,
     type: 'symbol',
     source: 'empty-source',
 }));
 
 export class StyleManager {
-    private _map: Writable<maplibregl.Map | null>;
+    private _map: Writable<Map | null>;
     private _maptilerKey: string;
     private _pastOverlays: Set<string> = new Set();
 
-    constructor(map: Writable<maplibregl.Map | null>, maptilerKey: string) {
+    constructor(map: Writable<Map | null>, maptilerKey: string) {
         this._map = map;
         this._maptilerKey = maptilerKey;
         this._map.subscribe((map_) => {
@@ -70,16 +87,16 @@ export class StyleManager {
     updateBasemap() {
         const map_ = get(this._map);
         if (!map_) return;
-        let basemap = get(currentBasemap);
+        const basemap = get(currentBasemap);
         this.buildStyle(basemap).then((style) => {
             if (get(currentBasemap) === basemap) map_.setStyle(style);
         });
     }
 
-    async buildStyle(basemap: string): Promise<maplibregl.StyleSpecification> {
+    async buildStyle(basemap: string): Promise<StyleSpecification> {
         const custom = get(customLayers);
 
-        const style: maplibregl.StyleSpecification = {
+        const style: StyleSpecification = {
             version: 8,
             projection: {
                 type: 'globe',
@@ -92,7 +109,7 @@ export class StyleManager {
 
         const basemapInfo = basemaps[basemap] ?? custom[basemap]?.value ?? basemaps[defaultBasemap];
 
-        let basemapStyle = basemaps.openStreetMap as maplibregl.StyleSpecification;
+        let basemapStyle = basemaps.openStreetMap as StyleSpecification;
         try {
             basemapStyle = await this.get(basemapInfo);
             for (const source in basemapStyle.sources) {
@@ -108,9 +125,10 @@ export class StyleManager {
                 }
             }
         } catch (e) {
-            console.error(e.message);
+            console.error(e instanceof Error ? e.message : e);
         }
         this.merge(style, basemapStyle);
+        style.sky ??= sky;
 
         const terrain = this.getCurrentTerrain();
         style.sources[terrain.source] = terrainSources[terrain.source];
@@ -130,18 +148,18 @@ export class StyleManager {
         const overlayOpacities = get(opacities);
         try {
             const layers = getLayers(get(currentOverlays) ?? {});
-            for (let overlay in layers) {
+            for (const overlay in layers) {
                 if (!layers[overlay]) {
                     if (this._pastOverlays.has(overlay)) {
                         const overlayInfo = custom[overlay]?.value ?? overlays[overlay];
                         try {
                             const overlayStyle = await this.get(overlayInfo);
-                            for (let layer of overlayStyle.layers ?? []) {
+                            for (const layer of overlayStyle.layers ?? []) {
                                 if (map_.getLayer(layer.id)) {
                                     map_.removeLayer(layer.id);
                                 }
                             }
-                        } catch (e) {
+                        } catch {
                             // Should not happen
                         }
                         this._pastOverlays.delete(overlay);
@@ -152,13 +170,13 @@ export class StyleManager {
                         const overlayStyle = await this.get(overlayInfo);
                         const opacity = overlayOpacities[overlay];
 
-                        for (let sourceId in overlayStyle.sources) {
+                        for (const sourceId in overlayStyle.sources) {
                             if (!map_.getSource(sourceId)) {
                                 map_.addSource(sourceId, overlayStyle.sources[sourceId]);
                             }
                         }
 
-                        for (let layer of overlayStyle.layers ?? []) {
+                        for (const layer of overlayStyle.layers ?? []) {
                             if (!map_.getLayer(layer.id)) {
                                 if (opacity !== undefined) {
                                     if (layer.type === 'raster') {
@@ -178,11 +196,11 @@ export class StyleManager {
                         }
                         this._pastOverlays.add(overlay);
                     } catch (e) {
-                        console.error(e.message);
+                        console.error(e instanceof Error ? e.message : e);
                     }
                 }
             }
-        } catch (e) {}
+        } catch {}
     }
 
     updateTerrain() {
@@ -203,11 +221,9 @@ export class StyleManager {
         }
     }
 
-    async get(
-        styleInfo: maplibregl.StyleSpecification | string
-    ): Promise<maplibregl.StyleSpecification> {
+    async get(styleInfo: StyleSpecification | string): Promise<StyleSpecification> {
         if (typeof styleInfo === 'string') {
-            let styleUrl = styleInfo as string;
+            const styleUrl = styleInfo as string;
             const response = await fetch(styleUrl, { cache: 'force-cache' });
             if (!response.ok) {
                 throw new Error(`HTTP error fetching style "${styleInfo}": ${response.status}`);
@@ -219,10 +235,10 @@ export class StyleManager {
         }
     }
 
-    merge(style: maplibregl.StyleSpecification, other: maplibregl.StyleSpecification) {
+    merge(style: StyleSpecification, other: StyleSpecification) {
         style.sources = { ...style.sources, ...other.sources };
         const units = get(distanceUnits);
-        for (let layer of other.layers ?? []) {
+        for (const layer of other.layers ?? []) {
             if ('source' in layer) {
                 if (layer.source == 'contours_m' && units === 'imperial') continue;
                 if (layer.source == 'contours_ft' && units !== 'imperial') continue;
@@ -270,6 +286,9 @@ export class StyleManager {
         }
         if (other.glyphs && !style.glyphs) {
             style.glyphs = other.glyphs;
+        }
+        if (other.sky && !style.sky) {
+            style.sky = other.sky;
         }
     }
 

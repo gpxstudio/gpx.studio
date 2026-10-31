@@ -101,10 +101,7 @@
                 if (typeof hours === 'string') {
                     hours = parseInt(hours);
                 }
-                if (hours >= 0) {
-                } else if (hours < 0) {
-                    hours = 0;
-                } else {
+                if (hours < 0) {
                     hours = 0;
                 }
                 onChange();
@@ -124,12 +121,9 @@
             if (typeof minutes === 'string') {
                 minutes = parseInt(minutes);
             }
-            if (minutes >= 0 && (minutes <= 59 || !showHours)) {
-            } else if (minutes < 0) {
-                minutes = 0;
-            } else if (showHours && minutes > 59) {
+            if (showHours && minutes > 59) {
                 minutes = 59;
-            } else {
+            } else if (minutes < 0) {
                 minutes = 0;
             }
             minutes = minutes.toString().padStart(showHours ? 2 : 1, '0');
@@ -149,12 +143,9 @@
             if (typeof seconds === 'string') {
                 seconds = parseInt(seconds);
             }
-            if (seconds >= 0 && seconds <= 59) {
-            } else if (seconds < 0) {
-                seconds = 0;
-            } else if (seconds > 59) {
+            if (seconds > 59) {
                 seconds = 59;
-            } else {
+            } else if (seconds < 0) {
                 seconds = 0;
             }
             seconds = seconds.toString().padStart(2, '0');

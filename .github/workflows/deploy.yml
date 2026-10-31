@@ -15,18 +15,30 @@ jobs:
               with:
                   node-version: 24
                   cache: npm
-                  cache-dependency-path: |
-                      gpx/package-lock.json
-                      website/package-lock.json
+                  cache-dependency-path: website/package-lock.json
 
-            - name: Install dependencies for gpx
-              run: npm install --prefix gpx
+            - name: Install Rust
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: wasm32-unknown-unknown
 
-            - name: Build gpx
-              run: npm run build --prefix gpx
+            - name: Install wasm-pack
+              uses: taiki-e/install-action@v2
+              with:
+                  tool: wasm-pack
+
+            - name: Test gpx-rs
+              run: cargo test
+
+            - name: Build wasm
+              run: wasm-pack build --target bundler
+              working-directory: wasm
 
             - name: Install dependencies for website
               run: npm install --prefix website
+
+            - name: Test website
+              run: npm test --prefix website
 
             - name: Create env file
               run: |

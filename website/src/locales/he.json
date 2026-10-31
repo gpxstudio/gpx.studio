@@ -8,7 +8,6 @@
         "description": "View, edit, and create GPX files online with advanced route planning capabilities and file processing tools, beautiful maps and detailed data visualizations."
     },
     "menu": {
-        "new": "חדש",
         "new_file": "קובץ חדש",
         "new_track": "New track",
         "new_segment": "קטע חדש",

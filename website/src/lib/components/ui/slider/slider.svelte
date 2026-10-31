@@ -26,7 +26,11 @@ get along, so we shut typescript up by casting `value` to `never`.
 	)}
 	{...restProps}
 >
-	{#snippet children({ thumbItems })}
+	<!--
+	The thumbs are the values: the snippet does not read the items that bits-ui gives it, which
+	it computes again at each change of the value, with one tick per step of the slider.
+	-->
+	{#snippet children()}
 		<span
 			data-slot="slider-track"
 			data-orientation={orientation}
@@ -41,10 +45,10 @@ get along, so we shut typescript up by casting `value` to `never`.
 				)}
 			/>
 		</span>
-		{#each thumbItems as thumb (thumb)}
+		{#each Array.isArray(value) ? value : [value] as _, index (index)}
 			<SliderPrimitive.Thumb
 				data-slot="slider-thumb"
-				index={thumb.index}
+				{index}
 				class="border-ring ring-ring/50 relative size-4 rounded-full border bg-white transition-[color,box-shadow] after:absolute after:-inset-2 hover:ring-3 focus-visible:ring-3 focus-visible:outline-hidden active:ring-3 block shrink-0 select-none disabled:pointer-events-none disabled:opacity-50"
 			/>
 		{/each}

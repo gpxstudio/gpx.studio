@@ -1,46 +1,45 @@
 import { SphericalMercator } from '@mapbox/sphericalmercator';
 import { getLayers } from './utils';
 import { get, writable } from 'svelte/store';
-import { liveQuery } from 'dexie';
-import { overpassQueryData } from '$lib/assets/layers';
+import { overpassQueryData } from '$lib/data/layers';
 import { MapPopup } from '$lib/components/map/map-popup';
-import { settings } from '$lib/logic/settings';
-import { db } from '$lib/db';
-import type { GeoJSONSource } from 'maplibre-gl';
+import { settings } from '$lib/state/settings';
+import type { GeoJSONSource, MapLayerMouseEvent, Map as MapLibreMap } from 'maplibre-gl';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 import type { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
 import { loadSVGIcon } from '$lib/utils';
+import { cachedFetch } from '$lib/storage/cached-fetch';
 
 const { currentOverpassQueries } = settings;
 
+/** The responses of Overpass are kept in the browser for a week. */
+const CACHE = { name: 'overpass', maxAge: 7 * 24 * 3600 * 1000 };
+
 const mercator = new SphericalMercator({
     size: 256,
-});
-
-let data = writable<GeoJSON.FeatureCollection>({ type: 'FeatureCollection', features: [] });
-
-liveQuery(() => db.overpassdata.toArray()).subscribe((pois) => {
-    data.set({ type: 'FeatureCollection', features: pois.map((poi) => poi.poi) });
 });
 
 export class OverpassLayer {
     overpassUrl = 'https://overpass.gpx.studio/api/interpreter';
     minZoom = 12;
     queryZoom = 12;
-    expirationTime = 7 * 24 * 3600 * 1000;
-    map: maplibregl.Map;
+    map: MapLibreMap;
     layerEventManager: MapLayerEventManager;
     popup: MapPopup;
 
+    data = writable<GeoJSON.FeatureCollection>({ type: 'FeatureCollection', features: [] });
+
+    // What was queried this session: the queries that were made for each tile. The responses are
+    // kept longer, see `cachedFetch`.
+    queriedTiles = new Map<string, Set<string>>();
     currentQueries: Set<string> = new Set();
-    nextQueries: Map<string, { x: number; y: number; queries: string[] }> = new Map();
 
     unsubscribes: (() => void)[] = [];
     queryIfNeededBinded = this.queryIfNeeded.bind(this);
     updateBinded = this.update.bind(this);
     onHoverBinded = this.onHover.bind(this);
 
-    constructor(map: maplibregl.Map, layerEventManager: MapLayerEventManager) {
+    constructor(map: MapLibreMap, layerEventManager: MapLayerEventManager) {
         this.map = map;
         this.layerEventManager = layerEventManager;
         this.popup = new MapPopup(map, {
@@ -54,7 +53,7 @@ export class OverpassLayer {
     add() {
         this.map.on('moveend', this.queryIfNeededBinded);
         this.map.on('style.load', this.updateBinded);
-        this.unsubscribes.push(data.subscribe(this.updateBinded));
+        this.unsubscribes.push(this.data.subscribe(this.updateBinded));
         this.unsubscribes.push(
             currentOverpassQueries.subscribe(() => {
                 this.updateBinded();
@@ -77,7 +76,7 @@ export class OverpassLayer {
     update() {
         this.loadIcons();
 
-        const fullData = get(data);
+        const fullData = get(this.data);
         const queries = getCurrentQueries();
         const d: GeoJSON.FeatureCollection = {
             type: 'FeatureCollection',
@@ -87,7 +86,7 @@ export class OverpassLayer {
         };
 
         try {
-            let source = this.map.getSource('overpass') as GeoJSONSource | undefined;
+            const source = this.map.getSource('overpass') as GeoJSONSource | undefined;
             if (source) {
                 source.setData(d);
             } else {
@@ -116,7 +115,7 @@ export class OverpassLayer {
                 this.layerEventManager.on('mouseenter', 'overpass', this.onHoverBinded);
                 this.layerEventManager.on('click', 'overpass', this.onHoverBinded);
             }
-        } catch (e) {
+        } catch {
             // No reliable way to check if the map is ready to add sources and layers
         }
     }
@@ -136,28 +135,28 @@ export class OverpassLayer {
             if (this.map.getSource('overpass')) {
                 this.map.removeSource('overpass');
             }
-        } catch (e) {
+        } catch {
             // No reliable way to check if the map is ready to remove sources and layers
         }
     }
 
-    onHover(e: any) {
+    onHover(e: MapLayerMouseEvent) {
         this.popup.setItem({
+            kind: 'overpass',
             item: {
-                ...e.features[0].properties,
-                sym: overpassQueryData[e.features[0].properties.query].symbol ?? '',
+                ...e.features![0].properties,
+                sym: overpassQueryData[e.features![0].properties.query].symbol ?? '',
             },
         });
     }
 
     query(bbox: [number, number, number, number]) {
-        let queries = getCurrentQueries();
+        const queries = getCurrentQueries();
         if (queries.length === 0) {
             return;
         }
 
-        let tileLimits = mercator.xyz(bbox, this.queryZoom);
-        let time = Date.now();
+        const tileLimits = mercator.xyz(bbox, this.queryZoom);
 
         for (let x = tileLimits.minX; x <= tileLimits.maxX; x++) {
             for (let y = tileLimits.minY; y <= tileLimits.maxY; y++) {
@@ -165,66 +164,35 @@ export class OverpassLayer {
                     continue;
                 }
 
-                db.overpasstiles
-                    .where('[x+y]')
-                    .equals([x, y])
-                    .toArray()
-                    .then((querytiles) => {
-                        let missingQueries = queries.filter(
-                            (query) =>
-                                !querytiles.some(
-                                    (querytile) =>
-                                        querytile.query === query &&
-                                        time - querytile.time < this.expirationTime
-                                )
-                        );
-                        if (missingQueries.length > 0) {
-                            this.queryTile(x, y, missingQueries);
-                        }
-                    });
+                const queried = this.queriedTiles.get(`${x},${y}`);
+                const missingQueries = queries.filter((query) => !queried?.has(query));
+                if (missingQueries.length > 0) {
+                    this.queryTile(x, y, missingQueries);
+                }
             }
         }
     }
 
     queryTile(x: number, y: number, queries: string[]) {
-        if (this.currentQueries.size > 5) {
-            return;
-        }
-
         this.currentQueries.add(`${x},${y}`);
 
         const bounds = mercator.bbox(x, y, this.queryZoom);
-        fetch(`${this.overpassUrl}?data=${getQueryForBounds(bounds, queries)}`)
-            .then(
-                (response) => {
-                    if (response.ok) {
-                        return response.json();
-                    }
-                    this.currentQueries.delete(`${x},${y}`);
-                    return Promise.reject();
-                },
-                () => this.currentQueries.delete(`${x},${y}`)
-            )
+        cachedFetch(`${this.overpassUrl}?data=${getQueryForBounds(bounds, queries)}`, CACHE)
+            .then((response) => (response.ok ? response.json() : Promise.reject()))
             .then((data) => this.storeOverpassData(x, y, queries, data))
             .catch(() => this.currentQueries.delete(`${x},${y}`));
     }
 
     storeOverpassData(x: number, y: number, queries: string[], data: any) {
-        let time = Date.now();
-        let queryTiles = queries.map((query) => ({ x, y, query, time }));
-        let pois: { query: string; id: number; poi: GeoJSON.Feature }[] = [];
-
         if (data.elements === undefined) {
             return;
         }
 
-        for (let element of data.elements) {
-            for (let query of queries) {
-                if (belongsToQuery(element, query)) {
-                    pois.push({
-                        query,
-                        id: element.id,
-                        poi: {
+        this.data.update((updatedData) => {
+            for (const element of data.elements) {
+                for (const query of queries) {
+                    if (belongsToQuery(element, query)) {
+                        updatedData.features.push({
                             type: 'Feature',
                             geometry: {
                                 type: 'Point',
@@ -235,28 +203,28 @@ export class OverpassLayer {
                             properties: {
                                 id: element.id,
                                 lat: element.center ? element.center.lat : element.lat,
-                                lon: element.center ? element.center.lon : element.lon,
+                                lng: element.center ? element.center.lon : element.lon,
                                 query: query,
                                 icon: `overpass-${query}`,
                                 tags: element.tags,
                                 type: element.type,
                             },
-                        },
-                    });
+                        });
+                    }
                 }
             }
-        }
-
-        db.transaction('rw', db.overpasstiles, db.overpassdata, async () => {
-            await db.overpasstiles.bulkPut(queryTiles);
-            await db.overpassdata.bulkPut(pois);
+            return updatedData;
         });
+
+        const queried = this.queriedTiles.get(`${x},${y}`) ?? new Set<string>();
+        queries.forEach((query) => queried.add(query));
+        this.queriedTiles.set(`${x},${y}`, queried);
 
         this.currentQueries.delete(`${x},${y}`);
     }
 
     loadIcons() {
-        let currentQueries = getCurrentQueries();
+        const currentQueries = getCurrentQueries();
         currentQueries.forEach((query) => {
             loadSVGIcon(
                 this.map,
@@ -289,7 +257,7 @@ function getQuery(query: string) {
 }
 
 function getQueryItem(tags: Record<string, string | string[]>) {
-    let arrayEntry = Object.entries(tags).find((entry): entry is [string, string[]] =>
+    const arrayEntry = Object.entries(tags).find((entry): entry is [string, string[]] =>
         Array.isArray(entry[1])
     );
     if (arrayEntry !== undefined) {
@@ -323,12 +291,12 @@ function belongsToQueryItem(element: any, tags: Record<string, string | string[]
 }
 
 function getCurrentQueries() {
-    let currentQueries = get(currentOverpassQueries);
+    const currentQueries = get(currentOverpassQueries);
     if (currentQueries === undefined) {
         return [];
     }
 
     return Object.entries(getLayers(currentQueries))
-        .filter(([_, selected]) => selected)
-        .map(([query, _]) => query);
+        .filter(([, selected]) => selected)
+        .map(([query]) => query);
 }

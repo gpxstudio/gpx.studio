@@ -8,7 +8,6 @@
         "description": "Vizualizați, editați și creați fișiere GPX online cu capacități avansate de planificare a rutelor și instrumente de procesare a fișierelor, hărți frumoase și vizualizări de date detaliate."
     },
     "menu": {
-        "new": "Nou",
         "new_file": "Fișier nou",
         "new_track": "Traseu nou",
         "new_segment": "Segment nou",

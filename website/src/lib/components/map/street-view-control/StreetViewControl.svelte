@@ -5,10 +5,11 @@
     import { PersonStanding, X } from '@lucide/svelte';
     import { MapillaryLayer } from './mapillary';
     import { GoogleRedirect } from './google';
-    import { settings } from '$lib/logic/settings';
-    import { i18n } from '$lib/i18n.svelte';
+    import { settings } from '$lib/state/settings';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { onMount } from 'svelte';
     import ButtonWithTooltip from '$lib/components/ButtonWithTooltip.svelte';
+    import type { Map } from 'maplibre-gl';
 
     const { streetViewSource } = settings;
 
@@ -20,7 +21,7 @@
     let container: HTMLElement;
 
     onMount(() => {
-        map.onLoad((map_: maplibregl.Map) => {
+        map.onLoad((map_: Map) => {
             googleRedirect = new GoogleRedirect(map_);
             mapillaryLayer = new MapillaryLayer(
                 map_,

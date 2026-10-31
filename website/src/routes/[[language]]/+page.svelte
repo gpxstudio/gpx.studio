@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { resolve } from '$app/paths';
     import { Button } from '$lib/components/ui/button';
     import ElevationProfile from '$lib/components/elevation-profile/ElevationProfile.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
@@ -16,16 +17,16 @@
         Languages,
         ExternalLink,
     } from '@lucide/svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
+    import { exampleStatistics } from '$lib/data/example';
     import { getURLForLanguage } from '$lib/utils';
-    import { exampleGPXFile } from '$lib/assets/example';
     import { writable } from 'svelte/store';
     import Scissors from '$lib/components/toolbar/tools/scissors/Scissors.svelte';
     import { currentTool, Tool } from '$lib/components/toolbar/tools';
     import { onDestroy, onMount } from 'svelte';
 
-    let gpxStatistics = writable(exampleGPXFile.getStatistics());
-    let slicedGPXStatistics = writable(undefined);
+    let statistics = writable(exampleStatistics);
+    let slicedStatistics = writable(undefined);
     let hoveredPoint = writable(null);
     let additionalDatasets = writable(['speed', 'atemp']);
     let elevationFill = writable(undefined);
@@ -58,7 +59,7 @@
                 <div class="w-full flex flex-row xs:justify-center gap-3">
                     <Button
                         data-sveltekit-reload
-                        href={getURLForLanguage(i18n.lang, '/app')}
+                        href={resolve(getURLForLanguage(i18n.lang, '/app'))}
                         class="w-1/3 min-w-fit"
                     >
                         <Map size="18" />
@@ -66,7 +67,7 @@
                     </Button>
                     <Button
                         variant="secondary"
-                        href={getURLForLanguage(i18n.lang, '/help')}
+                        href={resolve(getURLForLanguage(i18n.lang, '/help'))}
                         class="w-1/3 min-w-fit"
                     >
                         <BookOpenText size="18" />
@@ -74,7 +75,10 @@
                     </Button>
                 </div>
             </div>
-            <a href={getURLForLanguage(i18n.lang, '/app')} aria-label="Link to the web app.">
+            <a
+                href={resolve(getURLForLanguage(i18n.lang, '/app'))}
+                aria-label="Link to the web app."
+            >
                 <enhanced:img
                     src="/src/lib/assets/img/docs/getting-started/interface.webp"
                     alt="The gpx.studio interface."
@@ -138,18 +142,14 @@
                 >
                     <div class="grow">
                         <ElevationProfile
-                            {gpxStatistics}
-                            {slicedGPXStatistics}
+                            {statistics}
+                            {slicedStatistics}
                             {hoveredPoint}
                             {additionalDatasets}
                             {elevationFill}
                         />
                     </div>
-                    <GPXStatistics
-                        {gpxStatistics}
-                        {slicedGPXStatistics}
-                        orientation={'horizontal'}
-                    />
+                    <GPXStatistics {statistics} {slicedStatistics} orientation="horizontal" />
                 </div>
             </div>
             <div class="grid md:grid-rows-subgrid md:row-start-3 md:row-end-5 gap-4">

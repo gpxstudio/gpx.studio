@@ -2,7 +2,7 @@
     import docsearch from '@docsearch/js';
     import '@docsearch/css';
     import { onMount } from 'svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
 
     let props: {
         class?: string;
@@ -60,7 +60,7 @@
 </script>
 
 <svelte:head>
-    <link rel="preconnect" href="https://21XLD94PE3-dsn.algolia.net" crossorigin />
+    <link rel="preconnect" href="https://21XLD94PE3-dsn.algolia.net" crossorigin="anonymous" />
 </svelte:head>
 
 <div id="docsearch" class={props.class ?? ''}></div>

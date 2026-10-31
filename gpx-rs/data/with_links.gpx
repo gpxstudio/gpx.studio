@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="test">
+    <metadata>
+        <name>with links</name>
+        <author>
+            <name>someone</name>
+            <email id="someone" domain="example.com"/>
+            <link href="https://example.com/author"><text>author</text></link>
+        </author>
+        <link href="https://example.com/file-1"><text>first</text></link>
+        <link href="https://example.com/file-2"/>
+    </metadata>
+    <wpt lat="50" lon="4">
+        <name>summit</name>
+        <link href="https://example.com/wpt-1"><text>one</text></link>
+        <link href="https://example.com/wpt-2"/>
+        <link href="https://example.com/wpt-3"><text>three</text></link>
+    </wpt>
+    <trk>
+        <name>track</name>
+        <link href="https://example.com/trk-1"/>
+        <link href="https://example.com/trk-2"><text>two</text></link>
+        <trkseg>
+            <trkpt lat="50" lon="4"/>
+            <trkpt lat="50.1" lon="4.1"/>
+        </trkseg>
+    </trk>
+    <rte>
+        <name>route</name>
+        <link href="https://example.com/rte-1"/>
+        <link href="https://example.com/rte-2"/>
+        <rtept lat="51" lon="5"/>
+        <rtept lat="51.1" lon="5.1"/>
+    </rte>
+    <wpt lat="51" lon="5">
+        <name>email variants</name>
+    </wpt>
+</gpx>

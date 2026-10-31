@@ -1,8 +1,9 @@
 <script lang="ts">
+    import { resolve } from '$app/paths';
     import { Button } from '$lib/components/ui/button';
     import AlgoliaDocSearch from '$lib/components/AlgoliaDocSearch.svelte';
     import { getURLForLanguage } from '$lib/utils';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { page } from '$app/state';
     import { guides } from '$lib/components/docs/docs';
     import type { Snippet } from 'svelte';
@@ -24,10 +25,10 @@
             <div class="mb-2">
                 <AlgoliaDocSearch />
             </div>
-            {#each Object.keys(guides) as guide}
+            {#each Object.keys(guides) as guide (guide)}
                 <Button
                     variant="link"
-                    href={getURLForLanguage(i18n.lang, `/help/${guide}`)}
+                    href={resolve(getURLForLanguage(i18n.lang, `/help/${guide}`))}
                     class="min-h-5 h-fit p-0 w-fit border-none text-muted-foreground hover:text-foreground hover:no-underline font-normal hover:font-semibold items-start whitespace-normal {page
                         .params.guide === guide
                         ? 'font-semibold text-foreground'
@@ -35,10 +36,10 @@
                 >
                     {data.guideTitles[guide]}
                 </Button>
-                {#each guides[guide] as subGuide}
+                {#each guides[guide] as subGuide (subGuide)}
                     <Button
                         variant="link"
-                        href={getURLForLanguage(i18n.lang, `/help/${guide}/${subGuide}`)}
+                        href={resolve(getURLForLanguage(i18n.lang, `/help/${guide}/${subGuide}`))}
                         class="min-h-5 h-fit p-0 w-fit border-none text-muted-foreground hover:text-foreground hover:no-underline font-normal hover:font-semibold items-start whitespace-normal ml-3 {page
                             .params.guide ===
                         guide + '/' + subGuide

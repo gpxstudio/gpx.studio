@@ -1,5 +1,5 @@
-import { base } from '$app/paths';
-import { languages } from '$lib/languages';
+import { asset, resolve as resolvePath } from '$app/paths';
+import { languages } from '$lib/i18n/languages';
 import { getURLForLanguage } from '$lib/utils';
 
 export async function handle({ event, resolve }) {
@@ -37,21 +37,26 @@ export async function handle({ event, resolve }) {
     <meta property="og:description" content="${description}" />
     <meta name="twitter:title" content="gpx.studio — ${title}" />
     <meta name="twitter:description" content="${description}" />
-    <meta property="og:image" content="https://gpx.studio${base}/og_logo.png" />
+    <meta property="og:image" content="https://gpx.studio${asset('/og_logo.png')}" />
     <meta property="og:url" content="https://gpx.studio/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="gpx.studio" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://gpx.studio${base}/og_logo.png" />
+    <meta name="twitter:image" content="https://gpx.studio${asset('/og_logo.png')}" />
     <meta name="twitter:url" content="https://gpx.studio/" />
     <meta name="twitter:site" content="@gpxstudio" />
     <meta name="twitter:creator" content="@gpxstudio" />
-    <link rel="alternate" hreflang="x-default" href="https://gpx.studio${getURLForLanguage('en', path)}" />
+    <link rel="alternate" hreflang="x-default" href="https://gpx.studio${resolvePath(getURLForLanguage('en', path))}" />`;
+
+    // the manifests are made for the website, not for the desktop app (`npm run build:desktop`)
+    if (process.env.BUILD_TARGET !== 'desktop') {
+        headTag += `
     <link rel="manifest" href="/${language}.manifest.webmanifest" />`;
+    }
 
     if (page !== '404') {
         for (let lang of Object.keys(languages)) {
-            headTag += `   <link rel="alternate" hreflang="${lang}" href="https://gpx.studio${getURLForLanguage(lang, path)}" />
+            headTag += `   <link rel="alternate" hreflang="${lang}" href="https://gpx.studio${resolvePath(getURLForLanguage(lang, path))}" />
 `;
         }
     }

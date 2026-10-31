@@ -8,7 +8,6 @@
         "description": "Visualiza, edita y crea archivos GPX online con planificación avanzada de rutas y herramientas de procesamiento de archivos, bonitos mapas y visualizaciones detalladas de datos."
     },
     "menu": {
-        "new": "Nuevo",
         "new_file": "Nuevo archivo",
         "new_track": "Nuevo recorrido",
         "new_segment": "Nuevo segmento",

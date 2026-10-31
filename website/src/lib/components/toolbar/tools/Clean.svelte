@@ -11,15 +11,14 @@
     import * as RadioGroup from '$lib/components/ui/radio-group';
     import { Button } from '$lib/components/ui/button';
     import Help from '$lib/components/Help.svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { onDestroy, onMount } from 'svelte';
     import { getURLForLanguage } from '$lib/utils';
     import { Trash2 } from '@lucide/svelte';
     import { map } from '$lib/components/map/map';
-    import type { GeoJSONSource } from 'maplibre-gl';
-    import { selection } from '$lib/logic/selection';
-    import { fileActions } from '$lib/logic/file-actions';
-    import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+    import type { GeoJSONSource, LngLat, MapMouseEvent, MapTouchEvent } from 'maplibre-gl';
+    import { engine } from '$lib/engine';
+    import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
     import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 
     let props: {
@@ -29,7 +28,7 @@
     let cleanType = $state(CleanType.INSIDE);
     let deleteTrackpoints = $state(true);
     let deleteWaypoints = $state(true);
-    let rectangleCoordinates: maplibregl.LngLat[] = $state([]);
+    let rectangleCoordinates: LngLat[] = $state([]);
 
     $effect(() => {
         if ($map) {
@@ -82,18 +81,18 @@
     });
 
     let mousedown = false;
-    function onMouseDown(e: any) {
+    function onMouseDown(e: MapMouseEvent | MapTouchEvent) {
         mousedown = true;
         rectangleCoordinates = [e.lngLat, e.lngLat];
     }
 
-    function onMouseMove(e: any) {
+    function onMouseMove(e: MapMouseEvent | MapTouchEvent) {
         if (mousedown) {
             rectangleCoordinates[1] = e.lngLat;
         }
     }
 
-    function onMouseUp(e: any) {
+    function onMouseUp() {
         mousedown = false;
     }
 
@@ -130,7 +129,8 @@
         }
     });
 
-    let validSelection = $derived($selection.size > 0);
+    const selection = engine.selection;
+    let validSelection = $derived($selection.type !== 'empty');
 </script>
 
 <div class="flex flex-col gap-3 w-full max-w-80 items-center {props.class ?? ''}">
@@ -163,17 +163,13 @@
         class="w-full"
         disabled={!validSelection || rectangleCoordinates.length != 2}
         onclick={() => {
-            fileActions.cleanSelection(
-                [
-                    {
-                        lat: Math.min(rectangleCoordinates[0].lat, rectangleCoordinates[1].lat),
-                        lon: Math.min(rectangleCoordinates[0].lng, rectangleCoordinates[1].lng),
-                    },
-                    {
-                        lat: Math.max(rectangleCoordinates[0].lat, rectangleCoordinates[1].lat),
-                        lon: Math.max(rectangleCoordinates[0].lng, rectangleCoordinates[1].lng),
-                    },
-                ],
+            engine.clean(
+                {
+                    west: Math.min(rectangleCoordinates[0].lng, rectangleCoordinates[1].lng),
+                    south: Math.min(rectangleCoordinates[0].lat, rectangleCoordinates[1].lat),
+                    east: Math.max(rectangleCoordinates[0].lng, rectangleCoordinates[1].lng),
+                    north: Math.max(rectangleCoordinates[0].lat, rectangleCoordinates[1].lat),
+                },
                 cleanType === CleanType.INSIDE,
                 deleteTrackpoints,
                 deleteWaypoints

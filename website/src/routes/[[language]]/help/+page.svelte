@@ -1,7 +1,8 @@
 <script lang="ts">
+    import { resolve } from '$app/paths';
     import { Button } from '$lib/components/ui/button';
     import { getURLForLanguage } from '$lib/utils';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { guides, guideIcons } from '$lib/components/docs/docs';
 
     let {
@@ -14,10 +15,10 @@
 </script>
 
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-    {#each Object.keys(guides) as guide}
+    {#each Object.keys(guides) as guide (guide)}
         <Button
             variant="outline"
-            href={getURLForLanguage(i18n.lang, `/help/${guide}`)}
+            href={resolve(getURLForLanguage(i18n.lang, `/help/${guide}`))}
             class="min-h-36 h-full pt-6 pb-3 px-0"
         >
             <div class="flex flex-col w-full">
@@ -28,10 +29,12 @@
                     {data.guideTitles[guide]}
                 </div>
                 <div class="flex flex-row justify-center flex-wrap gap-x-6 px-6">
-                    {#each guides[guide] as subGuide}
+                    {#each guides[guide] as subGuide (subGuide)}
                         <Button
                             variant="link"
-                            href={getURLForLanguage(i18n.lang, `/help/${guide}/${subGuide}`)}
+                            href={resolve(
+                                getURLForLanguage(i18n.lang, `/help/${guide}/${subGuide}`)
+                            )}
                             class="min-h-8 h-fit min-w-24 px-0 py-1 text-muted-foreground text-base text-center whitespace-normal"
                         >
                             {#if typeof guideIcons[subGuide] === 'string'}

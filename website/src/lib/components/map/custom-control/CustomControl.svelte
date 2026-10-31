@@ -2,6 +2,7 @@
     import CustomControl from './custom-control';
     import { map } from '$lib/components/map/map';
     import { onMount, type Snippet } from 'svelte';
+    import type { Map } from 'maplibre-gl';
 
     let {
         position = 'top-right',
@@ -17,7 +18,7 @@
     let control: CustomControl | null = null;
 
     onMount(() => {
-        map.onLoad((map: maplibregl.Map) => {
+        map.onLoad((map: Map) => {
             if (position.includes('right')) container.classList.add('float-right');
             else container.classList.add('float-left');
             container.classList.remove('hidden');

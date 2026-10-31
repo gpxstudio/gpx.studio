@@ -1,4 +1,4 @@
-import type { LayerTreeType } from '$lib/assets/layers';
+import type { LayerTreeType } from '$lib/data/layers';
 
 export function anySelectedLayer(node: LayerTreeType) {
     return (

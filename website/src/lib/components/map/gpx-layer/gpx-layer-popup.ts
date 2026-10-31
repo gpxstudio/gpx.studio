@@ -1,9 +1,10 @@
 import { MapPopup } from '$lib/components/map/map-popup';
+import type { Map } from 'maplibre-gl';
 
 export let waypointPopup: MapPopup | null = null;
 export let trackpointPopup: MapPopup | null = null;
 
-export function createPopups(map: maplibregl.Map) {
+export function createPopups(map: Map) {
     removePopups();
     waypointPopup = new MapPopup(map, {
         closeButton: false,
