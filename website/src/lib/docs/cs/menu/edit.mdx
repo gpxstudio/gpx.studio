@@ -3,14 +3,14 @@ title: Akce úprav
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from '@lucide/svelte';
+    import { Undo2, Redo2, Info, PaintBucket, ArrowRightLeft, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Plus } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # { title }
 
 Na rozdíl od akcí v menu Soubor, mohou akce úprav potenciálně změnit obsah aktuálně vybraných souborů.
-Navíc pokud je povoleno rozvržení stromu seznamu souborů (viz [Soubory a statistiky](../files-and-stats)), mohou být také použity na [trasy, segmenty a body zájmu](../gpx).
+Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, routes, and points of interest](../gpx).
 Proto budeme všechny prvky, které mohou být těmito akcemi upraveny, označovat jako _prvky souborů_.
 Všechny akce kromě zpět a opakovat jsou také dostupné z kontextového menu (klik pravým tlačítkem) prvků souborů.
 
@@ -27,13 +27,20 @@ Otevře informační dialog zvoleného prvku souborů, kde lze zobrazit a změni
 
 Otevře dialog vzhledu, kde můžete změnit barvu, neprůhlednost a tloušťku zvolených prvků souborů v mapě.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Skrýt/zobrazit
-
-Přepnout viditelnost zvolených prvků souborů v mapě.
-
 ### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Nová trasa
 
 Vytvořit novou trasu ve zvoleném souboru.
+
+<DocsNote>
+
+Tato akce je dostupná pouze v případě, že je povoleno rozvržení stromu seznamu souborů.
+Kromě toho musí být vybrán právě jeden soubor.
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New route
+
+Create a new route in the selected file.
 
 <DocsNote>
 
@@ -53,13 +60,22 @@ Kromě toho musí být zvolena právě jedna trasa.
 
 </DocsNote>
 
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Convert to route/track
+
+Convert the selected routes to tracks, or the selected tracks or segments to routes.
+Since a route has a single segment, a track with multiple segments is converted into one route per segment.
+
+When the selected files contain only routes, or only tracks, you can also convert all of them at once.
+
+<DocsNote>
+
+Except for whole files, this action is only available when the tree layout of the files list is enabled.
+
+</DocsNote>
+
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Vybrat vše
 
 Přidejte k výběru všechny prvky souborů v dané úrovni hierarchie.
-
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Vycentrovat
-
-Vystředí mapu na označené prvky souborů.
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Kopírovat
 
