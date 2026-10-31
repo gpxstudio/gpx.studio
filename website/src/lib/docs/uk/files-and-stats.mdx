@@ -7,11 +7,11 @@ title: Файли та статистика
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
     import ElevationProfile from '$lib/components/elevation-profile/ElevationProfile.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
-    import { exampleGPXFile } from '$lib/assets/example';
+    import { exampleStatistics } from '$lib/data/example';
     import { writable } from 'svelte/store';
 
-    let gpxStatistics = writable(exampleGPXFile.getStatistics());
-    let slicedGPXStatistics = writable(undefined);
+    let statistics = writable(exampleStatistics);
+    let slicedStatistics = writable(undefined);
     let hoveredPoint = writable(null);
     let additionalDatasets = writable(['speed', 'atemp']);
     let elevationFill = writable(undefined);
@@ -51,7 +51,7 @@ title: Файли та статистика
 
 Як зазначено в [розділі налаштувань перегляду](./menu/view), ви можете перейти до деревоподібного показу списку файлів.
 Ця схема ідеально підходить для роботи з великою кількістю відкритих файлів, оскільки вони розміщуються у вигляді вертикального списку в правій частині екрана.
-Крім того, у дереві файлів можна переглядати [треки, сегменти та цікаві місця](./gpx), що містяться у файлах, за допомогою розгортальних розділів.
+In addition, the file tree view enables you to inspect the [tracks, segments, routes, and points of interest](./gpx) contained inside the files through collapsible sections.
 
 Ви також можете застосовувати [дії редагування](./menu/edit) та [інструменти](./toolbar) до елементів внутрішніх файлів.
 Крім того, внутрішні елементи можна перетягувати, щоб змінювати їхній порядок, переміщувати в ієрархії або навіть переносити до іншого файлу.
@@ -83,8 +83,8 @@ title: Файли та статистика
 
 <div class="h-48 w-full">
     <ElevationProfile
-        {gpxStatistics}
-        {slicedGPXStatistics}
+        {statistics}
+        {slicedStatistics}
         {hoveredPoint}
         {additionalDatasets}
         {elevationFill}
@@ -92,8 +92,8 @@ title: Файли та статистика
 </div>
 <div class="flex flex-col items-center w-full">
     <GPXStatistics
-        {gpxStatistics}
-        {slicedGPXStatistics}
+        {statistics}
+        {slicedStatistics}
         orientation={'horizontal'}
     />
 </div>
