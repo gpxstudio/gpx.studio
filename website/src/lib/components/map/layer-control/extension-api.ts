@@ -1,7 +1,7 @@
 import { settings } from '$lib/state/settings';
 import { derived, get, writable, type Writable } from 'svelte/store';
 import { isSelected, remove, removeAll } from './utils';
-import { overlays, overlayTree, type LayerTreeType } from '$lib/data/layers';
+import { layerGroup, overlays, overlayTree, type LayerTreeType } from '$lib/data/layers';
 import { browser } from '$app/environment';
 import { map } from '$lib/components/map/map';
 
@@ -84,11 +84,12 @@ export class ExtensionAPI {
             ],
         };
 
-        if (!Object.hasOwn(overlayTree.overlays as LayerTreeType, overlay.extensionName)) {
-            overlayTree.overlays[overlay.extensionName] = {};
+        const extensions = layerGroup(overlayTree.overlays);
+        if (!Object.hasOwn(extensions, overlay.extensionName)) {
+            extensions[overlay.extensionName] = {};
         }
 
-        overlayTree.overlays[overlay.extensionName][overlay.id] = true;
+        layerGroup(extensions[overlay.extensionName])[overlay.id] = true;
 
         selectedOverlayTree.update((selected) => {
             if (!Object.hasOwn(selected.overlays, overlay.extensionName)) {

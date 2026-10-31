@@ -18,7 +18,7 @@
         Layers2,
     } from '@lucide/svelte';
     import { i18n } from '$lib/i18n/i18n.svelte';
-    import { defaultBasemap, type CustomLayer } from '$lib/data/layers';
+    import { defaultBasemap, layerGroup, type CustomLayer } from '$lib/data/layers';
     import { onMount } from 'svelte';
     import { remove } from './utils';
     import { settings } from '$lib/state/settings';
@@ -128,8 +128,9 @@
                 ],
             };
         }
-        addLayer(layerId);
+
         $customLayers[layerId] = layer;
+        addLayer(layerId);
         selectedLayerId = undefined;
         setDataFromSelectedLayer();
     }
@@ -255,13 +256,12 @@
                 onfinalize={(e) => {
                     customBasemapItems = e.detail.items;
                     $customBasemapOrder = customBasemapItems.map((item) => item.id);
-                    $selectedBasemapTree.basemaps['custom'] = customBasemapItems.reduce(
-                        (acc, item) => {
-                            acc[item.id] = true;
-                            return acc;
-                        },
-                        {}
-                    );
+                    selectedBasemapTree.update(($tree) => {
+                        layerGroup($tree.basemaps)['custom'] = Object.fromEntries(
+                            customBasemapItems.map((item) => [item.id, true])
+                        );
+                        return $tree;
+                    });
                 }}
             >
                 {#each customBasemapItems as item (item.id)}
@@ -315,13 +315,12 @@
                 onfinalize={(e) => {
                     customOverlayItems = e.detail.items;
                     $customOverlayOrder = customOverlayItems.map((item) => item.id);
-                    $selectedOverlayTree.overlays['custom'] = customOverlayItems.reduce(
-                        (acc, item) => {
-                            acc[item.id] = true;
-                            return acc;
-                        },
-                        {}
-                    );
+                    selectedOverlayTree.update(($tree) => {
+                        layerGroup($tree.overlays)['custom'] = Object.fromEntries(
+                            customOverlayItems.map((item) => [item.id, true])
+                        );
+                        return $tree;
+                    });
                 }}
             >
                 {#each customOverlayItems as item (item.id)}

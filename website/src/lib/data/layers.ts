@@ -794,6 +794,14 @@ export const defaultOpacities: { [key: string]: number } = {
 
 export type LayerTreeType = { [key: string]: LayerTreeType | boolean };
 
+/** A node of a layer tree that is a group of layers, not a layer (which is selected or not). */
+export function layerGroup(node: LayerTreeType | boolean | undefined): LayerTreeType {
+    if (typeof node !== 'object') {
+        throw new Error('Not a group of layers');
+    }
+    return node;
+}
+
 // Hierarchy containing all basemaps
 export const basemapTree: LayerTreeType = {
     basemaps: {
