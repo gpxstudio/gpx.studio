@@ -3,14 +3,14 @@ title: Edizio ekintzak
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from '@lucide/svelte';
+    import { Undo2, Redo2, Info, PaintBucket, ArrowRightLeft, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Plus } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # { title }
 
 Fitxategi-ekintzak ez bezala, edizio-ekintzek hautatutako fitxategien edukia alda dezakete.
-Are gehiago, fitxategien zerrendaren zuhaitzaren diseinua gaituta dagoenean (Ikusi [Fitxategiak eta estatistikak](../files-and-stats)), ekintzek [arrasto, segmentu eta interesgunetan](../gpx) ere aplikatu daitezke.
+Moreover, when the tree layout of the files list is enabled (see [Files and statistics](../files-and-stats)), they can also be applied to [tracks, segments, routes, and points of interest](../gpx).
 Hori dela eta, ekintza hauek alda dezaketen elementuei _fitxategi-elementuak_ izendatzen ditugu.
 Ohar zaitez, desegin eta berregin ekintzak ez, beste guztiak fitxategi-elementu hauen alboko menuaren bidez (eskuin-klik) ere erabili daitezke.
 
@@ -27,13 +27,20 @@ Ireki hautatutako fitxategiaren elementuaren elkarrizketa-koadroa, non bere izen
 
 Ireki Itxuraren elkarrizketa-koadroa, eta bertan mapan hautatutako elementuaren kolorea, opakotasuna eta zabalera alda ditzakezu.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Ezkutatu/erakutsi
-
-Aldatu mapan hautatutako elementuen ikusgarritasuna.
-
 ### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Arrasto berria
 
 Sortu arrasto berri bat hautatutako fitxategian.
+
+<DocsNote>
+
+Ekintza hau soilik aktibatuko da fitxategien zerrendako zuhaitz-geruza gaituta dagoenean.
+Gainera, fitxategi bakarra egon behar du hautatuta.
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> New route
+
+Create a new route in the selected file.
 
 <DocsNote>
 
@@ -53,13 +60,22 @@ Gainera, arrasto bakarra egon behar du hautatuta.
 
 </DocsNote>
 
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Convert to route/track
+
+Convert the selected routes to tracks, or the selected tracks or segments to routes.
+Since a route has a single segment, a track with multiple segments is converted into one route per segment.
+
+When the selected files contain only routes, or only tracks, you can also convert all of them at once.
+
+<DocsNote>
+
+Except for whole files, this action is only available when the tree layout of the files list is enabled.
+
+</DocsNote>
+
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Hautatu denak
 
 Gehitu hautapenera uneko hierarkia mailako fitxategi elementu guztiak.
-
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Erdiratu
-
-Erdiratu mapan hautatutako fitxategi-elementuak.
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Kopiatu
 
