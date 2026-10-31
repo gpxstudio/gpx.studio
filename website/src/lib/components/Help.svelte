@@ -1,7 +1,8 @@
 <script lang="ts">
     import { CircleQuestionMark } from '@lucide/svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import type { Snippet } from 'svelte';
+    import { resolve } from '$app/paths';
 
     let {
         link,
@@ -19,7 +20,7 @@
     <div>
         {@render children()}
         {#if link}
-            <a href={link} target="_blank" class="text-[13px] text-link hover:underline">
+            <a href={resolve(link)} target="_blank" class="text-[13px] text-link hover:underline">
                 {i18n._('menu.more')}
             </a>
         {/if}

@@ -1,10 +1,11 @@
 <script lang="ts">
+    import { resolve } from '$app/paths';
     import { page } from '$app/state';
     import * as Select from '$lib/components/ui/select';
-    import { languages } from '$lib/languages';
+    import { languages } from '$lib/i18n/languages';
     import { getURLForLanguage } from '$lib/utils';
     import { Languages } from '@lucide/svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
 </script>
 
 <Select.Root type="single" value={i18n.lang}>
@@ -15,13 +16,13 @@
         </span>
     </Select.Trigger>
     <Select.Content>
-        {#each Object.entries(languages) as [lang, label]}
+        {#each Object.entries(languages) as [lang, label] (lang)}
             {#if page.url.pathname.includes('404')}
-                <a href={getURLForLanguage(lang, '/')}>
+                <a href={resolve(getURLForLanguage(lang, '/'))}>
                     <Select.Item value={lang}>{label}</Select.Item>
                 </a>
             {:else}
-                <a href={getURLForLanguage(lang, page.url.pathname)}>
+                <a href={resolve(getURLForLanguage(lang, page.url.pathname))}>
                     <Select.Item value={lang}>{label}</Select.Item>
                 </a>
             {/if}

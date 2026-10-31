@@ -5,9 +5,9 @@ import {
     type MapLayerMouseEvent,
     type VectorSourceSpecification,
 } from 'maplibre-gl';
-import { Viewer, type ViewerBearingEvent } from 'mapillary-js/dist/mapillary.module';
+import { Viewer, type ViewerBearingEvent } from 'mapillary-js';
 import 'mapillary-js/dist/mapillary.css';
-import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
 import type { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
 
@@ -89,7 +89,7 @@ export class MapillaryLayer {
         this.viewer.on('position', async () => {
             if (this.active) {
                 popupOpen.value = true;
-                let latLng = await this.viewer.getPosition();
+                const latLng = await this.viewer.getPosition();
                 this.marker.setLngLat(latLng).addTo(this.map);
                 if (!this.map.getBounds()?.contains(latLng)) {
                     this.map.panTo(latLng);

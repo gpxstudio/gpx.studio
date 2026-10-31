@@ -8,7 +8,6 @@
         "description": "Zobrazujte, upravujte a vytvářejte GPX soubory online s pokročilými možnostmi plánování tras a nástroji ke zpracování souborů, krásnými mapami a podrobnými vizualizacemi dat."
     },
     "menu": {
-        "new": "Nový",
         "new_file": "Nový soubor",
         "new_track": "Nová trasa",
         "new_segment": "Nový úsek",

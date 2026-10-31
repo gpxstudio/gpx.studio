@@ -5,30 +5,26 @@
     import { Slider } from '$lib/components/ui/slider';
     import * as Popover from '$lib/components/ui/popover';
     import { Save } from '@lucide/svelte';
-    import {
-        ListFileItem,
-        ListTrackItem,
-        type ListItem,
-    } from '$lib/components/file-list/file-list';
     import { editStyle } from '$lib/components/file-list/style/utils.svelte';
-    import { i18n } from '$lib/i18n.svelte';
-    import type { LineStyleExtension } from 'gpx';
-    import { settings } from '$lib/logic/settings';
-    import { selection } from '$lib/logic/selection';
-    import { fileStateCollection } from '$lib/logic/file-state';
-    import { gpxLayers } from '$lib/components/map/gpx-layer/gpx-layers';
+    import { i18n } from '$lib/i18n/i18n.svelte';
+    import { settings } from '$lib/state/settings';
+    import { engine, type FileState } from '$lib/engine';
+    import { normalizeColor } from '$lib/engine/file-colors';
+    import { pathInfo, selectedFileIds, type FileTreeNode } from '$lib/engine/selection-helpers';
     import { untrack } from 'svelte';
-    import { fileActions } from '$lib/logic/file-actions';
 
     let {
-        item,
+        fileState,
+        node,
         open = $bindable(),
     }: {
-        item: ListItem;
+        fileState: FileState;
+        node: FileTreeNode;
         open: boolean;
     } = $props();
 
     const { defaultOpacity, defaultWidth } = settings;
+    const { files, selection } = engine;
 
     let color: string = $state('');
     let opacity: number = $state(0);
@@ -40,42 +36,18 @@
     function setStyleInputs() {
         opacity = $defaultOpacity;
         width = $defaultWidth;
+        color = fileState.color;
 
-        $selection.forEach((item) => {
-            if (item instanceof ListFileItem) {
-                let file = fileStateCollection.getFile(item.getFileId());
-                let layer = gpxLayers.getLayer(item.getFileId());
-                if (file && layer) {
-                    let style = file.getStyle();
-                    color = layer.layerColor;
-                    if (style.opacity.length > 0) {
-                        opacity = style.opacity[0];
-                    }
-                    if (style.width.length > 0) {
-                        width = style.width[0];
-                    }
-                }
-            } else if (item instanceof ListTrackItem) {
-                let file = fileStateCollection.getFile(item.getFileId());
-                let layer = gpxLayers.getLayer(item.getFileId());
-                if (file && layer) {
-                    color = layer.layerColor;
-                    let track = file.trk[item.getTrackIndex()];
-                    let style = track.getStyle();
-                    if (style) {
-                        if (style['gpx_style:color']) {
-                            color = style['gpx_style:color'];
-                        }
-                        if (style['gpx_style:opacity']) {
-                            opacity = style['gpx_style:opacity'];
-                        }
-                        if (style['gpx_style:width']) {
-                            width = style['gpx_style:width'];
-                        }
-                    }
-                }
-            }
-        });
+        const paths = [...fileState.structure.routes, ...fileState.structure.tracks];
+        const path = pathInfo(fileState.structure, node);
+        if (node.type === 'file') {
+            opacity = paths.find((path) => path.opacity !== undefined)?.opacity ?? opacity;
+            width = paths.find((path) => path.width !== undefined)?.width ?? width;
+        } else if (path) {
+            color = path.color !== undefined ? normalizeColor(path.color) : color;
+            opacity = path.opacity ?? opacity;
+            width = path.width ?? width;
+        }
 
         colorChanged = false;
         opacityChanged = false;
@@ -95,28 +67,25 @@
     });
 
     function applyStyle() {
-        let style: LineStyleExtension = {};
-        if (colorChanged) {
-            style['gpx_style:color'] = color;
-        }
-        if (opacityChanged) {
-            style['gpx_style:opacity'] = opacity;
-        }
-        if (widthChanged) {
-            style['gpx_style:width'] = width;
-        }
-        fileActions.setStyleToSelection(style);
-
-        if (item instanceof ListFileItem && $selection.size === fileStateCollection.size) {
-            if (style['gpx_style:opacity']) {
-                $defaultOpacity = style['gpx_style:opacity'];
-            }
-            if (style['gpx_style:width']) {
-                $defaultWidth = style['gpx_style:width'];
-            }
-        }
-
+        // closes the dialog now: `open` follows `editStyle`, and the style changes the file, which
+        // would open the dialog again before the effect below has reset it
+        editStyle.current = false;
         open = false;
+
+        engine.style({
+            color: colorChanged ? color : undefined,
+            opacity: opacityChanged ? opacity : undefined,
+            width: widthChanged ? width : undefined,
+        });
+
+        if (node.type === 'file' && selectedFileIds($selection).length === $files.size) {
+            if (opacityChanged) {
+                $defaultOpacity = opacity;
+            }
+            if (widthChanged) {
+                $defaultWidth = width;
+            }
+        }
     }
 </script>
 

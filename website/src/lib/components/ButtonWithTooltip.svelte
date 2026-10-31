@@ -26,7 +26,7 @@
     <Tooltip.Root>
         <Tooltip.Trigger>
             {#snippet child({ props })}
-                <Button {...props} {variant} class="bg-inherit {className}" {onclick}>
+                <Button {...props} {variant} {disabled} class="bg-inherit {className}" {onclick}>
                     {@render children()}
                 </Button>
             {/snippet}

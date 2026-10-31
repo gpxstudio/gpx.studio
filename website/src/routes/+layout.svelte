@@ -1,14 +1,14 @@
 <script lang="ts">
     import '../app.css';
     import { ModeWatcher } from 'mode-watcher';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { page } from '$app/state';
     import Nav from '$lib/components/Nav.svelte';
     import Footer from '$lib/components/Footer.svelte';
     import { onMount, type Snippet } from 'svelte';
     import { convertOldEmbeddingOptions } from '$lib/components/embedding/embedding';
-    import { base } from '$app/paths';
-    import { languages } from '$lib/languages';
+    import { resolve } from '$app/paths';
+    import { languages } from '$lib/i18n/languages';
     import { browser } from '$app/environment';
     import { goto } from '$app/navigation';
     import { getURLForLanguage } from '$lib/utils';
@@ -31,7 +31,7 @@
             let folders = page.url.pathname.split('/');
             let locale =
                 folders.indexOf('l') >= 0 ? (folders[folders.indexOf('l') + 1] ?? 'en') : 'en';
-            window.location.href = `${getURLForLanguage(locale, '/embed')}?options=${encodeURIComponent(JSON.stringify(convertOldEmbeddingOptions(page.url.searchParams)))}`;
+            window.location.href = `${resolve(getURLForLanguage(locale, '/embed'))}?options=${encodeURIComponent(JSON.stringify(convertOldEmbeddingOptions(page.url.searchParams)))}`;
         }
     });
 
@@ -40,10 +40,10 @@
             if (page.params.language) {
                 let lang = page.params.language.replace('/', '');
                 if (i18n.lang !== lang) {
-                    if (languages.hasOwnProperty(lang)) {
+                    if (Object.hasOwn(languages, lang)) {
                         i18n.lang = lang;
                     } else if (browser) {
-                        goto(`${base}/404`);
+                        goto(resolve('/404'));
                     }
                 }
             } else if (i18n.lang !== 'en') {

@@ -2,7 +2,7 @@
     import { Button } from '$lib/components/ui/button';
     import { Moon, Sun } from '@lucide/svelte';
     import { mode, setMode } from 'mode-watcher';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
 
     let {
         class: className = '',

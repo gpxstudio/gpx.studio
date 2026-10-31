@@ -18,23 +18,25 @@
         Construction,
     } from '@lucide/svelte';
     import type { Readable, Writable } from 'svelte/store';
-    import type { Coordinates, GPXGlobalStatistics, GPXStatisticsGroup } from 'gpx';
-    import { settings } from '$lib/logic/settings';
-    import { i18n } from '$lib/i18n.svelte';
+    import type { Coordinates } from '$lib/geo/coordinates';
+    import type { SelectionStatistics } from '$lib/engine';
+    import type { SlicedStatistics } from '$lib/state/selection-statistics';
+    import { settings } from '$lib/state/settings';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { ElevationProfile } from '$lib/components/elevation-profile/elevation-profile';
 
     const { velocityUnits } = settings;
 
     let {
-        gpxStatistics,
-        slicedGPXStatistics,
+        statistics,
+        slicedStatistics,
         hoveredPoint,
         additionalDatasets,
         elevationFill,
         showControls = true,
     }: {
-        gpxStatistics: Readable<GPXStatisticsGroup>;
-        slicedGPXStatistics: Writable<[GPXGlobalStatistics, number, number] | undefined>;
+        statistics: Readable<SelectionStatistics>;
+        slicedStatistics: Writable<SlicedStatistics | undefined>;
         hoveredPoint: Writable<Coordinates | null>;
         additionalDatasets: Writable<string[]>;
         elevationFill: Writable<'slope' | 'surface' | 'highway' | undefined>;
@@ -47,8 +49,8 @@
 
     onMount(() => {
         elevationProfile = new ElevationProfile(
-            gpxStatistics,
-            slicedGPXStatistics,
+            statistics,
+            slicedStatistics,
             hoveredPoint,
             additionalDatasets,
             elevationFill,

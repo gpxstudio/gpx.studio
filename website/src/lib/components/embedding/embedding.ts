@@ -1,5 +1,5 @@
 import { PUBLIC_MAPTILER_KEY } from '$env/static/public';
-import { basemaps } from '$lib/assets/layers';
+import { basemaps } from '$lib/data/layers';
 
 export type EmbeddingOptions = {
     key: string;
@@ -109,22 +109,26 @@ export function getURLForGoogleDriveFile(fileId: string): string {
 }
 
 export function convertOldEmbeddingOptions(options: URLSearchParams): any {
-    let newOptions: any = {
+    const newOptions: any = {
         key: PUBLIC_MAPTILER_KEY,
         files: [],
         ids: [],
     };
     if (options.has('state')) {
-        let state = JSON.parse(options.get('state')!);
-        if (state.ids) {
+        // the state comes from the url: it may be anything
+        let state: any = {};
+        try {
+            state = JSON.parse(options.get('state')!) ?? {};
+        } catch {}
+        if (Array.isArray(state.ids)) {
             newOptions.ids.push(...state.ids);
         }
-        if (state.urls) {
+        if (Array.isArray(state.urls)) {
             newOptions.files.push(...state.urls);
         }
     }
     if (options.has('source')) {
-        let basemap = options.get('source')!;
+        const basemap = options.get('source')!;
         if (basemap === 'satellite') {
             newOptions.basemap = 'libertySatellite';
         } else if (basemap === 'otm') {

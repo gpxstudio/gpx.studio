@@ -1,0 +1,5 @@
+[workspace]
+members = ["gpx-rs", "wasm", "tauri"]
+# `cargo test` at the root only tests the engine: the others need their own tooling
+default-members = ["gpx-rs"]
+resolver = "3"

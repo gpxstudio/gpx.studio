@@ -1,13 +1,14 @@
-import { fileStateCollection } from '$lib/logic/file-state';
+import { engine } from '$lib/engine';
+import { get } from 'svelte/store';
 import {
     LngLatBounds,
-    MapMouseEvent,
-    MapTouchEvent,
-    Point,
     type Map,
     type MapGeoJSONFeature,
     type MapLayerMouseEvent,
     type MapLayerTouchEvent,
+    MapMouseEvent,
+    MapTouchEvent,
+    type Point,
 } from 'maplibre-gl';
 
 type MapLayerMouseEventListener = (e: MapLayerMouseEvent) => void;
@@ -233,17 +234,23 @@ export class MapLayerEventManager {
     }
 
     private _filterLayersIntersectingBounds(layerIds: string[], bounds: LngLatBounds): string[] {
-        let result = layerIds.filter((layerId) => {
+        const files = get(engine.files);
+        const result = layerIds.filter((layerId) => {
             if (!this._map.getLayer(layerId)) return false;
             const fileId = layerId.replace('-waypoints', '');
             if (fileId === layerId) {
-                return fileStateCollection.getStatistics(fileId)?.intersectsBBox(bounds) ?? true;
-            } else {
-                return (
-                    fileStateCollection.getStatistics(fileId)?.intersectsWaypointBBox(bounds) ??
-                    true
-                );
+                // the tracks of a file are all within its bounds
+                const file = files.get(fileId);
+                const box = file && get(file).statistics.bounds;
+                return box
+                    ? bounds.getWest() <= box.east &&
+                          bounds.getEast() >= box.west &&
+                          bounds.getSouth() <= box.north &&
+                          bounds.getNorth() >= box.south
+                    : true;
             }
+            // the waypoints have no bounds of their own
+            return true;
         });
         return result;
     }

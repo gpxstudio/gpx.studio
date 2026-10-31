@@ -1,0 +1,48 @@
+{
+    "$schema": "https://schema.tauri.app/config/2",
+    "productName": "gpx.studio",
+    "version": "0.1.0",
+    "identifier": "gpx.studio",
+    "build": {
+        "beforeDevCommand": "npm --prefix ../website run dev -- --port 4283",
+        "devUrl": "http://localhost:4283",
+        "beforeBuildCommand": "npm --prefix ../website run build:desktop",
+        "frontendDist": "../website/build"
+    },
+    "app": {
+        "windows": [
+            {
+                "label": "main",
+                "title": "gpx.studio",
+                "url": "app",
+                "width": 1400,
+                "height": 900,
+                "minWidth": 800,
+                "minHeight": 600,
+                "maximized": true,
+                "dragDropEnabled": false
+            }
+        ],
+        "security": { "csp": null }
+    },
+    "bundle": {
+        "active": true,
+        "targets": "all",
+        "fileAssociations": [
+            {
+                "ext": ["gpx"],
+                "name": "GPX file",
+                "description": "GPS Exchange Format",
+                "mimeType": "application/gpx+xml",
+                "role": "Editor"
+            }
+        ],
+        "icon": [
+            "icons/32x32.png",
+            "icons/128x128.png",
+            "icons/128x128@2x.png",
+            "icons/icon.icns",
+            "icons/icon.ico"
+        ]
+    }
+}

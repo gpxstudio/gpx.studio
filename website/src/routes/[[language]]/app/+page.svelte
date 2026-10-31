@@ -1,7 +1,9 @@
 <script lang="ts">
+    import { resolve } from '$app/paths';
     import GPXLayers from '$lib/components/map/gpx-layer/GPXLayers.svelte';
     import ElevationProfile from '$lib/components/elevation-profile/ElevationProfile.svelte';
     import FileList from '$lib/components/file-list/FileList.svelte';
+    import Explorer from '$lib/components/explorer/Explorer.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
     import Map from '$lib/components/map/Map.svelte';
     import Menu from '$lib/components/Menu.svelte';
@@ -11,57 +13,100 @@
     import CoordinatesPopup from '$lib/components/map/CoordinatesPopup.svelte';
     import Resizer from '$lib/components/Resizer.svelte';
     import { Toaster } from '$lib/components/ui/sonner';
-    import { i18n } from '$lib/i18n.svelte';
-    import { settings } from '$lib/logic/settings';
-    import { loadFiles } from '$lib/logic/file-actions';
-    import { onDestroy, onMount } from 'svelte';
+    import * as AlertDialog from '$lib/components/ui/alert-dialog';
+    import { i18n } from '$lib/i18n/i18n.svelte';
+    import { settings } from '$lib/state/settings';
+    import { loadFiles } from '$lib/actions/file-actions';
+    import { onMount } from 'svelte';
     import { page } from '$app/state';
-    import { gpxStatistics, hoveredPoint, slicedGPXStatistics } from '$lib/logic/statistics';
+    import { goto } from '$app/navigation';
+    import { get } from 'svelte/store';
+    import { getURLForLanguage } from '$lib/utils';
+    import { inDesktopApp } from '$lib/engine/backend';
+    import { openLinksInBrowser } from '$lib/desktop/links';
+    import { hoveredPoint, slicedStatistics } from '$lib/state/selection-statistics';
+    import { engine } from '$lib/engine';
+    import { boundsManager } from '$lib/state/bounds';
     import { getURLForGoogleDriveFile } from '$lib/components/embedding/embedding';
-    import { db } from '$lib/db';
-    import { fileStateCollection } from '$lib/logic/file-state';
+
+    const outdated = engine.outdated;
+    const workspace = engine.workspace;
 
     const {
         treeFileView,
         elevationProfile,
         bottomPanelSize,
         rightPanelSize,
+        explorerPanelSize,
         additionalDatasets,
         elevationFill,
     } = settings;
 
     let bottomPanelWidth: number | undefined = $state();
+    // the file list and the explorer share the right panel, half of it each until it is resized
+    let rightPanelHeight = $state(0);
+    let explorerHeight = $derived(
+        $treeFileView
+            ? Math.min(
+                  Math.max($explorerPanelSize > 0 ? $explorerPanelSize : rightPanelHeight / 2, 60),
+                  Math.max(rightPanelHeight - 80, 60)
+              )
+            : rightPanelHeight
+    );
     let bottomPanelOrientation = $derived(
         bottomPanelWidth && bottomPanelWidth >= 540 && $elevationProfile ? 'horizontal' : 'vertical'
     );
 
-    onMount(async () => {
-        settings.connectToDatabase(db);
-        fileStateCollection.connectToDatabase(db).then(() => {
-            let files: string[] = JSON.parse(page.url.searchParams.get('files') || '[]');
-            let ids: string[] = JSON.parse(page.url.searchParams.get('ids') || '[]');
-            let urls: string[] = files.concat(ids.map(getURLForGoogleDriveFile));
+    // the language of the page, which is in its address (none for English)
+    let language = $derived(page.params.language ?? 'en');
+    // whether the language that was chosen last was gone back to (the desktop app)
+    let languageRestored = $state(false);
 
-            if (urls.length > 0) {
-                let downloads: Promise<File | null>[] = [];
-                urls.forEach((url) => {
-                    downloads.push(
-                        fetch(url)
-                            .then((response) => response.blob())
-                            .then((blob) => new File([blob], url.split('/').pop() ?? ''))
-                    );
-                });
-
-                Promise.all(downloads).then((files) => {
-                    loadFiles(files.filter((file) => file !== null));
-                });
-            }
-        });
+    $effect(() => {
+        if (languageRestored) {
+            settings.language.set(language);
+        }
     });
 
-    onDestroy(() => {
-        settings.disconnectFromDatabase();
-        fileStateCollection.disconnectFromDatabase();
+    onMount(async () => {
+        // files that the system opens with the app while it runs
+        engine.onFilesOpened((ids) => boundsManager.fitBoundsOnLoad(ids));
+        settings.connect(await engine.openStorage());
+
+        if (inDesktopApp()) {
+            openLinksInBrowser();
+            // the window of the desktop app always opens the same page, in English: it goes to the
+            // language that was chosen last
+            const saved = get(settings.language);
+            if (saved !== undefined && saved !== language) {
+                await goto(
+                    resolve(
+                        `${getURLForLanguage(saved, page.url.pathname)}${page.url.search}${page.url.hash}`
+                    ),
+                    { replaceState: true }
+                );
+            }
+            languageRestored = true;
+        }
+
+        let files: string[] = JSON.parse(page.url.searchParams.get('files') || '[]');
+        let ids: string[] = JSON.parse(page.url.searchParams.get('ids') || '[]');
+        let urls: string[] = files.concat(ids.map(getURLForGoogleDriveFile));
+
+        if (urls.length > 0) {
+            let downloads: Promise<File | null>[] = [];
+            urls.forEach((url) => {
+                downloads.push(
+                    fetch(url)
+                        .then((response) => response.blob())
+                        .then((blob) => new File([blob], url.split('/').pop() ?? ''))
+                );
+            });
+
+            Promise.all(downloads).then((files) => {
+                loadFiles(files.filter((file) => file !== null));
+            });
+        }
     });
 </script>
 
@@ -118,7 +163,7 @@
             <CoordinatesPopup />
             <Toaster richColors />
             {#if !$treeFileView}
-                <div class="h-10 -translate-y-10 w-full pointer-events-none absolute z-30">
+                <div class="h-10 w-full pointer-events-none absolute bottom-0 left-0 z-30">
                     <FileList orientation="horizontal" />
                 </div>
             {/if}
@@ -139,14 +184,14 @@
             style={$elevationProfile ? `height: ${$bottomPanelSize}px` : ''}
         >
             <GPXStatistics
-                {gpxStatistics}
-                {slicedGPXStatistics}
+                statistics={engine.statistics}
+                {slicedStatistics}
                 orientation={bottomPanelOrientation == 'horizontal' ? 'vertical' : 'horizontal'}
             />
             {#if $elevationProfile}
                 <ElevationProfile
-                    {gpxStatistics}
-                    {slicedGPXStatistics}
+                    statistics={engine.statistics}
+                    {slicedStatistics}
                     {hoveredPoint}
                     {additionalDatasets}
                     {elevationFill}
@@ -154,11 +199,59 @@
             {/if}
         </div>
     </div>
-    {#if $treeFileView}
+    {#if $treeFileView || $workspace?.folder}
         <Resizer orientation="col" bind:after={$rightPanelSize} minAfter={100} maxAfter={400} />
-        <FileList orientation="vertical" recursive={true} style="width: {$rightPanelSize}px" />
+        <div
+            bind:clientHeight={rightPanelHeight}
+            class="flex flex-col h-full min-h-0 shrink-0"
+            style="width: {$rightPanelSize}px"
+        >
+            {#if $treeFileView}
+                {#if $workspace}
+                    <div class="px-2 py-1 text-sm font-semibold shrink-0">
+                        {i18n._('menu.workspace')}
+                    </div>
+                {/if}
+                <!-- a row, as the file list was: its scroll area is as high as this, whatever its content -->
+                <div class="grow min-h-0 flex flex-row">
+                    <FileList
+                        orientation="vertical"
+                        recursive={true}
+                        style="width: {$rightPanelSize}px"
+                    />
+                </div>
+            {/if}
+            <!-- the open folder (the desktop app) under the files that are open -->
+            {#if $workspace?.folder}
+                {#if $treeFileView}
+                    <Resizer
+                        orientation="row"
+                        bind:after={() => explorerHeight, (height) => ($explorerPanelSize = height)}
+                        minAfter={60}
+                        maxAfter={Math.max(rightPanelHeight - 80, 60)}
+                    />
+                {/if}
+                <div class="flex flex-col min-h-0 shrink-0" style="height: {explorerHeight}px">
+                    <Explorer />
+                </div>
+            {/if}
+        </div>
     {/if}
 </div>
+
+<AlertDialog.Root open={$outdated}>
+    <AlertDialog.Content escapeKeydownBehavior="ignore" interactOutsideBehavior="ignore">
+        <AlertDialog.Header>
+            <AlertDialog.Title>{i18n._('outdated.title')}</AlertDialog.Title>
+            <AlertDialog.Description>{i18n._('outdated.description')}</AlertDialog.Description>
+        </AlertDialog.Header>
+        <AlertDialog.Footer>
+            <AlertDialog.Action onclick={() => location.reload()}>
+                {i18n._('outdated.reload')}
+            </AlertDialog.Action>
+        </AlertDialog.Footer>
+    </AlertDialog.Content>
+</AlertDialog.Root>
 
 <style lang="postcss">
     @reference "tailwindcss";

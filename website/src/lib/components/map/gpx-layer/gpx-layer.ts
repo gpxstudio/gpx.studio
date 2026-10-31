@@ -8,82 +8,22 @@ import {
 } from 'maplibre-gl';
 import { map } from '$lib/components/map/map';
 import { waypointPopup, trackpointPopup } from './gpx-layer-popup';
-import {
-    ListTrackSegmentItem,
-    ListWaypointItem,
-    ListWaypointsItem,
-    ListTrackItem,
-    ListFileItem,
-    ListRootItem,
-} from '$lib/components/file-list/file-list';
-import { getClosestLinePoint, getElevation, loadSVGIcon } from '$lib/utils';
+import { closestPointIndex } from '$lib/geo/closest-point';
+import { getElevation, loadSVGIcon } from '$lib/utils';
 import { selectedWaypoint } from '$lib/components/toolbar/tools/waypoint/waypoint';
 import { MapPin, Square } from 'lucide-static';
-import { getSymbolKey, symbols } from '$lib/assets/symbols';
-import type { GPXFileWithStatistics } from '$lib/logic/statistics-tree';
-import { selection } from '$lib/logic/selection';
-import { settings } from '$lib/logic/settings';
+import { getSymbolKey, symbols } from '$lib/data/symbols';
+import { engine, type FileState, type Selection } from '$lib/engine';
+import { isCovered, hasSelectionWithin, type FileTreeNode } from '$lib/engine/selection-helpers';
+import { isSegmentHidden, isWaypointHidden } from '$lib/engine/file-visibility';
+import { settings } from '$lib/state/settings';
 import { currentTool, Tool } from '$lib/components/toolbar/tools';
-import { fileActionManager } from '$lib/logic/file-action-manager';
-import { fileActions } from '$lib/logic/file-actions';
-import { splitAs } from '$lib/components/toolbar/tools/scissors/scissors';
-import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
+import { splitAtPoint } from '$lib/components/toolbar/tools/scissors/scissors';
+import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
-import { gpxColors } from '$lib/components/map/gpx-layer/gpx-layers';
-
-const colors = [
-    '#ff0000',
-    '#0000ff',
-    '#46e646',
-    '#00ccff',
-    '#ff9900',
-    '#ff00ff',
-    '#ffff32',
-    '#288228',
-    '#9933ff',
-    '#50f0be',
-    '#8c645a',
-];
-
-const colorCount: { [key: string]: number } = {};
-for (let color of colors) {
-    colorCount[color] = 0;
-}
-
-// Get the color with the least amount of uses
-function getColor(fileId: string) {
-    let color = colors.reduce((a, b) => (colorCount[a] <= colorCount[b] ? a : b));
-    colorCount[color]++;
-    gpxColors.update((colors) => {
-        colors.set(fileId, color);
-        return colors;
-    });
-    return color;
-}
-
-function replaceColor(fileId: string, oldColor: string, newColor: string) {
-    if (colorCount.hasOwnProperty(oldColor)) {
-        colorCount[oldColor]--;
-    }
-    colorCount[newColor]++;
-    gpxColors.update((colors) => {
-        colors.set(fileId, newColor);
-        return colors;
-    });
-}
-
-function removeColor(fileId: string, color: string) {
-    if (colorCount.hasOwnProperty(color)) {
-        colorCount[color]--;
-    }
-    gpxColors.update((colors) => {
-        colors.delete(fileId);
-        return colors;
-    });
-}
 
 export function getSvgForSymbol(symbol?: string | undefined, layerColor?: string | undefined) {
-    let symbolSvg = symbol ? symbols[symbol]?.iconSvg : undefined;
+    const symbolSvg = symbol ? symbols[symbol]?.iconSvg : undefined;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
     ${
         layerColor
@@ -116,18 +56,19 @@ const { directionMarkers, treeFileView, defaultOpacity, defaultWidth } = setting
 
 export class GPXLayer {
     fileId: string;
-    file: Readable<GPXFileWithStatistics | undefined>;
-    layerColor: string;
+    file: Readable<FileState>;
+    layerColor: string = '';
+    selectionState: Selection = { type: 'empty' };
     selected: boolean = false;
     currentWaypointData: GeoJSON.FeatureCollection | null = null;
     draggedWaypointIndex: number | null = null;
     draggingStartingPosition: Point = new Point(0, 0);
-    unsubscribe: Function[] = [];
+    unsubscribe: (() => void)[] = [];
 
     updateBinded: () => void = this.update.bind(this);
-    layerOnMouseEnterBinded: (e: any) => void = this.layerOnMouseEnter.bind(this);
+    layerOnMouseEnterBinded: (e: MapLayerMouseEvent) => void = this.layerOnMouseEnter.bind(this);
     layerOnMouseLeaveBinded: () => void = this.layerOnMouseLeave.bind(this);
-    layerOnMouseMoveBinded: (e: any) => void = this.layerOnMouseMove.bind(this);
+    layerOnMouseMoveBinded: (e: MapLayerMouseEvent) => void = this.layerOnMouseMove.bind(this);
     layerOnClickBinded: (e: MapLayerMouseEvent) => void = this.layerOnClick.bind(this);
     layerOnContextMenuBinded: (e: MapLayerMouseEvent) => void = this.layerOnContextMenu.bind(this);
     waypointLayerOnMouseEnterBinded: (e: MapLayerMouseEvent) => void =
@@ -145,10 +86,9 @@ export class GPXLayer {
     waypointLayerOnMouseUpBinded: (e: MapLayerMouseEvent | MapLayerTouchEvent) => void =
         this.waypointLayerOnMouseUp.bind(this);
 
-    constructor(fileId: string, file: Readable<GPXFileWithStatistics | undefined>) {
+    constructor(fileId: string, file: Readable<FileState>) {
         this.fileId = fileId;
         this.file = file;
-        this.layerColor = getColor(fileId);
         this.unsubscribe.push(
             map.subscribe(($map) => {
                 if ($map) {
@@ -159,8 +99,9 @@ export class GPXLayer {
         );
         this.unsubscribe.push(file.subscribe(this.updateBinded));
         this.unsubscribe.push(
-            selection.subscribe(($selection) => {
-                let newSelected = $selection.hasAnyChildren(new ListFileItem(this.fileId));
+            engine.selection.subscribe(($selection) => {
+                this.selectionState = $selection;
+                const newSelected = hasSelectionWithin($selection, this.fileNode());
                 if (this.selected || newSelected) {
                     this.selected = newSelected;
                     this.update();
@@ -173,27 +114,39 @@ export class GPXLayer {
         this.unsubscribe.push(directionMarkers.subscribe(this.updateBinded));
     }
 
+    fileNode(): FileTreeNode {
+        return { type: 'file', fileId: this.fileId };
+    }
+
+    /** The node of a segment of the map: its route, which has no other, or the segment itself. */
+    segmentNode(properties: GeoJSON.GeoJsonProperties): FileTreeNode {
+        if (properties!.routeId !== undefined) {
+            return { type: 'route', fileId: this.fileId, routeId: properties!.routeId };
+        }
+        return {
+            type: 'segment',
+            fileId: this.fileId,
+            trackId: properties!.trackId,
+            segmentId: properties!.segmentId,
+        };
+    }
+
     update() {
         const _map = get(map);
         const layerEventManager = map.layerEventManager;
-        let file = get(this.file)?.file;
-        if (!_map || !layerEventManager || !file) {
+        const state = get(this.file);
+        if (!_map || !layerEventManager) {
             return;
         }
 
-        if (
-            file._data.style &&
-            file._data.style.color &&
-            this.layerColor !== `#${file._data.style.color}`
-        ) {
-            replaceColor(this.fileId, this.layerColor, `#${file._data.style.color}`);
-            this.layerColor = `#${file._data.style.color}`;
+        if (this.layerColor !== state.color) {
+            this.layerColor = state.color;
         }
 
         this.loadIcons();
 
         try {
-            let source = _map.getSource(this.fileId) as GeoJSONSource | undefined;
+            const source = _map.getSource(this.fileId) as GeoJSONSource | undefined;
             if (source) {
                 source.setData(this.getGeoJSON());
             } else {
@@ -229,16 +182,20 @@ export class GPXLayer {
                 layerEventManager.on('mousemove', this.fileId, this.layerOnMouseMoveBinded);
             }
 
-            let visibleTrackSegmentIds: string[] = [];
-            file.forEachSegment((segment, trackIndex, segmentIndex) => {
-                if (!segment._data.hidden) {
-                    visibleTrackSegmentIds.push(`${trackIndex}-${segmentIndex}`);
-                }
-            });
+            const visibleSegmentIds = state.segments.features
+                .filter(
+                    ({ properties }) =>
+                        !isSegmentHidden(
+                            state,
+                            properties.routeId ?? properties.trackId!,
+                            properties.segmentId
+                        )
+                )
+                .map(({ properties }) => properties.segmentId);
             const segmentFilter: FilterSpecification = [
                 'in',
-                ['get', 'trackSegmentId'],
-                ['literal', visibleTrackSegmentIds],
+                ['get', 'segmentId'],
+                ['literal', visibleSegmentIds],
             ];
 
             _map.setFilter(this.fileId, segmentFilter, { validate: false });
@@ -277,7 +234,7 @@ export class GPXLayer {
                 }
             }
 
-            let waypointSource = _map.getSource(this.fileId + '-waypoints') as
+            const waypointSource = _map.getSource(this.fileId + '-waypoints') as
                 | GeoJSONSource
                 | undefined;
             this.currentWaypointData = this.getWaypointsGeoJSON();
@@ -335,19 +292,16 @@ export class GPXLayer {
                 );
             }
 
-            let visibleWaypoints: number[] = [];
-            file.wpt.forEach((waypoint, waypointIndex) => {
-                if (!waypoint._data.hidden) {
-                    visibleWaypoints.push(waypointIndex);
-                }
-            });
+            const visibleWaypoints = state.waypoints.features
+                .filter(({ properties }) => !isWaypointHidden(state, properties.waypointId))
+                .map(({ properties }) => properties.index);
 
             _map.setFilter(
                 this.fileId + '-waypoints',
                 ['in', ['get', 'waypointIndex'], ['literal', visibleWaypoints]],
                 { validate: false }
             );
-        } catch (e) {
+        } catch {
             // No reliable way to check if the map is ready to add sources and layers
             return;
         }
@@ -414,8 +368,6 @@ export class GPXLayer {
         }
 
         this.unsubscribe.forEach((unsubscribe) => unsubscribe());
-
-        removeColor(this.fileId, this.layerColor);
     }
 
     moveToFront() {
@@ -434,15 +386,10 @@ export class GPXLayer {
         }
     }
 
-    layerOnMouseEnter(e: any) {
-        let trackIndex = e.features[0].properties.trackIndex;
-        let segmentIndex = e.features[0].properties.segmentIndex;
-
+    layerOnMouseEnter(e: MapLayerMouseEvent) {
         if (
             get(currentTool) === Tool.SCISSORS &&
-            get(selection).hasAnyParent(
-                new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)
-            )
+            isCovered(this.selectionState, this.segmentNode(e.features![0].properties))
         ) {
             mapCursor.notify(MapCursorState.SCISSORS, true);
         } else {
@@ -455,75 +402,74 @@ export class GPXLayer {
         mapCursor.notify(MapCursorState.LAYER_HOVER, false);
     }
 
-    layerOnMouseMove(e: any) {
+    async layerOnMouseMove(e: MapLayerMouseEvent) {
         if (e.originalEvent.shiftKey) {
-            let trackIndex = e.features[0].properties.trackIndex;
-            let segmentIndex = e.features[0].properties.segmentIndex;
-
-            const file = get(this.file)?.file;
-            if (file) {
-                const closest = getClosestLinePoint(
-                    file.trk[trackIndex].trkseg[segmentIndex].trkpt,
-                    { lat: e.lngLat.lat, lon: e.lngLat.lng }
-                );
-                trackpointPopup?.setItem({ item: closest, fileId: this.fileId });
+            const { segmentId } = e.features![0].properties;
+            const lngLat = { lng: e.lngLat.lng, lat: e.lngLat.lat };
+            const index = closestPointIndex(await engine.segmentCoordinates(segmentId), lngLat);
+            const trackpoint =
+                index === undefined
+                    ? undefined
+                    : await engine.trackpoint(this.fileId, segmentId, index);
+            if (trackpoint) {
+                trackpointPopup?.setItem({
+                    item: trackpoint,
+                    kind: 'trackpoint',
+                    fileId: this.fileId,
+                });
             }
         }
     }
 
     layerOnClick(e: MapLayerMouseEvent) {
+        const properties = e.features![0].properties!;
+        const { routeId, trackId, segmentId } = properties;
+        const selectionType = this.selectionState.type;
+
         if (
             get(currentTool) === Tool.ROUTING &&
-            get(selection).hasAnyChildren(new ListRootItem(), true, ['waypoints'])
+            selectionType !== 'empty' &&
+            selectionType !== 'waypoints' &&
+            selectionType !== 'waypoint'
         ) {
             return;
         }
 
-        let trackIndex = e.features![0].properties!.trackIndex;
-        let segmentIndex = e.features![0].properties!.segmentIndex;
-
         if (
             get(currentTool) === Tool.SCISSORS &&
-            get(selection).hasAnyParent(
-                new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)
-            )
+            isCovered(this.selectionState, this.segmentNode(properties))
         ) {
             if (get(map)?.queryRenderedFeatures(e.point, { layers: ['split-controls'] }).length) {
                 // Clicked on split control, ignoring
                 return;
             }
 
-            fileActions.split(get(splitAs), this.fileId, trackIndex, segmentIndex, {
-                lat: e.lngLat.lat,
-                lon: e.lngLat.lng,
-            });
+            splitAtPoint(segmentId, { lng: e.lngLat.lng, lat: e.lngLat.lat });
             return;
         }
 
-        let file = get(this.file)?.file;
-        if (!file) {
-            return;
-        }
-
-        let item = undefined;
-        if (get(treeFileView) && file.getSegments().length > 1) {
+        const mode = e.originalEvent.ctrlKey || e.originalEvent.metaKey ? 'add' : 'replace';
+        const { routes, tracks } = get(this.file).structure;
+        const segmentCount =
+            routes.length + tracks.reduce((count, track) => count + track.segments.length, 0);
+        if (get(treeFileView) && segmentCount > 1) {
             // Select inner item
-            item =
-                file.children[trackIndex].children.length > 1
-                    ? new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)
-                    : new ListTrackItem(this.fileId, trackIndex);
+            if (routeId !== undefined) {
+                engine.selectRoutes(this.fileId, [routeId], mode);
+                return;
+            }
+            const track = tracks.find((track) => track.id === trackId);
+            if (track && track.segments.length > 1) {
+                engine.selectSegments(this.fileId, trackId, [segmentId], mode);
+            } else {
+                engine.selectTracks(this.fileId, [trackId], mode);
+            }
         } else {
-            item = new ListFileItem(this.fileId);
-        }
-
-        if (e.originalEvent.ctrlKey || e.originalEvent.metaKey) {
-            selection.addSelectItem(item);
-        } else {
-            selection.selectItem(item);
+            engine.select([this.fileId], mode);
         }
     }
 
-    layerOnContextMenu(e: any) {
+    layerOnContextMenu(e: MapLayerMouseEvent) {
         if (e.originalEvent.ctrlKey) {
             this.layerOnClick(e);
         }
@@ -533,16 +479,17 @@ export class GPXLayer {
         if (this.draggedWaypointIndex !== null) {
             return;
         }
-        let file = get(this.file)?.file;
-        if (!file) {
-            return;
-        }
 
-        let waypointIndex = e.features![0].properties!.waypointIndex;
-        let waypoint = file.wpt[waypointIndex];
-        waypointPopup?.setItem({ item: waypoint, fileId: this.fileId });
+        this.showWaypointPopup(e.features![0].properties!.waypointId);
 
         mapCursor.notify(MapCursorState.WAYPOINT_HOVER, true);
+    }
+
+    async showWaypointPopup(waypointId: string) {
+        const waypoint = await engine.waypoint(this.fileId, waypointId);
+        if (waypoint) {
+            waypointPopup?.setItem({ item: waypoint, kind: 'waypoint', fileId: this.fileId });
+        }
     }
 
     waypointLayerOnMouseLeave() {
@@ -552,41 +499,36 @@ export class GPXLayer {
     waypointLayerOnClick(e: MapLayerMouseEvent) {
         e.preventDefault();
 
-        let waypointIndex = e.features![0].properties!.waypointIndex;
-        let file = get(this.file)?.file;
-        if (!file) {
-            return;
-        }
-
-        let waypoint = file.wpt[waypointIndex];
+        const { waypointId } = e.features![0].properties!;
         if (get(currentTool) === Tool.WAYPOINT) {
             if (this.selected) {
                 if (e.originalEvent.shiftKey) {
-                    fileActions.deleteWaypoint(this.fileId, waypointIndex);
+                    engine.deleteWaypoint(this.fileId, waypointId);
                 } else {
-                    selection.selectItem(new ListWaypointItem(this.fileId, waypointIndex));
-                    selectedWaypoint.set([waypoint, this.fileId]);
+                    engine.selectWaypoints(this.fileId, [waypointId]);
+                    selectedWaypoint.set({ fileId: this.fileId, id: waypointId });
                 }
             } else {
                 if (get(treeFileView)) {
-                    selection.selectItem(new ListWaypointItem(this.fileId, waypointIndex));
+                    engine.selectWaypoints(this.fileId, [waypointId]);
                 } else {
-                    selection.selectItem(new ListFileItem(this.fileId));
+                    engine.select([this.fileId]);
                 }
-                selectedWaypoint.set([waypoint, this.fileId]);
+                selectedWaypoint.set({ fileId: this.fileId, id: waypointId });
             }
         } else {
             if (get(treeFileView)) {
-                if ((e.originalEvent.ctrlKey || e.originalEvent.metaKey) && this.selected) {
-                    selection.addSelectItem(new ListWaypointItem(this.fileId, waypointIndex));
-                } else {
-                    selection.selectItem(new ListWaypointItem(this.fileId, waypointIndex));
-                }
+                const add = e.originalEvent.ctrlKey || e.originalEvent.metaKey;
+                engine.selectWaypoints(
+                    this.fileId,
+                    [waypointId],
+                    add && this.selected ? 'add' : 'replace'
+                );
             } else {
                 if (!this.selected) {
-                    selection.selectItem(new ListFileItem(this.fileId));
+                    engine.select([this.fileId]);
                 }
-                waypointPopup?.setItem({ item: waypoint, fileId: this.fileId });
+                this.showWaypointPopup(waypointId);
             }
         }
     }
@@ -642,7 +584,7 @@ export class GPXLayer {
             this.currentWaypointData!.features[this.draggedWaypointIndex].geometry as GeoJSON.Point
         ).coordinates = [e.lngLat.lng, e.lngLat.lat];
 
-        let waypointSource = get(map)?.getSource(this.fileId + '-waypoints') as
+        const waypointSource = get(map)?.getSource(this.fileId + '-waypoints') as
             | GeoJSONSource
             | undefined;
         if (waypointSource) {
@@ -681,115 +623,84 @@ export class GPXLayer {
             return;
         }
 
+        // the dragged waypoint, as it is in the features of the source
+        const waypointId =
+            this.currentWaypointData?.features[this.draggedWaypointIndex].properties?.waypointId;
         getElevation([
             {
                 lat: e.lngLat.lat,
-                lon: e.lngLat.lng,
+                lng: e.lngLat.lng,
             },
-        ]).then((ele) => {
+        ]).then(async (ele) => {
             if (this.draggedWaypointIndex === null) {
                 return;
             }
-            fileActionManager.applyToFile(this.fileId, (file) => {
-                let wpt = file.wpt[this.draggedWaypointIndex!];
-                wpt.setCoordinates({
-                    lat: e.lngLat.lat,
-                    lon: e.lngLat.lng,
-                });
-                wpt.ele = ele[0];
-            });
+            if (waypointId) {
+                await engine.moveWaypoint(
+                    this.fileId,
+                    waypointId,
+                    e.lngLat.lng,
+                    e.lngLat.lat,
+                    ele[0]
+                );
+            }
             this.draggedWaypointIndex = null;
         });
     }
 
     getGeoJSON(): GeoJSON.FeatureCollection {
-        let file = get(this.file)?.file;
-        if (!file) {
-            return {
-                type: 'FeatureCollection',
-                features: [],
-            };
-        }
+        const state = get(this.file);
+        const waypointsSelected = hasSelectionWithin(this.selectionState, {
+            type: 'waypoints',
+            fileId: this.fileId,
+        });
 
-        let data = file.toGeoJSON();
-
-        let trackIndex = 0,
-            segmentIndex = 0;
-        for (let feature of data.features) {
-            if (!feature.properties) {
-                feature.properties = {};
-            }
-            if (!feature.properties.color) {
-                feature.properties.color = this.layerColor;
-            }
-            if (!feature.properties.opacity) {
-                feature.properties.opacity = get(defaultOpacity);
-            }
-            if (!feature.properties.width) {
-                feature.properties.width = get(defaultWidth);
-            }
-            if (
-                get(selection).hasAnyParent(
-                    new ListTrackSegmentItem(this.fileId, trackIndex, segmentIndex)
-                ) ||
-                get(selection).hasAnyChildren(new ListWaypointsItem(this.fileId), true)
-            ) {
-                feature.properties.width = feature.properties.width + 2;
-                feature.properties.opacity = Math.min(1, feature.properties.opacity + 0.1);
-            }
-            feature.properties.trackIndex = trackIndex;
-            feature.properties.segmentIndex = segmentIndex;
-            feature.properties.trackSegmentId = `${trackIndex}-${segmentIndex}`;
-
-            segmentIndex++;
-            if (segmentIndex >= file.trk[trackIndex].trkseg.length) {
-                segmentIndex = 0;
-                trackIndex++;
-            }
-        }
-        return data;
+        return {
+            type: 'FeatureCollection',
+            features: state.segments.features.map((feature) => {
+                const properties = {
+                    ...feature.properties,
+                    opacity: feature.properties.opacity ?? get(defaultOpacity),
+                    width: feature.properties.width ?? get(defaultWidth),
+                };
+                if (
+                    isCovered(this.selectionState, this.segmentNode(properties)) ||
+                    waypointsSelected
+                ) {
+                    properties.width = properties.width + 2;
+                    properties.opacity = Math.min(1, properties.opacity + 0.1);
+                }
+                return { ...feature, properties };
+            }),
+        };
     }
 
     getWaypointsGeoJSON(): GeoJSON.FeatureCollection {
-        let file = get(this.file)?.file;
-
-        let data: GeoJSON.FeatureCollection = {
+        return {
             type: 'FeatureCollection',
-            features: [],
-        };
-
-        if (!file) {
-            return data;
-        }
-
-        file.wpt.forEach((waypoint, index) => {
-            data.features.push({
+            features: get(this.file).waypoints.features.map((feature) => ({
                 type: 'Feature',
-                geometry: {
-                    type: 'Point',
-                    coordinates: [waypoint.getLongitude(), waypoint.getLatitude()],
-                },
+                // copied: the coordinates are changed while a waypoint is dragged
+                geometry: { type: 'Point', coordinates: [...feature.geometry.coordinates] },
                 properties: {
                     fileId: this.fileId,
-                    waypointIndex: index,
-                    icon: `waypoint-${getSymbolKey(waypoint.sym) ?? 'default'}-${this.layerColor}`,
+                    waypointId: feature.properties.waypointId,
+                    waypointIndex: feature.properties.index,
+                    icon: `waypoint-${getSymbolKey(feature.properties.sym) ?? 'default'}-${this.layerColor}`,
                 },
-            });
-        });
-
-        return data;
+            })),
+        };
     }
 
     loadIcons() {
         const _map = get(map);
-        let file = get(this.file)?.file;
-        if (!_map || !file) {
+        if (!_map) {
             return;
         }
 
-        let symbols = new Set<string | undefined>();
-        file.wpt.forEach((waypoint) => {
-            symbols.add(getSymbolKey(waypoint.sym));
+        const symbols = new Set<string | undefined>();
+        get(this.file).waypoints.features.forEach((feature) => {
+            symbols.add(getSymbolKey(feature.properties.sym));
         });
 
         symbols.forEach((symbol) => {

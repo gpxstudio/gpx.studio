@@ -1,7 +1,7 @@
 import fs from 'fs';
-import { languages } from '../languages';
+import { languages } from '$lib/i18n/languages';
 
-function localizeManifest(manifestTemplateData: any, language: string) {
+function localizeManifest(manifestTemplateData: Record<string, unknown>, language: string) {
     const localizedManifestFile = `static/${language}.manifest.webmanifest`;
     const localizedStringsFile = `src/locales/${language}.json`;
     const localizedStrings = JSON.parse(fs.readFileSync(localizedStringsFile, 'utf8'));

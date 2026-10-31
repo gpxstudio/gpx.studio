@@ -6,14 +6,14 @@ import MaplibreGeocoder, {
 } from '@maplibre/maplibre-gl-geocoder';
 import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
 import { get, writable, type Writable } from 'svelte/store';
-import { settings } from '$lib/logic/settings';
+import { settings } from '$lib/state/settings';
 import { tick } from 'svelte';
 import { ANCHOR_LAYER_KEY, StyleManager } from '$lib/components/map/style';
 import { MapLayerEventManager } from '$lib/components/map/map-layer-event-manager';
 
 const { treeFileView, elevationProfile, bottomPanelSize, rightPanelSize, distanceUnits } = settings;
 
-let fitBoundsOptions: maplibregl.MapOptions['fitBoundsOptions'] = {
+const fitBoundsOptions: maplibregl.MapOptions['fitBoundsOptions'] = {
     maxZoom: 15,
     linear: true,
     easing: () => 1,
@@ -43,6 +43,16 @@ export class MapLibreGLMap {
         maplibregl.setWorkerUrl(workerUrl);
         this._maptilerKey = maptilerKey;
         this._styleManager = new StyleManager(this._mapStore, this._maptilerKey);
+        // MapLibre gives Safari more workers, but only recognizes it by its user agent: not
+        // WebKit in the desktop app, where the data of the sources was then processed one source
+        // after the other, and the map drew the files a frame before the anchors of the routing
+        // tool. Before the first map, which starts the workers.
+        const userAgent = navigator.userAgent;
+        if (userAgent.includes('AppleWebKit') && !userAgent.includes('Chrome')) {
+            maplibregl.setWorkerCount(
+                Math.max(Math.min(Math.floor(navigator.hardwareConcurrency / 2), 3), 1)
+            );
+        }
         const map = new maplibregl.Map({
             container: 'map',
             style: {
@@ -65,7 +75,7 @@ export class MapLibreGLMap {
             })
         );
         if (geocoder) {
-            let geocoder = new MaplibreGeocoder(
+            const geocoder = new MaplibreGeocoder(
                 {
                     forwardGeocode: async (config) => {
                         const results: MaplibreGeocoderFeatureResults = {
@@ -75,18 +85,26 @@ export class MapLibreGLMap {
                         try {
                             const request = `https://nominatim.openstreetmap.org/search?format=json&q=${config.query}&limit=5&accept-language=${language}`;
                             const response = await fetch(request);
-                            const geojson = await response.json();
-                            results.features = geojson.map((result: any) => {
+                            const places: {
+                                lat: string;
+                                lon: string;
+                                type: string;
+                                display_name: string;
+                            }[] = await response.json();
+                            results.features = places.map((result) => {
                                 return {
                                     type: 'Feature',
                                     geometry: {
                                         type: 'Point',
-                                        coordinates: [result.lon, result.lat],
+                                        coordinates: [Number(result.lon), Number(result.lat)],
                                     },
+                                    properties: {},
+                                    text: result.display_name,
                                     place_name: result.display_name,
+                                    place_type: [result.type],
                                 };
                             });
-                        } catch (e) {}
+                        } catch {}
                         return results;
                     },
                 },
