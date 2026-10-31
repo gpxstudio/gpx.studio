@@ -3,7 +3,7 @@ title: Ikusteko aukerak
 ---
 
 <script lang="ts">
-    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, Box, Maximize2 } from '@lucide/svelte';
+    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, EyeOff, Maximize, Box, Maximize2 } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -19,7 +19,7 @@ Ezkutatu altueren profila mapari lekua egiteko, edo erakutsi uneko hautapena iku
 
 Aldatu [fitxategi zerrendaren](../files-and-stats) zuhaitza ikuspegira.
 Diseinu hau aproposa da irekitako fitxategi ugari kudeatzeko, maparen eskuinaldean zerrenda bertikal batean antolatzen baitu.
-Fitxategien zuhaitza ikuspegiak fitxategien barneko [ibilbideak, segmentuak eta interesguneak](../gpx) atal gisa erakusten ditu.
+In addition, the file tree view enables you to inspect the [tracks, segments, routes, and points of interest](../gpx) contained inside the files through collapsible sections.
 
 ### <Map size="16" class="inline-block" style="margin-bottom: 2px" /> Aldatu erabilitako aurreko geruzara
 
@@ -37,6 +37,14 @@ Unean hautatutako ibilbidean ikusten dira, [koten profila bezala](../files-and-s
 ### <Milestone size="16" class="inline-block" style="margin-bottom: 2px" /> Noranzko geziak
 
 Aldatu ibilbidearen noranzko gezien ikusgarritasuna.
+
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
+
+Toggle the visibility of the selected file items on the map.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+
+Center the map on the selected file items.
 
 ### <Box size="16" class="inline-block" style="margin-bottom: 2px" /> Aldatu 3D
 
