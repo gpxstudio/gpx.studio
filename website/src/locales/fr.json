@@ -101,7 +101,7 @@
             "button": "Infos...",
             "name": "Nom",
             "description": "Description",
-            "save": "Sauver",
+            "save": "Enregistrer",
             "rename_file": "Renommer le fichier sur le disque",
             "name_taken": "Un fichier portant ce nom existe déjà dans le dossier.",
             "rename_failed": "Impossible de renommer le fichier."
