@@ -6,6 +6,14 @@ use tauri::test::{INVOKE_KEY, get_ipc_response, mock_builder, mock_context, noop
 use tauri::webview::InvokeRequest;
 use tauri::{WebviewWindow, ipc::CallbackFn, ipc::InvokeBody, ipc::InvokeResponseBody};
 
+/// The origin of the pages of the app, the one Tauri allows the commands from: Windows has no
+/// custom protocols, the pages come from `http://tauri.localhost` there.
+const ORIGIN: &str = if cfg!(windows) {
+    "http://tauri.localhost"
+} else {
+    "tauri://localhost"
+};
+
 struct App(WebviewWindow<tauri::test::MockRuntime>);
 
 impl App {
@@ -35,7 +43,7 @@ impl App {
                 cmd: cmd.into(),
                 callback: CallbackFn(0),
                 error: CallbackFn(1),
-                url: "tauri://localhost".parse().unwrap(),
+                url: ORIGIN.parse().unwrap(),
                 body,
                 headers,
                 invoke_key: INVOKE_KEY.to_string(),
@@ -57,7 +65,7 @@ impl App {
             cmd: cmd.into(),
             callback: CallbackFn(0),
             error: CallbackFn(1),
-            url: "tauri://localhost".parse().unwrap(),
+            url: ORIGIN.parse().unwrap(),
             body: InvokeBody::Json(args),
             headers: Default::default(),
             invoke_key: INVOKE_KEY.to_string(),
@@ -517,12 +525,16 @@ fn files_made_from_a_file_of_the_open_folder_are_written_next_to_it_at_once() {
         .collect();
     // the copy is in the subfolder, named after its name (the one in the file, not of the file)
     assert!(
-        paths.iter().any(|path| path.ends_with("sub/simple.gpx")),
+        paths
+            .iter()
+            .any(|path| std::path::Path::new(path).ends_with("sub/simple.gpx")),
         "{paths:?}"
     );
     // the new file went where the selected file is
     assert!(
-        paths.iter().any(|path| path.ends_with("sub/fresh.gpx")),
+        paths
+            .iter()
+            .any(|path| std::path::Path::new(path).ends_with("sub/fresh.gpx")),
         "{paths:?}"
     );
 }
