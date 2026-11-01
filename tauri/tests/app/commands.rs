@@ -10,10 +10,11 @@ struct App(WebviewWindow<tauri::test::MockRuntime>);
 
 impl App {
     fn new() -> Self {
-        let app =
-            crate::register_commands(mock_builder().manage(crate::state::AppState::temporary()))
-                .build(mock_context(noop_assets()))
-                .unwrap();
+        let app = gpx_studio_desktop_lib::register_commands(
+            mock_builder().manage(crate::temporary_state()),
+        )
+        .build(mock_context(noop_assets()))
+        .unwrap();
         let window = tauri::WebviewWindowBuilder::new(&app, "main", Default::default())
             .build()
             .unwrap();
@@ -311,8 +312,8 @@ fn keeps_settings_for_the_session() {
 
 #[test]
 fn the_files_are_still_there_in_the_next_session() {
-    use crate::state::AppState;
     use gpx_engine::api;
+    use gpx_studio_desktop_lib::state::AppState;
 
     let directory =
         std::env::temp_dir().join(format!("gpx-studio-session-{}", uuid::Uuid::new_v4()));
@@ -347,14 +348,14 @@ fn only_gpx_files_that_exist_are_taken_from_what_the_system_gives() {
         text.to_string_lossy().into_owned(),
         directory.join("missing.gpx").to_string_lossy().into_owned(),
     ];
-    assert_eq!(crate::gpx_paths(arguments), [track]);
+    assert_eq!(gpx_studio_desktop_lib::gpx_paths(arguments), [track]);
     std::fs::remove_dir_all(directory).unwrap();
 }
 
 #[test]
 fn a_file_opened_with_the_app_is_opened_selected_and_announced() {
-    use crate::state::AppState;
     use gpx_engine::api;
+    use gpx_studio_desktop_lib::state::AppState;
     use std::sync::{Arc, Mutex};
 
     let directory = std::env::temp_dir().join(format!("gpx-studio-open-{}", uuid::Uuid::new_v4()));
@@ -441,7 +442,7 @@ fn a_file_outside_the_open_folder_is_read_again_when_the_disk_changes() {
 
     let (events, received) = mpsc::channel();
     let directory = std::env::temp_dir().join(format!("gpx-store-{}", uuid::Uuid::new_v4()));
-    let state = crate::state::AppState::open(
+    let state = gpx_studio_desktop_lib::state::AppState::open(
         directory.clone(),
         std::sync::Arc::new(move |name, _| {
             let _ = events.send(name.to_string());
@@ -461,8 +462,8 @@ fn a_file_outside_the_open_folder_is_read_again_when_the_disk_changes() {
     });
     let id = uuid::Uuid::parse_str(&id).unwrap();
     // the name comes from the path, which does not change: the content does
-    let signature = |state: &crate::state::AppState| {
-        state.core(move |core| crate::workspace::signature(&core.engine, id))
+    let signature = |state: &gpx_studio_desktop_lib::state::AppState| {
+        state.core(move |core| gpx_studio_desktop_lib::workspace::signature(&core.engine, id))
     };
     let before = signature(&state);
 
@@ -483,7 +484,7 @@ fn a_file_outside_the_open_folder_is_read_again_when_the_disk_changes() {
 
 #[test]
 fn files_made_from_a_file_of_the_open_folder_are_written_next_to_it_at_once() {
-    let state = crate::state::AppState::temporary();
+    let state = crate::temporary_state();
     let folder = std::env::temp_dir().join(format!("gpx-tests-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir_all(folder.join("sub")).unwrap();
     std::fs::copy("../gpx-rs/data/simple.gpx", folder.join("sub/track.gpx")).unwrap();
@@ -528,7 +529,7 @@ fn files_made_from_a_file_of_the_open_folder_are_written_next_to_it_at_once() {
 
 #[test]
 fn the_parts_of_a_split_are_numbered_from_one() {
-    let state = crate::state::AppState::temporary();
+    let state = crate::temporary_state();
     let folder = std::env::temp_dir().join(format!("gpx-tests-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir_all(&folder).unwrap();
     std::fs::copy("../gpx-rs/data/simple.gpx", folder.join("track.gpx")).unwrap();
@@ -649,7 +650,7 @@ fn a_file_keeps_its_name_and_its_file_is_renamed_apart() {
 
     // the name of another file is not taken
     let error = app.error("rename_file", json!({ "fileId": id, "name": "taken" }));
-    assert_eq!(error, crate::workspace::NAME_TAKEN);
+    assert_eq!(error, gpx_studio_desktop_lib::workspace::NAME_TAKEN);
     assert!(folder.join("moved.gpx").exists());
 
     // a name is one that a file can have

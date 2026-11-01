@@ -7,6 +7,15 @@ edition = "2024"
 [lib]
 name = "gpx_studio_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
+# the tests are in `tests/app`: on Windows, a test binary of the library or of the app could not
+# start without the manifest, which `build.rs` only gives to the binaries of `tests`
+test = false
+doctest = false
+
+[[bin]]
+name = "gpx-studio-desktop"
+path = "src/main.rs"
+test = false
 
 [dev-dependencies]
 tauri = { version = "2", features = ["test"] }

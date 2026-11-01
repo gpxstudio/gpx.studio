@@ -280,13 +280,6 @@ impl AppState {
         })
     }
 
-    /// An engine that keeps its data in a directory of its own, and has nobody to tell.
-    #[cfg(test)]
-    pub fn temporary() -> Self {
-        let directory = std::env::temp_dir().join(format!("gpx-studio-{}", uuid::Uuid::new_v4()));
-        Self::open(directory, Arc::new(|_, _| {})).expect("the storage can be opened")
-    }
-
     /// Opens files that the system gave to the app, see `Core::open_external`.
     pub fn open_external(&self, paths: Vec<PathBuf>) {
         self.core(move |core| core.open_external(&paths));

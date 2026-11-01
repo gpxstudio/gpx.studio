@@ -3,20 +3,20 @@
 
 mod bytes;
 mod commands;
-mod state;
-mod store;
-mod workspace;
+pub mod state;
+pub mod store;
+pub mod workspace;
 
 use commands::*;
 use tauri::{Emitter, Manager};
 
 /// The engine of the app: each file has its own history, so that undoing only concerns the
 /// selected files, and opening or closing a file is not something to undo.
-pub(crate) type Engine = gpx_engine::Engine<gpx_engine::PerFileHistory>;
+pub type Engine = gpx_engine::Engine<gpx_engine::PerFileHistory>;
 
 /// The GPX files among what the system gave to the app (the arguments of the command line, when a
 /// file is opened with it).
-fn gpx_paths(arguments: impl IntoIterator<Item = String>) -> Vec<std::path::PathBuf> {
+pub fn gpx_paths(arguments: impl IntoIterator<Item = String>) -> Vec<std::path::PathBuf> {
     arguments
         .into_iter()
         .map(std::path::PathBuf::from)
@@ -108,7 +108,7 @@ fn menu<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<tauri::me
 }
 
 /// Gives the builder the commands that reach the engine (which it has to be given as `AppState`).
-fn register_commands<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::Builder<R> {
+pub fn register_commands<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::Builder<R> {
     builder.invoke_handler(tauri::generate_handler![
         // selection
         selection::select,
@@ -234,6 +234,3 @@ fn register_commands<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::Bu
         system::reveal_path,
     ])
 }
-
-#[cfg(test)]
-mod tests;
