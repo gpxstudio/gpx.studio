@@ -5,7 +5,7 @@
     "scripts": {
         "dev": "vite dev",
         "build": "vite build",
-        "build:desktop": "BUILD_TARGET=desktop BASE_PATH='' vite build",
+        "build:desktop": "cross-env BUILD_TARGET=desktop BASE_PATH= vite build",
         "prebuild": "npx tsx src/lib/scripts/pwa-manifest.ts",
         "postbuild": "npx tsx src/lib/scripts/sitemap.ts",
         "preview": "vite preview",
@@ -39,6 +39,7 @@
         "@typescript-eslint/parser": "^8.33.1",
         "bits-ui": "^2.17.2",
         "clsx": "^2.1.1",
+        "cross-env": "^10.1.0",
         "eslint": "^9.28.0",
         "eslint-config-prettier": "^10.1.5",
         "eslint-plugin-svelte": "^3.9.1",
