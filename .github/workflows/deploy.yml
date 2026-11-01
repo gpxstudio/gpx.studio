@@ -61,3 +61,31 @@ jobs:
             - name: Deploy
               id: deployment
               uses: actions/deploy-pages@v4
+
+    # Temporary: also deploy the same build to Cloudflare Pages during the domain switch.
+    deploy_cloudflare:
+        needs: build_site
+        runs-on: ubuntu-latest
+
+        permissions:
+            contents: read
+            deployments: write
+
+        steps:
+            - name: Download build
+              uses: actions/download-artifact@v5
+              with:
+                  name: github-pages
+
+            - name: Extract build
+              run: |
+                  mkdir build
+                  tar -xf artifact.tar -C build
+
+            - name: Deploy to Cloudflare Pages
+              uses: cloudflare/wrangler-action@v3
+              with:
+                  apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                  accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+                  command: pages deploy build --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME || 'gpxstudio' }} --branch=main --commit-hash=${{ github.sha }}
+                  gitHubToken: ${{ secrets.GITHUB_TOKEN }}
