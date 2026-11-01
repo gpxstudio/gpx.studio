@@ -8,6 +8,7 @@
         "description": "Visa, redigera och skapa GPX-filer online med avancerade ruttplaneringsfunktioner, verktyg för filhantering, tilltalande kartor och detaljerade datavisualiseringar."
     },
     "menu": {
+        "new": "Nytt",
         "new_file": "Ny fil",
         "new_track": "Nytt spår",
         "new_segment": "Nytt segment",

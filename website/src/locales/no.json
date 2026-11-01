@@ -8,6 +8,7 @@
         "description": "Vis, rediger og opprett GPX-filer online med avansert ruteplanlegging og filbehandling, vakre kart og detaljert visualisering."
     },
     "menu": {
+        "new": "Ny",
         "new_file": "Ny fil",
         "new_track": "Nytt spor",
         "new_segment": "Nytt segment",

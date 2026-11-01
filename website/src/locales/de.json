@@ -8,6 +8,7 @@
         "description": "GPX-Dateien online anzeigen, bearbeiten und erstellen mit erweiterten Routenplanungs- und Dateiverarbeitungswerkzeugen, schönen Karten und detaillierten Datenvisualisierungen."
     },
     "menu": {
+        "new": "Neu",
         "new_file": "Neue Datei",
         "new_track": "Neue Route",
         "new_segment": "Neues Segment",

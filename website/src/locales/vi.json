@@ -8,6 +8,7 @@
         "description": "Xem, chỉnh sửa và tạo tệp tin GPX trực tuyến với các tính năng vẽ bản đồ nâng cao cùng với nhiều công cụ trợ giúp, bản đồ đa dạng và dữ liệu trực quan."
     },
     "menu": {
+        "new": "Mới",
         "new_file": "Tạo tệp tin mới",
         "new_track": "Tạo tuyến đường mới",
         "new_segment": "Tạo đoạn đường mới",

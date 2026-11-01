@@ -8,6 +8,7 @@
         "description": "Lihat, edit, dan buat berkas GPX secara online dengan fitur perencanaan rute canggih dan alat pemrosesan berkas, peta yang indah, dan visualisasi data yang detail."
     },
     "menu": {
+        "new": "Baru",
         "new_file": "Berkas baru",
         "new_track": "Trek baru",
         "new_segment": "Segmen Baru",
