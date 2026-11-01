@@ -8,7 +8,6 @@
         "description": "Pregledajte, uređujte i kreirajte GPX datoteke uz napredne mogućnosti planiranja ruta i alatima za obradu datoteka, prelepim mapama i detaljnim vizualizacijama podataka."
     },
     "menu": {
-        "new": "Novo",
         "new_file": "Nova datoteka",
         "new_route_file": "New route file",
         "new_track": "Nova ruta",

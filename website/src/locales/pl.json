@@ -8,7 +8,6 @@
         "description": "Przeglądaj, edytuj i twórz pliki GPX online z zaawansowanymi możliwościami planowania trasy i narzędziami do przetwarzania plików, pięknymi mapami i szczegółowymi wizualizacjami danych."
     },
     "menu": {
-        "new": "Nowy",
         "new_file": "Nowy plik",
         "new_route_file": "New route file",
         "new_track": "Nowa ścieżka",
