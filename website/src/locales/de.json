@@ -10,9 +10,42 @@
     "menu": {
         "new": "Neu",
         "new_file": "Neue Datei",
+        "new_route_file": "New route file",
         "new_track": "Neue Route",
+        "new_route": "New route",
+        "convert_to_route": "Convert to route",
+        "convert_to_track": "Convert to track",
+        "convert_to_routes": "Convert to route file",
+        "convert_to_tracks": "Convert to track file",
         "new_segment": "Neues Segment",
         "open": "Öffnen...",
+        "open_folder": "Open folder...",
+        "explorer": "Explorer",
+        "explorer_menu": {
+            "open": "Open",
+            "new_file": "New file...",
+            "new_route_file": "New route file...",
+            "new_folder": "New folder...",
+            "rename": "Rename...",
+            "reveal_finder": "Reveal in Finder",
+            "reveal": "Reveal in file explorer",
+            "delete_failed": "The files could not be moved to the trash."
+        },
+        "workspace": "Workspace",
+        "save": "Save",
+        "save_all": "Save all",
+        "save_as": "Save as...",
+        "close": "Schließen",
+        "close_all": "Alle schließen",
+        "close_folder": "Close folder",
+        "reload": "Reload from disk",
+        "discard": "Discard",
+        "cancel": "Cancel",
+        "overwrite": "Overwrite",
+        "unsaved_title": "Unsaved changes",
+        "unsaved_description": "These files have changes that are not saved:",
+        "overwrite_title": "Overwrite changes made elsewhere?",
+        "overwrite_description": "These files have changes, and were also changed on the disk. Overwrite what is on the disk, or reload it and lose your changes?",
         "duplicate": "Duplizieren",
         "copy": "Kopieren",
         "paste": "Einfügen",
@@ -69,7 +102,10 @@
             "button": "Info...",
             "name": "Bezeichnung",
             "description": "Beschreibung",
-            "save": "Speichern"
+            "save": "Speichern",
+            "rename_file": "Rename the file on disk",
+            "name_taken": "A file with this name already exists in the folder.",
+            "rename_failed": "The file could not be renamed."
         },
         "style": {
             "button": "Darstellung...",
@@ -433,6 +469,8 @@
     "gpx": {
         "file": "Datei",
         "files": "Dateien",
+        "route": "Route",
+        "routes": "Routes",
         "track": "Strecke",
         "tracks": "Strecken",
         "segment": "Abschnitt",
@@ -556,5 +594,10 @@
     },
     "webgl2_required": "WebGL 2 ist erforderlich, um die Karte anzuzeigen.",
     "enable_webgl2": "Erfahren Sie, wie Sie WebGL 2 in Ihrem Browser aktivieren",
-    "page_not_found": "Seite nicht gefunden"
+    "page_not_found": "Seite nicht gefunden",
+    "outdated": {
+        "title": "This page is out of date",
+        "description": "Your files were saved by a newer version of gpx.studio, which this page cannot read. Reload the page to get the latest version.",
+        "reload": "Reload"
+    }
 }

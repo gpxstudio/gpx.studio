@@ -10,9 +10,42 @@
     "menu": {
         "new": "Novo",
         "new_file": "Nova datoteka",
+        "new_route_file": "New route file",
         "new_track": "Nova ruta",
+        "new_route": "New route",
+        "convert_to_route": "Convert to route",
+        "convert_to_track": "Convert to track",
+        "convert_to_routes": "Convert to route file",
+        "convert_to_tracks": "Convert to track file",
         "new_segment": "Novi segment",
         "open": "Otvori...",
+        "open_folder": "Open folder...",
+        "explorer": "Explorer",
+        "explorer_menu": {
+            "open": "Open",
+            "new_file": "New file...",
+            "new_route_file": "New route file...",
+            "new_folder": "New folder...",
+            "rename": "Rename...",
+            "reveal_finder": "Reveal in Finder",
+            "reveal": "Reveal in file explorer",
+            "delete_failed": "The files could not be moved to the trash."
+        },
+        "workspace": "Workspace",
+        "save": "Save",
+        "save_all": "Save all",
+        "save_as": "Save as...",
+        "close": "Zatvori",
+        "close_all": "Zatvori sve",
+        "close_folder": "Close folder",
+        "reload": "Reload from disk",
+        "discard": "Discard",
+        "cancel": "Cancel",
+        "overwrite": "Overwrite",
+        "unsaved_title": "Unsaved changes",
+        "unsaved_description": "These files have changes that are not saved:",
+        "overwrite_title": "Overwrite changes made elsewhere?",
+        "overwrite_description": "These files have changes, and were also changed on the disk. Overwrite what is on the disk, or reload it and lose your changes?",
         "duplicate": "Napravi kopiju",
         "copy": "Kopiraj",
         "paste": "Nalepi",
@@ -69,7 +102,10 @@
             "button": "Informacije...",
             "name": "Naziv",
             "description": "Opis",
-            "save": "Sačuvaj"
+            "save": "Sačuvaj",
+            "rename_file": "Rename the file on disk",
+            "name_taken": "A file with this name already exists in the folder.",
+            "rename_failed": "The file could not be renamed."
         },
         "style": {
             "button": "Izgled...",
@@ -433,6 +469,8 @@
     "gpx": {
         "file": "Datoteka",
         "files": "Datoteke",
+        "route": "Route",
+        "routes": "Routes",
         "track": "Traka",
         "tracks": "Trake",
         "segment": "Segment",
@@ -556,5 +594,10 @@
     },
     "webgl2_required": "WebGL 2 je neophodan za prikaz mape.",
     "enable_webgl2": "Saznaj kako da omogućiš WebGL 2 u svom veb pregledaču",
-    "page_not_found": "stranica nije pronađena"
+    "page_not_found": "stranica nije pronađena",
+    "outdated": {
+        "title": "This page is out of date",
+        "description": "Your files were saved by a newer version of gpx.studio, which this page cannot read. Reload the page to get the latest version.",
+        "reload": "Reload"
+    }
 }

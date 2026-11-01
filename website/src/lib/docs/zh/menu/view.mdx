@@ -3,7 +3,7 @@ title: 显示
 ---
 
 <script lang="ts">
-    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, Box, Maximize2 } from '@lucide/svelte';
+    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, EyeOff, Maximize, Box, Maximize2 } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -17,7 +17,8 @@ title: 显示
 
 ### <ListTree size="16" class="inline-block" style="margin-bottom: 2px" /> 文件树
 
-切换 [文件列表](../files-and-stats) 为树形布局。此布局非常适合管理大量已打开的文件，文件将被组织成一个纵向列表并显示在地图右侧。此外，展开文件树中的可折叠部分，可检查其中包含的 [轨迹、路段和兴趣点](../gpx) 等要素。
+切换 [文件列表](../files-and-stats) 为树形布局。此布局非常适合管理大量已打开的文件，文件将被组织成一个纵向列表并显示在地图右侧。
+In addition, the file tree view enables you to inspect the [tracks, segments, routes, and points of interest](../gpx) contained inside the files through collapsible sections.
 
 ### <Map size="16" class="inline-block" style="margin-bottom: 2px" /> 切换为上一个底图
 
@@ -34,6 +35,14 @@ title: 显示
 ### <Milestone size="16" class="inline-block" style="margin-bottom: 2px" /> 方向箭头
 
 显示或隐藏轨迹上的方向箭头。
+
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
+
+Toggle the visibility of the selected file items on the map.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+
+Center the map on the selected file items.
 
 ### <Box size="16" class="inline-block" style="margin-bottom: 2px" /> 切换 3D
 

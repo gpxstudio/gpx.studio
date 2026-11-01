@@ -10,9 +10,42 @@
     "menu": {
         "new": "새 파일",
         "new_file": "새 파일",
+        "new_route_file": "New route file",
         "new_track": "새 트랙",
+        "new_route": "New route",
+        "convert_to_route": "Convert to route",
+        "convert_to_track": "Convert to track",
+        "convert_to_routes": "Convert to route file",
+        "convert_to_tracks": "Convert to track file",
         "new_segment": "새 세그먼트",
         "open": "열기...",
+        "open_folder": "Open folder...",
+        "explorer": "Explorer",
+        "explorer_menu": {
+            "open": "Open",
+            "new_file": "New file...",
+            "new_route_file": "New route file...",
+            "new_folder": "New folder...",
+            "rename": "Rename...",
+            "reveal_finder": "Reveal in Finder",
+            "reveal": "Reveal in file explorer",
+            "delete_failed": "The files could not be moved to the trash."
+        },
+        "workspace": "Workspace",
+        "save": "Save",
+        "save_all": "Save all",
+        "save_as": "Save as...",
+        "close": "닫기",
+        "close_all": "모두 닫기",
+        "close_folder": "Close folder",
+        "reload": "Reload from disk",
+        "discard": "Discard",
+        "cancel": "Cancel",
+        "overwrite": "Overwrite",
+        "unsaved_title": "Unsaved changes",
+        "unsaved_description": "These files have changes that are not saved:",
+        "overwrite_title": "Overwrite changes made elsewhere?",
+        "overwrite_description": "These files have changes, and were also changed on the disk. Overwrite what is on the disk, or reload it and lose your changes?",
         "duplicate": "복제",
         "copy": "복사",
         "paste": "붙여넣기",
@@ -69,7 +102,10 @@
             "button": "정보...",
             "name": "이름",
             "description": "Description",
-            "save": "저장"
+            "save": "저장",
+            "rename_file": "Rename the file on disk",
+            "name_taken": "A file with this name already exists in the folder.",
+            "rename_failed": "The file could not be renamed."
         },
         "style": {
             "button": "Appearance...",
@@ -433,6 +469,8 @@
     "gpx": {
         "file": "파일",
         "files": "파일",
+        "route": "Route",
+        "routes": "Routes",
         "track": "경로",
         "tracks": "경로",
         "segment": "Segment",
@@ -556,5 +594,10 @@
     },
     "webgl2_required": "지도를 표시하려면 WebGL 2가 필요합니다.",
     "enable_webgl2": "브라우저에서 WebGL 2를 활성화하는 법을 확인하세요 ",
-    "page_not_found": "페이지를 찾을 수 없음"
+    "page_not_found": "페이지를 찾을 수 없음",
+    "outdated": {
+        "title": "This page is out of date",
+        "description": "Your files were saved by a newer version of gpx.studio, which this page cannot read. Reload the page to get the latest version.",
+        "reload": "Reload"
+    }
 }

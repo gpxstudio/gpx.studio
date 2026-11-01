@@ -3,12 +3,14 @@ title: GPX 文件格式
 ---
 
 <script>
-    import { Waypoints, MapPin } from '@lucide/svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import { Waypoints, Route, MapPin } from '@lucide/svelte';
 </script>
 
 # { title }
 
 <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX 文件格式</a> 是应用程序和 GPS 设备之间交换 GPS 数据的一种开放标准。它本质上由一系列 GPS 点组成，用以编码形成一条或多条轨迹，以及兴趣点（可选）。
+These traces can be stored either as tracks or as routes.
 
 还可以包含元数据，其中 **名称（name）** 和 **描述（description）** 字段对用户最有用。
 
@@ -21,6 +23,20 @@ title: GPX 文件格式
 - **GPS 点** 主要用来存储一个位置的经纬度，也可包含时间戳和高度信息。一些设备可能还会记录心率、节奏、温度和功率等其他信息；
 
 GPX 文件通常只包含一条轨迹，且该轨迹仅有一个路段。不过这个层级结构支持高级用法，例如用来规划多日旅程且每日可包含多个行程信息。
+
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routes
+
+A **route** is a single continuous path made of a sequence of **route points**.
+These are mandatory checkpoints, which correspond to the anchor points of the [routing tool](./toolbar/routing).
+The points in between are only a suggested path connecting the route points.
+Like a track, a route can have a **name**, a **description**, and **appearance properties**.
+
+<DocsNote>
+
+Nowadays, most apps and GPS devices work perfectly well with tracks, even for navigation.
+However, some of them only work with routes: in that case, you can [convert](./menu/edit) your tracks to routes, or [create](./menu/file) a route file from the start.
+
+</DocsNote>
 
 ### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> 兴趣点
 
