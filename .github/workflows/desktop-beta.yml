@@ -113,9 +113,11 @@ jobs:
                   merge-multiple: true
 
             - name: Publish beta release
+              # the bundles of a platform are in a folder per format (deb, msi…)
               run: |
+                  mapfile -t files < <(find bundles -type f)
                   gh release delete desktop-beta --cleanup-tag --yes || true
-                  gh release create desktop-beta bundles/* \
+                  gh release create desktop-beta "${files[@]}" \
                       --prerelease \
                       --target ${{ github.sha }} \
                       --title "Desktop beta" \
