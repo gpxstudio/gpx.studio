@@ -44,7 +44,7 @@
         "unsaved_title": "Cambios sin guardar",
         "unsaved_description": "Estos archivos tienen cambios que no están guardados:",
         "overwrite_title": "¿Sobrescribir cambios realizados en otro lugar?",
-        "overwrite_description": "These files have changes, and were also changed on the disk. Overwrite what is on the disk, or reload it and lose your changes?",
+        "overwrite_description": "Estos ficheros tienen cambios, y también fueron modificados en el disco. ¿Sobrescribir lo que hay en el disco, o volver a cargarlo y perder los cambios?",
         "duplicate": "Duplicar track",
         "copy": "Copiar",
         "paste": "Pegar",
@@ -596,7 +596,7 @@
     "page_not_found": "página no encontrada",
     "outdated": {
         "title": "Esta página está desactualizada",
-        "description": "Your files were saved by a newer version of gpx.studio, which this page cannot read. Reload the page to get the latest version.",
+        "description": "Tus archivos fueron guardados por una versión más reciente de gpx.studio, que esta página no puede leer. Recarga la página para obtener la última versión.",
         "reload": "Recargar"
     }
 }
