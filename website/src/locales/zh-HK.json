@@ -598,5 +598,12 @@
         "title": "This page is out of date",
         "description": "Your files were saved by a newer version of gpx.studio, which this page cannot read. Reload the page to get the latest version.",
         "reload": "Reload"
+    },
+    "desktop": {
+        "update_available": "gpx.studio {version} is available",
+        "update_restart": "Update and restart",
+        "update_download": "Download",
+        "update_installing": "Installing the update...",
+        "update_failed": "The update could not be installed"
     }
 }
