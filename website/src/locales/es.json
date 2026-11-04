@@ -598,5 +598,12 @@
         "title": "Esta página está desactualizada",
         "description": "Tus archivos fueron guardados por una versión más reciente de gpx.studio, que esta página no puede leer. Recarga la página para obtener la última versión.",
         "reload": "Recargar"
+    },
+    "desktop": {
+        "update_available": "gpx.studio {version} is available",
+        "update_restart": "Update and restart",
+        "update_download": "Download",
+        "update_installing": "Installing the update...",
+        "update_failed": "The update could not be installed"
     }
 }
