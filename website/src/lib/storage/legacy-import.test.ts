@@ -95,6 +95,21 @@ describe('legacyFileToGPX', () => {
         assert.ok(gpx.includes('href="https://example.com/?a=&quot;1&quot;&amp;b=2"'));
     });
 
+    it('writes all the links of an element', () => {
+        const links = [
+            { attributes: { href: 'https://a.example/' }, text: 'first' },
+            { attributes: { href: 'https://b.example/' } },
+        ];
+        const gpx = legacyFileToGPX({
+            metadata: { name: 'x', link: links },
+            trk: [{ link: links, trkseg: [] }],
+        });
+        const written =
+            '<link href="https://a.example/"><text>first</text></link><link href="https://b.example/"></link>';
+        assert.ok(gpx.includes(`<name>x</name>${written}</metadata>`));
+        assert.ok(gpx.includes(`<trk>${written}</trk>`));
+    });
+
     it('leaves out what is missing or empty', () => {
         const gpx = legacyFileToGPX({
             metadata: { name: '', desc: null, time: 'not a date' },

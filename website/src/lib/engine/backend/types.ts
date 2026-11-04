@@ -340,8 +340,8 @@ export interface Backend {
         onBehind: () => void,
         onNewer: () => void
     ): Promise<StorageOpened>;
-    /** Resolves when what was changed has been written to the storage. */
-    flush_storage(): Promise<void>;
+    /** Resolves when the writes of what was changed are done, to whether they went well. */
+    flush_storage(): Promise<boolean>;
     /** Reads the files again if another window wrote them since, and tells what changed. */
     sync_storage(): Promise<Outcome>;
     set_setting(key: string, json: string): Promise<void>;

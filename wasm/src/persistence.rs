@@ -26,6 +26,9 @@ thread_local! {
     static PERSISTER: RefCell<Option<Persister>> = const { RefCell::new(None) };
     static SAVING: Cell<bool> = const { Cell::new(false) };
     static DIRTY: Cell<bool> = const { Cell::new(false) };
+    /// Whether the last write failed, or was not done because a newer version wrote the storage:
+    /// what the engine holds is then not all stored.
+    static NOT_WRITTEN: Cell<bool> = const { Cell::new(false) };
     /// Resolve functions of the promises of `flush_storage`.
     /// Called after the files were written, and when a write was refused because they were
     /// written by someone else since: see `open_storage`.
@@ -73,20 +76,28 @@ pub(crate) fn schedule_save() {
             let result = persister.save(&*storage, snapshot).await;
             PERSISTER.with(|slot| *slot.borrow_mut() = Some(persister));
             match result {
-                Ok(()) => saved = true,
+                Ok(()) => {
+                    NOT_WRITTEN.set(false);
+                    saved = true;
+                }
                 // nothing was written, so that the files of the other tab are not damaged: this
                 // tab has to read them, which replaces what it did
                 Err(engine::CommitError::Stale { .. }) => {
+                    NOT_WRITTEN.set(false);
                     DIRTY.set(false);
                     behind = true;
                 }
                 // nothing is written, so that the newer version finds its data again
                 Err(engine::CommitError::Failed(engine::StorageError::Newer)) => {
+                    NOT_WRITTEN.set(true);
                     DIRTY.set(false);
                     newer = true;
                 }
                 // what failed is written with the next change
-                Err(error) => console_error(&error.to_string()),
+                Err(error) => {
+                    NOT_WRITTEN.set(true);
+                    console_error(&error.to_string());
+                }
             }
         }
         SAVING.set(false);
@@ -188,17 +199,18 @@ pub(crate) fn to_js_error(error: engine::StorageError) -> JsValue {
     JsValue::from_str(&error.to_string())
 }
 
-/// Resolves when what was changed has been written to the storage.
+/// Resolves when the writes of what was changed are done, to whether they went well. A write that
+/// was refused because another tab wrote since is fine: this tab then reads what that tab wrote.
 #[wasm_bindgen]
-pub async fn flush_storage() -> Result<(), JsValue> {
+pub async fn flush_storage() -> Result<bool, JsValue> {
     if !SAVING.get() {
-        return Ok(());
+        return Ok(!NOT_WRITTEN.get());
     }
     let promise = js_sys::Promise::new(&mut |resolve, _| {
         WAITERS.with(|waiters| waiters.borrow_mut().push(resolve));
     });
     wasm_bindgen_futures::JsFuture::from(promise).await?;
-    Ok(())
+    Ok(!NOT_WRITTEN.get())
 }
 
 /// If another tab wrote the files since this one last did, reads them again and overwrites the

@@ -245,7 +245,7 @@ export async function createTauriBackend(): Promise<Backend> {
 
         importsLegacyData: false,
         open_storage: () => invoke<StorageOpened>('open_storage'),
-        flush_storage: () => invoke('flush_storage'),
+        flush_storage: () => invoke('flush_storage').then(() => true),
         sync_storage: () => invoke('sync_storage'),
         set_setting: (key, value) => invoke('set_setting', { key, value }),
         delete_setting: (key) => invoke('delete_setting', { key }),

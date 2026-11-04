@@ -1,4 +1,4 @@
-import { LEGACY_IMPORTED_KEY, readLegacyData } from '$lib/storage/legacy-import';
+import { LEGACY_IMPORTED_KEY, readLegacyData, type LegacyData } from '$lib/storage/legacy-import';
 import { parseVisibility, VISIBILITY_KEY, type Visibility } from '$lib/engine/file-visibility';
 import type { Outcome, StorageOpened } from 'gpx-wasm';
 import type { Backend } from './backend';
@@ -15,7 +15,7 @@ export type StorageHost = {
     /** The explicit visibility per file, to fill with the one that was saved. */
     visibility: Map<string, Visibility>;
     /** Applies what a call changed to what the facade keeps of the files. */
-    sync(update: Outcome): void;
+    sync(update: Outcome): Promise<void>;
     /** Tells that what is stored comes from a newer version of the app: nothing can be saved. */
     outdated(): void;
     hasFiles(): boolean;
@@ -66,7 +66,10 @@ function followOtherTabs(host: StorageHost): {
  *
  * The first time, what the previous versions of the app kept in the browser is imported.
  */
-export async function openStoredFiles(host: StorageHost): Promise<Record<string, string>> {
+export async function openStoredFiles(
+    host: StorageHost,
+    readLegacy: () => Promise<LegacyData | undefined> = readLegacyData
+): Promise<Record<string, string>> {
     const { backend } = host;
     let opened: StorageOpened;
     const tabs = followOtherTabs(host);
@@ -81,47 +84,68 @@ export async function openStoredFiles(host: StorageHost): Promise<Record<string,
     parseVisibility(settings[VISIBILITY_KEY]).forEach((visibility, fileId) =>
         host.visibility.set(fileId, visibility)
     );
-    host.sync(opened.outcome);
+    await host.sync(opened.outcome);
 
-    if (
-        backend.importsLegacyData &&
-        settings[LEGACY_IMPORTED_KEY] === undefined &&
-        !host.hasFiles()
-    ) {
-        settings = { ...settings, ...(await importLegacyData(host)) };
-        await backend.flush_storage();
+    if (backend.importsLegacyData && settings[LEGACY_IMPORTED_KEY] === undefined) {
+        settings = { ...settings, ...(await importLegacyData(host, settings, readLegacy)) };
     }
     return settings;
 }
 
-/** Puts the files and the settings of the former database in the engine. */
-async function importLegacyData(host: StorageHost): Promise<Record<string, string>> {
+/**
+ * Puts the files and the settings of the former database in the engine. It only counts as done once
+ * the files are written: until then, it is tried again the next time. The files that are stored
+ * mean that it was done, by a visit that did not get to say so.
+ */
+async function importLegacyData(
+    host: StorageHost,
+    stored: Record<string, string>,
+    readLegacy: () => Promise<LegacyData | undefined>
+): Promise<Record<string, string>> {
     const { backend } = host;
     const imported: Record<string, string> = {};
-    try {
-        const legacy = await readLegacyData();
-        if (legacy) {
-            const encoder = new TextEncoder();
-            if (legacy.files.length > 0) {
-                await host.loadFiles(
-                    legacy.files.map((file) => ({
-                        data: encoder.encode(file.gpx),
-                        name: file.name,
-                    }))
-                );
-                await host.deselect();
+    if (!host.hasFiles()) {
+        try {
+            const legacy = await readLegacy();
+            if (legacy) {
+                // what was changed since a previous try is more recent
+                for (const [key, value] of Object.entries(legacy.settings)) {
+                    if (stored[key] === undefined) {
+                        await backend.set_setting(key, value);
+                        imported[key] = value;
+                    }
+                }
+                if (legacy.files.length > 0 && !(await importFiles(host, legacy))) {
+                    return imported;
+                }
             }
-            for (const [key, value] of Object.entries(legacy.settings)) {
-                await backend.set_setting(key, value);
-                imported[key] = value;
-            }
+        } catch (error) {
+            console.error('The files of the previous version could not be imported', error);
+            return imported;
         }
-    } catch (error) {
-        // it is tried again next time
-        console.error('The files of the previous version could not be imported', error);
-        return imported;
     }
     await backend.set_setting(LEGACY_IMPORTED_KEY, 'true');
     imported[LEGACY_IMPORTED_KEY] = 'true';
     return imported;
+}
+
+/** Loads the files of the former database, and tells whether they are written. */
+async function importFiles(host: StorageHost, legacy: LegacyData): Promise<boolean> {
+    const encoder = new TextEncoder();
+    const loaded = await host.loadFiles(
+        legacy.files.map((file) => ({
+            data: encoder.encode(file.gpx),
+            name: file.name,
+        }))
+    );
+    if (!loaded) {
+        console.error('The files of the previous version could not be loaded');
+        return false;
+    }
+    await host.deselect();
+    if (!(await host.backend.flush_storage())) {
+        console.error('The files of the previous version could not be written');
+        return false;
+    }
+    return true;
 }

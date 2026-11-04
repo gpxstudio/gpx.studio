@@ -84,7 +84,11 @@ function timeElement(value: unknown): string {
     return isNaN(date.getTime()) ? '' : element('time', date.toISOString());
 }
 
+/** The link of an element, or the links: the former parser gave a list when there were several. */
 function link(value: Json): string {
+    if (Array.isArray(value)) {
+        return value.map(link).join('');
+    }
     const href = value?.attributes?.href;
     return href
         ? `<link href="${escape(href).replaceAll('"', '&quot;')}">${element('text', value.text)}</link>`

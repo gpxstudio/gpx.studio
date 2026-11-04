@@ -6,7 +6,7 @@ use chrono::DateTime;
 use quick_xml::Error;
 use quick_xml::escape::resolve_predefined_entity;
 use quick_xml::events::Event;
-use quick_xml::events::attributes::Attributes;
+use quick_xml::events::attributes::{Attribute, Attributes};
 use quick_xml::reader::Reader;
 
 enum GPXElement {
@@ -260,6 +260,13 @@ fn apply_text(
     }
 }
 
+/// The text of an attribute, without its escaping (`&amp;` is `&`), which is written back when the
+/// file is. As it is in the file if it cannot be read.
+fn attribute_text(attr: &Attribute<'_>) -> String {
+    attr.unescape_value()
+        .map_or_else(|_| attr.value.to_string(), |text| text.into_owned())
+}
+
 /// The email of the author, given as the `id` and `domain` attributes of the element.
 fn set_email(stack: &mut [GPXElement], attributes: Attributes<'_>) {
     let Some(GPXElement::Author(author)) = stack.last_mut() else {
@@ -268,8 +275,8 @@ fn set_email(stack: &mut [GPXElement], attributes: Attributes<'_>) {
     let (mut id, mut domain) = (None, None);
     for attr in attributes.flatten() {
         match attr.key.as_ref() {
-            "id" => id = Some(attr.value.to_string()),
-            "domain" => domain = Some(attr.value.to_string()),
+            "id" => id = Some(attribute_text(&attr)),
+            "domain" => domain = Some(attribute_text(&attr)),
             _ => (),
         }
     }
@@ -283,7 +290,7 @@ fn parse_link(attributes: Attributes<'_>) -> Link {
     let mut link = Link::default();
     for attr in attributes.flatten() {
         if attr.key.as_ref() == "href" {
-            link.href = attr.value.to_string();
+            link.href = attribute_text(&attr);
         }
     }
     link
@@ -624,6 +631,14 @@ mod tests {
             &mut Default::default(),
         )
         .unwrap()
+    }
+
+    #[test]
+    fn test_link_href_is_unescaped_and_written_back_once() {
+        let data =
+            r#"<gpx><metadata><link href="https://a.example/?x=1&amp;y=2"/></metadata></gpx>"#;
+        let gpx = parse(data.as_bytes(), &mut Default::default()).unwrap();
+        assert_eq!(gpx.info.links[0].href, "https://a.example/?x=1&y=2");
     }
 
     #[test]

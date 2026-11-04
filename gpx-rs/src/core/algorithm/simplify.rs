@@ -44,14 +44,24 @@ where
             let last = trkseg.last_index().unwrap();
 
             let mut kept = vec![(first, None)];
-            ramer_douglas_peucker_helper(trkseg, first, last, measure, epsilon, &mut kept);
+            ramer_douglas_peucker_ranges(trkseg, first, last, measure, epsilon, &mut kept);
             kept.push((last, None));
             kept
         }
     }
 }
 
-fn ramer_douglas_peucker_helper<M>(
+/// What is left to do for the points between two ends, in the order of the points.
+enum Step {
+    /// Looks for the point to keep between these two.
+    Range(TrackSegmentIndex, TrackSegmentIndex),
+    /// Keeps a point, selected at this distance.
+    Keep(TrackSegmentIndex, f64),
+}
+
+/// Adds the points to keep between `start` and `end` to `kept`, in order. It does not recurse: a
+/// track can make it go as deep as it has points, which would overflow the stack.
+fn ramer_douglas_peucker_ranges<M>(
     trkseg: &TrackSegment,
     start: TrackSegmentIndex,
     end: TrackSegmentIndex,
@@ -61,28 +71,40 @@ fn ramer_douglas_peucker_helper<M>(
 ) where
     M: Fn(TrackSegmentIndex, TrackSegmentIndex, TrackSegmentIndex) -> f64,
 {
-    let mut max_idx = None;
-    let mut max_dist = 0.0;
+    let mut steps = vec![Step::Range(start, end)];
+    while let Some(step) = steps.pop() {
+        let (start, end) = match step {
+            Step::Keep(idx, dist) => {
+                kept.push((idx, Some(dist)));
+                continue;
+            }
+            Step::Range(start, end) => (start, end),
+        };
 
-    let mut cur = trkseg.next_index(Some(start));
-    while let Some(idx) = cur {
-        if idx == end {
-            break;
+        let mut max_idx = None;
+        let mut max_dist = 0.0;
+
+        let mut cur = trkseg.next_index(Some(start));
+        while let Some(idx) = cur {
+            if idx == end {
+                break;
+            }
+
+            let dist = measure(start, end, idx);
+            if dist > max_dist {
+                max_idx = Some(idx);
+                max_dist = dist;
+            }
+
+            cur = trkseg.next_index(cur);
         }
 
-        let dist = measure(start, end, idx);
-        if dist > max_dist {
-            max_idx = Some(idx);
-            max_dist = dist;
+        if let Some(idx) = max_idx.filter(|_| max_dist > epsilon) {
+            // the last one pushed is done first
+            steps.push(Step::Range(idx, end));
+            steps.push(Step::Keep(idx, max_dist));
+            steps.push(Step::Range(start, idx));
         }
-
-        cur = trkseg.next_index(cur);
-    }
-
-    if let Some(idx) = max_idx.filter(|_| max_dist > epsilon) {
-        ramer_douglas_peucker_helper(trkseg, start, idx, measure, epsilon, kept);
-        kept.push((idx, Some(max_dist)));
-        ramer_douglas_peucker_helper(trkseg, idx, end, measure, epsilon, kept);
     }
 }
 
@@ -193,6 +215,16 @@ mod tests {
             .iter()
             .map(|idx| idx.flat)
             .collect()
+    }
+
+    #[test]
+    fn test_goes_as_deep_as_the_segment_is_long_in_order() {
+        let n = 12_000;
+        let trkseg = segment(&vec![0.0; n]);
+        // the point before the end is always the farthest one, so each range only loses one point
+        let kept = ramer_douglas_peucker_by(&trkseg, &|_, _, idx| idx.flat as f64 + 1.0, 0.5);
+        let kept: Vec<usize> = kept.iter().map(|(idx, _)| idx.flat).collect();
+        assert_eq!(kept, (0..n).collect::<Vec<_>>());
     }
 
     #[test]
