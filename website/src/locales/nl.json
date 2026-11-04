@@ -598,5 +598,12 @@
         "title": "Deze pagina is verouderd",
         "description": "Uw bestanden zijn opgeslagen door een nieuwere versie van gpx.studio, die deze pagina niet kan lezen. Herlaad de pagina om de nieuwste versie te krijgen.",
         "reload": "Vernieuwen"
+    },
+    "desktop": {
+        "update_available": "gpx.studio {version} is available",
+        "update_restart": "Update and restart",
+        "update_download": "Download",
+        "update_installing": "Installing the update...",
+        "update_failed": "The update could not be installed"
     }
 }
