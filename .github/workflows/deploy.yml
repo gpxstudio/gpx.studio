@@ -1,11 +1,21 @@
-name: Deploy to GitHub Pages
+name: Deploy to Cloudflare Pages
 on:
     push:
-        branches: 'main'
+        branches: ['main', 'dev']
+    workflow_dispatch:
+
+concurrency:
+    group: cloudflare-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
-    build_site:
+    deploy:
         runs-on: ubuntu-latest
+
+        permissions:
+            contents: read
+            deployments: write
+
         steps:
             - name: Checkout
               uses: actions/checkout@v5
@@ -41,35 +51,17 @@ jobs:
               run: npm test --prefix website
 
             - name: Create env file
-              run: |
-                  touch website/.env
-                  echo PUBLIC_MAPTILER_KEY=${{ secrets.PUBLIC_MAPTILER_KEY }} >> website/.env
-                  cat website/.env
+              run: echo PUBLIC_MAPTILER_KEY=${{ secrets.PUBLIC_MAPTILER_KEY }} >> website/.env
 
             - name: Build website
               env:
                   BASE_PATH: ''
-              run: |
-                  npm run build --prefix website
+              run: npm run build --prefix website
 
-            - name: Upload Artifacts
-              uses: actions/upload-pages-artifact@v4
+            - name: Deploy to Cloudflare Pages
+              uses: cloudflare/wrangler-action@v3
               with:
-                  path: 'website/build/'
-
-    deploy:
-        needs: build_site
-        runs-on: ubuntu-latest
-
-        permissions:
-            pages: write
-            id-token: write
-
-        environment:
-            name: github-pages
-            url: ${{ steps.deployment.outputs.page_url }}
-
-        steps:
-            - name: Deploy
-              id: deployment
-              uses: actions/deploy-pages@v4
+                  apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                  accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+                  command: pages deploy website/build --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME || 'gpxstudio' }} --branch=${{ github.ref_name }} --commit-dirty=true
+                  gitHubToken: ${{ secrets.GITHUB_TOKEN }}
