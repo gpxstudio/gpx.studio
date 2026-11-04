@@ -27,6 +27,8 @@
         "@sveltejs/vite-plugin-svelte": "^6.2.4",
         "@tailwindcss/vite": "^4.1.8",
         "@tauri-apps/api": "^2.12.3",
+        "@tauri-apps/plugin-process": "^2.4.0",
+        "@tauri-apps/plugin-updater": "^2.14.1",
         "@types/eslint": "^9.6.1",
         "@types/events": "^3.0.3",
         "@types/file-saver": "^2.0.7",

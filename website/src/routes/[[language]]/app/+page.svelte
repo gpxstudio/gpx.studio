@@ -87,6 +87,8 @@
                 );
             }
             languageRestored = true;
+            // in its own chunk, as the website does not need it
+            import('$lib/desktop/updates').then(({ checkForUpdates }) => checkForUpdates());
         }
 
         let files: string[] = JSON.parse(page.url.searchParams.get('files') || '[]');

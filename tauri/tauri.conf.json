@@ -27,7 +27,8 @@
     },
     "bundle": {
         "active": true,
-        "targets": "all",
+        "targets": ["app", "dmg", "appimage", "deb", "rpm", "nsis"],
+        "macOS": { "signingIdentity": "-" },
         "fileAssociations": [
             {
                 "ext": ["gpx"],
@@ -44,5 +45,13 @@
             "icons/icon.icns",
             "icons/icon.ico"
         ]
+    },
+    "plugins": {
+        "updater": {
+            "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE5NTFDQzVDOUYwNEMyNEMKUldSTXdnU2ZYTXhSR1ZXRDV6aVErc3dUWXBaK0VGSitYRnFFR21hZ2s5UEJTT01aYkE5Unp5c0cKdW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFFNTU3Q0Y1NzhFODkyMTEKUldRUmt1aDQ5WHhWcmdXQmx0UG83V29TenRxSVJjdkc4ckN1Zi93ajc3ZUhVUVp3eFlCOXphb1IK",
+            "endpoints": [
+                "https://github.com/gpxstudio/gpx.studio/releases/latest/download/latest.json"
+            ]
+        }
     }
 }

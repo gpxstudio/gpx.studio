@@ -55,6 +55,12 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
+            #[cfg(desktop)]
+            {
+                app.handle()
+                    .plugin(tauri_plugin_updater::Builder::new().build())?;
+                app.handle().plugin(tauri_plugin_process::init())?;
+            }
             let handle = app.handle().clone();
             let emit: state::Emit = std::sync::Arc::new(move |event, payload| {
                 let _ = handle.emit(event, payload);

@@ -37,3 +37,7 @@ tauri-plugin-single-instance = "2.5.3"
 tauri-plugin-opener = "2"
 trash = "5"
 
+[target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
+tauri-plugin-process = "2.4.0"
+tauri-plugin-updater = "2.14.1"
+
