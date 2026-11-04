@@ -44,7 +44,7 @@
         "unsaved_title": "Gorde gabeko aldaketak",
         "unsaved_description": "Fitxategi hauek gorde gabeko aldaketak dituzte:",
         "overwrite_title": "Egindako aldaketak gainidatzi nahi dituzu?",
-        "overwrite_description": "These files have changes, and were also changed on the disk. Overwrite what is on the disk, or reload it and lose your changes?",
+        "overwrite_description": "Fitxategi hauek aldaketak dituzte, eta diskoan ere aldatu dira. Gainidatzi diskoan dagoena edo berriro kargatu eta zure aldaketak galdu?",
         "duplicate": "Kopia egin",
         "copy": "Kopiatu",
         "paste": "Itsatsi",
@@ -102,9 +102,9 @@
             "name": "Izena",
             "description": "Deskribapena",
             "save": "Gorde",
-            "rename_file": "Rename the file on disk",
-            "name_taken": "A file with this name already exists in the folder.",
-            "rename_failed": "The file could not be renamed."
+            "rename_file": "Berrizendatu diskoko fitxategia",
+            "name_taken": "Izen hau duen fitxategi bat dagoeneko badago karpetan.",
+            "rename_failed": "Fitxategia ezin da berrizendatu."
         },
         "style": {
             "button": "Itxura...",
@@ -468,8 +468,8 @@
     "gpx": {
         "file": "Fitxategia",
         "files": "Fitxategiak",
-        "route": "Route",
-        "routes": "Routes",
+        "route": "Arrastoa",
+        "routes": "Ibilbideak",
         "track": "Arrastoa",
         "tracks": "Arrastoak",
         "segment": "Sementua",
@@ -595,15 +595,15 @@
     "enable_webgl2": "Ikasi zure nabigatzailean WebGL 2 aktibatzen",
     "page_not_found": "orrialdea ez da aurkitu",
     "outdated": {
-        "title": "This page is out of date",
-        "description": "Your files were saved by a newer version of gpx.studio, which this page cannot read. Reload the page to get the latest version.",
-        "reload": "Reload"
+        "title": "Orrialde hau zaharkituta dago",
+        "description": "Zure fitxategiak gpx.studio-ren bertsio berriago batek gorde ditu, orrialde honek irakurri ezin duena. Birkargatu orria azken bertsioa lortzeko.",
+        "reload": "Birkargatu"
     },
     "desktop": {
-        "update_available": "gpx.studio {version} is available",
-        "update_restart": "Update and restart",
-        "update_download": "Download",
-        "update_installing": "Installing the update...",
-        "update_failed": "The update could not be installed"
+        "update_available": "gpx.studio {version} eskuragarri dago",
+        "update_restart": "Eguneratu eta berrabiarazi",
+        "update_download": "Deskargatu",
+        "update_installing": "Eguneraketa instalatzen...",
+        "update_failed": "Eguneraketa ezin izan da instalatu"
     }
 }
