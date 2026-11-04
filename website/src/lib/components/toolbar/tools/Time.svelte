@@ -12,7 +12,15 @@
         nauticalMilesToKilometers,
     } from '$lib/units';
     import { CalendarDate, type DateValue } from '@internationalized/date';
-    import { CalendarClock, CirclePlay, CircleStop, CircleX, Timer, Zap } from '@lucide/svelte';
+    import {
+        CalendarClock,
+        CirclePlay,
+        CircleStop,
+        CircleX,
+        ClockFading,
+        Timer,
+        Zap,
+    } from '@lucide/svelte';
     import { untrack } from 'svelte';
     import { i18n } from '$lib/i18n.svelte';
     import {
@@ -83,6 +91,26 @@
             movingTime = undefined;
             speed = undefined;
         }
+    }
+
+    function clearGPXData() {
+        let items = $selection.getSelected();
+        if (items.length === 0) return;
+        fileActionManager.applyGlobal((draft) => {
+            selection.applyToOrderedSelectedItemsFromFile((fileId, level, orderedItems) => {
+                let file = draft.get(fileId);
+                if (!file) return;
+                orderedItems.forEach((item) => {
+                    if (item instanceof ListFileItem) {
+                        file.clearTimestamps();
+                    } else if (item instanceof ListTrackItem) {
+                        file.clearTimestamps(item.getTrackIndex());
+                    } else if (item instanceof ListTrackSegmentItem) {
+                        file.clearTimestamps(item.getTrackIndex(), item.getSegmentIndex());
+                    }
+                });
+            });
+        });
     }
 
     $effect(() => {
@@ -400,6 +428,15 @@
         >
             <CalendarClock size="16" class="shrink-0" />
             {i18n._('toolbar.time.update')}
+        </Button>
+        <Button
+            variant="outline"
+            disabled={!canUpdate}
+            class="grow shrink whitespace-normal h-fit min-h-8 py-1"
+            onclick={clearGPXData}
+        >
+            <ClockFading size="16" class="shrink-0" />
+            {i18n._('toolbar.time.delete')}
         </Button>
         <Button variant="outline" size="icon" onclick={setGPXData}>
             <CircleX size="16" />
