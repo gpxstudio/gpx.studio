@@ -598,5 +598,12 @@
         "title": "Cette page n'est pas à jour",
         "description": "Vos fichiers ont été enregistrés par une nouvelle version de gpx.studio, que cette page ne peut pas lire. Rechargez la page pour obtenir la dernière version.",
         "reload": "Recharger"
+    },
+    "desktop": {
+        "update_available": "gpx.studio {version} is available",
+        "update_restart": "Update and restart",
+        "update_download": "Download",
+        "update_installing": "Installing the update...",
+        "update_failed": "The update could not be installed"
     }
 }
