@@ -37,6 +37,8 @@ enum GPXElement {
     Symbol,
     Type,
     Color,
+    /// The color of a track or a route in the Garmin extensions (`gpxx:DisplayColor`).
+    DisplayColor,
     Opacity,
     Width,
 }
@@ -56,6 +58,30 @@ fn parse_coordinates(attributes: Attributes<'_>) -> LngLat {
 /// Whether the element is a point of the detailed path of a route point (`gpxx:rpt`).
 fn is_route_point_extension(name: &str) -> bool {
     name == "rpt" || name.ends_with(":rpt")
+}
+
+/// The hexadecimal color of a value of `DisplayColor_t` in the Garmin extensions. None for
+/// `Transparent` and for what is not part of the schema.
+fn garmin_display_color(name: &str) -> Option<&'static str> {
+    match name.trim() {
+        "Black" => Some("000000"),
+        "DarkRed" => Some("800000"),
+        "DarkGreen" => Some("008000"),
+        "DarkYellow" => Some("808000"),
+        "DarkBlue" => Some("000080"),
+        "DarkMagenta" => Some("800080"),
+        "DarkCyan" => Some("008080"),
+        "LightGray" => Some("c0c0c0"),
+        "DarkGray" => Some("808080"),
+        "Red" => Some("ff0000"),
+        "Green" => Some("00ff00"),
+        "Yellow" => Some("ffff00"),
+        "Blue" => Some("0000ff"),
+        "Magenta" => Some("ff00ff"),
+        "Cyan" => Some("00ffff"),
+        "White" => Some("ffffff"),
+        _ => None,
+    }
 }
 
 /// Whether the element holds a value, which is its text.
@@ -81,6 +107,7 @@ fn holds_text(element: Option<&GPXElement>) -> bool {
                 | GPXElement::Symbol
                 | GPXElement::Type
                 | GPXElement::Color
+                | GPXElement::DisplayColor
                 | GPXElement::Opacity
                 | GPXElement::Width
         )
@@ -242,6 +269,15 @@ fn apply_text(
             stack.pop();
             if let Some(GPXElement::Track(trk)) = stack.last_mut() {
                 trk.info.color = Some(e.to_owned());
+            }
+        }
+        // The color of the style schema has priority, wherever it is in the extensions
+        Some(GPXElement::DisplayColor) => {
+            stack.pop();
+            if let Some(GPXElement::Track(trk)) = stack.last_mut()
+                && trk.info.color.is_none()
+            {
+                trk.info.color = garmin_display_color(e).map(str::to_owned);
             }
         }
         Some(GPXElement::Opacity) => {
@@ -455,6 +491,7 @@ pub fn parse(data: &[u8], categories: &mut TrackpointCategories) -> Result<File,
                 "sym" => stack.push(GPXElement::Symbol),
                 "type" => stack.push(GPXElement::Type),
                 e if e.ends_with("color") => stack.push(GPXElement::Color),
+                e if e.ends_with("DisplayColor") => stack.push(GPXElement::DisplayColor),
                 e if e.ends_with("opacity") => stack.push(GPXElement::Opacity),
                 e if e.ends_with("width") => stack.push(GPXElement::Width),
                 _ => (),
@@ -1273,5 +1310,67 @@ mod tests {
         assert!(trk.info.color.as_ref().is_some_and(|c| c == "2d3ee9"));
         assert!(trk.info.opacity.is_some_and(|o| o == 0.5));
         assert!(trk.info.width.is_some_and(|w| w == 6.0));
+    }
+
+    fn parse_text(text: &str) -> File {
+        parse(text.as_bytes(), &mut Default::default()).unwrap()
+    }
+
+    #[test]
+    fn test_parse_garmin_display_color_of_tracks_and_routes() {
+        let gpx = parse_text(
+            r#"<gpx xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3"
+                    xmlns:gpxtrx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+                <trk><extensions><gpxx:TrackExtension>
+                    <gpxx:DisplayColor>Blue</gpxx:DisplayColor>
+                </gpxx:TrackExtension></extensions></trk>
+                <trk><extensions><gpxtrx:TrackExtension>
+                    <gpxtrx:DisplayColor>DarkRed</gpxtrx:DisplayColor>
+                </gpxtrx:TrackExtension></extensions></trk>
+                <rte><extensions><gpxx:RouteExtension>
+                    <gpxx:DisplayColor>Green</gpxx:DisplayColor>
+                </gpxx:RouteExtension></extensions></rte>
+            </gpx>"#,
+        );
+
+        assert_eq!(gpx.trk[0].info.color.as_deref(), Some("0000ff"));
+        assert_eq!(gpx.trk[1].info.color.as_deref(), Some("800000"));
+        assert_eq!(gpx.rte[0].info.color.as_deref(), Some("00ff00"));
+    }
+
+    #[test]
+    fn test_garmin_display_color_without_a_color_leaves_the_track_uncolored() {
+        let gpx = parse_text(
+            r#"<gpx>
+                <trk><extensions><gpxx:TrackExtension>
+                    <gpxx:DisplayColor>Transparent</gpxx:DisplayColor>
+                </gpxx:TrackExtension></extensions></trk>
+                <trk><extensions><gpxx:TrackExtension>
+                    <gpxx:DisplayColor>Mauve</gpxx:DisplayColor>
+                </gpxx:TrackExtension></extensions></trk>
+            </gpx>"#,
+        );
+
+        assert_eq!(gpx.trk[0].info.color, None);
+        assert_eq!(gpx.trk[1].info.color, None);
+    }
+
+    #[test]
+    fn test_style_color_has_priority_over_garmin_display_color() {
+        let gpx = parse_text(
+            r#"<gpx>
+                <trk><extensions>
+                    <gpxx:TrackExtension><gpxx:DisplayColor>Red</gpxx:DisplayColor></gpxx:TrackExtension>
+                    <gpx_style:line><gpx_style:color>2d3ee9</gpx_style:color></gpx_style:line>
+                </extensions></trk>
+                <trk><extensions>
+                    <gpx_style:line><gpx_style:color>2d3ee9</gpx_style:color></gpx_style:line>
+                    <gpxx:TrackExtension><gpxx:DisplayColor>Red</gpxx:DisplayColor></gpxx:TrackExtension>
+                </extensions></trk>
+            </gpx>"#,
+        );
+
+        assert_eq!(gpx.trk[0].info.color.as_deref(), Some("2d3ee9"));
+        assert_eq!(gpx.trk[1].info.color.as_deref(), Some("2d3ee9"));
     }
 }
