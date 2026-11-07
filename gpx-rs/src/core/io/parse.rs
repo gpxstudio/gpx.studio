@@ -60,6 +60,26 @@ fn is_route_point_extension(name: &str) -> bool {
     name == "rpt" || name.ends_with(":rpt")
 }
 
+/// The color of a track (`RRGGBB`, the format of the style schema) and its opacity, from a color
+/// that may start with `#` and may have an alpha channel first (`AARRGGBB`), as some applications
+/// write it. A color in any other format is kept as it is, without opacity.
+fn parse_color(value: &str) -> (String, Option<f64>) {
+    let value = value.trim();
+    let hex = value.strip_prefix('#').unwrap_or(value);
+    if !hex.bytes().all(|b| b.is_ascii_hexdigit()) {
+        return (value.to_owned(), None);
+    }
+    match hex.len() {
+        6 => (hex.to_owned(), None),
+        8 => {
+            let alpha = u8::from_str_radix(&hex[..2], 16).unwrap_or(u8::MAX);
+            let opacity = (f64::from(alpha) / 255.0 * 100.0).round() / 100.0;
+            (hex[2..].to_owned(), Some(opacity))
+        }
+        _ => (value.to_owned(), None),
+    }
+}
+
 /// The hexadecimal color of a value of `DisplayColor_t` in the Garmin extensions. None for
 /// `Transparent` and for what is not part of the schema.
 fn garmin_display_color(name: &str) -> Option<&'static str> {
@@ -268,7 +288,12 @@ fn apply_text(
         Some(GPXElement::Color) => {
             stack.pop();
             if let Some(GPXElement::Track(trk)) = stack.last_mut() {
-                trk.info.color = Some(e.to_owned());
+                let (color, opacity) = parse_color(e);
+                trk.info.color = Some(color);
+                // The opacity of the style schema has priority, wherever it is in the extensions
+                if trk.info.opacity.is_none() {
+                    trk.info.opacity = opacity;
+                }
             }
         }
         // The color of the style schema has priority, wherever it is in the extensions
@@ -1372,5 +1397,43 @@ mod tests {
 
         assert_eq!(gpx.trk[0].info.color.as_deref(), Some("2d3ee9"));
         assert_eq!(gpx.trk[1].info.color.as_deref(), Some("2d3ee9"));
+    }
+
+    #[test]
+    fn test_parse_color_with_hash_and_alpha() {
+        assert_eq!(parse_color("2d3ee9"), ("2d3ee9".into(), None));
+        assert_eq!(parse_color("#0000FF"), ("0000FF".into(), None));
+        assert_eq!(parse_color("#800000FF"), ("0000FF".into(), Some(0.5)));
+        assert_eq!(parse_color("FF0000FF"), ("0000FF".into(), Some(1.0)));
+        assert_eq!(parse_color("#00ff0000"), ("ff0000".into(), Some(0.0)));
+        assert_eq!(parse_color("red"), ("red".into(), None));
+        assert_eq!(parse_color("#abc"), ("#abc".into(), None));
+    }
+
+    #[test]
+    fn test_parse_track_color_with_alpha() {
+        let gpx = parse_text(
+            r#"<gpx>
+                <trk><extensions><xsi:gpx>
+                    <physicalColor>#400000FF</physicalColor>
+                    <width>4</width>
+                    <color>#800000FF</color>
+                </xsi:gpx></extensions></trk>
+                <trk><extensions><gpx_style:line>
+                    <gpx_style:opacity>0.3</gpx_style:opacity>
+                    <gpx_style:color>#800000FF</gpx_style:color>
+                </gpx_style:line></extensions></trk>
+                <trk><extensions><gpx_style:line>
+                    <gpx_style:color>#800000FF</gpx_style:color>
+                    <gpx_style:opacity>0.3</gpx_style:opacity>
+                </gpx_style:line></extensions></trk>
+            </gpx>"#,
+        );
+
+        assert_eq!(gpx.trk[0].info.color.as_deref(), Some("0000FF"));
+        assert_eq!(gpx.trk[0].info.opacity, Some(0.5));
+        assert_eq!(gpx.trk[0].info.width, Some(4.0));
+        assert_eq!(gpx.trk[1].info.opacity, Some(0.3));
+        assert_eq!(gpx.trk[2].info.opacity, Some(0.3));
     }
 }
