@@ -146,7 +146,7 @@
                 "racing_bike": "Kelių dviračiu",
                 "gravel_bike": "Bekelės dviračiu",
                 "mountain_bike": "Kalnų dviračiu",
-                "foot": "Bėgimas / ėjimas",
+                "foot": "Bėgimas / žygiavimas",
                 "motorcycle": "Motociklu",
                 "water": "Vandeniu",
                 "railway": "Geležinkeliu"
@@ -181,7 +181,7 @@
                 "unknown": "Unknown",
                 "motorway": "Highway",
                 "motorway_link": "Highway link",
-                "trunk": "Primary road",
+                "trunk": "Pagrindinis kelias",
                 "trunk_link": "Primary road link",
                 "primary": "Primary road",
                 "primary_link": "Primary road link",
@@ -604,6 +604,6 @@
         "update_restart": "Update and restart",
         "update_download": "Download",
         "update_installing": "Installing the update...",
-        "update_failed": "The update could not be installed"
+        "update_failed": "Nepavyko įdiegti atnaujinimo"
     }
 }
