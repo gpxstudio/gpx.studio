@@ -9,7 +9,7 @@
     },
     "menu": {
         "new_file": "Naujas failas",
-        "new_route_file": "New route file",
+        "new_route_file": "Naujas maršruto failas",
         "new_track": "Nauja trasa",
         "new_route": "New route",
         "convert_to_route": "Convert to route",
@@ -552,7 +552,7 @@
     },
     "docs": {
         "translate": "Improve the translation on Crowdin",
-        "answer_not_found": "Did not find what you were looking for?",
+        "answer_not_found": "Neradote, ko ieškojote?",
         "ask_on_reddit": "Ask the community on Reddit",
         "search": {
             "search": "Search",
