@@ -85,7 +85,10 @@ function setGroup(
 export class ExtensionAPI {
     /** The version of the API; the methods of v1 are still there, until extensions have moved. */
     readonly version = 2;
-    /** Resolved once overlays can be set. `gpxstudio:ready` is sent on `window` at that moment. */
+    /**
+     * Resolved once overlays can be set. `gpxstudio:extension-api-ready` is sent on `window` at that
+     * moment.
+     */
     ready!: Promise<void>;
 
     private _overlays: Writable<Map<string, RegisteredOverlay>> = writable(new Map());
@@ -97,7 +100,7 @@ export class ExtensionAPI {
     init() {
         if (browser && !Object.hasOwn(window, 'gpxstudio')) {
             this.ready = this.ensureLoaded();
-            this.ready.then(() => window.dispatchEvent(new Event('gpxstudio:ready')));
+            this.ready.then(() => window.dispatchEvent(new Event('gpxstudio:extension-api-ready')));
             Object.defineProperty(window, 'gpxstudio', {
                 value: this,
             });
