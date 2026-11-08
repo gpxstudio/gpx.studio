@@ -218,6 +218,7 @@
                         </span>
                     {:else}
                         <TimePicker
+                            id="speed"
                             bind:value={speed}
                             showHours={false}
                             disabled={!canUpdate}
@@ -243,6 +244,7 @@
                     {i18n._('toolbar.time.total_time')}
                 </Label>
                 <TimePicker
+                    id="duration"
                     bind:value={movingTime}
                     disabled={!canUpdate}
                     onChange={() => {
