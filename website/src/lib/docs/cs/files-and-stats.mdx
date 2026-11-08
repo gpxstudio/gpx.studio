@@ -7,11 +7,11 @@ title: Soubory a statistiky
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
     import ElevationProfile from '$lib/components/elevation-profile/ElevationProfile.svelte';
     import GPXStatistics from '$lib/components/GPXStatistics.svelte';
-    import { exampleGPXFile } from '$lib/assets/example';
+    import { exampleStatistics } from '$lib/data/example';
     import { writable } from 'svelte/store';
 
-    let gpxStatistics = writable(exampleGPXFile.getStatistics());
-    let slicedGPXStatistics = writable(undefined);
+    let statistics = writable(exampleStatistics);
+    let slicedStatistics = writable(undefined);
     let hoveredPoint = writable(null);
     let additionalDatasets = writable(['speed', 'atemp']);
     let elevationFill = writable(undefined);
@@ -51,7 +51,7 @@ Kliknutím pravým tlačítkem myši na kartu souboru můžete provést stejné 
 
 Jak je uvedeno v části [možnosti zobrazení](./menu/view), můžete přepnout na stromové rozvržení seznamu souborů.
 Toto zobrazení je ideální pro správu velkého počtu otevřených souborů, protože je uspořádá do svislého seznamu na pravé straně mapy.
-Stromové rozvržení souborů navíc umožňuje zkontrolovat [trasy, úseky a body zájmu](./gpx) obsažené v souborech prostřednictvím sbalitelných sekcí.
+In addition, the file tree view enables you to inspect the [tracks, segments, routes, and points of interest](./gpx) contained inside the files through collapsible sections.
 
 Rovněž můžete využít [akce úprav](./menu/edit) a [nástroje](./toolbar) na prvky uvnitř souborů.
 Navíc přetažením prvků uvnitř souborů můžete změnit jejich pořadí nebo je přesunout v hierarchii či dokonce do jiného souboru.
@@ -83,8 +83,8 @@ Pomocí kolečka myši můžete také výškový profil přiblížit a oddálit 
 
 <div class="h-48 w-full">
     <ElevationProfile
-        {gpxStatistics}
-        {slicedGPXStatistics}
+        {statistics}
+        {slicedStatistics}
         {hoveredPoint}
         {additionalDatasets}
         {elevationFill}
@@ -92,8 +92,8 @@ Pomocí kolečka myši můžete také výškový profil přiblížit a oddálit 
 </div>
 <div class="flex flex-col items-center w-full">
     <GPXStatistics
-        {gpxStatistics}
-        {slicedGPXStatistics}
+        {statistics}
+        {slicedStatistics}
         orientation={'horizontal'}
     />
 </div>

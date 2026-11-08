@@ -1,183 +1,176 @@
 <script lang="ts">
     import { untrack } from 'svelte';
-    import TimeComponentInput from './TimeComponentInput.svelte';
+    import { cn } from '$lib/utils.js';
+    import TimeComponentInput, { EMPTY_FIELD } from './TimeComponentInput.svelte';
 
     let {
+        id,
         showHours = true,
         value = $bindable(),
         disabled = false,
         onChange = () => {},
     }: {
+        /** Set on the first field, so that a label can target the picker. */
+        id?: string;
         showHours?: boolean;
         value?: number;
         disabled?: boolean;
         onChange?: () => void;
     } = $props();
 
-    let hours: string | number = $state('--');
-    let minutes: string | number = $state('--');
-    let seconds: string | number = $state('--');
+    let hours = $state('');
+    let minutes = $state('');
+    let seconds = $state('');
 
-    function maybeParseInt(value: string | number): number {
-        if (value === '--' || value === '') {
-            return 0;
+    let hoursInput: HTMLInputElement | null = $state(null);
+    let minutesInput: HTMLInputElement | null = $state(null);
+    let secondsInput: HTMLInputElement | null = $state(null);
+
+    function parseField(field: string): number {
+        return field === '' ? 0 : parseInt(field, 10);
+    }
+
+    function fieldsToSeconds(): number {
+        const total =
+            (showHours ? parseField(hours) * 3600 : 0) +
+            parseField(minutes) * 60 +
+            parseField(seconds);
+        // Callers divide by this value, so it must stay positive.
+        return Math.max(total, 1);
+    }
+
+    function pad(field: number): string {
+        return field.toString().padStart(2, '0');
+    }
+
+    function showValue(newValue: number | undefined) {
+        if (!Number.isFinite(newValue)) {
+            hours = minutes = seconds = '';
+            return;
         }
-        return typeof value === 'string' ? parseInt(value) : value;
+        const total = Math.max(Math.round(newValue!), 1);
+        const totalMinutes = Math.floor(total / 60);
+        if (showHours) {
+            hours = Math.floor(total / 3600).toString();
+            minutes = pad(totalMinutes % 60);
+        } else {
+            minutes = totalMinutes.toString();
+        }
+        seconds = pad(total % 60);
     }
 
-    function computeValue(): number {
-        return Math.max(
-            maybeParseInt(hours) * 3600 + maybeParseInt(minutes) * 60 + maybeParseInt(seconds),
-            1
-        );
-    }
-
+    // Only the display follows `value`: it is written back on user input only, so that showing a
+    // value never rounds or overwrites it. A value that matches the fields comes from them, and
+    // must not reformat them during typing.
     $effect(() => {
-        const val = computeValue();
+        const newValue = value;
+        void showHours;
         untrack(() => {
-            value = val;
+            if (newValue !== fieldsToSeconds()) {
+                showValue(newValue);
+            }
         });
     });
 
-    $effect(() => {
-        if (value === undefined) {
-            untrack(() => {
-                hours = '--';
-                minutes = '--';
-                seconds = '--';
-            });
-        } else {
-            untrack(() => {
-                if (value != computeValue()) {
-                    let rounded = Math.max(Math.round(value!), 1);
-                    if (showHours) {
-                        hours = Math.floor(rounded / 3600);
-                        minutes = Math.floor((rounded % 3600) / 60)
-                            .toString()
-                            .padStart(2, '0');
-                    } else {
-                        minutes = Math.floor(rounded / 60).toString();
-                    }
-                    seconds = (rounded % 60).toString().padStart(2, '0');
-                }
-            });
-        }
-    });
+    /** A field without an upper bound: hours, or minutes when there are no hours. */
+    function normalizeUnbounded(input: string): string {
+        const digits = input.replace(/\D/g, '').slice(-6);
+        return digits === '' ? '' : parseInt(digits, 10).toString();
+    }
 
-    let container: HTMLDivElement;
-    let countKeyPress = 0;
-    function onKeyPress(e: KeyboardEvent) {
-        const target = e.target as HTMLInputElement | null;
-        if (target && ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
-            countKeyPress++;
-            if (countKeyPress === 2) {
-                const nextInput =
-                    target.id === 'hours'
-                        ? (container.querySelector('#minutes') as HTMLInputElement)
-                        : target.id === 'minutes'
-                          ? (container.querySelector('#seconds') as HTMLInputElement)
-                          : null;
-                if (nextInput) {
-                    nextInput.focus();
-                }
+    /** Minutes or seconds: new digits shift in from the right, so "12" then "3" gives "23". */
+    function normalizeSexagesimal(input: string): string {
+        const digits = input.replace(/\D/g, '').slice(-2);
+        return digits === '' ? '' : pad(Math.min(parseInt(digits, 10), 59));
+    }
+
+    let digitsTyped = 0;
+
+    function handleInput(
+        e: Event & { currentTarget: HTMLInputElement },
+        normalize: (input: string) => string,
+        setField: (field: string) => void,
+        nextInput: HTMLInputElement | null
+    ) {
+        const input = e.currentTarget;
+        const field = normalize(input.value);
+        // The state is unchanged when the input is rejected (a letter, for example), in which case
+        // Svelte would leave the rejected text in the DOM.
+        input.value = field || EMPTY_FIELD;
+        if (!field) {
+            input.select();
+        }
+        setField(field);
+
+        value = fieldsToSeconds();
+        onChange();
+
+        if (/^\d$/.test((e as unknown as InputEvent).data ?? '')) {
+            digitsTyped++;
+            if (digitsTyped === 2) {
+                nextInput?.focus();
             }
+        }
+    }
+
+    function handlePointerDown(e: PointerEvent) {
+        // Like a native input, the whole box gives focus, not only the text.
+        if (e.target === e.currentTarget) {
+            e.preventDefault();
+            (hoursInput ?? minutesInput)?.focus();
+        }
+    }
+
+    function handleFocusOut(e: FocusEvent & { currentTarget: HTMLDivElement }) {
+        // Fill in the fields left empty once the user is done with the picker.
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+            showValue(value);
         }
     }
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-    bind:this={container}
-    class="h-9 flex flex-row items-center w-full min-w-fit border rounded-md px-3 focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 {disabled
-        ? 'opacity-50 cursor-not-allowed'
-        : ''}"
+    data-slot="time-picker"
+    class={cn(
+        'dark:bg-input/30 border-input focus-within:border-ring focus-within:ring-ring/50 flex h-8 w-full min-w-28 cursor-text items-center justify-end rounded-lg border bg-transparent px-2.5 py-1 text-base transition-colors focus-within:ring-3 md:text-sm',
+        disabled && 'bg-input/50 dark:bg-input/80 pointer-events-none cursor-not-allowed opacity-50'
+    )}
+    onpointerdown={handlePointerDown}
+    onfocusin={() => {
+        digitsTyped = 0;
+    }}
+    onfocusout={handleFocusOut}
 >
     {#if showHours}
         <TimeComponentInput
-            id="hours"
-            bind:value={hours}
+            {id}
+            bind:ref={hoursInput}
+            value={hours}
             {disabled}
-            class="w-[30px]"
-            oninput={() => {
-                if (typeof hours === 'string') {
-                    hours = parseInt(hours);
-                }
-                if (hours >= 0) {
-                } else if (hours < 0) {
-                    hours = 0;
-                } else {
-                    hours = 0;
-                }
-                onChange();
-            }}
-            onkeypress={onKeyPress}
-            onfocusin={() => {
-                countKeyPress = 0;
-            }}
+            oninput={(e) =>
+                handleInput(e, normalizeUnbounded, (field) => (hours = field), minutesInput)}
         />
-        <span class="text-sm">:</span>
+        <span>:</span>
     {/if}
     <TimeComponentInput
-        id="minutes"
-        bind:value={minutes}
+        id={showHours ? undefined : id}
+        bind:ref={minutesInput}
+        value={minutes}
         {disabled}
-        oninput={() => {
-            if (typeof minutes === 'string') {
-                minutes = parseInt(minutes);
-            }
-            if (minutes >= 0 && (minutes <= 59 || !showHours)) {
-            } else if (minutes < 0) {
-                minutes = 0;
-            } else if (showHours && minutes > 59) {
-                minutes = 59;
-            } else {
-                minutes = 0;
-            }
-            minutes = minutes.toString().padStart(showHours ? 2 : 1, '0');
-            onChange();
-        }}
-        onkeypress={onKeyPress}
-        onfocusin={() => {
-            countKeyPress = 0;
-        }}
+        oninput={(e) =>
+            handleInput(
+                e,
+                showHours ? normalizeSexagesimal : normalizeUnbounded,
+                (field) => (minutes = field),
+                secondsInput
+            )}
     />
-    <span class="text-sm">:</span>
+    <span>:</span>
     <TimeComponentInput
-        id="seconds"
-        bind:value={seconds}
+        bind:ref={secondsInput}
+        value={seconds}
         {disabled}
-        oninput={() => {
-            if (typeof seconds === 'string') {
-                seconds = parseInt(seconds);
-            }
-            if (seconds >= 0 && seconds <= 59) {
-            } else if (seconds < 0) {
-                seconds = 0;
-            } else if (seconds > 59) {
-                seconds = 59;
-            } else {
-                seconds = 0;
-            }
-            seconds = seconds.toString().padStart(2, '0');
-            onChange();
-        }}
-        onkeypress={onKeyPress}
-        onfocusin={() => {
-            countKeyPress = 0;
-        }}
+        oninput={(e) => handleInput(e, normalizeSexagesimal, (field) => (seconds = field), null)}
     />
 </div>
-
-<style>
-    div :global(input::-webkit-outer-spin-button) {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-    div :global(input::-webkit-inner-spin-button) {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-    div :global(input[type='number']) {
-        appearance: textfield;
-        -moz-appearance: textfield;
-    }
-</style>

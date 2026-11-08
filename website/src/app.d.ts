@@ -8,6 +8,11 @@ declare global {
         // interface PageState {}
         // interface Platform {}
     }
+
+    interface Window {
+        /** The map, for extensions (set once it has loaded). */
+        _map?: import('maplibre-gl').Map;
+    }
 }
 
 export {};

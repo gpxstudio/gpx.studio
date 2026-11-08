@@ -3,14 +3,14 @@ title: Actions d'édition
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from '@lucide/svelte';
+    import { Undo2, Redo2, Info, PaintBucket, ArrowRightLeft, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Plus } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
 # { title }
 
 Contrairement aux actions sur les fichiers, les actions d'édition peuvent potentiellement modifier le contenu des fichiers sélectionnés.
-De plus, lorsque la présentation en arborescence de la liste de fichiers est activée (voir [Fichiers et statistiques](../files-and-stats)), elles peuvent également être appliquées aux [pistes, segments, et points d'intérêt](../gpx).
+De plus, lorsque la présentation en arborescence de la liste de fichiers est activée (voir [Fichiers et statistiques](../files-and-stats)), elles peuvent également être appliquées aux [pistes, segments, routes, et points d'intérêt](../gpx).
 Par conséquent, nous appellerons les éléments qui peuvent être modifiés par ces actions des _éléments de fichier_.
 Notez que, à part les actions annuler et rétablir, les actions d'édition sont également accessibles via le menu contextuel (clic droit) des éléments de fichier.
 
@@ -27,13 +27,20 @@ Ouvrir la boîte de dialogue d'information de l'élément de fichier actuellemen
 
 Ouvrir la boîte de dialogue d'apparence, où vous pouvez changer la couleur, l'opacité et l'épaisseur des éléments de fichier sélectionnés sur la carte.
 
-### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Cacher/afficher
-
-Activer/désactiver la visibilité des éléments de fichier sélectionnés sur la carte.
-
 ### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Nouvelle piste
 
 Créer une nouvelle piste dans le fichier sélectionné.
+
+<DocsNote>
+
+Cette action n'est disponible que lorsque la présentation en arborescence de la liste de fichiers est activée.
+De plus, la sélection doit contenir un seul fichier.
+
+</DocsNote>
+
+### <Plus size="16" class="inline-block" style="margin-bottom: 2px" /> Nouvelle route
+
+Créer une nouvelle route dans le fichier sélectionné.
 
 <DocsNote>
 
@@ -53,13 +60,16 @@ De plus, la sélection doit contenir une seule piste.
 
 </DocsNote>
 
+### <ArrowRightLeft size="16" class="inline-block" style="margin-bottom: 2px" /> Convertir en fichier route/piste
+
+Convertir les routes sélectionnées en pistes, ou les pistes ou segments sélectionnés en routes.
+Comme une route a un seul segment, une piste avec plusieurs segments est convertie en une route par segment.
+
+Lorsque les fichiers sélectionnés ne contiennent que des routes, ou seulement des pistes, vous pouvez également les convertir tous en même temps.
+
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Sélectionner tout
 
 Ajouter tous les éléments de fichier du niveau de hiérarchie actuel à la sélection.
-
-### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Centrer
-
-Centrer la carte sur les éléments de fichier sélectionnés.
 
 ### <ClipboardCopy size="16" class="inline-block" style="margin-bottom: 2px" /> Copier
 

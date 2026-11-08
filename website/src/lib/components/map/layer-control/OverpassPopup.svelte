@@ -2,12 +2,12 @@
     import * as Card from '$lib/components/ui/card';
     import { Button } from '$lib/components/ui/button';
     import { PencilLine, MapPin } from '@lucide/svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
-    import type { WaypointType } from 'gpx';
     import type { PopupItem } from '$lib/components/map/map-popup';
-    import { fileActions } from '$lib/logic/file-actions';
-    import { selection } from '$lib/logic/selection';
+    import { engine } from '$lib/engine';
+    import { selectionSize } from '$lib/engine/selection-helpers';
+    import { getElevation } from '$lib/utils';
 
     let {
         poi,
@@ -29,28 +29,22 @@
         return '';
     });
 
-    function addToFile() {
+    const { selection } = engine;
+
+    async function addToFile() {
         const desc = Object.entries(tags)
             .map(([key, value]) => `${key}: ${value}`)
             .join('\n');
-        let wpt: WaypointType = {
-            attributes: {
-                lat: poi.item.lat,
-                lon: poi.item.lon,
-            },
-            name: name,
-            desc: desc,
-            cmt: desc,
-            sym: poi.item.sym,
-        };
-        if (tags.website) {
-            wpt.link = {
-                attributes: {
-                    href: tags.website,
-                },
-            };
-        }
-        fileActions.addOrUpdateWaypoint(wpt);
+        const [ele] = await getElevation([{ lat: poi.item.lat, lng: poi.item.lng }]);
+        await engine.newWaypoint({
+            lng: poi.item.lng,
+            lat: poi.item.lat,
+            ele,
+            name,
+            desc,
+            icon: poi.item.sym ?? '',
+            link: tags.website ?? '',
+        });
     }
 </script>
 
@@ -60,7 +54,7 @@
             <div class="flex flex-col">
                 <p>{name}</p>
                 <div class="text-muted-foreground text-xs font-normal">
-                    {poi.item.lat.toFixed(6)}&deg; {poi.item.lon.toFixed(6)}&deg;
+                    {poi.item.lat.toFixed(6)}&deg; {poi.item.lng.toFixed(6)}&deg;
                 </div>
             </div>
 
@@ -85,11 +79,16 @@
                 </div>
             {/if}
             <div class="grid grid-cols-[auto_auto] gap-x-3">
-                {#each Object.entries(tags) as [key, value]}
+                {#each Object.entries(tags) as [key, value] (key)}
                     {#if key !== 'name' && !key.includes('image')}
                         <span class="font-mono">{key}</span>
                         {#if key === 'website' || key.startsWith('website:') || key.endsWith(':website') || key === 'contact:facebook' || key === 'contact:instagram' || key === 'contact:twitter'}
-                            <a href={value} target="_blank" class="text-link underline">{value}</a>
+                            <a
+                                href={value}
+                                target="_blank"
+                                rel="external"
+                                class="text-link underline">{value}</a
+                            >
                         {:else if key === 'wikipedia' || key.startsWith('wikipedia:') || key.endsWith(':wikipedia')}
                             <a
                                 href="https://wikipedia.org/wiki/{value}"
@@ -113,7 +112,7 @@
             size="sm"
             class="mt-1 justify-start"
             variant="outline"
-            disabled={$selection.size === 0}
+            disabled={selectionSize($selection) === 0}
             onclick={addToFile}
         >
             <MapPin size="14" />
