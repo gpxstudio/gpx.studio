@@ -123,7 +123,6 @@ export async function createWasmBackend(): Promise<Backend> {
         file_structure: lift(w.file_structure),
         file_statistics: lift(w.file_statistics),
         waypoint: lift(w.waypoint),
-        trackpoint: lift(w.trackpoint),
         // a copy out of the memory of the engine, so a plain ArrayBuffer
         export_file: lift(
             (...args: Parameters<Backend['export_file']>) =>

@@ -24,14 +24,6 @@ pub struct Statistics {
 }
 
 impl Statistics {
-    pub fn total_speed(&self) -> Option<f64> {
-        self.global.total_speed()
-    }
-
-    pub fn moving_speed(&self) -> Option<f64> {
-        self.global.moving_speed()
-    }
-
     pub fn compute(trkseg: &TrackSegment) -> Self {
         let mut stats = Self::default();
         if trkseg.is_empty() {

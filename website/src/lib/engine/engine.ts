@@ -33,7 +33,6 @@ import {
     type FolderEntry,
     type UnsavedChoice,
     type WorkspaceState,
-    type TrackpointDetails,
     type WaypointDetails,
 } from './types';
 
@@ -881,15 +880,6 @@ class Engine {
         return this.read((b) => b.waypoint(fileId, waypointId), undefined);
     }
 
-    /** A trackpoint of a segment, `undefined` if it does not exist. */
-    trackpoint(
-        fileId: string,
-        segmentId: string,
-        index: number
-    ): Promise<TrackpointDetails | undefined> {
-        return this.read((b) => b.trackpoint(fileId, segmentId, index), undefined);
-    }
-
     /**
      * A file as GPX (UTF-8 bytes), `undefined` if it does not exist. The options say which data of the
      * trackpoints to keep.
@@ -933,17 +923,6 @@ class Engine {
      */
     reductionDistances(): Promise<Float64Array> {
         return this.read((b) => b.reduction_distances(), new Float64Array());
-    }
-
-    // Coordinates, as flat [lng, lat, ...] arrays: copies.
-    // Refetch them when the `rev` of the segment (or the `waypointsRev` of the file) changed.
-
-    segmentCoordinates(segmentId: string): Promise<Float64Array> {
-        return this.read((b) => b.segment_coordinates(segmentId), new Float64Array());
-    }
-
-    waypointCoordinates(fileId: string): Promise<Float64Array> {
-        return this.read((b) => b.waypoint_coordinates(fileId), new Float64Array());
     }
 
     /**

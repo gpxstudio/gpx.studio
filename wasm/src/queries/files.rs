@@ -101,18 +101,6 @@ pub fn waypoint(file_id: &str, waypoint_id: &str) -> WaypointDetails {
     optional_js(details).unchecked_into()
 }
 
-/// A trackpoint of a segment of a file, `undefined` if it does not exist.
-#[wasm_bindgen]
-pub fn trackpoint(file_id: &str, segment_id: &str, index: usize) -> TrackpointDetails {
-    let details =
-        parse_uuid(file_id)
-            .zip(parse_uuid(segment_id))
-            .and_then(|(file_id, segment_id)| {
-                with_engine(|e| api::trackpoint(e, file_id, segment_id, index)).flatten()
-            });
-    optional_js(details).unchecked_into()
-}
-
 /// What was copied or cut and is waiting to be pasted, `undefined` if nothing: the kind of the
 /// elements and their ids (UUID strings).
 #[wasm_bindgen]

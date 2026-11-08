@@ -36,6 +36,7 @@ impl StatisticsCache {
     }
 
     /// Statistics of the segments of the selection.
+    #[cfg(test)]
     pub fn get<'a>(
         &'a self,
         state: Option<&'a Files>,

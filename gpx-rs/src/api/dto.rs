@@ -560,26 +560,6 @@ impl WaypointDetails {
     }
 }
 
-#[derive(Serialize)]
-pub struct TrackpointDetails {
-    lng: f64,
-    lat: f64,
-    ele: f64,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    time: Option<f64>,
-}
-
-impl TrackpointDetails {
-    pub fn new(pt: &engine::Trackpoint) -> Self {
-        Self {
-            lng: pt.coordinates.lng,
-            lat: pt.coordinates.lat,
-            ele: pt.ele,
-            time: pt.time.map(|t| t as f64),
-        }
-    }
-}
-
 /// A trackpoint of the selection: what the statistics buffers do not hold for each trackpoint.
 /// Absent fields are unknown.
 #[derive(Serialize)]

@@ -173,7 +173,6 @@ pub fn register_commands<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri
         queries::can_redo,
         queries::can_paste,
         queries::waypoint,
-        queries::trackpoint,
         queries::export_file,
         queries::exportable_data,
         queries::reduction_distances,

@@ -8,7 +8,6 @@ import type {
     Selection,
     SelectionPoint,
     StorageOpened,
-    TrackpointDetails,
     WaypointDetails,
 } from 'gpx-wasm';
 import type { ExportOptions, MergeType, SelectMode, SplitType } from '../types';
@@ -266,11 +265,6 @@ export interface Backend {
     file_structure(fileId: string): Promise<FileStructure | undefined>;
     file_statistics(fileId: string): Promise<GlobalStatistics | undefined>;
     waypoint(fileId: string, waypointId: string): Promise<WaypointDetails | undefined>;
-    trackpoint(
-        fileId: string,
-        segmentId: string,
-        index: number
-    ): Promise<TrackpointDetails | undefined>;
     /** A file as GPX (UTF-8 bytes), `undefined` if it does not exist. */
     export_file(
         fileId: string,

@@ -9,7 +9,6 @@ import {
     hasSelectionWithin,
     isCovered,
     isInClipboard,
-    isEmpty,
     isSelected,
     isSelectionHidden,
     selectedElementIds,
@@ -66,12 +65,6 @@ describe('selection helpers', () => {
         for (const selection of [empty, waypoints, waypoint('W1')]) {
             assert.equal(coversSegments(selection), false);
         }
-    });
-
-    it('tells whether the selection is empty', () => {
-        assert.equal(isEmpty(empty), true);
-        assert.equal(isEmpty(files('F1')), false);
-        assert.equal(isEmpty(waypoints), false);
     });
 
     it('lists the files holding something selected', () => {

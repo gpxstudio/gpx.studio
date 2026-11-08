@@ -9,7 +9,6 @@ export type { FileStatus, FolderEntry, UnsavedChoice, WorkspaceState } from './b
 export type {
     Clipboard,
     WaypointDetails,
-    TrackpointDetails,
     MoveTarget,
     GlobalStatistics,
     SelectionPoint,

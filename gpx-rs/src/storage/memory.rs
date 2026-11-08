@@ -1,9 +1,9 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-use crate::{
-    Batch, ChunkKey, ChunkKind, CommitError, FileId, Revision, Storage, StorageError, StoredData,
-};
+#[cfg(test)]
+use crate::ChunkKind;
+use crate::{Batch, ChunkKey, CommitError, FileId, Revision, Storage, StorageError, StoredData};
 
 /// A storage that lives as long as the session. It is what an engine without a host storage uses,
 /// and what the tests use.
@@ -22,6 +22,7 @@ struct State {
 }
 
 /// How much there is in a storage.
+#[cfg(test)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StorageCounts {
     pub files: usize,
@@ -29,6 +30,7 @@ pub struct StorageCounts {
     pub waypoint_chunks: usize,
 }
 
+#[cfg(test)]
 impl MemoryStorage {
     /// How many files and chunks are stored.
     pub fn counts(&self) -> StorageCounts {

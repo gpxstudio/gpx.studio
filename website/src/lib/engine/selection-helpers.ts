@@ -65,10 +65,6 @@ export function coversSegments(selection: Selection): boolean {
     );
 }
 
-export function isEmpty(selection: Selection): boolean {
-    return selection.type === 'empty';
-}
-
 /** Ids of the files holding something selected (or selected themselves). */
 export function selectedFileIds(selection: Selection): string[] {
     switch (selection.type) {

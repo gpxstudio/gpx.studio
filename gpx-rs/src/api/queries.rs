@@ -63,18 +63,6 @@ pub fn waypoint<H: History>(
         .map(WaypointDetails::new)
 }
 
-/// A trackpoint of a segment of a file, `None` if it does not exist.
-pub fn trackpoint<H: History>(
-    engine: &Engine<H>,
-    file_id: Uuid,
-    segment_id: Uuid,
-    index: usize,
-) -> Option<TrackpointDetails> {
-    engine
-        .trackpoint(&FileId(file_id), &engine::TrackSegmentId(segment_id), index)
-        .map(TrackpointDetails::new)
-}
-
 /// A file as GPX (UTF-8 bytes), `None` if it does not exist. The options say which data of the
 /// trackpoints to keep.
 pub fn export_file<H: History>(

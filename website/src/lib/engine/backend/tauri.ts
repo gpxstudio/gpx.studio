@@ -159,8 +159,6 @@ export async function createTauriBackend(): Promise<Backend> {
             (await invoke('file_statistics', { fileId })) ?? undefined,
         waypoint: async (fileId, waypointId) =>
             (await invoke('waypoint', { fileId, waypointId })) ?? undefined,
-        trackpoint: async (fileId, segmentId, index) =>
-            (await invoke('trackpoint', { fileId, segmentId, index })) ?? undefined,
         export_file: async (fileId, time, hr, cad, atemp, power, osm) => {
             const file = await optionalArray('export_file', Uint8Array, {
                 fileId,

@@ -11,31 +11,6 @@ export type CategoryIntervals = {
     names: string[];
 };
 
-/**
- * The value of each of the `length` trackpoints for a category of the engine, `undefined` when it
- * is unknown, or when the category is missing (it is unknown for every trackpoint). The intervals
- * are scanned once, so it takes a time linear in `length`.
- */
-export function categoryValues(
-    intervals: CategoryIntervals | undefined,
-    length: number
-): (string | undefined)[] {
-    const result: (string | undefined)[] = new Array(length).fill(undefined);
-    if (!intervals) {
-        return result;
-    }
-    const { starts, values, names } = intervals;
-    for (let i = 0; i < starts.length; i++) {
-        if (!values[i]) {
-            continue; // unknown, already `undefined`
-        }
-        const name = names[values[i] - 1];
-        const end = i + 1 < starts.length ? Math.min(starts[i + 1], length) : length;
-        result.fill(name, starts[i], end);
-    }
-    return result;
-}
-
 /** The index of the interval of `starts` (sorted) that the trackpoint `index` is in, -1 if none. */
 export function intervalAt(starts: Uint32Array, index: number): number {
     let low = 0;
@@ -66,7 +41,7 @@ export function categoryValue(
 
 /**
  * The intervals of the trackpoints that share a value, for a value per trackpoint (`undefined`
- * when unknown): the inverse of `categoryValues`. The names are in the order of their first
+ * when unknown). The names are in the order of their first
  * appearance. A value that is unknown everywhere gives no intervals.
  */
 export function categoryIntervals(values: readonly (string | undefined)[]): CategoryIntervals {

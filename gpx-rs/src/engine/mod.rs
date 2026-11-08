@@ -11,7 +11,7 @@ pub use outcome::*;
 pub use state::*;
 
 use crate::{
-    ExportOptions, FileId, GlobalStatistics, Restored, Snapshot, TrackSegmentId, Trackpoint,
+    ExportOptions, FileId, GlobalStatistics, Restored, Snapshot, TrackSegmentId,
     TrackpointCategories, Waypoint, WaypointId, reduction_distances, write,
 };
 
@@ -80,22 +80,6 @@ impl<H: History> Engine<H> {
             .wpt
             .iter()
             .find(|wpt| wpt.id == *id)
-    }
-
-    /// A trackpoint of a segment (of a route or a track) of a file. `None` if it does not exist.
-    pub fn trackpoint(
-        &self,
-        file_id: &FileId,
-        segment_id: &TrackSegmentId,
-        index: usize,
-    ) -> Option<&Trackpoint> {
-        let segment = self
-            .history
-            .current()?
-            .get(file_id)?
-            .segments()
-            .find(|seg| seg.id == *segment_id)?;
-        (index < segment.len()).then(|| &segment[index])
     }
 
     /// For each trackpoint of the selection (numbered as in the statistics), the tolerance up to

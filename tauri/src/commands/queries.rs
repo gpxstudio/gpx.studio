@@ -57,16 +57,6 @@ pub fn waypoint(
     state.read(move |e| api::waypoint(e, file_id, waypoint_id))
 }
 
-#[tauri::command(async)]
-pub fn trackpoint(
-    state: State<AppState>,
-    file_id: Uuid,
-    segment_id: Uuid,
-    index: usize,
-) -> Option<api::TrackpointDetails> {
-    state.read(move |e| api::trackpoint(e, file_id, segment_id, index))
-}
-
 /// A file as GPX (UTF-8 bytes), the first byte telling whether the file exists.
 #[tauri::command(async)]
 #[allow(clippy::too_many_arguments)]

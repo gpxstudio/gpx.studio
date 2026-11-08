@@ -59,14 +59,6 @@ export interface WaypointDetails {
     links?: { href: string; text?: string }[];
     sym?: string;
 }
-/** The position, elevation and time of a trackpoint. */
-export interface TrackpointDetails {
-    lng: number;
-    lat: number;
-    ele: number;
-    /** ms since epoch */
-    time?: number;
-}
 /**
  * A trackpoint of the selection: what the statistics buffers do not hold for each trackpoint.
  * Absent fields are unknown.
@@ -189,8 +181,6 @@ extern "C" {
     pub type Selection;
     #[wasm_bindgen(typescript_type = "WaypointDetails | undefined")]
     pub type WaypointDetails;
-    #[wasm_bindgen(typescript_type = "TrackpointDetails | undefined")]
-    pub type TrackpointDetails;
     #[wasm_bindgen(typescript_type = "SelectionPoint | undefined")]
     pub type SelectionPoint;
     #[wasm_bindgen(typescript_type = "MoveTarget")]

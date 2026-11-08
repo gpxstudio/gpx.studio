@@ -1170,24 +1170,6 @@ fn test_categories_are_shared_and_kept_by_the_history() {
 }
 
 #[test]
-fn test_trackpoint() {
-    let mut engine = TestEngine::default();
-    load(&mut engine, "data/simple.gpx");
-    let file = engine.order()[0];
-    let structure = engine.file_structure(&file).unwrap();
-    let seg = &structure.tracks[0].segments[0];
-    let (seg_id, len) = (seg.id, seg.len);
-    let coordinates = engine.segment_coordinates(&seg_id).to_vec();
-    let last = engine.trackpoint(&file, &seg_id, len - 1).unwrap();
-    assert_eq!(
-        [last.coordinates.lng, last.coordinates.lat],
-        coordinates[(len - 1) * 2..]
-    );
-    assert!(engine.trackpoint(&file, &seg_id, len).is_none());
-    assert!(engine.trackpoint(&Default::default(), &seg_id, 0).is_none());
-}
-
-#[test]
 fn test_export_writes_the_file_as_it_is() {
     let mut engine = TestEngine::default();
     assert!(
