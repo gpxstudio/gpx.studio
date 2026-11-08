@@ -399,13 +399,43 @@ describe('ExtensionAPI v2', () => {
         assert.deepEqual(calls, [{ a: true }]);
     });
 
-    it('does not tell the extension that all is hidden when the page closes', () => {
-        const calls: unknown[] = [];
-        api.onVisibilityChange('Heatmaps', (visible) => calls.push(visible));
-        api.setOverlays('Heatmaps', [v2('a', { visible: true })]);
-        (api as unknown as { destroy(): void }).destroy();
-        assert.deepEqual(calls, []);
+    it('forgets the state of the overlays with the next session', () => {
+        const saved = () => ({
+            currentOverlays: JSON.stringify(get(settings.currentOverlays)),
+            previousOverlays: JSON.stringify(get(settings.previousOverlays)),
+            selectedOverlayTree: JSON.stringify(get(settings.selectedOverlayTree)),
+            opacities: JSON.stringify(get(settings.opacities)),
+        });
+        // what was saved, not the default trees, which are the ones that are allowed
+        settings.connect(saved());
+
+        api.setOverlays('Heatmaps', [v2('a', { visible: true }), v2('b')]);
+        api.addOrUpdateOverlay(overlay('one'));
+        settings.selectedOverlayTree.update((tree) => {
+            group(tree)![id('b')] = false;
+            return tree;
+        });
+        settings.opacities.update((opacities) => ({ ...opacities, [id('a')]: 0.3 }));
+        const stored = saved();
+        assert.ok(stored.currentOverlays.includes(id('a')));
+
+        settings.connect(stored);
+        for (const tree of [
+            get(settings.currentOverlays),
+            get(settings.previousOverlays),
+            get(settings.selectedOverlayTree),
+        ]) {
+            assert.ok(!JSON.stringify(tree).includes('extension-'));
+        }
+        assert.equal(get(settings.opacities)[id('a')], 0.3);
+
+        // an extension that is still there starts again, as the source of what it remembers
+        const next = new ExtensionAPI();
+        next.setOverlays('Heatmaps', [v2('a'), v2('b', { visible: true })]);
         assert.equal(isSelected(get(settings.currentOverlays)!, id('a')), false);
+        assert.equal(isSelected(get(settings.currentOverlays)!, id('b')), true);
+        assert.equal(isSelected(get(settings.selectedOverlayTree), id('b')), true);
+        next.setOverlays('Heatmaps', []);
     });
 
     it('leaves a style URL for the map to fetch', () => {

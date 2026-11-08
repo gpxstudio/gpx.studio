@@ -141,11 +141,13 @@ describe('layer trees', () => {
         assert.deepEqual(filterLayerTree({}, allowed), allowed);
     });
 
-    it('drops the layers that are not allowed anymore, but not the custom ones', () => {
+    it('drops the layers that are not allowed anymore and those of extensions, not the custom ones', () => {
         const filtered = filterLayerTree(
             {
-                world: { a: true, gone: true, 'custom-1': true, 'extension-x': false },
+                world: { a: true, gone: true, 'custom-1': true, 'extension-x': true },
                 old: { x: true },
+                extension: { 'extension-Name/y': true },
+                custom: { 'custom-2': false },
             },
             allowed
         );
@@ -153,10 +155,10 @@ describe('layer trees', () => {
             a: true,
             b: false,
             'custom-1': true,
-            'extension-x': false,
         });
-        assert.equal('old' in filtered, true);
-        assert.deepEqual(filtered.old, {});
+        assert.equal('old' in filtered, false);
+        assert.equal('extension' in filtered, false);
+        assert.deepEqual(filtered.custom, { 'custom-2': false });
     });
 
     it('does not take a branch for a layer, or a layer for a branch', () => {

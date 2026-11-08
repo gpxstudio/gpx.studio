@@ -196,7 +196,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 /**
  * The saved tree `t`, with the layers of `allowed`: the choices saved for them are kept, the new
- * ones have their default, and of the others only the custom and extension layers are kept.
+ * ones have their default, and of the others only the custom layers are kept. The layers of
+ * extensions are saved with the others, but not read back: they come again when an extension sets
+ * them, if it is still there.
  */
 export function filterLayerTree(t: unknown, allowed: LayerTreeType | undefined): LayerTreeType {
     const tree = isRecord(t) ? t : {};
@@ -214,11 +216,14 @@ export function filterLayerTree(t: unknown, allowed: LayerTreeType | undefined):
     Object.entries(tree).forEach(([key, value]) => {
         if (!Object.hasOwn(filtered, key)) {
             if (typeof value === 'boolean') {
-                if (key.startsWith('custom-') || key.startsWith('extension-')) {
+                if (key.startsWith('custom-')) {
                     filtered[key] = value;
                 }
             } else if (isRecord(value)) {
-                filtered[key] = filterLayerTree(value, undefined);
+                const group = filterLayerTree(value, undefined);
+                if (Object.keys(group).length > 0) {
+                    filtered[key] = group;
+                }
             }
         }
     });

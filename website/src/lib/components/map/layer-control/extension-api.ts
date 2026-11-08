@@ -1,7 +1,7 @@
 import { settings } from '$lib/state/settings';
 import type { StyleSpecification } from 'maplibre-gl';
 import { derived, get, writable, type Writable } from 'svelte/store';
-import { isSelected, prefixStyle, remove, removeAll } from './utils';
+import { isSelected, prefixStyle, removeAll } from './utils';
 import { layerGroup, overlays, overlayTree, type LayerTreeType } from '$lib/data/layers';
 import { browser } from '$app/environment';
 import { map } from '$lib/components/map/map';
@@ -100,9 +100,6 @@ export class ExtensionAPI {
             this.ready.then(() => window.dispatchEvent(new Event('gpxstudio:ready')));
             Object.defineProperty(window, 'gpxstudio', {
                 value: this,
-            });
-            addEventListener('beforeunload', () => {
-                this.destroy();
             });
         }
     }
@@ -432,30 +429,6 @@ export class ExtensionAPI {
         const names = new Set(Array.from($overlays.values(), (overlay) => overlay.extensionName));
         return (id: string) => names.has(id);
     });
-
-    private destroy() {
-        // the page is closing: the user has not hidden anything, which extensions would then save
-        this._visibilityCallbacks.clear();
-        const ids = Array.from(get(this._overlays).keys());
-        currentOverlays.update((current) => {
-            ids.forEach((id) => {
-                remove(current, id);
-            });
-            return current;
-        });
-        previousOverlays.update((previous) => {
-            ids.forEach((id) => {
-                remove(previous, id);
-            });
-            return previous;
-        });
-        selectedOverlayTree.update((selected) => {
-            ids.forEach((id) => {
-                remove(selected, id);
-            });
-            return selected;
-        });
-    }
 }
 
 export const extensionAPI = new ExtensionAPI();
