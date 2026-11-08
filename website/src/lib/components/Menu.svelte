@@ -40,6 +40,7 @@
         FolderOpen,
         FileStack,
         FileX,
+        SquareDashed,
         BookOpenText,
         ChartArea,
         Maximize,
@@ -74,6 +75,7 @@
     import { boundsManager } from '$lib/logic/bounds';
     import { tick, onMount } from 'svelte';
     import { allowedPastes } from '$lib/components/file-list/sortable-file-list';
+    import { currentTool } from '$lib/components/toolbar/tools';
 
     const {
         distanceUnits,
@@ -302,6 +304,16 @@
                         <FileStack size="16" />
                         {i18n._('menu.select_all')}
                         <Shortcut key="A" ctrl={true} />
+                    </Menubar.Item>
+                    <!-- onSelect, not onclick: clearing the selection disables this item, and bits-ui
+                         checks that after onclick, so the menu would stay open -->
+                    <Menubar.Item
+                        onSelect={() => selection.set([])}
+                        disabled={$selection.size == 0}
+                    >
+                        <SquareDashed size="16" />
+                        {i18n._('menu.deselect_all')}
+                        <Shortcut key="Esc" />
                     </Menubar.Item>
                     <Menubar.Item
                         onclick={() => {
@@ -630,6 +642,18 @@
         } else if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {
             if (!targetInput) {
                 selection.selectAll();
+                e.preventDefault();
+            }
+        } else if (e.key === 'Escape') {
+            // Escape closes open dialogs and menus first (they prevent the default), then the
+            // current tool (handled by the toolbar), and only then clears the selection
+            if (
+                !targetInput &&
+                !e.defaultPrevented &&
+                $currentTool === null &&
+                $selection.size > 0
+            ) {
+                selection.set([]);
                 e.preventDefault();
             }
         } else if (e.key === 'i' && (e.metaKey || e.ctrlKey)) {

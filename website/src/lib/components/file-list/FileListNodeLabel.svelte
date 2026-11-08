@@ -17,6 +17,7 @@
         Maximize,
         Scissors,
         FileStack,
+        SquareDashed,
     } from '@lucide/svelte';
     import {
         ListFileItem,
@@ -225,6 +226,11 @@
                 {i18n._('menu.style.button')}
             </ContextMenu.Item>
         {/if}
+        <ContextMenu.Item onclick={() => selection.set([])}>
+            <SquareDashed size="16" />
+            {i18n._('menu.deselect')}
+            <Shortcut key="Esc" />
+        </ContextMenu.Item>
         <ContextMenu.Item
             onclick={() => {
                 if ($allHidden) {

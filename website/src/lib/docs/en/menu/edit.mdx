@@ -3,7 +3,7 @@ title: Edit actions
 ---
 
 <script lang="ts">
-    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from '@lucide/svelte';
+    import { Undo2, Redo2, Info, PaintBucket, EyeOff, FileStack, SquareDashed, ClipboardCopy, Scissors, ClipboardPaste, Trash2, Maximize, Plus } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -56,6 +56,10 @@ Additionally, the selection must be a single track.
 ### <FileStack size="16" class="inline-block" style="margin-bottom: 2px" /> Select all
 
 Add all file items in the current hierarchy level to the selection.
+
+### <SquareDashed size="16" class="inline-block" style="margin-bottom: 2px" /> Deselect all
+
+Clear the selection.
 
 ### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
 
