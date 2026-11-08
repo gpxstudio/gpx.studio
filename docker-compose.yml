@@ -1,0 +1,46 @@
+# Local development server, containerised.
+#
+# Usage:  docker compose up        (then open http://localhost:5173)
+#
+services:
+    web:
+        image: node:24-bookworm-slim
+        init: true
+        working_dir: /app/website
+        entrypoint: ['/bin/sh', '/app/docker/dev-entrypoint.sh']
+        command: ['npx', 'vite', 'dev', '--host', '0.0.0.0', '--strictPort']
+        ports:
+            # Set DEV_PORT if something on the host already holds 5173. Vite's
+            # HMR client connects back to whatever host:port the page was loaded
+            # from, so remapping needs no extra config.
+            - '${DEV_PORT:-5173}:5173'
+        environment:
+            # macOS fsevents do not fully propagate into the Linux VM (VirtioFS
+            # still drops delete events), so Vite's watcher has to poll or HMR
+            # appears dead. Both Vite's bundled chokidar 3 and the chokidar 4
+            # SvelteKit uses read these, which is why no vite.config.ts change
+            # is needed. Try CHOKIDAR_USEPOLLING=0 to see if your Docker Desktop
+            # forwards events natively.
+            CHOKIDAR_USEPOLLING: '1'
+            CHOKIDAR_INTERVAL: '300'
+            # Normally the key comes from the bind-mounted website/.env. This is
+            # an escape hatch for a fresh clone that has no .env yet, since
+            # $env/static/public fails hard at import without it.
+            PUBLIC_MAPTILER_KEY: ${PUBLIC_MAPTILER_KEY:-}
+        volumes:
+            - .:/app
+            # The host's node_modules hold darwin-arm64 binaries (esbuild,
+            # rollup, lightningcss, sharp). These named volumes shadow them with
+            # the container's own linux-arm64 trees. They also isolate
+            # node_modules/.vite and node_modules/.cache/imagetools per side.
+            - gpx_node_modules:/app/gpx/node_modules
+            - website_node_modules:/app/website/node_modules
+            - npm_cache:/root/.npm
+            # Records which lockfiles the current node_modules were built from.
+            - dev_state:/state
+
+volumes:
+    gpx_node_modules:
+    website_node_modules:
+    npm_cache:
+    dev_state:

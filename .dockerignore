@@ -1,0 +1,6 @@
+.git
+.DS_Store
+node_modules
+gpx/dist
+website/build
+website/.svelte-kit
