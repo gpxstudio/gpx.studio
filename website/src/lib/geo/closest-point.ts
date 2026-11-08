@@ -1,25 +1,10 @@
 const metersPerDegree = 111320;
 
 /**
- * Index of the point of a polyline (flat `[lng, lat, ...]` coordinates) that is the closest to
- * `point`, among the two ends of the segment of the polyline that passes the closest to it.
- * `undefined` for an empty polyline. Planar approximation, like the one used to simplify tracks.
- */
-export function closestPointIndex(
-    coordinates: ArrayLike<number>,
-    point: { lng: number; lat: number }
-): number | undefined {
-    return closestIndex(
-        Math.floor(coordinates.length / 2),
-        (i) => coordinates[2 * i],
-        (i) => coordinates[2 * i + 1],
-        point
-    );
-}
-
-/**
- * Like `closestPointIndex`, for the points `from` (included) to `to` (excluded) of a polyline
- * given as the arrays of its longitudes and latitudes. The index is the one in the arrays.
+ * Index of the point, among the points `from` (included) to `to` (excluded) of a polyline given as
+ * the arrays of its longitudes and latitudes, that is the closest to `point`: one of the two ends
+ * of the segment of the polyline that passes the closest to it. The index is the one in the arrays,
+ * `undefined` for an empty range. Planar approximation, like the one used to simplify tracks.
  */
 export function closestPointIndexIn(
     lng: ArrayLike<number>,

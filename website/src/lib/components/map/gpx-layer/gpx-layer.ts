@@ -7,8 +7,8 @@ import {
     Point,
 } from 'maplibre-gl';
 import { map } from '$lib/components/map/map';
-import { waypointPopup, trackpointPopup } from './gpx-layer-popup';
-import { closestPointIndex } from '$lib/geo/closest-point';
+import { waypointPopup } from './gpx-layer-popup';
+import { closestPointIndexIn } from '$lib/geo/closest-point';
 import { getElevation, loadSVGIcon } from '$lib/utils';
 import { selectedWaypoint } from '$lib/components/toolbar/tools/waypoint/waypoint';
 import { MapPin, Square } from 'lucide-static';
@@ -21,6 +21,7 @@ import { currentTool, Tool } from '$lib/components/toolbar/tools';
 import { splitAtPoint } from '$lib/components/toolbar/tools/scissors/scissors';
 import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
+import { hoveredTrackpoint } from '$lib/state/selection-statistics';
 
 export function getSvgForSymbol(symbol?: string | undefined, layerColor?: string | undefined) {
     const symbolSvg = symbol ? symbols[symbol]?.iconSvg : undefined;
@@ -63,6 +64,7 @@ export class GPXLayer {
     currentWaypointData: GeoJSON.FeatureCollection | null = null;
     draggedWaypointIndex: number | null = null;
     draggingStartingPosition: Point = new Point(0, 0);
+    hoversTrackpoint: boolean = false;
     unsubscribe: (() => void)[] = [];
 
     updateBinded: () => void = this.update.bind(this);
@@ -400,25 +402,50 @@ export class GPXLayer {
     layerOnMouseLeave() {
         mapCursor.notify(MapCursorState.SCISSORS, false);
         mapCursor.notify(MapCursorState.LAYER_HOVER, false);
+        this.stopHoveringTrackpoint();
     }
 
-    async layerOnMouseMove(e: MapLayerMouseEvent) {
-        if (e.originalEvent.shiftKey) {
-            const { segmentId } = e.features![0].properties;
-            const lngLat = { lng: e.lngLat.lng, lat: e.lngLat.lat };
-            const index = closestPointIndex(await engine.segmentCoordinates(segmentId), lngLat);
-            const trackpoint =
-                index === undefined
-                    ? undefined
-                    : await engine.trackpoint(this.fileId, segmentId, index);
-            if (trackpoint) {
-                trackpointPopup?.setItem({
-                    item: trackpoint,
-                    kind: 'trackpoint',
-                    fileId: this.fileId,
-                });
+    layerOnMouseMove(e: MapLayerMouseEvent) {
+        const index = this.selectedTrackpointAt(e);
+        if (index === undefined) {
+            this.stopHoveringTrackpoint();
+        } else {
+            this.hoversTrackpoint = true;
+            hoveredTrackpoint.set(index);
+        }
+    }
+
+    stopHoveringTrackpoint() {
+        if (this.hoversTrackpoint) {
+            this.hoversTrackpoint = false;
+            hoveredTrackpoint.set(null);
+        }
+    }
+
+    /**
+     * The trackpoint of the statistics of the selection that is the closest to the pointer, in the
+     * first segment under it that is part of the selection.
+     */
+    selectedTrackpointAt(e: MapLayerMouseEvent): number | undefined {
+        const statistics = get(engine.statistics);
+        if (!statistics.segments) {
+            return undefined;
+        }
+        const { starts, ids } = statistics.segments;
+        for (const { properties } of e.features!) {
+            const segment = ids.indexOf(properties.segmentId);
+            if (segment >= 0) {
+                const end = segment + 1 < starts.length ? starts[segment + 1] : statistics.length;
+                return closestPointIndexIn(
+                    statistics.lng,
+                    statistics.lat,
+                    starts[segment],
+                    end,
+                    e.lngLat
+                );
             }
         }
+        return undefined;
     }
 
     layerOnClick(e: MapLayerMouseEvent) {

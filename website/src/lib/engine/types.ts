@@ -155,7 +155,9 @@ export type StatisticsMetric =
     /** `highway`, `sacScale` and `mtbScale`. */
     | 'highway'
     /** `anchors`. */
-    | 'anchors';
+    | 'anchors'
+    /** `segments`. */
+    | 'segments';
 
 /**
  * The anchors of the routing tool among the trackpoints of the selection: the points that can be
@@ -180,6 +182,15 @@ export type SelectionAnchors = {
      * that use them have to give.
      */
     revision: number;
+};
+
+/**
+ * The segments of the selection that have trackpoints: segment `i` has the id `ids[i]`, and its
+ * trackpoints go from `starts[i]` until the next start (or the last trackpoint).
+ */
+export type SelectionSegments = {
+    starts: Uint32Array;
+    ids: string[];
 };
 
 /**
@@ -229,6 +240,7 @@ export type SelectionStatistics = {
     /** Mountain biking scale. */
     mtbScale?: CategoryIntervals;
     anchors?: SelectionAnchors;
+    segments?: SelectionSegments;
 
     /**
      * Global statistics of the trackpoints from `start` to `end` (both included), for example

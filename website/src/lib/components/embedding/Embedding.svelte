@@ -18,7 +18,11 @@
     import { untrack } from 'svelte';
     import { isSelected, toggle } from '$lib/components/map/layer-control/utils';
     import { engine } from '$lib/engine';
-    import { hoveredPoint, slicedStatistics } from '$lib/state/selection-statistics';
+    import {
+        hoveredPoint,
+        hoveredTrackpoint,
+        slicedStatistics,
+    } from '$lib/state/selection-statistics';
 
     let {
         useHash = true,
@@ -119,6 +123,7 @@
                 {statistics}
                 {slicedStatistics}
                 {hoveredPoint}
+                {hoveredTrackpoint}
                 {additionalDatasets}
                 {elevationFill}
                 showControls={options.elevation.controls}

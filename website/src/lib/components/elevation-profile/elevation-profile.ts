@@ -15,10 +15,15 @@ import {
     getVelocityWithUnits,
 } from '$lib/units/units';
 import Chart, {
+    Tooltip,
+    type ActiveDataPoint,
     type ChartEvent,
     type ChartOptions,
+    type ChartType,
+    type Point,
     type ScriptableLineSegmentContext,
     type TooltipItem,
+    type TooltipPositionerFunction,
 } from 'chart.js/auto';
 import { get, type Readable, type Writable } from 'svelte/store';
 import type { Coordinates } from '$lib/geo/coordinates';
@@ -40,6 +45,22 @@ const { distanceUnits, velocityUnits, temperatureUnits } = settings;
 Chart.defaults.font.family =
     'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'; // Tailwind CSS font
 
+declare module 'chart.js' {
+    interface TooltipPositionerMap {
+        trackpoint: TooltipPositionerFunction<ChartType>;
+    }
+}
+
+/**
+ * Like the default for the events of the chart. A trackpoint that is shown without one is given by
+ * its position, as it can be between the points of the chart (see `activateTrackpoint`).
+ */
+Tooltip.positioners.trackpoint = function (items, position) {
+    return 'native' in position
+        ? Tooltip.positioners.average.call(this, items, position)
+        : position;
+};
+
 /** `undefined` for a missing measure (NaN), so that Chart.js leaves a gap instead of a value. */
 function optional(value: number, convert: (value: number) => number = (v) => v) {
     return Number.isNaN(value) ? undefined : convert(value);
@@ -53,6 +74,21 @@ interface ElevationProfilePoint {
     x: number;
     y: number;
     index: number;
+}
+
+/** The index of the point the closest to `x`, in points sorted by `x`. */
+function nearestPointIndex(points: { x: number }[], x: number): number {
+    let low = 0;
+    let high = points.length - 1;
+    while (low < high) {
+        const middle = (low + high) >> 1;
+        if (points[middle].x < x) {
+            low = middle + 1;
+        } else {
+            high = middle;
+        }
+    }
+    return low > 0 && x - points[low - 1].x < points[low].x - x ? low - 1 : low;
 }
 
 export class ElevationProfile {
@@ -75,6 +111,12 @@ export class ElevationProfile {
     private _heldMove: MouseEvent | null = null;
     private _slicedStatistics: Writable<SlicedStatistics | undefined>;
     private _hoveredPoint: Writable<Coordinates | null>;
+    /** All the points of each dataset, including the ones that the chart decimated. */
+    private _points: ElevationProfilePoint[][] = [];
+    /** The trackpoint hovered somewhere else, that the tooltip shows instead of its elements. */
+    private _shownTrackpoint: number | null = null;
+    private _hoveredTrackpoint: Readable<number | null> | undefined;
+    private _unsubscribeHoveredTrackpoint: (() => void) | undefined;
     private _additionalDatasets: Readable<string[]>;
     private _elevationFill: Readable<'slope' | 'surface' | 'highway' | undefined>;
     /** The statistics that are only read from the engine while the profile shows them. */
@@ -87,7 +129,8 @@ export class ElevationProfile {
         additionalDatasets: Readable<string[]>,
         elevationFill: Readable<'slope' | 'surface' | 'highway' | undefined>,
         canvas: HTMLCanvasElement,
-        overlay: HTMLCanvasElement
+        overlay: HTMLCanvasElement,
+        hoveredTrackpoint?: Readable<number | null>
     ) {
         this._statistics = statistics;
         this._slicedStatistics = slicedStatistics;
@@ -96,6 +139,7 @@ export class ElevationProfile {
         this._elevationFill = elevationFill;
         this._canvas = canvas;
         this._overlay = overlay;
+        this._hoveredTrackpoint = hoveredTrackpoint;
         this._request = engine.requestStatistics();
         this.updateRequest();
 
@@ -126,6 +170,9 @@ export class ElevationProfile {
             this._elevationFill.subscribe(() => {
                 this.updateRequest();
                 this.updateFill();
+            });
+            this._unsubscribeHoveredTrackpoint = this._hoveredTrackpoint?.subscribe((index) => {
+                this.showTrackpoint(index);
             });
         });
     }
@@ -195,20 +242,16 @@ export class ElevationProfile {
                 },
                 tooltip: {
                     enabled: () => !this._dragging && !this._panning,
+                    position: 'trackpoint',
                     callbacks: {
                         title: () => {
                             return '';
                         },
                         label: (context: TooltipItem<'line'>) => {
-                            const point = context.raw as ElevationProfilePoint;
+                            const point = this.pointOf(context);
                             if (context.datasetIndex === 0) {
                                 this._hoveredPoint.set(
-                                    this._dragging
-                                        ? null
-                                        : {
-                                              lat: this._data.lat[point.index],
-                                              lng: this._data.lng[point.index],
-                                          }
+                                    this._dragging ? null : this.coordinatesOf(point.index)
                                 );
                                 return `${i18n._('quantities.elevation')}: ${getElevationWithUnits(point.y, false)}`;
                             } else if (context.datasetIndex === 1) {
@@ -228,7 +271,7 @@ export class ElevationProfile {
                                 (context) => context.datasetIndex === 0
                             );
                             if (context.length === 0) return;
-                            const point = context[0].raw as ElevationProfilePoint;
+                            const point = this.pointOf(context[0]);
                             // the rest of the data is there once it is read (see `hover`)
                             const hovered = this._hovered;
                             const details =
@@ -478,6 +521,7 @@ export class ElevationProfile {
         }
         const data = get(this._statistics);
         this._data = data;
+        const shownTrackpoint = this._shownTrackpoint;
         // the indices of the trackpoints are the ones of other statistics
         this._hovered = null;
         const units = {
@@ -524,6 +568,7 @@ export class ElevationProfile {
             }
         }
 
+        this._points = datasets;
         this._chart.data.datasets[0] = {
             label: i18n._('quantities.elevation'),
             data: datasets[0],
@@ -570,6 +615,10 @@ export class ElevationProfile {
         this.setFill();
 
         this._chart.update();
+
+        if (shownTrackpoint !== null) {
+            this.showTrackpoint(shownTrackpoint);
+        }
     }
 
     updateDataVisibility() {
@@ -678,6 +727,73 @@ export class ElevationProfile {
         }
     }
 
+    /** The point that a line of the tooltip is about. */
+    private pointOf(context: TooltipItem<'line'>): ElevationProfilePoint {
+        return this._shownTrackpoint === null
+            ? (context.raw as ElevationProfilePoint)
+            : this._points[context.datasetIndex][this._shownTrackpoint];
+    }
+
+    private coordinatesOf(index: number): Coordinates {
+        return { lat: this._data.lat[index], lng: this._data.lng[index] };
+    }
+
+    /** Shows a trackpoint in the tooltip like when hovering it, or nothing anymore with `null`. */
+    private showTrackpoint(index: number | null) {
+        const shown = this._shownTrackpoint;
+        this._shownTrackpoint = index;
+        if (index !== null) {
+            this.hover(index);
+            if (this._hovered?.loaded) {
+                this.activateTrackpoint(index);
+            }
+        } else if (shown !== null) {
+            this._hovered = null;
+            this.setActiveElements([], { x: 0, y: 0 });
+            this._hoveredPoint.set(null);
+        }
+    }
+
+    /**
+     * Opens the tooltip on a trackpoint, once its data is read. The chart can only activate the
+     * points that it kept after decimating its data, which are different for each dataset and might
+     * not include the trackpoint: it activates the nearest ones, within a pixel of it, and the
+     * tooltip reads the values of the trackpoint (see `pointOf`).
+     */
+    private activateTrackpoint(index: number) {
+        const point = this._points[0]?.[index];
+        if (!this._chart || !point) {
+            return;
+        }
+        const { x: xScale, y: yScale } = this._chart.scales;
+        const elements: ActiveDataPoint[] = [];
+        // when the chart is zoomed, the trackpoint can be outside of it
+        if (xScale.min <= point.x && point.x <= xScale.max) {
+            for (const { index: datasetIndex } of this._chart.getSortedVisibleDatasetMetas()) {
+                if (this._points[datasetIndex]?.[index]?.y !== undefined) {
+                    const data = this._chart.data.datasets[datasetIndex].data as { x: number }[];
+                    elements.push({ datasetIndex, index: nearestPointIndex(data, point.x) });
+                }
+            }
+        }
+        if (elements.length === 0) {
+            // no tooltip to tell the map about the point
+            this._hoveredPoint.set(this.coordinatesOf(index));
+        }
+        this.setActiveElements(elements, {
+            x: xScale.getPixelForValue(point.x),
+            y: yScale.getPixelForValue(point.y),
+        });
+    }
+
+    private setActiveElements(elements: ActiveDataPoint[], position: Point) {
+        if (this._chart) {
+            this._chart.tooltip?.setActiveElements(elements, position);
+            this._chart.setActiveElements(elements);
+            this._chart.render();
+        }
+    }
+
     /** The trackpoint that the tooltip shows for an event, `undefined` outside of the chart. */
     private indexAt(event: ChartEvent): number | undefined {
         const elements = this._chart?.getElementsAtEventForMode(
@@ -718,6 +834,9 @@ export class ElevationProfile {
                 }
                 hovered.loaded = true;
                 hovered.point = point;
+                if (this._shownTrackpoint === hovered.index) {
+                    this.activateTrackpoint(hovered.index);
+                }
                 // the move that was held can now show the tooltip
                 const move = this._heldMove;
                 this._heldMove = null;
@@ -758,6 +877,7 @@ export class ElevationProfile {
 
     destroy() {
         this._request.release();
+        this._unsubscribeHoveredTrackpoint?.();
         if (this._chart) {
             this._chart.destroy();
             this._chart = null;

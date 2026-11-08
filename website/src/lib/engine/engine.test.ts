@@ -259,7 +259,7 @@ describe('statistics', () => {
         assert.equal(get(engine.statistics).hr, undefined);
 
         const request = engine.requestStatistics();
-        await request.set(['hr', 'anchors', 'slopeSegment']);
+        await request.set(['hr', 'anchors', 'slopeSegment', 'segments']);
         const statistics = get(engine.statistics);
         assert.equal(statistics.slopeSegments!.starts[0], 0);
         assert.equal(
@@ -270,6 +270,8 @@ describe('statistics', () => {
         assert.ok(statistics.hr!.some((hr) => !Number.isNaN(hr)));
         assert.equal(statistics.cad, undefined);
         assert.equal(statistics.anchors!.indices[0], 0);
+        assert.deepEqual([...statistics.segments!.starts], [...statistics.anchors!.segmentStarts]);
+        assert.deepEqual(statistics.segments!.ids, statistics.anchors!.segmentIds);
         assert.equal(statistics.anchors!.indices.at(-1), statistics.length - 1);
 
         // they are read again after a change, without being asked again

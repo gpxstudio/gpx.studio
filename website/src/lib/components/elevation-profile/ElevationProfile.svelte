@@ -31,6 +31,7 @@
         statistics,
         slicedStatistics,
         hoveredPoint,
+        hoveredTrackpoint,
         additionalDatasets,
         elevationFill,
         showControls = true,
@@ -38,6 +39,7 @@
         statistics: Readable<SelectionStatistics>;
         slicedStatistics: Writable<SlicedStatistics | undefined>;
         hoveredPoint: Writable<Coordinates | null>;
+        hoveredTrackpoint?: Readable<number | null>;
         additionalDatasets: Writable<string[]>;
         elevationFill: Writable<'slope' | 'surface' | 'highway' | undefined>;
         showControls?: boolean;
@@ -55,7 +57,8 @@
             additionalDatasets,
             elevationFill,
             canvas,
-            overlay
+            overlay,
+            hoveredTrackpoint
         );
     });
 

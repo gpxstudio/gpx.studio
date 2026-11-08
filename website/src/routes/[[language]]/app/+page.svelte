@@ -24,7 +24,11 @@
     import { getURLForLanguage } from '$lib/utils';
     import { inDesktopApp } from '$lib/engine/backend';
     import { openLinksInBrowser } from '$lib/desktop/links';
-    import { hoveredPoint, slicedStatistics } from '$lib/state/selection-statistics';
+    import {
+        hoveredPoint,
+        hoveredTrackpoint,
+        slicedStatistics,
+    } from '$lib/state/selection-statistics';
     import { engine } from '$lib/engine';
     import { boundsManager } from '$lib/state/bounds';
     import { getURLForGoogleDriveFile } from '$lib/components/embedding/embedding';
@@ -195,6 +199,7 @@
                     statistics={engine.statistics}
                     {slicedStatistics}
                     {hoveredPoint}
+                    {hoveredTrackpoint}
                     {additionalDatasets}
                     {elevationFill}
                 />

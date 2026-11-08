@@ -6,7 +6,7 @@ import MapPopupComponent from '$lib/components/map/MapPopup.svelte';
 export type PopupItem<T = any> = {
     /** Has a position (`lng` and `lat`). */
     item: T;
-    /** What the item is: a `WaypointDetails`, a `TrackpointDetails` or an Overpass element. */
+    /** What the item is: a `WaypointDetails`, the coordinates of a point or an Overpass element. */
     kind: 'waypoint' | 'trackpoint' | 'overpass';
     fileId?: string;
     hide?: () => void;

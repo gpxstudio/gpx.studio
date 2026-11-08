@@ -1,4 +1,4 @@
-import { FileStateCollectionObserver } from '$lib/engine';
+import { engine, FileStateCollectionObserver } from '$lib/engine';
 import { writable } from 'svelte/store';
 import { GPXLayer } from './gpx-layer';
 
@@ -14,6 +14,7 @@ export class GPXLayerCollection {
         if (this._fileStateCollectionObserver) {
             return;
         }
+        engine.requestStatistics().set(['segments']);
         this._fileStateCollectionObserver = new FileStateCollectionObserver(
             (newFiles) => {
                 newFiles.forEach((fileStore, fileId) => {

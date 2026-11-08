@@ -18,3 +18,9 @@ engine.statistics.subscribe(() => slicedStatistics.set(undefined));
 
 /** The point of the elevation profile that the pointer is over, shown on the map. */
 export const hoveredPoint: Writable<Coordinates | null> = writable(null);
+
+/** The trackpoint of the selection that the pointer is over on the map, shown on the profile. */
+export const hoveredTrackpoint: Writable<number | null> = writable(null);
+
+// its index only makes sense for the selection it was found in
+engine.statistics.subscribe(() => hoveredTrackpoint.set(null));
