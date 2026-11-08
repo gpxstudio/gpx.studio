@@ -2,8 +2,8 @@
     import * as Card from '$lib/components/ui/card';
     import { Button } from '$lib/components/ui/button';
     import Shortcut from '$lib/components/Shortcut.svelte';
-    import { canChangeStart } from './routing-controls';
-    import { CirclePlay, Trash2 } from '@lucide/svelte';
+    import { canChangeStart, canRouteBackToStart } from './routing-controls';
+    import { CirclePlay, House, Trash2 } from '@lucide/svelte';
 
     import { i18n } from '$lib/i18n.svelte';
 
@@ -25,6 +25,16 @@
                 >
                     <CirclePlay size="16" />
                     {i18n._('toolbar.routing.start_loop_here')}
+                </Button>
+            {/if}
+            {#if $canRouteBackToStart}
+                <Button
+                    class="w-full px-2 py-1 h-6 justify-start"
+                    variant="ghost"
+                    onclick={() => element?.dispatchEvent(new CustomEvent('route-back-to-start'))}
+                >
+                    <House size="16" />
+                    {i18n._('toolbar.routing.route_back_to_start.button')}
                 </Button>
             {/if}
             <Button
