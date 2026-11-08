@@ -406,7 +406,12 @@ export class GPXLayer {
     }
 
     layerOnMouseMove(e: MapLayerMouseEvent) {
-        const index = this.selectedTrackpointAt(e);
+        // these tools act on the track under the pointer, and show it themselves
+        const tool = get(currentTool);
+        const index =
+            tool === Tool.ROUTING || tool === Tool.SCISSORS
+                ? undefined
+                : this.selectedTrackpointAt(e);
         if (index === undefined) {
             this.stopHoveringTrackpoint();
         } else {
