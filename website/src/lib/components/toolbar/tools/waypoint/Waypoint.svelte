@@ -45,6 +45,19 @@
 
     let marker: Marker | null = null;
 
+    // A number field holds what is typed, out of range or empty (null) on the way to a
+    // coordinate, and a map click sets strings. MapLibre throws on a latitude past ±90.
+    function inRange(value: number | string | null, limit: number) {
+        if (value === null || value === '') {
+            return false;
+        }
+        const n = Number(value);
+        return Number.isFinite(n) && Math.abs(n) <= limit;
+    }
+    let latitudeValid = $derived(inRange(latitude, 90));
+    let longitudeValid = $derived(inRange(longitude, 180));
+    let coordinatesValid = $derived(latitudeValid && longitudeValid);
+
     function reset() {
         if ($selectedWaypoint) {
             selectedWaypoint.reset();
@@ -78,6 +91,9 @@
     });
 
     async function createOrUpdateWaypoint() {
+        if (!coordinatesValid) {
+            return;
+        }
         if (typeof latitude === 'string') {
             latitude = parseFloat(latitude);
         }
@@ -128,7 +144,8 @@
                 marker = null;
             }
         } else if (latitude != 0 || longitude != 0) {
-            if ($map) {
+            // while a coordinate is being typed the pin stays where it last was
+            if ($map && coordinatesValid) {
                 if (marker) {
                     marker.setLngLat([longitude, latitude]).getElement().innerHTML =
                         getSvgForSymbol(symbolKey);
@@ -248,6 +265,7 @@
                     min={-90}
                     max={90}
                     class="text-xs h-8"
+                    aria-invalid={!latitudeValid}
                     disabled={!canCreate && !$selectedWaypoint}
                 />
             </div>
@@ -261,6 +279,7 @@
                     min={-180}
                     max={180}
                     class="text-xs h-8"
+                    aria-invalid={!longitudeValid}
                     disabled={!canCreate && !$selectedWaypoint}
                 />
             </div>
@@ -269,7 +288,7 @@
     <div class="flex flex-row gap-1.5 items-center">
         <Button
             variant="outline"
-            disabled={!canCreate && !$selectedWaypoint}
+            disabled={(!canCreate && !$selectedWaypoint) || !coordinatesValid}
             class="grow shrink h-fit min-h-8 whitespace-normal py-1"
             onclick={createOrUpdateWaypoint}
         >
