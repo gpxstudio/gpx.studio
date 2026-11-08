@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { glob } from 'glob';
-import { languages } from '$lib/languages';
+import { languages } from '$lib/i18n/languages';
 
 function getURLForLanguage(lang: string, path: string): string {
     return `https://gpx.studio${lang === 'en' ? '' : `/${lang}`}${path}`;

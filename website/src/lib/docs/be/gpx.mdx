@@ -3,13 +3,15 @@ title: Фармат файла GPX
 ---
 
 <script>
-    import { Waypoints, MapPin } from '@lucide/svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import { Waypoints, Route, MapPin } from '@lucide/svelte';
 </script>
 
 # { title }
 
 <a href="https://www.topografix.com/gpx.asp" target="_blank">Фармат файла GPX</a> - гэта адкрыты стандарт для абмену дадзенымі GPS паміж праграмамі і прыладамі GPS.
 Па сутнасці, ён складаецца з серыі кропак GPS, якія кадзіруюць адну або некалькі слядоў GPS, і, па жаданні, некаторыя кропкі цікавасці.
+These traces can be stored either as tracks or as routes.
 
 Файлы GPX могуць таксама ўтрымліваць метададзеныя, з якіх палі **імя** і **апісанне** найбольш карысныя для карыстальнікаў.
 
@@ -26,6 +28,20 @@ title: Фармат файла GPX
 
 У большасці выпадкаў файлы GPX утрымліваюць адзін трэк з адным сегментам.
 Аднак іерархія, апісаная вышэй, дазваляе выкарыстоўваць больш складаныя выпадкі, напрыклад, планаваць шматдзённыя паездкі з некалькімі варыянтамі на кожны дзень.
+
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routes
+
+A **route** is a single continuous path made of a sequence of **route points**.
+These are mandatory checkpoints, which correspond to the anchor points of the [routing tool](./toolbar/routing).
+The points in between are only a suggested path connecting the route points.
+Like a track, a route can have a **name**, a **description**, and **appearance properties**.
+
+<DocsNote>
+
+Nowadays, most apps and GPS devices work perfectly well with tracks, even for navigation.
+However, some of them only work with routes: in that case, you can [convert](./menu/edit) your tracks to routes, or [create](./menu/file) a route file from the start.
+
+</DocsNote>
 
 ### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> Кропкі цікавасці
 

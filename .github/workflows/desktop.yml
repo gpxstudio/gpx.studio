@@ -1,0 +1,214 @@
+name: Desktop release
+# run by hand: from `main` for a release, from `dev` for a pre-release
+on:
+    workflow_dispatch:
+
+concurrency:
+    group: desktop-${{ github.ref }}
+
+jobs:
+    # the release stays a draft until every platform is built and tested
+    prepare:
+        runs-on: ubuntu-latest
+
+        permissions:
+            contents: write
+
+        env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        outputs:
+            version: ${{ steps.version.outputs.version }}
+            draft_tag: ${{ steps.version.outputs.draft_tag }}
+            release_id: ${{ steps.draft.outputs.release_id }}
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
+
+            - name: Choose version
+              id: version
+              run: |
+                  base=$(jq -r .version tauri/tauri.conf.json)
+                  if [[ ! "$base" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                      echo "::error::The version in tauri.conf.json should be x.y.z, not $base"
+                      exit 1
+                  fi
+                  case "$GITHUB_REF_NAME" in
+                      main)
+                          version=$base
+                          draft_tag=desktop-v$base
+                          if git ls-remote --exit-code --tags origin "refs/tags/$draft_tag"; then
+                              echo "::error::$draft_tag is already released: bump the version in tauri.conf.json"
+                              exit 1
+                          fi
+                          if [ -z "$(jq -r '.plugins.updater.pubkey' tauri/tauri.conf.json)" ]; then
+                              echo "::error::The public key of the updater is missing from tauri.conf.json"
+                              exit 1
+                          fi
+                          ;;
+                      dev)
+                          version=$base-beta.$GITHUB_RUN_NUMBER
+                          draft_tag=desktop-beta-$GITHUB_RUN_NUMBER
+                          ;;
+                      *)
+                          echo "::error::Desktop builds are made from main or dev, not $GITHUB_REF_NAME"
+                          exit 1
+                          ;;
+                  esac
+                  echo "version=$version" >> "$GITHUB_OUTPUT"
+                  echo "draft_tag=$draft_tag" >> "$GITHUB_OUTPUT"
+
+            - name: Create draft release
+              id: draft
+              env:
+                  VERSION: ${{ steps.version.outputs.version }}
+                  DRAFT_TAG: ${{ steps.version.outputs.draft_tag }}
+              run: |
+                  # what a previous attempt left: this tag is not released, so it can only be a draft
+                  gh release delete "$DRAFT_TAG" --yes || true
+                  if [ "$GITHUB_REF_NAME" = main ]; then
+                      gh release create "$DRAFT_TAG" --draft --target "$GITHUB_SHA" \
+                          --title "Desktop $VERSION" --generate-notes
+                  else
+                      gh release create "$DRAFT_TAG" --draft --prerelease --target "$GITHUB_SHA" \
+                          --title "Desktop beta $VERSION" \
+                          --notes "Beta of the desktop app, built from $GITHUB_SHA on the dev branch. The builds are not signed yet: macOS and Windows will warn before opening them."
+                  fi
+                  echo "release_id=$(gh release view "$DRAFT_TAG" --json databaseId --jq .databaseId)" >> "$GITHUB_OUTPUT"
+
+    build:
+        needs: prepare
+
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - platform: macos-latest
+                      rust_targets: aarch64-apple-darwin,x86_64-apple-darwin,wasm32-unknown-unknown
+                      args: --target universal-apple-darwin
+                    # the oldest supported Ubuntu, so that the AppImage runs on older systems too
+                    - platform: ubuntu-22.04
+                      rust_targets: wasm32-unknown-unknown
+                      args: ''
+                    - platform: windows-latest
+                      rust_targets: wasm32-unknown-unknown
+                      args: ''
+
+        runs-on: ${{ matrix.platform }}
+
+        permissions:
+            contents: write
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
+
+            - name: Install Linux dependencies
+              if: runner.os == 'Linux'
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+            - name: Install Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: npm
+                  cache-dependency-path: website/package-lock.json
+
+            - name: Install Rust
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: ${{ matrix.rust_targets }}
+
+            - name: Cache Rust build
+              uses: Swatinem/rust-cache@v2
+
+            - name: Install wasm-pack
+              uses: taiki-e/install-action@v2
+              with:
+                  tool: wasm-pack
+
+            # the desktop app does not use it, but the website depends on its package
+            - name: Build wasm
+              run: wasm-pack build --target bundler
+              working-directory: wasm
+
+            - name: Install dependencies for website
+              run: npm install --prefix website
+
+            # the key would be readable in the app: it is left empty, so only the MapTiler layer fails
+            - name: Create env file
+              run: echo "PUBLIC_MAPTILER_KEY=" >> website/.env
+
+            # only the releases update themselves: they need the updater files, and the signing key
+            - name: Set version and updater files
+              shell: bash
+              env:
+                  VERSION: ${{ needs.prepare.outputs.version }}
+                  UPDATER: ${{ github.ref_name == 'main' }}
+              run: |
+                  node -e "
+                      const fs = require('fs');
+                      const path = 'tauri/tauri.conf.json';
+                      const config = JSON.parse(fs.readFileSync(path));
+                      config.version = process.env.VERSION;
+                      config.bundle.createUpdaterArtifacts = process.env.UPDATER === 'true';
+                      fs.writeFileSync(path, JSON.stringify(config, null, 4));
+                  "
+
+            - name: Build app and upload it to the draft
+              uses: tauri-apps/tauri-action@v1
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  TAURI_SIGNING_PRIVATE_KEY: ${{ github.ref_name == 'main' && secrets.TAURI_SIGNING_PRIVATE_KEY || '' }}
+                  TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ github.ref_name == 'main' && secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '' }}
+              with:
+                  projectPath: tauri
+                  tauriScript: npx --yes @tauri-apps/cli@2
+                  args: ${{ matrix.args }}
+                  releaseId: ${{ needs.prepare.outputs.release_id }}
+                  # given with the id for the addresses in `latest.json`
+                  tagName: ${{ needs.prepare.outputs.draft_tag }}
+                  uploadUpdaterJson: ${{ github.ref_name == 'main' }}
+
+            # after the build, which gives the app the website it embeds
+            - name: Test engine and app
+              run: cargo test -p gpx-engine -p gpx-studio-desktop
+
+    # `releases/latest`, which the updater reads, only changes here
+    publish:
+        needs: [prepare, build]
+        runs-on: ubuntu-latest
+
+        permissions:
+            contents: write
+
+        env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            GH_REPO: ${{ github.repository }}
+            DRAFT_TAG: ${{ needs.prepare.outputs.draft_tag }}
+
+        steps:
+            # the builds of the platforms add themselves to it in parallel, and could overwrite each other
+            - name: Check updater file
+              if: github.ref_name == 'main'
+              run: |
+                  gh release download "$DRAFT_TAG" --pattern latest.json
+                  for platform in darwin-aarch64 darwin-x86_64 linux-x86_64 windows-x86_64; do
+                      if ! jq -e --arg platform "$platform" '.platforms[$platform].signature | length > 0' latest.json; then
+                          echo "::error::latest.json has no signed update for $platform"
+                          exit 1
+                      fi
+                  done
+
+            - name: Publish release
+              if: github.ref_name == 'main'
+              run: gh release edit "$DRAFT_TAG" --draft=false --latest
+
+            - name: Replace beta release
+              if: github.ref_name == 'dev'
+              run: |
+                  gh release delete desktop-beta --cleanup-tag --yes || true
+                  gh release edit "$DRAFT_TAG" --tag desktop-beta --draft=false --prerelease --latest=false

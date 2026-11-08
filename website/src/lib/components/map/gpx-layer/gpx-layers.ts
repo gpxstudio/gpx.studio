@@ -1,10 +1,10 @@
-import { GPXFileStateCollectionObserver } from '$lib/logic/file-state';
+import { FileStateCollectionObserver } from '$lib/engine';
 import { writable } from 'svelte/store';
 import { GPXLayer } from './gpx-layer';
 
 export class GPXLayerCollection {
     private _layers: Map<string, GPXLayer>;
-    private _fileStateCollectionObserver: GPXFileStateCollectionObserver | null = null;
+    private _fileStateCollectionObserver: FileStateCollectionObserver | null = null;
 
     constructor() {
         this._layers = new Map<string, GPXLayer>();
@@ -14,10 +14,10 @@ export class GPXLayerCollection {
         if (this._fileStateCollectionObserver) {
             return;
         }
-        this._fileStateCollectionObserver = new GPXFileStateCollectionObserver(
+        this._fileStateCollectionObserver = new FileStateCollectionObserver(
             (newFiles) => {
-                newFiles.forEach((fileState, fileId) => {
-                    const layer = new GPXLayer(fileId, fileState);
+                newFiles.forEach((fileStore, fileId) => {
+                    const layer = new GPXLayer(fileId, fileStore);
                     this._layers.set(fileId, layer);
                 });
             },

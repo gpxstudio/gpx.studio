@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
     import { Button } from '$lib/components/ui/button';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import { page } from '$app/state';
     import { map } from '$lib/components/map/map';
     import { PUBLIC_MAPTILER_KEY } from '$env/static/public';

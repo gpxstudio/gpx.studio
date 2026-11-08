@@ -1,0 +1,8 @@
+{
+    "name": "tauri",
+    "private": true,
+    "scripts": {
+        "dev": "cargo tauri dev",
+        "build": "cargo tauri build"
+    }
+}

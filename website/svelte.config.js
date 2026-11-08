@@ -7,6 +7,9 @@ const mdsvexOptions = {
     extensions: ['.mdx'],
 };
 
+/** Whether the website is built for the desktop app (`npm run build:desktop`), which only has the app. */
+const desktop = process.env.BUILD_TARGET === 'desktop';
+
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
     extensions: ['.svelte', ...mdsvexOptions.extensions],
@@ -23,7 +26,9 @@ const config = {
             relative: false,
         },
         prerender: {
-            crawl: true,
+            // the desktop app only has the pages of the app, the others are left empty (vite.config.ts)
+            crawl: !desktop,
+            handleUnseenRoutes: desktop ? 'ignore' : 'fail',
         },
     },
 };

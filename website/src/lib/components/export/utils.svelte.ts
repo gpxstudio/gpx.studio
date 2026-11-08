@@ -1,10 +1,8 @@
-import { selection } from '$lib/logic/selection';
-import { fileStateCollection } from '$lib/logic/file-state';
-import { settings } from '$lib/logic/settings';
-import { buildGPX, type GPXFile } from 'gpx';
+import { engine, type ExportOptions } from '$lib/engine';
 import FileSaver from 'file-saver';
 import JSZip from 'jszip';
 import { get } from 'svelte/store';
+import { sanitizeFileName, uniqueFileNames } from './file-names';
 
 export enum ExportState {
     NONE,
@@ -15,52 +13,55 @@ export const exportState = $state({
     current: ExportState.NONE,
 });
 
-async function exportFiles(fileIds: string[], exclude: string[]) {
-    if (fileIds.length > 1) {
-        await exportFilesAsZip(fileIds, exclude);
-    } else {
-        const firstFileId = fileIds.at(0);
-        if (firstFileId != null) {
-            const file = fileStateCollection.getFile(firstFileId);
-            if (file) {
-                exportFile(file, exclude);
-            }
-        }
+/** The files that contain the selection, in the order of the selection. */
+export function selectedFileIds(): string[] {
+    const selection = get(engine.selection);
+    switch (selection.type) {
+        case 'file':
+            return selection.fileIds;
+        case 'empty':
+            return [];
+        default:
+            return [selection.fileId];
     }
 }
 
-export async function exportSelectedFiles(exclude: string[]) {
-    const fileIds: string[] = [];
-    selection.applyToOrderedSelectedItemsFromFile(async (fileId, level, items) => {
-        fileIds.push(fileId);
-    });
-    await exportFiles(fileIds, exclude);
+export function allFileIds(): string[] {
+    return get(engine.order);
 }
 
-export async function exportAllFiles(exclude: string[]) {
-    await exportFiles(get(settings.fileOrder), exclude);
-}
-
-function exportFile(file: GPXFile, exclude: string[]) {
-    const blob = new Blob([buildGPX(file, exclude)], { type: 'application/gpx+xml' });
-    FileSaver.saveAs(blob, `${file.metadata.name}.gpx`);
-}
-
-async function exportFilesAsZip(fileIds: string[], exclude: string[]) {
-    const zip = new JSZip();
-    for (const fileId of fileIds) {
-        const file = fileStateCollection.getFile(fileId);
-        if (file) {
-            const gpx = buildGPX(file, exclude);
-            let filename = file.metadata.name;
-            for (let i = 1; zip.files[filename + '.gpx']; i++) {
-                filename = file.metadata.name + `-${i}`;
-            }
-            zip.file(filename + '.gpx', gpx);
-        }
+async function exportFiles(fileIds: string[], options: ExportOptions) {
+    if (get(engine.workspace)) {
+        // the desktop app: the user chooses where the files go
+        await engine.exportFiles(fileIds, options);
+        return;
     }
-    if (Object.keys(zip.files).length > 0) {
+    const files = (
+        await Promise.all(
+            fileIds.map(async (fileId) => {
+                const gpx = await engine.exportFile(fileId, options);
+                const name = get(engine.files).get(fileId);
+                return gpx === undefined || !name ? [] : [{ name: get(name).structure.name, gpx }];
+            })
+        )
+    ).flat();
+
+    if (files.length === 1) {
+        const blob = new Blob([files[0].gpx], { type: 'application/gpx+xml' });
+        FileSaver.saveAs(blob, `${sanitizeFileName(files[0].name)}.gpx`);
+    } else if (files.length > 1) {
+        const zip = new JSZip();
+        const names = uniqueFileNames(files.map((file) => file.name));
+        files.forEach(({ gpx }, i) => zip.file(`${names[i]}.gpx`, gpx));
         const blob = await zip.generateAsync({ type: 'blob' });
         FileSaver.saveAs(blob, 'gpx-files.zip');
     }
+}
+
+export async function exportSelectedFiles(options: ExportOptions) {
+    await exportFiles(selectedFileIds(), options);
+}
+
+export async function exportAllFiles(options: ExportOptions) {
+    await exportFiles(allFileIds(), options);
 }

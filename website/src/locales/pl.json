@@ -8,11 +8,43 @@
         "description": "Przeglądaj, edytuj i twórz pliki GPX online z zaawansowanymi możliwościami planowania trasy i narzędziami do przetwarzania plików, pięknymi mapami i szczegółowymi wizualizacjami danych."
     },
     "menu": {
-        "new": "Nowy",
         "new_file": "Nowy plik",
+        "new_route_file": "New route file",
         "new_track": "Nowa ścieżka",
+        "new_route": "New route",
+        "convert_to_route": "Convert to route",
+        "convert_to_track": "Convert to track",
+        "convert_to_routes": "Convert to route file",
+        "convert_to_tracks": "Convert to track file",
         "new_segment": "Nowy segment",
         "open": "Otwórz...",
+        "open_folder": "Open folder...",
+        "explorer": "Explorer",
+        "explorer_menu": {
+            "open": "Open",
+            "new_file": "New file...",
+            "new_route_file": "New route file...",
+            "new_folder": "New folder...",
+            "rename": "Rename...",
+            "reveal_finder": "Reveal in Finder",
+            "reveal": "Reveal in file explorer",
+            "delete_failed": "The files could not be moved to the trash."
+        },
+        "workspace": "Workspace",
+        "save": "Save",
+        "save_all": "Save all",
+        "save_as": "Save as...",
+        "close": "Zamknij",
+        "close_all": "Zamknij wszystkie",
+        "close_folder": "Close folder",
+        "reload": "Reload from disk",
+        "discard": "Discard",
+        "cancel": "Cancel",
+        "overwrite": "Overwrite",
+        "unsaved_title": "Unsaved changes",
+        "unsaved_description": "These files have changes that are not saved:",
+        "overwrite_title": "Overwrite changes made elsewhere?",
+        "overwrite_description": "These files have changes, and were also changed on the disk. Overwrite what is on the disk, or reload it and lose your changes?",
         "duplicate": "Duplikuj",
         "copy": "Kopiuj",
         "paste": "Wklej",
@@ -69,7 +101,10 @@
             "button": "Informacje...",
             "name": "Nazwa",
             "description": "Opis",
-            "save": "Zapisz"
+            "save": "Zapisz",
+            "rename_file": "Rename the file on disk",
+            "name_taken": "A file with this name already exists in the folder.",
+            "rename_failed": "The file could not be renamed."
         },
         "style": {
             "button": "Wygląd...",
@@ -433,6 +468,8 @@
     "gpx": {
         "file": "Plik",
         "files": "Pliki",
+        "route": "Route",
+        "routes": "Routes",
         "track": "Trasa",
         "tracks": "Trasy",
         "segment": "Segment",
@@ -494,7 +531,7 @@
         "email": "Email",
         "contribute": "Wesprzyj",
         "supported_by": "wspierane przez",
-        "features": "Features",
+        "features": "Funkcje",
         "route_planning": "Planowanie trasy",
         "route_planning_description": "Intuicyjny interfejs do tworzenia tras dostosowanych do każdego sportu, na bazie danych OpenStreetMap.",
         "file_processing": "Rozbudowanie przetwarzanie plików",
@@ -503,8 +540,8 @@
         "maps_description": "Duża kolekcja podstawowych map, nakładek i ulubionych punktów, które pomogą Ci stworzyć następną przygodę lub zwizualizować swoje ostatnie osiągnięcie.",
         "data_visualization": "Prezentacja danych",
         "data_visualization_description": "Interaktywny profil ukształtowania terenu wraz ze szczegółowymi danymi statystycznymi, służącymi do analizy odbytych wycieczek i przyszłych aktywności.",
-        "philosophy": "Philosophy",
-        "foss": "Free, ad-free and open source",
+        "philosophy": "Filozofia",
+        "foss": "Darmowe, wolne od reklam i otwarte źródło",
         "foss_description": "The website is free to use, without ads, and the source code is publicly available on GitHub.",
         "privacy": "Privacy-friendly",
         "privacy_description": "Your GPX files never leave your browser. No tracking, no data collection.",
@@ -556,5 +593,10 @@
     },
     "webgl2_required": "WebGL 2 jest wymagany do wyświetlenia mapy.",
     "enable_webgl2": "Dowiedz się, jak włączyć WebGL 2 w przeglądarce",
-    "page_not_found": "nie odnaleziono strony"
+    "page_not_found": "nie odnaleziono strony",
+    "outdated": {
+        "title": "This page is out of date",
+        "description": "Your files were saved by a newer version of gpx.studio, which this page cannot read. Reload the page to get the latest version.",
+        "reload": "Reload"
+    }
 }

@@ -3,13 +3,15 @@ title: GPX dosya formatı
 ---
 
 <script>
-    import { Waypoints, MapPin } from '@lucide/svelte';
+    import DocsNote from '$lib/components/docs/DocsNote.svelte';
+    import { Waypoints, Route, MapPin } from '@lucide/svelte';
 </script>
 
 # { title }
 
 <a href="https://www.topografix.com/gpx.asp" target="_blank">GPX dosya formatı</a> uygulamalar ve cihazlar arasında GPS verisi paylaşmak için kullanılan bir açık standardtır.
 Temelde bir veya birden çok GPS izini oluşturan bir dizi GPS noktasından oluşur, ve bazı ilgi noktaları içerebilir.
+These traces can be stored either as tracks or as routes.
 
 GPX dosyaları **ad** ve açıklama gibi kullanışlı birçok üstveri de içerebilir.
 
@@ -26,6 +28,20 @@ Harita verileri, en üst seviyede izlerin bulunduğu hiyerarşik bir yapıda dü
 
 Çoğu zaman, GPX dosyası sadece bir yol ve sadece bir segment içerir.
 Ancak, yukarıda açıklanan hiyerarşi, her gün için birkaç farklı varyanta sahip birkaç günlük geziler planlamak gibi daha gelişmiş kullanım senaryolarına olanak tanır.
+
+### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routes
+
+A **route** is a single continuous path made of a sequence of **route points**.
+These are mandatory checkpoints, which correspond to the anchor points of the [routing tool](./toolbar/routing).
+The points in between are only a suggested path connecting the route points.
+Like a track, a route can have a **name**, a **description**, and **appearance properties**.
+
+<DocsNote>
+
+Nowadays, most apps and GPS devices work perfectly well with tracks, even for navigation.
+However, some of them only work with routes: in that case, you can [convert](./menu/edit) your tracks to routes, or [create](./menu/file) a route file from the start.
+
+</DocsNote>
 
 ### <MapPin size="16" class="inline-block" style="margin-bottom: 2px" /> İlgi alanları
 

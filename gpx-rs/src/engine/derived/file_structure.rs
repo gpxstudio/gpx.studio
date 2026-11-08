@@ -1,0 +1,186 @@
+use crate::{
+    File, FileId, FileWaypointsRevisionId, RouteId, TrackId, TrackInfo, TrackSegment,
+    TrackSegmentId, TrackSegmentRevisionId, WaypointId,
+};
+
+/// What the UI needs to display a file: its name and the structure of its routes, tracks and
+/// waypoints,
+/// with the ids that reference every element. Coordinates are not part of it, they are read
+/// from the buffers of the [`CoordinatesCache`](crate::CoordinatesCache) (the `i`-th waypoint
+/// of a file is the `i`-th coordinates pair of its waypoint buffer, same for the trackpoints of
+/// a segment).
+#[derive(Debug, Clone, PartialEq)]
+pub struct FileStructure {
+    pub id: FileId,
+    pub name: String,
+    pub desc: Option<String>,
+    pub routes: Vec<RouteNode>,
+    pub tracks: Vec<TrackNode>,
+    pub waypoints: Vec<WaypointNode>,
+    /// Changes whenever the waypoints of the file (hence their buffer) change.
+    pub wpt_rev_id: FileWaypointsRevisionId,
+}
+
+/// The name, description and style of a route or a track (the style only when the file defines
+/// it).
+#[derive(Debug, Clone, PartialEq)]
+pub struct PathInfo {
+    pub name: Option<String>,
+    pub desc: Option<String>,
+    pub color: Option<String>,
+    pub opacity: Option<f64>,
+    pub width: Option<f64>,
+}
+
+impl From<&TrackInfo> for PathInfo {
+    fn from(info: &TrackInfo) -> Self {
+        Self {
+            name: info.name.clone(),
+            desc: info.desc.clone(),
+            color: info.color.clone(),
+            opacity: info.opacity,
+            width: info.width,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct RouteNode {
+    pub id: RouteId,
+    pub info: PathInfo,
+    pub segment: SegmentNode,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct TrackNode {
+    pub id: TrackId,
+    pub info: PathInfo,
+    pub segments: Vec<SegmentNode>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct SegmentNode {
+    pub id: TrackSegmentId,
+    /// Changes whenever the trackpoints of the segment (hence their buffer) change.
+    pub rev_id: TrackSegmentRevisionId,
+    pub len: usize,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct WaypointNode {
+    pub id: WaypointId,
+    pub name: Option<String>,
+    pub sym: Option<String>,
+}
+
+impl From<&TrackSegment> for SegmentNode {
+    fn from(seg: &TrackSegment) -> Self {
+        Self {
+            id: seg.id,
+            rev_id: seg.rev_id,
+            len: seg.len(),
+        }
+    }
+}
+
+impl FileStructure {
+    pub fn new(file: &File) -> Self {
+        Self {
+            id: file.id,
+            name: file.info.name.clone(),
+            desc: file.info.desc.clone(),
+            routes: file
+                .rte
+                .iter()
+                .map(|rte| RouteNode {
+                    id: rte.id,
+                    info: (&rte.info).into(),
+                    segment: (&rte.seg).into(),
+                })
+                .collect(),
+            tracks: file
+                .trk
+                .iter()
+                .map(|trk| TrackNode {
+                    id: trk.id,
+                    info: (&trk.info).into(),
+                    segments: trk.trkseg.iter().map(Into::into).collect(),
+                })
+                .collect(),
+            waypoints: file
+                .wpt
+                .iter()
+                .map(|wpt| WaypointNode {
+                    id: wpt.id,
+                    name: wpt.name.clone(),
+                    sym: wpt.sym.clone(),
+                })
+                .collect(),
+            wpt_rev_id: file.wpt.rev_id,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use crate::{Apply, Load, Waypoint, WaypointChunk, engine::command::fixture::Fixture};
+
+    use super::*;
+
+    #[test]
+    fn test_structure_of_a_file() {
+        let mut fx = Fixture::default();
+        let data = std::fs::read("data/with_tracks_and_segments.gpx").unwrap();
+        Load {
+            data: &data,
+            name: "file",
+        }
+        .apply(&mut fx.state())
+        .unwrap();
+        let file = &fx.files[&fx.order.0[0]];
+        let node = FileStructure::new(file);
+        assert_eq!(
+            (node.id, &node.name, &node.desc),
+            (file.id, &file.info.name, &file.info.desc)
+        );
+        assert_eq!(node.tracks.len(), file.trk.len());
+        for (n, t) in node.tracks.iter().zip(&file.trk) {
+            assert_eq!(n.id, t.id);
+            assert_eq!(n.info, PathInfo::from(&t.info));
+            assert_eq!(n.segments.len(), t.trkseg.len());
+            for (n, s) in n.segments.iter().zip(&t.trkseg) {
+                assert_eq!((n.id, n.rev_id, n.len), (s.id, s.rev_id, s.len()));
+            }
+        }
+    }
+
+    #[test]
+    fn test_waypoints_in_buffer_order_and_revision() {
+        let mut file = crate::File::default();
+        let wpt = |n: &str| Waypoint {
+            name: Some(n.to_string()),
+            ..Default::default()
+        };
+        let before = file.wpt.rev_id;
+        file.wpt = crate::Waypoints::new([
+            WaypointChunk {
+                wpt: vec![wpt("a"), wpt("b")],
+                ..Default::default()
+            },
+            WaypointChunk {
+                wpt: vec![wpt("c")],
+                ..Default::default()
+            },
+        ]);
+        let node = FileStructure::new(&file);
+        let names: Vec<_> = node
+            .waypoints
+            .iter()
+            .map(|w| w.name.clone().unwrap())
+            .collect();
+        assert_eq!(names, ["a", "b", "c"]);
+        assert_ne!(node.wpt_rev_id, before);
+        assert_eq!(node.wpt_rev_id, file.wpt.rev_id);
+    }
+}
