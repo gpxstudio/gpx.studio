@@ -1,7 +1,16 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { LayerTreeType } from '$lib/data/layers';
-import { anySelectedLayer, getLayers, isSelected, remove, removeAll, toggle } from './utils';
+import type { LayerSpecification } from 'maplibre-gl';
+import {
+    anySelectedLayer,
+    getLayers,
+    getOpacityPaint,
+    isSelected,
+    remove,
+    removeAll,
+    toggle,
+} from './utils';
 
 // roads: bike (selected), foot
 // satellite: esri, ign: fr (selected)
@@ -70,5 +79,41 @@ describe('layer trees', () => {
             satellite: { esri: false, ign: {} },
         });
         assert.deepEqual(removeAll(tree(), []), tree());
+    });
+});
+
+describe('getOpacityPaint', () => {
+    const layer = (type: string, paint?: Record<string, unknown>) =>
+        ({ id: 'layer', type, source: 'source', paint }) as LayerSpecification;
+
+    it('uses the opacity properties of each type of layer', () => {
+        assert.deepEqual(getOpacityPaint(layer('raster'), 0.5), { 'raster-opacity': 0.5 });
+        assert.deepEqual(getOpacityPaint(layer('color-relief'), 0.5), {
+            'color-relief-opacity': 0.5,
+        });
+        assert.deepEqual(getOpacityPaint(layer('symbol'), 0.5), {
+            'icon-opacity': 0.5,
+            'text-opacity': 0.5,
+        });
+        assert.deepEqual(getOpacityPaint(layer('circle'), 0.5), {
+            'circle-opacity': 0.5,
+            'circle-stroke-opacity': 0.5,
+        });
+        assert.deepEqual(getOpacityPaint(layer('hillshade'), 0.5), {
+            'hillshade-exaggeration': 0.25,
+        });
+    });
+
+    it('scales the opacity that the layer already has', () => {
+        assert.deepEqual(getOpacityPaint(layer('line', { 'line-opacity': 0.5 }), 0.5), {
+            'line-opacity': 0.25,
+        });
+    });
+
+    it('replaces an expression, unless the opacity is left at 1', () => {
+        const expression = ['interpolate', ['linear'], ['zoom'], 5, 0, 10, 1];
+        const paint = { 'fill-opacity': expression };
+        assert.deepEqual(getOpacityPaint(layer('fill', paint), 0.5), { 'fill-opacity': 0.5 });
+        assert.deepEqual(getOpacityPaint(layer('fill', paint), 1), { 'fill-opacity': expression });
     });
 });

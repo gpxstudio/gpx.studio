@@ -17,7 +17,6 @@
     } from '$lib/data/layers';
     import { getLayers, isSelected, toggle } from '$lib/components/map/layer-control/utils';
     import { i18n } from '$lib/i18n/i18n.svelte';
-    import { map } from '$lib/components/map/map';
     import CustomLayers from './CustomLayers.svelte';
     import { settings } from '$lib/state/settings';
     import { untrack } from 'svelte';
@@ -209,19 +208,6 @@
                                         disabled={selectedOverlay === undefined}
                                         onValueChange={(value) => {
                                             if (selectedOverlay) {
-                                                if (
-                                                    $map &&
-                                                    $currentOverlays &&
-                                                    isSelected($currentOverlays, selectedOverlay)
-                                                ) {
-                                                    try {
-                                                        if ($map.getLayer(selectedOverlay)) {
-                                                            $map.removeLayer(selectedOverlay);
-                                                        }
-                                                    } catch {
-                                                        // No reliable way to check if the map is ready to remove sources and layers
-                                                    }
-                                                }
                                                 $opacities[selectedOverlay] = value;
                                             }
                                         }}

@@ -14,7 +14,7 @@ import {
     overlays,
     terrainSources,
 } from '$lib/data/layers';
-import { getLayers } from '$lib/components/map/layer-control/utils';
+import { getLayers, getOpacityPaint, prefixStyle } from '$lib/components/map/layer-control/utils';
 import { i18n } from '$lib/i18n/i18n.svelte';
 
 const { currentBasemap, currentOverlays, customLayers, opacities, terrainSource, distanceUnits } =
@@ -147,13 +147,18 @@ export class StyleManager {
         const custom = get(customLayers);
         const overlayOpacities = get(opacities);
         try {
+            // an overlay on the map can be gone from the tree, which has been replaced as a whole
             const layers = getLayers(get(currentOverlays) ?? {});
+            this._pastOverlays.forEach((id) => (layers[id] ??= false));
             for (const overlay in layers) {
-                if (!layers[overlay]) {
+                const overlayInfo = custom[overlay]?.value ?? overlays[overlay];
+                if (!overlayInfo) {
+                    // removed, together with what it had on the map
+                    this._pastOverlays.delete(overlay);
+                } else if (!layers[overlay]) {
                     if (this._pastOverlays.has(overlay)) {
-                        const overlayInfo = custom[overlay]?.value ?? overlays[overlay];
                         try {
-                            const overlayStyle = await this.get(overlayInfo);
+                            const overlayStyle = await this.getOverlayStyle(overlay, overlayInfo);
                             for (const layer of overlayStyle.layers ?? []) {
                                 if (map_.getLayer(layer.id)) {
                                     map_.removeLayer(layer.id);
@@ -165,9 +170,10 @@ export class StyleManager {
                         this._pastOverlays.delete(overlay);
                     }
                 } else {
-                    const overlayInfo = custom[overlay]?.value ?? overlays[overlay];
                     try {
-                        const overlayStyle = await this.get(overlayInfo);
+                        const overlayStyle = await this.getOverlayStyle(overlay, overlayInfo);
+                        // replaced or removed while it was fetched: its new style has its own turn
+                        if (!custom[overlay] && overlays[overlay] !== overlayInfo) continue;
                         const opacity = overlayOpacities[overlay];
 
                         for (const sourceId in overlayStyle.sources) {
@@ -177,21 +183,24 @@ export class StyleManager {
                         }
 
                         for (const layer of overlayStyle.layers ?? []) {
-                            if (!map_.getLayer(layer.id)) {
-                                if (opacity !== undefined) {
-                                    if (layer.type === 'raster') {
-                                        if (!layer.paint) {
-                                            layer.paint = {};
-                                        }
-                                        layer.paint['raster-opacity'] = opacity;
-                                    } else if (layer.type === 'hillshade') {
-                                        if (!layer.paint) {
-                                            layer.paint = {};
-                                        }
-                                        layer.paint['hillshade-exaggeration'] = opacity / 2;
-                                    }
+                            const paint =
+                                opacity === undefined ? {} : getOpacityPaint(layer, opacity);
+                            if (map_.getLayer(layer.id)) {
+                                for (const property in paint) {
+                                    map_.setPaintProperty(
+                                        layer.id,
+                                        property as never,
+                                        paint[property] as never
+                                    );
                                 }
-                                map_.addLayer(layer, ANCHOR_LAYER_KEY.overlays);
+                            } else {
+                                map_.addLayer(
+                                    {
+                                        ...layer,
+                                        paint: { ...layer.paint, ...paint },
+                                    } as LayerSpecification,
+                                    ANCHOR_LAYER_KEY.overlays
+                                );
                             }
                         }
                         this._pastOverlays.add(overlay);
@@ -219,6 +228,17 @@ export class StyleManager {
                 map_.setTerrain(null);
             }
         }
+    }
+
+    /** The style of an overlay. The ids of one from an extension's URL still have to be prefixed. */
+    private async getOverlayStyle(
+        overlay: string,
+        styleInfo: StyleSpecification | string
+    ): Promise<StyleSpecification> {
+        const style = await this.get(styleInfo);
+        return typeof styleInfo === 'string' && overlay.startsWith('extension-')
+            ? prefixStyle(overlay, style)
+            : style;
     }
 
     async get(styleInfo: StyleSpecification | string): Promise<StyleSpecification> {
