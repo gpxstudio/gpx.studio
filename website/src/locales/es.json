@@ -600,10 +600,10 @@
         "reload": "Recargar"
     },
     "desktop": {
-        "update_available": "gpx.studio {version} is available",
-        "update_restart": "Update and restart",
-        "update_download": "Download",
-        "update_installing": "Installing the update...",
-        "update_failed": "The update could not be installed"
+        "update_available": "gpx.studio {version} está disponible",
+        "update_restart": "Actualizar y reiniciar",
+        "update_download": "Descargar",
+        "update_installing": "Instalando la actualización...",
+        "update_failed": "No se pudo instalar la actualización"
     }
 }
