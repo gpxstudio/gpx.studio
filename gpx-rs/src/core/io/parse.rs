@@ -3,7 +3,7 @@ use crate::{
     TrackpointCategories, TrackpointChunk, Waypoint, WaypointChunk, distance,
 };
 use chrono::DateTime;
-use quick_xml::Error;
+use quick_xml::{Error, XmlVersion};
 use quick_xml::escape::resolve_predefined_entity;
 use quick_xml::events::Event;
 use quick_xml::events::attributes::{Attribute, Attributes};
@@ -324,7 +324,7 @@ fn apply_text(
 /// The text of an attribute, without its escaping (`&amp;` is `&`), which is written back when the
 /// file is. As it is in the file if it cannot be read.
 fn attribute_text(attr: &Attribute<'_>) -> String {
-    attr.unescape_value()
+    attr.normalized_value(XmlVersion::Implicit1_0)
         .map_or_else(|_| attr.value.to_string(), |text| text.into_owned())
 }
 
