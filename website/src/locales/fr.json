@@ -8,11 +8,43 @@
         "description": "Affichez, éditez et créez des fichiers GPX en ligne avec des outils avancés de planification et de traitement de fichiers, de magnifiques cartes et des visualisations de données détaillées."
     },
     "menu": {
-        "new": "Nouveau",
         "new_file": "Nouveau fichier",
+        "new_route_file": "Nouveau fichier route",
         "new_track": "Nouvelle piste",
+        "new_route": "Nouvelle route",
+        "convert_to_route": "Convertir en route",
+        "convert_to_track": "Convertir en piste",
+        "convert_to_routes": "Convertir en fichier route",
+        "convert_to_tracks": "Convertir en fichier piste",
         "new_segment": "Nouveau segment",
         "open": "Ouvrir...",
+        "open_folder": "Ouvrir le dossier...",
+        "explorer": "Explorateur",
+        "explorer_menu": {
+            "open": "Ouvrir",
+            "new_file": "Nouveau fichier...",
+            "new_route_file": "Nouveau fichier route...",
+            "new_folder": "Nouveau dossier...",
+            "rename": "Renommer...",
+            "reveal_finder": "Afficher dans le Finder",
+            "reveal": "Afficher dans l'explorateur de fichiers",
+            "delete_failed": "Les fichiers n'ont pas pu être déplacés vers la corbeille."
+        },
+        "workspace": "Espace de travail",
+        "save": "Enregistrer",
+        "save_all": "Enregistrer tout",
+        "save_as": "Enregistrer sous...",
+        "close": "Fermer",
+        "close_all": "Fermer tout",
+        "close_folder": "Fermer le dossier",
+        "reload": "Recharger depuis le disque",
+        "discard": "Ignorer",
+        "cancel": "Annuler",
+        "overwrite": "Remplacer",
+        "unsaved_title": "Modifications non enregistrées",
+        "unsaved_description": "Ces fichiers ont des modifications qui ne sont pas enregistrées :",
+        "overwrite_title": "Écraser les modifications apportées ailleurs ?",
+        "overwrite_description": "Ces fichiers ont des modifications, et ont également été modifiés sur le disque. Écraser ce qui est sur le disque, ou le recharger et perdre vos modifications ?",
         "duplicate": "Dupliquer",
         "copy": "Copier",
         "paste": "Coller",
@@ -69,7 +101,10 @@
             "button": "Infos...",
             "name": "Nom",
             "description": "Description",
-            "save": "Sauver"
+            "save": "Enregistrer",
+            "rename_file": "Renommer le fichier sur le disque",
+            "name_taken": "Un fichier portant ce nom existe déjà dans le dossier.",
+            "rename_failed": "Impossible de renommer le fichier."
         },
         "style": {
             "button": "Apparence...",
@@ -433,6 +468,8 @@
     "gpx": {
         "file": "Fichier",
         "files": "Fichiers",
+        "route": "Route",
+        "routes": "Routes",
         "track": "Piste",
         "tracks": "Pistes",
         "segment": "Segment",
@@ -556,5 +593,17 @@
     },
     "webgl2_required": "WebGL 2 est requis pour afficher la carte.",
     "enable_webgl2": "Découvrir comment activer WebGL 2 dans votre navigateur",
-    "page_not_found": "page introuvable"
+    "page_not_found": "page introuvable",
+    "outdated": {
+        "title": "Cette page n'est pas à jour",
+        "description": "Vos fichiers ont été enregistrés par une nouvelle version de gpx.studio, que cette page ne peut pas lire. Rechargez la page pour obtenir la dernière version.",
+        "reload": "Recharger"
+    },
+    "desktop": {
+        "update_available": "gpx.studio {version} est disponible",
+        "update_restart": "Mettre à jour et redémarrer",
+        "update_download": "Télécharger",
+        "update_installing": "Installation de la mise à jour...",
+        "update_failed": "La mise à jour n'a pas pu être installée"
+    }
 }

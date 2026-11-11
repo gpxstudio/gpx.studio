@@ -3,15 +3,16 @@
     import { Label } from '$lib/components/ui/label';
     import { Checkbox } from '$lib/components/ui/checkbox';
     import CollapsibleTreeNode from '$lib/components/collapsible-tree/CollapsibleTreeNode.svelte';
-    import { type LayerTreeType } from '$lib/assets/layers';
+    import { type LayerTreeType } from '$lib/data/layers';
     import { anySelectedLayer } from './utils';
-    import { i18n } from '$lib/i18n.svelte';
-    import { settings } from '$lib/logic/settings';
+    import { i18n } from '$lib/i18n/i18n.svelte';
+    import { settings } from '$lib/state/settings';
     import { extensionAPI } from '$lib/components/map/layer-control/extension-api';
 
     let {
         name,
         node,
+        parent = '',
         selected = '',
         onselect = () => {},
         multiple = false,
@@ -19,19 +20,34 @@
     }: {
         name: string;
         node: LayerTreeType;
+        parent?: string;
         selected?: string;
         onselect?: (value: string) => void;
         multiple: boolean;
-        checked: LayerTreeType;
+        checked?: LayerTreeType;
     } = $props();
 
     const { customLayers } = settings;
-    const { isLayerFromExtension, getLayerName } = extensionAPI;
+    const { isLayerFromExtension, getLayerName, isExtensionGroup } = extensionAPI;
+
+    /** The groups of extensions are right below the overlays, with the name they were given. */
+    function getGroupLabel(id: string) {
+        return parent === 'overlays' && $isExtensionGroup(id)
+            ? id
+            : i18n._(`layers.label.${id}`, id);
+    }
+
+    function getLabel(id: string) {
+        if (Object.hasOwn($customLayers, id)) {
+            return $customLayers[id].name;
+        }
+        return $isLayerFromExtension(id) ? $getLayerName(id) : i18n._(`layers.label.${id}`);
+    }
 
     $effect.pre(() => {
         if (checked !== undefined) {
             Object.keys(node).forEach((id) => {
-                if (!checked.hasOwnProperty(id)) {
+                if (!Object.hasOwn(checked, id)) {
                     if (typeof node[id] == 'boolean') {
                         checked[id] = false;
                     } else {
@@ -44,7 +60,7 @@
 </script>
 
 <div class="flex flex-col gap-[3px]">
-    {#each Object.keys(node) as id}
+    {#each Object.keys(node) as id (id)}
         {#if typeof node[id] == 'boolean'}
             {#if node[id]}
                 <div class="flex flex-row items-center gap-2 first:mt-0.5 h-4">
@@ -53,9 +69,11 @@
                             id="{name}-{id}"
                             {name}
                             value={id}
-                            bind:checked={checked[id]}
+                            bind:checked={
+                                () => checked[id] === true, (value) => (checked[id] = value)
+                            }
                             class="scale-90"
-                            aria-label={i18n._(`layers.label.${id}`)}
+                            aria-label={getLabel(id)}
                         />
                     {:else}
                         <input
@@ -72,30 +90,31 @@
                         />
                     {/if}
                     <Label for="{name}-{id}" class="flex flex-row items-center gap-1">
-                        {#if $customLayers.hasOwnProperty(id)}
-                            {$customLayers[id].name}
-                        {:else if $isLayerFromExtension(id)}
-                            {$getLayerName(id)}
-                        {:else}
-                            {i18n._(`layers.label.${id}`)}
-                        {/if}
+                        {getLabel(id)}
                     </Label>
                 </div>
             {/if}
         {:else if anySelectedLayer(node[id])}
             <CollapsibleTreeNode {id}>
                 {#snippet trigger()}
-                    <span>{i18n._(`layers.label.${id}`, id)}</span>
+                    <span>{getGroupLabel(id)}</span>
                 {/snippet}
                 {#snippet content()}
                     <div class="ml-2">
                         <Self
-                            node={node[id]}
+                            node={node[id] as LayerTreeType}
+                            parent={id}
                             {name}
                             {selected}
                             {onselect}
                             {multiple}
-                            bind:checked={checked[id]}
+                            bind:checked={
+                                () => {
+                                    const group = checked[id];
+                                    return typeof group === 'object' ? group : undefined;
+                                },
+                                (value) => (checked[id] = value ?? {})
+                            }
                         />
                     </div>
                 {/snippet}

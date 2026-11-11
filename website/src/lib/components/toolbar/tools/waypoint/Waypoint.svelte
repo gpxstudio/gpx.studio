@@ -4,19 +4,19 @@
     import { Label } from '$lib/components/ui/label/index.js';
     import { Button } from '$lib/components/ui/button';
     import * as Select from '$lib/components/ui/select';
-    import { i18n } from '$lib/i18n.svelte';
-    import { ListWaypointItem } from '$lib/components/file-list/file-list';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import Help from '$lib/components/Help.svelte';
     import { onDestroy, onMount, untrack } from 'svelte';
     import { getURLForLanguage } from '$lib/utils';
     import { MapPin, CircleX, Save } from '@lucide/svelte';
-    import { getSymbolKey, symbols } from '$lib/assets/symbols';
-    import { selection } from '$lib/logic/selection';
+    import { getSymbolKey, symbols } from '$lib/data/symbols';
+    import { engine } from '$lib/engine';
+    import { selectionSize } from '$lib/engine/selection-helpers';
+    import { getElevation } from '$lib/utils';
     import { selectedWaypoint } from './waypoint';
-    import { fileActions } from '$lib/logic/file-actions';
     import { map } from '$lib/components/map/map';
-    import { mapCursor, MapCursorState } from '$lib/logic/map-cursor';
-    import { Marker } from 'maplibre-gl';
+    import { mapCursor, MapCursorState } from '$lib/state/map-cursor';
+    import { Marker, type MapMouseEvent } from 'maplibre-gl';
     import { getSvgForSymbol } from '$lib/components/map/gpx-layer/gpx-layer';
 
     let props: {
@@ -31,7 +31,9 @@
     let latitude = $state(0);
     let symbolKey = $derived(getSymbolKey(sym));
 
-    let canCreate = $derived($selection.size > 0);
+    const { selection } = engine;
+
+    let canCreate = $derived(selectionSize($selection) > 0);
 
     let sortedSymbols = $derived(
         Object.entries(symbols).sort((a, b) => {
@@ -42,6 +44,19 @@
     );
 
     let marker: Marker | null = null;
+
+    // A number field holds what is typed, out of range or empty (null) on the way to a
+    // coordinate, and a map click sets strings. MapLibre throws on a latitude past ±90.
+    function inRange(value: number | string | null, limit: number) {
+        if (value === null || value === '') {
+            return false;
+        }
+        const n = Number(value);
+        return Number.isFinite(n) && Math.abs(n) <= limit;
+    }
+    let latitudeValid = $derived(inRange(latitude, 90));
+    let longitudeValid = $derived(inRange(longitude, 180));
+    let coordinatesValid = $derived(latitudeValid && longitudeValid);
 
     function reset() {
         if ($selectedWaypoint) {
@@ -58,24 +73,27 @@
 
     $effect(() => {
         if ($selectedWaypoint) {
-            const wpt = $selectedWaypoint[0];
+            const wpt = $selectedWaypoint.waypoint;
             untrack(() => {
                 name = wpt.name ?? '';
                 description = wpt.desc ?? '';
                 if (wpt.cmt !== undefined && wpt.cmt !== wpt.desc) {
                     description += '\n\n' + wpt.cmt;
                 }
-                link = wpt.link?.attributes?.href ?? '';
+                link = wpt.links?.[0]?.href ?? '';
                 sym = wpt.sym ?? '';
-                longitude = parseFloat(wpt.getLongitude().toFixed(6));
-                latitude = parseFloat(wpt.getLatitude().toFixed(6));
+                longitude = parseFloat(wpt.lng.toFixed(6));
+                latitude = parseFloat(wpt.lat.toFixed(6));
             });
         } else {
             untrack(reset);
         }
     });
 
-    function createOrUpdateWaypoint() {
+    async function createOrUpdateWaypoint() {
+        if (!coordinatesValid) {
+            return;
+        }
         if (typeof latitude === 'string') {
             latitude = parseFloat(latitude);
         }
@@ -85,29 +103,38 @@
         latitude = parseFloat(latitude.toFixed(6));
         longitude = parseFloat(longitude.toFixed(6));
 
-        fileActions.addOrUpdateWaypoint(
-            {
-                attributes: {
-                    lat: latitude,
-                    lon: longitude,
-                },
-                name: name.length > 0 ? name : undefined,
-                desc: description.length > 0 ? description : undefined,
-                cmt: description.length > 0 ? description : undefined,
-                link: link.length > 0 ? { attributes: { href: link } } : undefined,
-                sym: sym.length > 0 ? sym : undefined,
-            },
-            selectedWaypoint.wpt && selectedWaypoint.fileId
-                ? new ListWaypointItem(selectedWaypoint.fileId, selectedWaypoint.wpt._data.index)
-                : undefined
-        );
+        const target = $selectedWaypoint;
+        const [ele] = await getElevation([{ lat: latitude, lng: longitude }]);
+        const waypoint = {
+            lng: longitude,
+            lat: latitude,
+            ele,
+            name,
+            desc: description,
+            icon: sym,
+            link,
+        };
+        if (target) {
+            engine.updateWaypoint(target.fileId, target.id, waypoint);
+        } else {
+            // it goes in the selected files
+            engine.newWaypoint(waypoint);
+        }
 
         reset();
     }
 
-    function setCoordinates(e: any) {
-        latitude = e.lngLat.lat.toFixed(6);
-        longitude = e.lngLat.lng.toFixed(6);
+    function setCoordinates(e: MapMouseEvent) {
+        if (
+            $map?.queryRenderedFeatures(e.point, {
+                layers: $map.getLayersOrder().filter((layerId) => layerId.endsWith('-waypoints')),
+            }).length
+        ) {
+            // Clicked on a waypoint, ignoring
+            return;
+        }
+        latitude = parseFloat(e.lngLat.lat.toFixed(6));
+        longitude = parseFloat(e.lngLat.lng.toFixed(6));
     }
 
     $effect(() => {
@@ -117,7 +144,8 @@
                 marker = null;
             }
         } else if (latitude != 0 || longitude != 0) {
-            if ($map) {
+            // while a coordinate is being typed the pin stays where it last was
+            if ($map && coordinatesValid) {
                 if (marker) {
                     marker.setLngLat([longitude, latitude]).getElement().innerHTML =
                         getSvgForSymbol(symbolKey);
@@ -201,7 +229,7 @@
                     </span>
                 </Select.Trigger>
                 <Select.Content class="max-h-60">
-                    {#each sortedSymbols as [key, symbol]}
+                    {#each sortedSymbols as [key, symbol] (key)}
                         <Select.Item value={symbol.value}>
                             <span>
                                 {#if symbol.icon}
@@ -237,6 +265,7 @@
                     min={-90}
                     max={90}
                     class="text-xs h-8"
+                    aria-invalid={!latitudeValid}
                     disabled={!canCreate && !$selectedWaypoint}
                 />
             </div>
@@ -250,6 +279,7 @@
                     min={-180}
                     max={180}
                     class="text-xs h-8"
+                    aria-invalid={!longitudeValid}
                     disabled={!canCreate && !$selectedWaypoint}
                 />
             </div>
@@ -258,7 +288,7 @@
     <div class="flex flex-row gap-1.5 items-center">
         <Button
             variant="outline"
-            disabled={!canCreate && !$selectedWaypoint}
+            disabled={(!canCreate && !$selectedWaypoint) || !coordinatesValid}
             class="grow shrink h-fit min-h-8 whitespace-normal py-1"
             onclick={createOrUpdateWaypoint}
         >

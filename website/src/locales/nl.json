@@ -8,11 +8,43 @@
         "description": "Bekijk, bewerk en maak GPX-bestanden met geavanceerde mogelijkheden voor route planning en nabewerkingsmogelijkheden, prachtige kaarten en gedetailleerde visualisaties."
     },
     "menu": {
-        "new": "Nieuw",
         "new_file": "Nieuw bestand",
+        "new_route_file": "Nieuwe route bestand",
         "new_track": "Nieuwe route",
+        "new_route": "Nieuwe route",
+        "convert_to_route": "Convert to route",
+        "convert_to_track": "Converteer naar track",
+        "convert_to_routes": "Convert to route file",
+        "convert_to_tracks": "Converteer naar track bestand",
         "new_segment": "Nieuw segment",
         "open": "Openen...",
+        "open_folder": "Open map...",
+        "explorer": "Verkenner",
+        "explorer_menu": {
+            "open": "Openen",
+            "new_file": "Nieuw bestand...",
+            "new_route_file": "Nieuwe route bestand...",
+            "new_folder": "Nieuwe map...",
+            "rename": "Hernoem...",
+            "reveal_finder": "Toon in Finder",
+            "reveal": "Toon in bestandsverkenner",
+            "delete_failed": "De bestanden konden niet naar de prullenbak worden verplaatst."
+        },
+        "workspace": "Werkruimte",
+        "save": "Bewaar",
+        "save_all": "Alles opslaan",
+        "save_as": "Opslaan als...",
+        "close": "Sluiten",
+        "close_all": "Alles sluiten",
+        "close_folder": "Sluit map",
+        "reload": "Herlaad van schijf",
+        "discard": "Verwijder",
+        "cancel": "Annuleren",
+        "overwrite": "Overschrijven",
+        "unsaved_title": "Niet opgeslagen wijzigingen",
+        "unsaved_description": "Deze bestanden hebben veranderingen die niet zijn opgeslagen:",
+        "overwrite_title": "Overschrijf wijzigingen die ergens anders gedaan zijn?",
+        "overwrite_description": "Deze bestanden hebben veranderingen, en zijn ook gewijzigd op de schijf. Overschrijf wat er op de schijf staat, of herlaad en verlies je wijzigingen?",
         "duplicate": "Dupliceren",
         "copy": "Kopiëren",
         "paste": "Plakken",
@@ -20,7 +52,7 @@
         "export": "Exporteren...",
         "export_all": "Alles exporteren...",
         "export_options": "Exporteer instellingen",
-        "support_message": "Het gereedschap is gratis te gebruiken, maar is niet gratis om te onderhouden. Overweeg om de website te ondersteunen als je hem vaak gebruikt. Bedankt!",
+        "support_message": "De tool is gratis te gebruiken, maar is niet gratis om te onderhouden. Overweeg om de website te ondersteunen als je hem vaak gebruikt. Bedankt!",
         "support_button": "Help de website gratis te houden",
         "download_file": "Bestand downloaden",
         "download_files": "Bestanden downloaden",
@@ -69,7 +101,10 @@
             "button": "Info...",
             "name": "Naam",
             "description": "Beschrijving",
-            "save": "Bewaar"
+            "save": "Bewaar",
+            "rename_file": "Hernoem het bestand op de schijf",
+            "name_taken": "Er bestaat al een bestand met deze naam in de map.",
+            "rename_failed": "Het bestand kon niet worden hernoemd."
         },
         "style": {
             "button": "Uiterlijk...",
@@ -433,6 +468,8 @@
     "gpx": {
         "file": "Bestand",
         "files": "Bestanden",
+        "route": "Route",
+        "routes": "Routes",
         "track": "Track",
         "tracks": "Tracks",
         "segment": "Segment",
@@ -556,5 +593,17 @@
     },
     "webgl2_required": "WebGL 2 is vereist om de kaart weer te geven.",
     "enable_webgl2": "Leer hoe je WebGL 2 instelt in uw browser",
-    "page_not_found": "pagina niet gevonden"
+    "page_not_found": "pagina niet gevonden",
+    "outdated": {
+        "title": "Deze pagina is verouderd",
+        "description": "Uw bestanden zijn opgeslagen door een nieuwere versie van gpx.studio, die deze pagina niet kan lezen. Herlaad de pagina om de nieuwste versie te krijgen.",
+        "reload": "Vernieuwen"
+    },
+    "desktop": {
+        "update_available": "gpx.studio {version} is beschikbaar",
+        "update_restart": "Bijwerken en opnieuw opstarten",
+        "update_download": "Download",
+        "update_installing": "De update wordt geïnstalleerd...",
+        "update_failed": "De update kon niet worden geïnstalleerd"
+    }
 }

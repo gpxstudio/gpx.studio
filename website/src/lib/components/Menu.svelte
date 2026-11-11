@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { resolve } from '$app/paths';
     import * as Menubar from '$lib/components/ui/menubar/index.js';
     import { Button } from '$lib/components/ui/button';
     import Logo from '$lib/components/Logo.svelte';
@@ -40,40 +41,48 @@
         FolderOpen,
         FileStack,
         FileX,
+        Save,
+        SaveAll,
         BookOpenText,
         ChartArea,
         Maximize,
         Maximize2,
         Minimize2,
+        FolderX,
+        ArrowRightLeft,
     } from '@lucide/svelte';
     import { map } from '$lib/components/map/map';
     import { editMetadata } from '$lib/components/file-list/metadata/utils.svelte';
     import { editStyle } from '$lib/components/file-list/style/utils.svelte';
     import { exportState, ExportState } from '$lib/components/export/utils.svelte';
     import { anySelectedLayer } from '$lib/components/map/layer-control/utils';
-    import { defaultOverlays } from '$lib/assets/layers';
+    import { defaultOverlays } from '$lib/data/layers';
     import LayerControlSettings from '$lib/components/map/layer-control/LayerControlSettings.svelte';
-    import { ListFileItem, ListTrackItem } from '$lib/components/file-list/file-list';
     import Export from '$lib/components/export/Export.svelte';
     import { mode, setMode } from 'mode-watcher';
-    import { i18n } from '$lib/i18n.svelte';
-    import { languages } from '$lib/languages';
+    import { i18n } from '$lib/i18n/i18n.svelte';
+    import { languages } from '$lib/i18n/languages';
     import { getURLForLanguage } from '$lib/utils';
-    import { settings } from '$lib/logic/settings';
+    import { settings } from '$lib/state/settings';
     import {
+        closeAll,
+        closeFiles,
+        closeFolder,
         createFile,
-        fileActions,
+        createRouteFile,
         loadFiles,
-        pasteSelection,
-        triggerFileInput,
-    } from '$lib/logic/file-actions';
-    import { fileStateCollection } from '$lib/logic/file-state';
-    import { fileActionManager } from '$lib/logic/file-action-manager';
-    import { copied, selection } from '$lib/logic/selection';
-    import { allHidden } from '$lib/logic/hidden';
-    import { boundsManager } from '$lib/logic/bounds';
-    import { tick, onMount } from 'svelte';
-    import { allowedPastes } from '$lib/components/file-list/sortable-file-list';
+        openFiles,
+        openFolder,
+        saveAll,
+        saveAs,
+        saveSelected,
+    } from '$lib/actions/file-actions';
+    import UnsavedDialog from '$lib/components/file-list/UnsavedDialog.svelte';
+    import { engine } from '$lib/engine';
+    import { allHidden, selectedFilesConversion } from '$lib/engine/selection-stores';
+    import { selectedFileIds, selectionSize } from '$lib/engine/selection-helpers';
+    import { boundsManager } from '$lib/state/bounds';
+    import { onMount } from 'svelte';
 
     const {
         distanceUnits,
@@ -91,8 +100,18 @@
         routing,
     } = settings;
 
-    const canUndo = fileActionManager.canUndo;
-    const canRedo = fileActionManager.canRedo;
+    const { files, selection, canUndo, canRedo, canPaste, workspace } = engine;
+
+    let selectionCount = $derived(selectionSize($selection));
+    let noFiles = $derived($files.size === 0);
+    // the desktop app: the files are linked to the file system
+    let desktop = $derived($workspace !== undefined);
+    let selectedIds = $derived(selectedFileIds($selection));
+    let anyUnsaved = $derived(Object.values($workspace?.files ?? {}).some((file) => file.dirty));
+    // metadata and style can be edited for files, routes and tracks only
+    let filesOrTracksSelected = $derived(
+        $selection.type === 'file' || $selection.type === 'route' || $selection.type === 'track'
+    );
 
     function switchBasemaps() {
         [$currentBasemap, $previousBasemap] = [$previousBasemap, $currentBasemap];
@@ -130,7 +149,7 @@
     <div
         class="w-fit flex flex-row items-center justify-center p-1 bg-background rounded-b-md md:rounded-md pointer-events-auto shadow-md"
     >
-        <a href={getURLForLanguage(i18n.lang, '/')} target="_blank" class="shrink-0">
+        <a href={resolve(getURLForLanguage(i18n.lang, '/'))} target="_blank" class="shrink-0">
             <Logo class="h-5 mt-0.5 mx-2 md:hidden" iconOnly={true} width="16" />
             <Logo class="h-5 mt-0.5 mx-2 hidden md:block" width="96" />
         </a>
@@ -143,57 +162,103 @@
                 <Menubar.Content class="border-none">
                     <Menubar.Item onclick={createFile}>
                         <Plus size="16" />
-                        {i18n._('menu.new')}
+                        {i18n._('menu.new_file')}
                         <Shortcut key="+" ctrl={true} />
                     </Menubar.Item>
+                    <Menubar.Item onclick={createRouteFile}>
+                        <Plus size="16" />
+                        {i18n._('menu.new_route_file')}
+                    </Menubar.Item>
                     <Menubar.Separator />
-                    <Menubar.Item onclick={triggerFileInput}>
+                    <Menubar.Item onclick={openFiles}>
                         <FolderOpen size="16" />
                         {i18n._('menu.open')}
                         <Shortcut key="O" ctrl={true} />
                     </Menubar.Item>
+                    {#if desktop}
+                        <Menubar.Item onclick={openFolder}>
+                            <FolderOpen size="16" />
+                            {i18n._('menu.open_folder')}
+                            <Shortcut key="O" ctrl={true} shift={true} />
+                        </Menubar.Item>
+                    {/if}
                     <Menubar.Separator />
-                    <Menubar.Item
-                        onclick={fileActions.duplicateSelection}
-                        disabled={$selection.size == 0}
-                    >
+                    <Menubar.Item onclick={() => engine.duplicate()} disabled={selectionCount == 0}>
                         <Copy size="16" />
                         {i18n._('menu.duplicate')}
                         <Shortcut key="D" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Separator />
-                    <Menubar.Item
-                        onclick={() => tick().then(fileActions.deleteSelectedFiles)}
-                        disabled={$selection.size == 0}
-                    >
-                        <FileX size="16" />
-                        {i18n._('menu.delete')}
-                        <Shortcut key="⌫" ctrl={true} />
-                    </Menubar.Item>
-                    <Menubar.Item
-                        onclick={fileActions.deleteAllFiles}
-                        disabled={fileStateCollection.size == 0}
-                    >
-                        <FileX size="16" />
-                        {i18n._('menu.delete_all')}
-                        <Shortcut key="⌫" ctrl={true} shift={true} />
-                    </Menubar.Item>
+                    {#if desktop}
+                        <Menubar.Item
+                            onclick={() => saveSelected(selectedIds)}
+                            disabled={selectionCount == 0 && !anyUnsaved}
+                        >
+                            <Save size="16" />
+                            {i18n._('menu.save')}
+                            <Shortcut key="S" ctrl={true} />
+                        </Menubar.Item>
+                        <Menubar.Item onclick={saveAll} disabled={!anyUnsaved}>
+                            <Save size="16" />
+                            {i18n._('menu.save_all')}
+                            <Shortcut key="S" ctrl={true} shift={true} />
+                        </Menubar.Item>
+                        <Menubar.Item
+                            onclick={() => saveAs(selectedIds)}
+                            disabled={selectedIds.length !== 1}
+                        >
+                            <SaveAll size="16" />
+                            {i18n._('menu.save_as')}
+                        </Menubar.Item>
+                        <Menubar.Separator />
+                        <Menubar.Item
+                            onclick={() => closeFiles(selectedIds)}
+                            disabled={selectedIds.length === 0}
+                        >
+                            <FileX size="16" />
+                            {i18n._('menu.close')}
+                            <Shortcut key="W" ctrl={true} />
+                        </Menubar.Item>
+                        <Menubar.Item onclick={closeAll} disabled={noFiles}>
+                            <FileX size="16" />
+                            {i18n._('menu.close_all')}
+                            <Shortcut key="W" ctrl={true} shift={true} />
+                        </Menubar.Item>
+                        <Menubar.Item onclick={closeFolder} disabled={!$workspace?.folder}>
+                            <FolderX size="16" />
+                            {i18n._('menu.close_folder')}
+                        </Menubar.Item>
+                    {:else}
+                        <Menubar.Item
+                            onclick={() => engine.delete(true)}
+                            disabled={selectionCount == 0}
+                        >
+                            <FileX size="16" />
+                            {i18n._('menu.delete')}
+                            <Shortcut key="⌫" ctrl={true} />
+                        </Menubar.Item>
+                        <Menubar.Item onclick={() => engine.deleteAll()} disabled={noFiles}>
+                            <FileX size="16" />
+                            {i18n._('menu.delete_all')}
+                            <Shortcut key="⌫" ctrl={true} shift={true} />
+                        </Menubar.Item>
+                    {/if}
                     <Menubar.Separator />
                     <Menubar.Item
                         onclick={() => (exportState.current = ExportState.SELECTION)}
-                        disabled={$selection.size == 0}
+                        disabled={selectionCount == 0}
                     >
                         <Download size="16" />
                         {i18n._('menu.export')}
-                        <Shortcut key="S" ctrl={true} />
+                        {#if !desktop}<Shortcut key="S" ctrl={true} />{/if}
                     </Menubar.Item>
                     <Menubar.Item
                         onclick={() => (exportState.current = ExportState.ALL)}
-                        disabled={fileStateCollection.size == 0}
+                        disabled={noFiles}
                     >
                         <Download size="16" />
                         {i18n._('menu.export_all')}
-                        <Shortcut key="S" ctrl={true} shift={true} />
+                        {#if !desktop}<Shortcut key="S" ctrl={true} shift={true} />{/if}
                     </Menubar.Item>
                 </Menubar.Content>
             </Menubar.Menu>
@@ -203,26 +268,19 @@
                     <span class="hidden md:block">{i18n._('menu.edit')}</span>
                 </Menubar.Trigger>
                 <Menubar.Content class="border-none">
-                    <Menubar.Item onclick={() => fileActionManager.undo()} disabled={!$canUndo}>
+                    <Menubar.Item onclick={() => engine.undo()} disabled={!$canUndo}>
                         <Undo2 size="16" />
                         {i18n._('menu.undo')}
                         <Shortcut key="Z" ctrl={true} />
                     </Menubar.Item>
-                    <Menubar.Item onclick={() => fileActionManager.redo()} disabled={!$canRedo}>
+                    <Menubar.Item onclick={() => engine.redo()} disabled={!$canRedo}>
                         <Redo2 size="16" />
                         {i18n._('menu.redo')}
                         <Shortcut key="Z" ctrl={true} shift={true} />
                     </Menubar.Item>
                     <Menubar.Separator />
                     <Menubar.Item
-                        disabled={$selection.size !== 1 ||
-                            !$selection
-                                .getSelected()
-                                .every(
-                                    (item) =>
-                                        item instanceof ListFileItem ||
-                                        item instanceof ListTrackItem
-                                )}
+                        disabled={selectionCount !== 1 || !filesOrTracksSelected}
                         onclick={() => (editMetadata.current = true)}
                     >
                         <Info size="16" />
@@ -230,132 +288,101 @@
                         <Shortcut key="I" ctrl={true} />
                     </Menubar.Item>
                     <Menubar.Item
-                        disabled={$selection.size === 0 ||
-                            !$selection
-                                .getSelected()
-                                .every(
-                                    (item) =>
-                                        item instanceof ListFileItem ||
-                                        item instanceof ListTrackItem
-                                )}
+                        disabled={selectionCount === 0 || !filesOrTracksSelected}
                         onclick={() => (editStyle.current = true)}
                     >
                         <PaintBucket size="16" />
                         {i18n._('menu.style.button')}
                     </Menubar.Item>
-                    <Menubar.Item
-                        onclick={() => {
-                            if ($allHidden) {
-                                fileActions.setHiddenToSelection(false);
-                            } else {
-                                fileActions.setHiddenToSelection(true);
-                            }
-                        }}
-                        disabled={$selection.size == 0}
-                    >
-                        {#if $allHidden}
-                            <Eye size="16" />
-                            {i18n._('menu.unhide')}
-                        {:else}
-                            <EyeOff size="16" />
-                            {i18n._('menu.hide')}
-                        {/if}
-                        <Shortcut key="H" ctrl={true} />
-                    </Menubar.Item>
                     {#if $treeFileView}
-                        {#if $selection.getSelected().some((item) => item instanceof ListFileItem)}
+                        {#if $selection.type === 'file'}
                             <Menubar.Separator />
                             <Menubar.Item
-                                onclick={() =>
-                                    fileActions.addNewTrack(
-                                        $selection.getSelected()[0].getFileId()
-                                    )}
-                                disabled={$selection.size !== 1}
+                                onclick={() => engine.newTrack()}
+                                disabled={selectionCount !== 1}
                             >
                                 <Plus size="16" />
                                 {i18n._('menu.new_track')}
                             </Menubar.Item>
-                        {:else if $selection
-                            .getSelected()
-                            .some((item) => item instanceof ListTrackItem)}
+                            <Menubar.Item
+                                onclick={() => engine.newRoute()}
+                                disabled={selectionCount !== 1}
+                            >
+                                <Plus size="16" />
+                                {i18n._('menu.new_route')}
+                            </Menubar.Item>
+                        {:else if $selection.type === 'track'}
                             <Menubar.Separator />
                             <Menubar.Item
-                                onclick={() => {
-                                    let item = $selection.getSelected()[0];
-                                    fileActions.addNewSegment(
-                                        item.getFileId(),
-                                        item.getTrackIndex()
-                                    );
-                                }}
-                                disabled={$selection.size !== 1}
+                                onclick={() => engine.newTrackSegment()}
+                                disabled={selectionCount !== 1}
                             >
                                 <Plus size="16" />
                                 {i18n._('menu.new_segment')}
                             </Menubar.Item>
                         {/if}
+                        {#if $selection.type === 'route' || $selection.type === 'track' || $selection.type === 'segment'}
+                            {#if $selection.type !== 'track'}
+                                <Menubar.Separator />
+                            {/if}
+                            <Menubar.Item onclick={() => engine.convert()}>
+                                <ArrowRightLeft size="16" />
+                                {i18n._(
+                                    $selection.type === 'route'
+                                        ? 'menu.convert_to_track'
+                                        : 'menu.convert_to_route'
+                                )}
+                            </Menubar.Item>
+                        {/if}
+                    {/if}
+                    {#if $selectedFilesConversion}
+                        {#if !$treeFileView}
+                            <Menubar.Separator />
+                        {/if}
+                        <Menubar.Item onclick={() => engine.convert()}>
+                            <ArrowRightLeft size="16" />
+                            {i18n._(
+                                $selectedFilesConversion === 'route'
+                                    ? 'menu.convert_to_routes'
+                                    : 'menu.convert_to_tracks'
+                            )}
+                        </Menubar.Item>
                     {/if}
                     <Menubar.Separator />
-                    <Menubar.Item
-                        onclick={() => selection.selectAll()}
-                        disabled={fileStateCollection.size == 0}
-                    >
+                    <Menubar.Item onclick={() => engine.selectAll()} disabled={noFiles}>
                         <FileStack size="16" />
                         {i18n._('menu.select_all')}
                         <Shortcut key="A" ctrl={true} />
                     </Menubar.Item>
-                    <Menubar.Item
-                        onclick={() => {
-                            if ($selection.size > 0) {
-                                boundsManager.centerMapOnSelection();
-                            }
-                        }}
-                        disabled={$selection.size == 0}
-                    >
-                        <Maximize size="16" />
-                        {i18n._('menu.center')}
-                        <Shortcut key="⏎" ctrl={true} />
-                    </Menubar.Item>
                     {#if $treeFileView}
                         <Menubar.Separator />
-                        <Menubar.Item
-                            onclick={() => selection.copySelection()}
-                            disabled={$selection.size === 0}
-                        >
+                        <Menubar.Item onclick={() => engine.copy()} disabled={selectionCount === 0}>
                             <ClipboardCopy size="16" />
                             {i18n._('menu.copy')}
                             <Shortcut key="C" ctrl={true} />
                         </Menubar.Item>
-                        <Menubar.Item
-                            onclick={() => selection.cutSelection()}
-                            disabled={$selection.size === 0}
-                        >
+                        <Menubar.Item onclick={() => engine.cut()} disabled={selectionCount === 0}>
                             <Scissors size="16" />
                             {i18n._('menu.cut')}
                             <Shortcut key="X" ctrl={true} />
                         </Menubar.Item>
-                        <Menubar.Item
-                            disabled={$copied === undefined ||
-                                $copied.length === 0 ||
-                                ($selection.size > 0 &&
-                                    !allowedPastes[$copied[0].level].includes(
-                                        $selection.getSelected().pop()!.level
-                                    ))}
-                            onclick={pasteSelection}
-                        >
+                        <Menubar.Item disabled={!$canPaste} onclick={() => engine.paste()}>
                             <ClipboardPaste size="16" />
                             {i18n._('menu.paste')}
                             <Shortcut key="V" ctrl={true} />
                         </Menubar.Item>
                     {/if}
-                    <Menubar.Separator />
-                    <Menubar.Item
-                        onclick={() => tick().then(fileActions.deleteSelection)}
-                        disabled={$selection.size == 0}
-                    >
-                        <Trash2 size="16" />
-                        {i18n._('menu.delete')}
-                        <Shortcut key="⌫" ctrl={true} />
-                    </Menubar.Item>
+                    {#if !desktop}
+                        <Menubar.Separator />
+                        <Menubar.Item
+                            onclick={() => engine.delete()}
+                            disabled={selectionCount == 0}
+                        >
+                            <Trash2 size="16" />
+                            {i18n._('menu.delete')}
+                            <Shortcut key="⌫" ctrl={true} />
+                        </Menubar.Item>
+                    {/if}
                 </Menubar.Content>
             </Menubar.Menu>
             <Menubar.Menu>
@@ -390,6 +417,34 @@
                             key="F4"
                         />
                     </Menubar.CheckboxItem>
+                    <Menubar.Separator />
+                    <Menubar.Item
+                        inset
+                        onclick={() => engine.setSelectionHidden(!$allHidden)}
+                        disabled={selectionCount == 0}
+                    >
+                        {#if $allHidden}
+                            <Eye size="16" />
+                            {i18n._('menu.unhide')}
+                        {:else}
+                            <EyeOff size="16" />
+                            {i18n._('menu.hide')}
+                        {/if}
+                        <Shortcut key="H" ctrl={true} />
+                    </Menubar.Item>
+                    <Menubar.Item
+                        inset
+                        onclick={() => {
+                            if (selectionCount > 0) {
+                                boundsManager.centerMapOnSelection();
+                            }
+                        }}
+                        disabled={selectionCount == 0}
+                    >
+                        <Maximize size="16" />
+                        {i18n._('menu.center')}
+                        <Shortcut key="⏎" ctrl={true} />
+                    </Menubar.Item>
                     <Menubar.Separator />
                     <Menubar.Item inset onclick={() => map.toggle3D()}>
                         <Box size="16" />
@@ -472,8 +527,8 @@
                         </Menubar.SubTrigger>
                         <Menubar.SubContent>
                             <Menubar.RadioGroup value={i18n.lang}>
-                                {#each Object.entries(languages) as [lang, label]}
-                                    <a href={getURLForLanguage(lang, '/app')}>
+                                {#each Object.entries(languages) as [lang, label] (lang)}
+                                    <a href={resolve(getURLForLanguage(lang, '/app'))}>
                                         <Menubar.RadioItem value={lang}>{label}</Menubar.RadioItem>
                                     </a>
                                 {/each}
@@ -560,6 +615,7 @@
 </div>
 
 <Export />
+<UnsavedDialog />
 <LayerControlSettings bind:open={layerSettingsOpen} />
 
 <svelte:window
@@ -581,64 +637,78 @@
         if (e.key === '+' && (e.metaKey || e.ctrlKey)) {
             createFile();
             e.preventDefault();
-        } else if (e.key === 'o' && (e.metaKey || e.ctrlKey)) {
-            triggerFileInput();
+        } else if ((e.key === 'o' || e.key === 'O') && (e.metaKey || e.ctrlKey)) {
+            if (desktop && e.shiftKey) {
+                openFolder();
+            } else {
+                openFiles();
+            }
+            e.preventDefault();
+        } else if (desktop && (e.key === 'w' || e.key === 'W') && (e.metaKey || e.ctrlKey)) {
+            if (e.shiftKey) {
+                closeAll();
+            } else {
+                closeFiles(selectedIds);
+            }
+            e.preventDefault();
+        } else if (desktop && (e.key === 's' || e.key === 'S') && (e.metaKey || e.ctrlKey)) {
+            if (e.shiftKey) {
+                saveAll();
+            } else {
+                saveSelected(selectedIds);
+            }
             e.preventDefault();
         } else if (e.key === 'd' && (e.metaKey || e.ctrlKey)) {
-            fileActions.duplicateSelection();
+            engine.duplicate();
             e.preventDefault();
         } else if (e.key === 'c' && (e.metaKey || e.ctrlKey)) {
             if (!targetInput) {
-                selection.copySelection();
+                engine.copy();
                 e.preventDefault();
             }
         } else if (e.key === 'x' && (e.metaKey || e.ctrlKey)) {
             if (!targetInput) {
-                selection.cutSelection();
+                engine.cut();
                 e.preventDefault();
             }
         } else if (e.key === 'v' && (e.metaKey || e.ctrlKey)) {
             if (!targetInput) {
-                pasteSelection();
+                engine.paste();
                 e.preventDefault();
             }
         } else if ((e.key === 's' || e.key == 'S') && (e.metaKey || e.ctrlKey)) {
             if (e.shiftKey) {
-                if (fileStateCollection.size > 0) {
+                if (!noFiles) {
                     exportState.current = ExportState.ALL;
                 }
-            } else if ($selection.size > 0) {
+            } else if (selectionCount > 0) {
                 exportState.current = ExportState.SELECTION;
             }
             e.preventDefault();
         } else if ((e.key === 'z' || e.key == 'Z') && (e.metaKey || e.ctrlKey)) {
             if (e.shiftKey) {
-                fileActionManager.redo();
+                engine.redo();
             } else {
-                fileActionManager.undo();
+                engine.undo();
             }
             e.preventDefault();
         } else if ((e.key === 'Backspace' || e.key === 'Delete') && (e.metaKey || e.ctrlKey)) {
-            if (!targetInput) {
+            // the desktop app closes files instead
+            if (!targetInput && !desktop) {
                 if (e.shiftKey) {
-                    fileActions.deleteAllFiles();
+                    engine.deleteAll();
                 } else {
-                    fileActions.deleteSelection();
+                    engine.delete();
                 }
                 e.preventDefault();
             }
         } else if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {
             if (!targetInput) {
-                selection.selectAll();
+                engine.selectAll();
                 e.preventDefault();
             }
         } else if (e.key === 'i' && (e.metaKey || e.ctrlKey)) {
-            if (
-                $selection.size === 1 &&
-                $selection
-                    .getSelected()
-                    .every((item) => item instanceof ListFileItem || item instanceof ListTrackItem)
-            ) {
+            if (selectionCount === 1 && filesOrTracksSelected) {
                 editMetadata.current = true;
             }
             e.preventDefault();
@@ -649,14 +719,10 @@
             $treeFileView = !$treeFileView;
             e.preventDefault();
         } else if (e.key === 'h' && (e.metaKey || e.ctrlKey)) {
-            if ($allHidden) {
-                fileActions.setHiddenToSelection(false);
-            } else {
-                fileActions.setHiddenToSelection(true);
-            }
+            engine.setSelectionHidden(!$allHidden);
             e.preventDefault();
         } else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-            if ($selection.size > 0) {
+            if (selectionCount > 0) {
                 boundsManager.centerMapOnSelection();
             }
         } else if (e.key === 'F1') {
@@ -681,10 +747,7 @@
             e.key === 'ArrowUp'
         ) {
             if (!targetInput) {
-                selection.updateFromKey(
-                    e.key === 'ArrowRight' || e.key === 'ArrowDown',
-                    e.shiftKey
-                );
+                engine.arrowSelect(e.key === 'ArrowRight' || e.key === 'ArrowDown', e.shiftKey);
                 e.preventDefault();
             }
         }

@@ -8,11 +8,43 @@
         "description": "Peržiūrėkite, redaguokite ir kurkite GPX failus internete naudodami išplėstines maršruto planavimo galimybes ir failų apdorojimo įrankius, gražius žemėlapius ir išsamias duomenų vizualizacijas."
     },
     "menu": {
-        "new": "Naujas",
         "new_file": "Naujas failas",
+        "new_route_file": "Naujas maršruto failas",
         "new_track": "Nauja trasa",
+        "new_route": "New route",
+        "convert_to_route": "Convert to route",
+        "convert_to_track": "Convert to track",
+        "convert_to_routes": "Convert to route file",
+        "convert_to_tracks": "Convert to track file",
         "new_segment": "Naujas segmentas",
         "open": "Atverti...",
+        "open_folder": "Open folder...",
+        "explorer": "Explorer",
+        "explorer_menu": {
+            "open": "Open",
+            "new_file": "New file...",
+            "new_route_file": "New route file...",
+            "new_folder": "New folder...",
+            "rename": "Rename...",
+            "reveal_finder": "Reveal in Finder",
+            "reveal": "Reveal in file explorer",
+            "delete_failed": "The files could not be moved to the trash."
+        },
+        "workspace": "Workspace",
+        "save": "Save",
+        "save_all": "Save all",
+        "save_as": "Save as...",
+        "close": "Užverti",
+        "close_all": "Užverti visus",
+        "close_folder": "Close folder",
+        "reload": "Reload from disk",
+        "discard": "Discard",
+        "cancel": "Cancel",
+        "overwrite": "Overwrite",
+        "unsaved_title": "Unsaved changes",
+        "unsaved_description": "These files have changes that are not saved:",
+        "overwrite_title": "Overwrite changes made elsewhere?",
+        "overwrite_description": "These files have changes, and were also changed on the disk. Overwrite what is on the disk, or reload it and lose your changes?",
         "duplicate": "Dubliuoti",
         "copy": "Kopijuoti",
         "paste": "Įklijuoti",
@@ -69,7 +101,10 @@
             "button": "Informacija...",
             "name": "Pavadinimas",
             "description": "Aprašymas",
-            "save": "Išsaugoti"
+            "save": "Išsaugoti",
+            "rename_file": "Rename the file on disk",
+            "name_taken": "A file with this name already exists in the folder.",
+            "rename_failed": "The file could not be renamed."
         },
         "style": {
             "button": "Išvaizda...",
@@ -111,7 +146,7 @@
                 "racing_bike": "Kelių dviračiu",
                 "gravel_bike": "Bekelės dviračiu",
                 "mountain_bike": "Kalnų dviračiu",
-                "foot": "Bėgimas / ėjimas",
+                "foot": "Bėgimas / žygiavimas",
                 "motorcycle": "Motociklu",
                 "water": "Vandeniu",
                 "railway": "Geležinkeliu"
@@ -146,7 +181,7 @@
                 "unknown": "Unknown",
                 "motorway": "Highway",
                 "motorway_link": "Highway link",
-                "trunk": "Primary road",
+                "trunk": "Pagrindinis kelias",
                 "trunk_link": "Primary road link",
                 "primary": "Primary road",
                 "primary_link": "Primary road link",
@@ -433,6 +468,8 @@
     "gpx": {
         "file": "Failas",
         "files": "Failai",
+        "route": "Route",
+        "routes": "Routes",
         "track": "Trasa",
         "tracks": "Trasos",
         "segment": "Atkarpa",
@@ -515,7 +552,7 @@
     },
     "docs": {
         "translate": "Improve the translation on Crowdin",
-        "answer_not_found": "Did not find what you were looking for?",
+        "answer_not_found": "Neradote, ko ieškojote?",
         "ask_on_reddit": "Ask the community on Reddit",
         "search": {
             "search": "Search",
@@ -556,5 +593,17 @@
     },
     "webgl2_required": "Žemėlapio rodymui būtina „WebGL 2“.",
     "enable_webgl2": "Sužinokite kaip aktyvuoti „WebGL 2“ naršyklėje",
-    "page_not_found": "puslapis nerastas"
+    "page_not_found": "puslapis nerastas",
+    "outdated": {
+        "title": "This page is out of date",
+        "description": "Your files were saved by a newer version of gpx.studio, which this page cannot read. Reload the page to get the latest version.",
+        "reload": "Reload"
+    },
+    "desktop": {
+        "update_available": "gpx.studio {version} is available",
+        "update_restart": "Update and restart",
+        "update_download": "Download",
+        "update_installing": "Installing the update...",
+        "update_failed": "Nepavyko įdiegti atnaujinimo"
+    }
 }

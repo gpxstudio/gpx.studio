@@ -15,7 +15,7 @@
         Milestone,
         Video,
     } from '@lucide/svelte';
-    import { i18n } from '$lib/i18n.svelte';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import {
         allowedEmbeddingBasemaps,
         defaultEmbeddingOptions,
@@ -25,9 +25,10 @@
     import { PUBLIC_MAPTILER_KEY } from '$env/static/public';
     import Embedding from './Embedding.svelte';
     import { onDestroy } from 'svelte';
-    import { base } from '$app/paths';
+    import { resolve } from '$app/paths';
     import { map } from '$lib/components/map/map';
     import { mode } from 'mode-watcher';
+    import { getURLForLanguage } from '$lib/utils';
 
     let options = $state(
         getMergedEmbeddingOptions(
@@ -63,10 +64,10 @@
     let manualCamera = $state(false);
     let zoom = $state('0');
     let lat = $state('0');
-    let lon = $state('0');
+    let lng = $state('0');
     let bearing = $state('0');
     let pitch = $state('0');
-    let hash = $derived(manualCamera ? `#${zoom}/${lat}/${lon}/${bearing}/${pitch}` : '');
+    let hash = $derived(manualCamera ? `#${zoom}/${lat}/${lng}/${bearing}/${pitch}` : '');
 
     $effect(() => {
         if (options.elevation.show || options.elevation.height) {
@@ -78,7 +79,7 @@
         if ($map) {
             let center = $map.getCenter();
             lat = center.lat.toFixed(4);
-            lon = center.lng.toFixed(4);
+            lng = center.lng.toFixed(4);
             zoom = $map.getZoom().toFixed(2);
             bearing = $map.getBearing().toFixed(1);
             pitch = $map.getPitch().toFixed(0);
@@ -114,7 +115,7 @@
                     {i18n._(`layers.label.${options.basemap}`)}
                 </Select.Trigger>
                 <Select.Content class="max-h-60 overflow-y-scroll">
-                    {#each allowedEmbeddingBasemaps as basemap}
+                    {#each allowedEmbeddingBasemaps as basemap (basemap)}
                         <Select.Item value={basemap}
                             >{i18n._(`layers.label.${basemap}`)}</Select.Item
                         >
@@ -293,7 +294,7 @@
                     </Label>
                     <Label class="flex flex-col gap-1">
                         <span>{i18n._('embedding.longitude')}</span>
-                        <span>{lon}</span>
+                        <span>{lng}</span>
                     </Label>
                     <Label class="flex flex-col gap-1">
                         <span>{i18n._('embedding.zoom')}</span>
@@ -321,7 +322,7 @@
             <pre
                 class="bg-primary text-primary-foreground p-3 rounded-md whitespace-normal break-all">
                 <code class="language-html">
-                    {`<iframe src="https://gpx.studio${base}/embed?options=${encodeURIComponent(JSON.stringify(getCleanedEmbeddingOptions(iframeOptions)))}${hash}" width="100%" height="600px" frameborder="0" style="outline: none;"/>`}
+                    {`<iframe src="https://gpx.studio${resolve(getURLForLanguage(i18n.lang, '/embed'))}?options=${encodeURIComponent(JSON.stringify(getCleanedEmbeddingOptions(iframeOptions)))}${hash}" width="100%" height="600px" frameborder="0" style="outline: none;"/>`}
                 </code>
             </pre>
         </fieldset>

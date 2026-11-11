@@ -3,7 +3,7 @@ title: Možnosti zobrazení
 ---
 
 <script lang="ts">
-    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, Box, Maximize2 } from '@lucide/svelte';
+    import { ChartArea, ListTree, Map, Layers2, Coins, Milestone, EyeOff, Maximize, Box, Maximize2 } from '@lucide/svelte';
     import DocsNote from '$lib/components/docs/DocsNote.svelte';
 </script>
 
@@ -19,7 +19,7 @@ Skrýt výškový profil, aby se vytvořilo místo pro mapu, nebo ho zobrazit a 
 
 Přepnout rozvržení stromu pro [seznam souborů](../files-and-stats).
 Toto zobrazení je ideální pro správu velkého počtu otevřených souborů, protože je uspořádá do svislého seznamu na pravé straně mapy.
-Kromě jiného umožňuje zobrazení stromu souborů zkontrolovat [trasy, segmenty, a body zájmu](../gpx) obsažené uvnitř souborů skrze sbalitelné sekce.
+In addition, the file tree view enables you to inspect the [tracks, segments, routes, and points of interest](../gpx) contained inside the files through collapsible sections.
 
 ### <Map size="16" class="inline-block" style="margin-bottom: 2px" /> Přepnout na předchozí základní mapu
 
@@ -37,6 +37,14 @@ Zobrazují se pro aktuální výběr, jako je [výškový profil](../files-and-s
 ### <Milestone size="16" class="inline-block" style="margin-bottom: 2px" /> Směrové šipky
 
 Přepnout viditelnost směrových šipek na mapě.
+
+### <EyeOff size="16" class="inline-block" style="margin-bottom: 2px" /> Hide/unhide
+
+Toggle the visibility of the selected file items on the map.
+
+### <Maximize size="16" class="inline-block" style="margin-bottom: 2px" /> Center
+
+Center the map on the selected file items.
 
 ### <Box size="16" class="inline-block" style="margin-bottom: 2px" /> Přepnout 3D
 

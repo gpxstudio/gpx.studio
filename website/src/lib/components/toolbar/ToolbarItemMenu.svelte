@@ -12,7 +12,7 @@
     import Reduce from '$lib/components/toolbar/tools/reduce/Reduce.svelte';
     import RoutingControlPopup from '$lib/components/toolbar/tools/routing/RoutingControlPopup.svelte';
     import { Popup } from 'maplibre-gl';
-    import { settings } from '$lib/logic/settings';
+    import { settings } from '$lib/state/settings';
 
     let {
         class: className = '',

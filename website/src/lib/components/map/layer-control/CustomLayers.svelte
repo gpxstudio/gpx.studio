@@ -17,11 +17,11 @@
         Map,
         Layers2,
     } from '@lucide/svelte';
-    import { i18n } from '$lib/i18n.svelte';
-    import { defaultBasemap, type CustomLayer } from '$lib/assets/layers';
+    import { i18n } from '$lib/i18n/i18n.svelte';
+    import { defaultBasemap, layerGroup, type CustomLayer } from '$lib/data/layers';
     import { onMount } from 'svelte';
     import { remove } from './utils';
-    import { settings } from '$lib/logic/settings';
+    import { settings } from '$lib/state/settings';
     import { dndzone } from 'svelte-dnd-action';
 
     const {
@@ -128,15 +128,16 @@
                 ],
             };
         }
-        addLayer(layerId);
+
         $customLayers[layerId] = layer;
+        addLayer(layerId);
         selectedLayerId = undefined;
         setDataFromSelectedLayer();
     }
 
     function getLayerId() {
         for (let id = 0; ; id++) {
-            if (!$customLayers.hasOwnProperty(`custom-${id}`)) {
+            if (!Object.hasOwn($customLayers, `custom-${id}`)) {
                 return `custom-${id}`;
             }
         }
@@ -145,7 +146,7 @@
     function addLayer(layerId: string) {
         if (layerType === 'basemap') {
             selectedBasemapTree.update(($tree) => {
-                if (!$tree.basemaps.hasOwnProperty('custom')) {
+                if (!Object.hasOwn($tree.basemaps, 'custom')) {
                     $tree.basemaps['custom'] = {};
                 }
                 $tree.basemaps['custom'][layerId] = true;
@@ -161,7 +162,7 @@
             }
         } else {
             selectedOverlayTree.update(($tree) => {
-                if (!$tree.overlays.hasOwnProperty('custom')) {
+                if (!Object.hasOwn($tree.overlays, 'custom')) {
                     $tree.overlays['custom'] = {};
                 }
                 $tree.overlays['custom'][layerId] = true;
@@ -169,7 +170,7 @@
             });
 
             currentOverlays.update(($overlays) => {
-                if (!$overlays.overlays.hasOwnProperty('custom')) {
+                if (!Object.hasOwn($overlays.overlays, 'custom')) {
                     $overlays.overlays['custom'] = {};
                 }
                 $overlays.overlays['custom'][layerId] = true;
@@ -182,8 +183,8 @@
         }
     }
 
-    function tryDeleteLayer(node: any, id: string): any {
-        if (node.hasOwnProperty(id)) {
+    function tryDeleteLayer<T>(node: Record<string, T>, id: string): Record<string, T> {
+        if (Object.hasOwn(node, id)) {
             delete node[id];
         }
         return node;
@@ -255,13 +256,12 @@
                 onfinalize={(e) => {
                     customBasemapItems = e.detail.items;
                     $customBasemapOrder = customBasemapItems.map((item) => item.id);
-                    $selectedBasemapTree.basemaps['custom'] = customBasemapItems.reduce(
-                        (acc, item) => {
-                            acc[item.id] = true;
-                            return acc;
-                        },
-                        {}
-                    );
+                    selectedBasemapTree.update(($tree) => {
+                        layerGroup($tree.basemaps)['custom'] = Object.fromEntries(
+                            customBasemapItems.map((item) => [item.id, true])
+                        );
+                        return $tree;
+                    });
                 }}
             >
                 {#each customBasemapItems as item (item.id)}
@@ -315,13 +315,12 @@
                 onfinalize={(e) => {
                     customOverlayItems = e.detail.items;
                     $customOverlayOrder = customOverlayItems.map((item) => item.id);
-                    $selectedOverlayTree.overlays['custom'] = customOverlayItems.reduce(
-                        (acc, item) => {
-                            acc[item.id] = true;
-                            return acc;
-                        },
-                        {}
-                    );
+                    selectedOverlayTree.update(($tree) => {
+                        layerGroup($tree.overlays)['custom'] = Object.fromEntries(
+                            customOverlayItems.map((item) => [item.id, true])
+                        );
+                        return $tree;
+                    });
                 }}
             >
                 {#each customOverlayItems as item (item.id)}
@@ -365,7 +364,7 @@
                 <Label for="name">{i18n._('menu.metadata.name')}</Label>
                 <Input bind:value={name} id="name" class="h-8" />
                 <Label for="url">{i18n._('layers.custom_layers.urls')}</Label>
-                {#each tileUrls as url, i}
+                {#each tileUrls as _, i (i)}
                     <div class="flex flex-row gap-2">
                         <Input
                             bind:value={tileUrls[i]}

@@ -14,12 +14,11 @@
         overlayTree,
         overpassTree,
         terrainSources,
-    } from '$lib/assets/layers';
+    } from '$lib/data/layers';
     import { getLayers, isSelected, toggle } from '$lib/components/map/layer-control/utils';
-    import { i18n } from '$lib/i18n.svelte';
-    import { map } from '$lib/components/map/map';
+    import { i18n } from '$lib/i18n/i18n.svelte';
     import CustomLayers from './CustomLayers.svelte';
-    import { settings } from '$lib/logic/settings';
+    import { settings } from '$lib/state/settings';
     import { untrack } from 'svelte';
     import { extensionAPI } from '$lib/components/map/layer-control/extension-api';
 
@@ -45,7 +44,7 @@
 
     function setOpacityFromSelection() {
         if (selectedOverlay) {
-            if ($opacities.hasOwnProperty(selectedOverlay)) {
+            if (Object.hasOwn($opacities, selectedOverlay)) {
                 overlayOpacity = $opacities[selectedOverlay];
             } else {
                 overlayOpacity = 1;
@@ -169,7 +168,7 @@
                                             {#if isSelected($selectedOverlayTree, selectedOverlay)}
                                                 {#if $isLayerFromExtension(selectedOverlay)}
                                                     {$getLayerName(selectedOverlay)}
-                                                {:else if $customLayers.hasOwnProperty(selectedOverlay)}
+                                                {:else if Object.hasOwn($customLayers, selectedOverlay)}
                                                     {$customLayers[selectedOverlay].name}
                                                 {:else}
                                                     {i18n._(`layers.label.${selectedOverlay}`)}
@@ -178,7 +177,7 @@
                                         {/if}
                                     </Select.Trigger>
                                     <Select.Content class="h-fit max-h-[40dvh] overflow-y-auto">
-                                        {#each Object.keys(overlays) as id}
+                                        {#each Object.keys(overlays) as id (id)}
                                             {#if isSelected($selectedOverlayTree, id)}
                                                 <Select.Item value={id}>
                                                     {#if $isLayerFromExtension(id)}
@@ -189,7 +188,7 @@
                                                 </Select.Item>
                                             {/if}
                                         {/each}
-                                        {#each Object.entries($customLayers) as [id, layer]}
+                                        {#each Object.entries($customLayers) as [id, layer] (id)}
                                             {#if layer.layerType === 'overlay'}
                                                 <Select.Item value={id}>{layer.name}</Select.Item>
                                             {/if}
@@ -209,19 +208,6 @@
                                         disabled={selectedOverlay === undefined}
                                         onValueChange={(value) => {
                                             if (selectedOverlay) {
-                                                if (
-                                                    $map &&
-                                                    $currentOverlays &&
-                                                    isSelected($currentOverlays, selectedOverlay)
-                                                ) {
-                                                    try {
-                                                        if ($map.getLayer(selectedOverlay)) {
-                                                            $map.removeLayer(selectedOverlay);
-                                                        }
-                                                    } catch (e) {
-                                                        // No reliable way to check if the map is ready to remove sources and layers
-                                                    }
-                                                }
                                                 $opacities[selectedOverlay] = value;
                                             }
                                         }}
@@ -247,7 +233,7 @@
                                     {i18n._(`layers.label.${$terrainSource}`)}
                                 </Select.Trigger>
                                 <Select.Content class="h-fit max-h-[40dvh] overflow-y-auto">
-                                    {#each Object.keys(terrainSources) as id}
+                                    {#each Object.keys(terrainSources) as id (id)}
                                         <Select.Item value={id}>
                                             {i18n._(`layers.label.${id}`)}
                                         </Select.Item>

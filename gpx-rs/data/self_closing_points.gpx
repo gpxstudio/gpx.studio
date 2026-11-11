@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="gpx.studio" xmlns="http://www.topografix.com/GPX/1/1"
+     xmlns:ext="https://example.com/ext/0.1">
+    <metadata>
+        <name>self closing points</name>
+        <desc>Points without children are self-closing elements.</desc>
+        <extensions>
+            <ext:version>2.0</ext:version>
+            <ext:paths/>
+        </extensions>
+    </metadata>
+    <wpt lat="50.0" lon="4.0"/>
+    <wpt lat="50.1" lon="4.1"><name>with children</name></wpt>
+    <wpt lat="50.2" lon="4.2"/>
+    <trk>
+        <name>track</name>
+        <trkseg>
+            <trkpt lat="50.00" lon="4.00"/>
+            <trkpt lat="50.01" lon="4.01"><ele>12.5</ele></trkpt>
+            <trkpt lat="50.02" lon="4.02"/>
+        </trkseg>
+        <trkseg>
+            <trkpt lat="51.00" lon="5.00"/>
+        </trkseg>
+    </trk>
+</gpx>
