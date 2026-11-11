@@ -9,7 +9,7 @@
     },
     "menu": {
         "new_file": "Naujas failas",
-        "new_route_file": "New route file",
+        "new_route_file": "Naujas maršruto failas",
         "new_track": "Nauja trasa",
         "new_route": "New route",
         "convert_to_route": "Convert to route",
@@ -146,7 +146,7 @@
                 "racing_bike": "Kelių dviračiu",
                 "gravel_bike": "Bekelės dviračiu",
                 "mountain_bike": "Kalnų dviračiu",
-                "foot": "Bėgimas / ėjimas",
+                "foot": "Bėgimas / žygiavimas",
                 "motorcycle": "Motociklu",
                 "water": "Vandeniu",
                 "railway": "Geležinkeliu"
@@ -181,7 +181,7 @@
                 "unknown": "Unknown",
                 "motorway": "Highway",
                 "motorway_link": "Highway link",
-                "trunk": "Primary road",
+                "trunk": "Pagrindinis kelias",
                 "trunk_link": "Primary road link",
                 "primary": "Primary road",
                 "primary_link": "Primary road link",
@@ -552,7 +552,7 @@
     },
     "docs": {
         "translate": "Improve the translation on Crowdin",
-        "answer_not_found": "Did not find what you were looking for?",
+        "answer_not_found": "Neradote, ko ieškojote?",
         "ask_on_reddit": "Ask the community on Reddit",
         "search": {
             "search": "Search",
@@ -598,5 +598,12 @@
         "title": "This page is out of date",
         "description": "Your files were saved by a newer version of gpx.studio, which this page cannot read. Reload the page to get the latest version.",
         "reload": "Reload"
+    },
+    "desktop": {
+        "update_available": "gpx.studio {version} is available",
+        "update_restart": "Update and restart",
+        "update_download": "Download",
+        "update_installing": "Installing the update...",
+        "update_failed": "Nepavyko įdiegti atnaujinimo"
     }
 }
