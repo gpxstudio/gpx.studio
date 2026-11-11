@@ -51,14 +51,17 @@ declare module 'chart.js' {
     }
 }
 
+/** Marks the positions of the trackpoints shown without an event of the chart. */
+const trackpointPosition = Symbol('trackpointPosition');
+
 /**
  * Like the default for the events of the chart. A trackpoint that is shown without one is given by
  * its position, as it can be between the points of the chart (see `activateTrackpoint`).
  */
 Tooltip.positioners.trackpoint = function (items, position) {
-    return 'native' in position
-        ? Tooltip.positioners.average.call(this, items, position)
-        : position;
+    return trackpointPosition in position
+        ? position
+        : Tooltip.positioners.average.call(this, items, position);
 };
 
 /** `undefined` for a missing measure (NaN), so that Chart.js leaves a gap instead of a value. */
@@ -107,8 +110,6 @@ export class ElevationProfile {
      */
     private _hovered: { index: number; loaded: boolean; point?: SelectionPoint } | null = null;
     private _loadingHovered = false;
-    /** The last move over the chart, held until the data of its trackpoint is read. */
-    private _heldMove: MouseEvent | null = null;
     private _slicedStatistics: Writable<SlicedStatistics | undefined>;
     private _hoveredPoint: Writable<Coordinates | null>;
     /** All the points of each dataset, including the ones that the chart decimated. */
@@ -408,29 +409,21 @@ export class ElevationProfile {
                     afterEvent: (chart: Chart, args: { event: ChartEvent }) => {
                         if (args.event.type === 'mouseout') {
                             this._hovered = null;
-                            this._heldMove = null;
                             this._hoveredPoint.set(null);
                         }
                     },
                 },
                 {
-                    // The tooltip only shows a trackpoint once all its data is read: a move to
-                    // another one is held until then, and replayed (see `loadHovered`).
-                    id: 'waitForTrackpoint',
+                    // The tooltip follows the pointer at once with what the chart knows of the
+                    // trackpoint, and shows the rest of its data once it is read (see
+                    // `loadHovered`).
+                    id: 'loadTrackpoint',
                     events: ['mousemove'],
                     beforeEvent: (chart: Chart, args: { event: ChartEvent }) => {
                         const index = this.indexAt(args.event);
-                        if (index === undefined) {
-                            return;
+                        if (index !== undefined) {
+                            this.hover(index);
                         }
-                        const hovered = this._hovered;
-                        if (hovered?.index === index && hovered.loaded) {
-                            this._heldMove = null;
-                            return;
-                        }
-                        this._heldMove = args.event.native as MouseEvent;
-                        this.hover(index);
-                        return false;
                     },
                 },
             ],
@@ -783,7 +776,8 @@ export class ElevationProfile {
         this.setActiveElements(elements, {
             x: xScale.getPixelForValue(point.x),
             y: yScale.getPixelForValue(point.y),
-        });
+            [trackpointPosition]: true,
+        } as Point);
     }
 
     private setActiveElements(elements: ActiveDataPoint[], position: Point) {
@@ -836,16 +830,24 @@ export class ElevationProfile {
                 hovered.point = point;
                 if (this._shownTrackpoint === hovered.index) {
                     this.activateTrackpoint(hovered.index);
-                }
-                // the move that was held can now show the tooltip
-                const move = this._heldMove;
-                this._heldMove = null;
-                if (move) {
-                    this._canvas.dispatchEvent(new MouseEvent(move.type, move));
+                } else {
+                    this.refreshTooltip();
                 }
             }
         } finally {
             this._loadingHovered = false;
+        }
+    }
+
+    /** Writes the tooltip again, on the same trackpoint, for the data that was read since. */
+    private refreshTooltip() {
+        // the plugin of the tooltip, whose type only has its model
+        const tooltip = this._chart?.tooltip as
+            | (Chart['tooltip'] & { update(changed: boolean): void })
+            | undefined;
+        if (tooltip && tooltip.getActiveElements().length > 0) {
+            tooltip.update(true);
+            this._chart!.render();
         }
     }
 
