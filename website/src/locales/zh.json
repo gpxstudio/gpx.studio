@@ -9,9 +9,9 @@
     },
     "menu": {
         "new_file": "新建文件",
-        "new_route_file": "New route file",
+        "new_route_file": "新建路线文件",
         "new_track": "新建轨迹",
-        "new_route": "New route",
+        "new_route": "新路线",
         "convert_to_route": "Convert to route",
         "convert_to_track": "Convert to track",
         "convert_to_routes": "Convert to route file",
