@@ -213,10 +213,13 @@ fn apply_text(
         }
         Some(GPXElement::Time) => {
             stack.pop();
-            if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
-                trkpt.time = DateTime::parse_from_rfc3339(e)
-                    .ok()
-                    .map(|time| time.timestamp_millis());
+            let time = DateTime::parse_from_rfc3339(e)
+                .ok()
+                .map(|time| time.timestamp_millis());
+            match stack.last_mut() {
+                Some(GPXElement::Trackpoint(trkpt)) => trkpt.time = time,
+                Some(GPXElement::Waypoint(wpt)) => wpt.time = time,
+                _ => (),
             }
         }
         Some(GPXElement::Temperature) => {
@@ -1323,6 +1326,13 @@ mod tests {
         assert!(!trkseg.is_empty());
         let trkpt = &trkseg[0];
         assert!(trkpt.atemp.is_some_and(|t| t == 21));
+    }
+
+    #[test]
+    fn test_parse_waypoint_time() {
+        let data = r#"<gpx><wpt lat="1" lon="2"><time>2024-05-01T06:10:00Z</time></wpt></gpx>"#;
+        let gpx = parse(data.as_bytes(), &mut Default::default()).unwrap();
+        assert_eq!(gpx.wpt[0].time, Some(1714543800000));
     }
 
     #[test]
