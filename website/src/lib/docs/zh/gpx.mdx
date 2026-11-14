@@ -9,8 +9,7 @@ title: GPX 文件格式
 
 # { title }
 
-<a href="https://www.topografix.com/gpx.asp" target="_blank">GPX 文件格式</a> 是应用程序和 GPS 设备之间交换 GPS 数据的一种开放标准。它本质上由一系列 GPS 点组成，用以编码形成一条或多条轨迹，以及兴趣点（可选）。
-These traces can be stored either as tracks or as routes.
+<a href="https://www.topografix.com/gpx.asp" target="_blank">GPX 文件格式</a> 是应用程序和 GPS 设备之间交换 GPS 数据的一种开放标准。它本质上由一系列 GPS 点组成，用以编码形成一条或多条轨迹，以及兴趣点（可选）。这些连线可以储存为轨迹或路线。
 
 还可以包含元数据，其中 **名称（name）** 和 **描述（description）** 字段对用户最有用。
 
@@ -26,14 +25,13 @@ GPX 文件通常只包含一条轨迹，且该轨迹仅有一个路段。不过�
 
 ### <Route size="16" class="inline-block" style="margin-bottom: 2px" /> Routes
 
-A **route** is a single continuous path made of a sequence of **route points**.
+**路线**是一个由**路线点**序列组成的单一连续路径。
 These are mandatory checkpoints, which correspond to the anchor points of the [routing tool](./toolbar/routing).
-The points in between are only a suggested path connecting the route points.
-Like a track, a route can have a **name**, a **description**, and **appearance properties**.
+两者之间的点只是一条连接路线点的建议路径。像轨迹一样，路线可以有**名称**、**描述**和**路线属性**。
 
 <DocsNote>
 
-Nowadays, most apps and GPS devices work perfectly well with tracks, even for navigation.
+现在，大多数应用和 GPS 设备都与轨迹完全兼容，甚至用于导航。
 However, some of them only work with routes: in that case, you can [convert](./menu/edit) your tracks to routes, or [create](./menu/file) a route file from the start.
 
 </DocsNote>
