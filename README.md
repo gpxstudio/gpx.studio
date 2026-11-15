@@ -59,6 +59,7 @@ This project has been made possible thanks to the following open source projects
 - Development:
     - [Svelte](https://github.com/sveltejs/svelte) and [SvelteKit](https://github.com/sveltejs/kit) — seamless development experience
     - [MDsveX](https://github.com/pngwn/MDsveX) — allowing a Markdown-based documentation
+    - [Tauri](https://github.com/tauri-apps/tauri) – making a desktop app possible
 - Design:
     - [shadcn-svelte](https://github.com/huntabyte/shadcn-svelte) — beautiful components
     - [@lucide/svelte](https://github.com/lucide-icons/lucide/tree/main/packages/svelte) — beautiful icons
