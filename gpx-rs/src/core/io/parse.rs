@@ -222,7 +222,8 @@ fn apply_text(
         Some(GPXElement::Temperature) => {
             stack.pop();
             if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
-                trkpt.atemp = e.parse().ok();
+                // Garmin Connect writes whole degrees as "21.0"
+                trkpt.atemp = e.parse::<f64>().ok().map(|t| t.round() as i16);
             }
         }
         Some(GPXElement::Heartrate) => {
@@ -1323,6 +1324,14 @@ mod tests {
         assert!(!trkseg.is_empty());
         let trkpt = &trkseg[0];
         assert!(trkpt.atemp.is_some_and(|t| t == 21));
+    }
+
+    #[test]
+    fn test_parse_trackpoint_decimal_atemp() {
+        let data = r#"<gpx><trk><trkseg><trkpt lat="1" lon="2"><extensions><gpxtpx:TrackPointExtension>
+            <gpxtpx:atemp>21.0</gpxtpx:atemp></gpxtpx:TrackPointExtension></extensions></trkpt></trkseg></trk></gpx>"#;
+        let gpx = parse(data.as_bytes(), &mut Default::default()).unwrap();
+        assert_eq!(gpx.trk[0].trkseg[0][0].atemp, Some(21));
     }
 
     #[test]
