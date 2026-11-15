@@ -8,16 +8,7 @@ import { map } from '$lib/components/map/map';
 
 const { currentOverlays, previousOverlays, selectedOverlayTree } = settings;
 
-/** An overlay of the v1 API. */
-export type CustomOverlay = {
-    extensionName: string;
-    id: string;
-    name: string;
-    tileUrls: string[];
-    maxZoom?: number;
-};
-
-/** An overlay of the v2 API. */
+/** An overlay given by an extension. */
 export type ExtensionOverlay = {
     /** Unique within the extension. Keep it stable: the opacity and menu choices are tied to it. */
     id: string;
@@ -37,8 +28,8 @@ export type ExtensionOverlay = {
 type RegisteredOverlay = {
     extensionName: string;
     name: string;
-    /** The style given by the extension, to tell when it changes; only for the v2 API. */
-    signature?: string;
+    /** The style given by the extension, to tell when it changes. */
+    signature: string;
 };
 
 type VisibilityCallback = (visible: Record<string, boolean>) => void;
@@ -46,36 +37,19 @@ type VisibilityCallback = (visible: Record<string, boolean>) => void;
 /** The groups of the overlay tree that an extension cannot put its overlays in. */
 const reservedGroups = new Set(['__proto__', ...Object.keys(layerGroup(overlayTree.overlays))]);
 
-/** The id of an overlay of the v1 API, whose methods do not all get the name of the extension. */
-function getOverlayId(id: string): string {
-    return `extension-${id}`;
-}
-
-/** The id of an overlay of the v2 API. It is encoded so that two extensions cannot clash. */
+/** The id of an overlay. It is encoded so that two extensions cannot clash. */
 function getExtensionOverlayId(extensionName: string, id: string): string {
-    return getOverlayId(`${encodeURIComponent(extensionName)}/${encodeURIComponent(id)}`);
+    return `extension-${encodeURIComponent(extensionName)}/${encodeURIComponent(id)}`;
 }
 
 /**
- * Sets the overlays of an extension in a tree, in order. Its other entries are dropped, except for
- * those of `keep`: its overlays of the v1 API, which can be in the same group. An extension that
- * has nothing left has no group anymore.
+ * Sets the overlays of an extension in a tree, in order, dropping its other entries. An extension
+ * that has nothing left has no group anymore.
  */
-function setGroup(
-    tree: LayerTreeType,
-    extensionName: string,
-    entries: Record<string, boolean>,
-    keep: (id: string) => boolean
-) {
+function setGroup(tree: LayerTreeType, extensionName: string, entries: Record<string, boolean>) {
     const groups = layerGroup(tree.overlays);
-    const group = groups[extensionName];
-    const kept =
-        typeof group === 'object'
-            ? Object.entries(group).filter(([id]) => keep(id) && !Object.hasOwn(entries, id))
-            : [];
-    const updated = { ...entries, ...Object.fromEntries(kept) };
-    if (Object.keys(updated).length > 0) {
-        groups[extensionName] = updated;
+    if (Object.keys(entries).length > 0) {
+        groups[extensionName] = { ...entries };
     } else {
         delete groups[extensionName];
     }
@@ -83,7 +57,7 @@ function setGroup(
 }
 
 export class ExtensionAPI {
-    /** The version of the API; the methods of v1 are still there, until extensions have moved. */
+    /** The version of the API. */
     readonly version = 2;
     /**
      * Resolved once overlays can be set. `gpxstudio:extension-api-ready` is sent on `window` at that
@@ -99,7 +73,7 @@ export class ExtensionAPI {
 
     init() {
         if (browser && !Object.hasOwn(window, 'gpxstudio')) {
-            this.ready = this.ensureLoaded();
+            this.ready = this.whenLoaded();
             this.ready.then(() => window.dispatchEvent(new Event('gpxstudio:extension-api-ready')));
             Object.defineProperty(window, 'gpxstudio', {
                 value: this,
@@ -107,8 +81,7 @@ export class ExtensionAPI {
         }
     }
 
-    /** @deprecated v1: use `ready`. */
-    ensureLoaded(): Promise<void> {
+    private whenLoaded(): Promise<void> {
         let unsubscribe: () => void;
         const promise = new Promise<void>((resolve) => {
             map.onLoad(() => {
@@ -206,16 +179,12 @@ export class ExtensionAPI {
             visibility[overlay.id] = shown[id];
         });
 
-        const keep = (id: string) => {
-            const overlay = get(this._overlays).get(id);
-            return overlay !== undefined && overlay.signature === undefined;
-        };
-        setGroup(overlayTree, extensionName, available, keep);
-        selectedOverlayTree.update((tree) => setGroup(tree, extensionName, selected, keep));
+        setGroup(overlayTree, extensionName, available);
+        selectedOverlayTree.update((tree) => setGroup(tree, extensionName, selected));
         previousOverlays.update((tree) => removeAll(tree, removedIds));
         // this is not an action of the user: there must be nothing to tell the extension about
         this._visibility.set(extensionName, visibility);
-        currentOverlays.update((tree) => setGroup(tree, extensionName, shown, keep));
+        currentOverlays.update((tree) => setGroup(tree, extensionName, shown));
     }
 
     /**
@@ -263,8 +232,7 @@ export class ExtensionAPI {
     private getOverlaysOf(extensionName: string): Map<string, RegisteredOverlay> {
         return new Map(
             Array.from(get(this._overlays)).filter(
-                ([, overlay]) =>
-                    overlay.extensionName === extensionName && overlay.signature !== undefined
+                ([, overlay]) => overlay.extensionName === extensionName
             )
         );
     }
@@ -284,139 +252,6 @@ export class ExtensionAPI {
         } catch {
             // No reliable way to check if the map is ready to remove sources and layers
         }
-    }
-
-    /** @deprecated v1: use `setOverlays`. */
-    addOrUpdateOverlay(overlay: CustomOverlay) {
-        if (
-            !overlay.extensionName ||
-            !overlay.id ||
-            !overlay.name ||
-            !overlay.tileUrls ||
-            overlay.tileUrls.length === 0
-        ) {
-            throw new Error(
-                'Overlay must have an extensionName, id, name, and at least one tile URL.'
-            );
-        }
-        overlay.id = getOverlayId(overlay.id);
-
-        this._overlays.update(($overlays) => {
-            $overlays.set(overlay.id, overlay);
-            return $overlays;
-        });
-
-        overlays[overlay.id] = {
-            version: 8,
-            sources: {
-                [overlay.id]: {
-                    type: 'raster',
-                    tiles: overlay.tileUrls,
-                    tileSize: overlay.tileUrls.some((url) => url.includes('512')) ? 512 : 256,
-                    maxzoom: overlay.maxZoom ?? 22,
-                },
-            },
-            layers: [
-                {
-                    id: overlay.id,
-                    type: 'raster',
-                    source: overlay.id,
-                },
-            ],
-        };
-
-        const extensions = layerGroup(overlayTree.overlays);
-        if (!Object.hasOwn(extensions, overlay.extensionName)) {
-            extensions[overlay.extensionName] = {};
-        }
-
-        layerGroup(extensions[overlay.extensionName])[overlay.id] = true;
-
-        selectedOverlayTree.update((selected) => {
-            if (!Object.hasOwn(selected.overlays, overlay.extensionName)) {
-                selected.overlays[overlay.extensionName] = {};
-            }
-            selected.overlays[overlay.extensionName][overlay.id] = true;
-            return selected;
-        });
-
-        const current = get(currentOverlays);
-        let show = false;
-        if (current && isSelected(current, overlay.id)) {
-            show = true;
-            try {
-                get(map)?.removeLayer(overlay.id);
-            } catch {
-                // No reliable way to check if the map is ready to remove sources and layers
-            }
-        }
-
-        currentOverlays.update((current) => {
-            if (!Object.hasOwn(current.overlays, overlay.extensionName)) {
-                current.overlays[overlay.extensionName] = {};
-            }
-            current.overlays[overlay.extensionName][overlay.id] = show;
-            return current;
-        });
-    }
-
-    /** @deprecated v1: use `setOverlays`. Leaves the overlays of the v2 API alone. */
-    filterOverlays(ids: string[]) {
-        ids = ids.map((id) => getOverlayId(id));
-        const idsToRemove = Array.from(get(this._overlays))
-            .filter(([id, overlay]) => overlay.signature === undefined && !ids.includes(id))
-            .map(([id]) => id);
-
-        currentOverlays.update((current) => {
-            removeAll(current, idsToRemove);
-            return current;
-        });
-        previousOverlays.update((previous) => {
-            removeAll(previous, idsToRemove);
-            return previous;
-        });
-        selectedOverlayTree.update((selected) => {
-            removeAll(selected, idsToRemove);
-            return selected;
-        });
-        Object.keys(overlays).forEach((id) => {
-            if (idsToRemove.includes(id)) {
-                delete overlays[id];
-            }
-        });
-        removeAll(overlayTree, idsToRemove);
-        this._overlays.update(($overlays) => {
-            $overlays.forEach((_, id) => {
-                if (idsToRemove.includes(id)) {
-                    $overlays.delete(id);
-                }
-            });
-            return $overlays;
-        });
-    }
-
-    /** @deprecated v1: use `setOverlays`. */
-    updateOverlaysOrder(ids: string[]) {
-        ids = ids.map((id) => getOverlayId(id));
-        selectedOverlayTree.update((selected) => {
-            const isSelected: Record<string, boolean> = {};
-            ids.forEach((id) => {
-                const overlay = get(this._overlays).get(id);
-                if (
-                    overlay &&
-                    Object.hasOwn(selected.overlays, overlay.extensionName) &&
-                    Object.hasOwn(selected.overlays[overlay.extensionName] as LayerTreeType, id)
-                ) {
-                    isSelected[id] = selected.overlays[overlay.extensionName][id];
-                    delete selected.overlays[overlay.extensionName][id];
-                }
-            });
-            Object.entries(isSelected).forEach(([id, value]) => {
-                const overlay = get(this._overlays).get(id)!;
-                selected.overlays[overlay.extensionName][id] = value;
-            });
-            return selected;
-        });
     }
 
     isLayerFromExtension = derived(this._overlays, ($overlays) => {
