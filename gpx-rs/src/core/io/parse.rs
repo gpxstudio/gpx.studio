@@ -1335,7 +1335,7 @@ mod tests {
         let trkpt = &trkseg[0];
         assert!(trkpt.atemp.is_some_and(|t| t == 21));
     }
-  
+
     #[test]
     fn test_parse_trackpoint_decimal_atemp() {
         let data = r#"<gpx><trk><trkseg><trkpt lat="1" lon="2"><extensions><gpxtpx:TrackPointExtension>
