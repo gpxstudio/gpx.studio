@@ -87,6 +87,16 @@ This project has been made possible thanks to the following open source projects
 - Search:
     - [DocSearch](https://github.com/algolia/docsearch) — search engine for the documentation
 
+## Integration
+
+There are several ways to integrate **gpx.studio** into your website or tools:
+
+- **Embedding**: show your GPX files on an interactive map in your website. See the [documentation](https://gpx.studio/help/integration) to configure the map and generate the HTML code.
+- **Map object**: `window._map` gives access to the [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/) map instance.
+- **Extension API**: `window.gpxstudio` lets browser extensions add map overlays that appear in the layer menu like built-in ones. See [`extension-api.ts`](website/src/lib/components/map/layer-control/extension-api.ts) for the reference.
+
+To be notified about changes that may affect your integration, subscribe to [this discussion](https://github.com/gpxstudio/gpx.studio/discussions/410).
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
