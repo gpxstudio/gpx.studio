@@ -52,6 +52,18 @@ npm install
 npm run dev
 ```
 
+### Testing
+
+Each part has its own tests:
+
+```bash
+cargo test                                # the engine (gpx-rs), from the root of the repository
+(cd wasm && wasm-pack test --node)        # the WebAssembly bindings
+npm test --prefix website                 # the website, once the WebAssembly engine is built
+```
+
+See [`tauri`](tauri/README.md) for the tests of the desktop app.
+
 ## Credits
 
 This project has been made possible thanks to the following open source projects:
