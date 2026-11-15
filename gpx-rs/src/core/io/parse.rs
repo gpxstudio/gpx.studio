@@ -3,11 +3,11 @@ use crate::{
     TrackpointCategories, TrackpointChunk, Waypoint, WaypointChunk, distance,
 };
 use chrono::DateTime;
-use quick_xml::{Error, XmlVersion};
 use quick_xml::escape::resolve_predefined_entity;
 use quick_xml::events::Event;
 use quick_xml::events::attributes::{Attribute, Attributes};
 use quick_xml::reader::Reader;
+use quick_xml::{Error, XmlVersion};
 
 enum GPXElement {
     Metadata,
@@ -219,6 +219,7 @@ fn apply_text(
             match stack.last_mut() {
                 Some(GPXElement::Trackpoint(trkpt)) => trkpt.time = time,
                 Some(GPXElement::Waypoint(wpt)) => wpt.time = time,
+                Some(GPXElement::Metadata) => gpx.info.time = time,
                 _ => (),
             }
         }
@@ -1145,12 +1146,19 @@ mod tests {
         assert!(wpt.sym.as_ref().is_some_and(|s| s == "Bike Trail"));
         assert!(wpt.type_.as_ref().is_some_and(|t| t == "Bike Trail"));
     }
-  
+
     #[test]
     fn test_parse_waypoint_time() {
         let data = r#"<gpx><wpt lat="1" lon="2"><time>2024-05-01T06:10:00Z</time></wpt></gpx>"#;
         let gpx = parse(data.as_bytes(), &mut Default::default()).unwrap();
         assert_eq!(gpx.wpt[0].time, Some(1714543800000));
+    }
+
+    #[test]
+    fn test_parse_metadata_time() {
+        let data = r#"<gpx><metadata><time>2024-05-01T06:10:00Z</time></metadata></gpx>"#;
+        let gpx = parse(data.as_bytes(), &mut Default::default()).unwrap();
+        assert_eq!(gpx.info.time, Some(1714543800000));
     }
 
     #[test]
