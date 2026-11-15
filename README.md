@@ -52,6 +52,18 @@ npm install
 npm run dev
 ```
 
+### Testing
+
+Each part has its own tests:
+
+```bash
+cargo test                                # the engine (gpx-rs), from the root of the repository
+(cd wasm && wasm-pack test --node)        # the WebAssembly bindings
+npm test --prefix website                 # the website, once the WebAssembly engine is built
+```
+
+See [`tauri`](tauri/README.md) for the tests of the desktop app.
+
 ## Credits
 
 This project has been made possible thanks to the following open source projects:
@@ -59,6 +71,7 @@ This project has been made possible thanks to the following open source projects
 - Development:
     - [Svelte](https://github.com/sveltejs/svelte) and [SvelteKit](https://github.com/sveltejs/kit) — seamless development experience
     - [MDsveX](https://github.com/pngwn/MDsveX) — allowing a Markdown-based documentation
+    - [Tauri](https://github.com/tauri-apps/tauri) – making a desktop app possible
 - Design:
     - [shadcn-svelte](https://github.com/huntabyte/shadcn-svelte) — beautiful components
     - [@lucide/svelte](https://github.com/lucide-icons/lucide/tree/main/packages/svelte) — beautiful icons

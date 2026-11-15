@@ -3,11 +3,11 @@ use crate::{
     TrackpointCategories, TrackpointChunk, Waypoint, WaypointChunk, distance,
 };
 use chrono::DateTime;
-use quick_xml::{Error, XmlVersion};
 use quick_xml::escape::resolve_predefined_entity;
 use quick_xml::events::Event;
 use quick_xml::events::attributes::{Attribute, Attributes};
 use quick_xml::reader::Reader;
+use quick_xml::{Error, XmlVersion};
 
 enum GPXElement {
     Metadata,
@@ -213,16 +213,21 @@ fn apply_text(
         }
         Some(GPXElement::Time) => {
             stack.pop();
-            if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
-                trkpt.time = DateTime::parse_from_rfc3339(e)
-                    .ok()
-                    .map(|time| time.timestamp_millis());
+            let time = DateTime::parse_from_rfc3339(e)
+                .ok()
+                .map(|time| time.timestamp_millis());
+            match stack.last_mut() {
+                Some(GPXElement::Trackpoint(trkpt)) => trkpt.time = time,
+                Some(GPXElement::Waypoint(wpt)) => wpt.time = time,
+                Some(GPXElement::Metadata) => gpx.info.time = time,
+                _ => (),
             }
         }
         Some(GPXElement::Temperature) => {
             stack.pop();
             if let Some(GPXElement::Trackpoint(trkpt)) = stack.last_mut() {
-                trkpt.atemp = e.parse().ok();
+                // Garmin Connect writes whole degrees as "21.0"
+                trkpt.atemp = e.parse::<f64>().ok().map(|t| t.round() as i16);
             }
         }
         Some(GPXElement::Heartrate) => {
@@ -1143,6 +1148,20 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_waypoint_time() {
+        let data = r#"<gpx><wpt lat="1" lon="2"><time>2024-05-01T06:10:00Z</time></wpt></gpx>"#;
+        let gpx = parse(data.as_bytes(), &mut Default::default()).unwrap();
+        assert_eq!(gpx.wpt[0].time, Some(1714543800000));
+    }
+
+    #[test]
+    fn test_parse_metadata_time() {
+        let data = r#"<gpx><metadata><time>2024-05-01T06:10:00Z</time></metadata></gpx>"#;
+        let gpx = parse(data.as_bytes(), &mut Default::default()).unwrap();
+        assert_eq!(gpx.info.time, Some(1714543800000));
+    }
+
+    #[test]
     fn test_parse_trackpoint_time() {
         let gpx = parse_data("with_time");
 
@@ -1323,6 +1342,14 @@ mod tests {
         assert!(!trkseg.is_empty());
         let trkpt = &trkseg[0];
         assert!(trkpt.atemp.is_some_and(|t| t == 21));
+    }
+
+    #[test]
+    fn test_parse_trackpoint_decimal_atemp() {
+        let data = r#"<gpx><trk><trkseg><trkpt lat="1" lon="2"><extensions><gpxtpx:TrackPointExtension>
+            <gpxtpx:atemp>21.0</gpxtpx:atemp></gpxtpx:TrackPointExtension></extensions></trkpt></trkseg></trk></gpx>"#;
+        let gpx = parse(data.as_bytes(), &mut Default::default()).unwrap();
+        assert_eq!(gpx.trk[0].trkseg[0][0].atemp, Some(21));
     }
 
     #[test]
